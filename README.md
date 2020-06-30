@@ -1,7 +1,7 @@
 ## pykale: machine learning for medical imaging, graph, and vision data  
 We aim to develop a common framework to accelerate our research on machine learning for medical imaging,
 graphs/networks, and computer vision. If some resources are domain-specific, put them under
-specific folders, `medimg`, `graph`, and `vision`, respectively. If you do not have write access, 
+specific folders, `medim`, `graph`, and `vision`, respectively. If you do not have write access, 
 please push and one from the core team will review and update.
 
 ### Objectives
@@ -15,15 +15,15 @@ please push and one from the core team will review and update.
 * Keep it as modular as possible, following the pipeline below   
 
 ### Pipeline and modules
-* Data loading: input
-* Data preprocessing: transforms
-* Learning and prediction (joint or separate)
-    * Representation learning / embedding (feature extraction/selection)
-    * Prediction (output)
-* Evaluation: metrics
-* Post analysis: visualisation, interpretation
-* Systems: system-level integration
-* Demo: notebook and GUI 
+* `loaddata` Data loading: input
+* `prepdata` Data preprocessing: transforms
+* `replrnpred` Learning and prediction (joint or separate)
+    * `replearn` Representation learning / embedding (feature extraction/selection)
+    * `predict` Prediction (output)
+* `evaluate` Evaluation: metrics
+* `postanaly` Post analysis: visualisation, interpretation
+* `system` Systems: system-level integration
+* `demo` Demo: notebook and GUI 
 
 ### Medical imaging specific
 * Data and tasks
