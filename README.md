@@ -1,4 +1,4 @@
-### pykale: machine learning for medical imaging, graph, and vision data  
+## pykale: machine learning for medical imaging, graph, and vision data  
 We aim to develop our own ecosystem to facilitate our research on machine learning for medical imaging,
 graphs/networks, and computer vision. We will identify domain-specific resources by putting them under
 specific folders (medimg, graph, vision) or add prefixes (mi, gn, cv).
