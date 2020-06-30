@@ -7,12 +7,12 @@
 * `evaluate` Performance evaluation using some metrices
 * `postanaly` Post-prediction analysis with visulisation, interpretation, etc.
 * `system` System-level development and/or integration of the other modules
-* `demo` Demos to show functionality via notebooks or GUI applications
 
 #### Name domain-specific files as so above. If this is difficult, consider three additional folders as the last resort 
 * `medim` Medical image analysis with knowledge-aware machine learning
 * `graph` Graph/Network analysis with knowledge-aware machine learning
 * `vision` Computer vision with knowledge-aware machine learning
-We also want to compile some domain-specific resources in these three folders
+
+We also want to compile some domain-specific resources in these three folders.
 
  

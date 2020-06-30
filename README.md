@@ -24,7 +24,8 @@ and computer vision. If you do not have write access, please push and one from t
 * `evaluate` Evaluation: metrics
 * `postanaly` Post analysis: visualisation, interpretation
 * `system` Systems: system-level integration
-* `demo` Demo: notebook and GUI 
+
+`examples`: Demos to show functionality via notebooks or GUI applications
 
 ### Medical imaging specific
 * Data and tasks
