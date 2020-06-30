@@ -1,8 +1,9 @@
 ## pykale: machine learning for medical imaging, graph, and vision data  
-We aim to develop a common framework to accelerate our research on machine learning for medical imaging,
-graphs/networks, and computer vision. If some resources are domain-specific, put them under
-specific folders, `medim`, `graph`, and `vision`, respectively. If you do not have write access, 
-please push and one from the core team will review and update.
+We aim to develop a common framework to accelerate our research on machine learning for medical imaging, graphs/networks, 
+and computer vision. If you do not have write access, please push and one from the core team will review and update.
+
+**Coding style to follow**: [MONAI](https://github.com/Project-MONAI/MONAI) for `medim`, [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) for `graph`,
+ and [kornia?](https://github.com/kornia/kornia) for `vision`. All pure python from [pytorch ecosysmtem](https://pytorch.org/ecosystem/) (our goal!)  
 
 ### Objectives
 * Share our resources/expertise and know each other better
@@ -39,8 +40,8 @@ please push and one from the core team will review and update.
     * Knowledge graph and user-item data for recommender systems
     * Biomedical knowledge graph for drug-drug interaction prediction
 * Recommended package(s)
-    * [OGB](https://github.com/snap-stanford/ogb): 
-    * PyG and DGL?
+    * [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric): deep learning library for graphs
+    * [OGB](https://github.com/snap-stanford/ogb): Benchmark datasets, data loaders, and evaluators for graph machine learning    
 
 ### Computer vision specific
 * Data and tasks
@@ -48,10 +49,10 @@ please push and one from the core team will review and update.
     * Pose estimation from images
     * Image recognition (baselines)
 * Recommended package(s)
-    * [?](?): 
+    * [kornia?](https://github.com/kornia/kornia): Computer Vision Library for PyTorch
 
 ### General recommendation
-* Python: pytorch ([ecosysmtem](https://pytorch.org/ecosystem/)), tensorboardX?, pycharm (IDE)
+* Python: pytorch, pycharm (IDE)
 * GitHub: GitHub Desktop, [UCL guidance](https://www.ucl.ac.uk/isd/services/research-it/research-software-development-tools/support-for-ucl-researchers-to-use-github)
 * Check out and contribute to the [resources](Resources.md) (and specific resources under each domain)
 
