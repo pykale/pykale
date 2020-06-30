@@ -1,7 +1,8 @@
 ## pykale: machine learning for medical imaging, graph, and vision data  
-We aim to develop our own ecosystem to facilitate our research on machine learning for medical imaging,
-graphs/networks, and computer vision. We will identify domain-specific resources by putting them under
-specific folders (medimg, graph, vision) or add prefixes (mi, gn, cv).
+We aim to develop a common framework to accelerate our research on machine learning for medical imaging,
+graphs/networks, and computer vision. If some resources are domain-specific, put them under
+specific folders, `medimg`, `graph`, and `vision`, respectively. If you do not have write access, 
+please push and one from the core team will review and update.
 
 ### Objectives
 * Share our resources/expertise and know each other better
@@ -43,7 +44,7 @@ specific folders (medimg, graph, vision) or add prefixes (mi, gn, cv).
 
 ### Computer vision specific
 * Data and tasks
-    * Actiion recognition from videos
+    * Action recognition from videos
     * Pose estimation from images
     * Image recognition (baselines)
 * Recommended package(s)
