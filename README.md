@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="docs/pykaleWorkflow.png" width="100%" alt='machine learning workflow'>
+</p>
 ## pykale: machine learning for medical imaging, graph, and vision data  
 We aim to develop a common framework to accelerate (our) **interdisciplinary** research on machine learning for medical imaging, graphs/networks, 
 and computer vision. Our framework will be complementary to existing libraries. To join this effort, clone or fork this repository and push your contributions when ready for review and merge.
@@ -8,7 +11,7 @@ and computer vision. Our framework will be complementary to existing libraries. 
 ### Plan 
 * End Sep 2020: Internal use by all
 * End Dec 2020: First public release
-* Long term goal: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)
+* Long term: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)
 
 ### Objectives
 * Share our resources/expertise and know each other better
@@ -21,14 +24,13 @@ and computer vision. Our framework will be complementary to existing libraries. 
 * Keep it as modular as possible, following the pipeline below   
 
 ### Pipeline and modules
-* `loaddata` Data loading: input
-* `prepdata` Data preprocessing: transforms
-* `replrnpred` Learning and prediction (joint or separate)
-    * `replearn` Representation learning / embedding (feature extraction/selection)
-    * `predict` Prediction (output)
-* `evaluate` Evaluation: metrics
-* `postanaly` Post analysis: visualisation, interpretation
-* `system` Systems: system-level integration
+* `loaddata` load data from disk or online resources as in input
+* `prepdata` preprocess data to fit machine learning modules below (transforms)
+* `embed` embed data in a new space to learn a new representation (feature extraction/selection)
+* `predict` predict a desired output
+* `evaluate` evaluate the performance using some metrics
+* `interpret` interpret the features and outputs via post-prediction analysis mainly via visualisation
+* `system` build a system using the above modules (system-level integration)
 
 `examples`: Demos with notebooks, GUI applications, and [TorchScript](https://pytorch.org/docs/stable/jit.html) support.
 
