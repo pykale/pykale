@@ -1,6 +1,7 @@
 <p align="center">
   <img src="docs/pykaleWorkflow.png" width="100%" alt='machine learning workflow'>
 </p>
+
 ## pykale: machine learning for medical imaging, graph, and vision data  
 We aim to develop a common framework to accelerate (our) **interdisciplinary** research on machine learning for medical imaging, graphs/networks, 
 and computer vision. Our framework will be complementary to existing libraries. To join this effort, clone or fork this repository and push your contributions when ready for review and merge.
