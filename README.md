@@ -3,7 +3,7 @@ We aim to develop a common framework to accelerate (our) **interdisciplinary** r
 and computer vision. Our framework will be complementary to existing libraries. To join this effort, clone or fork this repository and push your contributions when ready for review and merge.
 
 **Coding style to follow**: [PyTorch](https://pytorch.org/tutorials/). Key references include [MONAI](https://github.com/Project-MONAI/MONAI) for `medim`, [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) for `graph`,
- and [kornia](https://github.com/kornia/kornia) for `vision`. Documentation The [MONAI highlights] (https://docs.monai.io/en/latest/highlights.html)
+ and [kornia](https://github.com/kornia/kornia) for `vision`. Documentation The [MONAI highlights](https://docs.monai.io/en/latest/highlights.html)
 
 ### Plan 
 * End Sep 2020: Internal use by all
