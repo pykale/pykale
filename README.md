@@ -70,6 +70,8 @@ We aim to develop a common framework to accelerate (our) **interdisciplinary** r
 * Recommended package(s)
   * [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
 
+## General issues
+
 ### General recommendation
 
 * Python: pytorch, [Visual Studio Code](https://code.visualstudio.com/download), pycharm
