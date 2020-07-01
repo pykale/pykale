@@ -1,9 +1,14 @@
 ## pykale: machine learning for medical imaging, graph, and vision data  
-We aim to develop a common framework to accelerate our research on machine learning for medical imaging, graphs/networks, 
-and computer vision. If you do not have write access, please push and one from the core team will review and update.
+We aim to develop a common framework to accelerate (our) **interdisciplinary** research on machine learning for medical imaging, graphs/networks, 
+and computer vision. Our framework will be complementary to existing libraries. To join this effort, clone or fork this repository and push your contributions when ready for review and merge.
 
-**Coding style to follow**: [MONAI](https://github.com/Project-MONAI/MONAI) for `medim`, [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) for `graph`,
- and [kornia](https://github.com/kornia/kornia) for `vision`. All pure python from [pytorch ecosysmtem](https://pytorch.org/ecosystem/) (our goal!)  
+**Coding style to follow**: [PyTorch](https://pytorch.org/tutorials/). Key references include [MONAI](https://github.com/Project-MONAI/MONAI) for `medim`, [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) for `graph`,
+ and [kornia](https://github.com/kornia/kornia) for `vision`. Documentation The [MONAI highlights] (https://docs.monai.io/en/latest/highlights.html)
+
+### Plan 
+* End Sep 2020: Internal use by all
+* End Dec 2020: First public release
+* Long term goal: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)
 
 ### Objectives
 * Share our resources/expertise and know each other better
@@ -25,7 +30,7 @@ and computer vision. If you do not have write access, please push and one from t
 * `postanaly` Post analysis: visualisation, interpretation
 * `system` Systems: system-level integration
 
-`examples`: Demos to show functionality via notebooks or GUI applications
+`examples`: Demos with notebooks, GUI applications, and [TorchScript](https://pytorch.org/docs/stable/jit.html) support.
 
 ### Medical imaging specific
 * Data and tasks
@@ -34,7 +39,7 @@ and computer vision. If you do not have write access, please push and one from t
     * CMRI Landmark localisation
     * CMRI segmentation?
 * Recommended package(s)
-    * [MONAI](https://github.com/Project-MONAI/MONAI): deep learning-based healthcare imaging workflows
+    * [MONAI](https://github.com/Project-MONAI/MONAI): deep learning-based healthcare imaging workflows, with great [highlights](https://docs.monai.io/en/latest/highlights.html)
 
 ### Graph/Network specific
 * Data and tasks
@@ -50,7 +55,7 @@ and computer vision. If you do not have write access, please push and one from t
     * Pose estimation from images
     * Image recognition (baselines)
 * Recommended package(s)
-    * [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch
+    * [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
 
 ### General recommendation
 * Python: pytorch, pycharm (IDE)
