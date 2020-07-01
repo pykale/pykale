@@ -6,9 +6,6 @@
 
 We aim to develop a common framework to accelerate (our) **interdisciplinary** research on machine learning for medical imaging, graphs/networks, and computer vision. Our framework will be complementary to existing libraries. To join this effort, clone or fork this repository and push your contributions when ready for review and merge.
 
-**Coding style to follow**: [PyTorch](https://pytorch.org/tutorials/). Key references include [MONAI](https://github.com/Project-MONAI/MONAI) for `medim`, [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) for `graph`,
- and [kornia](https://github.com/kornia/kornia) for `vision`. Good documentation to learn from: the [MONAI highlights](https://docs.monai.io/en/latest/highlights.html).
-
 ## Overview
 
 ### Plan
@@ -40,6 +37,22 @@ We aim to develop a common framework to accelerate (our) **interdisciplinary** r
 
 `examples`: Demos with notebooks, GUI applications, and [TorchScript](https://pytorch.org/docs/stable/jit.html) support.
 
+## Coding
+
+### Coding style
+
+* Configure learning systems following [YACS](https://github.com/rbgirshick/yacs)
+* Use [PyTorch](https://pytorch.org/tutorials/) when possible and follow its coding style
+* Key references include [MONAI](https://github.com/Project-MONAI/MONAI) for `medim`, [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) for `graph`, and [kornia](https://github.com/kornia/kornia) for `vision`.
+
+### General recommendation
+
+* Python: pytorch, [Visual Studio Code](https://code.visualstudio.com/download), pycharm
+* GitHub: GitHub Desktop, [UCL guidance](https://www.ucl.ac.uk/isd/services/research-it/research-software-development-tools/support-for-ucl-researchers-to-use-github)
+* Check out and contribute to the [resources](Resources.md) (and specific resources under each domain)
+
+Welcome contributions from expertnal members. If you have a recommendation, contact Haiping to consider.
+
 ## Domain specifics
 
 ### Medical imaging
@@ -69,13 +82,4 @@ We aim to develop a common framework to accelerate (our) **interdisciplinary** r
   * Image recognition (baselines)
 * Recommended package(s)
   * [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
-
-## General issues
-
-### General recommendation
-
-* Python: pytorch, [Visual Studio Code](https://code.visualstudio.com/download), pycharm
-* GitHub: GitHub Desktop, [UCL guidance](https://www.ucl.ac.uk/isd/services/research-it/research-software-development-tools/support-for-ucl-researchers-to-use-github)
-* Check out and contribute to the [resources](Resources.md) (and specific resources under each domain)
-
-Welcome contributions from expertnal members. If you have a recommendation, contact Haiping to consider.
+  
