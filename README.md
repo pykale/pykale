@@ -1,4 +1,4 @@
-# Machine learning for medical imaging, graph, and vision
+# Machine learning for med_img, graph, & vision
 
 <img src="docs/pykaleWorkflow.png"
      alt="Machine learning workflow"
@@ -82,4 +82,3 @@ Welcome contributions from expertnal members. If you have a recommendation, cont
   * Image recognition (baselines)
 * Recommended package(s)
   * [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
-  
