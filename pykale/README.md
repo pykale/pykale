@@ -8,4 +8,4 @@ Modules are organised with the following standard pipeline
 * `predict` Machine learning functions for predicting a desired output
 * `evaluate` Performance evaluation using some metrices
 * `interpret` Post-prediction interpretation, e.g. via visulisation, for further anlysis
-* `system` System-level development that integrates the above modules to solve specific domain problems in medical imaging, graph/networks and computer vision.
+* `system` System-level development that integrates modules to solve specific domain problems in medical imaging, graph/networks and computer vision.
