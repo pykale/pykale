@@ -24,7 +24,7 @@ We aim to develop a common framework to accelerate (our) **interdisciplinary** r
 
 * Keep it **lean** in content, and memory/time cost. Quality first!
 * Use existing top code when it fits (**credit@top + license**) and build when NA or we can do much better
-* Keep it as modular as possible, following the pipeline below   
+* Keep it as modular as possible, following the pipeline below
 
 ### Pipeline and modules
 
@@ -58,7 +58,7 @@ Welcome contributions from expertnal members. If you have a recommendation, cont
 ### Medical imaging
 
 * Data and tasks
-  * Brain fMRI for diagnosis, neural decoding
+  * Brain fMRI for diagnosis, neural decoding ([Data](https://github.com/cMadan/openMorph))
   * Cardiac MRI (CMRI) for diagnosis, prognosis
   * CMRI Landmark localisation
   * CMRI segmentation?
@@ -66,15 +66,14 @@ Welcome contributions from expertnal members. If you have a recommendation, cont
 * Recommended package
   * [MONAI](https://github.com/Project-MONAI/MONAI): deep learning-based healthcare imaging workflows, with great [highlights](https://docs.monai.io/en/latest/highlights.html)
 
-### Graph/Network 
+### Graph/Network
 
 * Data and tasks
-  * Knowledge graph and user-item interactions for recommender systems
+  * [Knowledge graph](https://github.com/shaoxiongji/awesome-knowledge-graph) and user-item interactions for recommender systems
   * Biomedical knowledge graph for drug-drug interaction prediction
-  * Data: [OGB](https://github.com/snap-stanford/ogb) - Benchmark datasets, data loaders, and evaluators for graph machine learning
+  * Data: [OGB](https://github.com/snap-stanford/ogb), [OpenBioLink](https://github.com/OpenBioLink/OpenBioLink), [Chemistry/Biology graphs](https://github.com/mufeili/DL4MolecularGraph#benchmark-and-dataset)
 * Recommended package
   * [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric): deep learning library for graphs
-
 
 ### Computer vision
 
