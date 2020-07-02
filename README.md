@@ -72,13 +72,13 @@ Welcome contributions from expertnal members. If you have a recommendation, cont
   * Biomedical knowledge graph for drug-drug interaction prediction
 * Recommended package(s)
   * [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric): deep learning library for graphs
-  * [OGB](https://github.com/snap-stanford/ogb): Benchmark datasets, data loaders, and evaluators for graph machine learning
+  * [OGB](https://github.com/snap-stanford/ogb): Benchmark **datasets**, data loaders, and evaluators for graph machine learning
 
 ### Computer vision
 
 * Data and tasks
-  * Action recognition from videos
-  * Pose estimation from images
-  * Image recognition (baselines)
+  * Action recognition from [videos](https://www.di.ens.fr/~miech/datasetviz/): [GitHub listing](https://github.com/jinwchoi/awesome-action-recognition)
+  * Pose estimation from [images](https://www.simonwenkel.com/2018/12/09/Datasets-for-human-pose-estimation.html): [GitHub listing](https://github.com/cbsudux/awesome-human-pose-estimation#datasets)
+  * Image recognition (baselines): [CVonline Image Databases (including video etc)](http://homepages.inf.ed.ac.uk/rbf/CVonline/Imagedbase.htm)
 * Recommended package(s)
   * [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
