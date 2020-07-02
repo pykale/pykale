@@ -62,7 +62,8 @@ Welcome contributions from expertnal members. If you have a recommendation, cont
   * Cardiac MRI (CMRI) for diagnosis, prognosis
   * CMRI Landmark localisation
   * CMRI segmentation?
-* Recommended package(s)
+  * Data: [Medical Data for Machine Learning](https://github.com/beamandrew/medical-data)
+* Recommended package
   * [MONAI](https://github.com/Project-MONAI/MONAI): deep learning-based healthcare imaging workflows, with great [highlights](https://docs.monai.io/en/latest/highlights.html)
 
 ### Graph/Network 
@@ -70,15 +71,16 @@ Welcome contributions from expertnal members. If you have a recommendation, cont
 * Data and tasks
   * Knowledge graph and user-item interactions for recommender systems
   * Biomedical knowledge graph for drug-drug interaction prediction
-* Recommended package(s)
+  * Data: [OGB](https://github.com/snap-stanford/ogb) - Benchmark datasets, data loaders, and evaluators for graph machine learning
+* Recommended package
   * [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric): deep learning library for graphs
-  * [OGB](https://github.com/snap-stanford/ogb): Benchmark **datasets**, data loaders, and evaluators for graph machine learning
+
 
 ### Computer vision
 
 * Data and tasks
-  * Action recognition from [videos](https://www.di.ens.fr/~miech/datasetviz/): [GitHub listing](https://github.com/jinwchoi/awesome-action-recognition)
-  * Pose estimation from [images](https://www.simonwenkel.com/2018/12/09/Datasets-for-human-pose-estimation.html): [GitHub listing](https://github.com/cbsudux/awesome-human-pose-estimation#datasets)
+  * Action recognition from [videos](https://www.di.ens.fr/~miech/datasetviz/): [Data at GitHub listing](https://github.com/jinwchoi/awesome-action-recognition)
+  * Pose estimation from [images](https://www.simonwenkel.com/2018/12/09/Datasets-for-human-pose-estimation.html): [Data at GitHub listing](https://github.com/cbsudux/awesome-human-pose-estimation#datasets)
   * Image recognition (baselines): [CVonline Image Databases (including video etc)](http://homepages.inf.ed.ac.uk/rbf/CVonline/Imagedbase.htm)
-* Recommended package(s)
+* Recommended package
   * [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
