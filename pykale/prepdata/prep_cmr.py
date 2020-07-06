@@ -1,3 +1,6 @@
+"""
+Author: Shuo Zhou, szhou20@sheffield.ac.uk
+"""
 import os
 import sys
 import numpy as np
@@ -14,6 +17,7 @@ def regMRI(data, reg_df, reg_id=1):
     # reg_target = data[..., 0, reg_id]
     _dst = reg_df.iloc[reg_id, 1:].values
     _dst = _dst.reshape((n_landmark, 2))
+    max_dist = np.zeros(n_sample)
     for i in range(n_sample):
         if i == reg_id:
             continue
@@ -25,15 +29,21 @@ def regMRI(data, reg_df, reg_id=1):
             tform = transform.estimate_transform(ttype='similarity',
                                                  src=_src[~idx_valid, :],
                                                  dst=_dst[~idx_valid, :])
+            # forward transform used here, inverse transform used for warp
+            src_tform = tform(_src[~idx_valid, :])
+            dist = np.linalg.norm(src_tform - _dst[~idx_valid, :], axis=1)
+            max_dist[i] = dist.max()
+
             for j in range(data[..., i].shape[-1]):
-                src_img = data[..., j, i]
-                warped = transform.warp(src_img, inverse_map=tform.inverse, preserve_range=True)
+                src_img = data[..., j, i].copy()
+                warped = transform.warp(src_img, inverse_map=tform.inverse,
+                                        preserve_range=True)
                 data[..., j, i] = warped
 
-    return data
+    return data, max_dist
 
 
-def rescale_(data, scale=16):
+def rescale_cmr(data, scale=16):
     n_sub = data.shape[-1]
     n_time = data.shape[-2]
     scale_ = 1/scale
@@ -78,7 +88,7 @@ def preproc(data, mask, level=1):
     return data_all
 
 
-def scale_mask(mask, scale):
+def scale_cmr_mask(mask, scale):
     mask = transform.rescale(mask.astype('bool_'), 1/scale, anti_aliasing=False)
     # change mask dtype to bool to ensure the output values are 0 and 1
     # anti_aliasing False otherwise the output might be all 0s
@@ -91,18 +101,19 @@ def scale_mask(mask, scale):
     return mask_new
 
 
-def scale_proc(basedir, db, scale, mask_id, level, save_data=True):
-    print('Scale: 1/%s, Mask ID: %s, Processing level: %s' % (scale, mask_id, level))
+def cmr_proc(basedir, db, scale, mask_id, level, save_data=True, return_data=False):
+    print('Preprocssing Data Scale: 1/%s, Mask ID: %s, Processing level: %s'
+          % (scale, mask_id, level))
     datadir = os.path.join(basedir, 'DB%s/NoPrs%sDB%s.npy' % (db, scale, db))
     maskdir = os.path.join(basedir, 'Prep/AllMasks.mat')
     data = np.load(datadir)
     masks = loadmat(maskdir)['masks']
     mask = masks[mask_id-1, db-1]
-    mask = scale_mask(mask, scale)
+    mask = scale_cmr_mask(mask, scale)
     data_proc = preproc(data, mask, level)
 
     if save_data:
         out_path = os.path.join(basedir, 'DB%s/PrepData/PrS%sM%sL%sDB%s.npy' % (db, scale, mask_id, level, db))
         np.save(out_path, data_proc)
-    else:
+    if return_data:
         return data_proc
