@@ -77,7 +77,7 @@ We need to design these core modules to be generic, reusable, customizable, and 
 ### Progress
 
 * Shuo on medim
-* Haiping on vision (next graph)
+* Haiping vision - CIFAR first version completed (next graph - Cora)
 
 ### General recommendation
 
