@@ -1,0 +1,11 @@
+# https://github.com/kornia/kornia/blob/master/requirements.txt
+# core dependencies
+pytorch==1.5.0
+
+# utils
+torchvision==0.6.0
+yacs
+
+# To add
+
+
