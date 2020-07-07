@@ -1,0 +1,6 @@
+*/**/__pycache__
+.idea
+
+# Data and outputs
+examples/*/data/
+examples/*/outputs/
