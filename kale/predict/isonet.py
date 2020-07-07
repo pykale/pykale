@@ -256,3 +256,85 @@ class ResStem(nn.Module):
         for layer in self.children():
             x = layer(x)
         return x
+
+class ISONet(nn.Module):
+    """ResNet model."""
+
+    def __init__(self, use_dirac=True):
+        super(ISONet, self).__init__()
+        # define network structures
+        self._construct()
+        # initialization
+        self._network_init(use_dirac)
+
+    # Depth for ResNet, e.g. [3, 4, 6, 3] for ResNet50
+    def _construct(self, num_class, depths):
+        # Setting for ImageNet image size. To override if different.
+        # Retrieve the number of blocks per stage
+        (d1, d2, d3, d4) = _depths
+        # Compute the initial bottleneck width
+        # Stem: (N, 3, 224, 224) -> (N, 64, 56, 56)
+        self.stem = ResStem(w_in=3, w_out=64)
+        # Stage 1: (N, 64, 56, 56) -> (N, 256, 56, 56)
+        self.s1 = ResStage(w_in=64, w_out=64, stride=1, d=d1)
+        # Stage 2: (N, 256, 56, 56) -> (N, 512, 28, 28)
+        self.s2 = ResStage(w_in=64, w_out=128, stride=2, d=d2)
+        # Stage 3: (N, 512, 56, 56) -> (N, 1024, 14, 14)
+        self.s3 = ResStage(w_in=128, w_out=256, stride=2, d=d3)
+        # Stage 4: (N, 1024, 14, 14) -> (N, 2048, 7, 7)
+        self.s4 = ResStage(w_in=256, w_out=512, stride=2, d=d4)
+        # Head: (N, 2048, 7, 7) -> (N, num_classes)
+        self.head = ResHead(w_in=512, nc=num_class)
+ 
+    def _network_init(self, use_dirac=True):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                if use_dirac:
+                    # the first 7x7 convolution we use pytorch default initialization
+                    # and not enforce orthogonality since the large input/output channel difference
+                    if m.kernel_size != (7, 7):
+                        nn.init.dirac_(m.weight)
+                else:
+                    # kaiming initialization used for ResNet results
+                    fan_out = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                    m.weight.data.normal_(mean=0.0, std=np.sqrt(2.0 / fan_out))
+                if hasattr(m, 'bias') and m.bias is not None:
+                    nn.init.zeros_(m.bias)
+            elif isinstance(m, nn.BatchNorm2d):
+                zero_init_gamma = (
+                    hasattr(m, 'final_bn') and m.final_bn
+                )
+                m.weight.data.fill_(0.0 if zero_init_gamma else 1.0)
+                m.bias.data.zero_()
+
+    def forward(self, x):
+        for module in self.children():
+            x = module(x)
+        return x   
+    def ortho(self, device):
+        ortho_penalty = []
+        cnt = 0
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                if m.kernel_size == (7, 7) or m.weight.shape[1] == 3:
+                    continue
+                o = self.ortho_conv(m, device)
+                cnt += 1
+                ortho_penalty.append(o)
+        ortho_penalty = sum(ortho_penalty)
+        return ortho_penalty
+
+    def ortho_conv(self, m, device):
+        operator = m.weight
+        operand = torch.cat(torch.chunk(m.weight, m.groups, dim=0), dim=1)
+        transposed = m.weight.shape[1] < m.weight.shape[0]
+        num_channels = m.weight.shape[1] if transposed else m.weight.shape[0]
+        if transposed:
+            operand = operand.transpose(1, 0)
+            operator = operator.transpose(1, 0)
+        gram = F.conv2d(operand, operator, padding=(m.kernel_size[0] - 1, m.kernel_size[1] - 1),
+                        stride=m.stride, groups=m.groups)
+        identity = torch.zeros(gram.shape).to(device)
+        identity[:, :, identity.shape[2] // 2, identity.shape[3] // 2] = torch.eye(num_channels).repeat(1, m.groups)
+        out = torch.sum((gram - identity) ** 2.0) / 2.0
+        return out
