@@ -16,7 +16,7 @@ import loaddata as du
 # import optim as ou
 import kale.utils.logger as lu
 import kale.utils.seed as seed
-import isonet as isonet
+import kale.predict.isonet as isonet
 from trainer import Trainer
 
 def arg_parse():
@@ -26,6 +26,37 @@ def arg_parse():
     parser.add_argument('--resume', default='', type=str)
     args = parser.parse_args()
     return args
+
+# Inherite and override
+class CifarIsoNet(isonet.ISONet):
+    
+    def __init__(self):
+        super(CifarIsoNet, self).__init__()
+        # define network structures (override)
+        self._construct()        
+        # initialization
+        self._network_init(C.ISON.DIRAC_INIT)
+
+    def _construct(self):
+        assert (C.ISON.DEPTH - 2) % 6 == 0, \
+            'Model depth should be of the format 6n + 2 for cifar'  # Seems because this is a ResNet
+        # Each stage has the same number of blocks for cifar
+        d = int((C.ISON.DEPTH - 2) / 6)
+        # Stem: (N, 3, 32, 32) -> (N, 16, 32, 32)
+        self.stem = isonet.ResStem(w_in=3, w_out=16, has_bn=C.ISON.HAS_BN, use_srelu=C.ISON.SReLU, 
+                                  kernelsize=3, stride=1, padding=1)
+        # Stage 1: (N, 16, 32, 32) -> (N, 16, 32, 32)
+        self.s1 = isonet.ResStage(w_in=16, w_out=16, stride=1, transfun=C.ISON.TRANS_FUN, 
+                        has_bn=C.ISON.HAS_BN, has_st=C.ISON.HAS_ST, use_srelu=C.ISON.SReLU, d=d)
+        # Stage 2: (N, 16, 32, 32) -> (N, 32, 16, 16)
+        self.s2 = isonet.ResStage(w_in=16, w_out=32, stride=2, transfun=C.ISON.TRANS_FUN, 
+                        has_bn=C.ISON.HAS_BN, has_st=C.ISON.HAS_ST, use_srelu=C.ISON.SReLU, d=d)
+        # Stage 3: (N, 32, 16, 16) -> (N, 64, 8, 8)
+        self.s3 = isonet.ResStage(w_in=32, w_out=64, stride=2, transfun=C.ISON.TRANS_FUN,
+                        has_bn=C.ISON.HAS_BN, has_st=C.ISON.HAS_ST, use_srelu=C.ISON.SReLU, d=d)
+        # Head: (N, 64, 8, 8) -> (N, num_classes)
+        self.head = isonet.ResHead(w_in=64, nc=C.DATASET.NUM_CLASSES, use_dropout=C.ISON.DROPOUT,
+                                dropout_rate=C.ISON.DROPOUT_RATE)
 
 def main():
     args = arg_parse()
@@ -47,7 +78,7 @@ def main():
     train_loader, val_loader = du.construct_dataset()
 
     print('==> Building model..')
-    net = isonet.ISONet()
+    net = CifarIsoNet()
     # print(net)
     net = net.to(device)
     # summary(net, (3, 32, 32))
