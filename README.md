@@ -1,17 +1,17 @@
-# Machine learning for med_img, graph, & vision
+# Machine learning for medical imaging, graph/network, and computer vision
 
 <img src="docs/pykaleWorkflow.png"
      alt="Machine learning workflow"
      style="float: center;" />
 
-We aim to develop a common framework to accelerate (our) **interdisciplinary** research on machine learning for medical imaging, graphs/networks, and computer vision. Our framework will be complementary to existing libraries. To join this effort, clone or fork this repository and push your contributions when ready for review and merge.
+We aim to develop a library to accelerate **interdisciplinary** research on machine learning for medical imaging, graphs/networks, and computer vision. Our library will be complementary to existing libraries and beter facilitate **cross-disciplinary** collaborations. To join this effort, clone or fork this repository and push your contributions when ready for review and merge.
 
 ## Overview
 
 ### Plan
 
 * End Sep 2020: Internal use by all
-* End Dec 2020: First public release
+* End Dec 2020: First public release (maybe earlier for MICCAI in early Oct)
 * Long term: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)
 
 ### Objectives
@@ -26,24 +26,58 @@ We aim to develop a common framework to accelerate (our) **interdisciplinary** r
 * Use existing top code when it fits (**credit@top + license**) and build when NA or we can do much better
 * Keep it as modular as possible, following the pipeline below
 
-### Pipeline and modules
+### Pipeline-based modules
 
 * `loaddata` load data from disk or online resources as in input
 * `prepdata` preprocess data to fit machine learning modules below (transforms)
 * `embed` embed data in a new space to learn a new representation (feature extraction/selection)
+* `predict` predict a desired output
 * `evaluate` evaluate the performance using some metrics
 * `interpret` interpret the features and outputs via post-prediction analysis mainly via visualisation
-* `system` build a system using the above modules (system-level integration)
+* `pipeline` specify a machine learning workflow by combining several other modules
 
-`examples`: Demos with notebooks, GUI applications, and [TorchScript](https://pytorch.org/docs/stable/jit.html) support.
+We need to design these core modules to be generic, reusable, customizable, and not specific to a particular dataset. 
+
+### Dataset-specific modules
+
+* `examples`: Real-application on particular datasets, with notebooks, GUI applications, and [TorchScript](https://pytorch.org/docs/stable/jit.html) support.
 
 ## Coding
 
 ### Coding style
 
-* Configure learning systems following [YACS](https://github.com/rbgirshick/yacs)
+* Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). Example: [ISONet](https://github.com/HaozhiQi/ISONet)
 * Use [PyTorch](https://pytorch.org/tutorials/) when possible and follow its coding style
 * Key references include [MONAI](https://github.com/Project-MONAI/MONAI) for `medim`, [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) for `graph`, and [kornia](https://github.com/kornia/kornia) for `vision`.
+* Repository structure
+
+```
+├───docs
+├───examples
+│   ├───cifar
+│   │   ├───configs
+│   │   ├───data
+│   │   └───outputs
+│   ├───cora
+│   └───future
+│       └───abidenyu
+├───kale
+│   ├───embed
+│   ├───evaluate
+│   ├───interpret
+│   ├───loaddata
+│   ├───pipeline
+│   ├───predict
+│   ├───prepdata
+│   └───utils
+└───tests
+    └───data
+```
+
+### Progress
+
+* Shuo on medim
+* Haiping vision - [ISONet](https://github.com/HaozhiQi/ISONet/tree/master/isonet) on CIFAR - first version completed (next graph - Cora)
 
 ### General recommendation
 
@@ -59,7 +93,7 @@ Welcome contributions from expertnal members. If you have a recommendation, cont
 
 * Data and tasks
   * Brain fMRI for diagnosis, neural decoding ([Data](https://github.com/cMadan/openMorph))
-  * Cardiac MRI (CMRI) for diagnosis, prognosis
+  * Cardiac MRI (CMRI) for diagnosis, prognosis ([Data](http://www.cardiacatlas.org/challenges/))
   * CMRI Landmark localisation
   * CMRI segmentation?
   * Data: [Medical Data for Machine Learning](https://github.com/beamandrew/medical-data)
@@ -80,6 +114,6 @@ Welcome contributions from expertnal members. If you have a recommendation, cont
 * Data and tasks
   * Action recognition from [videos](https://www.di.ens.fr/~miech/datasetviz/): [Data at GitHub listing](https://github.com/jinwchoi/awesome-action-recognition)
   * Pose estimation from [images](https://www.simonwenkel.com/2018/12/09/Datasets-for-human-pose-estimation.html): [Data at GitHub listing](https://github.com/cbsudux/awesome-human-pose-estimation#datasets)
-  * Image recognition (baselines): [CVonline Image Databases (including video etc)](http://homepages.inf.ed.ac.uk/rbf/CVonline/Imagedbase.htm)
+  * Image classification (baselines): [CVonline Image Databases (including video etc)](http://homepages.inf.ed.ac.uk/rbf/CVonline/Imagedbase.htm)
 * Recommended package
   * [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team

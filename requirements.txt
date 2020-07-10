@@ -1,0 +1,23 @@
+# https://github.com/kornia/kornia/blob/master/requirements.txt
+# Versions used in development
+
+# core dependencies
+pytorch==1.5.0
+numpy==1.19.0
+Python==3.7
+
+# utils
+torchvision==0.6.0
+torchsummary==1.5.0
+yacs==0.1.7
+
+# Needed only for graph
+ogb==1.2.0
+# Needed only for torch-geometric
+torch-cluster==1.5.4
+torch-scatter==2.0.4
+torch-sparse==0.6.5
+torch-spline-conv==1.2.0
+torch-geometric==1.5.0
+
+
