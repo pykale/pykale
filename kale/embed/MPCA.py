@@ -36,7 +36,7 @@ class MPCA(BaseEstimator, TransformerMixin):
     def fit(self, X):
         """
         Parameter:
-            X: array-like, ndarray of shape (dim1, dim2, ..., n_samples)
+            X: array-like, ndarray of shape (I1, I2, ..., n_samples)
         ----------
         Return:
             self
@@ -95,21 +95,31 @@ class MPCA(BaseEstimator, TransformerMixin):
     def transform(self, X):
         """
         Parameter:
-            X: array-like, ndarray of shape (dim1, dim2, ..., n_samples)
+            X: array-like, shape (I1, I2, ..., n_samples)
         ----------
         Return:
-            Transformed data
+            Transformed data, array-like, shape (i1, i2, ..., n_samples)
         """
         n_spl = X.shape[-1]
         for i in range(n_spl):
             X[..., i] = X[..., i] - self.Xmean
         return multi_mode_dot(X, self.tPs, modes=[m for m in range(self.n_dim - 1)])
 
+    def inverse_transform(self, X):
+        """
+        Parameter:
+            X: array-like, shape (i1, i2, ..., n_samples)
+        ----------
+        Return:
+            Data in original shape, array-like, shape (I1, I2, ..., n_samples)
+        """
+        return multi_mode_dot(X, self.tPs, modes=[m for m in range(self.n_dim - 1)], transpose=True)
+
 
 def MPCA_(X, variance_explained=0.97, max_iter=1):
     """
     Parameter:
-        X: array-like, ndarray of shape (dim1, dim2, ..., n_samples)
+        X: array-like, ndarray of shape (I1, I2, ..., n_samples)
         variance_explained: ration of variance to keep (between 0 and 1)
         max_iter: max number of iteration
     ----------
