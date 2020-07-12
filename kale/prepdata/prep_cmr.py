@@ -15,7 +15,7 @@ def regMRI(data, reg_df, reg_id=1):
         sys.exit()
     n_landmark = int((reg_df.shape[1] - 1) / 2)
     # reg_target = data[..., 0, reg_id]
-    _dst = reg_df.iloc[reg_id, 1:].values
+    _dst = reg_df.iloc[reg_id, 2:].values
     _dst = _dst.reshape((n_landmark, 2))
     max_dist = np.zeros(n_sample)
     for i in range(n_sample):
@@ -23,7 +23,7 @@ def regMRI(data, reg_df, reg_id=1):
             continue
         else:
             # epts = reg_df.iloc[i, 1:].values
-            _src = reg_df.iloc[i, 1:].values
+            _src = reg_df.iloc[i, 2:].values
             _src = _src.reshape((n_landmark, 2))
             idx_valid = np.isnan(_src[:, 0])
             tform = transform.estimate_transform(ttype='similarity',
@@ -113,7 +113,8 @@ def cmr_proc(basedir, db, scale, mask_id, level, save_data=True, return_data=Fal
     data_proc = preproc(data, mask, level)
 
     if save_data:
-        out_path = os.path.join(basedir, 'DB%s/PrepData/PrS%sM%sL%sDB%s.npy' % (db, scale, mask_id, level, db))
+        out_path = os.path.join(basedir, 'DB%s/PrepData/PrS%sM%sL%sDB%s.npy' 
+                                % (db, scale, mask_id, level, db))
         np.save(out_path, data_proc)
     if return_data:
         return data_proc
