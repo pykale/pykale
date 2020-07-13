@@ -77,7 +77,7 @@ We need to design these core modules to be generic, reusable, customizable, and 
 ### Progress
 
 * Shuo on medim
-* Haiping vision - [ISONet](https://github.com/HaozhiQi/ISONet/tree/master/isonet) on CIFAR - first version completed (next graph - Cora)
+* Haiping vision - [ISONet](https://github.com/HaozhiQi/ISONet/tree/master/isonet) on CIFAR, [CDAN](https://github.com/thuml/CDAN) on Office-31 (next graph - Cora)
 
 ### General recommendation
 

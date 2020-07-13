@@ -1,0 +1,13 @@
+# https://github.com/kornia/kornia/blob/master/requirements.txt
+# Versions used in development
+
+# core dependencies
+pytorch==1.5.0
+numpy==1.19.0
+Python==3.7
+
+# utils
+torchvision==0.6.0
+torchsummary==1.5.0
+yacs==0.1.7
+
