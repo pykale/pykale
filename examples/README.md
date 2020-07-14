@@ -2,6 +2,8 @@
 
 Demos to show key functionalities via notebooks and GUI applications, with TorchScript](https://pytorch.org/docs/stable/jit.html) support.
 
+Name convention: `data_method`
+
 Domain-specific development in three areas
 
 * `medim` Medical image analysis
