@@ -13,7 +13,7 @@ C = CfgNode()
 # Dataset
 # -----------------------------------------------------------------------------
 C.DATASET = CfgNode()
-C.DATASET.ROOT = './data'
+C.DATASET.ROOT = '../data'
 C.DATASET.NAME = 'CIFAR10'
 C.DATASET.NUM_CLASSES = 10
 C.DATASET.NUM_WORKERS = 0
