@@ -15,10 +15,10 @@ class ContextCNNGeneric(nn.Module):
     into a sequence.
     """
 
-    def __init__(self, CNN, cnn_output_shape, contextualizer, output_type):
+    def __init__(self, cnn, cnn_output_shape, contextualizer, output_type):
         """
         args:
-        CNN - A convolutional neural network that takes in images and
+        cnn - A convolutional neural network that takes in images and
               outputs tensors.
         cnn_output_shape - A tuple of shape (batch_size, num_channels, height, width)
                            describing the output shape of the given CNN.
@@ -36,13 +36,13 @@ class ContextCNNGeneric(nn.Module):
         assert output_type in ['spatial', 'sequence'], "parameter 'output_type' must be one of " +\
                                                       f"('spatial', 'sequence') but is {output_type}"
 
-        self.CNN = CNN
+        self.cnn = cnn
         self.cnn_output_shape = cnn_output_shape
         self.contextualizer = contextualizer
         self.output_type = output_type
 
     def forward(self, x):
-        cnn_representation = self.CNN(x)
+        cnn_representation = self.cnn(x)
         unrolled_cnn_representation = spatialtensor_to_sequencetensor(cnn_representation)
         contextualized_unrolled_cnn_representation = self.contextualizer(unrolled_cnn_representation)
 
@@ -58,11 +58,11 @@ class CNNTransformer(ContextCNNGeneric):
     A feature extractor consisting of a CNN backbone followed by a standard Transformer-Encoder.
     """
 
-    def __init__(self, CNN, cnn_output_shape, num_layers, num_heads, dim_feedforward,
+    def __init__(self, cnn, cnn_output_shape, num_layers, num_heads, dim_feedforward,
                 dropout, output_type):
         """
         args:
-        CNN - a convolutional neural network that takes in images and
+        cnn - a convolutional neural network that takes in images and
               outputs tensors.
         cnn_output_shape - a tuple of shape (batch_size, num_channels, height, width)
                            describing the output shape of the given CNN.
@@ -88,7 +88,7 @@ class CNNTransformer(ContextCNNGeneric):
         positional_encoder = PositionalEncoding(d_model=num_channels, max_len=height*width)
         contextualizer = nn.Sequential(positional_encoder, encoder)
 
-        super(CNNTransformer, self).__init__(CNN, cnn_output_shape, contextualizer, output_type)
+        super(CNNTransformer, self).__init__(cnn, cnn_output_shape, contextualizer, output_type)
 
         # Copied from https://pytorch.org/docs/stable/_modules/torch/nn/modules/transformer.html#Transformer
         # source code
