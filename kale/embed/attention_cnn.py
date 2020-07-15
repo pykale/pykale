@@ -86,7 +86,8 @@ class CNNTransformer(ContextCNNGeneric):
         encoder = nn.TransformerEncoder(encoder_layer, num_layers, encoder_normalizer)
 
         positional_encoder = PositionalEncoding(d_model=num_channels, max_len=height*width)
-        contextualizer = nn.Sequential(positional_encoder, encoder)
+        transformer_input_dropout = nn.Dropout(dropout)
+        contextualizer = nn.Sequential(positional_encoder, transformer_input_dropout, encoder)
 
         super(CNNTransformer, self).__init__(cnn, cnn_output_shape, contextualizer, output_type)
 
