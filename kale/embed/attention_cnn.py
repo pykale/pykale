@@ -4,6 +4,12 @@ import torch.nn.functional as F
 
 from kale.prepdata.tensor_reshape import spatialtensor_to_sequencetensor, \
                                          sequencetensor_to_spatialtensor
+# TODO:
+# POSITIONAL ENCODINGS
+#
+#
+#
+
 
 class ContextCNNGeneric(nn.Module):
     """

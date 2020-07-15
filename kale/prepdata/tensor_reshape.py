@@ -24,12 +24,6 @@ def spatialtensor_to_sequencetensor(image_tensor):
     args:
     image_tensor - tensor as described above.
     """
-
-    assert image_tensor.dim() == NUMBER_OF_DIMENSIONS, "The input tensor is expected to " + \
-                                                      f"have {NUMBER_OF_DIMENSIONS} dimensions " + \
-                                                      f"but has {image_tensor.dim()} dimensions " + \
-                                                      f"with shape {image_tensor.size()}"
-
     original_size = image_tensor.size()
 
     batch_size = original_size[SPATIAL_BATCH_DIMENSION]
@@ -66,21 +60,11 @@ def sequencetensor_to_spatialtensor(sequence_tensor, desired_height, desired_wid
     desired_heigth - the height into which the sequence length should be rolled into
     desired_width - the width into which the sequence length should be rolled into
     """
-
-    assert sequence_tensor.dim() == SEQUENCE_NUMBER_OF_DIMENSIONS, "The input tensor is expected to " + \
-                                                      f"have {SEQUENCE_NUMBER_OF_DIMENSIONS} dimensions " + \
-                                                      f"but has {sequence_tensor.dim()} dimensions " + \
-                                                      f"with shape {sequence_tensor.size()}"
-
     original_size = sequence_tensor.size()
 
     sequence_length = original_size[SEQUENCE_LENGTH_DIMENSION]
     batch_size = original_size[SEQUENCE_BATCH_DIMENSION]
     num_channels = original_size[SEQUENCE_FEATURE_DIMENSION]
-
-    assert desired_height * desired_width == sequence_length, "Can't roll the sequence length into " + \
-                                                      f"({desired_height},{desired_width}) because " + \
-                                                      f"{desired_height}*{desired_width} != {sequence_length}"
 
     permuted_tensor = sequence_tensor.permute(SEQUENCE_BATCH_DIMENSION, SEQUENCE_FEATURE_DIMENSION, SEQUENCE_LENGTH_DIMENSION)
 
