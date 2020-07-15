@@ -4,11 +4,7 @@ import torch.nn.functional as F
 
 from kale.prepdata.tensor_reshape import spatialtensor_to_sequencetensor, \
                                          sequencetensor_to_spatialtensor
-# TODO:
-# POSITIONAL ENCODINGS
-#
-#
-#
+from kale.embed.positional_encoding import PositionalEncoding
 
 
 class ContextCNNGeneric(nn.Module):
@@ -82,12 +78,17 @@ class CNNTransformer(ContextCNNGeneric):
 
         """
         num_channels = cnn_output_shape[1]
+        height = cnn_output_shape[2]
+        width = cnn_output_shape[3]
 
         encoder_layer = nn.TransformerEncoderLayer(num_channels, num_heads, dim_feedforward, dropout)
         encoder_normalizer = nn.LayerNorm(num_channels)
         encoder = nn.TransformerEncoder(encoder_layer, num_layers, encoder_normalizer)
 
-        super(CNNTransformer, self).__init__(CNN, cnn_output_shape, contextualizer=encoder, output_type=output_type)
+        positional_encoder = PositionalEncoding(d_model=num_channels, max_len=height*width)
+        contextualizer = nn.Sequential(positional_encoder, encoder)
+
+        super(CNNTransformer, self).__init__(CNN, cnn_output_shape, contextualizer, output_type)
 
         # Copied from https://pytorch.org/docs/stable/_modules/torch/nn/modules/transformer.html#Transformer
         # source code
