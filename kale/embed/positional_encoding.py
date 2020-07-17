@@ -6,21 +6,20 @@ import math
 
 class PositionalEncoding(nn.Module):
     """
-    Implements the positional encoding as described in the paper
+    Implements the positional encoding as described in the NIPS2017 paper
     'Attention Is All You Need' about Transformers
     (https://arxiv.org/abs/1706.03762).
-    Essentially,
-    adds information about the relative location of a timestep
-    directly into to features of each timestep in a sequence.
-    """
+    Essentially, for all timesteps in a given sequence,
+    adds information about the relative temporal location of a timestep
+    directly into the features of that timestep.
 
-    def __init__(self, d_model, max_len=5000):
-        """
-        args:
+    args:
         d_model - the number of features that each timestep has
         max_len - the maximum sequence length that the positional
                   encodings should support.
-        """
+    """
+
+    def __init__(self, d_model, max_len=5000):
         super(PositionalEncoding, self).__init__()
 
         pe = torch.zeros(max_len, d_model)
