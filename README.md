@@ -47,7 +47,7 @@ We need to design these core modules to be generic, reusable, customizable, and 
 ### Coding style
 
 * Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). Example: [ISONet](https://github.com/HaozhiQi/ISONet)
-* Use [PyTorch](https://pytorch.org/tutorials/) when possible and follow its coding style
+* Use [PyTorch](https://pytorch.org/tutorials/) when possible and follow its coding style. **Highly recommend** [PyTorch Lightning](https://towardsdatascience.com/from-pytorch-to-pytorch-lightning-a-gentle-introduction-b371b7caaf09)
 * Key references include [MONAI](https://github.com/Project-MONAI/MONAI) for `medim`, [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) for `graph`, and [kornia](https://github.com/kornia/kornia) for `vision`.
 * Repository structure
 
