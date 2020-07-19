@@ -1,11 +1,25 @@
-# Created by Haiping Lu from modifying https://github.com/HaozhiQi/ISONet/blob/master/train.py 
-# Under the MIT License
+# Created by Haiping Lu from modifying https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 import os
 import argparse
 import warnings
 import sys
 # No need if pykale is installed
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+import os.path as osp
+import numpy as np
+import torch.nn as nn
+import torch.optim as optim
+import network
+import loss
+import pre_process as prep
+from torch.utils.data import DataLoader
+import lr_schedule
+import data_list
+from data_list import ImageList
+import random
+import math
+
 
 import kale
 import torch
@@ -19,13 +33,6 @@ import kale.utils.seed as seed
 import kale.predict.isonet as isonet
 from trainer import Trainer
 
-def arg_parse():
-    parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
-    parser.add_argument('--cfg', required=True, help='path to config file', type=str)
-    parser.add_argument('--output', default='default', help='folder to save output', type=str)
-    parser.add_argument('--resume', default='', type=str)
-    args = parser.parse_args()
-    return args
 
 # Inherite and override
 class CifarIsoNet(isonet.ISONet):
@@ -58,6 +65,14 @@ class CifarIsoNet(isonet.ISONet):
         self.head = isonet.ResHead(w_in=64, nc=C.DATASET.NUM_CLASSES, use_dropout=C.ISON.DROPOUT,
                                 dropout_rate=C.ISON.DROPOUT_RATE)
 
+def arg_parse():
+    parser = argparse.ArgumentParser(description='Conditional Domain Adversarial Network on Office31')
+    parser.add_argument('--cfg', required=True, help='path to config file', type=str)
+    parser.add_argument('--output', default='default', help='folder to save output', type=str)
+    parser.add_argument('--resume', default='', type=str)
+    args = parser.parse_args()
+    return args
+
 def main():
     args = arg_parse()
     # ---- setup device ----
@@ -71,7 +86,7 @@ def main():
     # ---- setup logger and output ----
     output_dir = os.path.join(C.OUTPUT_DIR, C.DATASET.NAME, args.output)
     os.makedirs(output_dir, exist_ok=True)
-    logger = lu.construct_logger('isonet', output_dir)
+    logger = lu.construct_logger('cdan', output_dir)
     logger.info('Using ' + device)
     logger.info(C.dump())    
     # ---- setup dataset ----
@@ -82,8 +97,8 @@ def main():
     # print(net)
     net = net.to(device)
     # summary(net, (3, 32, 32))
-    # if device == 'cuda':
-    #     net = torch.nn.DataParallel(net) # For more than one GPUs
+    if device == 'cuda':
+        net = torch.nn.DataParallel(net)
         # Set to true will be faster but results will vary a bit (not 100% reproducible)
         # torch.backends.cudnn.benchmark = True 
 
