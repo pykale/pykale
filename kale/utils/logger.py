@@ -20,7 +20,7 @@ def construct_logger(name, save_dir):
     logger.setLevel(logging.DEBUG)
 
     date = str(datetime.datetime.now().strftime('%m%d%H'))
-    fh = logging.FileHandler(os.path.join(save_dir, f'log-{date}-{git_hash()}.txt'))
+    fh = logging.FileHandler(os.path.join(save_dir, f'log-{date}-{git_hash()}.txt'), encoding='utf-8')
     fh.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s")
     fh.setFormatter(formatter)
