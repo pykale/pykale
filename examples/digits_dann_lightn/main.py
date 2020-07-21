@@ -7,6 +7,7 @@ import sys
 # No need if pykale is installed
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
+import kale.utils.da_logger as da_logger 
 from copy import deepcopy
 import glob
 import re
@@ -21,9 +22,8 @@ from torchsummary import summary
 from  config import C
 # import loaddata as du
 # import optim as ou
-import kale.utils.logger as lu
+# import kale.utils.logger as lu
 import kale.utils.seed as seed
-import kale.utils.da_logger as da_logger 
 import kale.embed.da_feature as da_feature
 import kale.predict.da_classify as da_classify
 import kale.pipeline.da_systems as da_systems
@@ -105,10 +105,11 @@ def main():
     archi_params  = config_params["archi_params"]
     train_params  = config_params["train_params"]
     data_params  = config_params["data_params"]
-    archi_params["random_state"] = seed
+    archi_params["random_state"] = C.SOLVER.SEED
     del method_params["method"]
     # ---- setup logger and output ----
-    output_dir = os.path.join(C.OUTPUT.DIR, C.DATASET.NAME + '_' + C.DATASET.SOURCE + '2' + C.DATASET.TARGET, args.output)
+    # output_dir = os.path.join(C.OUTPUT.DIR, C.DATASET.NAME + '_' + C.DATASET.SOURCE + '2' + C.DATASET.TARGET, args.output)
+    output_dir = os.path.join(C.OUTPUT.DIR, C.DATASET.NAME + '_' + C.DATASET.SOURCE + '2' + C.DATASET.TARGET)
     os.makedirs(output_dir, exist_ok=True)
 
  # parameters that change across experiments for the same dataset
@@ -188,11 +189,14 @@ def main():
            
     method_name = method.value
     try_to_resume = False
+    print(checkpoint_dir)
     if checkpoint_dir is not None:
         path_method_name = re.sub(r"[^-/\w\.]", "_", method_name)
         full_checkpoint_dir = os.path.join(
-            checkpoint_dir, path_method_name, f"seed_{seed}"
+            checkpoint_dir, path_method_name, f"seed_{C.SOLVER.SEED}"
         )
+        print(full_checkpoint_dir)
+        input("debugdddd")
         checkpoint_callback = ModelCheckpoint(
             filepath=os.path.join(full_checkpoint_dir, "{epoch}"),
             monitor="last_epoch",
@@ -203,14 +207,6 @@ def main():
         )
         if len(checkpoints) > 0 and try_to_resume:
             last_checkpoint_file = checkpoints[-1]
-            if method is archis.Method.WDGRL:
-                # WDGRL doesn't resume training gracefully
-                last_epoch = (
-                    train_params_local["nb_init_epochs"]
-                    + train_params_local["nb_adapt_epochs"]
-                )
-                if f"epoch={last_epoch - 1}" not in last_checkpoint_file:
-                    last_checkpoint_file = None
         else:
             last_checkpoint_file = None
     else:
@@ -251,10 +247,10 @@ def main():
     if trainer.interrupted:
         raise KeyboardInterrupt("Trainer was interrupted and shutdown gracefully.")
 
-    if syslogger:
-        syslogger.log_hyperparams(
-            {"finish time": da_logger.create_timestamp_string("%Y-%m-%d %H:%M:%S")}
-        )
+    # if syslogger:
+    #     syslogger.log_hyperparams(
+    #         {"finish time": da_logger.create_timestamp_string("%Y-%m-%d %H:%M:%S")}
+    #     )
 
     # validation scores
     results.update(
@@ -279,9 +275,7 @@ def main():
     # progress_callback((i + 1) / nseeds)
     # print(net)
     # net = net.to(device)
-
-
-
+ 
     # if args.resume:
     #     # Load checkpoint
     #     print('==> Resuming from checkpoint..')
