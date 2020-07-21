@@ -187,6 +187,7 @@ def main():
 
            
     method_name = method.value
+    try_to_resume = False
     if checkpoint_dir is not None:
         path_method_name = re.sub(r"[^-/\w\.]", "_", method_name)
         full_checkpoint_dir = os.path.join(
@@ -274,8 +275,8 @@ def main():
     results.print_scores(
         method_name, stdout=True, fdout=None, print_func=tqdm.write,
     )
-    res_archis[seed] = trained_archi
-    progress_callback((i + 1) / nseeds)
+    # res_archis[seed] = trained_archi
+    # progress_callback((i + 1) / nseeds)
     # print(net)
     # net = net.to(device)
 
