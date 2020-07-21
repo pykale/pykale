@@ -1,0 +1,9 @@
+# Created by Haiping Lu by modifying https://github.com/HaozhiQi/ISONet/blob/master/configs/IN1k-ISO18.yaml (under the MIT License)
+DATASET:
+  NAME: 'digits'
+  NUM_CLASSES: 10
+  # NUM_WORKERS: 1
+SOLVER:
+  BASE_LR: 0.001
+DAN:
+  METHOD: 'CDAN'
