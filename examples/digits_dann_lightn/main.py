@@ -4,6 +4,7 @@ import argparse
 import warnings
 import logging
 import sys
+from tqdm import tqdm
 # No need if pykale is installed
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
@@ -23,7 +24,7 @@ from  config import C
 # import loaddata as du
 # import optim as ou
 # import kale.utils.logger as lu
-import kale.utils.seed as seed
+import kale.utils.seed as seeding # to unify later
 import kale.embed.da_feature as da_feature
 import kale.predict.da_classify as da_classify
 import kale.pipeline.da_systems as da_systems
@@ -67,8 +68,7 @@ def load_config():
             }    
         },
         "method_params": {
-            "method": C.DAN.METHOD,
-            "use_random": C.DAN.USERANDOM
+            "method": C.DAN.METHOD,            
         },
        "data_params": {
             "dataset_group": C.DATASET.NAME,
@@ -99,14 +99,17 @@ def main():
     # ---- setup configs ----
     C.merge_from_file(args.cfg)
     C.freeze()
-    seed.set_seed(C.SOLVER.SEED)
+    seed=C.SOLVER.SEED
+    seeding.set_seed(seed)
     config_params = load_config()
     method_params = config_params["method_params"]
     archi_params  = config_params["archi_params"]
     train_params  = config_params["train_params"]
     data_params  = config_params["data_params"]
-    archi_params["random_state"] = C.SOLVER.SEED
+    archi_params["random_state"] = seed
     del method_params["method"]
+    if C.DAN.METHOD is 'CDAN':
+        method_params["use_random"] = C.DAN.USERANDOM 
     # ---- setup logger and output ----
     # output_dir = os.path.join(C.OUTPUT.DIR, C.DATASET.NAME + '_' + C.DATASET.SOURCE + '2' + C.DATASET.TARGET, args.output)
     output_dir = os.path.join(C.OUTPUT.DIR, C.DATASET.NAME + '_' + C.DATASET.SOURCE + '2' + C.DATASET.TARGET)
@@ -121,7 +124,7 @@ def main():
             if k not in ("dataset_group", "dataset_name")
         }
     )
-    print(type(record_params))
+    # print(type(record_params))
     # input('debug record_params')
     params_hash = da_logger.param_to_hash(record_params)
     hash_file = os.path.join(output_dir, "parameters.json")
@@ -189,14 +192,11 @@ def main():
            
     method_name = method.value
     try_to_resume = False
-    print(checkpoint_dir)
     if checkpoint_dir is not None:
         path_method_name = re.sub(r"[^-/\w\.]", "_", method_name)
         full_checkpoint_dir = os.path.join(
-            checkpoint_dir, path_method_name, f"seed_{C.SOLVER.SEED}"
+            checkpoint_dir, path_method_name, f"seed_{seed}"
         )
-        print(full_checkpoint_dir)
-        input("debugdddd")
         checkpoint_callback = ModelCheckpoint(
             filepath=os.path.join(full_checkpoint_dir, "{epoch}"),
             monitor="last_epoch",
@@ -221,6 +221,7 @@ def main():
     row_log_interval = max(10, len(dataset) // train_params_local["batch_size"] // 10)
 
     fast = False
+    # test_params["fast"] = args.fast
     trainer = pl.Trainer(
         progress_bar_refresh_rate=pb_refresh,  # in steps
         row_log_interval=row_log_interval,
@@ -267,6 +268,7 @@ def main():
         seed=seed,
         metric_values=trainer.callback_metrics,
     )
+    backup_file = test_csv_file
     results.to_csv(backup_file)
     results.print_scores(
         method_name, stdout=True, fdout=None, print_func=tqdm.write,
