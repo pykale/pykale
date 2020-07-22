@@ -13,7 +13,7 @@ We observe that all models ultimately converge to a similar accuracy, only that 
 `python main.py --cfg configs/one_of_the_config_files.yaml`
 
 ### 4. Architecture
-For clarity and as an example, below is the architecture of the CNNTransformer-Base.
+For clarity and as an example, below is the architecture of the CNNTransformer-Med.
 
 <pre>
 ---------------------------------------------------------------------------------------------------------
