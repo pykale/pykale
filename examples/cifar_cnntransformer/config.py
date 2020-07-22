@@ -33,7 +33,7 @@ _C.SOLVER.TEST_BATCH_SIZE = 200
 _C.SOLVER.MAX_EPOCHS = 100
 
 _C.SOLVER.WARMUP = False
-_C.SOLVER.WARMUP_EPOCH = 5
+_C.SOLVER.WARMUP_EPOCHS = 5
 
 # ---------------------------------------------------------------------------- #
 # CNN configs
@@ -46,7 +46,8 @@ _C.CNN.POOL_LOCATIONS = (0,3) # After which index of the below
                               # size of 8x8.
 
 # A tuple for each convolutional layer given as (num_channels, kernel_size)
-_C.CNN.CONV_LAYERS = [(16,3), (32,3), (64,3), (32,1), (64,3), (128,3), (256,3), (64,1)]
+# (Nested lists log to file prettier than nested tuples do)
+_C.CNN.CONV_LAYERS = [[16,3], [32,3], [64,3], [32,1], [64,3], [128,3], [256,3], [64,1]]
 _C.CNN.USE_BATCHNORM = True
 _C.CNN.ACTIVATION_FUN = 'relu' # one of ('relu', 'elu', 'leaky_relu')
 _C.CNN.OUTPUT_SHAPE = (-1, 64, 8, 8)
