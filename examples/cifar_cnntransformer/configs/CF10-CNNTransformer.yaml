@@ -1,4 +1,1 @@
-DATASET:
-  NUM_WORKERS: 5
-
 OUTPUT_DIR: './outputs/CNNTransformer-base'
