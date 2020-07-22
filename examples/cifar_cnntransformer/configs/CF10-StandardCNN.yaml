@@ -1,0 +1,7 @@
+DATASET:
+  NUM_WORKERS: 1
+
+TRANSFORMER:
+  USE_TRANSFORMER: False
+
+OUTPUT_DIR: './outputs/StandardCNN-baseline'

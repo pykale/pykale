@@ -63,7 +63,7 @@ class PredictionHead(nn.Module):
                       to be (batch_size, channels, height, width)
     """
     def __init__(self, num_classes, input_shape):
-
+        super(PredictionHead, self).__init__()
         self.avgpool = nn.AvgPool2d(input_shape[2])
         self.linear = nn.Linear(input_shape[1], num_classes)
 
