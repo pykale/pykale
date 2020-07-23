@@ -94,3 +94,6 @@ Input size (MB): 0.01
 Forward/backward pass size (MB): 1.27
 Params size (MB): 1.84
 Estimated Total Size (MB): 3.12</pre>
+
+
+(The only model that uses a different base CNN is CNN-TR-Huge. It uses CNN-Huge which is exactly the same but the last convolutional layer has 256 channels instead of 64)
