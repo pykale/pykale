@@ -1,0 +1,8 @@
+TRANSFORMER:
+  NUM_LAYERS: 4
+
+CNN:
+  CONV_LAYERS: [[16,3], [32,3], [64,3], [32,1], [64,3], [128,3], [256,3], [256, 1]]
+  OUTPUT_SHAPE: (-1, 256, 8, 8)
+
+OUTPUT_DIR: './outputs/CNNTransformer-huge'
