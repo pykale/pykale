@@ -1,0 +1,4 @@
+TRANSFORMER:
+  NUM_LAYERS: 2
+
+OUTPUT_DIR: './outputs/CNNTransformer-small'
