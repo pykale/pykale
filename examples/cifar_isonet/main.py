@@ -82,10 +82,6 @@ def main():
     # print(net)
     net = net.to(device)
     # summary(net, (3, 32, 32))
-    # if device == 'cuda':
-    #     net = torch.nn.DataParallel(net) # For more than one GPUs
-        # Set to true will be faster but results will vary a bit (not 100% reproducible)
-        # torch.backends.cudnn.benchmark = True 
 
     # optim = ou.construct_optim(net)
     optim = torch.optim.SGD(net.parameters(), lr=C.SOLVER.BASE_LR, momentum=C.SOLVER.MOMENTUM,
