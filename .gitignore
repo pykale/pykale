@@ -2,5 +2,6 @@
 .idea
 
 # Data and outputs
+examples/data/
 examples/*/data/
 examples/*/outputs/
