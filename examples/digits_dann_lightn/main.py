@@ -15,7 +15,7 @@ import pytorch_lightning as pl
 
 from config import get_cfg_defaults
 from model import get_model
-import kale.utils.seed as seed # to unify later
+# import kale.utils.seed as seed # to unify later
 import kale.loaddata.digits as digits
 import kale.loaddata.multisource as multisource
 import kale.utils.logger as logging
@@ -40,7 +40,8 @@ def main():
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
     cfg.freeze()    
-    seed.set_seed(cfg.SOLVER.SEED)
+    torch.manual_seed(cfg.SOLVER.SEED)
+    # seed.set_seed(cfg.SOLVER.SEED)
    
     # ---- setup output ----    
     output_dir = os.path.join(cfg.OUTPUT.ROOT, cfg.DATASET.NAME + '_' + cfg.DATASET.SOURCE + '2' + cfg.DATASET.TARGET) #, args.output)
@@ -60,36 +61,39 @@ def main():
     # logger.info(f'Using {device}')
     # logger.info('\n' + cfg.dump())
 
-
-    trainer = pl.Trainer(
-        progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
-        min_epochs=cfg.SOLVER.MIN_EPOCHS,
-        max_epochs=cfg.SOLVER.MAX_EPOCHS,
-        checkpoint_callback=checkpoint_callback,
-        # resume_from_checkpoint=last_checkpoint_file,
-        gpus=args.gpus,
-        logger=False, # logger,
-        # weights_summary=None,  # 'full' is default
-        fast_dev_run=False, #True,
-    )
- 
-    trainer.fit(model)
-    results.update(
-        is_validation=True,
-        method_name=cfg.DAN.METHOD,
-        seed=cfg.SOLVER.SEED,
-        metric_values=trainer.callback_metrics,
-    )
-    # test scores
-    trainer.test()
-    results.update(
-        is_validation=False,
-        method_name=cfg.DAN.METHOD,
-        seed=cfg.SOLVER.SEED,
-        metric_values=trainer.callback_metrics,
-    )
-    results.to_csv(test_csv_file)
-    results.print_scores(cfg.DAN.METHOD)
+    # Repeat multiple times to get std
+    for i in range(0, cfg.DATASET.NUM_REPEAT):
+        seed = cfg.SOLVER.SEED + i 
+        pl.seed_everything(seed)
+        trainer = pl.Trainer(
+            progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
+            min_epochs=cfg.SOLVER.MIN_EPOCHS,
+            max_epochs=cfg.SOLVER.MAX_EPOCHS,
+            checkpoint_callback=checkpoint_callback,
+            # resume_from_checkpoint=last_checkpoint_file,
+            gpus=args.gpus,
+            logger=False, # logger,
+            # weights_summary='full',  
+            fast_dev_run=False, #True,
+        )
+        
+        trainer.fit(model)
+        results.update(
+            is_validation=True,
+            method_name=cfg.DAN.METHOD,
+            seed=seed,
+            metric_values=trainer.callback_metrics,
+        )
+        # test scores
+        trainer.test()
+        results.update(
+            is_validation=False,
+            method_name=cfg.DAN.METHOD,
+            seed=seed,
+            metric_values=trainer.callback_metrics,
+        )
+        results.to_csv(test_csv_file)
+        results.print_scores(cfg.DAN.METHOD)
 
 if __name__ == '__main__':
     main()
