@@ -1,7 +1,7 @@
 import torch
 import torch.utils.data
 
-
+# From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_access.py
 class DatasetSplit:
     """
     This class ensures a unique API is used to access training, validation and test splits
