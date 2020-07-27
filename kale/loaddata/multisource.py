@@ -79,8 +79,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
         """
         weight_type = WeightingType(config_weight_type)
         size_type = DatasetSizeType(config_size_type)
-        print(weight_type)
-        print(WeightingType)
+
         if weight_type is WeightingType.PRESET0:
             self._source_sampling_config = SamplingConfig(
                 class_weights=np.arange(source_access.n_classes(), 0, -1)

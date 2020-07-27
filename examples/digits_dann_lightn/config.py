@@ -7,6 +7,7 @@ Default configurations
 # Copyright (c) Facebook, In_C. and its affiliates. All Rights Reserved.
 
 from yacs.config import CfgNode as CN
+import os
 
 # -----------------------------------------------------------------------------
 # Config definition
@@ -47,10 +48,10 @@ _C.SOLVER.NESTEROV = True
 
 _C.SOLVER.TYPE = "SGD"
 _C.SOLVER.MAX_EPOCHS = 100    #"nb_adapt_epochs": 100,
-_C.SOLVER.WARMUP = True
-_C.SOLVER.WARMUP_EPOCHS = 20    # "nb_init_epochs": 20,
+# _C.SOLVER.WARMUP = True
+_C.SOLVER.MIN_EPOCHS = 20    # "nb_init_epochs": 20,
 _C.SOLVER.TRAIN_BATCH_SIZE = 150 # 150
-_C.SOLVER.TEST_BATCH_SIZE = 200
+_C.SOLVER.TEST_BATCH_SIZE = 200 #No difference in ADA
 
 # Adaptation-specific solver config
 _C.SOLVER.AD_LAMBDA = True
@@ -65,7 +66,7 @@ _C.DAN.METHOD = 'CDAN' # choices=['CDAN', 'CDAN-E', 'DANN']
 _C.DAN.USERANDOM = False
 _C.DAN.RANDOM_DIM = 1024
 # To remove the following after testing
-# _C.DAN.NET = 'ResNet50' # choices=["ResNet18", "ResNet34", "ResNet50", "ResNet101", "ResNet152"]
+# _C.DAN.NET = 'ResNet50' # choices=["ResNet18", "ResNet34", "ResNet50"]
 # _C.DAN.BOTTLENECK = True # use_bottleneck
 # _C.DAN.BNECK_DIM = 256 # bottleneck_dim":256,
 # _C.DAN.NEW_CLS = True
@@ -76,9 +77,13 @@ _C.DAN.RANDOM_DIM = 1024
 # Misc options
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CN()
-_C.OUTPUT.DIR = './outputs' # output_dir
+_C.OUTPUT.ROOT = './outputs' # output_dir
+_C.OUTPUT.DIR = './outputs'
 _C.OUTPUT.VERBOSE = False   # To discuss, for HPC jobs
-
+_C.OUTPUT.PB_FRESH = 50 # 0 to disable  
 
 def get_cfg_defaults():
+  # Shall we do this here because it will be common for DA?
+  # _C.OUTPUT.DIR = os.path.join(_C.OUTPUT.ROOT, _C.DATASET.NAME + '_' + 
+  #                              _C.DATASET.SOURCE + '2' + _C.DATASET.TARGET)
   return _C.clone()

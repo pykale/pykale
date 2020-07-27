@@ -8,8 +8,12 @@ import hashlib
 import glob
 import re
 from datetime import datetime
+from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.loggers import TensorBoardLogger
 
 # import ada.utils.experimentation as xp
+
+# From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 
 def param_to_str(param_dict):
     def key_val_mapper(kv):
@@ -53,6 +57,40 @@ def record_hashes(hash_file, hash_, value):
         return True
     return False
 
+def setup_logger(train_params, output_dir, method_name):
+    params_hash = param_to_hash(train_params)
+    hash_file = os.path.join(output_dir, "parameters.json")
+    record_hashes(hash_file, params_hash, train_params)
+    output_file_prefix = os.path.join(output_dir, params_hash)
+
+    test_csv_file = f"{output_file_prefix}.csv"
+    checkpoint_dir = os.path.join(output_dir, "checkpoints", params_hash)
+
+    # To simplify
+    
+    path_method_name = re.sub(r"[^-/\w\.]", "_", method_name)
+    full_checkpoint_dir = os.path.join(
+        checkpoint_dir, path_method_name #, f"seed_{seed}"
+    )
+    checkpoint_callback = ModelCheckpoint(
+        filepath=os.path.join(full_checkpoint_dir, "{epoch}"),
+        monitor="last_epoch",
+        mode="max",
+    )
+    
+    results = XpResults.from_file(
+        ["source acc", "target acc", "domain acc"], test_csv_file
+    )
+    format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
+    logging.basicConfig(format=format_str)
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)  
+
+    return logger, results, checkpoint_callback, test_csv_file
+    
+
+
+# From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation_results.py
 class XpResults:
     @staticmethod
     def from_file(metrics, filepath):
