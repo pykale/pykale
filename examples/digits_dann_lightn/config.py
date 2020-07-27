@@ -1,13 +1,18 @@
-# Created by Haiping Lu directly from https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/config.py
+"""
+Default configurations
+"""
+
+# Modified by Haiping Lu from https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/config.py
 # Under the MIT License
-# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
-from yacs.config import CfgNode
+# Copyright (c) Facebook, In_C. and its affiliates. All Rights Reserved.
+
+from yacs.config import CfgNode as CN
 
 # -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
 
-C = CfgNode()
+_C = CN()
 
 
 # {
@@ -21,52 +26,59 @@ C = CfgNode()
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
-C.DATASET = CfgNode()
-C.DATASET.ROOT = '../data' # '/shared/tale2/Shared'
-C.DATASET.NAME = 'digits' #dset choices=['office', 'image-clef', 'visda', 'office-home'], help="The dataset used"
-C.DATASET.SOURCE = 'mnist' #s_dset_path  , help="The source dataset path list"
-C.DATASET.TARGET = 'usps' #s_dset_path  , help="The target dataset path list"
-C.DATASET.NUM_CLASSES = 10
-C.DATASET.DIMENSION = 784
-C.DATASET.WEIGHT_TYPE = 'natural'
-C.DATASET.SIZE_TYPE = 'source'
-# ---------------------------------------------------------------------------- #
-# Domain Adaptation Net (DAN) configs
-# ---------------------------------------------------------------------------- #
-C.DAN = CfgNode()
-C.DAN.METHOD = 'CDAN' # choices=['CDAN', 'CDAN-E', 'DANN']
-C.DAN.USERANDOM = False
-C.DAN.RANDOM_DIM = 1024
-# C.DAN.NET = 'ResNet50' # choices=["ResNet18", "ResNet34", "ResNet50", "ResNet101", "ResNet152"]
-# C.DAN.BOTTLENECK = True # use_bottleneck
-# C.DAN.BNECK_DIM = 256 # bottleneck_dim":256,
-# C.DAN.NEW_CLS = True
-# C.DAN.RANDOM = False # "whether use random projection"
-# C.DAN.RAND_DIM = 1024 # config["loss"]["random_dim"] = 1024
-# C.DAN.TRADEOFF = 1.0 #config["loss"] = {"trade_off":1.0}
+_C.DATASET = CN()
+_C.DATASET.ROOT = '../data' # '/shared/tale2/Shared'
+_C.DATASET.NAME = 'digits' #dset choices=['office', 'image-clef', 'office-home']
+_C.DATASET.SOURCE = 'mnist' #s_dset_path  , help="The source dataset path list"
+_C.DATASET.TARGET = 'usps' #s_dset_path  , help="The target dataset path list"
+_C.DATASET.NUM_CLASSES = 10
+_C.DATASET.DIMENSION = 784
+_C.DATASET.WEIGHT_TYPE = 'natural'
+_C.DATASET.SIZE_TYPE = 'source'
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
-C.SOLVER = CfgNode()
-C.SOLVER.SEED = 2020
+_C.SOLVER = CN()
+_C.SOLVER.SEED = 2020
+_C.SOLVER.BASE_LR = 0.001 # Initial learning rate
+_C.SOLVER.MOMENTUM = 0.9
+_C.SOLVER.WEIGHT_DECAY = 0.0005 # 1e-4
+_C.SOLVER.NESTEROV = True
 
-C.SOLVER.AD_LAMBDA = True
-C.SOLVER.AD_LR = True
-C.SOLVER.INIT_LAMBDA = 1
-C.SOLVER.MAX_EPOCHS = 100    #"nb_adapt_epochs": 100,
-C.SOLVER.INIT_EPOCHS = 20    # "nb_init_epochs": 20,
-C.SOLVER.BASE_LR = 0.001 # Initial learning rate
-C.SOLVER.BATCH_SIZE = 100 # 150
+_C.SOLVER.TYPE = "SGD"
+_C.SOLVER.MAX_EPOCHS = 100    #"nb_adapt_epochs": 100,
+_C.SOLVER.WARMUP = True
+_C.SOLVER.WARMUP_EPOCHS = 20    # "nb_init_epochs": 20,
+_C.SOLVER.TRAIN_BATCH_SIZE = 150 # 150
+_C.SOLVER.TEST_BATCH_SIZE = 200
 
-C.SOLVER.TYPE = "SGD"
-C.SOLVER.MOMENTUM = 0.9
-C.SOLVER.WEIGHT_DECAY = 0.0005 # 1e-4
-C.SOLVER.NESTEROV = True
+# Adaptation-specific solver config
+_C.SOLVER.AD_LAMBDA = True
+_C.SOLVER.AD_LR = True
+_C.SOLVER.INIT_LAMBDA = 1
 
+# ---------------------------------------------------------------------------- #
+# Domain Adaptation Net (DAN) configs
+# ---------------------------------------------------------------------------- #
+_C.DAN = CN()
+_C.DAN.METHOD = 'CDAN' # choices=['CDAN', 'CDAN-E', 'DANN']
+_C.DAN.USERANDOM = False
+_C.DAN.RANDOM_DIM = 1024
+# To remove the following after testing
+# _C.DAN.NET = 'ResNet50' # choices=["ResNet18", "ResNet34", "ResNet50", "ResNet101", "ResNet152"]
+# _C.DAN.BOTTLENECK = True # use_bottleneck
+# _C.DAN.BNECK_DIM = 256 # bottleneck_dim":256,
+# _C.DAN.NEW_CLS = True
+# _C.DAN.RANDOM = False # "whether use random projection"
+# _C.DAN.RAND_DIM = 1024 # config["loss"]["random_dim"] = 1024
+# _C.DAN.TRADEOFF = 1.0 #config["loss"] = {"trade_off":1.0}
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-C.OUTPUT = CfgNode()
-C.OUTPUT.DIR = './outputs' #output_dir
-C.OUTPUT.VERBOSE = False
-# parser.add_argument('--snapshot_interval', type=int, default=5000, help="interval of two continuous output model")
+_C.OUTPUT = CN()
+_C.OUTPUT.DIR = './outputs' # output_dir
+_C.OUTPUT.VERBOSE = False   # To discuss, for HPC jobs
+
+
+def get_cfg_defaults():
+  return _C.clone()
