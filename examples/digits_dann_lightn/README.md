@@ -4,14 +4,14 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 
 ## Default
 
-* Dataset: MNIST to UPSP
+* Dataset: MNIST (source) to UPSP (target)
 * Algorithms: DANN, CDAN, CDNA+E, ...
 
 `python main.py --cfg configs/MN2UP-CDAN.yaml --gpus 0`
 
 `python main.py --cfg configs/MN2UP-DANN.yaml --gpus 0`
 
-## Notes
+## Notes for discussion
 
 * Using PyTorch Lightning
 * Removed loaddata.py, using common API in kale.loaddata instead
@@ -22,10 +22,6 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 * What to keep here
 * Top of file: docstrings for gengerating documentation later? Or comment
 * Discuss im_transform in prepdata: have cifar built-in.
-
-
-
-
 
 ## PyKale examples
 
