@@ -53,7 +53,8 @@ def record_hashes(hash_file, hash_, value):
     if hash_ not in known_hashes:
         known_hashes[hash_] = value
         with open(hash_file, "w") as fd:
-            json.dump(known_hashes, fd)
+            json.dump(known_hashes, fd, indent=2)
+            fd.write('\n')
         return True
     return False
 
