@@ -41,6 +41,7 @@ def load_config(cfg):
    }
     return config_params
 
+# Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 def get_model(cfg, dataset, num_channels):
     """
     Builds and returns a model according to the config

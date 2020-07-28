@@ -1,3 +1,9 @@
+"""
+Logging functions, including saving results from multiple runs to CSV
+
+From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py and 
+https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation_results.py
+"""
 import os.path
 import logging
 import shutil
@@ -12,8 +18,6 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
 # import ada.utils.experimentation as xp
-
-# From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 
 def param_to_str(param_dict):
     def key_val_mapper(kv):

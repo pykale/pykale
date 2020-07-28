@@ -1,3 +1,6 @@
+"""
+From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py
+"""
 import torchvision
 import torch.utils.data
 import logging
