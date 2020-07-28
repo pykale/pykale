@@ -8,6 +8,7 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 * Algorithms: DANN, CDAN, CDNA+E, ...
 
 `python main.py --cfg configs/MN2UP-CDAN.yaml --gpus 0`
+
 `python main.py --cfg configs/MN2UP-DANN.yaml --gpus 0`
 
 ## Notes
