@@ -1,11 +1,6 @@
 """
 Default configurations
 """
-
-# Modified by Haiping Lu from https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/config.py
-# Under the MIT License
-# Copyright (c) Facebook, In_C. and its affiliates. All Rights Reserved.
-
 from yacs.config import CfgNode as CN
 import os
 
@@ -15,15 +10,6 @@ import os
 
 _C = CN()
 
-
-# {
-#     "dataset_group": "digits",
-#     "dataset_name": "MNIST to USPS",
-#     "source": "mnist",
-#     "target": "usps",
-#     "size_type": "source",
-#     "weight_type": "natural"
-# }
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
@@ -66,22 +52,13 @@ _C.DAN = CN()
 _C.DAN.METHOD = 'CDAN' # choices=['CDAN', 'CDAN-E', 'DANN']
 _C.DAN.USERANDOM = False
 _C.DAN.RANDOM_DIM = 1024
-# To remove the following after testing
-# _C.DAN.NET = 'ResNet50' # choices=["ResNet18", "ResNet34", "ResNet50"]
-# _C.DAN.BOTTLENECK = True # use_bottleneck
-# _C.DAN.BNECK_DIM = 256 # bottleneck_dim":256,
-# _C.DAN.NEW_CLS = True
-# _C.DAN.RANDOM = False # "whether use random projection"
-# _C.DAN.RAND_DIM = 1024 # config["loss"]["random_dim"] = 1024
-# _C.DAN.TRADEOFF = 1.0 #config["loss"] = {"trade_off":1.0}
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CN()
 _C.OUTPUT.ROOT = './outputs' # output_dir
-_C.OUTPUT.DIR = './outputs'
 _C.OUTPUT.VERBOSE = False   # To discuss, for HPC jobs
-_C.OUTPUT.PB_FRESH = 0 # 50 # 0 to disable  ; MAYBE make it a command line option
+_C.OUTPUT.PB_FRESH = 1 #0 # 50 # 0 to disable  ; MAYBE make it a command line option
 
 def get_cfg_defaults():
   # Shall we do this here because it will be common for DA?

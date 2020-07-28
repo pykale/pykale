@@ -2,24 +2,18 @@
 import os
 import argparse
 import warnings
-import logging
 import sys
-from tqdm import tqdm
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-import kale.utils.da_logger as da_logger 
+import kale.utils.da_logger as da_logger # np error if move this to later, not sure why
 import torch
-
-
 import pytorch_lightning as pl
 
 from config import get_cfg_defaults
 from model import get_model
-# import kale.utils.seed as seed # to unify later
 import kale.loaddata.digits as digits
 import kale.loaddata.multisource as multisource
-import kale.utils.logger as logging
-
+# import kale.utils.seed as seed # to unify later used pl seed_everything
 
 def arg_parse():
     parser = argparse.ArgumentParser(description='Domain Adversarial Networks on Digits Datasets')
