@@ -48,7 +48,7 @@ _C.SOLVER.WEIGHT_DECAY = 0.0005 # 1e-4
 _C.SOLVER.NESTEROV = True
 
 _C.SOLVER.TYPE = "SGD"
-_C.SOLVER.MAX_EPOCHS = 100    #"nb_adapt_epochs": 100,
+_C.SOLVER.MAX_EPOCHS = 120    #"nb_adapt_epochs": 100,
 # _C.SOLVER.WARMUP = True
 _C.SOLVER.MIN_EPOCHS = 20    # "nb_init_epochs": 20,
 _C.SOLVER.TRAIN_BATCH_SIZE = 150 # 150
@@ -81,7 +81,7 @@ _C.OUTPUT = CN()
 _C.OUTPUT.ROOT = './outputs' # output_dir
 _C.OUTPUT.DIR = './outputs'
 _C.OUTPUT.VERBOSE = False   # To discuss, for HPC jobs
-_C.OUTPUT.PB_FRESH = 50 # 0 to disable  
+_C.OUTPUT.PB_FRESH = 0 # 50 # 0 to disable  ; MAYBE make it a command line option
 
 def get_cfg_defaults():
   # Shall we do this here because it will be common for DA?
