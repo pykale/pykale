@@ -1,3 +1,8 @@
+"""
+Construct a dataset with source and target domains
+
+From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py
+"""
 import logging
 from enum import Enum
 import numpy as np

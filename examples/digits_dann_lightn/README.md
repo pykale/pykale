@@ -19,3 +19,5 @@ This example is based on the [ADA: (Yet) Another Domain Adaptation library](http
 * cfg.OUTPUT.PB_FRESH: set to 0 at batch mode; nonzero at interactive mode
 * To standardise example file structures
 * What to keep here
+* Top of file: docstrings for gengerating documentation later? Or comment
+* Discuss im_transform in prepdata: have cifar built-in.

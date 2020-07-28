@@ -1,6 +1,8 @@
 """
 Domain adaptation architectures should be indifferent to the task at hand: digits, toy datasets, recsys etc.
 Take modules as input and organise them into an architecture.
+
+From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/architectures.py
 """
 from enum import Enum
 import numpy as np

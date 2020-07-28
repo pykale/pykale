@@ -1,3 +1,9 @@
+
+"""Feature extraction / embedding
+From
+https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
+"""
+
 import numpy as np
 import torch.nn as nn
 import torch
