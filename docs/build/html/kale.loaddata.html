@@ -1,0 +1,563 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>kale.loaddata package &mdash; PyKale 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="kale.pipeline package" href="kale.pipeline.html" />
+    <link rel="prev" title="kale.embed package" href="kale.embed.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> PyKale
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">kale</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="kale.html">kale package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="kale.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="kale.embed.html">kale.embed package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">kale.loaddata package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.pipeline.html">kale.pipeline package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.predict.html">kale.predict package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.prepdata.html">kale.prepdata package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.utils.html">kale.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="kale.html#module-kale">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyKale</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="modules.html">kale</a> &raquo;</li>
+        
+          <li><a href="kale.html">kale package</a> &raquo;</li>
+        
+      <li>kale.loaddata package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/kale.loaddata.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="kale-loaddata-package">
+<h1>kale.loaddata package<a class="headerlink" href="#kale-loaddata-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kale.loaddata.digits">
+<span id="kale-loaddata-digits-module"></span><h2>kale.loaddata.digits module<a class="headerlink" href="#module-kale.loaddata.digits" title="Permalink to this headline">¶</a></h2>
+<p>Digits dataset loading for MNIST, SVHN, MNIST-M (modified MNIST), and USPS
+Modified by Haiping Lu from
+<a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py</a></p>
+<dl class="py class">
+<dt id="kale.loaddata.digits.DigitDataset">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits.</code><code class="sig-name descname">DigitDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.DigitDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="kale.loaddata.digits.DigitDataset.MNIST">
+<code class="sig-name descname">MNIST</code><em class="property"> = 'MNIST'</em><a class="headerlink" href="#kale.loaddata.digits.DigitDataset.MNIST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.loaddata.digits.DigitDataset.MNISTM">
+<code class="sig-name descname">MNISTM</code><em class="property"> = 'MNISTM'</em><a class="headerlink" href="#kale.loaddata.digits.DigitDataset.MNISTM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.loaddata.digits.DigitDataset.SVHN">
+<code class="sig-name descname">SVHN</code><em class="property"> = 'SVHN'</em><a class="headerlink" href="#kale.loaddata.digits.DigitDataset.SVHN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.loaddata.digits.DigitDataset.USPS">
+<code class="sig-name descname">USPS</code><em class="property"> = 'USPS'</em><a class="headerlink" href="#kale.loaddata.digits.DigitDataset.USPS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.digits.DigitDataset.get_accesses">
+<em class="property">static </em><code class="sig-name descname">get_accesses</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.loaddata.digits.DigitDataset" title="kale.loaddata.digits.DigitDataset">kale.loaddata.digits.DigitDataset</a></span></em>, <em class="sig-param"><span class="n">target</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.loaddata.digits.DigitDataset" title="kale.loaddata.digits.DigitDataset">kale.loaddata.digits.DigitDataset</a></span></em>, <em class="sig-param"><span class="n">data_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.DigitDataset.get_accesses" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.digits.DigitDatasetAccess">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits.</code><code class="sig-name descname">DigitDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.DigitDatasetAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.splits.DatasetAccess" title="kale.loaddata.splits.DatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.splits.DatasetAccess</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.digits.MNISTDatasetAccess">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits.</code><code class="sig-name descname">MNISTDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.MNISTDatasetAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.digits.DigitDatasetAccess" title="kale.loaddata.digits.DigitDatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.digits.DigitDatasetAccess</span></code></a></p>
+<dl class="py method">
+<dt id="kale.loaddata.digits.MNISTDatasetAccess.get_test">
+<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.MNISTDatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.digits.MNISTDatasetAccess.get_train">
+<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.MNISTDatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns: a torch.utils.data.Dataset</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.digits.MNISTMDatasetAccess">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits.</code><code class="sig-name descname">MNISTMDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.MNISTMDatasetAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.digits.DigitDatasetAccess" title="kale.loaddata.digits.DigitDatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.digits.DigitDatasetAccess</span></code></a></p>
+<dl class="py method">
+<dt id="kale.loaddata.digits.MNISTMDatasetAccess.get_test">
+<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.MNISTMDatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.digits.MNISTMDatasetAccess.get_train">
+<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.MNISTMDatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns: a torch.utils.data.Dataset</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.digits.SVHNDatasetAccess">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits.</code><code class="sig-name descname">SVHNDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.SVHNDatasetAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.digits.DigitDatasetAccess" title="kale.loaddata.digits.DigitDatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.digits.DigitDatasetAccess</span></code></a></p>
+<dl class="py method">
+<dt id="kale.loaddata.digits.SVHNDatasetAccess.get_test">
+<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.SVHNDatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.digits.SVHNDatasetAccess.get_train">
+<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.SVHNDatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns: a torch.utils.data.Dataset</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.digits.USPSDatasetAccess">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits.</code><code class="sig-name descname">USPSDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.USPSDatasetAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.digits.DigitDatasetAccess" title="kale.loaddata.digits.DigitDatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.digits.DigitDatasetAccess</span></code></a></p>
+<dl class="py method">
+<dt id="kale.loaddata.digits.USPSDatasetAccess.get_test">
+<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.USPSDatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.digits.USPSDatasetAccess.get_train">
+<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.USPSDatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns: a torch.utils.data.Dataset</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kale.loaddata.mnistm">
+<span id="kale-loaddata-mnistm-module"></span><h2>kale.loaddata.mnistm module<a class="headerlink" href="#module-kale.loaddata.mnistm" title="Permalink to this headline">¶</a></h2>
+<p>Dataset setting and data loader for MNIST-M.</p>
+<p>Modified from 
+<a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_mnistm.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_mnistm.py</a>
+(from <a class="reference external" href="https://github.com/pytorch/vision/blob/master/torchvision/datasets/mnist.py">https://github.com/pytorch/vision/blob/master/torchvision/datasets/mnist.py</a>)</p>
+<p>CREDIT: <a class="reference external" href="https://github.com/corenel">https://github.com/corenel</a>
+amt: changed train_data and test_data to data, and train_labels and test_labels to targets like MNIST</p>
+<dl class="py class">
+<dt id="kale.loaddata.mnistm.MNISTM">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.mnistm.</code><code class="sig-name descname">MNISTM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span></em>, <em class="sig-param"><span class="n">train</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">transform</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">target_transform</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">download</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.mnistm.MNISTM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.dataset.Dataset</span></code></p>
+<p>MNIST-M Dataset.
+Auto-downloads the dataset and provide the torch Dataset API.</p>
+<dl>
+<dt>Args:</dt><dd><p>root (str): path to directory where the MNISTM folder will be created (or exists.)
+train (bool, optional): defaults to True.</p>
+<blockquote>
+<div><p>If True, loads the training data. Otherwise, loads the test data.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>transform (callable, optional): defaults to None.</dt><dd><p>A function/transform that takes in
+an PIL image and returns a transformed version.
+E.g, <code class="docutils literal notranslate"><span class="pre">transforms.RandomCrop</span></code>
+This preprocessing function applied to all images (whether source or target)</p>
+</dd>
+<dt>target_transform (callable, optional): default toNone, similar to transform.</dt><dd><p>This preprocessing function applied to all target images, after <cite>transform</cite></p>
+</dd>
+<dt>download (bool optional): defaults to False.</dt><dd><p>Whether to allow downloading the data if not found on disk.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kale.loaddata.mnistm.MNISTM.download">
+<code class="sig-name descname">download</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.mnistm.MNISTM.download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download the MNISTM data.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.loaddata.mnistm.MNISTM.processed_folder">
+<code class="sig-name descname">processed_folder</code><em class="property"> = 'processed'</em><a class="headerlink" href="#kale.loaddata.mnistm.MNISTM.processed_folder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.loaddata.mnistm.MNISTM.raw_folder">
+<code class="sig-name descname">raw_folder</code><em class="property"> = 'raw'</em><a class="headerlink" href="#kale.loaddata.mnistm.MNISTM.raw_folder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.loaddata.mnistm.MNISTM.test_file">
+<code class="sig-name descname">test_file</code><em class="property"> = 'mnist_m_test.pt'</em><a class="headerlink" href="#kale.loaddata.mnistm.MNISTM.test_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.loaddata.mnistm.MNISTM.training_file">
+<code class="sig-name descname">training_file</code><em class="property"> = 'mnist_m_train.pt'</em><a class="headerlink" href="#kale.loaddata.mnistm.MNISTM.training_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.loaddata.mnistm.MNISTM.url">
+<code class="sig-name descname">url</code><em class="property"> = 'https://github.com/VanushVaswani/keras_mnistm/releases/download/1.0/keras_mnistm.pkl.gz'</em><a class="headerlink" href="#kale.loaddata.mnistm.MNISTM.url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="kale-loaddata-multisource-module">
+<h2>kale.loaddata.multisource module<a class="headerlink" href="#kale-loaddata-multisource-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kale.loaddata.sampler">
+<span id="kale-loaddata-sampler-module"></span><h2>kale.loaddata.sampler module<a class="headerlink" href="#module-kale.loaddata.sampler" title="Permalink to this headline">¶</a></h2>
+<p>From <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py</a></p>
+<dl class="py class">
+<dt id="kale.loaddata.sampler.BalancedBatchSampler">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.sampler.</code><code class="sig-name descname">BalancedBatchSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">batch_size</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.sampler.BalancedBatchSampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.sampler.BatchSampler</span></code></p>
+<p>BatchSampler - from a MNIST-like dataset, samples n_samples for each of the n_classes.
+Returns batches of size n_classes * (batch_size // n_classes)
+adapted from <a class="reference external" href="https://github.com/adambielski/siamese-triplet/blob/master/datasets.py">https://github.com/adambielski/siamese-triplet/blob/master/datasets.py</a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.sampler.InfiniteSliceIterator">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.sampler.</code><code class="sig-name descname">InfiniteSliceIterator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">array</span></em>, <em class="sig-param"><span class="n">class_</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.sampler.InfiniteSliceIterator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="kale.loaddata.sampler.InfiniteSliceIterator.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.sampler.InfiniteSliceIterator.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.sampler.InfiniteSliceIterator.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.sampler.InfiniteSliceIterator.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.sampler.MultiDataLoader">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.sampler.</code><code class="sig-name descname">MultiDataLoader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataloaders</span></em>, <em class="sig-param"><span class="n">n_batches</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.sampler.MultiDataLoader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Batch Sampler for a MultiDataset. Iterates in parallel over different batch samplers for each dataset.
+Yields batches [(x_1, y_1), …, (x_s, y_s)] for s datasets.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.sampler.ReweightedBatchSampler">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.sampler.</code><code class="sig-name descname">ReweightedBatchSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">batch_size</span></em>, <em class="sig-param"><span class="n">class_weights</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.sampler.ReweightedBatchSampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.sampler.BatchSampler</span></code></p>
+<p>BatchSampler - from a MNIST-like dataset, samples batch_size according to given input distribution
+assuming multi-class labels
+adapted from <a class="reference external" href="https://github.com/adambielski/siamese-triplet/blob/master/datasets.py">https://github.com/adambielski/siamese-triplet/blob/master/datasets.py</a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.sampler.SamplingConfig">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.sampler.</code><code class="sig-name descname">SamplingConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">balance</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">class_weights</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.sampler.SamplingConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="kale.loaddata.sampler.SamplingConfig.create_loader">
+<code class="sig-name descname">create_loader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">batch_size</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.sampler.SamplingConfig.create_loader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="kale.loaddata.sampler.get_labels">
+<code class="sig-prename descclassname">kale.loaddata.sampler.</code><code class="sig-name descname">get_labels</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.sampler.get_labels" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-kale.loaddata.splits">
+<span id="kale-loaddata-splits-module"></span><h2>kale.loaddata.splits module<a class="headerlink" href="#module-kale.loaddata.splits" title="Permalink to this headline">¶</a></h2>
+<p>Data Access API
+From <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_access.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_access.py</a></p>
+<dl class="py class">
+<dt id="kale.loaddata.splits.DatasetAccess">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.splits.</code><code class="sig-name descname">DatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_classes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.splits.DatasetAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class ensures a unique API is used to access training, validation and test splits
+of any dataset.</p>
+<dl class="py method">
+<dt id="kale.loaddata.splits.DatasetAccess.get_test">
+<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.splits.DatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.splits.DatasetAccess.get_train">
+<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.splits.DatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns: a torch.utils.data.Dataset</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.splits.DatasetAccess.get_train_val">
+<code class="sig-name descname">get_train_val</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val_ratio</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.splits.DatasetAccess.get_train_val" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.splits.DatasetAccess.n_classes">
+<code class="sig-name descname">n_classes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.splits.DatasetAccess.n_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kale.loaddata.usps">
+<span id="kale-loaddata-usps-module"></span><h2>kale.loaddata.usps module<a class="headerlink" href="#module-kale.loaddata.usps" title="Permalink to this headline">¶</a></h2>
+<p>Dataset setting and data loader for USPS.
+Modified from
+<a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_usps.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_usps.py</a>
+(from <a class="reference external" href="https://github.com/mingyuliutw/CoGAN/blob/master/cogan_pytorch/src/dataset_usps.py">https://github.com/mingyuliutw/CoGAN/blob/master/cogan_pytorch/src/dataset_usps.py</a>)</p>
+<p>amt: changed train_data and test_data to data, and train_labels and test_labels to targets like MNIST</p>
+<dl class="py class">
+<dt id="kale.loaddata.usps.USPS">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.usps.</code><code class="sig-name descname">USPS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span></em>, <em class="sig-param"><span class="n">train</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">transform</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">download</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.usps.USPS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.dataset.Dataset</span></code></p>
+<p>USPS Dataset.</p>
+<dl>
+<dt>Args:</dt><dd><p>root (string): Root directory of dataset where dataset file exist.
+train (bool, optional): If True, resample from dataset randomly.
+download (bool, optional): If true, downloads the dataset</p>
+<blockquote>
+<div><p>from the internet and puts it in root directory.
+If dataset is already downloaded, it is not downloaded again.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>transform (callable, optional): A function/transform that takes in</dt><dd><p>an PIL image and returns a transformed version.
+E.g, <code class="docutils literal notranslate"><span class="pre">transforms.RandomCrop</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kale.loaddata.usps.USPS.download">
+<code class="sig-name descname">download</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.usps.USPS.download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download dataset.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.usps.USPS.load_samples">
+<code class="sig-name descname">load_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.usps.USPS.load_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load sample images from dataset.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.loaddata.usps.USPS.url">
+<code class="sig-name descname">url</code><em class="property"> = 'https://raw.githubusercontent.com/mingyuliutw/CoGAN/master/cogan_pytorch/data/uspssample/usps_28x28.pkl'</em><a class="headerlink" href="#kale.loaddata.usps.USPS.url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kale.loaddata">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-kale.loaddata" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="kale.pipeline.html" class="btn btn-neutral float-right" title="kale.pipeline package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="kale.embed.html" class="btn btn-neutral float-left" title="kale.embed package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Haiping Lu, Shuo Zhou, Raivo Koot
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
