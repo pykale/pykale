@@ -1,0 +1,581 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>kale.embed package &mdash; PyKale 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="kale.loaddata package" href="kale.loaddata.html" />
+    <link rel="prev" title="kale package" href="kale.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> PyKale
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">kale</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="kale.html">kale package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="kale.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">kale.embed package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.loaddata.html">kale.loaddata package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.pipeline.html">kale.pipeline package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.predict.html">kale.predict package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.prepdata.html">kale.prepdata package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.utils.html">kale.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="kale.html#module-kale">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyKale</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="modules.html">kale</a> &raquo;</li>
+        
+          <li><a href="kale.html">kale package</a> &raquo;</li>
+        
+      <li>kale.embed package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/kale.embed.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="kale-embed-package">
+<h1>kale.embed package<a class="headerlink" href="#kale-embed-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kale.embed.attention_cnn">
+<span id="kale-embed-attention-cnn-module"></span><h2>kale.embed.attention_cnn module<a class="headerlink" href="#module-kale.embed.attention_cnn" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kale.embed.attention_cnn.CNNTransformer">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.attention_cnn.</code><code class="sig-name descname">CNNTransformer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cnn</span></em>, <em class="sig-param"><span class="n">cnn_output_shape</span></em>, <em class="sig-param"><span class="n">num_layers</span></em>, <em class="sig-param"><span class="n">num_heads</span></em>, <em class="sig-param"><span class="n">dim_feedforward</span></em>, <em class="sig-param"><span class="n">dropout</span></em>, <em class="sig-param"><span class="n">output_type</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.attention_cnn.CNNTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.embed.attention_cnn.ContextCNNGeneric" title="kale.embed.attention_cnn.ContextCNNGeneric"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.embed.attention_cnn.ContextCNNGeneric</span></code></a></p>
+<p>A feature extractor consisting of a CNN backbone followed by a standard
+Transformer-Encoder.</p>
+<dl>
+<dt>args:</dt><dd><dl class="simple">
+<dt>cnn - a convolutional neural network that takes in images and</dt><dd><p>outputs tensors.</p>
+</dd>
+<dt>cnn_output_shape - a tuple of shape (batch_size, num_channels, height, width)</dt><dd><p>describing the output shape of the given CNN.</p>
+</dd>
+</dl>
+<p>num_layers - number of attention layers in the Transformer-Encoder.
+num_heads - number of attention heads in each transformer block.
+dim_feedforward - number of neurons in the intermediate dense layer of</p>
+<blockquote>
+<div><p>each transformer feedforward block.</p>
+</div></blockquote>
+<p>dropout - dropout rate of the transformer layers.
+output_type - one of ‘sequence’ or ‘spatial’. If Spatial then the final</p>
+<blockquote>
+<div><p>output of the model, which is the sequence output of the
+Transformer-Encoder, will be reshaped to resemble the
+image-batch shape of the output of the CNN.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.embed.attention_cnn.ContextCNNGeneric">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.attention_cnn.</code><code class="sig-name descname">ContextCNNGeneric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cnn</span></em>, <em class="sig-param"><span class="n">cnn_output_shape</span></em>, <em class="sig-param"><span class="n">contextualizer</span></em>, <em class="sig-param"><span class="n">output_type</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.attention_cnn.ContextCNNGeneric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>A template to construct a feature extractor consisting of a CNN followed by a
+sequence-to-sequence contextualizer like a Transformer. Before inputting the CNN output
+tensor to the contextualizer, the tensor’s spatial dimensions are unrolled
+into a sequence.</p>
+<dl class="simple">
+<dt>args:</dt><dd><dl class="simple">
+<dt>cnn - A convolutional neural network that takes in images and</dt><dd><p>outputs tensors.</p>
+</dd>
+<dt>cnn_output_shape - A tuple of shape (batch_size, num_channels, height, width)</dt><dd><p>describing the output shape of the given CNN.</p>
+</dd>
+<dt>contextualizer - A sequence-to-sequence model that takes inputs of shape</dt><dd><p>(num_timesteps, batch_size, num_features) and uses
+attention to contextualize the sequence and returns
+a sequence of the exact same shape. This will mainly be
+a Transformer-Encoder.</p>
+</dd>
+<dt>output_type - One of ‘sequence’ or ‘spatial’. If Spatial then the final</dt><dd><p>output of the model, which is a sequence, will be reshaped
+to resemble the image-batch shape of the output of the CNN.
+If Sequence then the output sequence is returned as is.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kale.embed.attention_cnn.ContextCNNGeneric.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.attention_cnn.ContextCNNGeneric.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kale.embed.da_feature">
+<span id="kale-embed-da-feature-module"></span><h2>kale.embed.da_feature module<a class="headerlink" href="#module-kale.embed.da_feature" title="Permalink to this headline">¶</a></h2>
+<p>Feature extraction / embedding
+From
+<a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py</a></p>
+<dl class="py class">
+<dt id="kale.embed.da_feature.AlexNetFeature">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.da_feature.</code><code class="sig-name descname">AlexNetFeature</code><a class="headerlink" href="#kale.embed.da_feature.AlexNetFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>PyTorch model convnet without the last layer
+adapted from <a class="reference external" href="https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py">https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py</a></p>
+<dl class="py method">
+<dt id="kale.embed.da_feature.AlexNetFeature.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.AlexNetFeature.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.da_feature.AlexNetFeature.output_size">
+<code class="sig-name descname">output_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.AlexNetFeature.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.embed.da_feature.FeatureExtractFF">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.da_feature.</code><code class="sig-name descname">FeatureExtractFF</code><span class="sig-paren">(</span><em class="sig-param">input_dim</em>, <em class="sig-param">hidden_sizes=(15</em>, <em class="sig-param">)</em>, <em class="sig-param">activation_fn=&lt;class 'torch.nn.modules.activation.ReLU'&gt;</em>, <em class="sig-param">**activation_args</em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.FeatureExtractFF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt id="kale.embed.da_feature.FeatureExtractFF.extra_repr">
+<code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.FeatureExtractFF.extra_repr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the extra representation of the module</p>
+<p>To print customized extra information, you should reimplement
+this method in your own modules. Both single-line and multi-line
+strings are acceptable.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.da_feature.FeatureExtractFF.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.FeatureExtractFF.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.da_feature.FeatureExtractFF.hidden_layer">
+<code class="sig-name descname">hidden_layer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.FeatureExtractFF.hidden_layer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.da_feature.FeatureExtractFF.output_size">
+<code class="sig-name descname">output_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.FeatureExtractFF.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.embed.da_feature.FeatureExtractorDigits">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.da_feature.</code><code class="sig-name descname">FeatureExtractorDigits</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_channels</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">kernel_size</span><span class="o">=</span><span class="default_value">5</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.FeatureExtractorDigits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Feature extractor for MNIST-like data</p>
+<dl class="py method">
+<dt id="kale.embed.da_feature.FeatureExtractorDigits.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.FeatureExtractorDigits.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.da_feature.FeatureExtractorDigits.output_size">
+<code class="sig-name descname">output_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.FeatureExtractorDigits.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.embed.da_feature.ResNet101Feature">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.da_feature.</code><code class="sig-name descname">ResNet101Feature</code><a class="headerlink" href="#kale.embed.da_feature.ResNet101Feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>PyTorch model convnet without the last layer
+adapted from <a class="reference external" href="https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py">https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py</a></p>
+<dl class="py method">
+<dt id="kale.embed.da_feature.ResNet101Feature.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.ResNet101Feature.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.da_feature.ResNet101Feature.output_size">
+<code class="sig-name descname">output_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.ResNet101Feature.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.embed.da_feature.ResNet152Feature">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.da_feature.</code><code class="sig-name descname">ResNet152Feature</code><a class="headerlink" href="#kale.embed.da_feature.ResNet152Feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>PyTorch model convnet without the last layer
+adapted from <a class="reference external" href="https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py">https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py</a></p>
+<dl class="py method">
+<dt id="kale.embed.da_feature.ResNet152Feature.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.ResNet152Feature.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.da_feature.ResNet152Feature.output_size">
+<code class="sig-name descname">output_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.ResNet152Feature.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.embed.da_feature.ResNet18Feature">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.da_feature.</code><code class="sig-name descname">ResNet18Feature</code><a class="headerlink" href="#kale.embed.da_feature.ResNet18Feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>PyTorch model convnet without the last layer
+adapted from <a class="reference external" href="https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py">https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py</a></p>
+<dl class="py method">
+<dt id="kale.embed.da_feature.ResNet18Feature.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.ResNet18Feature.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.da_feature.ResNet18Feature.output_size">
+<code class="sig-name descname">output_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.ResNet18Feature.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.embed.da_feature.ResNet34Feature">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.da_feature.</code><code class="sig-name descname">ResNet34Feature</code><a class="headerlink" href="#kale.embed.da_feature.ResNet34Feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>PyTorch model convnet without the last layer
+adapted from <a class="reference external" href="https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py">https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py</a></p>
+<dl class="py method">
+<dt id="kale.embed.da_feature.ResNet34Feature.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.ResNet34Feature.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.da_feature.ResNet34Feature.output_size">
+<code class="sig-name descname">output_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.ResNet34Feature.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.embed.da_feature.ResNet50Feature">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.da_feature.</code><code class="sig-name descname">ResNet50Feature</code><a class="headerlink" href="#kale.embed.da_feature.ResNet50Feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>PyTorch model convnet without the last layer
+adapted from <a class="reference external" href="https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py">https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py</a></p>
+<dl class="py method">
+<dt id="kale.embed.da_feature.ResNet50Feature.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.ResNet50Feature.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.da_feature.ResNet50Feature.output_size">
+<code class="sig-name descname">output_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.da_feature.ResNet50Feature.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="kale-embed-mpca-module">
+<h2>kale.embed.mpca module<a class="headerlink" href="#kale-embed-mpca-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kale.embed.positional_encoding">
+<span id="kale-embed-positional-encoding-module"></span><h2>kale.embed.positional_encoding module<a class="headerlink" href="#module-kale.embed.positional_encoding" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kale.embed.positional_encoding.PositionalEncoding">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.positional_encoding.</code><code class="sig-name descname">PositionalEncoding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_model</span></em>, <em class="sig-param"><span class="n">max_len</span><span class="o">=</span><span class="default_value">5000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.positional_encoding.PositionalEncoding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Implements the positional encoding as described in the NIPS2017 paper
+‘Attention Is All You Need’ about Transformers
+(<a class="reference external" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a>).
+Essentially, for all timesteps in a given sequence,
+adds information about the relative temporal location of a timestep
+directly into the features of that timestep.</p>
+<dl>
+<dt>args:</dt><dd><p>d_model - the number of features that each timestep has
+max_len - the maximum sequence length that the positional</p>
+<blockquote>
+<div><p>encodings should support.</p>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kale.embed.positional_encoding.PositionalEncoding.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.positional_encoding.PositionalEncoding.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expects input of shape (sequence_length, batch_size, num_features)
+and returns output of the same shape. sequence_length is at most
+allowed to be self.max_len and num_features is expected to
+be exactly self.d_model</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kale.embed">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-kale.embed" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="kale.loaddata.html" class="btn btn-neutral float-right" title="kale.loaddata package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="kale.html" class="btn btn-neutral float-left" title="kale package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Haiping Lu, Shuo Zhou, Raivo Koot
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
