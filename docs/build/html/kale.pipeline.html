@@ -35,7 +35,9 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="kale.predict package" href="kale.predict.html" />
+    <link rel="prev" title="kale.loaddata package" href="kale.loaddata.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,16 +82,26 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">kale.pipeline package</a><ul>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-kale.pipeline.da_systems">kale.pipeline.da_systems module</a></li>
-<li><a class="reference internal" href="#module-kale.pipeline">Module contents</a></li>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">kale</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="kale.html">kale package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="kale.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="kale.embed.html">kale.embed package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.loaddata.html">kale.loaddata package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">kale.pipeline package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.predict.html">kale.predict package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.prepdata.html">kale.prepdata package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.utils.html">kale.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="kale.html#module-kale">Module contents</a></li>
 </ul>
 </li>
 </ul>
-</div>
+</li>
+</ul>
+
             
           
         </div>
@@ -134,6 +146,10 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
+          <li><a href="modules.html">kale</a> &raquo;</li>
+        
+          <li><a href="kale.html">kale package</a> &raquo;</li>
+        
       <li>kale.pipeline package</li>
     
     
@@ -171,18 +187,21 @@ Take modules as input and organise them into an architecture.</p>
 <dt id="kale.pipeline.da_systems.BaseAdaptTrainer.compute_loss">
 <code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the loss of the model</p>
-<dl>
-<dt>Args:</dt><dd><p>batch (tuple): batches returned by the MultiDomainLoader.
-split_name (str, optional): learning stage (one of [“T”, “V”, “Te”]).</p>
-<blockquote>
-<div><p>Defaults to “V” for validation. “T” is for training and “Te” for test.
-This is currently used only for naming the metrics used for logging.</p>
-</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>tuple</em>) – batches returned by the MultiDomainLoader.</p></li>
+<li><p><strong>split_name</strong> (<em>str</em><em>, </em><em>optional</em>) – learning stage (one of [“T”, “V”, “Te”]).
+Defaults to “V” for validation. “T” is for training and “Te” for test.
+This is currently used only for naming the metrics used for logging.</p></li>
+</ul>
 </dd>
-<dt>Returns:</dt><dd><p>a 3-element tuple with task_loss, adv_loss, log_metrics.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a 3-element tuple with task_loss, adv_loss, log_metrics.
 log_metrics should be a dictionary.</p>
 </dd>
-<dt>Raises:</dt><dd><p>NotImplementedError: children of this classes should implement this method.</p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – children of this classes should implement this method.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -192,8 +211,9 @@ log_metrics should be a dictionary.</p>
 <code class="sig-name descname">configure_optimizers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.configure_optimizers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Choose what optimizers and learning-rate schedulers to use in your optimization.
 Normally you’d need one. But in the case of GANs or similar you might have multiple.</p>
-<dl>
-<dt>Return:</dt><dd><p>Any of these 6 options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>Any of these 6 options.</p>
 <ul class="simple">
 <li><p>Single optimizer.</p></li>
 <li><p>List or Tuple - List of optimizers.</p></li>
@@ -202,8 +222,12 @@ Normally you’d need one. But in the case of GANs or similar you might have mul
 <li><p>Tuple of dictionaries as described, with an optional ‘frequency’ key.</p></li>
 <li><p>None - Fit will run without any optimizer.</p></li>
 </ul>
+</p>
 </dd>
-<dt>Note:</dt><dd><p>The ‘frequency’ value is an int corresponding to the number of sequential batches
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The ‘frequency’ value is an int corresponding to the number of sequential batches
 optimized with the specific optimizer. It should be given to none or to all of the optimizers.
 There is a difference between passing multiple optimizers in a list,
 and passing multiple optimizers in dictionaries with a frequency of 1:
@@ -221,8 +245,9 @@ It has five keys. The default configuration is shown below.</p>
 </pre></div>
 </div>
 <p>If user only provides LR schedulers, then their configuration will set to default as shown above.</p>
-</dd>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># most cases</span>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># most cases</span>
 <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">opt</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">opt</span>
@@ -262,11 +287,9 @@ It has five keys. The default configuration is shown below.</p>
     <span class="p">)</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-<p>Note:</p>
-<blockquote>
-<div><p>Some things to know:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some things to know:</p>
 <ul>
 <li><p>Lightning calls <code class="docutils literal notranslate"><span class="pre">.backward()</span></code> and <code class="docutils literal notranslate"><span class="pre">.step()</span></code> on each optimizer
 and learning rate scheduler as needed.</p></li>
@@ -291,7 +314,7 @@ or want to monitor a custom metric, you can specify these in a lr_dict:</p>
 </div>
 </li>
 </ul>
-</div></blockquote>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -304,13 +327,19 @@ This makes it easy to write a complex system for training with the outputs
 you’d want in a prediction setting.</p>
 <p>You may also find the <code class="xref py py-func docutils literal notranslate"><span class="pre">auto_move_data()</span></code> decorator useful
 when using the module outside Lightning in a production setting.</p>
-<dl>
-<dt>Args:</dt><dd><p><a href="#id1"><span class="problematic" id="id2">*</span></a>args: Whatever you decide to pass into the forward method.
-<a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Keyword arguments are also possible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> – Whatever you decide to pass into the forward method.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments are also possible.</p></li>
+</ul>
 </dd>
-<dt>Return:</dt><dd><p>Predicted output</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted output</p>
 </dd>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># example if we were using this model as a feature extractor</span>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># example if we were using this model as a feature extractor</span>
 <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
     <span class="n">feature_maps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convnet</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">feature_maps</span>
@@ -339,8 +368,6 @@ when using the module outside Lightning in a production setting.</p>
     <span class="k">return</span> <span class="n">logits</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -359,7 +386,7 @@ when using the module outside Lightning in a production setting.</p>
 <code class="sig-name descname">test_dataloader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_dataloader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement one or multiple PyTorch DataLoaders for testing.</p>
 <p>The dataloader you return will not be called every epoch unless you set
-<a href="#id5"><span class="problematic" id="id6">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<a href="#id1"><span class="problematic" id="id2">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
 <p>For data processing use the following pattern:</p>
 <blockquote>
 <div><ul class="simple">
@@ -381,13 +408,18 @@ when using the module outside Lightning in a production setting.</p>
 <li><p><a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.val_dataloader" title="kale.pipeline.da_systems.BaseAdaptTrainer.val_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">val_dataloader()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_dataloader" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_dataloader()</span></code></a></p></li>
 </ul>
-<dl>
-<dt>Note:</dt><dd><p>Lightning adds the correct sampler for distributed and arbitrary hardware.
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lightning adds the correct sampler for distributed and arbitrary hardware.
 There is no need to set it yourself.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Single or multiple PyTorch DataLoaders.</p>
 </dd>
-<dt>Return:</dt><dd><p>Single or multiple PyTorch DataLoaders.</p>
-</dd>
-<dt>Example:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
                                     <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,))])</span>
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;/path/to/mnist/&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
@@ -401,11 +433,11 @@ There is no need to set it yourself.</p>
     <span class="k">return</span> <span class="n">loader</span>
 </pre></div>
 </div>
-</dd>
-<dt>Note:</dt><dd><p>If you don’t need a test dataset and a <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a>, you don’t need to implement
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you don’t need a test dataset and a <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a>, you don’t need to implement
 this method.</p>
-</dd>
-</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -420,28 +452,34 @@ this method.</p>
 <span class="n">test_epoch_end</span><span class="p">(</span><span class="n">test_outs</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>outputs: List of outputs you defined in <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step_end()</span></code>, or if there</dt><dd><p>are multiple dataloaders, a list containing a list of outputs for each dataloader</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outputs</strong> – List of outputs you defined in <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step_end()</span></code>, or if there
+are multiple dataloaders, a list containing a list of outputs for each dataloader</p>
 </dd>
-</dl>
-</dd>
-<dt>Return:</dt><dd><p>Dict or OrderedDict: Dict has the following optional keys:</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Dict has the following optional keys:</p>
 <ul class="simple">
 <li><p>progress_bar -&gt; Dict for progress bar display. Must have only tensors.</p></li>
 <li><p>log -&gt; Dict of metrics to add to logger. Must have only tensors (no images, etc).</p></li>
 </ul>
+</p>
 </dd>
-<dt>Note:</dt><dd><p>If you didn’t define a <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a>, this won’t be called.</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict or OrderedDict</p>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you didn’t define a <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a>, this won’t be called.</p>
+</div>
 <ul class="simple">
 <li><p>The outputs here are strictly for logging or progress bar.</p></li>
 <li><p>If you don’t need to display anything, don’t return anything.</p></li>
 <li><p>If you want to manually set current step, specify it with the ‘step’ key in the ‘log’ Dict</p></li>
 </ul>
-<dl>
-<dt>Examples:</dt><dd><p>With a single dataloader:</p>
+<p class="rubric">Examples</p>
+<p>With a single dataloader:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
     <span class="n">test_acc_mean</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
@@ -480,8 +518,6 @@ each test step for that dataloader.</p>
     <span class="k">return</span> <span class="n">results</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -498,18 +534,17 @@ such as accuracy.</p>
 <span class="n">test_epoch_end</span><span class="p">(</span><span class="n">test_outs</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>batch (<code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code> | (<code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code>, …) | [<code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code>, …]):</dt><dd><p>The output of your <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>. A tensor, tuple or list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code> | (<code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code>, …) | [<code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code>, …]) – The output of your <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>. A tensor, tuple or list.</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>) – The index of this batch.</p></li>
+<li><p><strong>dataloader_idx</strong> (<em>int</em>) – The index of the dataloader that produced this batch
+(only if multiple test datasets used).</p></li>
+</ul>
 </dd>
-</dl>
-<p>batch_idx (int): The index of this batch.
-dataloader_idx (int): The index of the dataloader that produced this batch</p>
-<blockquote>
-<div><p>(only if multiple test datasets used).</p>
-</div></blockquote>
-</dd>
-<dt>Return:</dt><dd><p>Dict or OrderedDict - passed to the <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_epoch_end" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_epoch_end"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_epoch_end()</span></code></a> method.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dict or OrderedDict - passed to the <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_epoch_end" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_epoch_end"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_epoch_end()</span></code></a> method.
 If you defined <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step_end()</span></code> it will go to that first.</p>
 </dd>
 </dl>
@@ -520,8 +555,8 @@ If you defined <code class="xref py py-meth docutils literal notranslate"><span 
 <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 1: A single test dataset</span>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 1: A single test dataset</span>
 <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
     <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
 
@@ -557,26 +592,29 @@ argument.</p>
     <span class="c1"># dataset_idx tells you which dataset this is.</span>
 </pre></div>
 </div>
-</dd>
-<dt>Note:</dt><dd><p>If you don’t need to validate you don’t need to implement this method.</p>
-</dd>
-<dt>Note:</dt><dd><p>When the <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a> is called, the model has been put in eval mode and
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you don’t need to validate you don’t need to implement this method.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When the <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a> is called, the model has been put in eval mode and
 PyTorch gradients have been disabled. At the end of the test epoch, the model goes back
 to training mode and gradients are enabled.</p>
-</dd>
-</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt id="kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader">
 <code class="sig-name descname">train_dataloader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement a PyTorch DataLoader for training.</p>
-<dl class="simple">
-<dt>Return:</dt><dd><p>Single PyTorch <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Single PyTorch <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>.</p>
 </dd>
 </dl>
 <p>The dataloader you return will not be called every epoch unless you set
-<a href="#id7"><span class="problematic" id="id8">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<a href="#id3"><span class="problematic" id="id4">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
 <p>For data processing use the following pattern:</p>
 <blockquote>
 <div><ul class="simple">
@@ -596,11 +634,13 @@ to training mode and gradients are enabled.</p>
 <li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></p></li>
 <li><p><a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader" title="kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
 </ul>
-<dl>
-<dt>Note:</dt><dd><p>Lightning adds the correct sampler for distributed and arbitrary hardware.
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lightning adds the correct sampler for distributed and arbitrary hardware.
 There is no need to set it yourself.</p>
-</dd>
-<dt>Example:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
                                     <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,))])</span>
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;/path/to/mnist/&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
@@ -613,26 +653,30 @@ There is no need to set it yourself.</p>
     <span class="k">return</span> <span class="n">loader</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="kale.pipeline.da_systems.BaseAdaptTrainer.training_step">
 <code class="sig-name descname">training_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_nb</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.training_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>The most generic of training steps</p>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>batch (tuple): the batch as returned by the MultiDomainLoader dataloader iterator:</dt><dd><p>2 tuples: (x_source, y_source), (x_target, y_target) in the unsupervised setting
-3 tuples: (x_source, y_source), (x_target_labeled, y_target_labeled), (x_target_unlabeled, y_target_unlabeled) in the semi-supervised setting</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>tuple</em>) – the batch as returned by the MultiDomainLoader dataloader iterator:
+2 tuples: (x_source, y_source), (x_target, y_target) in the unsupervised setting
+3 tuples: (x_source, y_source), (x_target_labeled, y_target_labeled), (x_target_unlabeled, y_target_unlabeled) in the semi-supervised setting</p></li>
+<li><p><strong>batch_nb</strong> (<em>int</em>) – id of the current batch.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>must contain a “loss” key with the loss to be used for back-propagation.</dt><dd><p>see pytorch-lightning for more details.</p>
 </dd>
 </dl>
-<p>batch_nb (int): id of the current batch.</p>
+</p>
 </dd>
-<dt>Returns:</dt><dd><dl class="simple">
-<dt>dict: must contain a “loss” key with the loss to be used for back-propagation.</dt><dd><p>see pytorch-lightning for more details.</p>
-</dd>
-</dl>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -642,7 +686,7 @@ There is no need to set it yourself.</p>
 <code class="sig-name descname">val_dataloader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.val_dataloader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement one or multiple PyTorch DataLoaders for validation.</p>
 <p>The dataloader you return will not be called every epoch unless you set
-<a href="#id9"><span class="problematic" id="id10">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<a href="#id5"><span class="problematic" id="id6">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
 <p>It’s recommended that all data downloads and preparation happen in <code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code>.</p>
 <ul class="simple">
 <li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
@@ -652,13 +696,18 @@ There is no need to set it yourself.</p>
 <li><p><a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.val_dataloader" title="kale.pipeline.da_systems.BaseAdaptTrainer.val_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">val_dataloader()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_dataloader" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_dataloader()</span></code></a></p></li>
 </ul>
-<dl>
-<dt>Note:</dt><dd><p>Lightning adds the correct sampler for distributed and arbitrary hardware
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lightning adds the correct sampler for distributed and arbitrary hardware
 There is no need to set it yourself.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Single or multiple PyTorch DataLoaders.</p>
 </dd>
-<dt>Return:</dt><dd><p>Single or multiple PyTorch DataLoaders.</p>
-</dd>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">val_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">val_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
                                     <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,))])</span>
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;/path/to/mnist/&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -676,14 +725,16 @@ There is no need to set it yourself.</p>
     <span class="k">return</span> <span class="p">[</span><span class="n">loader_a</span><span class="p">,</span> <span class="n">loader_b</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">loader_n</span><span class="p">]</span>
 </pre></div>
 </div>
-</dd>
-<dt>Note:</dt><dd><p>If you don’t need a validation dataset and a <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>, you don’t need to
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you don’t need a validation dataset and a <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>, you don’t need to
 implement this method.</p>
-</dd>
-<dt>Note:</dt><dd><p>In the case where you return multiple validation dataloaders, the <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the case where you return multiple validation dataloaders, the <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>
 will have an argument <code class="docutils literal notranslate"><span class="pre">dataset_idx</span></code> which matches the order here.</p>
-</dd>
-</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -698,29 +749,32 @@ will have an argument <code class="docutils literal notranslate"><span class="pr
 <span class="n">validation_epoch_end</span><span class="p">(</span><span class="n">val_outs</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>outputs: List of outputs you defined in <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>, or if there</dt><dd><p>are multiple dataloaders, a list containing a list of outputs for each dataloader.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outputs</strong> – List of outputs you defined in <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>, or if there
+are multiple dataloaders, a list containing a list of outputs for each dataloader.</p>
 </dd>
-</dl>
-</dd>
-<dt>Return:</dt><dd><p>Dict or OrderedDict.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Dict or OrderedDict.
 May have the following optional keys:</p>
 <ul class="simple">
 <li><p>progress_bar (dict for progress bar display; only tensors)</p></li>
 <li><p>log (dict of metrics to add to logger; only tensors).</p></li>
 </ul>
-</dd>
-<dt>Note:</dt><dd><p>If you didn’t define a <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>, this won’t be called.</p>
+</p>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you didn’t define a <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>, this won’t be called.</p>
+</div>
 <ul class="simple">
 <li><p>The outputs here are strictly for logging or progress bar.</p></li>
 <li><p>If you don’t need to display anything, don’t return anything.</p></li>
 <li><p>If you want to manually set current step, you can specify the ‘step’ key in the ‘log’ dict.</p></li>
 </ul>
-<dl>
-<dt>Examples:</dt><dd><p>With a single dataloader:</p>
+<p class="rubric">Examples</p>
+<p>With a single dataloader:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">validation_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
     <span class="n">val_acc_mean</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
@@ -759,8 +813,6 @@ each validation step for that dataloader.</p>
     <span class="k">return</span> <span class="n">results</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -776,18 +828,17 @@ In this step you’d might generate examples or calculate anything of interest l
     <span class="n">validation_epoch_end</span><span class="p">(</span><span class="n">val_outs</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>batch (<code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code> | (<code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code>, …) | [<code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code>, …]):</dt><dd><p>The output of your <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>. A tensor, tuple or list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code> | (<code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code>, …) | [<code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code>, …]) – The output of your <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>. A tensor, tuple or list.</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>) – The index of this batch</p></li>
+<li><p><strong>dataloader_idx</strong> (<em>int</em>) – The index of the dataloader that produced this batch
+(only if multiple val datasets used)</p></li>
+</ul>
 </dd>
-</dl>
-<p>batch_idx (int): The index of this batch
-dataloader_idx (int): The index of the dataloader that produced this batch</p>
-<blockquote>
-<div><p>(only if multiple val datasets used)</p>
-</div></blockquote>
-</dd>
-<dt>Return:</dt><dd><p>Dict or OrderedDict - passed to <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_epoch_end" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_epoch_end"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_epoch_end()</span></code></a>.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dict or OrderedDict - passed to <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_epoch_end" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_epoch_end"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_epoch_end()</span></code></a>.
 If you defined <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step_end()</span></code> it will go to that first.</p>
 </dd>
 </dl>
@@ -805,8 +856,8 @@ If you defined <code class="xref py py-meth docutils literal notranslate"><span 
 <span class="k">def</span> <span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 1: A single validation dataset</span>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 1: A single validation dataset</span>
 <span class="k">def</span> <span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
     <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
 
@@ -841,14 +892,16 @@ If you defined <code class="xref py py-meth docutils literal notranslate"><span 
     <span class="c1"># dataset_idx tells you which dataset this is.</span>
 </pre></div>
 </div>
-</dd>
-<dt>Note:</dt><dd><p>If you don’t need to validate you don’t need to implement this method.</p>
-</dd>
-<dt>Note:</dt><dd><p>When the <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a> is called, the model has been put in eval mode
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you don’t need to validate you don’t need to implement this method.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When the <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a> is called, the model has been put in eval mode
 and PyTorch gradients have been disabled. At the end of validation,
 the model goes back to training mode and gradients are enabled.</p>
-</dd>
-</dl>
+</div>
 </dd></dl>
 
 </dd></dl>
@@ -861,18 +914,21 @@ the model goes back to training mode and gradients are enabled.</p>
 <dt id="kale.pipeline.da_systems.BaseDANNLike.compute_loss">
 <code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseDANNLike.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the loss of the model</p>
-<dl>
-<dt>Args:</dt><dd><p>batch (tuple): batches returned by the MultiDomainLoader.
-split_name (str, optional): learning stage (one of [“T”, “V”, “Te”]).</p>
-<blockquote>
-<div><p>Defaults to “V” for validation. “T” is for training and “Te” for test.
-This is currently used only for naming the metrics used for logging.</p>
-</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>tuple</em>) – batches returned by the MultiDomainLoader.</p></li>
+<li><p><strong>split_name</strong> (<em>str</em><em>, </em><em>optional</em>) – learning stage (one of [“T”, “V”, “Te”]).
+Defaults to “V” for validation. “T” is for training and “Te” for test.
+This is currently used only for naming the metrics used for logging.</p></li>
+</ul>
 </dd>
-<dt>Returns:</dt><dd><p>a 3-element tuple with task_loss, adv_loss, log_metrics.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a 3-element tuple with task_loss, adv_loss, log_metrics.
 log_metrics should be a dictionary.</p>
 </dd>
-<dt>Raises:</dt><dd><p>NotImplementedError: children of this classes should implement this method.</p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – children of this classes should implement this method.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -895,28 +951,34 @@ log_metrics should be a dictionary.</p>
 <span class="n">test_epoch_end</span><span class="p">(</span><span class="n">test_outs</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>outputs: List of outputs you defined in <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step_end()</span></code>, or if there</dt><dd><p>are multiple dataloaders, a list containing a list of outputs for each dataloader</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outputs</strong> – List of outputs you defined in <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step_end()</span></code>, or if there
+are multiple dataloaders, a list containing a list of outputs for each dataloader</p>
 </dd>
-</dl>
-</dd>
-<dt>Return:</dt><dd><p>Dict or OrderedDict: Dict has the following optional keys:</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Dict has the following optional keys:</p>
 <ul class="simple">
 <li><p>progress_bar -&gt; Dict for progress bar display. Must have only tensors.</p></li>
 <li><p>log -&gt; Dict of metrics to add to logger. Must have only tensors (no images, etc).</p></li>
 </ul>
+</p>
 </dd>
-<dt>Note:</dt><dd><p>If you didn’t define a <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code>, this won’t be called.</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict or OrderedDict</p>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you didn’t define a <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code>, this won’t be called.</p>
+</div>
 <ul class="simple">
 <li><p>The outputs here are strictly for logging or progress bar.</p></li>
 <li><p>If you don’t need to display anything, don’t return anything.</p></li>
 <li><p>If you want to manually set current step, specify it with the ‘step’ key in the ‘log’ Dict</p></li>
 </ul>
-<dl>
-<dt>Examples:</dt><dd><p>With a single dataloader:</p>
+<p class="rubric">Examples</p>
+<p>With a single dataloader:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
     <span class="n">test_acc_mean</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
@@ -955,8 +1017,6 @@ each test step for that dataloader.</p>
     <span class="k">return</span> <span class="n">results</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -971,29 +1031,32 @@ each test step for that dataloader.</p>
 <span class="n">validation_epoch_end</span><span class="p">(</span><span class="n">val_outs</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>outputs: List of outputs you defined in <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code>, or if there</dt><dd><p>are multiple dataloaders, a list containing a list of outputs for each dataloader.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outputs</strong> – List of outputs you defined in <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code>, or if there
+are multiple dataloaders, a list containing a list of outputs for each dataloader.</p>
 </dd>
-</dl>
-</dd>
-<dt>Return:</dt><dd><p>Dict or OrderedDict.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Dict or OrderedDict.
 May have the following optional keys:</p>
 <ul class="simple">
 <li><p>progress_bar (dict for progress bar display; only tensors)</p></li>
 <li><p>log (dict of metrics to add to logger; only tensors).</p></li>
 </ul>
-</dd>
-<dt>Note:</dt><dd><p>If you didn’t define a <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code>, this won’t be called.</p>
+</p>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you didn’t define a <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code>, this won’t be called.</p>
+</div>
 <ul class="simple">
 <li><p>The outputs here are strictly for logging or progress bar.</p></li>
 <li><p>If you don’t need to display anything, don’t return anything.</p></li>
 <li><p>If you want to manually set current step, you can specify the ‘step’ key in the ‘log’ dict.</p></li>
 </ul>
-<dl>
-<dt>Examples:</dt><dd><p>With a single dataloader:</p>
+<p class="rubric">Examples</p>
+<p>With a single dataloader:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">validation_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
     <span class="n">val_acc_mean</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
@@ -1032,8 +1095,6 @@ each validation step for that dataloader.</p>
     <span class="k">return</span> <span class="n">results</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1046,18 +1107,21 @@ each validation step for that dataloader.</p>
 <dt id="kale.pipeline.da_systems.BaseMMDLike.compute_loss">
 <code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseMMDLike.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the loss of the model</p>
-<dl>
-<dt>Args:</dt><dd><p>batch (tuple): batches returned by the MultiDomainLoader.
-split_name (str, optional): learning stage (one of [“T”, “V”, “Te”]).</p>
-<blockquote>
-<div><p>Defaults to “V” for validation. “T” is for training and “Te” for test.
-This is currently used only for naming the metrics used for logging.</p>
-</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>tuple</em>) – batches returned by the MultiDomainLoader.</p></li>
+<li><p><strong>split_name</strong> (<em>str</em><em>, </em><em>optional</em>) – learning stage (one of [“T”, “V”, “Te”]).
+Defaults to “V” for validation. “T” is for training and “Te” for test.
+This is currently used only for naming the metrics used for logging.</p></li>
+</ul>
 </dd>
-<dt>Returns:</dt><dd><p>a 3-element tuple with task_loss, adv_loss, log_metrics.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a 3-element tuple with task_loss, adv_loss, log_metrics.
 log_metrics should be a dictionary.</p>
 </dd>
-<dt>Raises:</dt><dd><p>NotImplementedError: children of this classes should implement this method.</p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – children of this classes should implement this method.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1072,13 +1136,19 @@ This makes it easy to write a complex system for training with the outputs
 you’d want in a prediction setting.</p>
 <p>You may also find the <code class="xref py py-func docutils literal notranslate"><span class="pre">auto_move_data()</span></code> decorator useful
 when using the module outside Lightning in a production setting.</p>
-<dl>
-<dt>Args:</dt><dd><p><a href="#id11"><span class="problematic" id="id12">*</span></a>args: Whatever you decide to pass into the forward method.
-<a href="#id13"><span class="problematic" id="id14">**</span></a>kwargs: Keyword arguments are also possible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> – Whatever you decide to pass into the forward method.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments are also possible.</p></li>
+</ul>
 </dd>
-<dt>Return:</dt><dd><p>Predicted output</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted output</p>
 </dd>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># example if we were using this model as a feature extractor</span>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># example if we were using this model as a feature extractor</span>
 <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
     <span class="n">feature_maps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convnet</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">feature_maps</span>
@@ -1107,8 +1177,6 @@ when using the module outside Lightning in a production setting.</p>
     <span class="k">return</span> <span class="n">logits</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1123,28 +1191,34 @@ when using the module outside Lightning in a production setting.</p>
 <span class="n">test_epoch_end</span><span class="p">(</span><span class="n">test_outs</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>outputs: List of outputs you defined in <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step_end()</span></code>, or if there</dt><dd><p>are multiple dataloaders, a list containing a list of outputs for each dataloader</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outputs</strong> – List of outputs you defined in <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step_end()</span></code>, or if there
+are multiple dataloaders, a list containing a list of outputs for each dataloader</p>
 </dd>
-</dl>
-</dd>
-<dt>Return:</dt><dd><p>Dict or OrderedDict: Dict has the following optional keys:</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Dict has the following optional keys:</p>
 <ul class="simple">
 <li><p>progress_bar -&gt; Dict for progress bar display. Must have only tensors.</p></li>
 <li><p>log -&gt; Dict of metrics to add to logger. Must have only tensors (no images, etc).</p></li>
 </ul>
+</p>
 </dd>
-<dt>Note:</dt><dd><p>If you didn’t define a <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code>, this won’t be called.</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict or OrderedDict</p>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you didn’t define a <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code>, this won’t be called.</p>
+</div>
 <ul class="simple">
 <li><p>The outputs here are strictly for logging or progress bar.</p></li>
 <li><p>If you don’t need to display anything, don’t return anything.</p></li>
 <li><p>If you want to manually set current step, specify it with the ‘step’ key in the ‘log’ Dict</p></li>
 </ul>
-<dl>
-<dt>Examples:</dt><dd><p>With a single dataloader:</p>
+<p class="rubric">Examples</p>
+<p>With a single dataloader:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
     <span class="n">test_acc_mean</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
@@ -1183,8 +1257,6 @@ each test step for that dataloader.</p>
     <span class="k">return</span> <span class="n">results</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1199,29 +1271,32 @@ each test step for that dataloader.</p>
 <span class="n">validation_epoch_end</span><span class="p">(</span><span class="n">val_outs</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>outputs: List of outputs you defined in <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code>, or if there</dt><dd><p>are multiple dataloaders, a list containing a list of outputs for each dataloader.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outputs</strong> – List of outputs you defined in <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code>, or if there
+are multiple dataloaders, a list containing a list of outputs for each dataloader.</p>
 </dd>
-</dl>
-</dd>
-<dt>Return:</dt><dd><p>Dict or OrderedDict.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Dict or OrderedDict.
 May have the following optional keys:</p>
 <ul class="simple">
 <li><p>progress_bar (dict for progress bar display; only tensors)</p></li>
 <li><p>log (dict of metrics to add to logger; only tensors).</p></li>
 </ul>
-</dd>
-<dt>Note:</dt><dd><p>If you didn’t define a <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code>, this won’t be called.</p>
+</p>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you didn’t define a <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code>, this won’t be called.</p>
+</div>
 <ul class="simple">
 <li><p>The outputs here are strictly for logging or progress bar.</p></li>
 <li><p>If you don’t need to display anything, don’t return anything.</p></li>
 <li><p>If you want to manually set current step, you can specify the ‘step’ key in the ‘log’ dict.</p></li>
 </ul>
-<dl>
-<dt>Examples:</dt><dd><p>With a single dataloader:</p>
+<p class="rubric">Examples</p>
+<p>With a single dataloader:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">validation_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
     <span class="n">val_acc_mean</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
@@ -1260,8 +1335,6 @@ each validation step for that dataloader.</p>
     <span class="k">return</span> <span class="n">results</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1271,24 +1344,27 @@ each validation step for that dataloader.</p>
 <em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">CDANtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">use_entropy</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">use_random</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">random_dim</span><span class="o">=</span><span class="default_value">1024</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.CDANtrainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.BaseDANNLike" title="kale.pipeline.da_systems.BaseDANNLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.BaseDANNLike</span></code></a></p>
 <p>Implements CDAN: Long, Mingsheng, et al. “Conditional adversarial domain adaptation.”
-Advances in Neural Information Processing Systems. 2018. 
+Advances in Neural Information Processing Systems. 2018.
 <a class="reference external" href="https://papers.nips.cc/paper/7436-conditional-adversarial-domain-adaptation.pdf">https://papers.nips.cc/paper/7436-conditional-adversarial-domain-adaptation.pdf</a></p>
 <dl class="py method">
 <dt id="kale.pipeline.da_systems.CDANtrainer.compute_loss">
 <code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.CDANtrainer.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the loss of the model</p>
-<dl>
-<dt>Args:</dt><dd><p>batch (tuple): batches returned by the MultiDomainLoader.
-split_name (str, optional): learning stage (one of [“T”, “V”, “Te”]).</p>
-<blockquote>
-<div><p>Defaults to “V” for validation. “T” is for training and “Te” for test.
-This is currently used only for naming the metrics used for logging.</p>
-</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>tuple</em>) – batches returned by the MultiDomainLoader.</p></li>
+<li><p><strong>split_name</strong> (<em>str</em><em>, </em><em>optional</em>) – learning stage (one of [“T”, “V”, “Te”]).
+Defaults to “V” for validation. “T” is for training and “Te” for test.
+This is currently used only for naming the metrics used for logging.</p></li>
+</ul>
 </dd>
-<dt>Returns:</dt><dd><p>a 3-element tuple with task_loss, adv_loss, log_metrics.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a 3-element tuple with task_loss, adv_loss, log_metrics.
 log_metrics should be a dictionary.</p>
 </dd>
-<dt>Raises:</dt><dd><p>NotImplementedError: children of this classes should implement this method.</p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – children of this classes should implement this method.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1303,13 +1379,19 @@ This makes it easy to write a complex system for training with the outputs
 you’d want in a prediction setting.</p>
 <p>You may also find the <code class="xref py py-func docutils literal notranslate"><span class="pre">auto_move_data()</span></code> decorator useful
 when using the module outside Lightning in a production setting.</p>
-<dl>
-<dt>Args:</dt><dd><p><a href="#id15"><span class="problematic" id="id16">*</span></a>args: Whatever you decide to pass into the forward method.
-<a href="#id17"><span class="problematic" id="id18">**</span></a>kwargs: Keyword arguments are also possible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> – Whatever you decide to pass into the forward method.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments are also possible.</p></li>
+</ul>
 </dd>
-<dt>Return:</dt><dd><p>Predicted output</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted output</p>
 </dd>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># example if we were using this model as a feature extractor</span>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># example if we were using this model as a feature extractor</span>
 <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
     <span class="n">feature_maps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convnet</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">feature_maps</span>
@@ -1338,8 +1420,6 @@ when using the module outside Lightning in a production setting.</p>
     <span class="k">return</span> <span class="n">logits</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1363,13 +1443,19 @@ This makes it easy to write a complex system for training with the outputs
 you’d want in a prediction setting.</p>
 <p>You may also find the <code class="xref py py-func docutils literal notranslate"><span class="pre">auto_move_data()</span></code> decorator useful
 when using the module outside Lightning in a production setting.</p>
-<dl>
-<dt>Args:</dt><dd><p><a href="#id19"><span class="problematic" id="id20">*</span></a>args: Whatever you decide to pass into the forward method.
-<a href="#id21"><span class="problematic" id="id22">**</span></a>kwargs: Keyword arguments are also possible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> – Whatever you decide to pass into the forward method.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments are also possible.</p></li>
+</ul>
 </dd>
-<dt>Return:</dt><dd><p>Predicted output</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted output</p>
 </dd>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># example if we were using this model as a feature extractor</span>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># example if we were using this model as a feature extractor</span>
 <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
     <span class="n">feature_maps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convnet</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">feature_maps</span>
@@ -1398,8 +1484,6 @@ when using the module outside Lightning in a production setting.</p>
     <span class="k">return</span> <span class="n">logits</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1412,7 +1496,7 @@ when using the module outside Lightning in a production setting.</p>
 Long, Mingsheng, et al.
 “Learning Transferable Features with Deep Adaptation Networks.”
 International Conference on Machine Learning. 2015.
-<a class="reference external" href="http://proceedings.mlr.press/v37/long15.pdf">http://proceedings.mlr.press/v37/long15.pdf</a> 
+<a class="reference external" href="http://proceedings.mlr.press/v37/long15.pdf">http://proceedings.mlr.press/v37/long15.pdf</a>
 code based on <a class="reference external" href="https://github.com/thuml/Xlearn">https://github.com/thuml/Xlearn</a>.</p>
 </dd></dl>
 
@@ -1431,18 +1515,21 @@ Proceedings of the IEEE International Conference on Computer Vision. 2019
 <dt id="kale.pipeline.da_systems.FewShotDANNtrainer.compute_loss">
 <code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.FewShotDANNtrainer.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the loss of the model</p>
-<dl>
-<dt>Args:</dt><dd><p>batch (tuple): batches returned by the MultiDomainLoader.
-split_name (str, optional): learning stage (one of [“T”, “V”, “Te”]).</p>
-<blockquote>
-<div><p>Defaults to “V” for validation. “T” is for training and “Te” for test.
-This is currently used only for naming the metrics used for logging.</p>
-</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>tuple</em>) – batches returned by the MultiDomainLoader.</p></li>
+<li><p><strong>split_name</strong> (<em>str</em><em>, </em><em>optional</em>) – learning stage (one of [“T”, “V”, “Te”]).
+Defaults to “V” for validation. “T” is for training and “Te” for test.
+This is currently used only for naming the metrics used for logging.</p></li>
+</ul>
 </dd>
-<dt>Returns:</dt><dd><p>a 3-element tuple with task_loss, adv_loss, log_metrics.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a 3-element tuple with task_loss, adv_loss, log_metrics.
 log_metrics should be a dictionary.</p>
 </dd>
-<dt>Raises:</dt><dd><p>NotImplementedError: children of this classes should implement this method.</p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – children of this classes should implement this method.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1457,13 +1544,19 @@ This makes it easy to write a complex system for training with the outputs
 you’d want in a prediction setting.</p>
 <p>You may also find the <code class="xref py py-func docutils literal notranslate"><span class="pre">auto_move_data()</span></code> decorator useful
 when using the module outside Lightning in a production setting.</p>
-<dl>
-<dt>Args:</dt><dd><p><a href="#id23"><span class="problematic" id="id24">*</span></a>args: Whatever you decide to pass into the forward method.
-<a href="#id25"><span class="problematic" id="id26">**</span></a>kwargs: Keyword arguments are also possible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> – Whatever you decide to pass into the forward method.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments are also possible.</p></li>
+</ul>
 </dd>
-<dt>Return:</dt><dd><p>Predicted output</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted output</p>
 </dd>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># example if we were using this model as a feature extractor</span>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># example if we were using this model as a feature extractor</span>
 <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
     <span class="n">feature_maps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convnet</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">feature_maps</span>
@@ -1492,8 +1585,6 @@ when using the module outside Lightning in a production setting.</p>
     <span class="k">return</span> <span class="n">logits</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1503,7 +1594,7 @@ when using the module outside Lightning in a production setting.</p>
 <em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">JANtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">kernel_mul</span><span class="o">=</span><span class="default_value">2.0, 2.0</span></em>, <em class="sig-param"><span class="n">kernel_num</span><span class="o">=</span><span class="default_value">5, 1</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.JANtrainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.BaseMMDLike" title="kale.pipeline.da_systems.BaseMMDLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.BaseMMDLike</span></code></a></p>
 <p>This is an implementation of JAN
-Long, Mingsheng, et al. 
+Long, Mingsheng, et al.
 “Deep transfer learning with joint adaptation networks.”
 International Conference on Machine Learning, 2017.
 <a class="reference external" href="https://arxiv.org/pdf/1605.06636.pdf">https://arxiv.org/pdf/1605.06636.pdf</a>
@@ -1632,10 +1723,10 @@ during the backward pass.</p>
 <dt id="kale.pipeline.da_systems.WDGRLtrainer">
 <em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">WDGRLtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">k_critic</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">beta_ratio</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.BaseDANNLike" title="kale.pipeline.da_systems.BaseDANNLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.BaseDANNLike</span></code></a></p>
-<p>Implements WDGRL as described in 
-Shen, Jian, et al. 
+<p>Implements WDGRL as described in
+Shen, Jian, et al.
 “Wasserstein distance guided representation learning for domain adaptation.”
-Thirty-Second AAAI Conference on Artificial Intelligence. 2018. 
+Thirty-Second AAAI Conference on Artificial Intelligence. 2018.
 <a class="reference external" href="https://arxiv.org/pdf/1707.01217.pdf">https://arxiv.org/pdf/1707.01217.pdf</a></p>
 <p>This class also implements the asymmetric ($eta$) variant described in:
 Wu, Yifan, et al.
@@ -1646,18 +1737,21 @@ ICML (2019)
 <dt id="kale.pipeline.da_systems.WDGRLtrainer.compute_loss">
 <code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainer.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the loss of the model</p>
-<dl>
-<dt>Args:</dt><dd><p>batch (tuple): batches returned by the MultiDomainLoader.
-split_name (str, optional): learning stage (one of [“T”, “V”, “Te”]).</p>
-<blockquote>
-<div><p>Defaults to “V” for validation. “T” is for training and “Te” for test.
-This is currently used only for naming the metrics used for logging.</p>
-</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>tuple</em>) – batches returned by the MultiDomainLoader.</p></li>
+<li><p><strong>split_name</strong> (<em>str</em><em>, </em><em>optional</em>) – learning stage (one of [“T”, “V”, “Te”]).
+Defaults to “V” for validation. “T” is for training and “Te” for test.
+This is currently used only for naming the metrics used for logging.</p></li>
+</ul>
 </dd>
-<dt>Returns:</dt><dd><p>a 3-element tuple with task_loss, adv_loss, log_metrics.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a 3-element tuple with task_loss, adv_loss, log_metrics.
 log_metrics should be a dictionary.</p>
 </dd>
-<dt>Raises:</dt><dd><p>NotImplementedError: children of this classes should implement this method.</p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – children of this classes should implement this method.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1667,8 +1761,9 @@ log_metrics should be a dictionary.</p>
 <code class="sig-name descname">configure_optimizers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainer.configure_optimizers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Choose what optimizers and learning-rate schedulers to use in your optimization.
 Normally you’d need one. But in the case of GANs or similar you might have multiple.</p>
-<dl>
-<dt>Return:</dt><dd><p>Any of these 6 options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>Any of these 6 options.</p>
 <ul class="simple">
 <li><p>Single optimizer.</p></li>
 <li><p>List or Tuple - List of optimizers.</p></li>
@@ -1677,8 +1772,12 @@ Normally you’d need one. But in the case of GANs or similar you might have mul
 <li><p>Tuple of dictionaries as described, with an optional ‘frequency’ key.</p></li>
 <li><p>None - Fit will run without any optimizer.</p></li>
 </ul>
+</p>
 </dd>
-<dt>Note:</dt><dd><p>The ‘frequency’ value is an int corresponding to the number of sequential batches
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The ‘frequency’ value is an int corresponding to the number of sequential batches
 optimized with the specific optimizer. It should be given to none or to all of the optimizers.
 There is a difference between passing multiple optimizers in a list,
 and passing multiple optimizers in dictionaries with a frequency of 1:
@@ -1696,8 +1795,9 @@ It has five keys. The default configuration is shown below.</p>
 </pre></div>
 </div>
 <p>If user only provides LR schedulers, then their configuration will set to default as shown above.</p>
-</dd>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># most cases</span>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># most cases</span>
 <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">opt</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">opt</span>
@@ -1737,11 +1837,9 @@ It has five keys. The default configuration is shown below.</p>
     <span class="p">)</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-<p>Note:</p>
-<blockquote>
-<div><p>Some things to know:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some things to know:</p>
 <ul>
 <li><p>Lightning calls <code class="docutils literal notranslate"><span class="pre">.backward()</span></code> and <code class="docutils literal notranslate"><span class="pre">.step()</span></code> on each optimizer
 and learning rate scheduler as needed.</p></li>
@@ -1766,7 +1864,7 @@ or want to monitor a custom metric, you can specify these in a lr_dict:</p>
 </div>
 </li>
 </ul>
-</div></blockquote>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -1784,13 +1882,19 @@ This makes it easy to write a complex system for training with the outputs
 you’d want in a prediction setting.</p>
 <p>You may also find the <code class="xref py py-func docutils literal notranslate"><span class="pre">auto_move_data()</span></code> decorator useful
 when using the module outside Lightning in a production setting.</p>
-<dl>
-<dt>Args:</dt><dd><p><a href="#id27"><span class="problematic" id="id28">*</span></a>args: Whatever you decide to pass into the forward method.
-<a href="#id29"><span class="problematic" id="id30">**</span></a>kwargs: Keyword arguments are also possible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> – Whatever you decide to pass into the forward method.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments are also possible.</p></li>
+</ul>
 </dd>
-<dt>Return:</dt><dd><p>Predicted output</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted output</p>
 </dd>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># example if we were using this model as a feature extractor</span>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># example if we were using this model as a feature extractor</span>
 <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
     <span class="n">feature_maps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convnet</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">feature_maps</span>
@@ -1819,26 +1923,30 @@ when using the module outside Lightning in a production setting.</p>
     <span class="k">return</span> <span class="n">logits</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="kale.pipeline.da_systems.WDGRLtrainer.training_step">
 <code class="sig-name descname">training_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainer.training_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>The most generic of training steps</p>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>batch (tuple): the batch as returned by the MultiDomainLoader dataloader iterator:</dt><dd><p>2 tuples: (x_source, y_source), (x_target, y_target) in the unsupervised setting
-3 tuples: (x_source, y_source), (x_target_labeled, y_target_labeled), (x_target_unlabeled, y_target_unlabeled) in the semi-supervised setting</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>tuple</em>) – the batch as returned by the MultiDomainLoader dataloader iterator:
+2 tuples: (x_source, y_source), (x_target, y_target) in the unsupervised setting
+3 tuples: (x_source, y_source), (x_target_labeled, y_target_labeled), (x_target_unlabeled, y_target_unlabeled) in the semi-supervised setting</p></li>
+<li><p><strong>batch_nb</strong> (<em>int</em>) – id of the current batch.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>must contain a “loss” key with the loss to be used for back-propagation.</dt><dd><p>see pytorch-lightning for more details.</p>
 </dd>
 </dl>
-<p>batch_nb (int): id of the current batch.</p>
+</p>
 </dd>
-<dt>Returns:</dt><dd><dl class="simple">
-<dt>dict: must contain a “loss” key with the loss to be used for back-propagation.</dt><dd><p>see pytorch-lightning for more details.</p>
-</dd>
-</dl>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1849,10 +1957,10 @@ when using the module outside Lightning in a production setting.</p>
 <dt id="kale.pipeline.da_systems.WDGRLtrainerMod">
 <em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">WDGRLtrainerMod</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">k_critic</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">beta_ratio</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainerMod" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.WDGRLtrainer" title="kale.pipeline.da_systems.WDGRLtrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.WDGRLtrainer</span></code></a></p>
-<p>Implements a modified version WDGRL as described in 
-Shen, Jian, et al. 
+<p>Implements a modified version WDGRL as described in
+Shen, Jian, et al.
 “Wasserstein distance guided representation learning for domain adaptation.”
-Thirty-Second AAAI Conference on Artificial Intelligence. 2018. 
+Thirty-Second AAAI Conference on Artificial Intelligence. 2018.
 <a class="reference external" href="https://arxiv.org/pdf/1707.01217.pdf">https://arxiv.org/pdf/1707.01217.pdf</a></p>
 <p>This class also implements the asymmetric ($eta$) variant described in:
 Wu, Yifan, et al.
@@ -1864,8 +1972,9 @@ ICML (2019)
 <code class="sig-name descname">configure_optimizers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainerMod.configure_optimizers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Choose what optimizers and learning-rate schedulers to use in your optimization.
 Normally you’d need one. But in the case of GANs or similar you might have multiple.</p>
-<dl>
-<dt>Return:</dt><dd><p>Any of these 6 options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>Any of these 6 options.</p>
 <ul class="simple">
 <li><p>Single optimizer.</p></li>
 <li><p>List or Tuple - List of optimizers.</p></li>
@@ -1874,8 +1983,12 @@ Normally you’d need one. But in the case of GANs or similar you might have mul
 <li><p>Tuple of dictionaries as described, with an optional ‘frequency’ key.</p></li>
 <li><p>None - Fit will run without any optimizer.</p></li>
 </ul>
+</p>
 </dd>
-<dt>Note:</dt><dd><p>The ‘frequency’ value is an int corresponding to the number of sequential batches
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The ‘frequency’ value is an int corresponding to the number of sequential batches
 optimized with the specific optimizer. It should be given to none or to all of the optimizers.
 There is a difference between passing multiple optimizers in a list,
 and passing multiple optimizers in dictionaries with a frequency of 1:
@@ -1893,8 +2006,9 @@ It has five keys. The default configuration is shown below.</p>
 </pre></div>
 </div>
 <p>If user only provides LR schedulers, then their configuration will set to default as shown above.</p>
-</dd>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># most cases</span>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># most cases</span>
 <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">opt</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">opt</span>
@@ -1934,11 +2048,9 @@ It has five keys. The default configuration is shown below.</p>
     <span class="p">)</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-<p>Note:</p>
-<blockquote>
-<div><p>Some things to know:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some things to know:</p>
 <ul>
 <li><p>Lightning calls <code class="docutils literal notranslate"><span class="pre">.backward()</span></code> and <code class="docutils literal notranslate"><span class="pre">.step()</span></code> on each optimizer
 and learning rate scheduler as needed.</p></li>
@@ -1963,7 +2075,7 @@ or want to monitor a custom metric, you can specify these in a lr_dict:</p>
 </div>
 </li>
 </ul>
-</div></blockquote>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -1978,17 +2090,22 @@ or want to monitor a custom metric, you can specify these in a lr_dict:</p>
 <code class="xref py py-class docutils literal notranslate"><span class="pre">Trainer</span></code> calls each optimizer.
 By default, Lightning calls <code class="docutils literal notranslate"><span class="pre">step()</span></code> and <code class="docutils literal notranslate"><span class="pre">zero_grad()</span></code> as shown in the example
 once per optimizer.</p>
-<dl>
-<dt>Args:</dt><dd><p>epoch: Current epoch
-batch_idx: Index of current batch
-optimizer: A PyTorch optimizer
-optimizer_idx: If you used multiple optimizers this indexes into that list.
-second_order_closure: closure for second order methods
-on_tpu: true if TPU backward is required
-using_native_amp: True if using native amp
-using_lbfgs: True if the matching optimizer is lbfgs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>epoch</strong> – Current epoch</p></li>
+<li><p><strong>batch_idx</strong> – Index of current batch</p></li>
+<li><p><strong>optimizer</strong> – A PyTorch optimizer</p></li>
+<li><p><strong>optimizer_idx</strong> – If you used multiple optimizers this indexes into that list.</p></li>
+<li><p><strong>second_order_closure</strong> – closure for second order methods</p></li>
+<li><p><strong>on_tpu</strong> – true if TPU backward is required</p></li>
+<li><p><strong>using_native_amp</strong> – True if using native amp</p></li>
+<li><p><strong>using_lbfgs</strong> – True if the matching optimizer is lbfgs</p></li>
+</ul>
 </dd>
-<dt>Examples:</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># DEFAULT</span>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># DEFAULT</span>
 <span class="k">def</span> <span class="nf">optimizer_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_epoch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">optimizer_idx</span><span class="p">,</span>
                    <span class="n">second_order_closure</span><span class="p">,</span> <span class="n">on_tpu</span><span class="p">,</span> <span class="n">using_native_amp</span><span class="p">,</span> <span class="n">using_lbfgs</span><span class="p">):</span>
     <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
@@ -2028,29 +2145,35 @@ learning rate warm-up:</p>
     <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
 </pre></div>
 </div>
-</dd>
-<dt>Note:</dt><dd><p>If you also override the <code class="xref py py-meth docutils literal notranslate"><span class="pre">on_before_zero_grad()</span></code>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you also override the <code class="xref py py-meth docutils literal notranslate"><span class="pre">on_before_zero_grad()</span></code>
 model hook don’t forget to add the call to it before <code class="docutils literal notranslate"><span class="pre">optimizer.zero_grad()</span></code> yourself.</p>
-</dd>
-</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt id="kale.pipeline.da_systems.WDGRLtrainerMod.training_step">
 <code class="sig-name descname">training_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_id</span></em>, <em class="sig-param"><span class="n">optimizer_idx</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainerMod.training_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>The most generic of training steps</p>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>batch (tuple): the batch as returned by the MultiDomainLoader dataloader iterator:</dt><dd><p>2 tuples: (x_source, y_source), (x_target, y_target) in the unsupervised setting
-3 tuples: (x_source, y_source), (x_target_labeled, y_target_labeled), (x_target_unlabeled, y_target_unlabeled) in the semi-supervised setting</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>tuple</em>) – the batch as returned by the MultiDomainLoader dataloader iterator:
+2 tuples: (x_source, y_source), (x_target, y_target) in the unsupervised setting
+3 tuples: (x_source, y_source), (x_target_labeled, y_target_labeled), (x_target_unlabeled, y_target_unlabeled) in the semi-supervised setting</p></li>
+<li><p><strong>batch_nb</strong> (<em>int</em>) – id of the current batch.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>must contain a “loss” key with the loss to be used for back-propagation.</dt><dd><p>see pytorch-lightning for more details.</p>
 </dd>
 </dl>
-<p>batch_nb (int): id of the current batch.</p>
+</p>
 </dd>
-<dt>Returns:</dt><dd><dl class="simple">
-<dt>dict: must contain a “loss” key with the loss to be used for back-propagation.</dt><dd><p>see pytorch-lightning for more details.</p>
-</dd>
-</dl>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2103,6 +2226,15 @@ model hook don’t forget to add the call to it before <code class="docutils lit
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="kale.predict.html" class="btn btn-neutral float-right" title="kale.predict package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="kale.loaddata.html" class="btn btn-neutral float-left" title="kale.loaddata package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
