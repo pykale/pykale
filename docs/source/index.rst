@@ -8,16 +8,16 @@ Welcome to PyKale's documentation!
 
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 3
     :caption: Getting started
 
     modules
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 3
     :caption: Examples
 
-    
+   Examples/modules 
 
 .. Indices and tables
 .. ==================
