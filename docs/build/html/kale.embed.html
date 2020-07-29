@@ -182,26 +182,19 @@
 <dd><p>Bases: <a class="reference internal" href="#kale.embed.attention_cnn.ContextCNNGeneric" title="kale.embed.attention_cnn.ContextCNNGeneric"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.embed.attention_cnn.ContextCNNGeneric</span></code></a></p>
 <p>A feature extractor consisting of a CNN backbone followed by a standard
 Transformer-Encoder.</p>
-<dl>
-<dt>args:</dt><dd><dl class="simple">
-<dt>cnn - a convolutional neural network that takes in images and</dt><dd><p>outputs tensors.</p>
-</dd>
-<dt>cnn_output_shape - a tuple of shape (batch_size, num_channels, height, width)</dt><dd><p>describing the output shape of the given CNN.</p>
-</dd>
-</dl>
-<p>num_layers - number of attention layers in the Transformer-Encoder.
-num_heads - number of attention heads in each transformer block.
-dim_feedforward - number of neurons in the intermediate dense layer of</p>
-<blockquote>
-<div><p>each transformer feedforward block.</p>
-</div></blockquote>
-<p>dropout - dropout rate of the transformer layers.
-output_type - one of ‘sequence’ or ‘spatial’. If Spatial then the final</p>
-<blockquote>
-<div><p>output of the model, which is the sequence output of the
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>- a convolutional neural network that takes in images and</strong> (<em>cnn</em>) – outputs tensors.</p></li>
+<li><p><strong>- a tuple of shape</strong> (<em>cnn_output_shape</em>) – describing the output shape of the given CNN.</p></li>
+<li><p><strong>- number of attention layers in the Transformer-Encoder.</strong> (<em>num_layers</em>) – </p></li>
+<li><p><strong>- number of attention heads in each transformer block.</strong> (<em>num_heads</em>) – </p></li>
+<li><p><strong>- number of neurons in the intermediate dense layer of</strong> (<em>dim_feedforward</em>) – each transformer feedforward block.</p></li>
+<li><p><strong>- dropout rate of the transformer layers.</strong> (<em>dropout</em>) – </p></li>
+<li><p><strong>- one of 'sequence'</strong><strong> or </strong><strong>'spatial'. If Spatial then the final</strong> (<em>output_type</em>) – output of the model, which is the sequence output of the
 Transformer-Encoder, will be reshaped to resemble the
-image-batch shape of the output of the CNN.</p>
-</div></blockquote>
+image-batch shape of the output of the CNN.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -214,22 +207,19 @@ image-batch shape of the output of the CNN.</p>
 sequence-to-sequence contextualizer like a Transformer. Before inputting the CNN output
 tensor to the contextualizer, the tensor’s spatial dimensions are unrolled
 into a sequence.</p>
-<dl class="simple">
-<dt>args:</dt><dd><dl class="simple">
-<dt>cnn - A convolutional neural network that takes in images and</dt><dd><p>outputs tensors.</p>
-</dd>
-<dt>cnn_output_shape - A tuple of shape (batch_size, num_channels, height, width)</dt><dd><p>describing the output shape of the given CNN.</p>
-</dd>
-<dt>contextualizer - A sequence-to-sequence model that takes inputs of shape</dt><dd><p>(num_timesteps, batch_size, num_features) and uses
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>- A convolutional neural network that takes in images and</strong> (<em>cnn</em>) – outputs tensors.</p></li>
+<li><p><strong>- A tuple of shape</strong> (<em>cnn_output_shape</em>) – describing the output shape of the given CNN.</p></li>
+<li><p><strong>- A sequence-to-sequence model that takes inputs of shape</strong> (<em>contextualizer</em>) – (num_timesteps, batch_size, num_features) and uses
 attention to contextualize the sequence and returns
 a sequence of the exact same shape. This will mainly be
-a Transformer-Encoder.</p>
-</dd>
-<dt>output_type - One of ‘sequence’ or ‘spatial’. If Spatial then the final</dt><dd><p>output of the model, which is a sequence, will be reshaped
+a Transformer-Encoder.</p></li>
+<li><p><strong>- One of 'sequence'</strong><strong> or </strong><strong>'spatial'. If Spatial then the final</strong> (<em>output_type</em>) – output of the model, which is a sequence, will be reshaped
 to resemble the image-batch shape of the output of the CNN.
-If Sequence then the output sequence is returned as is.</p>
-</dd>
-</dl>
+If Sequence then the output sequence is returned as is.</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
@@ -497,12 +487,12 @@ registered hooks while the latter silently ignores them.</p>
 Essentially, for all timesteps in a given sequence,
 adds information about the relative temporal location of a timestep
 directly into the features of that timestep.</p>
-<dl>
-<dt>args:</dt><dd><p>d_model - the number of features that each timestep has
-max_len - the maximum sequence length that the positional</p>
-<blockquote>
-<div><p>encodings should support.</p>
-</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>- the number of features that each timestep has</strong> (<em>d_model</em>) – </p></li>
+<li><p><strong>- the maximum sequence length that the positional</strong> (<em>max_len</em>) – encodings should support.</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">

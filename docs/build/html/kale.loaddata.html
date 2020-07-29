@@ -289,7 +289,7 @@ Modified by Haiping Lu from
 <div class="section" id="module-kale.loaddata.mnistm">
 <span id="kale-loaddata-mnistm-module"></span><h2>kale.loaddata.mnistm module<a class="headerlink" href="#module-kale.loaddata.mnistm" title="Permalink to this headline">¶</a></h2>
 <p>Dataset setting and data loader for MNIST-M.</p>
-<p>Modified from 
+<p>Modified from
 <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_mnistm.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_mnistm.py</a>
 (from <a class="reference external" href="https://github.com/pytorch/vision/blob/master/torchvision/datasets/mnist.py">https://github.com/pytorch/vision/blob/master/torchvision/datasets/mnist.py</a>)</p>
 <p>CREDIT: <a class="reference external" href="https://github.com/corenel">https://github.com/corenel</a>
@@ -300,23 +300,22 @@ amt: changed train_data and test_data to data, and train_labels and test_labels 
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.dataset.Dataset</span></code></p>
 <p>MNIST-M Dataset.
 Auto-downloads the dataset and provide the torch Dataset API.</p>
-<dl>
-<dt>Args:</dt><dd><p>root (str): path to directory where the MNISTM folder will be created (or exists.)
-train (bool, optional): defaults to True.</p>
-<blockquote>
-<div><p>If True, loads the training data. Otherwise, loads the test data.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>transform (callable, optional): defaults to None.</dt><dd><p>A function/transform that takes in
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root</strong> (<em>str</em>) – path to directory where the MNISTM folder will be created (or exists.)</p></li>
+<li><p><strong>train</strong> (<em>bool</em><em>, </em><em>optional</em>) – defaults to True.
+If True, loads the training data. Otherwise, loads the test data.</p></li>
+<li><p><strong>transform</strong> (<em>callable</em><em>, </em><em>optional</em>) – defaults to None.
+A function/transform that takes in
 an PIL image and returns a transformed version.
 E.g, <code class="docutils literal notranslate"><span class="pre">transforms.RandomCrop</span></code>
-This preprocessing function applied to all images (whether source or target)</p>
-</dd>
-<dt>target_transform (callable, optional): default toNone, similar to transform.</dt><dd><p>This preprocessing function applied to all target images, after <cite>transform</cite></p>
-</dd>
-<dt>download (bool optional): defaults to False.</dt><dd><p>Whether to allow downloading the data if not found on disk.</p>
-</dd>
-</dl>
+This preprocessing function applied to all images (whether source or target)</p></li>
+<li><p><strong>target_transform</strong> (<em>callable</em><em>, </em><em>optional</em>) – default toNone, similar to transform.
+This preprocessing function applied to all target images, after <cite>transform</cite></p></li>
+<li><p><strong>download</strong> (<em>bool optional</em>) – defaults to False.
+Whether to allow downloading the data if not found on disk.</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
@@ -464,19 +463,18 @@ Modified from
 <em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.usps.</code><code class="sig-name descname">USPS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span></em>, <em class="sig-param"><span class="n">train</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">transform</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">download</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.usps.USPS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.dataset.Dataset</span></code></p>
 <p>USPS Dataset.</p>
-<dl>
-<dt>Args:</dt><dd><p>root (string): Root directory of dataset where dataset file exist.
-train (bool, optional): If True, resample from dataset randomly.
-download (bool, optional): If true, downloads the dataset</p>
-<blockquote>
-<div><p>from the internet and puts it in root directory.
-If dataset is already downloaded, it is not downloaded again.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>transform (callable, optional): A function/transform that takes in</dt><dd><p>an PIL image and returns a transformed version.
-E.g, <code class="docutils literal notranslate"><span class="pre">transforms.RandomCrop</span></code></p>
-</dd>
-</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root</strong> (<em>string</em>) – Root directory of dataset where dataset file exist.</p></li>
+<li><p><strong>train</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, resample from dataset randomly.</p></li>
+<li><p><strong>download</strong> (<em>bool</em><em>, </em><em>optional</em>) – If true, downloads the dataset
+from the internet and puts it in root directory.
+If dataset is already downloaded, it is not downloaded again.</p></li>
+<li><p><strong>transform</strong> (<em>callable</em><em>, </em><em>optional</em>) – A function/transform that takes in
+an PIL image and returns a transformed version.
+E.g, <code class="docutils literal notranslate"><span class="pre">transforms.RandomCrop</span></code></p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
