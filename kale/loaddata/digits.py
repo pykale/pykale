@@ -8,7 +8,7 @@ from torchvision.datasets import MNIST, SVHN
 import kale.prepdata.im_transform as im_transform
 from kale.loaddata.usps import USPS
 from kale.loaddata.mnistm import MNISTM
-from kale.loaddata.splits import DatasetSplit
+from kale.loaddata.splits import DatasetAccess
 
 
 class DigitDataset(Enum):
@@ -54,7 +54,7 @@ class DigitDataset(Enum):
         )
 
 
-class DigitDatasetAccess(DatasetSplit):
+class DigitDatasetAccess(DatasetAccess):
     def __init__(self, data_path, transform_kind):
         super().__init__(n_classes=10)
         self._data_path = data_path
