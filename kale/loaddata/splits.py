@@ -1,5 +1,5 @@
 """
-Renamed DatasetAccess to DatasetSplit
+Data Access API
 From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_access.py
 """
 
@@ -7,7 +7,7 @@ import torch
 import torch.utils.data
 
 
-class DatasetSplit:
+class DatasetAccess:
     """
     This class ensures a unique API is used to access training, validation and test splits
     of any dataset.

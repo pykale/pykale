@@ -9,7 +9,7 @@ import numpy as np
 from sklearn.utils import check_random_state
 import torch.utils.data
 from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
-from kale.loaddata.splits import DatasetSplit # DatasetAccess
+from kale.loaddata.splits import DatasetAccess 
 
 class WeightingType(Enum):
     NATURAL = "natural"
@@ -58,8 +58,8 @@ class DomainsDatasetBase:
 class MultiDomainDatasets(DomainsDatasetBase):
     def __init__(
         self,
-        source_access: DatasetSplit,
-        target_access: DatasetSplit,
+        source_access: DatasetAccess,
+        target_access: DatasetAccess,
         config_weight_type, # = "natural",
         config_size_type, # = DatasetSizeType.Max,
         val_split_ratio=0.1,
