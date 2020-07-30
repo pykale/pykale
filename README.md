@@ -4,7 +4,7 @@
      alt="Machine learning workflow"
      style="float: center;" />
 
-We aim to develop a library to accelerate **interdisciplinary** research on machine learning for medical imaging, graphs/networks, and computer vision. Our library will be complementary to existing libraries and beter facilitate **cross-disciplinary** collaborations. To join this effort, branch, clone or fork this repository and push your contributions when ready for review and merge. Please ensure your code is **well documented** (please read `docs/`).
+We aim to develop a library to accelerate **interdisciplinary** research on machine learning for medical imaging, graphs/networks, and computer vision. Our library will be complementary to existing libraries and beter facilitate **cross-disciplinary** collaborations. To join this effort, branch, clone or fork this repository and push your contributions when ready for review and merge. Please ensure your code is **well documented** and verify your API under `docs/` after update.
 
 ## Workflow
 

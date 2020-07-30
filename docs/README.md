@@ -13,6 +13,7 @@ Three key references - all from [JMLR Machine Learning Open Source Software](htt
 * [A Graph Kernel Library in Python](https://github.com/ysig/GraKeL)
 * [A Python Toolbox to Tackle the Curse of Imbalanced Datasets in Machine Learning](https://github.com/scikit-learn-contrib/imbalanced-learn)
 * [Deep Universal Probabilistic Programming](https://github.com/pyro-ppl/pyro)
+* [A Python Toolbox for Scalable Outlier Detection](https://github.com/yzhao062/pyod)
 
 ## Workflow
 
