@@ -10,7 +10,7 @@ We aim to develop a library to accelerate **interdisciplinary** research on mach
 
 * Minor update: direct update (for write access users)
 * Major update:
-  * Create a brach and document update in detail
+  * Create a brach and document update in detail in code
   * Update the docs to check documentations for the update
   * Merge (for write access users) and request a review 
   * Reviewers: Raivo, Shuo, Haiping
