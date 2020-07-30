@@ -26,12 +26,17 @@ PyKale documentation
 
 .. toctree::
     :maxdepth: 1
-    :caption: Examples/Tutorials
+    :caption: Examples API
 
     examples/examples.cifar_cnntransformer
     examples/examples.cifar_isonet
     examples/examples.digits_dann_lightn
-    ../../examples/cmri_mpca/CMR_PAH
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Notebooks
+
+.. examples/CMR_PAH.nblink    
 
 
 Indices and tables
