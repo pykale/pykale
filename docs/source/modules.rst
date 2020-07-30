@@ -1,4 +1,4 @@
-kale
+Core API
 ====
 
 .. toctree::
