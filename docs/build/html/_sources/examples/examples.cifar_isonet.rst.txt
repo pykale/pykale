@@ -1,4 +1,6 @@
-examples.cifar\_isonet package
+.. examples.cifar\_isonet package
+
+CIFAR - ISONet
 ==============================
 
 Submodules

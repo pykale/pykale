@@ -1,4 +1,6 @@
-kale.pipeline package
+.. kale.pipeline package
+
+Pipeline (ML System)
 =====================
 
 Submodules

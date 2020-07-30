@@ -1,5 +1,6 @@
-Core API
+Installation
 ====
+To update
 
 .. toctree::
    :maxdepth: 4

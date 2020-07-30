@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>examples.cifar_isonet package &mdash; PyKale 0.0.1 documentation</title>
+  <title>CIFAR - ISONet &mdash; PyKale 0.0.1 documentation</title>
   
 
   
@@ -37,8 +37,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="examples.digits_dann_lightn package" href="examples.digits_dann_lightn.html" />
-    <link rel="prev" title="examples.cifar_cnntransformer package" href="examples.cifar_cnntransformer.html" /> 
+    <link rel="next" title="Digits - Domain Adapatation" href="examples.digits_dann_lightn.html" />
+    <link rel="prev" title="CIFAR - CNN Transformer" href="examples.cifar_cnntransformer.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,23 +85,30 @@
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../modules.html">Core API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">Installation</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Examples and Tutorials</span></p>
+<p class="caption"><span class="caption-text">Core API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../kale.loaddata.html">Load data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../kale.prepdata.html">Preprocess data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../kale.embed.html">Embed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../kale.predict.html">Predict</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../kale.pipeline.html">Pipeline (ML System)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../kale.utils.html">Utilities</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Examples/Tutorials</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Examples APIs</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="examples.html">examples package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="examples.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="examples.cifar_cnntransformer.html">examples.cifar_cnntransformer package</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">examples.cifar_isonet package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="examples.digits_dann_lightn.html">examples.digits_dann_lightn package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.cifar_cnntransformer.html">CIFAR - CNN Transformer</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CIFAR - ISONet</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-examples.cifar_isonet.config">examples.cifar_isonet.config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples-cifar-isonet-loaddata-module">examples.cifar_isonet.loaddata module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples-cifar-isonet-main-module">examples.cifar_isonet.main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples-cifar-isonet-trainer-module">examples.cifar_isonet.trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-examples.cifar_isonet">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="examples.html#module-examples">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.digits_dann_lightn.html">Digits - Domain Adapatation</a></li>
 </ul>
 
             
@@ -148,11 +155,7 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="modules.html">Examples APIs</a> &raquo;</li>
-        
-          <li><a href="examples.html">examples package</a> &raquo;</li>
-        
-      <li>examples.cifar_isonet package</li>
+      <li>CIFAR - ISONet</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -195,8 +198,8 @@
     text-align: unset;
 }
 </style>
-<div class="section" id="examples-cifar-isonet-package">
-<h1>examples.cifar_isonet package<a class="headerlink" href="#examples-cifar-isonet-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="cifar-isonet">
+<h1>CIFAR - ISONet<a class="headerlink" href="#cifar-isonet" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -225,10 +228,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="examples.digits_dann_lightn.html" class="btn btn-neutral float-right" title="examples.digits_dann_lightn package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="examples.digits_dann_lightn.html" class="btn btn-neutral float-right" title="Digits - Domain Adapatation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="examples.cifar_cnntransformer.html" class="btn btn-neutral float-left" title="examples.cifar_cnntransformer package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="examples.cifar_cnntransformer.html" class="btn btn-neutral float-left" title="CIFAR - CNN Transformer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

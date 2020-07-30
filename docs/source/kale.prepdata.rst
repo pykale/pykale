@@ -1,4 +1,6 @@
-kale.prepdata package
+.. kale.prepdata package
+
+Preprocess data
 =====================
 
 Submodules

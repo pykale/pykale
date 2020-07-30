@@ -1,4 +1,6 @@
-examples.cifar\_cnntransformer package
+.. examples.cifar\_cnntransformer package
+
+CIFAR - CNN Transformer
 ======================================
 
 Submodules
