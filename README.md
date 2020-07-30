@@ -4,14 +4,13 @@
      alt="Machine learning workflow"
      style="float: center;" />
 
-We aim to develop a library to accelerate **interdisciplinary** research on machine learning for medical imaging, graphs/networks, and computer vision. Our library will be complementary to existing libraries and beter facilitate **cross-disciplinary** collaborations. To join this effort, clone or fork this repository and push your contributions when ready for review and merge.
+We aim to develop a library to accelerate **interdisciplinary** research on machine learning for medical imaging, graphs/networks, and computer vision. Our library will be complementary to existing libraries and beter facilitate **cross-disciplinary** collaborations. To join this effort, clone or fork this repository and push your contributions when ready for review and merge. Please ensure your code is **well documented** (please read `docs/`).
 
 ## Overview
 
 ### Plan
 
-* End Sep 2020: Internal use by all
-* End Dec 2020: First public release (maybe earlier for MICCAI in early Oct)
+* Early Oct 2020: First public release (for MICCAI20 paper), to discuss
 * Long term: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)
 
 ### Objectives
