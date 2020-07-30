@@ -30,6 +30,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -101,9 +102,9 @@
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Examples</span></p>
+<p class="caption"><span class="caption-text">Examples and Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="examples/modules.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/modules.html">Examples APIs</a></li>
 </ul>
 
             
@@ -173,7 +174,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="kale-loaddata-package">
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="kale-loaddata-package">
 <h1>kale.loaddata package<a class="headerlink" href="#kale-loaddata-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
@@ -356,8 +381,133 @@ Whether to allow downloading the data if not found on disk.</p></li>
 </dd></dl>
 
 </div>
-<div class="section" id="kale-loaddata-multisource-module">
-<h2>kale.loaddata.multisource module<a class="headerlink" href="#kale-loaddata-multisource-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-kale.loaddata.multisource">
+<span id="kale-loaddata-multisource-module"></span><h2>kale.loaddata.multisource module<a class="headerlink" href="#module-kale.loaddata.multisource" title="Permalink to this headline">¶</a></h2>
+<p>Construct a dataset with source and target domains</p>
+<p>From <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py</a></p>
+<dl class="py class">
+<dt id="kale.loaddata.multisource.DatasetSizeType">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.multisource.</code><code class="sig-name descname">DatasetSizeType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.DatasetSizeType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="kale.loaddata.multisource.DatasetSizeType.Max">
+<code class="sig-name descname">Max</code><em class="property"> = 'max'</em><a class="headerlink" href="#kale.loaddata.multisource.DatasetSizeType.Max" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.loaddata.multisource.DatasetSizeType.Source">
+<code class="sig-name descname">Source</code><em class="property"> = 'source'</em><a class="headerlink" href="#kale.loaddata.multisource.DatasetSizeType.Source" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.multisource.DatasetSizeType.get_size">
+<em class="property">static </em><code class="sig-name descname">get_size</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size_type</span></em>, <em class="sig-param"><span class="n">source_dataset</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">other_datasets</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.DatasetSizeType.get_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.multisource.DomainsDatasetBase">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.multisource.</code><code class="sig-name descname">DomainsDatasetBase</code><a class="headerlink" href="#kale.loaddata.multisource.DomainsDatasetBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="kale.loaddata.multisource.DomainsDatasetBase.get_domain_loaders">
+<code class="sig-name descname">get_domain_loaders</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">split</span><span class="o">=</span><span class="default_value">'train'</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">32</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.DomainsDatasetBase.get_domain_loaders" title="Permalink to this definition">¶</a></dt>
+<dd><p>handles the sampling of a dataset containing multiple domains</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>split</strong> (<em>string</em><em>, </em><em>optional</em>) – [“train”|”valid”|”test”]. Which dataset to iterate on. Defaults to “train”.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Defaults to 32.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A dataloader with API similar to the torch.dataloader, but returning</dt><dd><p>batches from several domains at each iteration.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#kale.loaddata.sampler.MultiDataLoader" title="kale.loaddata.sampler.MultiDataLoader">MultiDataLoader</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.multisource.DomainsDatasetBase.prepare_data_loaders">
+<code class="sig-name descname">prepare_data_loaders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.DomainsDatasetBase.prepare_data_loaders" title="Permalink to this definition">¶</a></dt>
+<dd><p>handles train/validation/test split to have 3 datasets each with data from all domains
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.multisource.MultiDomainDatasets">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.multisource.</code><code class="sig-name descname">MultiDomainDatasets</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_access</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.loaddata.splits.DatasetAccess" title="kale.loaddata.splits.DatasetAccess">kale.loaddata.splits.DatasetAccess</a></span></em>, <em class="sig-param"><span class="n">target_access</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.loaddata.splits.DatasetAccess" title="kale.loaddata.splits.DatasetAccess">kale.loaddata.splits.DatasetAccess</a></span></em>, <em class="sig-param"><span class="n">config_weight_type</span></em>, <em class="sig-param"><span class="n">config_size_type</span></em>, <em class="sig-param"><span class="n">val_split_ratio</span><span class="o">=</span><span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">n_fewshot</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">random_state</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.MultiDomainDatasets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.multisource.DomainsDatasetBase" title="kale.loaddata.multisource.DomainsDatasetBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.multisource.DomainsDatasetBase</span></code></a></p>
+<dl class="py method">
+<dt id="kale.loaddata.multisource.MultiDomainDatasets.get_domain_loaders">
+<code class="sig-name descname">get_domain_loaders</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">split</span><span class="o">=</span><span class="default_value">'train'</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">32</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.MultiDomainDatasets.get_domain_loaders" title="Permalink to this definition">¶</a></dt>
+<dd><p>handles the sampling of a dataset containing multiple domains</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>split</strong> (<em>string</em><em>, </em><em>optional</em>) – [“train”|”valid”|”test”]. Which dataset to iterate on. Defaults to “train”.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Defaults to 32.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A dataloader with API similar to the torch.dataloader, but returning</dt><dd><p>batches from several domains at each iteration.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#kale.loaddata.sampler.MultiDataLoader" title="kale.loaddata.sampler.MultiDataLoader">MultiDataLoader</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.multisource.MultiDomainDatasets.is_semi_supervised">
+<code class="sig-name descname">is_semi_supervised</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.MultiDomainDatasets.is_semi_supervised" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.multisource.MultiDomainDatasets.prepare_data_loaders">
+<code class="sig-name descname">prepare_data_loaders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.MultiDomainDatasets.prepare_data_loaders" title="Permalink to this definition">¶</a></dt>
+<dd><p>handles train/validation/test split to have 3 datasets each with data from all domains
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.multisource.WeightingType">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.multisource.</code><code class="sig-name descname">WeightingType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.WeightingType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="kale.loaddata.multisource.WeightingType.BALANCED">
+<code class="sig-name descname">BALANCED</code><em class="property"> = 'balanced'</em><a class="headerlink" href="#kale.loaddata.multisource.WeightingType.BALANCED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.loaddata.multisource.WeightingType.NATURAL">
+<code class="sig-name descname">NATURAL</code><em class="property"> = 'natural'</em><a class="headerlink" href="#kale.loaddata.multisource.WeightingType.NATURAL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.loaddata.multisource.WeightingType.PRESET0">
+<code class="sig-name descname">PRESET0</code><em class="property"> = 'preset0'</em><a class="headerlink" href="#kale.loaddata.multisource.WeightingType.PRESET0" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-kale.loaddata.sampler">
 <span id="kale-loaddata-sampler-module"></span><h2>kale.loaddata.sampler module<a class="headerlink" href="#module-kale.loaddata.sampler" title="Permalink to this headline">¶</a></h2>
