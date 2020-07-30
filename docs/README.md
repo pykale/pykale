@@ -4,7 +4,7 @@ Good documentation to learn from: the [MONAI highlights](https://docs.monai.io/e
 
 ## Sphinx autodocumentation and Read the Doc
 
-* To release on [Read the Doc] (https://readthedocs.org/) using [Sphinx](https://sphinx-rtd-tutorial.readthedocs.io/en/latest/sphinx-quickstart.html) (already set up). See my test [SimplyDeep](https://simplydeep.readthedocs.io/en/latest/)
+* To release on [Read the Doc](https://readthedocs.org/) using [Sphinx](https://sphinx-rtd-tutorial.readthedocs.io/en/latest/sphinx-quickstart.html) (already set up). See my test [SimplyDeep](https://simplydeep.readthedocs.io/en/latest/)
 * [https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html](https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html) to generate documentations automatically. [Tutorial: Autodocumenting your Python code with Sphinx](https://romanvm.pythonanywhere.com/post/autodocumenting-your-python-code-sphinx-part-i-5/)
 * [Python Docstring Generator for VScode](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring)
 
