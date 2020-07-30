@@ -101,20 +101,15 @@ def scale_cmr_mask(mask, scale):
     return mask_new
 
 
-def cmr_proc(basedir, db, scale, mask_id, level, save_data=True, return_data=False):
+def cmr_proc(data_path, db, scale, mask_path, mask_id, level):
     print('Preprocssing Data Scale: 1/%s, Mask ID: %s, Processing level: %s'
           % (scale, mask_id, level))
-    datadir = os.path.join(basedir, 'DB%s/NoPrs%sDB%s.npy' % (db, scale, db))
-    maskdir = os.path.join(basedir, 'Prep/AllMasks.mat')
-    data = np.load(datadir)
-    masks = loadmat(maskdir)['masks']
+    # datadir = os.path.join(basedir, 'DB%s/NoPrs%sDB%s.npy' % (db, scale, db))
+    # maskdir = os.path.join(basedir, 'Prep/AllMasks.mat')
+    data = np.load(data_path)
+    masks = loadmat(mask_path)['masks']
     mask = masks[mask_id-1, db-1]
     mask = scale_cmr_mask(mask, scale)
     data_proc = preproc(data, mask, level)
 
-    if save_data:
-        out_path = os.path.join(basedir, 'DB%s/PrepData/PrS%sM%sL%sDB%s.npy' 
-                                % (db, scale, mask_id, level, db))
-        np.save(out_path, data_proc)
-    if return_data:
-        return data_proc
+    return data_proc
