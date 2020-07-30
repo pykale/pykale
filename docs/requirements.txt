@@ -3,5 +3,6 @@ sphinx
 sphinx-rtd-theme
 nbsphinx
 ipykernel
-
+nbsphinx-link
+pandoc
 

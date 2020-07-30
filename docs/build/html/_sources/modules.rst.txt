@@ -1,8 +1,8 @@
-Installation
+Installation (to update)
 ====
-To update
+To update 
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    kale
