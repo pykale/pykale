@@ -1,4 +1,6 @@
-kale.utils package
+.. kale.utils package
+
+Utilities
 ==================
 
 Submodules

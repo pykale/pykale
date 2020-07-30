@@ -1,4 +1,6 @@
-examples.digits\_dann\_lightn package
+.. examples.digits\_dann\_lightn package
+
+Digits - Domain Adapatation
 =====================================
 
 Submodules

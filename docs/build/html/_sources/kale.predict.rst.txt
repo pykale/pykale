@@ -1,4 +1,6 @@
-kale.predict package
+.. kale.predict package
+
+Predict
 ====================
 
 Submodules

@@ -15,9 +15,22 @@ PyKale documentation
 
 .. toctree::
     :maxdepth: 1
-    :caption: Examples and Tutorials
+    :caption: Core API
 
-    examples/modules 
+    kale.loaddata
+    kale.prepdata
+    kale.embed
+    kale.predict
+    kale.pipeline
+    kale.utils
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Examples/Tutorials
+
+    examples/examples.cifar_cnntransformer
+    examples/examples.cifar_isonet
+    examples/examples.digits_dann_lightn
     ../../examples/cmri_mpca/CMR_PAH
 
 

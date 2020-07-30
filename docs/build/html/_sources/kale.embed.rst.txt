@@ -1,4 +1,6 @@
-kale.embed package
+.. kale.embed package
+
+Embed
 ==================
 
 Submodules

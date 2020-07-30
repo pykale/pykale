@@ -1,4 +1,6 @@
-kale.loaddata package
+.. kale.loaddata package
+
+Load data
 =====================
 
 Submodules
