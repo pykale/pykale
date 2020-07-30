@@ -30,6 +30,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -101,9 +102,9 @@
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Examples</span></p>
+<p class="caption"><span class="caption-text">Examples and Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="examples/modules.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/modules.html">Examples APIs</a></li>
 </ul>
 
             
@@ -171,7 +172,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="kale-package">
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="kale-package">
 <h1>kale package<a class="headerlink" href="#kale-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
@@ -190,7 +215,7 @@
 <li class="toctree-l2"><a class="reference internal" href="kale.loaddata.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kale.loaddata.html#module-kale.loaddata.digits">kale.loaddata.digits module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kale.loaddata.html#module-kale.loaddata.mnistm">kale.loaddata.mnistm module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kale.loaddata.html#kale-loaddata-multisource-module">kale.loaddata.multisource module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kale.loaddata.html#module-kale.loaddata.multisource">kale.loaddata.multisource module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kale.loaddata.html#module-kale.loaddata.sampler">kale.loaddata.sampler module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kale.loaddata.html#module-kale.loaddata.splits">kale.loaddata.splits module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kale.loaddata.html#module-kale.loaddata.usps">kale.loaddata.usps module</a></li>
@@ -199,7 +224,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="kale.pipeline.html">kale.pipeline package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="kale.pipeline.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kale.pipeline.html#kale-pipeline-da-systems-module">kale.pipeline.da_systems module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kale.pipeline.html#module-kale.pipeline.da_systems">kale.pipeline.da_systems module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kale.pipeline.html#module-kale.pipeline">Module contents</a></li>
 </ul>
 </li>
@@ -221,7 +246,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="kale.utils.html">kale.utils package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="kale.utils.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kale.utils.html#kale-utils-da-logger-module">kale.utils.da_logger module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kale.utils.html#module-kale.utils.da_logger">kale.utils.da_logger module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kale.utils.html#module-kale.utils.logger">kale.utils.logger module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kale.utils.html#module-kale.utils.print">kale.utils.print module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kale.utils.html#module-kale.utils.seed">kale.utils.seed module</a></li>

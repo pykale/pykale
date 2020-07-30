@@ -15,9 +15,10 @@ PyKale documentation
 
 .. toctree::
     :maxdepth: 1
-    :caption: Examples
+    :caption: Examples and Tutorials
 
     examples/modules 
+    ../../examples/cmri_mpca/CMR_PAH
 
 
 Indices and tables

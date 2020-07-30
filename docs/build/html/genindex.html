@@ -30,6 +30,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -84,9 +85,9 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">Core API</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Examples</span></p>
+<p class="caption"><span class="caption-text">Examples and Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="examples/modules.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/modules.html">Examples APIs</a></li>
 </ul>
 
             
@@ -163,6 +164,7 @@
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
+ | <a href="#J"><strong>J</strong></a>
  | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
@@ -174,6 +176,8 @@
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
+ | <a href="#X"><strong>X</strong></a>
  
 </div>
 <h2 id="A">A</h2>
@@ -181,11 +185,19 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="examples/examples.cifar_cnntransformer.html#examples.cifar_cnntransformer.model.SimpleCNN.activations">activations (examples.cifar_cnntransformer.model.SimpleCNN attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="examples/examples.cifar_cnntransformer.html#examples.cifar_cnntransformer.trainer.Trainer.adjust_learning_rate">adjust_learning_rate() (examples.cifar_cnntransformer.trainer.Trainer method)</a>
 </li>
       <li><a href="kale.embed.html#kale.embed.da_feature.AlexNetFeature">AlexNetFeature (class in kale.embed.da_feature)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.allow_supervised">allow_supervised() (kale.pipeline.da_systems.Method method)</a>
+</li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults.already_computed">already_computed() (kale.utils.da_logger.XpResults method)</a>
+</li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults.append_to_markdown">append_to_markdown() (kale.utils.da_logger.XpResults method)</a>
+</li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults.append_to_txt">append_to_txt() (kale.utils.da_logger.XpResults method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -193,10 +205,20 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.ReverseLayerF.backward">backward() (kale.pipeline.da_systems.ReverseLayerF static method)</a>
+</li>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.WeightingType.BALANCED">BALANCED (kale.loaddata.multisource.WeightingType attribute)</a>
+</li>
       <li><a href="kale.loaddata.html#kale.loaddata.sampler.BalancedBatchSampler">BalancedBatchSampler (class in kale.loaddata.sampler)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer">BaseAdaptTrainer (class in kale.pipeline.da_systems)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseDANNLike">BaseDANNLike (class in kale.pipeline.da_systems)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseMMDLike">BaseMMDLike (class in kale.pipeline.da_systems)</a>
+</li>
       <li><a href="kale.predict.html#kale.predict.isonet.BasicTransform">BasicTransform (class in kale.predict.isonet)</a>
 </li>
       <li><a href="kale.predict.html#kale.predict.isonet.BottleneckTransform">BottleneckTransform (class in kale.predict.isonet)</a>
@@ -207,18 +229,60 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.CDAN">CDAN (kale.pipeline.da_systems.Method attribute)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.CDAN_E">CDAN_E (kale.pipeline.da_systems.Method attribute)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.CDANtrainer">CDANtrainer (class in kale.pipeline.da_systems)</a>
+</li>
       <li><a href="kale.embed.html#kale.embed.attention_cnn.CNNTransformer">CNNTransformer (class in kale.embed.attention_cnn)</a>
 </li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.compute_loss">compute_loss() (kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
+
+      <ul>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseDANNLike.compute_loss">(kale.pipeline.da_systems.BaseDANNLike method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseMMDLike.compute_loss">(kale.pipeline.da_systems.BaseMMDLike method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.CDANtrainer.compute_loss">(kale.pipeline.da_systems.CDANtrainer method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.FewShotDANNtrainer.compute_loss">(kale.pipeline.da_systems.FewShotDANNtrainer method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.WDGRLtrainer.compute_loss">(kale.pipeline.da_systems.WDGRLtrainer method)</a>
+</li>
+      </ul></li>
       <li><a href="kale.predict.html#kale.predict.losses.compute_mmd_loss">compute_mmd_loss() (in module kale.predict.losses)</a>
 </li>
-      <li><a href="kale.utils.html#kale.utils.logger.construct_logger">construct_logger() (in module kale.utils.logger)</a>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.configure_optimizers">configure_optimizers() (kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
+
+      <ul>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.WDGRLtrainer.configure_optimizers">(kale.pipeline.da_systems.WDGRLtrainer method)</a>
 </li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.WDGRLtrainerMod.configure_optimizers">(kale.pipeline.da_systems.WDGRLtrainerMod method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.utils.html#kale.utils.logger.construct_logger">construct_logger() (in module kale.utils.logger)</a>
+</li>
       <li><a href="kale.embed.html#kale.embed.attention_cnn.ContextCNNGeneric">ContextCNNGeneric (class in kale.embed.attention_cnn)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.create_dann_like">create_dann_like() (in module kale.pipeline.da_systems)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.create_fewshot_trainer">create_fewshot_trainer() (in module kale.pipeline.da_systems)</a>
 </li>
       <li><a href="kale.loaddata.html#kale.loaddata.sampler.SamplingConfig.create_loader">create_loader() (kale.loaddata.sampler.SamplingConfig method)</a>
 </li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.create_mmd_based">create_mmd_based() (in module kale.pipeline.da_systems)</a>
+</li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.create_timestamp_string">create_timestamp_string() (in module kale.utils.da_logger)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.WDGRLtrainer.critic_update_steps">critic_update_steps() (kale.pipeline.da_systems.WDGRLtrainer method)</a>
+
+      <ul>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.WDGRLtrainerMod.critic_update_steps">(kale.pipeline.da_systems.WDGRLtrainerMod method)</a>
+</li>
+      </ul></li>
       <li><a href="kale.predict.html#kale.predict.losses.cross_entropy_logits">cross_entropy_logits() (in module kale.predict.losses)</a>
 </li>
   </ul></td>
@@ -227,17 +291,29 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.DAN">DAN (kale.pipeline.da_systems.Method attribute)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.DANN">DANN (kale.pipeline.da_systems.Method attribute)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.DANNtrainer">DANNtrainer (class in kale.pipeline.da_systems)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.DANtrainer">DANtrainer (class in kale.pipeline.da_systems)</a>
+</li>
       <li><a href="kale.predict.html#kale.predict.da_classify.DataClassifierDigits">DataClassifierDigits (class in kale.predict.da_classify)</a>
 </li>
       <li><a href="kale.loaddata.html#kale.loaddata.splits.DatasetAccess">DatasetAccess (class in kale.loaddata.splits)</a>
 </li>
-      <li><a href="kale.loaddata.html#kale.loaddata.digits.DigitDataset">DigitDataset (class in kale.loaddata.digits)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.DatasetSizeType">DatasetSizeType (class in kale.loaddata.multisource)</a>
+</li>
+      <li><a href="kale.loaddata.html#kale.loaddata.digits.DigitDataset">DigitDataset (class in kale.loaddata.digits)</a>
+</li>
       <li><a href="kale.loaddata.html#kale.loaddata.digits.DigitDatasetAccess">DigitDatasetAccess (class in kale.loaddata.digits)</a>
 </li>
       <li><a href="kale.predict.html#kale.predict.da_classify.DomainClassifierDigits">DomainClassifierDigits (class in kale.predict.da_classify)</a>
+</li>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.DomainsDatasetBase">DomainsDatasetBase (class in kale.loaddata.multisource)</a>
 </li>
       <li><a href="kale.loaddata.html#kale.loaddata.mnistm.MNISTM.download">download() (kale.loaddata.mnistm.MNISTM method)</a>
 
@@ -320,6 +396,13 @@
         <li><a href="examples/examples.digits_dann_lightn.html#module-examples.digits_dann_lightn.config">module</a>
 </li>
       </ul></li>
+      <li>
+    examples.digits_dann_lightn.model
+
+      <ul>
+        <li><a href="examples/examples.digits_dann_lightn.html#module-examples.digits_dann_lightn.model">module</a>
+</li>
+      </ul></li>
       <li><a href="kale.embed.html#kale.embed.da_feature.FeatureExtractFF.extra_repr">extra_repr() (kale.embed.da_feature.FeatureExtractFF method)</a>
 
       <ul>
@@ -335,6 +418,8 @@
       <li><a href="kale.embed.html#kale.embed.da_feature.FeatureExtractFF">FeatureExtractFF (class in kale.embed.da_feature)</a>
 </li>
       <li><a href="kale.embed.html#kale.embed.da_feature.FeatureExtractorDigits">FeatureExtractorDigits (class in kale.embed.da_feature)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.FewShotDANNtrainer">FewShotDANNtrainer (class in kale.pipeline.da_systems)</a>
 </li>
       <li><a href="kale.predict.html#kale.predict.da_classify.FFSoftmaxClassifier">FFSoftmaxClassifier (class in kale.predict.da_classify)</a>
 </li>
@@ -363,6 +448,20 @@
 </li>
         <li><a href="kale.embed.html#kale.embed.positional_encoding.PositionalEncoding.forward">(kale.embed.positional_encoding.PositionalEncoding method)</a>
 </li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.forward">(kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseMMDLike.forward">(kale.pipeline.da_systems.BaseMMDLike method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.CDANtrainer.forward">(kale.pipeline.da_systems.CDANtrainer method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.DANNtrainer.forward">(kale.pipeline.da_systems.DANNtrainer method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.FewShotDANNtrainer.forward">(kale.pipeline.da_systems.FewShotDANNtrainer method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.ReverseLayerF.forward">(kale.pipeline.da_systems.ReverseLayerF static method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.WDGRLtrainer.forward">(kale.pipeline.da_systems.WDGRLtrainer method)</a>
+</li>
         <li><a href="kale.predict.html#kale.predict.da_classify.DataClassifierDigits.forward">(kale.predict.da_classify.DataClassifierDigits method)</a>
 </li>
         <li><a href="kale.predict.html#kale.predict.da_classify.DomainClassifierDigits.forward">(kale.predict.da_classify.DomainClassifierDigits method)</a>
@@ -387,6 +486,12 @@
 </li>
       </ul></li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults.from_file">from_file() (kale.utils.da_logger.XpResults static method)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.FSDANN">FSDANN (kale.pipeline.da_systems.Method attribute)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="G">G</h2>
@@ -398,15 +503,49 @@
 </li>
       <li><a href="kale.loaddata.html#kale.loaddata.digits.DigitDataset.get_accesses">get_accesses() (kale.loaddata.digits.DigitDataset static method)</a>
 </li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.get_aggregated_metrics">get_aggregated_metrics() (in module kale.pipeline.da_systems)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.get_aggregated_metrics_from_dict">get_aggregated_metrics_from_dict() (in module kale.pipeline.da_systems)</a>
+</li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults.get_best_archi_seed">get_best_archi_seed() (kale.utils.da_logger.XpResults method)</a>
+</li>
       <li><a href="examples/examples.cifar_cnntransformer.html#examples.cifar_cnntransformer.config.get_cfg_defaults">get_cfg_defaults() (in module examples.cifar_cnntransformer.config)</a>
 
       <ul>
         <li><a href="examples/examples.digits_dann_lightn.html#examples.digits_dann_lightn.config.get_cfg_defaults">(in module examples.digits_dann_lightn.config)</a>
 </li>
       </ul></li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults.get_data">get_data() (kale.utils.da_logger.XpResults method)</a>
+</li>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.DomainsDatasetBase.get_domain_loaders">get_domain_loaders() (kale.loaddata.multisource.DomainsDatasetBase method)</a>
+
+      <ul>
+        <li><a href="kale.loaddata.html#kale.loaddata.multisource.MultiDomainDatasets.get_domain_loaders">(kale.loaddata.multisource.MultiDomainDatasets method)</a>
+</li>
+      </ul></li>
       <li><a href="kale.loaddata.html#kale.loaddata.sampler.get_labels">get_labels() (in module kale.loaddata.sampler)</a>
 </li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults.get_last_seed">get_last_seed() (kale.utils.da_logger.XpResults method)</a>
+</li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults.get_mean_seed">get_mean_seed() (kale.utils.da_logger.XpResults method)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.get_metrics_from_parameter_dict">get_metrics_from_parameter_dict() (in module kale.pipeline.da_systems)</a>
+</li>
       <li><a href="examples/examples.cifar_cnntransformer.html#examples.cifar_cnntransformer.model.get_model">get_model() (in module examples.cifar_cnntransformer.model)</a>
+
+      <ul>
+        <li><a href="examples/examples.digits_dann_lightn.html#examples.digits_dann_lightn.model.get_model">(in module examples.digits_dann_lightn.model)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.get_parameters_watch_list">get_parameters_watch_list() (kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
+
+      <ul>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseDANNLike.get_parameters_watch_list">(kale.pipeline.da_systems.BaseDANNLike method)</a>
+</li>
+      </ul></li>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.DatasetSizeType.get_size">get_size() (kale.loaddata.multisource.DatasetSizeType static method)</a>
 </li>
       <li><a href="kale.loaddata.html#kale.loaddata.digits.MNISTDatasetAccess.get_test">get_test() (kale.loaddata.digits.MNISTDatasetAccess method)</a>
 
@@ -420,8 +559,6 @@
         <li><a href="kale.loaddata.html#kale.loaddata.splits.DatasetAccess.get_test">(kale.loaddata.splits.DatasetAccess method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="kale.loaddata.html#kale.loaddata.digits.MNISTDatasetAccess.get_train">get_train() (kale.loaddata.digits.MNISTDatasetAccess method)</a>
 
       <ul>
@@ -460,9 +597,31 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="kale.loaddata.html#kale.loaddata.sampler.InfiniteSliceIterator">InfiniteSliceIterator (class in kale.loaddata.sampler)</a>
 </li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.is_cdan_method">is_cdan_method() (kale.pipeline.da_systems.Method method)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.is_dann_method">is_dann_method() (kale.pipeline.da_systems.Method method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.is_fewshot_method">is_fewshot_method() (kale.pipeline.da_systems.Method method)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.is_mmd_method">is_mmd_method() (kale.pipeline.da_systems.Method method)</a>
+</li>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.MultiDomainDatasets.is_semi_supervised">is_semi_supervised() (kale.loaddata.multisource.MultiDomainDatasets method)</a>
+</li>
       <li><a href="kale.predict.html#kale.predict.isonet.ISONet">ISONet (class in kale.predict.isonet)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="J">J</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.JAN">JAN (kale.pipeline.da_systems.Method attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.JANtrainer">JANtrainer (class in kale.pipeline.da_systems)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -527,6 +686,13 @@
 </li>
       </ul></li>
       <li>
+    kale.loaddata.multisource
+
+      <ul>
+        <li><a href="kale.loaddata.html#module-kale.loaddata.multisource">module</a>
+</li>
+      </ul></li>
+      <li>
     kale.loaddata.sampler
 
       <ul>
@@ -556,6 +722,13 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    kale.pipeline.da_systems
+
+      <ul>
+        <li><a href="kale.pipeline.html#module-kale.pipeline.da_systems">module</a>
+</li>
+      </ul></li>
       <li>
     kale.predict
 
@@ -613,6 +786,13 @@
 </li>
       </ul></li>
       <li>
+    kale.utils.da_logger
+
+      <ul>
+        <li><a href="kale.utils.html#module-kale.utils.da_logger">module</a>
+</li>
+      </ul></li>
+      <li>
     kale.utils.logger
 
       <ul>
@@ -639,6 +819,10 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="examples/examples.digits_dann_lightn.html#examples.digits_dann_lightn.model.load_config">load_config() (in module examples.digits_dann_lightn.model)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="kale.loaddata.html#kale.loaddata.usps.USPS.load_samples">load_samples() (kale.loaddata.usps.USPS method)</a>
 </li>
   </ul></td>
@@ -647,6 +831,14 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.DatasetSizeType.Max">Max (kale.loaddata.multisource.DatasetSizeType attribute)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method">Method (class in kale.pipeline.da_systems)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.method">method() (kale.pipeline.da_systems.BaseAdaptTrainer property)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.MME">MME (kale.pipeline.da_systems.Method attribute)</a>
+</li>
       <li><a href="kale.loaddata.html#kale.loaddata.digits.DigitDataset.MNIST">MNIST (kale.loaddata.digits.DigitDataset attribute)</a>
 </li>
       <li><a href="kale.loaddata.html#kale.loaddata.digits.MNISTDatasetAccess">MNISTDatasetAccess (class in kale.loaddata.digits)</a>
@@ -681,6 +873,8 @@
 </li>
         <li><a href="examples/examples.digits_dann_lightn.html#module-examples.digits_dann_lightn.config">examples.digits_dann_lightn.config</a>
 </li>
+        <li><a href="examples/examples.digits_dann_lightn.html#module-examples.digits_dann_lightn.model">examples.digits_dann_lightn.model</a>
+</li>
         <li><a href="kale.html#module-kale">kale</a>
 </li>
         <li><a href="kale.embed.html#module-kale.embed">kale.embed</a>
@@ -697,6 +891,8 @@
 </li>
         <li><a href="kale.loaddata.html#module-kale.loaddata.mnistm">kale.loaddata.mnistm</a>
 </li>
+        <li><a href="kale.loaddata.html#module-kale.loaddata.multisource">kale.loaddata.multisource</a>
+</li>
         <li><a href="kale.loaddata.html#module-kale.loaddata.sampler">kale.loaddata.sampler</a>
 </li>
         <li><a href="kale.loaddata.html#module-kale.loaddata.splits">kale.loaddata.splits</a>
@@ -704,6 +900,8 @@
         <li><a href="kale.loaddata.html#module-kale.loaddata.usps">kale.loaddata.usps</a>
 </li>
         <li><a href="kale.pipeline.html#module-kale.pipeline">kale.pipeline</a>
+</li>
+        <li><a href="kale.pipeline.html#module-kale.pipeline.da_systems">kale.pipeline.da_systems</a>
 </li>
         <li><a href="kale.predict.html#module-kale.predict">kale.predict</a>
 </li>
@@ -721,6 +919,8 @@
 </li>
         <li><a href="kale.utils.html#module-kale.utils">kale.utils</a>
 </li>
+        <li><a href="kale.utils.html#module-kale.utils.da_logger">kale.utils.da_logger</a>
+</li>
         <li><a href="kale.utils.html#module-kale.utils.logger">kale.utils.logger</a>
 </li>
         <li><a href="kale.utils.html#module-kale.utils.print">kale.utils.print</a>
@@ -731,6 +931,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="kale.loaddata.html#kale.loaddata.sampler.MultiDataLoader">MultiDataLoader (class in kale.loaddata.sampler)</a>
+</li>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.MultiDomainDatasets">MultiDomainDatasets (class in kale.loaddata.multisource)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -747,11 +949,17 @@
 </li>
       </ul></li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.WeightingType.NATURAL">NATURAL (kale.loaddata.multisource.WeightingType attribute)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.WDGRLtrainerMod.optimizer_step">optimizer_step() (kale.pipeline.da_systems.WDGRLtrainerMod method)</a>
+</li>
       <li><a href="kale.predict.html#kale.predict.isonet.ISONet.ortho">ortho() (kale.predict.isonet.ISONet method)</a>
 </li>
       <li><a href="kale.predict.html#kale.predict.isonet.ISONet.ortho_conv">ortho_conv() (kale.predict.isonet.ISONet method)</a>
@@ -780,15 +988,29 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.utils.html#kale.utils.da_logger.param_to_hash">param_to_hash() (in module kale.utils.da_logger)</a>
+</li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.param_to_str">param_to_str() (in module kale.utils.da_logger)</a>
+</li>
       <li><a href="kale.embed.html#kale.embed.positional_encoding.PositionalEncoding">PositionalEncoding (class in kale.embed.positional_encoding)</a>
 </li>
       <li><a href="kale.utils.html#kale.utils.print.pprint">pprint() (in module kale.utils.print)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="kale.utils.html#kale.utils.print.pprint_without_newline">pprint_without_newline() (in module kale.utils.print)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="examples/examples.cifar_cnntransformer.html#examples.cifar_cnntransformer.model.PredictionHead">PredictionHead (class in examples.cifar_cnntransformer.model)</a>
+</li>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.DomainsDatasetBase.prepare_data_loaders">prepare_data_loaders() (kale.loaddata.multisource.DomainsDatasetBase method)</a>
+
+      <ul>
+        <li><a href="kale.loaddata.html#kale.loaddata.multisource.MultiDomainDatasets.prepare_data_loaders">(kale.loaddata.multisource.MultiDomainDatasets method)</a>
+</li>
+      </ul></li>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.WeightingType.PRESET0">PRESET0 (kale.loaddata.multisource.WeightingType attribute)</a>
+</li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults.print_scores">print_scores() (kale.utils.da_logger.XpResults method)</a>
 </li>
       <li><a href="kale.loaddata.html#kale.loaddata.mnistm.MNISTM.processed_folder">processed_folder (kale.loaddata.mnistm.MNISTM attribute)</a>
 </li>
@@ -800,6 +1022,10 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="kale.loaddata.html#kale.loaddata.mnistm.MNISTM.raw_folder">raw_folder (kale.loaddata.mnistm.MNISTM attribute)</a>
 </li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.record_hashes">record_hashes() (in module kale.utils.da_logger)</a>
+</li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults.remove">remove() (kale.utils.da_logger.XpResults method)</a>
+</li>
       <li><a href="kale.predict.html#kale.predict.isonet.ResBlock">ResBlock (class in kale.predict.isonet)</a>
 </li>
       <li><a href="kale.loaddata.html#kale.loaddata.sampler.InfiniteSliceIterator.reset">reset() (kale.loaddata.sampler.InfiniteSliceIterator method)</a>
@@ -808,10 +1034,10 @@
 </li>
       <li><a href="kale.embed.html#kale.embed.da_feature.ResNet101Feature">ResNet101Feature (class in kale.embed.da_feature)</a>
 </li>
-      <li><a href="kale.embed.html#kale.embed.da_feature.ResNet152Feature">ResNet152Feature (class in kale.embed.da_feature)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.embed.html#kale.embed.da_feature.ResNet152Feature">ResNet152Feature (class in kale.embed.da_feature)</a>
+</li>
       <li><a href="kale.embed.html#kale.embed.da_feature.ResNet18Feature">ResNet18Feature (class in kale.embed.da_feature)</a>
 </li>
       <li><a href="kale.embed.html#kale.embed.da_feature.ResNet34Feature">ResNet34Feature (class in kale.embed.da_feature)</a>
@@ -821,6 +1047,8 @@
       <li><a href="kale.predict.html#kale.predict.isonet.ResStage">ResStage (class in kale.predict.isonet)</a>
 </li>
       <li><a href="kale.predict.html#kale.predict.isonet.ResStem">ResStem (class in kale.predict.isonet)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.ReverseLayerF">ReverseLayerF (class in kale.pipeline.da_systems)</a>
 </li>
       <li><a href="kale.loaddata.html#kale.loaddata.sampler.ReweightedBatchSampler">ReweightedBatchSampler (class in kale.loaddata.sampler)</a>
 </li>
@@ -834,7 +1062,11 @@
 </li>
       <li><a href="kale.prepdata.html#kale.prepdata.tensor_reshape.seq_to_spatial">seq_to_spatial() (in module kale.prepdata.tensor_reshape)</a>
 </li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.set_requires_grad">set_requires_grad() (in module kale.pipeline.da_systems)</a>
+</li>
       <li><a href="kale.utils.html#kale.utils.seed.set_seed">set_seed() (in module kale.utils.seed)</a>
+</li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.setup_logger">setup_logger() (in module kale.utils.da_logger)</a>
 </li>
       <li><a href="examples/examples.cifar_cnntransformer.html#examples.cifar_cnntransformer.model.SimpleCNN">SimpleCNN (class in examples.cifar_cnntransformer.model)</a>
 </li>
@@ -842,6 +1074,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="examples/examples.cifar_cnntransformer.html#examples.cifar_cnntransformer.trainer.Trainer.snapshot">snapshot() (examples.cifar_cnntransformer.trainer.Trainer method)</a>
 </li>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.DatasetSizeType.Source">Source (kale.loaddata.multisource.DatasetSizeType attribute)</a>
+
+      <ul>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.Source">(kale.pipeline.da_systems.Method attribute)</a>
+</li>
+      </ul></li>
       <li><a href="kale.prepdata.html#kale.prepdata.tensor_reshape.spatial_to_seq">spatial_to_seq() (in module kale.prepdata.tensor_reshape)</a>
 </li>
       <li><a href="kale.predict.html#kale.predict.isonet.SReLU">SReLU (class in kale.predict.isonet)</a>
@@ -856,26 +1094,52 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.test_dataloader">test_dataloader() (kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.test_epoch_end">test_epoch_end() (kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
+
+      <ul>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseDANNLike.test_epoch_end">(kale.pipeline.da_systems.BaseDANNLike method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseMMDLike.test_epoch_end">(kale.pipeline.da_systems.BaseMMDLike method)</a>
+</li>
+      </ul></li>
       <li><a href="kale.loaddata.html#kale.loaddata.mnistm.MNISTM.test_file">test_file (kale.loaddata.mnistm.MNISTM attribute)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.test_step">test_step() (kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
+</li>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults.to_csv">to_csv() (kale.utils.da_logger.XpResults method)</a>
 </li>
       <li><a href="kale.utils.html#kale.utils.print.tprint">tprint() (in module kale.utils.print)</a>
 </li>
-      <li><a href="examples/examples.cifar_cnntransformer.html#examples.cifar_cnntransformer.trainer.Trainer.train">train() (examples.cifar_cnntransformer.trainer.Trainer method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="examples/examples.cifar_cnntransformer.html#examples.cifar_cnntransformer.trainer.Trainer.train">train() (examples.cifar_cnntransformer.trainer.Trainer method)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader">train_dataloader() (kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
+</li>
       <li><a href="examples/examples.cifar_cnntransformer.html#examples.cifar_cnntransformer.trainer.Trainer.train_epoch">train_epoch() (examples.cifar_cnntransformer.trainer.Trainer method)</a>
 </li>
       <li><a href="examples/examples.cifar_cnntransformer.html#examples.cifar_cnntransformer.trainer.Trainer">Trainer (class in examples.cifar_cnntransformer.trainer)</a>
 </li>
       <li><a href="kale.loaddata.html#kale.loaddata.mnistm.MNISTM.training_file">training_file (kale.loaddata.mnistm.MNISTM attribute)</a>
 </li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.training_step">training_step() (kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
+
+      <ul>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.WDGRLtrainer.training_step">(kale.pipeline.da_systems.WDGRLtrainer method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.WDGRLtrainerMod.training_step">(kale.pipeline.da_systems.WDGRLtrainerMod method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults.update">update() (kale.utils.da_logger.XpResults method)</a>
+</li>
       <li><a href="kale.loaddata.html#kale.loaddata.mnistm.MNISTM.url">url (kale.loaddata.mnistm.MNISTM attribute)</a>
 
       <ul>
@@ -899,6 +1163,46 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="examples/examples.cifar_cnntransformer.html#examples.cifar_cnntransformer.trainer.Trainer.val">val() (examples.cifar_cnntransformer.trainer.Trainer method)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.val_dataloader">val_dataloader() (kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.validation_epoch_end">validation_epoch_end() (kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
+
+      <ul>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseDANNLike.validation_epoch_end">(kale.pipeline.da_systems.BaseDANNLike method)</a>
+</li>
+        <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseMMDLike.validation_epoch_end">(kale.pipeline.da_systems.BaseMMDLike method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step">validation_step() (kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.WDGRL">WDGRL (kale.pipeline.da_systems.Method attribute)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.Method.WDGRLMod">WDGRLMod (kale.pipeline.da_systems.Method attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.WDGRLtrainer">WDGRLtrainer (class in kale.pipeline.da_systems)</a>
+</li>
+      <li><a href="kale.pipeline.html#kale.pipeline.da_systems.WDGRLtrainerMod">WDGRLtrainerMod (class in kale.pipeline.da_systems)</a>
+</li>
+      <li><a href="kale.loaddata.html#kale.loaddata.multisource.WeightingType">WeightingType (class in kale.loaddata.multisource)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="X">X</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kale.utils.html#kale.utils.da_logger.XpResults">XpResults (class in kale.utils.da_logger)</a>
 </li>
   </ul></td>
 </tr></table>
