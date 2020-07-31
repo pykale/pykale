@@ -1,14 +1,15 @@
 """
-Author: Haiping Lu
-Initial Date: 27 July 2020
+Define the learning model, including configuring training parameters.
 """
+# Author: Haiping Lu
+# Initial Date: 27 July 2020
 from copy import deepcopy
 
 import kale.embed.da_feature as da_feature
 import kale.predict.da_classify as da_classify
 import kale.pipeline.da_systems as da_systems
 
-def load_config(cfg):
+def get_config(cfg):
     """
     Set the hypermeters for the optimizer using the config file
     """
@@ -70,7 +71,7 @@ def get_model(cfg, dataset, num_channels):
             critic_input_size = feature_dim * cfg.DATASET.NUM_CLASSES
     critic_network = da_classify.DomainClassifierDigits(critic_input_size)
 
-    config_params = load_config(cfg)
+    config_params = get_config(cfg)
     train_params  = config_params["train_params"]
     train_params_local = deepcopy(train_params)
     method_params = {}
