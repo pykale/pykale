@@ -19,7 +19,7 @@ _C.DATASET.NAME = 'digits' #dset choices=['office', 'image-clef', 'office-home']
 _C.DATASET.SOURCE = 'mnist' #s_dset_path  , help="The source dataset path list"
 _C.DATASET.TARGET = 'usps' #s_dset_path  , help="The target dataset path list"
 _C.DATASET.NUM_CLASSES = 10
-_C.DATASET.NUM_REPEAT = 10
+_C.DATASET.NUM_REPEAT = 3 #10
 _C.DATASET.DIMENSION = 784
 _C.DATASET.WEIGHT_TYPE = 'natural'
 _C.DATASET.SIZE_TYPE = 'source'

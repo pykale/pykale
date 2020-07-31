@@ -4,14 +4,22 @@
      alt="Machine learning workflow"
      style="float: center;" />
 
-We aim to develop a library to accelerate **interdisciplinary** research on machine learning for medical imaging, graphs/networks, and computer vision. Our library will be complementary to existing libraries and beter facilitate **cross-disciplinary** collaborations. To join this effort, clone or fork this repository and push your contributions when ready for review and merge.
+We aim to develop a library to accelerate **interdisciplinary** research on machine learning for medical imaging, graphs/networks, and computer vision. Our library will be complementary to existing libraries and beter facilitate **cross-disciplinary** collaborations. To join this effort, branch, clone or fork this repository and push your contributions when ready for review and merge. Please ensure your code is **well documented** and verify your API under `docs/` after update.
+
+## Workflow
+
+* Minor update: direct update (for write access users)
+* Major update:
+  * Create a branch and document the update in detail in code
+  * Update the `docs` to check documentations for the update
+  * Merge (for write access users) and request a review
+  * Reviewers: Raivo, Shuo, Haiping
 
 ## Overview
 
 ### Plan
 
-* End Sep 2020: Internal use by all
-* End Dec 2020: First public release (maybe earlier for MICCAI in early Oct)
+* Early Oct 2020: First public release (for MICCAI20 paper), to discuss
 * Long term: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)
 
 ### Objectives
@@ -47,7 +55,7 @@ We need to design these core modules to be generic, reusable, customizable, and 
 ### Coding style
 
 * Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). Example: [ISONet](https://github.com/HaozhiQi/ISONet)
-* Use [PyTorch](https://pytorch.org/tutorials/) when possible and follow its coding style
+* Use [PyTorch](https://pytorch.org/tutorials/) when possible and follow its coding style. **Highly recommend** [PyTorch Lightning](https://towardsdatascience.com/from-pytorch-to-pytorch-lightning-a-gentle-introduction-b371b7caaf09)
 * Key references include [MONAI](https://github.com/Project-MONAI/MONAI) for `medim`, [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) for `graph`, and [kornia](https://github.com/kornia/kornia) for `vision`.
 * Repository structure
 

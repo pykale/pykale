@@ -1,0 +1,4 @@
+TRANSFORMER:
+  USE_TRANSFORMER: False
+
+OUTPUT_DIR: './outputs/StandardCNN-baseline'

@@ -1,0 +1,596 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Predict &mdash; PyKale 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Preprocess data" href="kale.prepdata.html" />
+    <link rel="prev" title="Pipeline (ML System)" href="kale.pipeline.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> PyKale
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Installation (to update)</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="kale.html">kale package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="kale.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="kale.embed.html">Embed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.loaddata.html">Load data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.pipeline.html">Pipeline (ML System)</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Predict</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.prepdata.html">Preprocess data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="kale.html#module-kale">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Core API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="kale.loaddata.html">Load data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kale.prepdata.html">Preprocess data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kale.embed.html">Embed</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Predict</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.predict.da_classify">kale.predict.da_classify module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.predict.isonet">kale.predict.isonet module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.predict.losses">kale.predict.losses module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.predict">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="kale.pipeline.html">Pipeline (ML System)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kale.utils.html">Utilities</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Examples API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/examples.cifar_cnntransformer.html">CIFAR - CNN Transformer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/examples.cifar_isonet.html">CIFAR - ISONet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/examples.digits_dann_lightn.html">Digits - Domain Adapatation</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyKale</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="modules.html">Installation (to update)</a> &raquo;</li>
+        
+          <li><a href="kale.html">kale package</a> &raquo;</li>
+        
+      <li>Predict</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/kale.predict.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="predict">
+<h1>Predict<a class="headerlink" href="#predict" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kale.predict.da_classify">
+<span id="kale-predict-da-classify-module"></span><h2>kale.predict.da_classify module<a class="headerlink" href="#module-kale.predict.da_classify" title="Permalink to this headline">¶</a></h2>
+<p>Classification or discriminating of source vs target
+From
+<a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py</a></p>
+<dl class="py class">
+<dt id="kale.predict.da_classify.DataClassifierDigits">
+<em class="property">class </em><code class="sig-prename descclassname">kale.predict.da_classify.</code><code class="sig-name descname">DataClassifierDigits</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_size</span><span class="o">=</span><span class="default_value">128</span></em>, <em class="sig-param"><span class="n">n_class</span><span class="o">=</span><span class="default_value">10</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.da_classify.DataClassifierDigits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt id="kale.predict.da_classify.DataClassifierDigits.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.da_classify.DataClassifierDigits.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.predict.da_classify.DataClassifierDigits.n_classes">
+<code class="sig-name descname">n_classes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.da_classify.DataClassifierDigits.n_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.predict.da_classify.DomainClassifierDigits">
+<em class="property">class </em><code class="sig-prename descclassname">kale.predict.da_classify.</code><code class="sig-name descname">DomainClassifierDigits</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_size</span><span class="o">=</span><span class="default_value">128</span></em>, <em class="sig-param"><span class="n">bigger_discrim</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.da_classify.DomainClassifierDigits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt id="kale.predict.da_classify.DomainClassifierDigits.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.da_classify.DomainClassifierDigits.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.predict.da_classify.FFSoftmaxClassifier">
+<em class="property">class </em><code class="sig-prename descclassname">kale.predict.da_classify.</code><code class="sig-name descname">FFSoftmaxClassifier</code><span class="sig-paren">(</span><em class="sig-param">input_dim=15</em>, <em class="sig-param">n_classes=2</em>, <em class="sig-param">name='c'</em>, <em class="sig-param">hidden=()</em>, <em class="sig-param">activation_fn=&lt;class 'torch.nn.modules.activation.ReLU'&gt;</em>, <em class="sig-param">**activation_args</em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.da_classify.FFSoftmaxClassifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt id="kale.predict.da_classify.FFSoftmaxClassifier.extra_repr">
+<code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.da_classify.FFSoftmaxClassifier.extra_repr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the extra representation of the module</p>
+<p>To print customized extra information, you should reimplement
+this method in your own modules. Both single-line and multi-line
+strings are acceptable.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.predict.da_classify.FFSoftmaxClassifier.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.da_classify.FFSoftmaxClassifier.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.predict.da_classify.FFSoftmaxClassifier.n_classes">
+<code class="sig-name descname">n_classes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.da_classify.FFSoftmaxClassifier.n_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kale.predict.isonet">
+<span id="kale-predict-isonet-module"></span><h2>kale.predict.isonet module<a class="headerlink" href="#module-kale.predict.isonet" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kale.predict.isonet.BasicTransform">
+<em class="property">class </em><code class="sig-prename descclassname">kale.predict.isonet.</code><code class="sig-name descname">BasicTransform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">w_in</span></em>, <em class="sig-param"><span class="n">w_out</span></em>, <em class="sig-param"><span class="n">stride</span></em>, <em class="sig-param"><span class="n">has_bn</span></em>, <em class="sig-param"><span class="n">use_srelu</span></em>, <em class="sig-param"><span class="n">w_b</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_gs</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.BasicTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Basic transformation: 3x3, 3x3</p>
+<dl class="py method">
+<dt id="kale.predict.isonet.BasicTransform.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.BasicTransform.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.predict.isonet.BottleneckTransform">
+<em class="property">class </em><code class="sig-prename descclassname">kale.predict.isonet.</code><code class="sig-name descname">BottleneckTransform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">w_in</span></em>, <em class="sig-param"><span class="n">w_out</span></em>, <em class="sig-param"><span class="n">stride</span></em>, <em class="sig-param"><span class="n">has_bn</span></em>, <em class="sig-param"><span class="n">use_srelu</span></em>, <em class="sig-param"><span class="n">w_b</span></em>, <em class="sig-param"><span class="n">num_gs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.BottleneckTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Bottleneck transformation: 1x1, 3x3, 1x1</p>
+<dl class="py method">
+<dt id="kale.predict.isonet.BottleneckTransform.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.BottleneckTransform.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.predict.isonet.ISONet">
+<em class="property">class </em><code class="sig-prename descclassname">kale.predict.isonet.</code><code class="sig-name descname">ISONet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">use_dirac</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.ISONet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>ResNet model.</p>
+<dl class="py method">
+<dt id="kale.predict.isonet.ISONet.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.ISONet.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.predict.isonet.ISONet.ortho">
+<code class="sig-name descname">ortho</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.ISONet.ortho" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.predict.isonet.ISONet.ortho_conv">
+<code class="sig-name descname">ortho_conv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m</span></em>, <em class="sig-param"><span class="n">device</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.ISONet.ortho_conv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.predict.isonet.ResBlock">
+<em class="property">class </em><code class="sig-prename descclassname">kale.predict.isonet.</code><code class="sig-name descname">ResBlock</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">w_in</span></em>, <em class="sig-param"><span class="n">w_out</span></em>, <em class="sig-param"><span class="n">stride</span></em>, <em class="sig-param"><span class="n">trans_fun</span></em>, <em class="sig-param"><span class="n">has_bn</span></em>, <em class="sig-param"><span class="n">has_st</span></em>, <em class="sig-param"><span class="n">use_srelu</span></em>, <em class="sig-param"><span class="n">w_b</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_gs</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.ResBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Residual block: x + F(x)</p>
+<dl class="py method">
+<dt id="kale.predict.isonet.ResBlock.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.ResBlock.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.predict.isonet.ResHead">
+<em class="property">class </em><code class="sig-prename descclassname">kale.predict.isonet.</code><code class="sig-name descname">ResHead</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">w_in</span></em>, <em class="sig-param"><span class="n">nc</span></em>, <em class="sig-param"><span class="n">use_dropout</span></em>, <em class="sig-param"><span class="n">dropout_rate</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.ResHead" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>ResNet head.</p>
+<dl class="py method">
+<dt id="kale.predict.isonet.ResHead.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.ResHead.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.predict.isonet.ResStage">
+<em class="property">class </em><code class="sig-prename descclassname">kale.predict.isonet.</code><code class="sig-name descname">ResStage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">w_in</span></em>, <em class="sig-param"><span class="n">w_out</span></em>, <em class="sig-param"><span class="n">stride</span></em>, <em class="sig-param"><span class="n">transfun</span></em>, <em class="sig-param"><span class="n">has_bn</span></em>, <em class="sig-param"><span class="n">has_st</span></em>, <em class="sig-param"><span class="n">use_srelu</span></em>, <em class="sig-param"><span class="n">d</span></em>, <em class="sig-param"><span class="n">w_b</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_gs</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.ResStage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Stage of ResNet.</p>
+<dl class="py method">
+<dt id="kale.predict.isonet.ResStage.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.ResStage.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.predict.isonet.ResStem">
+<em class="property">class </em><code class="sig-prename descclassname">kale.predict.isonet.</code><code class="sig-name descname">ResStem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">w_in</span></em>, <em class="sig-param"><span class="n">w_out</span></em>, <em class="sig-param"><span class="n">has_bn</span></em>, <em class="sig-param"><span class="n">use_srelu</span></em>, <em class="sig-param"><span class="n">kernelsize</span></em>, <em class="sig-param"><span class="n">stride</span></em>, <em class="sig-param"><span class="n">padding</span></em>, <em class="sig-param"><span class="n">use_maxpool</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">poolksize</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">poolstride</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">poolpadding</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.ResStem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Stem of ResNet.</p>
+<dl class="py method">
+<dt id="kale.predict.isonet.ResStem.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.ResStem.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.predict.isonet.SReLU">
+<em class="property">class </em><code class="sig-prename descclassname">kale.predict.isonet.</code><code class="sig-name descname">SReLU</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nc</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.SReLU" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Shifted ReLU</p>
+<dl class="py method">
+<dt id="kale.predict.isonet.SReLU.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.SReLU.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="kale.predict.isonet.get_trans_fun">
+<code class="sig-prename descclassname">kale.predict.isonet.</code><code class="sig-name descname">get_trans_fun</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.isonet.get_trans_fun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the transformation function by name.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-kale.predict.losses">
+<span id="kale-predict-losses-module"></span><h2>kale.predict.losses module<a class="headerlink" href="#module-kale.predict.losses" title="Permalink to this headline">¶</a></h2>
+<p>Commonly used losses
+From
+<a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/losses.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/losses.py</a></p>
+<dl class="py function">
+<dt id="kale.predict.losses.compute_mmd_loss">
+<code class="sig-prename descclassname">kale.predict.losses.</code><code class="sig-name descname">compute_mmd_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kernel_values</span></em>, <em class="sig-param"><span class="n">batch_size</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.losses.compute_mmd_loss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="kale.predict.losses.cross_entropy_logits">
+<code class="sig-prename descclassname">kale.predict.losses.</code><code class="sig-name descname">cross_entropy_logits</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">linear_output</span></em>, <em class="sig-param"><span class="n">label</span></em>, <em class="sig-param"><span class="n">weights</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.losses.cross_entropy_logits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="kale.predict.losses.entropy_logits">
+<code class="sig-prename descclassname">kale.predict.losses.</code><code class="sig-name descname">entropy_logits</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">linear_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.losses.entropy_logits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="kale.predict.losses.entropy_logits_loss">
+<code class="sig-prename descclassname">kale.predict.losses.</code><code class="sig-name descname">entropy_logits_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">linear_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.losses.entropy_logits_loss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="kale.predict.losses.gaussian_kernel">
+<code class="sig-prename descclassname">kale.predict.losses.</code><code class="sig-name descname">gaussian_kernel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">target</span></em>, <em class="sig-param"><span class="n">kernel_mul</span><span class="o">=</span><span class="default_value">2.0</span></em>, <em class="sig-param"><span class="n">kernel_num</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">fix_sigma</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.losses.gaussian_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Code from XLearn: computes the full kernel matrix,
+which is less than optimal since we don’t use all of it
+with the linear MMD estimate.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kale.predict.losses.gradient_penalty">
+<code class="sig-prename descclassname">kale.predict.losses.</code><code class="sig-name descname">gradient_penalty</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">h_s</span></em>, <em class="sig-param"><span class="n">h_t</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.predict.losses.gradient_penalty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-kale.predict">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-kale.predict" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="kale.prepdata.html" class="btn btn-neutral float-right" title="Preprocess data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="kale.pipeline.html" class="btn btn-neutral float-left" title="Pipeline (ML System)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Haiping Lu, Shuo Zhou, Raivo Koot
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
