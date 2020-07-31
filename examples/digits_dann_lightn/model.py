@@ -45,14 +45,11 @@ def get_config(cfg):
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 def get_model(cfg, dataset, num_channels):
     """
-    Builds and returns a model according to the config
-    object passed.
+    Builds and returns a model according to the config object passed.
     args:
         cfg - A YACS config object.
-    dataset:
-        source and target datasets
-    num_channels:
-        number of image channels
+        dataset - Source and target datasets.
+        num_channels - number of image channels.        
     """
 
     # setup feature extractor

@@ -1,0 +1,331 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Preprocess data &mdash; PyKale 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Utilities" href="kale.utils.html" />
+    <link rel="prev" title="Predict" href="kale.predict.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> PyKale
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Installation (to update)</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="kale.html">kale package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="kale.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="kale.embed.html">Embed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.loaddata.html">Load data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.pipeline.html">Pipeline (ML System)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.predict.html">Predict</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Preprocess data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="kale.html#module-kale">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Core API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="kale.loaddata.html">Load data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Preprocess data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.prepdata.im_transform">kale.prepdata.im_transform module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kale-prepdata-prep-cmr-module">kale.prepdata.prep_cmr module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.prepdata.tensor_reshape">kale.prepdata.tensor_reshape module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.prepdata">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="kale.embed.html">Embed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kale.predict.html">Predict</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kale.pipeline.html">Pipeline (ML System)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kale.utils.html">Utilities</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Examples API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/examples.cifar_cnntransformer.html">CIFAR - CNN Transformer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/examples.cifar_isonet.html">CIFAR - ISONet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/examples.digits_dann_lightn.html">Digits - Domain Adapatation</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyKale</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="modules.html">Installation (to update)</a> &raquo;</li>
+        
+          <li><a href="kale.html">kale package</a> &raquo;</li>
+        
+      <li>Preprocess data</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/kale.prepdata.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="preprocess-data">
+<h1>Preprocess data<a class="headerlink" href="#preprocess-data" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kale.prepdata.im_transform">
+<span id="kale-prepdata-im-transform-module"></span><h2>kale.prepdata.im_transform module<a class="headerlink" href="#module-kale.prepdata.im_transform" title="Permalink to this headline">¶</a></h2>
+<p>Preprocessing of image datasets, i.e. transforms
+Modified by Haiping Lu from
+<a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/preprocessing.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/preprocessing.py</a></p>
+<dl class="py function">
+<dt id="kale.prepdata.im_transform.get_transform">
+<code class="sig-prename descclassname">kale.prepdata.im_transform.</code><code class="sig-name descname">get_transform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.prepdata.im_transform.get_transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="kale-prepdata-prep-cmr-module">
+<h2>kale.prepdata.prep_cmr module<a class="headerlink" href="#kale-prepdata-prep-cmr-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kale.prepdata.tensor_reshape">
+<span id="kale-prepdata-tensor-reshape-module"></span><h2>kale.prepdata.tensor_reshape module<a class="headerlink" href="#module-kale.prepdata.tensor_reshape" title="Permalink to this headline">¶</a></h2>
+<p>Author: Raivo Koot
+Creation Date: 14 July 2020</p>
+<dl class="py function">
+<dt id="kale.prepdata.tensor_reshape.seq_to_spatial">
+<code class="sig-prename descclassname">kale.prepdata.tensor_reshape.</code><code class="sig-name descname">seq_to_spatial</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequence_tensor</span></em>, <em class="sig-param"><span class="n">desired_height</span></em>, <em class="sig-param"><span class="n">desired_width</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.prepdata.tensor_reshape.seq_to_spatial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a torch tensor of shape (sequence_length, batch_size, channels)
+as used and outputted by Transformers and creates a view of shape
+(batch_size, channels, height, width) as used and outputted by CNNs.
+In other words, rearranges the dimension ordering and rolls
+sequence_length into (height,width).</p>
+<p>args:
+sequence_tensor - tensor as described above.
+desired_heigth - the height into which the sequence length should be rolled into
+desired_width - the width into which the sequence length should be rolled into</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kale.prepdata.tensor_reshape.spatial_to_seq">
+<code class="sig-prename descclassname">kale.prepdata.tensor_reshape.</code><code class="sig-name descname">spatial_to_seq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image_tensor</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.prepdata.tensor_reshape.spatial_to_seq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a torch tensor of shape (batch_size, channels, height, width)
+as used and outputted by CNNs and creates a sequence view of shape
+(sequence_length, batch_size, channels) as required by
+torch’s transformer module. In other words, unrolls the
+spatial grid into the sequence length and rearranges the
+dimension ordering.</p>
+<p>args:
+image_tensor - tensor as described above.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-kale.prepdata">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-kale.prepdata" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="kale.utils.html" class="btn btn-neutral float-right" title="Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="kale.predict.html" class="btn btn-neutral float-left" title="Predict" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Haiping Lu, Shuo Zhou, Raivo Koot
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
