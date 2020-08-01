@@ -1,7 +1,3 @@
-"""
-Author: Raivo Koot
-Creation Date: 14 July 2020
-"""
 import torch
 
 # dimension locations in a typical image batch tensor
@@ -12,7 +8,7 @@ SPATIAL_WIDTH_DIMENSION = 3
 
 NUMBER_OF_DIMENSIONS = 4
 
-def spatial_to_seq(image_tensor):
+def spatial_to_seq(image_tensor: torch.Tensor):
     """
     Takes a torch tensor of shape (batch_size, channels, height, width)
     as used and outputted by CNNs and creates a sequence view of shape
@@ -21,8 +17,8 @@ def spatial_to_seq(image_tensor):
     spatial grid into the sequence length and rearranges the
     dimension ordering.
 
-    args:
-    image_tensor - tensor as described above.
+    Args:
+        image_tensor: tensor of shape (batch_size, channels, height, width) (required).
     """
     original_size = image_tensor.size()
 
@@ -49,22 +45,22 @@ SEQUENCE_FEATURE_DIMENSION = 2
 
 SEQUENCE_NUMBER_OF_DIMENSIONS = 3
 
-def seq_to_spatial(sequence_tensor, desired_height, desired_width):
-    """
-    Takes a torch tensor of shape (sequence_length, batch_size, channels)
+def seq_to_spatial(sequence_tensor: torch.Tensor, desired_height: int, desired_width: int):
+    """Takes a torch tensor of shape (sequence_length, batch_size, num_features)
     as used and outputted by Transformers and creates a view of shape
-    (batch_size, channels, height, width) as used and outputted by CNNs.
+    (batch_size, num_features, height, width) as used and outputted by CNNs.
     In other words, rearranges the dimension ordering and rolls
-    sequence_length into (height,width).
+    sequence_length into (height,width). height*width must equal
+    the sequence length of the input sequence.
 
-    args:
-    sequence_tensor - tensor as described above.
-    desired_heigth - the height into which the sequence length should be rolled into
-    desired_width - the width into which the sequence length should be rolled into
-    """
+    Args:
+        sequence_tensor: sequence tensor of shape (sequence_length, batch_size, num_features) (required).
+        desired_height: the height into which the sequence length should be rolled into (required).
+        desired_width: the width into which the sequence length should be rolled into (required).
+
+    """ 
     original_size = sequence_tensor.size()
 
-    sequence_length = original_size[SEQUENCE_LENGTH_DIMENSION]
     batch_size = original_size[SEQUENCE_BATCH_DIMENSION]
     num_channels = original_size[SEQUENCE_FEATURE_DIMENSION]
 

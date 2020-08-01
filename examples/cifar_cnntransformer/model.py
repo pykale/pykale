@@ -57,9 +57,9 @@ class PredictionHead(nn.Module):
     """
     Simple classification prediction-head block to plug ontop of the 4D
     output of a CNN.
-    args:
-        num_classes - the number of different classes that can be predicted.
-        input_shape - the shape that input to this head will have. Expected
+    Args:
+        num_classes: the number of different classes that can be predicted.
+        input_shape: the shape that input to this head will have. Expected
                       to be (batch_size, channels, height, width)
     """
     def __init__(self, num_classes, input_shape):
@@ -79,8 +79,8 @@ def get_model(cfg):
     Builds and returns a model according to the config
     object passed.
 
-    args:
-        cfg - A YACS config object.
+    Args:
+        cfg: A YACS config object.
     """
 
     cnn = SimpleCNN(cfg.CNN.CONV_LAYERS, cfg.CNN.ACTIVATION_FUN,

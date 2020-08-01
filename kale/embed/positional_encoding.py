@@ -11,15 +11,16 @@ class PositionalEncoding(nn.Module):
     (https://arxiv.org/abs/1706.03762).
     Essentially, for all timesteps in a given sequence,
     adds information about the relative temporal location of a timestep
-    directly into the features of that timestep.
+    directly into the features of that timestep, and then returns this
+    slightly-modified, same-shape sequence.
 
     args:
-        d_model - the number of features that each timestep has
-        max_len - the maximum sequence length that the positional
-                  encodings should support.
+        d_model: the number of features that each timestep has (required).
+        max_len: the maximum sequence length that the positional
+                  encodings should support (required).
     """
 
-    def __init__(self, d_model, max_len=5000):
+    def __init__(self, d_model: int, max_len: int=5000):
         super(PositionalEncoding, self).__init__()
 
         pe = torch.zeros(max_len, d_model)
@@ -36,12 +37,15 @@ class PositionalEncoding(nn.Module):
         self.max_len = max_len
         self.d_model = d_model
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
         """
         Expects input of shape (sequence_length, batch_size, num_features)
         and returns output of the same shape. sequence_length is at most
         allowed to be self.max_len and num_features is expected to
         be exactly self.d_model
+
+        Args:
+            x: a sequence input of shape (sequence_length, batch_size, num_features) (required).
         """
         x = x * self.scaling_term # make embedding relatively larger than positional encoding
         x = x + self.pe[:x.size(0), :]
