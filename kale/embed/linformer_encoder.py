@@ -16,7 +16,7 @@ class LinearTransformerEncoderLayer(Module):
     r"""Modification of PyTorch's nn.TransformerEncoderLayer.
 
     This modification reduces the computational cost of the self-attention module from
-    O(n^2) to O(nk) by implementing the proposed adjusted linear attention block from:
+    O(n^2) to O(n) by implementing the proposed adjusted linear attention block from:
     `Linformer: Self-Attention with Linear Complexity` (2020) (https://arxiv.org/abs/2006.04768).
 
     Args:
