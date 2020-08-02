@@ -331,12 +331,11 @@ def _linear_multi_head_attention_forward(query,                           # type
         return attn_output, None
 
 class LinearMultiheadAttention(nn.Module):
-    r"""Allows the model to jointly attend to information
-    from different representation subspaces.
-    See reference: Attention Is All You Need
-    .. math::
-        \text{MultiHead}(Q, K, V) = \text{Concat}(head_1,\dots,head_h)W^O
-        \text{where} head_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)
+    r"""Modification of PyTorch's nn.MultiheadAttention that has linear
+    attention complexity in space and time instead of quadratic. See
+    reference: `Linformer: Self-Attention with Linear Complexity` (2020) and
+    https://pytorch.org/docs/master/generated/torch.nn.MultiheadAttention.html.
+
     Args:
         embed_dim: total dimension of the model.
         num_heads: parallel attention heads.
@@ -353,7 +352,7 @@ class LinearMultiheadAttention(nn.Module):
         Note: if kdim and vdim are None, they will be set to embed_dim such that
         query, key, and value have the same number of features.
     Examples::
-        >>> multihead_attn = nn.MultiheadAttention(embed_dim, num_heads)
+        >>> multihead_attn = LinearMultiheadAttention(embed_dim, num_heads, seq_len=10000, proj_k=128)
         >>> attn_output, attn_output_weights = multihead_attn(query, key, value)
     """
     __annotations__ = {
