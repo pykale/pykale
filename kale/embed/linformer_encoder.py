@@ -13,16 +13,11 @@ from torch.nn import Linear
 from torch.nn import LayerNorm
 
 class LinearTransformerEncoderLayer(Module):
-    r"""LinearTransformerEncoderLayer is made up of linear self-attn and feedforward network.
-    This standard encoder layer is based on the paper "Attention Is All You Need".
-    Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez,
-    Lukasz Kaiser, and Illia Polosukhin. 2017. Attention is all you need. In Advances in
-    Neural Information Processing Systems, pages 6000-6010. Users may modify or implement
-    in a different way during application.
+    r"""Modification of PyTorch's nn.TransformerEncoderLayer.
 
-    This modification reduces the computational cost of the attention module from
-    O(n^2) to O(nk) by implementing the proposed linear attention block from
-    the 2020 Linformer paper (https://arxiv.org/abs/2006.04768).
+    This modification reduces the computational cost of the self-attention module from
+    O(n^2) to O(nk) by implementing the proposed adjusted linear attention block from:
+    `Linformer: Self-Attention with Linear Complexity` (2020) (https://arxiv.org/abs/2006.04768).
 
     Args:
         d_model: the number of expected features in the input (required).
