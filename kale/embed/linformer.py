@@ -1,34 +1,277 @@
-# Code taken exactly as is from https://github.com/kuixu/Linear-Multihead-Attention
+import warnings
+from typing import Optional, Any
+
+import torch
+from torch import nn
+
+from torch.nn import Linear
+from torch.nn.parameter import Parameter
+from torch.nn.init import xavier_uniform_
+from torch.nn.init import constant_
+from torch.nn.init import xavier_normal_
+from torch.nn.functional import linear, softmax, dropout
+from torch import Tensor
+from torch.nn import functional as F
+from torch.nn import Module
+from torch.nn import Dropout
+from torch.nn import LayerNorm
+
+# Copy-paste with slight modification from torch.nn.TransformerEncoderLayer
+class LinearTransformerEncoderLayer(Module):
+    r"""Modification of PyTorch's nn.TransformerEncoderLayer.
+
+    This modification reduces the computational cost of the self-attention module from
+    O(n^2) to O(n) by implementing the proposed adjusted linear attention block from:
+    `Linformer: Self-Attention with Linear Complexity` (2020) (https://arxiv.org/abs/2006.04768).
+
+    Args:
+        d_model: the number of expected features in the input (required).
+        nhead: the number of heads in the multiheadattention models (required).
+        seq_len: the sequence length (required).
+        proj_k: the projected dimension `k` of key and value (default=128).
+        param_sharing: parameter sharing mode: layerwise, none. headwise is not implemented (default='none').
+        dim_feedforward: the dimension of the feedforward network model (default=2048).
+        dropout: the dropout value (default=0.1).
+        activation: the activation function of intermediate layer, relu or gelu (default=relu).
+
+    Examples::
+        >>> # project a sequence length of 30,000 to a sequence length of 512 and back to 30000
+        >>> encoder_layer = LinearTransformerEncoderLayer(d_model=128, nhead=8, seq_len=30000, proj_k=512)
+        >>>
+        >>> src = torch.rand(30000, 32, 128)
+        >>> out = encoder_layer(src)
+        >>> out.size() == (30000, 32, 128) # True
+
+    """
+
+    def __init__(self, d_model: int, nhead: int, 
+                seq_len: int, proj_k: int=128, proj_param_sharing: str='none',
+                dim_feedforward: int=2048, dropout: float=0.1,
+                activation: str="relu"):
+        super(LinearTransformerEncoderLayer, self).__init__()
+        # self.self_attn = MultiheadAttention(d_model, nhead, dropout=dropout)
+        self.self_attn = LinearMultiheadAttention(d_model, nhead, dropout=dropout, seq_len=seq_len,
+                                                 proj_k=proj_k, param_sharing=proj_param_sharing)
+
+        # Implementation of Feedforward model
+        self.linear1 = Linear(d_model, dim_feedforward)
+        self.dropout = Dropout(dropout)
+        self.linear2 = Linear(dim_feedforward, d_model)
+
+        self.norm1 = LayerNorm(d_model)
+        self.norm2 = LayerNorm(d_model)
+        self.dropout1 = Dropout(dropout)
+        self.dropout2 = Dropout(dropout)
+
+        self.activation = _get_activation_fn(activation)
+
+    def __setstate__(self, state):
+        if 'activation' not in state:
+            state['activation'] = F.relu
+        super(LinearTransformerEncoderLayer, self).__setstate__(state)
+
+    def forward(self, src: Tensor, src_mask: Optional[Tensor] = None, src_key_padding_mask: Optional[Tensor] = None) -> Tensor:
+        r"""Pass the input through the encoder layer.
+
+        Args:
+            src: the sequence to the encoder layer (required).
+            src_mask: the mask for the src sequence (optional).
+            src_key_padding_mask: the mask for the src keys per batch (optional).
+
+        Shape:
+            see the docs in PyTorch Transformer class.
+        """
+        src2 = self.self_attn(src, src, src, attn_mask=src_mask,
+                              key_padding_mask=src_key_padding_mask)[0]
+        src = src + self.dropout1(src2)
+        src = self.norm1(src)
+        src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))
+        src = src + self.dropout2(src2)
+        src = self.norm2(src)
+        return src
+
+def _get_activation_fn(activation):
+    if activation == "relu":
+        return F.relu
+    elif activation == "gelu":
+        return F.gelu
+
+    raise RuntimeError("activation should be relu/gelu, not {}".format(activation))
+
+# Code from here on taken exactly as is from https://github.com/kuixu/Linear-Multihead-Attention
 #
 # Reproduction of Linear Multihead Attention class introduced in Linformer paper (https://arxiv.org/abs/2006.04768)
 # Copy-paste from torch.nn.MultiheadAttention and F.multi_head_attention_forward with modifications:
 #     * E and F projection from seq_len to k
 #     * layerwise parameters sharing
-import warnings
 
-import torch
-from torch import nn
+# Copy-paste with slight modification from torch.nn.MultiheadAttention
+class LinearMultiheadAttention(nn.Module):
+    r"""Modification of PyTorch's nn.MultiheadAttention that has linear
+    attention complexity in space and time instead of quadratic. See
+    reference: `Linformer: Self-Attention with Linear Complexity` (2020) and
+    https://pytorch.org/docs/master/generated/torch.nn.MultiheadAttention.html.
 
-from torch.nn import Linear
-from torch.nn.parameter import Parameter
-from torch.nn.init import xavier_uniform_
-from torch.nn.init import constant_
-from torch.nn.init import xavier_normal_
-from torch.nn.functional import linear, softmax, dropout
+    Args:
+        embed_dim: total dimension of the model.
+        num_heads: parallel attention heads.
+        dropout: a Dropout layer on attn_output_weights. Default: 0.0.
+        bias: add bias as module parameter. Default: True.
+        add_bias_kv: add bias to the key and value sequences at dim=0.
+        add_zero_attn: add a new batch of zeros to the key and
+                       value sequences at dim=1.
+        kdim: total number of features in key. Default: None.
+        vdim: total number of features in key. Default: None.
+        seq_len: the sequence length. Default: 100.
+        proj_k: the projected dimention `k` of key and value. Default: 128.
+        param_sharing: parameter sharing mode: layerwise, none. headwise is not implemented. Default: none.
+        Note: if kdim and vdim are None, they will be set to embed_dim such that
+        query, key, and value have the same number of features.
+    Examples::
+        >>> multihead_attn = LinearMultiheadAttention(embed_dim, num_heads, seq_len=10000, proj_k=128)
+        >>> attn_output, attn_output_weights = multihead_attn(query, key, value)
+    """
+    __annotations__ = {
+        'bias_k': torch._jit_internal.Optional[torch.Tensor],
+        'bias_v': torch._jit_internal.Optional[torch.Tensor],
+    }
+    __constants__ = ['q_proj_weight', 'k_proj_weight', 'v_proj_weight', 'in_proj_weight', 'e_proj_weight', 'f_proj_weight']
 
-import warnings
+    def __init__(self, embed_dim, num_heads, dropout=0.1, 
+                 bias=True, add_bias_kv=False, add_zero_attn=False, 
+                 kdim=None, vdim=None, seq_len=512, proj_k=128, param_sharing='none'):
+        super(LinearMultiheadAttention, self).__init__()
+        self.embed_dim = embed_dim
+        self.kdim = kdim if kdim is not None else embed_dim
+        self.vdim = vdim if vdim is not None else embed_dim
+        self._qkv_same_embed_dim = self.kdim == embed_dim and self.vdim == embed_dim
 
-import torch
-from torch import nn
+        self.num_heads = num_heads
+        self.dropout = dropout
+        self.head_dim = embed_dim // num_heads
+        assert self.head_dim * num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
 
-from torch.nn import Linear
-from torch.nn.parameter import Parameter
-from torch.nn.init import xavier_uniform_
-from torch.nn.init import constant_
-from torch.nn.init import xavier_normal_
-from torch.nn.functional import linear, softmax, dropout
+        if self._qkv_same_embed_dim is False:
+            self.q_proj_weight = Parameter(torch.Tensor(embed_dim, embed_dim))
+            self.k_proj_weight = Parameter(torch.Tensor(embed_dim, self.kdim))
+            self.v_proj_weight = Parameter(torch.Tensor(embed_dim, self.vdim))
+            self.register_parameter('in_proj_weight', None)
+        else:
+            self.in_proj_weight = Parameter(torch.empty(3 * embed_dim, embed_dim))
+            self.register_parameter('q_proj_weight', None)
+            self.register_parameter('k_proj_weight', None)
+            self.register_parameter('v_proj_weight', None)
+        
+        self.e_proj_weight = Parameter(torch.Tensor(proj_k, seq_len))
+        if param_sharing == "layerwise":
+            self.f_proj_weight = self.e_proj_weight
+        else:
+            self.f_proj_weight = Parameter(torch.Tensor(proj_k, seq_len))
 
+        if bias:
+            self.in_proj_bias = Parameter(torch.empty(3 * embed_dim))
+        else:
+            self.register_parameter('in_proj_bias', None)
+        self.out_proj = Linear(embed_dim, embed_dim, bias=bias)
 
+        if add_bias_kv:
+            self.bias_k = Parameter(torch.empty(1, 1, embed_dim))
+            self.bias_v = Parameter(torch.empty(1, 1, embed_dim))
+        else:
+            self.bias_k = self.bias_v = None
+        self.bias_e = Parameter(torch.empty(1, 1, proj_k))
+        self.bias_f = Parameter(torch.empty(1, 1, proj_k))
+
+        self.add_zero_attn = add_zero_attn
+
+        self._reset_parameters()
+
+    def _reset_parameters(self):
+        if self._qkv_same_embed_dim:
+            xavier_uniform_(self.in_proj_weight)
+        else:
+            xavier_uniform_(self.q_proj_weight)
+            xavier_uniform_(self.k_proj_weight)
+            xavier_uniform_(self.v_proj_weight)
+
+        xavier_uniform_(self.e_proj_weight)
+        xavier_uniform_(self.f_proj_weight)
+
+        if self.in_proj_bias is not None:
+            constant_(self.in_proj_bias, 0.)
+            constant_(self.out_proj.bias, 0.)
+        if self.bias_k is not None:
+            xavier_normal_(self.bias_k)
+        if self.bias_v is not None:
+            xavier_normal_(self.bias_v)
+        if self.bias_e is not None:
+            xavier_normal_(self.bias_e)
+        if self.bias_f is not None:
+            xavier_normal_(self.bias_f)
+
+    def __setstate__(self, state):
+        # Support loading old MultiheadAttention checkpoints generated by v1.1.0
+        if '_qkv_same_embed_dim' not in state:
+            state['_qkv_same_embed_dim'] = True
+
+        super(LinearMultiheadAttention, self).__setstate__(state)
+
+    def forward(self, query, key, value, key_padding_mask=None,
+                need_weights=True, attn_mask=None):
+        # type: (Tensor, Tensor, Tensor, Optional[Tensor], bool, Optional[Tensor]) -> Tuple[Tensor, Optional[Tensor]]
+        r"""
+        Args:
+            query, key, value: map a query and a set of key-value pairs to an output.
+                See "Attention Is All You Need" for more details.
+            key_padding_mask: if provided, specified padding elements in the key will
+                be ignored by the attention. This is an binary mask. When the value is True,
+                the corresponding value on the attention layer will be filled with -inf.
+            need_weights: output attn_output_weights.
+            attn_mask: 2D or 3D mask that prevents attention to certain positions. This is an additive mask
+                (i.e. the values will be added to the attention layer). A 2D mask will be broadcasted for all
+                the batches while a 3D mask allows to specify a different mask for the entries of each batch.
+        Shape:
+            - Inputs:
+            - query: :math:`(L, N, E)` where L is the target sequence length, N is the batch size, E is
+            the embedding dimension.
+            - key: :math:`(S, N, E)`, where S is the source sequence length, N is the batch size, E is
+            the embedding dimension.
+            - value: :math:`(S, N, E)` where S is the source sequence length, N is the batch size, E is
+            the embedding dimension.
+            - key_padding_mask: :math:`(N, S)`, ByteTensor, where N is the batch size, S is the source sequence length.
+            - attn_mask: 2D mask :math:`(L, S)` where L is the target sequence length, S is the source sequence length.
+            3D mask :math:`(N*num_heads, L, S)` where N is the batch size, L is the target sequence length,
+            S is the source sequence length.
+            - Outputs:
+            - attn_output: :math:`(L, N, E)` where L is the target sequence length, N is the batch size,
+            E is the embedding dimension.
+            - attn_output_weights: :math:`(N, L, S)` where N is the batch size,
+            L is the target sequence length, S is the source sequence length.
+        """
+        if not self._qkv_same_embed_dim:
+            return _linear_multi_head_attention_forward(
+                query, key, value, self.embed_dim, self.num_heads,
+                self.in_proj_weight, self.in_proj_bias,
+                self.bias_k, self.bias_v, self.bias_e, self.bias_f, self.add_zero_attn,
+                self.dropout, self.out_proj.weight, self.out_proj.bias,
+                training=self.training,
+                key_padding_mask=key_padding_mask, need_weights=need_weights,
+                attn_mask=attn_mask, use_separate_proj_weight=True,
+                q_proj_weight=self.q_proj_weight, k_proj_weight=self.k_proj_weight,
+                v_proj_weight=self.v_proj_weight, e_proj_weight=self.e_proj_weight,
+                f_proj_weight=self.f_proj_weight)
+        else:
+            return _linear_multi_head_attention_forward(
+                query, key, value, self.embed_dim, self.num_heads,
+                self.in_proj_weight, self.in_proj_bias,
+                self.bias_k, self.bias_v, self.bias_e, self.bias_f, self.add_zero_attn,
+                self.dropout, self.out_proj.weight, self.out_proj.bias,
+                training=self.training,
+                key_padding_mask=key_padding_mask, need_weights=need_weights,
+                attn_mask=attn_mask, e_proj_weight=self.e_proj_weight,
+                f_proj_weight=self.f_proj_weight)
+
+# Copy-paste with slight modification from torch.nn.functional.multi_head_attention_forward
 def _linear_multi_head_attention_forward(query,                           # type: Tensor
                                  key,                             # type: Tensor
                                  value,                           # type: Tensor
@@ -329,168 +572,3 @@ def _linear_multi_head_attention_forward(query,                           # type
         return attn_output, attn_output_weights.sum(dim=1) / num_heads
     else:
         return attn_output, None
-
-class LinearMultiheadAttention(nn.Module):
-    r"""Modification of PyTorch's nn.MultiheadAttention that has linear
-    attention complexity in space and time instead of quadratic. See
-    reference: `Linformer: Self-Attention with Linear Complexity` (2020) and
-    https://pytorch.org/docs/master/generated/torch.nn.MultiheadAttention.html.
-
-    Args:
-        embed_dim: total dimension of the model.
-        num_heads: parallel attention heads.
-        dropout: a Dropout layer on attn_output_weights. Default: 0.0.
-        bias: add bias as module parameter. Default: True.
-        add_bias_kv: add bias to the key and value sequences at dim=0.
-        add_zero_attn: add a new batch of zeros to the key and
-                       value sequences at dim=1.
-        kdim: total number of features in key. Default: None.
-        vdim: total number of features in key. Default: None.
-        seq_len: the sequence length. Default: 100.
-        proj_k: the projected dimention `k` of key and value. Default: 128.
-        param_sharing: parameter sharing mode: layerwise, none. headwise is not implemented. Default: none.
-        Note: if kdim and vdim are None, they will be set to embed_dim such that
-        query, key, and value have the same number of features.
-    Examples::
-        >>> multihead_attn = LinearMultiheadAttention(embed_dim, num_heads, seq_len=10000, proj_k=128)
-        >>> attn_output, attn_output_weights = multihead_attn(query, key, value)
-    """
-    __annotations__ = {
-        'bias_k': torch._jit_internal.Optional[torch.Tensor],
-        'bias_v': torch._jit_internal.Optional[torch.Tensor],
-    }
-    __constants__ = ['q_proj_weight', 'k_proj_weight', 'v_proj_weight', 'in_proj_weight', 'e_proj_weight', 'f_proj_weight']
-
-    def __init__(self, embed_dim, num_heads, dropout=0.1, 
-                 bias=True, add_bias_kv=False, add_zero_attn=False, 
-                 kdim=None, vdim=None, seq_len=512, proj_k=128, param_sharing='none'):
-        super(LinearMultiheadAttention, self).__init__()
-        self.embed_dim = embed_dim
-        self.kdim = kdim if kdim is not None else embed_dim
-        self.vdim = vdim if vdim is not None else embed_dim
-        self._qkv_same_embed_dim = self.kdim == embed_dim and self.vdim == embed_dim
-
-        self.num_heads = num_heads
-        self.dropout = dropout
-        self.head_dim = embed_dim // num_heads
-        assert self.head_dim * num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
-
-        if self._qkv_same_embed_dim is False:
-            self.q_proj_weight = Parameter(torch.Tensor(embed_dim, embed_dim))
-            self.k_proj_weight = Parameter(torch.Tensor(embed_dim, self.kdim))
-            self.v_proj_weight = Parameter(torch.Tensor(embed_dim, self.vdim))
-            self.register_parameter('in_proj_weight', None)
-        else:
-            self.in_proj_weight = Parameter(torch.empty(3 * embed_dim, embed_dim))
-            self.register_parameter('q_proj_weight', None)
-            self.register_parameter('k_proj_weight', None)
-            self.register_parameter('v_proj_weight', None)
-        
-        self.e_proj_weight = Parameter(torch.Tensor(proj_k, seq_len))
-        if param_sharing == "layerwise":
-            self.f_proj_weight = self.e_proj_weight
-        else:
-            self.f_proj_weight = Parameter(torch.Tensor(proj_k, seq_len))
-
-        if bias:
-            self.in_proj_bias = Parameter(torch.empty(3 * embed_dim))
-        else:
-            self.register_parameter('in_proj_bias', None)
-        self.out_proj = Linear(embed_dim, embed_dim, bias=bias)
-
-        if add_bias_kv:
-            self.bias_k = Parameter(torch.empty(1, 1, embed_dim))
-            self.bias_v = Parameter(torch.empty(1, 1, embed_dim))
-        else:
-            self.bias_k = self.bias_v = None
-        self.bias_e = Parameter(torch.empty(1, 1, proj_k))
-        self.bias_f = Parameter(torch.empty(1, 1, proj_k))
-
-        self.add_zero_attn = add_zero_attn
-
-        self._reset_parameters()
-
-    def _reset_parameters(self):
-        if self._qkv_same_embed_dim:
-            xavier_uniform_(self.in_proj_weight)
-        else:
-            xavier_uniform_(self.q_proj_weight)
-            xavier_uniform_(self.k_proj_weight)
-            xavier_uniform_(self.v_proj_weight)
-
-        xavier_uniform_(self.e_proj_weight)
-        xavier_uniform_(self.f_proj_weight)
-
-        if self.in_proj_bias is not None:
-            constant_(self.in_proj_bias, 0.)
-            constant_(self.out_proj.bias, 0.)
-        if self.bias_k is not None:
-            xavier_normal_(self.bias_k)
-        if self.bias_v is not None:
-            xavier_normal_(self.bias_v)
-        if self.bias_e is not None:
-            xavier_normal_(self.bias_e)
-        if self.bias_f is not None:
-            xavier_normal_(self.bias_f)
-
-    def __setstate__(self, state):
-        # Support loading old MultiheadAttention checkpoints generated by v1.1.0
-        if '_qkv_same_embed_dim' not in state:
-            state['_qkv_same_embed_dim'] = True
-
-        super(LinearMultiheadAttention, self).__setstate__(state)
-
-    def forward(self, query, key, value, key_padding_mask=None,
-                need_weights=True, attn_mask=None):
-        # type: (Tensor, Tensor, Tensor, Optional[Tensor], bool, Optional[Tensor]) -> Tuple[Tensor, Optional[Tensor]]
-        r"""
-        Args:
-            query, key, value: map a query and a set of key-value pairs to an output.
-                See "Attention Is All You Need" for more details.
-            key_padding_mask: if provided, specified padding elements in the key will
-                be ignored by the attention. This is an binary mask. When the value is True,
-                the corresponding value on the attention layer will be filled with -inf.
-            need_weights: output attn_output_weights.
-            attn_mask: 2D or 3D mask that prevents attention to certain positions. This is an additive mask
-                (i.e. the values will be added to the attention layer). A 2D mask will be broadcasted for all
-                the batches while a 3D mask allows to specify a different mask for the entries of each batch.
-        Shape:
-            - Inputs:
-            - query: :math:`(L, N, E)` where L is the target sequence length, N is the batch size, E is
-            the embedding dimension.
-            - key: :math:`(S, N, E)`, where S is the source sequence length, N is the batch size, E is
-            the embedding dimension.
-            - value: :math:`(S, N, E)` where S is the source sequence length, N is the batch size, E is
-            the embedding dimension.
-            - key_padding_mask: :math:`(N, S)`, ByteTensor, where N is the batch size, S is the source sequence length.
-            - attn_mask: 2D mask :math:`(L, S)` where L is the target sequence length, S is the source sequence length.
-            3D mask :math:`(N*num_heads, L, S)` where N is the batch size, L is the target sequence length,
-            S is the source sequence length.
-            - Outputs:
-            - attn_output: :math:`(L, N, E)` where L is the target sequence length, N is the batch size,
-            E is the embedding dimension.
-            - attn_output_weights: :math:`(N, L, S)` where N is the batch size,
-            L is the target sequence length, S is the source sequence length.
-        """
-        if not self._qkv_same_embed_dim:
-            return _linear_multi_head_attention_forward(
-                query, key, value, self.embed_dim, self.num_heads,
-                self.in_proj_weight, self.in_proj_bias,
-                self.bias_k, self.bias_v, self.bias_e, self.bias_f, self.add_zero_attn,
-                self.dropout, self.out_proj.weight, self.out_proj.bias,
-                training=self.training,
-                key_padding_mask=key_padding_mask, need_weights=need_weights,
-                attn_mask=attn_mask, use_separate_proj_weight=True,
-                q_proj_weight=self.q_proj_weight, k_proj_weight=self.k_proj_weight,
-                v_proj_weight=self.v_proj_weight, e_proj_weight=self.e_proj_weight,
-                f_proj_weight=self.f_proj_weight)
-        else:
-            return _linear_multi_head_attention_forward(
-                query, key, value, self.embed_dim, self.num_heads,
-                self.in_proj_weight, self.in_proj_bias,
-                self.bias_k, self.bias_v, self.bias_e, self.bias_f, self.add_zero_attn,
-                self.dropout, self.out_proj.weight, self.out_proj.bias,
-                training=self.training,
-                key_padding_mask=key_padding_mask, need_weights=need_weights,
-                attn_mask=attn_mask, e_proj_weight=self.e_proj_weight,
-                f_proj_weight=self.f_proj_weight)
