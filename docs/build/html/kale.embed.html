@@ -31,6 +31,8 @@
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -84,23 +86,8 @@
             
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Installation (to update)</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="kale.html">kale package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="kale.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Embed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="kale.loaddata.html">Load data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="kale.pipeline.html">Pipeline (ML System)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="kale.predict.html">Predict</a></li>
-<li class="toctree-l4"><a class="reference internal" href="kale.prepdata.html">Preprocess data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="kale.utils.html">Utilities</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="kale.html#module-kale">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Installation (to update)</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Core API</span></p>
 <ul class="current">
@@ -110,6 +97,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.embed.attention_cnn">kale.embed.attention_cnn module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.embed.da_feature">kale.embed.da_feature module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kale-embed-linformer-module">kale.embed.linformer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#kale-embed-mpca-module">kale.embed.mpca module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.embed.positional_encoding">kale.embed.positional_encoding module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.embed">Module contents</a></li>
@@ -226,62 +214,92 @@
 <span id="kale-embed-attention-cnn-module"></span><h2>kale.embed.attention_cnn module<a class="headerlink" href="#module-kale.embed.attention_cnn" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="kale.embed.attention_cnn.CNNTransformer">
-<em class="property">class </em><code class="sig-prename descclassname">kale.embed.attention_cnn.</code><code class="sig-name descname">CNNTransformer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cnn</span></em>, <em class="sig-param"><span class="n">cnn_output_shape</span></em>, <em class="sig-param"><span class="n">num_layers</span></em>, <em class="sig-param"><span class="n">num_heads</span></em>, <em class="sig-param"><span class="n">dim_feedforward</span></em>, <em class="sig-param"><span class="n">dropout</span></em>, <em class="sig-param"><span class="n">output_type</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.attention_cnn.CNNTransformer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.attention_cnn.</code><code class="sig-name descname">CNNTransformer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cnn</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span></em>, <em class="sig-param"><span class="n">cnn_output_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">, </span>int<span class="p">, </span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">num_layers</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">num_heads</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">dim_feedforward</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">dropout</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">output_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">positional_encoder</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.attention_cnn.CNNTransformer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#kale.embed.attention_cnn.ContextCNNGeneric" title="kale.embed.attention_cnn.ContextCNNGeneric"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.embed.attention_cnn.ContextCNNGeneric</span></code></a></p>
 <p>A feature extractor consisting of a CNN backbone followed by a standard
-Transformer-Encoder.</p>
+Transformer-Encoder. See documentation of “ContextCNNGeneric” for more
+information.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>- a convolutional neural network that takes in images and</strong> (<em>cnn</em>) – outputs tensors.</p></li>
-<li><p><strong>- a tuple of shape</strong> (<em>cnn_output_shape</em>) – describing the output shape of the given CNN.</p></li>
-<li><p><strong>- number of attention layers in the Transformer-Encoder.</strong> (<em>num_layers</em>) – </p></li>
-<li><p><strong>- number of attention heads in each transformer block.</strong> (<em>num_heads</em>) – </p></li>
-<li><p><strong>- number of neurons in the intermediate dense layer of</strong> (<em>dim_feedforward</em>) – each transformer feedforward block.</p></li>
-<li><p><strong>- dropout rate of the transformer layers.</strong> (<em>dropout</em>) – </p></li>
-<li><p><strong>- one of 'sequence'</strong><strong> or </strong><strong>'spatial'. If Spatial then the final</strong> (<em>output_type</em>) – output of the model, which is the sequence output of the
+<li><p><strong>cnn</strong> – any convolutional neural network that takes in batches of images of
+shape (batch_size, channels, height, width) and outputs tensor
+representations of shape (batch_size, out_channels, out_height, out_width) (required).</p></li>
+<li><p><strong>cnn_output_shape</strong> – a tuple of shape (batch_size, num_channels, height, width)
+describing the output shape of the given CNN (required).</p></li>
+<li><p><strong>num_layers</strong> – number of attention layers in the Transformer-Encoder (required).</p></li>
+<li><p><strong>num_heads</strong> – number of attention heads in each transformer block (required).</p></li>
+<li><p><strong>dim_feedforward</strong> – number of neurons in the intermediate dense layer of
+each transformer feedforward block (required).</p></li>
+<li><p><strong>dropout</strong> – dropout rate of the transformer layers (required).</p></li>
+<li><p><strong>output_type</strong> – one of ‘sequence’ or ‘spatial’. If Spatial then the final
+output of the model, which is the sequence output of the
 Transformer-Encoder, will be reshaped to resemble the
-image-batch shape of the output of the CNN.</p></li>
+image-batch shape of the output of the CNN (required).</p></li>
+<li><p><strong>positional_encoder</strong> – None or a nn.Module that expects inputs of
+shape (sequence_length, batch_size, embedding_dim)
+and returns the same input after adding
+some positional information to the embeddings. If
+<cite>None</cite>, then the default and fixed sin-cos positional
+encodings of base transformers are applied (optional).</p></li>
 </ul>
 </dd>
 </dl>
+<p class="rubric">Examples</p>
+<p>See pykale/examples/cifar_cnntransformer/model.py</p>
 </dd></dl>
 
 <dl class="py class">
 <dt id="kale.embed.attention_cnn.ContextCNNGeneric">
-<em class="property">class </em><code class="sig-prename descclassname">kale.embed.attention_cnn.</code><code class="sig-name descname">ContextCNNGeneric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cnn</span></em>, <em class="sig-param"><span class="n">cnn_output_shape</span></em>, <em class="sig-param"><span class="n">contextualizer</span></em>, <em class="sig-param"><span class="n">output_type</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.attention_cnn.ContextCNNGeneric" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.attention_cnn.</code><code class="sig-name descname">ContextCNNGeneric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cnn</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span></em>, <em class="sig-param"><span class="n">cnn_output_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">, </span>int<span class="p">, </span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">contextualizer</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span></em>, <em class="sig-param"><span class="n">output_type</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.attention_cnn.ContextCNNGeneric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <p>A template to construct a feature extractor consisting of a CNN followed by a
-sequence-to-sequence contextualizer like a Transformer. Before inputting the CNN output
+sequence-to-sequence contextualizer like a Transformer-Encoder. Before inputting the CNN output
 tensor to the contextualizer, the tensor’s spatial dimensions are unrolled
 into a sequence.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>- A convolutional neural network that takes in images and</strong> (<em>cnn</em>) – outputs tensors.</p></li>
-<li><p><strong>- A tuple of shape</strong> (<em>cnn_output_shape</em>) – describing the output shape of the given CNN.</p></li>
-<li><p><strong>- A sequence-to-sequence model that takes inputs of shape</strong> (<em>contextualizer</em>) – (num_timesteps, batch_size, num_features) and uses
+<li><p><strong>cnn</strong> – any convolutional neural network that takes in batches of images of
+shape (batch_size, channels, height, width) and outputs tensor
+representations of shape (batch_size, out_channels, out_height, out_width).</p></li>
+<li><p><strong>cnn_output_shape</strong> – A tuple of shape (batch_size, num_channels, height, width)
+describing the output shape of the given CNN (required).</p></li>
+<li><p><strong>contextualizer</strong> – A sequence-to-sequence model that takes inputs of shape
+(num_timesteps, batch_size, num_features) and uses
 attention to contextualize the sequence and returns
 a sequence of the exact same shape. This will mainly be
-a Transformer-Encoder.</p></li>
-<li><p><strong>- One of 'sequence'</strong><strong> or </strong><strong>'spatial'. If Spatial then the final</strong> (<em>output_type</em>) – output of the model, which is a sequence, will be reshaped
+a Transformer-Encoder (required).</p></li>
+<li><p><strong>output_type</strong> – One of ‘sequence’ or ‘spatial’. If Spatial then the final
+output of the model, which is a sequence, will be reshaped
 to resemble the image-batch shape of the output of the CNN.
-If Sequence then the output sequence is returned as is.</p></li>
+If Sequence then the output sequence is returned as is (required).</p></li>
 </ul>
 </dd>
 </dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cnn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cnn_output_shape</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">contextualizer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">TransformerEncoderLayer</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_type</span> <span class="o">=</span> <span class="s1">&#39;spatial&#39;</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attention_cnn</span> <span class="o">=</span> <span class="n">ContextCNNGeneric</span><span class="p">(</span><span class="n">cnn</span><span class="p">,</span> <span class="n">cnn_output_shape</span><span class="p">,</span> <span class="n">contextualizer</span><span class="p">,</span> <span class="n">output_type</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">attention_cnn</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">((</span><span class="mi">32</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">16</span><span class="p">,</span><span class="mi">16</span><span class="p">)))</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">==</span> <span class="n">cnn_output_shape</span> <span class="c1"># True</span>
+</pre></div>
+</div>
 <dl class="py method">
 <dt id="kale.embed.attention_cnn.ContextCNNGeneric.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.attention_cnn.ContextCNNGeneric.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.attention_cnn.ContextCNNGeneric.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass the input through the cnn and then the contextualizer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> – input image batch exactly as for CNNs (required).</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -520,6 +538,151 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="kale-embed-linformer-module">
+<h2>kale.embed.linformer module<a class="headerlink" href="#kale-embed-linformer-module" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-kale.embed.linformer"></span><dl class="py class">
+<dt id="kale.embed.linformer.LinearMultiheadAttention">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.linformer.</code><code class="sig-name descname">LinearMultiheadAttention</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">embed_dim</span></em>, <em class="sig-param"><span class="n">num_heads</span></em>, <em class="sig-param"><span class="n">dropout</span><span class="o">=</span><span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">add_bias_kv</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">add_zero_attn</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">kdim</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vdim</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">seq_len</span><span class="o">=</span><span class="default_value">512</span></em>, <em class="sig-param"><span class="n">proj_k</span><span class="o">=</span><span class="default_value">128</span></em>, <em class="sig-param"><span class="n">param_sharing</span><span class="o">=</span><span class="default_value">'none'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.linformer.LinearMultiheadAttention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Modification of PyTorch’s nn.MultiheadAttention that has linear
+attention complexity in space and time instead of quadratic. See
+reference: <cite>Linformer: Self-Attention with Linear Complexity</cite> (2020) and
+<a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.MultiheadAttention.html">https://pytorch.org/docs/master/generated/torch.nn.MultiheadAttention.html</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>embed_dim</strong> – total dimension of the model.</p></li>
+<li><p><strong>num_heads</strong> – parallel attention heads.</p></li>
+<li><p><strong>dropout</strong> – a Dropout layer on attn_output_weights. Default: 0.0.</p></li>
+<li><p><strong>bias</strong> – add bias as module parameter. Default: True.</p></li>
+<li><p><strong>add_bias_kv</strong> – add bias to the key and value sequences at dim=0.</p></li>
+<li><p><strong>add_zero_attn</strong> – add a new batch of zeros to the key and
+value sequences at dim=1.</p></li>
+<li><p><strong>kdim</strong> – total number of features in key. Default: None.</p></li>
+<li><p><strong>vdim</strong> – total number of features in key. Default: None.</p></li>
+<li><p><strong>seq_len</strong> – the sequence length. Default: 100.</p></li>
+<li><p><strong>proj_k</strong> – the projected dimention <cite>k</cite> of key and value. Default: 128.</p></li>
+<li><p><strong>param_sharing</strong> – parameter sharing mode: layerwise, none. headwise is not implemented. Default: none.</p></li>
+<li><p><strong>Note</strong> – if kdim and vdim are None, they will be set to embed_dim such that</p></li>
+<li><p><strong>key</strong><strong>, </strong><strong>and value have the same number of features.</strong> (<em>query</em><em>,</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">multihead_attn</span> <span class="o">=</span> <span class="n">LinearMultiheadAttention</span><span class="p">(</span><span class="n">embed_dim</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">seq_len</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">proj_k</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attn_output</span><span class="p">,</span> <span class="n">attn_output_weights</span> <span class="o">=</span> <span class="n">multihead_attn</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="kale.embed.linformer.LinearMultiheadAttention.bias_k">
+<code class="sig-name descname">bias_k</code><a class="headerlink" href="#kale.embed.linformer.LinearMultiheadAttention.bias_k" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="kale.embed.linformer.LinearMultiheadAttention.bias_v">
+<code class="sig-name descname">bias_v</code><a class="headerlink" href="#kale.embed.linformer.LinearMultiheadAttention.bias_v" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.linformer.LinearMultiheadAttention.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span></em>, <em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">key_padding_mask</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">need_weights</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">attn_mask</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.linformer.LinearMultiheadAttention.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong><strong>, </strong><strong>value</strong> (<em>query</em><em>,</em>) – map a query and a set of key-value pairs to an output.
+See “Attention Is All You Need” for more details.</p></li>
+<li><p><strong>key_padding_mask</strong> – if provided, specified padding elements in the key will
+be ignored by the attention. This is an binary mask. When the value is True,
+the corresponding value on the attention layer will be filled with -inf.</p></li>
+<li><p><strong>need_weights</strong> – output attn_output_weights.</p></li>
+<li><p><strong>attn_mask</strong> – 2D or 3D mask that prevents attention to certain positions. This is an additive mask
+(i.e. the values will be added to the attention layer). A 2D mask will be broadcasted for all
+the batches while a 3D mask allows to specify a different mask for the entries of each batch.</p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt>Shape:</dt><dd><ul class="simple">
+<li><p>Inputs:</p></li>
+<li><p>query: <span class="math notranslate nohighlight">\((L, N, E)\)</span> where L is the target sequence length, N is the batch size, E is</p></li>
+</ul>
+<p>the embedding dimension.
+- key: <span class="math notranslate nohighlight">\((S, N, E)\)</span>, where S is the source sequence length, N is the batch size, E is
+the embedding dimension.
+- value: <span class="math notranslate nohighlight">\((S, N, E)\)</span> where S is the source sequence length, N is the batch size, E is
+the embedding dimension.
+- key_padding_mask: <span class="math notranslate nohighlight">\((N, S)\)</span>, ByteTensor, where N is the batch size, S is the source sequence length.
+- attn_mask: 2D mask <span class="math notranslate nohighlight">\((L, S)\)</span> where L is the target sequence length, S is the source sequence length.
+3D mask <span class="math notranslate nohighlight">\((N*num_heads, L, S)\)</span> where N is the batch size, L is the target sequence length,
+S is the source sequence length.
+- Outputs:
+- attn_output: <span class="math notranslate nohighlight">\((L, N, E)\)</span> where L is the target sequence length, N is the batch size,
+E is the embedding dimension.
+- attn_output_weights: <span class="math notranslate nohighlight">\((N, L, S)\)</span> where N is the batch size,
+L is the target sequence length, S is the source sequence length.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.embed.linformer.LinearTransformerEncoderLayer">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.linformer.</code><code class="sig-name descname">LinearTransformerEncoderLayer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_model</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">nhead</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">seq_len</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">proj_k</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">128</span></em>, <em class="sig-param"><span class="n">proj_param_sharing</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'none'</span></em>, <em class="sig-param"><span class="n">dim_feedforward</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">2048</span></em>, <em class="sig-param"><span class="n">dropout</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'relu'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.linformer.LinearTransformerEncoderLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Modification of PyTorch’s nn.TransformerEncoderLayer.</p>
+<p>This modification reduces the computational cost of the self-attention module from
+O(n^2) to O(n) by implementing the proposed adjusted linear attention block from:
+<cite>Linformer: Self-Attention with Linear Complexity</cite> (2020) (<a class="reference external" href="https://arxiv.org/abs/2006.04768">https://arxiv.org/abs/2006.04768</a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d_model</strong> – the number of expected features in the input (required).</p></li>
+<li><p><strong>nhead</strong> – the number of heads in the multiheadattention models (required).</p></li>
+<li><p><strong>seq_len</strong> – the sequence length (required).</p></li>
+<li><p><strong>proj_k</strong> – the projected dimension <cite>k</cite> of key and value (default=128).</p></li>
+<li><p><strong>param_sharing</strong> – parameter sharing mode: layerwise, none. headwise is not implemented (default=’none’).</p></li>
+<li><p><strong>dim_feedforward</strong> – the dimension of the feedforward network model (default=2048).</p></li>
+<li><p><strong>dropout</strong> – the dropout value (default=0.1).</p></li>
+<li><p><strong>activation</strong> – the activation function of intermediate layer, relu or gelu (default=relu).</p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># project a sequence length of 30,000 to a sequence length of 512 and back to 30000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">encoder_layer</span> <span class="o">=</span> <span class="n">LinearTransformerEncoderLayer</span><span class="p">(</span><span class="n">d_model</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">nhead</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">seq_len</span><span class="o">=</span><span class="mi">30000</span><span class="p">,</span> <span class="n">proj_k</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">src</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">30000</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">encoder_layer</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">==</span> <span class="p">(</span><span class="mi">30000</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span> <span class="c1"># True</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kale.embed.linformer.LinearTransformerEncoderLayer.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">src_mask</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.Tensor<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">src_key_padding_mask</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.Tensor<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#kale.embed.linformer.LinearTransformerEncoderLayer.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass the input through the encoder layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src</strong> – the sequence to the encoder layer (required).</p></li>
+<li><p><strong>src_mask</strong> – the mask for the src sequence (optional).</p></li>
+<li><p><strong>src_key_padding_mask</strong> – the mask for the src keys per batch (optional).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Shape:</dt><dd><p>see the docs in PyTorch Transformer class.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="kale-embed-mpca-module">
 <h2>kale.embed.mpca module<a class="headerlink" href="#kale-embed-mpca-module" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -527,29 +690,36 @@ registered hooks while the latter silently ignores them.</p>
 <span id="kale-embed-positional-encoding-module"></span><h2>kale.embed.positional_encoding module<a class="headerlink" href="#module-kale.embed.positional_encoding" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="kale.embed.positional_encoding.PositionalEncoding">
-<em class="property">class </em><code class="sig-prename descclassname">kale.embed.positional_encoding.</code><code class="sig-name descname">PositionalEncoding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_model</span></em>, <em class="sig-param"><span class="n">max_len</span><span class="o">=</span><span class="default_value">5000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.positional_encoding.PositionalEncoding" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.positional_encoding.</code><code class="sig-name descname">PositionalEncoding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_model</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_len</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">5000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.positional_encoding.PositionalEncoding" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <p>Implements the positional encoding as described in the NIPS2017 paper
 ‘Attention Is All You Need’ about Transformers
 (<a class="reference external" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a>).
 Essentially, for all timesteps in a given sequence,
 adds information about the relative temporal location of a timestep
-directly into the features of that timestep.</p>
+directly into the features of that timestep, and then returns this
+slightly-modified, same-shape sequence.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>- the number of features that each timestep has</strong> (<em>d_model</em>) – </p></li>
-<li><p><strong>- the maximum sequence length that the positional</strong> (<em>max_len</em>) – encodings should support.</p></li>
+<li><p><strong>d_model</strong> – the number of features that each timestep has (required).</p></li>
+<li><p><strong>max_len</strong> – the maximum sequence length that the positional
+encodings should support (required).</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt id="kale.embed.positional_encoding.PositionalEncoding.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.positional_encoding.PositionalEncoding.forward" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.positional_encoding.PositionalEncoding.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expects input of shape (sequence_length, batch_size, num_features)
 and returns output of the same shape. sequence_length is at most
 allowed to be self.max_len and num_features is expected to
 be exactly self.d_model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> – a sequence input of shape (sequence_length, batch_size, num_features) (required).</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

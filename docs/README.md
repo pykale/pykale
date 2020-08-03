@@ -2,9 +2,23 @@
 
 ## Workflow
 
-1. If any new module is added or updated, generate the autodocumentation (`.rst` files under `source`) by running `sphinx-apidoc` from this directory, e.g. `sphinx-apidoc -o source/ ../kale` or `sphinx-apidoc -o source/examples ../examples`. If there is no module update (e.g. you are just updating the documentation through editing the source files), this step is not needed.
+We call `kale` and `examples` the **root**-level modules, `kale.xxx` and `examples.xxx` the **first**-level modules, and `kale.xxx.xxx` and `examples.xxx.xxx` the **second**-level modules (and so on, if necessary).
 
-2. Run `make html` from this directory to update the `.html` files under the `build` folder using the source files under the `source` folder. Before doing this, running `make clean` will clean the `build` folder. **Note**: the `build` folder is uploaded for private mode sharing and will be removed (ignored) when releasing in public.
+1. **New first-level modules**: If the `kale.xxx` module is not under `source` yet, run `sphinx-apidoc -o source/ ../kale` from `docs` to generate the `.rst` file under `source` first. If the `examples.xxx` module is not under `source/examples` yet, run `sphinx-apidoc -o source/examples ../examples` from `docs` to generate the `.rst` file under `source/examples` first. *Note: This should be rarely needed.*
+
+2. **New second-level modules**: If the `kale.xxx.xxx` model is not in the documentation yet, add it manually to `kale.xxx.rst` in an alphabetically-sorted position, e.g. adding the `linformer` module by inserting the following in `kale.embed.rst` right before the `mpca` module:
+
+    ```
+    kale.embed.linformer module
+    ----------------------
+
+    .. automodule:: kale.embed.linformer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    ```
+
+3. **Final update step**: Run `make html` from `docs` to update the `.html` files under the `build` folder using the source files under the `source` folder and verify the updated documentation in a browser at `pykale/docs/build/html/index.html`. Run `make clean` will clean the `build` folder for a fresh build. **Note**: the `build` folder is uploaded for private-mode sharing and will be removed (ignored) when releasing in public.
 
 ## Sphinx autodocumentation and Read the Doc
 
