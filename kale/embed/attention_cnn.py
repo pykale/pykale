@@ -78,7 +78,7 @@ class ContextCNNGeneric(nn.Module):
 
 class CNNTransformer(ContextCNNGeneric):
     """
-    A feature extractor consisting of a CNN backbone followed by a standard
+    A feature extractor consisting of a given CNN backbone followed by a standard
     Transformer-Encoder. See documentation of "ContextCNNGeneric" for more
     information.
 

@@ -86,8 +86,23 @@
             
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">Installation (to update)</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Installation (to update)</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="kale.html">kale package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="kale.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Embed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.loaddata.html">Load data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.pipeline.html">Pipeline (ML System)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.predict.html">Predict</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.prepdata.html">Preprocess data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="kale.html#module-kale">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">Core API</span></p>
 <ul class="current">
@@ -98,7 +113,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.embed.attention_cnn">kale.embed.attention_cnn module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.embed.da_feature">kale.embed.da_feature module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#kale-embed-linformer-module">kale.embed.linformer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#kale-embed-mpca-module">kale.embed.mpca module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.embed.mpca">kale.embed.mpca module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.embed.positional_encoding">kale.embed.positional_encoding module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.embed">Module contents</a></li>
 </ul>
@@ -216,7 +231,7 @@
 <dt id="kale.embed.attention_cnn.CNNTransformer">
 <em class="property">class </em><code class="sig-prename descclassname">kale.embed.attention_cnn.</code><code class="sig-name descname">CNNTransformer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cnn</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span></em>, <em class="sig-param"><span class="n">cnn_output_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">, </span>int<span class="p">, </span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">num_layers</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">num_heads</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">dim_feedforward</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">dropout</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">output_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">positional_encoder</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.attention_cnn.CNNTransformer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#kale.embed.attention_cnn.ContextCNNGeneric" title="kale.embed.attention_cnn.ContextCNNGeneric"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.embed.attention_cnn.ContextCNNGeneric</span></code></a></p>
-<p>A feature extractor consisting of a CNN backbone followed by a standard
+<p>A feature extractor consisting of a given CNN backbone followed by a standard
 Transformer-Encoder. See documentation of “ContextCNNGeneric” for more
 information.</p>
 <dl class="field-list simple">
@@ -546,8 +561,11 @@ registered hooks while the latter silently ignores them.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <p>Modification of PyTorch’s nn.MultiheadAttention that has linear
 attention complexity in space and time instead of quadratic. See
-reference: <cite>Linformer: Self-Attention with Linear Complexity</cite> (2020) and
-<a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.MultiheadAttention.html">https://pytorch.org/docs/master/generated/torch.nn.MultiheadAttention.html</a>.</p>
+reference: <cite>Linformer: Self-Attention with Linear Complexity</cite> (2020).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more information see PyTorch’s nn.MultiheadAttention docs.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -561,10 +579,8 @@ value sequences at dim=1.</p></li>
 <li><p><strong>kdim</strong> – total number of features in key. Default: None.</p></li>
 <li><p><strong>vdim</strong> – total number of features in key. Default: None.</p></li>
 <li><p><strong>seq_len</strong> – the sequence length. Default: 100.</p></li>
-<li><p><strong>proj_k</strong> – the projected dimention <cite>k</cite> of key and value. Default: 128.</p></li>
-<li><p><strong>param_sharing</strong> – parameter sharing mode: layerwise, none. headwise is not implemented. Default: none.</p></li>
-<li><p><strong>Note</strong> – if kdim and vdim are None, they will be set to embed_dim such that</p></li>
-<li><p><strong>key</strong><strong>, </strong><strong>and value have the same number of features.</strong> (<em>query</em><em>,</em>) – </p></li>
+<li><p><strong>proj_k</strong> – the projected seq-dimension <cite>k</cite> of key and value. Default: 128.</p></li>
+<li><p><strong>param_sharing</strong> – parameter sharing mode of linformer projection: layerwise, none. headwise is not implemented. Default: none.</p></li>
 </ul>
 </dd>
 </dl>
@@ -575,6 +591,10 @@ value sequences at dim=1.</p></li>
 </div>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Code taken exactly as is from <a class="reference external" href="https://github.com/kuixu/Linear-Multihead-Attention">https://github.com/kuixu/Linear-Multihead-Attention</a>. Many thanks you to the author.</p>
+</div>
 <dl class="py attribute">
 <dt id="kale.embed.linformer.LinearMultiheadAttention.bias_k">
 <code class="sig-name descname">bias_k</code><a class="headerlink" href="#kale.embed.linformer.LinearMultiheadAttention.bias_k" title="Permalink to this definition">¶</a></dt>
@@ -587,43 +607,8 @@ value sequences at dim=1.</p></li>
 
 <dl class="py method">
 <dt id="kale.embed.linformer.LinearMultiheadAttention.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span></em>, <em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">key_padding_mask</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">need_weights</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">attn_mask</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.linformer.LinearMultiheadAttention.forward" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>key</strong><strong>, </strong><strong>value</strong> (<em>query</em><em>,</em>) – map a query and a set of key-value pairs to an output.
-See “Attention Is All You Need” for more details.</p></li>
-<li><p><strong>key_padding_mask</strong> – if provided, specified padding elements in the key will
-be ignored by the attention. This is an binary mask. When the value is True,
-the corresponding value on the attention layer will be filled with -inf.</p></li>
-<li><p><strong>need_weights</strong> – output attn_output_weights.</p></li>
-<li><p><strong>attn_mask</strong> – 2D or 3D mask that prevents attention to certain positions. This is an additive mask
-(i.e. the values will be added to the attention layer). A 2D mask will be broadcasted for all
-the batches while a 3D mask allows to specify a different mask for the entries of each batch.</p></li>
-</ul>
-</dd>
-</dl>
-<dl>
-<dt>Shape:</dt><dd><ul class="simple">
-<li><p>Inputs:</p></li>
-<li><p>query: <span class="math notranslate nohighlight">\((L, N, E)\)</span> where L is the target sequence length, N is the batch size, E is</p></li>
-</ul>
-<p>the embedding dimension.
-- key: <span class="math notranslate nohighlight">\((S, N, E)\)</span>, where S is the source sequence length, N is the batch size, E is
-the embedding dimension.
-- value: <span class="math notranslate nohighlight">\((S, N, E)\)</span> where S is the source sequence length, N is the batch size, E is
-the embedding dimension.
-- key_padding_mask: <span class="math notranslate nohighlight">\((N, S)\)</span>, ByteTensor, where N is the batch size, S is the source sequence length.
-- attn_mask: 2D mask <span class="math notranslate nohighlight">\((L, S)\)</span> where L is the target sequence length, S is the source sequence length.
-3D mask <span class="math notranslate nohighlight">\((N*num_heads, L, S)\)</span> where N is the batch size, L is the target sequence length,
-S is the source sequence length.
-- Outputs:
-- attn_output: <span class="math notranslate nohighlight">\((L, N, E)\)</span> where L is the target sequence length, N is the batch size,
-E is the embedding dimension.
-- attn_output_weights: <span class="math notranslate nohighlight">\((N, L, S)\)</span> where N is the batch size,
-L is the target sequence length, S is the source sequence length.</p>
-</dd>
-</dl>
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span><span class="p">:</span> <span class="n">Tensor</span></em>, <em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">Tensor</span></em>, <em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">Tensor</span></em>, <em class="sig-param"><span class="n">key_padding_mask</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Tensor<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">need_weights</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">attn_mask</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Tensor<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>Tensor<span class="p">, </span>Optional<span class="p">[</span>Tensor<span class="p">]</span><span class="p">]</span><a class="headerlink" href="#kale.embed.linformer.LinearMultiheadAttention.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>See PyTorch’s nn.MultiheadAttention docs.</p>
 </dd></dl>
 
 </dd></dl>
@@ -636,6 +621,10 @@ L is the target sequence length, S is the source sequence length.</p>
 <p>This modification reduces the computational cost of the self-attention module from
 O(n^2) to O(n) by implementing the proposed adjusted linear attention block from:
 <cite>Linformer: Self-Attention with Linear Complexity</cite> (2020) (<a class="reference external" href="https://arxiv.org/abs/2006.04768">https://arxiv.org/abs/2006.04768</a>).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more information see PyTorch’s nn.TransformerEncoderLayer docs.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -674,8 +663,26 @@ O(n^2) to O(n) by implementing the proposed adjusted linear attention block from
 </ul>
 </dd>
 </dl>
-<dl class="simple">
-<dt>Shape:</dt><dd><p>see the docs in PyTorch Transformer class.</p>
+<dl>
+<dt>Shape:</dt><dd><ul class="simple">
+<li><p>src: <span class="math notranslate nohighlight">\((S, N, E)\)</span>.</p></li>
+<li><p>src_mask: <span class="math notranslate nohighlight">\((S, S)\)</span>.</p></li>
+<li><p>src_key_padding_mask: <span class="math notranslate nohighlight">\((N, S)\)</span>.</p></li>
+</ul>
+<p>Note: src_mask ensures that position i is allowed to attend the unmasked
+positions. If a ByteTensor is provided, the non-zero positions are not allowed to attend
+while the zero positions will be unchanged. If a BoolTensor is provided, positions with <code class="docutils literal notranslate"><span class="pre">True</span></code>
+are not allowed to attend while <code class="docutils literal notranslate"><span class="pre">False</span></code> values will be unchanged. If a FloatTensor
+is provided, it will be added to the attention weight.
+src_key_padding_mask provides specified elements in the key to be ignored by
+the attention. If a ByteTensor is provided, the non-zero positions will be ignored while the zero
+positions will be unchanged. If a BoolTensor is provided, the positions with the
+value of <code class="docutils literal notranslate"><span class="pre">True</span></code> will be ignored while the position with the value of <code class="docutils literal notranslate"><span class="pre">False</span></code> will be unchanged.</p>
+<ul class="simple">
+<li><p>output: <span class="math notranslate nohighlight">\((S, N, E)\)</span>.</p></li>
+</ul>
+<p>where S is the input sequence length, N is the
+batch size, E is the feature number</p>
 </dd>
 </dl>
 </dd></dl>
@@ -683,8 +690,75 @@ O(n^2) to O(n) by implementing the proposed adjusted linear attention block from
 </dd></dl>
 
 </div>
-<div class="section" id="kale-embed-mpca-module">
-<h2>kale.embed.mpca module<a class="headerlink" href="#kale-embed-mpca-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-kale.embed.mpca">
+<span id="kale-embed-mpca-module"></span><h2>kale.embed.mpca module<a class="headerlink" href="#module-kale.embed.mpca" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kale.embed.mpca.MPCA">
+<em class="property">class </em><code class="sig-prename descclassname">kale.embed.mpca.</code><code class="sig-name descname">MPCA</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">variance_explained</span><span class="o">=</span><span class="default_value">0.97</span></em>, <em class="sig-param"><span class="n">max_iter</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.mpca.MPCA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.base.BaseEstimator</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.base.TransformerMixin</span></code></p>
+<dl class="py method">
+<dt id="kale.embed.mpca.MPCA.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.mpca.MPCA.fit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Parameter:</dt><dd><p>X: array-like, ndarray of shape (I1, I2, …, n_samples)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.mpca.MPCA.inverse_transform">
+<code class="sig-name descname">inverse_transform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.mpca.MPCA.inverse_transform" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Parameter:</dt><dd><p>X: array-like, shape (i1, i2, …, n_samples)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Data in original shape, array-like, shape (I1, I2, …, n_samples)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.embed.mpca.MPCA.transform">
+<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.mpca.MPCA.transform" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Parameter:</dt><dd><p>X: array-like, shape (I1, I2, …, n_samples)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Transformed data, array-like, shape (i1, i2, …, n_samples)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="kale.embed.mpca.MPCA_">
+<code class="sig-prename descclassname">kale.embed.mpca.</code><code class="sig-name descname">MPCA_</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">variance_explained</span><span class="o">=</span><span class="default_value">0.97</span></em>, <em class="sig-param"><span class="n">max_iter</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.embed.mpca.MPCA_" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Parameter:</dt><dd><p>X: array-like, ndarray of shape (I1, I2, …, n_samples)
+variance_explained: ration of variance to keep (between 0 and 1)
+max_iter: max number of iteration</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>list of projection matrices</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>tPs</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="module-kale.embed.positional_encoding">
 <span id="kale-embed-positional-encoding-module"></span><h2>kale.embed.positional_encoding module<a class="headerlink" href="#module-kale.embed.positional_encoding" title="Permalink to this headline">¶</a></h2>

@@ -15,6 +15,7 @@ from torch.nn import functional as F
 from torch.nn import Module
 from torch.nn import Dropout
 from torch.nn import LayerNorm
+from torch.nn.functional import pad
 
 # Copy-paste with slight modification from torch.nn.TransformerEncoderLayer
 class LinearTransformerEncoderLayer(Module):
@@ -23,6 +24,9 @@ class LinearTransformerEncoderLayer(Module):
     This modification reduces the computational cost of the self-attention module from
     O(n^2) to O(n) by implementing the proposed adjusted linear attention block from:
     `Linformer: Self-Attention with Linear Complexity` (2020) (https://arxiv.org/abs/2006.04768).
+
+    Note: 
+        For more information see PyTorch's nn.TransformerEncoderLayer docs.
 
     Args:
         d_model: the number of expected features in the input (required).
@@ -79,7 +83,24 @@ class LinearTransformerEncoderLayer(Module):
             src_key_padding_mask: the mask for the src keys per batch (optional).
 
         Shape:
-            see the docs in PyTorch Transformer class.
+            - src: :math:`(S, N, E)`.
+            - src_mask: :math:`(S, S)`.
+            - src_key_padding_mask: :math:`(N, S)`.
+
+            Note: src_mask ensures that position i is allowed to attend the unmasked
+            positions. If a ByteTensor is provided, the non-zero positions are not allowed to attend
+            while the zero positions will be unchanged. If a BoolTensor is provided, positions with ``True``
+            are not allowed to attend while ``False`` values will be unchanged. If a FloatTensor
+            is provided, it will be added to the attention weight. 
+            src_key_padding_mask provides specified elements in the key to be ignored by
+            the attention. If a ByteTensor is provided, the non-zero positions will be ignored while the zero
+            positions will be unchanged. If a BoolTensor is provided, the positions with the
+            value of ``True`` will be ignored while the position with the value of ``False`` will be unchanged.
+
+            - output: :math:`(S, N, E)`.
+
+            where S is the input sequence length, N is the
+            batch size, E is the feature number
         """
         src2 = self.self_attn(src, src, src, attn_mask=src_mask,
                               key_padding_mask=src_key_padding_mask)[0]
@@ -109,8 +130,10 @@ def _get_activation_fn(activation):
 class LinearMultiheadAttention(nn.Module):
     r"""Modification of PyTorch's nn.MultiheadAttention that has linear
     attention complexity in space and time instead of quadratic. See
-    reference: `Linformer: Self-Attention with Linear Complexity` (2020) and
-    https://pytorch.org/docs/master/generated/torch.nn.MultiheadAttention.html.
+    reference: `Linformer: Self-Attention with Linear Complexity` (2020).
+
+    Note: 
+        For more information see PyTorch's nn.MultiheadAttention docs.
 
     Args:
         embed_dim: total dimension of the model.
@@ -123,13 +146,15 @@ class LinearMultiheadAttention(nn.Module):
         kdim: total number of features in key. Default: None.
         vdim: total number of features in key. Default: None.
         seq_len: the sequence length. Default: 100.
-        proj_k: the projected dimention `k` of key and value. Default: 128.
-        param_sharing: parameter sharing mode: layerwise, none. headwise is not implemented. Default: none.
-        Note: if kdim and vdim are None, they will be set to embed_dim such that
-        query, key, and value have the same number of features.
+        proj_k: the projected seq-dimension `k` of key and value. Default: 128.
+        param_sharing: parameter sharing mode of linformer projection: layerwise, none. headwise is not implemented. Default: none.
+
     Examples::
         >>> multihead_attn = LinearMultiheadAttention(embed_dim, num_heads, seq_len=10000, proj_k=128)
         >>> attn_output, attn_output_weights = multihead_attn(query, key, value)
+
+    Note: 
+        Code taken exactly as is from https://github.com/kuixu/Linear-Multihead-Attention. Many thanks you to the author.
     """
     __annotations__ = {
         'bias_k': torch._jit_internal.Optional[torch.Tensor],
@@ -220,33 +245,7 @@ class LinearMultiheadAttention(nn.Module):
                 need_weights=True, attn_mask=None):
         # type: (Tensor, Tensor, Tensor, Optional[Tensor], bool, Optional[Tensor]) -> Tuple[Tensor, Optional[Tensor]]
         r"""
-        Args:
-            query, key, value: map a query and a set of key-value pairs to an output.
-                See "Attention Is All You Need" for more details.
-            key_padding_mask: if provided, specified padding elements in the key will
-                be ignored by the attention. This is an binary mask. When the value is True,
-                the corresponding value on the attention layer will be filled with -inf.
-            need_weights: output attn_output_weights.
-            attn_mask: 2D or 3D mask that prevents attention to certain positions. This is an additive mask
-                (i.e. the values will be added to the attention layer). A 2D mask will be broadcasted for all
-                the batches while a 3D mask allows to specify a different mask for the entries of each batch.
-        Shape:
-            - Inputs:
-            - query: :math:`(L, N, E)` where L is the target sequence length, N is the batch size, E is
-            the embedding dimension.
-            - key: :math:`(S, N, E)`, where S is the source sequence length, N is the batch size, E is
-            the embedding dimension.
-            - value: :math:`(S, N, E)` where S is the source sequence length, N is the batch size, E is
-            the embedding dimension.
-            - key_padding_mask: :math:`(N, S)`, ByteTensor, where N is the batch size, S is the source sequence length.
-            - attn_mask: 2D mask :math:`(L, S)` where L is the target sequence length, S is the source sequence length.
-            3D mask :math:`(N*num_heads, L, S)` where N is the batch size, L is the target sequence length,
-            S is the source sequence length.
-            - Outputs:
-            - attn_output: :math:`(L, N, E)` where L is the target sequence length, N is the batch size,
-            E is the embedding dimension.
-            - attn_output_weights: :math:`(N, L, S)` where N is the batch size,
-            L is the target sequence length, S is the source sequence length.
+        See PyTorch's nn.MultiheadAttention docs.
         """
         if not self._qkv_same_embed_dim:
             return _linear_multi_head_attention_forward(
