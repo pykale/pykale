@@ -1,5 +1,5 @@
 """
-From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py
+Various sampling strategies for datasts to construct dataloader, from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py
 """
 import torchvision
 import torch.utils.data
@@ -16,6 +16,14 @@ class SamplingConfig:
         self._class_weights = class_weights
 
     def create_loader(self, dataset, batch_size):
+        """Create the data loader
+
+        Reference: https://pytorch.org/docs/stable/data.html#torch.utils.data.Sampler
+
+        Args:
+            dataset (Dataset): dataset from which to load the data.
+            batch_size (int): how many samples per batch to load
+        """
         if self._balance:
             sampler = BalancedBatchSampler(dataset, batch_size=batch_size)
         elif self._class_weights is not None:
@@ -197,6 +205,9 @@ class ReweightedBatchSampler(torch.utils.data.sampler.BatchSampler):
 
 
 def get_labels(dataset):
+    """
+    Get class labels for dataset
+    """
     dataset_type = type(dataset)
     if dataset_type is torchvision.datasets.SVHN:
         return dataset.labels

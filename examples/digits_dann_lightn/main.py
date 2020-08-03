@@ -11,8 +11,8 @@ import pytorch_lightning as pl
 
 from config import get_cfg_defaults
 from model import get_model
-import kale.loaddata.digits as digits
-import kale.loaddata.multisource as multisource
+from kale.loaddata.digits_access import DigitDataset 
+from kale.loaddata.multisource import MultiDomainDatasets
 # import kale.utils.seed as seed # to unify later used pl seed_everything
 
 def arg_parse():
@@ -34,26 +34,22 @@ def main():
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
     cfg.freeze()    
-    torch.manual_seed(cfg.SOLVER.SEED)
+    # torch.manual_seed(cfg.SOLVER.SEED)
     # seed.set_seed(cfg.SOLVER.SEED)
    
     # ---- setup output ----    
-    output_dir = os.path.join(cfg.OUTPUT.ROOT, cfg.DATASET.NAME + '_' + cfg.DATASET.SOURCE + '2' + cfg.DATASET.TARGET) #, args.output)
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
             
     # ---- setup dataset ----
-    source_loader, target_loader, num_channels = digits.DigitDataset.get_accesses(
-        digits.DigitDataset(cfg.DATASET.SOURCE.upper()), digits.DigitDataset(cfg.DATASET.TARGET.upper()),
-        cfg.DATASET.ROOT)
-    dataset = multisource.MultiDomainDatasets(source_loader, target_loader, cfg.DATASET.WEIGHT_TYPE, cfg.DATASET.SIZE_TYPE)
+    source, target, num_channels = DigitDataset.get_source_target(DigitDataset(cfg.DATASET.SOURCE), 
+                                                                DigitDataset(cfg.DATASET.TARGET), cfg.DATASET.ROOT)
+    dataset = MultiDomainDatasets(source, target, config_weight_type=cfg.DATASET.WEIGHT_TYPE, 
+                                config_size_type = cfg.DATASET.SIZE_TYPE)
         
     # ---- setup model and logger ----
     print('==> Building model..')
     model, train_params = get_model(cfg, dataset, num_channels)
-    logger, results, checkpoint_callback, test_csv_file = da_logger.setup_logger(train_params, output_dir, cfg.DAN.METHOD)
-    # logger = logging.construct_logger('digits_dann', output_dir) # cfg.OUTPUT.DIR) to discuss
-    # logger.info(f'Using {device}')
-    # logger.info('\n' + cfg.dump())
+    logger, results, checkpoint_callback, test_csv_file = da_logger.setup_logger(train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD)
 
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
