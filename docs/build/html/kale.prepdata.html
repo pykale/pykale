@@ -86,8 +86,23 @@
             
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">Installation (to update)</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Installation (to update)</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="kale.html">kale package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="kale.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="kale.embed.html">Embed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.loaddata.html">Load data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.pipeline.html">Pipeline (ML System)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.predict.html">Predict</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Preprocess data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="kale.utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="kale.html#module-kale">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">Core API</span></p>
 <ul class="current">
@@ -95,7 +110,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Preprocess data</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.prepdata.im_transform">kale.prepdata.im_transform module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#kale-prepdata-prep-cmr-module">kale.prepdata.prep_cmr module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.prepdata.prep_cmr">kale.prepdata.prep_cmr module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.prepdata.tensor_reshape">kale.prepdata.tensor_reshape module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.prepdata">Module contents</a></li>
 </ul>
@@ -219,8 +234,39 @@ Modified by Haiping Lu from
 <dd></dd></dl>
 
 </div>
-<div class="section" id="kale-prepdata-prep-cmr-module">
-<h2>kale.prepdata.prep_cmr module<a class="headerlink" href="#kale-prepdata-prep-cmr-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-kale.prepdata.prep_cmr">
+<span id="kale-prepdata-prep-cmr-module"></span><h2>kale.prepdata.prep_cmr module<a class="headerlink" href="#module-kale.prepdata.prep_cmr" title="Permalink to this headline">¶</a></h2>
+<p>Author: Shuo Zhou, <a class="reference external" href="mailto:szhou20&#37;&#52;&#48;sheffield&#46;ac&#46;uk">szhou20<span>&#64;</span>sheffield<span>&#46;</span>ac<span>&#46;</span>uk</a></p>
+<dl class="py function">
+<dt id="kale.prepdata.prep_cmr.cmr_proc">
+<code class="sig-prename descclassname">kale.prepdata.prep_cmr.</code><code class="sig-name descname">cmr_proc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">basedir</span></em>, <em class="sig-param"><span class="n">db</span></em>, <em class="sig-param"><span class="n">scale</span></em>, <em class="sig-param"><span class="n">mask_id</span></em>, <em class="sig-param"><span class="n">level</span></em>, <em class="sig-param"><span class="n">save_data</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">return_data</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.prepdata.prep_cmr.cmr_proc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="kale.prepdata.prep_cmr.mat2gray">
+<code class="sig-prename descclassname">kale.prepdata.prep_cmr.</code><code class="sig-name descname">mat2gray</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">A</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.prepdata.prep_cmr.mat2gray" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="kale.prepdata.prep_cmr.preproc">
+<code class="sig-prename descclassname">kale.prepdata.prep_cmr.</code><code class="sig-name descname">preproc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">mask</span></em>, <em class="sig-param"><span class="n">level</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.prepdata.prep_cmr.preproc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="kale.prepdata.prep_cmr.regMRI">
+<code class="sig-prename descclassname">kale.prepdata.prep_cmr.</code><code class="sig-name descname">regMRI</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">reg_df</span></em>, <em class="sig-param"><span class="n">reg_id</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.prepdata.prep_cmr.regMRI" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="kale.prepdata.prep_cmr.rescale_cmr">
+<code class="sig-prename descclassname">kale.prepdata.prep_cmr.</code><code class="sig-name descname">rescale_cmr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">scale</span><span class="o">=</span><span class="default_value">16</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.prepdata.prep_cmr.rescale_cmr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="kale.prepdata.prep_cmr.scale_cmr_mask">
+<code class="sig-prename descclassname">kale.prepdata.prep_cmr.</code><code class="sig-name descname">scale_cmr_mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mask</span></em>, <em class="sig-param"><span class="n">scale</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.prepdata.prep_cmr.scale_cmr_mask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-kale.prepdata.tensor_reshape">
 <span id="kale-prepdata-tensor-reshape-module"></span><h2>kale.prepdata.tensor_reshape module<a class="headerlink" href="#module-kale.prepdata.tensor_reshape" title="Permalink to this headline">¶</a></h2>
