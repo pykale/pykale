@@ -31,6 +31,8 @@
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -224,13 +226,17 @@
 </li>
       <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer">BaseAdaptTrainer (class in kale.pipeline.da_systems)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseDANNLike">BaseDANNLike (class in kale.pipeline.da_systems)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseMMDLike">BaseMMDLike (class in kale.pipeline.da_systems)</a>
 </li>
       <li><a href="kale.predict.html#kale.predict.isonet.BasicTransform">BasicTransform (class in kale.predict.isonet)</a>
+</li>
+      <li><a href="kale.embed.html#kale.embed.linformer.LinearMultiheadAttention.bias_k">bias_k (kale.embed.linformer.LinearMultiheadAttention attribute)</a>
+</li>
+      <li><a href="kale.embed.html#kale.embed.linformer.LinearMultiheadAttention.bias_v">bias_v (kale.embed.linformer.LinearMultiheadAttention attribute)</a>
 </li>
       <li><a href="kale.predict.html#kale.predict.isonet.BottleneckTransform">BottleneckTransform (class in kale.predict.isonet)</a>
 </li>
@@ -457,6 +463,10 @@
 </li>
         <li><a href="kale.embed.html#kale.embed.da_feature.ResNet50Feature.forward">(kale.embed.da_feature.ResNet50Feature method)</a>
 </li>
+        <li><a href="kale.embed.html#kale.embed.linformer.LinearMultiheadAttention.forward">(kale.embed.linformer.LinearMultiheadAttention method)</a>
+</li>
+        <li><a href="kale.embed.html#kale.embed.linformer.LinearTransformerEncoderLayer.forward">(kale.embed.linformer.LinearTransformerEncoderLayer method)</a>
+</li>
         <li><a href="kale.embed.html#kale.embed.positional_encoding.PositionalEncoding.forward">(kale.embed.positional_encoding.PositionalEncoding method)</a>
 </li>
         <li><a href="kale.pipeline.html#kale.pipeline.da_systems.BaseAdaptTrainer.forward">(kale.pipeline.da_systems.BaseAdaptTrainer method)</a>
@@ -669,6 +679,13 @@
 </li>
       </ul></li>
       <li>
+    kale.embed.linformer
+
+      <ul>
+        <li><a href="kale.embed.html#module-kale.embed.linformer">module</a>
+</li>
+      </ul></li>
+      <li>
     kale.embed.positional_encoding
 
       <ul>
@@ -830,10 +847,14 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="examples/examples.digits_dann_lightn.html#examples.digits_dann_lightn.model.load_config">load_config() (in module examples.digits_dann_lightn.model)</a>
+      <li><a href="kale.embed.html#kale.embed.linformer.LinearMultiheadAttention">LinearMultiheadAttention (class in kale.embed.linformer)</a>
+</li>
+      <li><a href="kale.embed.html#kale.embed.linformer.LinearTransformerEncoderLayer">LinearTransformerEncoderLayer (class in kale.embed.linformer)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="examples/examples.digits_dann_lightn.html#examples.digits_dann_lightn.model.load_config">load_config() (in module examples.digits_dann_lightn.model)</a>
+</li>
       <li><a href="kale.loaddata.html#kale.loaddata.usps.USPS.load_samples">load_samples() (kale.loaddata.usps.USPS method)</a>
 </li>
   </ul></td>
@@ -893,6 +914,8 @@
         <li><a href="kale.embed.html#module-kale.embed.attention_cnn">kale.embed.attention_cnn</a>
 </li>
         <li><a href="kale.embed.html#module-kale.embed.da_feature">kale.embed.da_feature</a>
+</li>
+        <li><a href="kale.embed.html#module-kale.embed.linformer">kale.embed.linformer</a>
 </li>
         <li><a href="kale.embed.html#module-kale.embed.positional_encoding">kale.embed.positional_encoding</a>
 </li>

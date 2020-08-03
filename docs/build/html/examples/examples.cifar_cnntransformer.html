@@ -31,6 +31,8 @@
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -230,8 +232,11 @@ Initial Date: 17 July 2020</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <p>Simple classification prediction-head block to plug ontop of the 4D
 output of a CNN.
-:param num_classes - the number of different classes that can be predicted.:
-:param input_shape - the shape that input to this head will have. Expected: to be (batch_size, channels, height, width)</p>
+:param num_classes: the number of different classes that can be predicted.
+:param input_shape: the shape that input to this head will have. Expected</p>
+<blockquote>
+<div><p>to be (batch_size, channels, height, width)</p>
+</div></blockquote>
 <dl class="py method">
 <dt id="examples.cifar_cnntransformer.model.PredictionHead.forward">
 <code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#examples.cifar_cnntransformer.model.PredictionHead.forward" title="Permalink to this definition">¶</a></dt>
@@ -282,7 +287,7 @@ registered hooks while the latter silently ignores them.</p>
 object passed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>- A YACS config object.</strong> (<em>cfg</em>) – </p>
+<dd class="field-odd"><p><strong>cfg</strong> – A YACS config object.</p>
 </dd>
 </dl>
 </dd></dl>
