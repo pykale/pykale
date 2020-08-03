@@ -17,8 +17,8 @@ class SmallCNNFeature(nn.Module):
         num_channels: the number of input channels (default=3).
         ckernel_size: the size of the convolution kernel (default=5).
 
-    Examples:
-        See pykale/examples/digits_dann_lightn/model.py
+    Examples::
+        >>> feature_network = SmallCNNFeature(num_channels)
     """
 
     def __init__(self, num_channels=3, kernel_size=5):
