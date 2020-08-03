@@ -24,6 +24,8 @@ PyKale documentation
     kale.pipeline
     kale.utils
 
+The core APIs above are ordered following the machine learning pipeline rather than alphabetically.
+
 .. toctree::
     :maxdepth: 1
     :caption: Examples API
