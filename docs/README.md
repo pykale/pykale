@@ -2,9 +2,9 @@
 
 ## Workflow
 
-* If any new module is added or updated, generate the autodocumentation (`.rst` files under `source`) by running `sphinx-apidoc` from this directory, e.g. `sphinx-apidoc -o source/ ../kale` or `sphinx-apidoc -o source/examples ../examples`. If there is no module update (e.g. you are just updating the documentation through editing the source files), this step is not needed.
+1. If any new module is added or updated, generate the autodocumentation (`.rst` files under `source`) by running `sphinx-apidoc` from this directory, e.g. `sphinx-apidoc -o source/ ../kale` or `sphinx-apidoc -o source/examples ../examples`. If there is no module update (e.g. you are just updating the documentation through editing the source files), this step is not needed.
 
-* Run `make html` from this directory to update the `.html` files under the `build` folder using the source files under the `source` folder. Before doing this, running `make clean` will clean the `build` folder. **Note**: the `build` folder is uploaded for private mode sharing and will be removed (ignored) when releasing in public.
+2. Run `make html` from this directory to update the `.html` files under the `build` folder using the source files under the `source` folder. Before doing this, running `make clean` will clean the `build` folder. **Note**: the `build` folder is uploaded for private mode sharing and will be removed (ignored) when releasing in public.
 
 ## Sphinx autodocumentation and Read the Doc
 
