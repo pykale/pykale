@@ -22,6 +22,14 @@ kale.embed.da\_feature module
    :undoc-members:
    :show-inheritance:
 
+kale.embed.linformer module
+----------------------
+
+.. automodule:: kale.embed.linformer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.embed.mpca module
 ----------------------
 
