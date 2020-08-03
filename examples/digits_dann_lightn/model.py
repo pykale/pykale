@@ -5,7 +5,7 @@ Define the learning model, including configuring training parameters.
 # Initial Date: 27 July 2020
 from copy import deepcopy
 
-import kale.embed.da_feature as da_feature
+import kale.embed.image_cnn as image_cnn
 import kale.predict.da_classify as da_classify
 import kale.pipeline.da_systems as da_systems
 
@@ -53,7 +53,7 @@ def get_model(cfg, dataset, num_channels):
     """
 
     # setup feature extractor
-    feature_network = da_feature.FeatureExtractorDigits(num_channels)
+    feature_network = image_cnn.SmallCNNFeature(num_channels)
     # setup classifier
     feature_dim = feature_network.output_size()
     classifier_network = da_classify.DataClassifierDigits(feature_dim, cfg.DATASET.NUM_CLASSES)
