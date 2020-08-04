@@ -9,18 +9,23 @@ from ..embed.linformer import LinearTransformerEncoderLayer
 
 class VideoTransformer(pl.LightningModule):
     """
-    A feature extractor for videos consisting of three consecutive modules.
-    | `1.` A CNN without a head that is applied independently on each frame of the
-    video.
-    | `2.` A Transformer-Encoder that is applied independently on the output CNN-representation
-    of each frame after unrolling their remaining spatial dimensions into a sequence.
-    | `3.` A Transformer-Encoder that is applied as a whole to the output sequence
-    representation of each frame from (2) after concatenating each frame's sequence
-    into one big sequence.
-    |
-    | So, first the VideoTransformer extracts per-frame features through a CNN, then 
+    A feature extractor for videos consisting of three consecutive modules.\n
+    1. A CNN without a head that is applied independently on each frame of the
+    video.\n
+    2. A Transformer-Encoder that is applied independently on the output CNN-representation
+    of each frame after unrolling their remaining spatial dimensions into a sequence.\n
+    3. A Transformer-Encoder that is applied after concatenating each frame's sequence
+    into one big sequence. \n\n
+    
+    So, first the VideoTransformer extracts per-frame features through a CNN, then 
     per-frame contextualizes these features with self-attention, and finally globally
     contextualizes these features, as a whole, with self-attention.
+
+    Note:
+        This module is a video-to-sequence model where a custom head
+        can be used ontop to customize this model for different types of tasks (or just
+        classification), in the same way BERT's output sequences can be used for 
+        various tasks.
 
     Args:
         fram_per_vid: the number of frames each input video has. This must always
@@ -40,7 +45,8 @@ class VideoTransformer(pl.LightningModule):
         dropout: dropout rate of the `step 3` Transformer-Encoder layers (default=0.1).
         activation: 'relu' or 'gelu' for the `step 3` Transformer-Encoder (default='relu).
         pos_encoding: None, a custom positional-encoding block, or an identity block
-                      that is applied on the final long sequences before `step 3` (default=None)
+                      that is applied on the final long sequences before `step 3`. If
+                      None, the default sin-cos encodings will be applied (default=None).
 
 
     Examples:
@@ -106,6 +112,12 @@ class VideoTransformer(pl.LightningModule):
         Args:
             x: a batch of videos with shape 
                (batch_size, fram_per_vid, channels, height, width)
+
+        Output Shape:
+            Returns output with shape (batch_size, final_seq_len, channels) where
+            the final sequence length will be out_height*out_width*fram_per_video
+            where out_height and out_width are the remaining spatial dimensions of the
+            CNNs output. Channels is the number of channels the CNN output has.
         """
         batch_size = x.size(0)
 
