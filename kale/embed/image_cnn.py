@@ -22,7 +22,7 @@ class SmallCNNFeature(nn.Module):
     """
 
     def __init__(self, num_channels=3, kernel_size=5):
-        super(FeatureExtractorDigits, self).__init__()
+        super(SmallCNNFeature, self).__init__()
         self.conv1 = nn.Conv2d(num_channels, 64, kernel_size=kernel_size)
         self.bn1 = nn.BatchNorm2d(64)
         self.pool1 = nn.MaxPool2d(2)
