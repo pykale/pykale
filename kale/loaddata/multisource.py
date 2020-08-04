@@ -1,15 +1,14 @@
 """
-Construct a dataset with source and target domains
-
-From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py
+Construct a dataset with (multiple) source and target domains, from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py
 """
+
 import logging
 from enum import Enum
 import numpy as np
 from sklearn.utils import check_random_state
 import torch.utils.data
 from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
-from kale.loaddata.splits import DatasetAccess 
+from kale.loaddata.dataset_access import DatasetAccess 
 
 class WeightingType(Enum):
     NATURAL = "natural"
@@ -36,7 +35,6 @@ class DomainsDatasetBase:
     def prepare_data_loaders(self):
         """
         handles train/validation/test split to have 3 datasets each with data from all domains
-        :return:
         """
         raise NotImplementedError()
 
@@ -49,8 +47,8 @@ class DomainsDatasetBase:
             batch_size (int, optional): Defaults to 32.
         
         Returns:
-            MultiDataLoader: A dataloader with API similar to the torch.dataloader, but returning
-                batches from several domains at each iteration.
+            MultiDataLoader: A dataloader with API similar to the torch.dataloader, but returning 
+            batches from several domains at each iteration.
         """
         raise NotImplementedError()
 
@@ -60,11 +58,11 @@ class MultiDomainDatasets(DomainsDatasetBase):
         self,
         source_access: DatasetAccess,
         target_access: DatasetAccess,
-        config_weight_type, # = "natural",
-        config_size_type, # = DatasetSizeType.Max,
+        config_weight_type = "natural",
+        config_size_type = DatasetSizeType.Max,
         val_split_ratio=0.1,
-        # source_sampling_config=None,
-        # target_sampling_config=None,
+        source_sampling_config=None,
+        target_sampling_config=None,
         n_fewshot = None,
         random_state=None,
     ):
@@ -81,6 +79,8 @@ class MultiDomainDatasets(DomainsDatasetBase):
             n_fewshot (int, optional): Number of target samples for which the label may be used, 
                 to define the few-shot, semi-supervised setting. Defaults to None.
             random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label selection. Defaults to None.
+        Examples::
+            >>> dataset = MultiDomainDatasets(source, target)
         """
         weight_type = WeightingType(config_weight_type)
         size_type = DatasetSizeType(config_size_type)

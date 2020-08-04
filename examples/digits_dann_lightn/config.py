@@ -59,9 +59,7 @@ _C.OUTPUT = CN()
 _C.OUTPUT.ROOT = './outputs' # output_dir
 _C.OUTPUT.VERBOSE = False   # To discuss, for HPC jobs
 _C.OUTPUT.PB_FRESH = 1 #0 # 50 # 0 to disable  ; MAYBE make it a command line option
-
+_C.OUTPUT.DIR = os.path.join(_C.OUTPUT.ROOT, _C.DATASET.NAME + '_' + 
+                            _C.DATASET.SOURCE + '2' + _C.DATASET.TARGET)
 def get_cfg_defaults():
-  # Shall we do this here because it will be common for DA?
-  # _C.OUTPUT.DIR = os.path.join(_C.OUTPUT.ROOT, _C.DATASET.NAME + '_' + 
-  #                              _C.DATASET.SOURCE + '2' + _C.DATASET.TARGET)
   return _C.clone()
