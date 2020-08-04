@@ -31,7 +31,7 @@ class SoftmaxNet(nn.Module):
         **activation_args,
     ):
       
-    super(FFSoftmaxClassifier, self).__init__()
+    super(SoftmaxNet, self).__init__()
     self._n_classes = n_classes
     self._activation_fn = activation_fn
     self.chain = nn.Sequential()
@@ -63,7 +63,7 @@ class SoftmaxNet(nn.Module):
         return self._n_classes
 
 # Previously DataClassifierDigits
-class DataNetSmallImage(nn.Module):
+class ClassNetSmallImage(nn.Module):
     """Regular classifier network for small-size images
 
     Args:
@@ -71,7 +71,7 @@ class DataNetSmallImage(nn.Module):
         n_class (int, optional): the number of classes. Defaults to 10.
     """
     def __init__(self, input_size=128, n_class=10):
-    super(DataClassifierDigits, self).__init__()
+    super(ClassNetSmallImage, self).__init__()
     self._n_classes = n_class
     self.fc1 = nn.Linear(input_size, 100)
     self.bn1 = nn.BatchNorm1d(100)
@@ -101,7 +101,7 @@ class DomainNetSmallImage(nn.Module):
     """
     def __init__(self, input_size=128, bigger_discrim=False):
 
-        super(DomainClassifierDigits, self).__init__()
+        super(DomainNetSmallImage, self).__init__()
         output_size = 500 if bigger_discrim else 100
 
         self.bigger_discrim = bigger_discrim
