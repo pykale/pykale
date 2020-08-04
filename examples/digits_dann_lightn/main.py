@@ -12,7 +12,7 @@ import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
 from kale.loaddata.digits_access import DigitDataset 
-from kale.loaddata.multisource import MultiDomainDatasets
+from kale.loaddata.multi_domain import MultiDomainDatasets
 # import kale.utils.seed as seed # to unify later used pl seed_everything
 
 def arg_parse():
