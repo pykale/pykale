@@ -9,6 +9,7 @@ import kale.embed.image_cnn as image_cnn
 import kale.predict.da_classify as da_classify
 import kale.pipeline.da_systems as da_systems
 
+
 def get_config(cfg):
     """
     Set the hypermeters for the optimizer using the config file
@@ -38,9 +39,10 @@ def get_config(cfg):
             "target": cfg.DATASET.TARGET,
             "size_type": cfg.DATASET.SIZE_TYPE,
             "weight_type": cfg.DATASET.WEIGHT_TYPE
-        }            
-   }
+        }
+    }
     return config_params
+
 
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 def get_model(cfg, dataset, num_channels):
@@ -57,7 +59,7 @@ def get_model(cfg, dataset, num_channels):
     # setup classifier
     feature_dim = feature_network.output_size()
     classifier_network = da_classify.DataClassifierDigits(feature_dim, cfg.DATASET.NUM_CLASSES)
-    
+
     method = da_systems.Method(cfg.DAN.METHOD)
     critic_input_size = feature_dim
     # setup critic network
@@ -69,11 +71,11 @@ def get_model(cfg, dataset, num_channels):
     critic_network = da_classify.DomainClassifierDigits(critic_input_size)
 
     config_params = get_config(cfg)
-    train_params  = config_params["train_params"]
+    train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
     method_params = {}
     if cfg.DAN.METHOD is 'CDAN':
-        method_params["use_random"] = cfg.DAN.USERANDOM 
+        method_params["use_random"] = cfg.DAN.USERANDOM
 
     model = da_systems.create_dann_like(
         method=method,
