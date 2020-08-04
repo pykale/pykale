@@ -124,6 +124,8 @@ class CNNTransformer(ContextCNNGeneric):
         if positional_encoder == None:
             positional_encoder = PositionalEncoding(d_model=num_channels, max_len=height*width)
         else:
+            # allows for passing the identity block to skip this step
+            # or chosing a different encoding
             positional_encoder = positional_encoder
 
         transformer_input_dropout = nn.Dropout(dropout)
