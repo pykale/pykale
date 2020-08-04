@@ -41,8 +41,8 @@ def main():
     os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
             
     # ---- setup dataset ----
-    source, target, num_channels = DigitDataset.get_source_target(DigitDataset(cfg.DATASET.SOURCE), 
-                                                                DigitDataset(cfg.DATASET.TARGET), cfg.DATASET.ROOT)
+    source, target, num_channels = DigitDataset.get_source_target(DigitDataset(cfg.DATASET.SOURCE.upper()),
+                                                                DigitDataset(cfg.DATASET.TARGET.upper()), cfg.DATASET.ROOT)
     dataset = MultiDomainDatasets(source, target, config_weight_type=cfg.DATASET.WEIGHT_TYPE, 
                                 config_size_type = cfg.DATASET.SIZE_TYPE)
         
