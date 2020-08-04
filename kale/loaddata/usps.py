@@ -1,9 +1,7 @@
-"""Dataset setting and data loader for USPS.
-Modified from
+"""
+Dataset setting and data loader for USPS, from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_usps.py
-(from https://github.com/mingyuliutw/CoGAN/blob/master/cogan_pytorch/src/dataset_usps.py)
-
-amt: changed train_data and test_data to data, and train_labels and test_labels to targets like MNIST
+(based on https://github.com/mingyuliutw/CoGAN/blob/master/cogan_pytorch/src/dataset_usps.py)
 """
 import gzip
 import os
