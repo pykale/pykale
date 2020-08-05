@@ -5,7 +5,7 @@ import warnings
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-import kale.utils.da_logger as da_logger # np error if move this to later, not sure why
+from kale.utils.csv_logger import setup_logger # np error if move this to later, not sure why
 import torch
 import pytorch_lightning as pl
 
@@ -49,7 +49,7 @@ def main():
     # ---- setup model and logger ----
     print('==> Building model..')
     model, train_params = get_model(cfg, dataset, num_channels)
-    logger, results, checkpoint_callback, test_csv_file = da_logger.setup_logger(train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD)
+    logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD)
 
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
