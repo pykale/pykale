@@ -6,8 +6,9 @@ Define the learning model, including configuring training parameters.
 from copy import deepcopy
 
 import kale.embed.image_cnn as image_cnn
-import kale.predict.da_classify as da_classify
-import kale.pipeline.da_systems as da_systems
+from kale.predict.class_domain_nets import ClassNetSmallImage, \
+                                              DomainNetSmallImage
+import kale.pipeline.domain_adapter as domain_adapter
 
 
 def get_config(cfg):
@@ -58,9 +59,9 @@ def get_model(cfg, dataset, num_channels):
     feature_network = image_cnn.SmallCNNFeature(num_channels)
     # setup classifier
     feature_dim = feature_network.output_size()
-    classifier_network = da_classify.DataClassifierDigits(feature_dim, cfg.DATASET.NUM_CLASSES)
-
-    method = da_systems.Method(cfg.DAN.METHOD)
+    classifier_network = ClassNetSmallImage(feature_dim, cfg.DATASET.NUM_CLASSES)
+    
+    method = domain_adapter.Method(cfg.DAN.METHOD)
     critic_input_size = feature_dim
     # setup critic network
     if method.is_cdan_method():
@@ -68,7 +69,7 @@ def get_model(cfg, dataset, num_channels):
             critic_input_size = cfg.DAN.RANDOM_DIM
         else:
             critic_input_size = feature_dim * cfg.DATASET.NUM_CLASSES
-    critic_network = da_classify.DomainClassifierDigits(critic_input_size)
+    critic_network = DomainNetSmallImage(critic_input_size)
 
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
@@ -77,7 +78,7 @@ def get_model(cfg, dataset, num_channels):
     if cfg.DAN.METHOD is 'CDAN':
         method_params["use_random"] = cfg.DAN.USERANDOM
 
-    model = da_systems.create_dann_like(
+    model = domain_adapter.create_dann_like(
         method=method,
         dataset=dataset,
         feature_extractor=feature_network,
