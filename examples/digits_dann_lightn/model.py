@@ -10,6 +10,7 @@ from kale.predict.class_domain_nets import ClassNetSmallImage, \
                                               DomainNetSmallImage
 import kale.pipeline.domain_adapter as domain_adapter
 
+
 def get_config(cfg):
     """
     Set the hypermeters for the optimizer using the config file
@@ -39,9 +40,10 @@ def get_config(cfg):
             "target": cfg.DATASET.TARGET,
             "size_type": cfg.DATASET.SIZE_TYPE,
             "weight_type": cfg.DATASET.WEIGHT_TYPE
-        }            
-   }
+        }
+    }
     return config_params
+
 
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 def get_model(cfg, dataset, num_channels):
@@ -70,11 +72,11 @@ def get_model(cfg, dataset, num_channels):
     critic_network = DomainNetSmallImage(critic_input_size)
 
     config_params = get_config(cfg)
-    train_params  = config_params["train_params"]
+    train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
     method_params = {}
     if cfg.DAN.METHOD is 'CDAN':
-        method_params["use_random"] = cfg.DAN.USERANDOM 
+        method_params["use_random"] = cfg.DAN.USERANDOM
 
     model = domain_adapter.create_dann_like(
         method=method,

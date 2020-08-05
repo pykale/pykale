@@ -13,6 +13,14 @@ kale.pipeline.da\_systems module
    :members:
    :undoc-members:
    :show-inheritance:
+   
+kale.pipeline.video\_transformer module
+--------------------------------
+
+.. automodule:: kale.pipeline.video_transformer
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 
 Module contents
