@@ -55,12 +55,15 @@ def main():
     # ---- setup model and logger ----
     print('==> Building model..')
     model, train_params = get_model(cfg, dataset, num_channels)
-    logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD)
 
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = cfg.SOLVER.SEED + i
         pl.seed_everything(seed)
+        logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params, 
+                                                                           cfg.OUTPUT.DIR, 
+                                                                           cfg.DAN.METHOD, 
+                                                                           seed)
         trainer = pl.Trainer(
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
