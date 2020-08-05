@@ -29,8 +29,6 @@ class DigitDataset(Enum):
         Examples::
             >>> source, target, num_channel = get_source_target(sourcename, targetname, data_path)
         """
-        source=source.upper()
-        target=target.upper()
         channel_numbers = {
             DigitDataset.MNIST: 1,
             DigitDataset.MNISTM: 3,
