@@ -1,19 +1,18 @@
 """
-Define the learning model, including configuring training parameters.
+Define the learning model and configure training parameters.
 """
 # Author: Haiping Lu
 # Initial Date: 27 July 2020
-from copy import deepcopy
 
-import kale.embed.image_cnn as image_cnn
+from copy import deepcopy
+from kale.embed.image_cnn import SmallCNNFeature
 from kale.predict.class_domain_nets import ClassNetSmallImage, \
                                               DomainNetSmallImage
 import kale.pipeline.domain_adapter as domain_adapter
 
-
 def get_config(cfg):
     """
-    Set the hypermeters for the optimizer using the config file
+    Sets the hypermeters for the optimizer and experiment using the config file
     """
     config_params = {
         "train_params": {
@@ -44,19 +43,19 @@ def get_config(cfg):
     }
     return config_params
 
-
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 def get_model(cfg, dataset, num_channels):
     """
-    Builds and returns a model according to the config object passed.
-    args:
-        cfg - A YACS config object.
-        dataset - Source and target datasets.
-        num_channels - number of image channels.        
-    """
+    Builds and returns a model and associated hyperparameters according to the config object passed.
 
+    Args:
+        cfg: A YACS config object.
+        dataset: A multidomain dataset consisting of source and target datasets.
+        num_channels: The number of image channels.        
+    """
+    
     # setup feature extractor
-    feature_network = image_cnn.SmallCNNFeature(num_channels)
+    feature_network = SmallCNNFeature(num_channels)
     # setup classifier
     feature_dim = feature_network.output_size()
     classifier_network = ClassNetSmallImage(feature_dim, cfg.DATASET.NUM_CLASSES)

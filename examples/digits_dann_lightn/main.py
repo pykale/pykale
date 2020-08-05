@@ -1,4 +1,8 @@
-# Created by Haiping Lu from modifying https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
+"""This example is about domain adapation for digit image datasets, using PyTorch Lightning.
+
+Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
+"""
+
 import os
 import argparse
 import warnings
@@ -12,15 +16,15 @@ import pytorch_lightning as pl
 
 from config import get_cfg_defaults
 from model import get_model
-
 from kale.loaddata.digits_access import DigitDataset 
 from kale.loaddata.multi_domain import MultiDomainDatasets
-# import kale.utils.seed as seed # to unify later used pl seed_everything
+
 
 def arg_parse():
+    """Parsing arguments
+    """
     parser = argparse.ArgumentParser(description='Domain Adversarial Networks on Digits Datasets')
     parser.add_argument('--cfg', required=True, help='path to config file', type=str)
-    # parser.add_argument('--output', default='default', help='folder to save output', type=str)
     parser.add_argument('--gpus', default='0', help='gpu id(s) to use', type=str)
     parser.add_argument('--resume', default='', type=str)
     args = parser.parse_args()
@@ -28,17 +32,15 @@ def arg_parse():
 
 
 def main():
+    """The main for this domain adapation example, showing the workflow
+    """
     args = arg_parse()
-    # ---- setup device ---- NO NEED for Lightning, handled by Lightning
-    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    # print('==> Using device ' + device)
-
+    
     # ---- setup configs ----
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
     cfg.freeze()
     # torch.manual_seed(cfg.SOLVER.SEED)
-    # seed.set_seed(cfg.SOLVER.SEED)
 
     # ---- setup output ----    
     os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
