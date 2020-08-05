@@ -31,22 +31,22 @@ class SoftmaxNet(nn.Module):
         **activation_args,
     ):
       
-    super(SoftmaxNet, self).__init__()
-    self._n_classes = n_classes
-    self._activation_fn = activation_fn
-    self.chain = nn.Sequential()
-    self.name = name
-    self._hidden_sizes = hidden if hidden is not None else ()
-    last_dim = input_dim
-    for i, h in enumerate(self._hidden_sizes):
-        self.chain.add_module(f"{name}_fc{i}", nn.Linear(last_dim, h))
-        self.chain.add_module(
-            f"f_{activation_fn.__name__}{i}", activation_fn(**activation_args)
-        )
-        last_dim = h
-    self.chain.add_module(f"{name}_fc_last", nn.Linear(last_dim, self._n_classes))
-    self.activation = nn.LogSoftmax(dim=1)
-    self.loss_class = nn.NLLLoss()
+        super(SoftmaxNet, self).__init__()
+        self._n_classes = n_classes
+        self._activation_fn = activation_fn
+        self.chain = nn.Sequential()
+        self.name = name
+        self._hidden_sizes = hidden if hidden is not None else ()
+        last_dim = input_dim
+        for i, h in enumerate(self._hidden_sizes):
+            self.chain.add_module(f"{name}_fc{i}", nn.Linear(last_dim, h))
+            self.chain.add_module(
+                f"f_{activation_fn.__name__}{i}", activation_fn(**activation_args)
+            )
+            last_dim = h
+        self.chain.add_module(f"{name}_fc_last", nn.Linear(last_dim, self._n_classes))
+        self.activation = nn.LogSoftmax(dim=1)
+        self.loss_class = nn.NLLLoss()
 
     def forward(self, input_data):
         class_output = self.chain(input_data)
@@ -71,16 +71,16 @@ class ClassNetSmallImage(nn.Module):
         n_class (int, optional): the number of classes. Defaults to 10.
     """
     def __init__(self, input_size=128, n_class=10):
-    super(ClassNetSmallImage, self).__init__()
-    self._n_classes = n_class
-    self.fc1 = nn.Linear(input_size, 100)
-    self.bn1 = nn.BatchNorm1d(100)
-    self.relu1 = nn.ReLU()
-    self.dp1 = nn.Dropout2d()
-    self.fc2 = nn.Linear(100, 100)
-    self.bn2 = nn.BatchNorm1d(100)
-    self.relu2 = nn.ReLU()
-    self.fc3 = nn.Linear(100, n_class)
+        super(ClassNetSmallImage, self).__init__()
+        self._n_classes = n_class
+        self.fc1 = nn.Linear(input_size, 100)
+        self.bn1 = nn.BatchNorm1d(100)
+        self.relu1 = nn.ReLU()
+        self.dp1 = nn.Dropout2d()
+        self.fc2 = nn.Linear(100, 100)
+        self.bn2 = nn.BatchNorm1d(100)
+        self.relu2 = nn.ReLU()
+        self.fc3 = nn.Linear(100, n_class)
 
     def n_classes(self):
         return self._n_classes

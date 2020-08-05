@@ -69,7 +69,7 @@ def record_hashes(hash_file, hash_, value):
         return True
     return False
 
-def setup_logger(train_params, output_dir, method_name):
+def setup_logger(train_params, output_dir, method_name, seed):
     """[summary]
 
     Args:
