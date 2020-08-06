@@ -41,6 +41,7 @@ class DatasetAccess:
         train_dataset = self.get_train()
         ntotal = len(train_dataset)
         ntrain = int((1 - val_ratio) * ntotal)
+        torch.manual_seed(torch.initial_seed())
         return torch.utils.data.random_split(train_dataset, [ntrain, ntotal - ntrain])
 
     def get_test(self):
