@@ -77,6 +77,7 @@ def get_model(cfg, dataset, num_channels):
     if cfg.DAN.METHOD is 'CDAN':
         method_params["use_random"] = cfg.DAN.USERANDOM
 
+    # The following calls kale.loaddata.dataset_access for the first time
     model = domain_adapter.create_dann_like(
         method=method,
         dataset=dataset,
