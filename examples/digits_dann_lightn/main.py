@@ -7,6 +7,7 @@ import os
 import argparse
 import warnings
 import sys
+import logging
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
@@ -40,11 +41,13 @@ def main():
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
     cfg.freeze()
-    # torch.manual_seed(cfg.SOLVER.SEED)
+    print(cfg)
+    torch.manual_seed(cfg.SOLVER.SEED)
 
     # ---- setup output ----    
     os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
-
+    format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
+    logging.basicConfig(format=format_str)
     # ---- setup dataset ----
     source, target, num_channels = DigitDataset.get_source_target(DigitDataset(cfg.DATASET.SOURCE.upper()),
                                                                   DigitDataset(cfg.DATASET.TARGET.upper()),
