@@ -37,11 +37,11 @@ class DatasetAccess:
 
         Returns:
             Dataset: a torch.utils.data.Dataset
-        """
+        """        
         train_dataset = self.get_train()
         ntotal = len(train_dataset)
         ntrain = int((1 - val_ratio) * ntotal)
-        torch.manual_seed(torch.initial_seed())
+        # torch.manual_seed(torch.initial_seed())  # Not necessary with pl.seed_everything(seed) in main.py
         return torch.utils.data.random_split(train_dataset, [ntrain, ntotal - ntrain])
 
     def get_test(self):
