@@ -1,19 +1,29 @@
-"""
-Domain adaptation architectures should be indifferent to the task at hand: digits, toy datasets, recsys etc.
-Take modules as input and organise them into an architecture.
+"""Domain adaptation systems (pipelines) with three types of architectures
 
-From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/architectures.py
+This module takes individual modules as input and organises them into an architecture. This is taken directly from 
+https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/architectures.py with minor changes.
+
+This module uses `PyTorch Lightning <https://github.com/PyTorchLightning/pytorch-lightning>`_ to standardize the flow.
 """
+
 from enum import Enum
 import numpy as np
 import torch
 from torch.autograd import Function
-# from ada.models.layers import ReverseLayerF
 import kale.predict.losses as losses
 
 import pytorch_lightning as pl
 
 class ReverseLayerF(Function):
+    """The gradient reversal layer (GRL)
+    
+    This is defined in the DANN paper http://jmlr.org/papers/volume17/15-239/15-239.pdf
+
+    Forward pass: identity transformation.
+    Backward propagation: flip the sign of the gradient.
+    
+    From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/layers.py
+    """
     @staticmethod
     def forward(ctx, x, alpha):
         ctx.alpha = alpha
@@ -27,11 +37,16 @@ class ReverseLayerF(Function):
 
 
 def set_requires_grad(model, requires_grad=True):
+    """
+    Configure whether gradients are required for a model
+    """
     for param in model.parameters():
         param.requires_grad = requires_grad
 
 
 def get_aggregated_metrics(metric_name_list, metric_outputs):
+    """Get a dictionary of the mean metric values (to log) from metric names and their values
+    """
     metric_dict = {}
     for metric_name in metric_name_list:
         metric_dim = len(metric_outputs[0][metric_name].shape)
@@ -46,6 +61,8 @@ def get_aggregated_metrics(metric_name_list, metric_outputs):
 
 
 def get_aggregated_metrics_from_dict(input_metric_dict):
+    """Get a dictionary of the mean metric values (to log) from a dictionary of metric values
+    """
     metric_dict = {}
     for metric_name, metric_value in input_metric_dict.items():
         metric_dim = len(metric_value.shape)
@@ -58,6 +75,8 @@ def get_aggregated_metrics_from_dict(input_metric_dict):
 
 # multi-GPUs: mandatory to convert float values into tensors
 def get_metrics_from_parameter_dict(parameter_dict, device):
+    """Get a key-value pair from the hyperparameter dictionary
+    """
     return {k: torch.tensor(v, device=device) for k, v in parameter_dict.items()}
 
 class Method(Enum):
@@ -96,6 +115,8 @@ class Method(Enum):
 def create_mmd_based(
     method: Method, dataset, feature_extractor, task_classifier, **train_params
 ):
+    """MMD-based deep learning methods for domain adaptation: DAN and JAN
+    """
     if not method.is_mmd_method():
         raise ValueError(f"Unsupported MMD method: {method}")
     if method is Method.DAN:
@@ -117,6 +138,8 @@ def create_mmd_based(
 def create_dann_like(
     method: Method, dataset, feature_extractor, task_classifier, critic, **train_params
 ):
+    """DANN-based deep learning methods for domain adaptation: DANN, CDAN, CDAN+E
+    """
     if dataset.is_semi_supervised():
         return create_fewshot_trainer(
             method, dataset, feature_extractor, task_classifier, critic, **train_params
@@ -168,6 +191,8 @@ def create_dann_like(
 def create_fewshot_trainer(
     method: Method, dataset, feature_extractor, task_classifier, critic, **train_params
 ):
+    """DANN-based few-shot deep learning methods for domain adaptation: FSDANN, MME
+    """
     if not dataset.is_semi_supervised():
         raise ValueError(f"Dataset must be semi-supervised for few-shot methods.")
 
@@ -202,7 +227,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         init_lr=1e-3,
         optimizer=None,
     ):
-        """Base class for all domain adaptation architectures.
+        r"""Base class for all domain adaptation architectures.
 
         This class implements the classic building blocks used in all the derived architectures
         for domain adaptation.
@@ -212,7 +237,7 @@ class BaseAdaptTrainer(pl.LightningModule):
            a dictionary for summary statistics and other metrics you may want to have access to.
 
         The default training step uses only the task loss :math:`\mathcal{L}_c` during warmup, 
-        the uses the loss defined as:
+        then uses the loss defined as:
 
         :math:`\mathcal{L} = \mathcal{L}_c + \lambda \mathcal{L}_a`,
 
@@ -222,7 +247,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         changes linearly from 0 to 1.
 
         Args:
-            dataset (ada.datasets.MultiDomainDatasets): the multi-domain datasets to be used
+            dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used
                 for train, validation, and tests.
             feature_extractor (torch.nn.Module): the feature extractor network (mapping inputs :math:`x\in\mathcal{X}` to
                 a latent space :math:`\mathcal{Z}`,)
@@ -459,6 +484,9 @@ class BaseDANNLike(BaseAdaptTrainer):
         batch_reweighting=False,  # not used
         **base_params,
     ):
+        """Common API for DANN-based methods: DANN, CDAN, CDAN+E, WDGRL, MME, FSDANN
+        """     
+
         super().__init__(dataset, feature_extractor, task_classifier, **base_params)
 
         self.alpha = alpha
@@ -1059,6 +1087,9 @@ class BaseMMDLike(BaseAdaptTrainer):
         kernel_num=5,
         **base_params,
     ):
+        """Common API for MME-based deep learning DA methods: DAN, JAN
+        """
+        
         super().__init__(dataset, feature_extractor, task_classifier, **base_params)
 
         self._kernel_mul = kernel_mul

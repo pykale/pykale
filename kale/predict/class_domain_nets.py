@@ -1,5 +1,7 @@
-"""Classification or discriminating of source vs target
-From
+"""Classification of data or domain
+
+Modules for typical classification tasks (into class labels) and 
+adversarial discrimination of source vs target domains, from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
 """
 
@@ -7,10 +9,18 @@ import numpy as np
 import torch.nn as nn
 import torch
 from torchvision import models
-# import 
 
+# Previously FFSoftmaxClassifier
+class SoftmaxNet(nn.Module):
+    """Regular and domain classifier network for regular-size images
 
-class FFSoftmaxClassifier(nn.Module):
+    Args:
+        input_dim (int, optional): the dimension of the final feature vector.. Defaults to 15.
+        n_classes (int, optional): the number of classes. Defaults to 2.
+        name (str, optional): the classifier name. Defaults to "c".
+        hidden (tuple, optional): the hidden layer sizes. Defaults to ().
+        activation_fn ([type], optional): the activation function. Defaults to nn.ReLU.
+    """    
     def __init__(
         self,
         input_dim=15,
@@ -20,7 +30,8 @@ class FFSoftmaxClassifier(nn.Module):
         activation_fn=nn.ReLU,
         **activation_args,
     ):
-        super(FFSoftmaxClassifier, self).__init__()
+      
+        super(SoftmaxNet, self).__init__()
         self._n_classes = n_classes
         self._activation_fn = activation_fn
         self.chain = nn.Sequential()
@@ -51,10 +62,16 @@ class FFSoftmaxClassifier(nn.Module):
     def n_classes(self):
         return self._n_classes
 
+# Previously DataClassifierDigits
+class ClassNetSmallImage(nn.Module):
+    """Regular classifier network for small-size images
 
-class DataClassifierDigits(nn.Module):
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
+        n_class (int, optional): the number of classes. Defaults to 10.
+    """
     def __init__(self, input_size=128, n_class=10):
-        super(DataClassifierDigits, self).__init__()
+        super(ClassNetSmallImage, self).__init__()
         self._n_classes = n_class
         self.fc1 = nn.Linear(input_size, 100)
         self.bn1 = nn.BatchNorm1d(100)
@@ -74,10 +91,17 @@ class DataClassifierDigits(nn.Module):
         x = self.fc3(x)
         return x
 
+# Previously DomainClassifierDigits
+class DomainNetSmallImage(nn.Module):
+    """Domain classifier network for small-size images
 
-class DomainClassifierDigits(nn.Module):
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
+        bigger_discrim (bool, optional): whether to use deeper network. Defaults to False.
+    """
     def __init__(self, input_size=128, bigger_discrim=False):
-        super(DomainClassifierDigits, self).__init__()
+
+        super(DomainNetSmallImage, self).__init__()
         output_size = 500 if bigger_discrim else 100
 
         self.bigger_discrim = bigger_discrim

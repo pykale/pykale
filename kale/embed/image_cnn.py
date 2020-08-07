@@ -1,7 +1,6 @@
-
-"""Feature extraction / embedding
-From
-https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
+"""
+CNNs for extracting features from small images of size 32x32 (e.g. MNIST) and regular images of size 224x224 (e.g. ImageNet). The code is based on  
+https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py, which is for domain adaptation.
 """
 
 import numpy as np
@@ -9,47 +8,21 @@ import torch.nn as nn
 import torch
 from torchvision import models
 
-class FeatureExtractFF(nn.Module):
-    def __init__(
-        self, input_dim, hidden_sizes=(15,), activation_fn=nn.ReLU, **activation_args
-    ):
-        super(FeatureExtractFF, self).__init__()
-        self._in = input_dim
-        self._hidden_sizes = hidden_sizes
-        self._activation_fn = activation_fn
-        self._activation_args = activation_args
-
-        self.feature = nn.Sequential()
-        hin = self._in
-        for i, h in enumerate(self._hidden_sizes):
-            self.feature.add_module(f"f_fc{i}", nn.Linear(hin, h))
-            self.feature.add_module(
-                f"f_{activation_fn.__name__}{i}", activation_fn(**activation_args)
-            )
-            hin = h
-
-        self._out_features = hin
-
-    def forward(self, input_data):
-        return self.feature(input_data)
-
-    def extra_repr(self):
-        return f"FC: {self.hidden_sizes}x{self._activation_fn.__name__}"
-
-    def hidden_layer(self, index=0):
-        return self.feature[index * 2]
-
-    def output_size(self):
-        return self._out_features
-
-
-class FeatureExtractorDigits(nn.Module):
+#From FeatureExtractorDigits in adalib
+class SmallCNNFeature(nn.Module):
     """
-    Feature extractor for MNIST-like data
+    A feature extractor for small 32x32 images (e.g. CIFAR, MNIST) that outputs a feature vector of length 128.
+
+    Args:
+        num_channels: the number of input channels (default=3).
+        ckernel_size: the size of the convolution kernel (default=5).
+
+    Examples::
+        >>> feature_network = SmallCNNFeature(num_channels)
     """
 
     def __init__(self, num_channels=3, kernel_size=5):
-        super(FeatureExtractorDigits, self).__init__()
+        super(SmallCNNFeature, self).__init__()
         self.conv1 = nn.Conv2d(num_channels, 64, kernel_size=kernel_size)
         self.bn1 = nn.BatchNorm2d(64)
         self.pool1 = nn.MaxPool2d(2)
@@ -62,7 +35,7 @@ class FeatureExtractorDigits(nn.Module):
         self.bn3 = nn.BatchNorm2d(64 * 2)
         self.sigmoid = nn.Sigmoid()
         self._out_features = 128
-
+        
     def forward(self, input):
         x = self.bn1(self.conv1(input))
         x = self.relu1(self.pool1(x))
@@ -76,42 +49,20 @@ class FeatureExtractorDigits(nn.Module):
         return self._out_features
 
 
-class AlexNetFeature(nn.Module):
-    """
-    PyTorch model convnet without the last layer
-    adapted from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
-    """
-
-    def __init__(self):
-        super(AlexNetFeature, self).__init__()
-        model_alexnet = models.alexnet(pretrained=True)
-        self.features = model_alexnet.features
-        self.classifier = nn.Sequential()
-        for i in xrange(6):
-            self.classifier.add_module(
-                "classifier" + str(i), model_alexnet.classifier[i]
-            )
-        self._out_features = model_alexnet.classifier[6].in_features
-
-    def forward(self, x):
-        x = self.features(x)
-        x = x.view(x.size(0), 256 * 6 * 6)
-        x = self.classifier(x)
-        return x
-
-    def output_size(self):
-        return self._out_features
-
-
 class ResNet18Feature(nn.Module):
     """
-    PyTorch model convnet without the last layer
-    adapted from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
+    Modified ResNet18 (without the last layer) feature extractor for regular 224x224 images.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Note: 
+        Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
-    def __init__(self):
+    def __init__(self, pretrained=True):
         super(ResNet18Feature, self).__init__()
-        model_resnet18 = models.resnet18(pretrained=True)
+        model_resnet18 = models.resnet18(pretrained)
         self.conv1 = model_resnet18.conv1
         self.bn1 = model_resnet18.bn1
         self.relu = model_resnet18.relu
@@ -142,13 +93,18 @@ class ResNet18Feature(nn.Module):
 
 class ResNet34Feature(nn.Module):
     """
-    PyTorch model convnet without the last layer
-    adapted from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
+    Modified ResNet34 (without the last layer) feature extractor for regular 224x224 images.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Note: 
+        Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
-    def __init__(self):
+    def __init__(self, pretrained=True):
         super(ResNet34Feature, self).__init__()
-        model_resnet34 = models.resnet34(pretrained=True)
+        model_resnet34 = models.resnet34(pretrained)
         self.conv1 = model_resnet34.conv1
         self.bn1 = model_resnet34.bn1
         self.relu = model_resnet34.relu
@@ -179,13 +135,18 @@ class ResNet34Feature(nn.Module):
 
 class ResNet50Feature(nn.Module):
     """
-    PyTorch model convnet without the last layer
-    adapted from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
+    Modified ResNet50 (without the last layer) feature extractor for regular 224x224 images.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Note: 
+        Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
-    def __init__(self):
+    def __init__(self, pretrained=True):
         super(ResNet50Feature, self).__init__()
-        model_resnet50 = models.resnet50(pretrained=True)
+        model_resnet50 = models.resnet50(pretrained)
         self.conv1 = model_resnet50.conv1
         self.bn1 = model_resnet50.bn1
         self.relu = model_resnet50.relu
@@ -216,13 +177,18 @@ class ResNet50Feature(nn.Module):
 
 class ResNet101Feature(nn.Module):
     """
-    PyTorch model convnet without the last layer
-    adapted from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
+    Modified ResNet101 (without the last layer) feature extractor for regular 224x224 images.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Note: 
+        Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
-    def __init__(self):
+    def __init__(self, pretrained=True):
         super(ResNet101Feature, self).__init__()
-        model_resnet101 = models.resnet101(pretrained=True)
+        model_resnet101 = models.resnet101(pretrained)
         self.conv1 = model_resnet101.conv1
         self.bn1 = model_resnet101.bn1
         self.relu = model_resnet101.relu
@@ -253,13 +219,18 @@ class ResNet101Feature(nn.Module):
 
 class ResNet152Feature(nn.Module):
     """
-    PyTorch model convnet without the last layer
-    adapted from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
+    Modified ResNet152 (without the last layer) feature extractor for regular 224x224 images.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Note: 
+        Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
-    def __init__(self):
+    def __init__(self, pretrained=True):
         super(ResNet152Feature, self).__init__()
-        model_resnet152 = models.resnet152(pretrained=True)
+        model_resnet152 = models.resnet152(pretrained)
         self.conv1 = model_resnet152.conv1
         self.bn1 = model_resnet152.bn1
         self.relu = model_resnet152.relu

@@ -1,7 +1,2 @@
-DATASET:
-  NAME: 'digits'
-  NUM_CLASSES: 10
-SOLVER:
-  BASE_LR: 0.001
 DAN:
   METHOD: 'DANN'
