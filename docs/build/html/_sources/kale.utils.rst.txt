@@ -6,10 +6,10 @@ Utilities
 Submodules
 ----------
 
-kale.utils.da\_logger module
-----------------------------
+kale.utils.csv\_logger module
+-----------------------------
 
-.. automodule:: kale.utils.da_logger
+.. automodule:: kale.utils.csv_logger
    :members:
    :undoc-members:
    :show-inheritance:

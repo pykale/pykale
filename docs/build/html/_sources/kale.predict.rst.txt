@@ -6,10 +6,10 @@ Predict
 Submodules
 ----------
 
-kale.predict.da\_classify module
---------------------------------
+kale.predict.class\_domain\_nets module
+---------------------------------------
 
-.. automodule:: kale.predict.da_classify
+.. automodule:: kale.predict.class_domain_nets
    :members:
    :undoc-members:
    :show-inheritance:

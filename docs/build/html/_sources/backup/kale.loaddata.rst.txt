@@ -6,18 +6,10 @@ Load data
 Submodules
 ----------
 
-kale.loaddata.dataset\_access module
-------------------------------------
+kale.loaddata.digits module
+---------------------------
 
-.. automodule:: kale.loaddata.dataset_access
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kale.loaddata.digits\_access module
------------------------------------
-
-.. automodule:: kale.loaddata.digits_access
+.. automodule:: kale.loaddata.digits
    :members:
    :undoc-members:
    :show-inheritance:
@@ -30,10 +22,10 @@ kale.loaddata.mnistm module
    :undoc-members:
    :show-inheritance:
 
-kale.loaddata.multi\_domain module
-----------------------------------
+kale.loaddata.multisource module
+--------------------------------
 
-.. automodule:: kale.loaddata.multi_domain
+.. automodule:: kale.loaddata.multisource
    :members:
    :undoc-members:
    :show-inheritance:
@@ -42,6 +34,14 @@ kale.loaddata.sampler module
 ----------------------------
 
 .. automodule:: kale.loaddata.sampler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.loaddata.splits module
+---------------------------
+
+.. automodule:: kale.loaddata.splits
    :members:
    :undoc-members:
    :show-inheritance:

@@ -14,16 +14,16 @@ kale.embed.attention\_cnn module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.da\_feature module
------------------------------
+kale.embed.image\_cnn module
+----------------------------
 
-.. automodule:: kale.embed.da_feature
+.. automodule:: kale.embed.image_cnn
    :members:
    :undoc-members:
    :show-inheritance:
 
 kale.embed.linformer module
-----------------------
+---------------------------
 
 .. automodule:: kale.embed.linformer
    :members:

@@ -112,8 +112,8 @@
 <li class="toctree-l1"><a class="reference internal" href="kale.predict.html">Predict</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Pipeline (ML System)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-kale.pipeline.da_systems">kale.pipeline.da_systems module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#kale-pipeline-video-transformer-module">kale.pipeline.video_transformer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.pipeline.domain_adapter">kale.pipeline.domain_adapter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.pipeline.video_transformer">kale.pipeline.video_transformer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.pipeline">Module contents</a></li>
 </ul>
 </li>
@@ -222,18 +222,19 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-kale.pipeline.da_systems">
-<span id="kale-pipeline-da-systems-module"></span><h2>kale.pipeline.da_systems module<a class="headerlink" href="#module-kale.pipeline.da_systems" title="Permalink to this headline">¶</a></h2>
-<p>Domain adaptation architectures should be indifferent to the task at hand: digits, toy datasets, recsys etc.
-Take modules as input and organise them into an architecture.</p>
-<p>From <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/architectures.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/architectures.py</a></p>
+<div class="section" id="module-kale.pipeline.domain_adapter">
+<span id="kale-pipeline-domain-adapter-module"></span><h2>kale.pipeline.domain_adapter module<a class="headerlink" href="#module-kale.pipeline.domain_adapter" title="Permalink to this headline">¶</a></h2>
+<p>Domain adaptation systems (pipelines) with three types of architectures</p>
+<p>This module takes individual modules as input and organises them into an architecture. This is taken directly from
+<a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/architectures.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/architectures.py</a> with minor changes.</p>
+<p>This module uses <a class="reference external" href="https://github.com/PyTorchLightning/pytorch-lightning">PyTorch Lightning</a> to standardize the flow.</p>
 <dl class="py class">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer">
-<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">BaseAdaptTrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">lambda_init</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">adapt_lambda</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">adapt_lr</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">nb_init_epochs</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">nb_adapt_epochs</span><span class="o">=</span><span class="default_value">50</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">32</span></em>, <em class="sig-param"><span class="n">init_lr</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">optimizer</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">BaseAdaptTrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">lambda_init</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">adapt_lambda</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">adapt_lr</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">nb_init_epochs</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">nb_adapt_epochs</span><span class="o">=</span><span class="default_value">50</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">32</span></em>, <em class="sig-param"><span class="n">init_lr</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">optimizer</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pytorch_lightning.core.lightning.LightningModule</span></code></p>
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.compute_loss">
-<code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.compute_loss" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.compute_loss">
+<code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the loss of the model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -255,8 +256,8 @@ log_metrics should be a dictionary.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.configure_optimizers">
-<code class="sig-name descname">configure_optimizers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.configure_optimizers" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.configure_optimizers">
+<code class="sig-name descname">configure_optimizers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.configure_optimizers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Choose what optimizers and learning-rate schedulers to use in your optimization.
 Normally you’d need one. But in the case of GANs or similar you might have multiple.</p>
 <dl class="field-list simple">
@@ -343,7 +344,7 @@ It has five keys. The default configuration is shown below.</p>
 and learning rate scheduler as needed.</p></li>
 <li><p>If you use 16-bit precision (<code class="docutils literal notranslate"><span class="pre">precision=16</span></code>), Lightning will automatically
 handle the optimizers for you.</p></li>
-<li><p>If you use multiple optimizers, <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.training_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.training_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code></a> will have an additional
+<li><p>If you use multiple optimizers, <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.training_step" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.training_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code></a> will have an additional
 <code class="docutils literal notranslate"><span class="pre">optimizer_idx</span></code> parameter.</p></li>
 <li><p>If you use LBFGS Lightning handles the closure function automatically for you.</p></li>
 <li><p>If you use multiple optimizers, gradients will be calculated only
@@ -366,11 +367,11 @@ or want to monitor a custom metric, you can specify these in a lr_dict:</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Same as <code class="xref py py-meth docutils literal notranslate"><span class="pre">torch.nn.Module.forward()</span></code>, however in Lightning you want this to define
 the operations you want to use for prediction (i.e.: on a server or as a feature extractor).</p>
-<p>Normally you’d call <code class="docutils literal notranslate"><span class="pre">self()</span></code> from your <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.training_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.training_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code></a> method.
+<p>Normally you’d call <code class="docutils literal notranslate"><span class="pre">self()</span></code> from your <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.training_step" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.training_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code></a> method.
 This makes it easy to write a complex system for training with the outputs
 you’d want in a prediction setting.</p>
 <p>You may also find the <code class="xref py py-func docutils literal notranslate"><span class="pre">auto_move_data()</span></code> decorator useful
@@ -419,19 +420,19 @@ when using the module outside Lightning in a production setting.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.get_parameters_watch_list">
-<code class="sig-name descname">get_parameters_watch_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.get_parameters_watch_list" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.get_parameters_watch_list">
+<code class="sig-name descname">get_parameters_watch_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.get_parameters_watch_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update this list for parameters to watch while training (ie log with MLFlow)</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.method">
-<em class="property">property </em><code class="sig-name descname">method</code><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.method" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.method">
+<em class="property">property </em><code class="sig-name descname">method</code><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.method" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.test_dataloader">
-<code class="sig-name descname">test_dataloader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_dataloader" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.test_dataloader">
+<code class="sig-name descname">test_dataloader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.test_dataloader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement one or multiple PyTorch DataLoaders for testing.</p>
 <p>The dataloader you return will not be called every epoch unless you set
 <a href="#id1"><span class="problematic" id="id2">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
@@ -452,9 +453,9 @@ when using the module outside Lightning in a production setting.</p>
 <li><p>…</p></li>
 <li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></p></li>
 <li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></p></li>
-<li><p><a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader" title="kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
-<li><p><a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.val_dataloader" title="kale.pipeline.da_systems.BaseAdaptTrainer.val_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">val_dataloader()</span></code></a></p></li>
-<li><p><a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_dataloader" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.train_dataloader" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.val_dataloader" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.val_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">val_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.test_dataloader" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.test_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_dataloader()</span></code></a></p></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -483,14 +484,14 @@ There is no need to set it yourself.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you don’t need a test dataset and a <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a>, you don’t need to implement
+<p>If you don’t need a test dataset and a <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.test_step" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a>, you don’t need to implement
 this method.</p>
 </div>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.test_epoch_end">
-<code class="sig-name descname">test_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_epoch_end" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.test_epoch_end">
+<code class="sig-name descname">test_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.test_epoch_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the end of a test epoch with the output of all test steps.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the pseudocode for these calls</span>
 <span class="n">test_outs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -519,7 +520,7 @@ are multiple dataloaders, a list containing a list of outputs for each dataloade
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you didn’t define a <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a>, this won’t be called.</p>
+<p>If you didn’t define a <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.test_step" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a>, this won’t be called.</p>
 </div>
 <ul class="simple">
 <li><p>The outputs here are strictly for logging or progress bar.</p></li>
@@ -569,8 +570,8 @@ each test step for that dataloader.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.test_step">
-<code class="sig-name descname">test_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_nb</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_step" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.test_step">
+<code class="sig-name descname">test_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_nb</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.test_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Operates on a single batch of data from the test set.
 In this step you’d normally generate examples or calculate anything of interest
 such as accuracy.</p>
@@ -592,7 +593,7 @@ such as accuracy.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Dict or OrderedDict - passed to the <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_epoch_end" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_epoch_end"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_epoch_end()</span></code></a> method.
+<dd class="field-even"><p>Dict or OrderedDict - passed to the <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.test_epoch_end" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.test_epoch_end"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_epoch_end()</span></code></a> method.
 If you defined <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step_end()</span></code> it will go to that first.</p>
 </dd>
 </dl>
@@ -633,7 +634,7 @@ If you defined <code class="xref py py-meth docutils literal notranslate"><span 
     <span class="k">return</span> <span class="n">output</span>
 </pre></div>
 </div>
-<p>If you pass in multiple validation datasets, <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a> will have an additional
+<p>If you pass in multiple validation datasets, <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.test_step" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a> will have an additional
 argument.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 2: multiple test datasets</span>
 <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataset_idx</span><span class="p">):</span>
@@ -646,15 +647,15 @@ argument.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>When the <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a> is called, the model has been put in eval mode and
+<p>When the <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.test_step" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a> is called, the model has been put in eval mode and
 PyTorch gradients have been disabled. At the end of the test epoch, the model goes back
 to training mode and gradients are enabled.</p>
 </div>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader">
-<code class="sig-name descname">train_dataloader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.train_dataloader">
+<code class="sig-name descname">train_dataloader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.train_dataloader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement a PyTorch DataLoader for training.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -680,7 +681,7 @@ to training mode and gradients are enabled.</p>
 <li><p>…</p></li>
 <li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></p></li>
 <li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></p></li>
-<li><p><a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader" title="kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.train_dataloader" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -704,8 +705,8 @@ There is no need to set it yourself.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.training_step">
-<code class="sig-name descname">training_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_nb</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.training_step" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.training_step">
+<code class="sig-name descname">training_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_nb</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.training_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>The most generic of training steps</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -730,8 +731,8 @@ There is no need to set it yourself.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.val_dataloader">
-<code class="sig-name descname">val_dataloader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.val_dataloader" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.val_dataloader">
+<code class="sig-name descname">val_dataloader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.val_dataloader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement one or multiple PyTorch DataLoaders for validation.</p>
 <p>The dataloader you return will not be called every epoch unless you set
 <a href="#id5"><span class="problematic" id="id6">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_epoch`</span></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
@@ -740,9 +741,9 @@ There is no need to set it yourself.</p>
 <li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
 <li><p>…</p></li>
 <li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></p></li>
-<li><p><a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader" title="kale.pipeline.da_systems.BaseAdaptTrainer.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
-<li><p><a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.val_dataloader" title="kale.pipeline.da_systems.BaseAdaptTrainer.val_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">val_dataloader()</span></code></a></p></li>
-<li><p><a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.test_dataloader" title="kale.pipeline.da_systems.BaseAdaptTrainer.test_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.train_dataloader" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.val_dataloader" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.val_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">val_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.test_dataloader" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.test_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_dataloader()</span></code></a></p></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -775,19 +776,19 @@ There is no need to set it yourself.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you don’t need a validation dataset and a <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>, you don’t need to
+<p>If you don’t need a validation dataset and a <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_step" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>, you don’t need to
 implement this method.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>In the case where you return multiple validation dataloaders, the <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>
+<p>In the case where you return multiple validation dataloaders, the <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_step" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>
 will have an argument <code class="docutils literal notranslate"><span class="pre">dataset_idx</span></code> which matches the order here.</p>
 </div>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.validation_epoch_end">
-<code class="sig-name descname">validation_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_epoch_end" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_epoch_end">
+<code class="sig-name descname">validation_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_epoch_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the end of the validation epoch with the outputs of all validation steps.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the pseudocode for these calls</span>
 <span class="n">val_outs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -799,7 +800,7 @@ will have an argument <code class="docutils literal notranslate"><span class="pr
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>outputs</strong> – List of outputs you defined in <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>, or if there
+<dd class="field-odd"><p><strong>outputs</strong> – List of outputs you defined in <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_step" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>, or if there
 are multiple dataloaders, a list containing a list of outputs for each dataloader.</p>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -814,7 +815,7 @@ May have the following optional keys:</p>
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you didn’t define a <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>, this won’t be called.</p>
+<p>If you didn’t define a <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_step" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a>, this won’t be called.</p>
 </div>
 <ul class="simple">
 <li><p>The outputs here are strictly for logging or progress bar.</p></li>
@@ -864,8 +865,8 @@ each validation step for that dataloader.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step">
-<code class="sig-name descname">validation_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_nb</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_step">
+<code class="sig-name descname">validation_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_nb</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Operates on a single batch of data from the validation set.
 In this step you’d might generate examples or calculate anything of interest like accuracy.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the pseudocode for these calls</span>
@@ -886,7 +887,7 @@ In this step you’d might generate examples or calculate anything of interest l
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Dict or OrderedDict - passed to <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_epoch_end" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_epoch_end"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_epoch_end()</span></code></a>.
+<dd class="field-even"><p>Dict or OrderedDict - passed to <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_epoch_end" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_epoch_end"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_epoch_end()</span></code></a>.
 If you defined <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step_end()</span></code> it will go to that first.</p>
 </dd>
 </dl>
@@ -946,7 +947,7 @@ If you defined <code class="xref py py-meth docutils literal notranslate"><span 
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>When the <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer.validation_step" title="kale.pipeline.da_systems.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a> is called, the model has been put in eval mode
+<p>When the <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_step" title="kale.pipeline.domain_adapter.BaseAdaptTrainer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a> is called, the model has been put in eval mode
 and PyTorch gradients have been disabled. At the end of validation,
 the model goes back to training mode and gradients are enabled.</p>
 </div>
@@ -955,12 +956,12 @@ the model goes back to training mode and gradients are enabled.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.pipeline.da_systems.BaseDANNLike">
-<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">BaseDANNLike</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">entropy_reg</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">adapt_reg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">batch_reweighting</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseDANNLike" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer" title="kale.pipeline.da_systems.BaseAdaptTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.BaseAdaptTrainer</span></code></a></p>
+<dt id="kale.pipeline.domain_adapter.BaseDANNLike">
+<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">BaseDANNLike</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">entropy_reg</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">adapt_reg</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">batch_reweighting</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseDANNLike" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer" title="kale.pipeline.domain_adapter.BaseAdaptTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.domain_adapter.BaseAdaptTrainer</span></code></a></p>
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseDANNLike.compute_loss">
-<code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseDANNLike.compute_loss" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseDANNLike.compute_loss">
+<code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseDANNLike.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the loss of the model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -982,14 +983,14 @@ log_metrics should be a dictionary.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseDANNLike.get_parameters_watch_list">
-<code class="sig-name descname">get_parameters_watch_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseDANNLike.get_parameters_watch_list" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseDANNLike.get_parameters_watch_list">
+<code class="sig-name descname">get_parameters_watch_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseDANNLike.get_parameters_watch_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update this list for parameters to watch while training (ie log with MLFlow)</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseDANNLike.test_epoch_end">
-<code class="sig-name descname">test_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseDANNLike.test_epoch_end" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseDANNLike.test_epoch_end">
+<code class="sig-name descname">test_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseDANNLike.test_epoch_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the end of a test epoch with the output of all test steps.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the pseudocode for these calls</span>
 <span class="n">test_outs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1068,8 +1069,8 @@ each test step for that dataloader.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseDANNLike.validation_epoch_end">
-<code class="sig-name descname">validation_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseDANNLike.validation_epoch_end" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseDANNLike.validation_epoch_end">
+<code class="sig-name descname">validation_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseDANNLike.validation_epoch_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the end of the validation epoch with the outputs of all validation steps.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the pseudocode for these calls</span>
 <span class="n">val_outs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1148,12 +1149,12 @@ each validation step for that dataloader.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.pipeline.da_systems.BaseMMDLike">
-<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">BaseMMDLike</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">kernel_mul</span><span class="o">=</span><span class="default_value">2.0</span></em>, <em class="sig-param"><span class="n">kernel_num</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseMMDLike" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.BaseAdaptTrainer" title="kale.pipeline.da_systems.BaseAdaptTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.BaseAdaptTrainer</span></code></a></p>
+<dt id="kale.pipeline.domain_adapter.BaseMMDLike">
+<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">BaseMMDLike</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">kernel_mul</span><span class="o">=</span><span class="default_value">2.0</span></em>, <em class="sig-param"><span class="n">kernel_num</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseMMDLike" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseAdaptTrainer" title="kale.pipeline.domain_adapter.BaseAdaptTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.domain_adapter.BaseAdaptTrainer</span></code></a></p>
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseMMDLike.compute_loss">
-<code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseMMDLike.compute_loss" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseMMDLike.compute_loss">
+<code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseMMDLike.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the loss of the model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1175,8 +1176,8 @@ log_metrics should be a dictionary.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseMMDLike.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseMMDLike.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseMMDLike.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseMMDLike.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Same as <code class="xref py py-meth docutils literal notranslate"><span class="pre">torch.nn.Module.forward()</span></code>, however in Lightning you want this to define
 the operations you want to use for prediction (i.e.: on a server or as a feature extractor).</p>
 <p>Normally you’d call <code class="docutils literal notranslate"><span class="pre">self()</span></code> from your <code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code> method.
@@ -1228,8 +1229,8 @@ when using the module outside Lightning in a production setting.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseMMDLike.test_epoch_end">
-<code class="sig-name descname">test_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseMMDLike.test_epoch_end" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseMMDLike.test_epoch_end">
+<code class="sig-name descname">test_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseMMDLike.test_epoch_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the end of a test epoch with the output of all test steps.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the pseudocode for these calls</span>
 <span class="n">test_outs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1308,8 +1309,8 @@ each test step for that dataloader.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.BaseMMDLike.validation_epoch_end">
-<code class="sig-name descname">validation_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.BaseMMDLike.validation_epoch_end" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.BaseMMDLike.validation_epoch_end">
+<code class="sig-name descname">validation_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.BaseMMDLike.validation_epoch_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the end of the validation epoch with the outputs of all validation steps.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the pseudocode for these calls</span>
 <span class="n">val_outs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1388,15 +1389,15 @@ each validation step for that dataloader.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.pipeline.da_systems.CDANtrainer">
-<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">CDANtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">use_entropy</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">use_random</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">random_dim</span><span class="o">=</span><span class="default_value">1024</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.CDANtrainer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.BaseDANNLike" title="kale.pipeline.da_systems.BaseDANNLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.BaseDANNLike</span></code></a></p>
+<dt id="kale.pipeline.domain_adapter.CDANtrainer">
+<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">CDANtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">use_entropy</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">use_random</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">random_dim</span><span class="o">=</span><span class="default_value">1024</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.CDANtrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseDANNLike" title="kale.pipeline.domain_adapter.BaseDANNLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.domain_adapter.BaseDANNLike</span></code></a></p>
 <p>Implements CDAN: Long, Mingsheng, et al. “Conditional adversarial domain adaptation.”
 Advances in Neural Information Processing Systems. 2018.
 <a class="reference external" href="https://papers.nips.cc/paper/7436-conditional-adversarial-domain-adaptation.pdf">https://papers.nips.cc/paper/7436-conditional-adversarial-domain-adaptation.pdf</a></p>
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.CDANtrainer.compute_loss">
-<code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.CDANtrainer.compute_loss" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.CDANtrainer.compute_loss">
+<code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.CDANtrainer.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the loss of the model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1418,8 +1419,8 @@ log_metrics should be a dictionary.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.CDANtrainer.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.CDANtrainer.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.CDANtrainer.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.CDANtrainer.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Same as <code class="xref py py-meth docutils literal notranslate"><span class="pre">torch.nn.Module.forward()</span></code>, however in Lightning you want this to define
 the operations you want to use for prediction (i.e.: on a server or as a feature extractor).</p>
 <p>Normally you’d call <code class="docutils literal notranslate"><span class="pre">self()</span></code> from your <code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code> method.
@@ -1473,17 +1474,17 @@ when using the module outside Lightning in a production setting.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.pipeline.da_systems.DANNtrainer">
-<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">DANNtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.DANNtrainer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.BaseDANNLike" title="kale.pipeline.da_systems.BaseDANNLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.BaseDANNLike</span></code></a></p>
+<dt id="kale.pipeline.domain_adapter.DANNtrainer">
+<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">DANNtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.DANNtrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseDANNLike" title="kale.pipeline.domain_adapter.BaseDANNLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.domain_adapter.BaseDANNLike</span></code></a></p>
 <p>This class implements the DANN architecture from
 Ganin, Yaroslav, et al.
 “Domain-adversarial training of neural networks.”
 The Journal of Machine Learning Research (2016)
 <a class="reference external" href="https://arxiv.org/abs/1505.07818">https://arxiv.org/abs/1505.07818</a></p>
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.DANNtrainer.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.DANNtrainer.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.DANNtrainer.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.DANNtrainer.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Same as <code class="xref py py-meth docutils literal notranslate"><span class="pre">torch.nn.Module.forward()</span></code>, however in Lightning you want this to define
 the operations you want to use for prediction (i.e.: on a server or as a feature extractor).</p>
 <p>Normally you’d call <code class="docutils literal notranslate"><span class="pre">self()</span></code> from your <code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code> method.
@@ -1537,9 +1538,9 @@ when using the module outside Lightning in a production setting.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.pipeline.da_systems.DANtrainer">
-<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">DANtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.DANtrainer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.BaseMMDLike" title="kale.pipeline.da_systems.BaseMMDLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.BaseMMDLike</span></code></a></p>
+<dt id="kale.pipeline.domain_adapter.DANtrainer">
+<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">DANtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.DANtrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseMMDLike" title="kale.pipeline.domain_adapter.BaseMMDLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.domain_adapter.BaseMMDLike</span></code></a></p>
 <p>This is an implementation of DAN
 Long, Mingsheng, et al.
 “Learning Transferable Features with Deep Adaptation Networks.”
@@ -1549,9 +1550,9 @@ code based on <a class="reference external" href="https://github.com/thuml/Xlear
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.pipeline.da_systems.FewShotDANNtrainer">
-<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">FewShotDANNtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">method</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.FewShotDANNtrainer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.BaseDANNLike" title="kale.pipeline.da_systems.BaseDANNLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.BaseDANNLike</span></code></a></p>
+<dt id="kale.pipeline.domain_adapter.FewShotDANNtrainer">
+<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">FewShotDANNtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">method</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.FewShotDANNtrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseDANNLike" title="kale.pipeline.domain_adapter.BaseDANNLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.domain_adapter.BaseDANNLike</span></code></a></p>
 <p>Implements adaptations of DANN to the semi-supervised setting</p>
 <p>naive: task classifier is trained on labeled target data, in addition to source
 data.
@@ -1560,8 +1561,8 @@ MME: immplements Saito, Kuniaki, et al.
 Proceedings of the IEEE International Conference on Computer Vision. 2019
 <a class="reference external" href="https://arxiv.org/pdf/1904.06487.pdf">https://arxiv.org/pdf/1904.06487.pdf</a></p>
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.FewShotDANNtrainer.compute_loss">
-<code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.FewShotDANNtrainer.compute_loss" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.FewShotDANNtrainer.compute_loss">
+<code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.FewShotDANNtrainer.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the loss of the model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1583,8 +1584,8 @@ log_metrics should be a dictionary.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.FewShotDANNtrainer.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.FewShotDANNtrainer.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.FewShotDANNtrainer.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.FewShotDANNtrainer.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Same as <code class="xref py py-meth docutils literal notranslate"><span class="pre">torch.nn.Module.forward()</span></code>, however in Lightning you want this to define
 the operations you want to use for prediction (i.e.: on a server or as a feature extractor).</p>
 <p>Normally you’d call <code class="docutils literal notranslate"><span class="pre">self()</span></code> from your <code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code> method.
@@ -1638,9 +1639,9 @@ when using the module outside Lightning in a production setting.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.pipeline.da_systems.JANtrainer">
-<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">JANtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">kernel_mul</span><span class="o">=</span><span class="default_value">2.0, 2.0</span></em>, <em class="sig-param"><span class="n">kernel_num</span><span class="o">=</span><span class="default_value">5, 1</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.JANtrainer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.BaseMMDLike" title="kale.pipeline.da_systems.BaseMMDLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.BaseMMDLike</span></code></a></p>
+<dt id="kale.pipeline.domain_adapter.JANtrainer">
+<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">JANtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">kernel_mul</span><span class="o">=</span><span class="default_value">2.0, 2.0</span></em>, <em class="sig-param"><span class="n">kernel_num</span><span class="o">=</span><span class="default_value">5, 1</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.JANtrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseMMDLike" title="kale.pipeline.domain_adapter.BaseMMDLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.domain_adapter.BaseMMDLike</span></code></a></p>
 <p>This is an implementation of JAN
 Long, Mingsheng, et al.
 “Deep transfer learning with joint adaptation networks.”
@@ -1650,113 +1651,118 @@ code based on <a class="reference external" href="https://github.com/thuml/Xlear
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.pipeline.da_systems.Method">
-<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">Method</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.Method" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method">
+<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">Method</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.Method" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
 <p>Lists the available methods.
 Provides a few methods that group the methods by type.</p>
 <dl class="py attribute">
-<dt id="kale.pipeline.da_systems.Method.CDAN">
-<code class="sig-name descname">CDAN</code><em class="property"> = 'CDAN'</em><a class="headerlink" href="#kale.pipeline.da_systems.Method.CDAN" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.CDAN">
+<code class="sig-name descname">CDAN</code><em class="property"> = 'CDAN'</em><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.CDAN" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.pipeline.da_systems.Method.CDAN_E">
-<code class="sig-name descname">CDAN_E</code><em class="property"> = 'CDAN-E'</em><a class="headerlink" href="#kale.pipeline.da_systems.Method.CDAN_E" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.CDAN_E">
+<code class="sig-name descname">CDAN_E</code><em class="property"> = 'CDAN-E'</em><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.CDAN_E" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.pipeline.da_systems.Method.DAN">
-<code class="sig-name descname">DAN</code><em class="property"> = 'DAN'</em><a class="headerlink" href="#kale.pipeline.da_systems.Method.DAN" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.DAN">
+<code class="sig-name descname">DAN</code><em class="property"> = 'DAN'</em><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.DAN" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.pipeline.da_systems.Method.DANN">
-<code class="sig-name descname">DANN</code><em class="property"> = 'DANN'</em><a class="headerlink" href="#kale.pipeline.da_systems.Method.DANN" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.DANN">
+<code class="sig-name descname">DANN</code><em class="property"> = 'DANN'</em><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.DANN" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.pipeline.da_systems.Method.FSDANN">
-<code class="sig-name descname">FSDANN</code><em class="property"> = 'FSDANN'</em><a class="headerlink" href="#kale.pipeline.da_systems.Method.FSDANN" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.FSDANN">
+<code class="sig-name descname">FSDANN</code><em class="property"> = 'FSDANN'</em><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.FSDANN" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.pipeline.da_systems.Method.JAN">
-<code class="sig-name descname">JAN</code><em class="property"> = 'JAN'</em><a class="headerlink" href="#kale.pipeline.da_systems.Method.JAN" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.JAN">
+<code class="sig-name descname">JAN</code><em class="property"> = 'JAN'</em><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.JAN" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.pipeline.da_systems.Method.MME">
-<code class="sig-name descname">MME</code><em class="property"> = 'MME'</em><a class="headerlink" href="#kale.pipeline.da_systems.Method.MME" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.MME">
+<code class="sig-name descname">MME</code><em class="property"> = 'MME'</em><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.MME" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.pipeline.da_systems.Method.Source">
-<code class="sig-name descname">Source</code><em class="property"> = 'Source'</em><a class="headerlink" href="#kale.pipeline.da_systems.Method.Source" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.Source">
+<code class="sig-name descname">Source</code><em class="property"> = 'Source'</em><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.Source" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.pipeline.da_systems.Method.WDGRL">
-<code class="sig-name descname">WDGRL</code><em class="property"> = 'WDGRL'</em><a class="headerlink" href="#kale.pipeline.da_systems.Method.WDGRL" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.WDGRL">
+<code class="sig-name descname">WDGRL</code><em class="property"> = 'WDGRL'</em><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.WDGRL" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.pipeline.da_systems.Method.WDGRLMod">
-<code class="sig-name descname">WDGRLMod</code><em class="property"> = 'WDGRLMod'</em><a class="headerlink" href="#kale.pipeline.da_systems.Method.WDGRLMod" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.WDGRLMod">
+<code class="sig-name descname">WDGRLMod</code><em class="property"> = 'WDGRLMod'</em><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.WDGRLMod" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.Method.allow_supervised">
-<code class="sig-name descname">allow_supervised</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.Method.allow_supervised" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.allow_supervised">
+<code class="sig-name descname">allow_supervised</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.allow_supervised" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.Method.is_cdan_method">
-<code class="sig-name descname">is_cdan_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.Method.is_cdan_method" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.is_cdan_method">
+<code class="sig-name descname">is_cdan_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.is_cdan_method" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.Method.is_dann_method">
-<code class="sig-name descname">is_dann_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.Method.is_dann_method" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.is_dann_method">
+<code class="sig-name descname">is_dann_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.is_dann_method" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.Method.is_fewshot_method">
-<code class="sig-name descname">is_fewshot_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.Method.is_fewshot_method" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.is_fewshot_method">
+<code class="sig-name descname">is_fewshot_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.is_fewshot_method" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.Method.is_mmd_method">
-<code class="sig-name descname">is_mmd_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.Method.is_mmd_method" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.Method.is_mmd_method">
+<code class="sig-name descname">is_mmd_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.Method.is_mmd_method" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.pipeline.da_systems.ReverseLayerF">
-<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">ReverseLayerF</code><a class="headerlink" href="#kale.pipeline.da_systems.ReverseLayerF" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.ReverseLayerF">
+<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">ReverseLayerF</code><a class="headerlink" href="#kale.pipeline.domain_adapter.ReverseLayerF" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.autograd.function.Function</span></code></p>
+<p>The gradient reversal layer (GRL)</p>
+<p>This is defined in the DANN paper <a class="reference external" href="http://jmlr.org/papers/volume17/15-239/15-239.pdf">http://jmlr.org/papers/volume17/15-239/15-239.pdf</a></p>
+<p>Forward pass: identity transformation.
+Backward propagation: flip the sign of the gradient.</p>
+<p>From <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/layers.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/layers.py</a></p>
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.ReverseLayerF.backward">
-<em class="property">static </em><code class="sig-name descname">backward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ctx</span></em>, <em class="sig-param"><span class="n">grad_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.ReverseLayerF.backward" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.ReverseLayerF.backward">
+<em class="property">static </em><code class="sig-name descname">backward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ctx</span></em>, <em class="sig-param"><span class="n">grad_output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.ReverseLayerF.backward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines a formula for differentiating the operation.</p>
 <p>This function is to be overridden by all subclasses.</p>
 <p>It must accept a context <code class="xref py py-attr docutils literal notranslate"><span class="pre">ctx</span></code> as the first argument, followed by
-as many outputs did <a class="reference internal" href="#kale.pipeline.da_systems.ReverseLayerF.forward" title="kale.pipeline.da_systems.ReverseLayerF.forward"><code class="xref py py-func docutils literal notranslate"><span class="pre">forward()</span></code></a> return, and it should return as many
-tensors, as there were inputs to <a class="reference internal" href="#kale.pipeline.da_systems.ReverseLayerF.forward" title="kale.pipeline.da_systems.ReverseLayerF.forward"><code class="xref py py-func docutils literal notranslate"><span class="pre">forward()</span></code></a>. Each argument is the
+as many outputs did <a class="reference internal" href="#kale.pipeline.domain_adapter.ReverseLayerF.forward" title="kale.pipeline.domain_adapter.ReverseLayerF.forward"><code class="xref py py-func docutils literal notranslate"><span class="pre">forward()</span></code></a> return, and it should return as many
+tensors, as there were inputs to <a class="reference internal" href="#kale.pipeline.domain_adapter.ReverseLayerF.forward" title="kale.pipeline.domain_adapter.ReverseLayerF.forward"><code class="xref py py-func docutils literal notranslate"><span class="pre">forward()</span></code></a>. Each argument is the
 gradient w.r.t the given output, and each returned value should be the
 gradient w.r.t. the corresponding input.</p>
 <p>The context can be used to retrieve tensors saved during the forward
 pass. It also has an attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">ctx.needs_input_grad</span></code> as a tuple
 of booleans representing whether each input needs gradient. E.g.,
-<a class="reference internal" href="#kale.pipeline.da_systems.ReverseLayerF.backward" title="kale.pipeline.da_systems.ReverseLayerF.backward"><code class="xref py py-func docutils literal notranslate"><span class="pre">backward()</span></code></a> will have <code class="docutils literal notranslate"><span class="pre">ctx.needs_input_grad[0]</span> <span class="pre">=</span> <span class="pre">True</span></code> if the
-first input to <a class="reference internal" href="#kale.pipeline.da_systems.ReverseLayerF.forward" title="kale.pipeline.da_systems.ReverseLayerF.forward"><code class="xref py py-func docutils literal notranslate"><span class="pre">forward()</span></code></a> needs gradient computated w.r.t. the
+<a class="reference internal" href="#kale.pipeline.domain_adapter.ReverseLayerF.backward" title="kale.pipeline.domain_adapter.ReverseLayerF.backward"><code class="xref py py-func docutils literal notranslate"><span class="pre">backward()</span></code></a> will have <code class="docutils literal notranslate"><span class="pre">ctx.needs_input_grad[0]</span> <span class="pre">=</span> <span class="pre">True</span></code> if the
+first input to <a class="reference internal" href="#kale.pipeline.domain_adapter.ReverseLayerF.forward" title="kale.pipeline.domain_adapter.ReverseLayerF.forward"><code class="xref py py-func docutils literal notranslate"><span class="pre">forward()</span></code></a> needs gradient computated w.r.t. the
 output.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.ReverseLayerF.forward">
-<em class="property">static </em><code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ctx</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">alpha</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.ReverseLayerF.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.ReverseLayerF.forward">
+<em class="property">static </em><code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ctx</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">alpha</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.ReverseLayerF.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs the operation.</p>
 <p>This function is to be overridden by all subclasses.</p>
 <p>It must accept a context ctx as the first argument, followed by any
@@ -1768,9 +1774,9 @@ during the backward pass.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.pipeline.da_systems.WDGRLtrainer">
-<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">WDGRLtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">k_critic</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">beta_ratio</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.BaseDANNLike" title="kale.pipeline.da_systems.BaseDANNLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.BaseDANNLike</span></code></a></p>
+<dt id="kale.pipeline.domain_adapter.WDGRLtrainer">
+<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">WDGRLtrainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">k_critic</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">beta_ratio</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.WDGRLtrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.domain_adapter.BaseDANNLike" title="kale.pipeline.domain_adapter.BaseDANNLike"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.domain_adapter.BaseDANNLike</span></code></a></p>
 <p>Implements WDGRL as described in
 Shen, Jian, et al.
 “Wasserstein distance guided representation learning for domain adaptation.”
@@ -1782,8 +1788,8 @@ Wu, Yifan, et al.
 ICML (2019)
 <a class="reference external" href="https://arxiv.org/pdf/1903.01689.pdf">https://arxiv.org/pdf/1903.01689.pdf</a></p>
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.WDGRLtrainer.compute_loss">
-<code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainer.compute_loss" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.WDGRLtrainer.compute_loss">
+<code class="sig-name descname">compute_loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">split_name</span><span class="o">=</span><span class="default_value">'V'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.WDGRLtrainer.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define the loss of the model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1805,8 +1811,8 @@ log_metrics should be a dictionary.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.WDGRLtrainer.configure_optimizers">
-<code class="sig-name descname">configure_optimizers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainer.configure_optimizers" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.WDGRLtrainer.configure_optimizers">
+<code class="sig-name descname">configure_optimizers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.WDGRLtrainer.configure_optimizers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Choose what optimizers and learning-rate schedulers to use in your optimization.
 Normally you’d need one. But in the case of GANs or similar you might have multiple.</p>
 <dl class="field-list simple">
@@ -1893,7 +1899,7 @@ It has five keys. The default configuration is shown below.</p>
 and learning rate scheduler as needed.</p></li>
 <li><p>If you use 16-bit precision (<code class="docutils literal notranslate"><span class="pre">precision=16</span></code>), Lightning will automatically
 handle the optimizers for you.</p></li>
-<li><p>If you use multiple optimizers, <a class="reference internal" href="#kale.pipeline.da_systems.WDGRLtrainer.training_step" title="kale.pipeline.da_systems.WDGRLtrainer.training_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code></a> will have an additional
+<li><p>If you use multiple optimizers, <a class="reference internal" href="#kale.pipeline.domain_adapter.WDGRLtrainer.training_step" title="kale.pipeline.domain_adapter.WDGRLtrainer.training_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code></a> will have an additional
 <code class="docutils literal notranslate"><span class="pre">optimizer_idx</span></code> parameter.</p></li>
 <li><p>If you use LBFGS Lightning handles the closure function automatically for you.</p></li>
 <li><p>If you use multiple optimizers, gradients will be calculated only
@@ -1916,16 +1922,16 @@ or want to monitor a custom metric, you can specify these in a lr_dict:</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.WDGRLtrainer.critic_update_steps">
-<code class="sig-name descname">critic_update_steps</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainer.critic_update_steps" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.WDGRLtrainer.critic_update_steps">
+<code class="sig-name descname">critic_update_steps</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.WDGRLtrainer.critic_update_steps" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.WDGRLtrainer.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainer.forward" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.WDGRLtrainer.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.WDGRLtrainer.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Same as <code class="xref py py-meth docutils literal notranslate"><span class="pre">torch.nn.Module.forward()</span></code>, however in Lightning you want this to define
 the operations you want to use for prediction (i.e.: on a server or as a feature extractor).</p>
-<p>Normally you’d call <code class="docutils literal notranslate"><span class="pre">self()</span></code> from your <a class="reference internal" href="#kale.pipeline.da_systems.WDGRLtrainer.training_step" title="kale.pipeline.da_systems.WDGRLtrainer.training_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code></a> method.
+<p>Normally you’d call <code class="docutils literal notranslate"><span class="pre">self()</span></code> from your <a class="reference internal" href="#kale.pipeline.domain_adapter.WDGRLtrainer.training_step" title="kale.pipeline.domain_adapter.WDGRLtrainer.training_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code></a> method.
 This makes it easy to write a complex system for training with the outputs
 you’d want in a prediction setting.</p>
 <p>You may also find the <code class="xref py py-func docutils literal notranslate"><span class="pre">auto_move_data()</span></code> decorator useful
@@ -1974,8 +1980,8 @@ when using the module outside Lightning in a production setting.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.WDGRLtrainer.training_step">
-<code class="sig-name descname">training_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainer.training_step" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.WDGRLtrainer.training_step">
+<code class="sig-name descname">training_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.WDGRLtrainer.training_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>The most generic of training steps</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -2002,9 +2008,9 @@ when using the module outside Lightning in a production setting.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.pipeline.da_systems.WDGRLtrainerMod">
-<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">WDGRLtrainerMod</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">k_critic</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">beta_ratio</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainerMod" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.da_systems.WDGRLtrainer" title="kale.pipeline.da_systems.WDGRLtrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.da_systems.WDGRLtrainer</span></code></a></p>
+<dt id="kale.pipeline.domain_adapter.WDGRLtrainerMod">
+<em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">WDGRLtrainerMod</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="n">k_critic</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">beta_ratio</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">base_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.WDGRLtrainerMod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.pipeline.domain_adapter.WDGRLtrainer" title="kale.pipeline.domain_adapter.WDGRLtrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.pipeline.domain_adapter.WDGRLtrainer</span></code></a></p>
 <p>Implements a modified version WDGRL as described in
 Shen, Jian, et al.
 “Wasserstein distance guided representation learning for domain adaptation.”
@@ -2016,8 +2022,8 @@ Wu, Yifan, et al.
 ICML (2019)
 <a class="reference external" href="https://arxiv.org/pdf/1903.01689.pdf">https://arxiv.org/pdf/1903.01689.pdf</a></p>
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.WDGRLtrainerMod.configure_optimizers">
-<code class="sig-name descname">configure_optimizers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainerMod.configure_optimizers" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.WDGRLtrainerMod.configure_optimizers">
+<code class="sig-name descname">configure_optimizers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.WDGRLtrainerMod.configure_optimizers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Choose what optimizers and learning-rate schedulers to use in your optimization.
 Normally you’d need one. But in the case of GANs or similar you might have multiple.</p>
 <dl class="field-list simple">
@@ -2104,13 +2110,13 @@ It has five keys. The default configuration is shown below.</p>
 and learning rate scheduler as needed.</p></li>
 <li><p>If you use 16-bit precision (<code class="docutils literal notranslate"><span class="pre">precision=16</span></code>), Lightning will automatically
 handle the optimizers for you.</p></li>
-<li><p>If you use multiple optimizers, <a class="reference internal" href="#kale.pipeline.da_systems.WDGRLtrainerMod.training_step" title="kale.pipeline.da_systems.WDGRLtrainerMod.training_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code></a> will have an additional
+<li><p>If you use multiple optimizers, <a class="reference internal" href="#kale.pipeline.domain_adapter.WDGRLtrainerMod.training_step" title="kale.pipeline.domain_adapter.WDGRLtrainerMod.training_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">training_step()</span></code></a> will have an additional
 <code class="docutils literal notranslate"><span class="pre">optimizer_idx</span></code> parameter.</p></li>
 <li><p>If you use LBFGS Lightning handles the closure function automatically for you.</p></li>
 <li><p>If you use multiple optimizers, gradients will be calculated only
 for the parameters of current optimizer at each training step.</p></li>
 <li><p>If you need to control how often those optimizers step or override the
-default <code class="docutils literal notranslate"><span class="pre">.step()</span></code> schedule, override the <a class="reference internal" href="#kale.pipeline.da_systems.WDGRLtrainerMod.optimizer_step" title="kale.pipeline.da_systems.WDGRLtrainerMod.optimizer_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">optimizer_step()</span></code></a> hook.</p></li>
+default <code class="docutils literal notranslate"><span class="pre">.step()</span></code> schedule, override the <a class="reference internal" href="#kale.pipeline.domain_adapter.WDGRLtrainerMod.optimizer_step" title="kale.pipeline.domain_adapter.WDGRLtrainerMod.optimizer_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">optimizer_step()</span></code></a> hook.</p></li>
 <li><p>If you only want to call a learning rate scheduler every <code class="docutils literal notranslate"><span class="pre">x</span></code> step or epoch,
 or want to monitor a custom metric, you can specify these in a lr_dict:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -2127,13 +2133,13 @@ or want to monitor a custom metric, you can specify these in a lr_dict:</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.WDGRLtrainerMod.critic_update_steps">
-<code class="sig-name descname">critic_update_steps</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainerMod.critic_update_steps" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.WDGRLtrainerMod.critic_update_steps">
+<code class="sig-name descname">critic_update_steps</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.WDGRLtrainerMod.critic_update_steps" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.WDGRLtrainerMod.optimizer_step">
-<code class="sig-name descname">optimizer_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">current_epoch</span></em>, <em class="sig-param"><span class="n">batch_nb</span></em>, <em class="sig-param"><span class="n">optimizer</span></em>, <em class="sig-param"><span class="n">optimizer_i</span></em>, <em class="sig-param"><span class="n">second_order_closure</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainerMod.optimizer_step" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.WDGRLtrainerMod.optimizer_step">
+<code class="sig-name descname">optimizer_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">current_epoch</span></em>, <em class="sig-param"><span class="n">batch_nb</span></em>, <em class="sig-param"><span class="n">optimizer</span></em>, <em class="sig-param"><span class="n">optimizer_i</span></em>, <em class="sig-param"><span class="n">second_order_closure</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.WDGRLtrainerMod.optimizer_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Override this method to adjust the default way the
 <code class="xref py py-class docutils literal notranslate"><span class="pre">Trainer</span></code> calls each optimizer.
 By default, Lightning calls <code class="docutils literal notranslate"><span class="pre">step()</span></code> and <code class="docutils literal notranslate"><span class="pre">zero_grad()</span></code> as shown in the example
@@ -2201,8 +2207,8 @@ model hook don’t forget to add the call to it before <code class="docutils lit
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.pipeline.da_systems.WDGRLtrainerMod.training_step">
-<code class="sig-name descname">training_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_id</span></em>, <em class="sig-param"><span class="n">optimizer_idx</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.WDGRLtrainerMod.training_step" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.pipeline.domain_adapter.WDGRLtrainerMod.training_step">
+<code class="sig-name descname">training_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_id</span></em>, <em class="sig-param"><span class="n">optimizer_idx</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.WDGRLtrainerMod.training_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>The most generic of training steps</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -2229,44 +2235,51 @@ model hook don’t forget to add the call to it before <code class="docutils lit
 </dd></dl>
 
 <dl class="py function">
-<dt id="kale.pipeline.da_systems.create_dann_like">
-<code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">create_dann_like</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">method</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.pipeline.da_systems.Method" title="kale.pipeline.da_systems.Method">kale.pipeline.da_systems.Method</a></span></em>, <em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">train_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.create_dann_like" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="kale.pipeline.domain_adapter.create_dann_like">
+<code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">create_dann_like</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">method</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.pipeline.domain_adapter.Method" title="kale.pipeline.domain_adapter.Method">kale.pipeline.domain_adapter.Method</a></span></em>, <em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">train_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.create_dann_like" title="Permalink to this definition">¶</a></dt>
+<dd><p>DANN-based deep learning methods for domain adaptation: DANN, CDAN, CDAN+E</p>
+</dd></dl>
 
 <dl class="py function">
-<dt id="kale.pipeline.da_systems.create_fewshot_trainer">
-<code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">create_fewshot_trainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">method</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.pipeline.da_systems.Method" title="kale.pipeline.da_systems.Method">kale.pipeline.da_systems.Method</a></span></em>, <em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">train_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.create_fewshot_trainer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="kale.pipeline.domain_adapter.create_fewshot_trainer">
+<code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">create_fewshot_trainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">method</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.pipeline.domain_adapter.Method" title="kale.pipeline.domain_adapter.Method">kale.pipeline.domain_adapter.Method</a></span></em>, <em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="n">critic</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">train_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.create_fewshot_trainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>DANN-based few-shot deep learning methods for domain adaptation: FSDANN, MME</p>
+</dd></dl>
 
 <dl class="py function">
-<dt id="kale.pipeline.da_systems.create_mmd_based">
-<code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">create_mmd_based</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">method</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.pipeline.da_systems.Method" title="kale.pipeline.da_systems.Method">kale.pipeline.da_systems.Method</a></span></em>, <em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">train_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.create_mmd_based" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="kale.pipeline.domain_adapter.create_mmd_based">
+<code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">create_mmd_based</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">method</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.pipeline.domain_adapter.Method" title="kale.pipeline.domain_adapter.Method">kale.pipeline.domain_adapter.Method</a></span></em>, <em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">feature_extractor</span></em>, <em class="sig-param"><span class="n">task_classifier</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">train_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.create_mmd_based" title="Permalink to this definition">¶</a></dt>
+<dd><p>MMD-based deep learning methods for domain adaptation: DAN and JAN</p>
+</dd></dl>
 
 <dl class="py function">
-<dt id="kale.pipeline.da_systems.get_aggregated_metrics">
-<code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">get_aggregated_metrics</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">metric_name_list</span></em>, <em class="sig-param"><span class="n">metric_outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.get_aggregated_metrics" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="kale.pipeline.domain_adapter.get_aggregated_metrics">
+<code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">get_aggregated_metrics</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">metric_name_list</span></em>, <em class="sig-param"><span class="n">metric_outputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.get_aggregated_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a dictionary of the mean metric values (to log) from metric names and their values</p>
+</dd></dl>
 
 <dl class="py function">
-<dt id="kale.pipeline.da_systems.get_aggregated_metrics_from_dict">
-<code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">get_aggregated_metrics_from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_metric_dict</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.get_aggregated_metrics_from_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="kale.pipeline.domain_adapter.get_aggregated_metrics_from_dict">
+<code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">get_aggregated_metrics_from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_metric_dict</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.get_aggregated_metrics_from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a dictionary of the mean metric values (to log) from a dictionary of metric values</p>
+</dd></dl>
 
 <dl class="py function">
-<dt id="kale.pipeline.da_systems.get_metrics_from_parameter_dict">
-<code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">get_metrics_from_parameter_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parameter_dict</span></em>, <em class="sig-param"><span class="n">device</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.get_metrics_from_parameter_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="kale.pipeline.domain_adapter.get_metrics_from_parameter_dict">
+<code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">get_metrics_from_parameter_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parameter_dict</span></em>, <em class="sig-param"><span class="n">device</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.get_metrics_from_parameter_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a key-value pair from the hyperparameter dictionary</p>
+</dd></dl>
 
 <dl class="py function">
-<dt id="kale.pipeline.da_systems.set_requires_grad">
-<code class="sig-prename descclassname">kale.pipeline.da_systems.</code><code class="sig-name descname">set_requires_grad</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">requires_grad</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.da_systems.set_requires_grad" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="kale.pipeline.domain_adapter.set_requires_grad">
+<code class="sig-prename descclassname">kale.pipeline.domain_adapter.</code><code class="sig-name descname">set_requires_grad</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">requires_grad</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.domain_adapter.set_requires_grad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure whether gradients are required for a model</p>
+</dd></dl>
 
 </div>
-<div class="section" id="kale-pipeline-video-transformer-module">
-<h2>kale.pipeline.video_transformer module<a class="headerlink" href="#kale-pipeline-video-transformer-module" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-kale.pipeline.video_transformer"></span><dl class="py class">
+<div class="section" id="module-kale.pipeline.video_transformer">
+<span id="kale-pipeline-video-transformer-module"></span><h2>kale.pipeline.video_transformer module<a class="headerlink" href="#module-kale.pipeline.video_transformer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
 <dt id="kale.pipeline.video_transformer.VideoTransformer">
 <em class="property">class </em><code class="sig-prename descclassname">kale.pipeline.video_transformer.</code><code class="sig-name descname">VideoTransformer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fram_per_vid</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">cnntransformer</span><span class="p">:</span> <span class="n"><a class="reference internal" href="kale.embed.html#kale.embed.attention_cnn.ContextCNNGeneric" title="kale.embed.attention_cnn.ContextCNNGeneric">kale.embed.attention_cnn.ContextCNNGeneric</a></span></em>, <em class="sig-param"><span class="n">cnntrans_out_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">, </span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">nheads</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">linformer_k</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">dim_feedforward</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">num_layers</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">dropout</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'relu'</span></em>, <em class="sig-param"><span class="n">pos_encoding</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.pipeline.video_transformer.VideoTransformer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pytorch_lightning.core.lightning.LightningModule</span></code></p>
