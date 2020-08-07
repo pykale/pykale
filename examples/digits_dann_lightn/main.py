@@ -42,8 +42,7 @@ def main():
     cfg.merge_from_file(args.cfg)
     cfg.freeze()
     print(cfg)
-    # torch.manual_seed(cfg.SOLVER.SEED) # Not necessary with pl.seed_everything(seed) in main.py
-
+    
     # ---- setup output ----    
     os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
@@ -54,14 +53,13 @@ def main():
                                                                   cfg.DATASET.ROOT)
     dataset = MultiDomainDatasets(source, target, config_weight_type=cfg.DATASET.WEIGHT_TYPE,
                                   config_size_type=cfg.DATASET.SIZE_TYPE)
-
-    # ---- setup model and logger ----
-    
+  
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = cfg.SOLVER.SEED + i
         pl.seed_everything(seed)                                                        
-        print('==> Building model for seed ' + str(seed) + ' ......')                                                           
+        print('==> Building model for seed ' + str(seed) + ' ......')      
+        # ---- setup model and logger ----                                                     
         model, train_params = get_model(cfg, dataset, num_channels)
         logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params, 
                                                                            cfg.OUTPUT.DIR, 
@@ -76,6 +74,7 @@ def main():
             gpus=args.gpus,
             logger=False,  # logger,
             # weights_summary='full',  
+            # deterministic=True, # For reproducibility
             fast_dev_run=False,  # True,
         )
 
