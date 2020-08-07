@@ -108,11 +108,11 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Load data</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-kale.loaddata.digits">kale.loaddata.digits module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.loaddata.dataset_access">kale.loaddata.dataset_access module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.loaddata.digits_access">kale.loaddata.digits_access module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.loaddata.mnistm">kale.loaddata.mnistm module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-kale.loaddata.multisource">kale.loaddata.multisource module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-kale.loaddata.multi_domain">kale.loaddata.multi_domain module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.loaddata.sampler">kale.loaddata.sampler module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-kale.loaddata.splits">kale.loaddata.splits module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.loaddata.usps">kale.loaddata.usps module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-kale.loaddata">Module contents</a></li>
 </ul>
@@ -226,113 +226,201 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-kale.loaddata.digits">
-<span id="kale-loaddata-digits-module"></span><h2>kale.loaddata.digits module<a class="headerlink" href="#module-kale.loaddata.digits" title="Permalink to this headline">¶</a></h2>
-<p>Digits dataset loading for MNIST, SVHN, MNIST-M (modified MNIST), and USPS
-Modified by Haiping Lu from
+<div class="section" id="module-kale.loaddata.dataset_access">
+<span id="kale-loaddata-dataset-access-module"></span><h2>kale.loaddata.dataset_access module<a class="headerlink" href="#module-kale.loaddata.dataset_access" title="Permalink to this headline">¶</a></h2>
+<p>Dataset Access API adapted from <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_access.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_access.py</a></p>
+<dl class="py class">
+<dt id="kale.loaddata.dataset_access.DatasetAccess">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.dataset_access.</code><code class="sig-name descname">DatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_classes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.dataset_access.DatasetAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class ensures a unique API is used to access training, validation and test splits
+of any dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_classes</strong> – the number of classes (default=3).</p></li>
+<li><p><strong>ckernel_size</strong> – the size of the convolution kernel (default=5).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kale.loaddata.dataset_access.DatasetAccess.get_test">
+<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.dataset_access.DatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.dataset_access.DatasetAccess.get_train">
+<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.dataset_access.DatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Returns: a torch.utils.data.Dataset</dt><dd><p>Dataset: a torch.utils.data.Dataset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.dataset_access.DatasetAccess.get_train_val">
+<code class="sig-name descname">get_train_val</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val_ratio</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.dataset_access.DatasetAccess.get_train_val" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly split a dataset into non-overlapping training and validation datasets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>val_ratio</strong> (<em>float</em>) – the ratio for validation set</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a torch.utils.data.Dataset</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dataset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.dataset_access.DatasetAccess.n_classes">
+<code class="sig-name descname">n_classes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.dataset_access.DatasetAccess.n_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kale.loaddata.digits_access">
+<span id="kale-loaddata-digits-access-module"></span><h2>kale.loaddata.digits_access module<a class="headerlink" href="#module-kale.loaddata.digits_access" title="Permalink to this headline">¶</a></h2>
+<p>Digits dataset (source and target domain) loading for MNIST, SVHN, MNIST-M (modified MNIST), and USPS. The code is based on
 <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py</a></p>
 <dl class="py class">
-<dt id="kale.loaddata.digits.DigitDataset">
-<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits.</code><code class="sig-name descname">DigitDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.DigitDataset" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.digits_access.DigitDataset">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits_access.</code><code class="sig-name descname">DigitDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.DigitDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
 <p>An enumeration.</p>
 <dl class="py attribute">
-<dt id="kale.loaddata.digits.DigitDataset.MNIST">
-<code class="sig-name descname">MNIST</code><em class="property"> = 'MNIST'</em><a class="headerlink" href="#kale.loaddata.digits.DigitDataset.MNIST" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.digits_access.DigitDataset.MNIST">
+<code class="sig-name descname">MNIST</code><em class="property"> = 'MNIST'</em><a class="headerlink" href="#kale.loaddata.digits_access.DigitDataset.MNIST" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.loaddata.digits.DigitDataset.MNISTM">
-<code class="sig-name descname">MNISTM</code><em class="property"> = 'MNISTM'</em><a class="headerlink" href="#kale.loaddata.digits.DigitDataset.MNISTM" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.digits_access.DigitDataset.MNISTM">
+<code class="sig-name descname">MNISTM</code><em class="property"> = 'MNISTM'</em><a class="headerlink" href="#kale.loaddata.digits_access.DigitDataset.MNISTM" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.loaddata.digits.DigitDataset.SVHN">
-<code class="sig-name descname">SVHN</code><em class="property"> = 'SVHN'</em><a class="headerlink" href="#kale.loaddata.digits.DigitDataset.SVHN" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.digits_access.DigitDataset.SVHN">
+<code class="sig-name descname">SVHN</code><em class="property"> = 'SVHN'</em><a class="headerlink" href="#kale.loaddata.digits_access.DigitDataset.SVHN" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.loaddata.digits.DigitDataset.USPS">
-<code class="sig-name descname">USPS</code><em class="property"> = 'USPS'</em><a class="headerlink" href="#kale.loaddata.digits.DigitDataset.USPS" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.digits_access.DigitDataset.USPS">
+<code class="sig-name descname">USPS</code><em class="property"> = 'USPS'</em><a class="headerlink" href="#kale.loaddata.digits_access.DigitDataset.USPS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.loaddata.digits.DigitDataset.get_accesses">
-<em class="property">static </em><code class="sig-name descname">get_accesses</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.loaddata.digits.DigitDataset" title="kale.loaddata.digits.DigitDataset">kale.loaddata.digits.DigitDataset</a></span></em>, <em class="sig-param"><span class="n">target</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.loaddata.digits.DigitDataset" title="kale.loaddata.digits.DigitDataset">kale.loaddata.digits.DigitDataset</a></span></em>, <em class="sig-param"><span class="n">data_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.DigitDataset.get_accesses" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="kale.loaddata.digits.DigitDatasetAccess">
-<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits.</code><code class="sig-name descname">DigitDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.DigitDatasetAccess" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.splits.DatasetAccess" title="kale.loaddata.splits.DatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.splits.DatasetAccess</span></code></a></p>
-</dd></dl>
-
-<dl class="py class">
-<dt id="kale.loaddata.digits.MNISTDatasetAccess">
-<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits.</code><code class="sig-name descname">MNISTDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.MNISTDatasetAccess" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.digits.DigitDatasetAccess" title="kale.loaddata.digits.DigitDatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.digits.DigitDatasetAccess</span></code></a></p>
-<dl class="py method">
-<dt id="kale.loaddata.digits.MNISTDatasetAccess.get_test">
-<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.MNISTDatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="kale.loaddata.digits.MNISTDatasetAccess.get_train">
-<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.MNISTDatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns: a torch.utils.data.Dataset</p>
+<dt id="kale.loaddata.digits_access.DigitDataset.get_source_target">
+<em class="property">static </em><code class="sig-name descname">get_source_target</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.loaddata.digits_access.DigitDataset" title="kale.loaddata.digits_access.DigitDataset">kale.loaddata.digits_access.DigitDataset</a></span></em>, <em class="sig-param"><span class="n">target</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.loaddata.digits_access.DigitDataset" title="kale.loaddata.digits_access.DigitDataset">kale.loaddata.digits_access.DigitDataset</a></span></em>, <em class="sig-param"><span class="n">data_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.DigitDataset.get_source_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get data loaders for source and target datasets</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<a class="reference internal" href="#kale.loaddata.digits_access.DigitDataset" title="kale.loaddata.digits_access.DigitDataset"><em>DigitDataset</em></a>) – source dataset name</p></li>
+<li><p><strong>target</strong> (<a class="reference internal" href="#kale.loaddata.digits_access.DigitDataset" title="kale.loaddata.digits_access.DigitDataset"><em>DigitDataset</em></a>) – target dataset name</p></li>
+<li><p><strong>data_path</strong> (<em>string</em>) – root directory of dataset</p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">num_channel</span> <span class="o">=</span> <span class="n">get_source_target</span><span class="p">(</span><span class="n">sourcename</span><span class="p">,</span> <span class="n">targetname</span><span class="p">,</span> <span class="n">data_path</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.loaddata.digits.MNISTMDatasetAccess">
-<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits.</code><code class="sig-name descname">MNISTMDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.MNISTMDatasetAccess" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.digits.DigitDatasetAccess" title="kale.loaddata.digits.DigitDatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.digits.DigitDatasetAccess</span></code></a></p>
+<dt id="kale.loaddata.digits_access.DigitDatasetAccess">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits_access.</code><code class="sig-name descname">DigitDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.DigitDatasetAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.dataset_access.DatasetAccess" title="kale.loaddata.dataset_access.DatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.dataset_access.DatasetAccess</span></code></a></p>
+<p>Common API for digit dataset access</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_path</strong> (<em>string</em>) – root directory of dataset</p></li>
+<li><p><strong>transform_kind</strong> (<em>string</em>) – types of image transforms</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.digits_access.MNISTDatasetAccess">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits_access.</code><code class="sig-name descname">MNISTDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.MNISTDatasetAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.digits_access.DigitDatasetAccess" title="kale.loaddata.digits_access.DigitDatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.digits_access.DigitDatasetAccess</span></code></a></p>
+<p>MNIST data loader</p>
 <dl class="py method">
-<dt id="kale.loaddata.digits.MNISTMDatasetAccess.get_test">
-<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.MNISTMDatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.digits_access.MNISTDatasetAccess.get_test">
+<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.MNISTDatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.loaddata.digits.MNISTMDatasetAccess.get_train">
-<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.MNISTMDatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns: a torch.utils.data.Dataset</p>
+<dt id="kale.loaddata.digits_access.MNISTDatasetAccess.get_train">
+<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.MNISTDatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns: a torch.utils.data.Dataset
+Dataset: a torch.utils.data.Dataset</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.loaddata.digits.SVHNDatasetAccess">
-<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits.</code><code class="sig-name descname">SVHNDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.SVHNDatasetAccess" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.digits.DigitDatasetAccess" title="kale.loaddata.digits.DigitDatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.digits.DigitDatasetAccess</span></code></a></p>
+<dt id="kale.loaddata.digits_access.MNISTMDatasetAccess">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits_access.</code><code class="sig-name descname">MNISTMDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.MNISTMDatasetAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.digits_access.DigitDatasetAccess" title="kale.loaddata.digits_access.DigitDatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.digits_access.DigitDatasetAccess</span></code></a></p>
+<p>Modified MNIST (MNISTM) data loader</p>
 <dl class="py method">
-<dt id="kale.loaddata.digits.SVHNDatasetAccess.get_test">
-<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.SVHNDatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.digits_access.MNISTMDatasetAccess.get_test">
+<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.MNISTMDatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.loaddata.digits.SVHNDatasetAccess.get_train">
-<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.SVHNDatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns: a torch.utils.data.Dataset</p>
+<dt id="kale.loaddata.digits_access.MNISTMDatasetAccess.get_train">
+<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.MNISTMDatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns: a torch.utils.data.Dataset
+Dataset: a torch.utils.data.Dataset</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.loaddata.digits.USPSDatasetAccess">
-<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits.</code><code class="sig-name descname">USPSDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.USPSDatasetAccess" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.digits.DigitDatasetAccess" title="kale.loaddata.digits.DigitDatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.digits.DigitDatasetAccess</span></code></a></p>
+<dt id="kale.loaddata.digits_access.SVHNDatasetAccess">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits_access.</code><code class="sig-name descname">SVHNDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.SVHNDatasetAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.digits_access.DigitDatasetAccess" title="kale.loaddata.digits_access.DigitDatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.digits_access.DigitDatasetAccess</span></code></a></p>
+<p>SVHN data loader</p>
 <dl class="py method">
-<dt id="kale.loaddata.digits.USPSDatasetAccess.get_test">
-<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.USPSDatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.digits_access.SVHNDatasetAccess.get_test">
+<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.SVHNDatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.loaddata.digits.USPSDatasetAccess.get_train">
-<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits.USPSDatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns: a torch.utils.data.Dataset</p>
+<dt id="kale.loaddata.digits_access.SVHNDatasetAccess.get_train">
+<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.SVHNDatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns: a torch.utils.data.Dataset
+Dataset: a torch.utils.data.Dataset</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kale.loaddata.digits_access.USPSDatasetAccess">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.digits_access.</code><code class="sig-name descname">USPSDatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span></em>, <em class="sig-param"><span class="n">transform_kind</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.USPSDatasetAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.digits_access.DigitDatasetAccess" title="kale.loaddata.digits_access.DigitDatasetAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.digits_access.DigitDatasetAccess</span></code></a></p>
+<p>USPS data loader</p>
+<dl class="py method">
+<dt id="kale.loaddata.digits_access.USPSDatasetAccess.get_test">
+<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.USPSDatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kale.loaddata.digits_access.USPSDatasetAccess.get_train">
+<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.digits_access.USPSDatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns: a torch.utils.data.Dataset
+Dataset: a torch.utils.data.Dataset</p>
 </dd></dl>
 
 </dd></dl>
@@ -340,12 +428,10 @@ Modified by Haiping Lu from
 </div>
 <div class="section" id="module-kale.loaddata.mnistm">
 <span id="kale-loaddata-mnistm-module"></span><h2>kale.loaddata.mnistm module<a class="headerlink" href="#module-kale.loaddata.mnistm" title="Permalink to this headline">¶</a></h2>
-<p>Dataset setting and data loader for MNIST-M.</p>
-<p>Modified from
+<p>Dataset setting and data loader for MNIST-M, from
 <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_mnistm.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_mnistm.py</a>
-(from <a class="reference external" href="https://github.com/pytorch/vision/blob/master/torchvision/datasets/mnist.py">https://github.com/pytorch/vision/blob/master/torchvision/datasets/mnist.py</a>)</p>
-<p>CREDIT: <a class="reference external" href="https://github.com/corenel">https://github.com/corenel</a>
-amt: changed train_data and test_data to data, and train_labels and test_labels to targets like MNIST</p>
+(based on <a class="reference external" href="https://github.com/pytorch/vision/blob/master/torchvision/datasets/mnist.py">https://github.com/pytorch/vision/blob/master/torchvision/datasets/mnist.py</a>)
+CREDIT: <a class="reference external" href="https://github.com/corenel">https://github.com/corenel</a></p>
 <dl class="py class">
 <dt id="kale.loaddata.mnistm.MNISTM">
 <em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.mnistm.</code><code class="sig-name descname">MNISTM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span></em>, <em class="sig-param"><span class="n">train</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">transform</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">target_transform</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">download</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.mnistm.MNISTM" title="Permalink to this definition">¶</a></dt>
@@ -361,9 +447,9 @@ If True, loads the training data. Otherwise, loads the test data.</p></li>
 <li><p><strong>transform</strong> (<em>callable</em><em>, </em><em>optional</em>) – defaults to None.
 A function/transform that takes in
 an PIL image and returns a transformed version.
-E.g, <code class="docutils literal notranslate"><span class="pre">transforms.RandomCrop</span></code>
+E.g., <code class="docutils literal notranslate"><span class="pre">transforms.RandomCrop</span></code>
 This preprocessing function applied to all images (whether source or target)</p></li>
-<li><p><strong>target_transform</strong> (<em>callable</em><em>, </em><em>optional</em>) – default toNone, similar to transform.
+<li><p><strong>target_transform</strong> (<em>callable</em><em>, </em><em>optional</em>) – default to None, similar to transform.
 This preprocessing function applied to all target images, after <cite>transform</cite></p></li>
 <li><p><strong>download</strong> (<em>bool optional</em>) – defaults to False.
 Whether to allow downloading the data if not found on disk.</p></li>
@@ -404,39 +490,38 @@ Whether to allow downloading the data if not found on disk.</p></li>
 </dd></dl>
 
 </div>
-<div class="section" id="module-kale.loaddata.multisource">
-<span id="kale-loaddata-multisource-module"></span><h2>kale.loaddata.multisource module<a class="headerlink" href="#module-kale.loaddata.multisource" title="Permalink to this headline">¶</a></h2>
-<p>Construct a dataset with source and target domains</p>
-<p>From <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py</a></p>
+<div class="section" id="module-kale.loaddata.multi_domain">
+<span id="kale-loaddata-multi-domain-module"></span><h2>kale.loaddata.multi_domain module<a class="headerlink" href="#module-kale.loaddata.multi_domain" title="Permalink to this headline">¶</a></h2>
+<p>Construct a dataset with (multiple) source and target domains, from <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py</a></p>
 <dl class="py class">
-<dt id="kale.loaddata.multisource.DatasetSizeType">
-<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.multisource.</code><code class="sig-name descname">DatasetSizeType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.DatasetSizeType" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.multi_domain.DatasetSizeType">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.multi_domain.</code><code class="sig-name descname">DatasetSizeType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multi_domain.DatasetSizeType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
 <p>An enumeration.</p>
 <dl class="py attribute">
-<dt id="kale.loaddata.multisource.DatasetSizeType.Max">
-<code class="sig-name descname">Max</code><em class="property"> = 'max'</em><a class="headerlink" href="#kale.loaddata.multisource.DatasetSizeType.Max" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.multi_domain.DatasetSizeType.Max">
+<code class="sig-name descname">Max</code><em class="property"> = 'max'</em><a class="headerlink" href="#kale.loaddata.multi_domain.DatasetSizeType.Max" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.loaddata.multisource.DatasetSizeType.Source">
-<code class="sig-name descname">Source</code><em class="property"> = 'source'</em><a class="headerlink" href="#kale.loaddata.multisource.DatasetSizeType.Source" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.multi_domain.DatasetSizeType.Source">
+<code class="sig-name descname">Source</code><em class="property"> = 'source'</em><a class="headerlink" href="#kale.loaddata.multi_domain.DatasetSizeType.Source" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.loaddata.multisource.DatasetSizeType.get_size">
-<em class="property">static </em><code class="sig-name descname">get_size</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size_type</span></em>, <em class="sig-param"><span class="n">source_dataset</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">other_datasets</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.DatasetSizeType.get_size" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.multi_domain.DatasetSizeType.get_size">
+<em class="property">static </em><code class="sig-name descname">get_size</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size_type</span></em>, <em class="sig-param"><span class="n">source_dataset</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">other_datasets</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multi_domain.DatasetSizeType.get_size" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.loaddata.multisource.DomainsDatasetBase">
-<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.multisource.</code><code class="sig-name descname">DomainsDatasetBase</code><a class="headerlink" href="#kale.loaddata.multisource.DomainsDatasetBase" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.multi_domain.DomainsDatasetBase">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.multi_domain.</code><code class="sig-name descname">DomainsDatasetBase</code><a class="headerlink" href="#kale.loaddata.multi_domain.DomainsDatasetBase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt id="kale.loaddata.multisource.DomainsDatasetBase.get_domain_loaders">
-<code class="sig-name descname">get_domain_loaders</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">split</span><span class="o">=</span><span class="default_value">'train'</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">32</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.DomainsDatasetBase.get_domain_loaders" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.multi_domain.DomainsDatasetBase.get_domain_loaders">
+<code class="sig-name descname">get_domain_loaders</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">split</span><span class="o">=</span><span class="default_value">'train'</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">32</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multi_domain.DomainsDatasetBase.get_domain_loaders" title="Permalink to this definition">¶</a></dt>
 <dd><p>handles the sampling of a dataset containing multiple domains</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -446,11 +531,8 @@ Whether to allow downloading the data if not found on disk.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>A dataloader with API similar to the torch.dataloader, but returning</dt><dd><p>batches from several domains at each iteration.</p>
-</dd>
-</dl>
-</p>
+<dd class="field-even"><p>A dataloader with API similar to the torch.dataloader, but returning
+batches from several domains at each iteration.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#kale.loaddata.sampler.MultiDataLoader" title="kale.loaddata.sampler.MultiDataLoader">MultiDataLoader</a></p>
@@ -459,21 +541,20 @@ Whether to allow downloading the data if not found on disk.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.loaddata.multisource.DomainsDatasetBase.prepare_data_loaders">
-<code class="sig-name descname">prepare_data_loaders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.DomainsDatasetBase.prepare_data_loaders" title="Permalink to this definition">¶</a></dt>
-<dd><p>handles train/validation/test split to have 3 datasets each with data from all domains
-:return:</p>
+<dt id="kale.loaddata.multi_domain.DomainsDatasetBase.prepare_data_loaders">
+<code class="sig-name descname">prepare_data_loaders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multi_domain.DomainsDatasetBase.prepare_data_loaders" title="Permalink to this definition">¶</a></dt>
+<dd><p>handles train/validation/test split to have 3 datasets each with data from all domains</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.loaddata.multisource.MultiDomainDatasets">
-<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.multisource.</code><code class="sig-name descname">MultiDomainDatasets</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_access</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.loaddata.splits.DatasetAccess" title="kale.loaddata.splits.DatasetAccess">kale.loaddata.splits.DatasetAccess</a></span></em>, <em class="sig-param"><span class="n">target_access</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#kale.loaddata.splits.DatasetAccess" title="kale.loaddata.splits.DatasetAccess">kale.loaddata.splits.DatasetAccess</a></span></em>, <em class="sig-param"><span class="n">config_weight_type</span></em>, <em class="sig-param"><span class="n">config_size_type</span></em>, <em class="sig-param"><span class="n">val_split_ratio</span><span class="o">=</span><span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">n_fewshot</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">random_state</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.MultiDomainDatasets" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.multisource.DomainsDatasetBase" title="kale.loaddata.multisource.DomainsDatasetBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.multisource.DomainsDatasetBase</span></code></a></p>
+<dt id="kale.loaddata.multi_domain.MultiDomainDatasets">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.multi_domain.</code><code class="sig-name descname">MultiDomainDatasets</code><span class="sig-paren">(</span><em class="sig-param">source_access: kale.loaddata.dataset_access.DatasetAccess</em>, <em class="sig-param">target_access: kale.loaddata.dataset_access.DatasetAccess</em>, <em class="sig-param">config_weight_type='natural'</em>, <em class="sig-param">config_size_type=&lt;DatasetSizeType.Max: 'max'&gt;</em>, <em class="sig-param">val_split_ratio=0.1</em>, <em class="sig-param">source_sampling_config=None</em>, <em class="sig-param">target_sampling_config=None</em>, <em class="sig-param">n_fewshot=None</em>, <em class="sig-param">random_state=None</em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multi_domain.MultiDomainDatasets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kale.loaddata.multi_domain.DomainsDatasetBase" title="kale.loaddata.multi_domain.DomainsDatasetBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">kale.loaddata.multi_domain.DomainsDatasetBase</span></code></a></p>
 <dl class="py method">
-<dt id="kale.loaddata.multisource.MultiDomainDatasets.get_domain_loaders">
-<code class="sig-name descname">get_domain_loaders</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">split</span><span class="o">=</span><span class="default_value">'train'</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">32</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.MultiDomainDatasets.get_domain_loaders" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.multi_domain.MultiDomainDatasets.get_domain_loaders">
+<code class="sig-name descname">get_domain_loaders</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">split</span><span class="o">=</span><span class="default_value">'train'</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">32</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multi_domain.MultiDomainDatasets.get_domain_loaders" title="Permalink to this definition">¶</a></dt>
 <dd><p>handles the sampling of a dataset containing multiple domains</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -483,11 +564,8 @@ Whether to allow downloading the data if not found on disk.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>A dataloader with API similar to the torch.dataloader, but returning</dt><dd><p>batches from several domains at each iteration.</p>
-</dd>
-</dl>
-</p>
+<dd class="field-even"><p>A dataloader with API similar to the torch.dataloader, but returning
+batches from several domains at each iteration.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#kale.loaddata.sampler.MultiDataLoader" title="kale.loaddata.sampler.MultiDataLoader">MultiDataLoader</a></p>
@@ -496,37 +574,36 @@ Whether to allow downloading the data if not found on disk.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="kale.loaddata.multisource.MultiDomainDatasets.is_semi_supervised">
-<code class="sig-name descname">is_semi_supervised</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.MultiDomainDatasets.is_semi_supervised" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.multi_domain.MultiDomainDatasets.is_semi_supervised">
+<code class="sig-name descname">is_semi_supervised</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multi_domain.MultiDomainDatasets.is_semi_supervised" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="kale.loaddata.multisource.MultiDomainDatasets.prepare_data_loaders">
-<code class="sig-name descname">prepare_data_loaders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.MultiDomainDatasets.prepare_data_loaders" title="Permalink to this definition">¶</a></dt>
-<dd><p>handles train/validation/test split to have 3 datasets each with data from all domains
-:return:</p>
+<dt id="kale.loaddata.multi_domain.MultiDomainDatasets.prepare_data_loaders">
+<code class="sig-name descname">prepare_data_loaders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multi_domain.MultiDomainDatasets.prepare_data_loaders" title="Permalink to this definition">¶</a></dt>
+<dd><p>handles train/validation/test split to have 3 datasets each with data from all domains</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="kale.loaddata.multisource.WeightingType">
-<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.multisource.</code><code class="sig-name descname">WeightingType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multisource.WeightingType" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.multi_domain.WeightingType">
+<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.multi_domain.</code><code class="sig-name descname">WeightingType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.multi_domain.WeightingType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
 <p>An enumeration.</p>
 <dl class="py attribute">
-<dt id="kale.loaddata.multisource.WeightingType.BALANCED">
-<code class="sig-name descname">BALANCED</code><em class="property"> = 'balanced'</em><a class="headerlink" href="#kale.loaddata.multisource.WeightingType.BALANCED" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.multi_domain.WeightingType.BALANCED">
+<code class="sig-name descname">BALANCED</code><em class="property"> = 'balanced'</em><a class="headerlink" href="#kale.loaddata.multi_domain.WeightingType.BALANCED" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.loaddata.multisource.WeightingType.NATURAL">
-<code class="sig-name descname">NATURAL</code><em class="property"> = 'natural'</em><a class="headerlink" href="#kale.loaddata.multisource.WeightingType.NATURAL" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.multi_domain.WeightingType.NATURAL">
+<code class="sig-name descname">NATURAL</code><em class="property"> = 'natural'</em><a class="headerlink" href="#kale.loaddata.multi_domain.WeightingType.NATURAL" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="kale.loaddata.multisource.WeightingType.PRESET0">
-<code class="sig-name descname">PRESET0</code><em class="property"> = 'preset0'</em><a class="headerlink" href="#kale.loaddata.multisource.WeightingType.PRESET0" title="Permalink to this definition">¶</a></dt>
+<dt id="kale.loaddata.multi_domain.WeightingType.PRESET0">
+<code class="sig-name descname">PRESET0</code><em class="property"> = 'preset0'</em><a class="headerlink" href="#kale.loaddata.multi_domain.WeightingType.PRESET0" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -534,7 +611,7 @@ Whether to allow downloading the data if not found on disk.</p></li>
 </div>
 <div class="section" id="module-kale.loaddata.sampler">
 <span id="kale-loaddata-sampler-module"></span><h2>kale.loaddata.sampler module<a class="headerlink" href="#module-kale.loaddata.sampler" title="Permalink to this headline">¶</a></h2>
-<p>From <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py</a></p>
+<p>Various sampling strategies for datasts to construct dataloader, from <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py</a></p>
 <dl class="py class">
 <dt id="kale.loaddata.sampler.BalancedBatchSampler">
 <em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.sampler.</code><code class="sig-name descname">BalancedBatchSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">batch_size</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.sampler.BalancedBatchSampler" title="Permalink to this definition">¶</a></dt>
@@ -584,57 +661,32 @@ adapted from <a class="reference external" href="https://github.com/adambielski/
 <dl class="py method">
 <dt id="kale.loaddata.sampler.SamplingConfig.create_loader">
 <code class="sig-name descname">create_loader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">batch_size</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.sampler.SamplingConfig.create_loader" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Create the data loader</p>
+<p>Reference: <a class="reference external" href="https://pytorch.org/docs/stable/data.html#torch.utils.data.Sampler">https://pytorch.org/docs/stable/data.html#torch.utils.data.Sampler</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<em>Dataset</em>) – dataset from which to load the data.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>) – how many samples per batch to load</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt id="kale.loaddata.sampler.get_labels">
 <code class="sig-prename descclassname">kale.loaddata.sampler.</code><code class="sig-name descname">get_labels</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.sampler.get_labels" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-kale.loaddata.splits">
-<span id="kale-loaddata-splits-module"></span><h2>kale.loaddata.splits module<a class="headerlink" href="#module-kale.loaddata.splits" title="Permalink to this headline">¶</a></h2>
-<p>Data Access API
-From <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_access.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_access.py</a></p>
-<dl class="py class">
-<dt id="kale.loaddata.splits.DatasetAccess">
-<em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.splits.</code><code class="sig-name descname">DatasetAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_classes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.splits.DatasetAccess" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>This class ensures a unique API is used to access training, validation and test splits
-of any dataset.</p>
-<dl class="py method">
-<dt id="kale.loaddata.splits.DatasetAccess.get_test">
-<code class="sig-name descname">get_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.splits.DatasetAccess.get_test" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="kale.loaddata.splits.DatasetAccess.get_train">
-<code class="sig-name descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.splits.DatasetAccess.get_train" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns: a torch.utils.data.Dataset</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="kale.loaddata.splits.DatasetAccess.get_train_val">
-<code class="sig-name descname">get_train_val</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val_ratio</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.splits.DatasetAccess.get_train_val" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="kale.loaddata.splits.DatasetAccess.n_classes">
-<code class="sig-name descname">n_classes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.splits.DatasetAccess.n_classes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<dd><p>Get class labels for dataset</p>
 </dd></dl>
 
 </div>
 <div class="section" id="module-kale.loaddata.usps">
 <span id="kale-loaddata-usps-module"></span><h2>kale.loaddata.usps module<a class="headerlink" href="#module-kale.loaddata.usps" title="Permalink to this headline">¶</a></h2>
-<p>Dataset setting and data loader for USPS.
-Modified from
+<p>Dataset setting and data loader for USPS, from
 <a class="reference external" href="https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_usps.py">https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_usps.py</a>
-(from <a class="reference external" href="https://github.com/mingyuliutw/CoGAN/blob/master/cogan_pytorch/src/dataset_usps.py">https://github.com/mingyuliutw/CoGAN/blob/master/cogan_pytorch/src/dataset_usps.py</a>)</p>
-<p>amt: changed train_data and test_data to data, and train_labels and test_labels to targets like MNIST</p>
+(based on <a class="reference external" href="https://github.com/mingyuliutw/CoGAN/blob/master/cogan_pytorch/src/dataset_usps.py">https://github.com/mingyuliutw/CoGAN/blob/master/cogan_pytorch/src/dataset_usps.py</a>)</p>
 <dl class="py class">
 <dt id="kale.loaddata.usps.USPS">
 <em class="property">class </em><code class="sig-prename descclassname">kale.loaddata.usps.</code><code class="sig-name descname">USPS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span></em>, <em class="sig-param"><span class="n">train</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">transform</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">download</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kale.loaddata.usps.USPS" title="Permalink to this definition">¶</a></dt>

@@ -6,10 +6,10 @@ Preprocess data
 Submodules
 ----------
 
-kale.prepdata.im\_transform module
-----------------------------------
+kale.prepdata.image\_transform module
+-------------------------------------
 
-.. automodule:: kale.prepdata.im_transform
+.. automodule:: kale.prepdata.image_transform
    :members:
    :undoc-members:
    :show-inheritance:

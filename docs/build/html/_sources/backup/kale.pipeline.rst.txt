@@ -6,16 +6,16 @@ Pipeline (ML System)
 Submodules
 ----------
 
-kale.pipeline.domain\_adapter module
-------------------------------------
+kale.pipeline.da\_systems module
+--------------------------------
 
-.. automodule:: kale.pipeline.domain_adapter
+.. automodule:: kale.pipeline.da_systems
    :members:
    :undoc-members:
    :show-inheritance:
-
+   
 kale.pipeline.video\_transformer module
----------------------------------------
+--------------------------------
 
 .. automodule:: kale.pipeline.video_transformer
    :members:
