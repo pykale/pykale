@@ -1,13 +1,15 @@
 # Documentation
 
+Learn more about [Python Docstrings](https://www.datacamp.com/community/tutorials/docstrings-python) to contribute high-quality documentation while coding. We follow [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) (click to check out examples).
+
+
 ## Workflow
 
 We call `kale` and `examples` the **root**-level modules, `kale.xxx` and `examples.xxx` the **first**-level modules, and `kale.xxx.xxx` and `examples.xxx.xxx` the **second**-level modules (and so on, if necessary).
 
-1. **New first-level modules**: If the `kale.xxx` module is not under `source` yet, run `sphinx-apidoc -o source/ ../kale` from `docs` to generate the `.rst` file under `source` first. If the `examples.xxx` module is not under `source/examples` yet, run `sphinx-apidoc -o source/examples ../examples` from `docs` to generate the `.rst` file under `source/examples` first. *Note: This should be rarely needed.*
+1. **First-level module update**: If the `kale.xxx` module is not under `source` yet, run `sphinx-apidoc -o source/ ../kale` from `docs` to generate the `.rst` file under `source` first. If the `examples.xxx` module is not under `source/examples` yet, run `sphinx-apidoc -o source/examples ../examples` from `docs` to generate the `.rst` file under `source/examples` first. *Note: This should be rarely needed.*
 
-2. **New second-level modules**: If the `kale.xxx.xxx` model is not in the documentation yet, add it manually to `kale.xxx.rst` in an alphabetically-sorted position, e.g. adding the `linformer` module by inserting the following in `kale.embed.rst` right before the `mpca` module:
-
+2. **Second-level module update**: If the `kale.xxx.xxx` model is not in the documentation yet or has been *renamed*, add or revise it manually to `kale.xxx.rst` in an alphabetically-sorted position, e.g. adding the `linformer` module by inserting the following in `kale.embed.rst` right before the `mpca` module:
     ```
     kale.embed.linformer module
     ----------------------
@@ -17,8 +19,12 @@ We call `kale` and `examples` the **root**-level modules, `kale.xxx` and `exampl
     :undoc-members:
     :show-inheritance:
     ```
+    Alternatively (e.g., lots of modules are renamed), remove all relevant `.rst` files under `source` and then recreate them, e.g., via running `sphinx-apidoc -o source/ ../kale`. After creation, edit the heading of `.rst` files, e.g., 
+    from **kale.embed package** to **Embed** (see those in `docs/source/backup`).
 
-3. **Final update step**: Run `make html` from `docs` to update the `.html` files under the `build` folder using the source files under the `source` folder and verify the updated documentation in a browser at `pykale/docs/build/html/index.html`. Run `make clean` will clean the `build` folder for a fresh build. **Note**: the `build` folder is uploaded for private-mode sharing and will be removed (ignored) when releasing in public.
+3. **Final update step**: Run `make html` from `docs` to update the `.html` files under the `build` folder using the source files under the `source` folder and verify the updated documentation in a browser at `pykale/docs/build/html/index.html`. Run `make clean` will clean the `build` folder for a fresh build. **Note**: the `build` folder is uploaded for private-mode sharing and will be removed (ignored) when releasing in public. When committing changes for review, please **exclude** those under `docs/build` because they are auto-generated.
+
+If you are aware of a better way to auto-generate documentations, create an issue or push your suggested changes.
 
 ## Sphinx autodocumentation and Read the Doc
 
