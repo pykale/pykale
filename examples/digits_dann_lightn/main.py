@@ -19,6 +19,7 @@ from config import get_cfg_defaults
 from model import get_model
 from kale.loaddata.digits_access import DigitDataset 
 from kale.loaddata.multi_domain import MultiDomainDatasets
+from kale.utils.seed import set_seed
 
 
 def arg_parse():
@@ -56,8 +57,8 @@ def main():
   
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
-        seed = cfg.SOLVER.SEED + i
-        pl.seed_everything(seed)                                                        
+        seed = cfg.SOLVER.SEED + i*10
+        set_seed(seed) # seed_everything in pytorch_lightning did not set torch.backends.cudnn                                    
         print('==> Building model for seed ' + str(seed) + ' ......')      
         # ---- setup model and logger ----                                                     
         model, train_params = get_model(cfg, dataset, num_channels)
@@ -74,7 +75,6 @@ def main():
             gpus=args.gpus,
             logger=False,  # logger,
             # weights_summary='full',  
-            # deterministic=True, # For reproducibility
             fast_dev_run=False,  # True,
         )
 
