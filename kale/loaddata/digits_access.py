@@ -1,15 +1,14 @@
-"""Digits dataset loading for MNIST, SVHN, MNIST-M (modified MNIST), and USPS
-Modified by Haiping Lu from
+"""
+Digits dataset (source and target domain) loading for MNIST, SVHN, MNIST-M (modified MNIST), and USPS. The code is based on 
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py
 """
 
 from enum import Enum
 from torchvision.datasets import MNIST, SVHN
-import kale.prepdata.im_transform as im_transform
+import kale.prepdata.image_transform as image_transform
 from kale.loaddata.usps import USPS
 from kale.loaddata.mnistm import MNISTM
-from kale.loaddata.splits import DatasetAccess
-
+from kale.loaddata.dataset_access import DatasetAccess
 
 class DigitDataset(Enum):
     MNIST = "MNIST"
@@ -17,8 +16,19 @@ class DigitDataset(Enum):
     USPS = "USPS"
     SVHN = "SVHN"
 
+    # Originally get_access
     @staticmethod
-    def get_accesses(source: "DigitDataset", target: "DigitDataset", data_path):
+    def get_source_target(source: "DigitDataset", target: "DigitDataset", data_path):
+        """Get data loaders for source and target datasets
+
+        Args:
+            source (DigitDataset): source dataset name
+            target (DigitDataset): target dataset name
+            data_path (string): root directory of dataset
+
+        Examples::
+            >>> source, target, num_channel = get_source_target(sourcename, targetname, data_path)
+        """
         channel_numbers = {
             DigitDataset.MNIST: 1,
             DigitDataset.MNISTM: 3,
@@ -50,18 +60,27 @@ class DigitDataset(Enum):
         return (
             factories[source](data_path, source_tf),
             factories[target](data_path, target_tf),
-            num_channels,
+            num_channels
         )
 
 
 class DigitDatasetAccess(DatasetAccess):
+    """Common API for digit dataset access
+
+    Args:
+        data_path (string): root directory of dataset
+        transform_kind (string): types of image transforms
+    """
     def __init__(self, data_path, transform_kind):
         super().__init__(n_classes=10)
         self._data_path = data_path
-        self._transform = im_transform.get_transform(transform_kind)
+        self._transform = image_transform.get_transform(transform_kind)
 
 
 class MNISTDatasetAccess(DigitDatasetAccess):
+    """
+    MNIST data loader
+    """
     def get_train(self):
         return MNIST(
             self._data_path, train=True, transform=self._transform, download=True
@@ -74,6 +93,9 @@ class MNISTDatasetAccess(DigitDatasetAccess):
 
 
 class MNISTMDatasetAccess(DigitDatasetAccess):
+    """
+    Modified MNIST (MNISTM) data loader
+    """
     def get_train(self):
         return MNISTM(
             self._data_path, train=True, transform=self._transform, download=True
@@ -86,6 +108,9 @@ class MNISTMDatasetAccess(DigitDatasetAccess):
 
 
 class USPSDatasetAccess(DigitDatasetAccess):
+    """
+    USPS data loader
+    """
     def get_train(self):
         return USPS(
             self._data_path, train=True, transform=self._transform, download=True
@@ -98,6 +123,9 @@ class USPSDatasetAccess(DigitDatasetAccess):
 
 
 class SVHNDatasetAccess(DigitDatasetAccess):
+    """
+    SVHN data loader
+    """
     def get_train(self):
         return SVHN(
             self._data_path, split="train", transform=self._transform, download=True

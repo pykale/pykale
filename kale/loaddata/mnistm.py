@@ -1,12 +1,8 @@
 """
-Dataset setting and data loader for MNIST-M.
-
-Modified from 
+Dataset setting and data loader for MNIST-M, from 
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_mnistm.py
-(from https://github.com/pytorch/vision/blob/master/torchvision/datasets/mnist.py)
-
+(based on https://github.com/pytorch/vision/blob/master/torchvision/datasets/mnist.py)
 CREDIT: https://github.com/corenel
-amt: changed train_data and test_data to data, and train_labels and test_labels to targets like MNIST
 """
 
 from __future__ import print_function
@@ -18,7 +14,6 @@ import logging
 import torch
 import torch.utils.data as data
 from PIL import Image
-
 
 class MNISTM(data.Dataset):
     """
@@ -32,10 +27,10 @@ class MNISTM(data.Dataset):
         transform (callable, optional): defaults to None.
             A function/transform that takes in
             an PIL image and returns a transformed version.
-            E.g, ``transforms.RandomCrop``
+            E.g., ``transforms.RandomCrop``
             This preprocessing function applied to all images (whether source or target)
 
-        target_transform (callable, optional): default toNone, similar to transform.
+        target_transform (callable, optional): default to None, similar to transform.
             This preprocessing function applied to all target images, after `transform`
 
         download (bool optional): defaults to False.
