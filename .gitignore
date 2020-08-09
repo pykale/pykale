@@ -9,9 +9,5 @@ examples/*/data/
 examples/*/outputs/
 
 # Sphinx documentation
-# To ignore when release
-# docs/build/
-docs/build/doctrees
-# docs/build/html/_sources
-# docs/build/html/_static
+docs/build/
  
