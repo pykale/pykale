@@ -130,7 +130,7 @@ class XpResults:
 
         Args:
             metrics (list of string): metrics to record
-            filepath ([type]): [description]
+            filepath ([type]): the filepath to save the metric values
 
         Returns:
             kale.utils.csv_logger.XpResults: csv logger
