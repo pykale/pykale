@@ -59,7 +59,7 @@ def main():
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = cfg.SOLVER.SEED + i*10
         set_seed(seed) # seed_everything in pytorch_lightning did not set torch.backends.cudnn                                    
-        print('==> Building model for seed ' + str(seed) + ' ......')      
+        print(f'==> Building model for seed {seed} ......')   
         # ---- setup model and logger ----                                                     
         model, train_params = get_model(cfg, dataset, num_channels)
         logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params, 
