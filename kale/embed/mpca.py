@@ -17,16 +17,20 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 class MPCA(BaseEstimator, TransformerMixin):
     def __init__(self, variance_explained=0.97, max_iter=1):
-        """
-        Implementation compatible with sickit-learn
+        """MPCA implementation compatible with sickit-learn
+
+        Parameters
         ----------
-        Parameter:
-            variance_explained: ration of variance to keep (between 0 and 1)
-            max_iter: max number of iteration, integer
+        variance_explained : float, optional
+            ration of variance to keep (between 0 and 1), by default 0.97
+        max_iter : int, optional
+            max number of iteration, by default 1
+
         ----------
         Attributes:
             tPs: list of projection matrices
         """
+        
         self.var_exp = variance_explained
         self.max_iter = max_iter
         # self.Xmean = None
@@ -34,11 +38,18 @@ class MPCA(BaseEstimator, TransformerMixin):
         self.tPs = []
 
     def fit(self, X):
-        """
-        Parameter:
-            X: array-like, ndarray of shape (I1, I2, ..., n_samples)
+        """Fit the model with X
+
+        Parameters
         ----------
-        Return:
+        X : ndarray
+            input data, shape (I1, I2, ..., n_samples), where
+            n_samples is the number of samples, I1, I2 ... are 
+            the dimensions of corresponding mode (1, 2, ...), 
+            respectively.
+
+        Returns
+        -------
             self
         """
         dim_in = X.shape
@@ -93,12 +104,17 @@ class MPCA(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        """
-        Parameter:
-            X: array-like, shape (I1, I2, ..., n_samples)
+        """Perform dimension reduction on X
+
+        Parameters
         ----------
-        Return:
-            Transformed data, array-like, shape (i1, i2, ..., n_samples)
+        X : ndarray
+            shape (I1, I2, ..., n_samples)
+
+        Returns
+        -------
+        ndarray
+            Transformed data, shape (i1, i2, ..., n_samples)
         """
         n_spl = X.shape[-1]
         for i in range(n_spl):
@@ -106,24 +122,39 @@ class MPCA(BaseEstimator, TransformerMixin):
         return multi_mode_dot(X, self.tPs, modes=[m for m in range(self.n_dim - 1)])
 
     def inverse_transform(self, X):
-        """
-        Parameter:
-            X: array-like, shape (i1, i2, ..., n_samples)
+        """Transform data in the shape of reduced dimension 
+        back to the original shape
+
+        Parameters
         ----------
-        Return:
-            Data in original shape, array-like, shape (I1, I2, ..., n_samples)
+        X : ndarray
+            shape (i1, i2, ..., n_samples), where i1, i2, ... 
+            are the reduced dimensions of of corresponding mode
+            (1, 2, ...), respectively.
+
+        Returns
+        -------
+        ndarray
+            Data in original shape, shape (I1, I2, ..., n_samples)
         """
         return multi_mode_dot(X, self.tPs, modes=[m for m in range(self.n_dim - 1)], transpose=True)
 
 
 def MPCA_(X, variance_explained=0.97, max_iter=1):
-    """
-    Parameter:
-        X: array-like, ndarray of shape (I1, I2, ..., n_samples)
-        variance_explained: ration of variance to keep (between 0 and 1)
-        max_iter: max number of iteration
+    """[summary]
+
+    Parameters
     ----------
-    Return:
+    X : ndarray 
+        training data, shape (I1, I2, ..., n_samples)
+    variance_explained : float, optional
+        ration of variance to keep (between 0 and 1), by default 0.97, by default 0.97
+    max_iter : int, optional
+        max number of iteration, by default 1
+
+    Returns
+    -------
+    list
         tPs: list of projection matrices
     """
     dim_in = X.shape
