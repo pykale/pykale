@@ -21,11 +21,12 @@ We call `kale` and `examples` the **root**-level modules, `kale.xxx` and `exampl
     Alternatively (e.g., lots of modules are renamed), remove all relevant `.rst` files under `source` and then recreate them, e.g., via running `sphinx-apidoc -o source/ ../kale`. After creation, edit the heading of `.rst` files, e.g., 
     from **kale.embed package** to **Embed** (see those in `docs/source/backup`).
 
-3. **Final update step**: Run `make html` from `docs` to update the `.html` files under the `build` folder using the source files under the `source` folder and verify the updated documentation in a browser at `pykale/docs/build/html/index.html`. Run `make clean` will clean the `build` folder for a fresh build. **Note**: the `build` folder is uploaded for private-mode sharing and will be removed (ignored) when releasing in public. When committing changes for review, please **exclude** those under `docs/build` because they are auto-generated.
+3. **Final update step**: Run `make html` from `docs` to update the `.html` files under the `build` folder using the source files under the `source` folder and verify the updated documentation in a browser at `pykale/docs/build/html/index.html`. Run `make clean` will clean the `build` folder for a fresh build. Do **NOT** commit `docs/build` (see `.gitignore`). Build and view offline to check. Haiping will have an online version updated at [his website](http://staffwww.dcs.shef.ac.uk/people/H.Lu/pykale/html/index.html).
 
 4. Other standardization
 
 * Put a docstring at the top of each `.py` to summarize the module
+* See `examples/digits_dann_lightn` and related modules for reference.
 
 If you are aware of a better way to auto-generate documentations, create an issue or push your suggested changes.
 
