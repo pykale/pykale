@@ -1,12 +1,14 @@
-# This file is modified by Haiping Lu from https://github.com/HaozhiQi/ISONet/blob/master/isonet/models/isonet.py
-# This file is modified from https://github.com/facebookresearch/pycls/blob/master/pycls/models/resnet.py
+""" 
+The ISONet module, which is based on the ResNet module, 
+from https://github.com/HaozhiQi/ISONet/blob/master/isonet/models/isonet.py
+(based on https://github.com/facebookresearch/pycls/blob/master/pycls/models/resnet.py)
+"""
+
 import numpy as np
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-# from config import C
 
 def get_trans_fun(name):
     """Retrieves the transformation function by name."""
@@ -21,7 +23,6 @@ def get_trans_fun(name):
 
 class SReLU(nn.Module):
     """Shifted ReLU"""
-
     def __init__(self, nc):
         super(SReLU, self).__init__()
         self.srelu_bias = nn.Parameter(torch.Tensor(1, nc, 1, 1))
@@ -101,7 +102,7 @@ class BasicTransform(nn.Module):
 
 
 class BottleneckTransform(nn.Module):
-    """Bottleneck transformation: 1x1, 3x3, 1x1"""
+    """Bottleneck transformation: 1x1, 3x3, 1x1, only for very deep networks"""
 
     def __init__(self, w_in, w_out, stride, has_bn, use_srelu, w_b, num_gs):
         super(BottleneckTransform, self).__init__()
@@ -258,7 +259,7 @@ class ResStem(nn.Module):
         return x
 
 class ISONet(nn.Module):
-    """ResNet model."""
+    """ISONet, a modified ResNet model."""
 
     def __init__(self, use_dirac=True):
         super(ISONet, self).__init__()
@@ -311,7 +312,11 @@ class ISONet(nn.Module):
         for module in self.children():
             x = module(x)
         return x   
+
     def ortho(self, device):
+        """regularizes the convolution kernel to be (near) orthogonal during training. 
+        This is called in Trainer.loss of the isonet example.
+        """
         ortho_penalty = []
         cnt = 0
         for m in self.modules():
@@ -325,6 +330,11 @@ class ISONet(nn.Module):
         return ortho_penalty
 
     def ortho_conv(self, m, device):
+        """regularizes the convolution kernel to be (near) orthogonal during training. 
+
+        Args:
+            m (nn.module]): [description]
+        """
         operator = m.weight
         operand = torch.cat(torch.chunk(m.weight, m.groups, dim=0), dim=1)
         transposed = m.weight.shape[1] < m.weight.shape[0]
