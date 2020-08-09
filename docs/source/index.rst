@@ -39,10 +39,7 @@ The core APIs above are ordered following the machine learning pipeline rather t
     :caption: Notebooks
 
 .. examples/CMR_PAH.nblink    
-{
     "path": "../../examples/cmri_mpca/CMR_PAH.ipynb"
-}
-
 
 Indices and tables
 ==================

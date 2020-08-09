@@ -2,7 +2,6 @@
 
 Learn more about [Python Docstrings](https://www.datacamp.com/community/tutorials/docstrings-python) to contribute high-quality documentation while coding. We follow [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) (click to check out examples).
 
-
 ## Workflow
 
 We call `kale` and `examples` the **root**-level modules, `kale.xxx` and `examples.xxx` the **first**-level modules, and `kale.xxx.xxx` and `examples.xxx.xxx` the **second**-level modules (and so on, if necessary).
@@ -23,6 +22,10 @@ We call `kale` and `examples` the **root**-level modules, `kale.xxx` and `exampl
     from **kale.embed package** to **Embed** (see those in `docs/source/backup`).
 
 3. **Final update step**: Run `make html` from `docs` to update the `.html` files under the `build` folder using the source files under the `source` folder and verify the updated documentation in a browser at `pykale/docs/build/html/index.html`. Run `make clean` will clean the `build` folder for a fresh build. **Note**: the `build` folder is uploaded for private-mode sharing and will be removed (ignored) when releasing in public. When committing changes for review, please **exclude** those under `docs/build` because they are auto-generated.
+
+4. Other standardization
+
+* Put a docstring at the top of each `.py` to summarize the module
 
 If you are aware of a better way to auto-generate documentations, create an issue or push your suggested changes.
 
