@@ -1,5 +1,4 @@
-"""Commonly used losses
-From
+"""Commonly used losses, from domain adapation package 
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/losses.py
 """
 
@@ -10,6 +9,12 @@ from torch.autograd import grad
 
 
 def cross_entropy_logits(linear_output, label, weights=None):
+    """Computes cross entropy with ligits  
+    
+    Examples:
+        See DANN, WDGRL, and MMD trainers in kale.pipeline.domain_adapater  
+    """    
+    
     class_output = F.log_softmax(linear_output, dim=1)
     max_class = class_output.max(1)
     y_hat = max_class[1]  # get the index of the max log-probability
@@ -25,18 +30,32 @@ def cross_entropy_logits(linear_output, label, weights=None):
 
 
 def entropy_logits(linear_output):
+    """Computes entropy ligits in CDAN with entropy conditioning (CDAN+E)
+    
+    Examples:
+        See CDANtrainer in kale.pipeline.domain_adapater  
+    """    
     p = F.softmax(linear_output, dim=1)
     loss_ent = -torch.sum(p * (torch.log(p + 1e-5)), dim=1)
     return loss_ent
 
 
 def entropy_logits_loss(linear_output):
+    """Computes entropy ligits loss in semi-supervised or few-shot domain adapatation
+    
+    Examples:
+        See FewShotDANNtrainer in kale.pipeline.domain_adapater  
+    """    
     return torch.mean(entropy_logits(linear_output))
 
 
 def gradient_penalty(critic, h_s, h_t):
-    # based on: https://github.com/caogang/wgan-gp/blob/master/gan_cifar10.py#L116
-
+    """Computes gradient penelty in Wasserstein distance guided representation learning
+    
+    Examples:
+        See WDGRLtrainer and WDGRLtrainerMod in kale.pipeline.domain_adapater  
+    """
+    
     alpha = torch.rand(h_s.size(0), 1)
     alpha = alpha.expand(h_s.size()).type_as(h_s)
     try:
@@ -66,6 +85,9 @@ def gaussian_kernel(source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None
     Code from XLearn: computes the full kernel matrix,
     which is less than optimal since we don't use all of it
     with the linear MMD estimate.
+
+    Examples:
+        See DANtrainer and JANtrainer in kale.pipeline.domain_adapater
     """
     n_samples = int(source.size()[0]) + int(target.size()[0])
     total = torch.cat([source, target], dim=0)
@@ -89,6 +111,11 @@ def gaussian_kernel(source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None
 
 
 def compute_mmd_loss(kernel_values, batch_size):
+    """Computes the Maximum Mean Discrepancy (MMD) between domains.
+
+    Examples:
+        See DANtrainer and JANtrainer in kale.pipeline.domain_adapater
+    """
     loss = 0
     for i in range(batch_size):
         s1, s2 = i, (i + 1) % batch_size
