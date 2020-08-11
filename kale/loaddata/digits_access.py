@@ -19,7 +19,7 @@ class DigitDataset(Enum):
     # Originally get_access
     @staticmethod
     def get_source_target(source: "DigitDataset", target: "DigitDataset", data_path):
-        """Get data loaders for source and target datasets
+        """Gets data loaders for source and target datasets
 
         Args:
             source (DigitDataset): source dataset name

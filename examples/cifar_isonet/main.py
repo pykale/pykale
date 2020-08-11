@@ -1,5 +1,8 @@
-# Created by Haiping Lu from modifying https://github.com/HaozhiQi/ISONet/blob/master/train.py 
-# Under the MIT License
+"""ISONet (an extension of ResNet) on CIFAR image classification
+
+Reference: https://github.com/HaozhiQi/ISONet/blob/master/train.py 
+"""
+
 import os
 import argparse
 import warnings
@@ -7,19 +10,20 @@ import sys
 # No need if pykale is installed
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-import kale
 import torch
 from torchsummary import summary
 
-from  config import C
-import loaddata as du
-# import optim as ou
-import kale.utils.logger as lu
-import kale.utils.seed as seed
-import kale.predict.isonet as isonet
+from config import get_cfg_defaults
+# from model_old import get_model
+from model import get_model
 from trainer import Trainer
 
+from kale.loaddata.cifar_access import get_cifar
+from kale.utils.logger import construct_logger
+from kale.utils.seed import set_seed
+
 def arg_parse():
+    """Parsing arguments"""
     parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
     parser.add_argument('--cfg', required=True, help='path to config file', type=str)
     parser.add_argument('--output', default='default', help='folder to save output', type=str)
@@ -27,66 +31,46 @@ def arg_parse():
     args = parser.parse_args()
     return args
 
-# Inherite and override
-class CifarIsoNet(isonet.ISONet):
-    
-    def __init__(self):
-        super(CifarIsoNet, self).__init__()
-        # define network structures (override)
-        self._construct()        
-        # initialization
-        self._network_init(C.ISON.DIRAC_INIT)
-
-    def _construct(self):
-        assert (C.ISON.DEPTH - 2) % 6 == 0, \
-            'Model depth should be of the format 6n + 2 for cifar'  # Seems because this is a ResNet
-        # Each stage has the same number of blocks for cifar
-        d = int((C.ISON.DEPTH - 2) / 6)
-        # Stem: (N, 3, 32, 32) -> (N, 16, 32, 32)
-        self.stem = isonet.ResStem(w_in=3, w_out=16, has_bn=C.ISON.HAS_BN, use_srelu=C.ISON.SReLU, 
-                                  kernelsize=3, stride=1, padding=1)
-        # Stage 1: (N, 16, 32, 32) -> (N, 16, 32, 32)
-        self.s1 = isonet.ResStage(w_in=16, w_out=16, stride=1, transfun=C.ISON.TRANS_FUN, 
-                        has_bn=C.ISON.HAS_BN, has_st=C.ISON.HAS_ST, use_srelu=C.ISON.SReLU, d=d)
-        # Stage 2: (N, 16, 32, 32) -> (N, 32, 16, 16)
-        self.s2 = isonet.ResStage(w_in=16, w_out=32, stride=2, transfun=C.ISON.TRANS_FUN, 
-                        has_bn=C.ISON.HAS_BN, has_st=C.ISON.HAS_ST, use_srelu=C.ISON.SReLU, d=d)
-        # Stage 3: (N, 32, 16, 16) -> (N, 64, 8, 8)
-        self.s3 = isonet.ResStage(w_in=32, w_out=64, stride=2, transfun=C.ISON.TRANS_FUN,
-                        has_bn=C.ISON.HAS_BN, has_st=C.ISON.HAS_ST, use_srelu=C.ISON.SReLU, d=d)
-        # Head: (N, 64, 8, 8) -> (N, num_classes)
-        self.head = isonet.ResHead(w_in=64, nc=C.DATASET.NUM_CLASSES, use_dropout=C.ISON.DROPOUT,
-                                dropout_rate=C.ISON.DROPOUT_RATE)
-
 def main():
+    """The main for this domain adapation example, showing the workflow"""
     args = arg_parse()
+
     # ---- setup device ----
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print('==> Using device ' + device)
 
     # ---- setup configs ----
-    C.merge_from_file(args.cfg)
-    C.freeze()
-    seed.set_seed(C.SOLVER.SEED)
+    cfg = get_cfg_defaults()
+    cfg.merge_from_file(args.cfg)
+    cfg.freeze()
+    set_seed(cfg.SOLVER.SEED)
+
     # ---- setup logger and output ----
-    output_dir = os.path.join(C.OUTPUT_DIR, C.DATASET.NAME, args.output)
+    output_dir = os.path.join(cfg.OUTPUT_DIR, cfg.DATASET.NAME, args.output)
     os.makedirs(output_dir, exist_ok=True)
-    logger = lu.construct_logger('isonet', output_dir)
+    logger = construct_logger('isonet', output_dir)
     logger.info('Using ' + device)
-    logger.info(C.dump())    
+    logger.info('\n' + cfg.dump())    
+    
     # ---- setup dataset ----
-    train_loader, val_loader = du.construct_dataset()
+    train_loader, val_loader = get_cifar(cfg)
 
     print('==> Building model..')
-    net = CifarIsoNet()
+    net = get_model(cfg)
     # print(net)
     net = net.to(device)
-    # summary(net, (3, 32, 32))
+    # model_stats = summary(net, (3, 32, 32))
+    # logger.info('\n'+str(model_stats))
 
-    # optim = ou.construct_optim(net)
-    optim = torch.optim.SGD(net.parameters(), lr=C.SOLVER.BASE_LR, momentum=C.SOLVER.MOMENTUM,
-                    weight_decay=C.SOLVER.WEIGHT_DECAY, dampening=C.SOLVER.DAMPENING,
-                    nesterov=C.SOLVER.NESTEROV)
+    # Needed even for single GPU https://discuss.pytorch.org/t/attributeerror-net-object-has-no-attribute-module/45652
+    if device=='cuda':
+        net = torch.nn.DataParallel(net)
+
+    optim = torch.optim.SGD(net.parameters(), lr=cfg.SOLVER.BASE_LR, 
+                    momentum=cfg.SOLVER.MOMENTUM,
+                    weight_decay=cfg.SOLVER.WEIGHT_DECAY, 
+                    dampening=cfg.SOLVER.DAMPENING,
+                    nesterov=cfg.SOLVER.NESTEROV)
 
     trainer = Trainer(
         device,
@@ -96,6 +80,7 @@ def main():
         optim,
         logger,
         output_dir,
+        cfg
     )
 
     if args.resume:

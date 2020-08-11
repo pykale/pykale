@@ -23,8 +23,7 @@ from kale.utils.seed import set_seed
 
 
 def arg_parse():
-    """Parsing arguments
-    """
+    """Parsing arguments"""
     parser = argparse.ArgumentParser(description='Domain Adversarial Networks on Digits Datasets')
     parser.add_argument('--cfg', required=True, help='path to config file', type=str)
     parser.add_argument('--gpus', default='0', help='gpu id(s) to use', type=str)
@@ -32,10 +31,8 @@ def arg_parse():
     args = parser.parse_args()
     return args
 
-
 def main():
-    """The main for this domain adapation example, showing the workflow
-    """
+    """The main for this domain adapation example, showing the workflow"""
     args = arg_parse()
     
     # ---- setup configs ----

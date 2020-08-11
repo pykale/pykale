@@ -12,7 +12,6 @@ import torch
 from torchsummary import summary
 
 from config import get_cfg_defaults
-from model import get_model
 from loaddata import construct_dataset
 from model import get_model
 from trainer import Trainer
