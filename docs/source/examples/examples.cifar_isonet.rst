@@ -14,10 +14,10 @@ examples.cifar\_isonet.config module
    :undoc-members:
    :show-inheritance:
 
-examples.cifar\_isonet.loaddata module
+examples.cifar\_isonet.model module
 --------------------------------------
 
-.. automodule:: examples.cifar_isonet.loaddata
+.. automodule:: examples.cifar_isonet.model
    :members:
    :undoc-members:
    :show-inheritance:
