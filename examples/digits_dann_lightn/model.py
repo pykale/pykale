@@ -13,6 +13,9 @@ import kale.pipeline.domain_adapter as domain_adapter
 def get_config(cfg):
     """
     Sets the hypermeters for the optimizer and experiment using the config file
+
+    Args:
+        cfg: A YACS config object.
     """
     config_params = {
         "train_params": {

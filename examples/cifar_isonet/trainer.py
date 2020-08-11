@@ -1,14 +1,27 @@
-# Created by Haiping Lu from modifying https://github.com/HaozhiQi/ISONet/blob/master/isonet/trainer.py
-# Under the MIT License
+"""A standard trainer for ISONet
+
+From: https://github.com/HaozhiQi/ISONet/blob/master/isonet/trainer.py
+"""
+
 import time
 import torch
 import torch.nn as nn
 from kale.utils.print import tprint, pprint_without_newline
-from config import C
-
 
 class Trainer(object):
-    def __init__(self, device, train_loader, val_loader, model, optim, logger, output_dir):
+    """Sets up a standard trainer
+
+    Args:
+        device: gpu or cpu
+        train_loader: the training data loader 
+        val_loader: the validation data loader 
+        model: the (network) model
+        optim: the optimizer
+        logger:: the logger to log info
+        output_dir: the path to save info
+        cfg: a YACS config object.
+    """    
+    def __init__(self, device, train_loader, val_loader, model, optim, logger, output_dir, cfg):      
         # misc
         self.device = device
         self.output_dir = output_dir
@@ -29,15 +42,18 @@ class Trainer(object):
         # others
         self.ave_time = 0
         self.logger = logger
+        self.cfg = cfg
 
     def train(self):
-        while self.epochs <= C.SOLVER.MAX_EPOCHS:
+        """The validation step"""        
+        while self.epochs <= self.cfg.SOLVER.MAX_EPOCHS:
             self.adjust_learning_rate()
             self.train_epoch()
             self.val()
             self.epochs += 1
 
     def train_epoch(self):
+        """One training epoch"""        
         self.model.train()
         self.ce_loss = 0
         self.ortho_loss = 0
@@ -74,6 +90,7 @@ class Trainer(object):
         self.train_acc.append(100. * correct / total)
 
     def val(self):
+        """The validation step"""
         self.model.eval()
         self.ce_loss = 0
         self.ortho_loss = 0
@@ -102,25 +119,27 @@ class Trainer(object):
         self.val_acc.append(100. * correct / total)
 
     def loss(self, outputs, targets):
+        """Computes the loss between learning outputs and the targets (ground truth)"""
         loss = self.criterion(outputs, targets)
         self.ce_loss += loss.item()
 
-        if C.ISON.ORTHO_COEFF > 0:
+        if self.cfg.ISON.ORTHO_COEFF > 0:
             o_loss = self.model.module.ortho(self.device)
             self.ortho_loss += o_loss.item()
-            loss += o_loss * C.ISON.ORTHO_COEFF
+            loss += o_loss * self.cfg.ISON.ORTHO_COEFF
         return loss
 
     def adjust_learning_rate(self):
+        """Adjust the learning rate according to the configuration"""
         # if do linear warmup
-        if C.SOLVER.WARMUP and self.epochs < C.SOLVER.WARMUP_EPOCH:
-            lr = C.SOLVER.BASE_LR * self.epochs / C.SOLVER.WARMUP_EPOCH
+        if self.cfg.SOLVER.WARMUP and self.epochs < self.cfg.SOLVER.WARMUP_EPOCH:
+            lr = self.cfg.SOLVER.BASE_LR * self.epochs / self.cfg.SOLVER.WARMUP_EPOCH
         else:
             # normal (step) scheduling
-            lr = C.SOLVER.BASE_LR
-            for m_epoch in C.SOLVER.LR_MILESTONES:
+            lr = self.cfg.SOLVER.BASE_LR
+            for m_epoch in self.cfg.SOLVER.LR_MILESTONES:
                 if self.epochs > m_epoch:
-                    lr *= C.SOLVER.LR_GAMMA
+                    lr *= self.cfg.SOLVER.LR_GAMMA
 
         for param_group in self.optim.param_groups:
             param_group['lr'] = lr
@@ -128,6 +147,7 @@ class Trainer(object):
                 param_group['lr'] *= param_group['scaling']
 
     def snapshot(self, name=None):
+        """Saves the current model"""
         state = {
             'net': self.model.state_dict(),
             'optim': self.optim.state_dict(),
