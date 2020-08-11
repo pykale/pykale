@@ -20,4 +20,11 @@ torch-sparse==0.6.5
 torch-spline-conv==1.2.0
 torch-geometric==1.5.0
 
+# Needed for embed
+tensorly  # >=0.0.45
+
+# Needed for CMR preprocessing and example
+scikit-image  # >=0.16.2
+scikit-learn  # >=0.23.1
+pandas  # >=1.0.5
 
