@@ -14,6 +14,14 @@ kale.loaddata.dataset\_access module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.cifar\_access module
+-----------------------------------
+
+.. automodule:: kale.loaddata.cifar_access
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.digits\_access module
 -----------------------------------
 
