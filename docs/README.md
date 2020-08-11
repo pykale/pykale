@@ -18,8 +18,7 @@ We call `kale` and `examples` the **root**-level modules, `kale.xxx` and `exampl
     :undoc-members:
     :show-inheritance:
     ```
-    Alternatively (e.g., lots of modules are renamed), remove all relevant `.rst` files under `source` and then recreate them, e.g., via running `sphinx-apidoc -o source/ ../kale`. After creation, edit the heading of `.rst` files, e.g., 
-    from **kale.embed package** to **Embed** (see those in `docs/source/backup`).
+    Alternatively (e.g., lots of modules are renamed), remove all relevant `.rst` files under `source` and then recreate them, e.g., via running `sphinx-apidoc -o source/ ../kale`. After creation, edit the heading of `.rst` files, e.g., from **kale.embed package** to **Embed** (see those in an earlier version).
 
 3. **Final update step**: Run `make html` from `docs` to update the `.html` files under the `build` folder using the source files under the `source` folder and verify the updated documentation in a browser at `pykale/docs/build/html/index.html`. Run `make clean` will clean the `build` folder for a fresh build. Do **NOT** commit `docs/build` (see `.gitignore`). Build and view offline to check. Haiping will have an online version updated at [his website](http://staffwww.dcs.shef.ac.uk/people/H.Lu/pykale/html/index.html).
 
