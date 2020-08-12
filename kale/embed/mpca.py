@@ -1,13 +1,16 @@
 # =============================================================================
 # Author: Shuo Zhou, szhou20@sheffield.ac.uk
 #         Haiping Lu, h.lu@sheffield.ac.uk
-#
-# Python implement of Multilinear Principal Component Analysis (MPCA)
-#
-# Ref: Haiping Lu, K.N. Plataniotis, and A.N. Venetsanopoulos, "MPCA: Multilinear
-# Principal Component Analysis of Tensor Objects", IEEE Transactions on Neural 
-# Networks, Vol. 19, No. 1, Page: 18-39, January 2008.
 # =============================================================================
+
+"""Python implementation of Multilinear Principal Component Analysis (MPCA)
+Includeing implementaion as a scikit-learn class and an independent function
+
+Ref: Haiping Lu, K.N. Plataniotis, and A.N. Venetsanopoulos, "MPCA: Multilinear
+    Principal Component Analysis of Tensor Objects", IEEE Transactions on Neural 
+    Networks, Vol. 19, No. 1, Page: 18-39, January 2008.
+"""
+
 import numpy as np
 import tensorly as tl
 from tensorly.base import fold, unfold

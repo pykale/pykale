@@ -1,5 +1,10 @@
 """
 Author: Shuo Zhou, szhou20@sheffield.ac.uk
+
+Functions used for CMR image preprocessing:
+    1. regMRI: image registration
+    2. rescalse_cmr: rescale cmr image
+    3. preproc: preprocessing image data
 """
 import os
 import sys
