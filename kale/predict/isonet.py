@@ -1,12 +1,24 @@
-# This file is modified by Haiping Lu from https://github.com/HaozhiQi/ISONet/blob/master/isonet/models/isonet.py
-# This file is modified from https://github.com/facebookresearch/pycls/blob/master/pycls/models/resnet.py
+""" 
+The ISONet module, which is based on the ResNet module, 
+from https://github.com/HaozhiQi/ISONet/blob/master/isonet/models/isonet.py
+(based on https://github.com/facebookresearch/pycls/blob/master/pycls/models/resnet.py)
+"""
+
 import numpy as np
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# from config import C
+# Stage depths for ImageNet models
+_IN_STAGE_DS = {
+    18: (2, 2, 2, 2),
+    34: (3, 4, 6, 3),
+    46: (3, 4, 12, 3),
+    50: (3, 4, 6, 3),
+    101: (3, 4, 23, 3),
+    152: (3, 8, 36, 3),
+}
 
 def get_trans_fun(name):
     """Retrieves the transformation function by name."""
@@ -21,7 +33,6 @@ def get_trans_fun(name):
 
 class SReLU(nn.Module):
     """Shifted ReLU"""
-
     def __init__(self, nc):
         super(SReLU, self).__init__()
         self.srelu_bias = nn.Parameter(torch.Tensor(1, nc, 1, 1))
@@ -45,13 +56,13 @@ class SReLU(nn.Module):
 class ResHead(nn.Module):
     """ResNet head."""
 
-    def __init__(self, w_in, nc, use_dropout, dropout_rate):
+    def __init__(self, w_in, net_params):
         super(ResHead, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.use_dropout = use_dropout 
+        self.use_dropout = net_params['use_dropout']
         if self.use_dropout:
-            self.dropout = nn.Dropout(p=dropout_rate, inplace=True)
-        self.fc = nn.Linear(w_in, nc, bias=True)
+            self.dropout = nn.Dropout(p=net_params['dropout_rate'], inplace=True)
+        self.fc = nn.Linear(w_in, net_params['nc'], bias=True)
 
     def forward(self, x):
         x = self.avg_pool(x)
@@ -101,7 +112,7 @@ class BasicTransform(nn.Module):
 
 
 class BottleneckTransform(nn.Module):
-    """Bottleneck transformation: 1x1, 3x3, 1x1"""
+    """Bottleneck transformation: 1x1, 3x3, 1x1, only for very deep networks"""
 
     def __init__(self, w_in, w_out, stride, has_bn, use_srelu, w_b, num_gs):
         super(BottleneckTransform, self).__init__()
@@ -194,12 +205,12 @@ class ResBlock(nn.Module):
 class ResStage(nn.Module):
     """Stage of ResNet."""
 
-    def __init__(self, w_in, w_out, stride, transfun, has_bn, has_st, use_srelu, d, w_b=None, num_gs=1):
+    def __init__(self, w_in, w_out, stride, net_params, d, w_b=None, num_gs=1):
         super(ResStage, self).__init__()
-        self.transfun=transfun
-        self.has_bn = has_bn
-        self.has_st = has_st
-        self.use_srelu = use_srelu
+        self.transfun=net_params['transfun']
+        self.has_bn = net_params['has_bn']
+        self.has_st = net_params['has_st']
+        self.use_srelu = net_params['use_srelu']
         self._construct(w_in, w_out, stride, d, w_b, num_gs)
 
     def _construct(self, w_in, w_out, stride, d, w_b, num_gs):
@@ -225,11 +236,11 @@ class ResStage(nn.Module):
 class ResStem(nn.Module):
     """Stem of ResNet."""
 
-    def __init__(self, w_in, w_out, has_bn, use_srelu, kernelsize, stride, padding,
+    def __init__(self, w_in, w_out, net_params, kernelsize=3, stride=1, padding=1,
                 use_maxpool=False, poolksize=3, poolstride=2, poolpadding=1):
         super(ResStem, self).__init__()
-        self.has_bn=has_bn
-        self.use_srelu=use_srelu        
+        self.has_bn=net_params['has_bn']
+        self.use_srelu=net_params['use_srelu']
         self.kernelsize=kernelsize
         self.stride=stride
         self.padding=padding
@@ -258,33 +269,36 @@ class ResStem(nn.Module):
         return x
 
 class ISONet(nn.Module):
-    """ResNet model."""
+    """ISONet, a modified ResNet model."""
 
-    def __init__(self, use_dirac=True):
-        super(ISONet, self).__init__()
+    # def __init__(self, use_dirac=True):
+    def __init__(self, net_params):
+        super(ISONet, self).__init__()       
         # define network structures
-        self._construct()
+        # self._construct()
+        self._construct(net_params)
         # initialization
-        self._network_init(use_dirac)
+        self._network_init(net_params['use_dirac'])
 
     # Depth for ResNet, e.g. [3, 4, 6, 3] for ResNet50
-    def _construct(self, num_class, depths):
+    def _construct(self, net_params):
+        print('>>>>>>>>>>>>>>>>>>>>>>>>...-----Core Con') 
         # Setting for ImageNet image size. To override if different.
         # Retrieve the number of blocks per stage
-        (d1, d2, d3, d4) = _depths
+        (d1, d2, d3, d4) = _IN_STAGE_DS[net_params['depths']] # _depths
         # Compute the initial bottleneck width
         # Stem: (N, 3, 224, 224) -> (N, 64, 56, 56)
-        self.stem = ResStem(w_in=3, w_out=64)
+        self.stem = ResStem(w_in=3, w_out=64, net_params=net_params)
         # Stage 1: (N, 64, 56, 56) -> (N, 256, 56, 56)
-        self.s1 = ResStage(w_in=64, w_out=64, stride=1, d=d1)
+        self.s1 = ResStage(w_in=64, w_out=64, stride=1, net_params=net_params, d=d1)
         # Stage 2: (N, 256, 56, 56) -> (N, 512, 28, 28)
-        self.s2 = ResStage(w_in=64, w_out=128, stride=2, d=d2)
+        self.s2 = ResStage(w_in=64, w_out=128, stride=2, net_params=net_params, d=d2)
         # Stage 3: (N, 512, 56, 56) -> (N, 1024, 14, 14)
-        self.s3 = ResStage(w_in=128, w_out=256, stride=2, d=d3)
+        self.s3 = ResStage(w_in=128, w_out=256, stride=2, net_params=net_params, d=d3)
         # Stage 4: (N, 1024, 14, 14) -> (N, 2048, 7, 7)
-        self.s4 = ResStage(w_in=256, w_out=512, stride=2, d=d4)
+        self.s4 = ResStage(w_in=256, w_out=512, stride=2, net_params=net_params, d=d4)
         # Head: (N, 2048, 7, 7) -> (N, num_classes)
-        self.head = ResHead(w_in=512, nc=num_class)
+        self.head = ResHead(w_in=512, net_params=net_params)
  
     def _network_init(self, use_dirac=True):
         for m in self.modules():
@@ -311,7 +325,11 @@ class ISONet(nn.Module):
         for module in self.children():
             x = module(x)
         return x   
+
     def ortho(self, device):
+        """regularizes the convolution kernel to be (near) orthogonal during training. 
+        This is called in Trainer.loss of the isonet example.
+        """
         ortho_penalty = []
         cnt = 0
         for m in self.modules():
@@ -325,6 +343,11 @@ class ISONet(nn.Module):
         return ortho_penalty
 
     def ortho_conv(self, m, device):
+        """regularizes the convolution kernel to be (near) orthogonal during training. 
+
+        Args:
+            m (nn.module]): [description]
+        """
         operator = m.weight
         operand = torch.cat(torch.chunk(m.weight, m.groups, dim=0), dim=1)
         transposed = m.weight.shape[1] < m.weight.shape[0]

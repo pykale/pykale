@@ -1,6 +1,13 @@
 */**/__pycache__
+
+# Pycharm
 .idea
 
 # Data and outputs
+examples/data/
 examples/*/data/
 examples/*/outputs/
+
+# Sphinx documentation
+docs/build/
+docs/source/backup 

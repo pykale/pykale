@@ -1,6 +1,8 @@
 # Examples
 
-Demos to show key functionalities via notebooks and GUI applications, with TorchScript](https://pytorch.org/docs/stable/jit.html) support.
+Demos to show key functionalities via notebooks and GUI applications, with [TorchScript](https://pytorch.org/docs/stable/jit.html) support.
+
+Name convention: `data_method` or `data_method_lightn` for lightning
 
 Domain-specific development in three areas
 

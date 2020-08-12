@@ -1,0 +1,11 @@
+# Versions used in development
+
+# core dependencies
+# python==3.7 (install manually)
+# pytorch==1.5.1 (install manually)
+numpy==1.19.0
+
+
+# utils
+torch-summary==1.4.0
+yacs==0.1.7
