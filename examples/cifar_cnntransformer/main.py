@@ -14,9 +14,9 @@ import torch
 from torchsummary import summary
 
 from config import get_cfg_defaults
-from loaddata import construct_dataset
 from model import get_model
 from trainer import Trainer
+from kale.loaddata.cifar_access import get_cifar
 
 import kale.utils.logger as logging
 import kale.utils.seed as seed
@@ -50,7 +50,7 @@ def main():
     logger.info('\n' + cfg.dump())
 
     # ---- setup dataset ----
-    train_loader, val_loader = construct_dataset(cfg)
+    train_loader, val_loader = get_cifar(cfg)
 
     # ---- setup model ----
     print('==> Building model..')
