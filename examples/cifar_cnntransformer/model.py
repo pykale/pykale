@@ -1,6 +1,5 @@
 """
-Author: Raivo Koot
-Initial Date: 17 July 2020
+Define and build the model based on chosen hyperparameters.
 """
 import torch
 import torch.nn as nn
