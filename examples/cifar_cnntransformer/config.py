@@ -1,6 +1,5 @@
 """
-Author: Raivo Koot
-Initial Date: 16 July 2020
+Hyperparameter configuration file based on the YACS library.
 """
 from yacs.config import CfgNode as CN
 
