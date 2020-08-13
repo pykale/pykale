@@ -1,6 +1,8 @@
 """
-Author: Raivo Koot
-Initial Date: 17 July 2020
+This example demonstrates the use of a CNN and a Transformer-Encoder
+for image classification on CIFAR10.
+
+Reference: See kale.embed.attention_cnn for more details.
 """
 import os
 import argparse
