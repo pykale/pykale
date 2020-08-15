@@ -1,10 +1,16 @@
-"""
-Author: Shuo Zhou, szhou20@sheffield.ac.uk
+# =============================================================================
+# Author: Shuo Zhou, szhou20@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk
+# =============================================================================
+"""Functions used for CMR image preprocessing of the following paper
 
-Functions used for CMR image preprocessing:
-    1. regMRI: image registration
-    2. rescalse_cmr: rescale cmr image
-    3. preproc: preprocessing image data
+Reference：
+    Andrew J Swift, Haiping Lu, Johanna Uthoff, Pankaj Garg, Marcella Cogliano,
+    Jonathan Taylor, Peter Metherall, Shuo Zhou, Christopher S Johns, Samer Alabed,
+    Robin A Condliffe, Allan Lawrie, Jim M Wild, David G Kiely, A machine learning
+    cardiac magnetic resonance approach to extract disease features and automate
+    pulmonary arterial hypertension diagnosis, European Heart Journal - Cardiovascular
+    Imaging, , jeaa001, https://doi.org/10.1093/ehjci/jeaa001
 """
 import os
 import sys
