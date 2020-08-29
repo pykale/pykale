@@ -14,6 +14,17 @@ kale.embed.attention\_cnn module
    :undoc-members:
    :show-inheritance:
 
+kale.embed.gripnet module
+----------------------------
+
+.. automodule:: kale.embed.gripnet
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :exclude-members: message, update
+   :member-order: bysource
+
+
 kale.embed.image\_cnn module
 ----------------------------
 
