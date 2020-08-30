@@ -100,8 +100,8 @@ class GCNEncoderLayer(MessagePassing):
         Args:
             x (torch.Tensor): The input node feature embedding.
             edge_index (torch.Tensor): Graph edge index in COO format with shape [2, num_edges].
-            edge_weight (torch.Tensor, optional): The edge weights with the same shape of edge_index
-                for weighted graphs (default: obj: 'None').
+            edge_weight (torch.Tensor, optional): The one-dimensional relation weight for each edge in
+                :obj:`edge_index`.
         """
         x = torch.matmul(x, self.weight)
 
@@ -151,7 +151,16 @@ class RGCNEncoderLayer(MessagePassing):
     stores a relation identifier
     :math:`\in \{ 0, \ldots, |\mathcal{R}| - 1\}` for each edge.
 
-
+    Args:
+        in_channels (int): Size of each input sample.
+        out_channels (int): Size of each output sample.
+        num_relations (int): Number of edge relations.
+        num_bases (int): Use bases-decoposition regulatization scheme and num_bases denotes the number of bases.
+        after_relu (bool): Whether input embedding is activated by relu function or not.
+        bias (bool): If set to :obj:`False`, the layer will not learn
+            an additive bias. (default: :obj:`False`)
+        **kwargs (optional): Additional arguments of
+            :class:`torch_geometric.nn.conv.MessagePassing`.
     """
 
     def __init__(self,
@@ -198,7 +207,14 @@ class RGCNEncoderLayer(MessagePassing):
             self.bias.data.zero_()
 
     def forward(self, x, edge_index, edge_type, range_list):
-        """"""
+        """
+        Args:
+            x (torch.Tensor): The input node feature embedding.
+            edge_index (torch.Tensor): Graph edge index in COO format with shape [2, num_edges].
+            edge_type: The one-dimensional relation type/index for each edge in
+                :obj:`edge_index`.
+            range_list (torch.Tensor): The index range list of each edge type with shape [num_types, 2].
+        """
         return self.propagate(
             edge_index, x=x, edge_type=edge_type, range_list=range_list)
 
