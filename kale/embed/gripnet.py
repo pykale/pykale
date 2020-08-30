@@ -151,6 +151,8 @@ class RGCNEncoderLayer(MessagePassing):
     stores a relation identifier
     :math:`\in \{ 0, \ldots, |\mathcal{R}| - 1\}` for each edge.
 
+    Note: For more information please see Pytorch Geomertic’s nn.RGCNConv docs.
+
     Args:
         in_channels (int): Size of each input sample.
         out_channels (int): Size of each output sample.
@@ -211,7 +213,7 @@ class RGCNEncoderLayer(MessagePassing):
         Args:
             x (torch.Tensor): The input node feature embedding.
             edge_index (torch.Tensor): Graph edge index in COO format with shape [2, num_edges].
-            edge_type: The one-dimensional relation type/index for each edge in
+            edge_type (torch.Tensor): The one-dimensional relation type/index for each edge in
                 :obj:`edge_index`.
             range_list (torch.Tensor): The index range list of each edge type with shape [num_types, 2].
         """
@@ -252,22 +254,27 @@ class RGCNEncoderLayer(MessagePassing):
             self.num_relations)
 
 
-class homoGraph(Module):
+# Copy-paste with slight modification from https://github.com/NYXFLOWER/GripNet
+class HomoGraph(Module):
+    r"""
+    The supervertex module in GripNet. Each supervertex is a subgraph containing nodes with the
+    same category or at least keep semantically-coherent. The supervertex can be regarded as homogeneous graph and
+    information is propagated between them.
+
+    Args:
+        nhid_list (list): Dimensions list of hidden layers e.g. [hidden_1, hidden_2, ... hidden_n]
+        requires_grad (bool, optional): Requires gradient for initial embedding (default :obj:`True`)
+        start_graph (bool, optional): If set to :obj:`True`, this supervertex is the
+            start point of the whole information propagation. (default :obj:`False`)
+        in_dim (int, optional): the size of input sample for start graph. (default :obj:`None`)
+        multi_relational: If set to :obj: 'True', the supervertex is a multi relation graph. (default :obj:`False`)
+        n_rela (int, optional): Number of edge relations if supervertex is a multi relation graph. (default :obj:`None`)
+        n_base (int, optional): Number of bases if supervertex is a multi relation graph. (default :obj:`None`)
+    """
 
     def __init__(self, nhid_list, requires_grad=True, start_graph=False,
                  in_dim=None, multi_relational=False, n_rela=None, n_base=32):
-        """
-        Parameters
-        ----------
-        nhid_list：the dimensions list of hidden layer e.g. [hidden_1, hidden_2, ... hidden_n]
-        requires_grad: whether requires gard for initial embedding (for start graph)
-        start_graph: whether a start graph
-        in_dim: initial embedding (for start graph)
-        multi_relational: whether a multi relational graph (if true -> RGCN)
-        n_rela: the num of relations if a multi relational graph
-        n_base: the num of base metrics for RGCN
-        """
-        super(homoGraph, self).__init__()
+        super(HomoGraph, self).__init__()
         self.multi_relational = multi_relational
         self.start_graph = start_graph
         self.out_dim = nhid_list[-1]
@@ -295,21 +302,7 @@ class homoGraph(Module):
 
     def forward(self, x, homo_edge_index, edge_weight=None, edge_type=None,
                 range_list=None, if_catout=False):
-        """
-
-        Parameters
-        ----------
-        x
-        homo_edge_index
-        edge_weight
-        edge_type
-        range_list
-        if_catout: whether cat each layer output
-
-        Returns
-        -------
-
-        """
+        """"""
         if self.start_graph:
             x = self.embedding
 
@@ -333,38 +326,12 @@ class homoGraph(Module):
         x = self.conv_list[-1](x, homo_edge_index, edge_type, range_list) \
             if self.multi_relational \
             else self.conv_list[-1](x, homo_edge_index, edge_weight)
-        # ---- end: no check point version ----
 
-        # if self.multi_relational:
-        #     for net in self.conv_list[:-1]:
-        #         x = checkpoint(net, x, homo_edge_index, edge_type, range_list)
-        #         x = F.relu(x, inplace=True)
-        #         tmp.append(x)
-        #     x = checkpoint(self.conv_list[-1], x, homo_edge_index, edge_type, range_list)
-        # else:
-        #     for net in self.conv_list[:-1]:
-        #         x = net(x, homo_edge_index, edge_weight)
-        #         x = F.relu(x, inplace=True)
-        #         tmp.append(x)
-        #     x = self.conv_list[-1](x, homo_edge_index, edge_weight)
-
-        # TODO
-        # x = normalize(x)
         x = F.relu(x, inplace=True)
-        # TODO
         if if_catout:
             tmp.append(x)
             x = torch.cat(tmp, dim=1)
-
-        # TODO
-        # print([torch.abs(a).detach().mean().tolist() for a in tmp])
-        # self.tmp = tmp
-        # [a.retain_grad() for a in self.tmp]
-        # TODO
-
-        # TODO
         return x
-        # TODO
 
 
 class interGraph(Module):
@@ -455,9 +422,9 @@ class GripNet(Module):
         super(GripNet, self).__init__()
         self.n_d_node = n_d_node
         self.n_g_node = n_g_node
-        self.gg = homoGraph(gg_nhids_gcn, start_graph=True, in_dim=self.n_g_node)
+        self.gg = HomoGraph(gg_nhids_gcn, start_graph=True, in_dim=self.n_g_node)
         self.gd = interGraph(sum(gg_nhids_gcn), gd_out[0], self.n_d_node, target_feat_dim=gd_out[-1])
-        self.dd = homoGraph(dd_nhids_gcn, multi_relational=True, n_rela=n_dd_edge_type)
+        self.dd = HomoGraph(dd_nhids_gcn, multi_relational=True, n_rela=n_dd_edge_type)
         self.dmt = multiRelaInnerProductDecoder(sum(dd_nhids_gcn), n_dd_edge_type)
 
     def forward(self, g_feat, gg_edge_index, gg_edge_weight, gd_edge_index, dd_idx, dd_et, dd_range, device):
