@@ -314,7 +314,6 @@ class HomoGraph(Module):
             assert edge_type is not None
             assert range_list is not None
 
-        # ---- start: no check point version ----
         for net in self.conv_list[:-1]:
             x = net(x, homo_edge_index, edge_type, range_list) \
                 if self.multi_relational \
@@ -334,11 +333,25 @@ class HomoGraph(Module):
         return x
 
 
-class interGraph(Module):
+class InterGraph(Module):
+    r"""
+    The superedges module in GripNet. Each superedges is a bipartite subgraph containing nodes from two categories
+    forming two nodes set, connected by edges between them. The superedge can be regards as a heterogeneous graph
+    connecting different supervertexs. It achieves efficient information flow propagation from all parents supervetices
+    to target supervertex.
+
+    Args:
+        source_dim (int): Embedding dimensions of each source node.
+        target_dim (int): Embedding dimensions of each target node.
+        n_target (int): Numbers of target nodes.
+        target_feat_dim (int, optional): Initial dimensions of each target node. (default: 32)
+        requires_grad (bool, optional): Require gradient for the part of initial target node embedding.
+            (default: obj:`True`)
+    """
 
     def __init__(self, source_dim, target_dim, n_target, target_feat_dim=32,
                  requires_grad=True):
-        super(interGraph, self).__init__()
+        super(InterGraph, self).__init__()
         self.source_dim = source_dim
         self.target_dim = target_dim
         self.target_feat_dim = target_feat_dim
@@ -346,9 +359,7 @@ class interGraph(Module):
         self.target_feat = torch.nn.Parameter(
             torch.Tensor(n_target, target_feat_dim))
 
-        # TODO:
         self.target_feat.requires_grad = requires_grad
-        # TODO:
 
         self.conv = GCNEncoderLayer(source_dim, target_dim, cached=True)
         self.reset_parameters()
@@ -357,6 +368,7 @@ class interGraph(Module):
         self.target_feat.data.normal_()
 
     def forward(self, x, inter_edge_index, edge_weight=None, if_relu=True, mod='cat'):
+        """"""
         n_source = x.shape[0]
         tmp = inter_edge_index + 0
         tmp[1, :] += n_source
@@ -371,8 +383,6 @@ class interGraph(Module):
         else:
             assert x.shape[1] == self.target_feat.shape[1]
             x = x + torch.abs(self.target_feat)
-        # x = torch.cat([x, F.relu(self.target_feat)], dim=1)
-
         return x
 
 
@@ -423,7 +433,7 @@ class GripNet(Module):
         self.n_d_node = n_d_node
         self.n_g_node = n_g_node
         self.gg = HomoGraph(gg_nhids_gcn, start_graph=True, in_dim=self.n_g_node)
-        self.gd = interGraph(sum(gg_nhids_gcn), gd_out[0], self.n_d_node, target_feat_dim=gd_out[-1])
+        self.gd = InterGraph(sum(gg_nhids_gcn), gd_out[0], self.n_d_node, target_feat_dim=gd_out[-1])
         self.dd = HomoGraph(dd_nhids_gcn, multi_relational=True, n_rela=n_dd_edge_type)
         self.dmt = multiRelaInnerProductDecoder(sum(dd_nhids_gcn), n_dd_edge_type)
 
