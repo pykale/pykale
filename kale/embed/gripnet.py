@@ -40,6 +40,7 @@ class GCNEncoderLayer(MessagePassing):
         **kwargs (optional): Additional arguments of
             :class:`torch_geometric.nn.conv.MessagePassing`.
     """
+
     def __init__(self,
                  in_channels,
                  out_channels,
@@ -101,7 +102,7 @@ class GCNEncoderLayer(MessagePassing):
             x (torch.Tensor): The input node feature embedding.
             edge_index (torch.Tensor): Graph edge index in COO format with shape [2, num_edges].
             edge_weight (torch.Tensor, optional): The one-dimensional relation weight for each edge in
-                :obj:`edge_index`.
+                :obj:`edge_index` (default: None).
         """
         x = torch.matmul(x, self.weight)
 
@@ -255,7 +256,7 @@ class RGCNEncoderLayer(MessagePassing):
 
 
 # Copy-paste with slight modification from https://github.com/NYXFLOWER/GripNet
-class HomoGraph(Module):
+class GripNetSuperVertex(Module):
     r"""
     The supervertex module in GripNet. Each supervertex is a subgraph containing nodes with the
     same category or at least keep semantically-coherent. The supervertex can be regarded as homogeneous graph and
@@ -274,7 +275,7 @@ class HomoGraph(Module):
 
     def __init__(self, nhid_list, requires_grad=True, start_graph=False,
                  in_dim=None, multi_relational=False, n_rela=None, n_base=32):
-        super(HomoGraph, self).__init__()
+        super(GripNetSuperVertex, self).__init__()
         self.multi_relational = multi_relational
         self.start_graph = start_graph
         self.out_dim = nhid_list[-1]
@@ -333,7 +334,7 @@ class HomoGraph(Module):
         return x
 
 
-class InterGraph(Module):
+class GripNetSuperEdges(Module):
     r"""
     The superedges module in GripNet. Each superedges is a bipartite subgraph containing nodes from two categories
     forming two nodes set, connected by edges between them. The superedge can be regards as a heterogeneous graph
@@ -342,16 +343,16 @@ class InterGraph(Module):
 
     Args:
         source_dim (int): Embedding dimensions of each source node.
-        target_dim (int): Embedding dimensions of each target node.
+        target_dim (int): Embedding dimensions of each target node aggregated from source nodes.
         n_target (int): Numbers of target nodes.
-        target_feat_dim (int, optional): Initial dimensions of each target node. (default: 32)
+        target_feat_dim (int, optional): Initial dimensions of each target node for internal layer. (default: 32)
         requires_grad (bool, optional): Require gradient for the part of initial target node embedding.
             (default: obj:`True`)
     """
 
     def __init__(self, source_dim, target_dim, n_target, target_feat_dim=32,
                  requires_grad=True):
-        super(InterGraph, self).__init__()
+        super(GripNetSuperEdges, self).__init__()
         self.source_dim = source_dim
         self.target_dim = target_dim
         self.target_feat_dim = target_feat_dim
@@ -386,63 +387,48 @@ class InterGraph(Module):
         return x
 
 
-class multiRelaInnerProductDecoder(Module):
-    def __init__(self, in_dim, num_et):
-        super(multiRelaInnerProductDecoder, self).__init__()
-        self.num_et = num_et
-        self.in_dim = in_dim
-        self.weight = Parameter(torch.Tensor(num_et, in_dim))
+class TypicalGripNetEncoder(Module):
+    r"""
+    A typical GripNet architecture with one external aggregation feature layer (GCNs) and one internal layer (RGCNs).
+    The information propagates from one source nodes set to one target nodes set. You can also
+    define self topological ordering of the supervertices the specific graph belongs to. For more details about GripNet,
+    please see `"GripNet"
+    <https://github.com/NYXFLOWER/GripNet>`_ repo.
 
-        self.reset_parameters()
+    Args:
+        source_nhids (list): Dimensions list of source nodes' hidden layers e.g. [hidden_1, hidden_2, ... hidden_n]
+        st_inter_out (list): Dimensions list of superedge between source and target node sets with length 2.
+        target_nhids (list): Dimensions list of target nodes' hidden layers e.g. [hidden_1, hidden_2, ... hidden_n]
+        n_target_node (int): Numbers of target nodes.
+        n_source_node (int): Numbers of source nodes.
+        n_target_edge_type (int): Number of edge relations of target supervertex.
+    """
 
-    def forward(self, z, edge_index, edge_type, sigmoid=True):
-        value = (z[edge_index[0]] * z[edge_index[1]] * self.weight[edge_type]).sum(dim=1)
-        return torch.sigmoid(value) if sigmoid else value
+    def __init__(self, source_nhids, st_inter_out, target_nhids, n_target_node, n_source_node, n_target_edge_type):
+        super(TypicalGripNetEncoder, self).__init__()
+        self.n_target_node = n_target_node
+        self.n_source_node = n_source_node
+        self.source_graph = GripNetSuperVertex(source_nhids, start_graph=True, in_dim=self.n_source_node)
+        self.s2t_graph = GripNetSuperEdges(sum(source_nhids), st_inter_out[0],
+                                           self.n_target_node, target_feat_dim=st_inter_out[-1])
+        self.target_graph = GripNetSuperVertex(target_nhids, multi_relational=True, n_rela=n_target_edge_type)
 
-    def reset_parameters(self):
-        self.weight.data.normal_(std=1 / np.sqrt(self.in_dim))
-
-
-class multiClassInnerProductDecoder(Module):
-    def __init__(self, in_dim, num_class):
-        super(multiClassInnerProductDecoder, self).__init__()
-        self.num_class = num_class
-        self.in_dim = in_dim
-        self.weight = Parameter(torch.Tensor(self.in_dim, self.num_class))
-
-        self.reset_parameters()
-
-    def forward(self, z, node_list, softmax=True):
-        # value = (z[node_list] * self.weight[node_label]).sum(dim=1)
-        # value = torch.sigmoid(value) if sigmoid else value
-
-        pred = torch.matmul(z[node_list], self.weight)
-        pred = torch.softmax(pred, dim=1) if softmax else pred
-
-        return pred
-
-    def reset_parameters(self):
-        stdv = np.sqrt(6.0 / (self.weight.size(-2) + self.weight.size(-1)))
-        self.weight.data.uniform_(-stdv, stdv)
-        # self.weight.data.normal_()
-
-
-class GripNet(Module):
-    def __init__(self, gg_nhids_gcn, gd_out, dd_nhids_gcn, n_d_node, n_g_node, n_dd_edge_type):
-        super(GripNet, self).__init__()
-        self.n_d_node = n_d_node
-        self.n_g_node = n_g_node
-        self.gg = HomoGraph(gg_nhids_gcn, start_graph=True, in_dim=self.n_g_node)
-        self.gd = InterGraph(sum(gg_nhids_gcn), gd_out[0], self.n_d_node, target_feat_dim=gd_out[-1])
-        self.dd = HomoGraph(dd_nhids_gcn, multi_relational=True, n_rela=n_dd_edge_type)
-        self.dmt = multiRelaInnerProductDecoder(sum(dd_nhids_gcn), n_dd_edge_type)
-
-    def forward(self, g_feat, gg_edge_index, gg_edge_weight, gd_edge_index, dd_idx, dd_et, dd_range, device):
-        z = self.gg(g_feat, gg_edge_index, edge_weight=gg_edge_weight, if_catout=True)
-        z = self.gd(z, gd_edge_index)
-        z = self.dd(z, dd_idx, edge_type=dd_et, range_list=dd_range, if_catout=True)
-        pos_index = dd_idx
-        neg_index = negative_sampling(dd_idx, self.n_d_node).to(device)
-        pos_score = self.dmt(z, pos_index, dd_et)
-        neg_score = self.dmt(z, neg_index, dd_et)
-        return pos_score, neg_score
+    def forward(self, source_feat, source_edge_index, source_edge_weight,
+                st_edge_index, target_edge_idx, target_edge_et, target_edge_range):
+        """
+        Args:
+            source_feat (torch.Tensor): Input source node feature embedding.
+            source_edge_index (torch.Tensor): Source edge index in COO format with shape [2, num_edges].
+            source_edge_weight (torch.Tensor): The one-dimensional relation weight
+                for each edge in source graph.
+            st_edge_index: Source-target edge index in COO format with shape [2, num_edges].
+            target_edge_idx: Target edge index in COO format with shape [2, num_edges].
+            target_edge_et: The one-dimensional relation type/index for each target edge in
+                :obj:`edge_index`.
+            target_edge_range: The index range list of each target edge type with shape [num_types, 2].
+        """
+        z = self.source_graph(source_feat, source_edge_index, edge_weight=source_edge_weight, if_catout=True)
+        z = self.s2t_graph(z, st_edge_index)
+        z = self.target_graph(z, target_edge_idx, edge_type=target_edge_et,
+                              range_list=target_edge_range, if_catout=True)
+        return z
