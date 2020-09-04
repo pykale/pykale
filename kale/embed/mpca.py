@@ -4,18 +4,19 @@
 # =============================================================================
 
 """Python implementation of Multilinear Principal Component Analysis (MPCA)
-Includeing implementaion as a scikit-learn class and an independent function
+Includeing implementaion as a scikit-learn object and an independent function.
 
 Reference:
     Haiping Lu, K.N. Plataniotis, and A.N. Venetsanopoulos, "MPCA: Multilinear
     Principal Component Analysis of Tensor Objects", IEEE Transactions on Neural 
-    Networks, Vol. 19, No. 1, Page: 18-39, January 2008.
+    Networks, Vol. 19, No. 1, Page: 18-39, January 2008. For initial Matlab
+    implementation, visit https://uk.mathworks.com/matlabcentral/fileexchange/26168.
 """
 
 import numpy as np
-import tensorly as tl
-from tensorly.base import fold, unfold
-from tensorly.tenalg import mode_dot, multi_mode_dot
+# import tensorly as tl
+from tensorly.base import unfold
+from tensorly.tenalg import multi_mode_dot
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
@@ -152,7 +153,7 @@ def MPCA_(X, variance_explained=0.97, max_iter=1):
         max_iter (int, optional): max number of iteration. Defaults to 1.
 
     Returns:
-        list: tPs: list of projection matrices
+        list: a list of projection matrices
     
     Examples:
         >>> import numpy as np
