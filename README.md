@@ -21,7 +21,7 @@ To join this effort, branch, clone or fork this repository and push your contrib
 
 ### Plan
 
-* Early Oct 2020: First public release (for MICCAI20 paper), to discuss
+* Early Nov 2020: First public release  
 * Long term: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)
 
 ### Objectives
