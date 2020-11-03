@@ -8,7 +8,7 @@ We aim to develop a library to accelerate **interdisciplinary** research on mach
 
 To join this effort, fork this repository, make changes, and push your contributions when ready for review and merge. Follow [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md) and [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) to make your code **well documented** and verify your API under `docs/` before requesting a merge.
 
-## Workflow
+## Workflow (to contribute)
 
 * Minor update: direct update (for write access users)
 * Major update:
@@ -16,6 +16,7 @@ To join this effort, fork this repository, make changes, and push your contribut
   * Make your changes to the source in your fork.
   * Document the update in detail in your code.
   * Update the `docs` to check documentations for the update
+  * Keep large files (e.g. MB level) local to keep the repository small (via `.gitignore`)
   * Create a pull request with explanations on your changes and choose a reviewer (or more): David, Raivo, Shuo, Haiping
   * After passing the review, your pull request gets accepted and PyKale has your awsome new feature added.
 * For any further questions/suggestions, create an issue above
