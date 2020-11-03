@@ -1,27 +1,32 @@
-# Machine learning for medical imaging, graph/network, and computer vision
+# Machine learning for medical imaging, graph analysis, and computer vision
 
 <img src="docs/pykaleWorkflow.png"
      alt="Machine learning workflow"
      style="float: center;" />
 
-We aim to develop a library to accelerate **interdisciplinary** research on machine learning for medical imaging, graphs/networks, and computer vision. Our library will be complementary to existing libraries and beter facilitate **cross-disciplinary** collaborations. 
+We aim to develop a library to accelerate **interdisciplinary** research on machine learning for medical imaging, graph analysis, and computer vision. Our library will be complementary to existing libraries and beter facilitate **cross-disciplinary** collaborations. 
 
-To join this effort, branch, clone or fork this repository and push your contributions when ready for review and merge. Follow [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md) and [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) to make your code **well documented** and verify your API under `docs/` before requesting a merge.
+To join this effort, fork this repository, make changes, and push your contributions when ready for review and merge. Follow [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md) and [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) to make your code **well documented** and verify your API under `docs/` before requesting a merge.
 
 ## Workflow
 
 * Minor update: direct update (for write access users)
 * Major update:
-  * Create a branch and document the update in detail in code
+  * [Fork](https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo) PyKale.
+  * Make your changes to the source in your fork.
+  * Document the update in detail in your code.
   * Update the `docs` to check documentations for the update
-  * Merge (for write access users) and request a review
-  * Reviewers: Raivo, Shuo, Haiping
+  * Create a pull request with explanations on your changes and choose a reviewer (or more): David, Raivo, Shuo, Haiping
+  * After passing the review, your pull request gets accepted and PyKale has your awsome new feature added.
+* For any further questions/suggestions, create an issue above
+* Known issues (to be fixed):
+  * Big blob branches to be deleted to reduce the size by 160MB
 
 ## Overview
 
 ### Plan
 
-* Early Nov 2020: First public release  
+* Next mileston: public release  
 * Long term: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)
 
 ### Objectives
