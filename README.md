@@ -4,7 +4,7 @@
      alt="Machine learning workflow"
      style="float: center;" />
 
-We aim to develop a library to accelerate **interdisciplinary** research on *knowledge-aware* machine learning for medical imaging, graph analysis, and computer vision. Our library will be complementary to existing libraries and can facilitate **cross-disciplinary** collaborations.
+This library aims to consolidate and accelerate **interdisciplinary** research on *knowledge-aware* machine learning for medical imaging, graph analysis, and computer vision. It is designed to complement existing libraries and facilitate *cross-disciplinary* collaborations.
 
 * **To contribute**
   * [Fork](https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo) pykale (also see the [guide on forking projects](https://guides.github.com/activities/forking/)).
@@ -25,15 +25,15 @@ We aim to develop a library to accelerate **interdisciplinary** research on *kno
 
 ### Objectives
 
-* Share our resources/expertise and know each other better
-* Build reusable+trustable tools for us first and the community next
+* Share and consolidate resources/expertise in several related areas
+* Build reusable and trustable tools for research and development
 * Avoid duplicated efforts and identify key missing components
 
 ### Principles
 
 * Keep it **lean** in content, and memory/time cost. Quality first!
 * Use existing top code when it fits (**credit@top + license**) and build when NA or we can do much better
-* Keep it as modular as possible, following the pipeline below
+* Keep it modular following the pipeline below and separate [core functionalities](https://github.com/pykale/pykale/tree/master/kale) from [specific applications](https://github.com/pykale/pykale/tree/master/examples).
 
 ### Pipeline-based modules
 
@@ -85,18 +85,10 @@ We need to design these core modules to be generic, reusable, customizable, and 
     └───data
 ```
 
-### Progress
-
-* Shuo on medim
-* Haiping vision - [ISONet](https://github.com/HaozhiQi/ISONet/tree/master/isonet) on CIFAR, [CDAN](https://github.com/thuml/CDAN) on Office-31 (next graph - Cora)
-
 ### General recommendation
 
 * Python: pytorch, [Visual Studio Code](https://code.visualstudio.com/download), pycharm
-* GitHub: GitHub Desktop, [UCL guidance](https://www.ucl.ac.uk/isd/services/research-it/research-software-development-tools/support-for-ucl-researchers-to-use-github)
-* Check out and contribute to the [resources](Resources.md) (and specific resources under each domain)
-
-Welcome contributions from expertnal members. If you have a recommendation, contact Haiping to consider.
+* GitHub: GitHub Desktop, [GitHub guides](https://guides.github.com/), [UCL guidance](https://www.ucl.ac.uk/isd/services/research-it/research-software-development-tools/support-for-ucl-researchers-to-use-github)
 
 ## Domain specifics
 
