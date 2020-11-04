@@ -7,7 +7,7 @@
 This library aims to consolidate and accelerate **interdisciplinary** research on *knowledge-aware* machine learning for medical imaging, graph analysis, and computer vision. It is designed to complement existing libraries and facilitate *cross-disciplinary* collaborations.
 
 * Known issues and recent focuses (advisor: [David Jones](https://github.com/drj11))
-  * Big blob branches to be deleted to reduce the size by 160MB
+  * Fix and enrich documentation
   * Add continuous integration and tests
   * Public release
 * **To contribute**
