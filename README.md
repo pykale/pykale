@@ -6,6 +6,10 @@
 
 This library aims to consolidate and accelerate **interdisciplinary** research on *knowledge-aware* machine learning for medical imaging, graph analysis, and computer vision. It is designed to complement existing libraries and facilitate *cross-disciplinary* collaborations.
 
+* Known issues and recent focuses (advisor: [David Jones](https://github.com/drj11))
+  * Big blob branches to be deleted to reduce the size by 160MB
+  * Add continuous integration and tests
+  * Public release
 * **To contribute**
   * [Fork](https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo) pykale (also see the [guide on forking projects](https://guides.github.com/activities/forking/)).
   * Make changes to the source in your fork following [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md).
@@ -14,10 +18,6 @@ This library aims to consolidate and accelerate **interdisciplinary** research o
   * Create a [pull request](https://github.com/pykale/pykale/pulls) explaining the changes and choose reviewers: David, Raivo, Shuo, Haiping
   * After passing the review, your pull request gets merged and pykale has your contribution incorporated.
 * For any further questions/suggestions, create an issue above.
-* Known issues and recent focuses (advisor: [David Jones](https://github.com/drj11)):
-  * Big blob branches to be deleted to reduce the size by 160MB
-  * Add continuous integration and tests
-  * Public release
 
 ## Overview
 
