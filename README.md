@@ -4,14 +4,14 @@
      alt="Machine learning workflow"
      style="float: center;" />
 
-We aim to develop a library to accelerate **interdisciplinary** research on machine learning for medical imaging, graph analysis, and computer vision. Our library will be complementary to existing libraries and beter facilitate **cross-disciplinary** collaborations. 
+We aim to develop a library to accelerate **interdisciplinary** research on *knowledge-aware* machine learning for medical imaging, graph analysis, and computer vision. Our library will be complementary to existing libraries and can facilitate **cross-disciplinary** collaborations.
 
 * **To contribute**
   * [Fork](https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo) pykale (also see the [guide on forking projects](https://guides.github.com/activities/forking/)).
   * Make changes to the source in your fork following [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md).
   * **Document** the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) and [update `docs`](https://github.com/pykale/pykale/tree/master/docs) to verify its API [documentations](https://pykale.readthedocs.io/en/latest/).
   * Keep large files (e.g. data) [local/external](https://github.com/pykale/pykale/tree/master/examples/data) to keep the repository small (via `.gitignore`)
-  * Create a [pull request](https://github.com/pykale/pykale/pulls) with explanations on the changes and choose one or more reviewers: David, Raivo, Shuo, Haiping
+  * Create a [pull request](https://github.com/pykale/pykale/pulls) explaining the changes and choose reviewers: David, Raivo, Shuo, Haiping
   * After passing the review, your pull request gets merged and pykale has your contribution incorporated.
 * For any further questions/suggestions, create an issue above.
 * Known issues and recent focuses (advisor: [David Jones](https://github.com/drj11)):
