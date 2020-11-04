@@ -1,4 +1,4 @@
-# Machine learning for medical imaging, graph analysis, and computer vision
+# Knowledge-aware machine learning for medical imaging, graph analysis, and computer vision
 
 <img src="docs/pykaleWorkflow.png"
      alt="Machine learning workflow"
@@ -6,29 +6,22 @@
 
 We aim to develop a library to accelerate **interdisciplinary** research on machine learning for medical imaging, graph analysis, and computer vision. Our library will be complementary to existing libraries and beter facilitate **cross-disciplinary** collaborations. 
 
-To join this effort, fork this repository, make changes, and push your contributions when ready for review and merge. Follow [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md) and [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) to make your code **well documented** and verify your API under `docs/` before requesting a merge.
-
-## Workflow (to contribute)
-
-* Minor update: direct update (for write access users)
-* Major update:
-  * [Fork](https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo) PyKale.
-  * Make your changes to the source in your fork.
-  * Document the update in detail in your code.
-  * Update the `docs` to check documentations for the update
-  * Keep large files (e.g. MB level) local to keep the repository small (via `.gitignore`)
-  * Create a pull request with explanations on your changes and choose a reviewer (or more): David, Raivo, Shuo, Haiping
-  * After passing the review, your pull request gets accepted and PyKale has your awsome new feature added.
-* For any further questions/suggestions, create an issue above
-* Known issues (to be fixed):
+* **To contribute**
+  * [Fork](https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo) pykale (also see the [guide on forking projects](https://guides.github.com/activities/forking/)).
+  * Make changes to the source in your fork following [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md).
+  * **Document** the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) and [update `docs`](https://github.com/pykale/pykale/tree/master/docs) to verify its API [documentations](https://pykale.readthedocs.io/en/latest/).
+  * Keep large files (e.g. data) [local/external](https://github.com/pykale/pykale/tree/master/examples/data) to keep the repository small (via `.gitignore`)
+  * Create a [pull request](https://github.com/pykale/pykale/pulls) with explanations on the changes and choose one or more reviewers: David, Raivo, Shuo, Haiping
+  * After passing the review, your pull request gets merged and pykale has your contribution incorporated.
+* For any further questions/suggestions, create an issue above.
+* Known issues and recent focuses (advisor: [David Jones](https://github.com/drj11)):
   * Big blob branches to be deleted to reduce the size by 160MB
+  * Add continuous integration and tests
+  * Public release
 
 ## Overview
 
-### Plan
-
-* Next mileston: public release  
-* Long term: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)
+**Long term goal**: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)
 
 ### Objectives
 
@@ -118,7 +111,7 @@ Welcome contributions from expertnal members. If you have a recommendation, cont
 * Recommended package
   * [MONAI](https://github.com/Project-MONAI/MONAI): deep learning-based healthcare imaging workflows, with great [highlights](https://docs.monai.io/en/latest/highlights.html)
 
-### Graph/Network
+### Graph analysis
 
 * Data and tasks
   * [Knowledge graph](https://github.com/shaoxiongji/awesome-knowledge-graph) and user-item interactions for recommender systems
