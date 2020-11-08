@@ -3,10 +3,7 @@ import numpy as np
 import pickle
 from sklearn import metrics
 from sklearn.metrics import accuracy_score
-from torch.nn import Parameter, Module
 
-torch.manual_seed(1111)
-np.random.seed(1111)
 EPS = 1e-13
 
 
