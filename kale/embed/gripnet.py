@@ -1,7 +1,8 @@
 """
 The GripNet is an efficient framework to learn node representations on heterogeneous graphs for the
 downstream link prediction, node classification, and visualization. The code is based on
-https://github.com/NYXFLOWER/GripNet, which is the Gripnet's source code.
+the `GripNet
+<https://github.com/NYXFLOWER/GripNet>`_ source repo.
 """
 
 import torch.nn.functional as F
