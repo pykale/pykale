@@ -5,10 +5,12 @@ Define the learning model and configure training parameters.
 # Initial Date: 27 July 2020
 
 from copy import deepcopy
-from kale.embed.image_cnn import SmallCNNFeature
+from kale.embed.video_cnn.i3d import InceptionI3d
+from kale.embed.video_cnn.res3d import r3d_18, r2plus1d_18, mc3_18
 from kale.predict.class_domain_nets import ClassNetSmallImage, \
-                                              DomainNetSmallImage
+    DomainNetSmallImage
 import kale.pipeline.domain_adapter as domain_adapter
+
 
 def get_config(cfg):
     """
@@ -36,7 +38,7 @@ def get_config(cfg):
             }
         },
         "data_params": {
-            "dataset_group": cfg.DATASET.NAME,
+            # "dataset_group": cfg.DATASET.NAME,
             "dataset_name": cfg.DATASET.SOURCE + '2' + cfg.DATASET.TARGET,
             "source": cfg.DATASET.SOURCE,
             "target": cfg.DATASET.TARGET,
@@ -45,6 +47,7 @@ def get_config(cfg):
         }
     }
     return config_params
+
 
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 def get_model(cfg, dataset, num_channels):
@@ -56,13 +59,14 @@ def get_model(cfg, dataset, num_channels):
         dataset: A multidomain dataset consisting of source and target datasets.
         num_channels: The number of image channels.        
     """
-    
+
     # setup feature extractor
-    feature_network = SmallCNNFeature(num_channels)
+    feature_network = r3d_18(num_channels)
     # setup classifier
-    feature_dim = feature_network.output_size()
+    # feature_dim = feature_network.output_size()
+    feature_dim = 400
     classifier_network = ClassNetSmallImage(feature_dim, cfg.DATASET.NUM_CLASSES)
-    
+
     method = domain_adapter.Method(cfg.DAN.METHOD)
     critic_input_size = feature_dim
     # setup critic network
