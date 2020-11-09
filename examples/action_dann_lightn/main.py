@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from kale.utils.csv_logger import setup_logger  # np error if move this to later, not sure why
 import pytorch_lightning as pl
 
+from pytorch_lightning import loggers as pl_loggers
 from examples.action_dann_lightn.config import get_cfg_defaults
 from examples.action_dann_lightn.model import get_model
 from kale.loaddata.video_access import VideoDataset
@@ -65,6 +66,7 @@ def main():
                                                                            cfg.OUTPUT.DIR,
                                                                            cfg.DAN.METHOD,
                                                                            seed)
+        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR)
         trainer = pl.Trainer(
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
@@ -72,9 +74,9 @@ def main():
             checkpoint_callback=checkpoint_callback,
             # resume_from_checkpoint=last_checkpoint_file,
             gpus=args.gpus,
-            logger=True,  # logger,
+            logger=tb_logger,  # logger,
             # weights_summary='full',  
-            fast_dev_run=False,  # True,
+            fast_dev_run=True,  # True,
         )
 
         trainer.fit(model)
