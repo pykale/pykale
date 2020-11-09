@@ -76,7 +76,7 @@ def main():
             gpus=args.gpus,
             logger=tb_logger,  # logger,
             # weights_summary='full',  
-            fast_dev_run=True,  # True,
+            fast_dev_run=False,  # True,
         )
 
         trainer.fit(model)
