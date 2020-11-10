@@ -1,6 +1,5 @@
 import os
 import argparse
-import warnings
 import sys
 
 # No need if pykale is installed
@@ -9,9 +8,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 import torch
 import kale.utils.logger as lu
 import kale.utils.seed as seed
-from config import C
+from config import get_cfg_defaults
 from loaddata import construct_dataset
-from model import *
+from model import GripNet
+from kale.embed.gripnet import TypicalGripNetEncoder
 from torchsummary import summary
 from trainer import Trainer
 
@@ -32,28 +32,29 @@ def main():
     print('==> Using device ' + device)
 
     # ---- setup configs ----
-    C.merge_from_file(args.cfg)
-    C.freeze()
-    seed.set_seed(C.SOLVER.SEED)
+    cfg = get_cfg_defaults()
+    cfg.merge_from_file(args.cfg)
+    cfg.freeze()
+    seed.set_seed(cfg.SOLVER.SEED)
     # ---- setup logger and output ----
-    output_dir = os.path.join(C.OUTPUT_DIR, C.DATASET.NAME, args.output)
+    output_dir = os.path.join(cfg.OUTPUT_DIR, cfg.DATASET.NAME, args.output)
     os.makedirs(output_dir, exist_ok=True)
     logger = lu.construct_logger('gripnet', output_dir)
     logger.info('Using ' + device)
-    logger.info(C.dump())
+    logger.info(cfg.dump())
     # ---- setup dataset ----
-    data = construct_dataset(C)
+    data = construct_dataset(cfg)
     device = torch.device(device)
     data = data.to(device)
     # ---- setup model ----
     print('==> Building model..')
-    model = GripNet(C.GRIPN.GG_LAYERS, C.GRIPN.GD_LAYERS, C.GRIPN.DD_LAYERS, data.n_d_node,
+    model = GripNet(cfg.GRIPN.GG_LAYERS, cfg.GRIPN.GD_LAYERS, cfg.GRIPN.DD_LAYERS, data.n_d_node,
                     data.n_g_node, data.n_dd_edge_type).to(device)
     # TODO Visualize model
     # ---- setup trainers ----
-    optimizer = torch.optim.Adam(model.parameters(), lr=C.SOLVER.BASE_LR)
+    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.SOLVER.BASE_LR)
     # TODO
-    trainer = Trainer(C, device, data, model, optimizer, logger, output_dir)
+    trainer = Trainer(cfg, device, data, model, optimizer, logger, output_dir)
 
     if args.resume:
         # Load checkpoint
