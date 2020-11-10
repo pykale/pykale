@@ -371,10 +371,13 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_metrics["T_total_loss"] = loss
         log_metrics["T_task_loss"] = task_loss
 
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
+
         return {
             "loss": loss,  # required, for backward pass
-            "progress_bar": {"class_loss": task_loss},
-            "log": log_metrics,
+            # "progress_bar": {"class_loss": task_loss},
+            # "log": log_metrics,
         }
 
     def validation_step(self, batch, batch_nb):
@@ -389,12 +392,16 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_dict.update(
             get_metrics_from_parameter_dict(self.get_parameters_watch_list(), device)
         )
-        avg_loss = log_dict["val_loss"]
-        return {
-            "val_loss": avg_loss,  # for callbacks (eg early stopping)
-            "progress_bar": {"val_loss": avg_loss},
-            "log": log_dict,
-        }
+        # avg_loss = log_dict["val_loss"]
+
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+        # return {
+        #     "val_loss": avg_loss,  # for callbacks (eg early stopping)
+        #     "progress_bar": {"val_loss": avg_loss},
+        #     "log": log_dict,
+        # }
 
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
@@ -418,11 +425,14 @@ class BaseAdaptTrainer(pl.LightningModule):
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
-        return {
-            "avg_test_loss": log_dict["test_loss"],
-            "progress_bar": log_dict,
-            "log": log_dict,
-        }
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+        # return {
+        #     "avg_test_loss": log_dict["test_loss"],
+        #     "progress_bar": log_dict,
+        #     "log": log_dict,
+        # }
 
     def _configure_optimizer(self, parameters):
         if self._optimizer_params is None:
@@ -563,11 +573,14 @@ class BaseDANNLike(BaseAdaptTrainer):
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
-        return {
-            "avg_test_loss": log_dict["test_loss"],
-            "progress_bar": log_dict,
-            "log": log_dict,
-        }
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+        # return {
+        #     "avg_test_loss": log_dict["test_loss"],
+        #     "progress_bar": log_dict,
+        #     "log": log_dict,
+        # }
 
 
 class DANNtrainer(BaseDANNLike):
@@ -843,10 +856,13 @@ class WDGRLtrainer(BaseDANNLike):
         log_metrics["T_total_loss"] = loss
         log_metrics["T_task_loss"] = task_loss
 
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
+
         return {
             "loss": loss,  # required, for backward pass
-            "progress_bar": {"class_loss": task_loss},
-            "log": log_metrics,
+            # "progress_bar": {"class_loss": task_loss},
+            # "log": log_metrics,
         }
 
     def configure_optimizers(self):
@@ -958,10 +974,13 @@ class WDGRLtrainerMod(WDGRLtrainer):
         log_metrics["T_total_loss"] = loss
         log_metrics["T_task_loss"] = task_loss
 
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
+
         return {
             "loss": loss,  # required, for backward pass
-            "progress_bar": {"class_loss": task_loss},
-            "log": log_metrics,
+            # "progress_bar": {"class_loss": task_loss},
+            # "log": log_metrics,
         }
 
     def optimizer_step(
@@ -1144,11 +1163,14 @@ class BaseMMDLike(BaseAdaptTrainer):
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
-        return {
-            "avg_test_loss": log_dict["test_loss"],
-            "progress_bar": log_dict,
-            "log": log_dict,
-        }
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+        # return {
+        #     "avg_test_loss": log_dict["test_loss"],
+        #     "progress_bar": log_dict,
+        #     "log": log_dict,
+        # }
 
 
 class DANtrainer(BaseMMDLike):

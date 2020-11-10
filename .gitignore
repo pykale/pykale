@@ -1,4 +1,5 @@
 */**/__pycache__
+*/__pycache__
 
 # Pycharm
 .idea
@@ -7,6 +8,8 @@
 examples/data/
 examples/*/data/
 examples/*/outputs/
+examples/*/lightning_logs/
+examples/action_dann_lightn/configs/
 
 # Sphinx documentation
 docs/build/
