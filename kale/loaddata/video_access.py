@@ -10,6 +10,7 @@ from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.video_data.epickitchen import EPIC
 from kale.loaddata.video_data.gtea import GTEA
 from kale.loaddata.video_data.kitchen import KITCHEN
+from kale.loaddata.video_data.adl import ADL
 from copy import deepcopy
 
 
@@ -259,10 +260,24 @@ class GTEADatasetAccess(VideoDatasetAccess):
 
 class ADLDatasetAccess(VideoDatasetAccess):
     def get_train(self):
-        return 0
+        return ADL(
+            data_path=self._data_path,
+            list_path=self._train_list,
+            mode=self._mode,
+            window_len=self._window_len,
+            dataset_split='train',
+            transforms=self._transform['train']
+        )
 
     def get_test(self):
-        return 0
+        return ADL(
+            data_path=self._data_path,
+            list_path=self._test_list,
+            mode=self._mode,
+            window_len=self._window_len,
+            dataset_split='test',
+            transforms=self._transform['test']
+        )
 
 
 class KITCHENDatasetAccess(VideoDatasetAccess):
