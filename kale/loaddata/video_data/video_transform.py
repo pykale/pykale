@@ -12,7 +12,7 @@ def get_transform(kind, augment=False):
 
     """
 
-    if kind == "epic":
+    if kind in ["epic", "gtea", "adl", "kitchen"]:
         transform = {
             'train': transforms.Compose([
                 nptransforms.RandomCrop(size=224),
@@ -25,7 +25,6 @@ def get_transform(kind, augment=False):
                 nptransforms.CenterCrop(size=224),
             ])
         }
-
 
     elif kind == "cifar":
         if augment:

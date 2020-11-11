@@ -3,10 +3,13 @@ Digits dataset loading for EPIC-Kitchen, ADL, GTEA, KITCHEN. The code is based o
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py
 """
 
+import os
 from enum import Enum
 import kale.loaddata.video_data.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.video_data.epickitchen import EPIC
+from kale.loaddata.video_data.gtea import GTEA
+from kale.loaddata.video_data.kitchen import KITCHEN
 from copy import deepcopy
 
 
@@ -47,15 +50,18 @@ def get_videodata_config(cfg):
 
 def generate_list(data_name, data_params_local, domain):
     if data_name == 'EPIC':
-        dataset_path = data_params_local['dataset_root'] + 'EPIC/EPIC_KITCHENS_2018/'
-        data_path = dataset_path + 'frames_rgb_flow/'
-        train_listpath = dataset_path + 'annotations/' + data_params_local['dataset_{}_trainlist'.format(domain)]
-        test_listpath = dataset_path + 'annotations/' + data_params_local['dataset_{}_testlist'.format(domain)]
+        dataset_path = os.path.join(data_params_local['dataset_root'], data_name, 'EPIC_KITCHENS_2018')
+        data_path = os.path.join(dataset_path, 'frames_rgb_flow')
     elif data_name in ['ADL', 'GTEA', 'KITCHEN']:
-        dataset_path = data_params_local['dataset_root'] + data_name + '/'
-        data_path = dataset_path + 'frames_rgb_flow/'
-        train_listpath = dataset_path + 'annotations/' + data_params_local['dataset_trainlist']
-        test_listpath = dataset_path + 'annotations/' + data_params_local['dataset_testlist']
+        dataset_path = os.path.join(data_params_local['dataset_root'], data_name)
+        data_path = os.path.join(dataset_path, 'frames_rgb_flow')
+    else:
+        raise RuntimeError('Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN]')
+
+    train_listpath = os.path.join(
+        dataset_path, 'annotations', 'labels_train_test', data_params_local['dataset_{}_trainlist'.format(domain)])
+    test_listpath = os.path.join(
+        dataset_path, 'annotations', 'labels_train_test', data_params_local['dataset_{}_testlist'.format(domain)])
 
     return data_path, train_listpath, test_listpath
 
@@ -151,14 +157,23 @@ class VideoDataset(Enum):
 
         channel_numbers = {
             VideoDataset.EPIC: 3,
+            VideoDataset.GTEA: 3,
+            VideoDataset.ADL: 3,
+            VideoDataset.KITCHEN: 3,
         }
 
         transform_names = {
             (VideoDataset.EPIC, 3): 'epic',
+            (VideoDataset.GTEA, 3): 'gtea',
+            (VideoDataset.ADL, 3): 'adl',
+            (VideoDataset.KITCHEN, 3): 'kitchen',
         }
 
         factories = {
             VideoDataset.EPIC: EPICDatasetAccess,
+            VideoDataset.GTEA: GTEADatasetAccess,
+            VideoDataset.ADL: ADLDatasetAccess,
+            VideoDataset.KITCHEN: KITCHENDatasetAccess,
         }
 
         # handle color/nb channels
@@ -222,7 +237,51 @@ class EPICDatasetAccess(VideoDatasetAccess):
 
 class GTEADatasetAccess(VideoDatasetAccess):
     def get_train(self):
+        return GTEA(
+            data_path=self._data_path,
+            list_path=self._train_list,
+            mode=self._mode,
+            window_len=self._window_len,
+            dataset_split='train',
+            transforms=self._transform['train']
+        )
+
+    def get_test(self):
+        return GTEA(
+            data_path=self._data_path,
+            list_path=self._test_list,
+            mode=self._mode,
+            window_len=self._window_len,
+            dataset_split='test',
+            transforms=self._transform['test']
+        )
+
+
+class ADLDatasetAccess(VideoDatasetAccess):
+    def get_train(self):
         return 0
 
     def get_test(self):
         return 0
+
+
+class KITCHENDatasetAccess(VideoDatasetAccess):
+    def get_train(self):
+        return KITCHEN(
+            data_path=self._data_path,
+            list_path=self._train_list,
+            mode=self._mode,
+            window_len=self._window_len,
+            dataset_split='train',
+            transforms=self._transform['train']
+        )
+
+    def get_test(self):
+        return KITCHEN(
+            data_path=self._data_path,
+            list_path=self._test_list,
+            mode=self._mode,
+            window_len=self._window_len,
+            dataset_split='test',
+            transforms=self._transform['test']
+        )
