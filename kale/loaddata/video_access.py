@@ -8,9 +8,7 @@ from enum import Enum
 import kale.loaddata.video_data.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.video_data.epickitchen import EPIC
-from kale.loaddata.video_data.gtea import GTEA
-from kale.loaddata.video_data.kitchen import KITCHEN
-from kale.loaddata.video_data.adl import ADL
+from kale.loaddata.video_data.basic_video_dataset import BasicVideoDataset
 from copy import deepcopy
 
 
@@ -238,7 +236,7 @@ class EPICDatasetAccess(VideoDatasetAccess):
 
 class GTEADatasetAccess(VideoDatasetAccess):
     def get_train(self):
-        return GTEA(
+        return BasicVideoDataset(
             data_path=self._data_path,
             list_path=self._train_list,
             mode=self._mode,
@@ -248,7 +246,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
         )
 
     def get_test(self):
-        return GTEA(
+        return BasicVideoDataset(
             data_path=self._data_path,
             list_path=self._test_list,
             mode=self._mode,
@@ -260,7 +258,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
 
 class ADLDatasetAccess(VideoDatasetAccess):
     def get_train(self):
-        return ADL(
+        return BasicVideoDataset(
             data_path=self._data_path,
             list_path=self._train_list,
             mode=self._mode,
@@ -270,7 +268,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
         )
 
     def get_test(self):
-        return ADL(
+        return BasicVideoDataset(
             data_path=self._data_path,
             list_path=self._test_list,
             mode=self._mode,
@@ -282,7 +280,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
 
 class KITCHENDatasetAccess(VideoDatasetAccess):
     def get_train(self):
-        return KITCHEN(
+        return BasicVideoDataset(
             data_path=self._data_path,
             list_path=self._train_list,
             mode=self._mode,
@@ -292,7 +290,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
         )
 
     def get_test(self):
-        return KITCHEN(
+        return BasicVideoDataset(
             data_path=self._data_path,
             list_path=self._test_list,
             mode=self._mode,

@@ -1,14 +1,15 @@
-import math
 import os
+import math
 
 import torch
-from PIL import Image
 from torch.utils.data import Dataset
+
+from PIL import Image
 import pickle
 import numpy as np
 
 
-class ADL(Dataset):
+class BasicVideoDataset(Dataset):
     def __init__(self, data_path, list_path, mode, dataset_split, window_len=16, transforms=None):
         self.data_path = data_path
         self.list_path = list_path
@@ -22,7 +23,9 @@ class ADL(Dataset):
         return len(self.data)
 
     def __getitem__(self, item):
-        self.vid, self.start, self.end, self.label = self.data[item]
+        self.vid, self.start_frame, self.end_frame, self.label = self.data[item]
+        self.img_path = os.path.join(self.data_path, self.mode, self.vid)
+
         if self.mode == 'rgb':
             imgs = self.load_rgb_frames()
         elif self.mode == 'flow':
@@ -45,8 +48,8 @@ class ADL(Dataset):
 
     def load_rgb_frames(self):
         frames = []
-        for i in range(self.start, self.start + self.window_len):
-            dir = os.path.join(self.data_path, self.mode, self.vid, 'frame_{:0>10}.jpg'.format(i))
+        for i in range(self.start_frame, self.start_frame + self.window_len):
+            dir = os.path.join(self.img_path, 'frame_{:0>10}.jpg'.format(i))
             img = Image.open(dir).convert('RGB')
             w, h = img.size
             if w < 255 or h < 255:
@@ -60,14 +63,14 @@ class ADL(Dataset):
 
     def load_flow_frames(self):
         frames = []
-        start_f = math.ceil(self.start / 2) - 1
-        if start_f == 0:
-            start_f = 1
+        start_frame = math.ceil(self.start_frame / 2) - 1
+        if start_frame == 0:
+            start_frame = 1
         if self.window_len > 1:
             window_len = self.window_len / 2
-        for i in range(int(start_f), int(start_f + window_len)):
-            diru = os.path.join(self.data_path, self.mode, self.vid, 'u', 'frame_{:0>10}.jpg'.format(i))
-            dirv = os.path.join(self.data_path, self.mode, self.vid, 'v', 'frame_{:0>10}.jpg'.format(i))
+        for i in range(int(start_frame), int(start_frame + window_len)):
+            diru = os.path.join(self.img_path, 'u', 'frame_{:0>10}.jpg'.format(i))
+            dirv = os.path.join(self.img_path, 'v', 'frame_{:0>10}.jpg'.format(i))
             imgu = Image.open(diru).convert("L")
             imgv = Image.open(dirv).convert("L")
             w, h = imgu.size
@@ -96,9 +99,7 @@ class ADL(Dataset):
 
     @staticmethod
     def linear_norm(arr):
-        # arr = np.asarray(img)
         arr = arr.astype('float')
         for i in range(arr.shape[-1]):
             arr[..., i] = (arr[..., i] / 255.) * 2 - 1
-        # img = Image.fromarray(arr.astype('uint8'), 'RGB')
         return arr
