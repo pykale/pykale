@@ -87,7 +87,7 @@ demo_dataset
 │       └───0002
 │             ├───img_00001.jpg
 │             .
-│             └───img_00017.jpg
+│             └───img_00018.jpg
 │
 └───running # arbitrary folder naming, no videos inside yet
 
