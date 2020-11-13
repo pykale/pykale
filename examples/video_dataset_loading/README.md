@@ -17,6 +17,8 @@ so that the loaded frames represent every part of the video, with support for ar
 This approach has shown to be very effective and is taken from
 ["Temporal Segment Networks (ECCV2016)"](https://arxiv.org/abs/1608.00859) with modifications.
 
+In conjunction with PyTorch's DataLoader, the VideoFrameDataset class returns video batch tensors of size `BATCH x FRAMES x CHANNELS x HEIGHT x WIDTH`.  
+  
 For a demo, visit `main.py`.
 ### QuickDemo (main.py)
 ```python
