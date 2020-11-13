@@ -39,6 +39,7 @@ The core APIs above are ordered following the machine learning pipeline rather t
     .. examples/examples.digits_dann_lightn
 	
 	CIFAR - CNN Transformer <https://github.com/pykale/pykale/tree/master/examples/cifar_cnntransformer>
+	VIDEOS - Video Data Loading <https://github.com/pykale/pykale/tree/master/examples/video_data_loading>
 	CIFAR - ISONet <https://github.com/pykale/pykale/tree/master/examples/cifar_isonet>
 	Digits - Domain Adaptation <https://github.com/pykale/pykale/tree/master/examples/digits_dann_lightn>
 

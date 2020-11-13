@@ -6,17 +6,20 @@ import os
 
 
 if __name__ == '__main__':
-
-    root = os.path.join(os.getcwd(), 'demo_dataset')
-    annotation_file = os.path.join(root, 'annotations.txt')
+    """
+    This demo uses the dummy dataset inside of the folder "demo_dataset".
+    It is structured just like a real dataset would need to be structured.
+    """
+    videos_root = os.path.join(os.getcwd(), 'demo_dataset')
+    annotation_file = os.path.join(videos_root, 'annotations.txt')
 
     """ DEMO 1 WITHOUT IMAGE TRANSFORMS """
     dataset = VideoFrameDataset(
-        root_path=root,
-        annotation_file=annotation_file,
+        root_path=videos_root,
+        annotationfile_path=annotation_file,
         num_segments=5,
         frames_per_segment=1,
-        image_tmpl='img_{:05d}.jpg',
+        imagefile_template='img_{:05d}.jpg',
         transform=None,
         random_shift=True,
         test_mode=False
@@ -46,11 +49,11 @@ if __name__ == '__main__':
     ])
 
     dataset = VideoFrameDataset(
-        root_path=root,
-        annotation_file=annotation_file,
+        root_path=videos_root,
+        annotationfile_path=annotation_file,
         num_segments=5,
         frames_per_segment=1,
-        image_tmpl='img_{:05d}.jpg',
+        imagefile_template='img_{:05d}.jpg',
         transform=preprocess,
         random_shift=True,
         test_mode=False
