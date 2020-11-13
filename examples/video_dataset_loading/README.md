@@ -51,9 +51,9 @@ for image in frames:
 # Table of Contents
 - [1. Requirements](#1-requirements)
 - [2. Custom Dataset](#2-custom-dataset)
-- [3. Video Frame Sampling Method](#3-vide-frame-sampling-method)
+- [3. Video Frame Sampling Method](#3-video-frame-sampling-method)
 - [4. Using VideoFrameDataset for Training](#4-using-videoframedataset-for-training)
-- [5. Conclusion](#5-conclusiong)
+- [5. Conclusion](#5-conclusion)
 - [6. Acknowledgements](#6-acknowledgements)
 
 ### 1. Requirements
