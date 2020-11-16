@@ -1,11 +1,11 @@
 """
-Digits dataset loading for EPIC-Kitchen, ADL, GTEA, KITCHEN. The code is based on
+Action video dataset loading for EPIC-Kitchen, ADL, GTEA, KITCHEN. The code is based on
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py
 """
 
 import os
 from enum import Enum
-import kale.loaddata.video_data.video_transform as video_transform
+import kale.prepdata.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.video_data.epickitchen import EPIC
 from kale.loaddata.video_data.basic_video_dataset import BasicVideoDataset
@@ -14,23 +14,6 @@ from copy import deepcopy
 
 def get_videodata_config(cfg):
     config_params = {
-        # "train_params": {
-        #     "model": cfg.MODEL.METHOD,
-        #     "init_lr": cfg.SOLVER.BASE_LR,
-        #     "adapt_lr": cfg.SOLVER.BASE_LR,
-        #     "nb_adapt_epochs": cfg.SOLVER.MAX_EPOCHS,
-        #     "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
-        #     "tr_batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
-        #     "te_batch_size": cfg.SOLVER.TEST_BATCH_SIZE,
-        #     "optimizer": {
-        #         "type": cfg.SOLVER.TYPE,
-        #         "optim_params": {
-        #             "momentum": cfg.SOLVER.MOMENTUM,
-        #             "weight_decay": cfg.SOLVER.WEIGHT_DECAY,
-        #             "nesterov": cfg.SOLVER.NESTEROV
-        #         }
-        #     }
-        # },
         "data_params": {
             "dataset_root": cfg.DATASET.ROOT,
             "dataset_src_name": cfg.DATASET.SOURCE,
@@ -48,6 +31,19 @@ def get_videodata_config(cfg):
 
 
 def generate_list(data_name, data_params_local, domain):
+    """
+
+    Args:
+        data_name (string): name of dataset
+        data_params_local (dict): hyper parameters from configure file
+        domain (string): domain type (source or target)
+
+    Returns:
+        data_path (string): image directory of dataset
+        train_listpath (string): training list file directory of dataset
+        test_listpath (string): test list file directory of dataset
+
+    """
     if data_name == 'EPIC':
         dataset_path = os.path.join(data_params_local['dataset_root'], data_name, 'EPIC_KITCHENS_2018')
         data_path = os.path.join(dataset_path, 'frames_rgb_flow')
@@ -71,78 +67,18 @@ class VideoDataset(Enum):
     GTEA = 'GTEA'
     KITCHEN = 'KITCHEN'
 
-    # HMDB51 = 'HMDB51'
-
-    # @staticmethod
-    # def get_data_configs(cfg):
-    #     data_name = cfg.dataset_group.upper()
-    #     mode = cfg.dataset_mode
-    #     window_len = cfg.window_len
-    #     num_classes = cfg.num_classes
-    #     if data_name == 'EPIC':
-    #         dataset_path = cfg.dataset_root + 'EPIC/EPIC_KITCHENS_2018/'
-    #         data_path = dataset_path + 'frames_rgb_flow/'
-    #         train_listpath = dataset_path + 'annotations/' + cfg.dataset_trainlist
-    #         test_listpath = dataset_path + 'annotations/' + cfg.dataset_testlist
-    #     elif data_name in ['ADL', 'GTEA', 'KITCHEN']:
-    #         dataset_path = cfg.dataset_root + data_name + '/'
-    #         data_path = dataset_path + 'frames_rgb_flow/'
-    #         train_listpath = dataset_path + 'annotations/' + cfg.dataset_trainlist
-    #         test_listpath = dataset_path + 'annotations/' + cfg.dataset_testlist
-    #
-    #     return data_path, train_listpath, test_listpath, mode, window_len, num_classes
-
-    # Originally get_access
-    # @staticmethod
-    # def get_data(data: 'VideoDataset', params):
-    #     # data: 'VideoDataset', data_path, train_list,
-    #     #      test_list, mode, window_len, n_classes):
-    #     """Gets data loaders for video datasets
-    #
-    #     Args:
-    #         data (VideoDataset): dataset name
-    #
-    #     Examples::
-    #         >>> data, num_channel = get_data(dataname, data_path, train_listpath, test_listpath, mode, window_len, n_classes)
-    #     """
-    #     config_params = get_videodata_config(params)
-    #     data_params = config_params['data_params']
-    #     data_params_local = deepcopy(data_params)
-    #     data_name = data_params_local['dataset_group'].upper()
-    #     mode = data_params_local['dataset_mode']
-    #     window_len = data_params_local['window_len']
-    #     num_classes = data_params_local['num_classes']
-    #     if data_name == 'EPIC':
-    #         dataset_path = data_params_local['dataset_root'] + 'EPIC/EPIC_KITCHENS_2018/'
-    #         data_path = dataset_path + 'frames_rgb_flow/'
-    #         train_listpath = dataset_path + 'annotations/' + data_params_local['dataset_trainlist']
-    #         test_listpath = dataset_path + 'annotations/' + data_params_local['dataset_testlist']
-    #     elif data_name in ['ADL', 'GTEA', 'KITCHEN']:
-    #         dataset_path = data_params_local['dataset_root'] + data_name + '/'
-    #         data_path = dataset_path + 'frames_rgb_flow/'
-    #         train_listpath = dataset_path + 'annotations/' + data_params_local['dataset_trainlist']
-    #         test_listpath = dataset_path + 'annotations/' + data_params_local['dataset_testlist']
-    #
-    #     channel_numbers = {
-    #         VideoDataset.EPIC: 3,
-    #     }
-    #
-    #     transform_names = {
-    #         (VideoDataset.EPIC, 3): 'epic',
-    #     }
-    #
-    #     factories = {
-    #         VideoDataset.EPIC: EPICDatasetAccess,
-    #     }
-    #
-    #     # handle color/nb channels
-    #     num_channels = channel_numbers[data]
-    #     data_tf = transform_names[(data, num_channels)]
-    #
-    #     return factories[data](data_path, train_listpath, test_listpath, mode, window_len, num_classes, data_tf)
-
     @staticmethod
     def get_source_target(source: "VideoDataset", target: "VideoDataset", params):
+        """Gets data loaders for source and target datasets
+
+        Args:
+            source: (VideoDataset): source dataset name
+            target: (VideoDataset): target dataset name
+            params: (CfgNode): hyper parameters from configure file
+
+        Examples::
+            >>> source, target, num_channel = get_source_target(sourcename, targetname, data_path)
+        """
         config_params = get_videodata_config(params)
         data_params = config_params['data_params']
         data_params_local = deepcopy(data_params)
@@ -151,7 +87,7 @@ class VideoDataset(Enum):
         data_tar_name = data_params_local['dataset_tar_name'].upper()
         tar_data_path, tar_tr_listpath, tar_te_listpath = generate_list(data_tar_name, data_params_local, domain='tar')
         mode = data_params_local['dataset_mode']
-        num_classes = data_params_local['num_classes']
+        n_classes = data_params_local['num_classes']
         window_len = data_params_local['window_len']
 
         channel_numbers = {
@@ -181,9 +117,9 @@ class VideoDataset(Enum):
         target_tf = transform_names[(target, num_channels)]
 
         return (
-            factories[source](src_data_path, src_tr_listpath, src_te_listpath, mode, window_len, num_classes,
+            factories[source](src_data_path, src_tr_listpath, src_te_listpath, mode, window_len, n_classes,
                               source_tf),
-            factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, mode, window_len, num_classes,
+            factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, mode, window_len, n_classes,
                               target_tf),
             num_channels
         )
@@ -193,7 +129,12 @@ class VideoDatasetAccess(DatasetAccess):
     """Common API for video dataset access
 
     Args:
-        data_path (string): root directory of dataset
+        data_path (string): image directory of dataset
+        train_list (string): training list file directory of dataset
+        test_list (string): test list file directory of dataset
+        mode (string): image type (RGB or Optical Flow)
+        window_len (int): length of each action sample (the unit is number of frame)
+        n_classes (int): number of class
         transform_kind (string): types of video transforms
     """
 
@@ -212,13 +153,13 @@ class EPICDatasetAccess(VideoDatasetAccess):
     """
     EPIC data loader
     """
-
     def get_train(self):
         return EPIC(
             data_path=self._data_path,
             list_path=self._train_list,
             mode=self._mode,
             window_len=self._window_len,
+            n_classes=self.n_classes(),
             dataset_split='train',
             transforms=self._transform['train']
         )
@@ -229,18 +170,23 @@ class EPICDatasetAccess(VideoDatasetAccess):
             list_path=self._test_list,
             mode=self._mode,
             window_len=self._window_len,
+            n_classes=self.n_classes(),
             dataset_split='test',
             transforms=self._transform['test']
         )
 
 
 class GTEADatasetAccess(VideoDatasetAccess):
+    """
+    GTEA data loader
+    """
     def get_train(self):
         return BasicVideoDataset(
             data_path=self._data_path,
             list_path=self._train_list,
             mode=self._mode,
             window_len=self._window_len,
+            n_classes=self.n_classes(),
             dataset_split='train',
             transforms=self._transform['train']
         )
@@ -251,18 +197,23 @@ class GTEADatasetAccess(VideoDatasetAccess):
             list_path=self._test_list,
             mode=self._mode,
             window_len=self._window_len,
+            n_classes=self.n_classes(),
             dataset_split='test',
             transforms=self._transform['test']
         )
 
 
 class ADLDatasetAccess(VideoDatasetAccess):
+    """
+    ADL data loader
+    """
     def get_train(self):
         return BasicVideoDataset(
             data_path=self._data_path,
             list_path=self._train_list,
             mode=self._mode,
             window_len=self._window_len,
+            n_classes=self.n_classes(),
             dataset_split='train',
             transforms=self._transform['train']
         )
@@ -273,18 +224,23 @@ class ADLDatasetAccess(VideoDatasetAccess):
             list_path=self._test_list,
             mode=self._mode,
             window_len=self._window_len,
+            n_classes=self.n_classes(),
             dataset_split='test',
             transforms=self._transform['test']
         )
 
 
 class KITCHENDatasetAccess(VideoDatasetAccess):
+    """
+    KITCHEN data loader
+    """
     def get_train(self):
         return BasicVideoDataset(
             data_path=self._data_path,
             list_path=self._train_list,
             mode=self._mode,
             window_len=self._window_len,
+            n_classes=self.n_classes(),
             dataset_split='train',
             transforms=self._transform['train']
         )
@@ -295,6 +251,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
             list_path=self._test_list,
             mode=self._mode,
             window_len=self._window_len,
+            n_classes=self.n_classes(),
             dataset_split='test',
             transforms=self._transform['test']
         )

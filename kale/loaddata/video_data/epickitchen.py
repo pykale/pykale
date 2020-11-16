@@ -24,7 +24,6 @@ class EPIC(BasicVideoDataset):
 
     def make_dataset(self):
         data = []
-        class_num = 8
         i = 0
         with open(self.list_path, 'rb') as input_file:
             input_file = pickle.load(input_file)
@@ -32,7 +31,7 @@ class EPIC(BasicVideoDataset):
             for line in input_file.values:
                 if line[1] in ['P01', 'P08', 'P22']:
                     # Select class 'put', 'take', 'open', 'close', 'wash', 'cut', 'mix', 'pour', 'put down', 'wipe'...
-                    if 0 <= line[9] <= 7:
+                    if 0 <= line[9] < self.n_classes:
                         if line[7] - line[6] + 1 >= self.window_len:
                             label = line[9]
                             data.append((os.path.join(line[1], line[2]), line[6], line[7], label))

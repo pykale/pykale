@@ -1,14 +1,52 @@
+"""
+Preprocessing of action video datasets, i.e., transforms, from
+https://github.com/pykale/pykale/blob/master/kale/prepdata/image_transform.py
+https://github.com/piergiaj/pytorch-i3d/blob/master/videotransforms.py
+"""
+
 import numpy as np
 import numbers
 import random
+import torchvision.transforms as transforms
+
+
+def get_transform(kind):
+    """
+    Define transforms (for commonly used datasets)
+
+    Args:
+        kind ([type]): the dataset (transformation) name
+
+    """
+
+    if kind in ["epic", "gtea", "adl", "kitchen"]:
+        transform = {
+            'train': transforms.Compose([
+                RandomCrop(size=224),
+                RandomHorizontalFlip(),
+            ]),
+            'valid': transforms.Compose([
+                CenterCrop(size=224),
+            ]),
+            'test': transforms.Compose([
+                CenterCrop(size=224),
+            ])
+        }
+
+    else:
+        raise ValueError(f"Unknown transform kind '{kind}'")
+    return transform
 
 
 class RandomCrop(object):
-    """Crop the given video sequences (t x h x w) at a random location.
+    """
+    Crop the given video sequences (t x h x w) at a random location.
+
     Args:
         size (sequence or int): Desired output size of the crop. If size is an
             int instead of sequence like (h, w), a square crop (size, size) is
             made.
+
     """
 
     def __init__(self, size):
@@ -19,27 +57,30 @@ class RandomCrop(object):
 
     @staticmethod
     def get_params(img, output_size):
-        """Get parameters for ``crop`` for a random crop.
+        """
+        Get parameters for ``crop`` for a random crop.
+
         Args:
             img (PIL Image): Image to be cropped.
             output_size (tuple): Expected output size of the crop.
         Returns:
             tuple: params (i, j, h, w) to be passed to ``crop`` for random crop.
+
         """
         t, h, w, c = img.shape
         th, tw = output_size
         if w == tw and h == th:
             return 0, 0, h, w
 
-        i = random.randint(0, h - th) if h!=th else 0
-        j = random.randint(0, w - tw) if w!=tw else 0
+        i = random.randint(0, h - th) if h != th else 0
+        j = random.randint(0, w - tw) if w != tw else 0
         return i, j, th, tw
 
     def __call__(self, imgs):
-        
+
         i, j, h, w = self.get_params(imgs, self.size)
 
-        imgs = imgs[:, i:i+h, j:j+w, :]
+        imgs = imgs[:, i:i + h, j:j + w, :]
         return imgs
 
     def __repr__(self):
@@ -47,13 +88,15 @@ class RandomCrop(object):
 
 
 class CenterCrop(object):
-    """Crops the given seq Images at the center.
+    """
+    Crops the given seq Images at the center.
+
     Args:
         size (sequence or int): Desired output size of the crop. If size is an
             int instead of sequence like (h, w), a square crop (size, size) is
             made.
-    """
 
+    """
     def __init__(self, size):
         if isinstance(size, numbers.Number):
             self.size = (int(size), int(size))
@@ -63,36 +106,40 @@ class CenterCrop(object):
     def __call__(self, imgs):
         """
         Args:
-            img (PIL Image): Image to be cropped.
+            imgs (PIL Image): Image to be cropped.
         Returns:
             PIL Image: Cropped image.
+
         """
         t, h, w, c = imgs.shape
         th, tw = self.size
         i = int(np.round((h - th) / 2.))
         j = int(np.round((w - tw) / 2.))
 
-        return imgs[:, i:i+th, j:j+tw, :]
+        return imgs[:, i:i + th, j:j + tw, :]
 
     def __repr__(self):
         return self.__class__.__name__ + '(size={0})'.format(self.size)
 
 
 class RandomHorizontalFlip(object):
-    """Horizontally flip the given seq Images randomly with a given probability.
+    """
+    Horizontally flip the given seq Images randomly with a given probability.
+
     Args:
         p (float): probability of the image being flipped. Default value is 0.5
-    """
 
+    """
     def __init__(self, p=0.5):
         self.p = p
 
     def __call__(self, imgs):
         """
         Args:
-            img (seq Images): seq Images to be flipped.
+            imgs (seq Images): seq Images to be flipped.
         Returns:
             seq Images: Randomly flipped seq images.
+
         """
         if random.random() < self.p:
             # t x h x w
