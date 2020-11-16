@@ -12,7 +12,7 @@ def cross_entropy_logits(linear_output, label, weights=None):
     """Computes cross entropy with ligits  
     
     Examples:
-        See DANN, WDGRL, and MMD trainers in kale.pipeline.domain_adapater  
+        See DANN, WDGRL, and MMD trainers in kale.pipeline.domain_adapter
     """    
     
     class_output = F.log_softmax(linear_output, dim=1)

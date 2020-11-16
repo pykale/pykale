@@ -1,4 +1,4 @@
-"""This example is about domain adapation for action video datasets, using PyTorch Lightning.
+"""This example is about domain adaptation for action video datasets, using PyTorch Lightning.
 
 Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 """
@@ -46,9 +46,6 @@ def main():
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
-    # source, target, num_channels = DigitDataset.get_source_target(DigitDataset(cfg.DATASET.SOURCE.upper()),
-    #                                                               DigitDataset(cfg.DATASET.TARGET.upper()),
-    #                                                               cfg.DATASET.ROOT)
     source, target, num_channels = VideoDataset.get_source_target(VideoDataset(cfg.DATASET.SOURCE.upper()),
                                                                   VideoDataset(cfg.DATASET.TARGET.upper()),
                                                                   cfg)
