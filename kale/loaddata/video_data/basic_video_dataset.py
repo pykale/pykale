@@ -22,7 +22,7 @@ class BasicVideoDataset(Dataset):
         transforms (Compose): Video transform
     """
     def __init__(self, data_path, list_path, mode, dataset_split, n_classes, window_len=16, transforms=None):
-        """Init action video dataset."""
+        """Init video dataset."""
         self.data_path = data_path
         self.list_path = list_path
         self.mode = mode

@@ -18,7 +18,7 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 ### 3. Related Kale core
 
 
-`kale.embed.video_cnn`: Action feature extractor network (Res3D, I3D)
+`kale.embed.video_cnn`: Video feature extractor networks (Res3D, I3D)
 
 `kale.loaddata.video_access`: Data loaders for video datasets
 

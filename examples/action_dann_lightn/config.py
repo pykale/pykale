@@ -1,5 +1,5 @@
 """
-Default configurations for domain adapation
+Default configurations for action recognition domain adaptation
 """
 
 from yacs.config import CfgNode as CN
@@ -16,11 +16,11 @@ _C = CN()
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
 _C.DATASET.ROOT = 'I:/Datasets/EgoAction/'  # '/shared/tale2/Shared'
-# _C.DATASET.NAME = 'EPIC'  # dset choices=['office', 'image-clef', 'office-home']
-_C.DATASET.SOURCE = 'EPIC'  # s_dset_path  , help="The source dataset path list"
+# _C.DATASET.NAME = 'EPIC'  # dataset choices=['office', 'image-clef', 'office-home']
+_C.DATASET.SOURCE = 'EPIC'  # s_dataset_path  , help="The source dataset path list"
 _C.DATASET.SRC_TRAINLIST = 'D1_train.pkl'
 _C.DATASET.SRC_TESTLIST = 'D1_test.pkl'
-_C.DATASET.TARGET = 'EPIC'  # s_dset_path  , help="The target dataset path list"
+_C.DATASET.TARGET = 'EPIC'  # s_dataset_path  , help="The target dataset path list"
 _C.DATASET.TAR_TRAINLIST = 'D2_train.pkl'
 _C.DATASET.TAR_TESTLIST = 'D2_test.pkl'
 _C.DATASET.MODE = 'rgb'  # mode choices=['rgb', 'flow', 'rgb+flow']
