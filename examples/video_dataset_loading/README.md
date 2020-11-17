@@ -2,8 +2,8 @@
 Author: [Raivo Koot](https://github.com/RaivoKoot)  
   
 If you are completely unfamiliar with loading datasets in PyTorch using `torch.utils.data.Dataset` and `torch.utils.data.DataLoader`, I recommend
-getting familiar with these first through [this](https://pytorch.org/tutorials/beginner/data_loading_tutorial.html) or 
-[this](https://github.com/utkuozbulak/pytorch-custom-dataset-examples).
+getting familiar with these first through [PyTorch data loading tutorial](https://pytorch.org/tutorials/beginner/data_loading_tutorial.html) or 
+[PyTorch dataloading examples](https://github.com/utkuozbulak/pytorch-custom-dataset-examples).
 ### Overview: This example demonstrates the use of `kale.loaddata.video_dataset.VideoFrameDataset`
 The VideoFrameDataset class serves to `easily`, `efficiently` and `effectively` load video samples from video datasets in PyTorch.
 1) Easily because this dataset class can be used with custom datasets with minimum effort and no modification. The class merely expects the 
