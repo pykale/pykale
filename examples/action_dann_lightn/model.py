@@ -14,7 +14,7 @@ import kale.pipeline.domain_adapter as domain_adapter
 
 def get_config(cfg):
     """
-    Sets the hyperparameter for the optimizer and experiment using the config file
+    Sets the hyper parameter for the optimizer and experiment using the config file
 
     Args:
         cfg: A YACS config object.
@@ -52,11 +52,11 @@ def get_config(cfg):
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 def get_model(cfg, dataset, num_channels):
     """
-    Builds and returns a model and associated hyperparameters according to the config object passed.
+    Builds and returns a model and associated hyper parameters according to the config object passed.
 
     Args:
         cfg: A YACS config object.
-        dataset: A multidomain dataset consisting of source and target datasets.
+        dataset: A multi domain dataset consisting of source and target datasets.
         num_channels: The number of image channels.        
     """
 

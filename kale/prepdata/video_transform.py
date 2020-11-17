@@ -1,5 +1,5 @@
 """
-Preprocessing of action video datasets, i.e., transforms, from
+Preprocessing of video datasets, i.e., transforms, from
 https://github.com/pykale/pykale/blob/master/kale/prepdata/image_transform.py
 https://github.com/piergiaj/pytorch-i3d/blob/master/videotransforms.py
 """
