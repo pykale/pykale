@@ -42,8 +42,8 @@ def generate_list(data_name, data_params_local, domain):
         data_path (string): image directory of dataset
         train_listpath (string): training list file directory of dataset
         test_listpath (string): test list file directory of dataset
-
     """
+
     if data_name == 'EPIC':
         dataset_path = os.path.join(data_params_local['dataset_root'], data_name, 'EPIC_KITCHENS_2018')
         data_path = os.path.join(dataset_path, 'frames_rgb_flow')
@@ -69,7 +69,8 @@ class VideoDataset(Enum):
 
     @staticmethod
     def get_source_target(source: "VideoDataset", target: "VideoDataset", params):
-        """Gets data loaders for source and target datasets
+        """
+        Gets data loaders for source and target datasets
 
         Args:
             source: (VideoDataset): source dataset name
@@ -126,7 +127,8 @@ class VideoDataset(Enum):
 
 
 class VideoDatasetAccess(DatasetAccess):
-    """Common API for video dataset access
+    """
+    Common API for video dataset access
 
     Args:
         data_path (string): image directory of dataset
@@ -150,9 +152,7 @@ class VideoDatasetAccess(DatasetAccess):
 
 
 class EPICDatasetAccess(VideoDatasetAccess):
-    """
-    EPIC data loader
-    """
+    """EPIC data loader"""
     def get_train(self):
         return EPIC(
             data_path=self._data_path,
@@ -177,9 +177,7 @@ class EPICDatasetAccess(VideoDatasetAccess):
 
 
 class GTEADatasetAccess(VideoDatasetAccess):
-    """
-    GTEA data loader
-    """
+    """GTEA data loader"""
     def get_train(self):
         return BasicVideoDataset(
             data_path=self._data_path,
@@ -204,9 +202,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
 
 
 class ADLDatasetAccess(VideoDatasetAccess):
-    """
-    ADL data loader
-    """
+    """ADL data loader"""
     def get_train(self):
         return BasicVideoDataset(
             data_path=self._data_path,
@@ -231,9 +227,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
 
 
 class KITCHENDatasetAccess(VideoDatasetAccess):
-    """
-    KITCHEN data loader
-    """
+    """KITCHEN data loader"""
     def get_train(self):
         return BasicVideoDataset(
             data_path=self._data_path,

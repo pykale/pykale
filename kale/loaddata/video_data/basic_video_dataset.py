@@ -20,7 +20,6 @@ class BasicVideoDataset(Dataset):
         dataset_split (string): split type (train or test)
         window_len (int): length of each action sample (the unit is number of frame)
         transforms (Compose): Video transform
-
     """
     def __init__(self, data_path, list_path, mode, dataset_split, n_classes, window_len=16, transforms=None):
         """Init action video dataset."""
@@ -46,7 +45,6 @@ class BasicVideoDataset(Dataset):
 
         Returns:
             tuple: (image, target) where target is index of the target class.
-
         """
         self.vid, self.start_frame, self.end_frame, self.label = self.data[item]
         self.img_path = os.path.join(self.data_path, self.mode, self.vid)
@@ -66,7 +64,6 @@ class BasicVideoDataset(Dataset):
 
         Returns:
             data (list): list of (video_name, start_frame, end_frame, label)
-
         """
         data = []
         i = 0
@@ -131,7 +128,6 @@ class BasicVideoDataset(Dataset):
 
         Returns:
             Tensor: Converted video.
-
         """
         return torch.from_numpy(pic.transpose([3, 0, 1, 2]))
 
@@ -139,9 +135,9 @@ class BasicVideoDataset(Dataset):
     def linear_norm(arr):
         """
         Linear normalize the image.
+        
         Args:
             arr (numpy.ndarray): image to be normalized.
-
         """
         arr = arr.astype('float')
         for i in range(arr.shape[-1]):
