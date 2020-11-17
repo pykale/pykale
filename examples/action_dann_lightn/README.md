@@ -22,6 +22,6 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 
 `kale.loaddata.video_access`: Data loaders for video datasets
 
-`kale.loaddata.video_data`: `basic_video_dataset` for loading data from GTEA, KITCHEN and ADL Datasets. `epickitchen` inherited from `basic_video_dataset` for EPIC-Kitchen dataset.
+`kale.loaddata.video_data`: `basic_video_dataset` for loading data from GTEA, KITCHEN and ADL Datasets. `epickitchen` inherited from `basic_video_dataset` for EPIC-Kitchen dataset
 
-`kale.prepdata.video_transform`: Transforms for video data.
+`kale.prepdata.video_transform`: Transforms for video data
