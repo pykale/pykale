@@ -16,7 +16,6 @@ def get_transform(kind):
 
     Args:
         kind ([type]): the dataset (transformation) name
-
     """
 
     if kind in ["epic", "gtea", "adl", "kitchen"]:
@@ -46,7 +45,6 @@ class RandomCrop(object):
         size (sequence or int): Desired output size of the crop. If size is an
             int instead of sequence like (h, w), a square crop (size, size) is
             made.
-
     """
 
     def __init__(self, size):
@@ -63,9 +61,9 @@ class RandomCrop(object):
         Args:
             img (PIL Image): Image to be cropped.
             output_size (tuple): Expected output size of the crop.
+        
         Returns:
             tuple: params (i, j, h, w) to be passed to ``crop`` for random crop.
-
         """
         t, h, w, c = img.shape
         th, tw = output_size
@@ -95,7 +93,6 @@ class CenterCrop(object):
         size (sequence or int): Desired output size of the crop. If size is an
             int instead of sequence like (h, w), a square crop (size, size) is
             made.
-
     """
     def __init__(self, size):
         if isinstance(size, numbers.Number):
@@ -107,6 +104,7 @@ class CenterCrop(object):
         """
         Args:
             imgs (PIL Image): Image to be cropped.
+        
         Returns:
             PIL Image: Cropped image.
 
@@ -137,9 +135,9 @@ class RandomHorizontalFlip(object):
         """
         Args:
             imgs (seq Images): seq Images to be flipped.
+        
         Returns:
             seq Images: Randomly flipped seq images.
-
         """
         if random.random() < self.p:
             # t x h x w
