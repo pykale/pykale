@@ -1,5 +1,5 @@
 """
-Define i3d on Action Recognition from https://ieeexplore.ieee.org/document/8099985
+Define I3D on Action Recognition from https://ieeexplore.ieee.org/document/8099985
 Created by Xianyuan Liu from modifying https://github.com/piergiaj/pytorch-i3d/blob/master/pytorch_i3d.py
 """
 
