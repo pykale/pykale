@@ -1,16 +1,39 @@
+import os
+import sys
+# No need if pykale is installed
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from kale.loaddata.videos import  VideoFrameDataset
 from kale.prepdata.video_transform import ImglistToTensor
 from torchvision import transforms
 import torch
 import matplotlib.pyplot as plt
-import os
+from torchvision.datasets.utils import download_file_from_google_drive, extract_archive
 
+def download_dummy_dataset():
+    # Full File URL: https://drive.google.com/file/d/1aIcmhaHZ9yflqwQZOSmW7ho6FDqVVAyp/view
+    gdrive_file_id = '1aIcmhaHZ9yflqwQZOSmW7ho6FDqVVAyp'
+    output_directory = os.path.join(os.getcwd())
+    output_file_name = 'demo_dataset.zip'
+
+    print("Downloading Dummy Dataset")
+    download_file_from_google_drive(gdrive_file_id, output_directory, output_file_name)
+
+    if os.path.exists(os.path.join(os.getcwd(), 'demo_dataset')):
+        print("Skipping Download and Extraction")
+        return
+
+    print("Extracting Dummy Dataset")
+    zip_file = os.path.join(os.getcwd(), 'demo_dataset.zip')
+    extract_archive(zip_file)
 
 if __name__ == '__main__':
     """
     This demo uses the dummy dataset inside of the folder "demo_dataset".
     It is structured just like a real dataset would need to be structured.
     """
+    download_dummy_dataset()
+
     videos_root = os.path.join(os.getcwd(), 'demo_dataset')
     annotation_file = os.path.join(videos_root, 'annotations.txt')
 
