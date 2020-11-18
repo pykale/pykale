@@ -19,7 +19,3 @@ class ImglistToTensor(torch.nn.Module):
             tensor of size ``NUM_IMAGES x CHANNELS x HEIGHT x WIDTH``
         """
         return torch.stack([transforms.functional.to_tensor(pic) for pic in img_list])
-
-if __name__ == '__main__':
-    bla = ImglistToTensor()
-    print(bla)
