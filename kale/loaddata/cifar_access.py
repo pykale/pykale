@@ -8,16 +8,17 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 from kale.prepdata.image_transform import get_transform
-   
-def get_cifar(cfg): 
+
+
+def get_cifar(cfg):
     """Gets training and validation data loaders for the CIFAR datasets
 
     Args:
         cfg: A YACS config object.
     """
     print('==> Preparing to load data ' + cfg.DATASET.NAME + ' at ' + cfg.DATASET.ROOT)
-    cifar_train_transform=get_transform("cifar", augment=True)
-    cifar_test_transform=get_transform("cifar", augment=False)
+    cifar_train_transform = get_transform("cifar", augment=True)
+    cifar_test_transform = get_transform("cifar", augment=False)
     # transform = {
     #     'cifar_train': transforms.Compose([
     #         # Data augmentation
@@ -32,14 +33,14 @@ def get_cifar(cfg):
     #     ])
     # }
     if cfg.DATASET.NAME == 'CIFAR10':
-        train_set = torchvision.datasets.CIFAR10(cfg.DATASET.ROOT, train=True, download=True, 
-                                                transform=cifar_train_transform)
-        val_set = torchvision.datasets.CIFAR10(cfg.DATASET.ROOT, train=False, download=True, 
-                                                transform=cifar_test_transform)
+        train_set = torchvision.datasets.CIFAR10(cfg.DATASET.ROOT, train=True, download=True,
+                                                 transform=cifar_train_transform)
+        val_set = torchvision.datasets.CIFAR10(cfg.DATASET.ROOT, train=False, download=True,
+                                               transform=cifar_test_transform)
     elif cfg.DATASET.NAME == 'CIFAR100':
-        train_set = torchvision.datasets.CIFAR100(cfg.DATASET.ROOT, train=True, download=True, 
-                                                transform=cifar_train_transform)
-        val_set = torchvision.datasets.CIFAR100(cfg.DATASET.ROOT, train=False, download=True, 
+        train_set = torchvision.datasets.CIFAR100(cfg.DATASET.ROOT, train=True, download=True,
+                                                  transform=cifar_train_transform)
+        val_set = torchvision.datasets.CIFAR100(cfg.DATASET.ROOT, train=False, download=True,
                                                 transform=cifar_test_transform)
     else:
         raise NotImplementedError

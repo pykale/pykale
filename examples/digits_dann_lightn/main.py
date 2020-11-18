@@ -1,4 +1,4 @@
-"""This example is about domain adapation for digit image datasets, using PyTorch Lightning.
+"""This example is about domain adaptation for digit image datasets, using PyTorch Lightning.
 
 Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 """
@@ -32,7 +32,7 @@ def arg_parse():
     return args
 
 def main():
-    """The main for this domain adapation example, showing the workflow"""
+    """The main for this domain adaptation example, showing the workflow"""
     args = arg_parse()
     
     # ---- setup configs ----

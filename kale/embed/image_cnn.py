@@ -8,7 +8,8 @@ import torch.nn as nn
 import torch
 from torchvision import models
 
-#From FeatureExtractorDigits in adalib
+
+# From FeatureExtractorDigits in adalib
 class SmallCNNFeature(nn.Module):
     """
     A feature extractor for small 32x32 images (e.g. CIFAR, MNIST) that outputs a feature vector of length 128.
@@ -35,7 +36,7 @@ class SmallCNNFeature(nn.Module):
         self.bn3 = nn.BatchNorm2d(64 * 2)
         self.sigmoid = nn.Sigmoid()
         self._out_features = 128
-        
+
     def forward(self, input):
         x = self.bn1(self.conv1(input))
         x = self.relu1(self.pool1(x))

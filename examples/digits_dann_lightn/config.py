@@ -1,5 +1,5 @@
 """
-Default configurations for domain adapation
+Default configurations for domain adaptation
 """
 
 from yacs.config import CfgNode as CN

@@ -60,7 +60,8 @@ class BasicVideoDataset(Dataset):
 
     def make_dataset(self):
         """
-        Load data from the list file.
+        Load data from the EPIC-Kitchen list file and make them into the united format.
+        Different datasets correspond to a different number of classes.
 
         Returns:
             data (list): list of (video_name, start_frame, end_frame, label)

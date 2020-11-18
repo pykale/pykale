@@ -8,12 +8,14 @@ import numpy as np
 from sklearn.utils import check_random_state
 import torch.utils.data
 from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
-from kale.loaddata.dataset_access import DatasetAccess 
+from kale.loaddata.dataset_access import DatasetAccess
+
 
 class WeightingType(Enum):
     NATURAL = "natural"
     BALANCED = "balanced"
     PRESET0 = "preset0"
+
 
 class DatasetSizeType(Enum):
     Max = "max"  # size of the biggest dataset
@@ -55,16 +57,16 @@ class DomainsDatasetBase:
 
 class MultiDomainDatasets(DomainsDatasetBase):
     def __init__(
-        self,
-        source_access: DatasetAccess,
-        target_access: DatasetAccess,
-        config_weight_type = "natural",
-        config_size_type = DatasetSizeType.Max,
-        val_split_ratio=0.1,
-        source_sampling_config=None,
-        target_sampling_config=None,
-        n_fewshot = None,
-        random_state=None,
+            self,
+            source_access: DatasetAccess,
+            target_access: DatasetAccess,
+            config_weight_type="natural",
+            config_size_type=DatasetSizeType.Max,
+            val_split_ratio=0.1,
+            source_sampling_config=None,
+            target_sampling_config=None,
+            n_fewshot=None,
+            random_state=None,
     ):
         """The class controlling how the source and target domains are 
             iterated over.
