@@ -73,8 +73,8 @@ constructor of VideoFrameDataset as a parameter. Each video folder lies inside a
 video sample in the dataset. The training, validation, and testing datasets must have separate annotation files. Each row must be a space-separated list that contains
 `VIDEO_PATH NUM_FRAMES CLASS_INDEX`. The `VIDEO_PATH` of a video sample should be provided without the `root` prefix of this dataset.
 
-This example project demonstrates this using a dummy dataset inside of `demo_dataset/`, which is the `root` dataset folder of this example. The folder 
-structure looks as follows:
+This example project demonstrates this using a dummy dataset inside of `demo_dataset/`, which is the `root` dataset folder of this example. When you run main.py, the dataset 
+folder will be automatically downloaded to this directory. The folder structure looks as follows:
 ```
 demo_dataset
 │
@@ -99,7 +99,7 @@ jumping/0001 17 0
 jumping/0002 18 0
 ```
 Instantiating a VideoFrameDataset with the `root_path` parameter pointing to `demo_dataset`, the `annotationsfile_path` parameter pointing to the annotation file, and
-the `imagefile_template` parameter as "img_{:05d}.jpg", is all that it takes to start using the VideoFrameDataset class.
+the `imagefile_template` parameter as "img_{:05d}.jpg" (or whatever file name template you are using), is all that it takes to start using the VideoFrameDataset class.
 
 ### 3. Video Frame Sampling Method
 When loading a video, only a number of its frames are loaded. They are chosen in the following way:
