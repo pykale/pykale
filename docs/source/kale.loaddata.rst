@@ -6,13 +6,13 @@ Load data
 Submodules
 ----------
 
-kale.loaddata.video_dataset module
-----------------------------------
+kale.loaddata.videos module
+---------------------------
 
-.. automodule:: kale.loaddata.video_dataset
-	:members:
-	:exclude-members: VideoRecord
-	:show-inheritance:
+.. automodule:: kale.loaddata.videos
+   :members:
+   :exclude-members: VideoRecord
+   :show-inheritance:
 
 kale.loaddata.dataset\_access module
 ------------------------------------

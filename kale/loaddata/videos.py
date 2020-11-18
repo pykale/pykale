@@ -2,7 +2,6 @@ import os
 import os.path
 import numpy as np
 from PIL import Image
-from torchvision import transforms
 import torch
 
 class VideoRecord(object):
@@ -42,7 +41,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
     loads x RGB frames of a video (sparse temporal sampling) and evenly
     chooses those frames from start to end of the video, returning
     a list of x PIL images or ``FRAMES x CHANNELS x HEIGHT x WIDTH``
-    tensors where FRAMES=x if the ``kale.loaddata.video_dataset.imglist_totensor()``
+    tensors where FRAMES=x if the ``kale.prepdata.video_transform.ImglistToTensor()``
     transform is used.
 
     More specifically, the frame range [0,N] is divided into NUM_SEGMENTS
@@ -50,8 +49,8 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
     Note:
         A demonstration of using this class can be seen
-        in ``PyKale/examples/video_dataset_loading``
-        https://github.com/pykale/pykale/tree/master/examples/video_data_loading
+        in ``PyKale/examples/video_loading``
+        https://github.com/pykale/pykale/tree/master/examples/video_loading
 
     Note:
         This dataset broadly corresponds to the frame sampling technique
@@ -228,17 +227,3 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.video_list)
-
-def imglist_totensor(img_list):
-    """
-    Converts each PIL image in a list to
-    a torch Tensor and stacks them into
-    a single tensor. Can be used as first transform
-    for ``kale.loaddata.video_dataset.VideoFrameDataset``.
-
-    Args:
-        img_list: list of PIL images.
-    Returns:
-        tensor of size ``NUM_IMAGES x CHANNELS x HEIGHT x WIDTH``
-    """
-    return torch.stack([transforms.functional.to_tensor(pic) for pic in img_list])

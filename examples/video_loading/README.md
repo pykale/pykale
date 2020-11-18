@@ -8,7 +8,7 @@ getting familiar with these first through [PyTorch data loading tutorial](https:
 The VideoFrameDataset class serves to `easily`, `efficiently` and `effectively` load video samples from video datasets in PyTorch.
 1) Easily because this dataset class can be used with custom datasets with minimum effort and no modification. The class merely expects the 
 video dataset to have a certain structure on disk and expects a .txt annotation file that enumerates each video sample. Details on this 
-can be found at `https://pykale.readthedocs.io/en/latest/kale.loaddata.html#kale-loaddata-video_dataset-module`.
+can be found at `https://pykale.readthedocs.io/en/latest/kale.loaddata.html#kale-loaddata-videos-module`.
 2) Efficiently because the video loading pipeline that this class implements is very fast. This minimizes GPU waiting time during training by eliminating input bottlenecks
 that can slow down training time by several folds.
 3) Effectively because the implemented sampling strategy for video frames is very strong. Video training using the entire sequence of 
@@ -111,16 +111,16 @@ This results in NUM_SEGMENTS*FRAMES_PER_SEGMENT chosen indices, whose frames are
   
 ### 4. Using VideoFrameDataset for training
 As demonstrated in `main.py`, we can use PyTorch's `torch.utils.data.DataLoader` class with VideoFrameDataset to take care of shuffling, batching, and more.
-To turn the lists of PIL images returned by VideoFrameDataset into tensors, the transform `kale.loadedata.video_dataset.imglist_totensor()` can be supplied
+To turn the lists of PIL images returned by VideoFrameDataset into tensors, the transform `kale.prepdata.video_transform.ImglistToTensor()` can be supplied
 as the `transform` parameter to VideoFrameDataset. This turns a list of N PIL images into a batch of images/frames of shape `N x CHANNELS x HEIGHT x WIDTH`. 
-We can further chain preprocessing and augmentation functions that act on batches of images onto the end of `imglist_totensor()`.
+We can further chain preprocessing and augmentation functions that act on batches of images onto the end of `ImglistToTensor()`.
   
 As of `torchvision 0.8.0`, all torchvision transforms can now also operate on batches of images, and they apply deterministic or random transformations
 on the batch identically on all images of the batch. Therefore, any torchvision transform can be used here to apply video-uniform preprocessing and augmentation.
   
 REMEMBER:  
-Pytorch transforms are applied to individual dataset samples (in this case a video frame PIL list, or a frame tensor after `imglist_totensor()`) before
-batching. So, any transforms used here must expect its input to be a frame tensor of shape `FRAMES x CHANNELS x HEIGHT x WIDTH` or a list of PIL images if `imglist_totensor()` is not used.
+Pytorch transforms are applied to individual dataset samples (in this case a video frame PIL list, or a frame tensor after `ImglistToTensor()`) before
+batching. So, any transforms used here must expect its input to be a frame tensor of shape `FRAMES x CHANNELS x HEIGHT x WIDTH` or a list of PIL images if `ImglistToTensor()` is not used.
 
 ### 5. Conclusion
 A proper code-based explanation on how to use VideoFrameDataset for training is provided in `main.py`

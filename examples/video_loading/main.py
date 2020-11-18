@@ -1,4 +1,5 @@
-from kale.loaddata.video_dataset import  VideoFrameDataset, imglist_totensor
+from kale.loaddata.videos import  VideoFrameDataset
+from kale.prepdata.video_transform import ImglistToTensor
 from torchvision import transforms
 import torch
 import matplotlib.pyplot as plt
@@ -42,9 +43,9 @@ if __name__ == '__main__':
     # transformations on the batch identically on all images of the batch. Any torchvision
     # transform for image augmentation can thus also be used  for video augmentation.
     preprocess = transforms.Compose([
-        transforms.Lambda(imglist_totensor),  # list of PIL images to (FRAMES x CHANNELS x HEIGHT x WIDTH) tensor
-        transforms.Resize(299),  # image batch, resize smaller edge to 299
-        transforms.CenterCrop(299),  # image batch, center crop to square 299x299
+        ImglistToTensor(),  # list of PIL images to (FRAMES x CHANNELS x HEIGHT x WIDTH) tensor
+        transforms.Resize(299),  # resize smaller edge of frames to 299
+        transforms.CenterCrop(299),  # center crop frames to square 299x299
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
