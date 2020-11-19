@@ -21,12 +21,15 @@ ogb==1.2.0
 # please install with
 # python -m pip install torch-cluster torch-scatter torch-sparse torch-spline
 # if you need it
-# torch-cluster==1.5.4
-# torch-scatter==2.0.4
-# torch-sparse==0.6.5
-# torch-spline-conv==1.2.0
+torch-cluster==1.5.4
+torch-scatter==2.0.4
+torch-sparse==0.6.5
+torch-spline-conv==1.2.0
 torch-geometric==1.5.0
 
 # Documentation packages
 nbsphinx
 nbsphinx-link
+pytorch-lightning
+scikit-image
+tensorly
