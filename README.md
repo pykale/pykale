@@ -1,4 +1,4 @@
-# Knowledge-aware learning for graphs, images, and videos
+# Knowledge-aware learning for graphs, images, & videos
 
 <img src="docs/pykaleWorkflow.png"
      alt="Machine learning workflow"
