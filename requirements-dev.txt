@@ -1,10 +1,10 @@
 -r requirements.txt
 
 # Needed only for torch-geometric
-torch-cluster==1.5.4
-torch-scatter==2.0.4
+#torch-cluster==1.5.4
+#torch-scatter==2.0.4
 torch-sparse==0.6.5
-torch-spline-conv==1.2.0
+#torch-spline-conv==1.2.0
 torch-geometric==1.5.0
 
 # Documentation packages
