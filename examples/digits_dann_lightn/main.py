@@ -11,13 +11,13 @@ import logging
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from kale.utils.csv_logger import setup_logger # np error if move this to later, not sure why
+from kale.utils.csv_logger import setup_logger  # np error if move this to later, not sure why
 import torch
 import pytorch_lightning as pl
 
 from config import get_cfg_defaults
 from model import get_model
-from kale.loaddata.digits_access import DigitDataset 
+from kale.loaddata.digits_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.utils.seed import set_seed
 
@@ -31,16 +31,17 @@ def arg_parse():
     args = parser.parse_args()
     return args
 
+
 def main():
     """The main for this domain adaptation example, showing the workflow"""
     args = arg_parse()
-    
+
     # ---- setup configs ----
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
     cfg.freeze()
     print(cfg)
-    
+
     # ---- setup output ----    
     os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
@@ -51,17 +52,18 @@ def main():
                                                                   cfg.DATASET.ROOT)
     dataset = MultiDomainDatasets(source, target, config_weight_type=cfg.DATASET.WEIGHT_TYPE,
                                   config_size_type=cfg.DATASET.SIZE_TYPE)
-  
+
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
-        seed = cfg.SOLVER.SEED + i*10
-        set_seed(seed) # seed_everything in pytorch_lightning did not set torch.backends.cudnn                                    
-        print(f'==> Building model for seed {seed} ......')   
+        seed = cfg.SOLVER.SEED + i * 10
+        set_seed(
+            seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
+        print(f'==> Building model for seed {seed} ......')
         # ---- setup model and logger ----                                                     
         model, train_params = get_model(cfg, dataset, num_channels)
-        logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params, 
-                                                                           cfg.OUTPUT.DIR, 
-                                                                           cfg.DAN.METHOD, 
+        logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params,
+                                                                           cfg.OUTPUT.DIR,
+                                                                           cfg.DAN.METHOD,
                                                                            seed)
         trainer = pl.Trainer(
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
