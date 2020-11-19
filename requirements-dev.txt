@@ -1,4 +1,4 @@
--r requirements.tx
+-r requirements.txt
 
 # Needed only for torch-geometric
 torch-cluster==1.5.4
