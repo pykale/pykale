@@ -19,40 +19,40 @@ class GripNetSuperVertex(Module):
     information is propagated between them.
 
     Args:
-        nhid_list (list): Dimensions list of hidden layers e.g. [hidden_1, hidden_2, ... hidden_n]
+        channels_list (list): Channels list of hidden layers e.g. [hidden_1, hidden_2, ... hidden_n]
         requires_grad (bool, optional): Requires gradient for initial embedding (default :obj:`True`)
         start_graph (bool, optional): If set to :obj:`True`, this supervertex is the
             start point of the whole information propagation. (default :obj:`False`)
-        in_dim (int, optional): the size of input sample for start graph. (default :obj:`None`)
+        in_channels (int, optional): Size of each input sample for start graph. (default :obj:`None`)
         multi_relational: If set to :obj: 'True', the supervertex is a multi relation graph. (default :obj:`False`)
-        n_rela (int, optional): Number of edge relations if supervertex is a multi relation graph. (default :obj:`None`)
-        n_base (int, optional): Number of bases if supervertex is a multi relation graph. (default :obj:`None`)
+        num_relations (int, optional): Number of edge relations if supervertex is a multi relation graph. (default :obj:`None`)
+        num_bases (int, optional): Number of bases if supervertex is a multi relation graph. (default :obj:`None`)
     """
 
-    def __init__(self, nhid_list, requires_grad=True, start_graph=False,
-                 in_dim=None, multi_relational=False, n_rela=None, n_base=32):
+    def __init__(self, channels_list, requires_grad=True, start_graph=False,
+                 in_channels=None, multi_relational=False, num_relations=None, num_bases=32):
         super(GripNetSuperVertex, self).__init__()
         self.multi_relational = multi_relational
         self.start_graph = start_graph
-        self.out_dim = nhid_list[-1]
-        self.n_cov = len(nhid_list) - 1
+        self.out_dim = channels_list[-1]
+        self.n_cov = len(channels_list) - 1
 
         if start_graph:
-            self.embedding = torch.nn.Parameter(torch.Tensor(in_dim, nhid_list[0]))
+            self.embedding = torch.nn.Parameter(torch.Tensor(in_channels, channels_list[0]))
             self.embedding.requires_grad = requires_grad
             self.reset_parameters()
 
         if multi_relational:
-            assert n_rela is not None
+            assert num_relations is not None
             after_relu = [False if i == 0 else True for i in
-                          range(len(nhid_list) - 1)]
+                          range(len(channels_list) - 1)]
             self.conv_list = torch.nn.ModuleList([
-                RGCNEncoderLayer(nhid_list[i], nhid_list[i + 1], n_rela, n_base, after_relu[i])
-                for i in range(len(nhid_list) - 1)])
+                RGCNEncoderLayer(channels_list[i], channels_list[i + 1], num_relations, num_bases, after_relu[i])
+                for i in range(len(channels_list) - 1)])
         else:
             self.conv_list = torch.nn.ModuleList([
-                GCNEncoderLayer(nhid_list[i], nhid_list[i + 1], cached=True)
-                for i in range(len(nhid_list) - 1)])
+                GCNEncoderLayer(channels_list[i], channels_list[i + 1], cached=True)
+                for i in range(len(channels_list) - 1)])
 
     def reset_parameters(self):
         self.embedding.data.normal_()
@@ -163,43 +163,44 @@ class TypicalGripNetEncoder(Module):
     A typical GripNet architecture with one external aggregation feature layer (GCNs) and one internal layer (RGCNs).
     The information propagates from one source nodes set to one target nodes set. You can also
     define self topological ordering of the supervertices the specific graph belongs to. For more details about GripNet,
-    please see `"GripNet"
-    <https://github.com/NYXFLOWER/GripNet>`_ repo.
+    please see the original implementation `code
+    <https://github.com/NYXFLOWER/GripNet>`_, and the original `paper
+    <https://arxiv.org/abs/2010.15914>`_.
 
     Args:
-        source_nhids (list): Dimensions list of source nodes' hidden layers e.g. [hidden_1, hidden_2, ... hidden_n]
-        st_inter_out (list): Dimensions list of superedge between source and target node sets with length 2.
-        target_nhids (list): Dimensions list of target nodes' hidden layers e.g. [hidden_1, hidden_2, ... hidden_n]
-        n_target_node (int): Numbers of target nodes.
-        n_source_node (int): Numbers of source nodes.
-        n_target_edge_type (int): Number of edge relations of target supervertex.
+        source_channels_list (list): Channels list of source nodes' hidden layers e.g. [channel_1, channel_2, ... channel_n]
+        inter_channels_list (list): Channels list of superedge between source and target node sets with length 2.
+        target_channels_list (list): Channels list of target nodes' hidden layers e.g. [channel_1, channel_2, ... channel_n]
+        num_target_nodes (int): Numbers of target nodes.
+        num_source_nodes (int): Numbers of source nodes.
+        num_target_edge_relations (int): Number of edge relations of target supervertex.
     """
 
-    def __init__(self, source_nhids, st_inter_out, target_nhids, n_target_node, n_source_node, n_target_edge_type):
+    def __init__(self, source_channels_list, inter_channels_list, target_channels_list, num_target_nodes, num_source_nodes, num_target_edge_relations):
         super(TypicalGripNetEncoder, self).__init__()
-        self.n_target_node = n_target_node
-        self.n_source_node = n_source_node
-        self.source_graph = GripNetSuperVertex(source_nhids, start_graph=True, in_dim=self.n_source_node)
-        self.s2t_graph = GripNetSuperEdges(sum(source_nhids), st_inter_out[0],
-                                           self.n_target_node, target_feat_dim=st_inter_out[-1])
-        self.target_graph = GripNetSuperVertex(target_nhids, multi_relational=True, n_rela=n_target_edge_type)
+        self.n_target_node = num_target_nodes
+        self.n_source_node = num_source_nodes
+        self.source_graph = GripNetSuperVertex(source_channels_list, start_graph=True, in_channels=self.n_source_node)
+        self.s2t_graph = GripNetSuperEdges(sum(source_channels_list), inter_channels_list[0],
+                                           self.n_target_node, target_feat_dim=inter_channels_list[-1])
+        self.target_graph = GripNetSuperVertex(target_channels_list, multi_relational=True, num_relations=num_target_edge_relations)
 
-    def forward(self, source_feat, source_edge_index, source_edge_weight,
-                st_edge_index, target_edge_idx, target_edge_et, target_edge_range):
+    def forward(self, source_x, source_edge_index, source_edge_weight,
+                inter_edge_index, target_edge_index, target_edge_relations, target_edge_range):
         """
         Args:
-            source_feat (torch.Tensor): Input source node feature embedding.
+            source_x (torch.Tensor): The input source node feature embedding.
             source_edge_index (torch.Tensor): Source edge index in COO format with shape [2, num_edges].
             source_edge_weight (torch.Tensor): The one-dimensional relation weight
                 for each edge in source graph.
-            st_edge_index: Source-target edge index in COO format with shape [2, num_edges].
-            target_edge_idx: Target edge index in COO format with shape [2, num_edges].
-            target_edge_et: The one-dimensional relation type/index for each target edge in
+            inter_edge_index: Source-target edge index in COO format with shape [2, num_edges].
+            target_edge_index: Target edge index in COO format with shape [2, num_edges].
+            target_edge_relations: The one-dimensional relation type for each target edge in
                 :obj:`edge_index`.
             target_edge_range: The index range list of each target edge type with shape [num_types, 2].
         """
-        z = self.source_graph(source_feat, source_edge_index, edge_weight=source_edge_weight, if_catout=True)
-        z = self.s2t_graph(z, st_edge_index)
-        z = self.target_graph(z, target_edge_idx, edge_type=target_edge_et,
+        z = self.source_graph(source_x, source_edge_index, edge_weight=source_edge_weight, if_catout=True)
+        z = self.s2t_graph(z, inter_edge_index)
+        z = self.target_graph(z, target_edge_index, edge_type=target_edge_relations,
                               range_list=target_edge_range, if_catout=True)
         return z

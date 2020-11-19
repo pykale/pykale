@@ -1,19 +1,20 @@
 import torch
 import numpy as np
-from torch.nn import Parameter, Module
+from torch import nn
 from kale.embed.gripnet import TypicalGripNetEncoder
 from utils import negative_sampling
 
 
-class MultiRelaInnerProductDecoder(Module):
+class MultiRelaInnerProductDecoder(nn.Module):
     """
-    Build DisMult factorization as GripNet decoder in PoSE dataset.
+    Build `DistMult
+    <https://arxiv.org/abs/1412.6575>`_ factorization as GripNet decoder in PoSE dataset.
     """
     def __init__(self, in_dim, num_et):
         super(MultiRelaInnerProductDecoder, self).__init__()
         self.num_et = num_et
         self.in_dim = in_dim
-        self.weight = Parameter(torch.Tensor(num_et, in_dim))
+        self.weight = nn.Parameter(torch.Tensor(num_et, in_dim))
 
         self.reset_parameters()
 
@@ -32,24 +33,24 @@ class MultiRelaInnerProductDecoder(Module):
         self.weight.data.normal_(std=1 / np.sqrt(self.in_dim))
 
 
-class GripNet(Module):
+class GripNet(nn.Module):
     """
-    Build GripNet-DisMult (Encoder-Decoder) model for PoSE link prediction.
+    Build GripNet-DistMult (Encoder-Decoder) model for PoSE link prediction.
     """
-    def __init__(self, gg_nhids_gcn, gd_out, dd_nhids_gcn, n_d_node, n_g_node, n_dd_edge_type):
+    def __init__(self, gene_channels_list, gd_channels_list, drug_channels_list, num_drug_nodes, num_gene_nodes, num_drug_edge_relations):
         """
-        Parameter meanings explained in kale.embed.gripnet module
+        Parameter meanings explained in kale.embed.gripnet module.
         """
         super(GripNet, self).__init__()
-        self.n_d_node = n_d_node
-        self.n_g_node = n_g_node
-        self.gn = TypicalGripNetEncoder(gg_nhids_gcn, gd_out, dd_nhids_gcn, n_d_node, n_g_node, n_dd_edge_type)
-        self.dmt = MultiRelaInnerProductDecoder(sum(dd_nhids_gcn), n_dd_edge_type)
+        self.num_drug_nodes = num_drug_nodes
+        self.num_gene_nodes = num_gene_nodes
+        self.gn = TypicalGripNetEncoder(gene_channels_list, gd_channels_list, drug_channels_list, num_drug_nodes, num_gene_nodes, num_drug_edge_relations)
+        self.dmt = MultiRelaInnerProductDecoder(sum(drug_channels_list), num_drug_edge_relations)
 
-    def forward(self, g_feat, gg_edge_index, gg_edge_weight, gd_edge_index, dd_idx, dd_et, dd_range, device):
-        z = self.gn(g_feat, gg_edge_index, gg_edge_weight, gd_edge_index, dd_idx, dd_et, dd_range)
-        pos_index = dd_idx
-        neg_index = negative_sampling(dd_idx, self.n_d_node).to(device)
-        pos_score = self.dmt(z, pos_index, dd_et)
-        neg_score = self.dmt(z, neg_index, dd_et)
+    def forward(self, gene_x, gene_edge_index, gene_edge_weight, gd_edge_index, drug_index, drug_edge_types, drug_edge_range, device):
+        z = self.gn(gene_x, gene_edge_index, gene_edge_weight, gd_edge_index, drug_index, drug_edge_types, drug_edge_range)
+        pos_index = drug_index
+        neg_index = negative_sampling(drug_index, self.num_drug_nodes).to(device)
+        pos_score = self.dmt(z, pos_index, drug_edge_types)
+        neg_score = self.dmt(z, neg_index, drug_edge_types)
         return pos_score, neg_score
