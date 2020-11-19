@@ -4,7 +4,7 @@
      alt="Machine learning workflow"
      style="float: center;" />
 
-PyKale aims to consolidate and accelerate *interdisciplinary* research on *knowledge-aware* machine learning for graphs, images, and videos in medical imaging, graph analysis, and computer vision applications. The core design principle is pipeline-based API.
+PyKale aims to consolidate *interdisciplinary* research on *knowledge-aware* machine learning for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications, with pipeline-based APIs.
 
 * Known issues and recent focuses (advisor: [David Jones](https://github.com/drj11))
   * Fix and enrich documentation
