@@ -5,7 +5,7 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 ## Default
 
 * Dataset: MNIST (source) to UPSP (target)
-* Algorithms: DANN, CDAN, CDNA+E, ...
+* Algorithms: DANN, CDAN, CDAN+E, ...
 
 `python main.py --cfg configs/MN2UP-CDAN.yaml --gpus 0`
 

@@ -18,11 +18,11 @@ _C.DATASET = CN()
 _C.DATASET.ROOT = 'I:/Datasets/EgoAction/'  # '/shared/tale2/Shared'
 # _C.DATASET.NAME = 'EPIC'  # dataset choices=['office', 'image-clef', 'office-home']
 _C.DATASET.SOURCE = 'EPIC'  # s_dataset_path  , help="The source dataset path list"
-_C.DATASET.SRC_TRAINLIST = 'D1_train.pkl'
-_C.DATASET.SRC_TESTLIST = 'D1_test.pkl'
+_C.DATASET.SRC_TRAINLIST = 'epic_D1_train.pkl'
+_C.DATASET.SRC_TESTLIST = 'epic_D1_test.pkl'
 _C.DATASET.TARGET = 'EPIC'  # s_dataset_path  , help="The target dataset path list"
-_C.DATASET.TAR_TRAINLIST = 'D2_train.pkl'
-_C.DATASET.TAR_TESTLIST = 'D2_test.pkl'
+_C.DATASET.TAR_TRAINLIST = 'epic_D2_train.pkl'
+_C.DATASET.TAR_TESTLIST = 'epic_D2_test.pkl'
 _C.DATASET.MODE = 'rgb'  # mode choices=['rgb', 'flow', 'rgb+flow']
 _C.DATASET.NUM_CLASSES = 8
 _C.DATASET.WINDOW_LEN = 16
