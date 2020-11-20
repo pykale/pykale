@@ -10,6 +10,9 @@ import torch
 import matplotlib.pyplot as plt
 from torchvision.datasets.utils import download_file_from_google_drive, extract_archive
 
+"""
+Viewer, ignore this function for now and look at "main" below.
+"""
 def download_dummy_dataset():
     # Full File URL: https://drive.google.com/file/d/1aIcmhaHZ9yflqwQZOSmW7ho6FDqVVAyp/view
     gdrive_file_id = '1aIcmhaHZ9yflqwQZOSmW7ho6FDqVVAyp'
@@ -90,7 +93,11 @@ if __name__ == '__main__':
     # integer label
     label = sample[1]
 
-
+    
+    """
+    Denormalize is just for visualization purposes, to undo the transforms applied
+    to the list of frames of a video.
+    """
     def denormalize(video_tensor):
         """
         Undoes mean/standard deviation normalization, zero to one scaling,
