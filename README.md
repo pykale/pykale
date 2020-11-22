@@ -6,6 +6,7 @@
 
 PyKale aims to consolidate *interdisciplinary* research on *knowledge-aware* machine learning for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications, with pipeline-based APIs.
 
+We need your support. Please star / fork this repository, open an issue / pull request, and join / contact the core team via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a>.
 * Known issues and recent focuses (advisor: [David Jones](https://github.com/drj11))
   * Fix and enrich documentation
   * Add continuous integration and tests
@@ -17,7 +18,6 @@ PyKale aims to consolidate *interdisciplinary* research on *knowledge-aware* mac
   * Keep **data** and other large files [local/external](https://github.com/pykale/pykale/tree/master/examples/data) to keep the repository small (via `.gitignore`)
   * Create a [pull request](https://github.com/pykale/pykale/pulls) explaining the changes and choose **reviewers**: Raivo, Xianyuan, Haiping, Shuo, David
   * After passing the review, your pull request gets merged and pykale has your contribution incorporated.
-* For any further questions/suggestions, create an issue above.
 
 ## Overview
 
