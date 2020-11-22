@@ -49,6 +49,20 @@ def get_config(cfg):
     return config_params
 
 
+def get_feat_extractor(model_name, num_channels):
+    if model_name == 'I3D':
+        model = InceptionI3d()
+    elif model_name == 'R3D_18':
+        model = r3d_18(num_channels)
+    elif model_name == 'R2PLUS1D_18':
+        model = r2plus1d_18(num_channels)
+    elif model_name == 'MC3_18':
+        model = mc3_18(num_channels)
+    else:
+        raise ValueError("Unsupported model: {}".format(model_name))
+    return model
+
+
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 def get_model(cfg, dataset, num_channels):
     """
@@ -61,10 +75,11 @@ def get_model(cfg, dataset, num_channels):
     """
 
     # setup feature extractor
-    feature_network = r3d_18(num_channels)
+    # feature_network = r3d_18(num_channels)
+    feature_network = get_feat_extractor(cfg.MODEL.METHOD.upper(), num_channels)
     # setup classifier
     # feature_dim = feature_network.output_size()
-    feature_dim = 400
+    feature_dim = 512
     classifier_network = ClassNetSmallImage(feature_dim, cfg.DATASET.NUM_CLASSES)
 
     method = domain_adapter.Method(cfg.DAN.METHOD)

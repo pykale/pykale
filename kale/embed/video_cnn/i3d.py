@@ -1,6 +1,7 @@
 """
-Define i3d on Action Recognition from https://ieeexplore.ieee.org/document/8099985
-Created by Xianyuan Liu from modifying https://github.com/piergiaj/pytorch-i3d/blob/master/pytorch_i3d.py
+Define Inflated 3D ConvNets(I3D) on Action Recognition from https://ieeexplore.ieee.org/document/8099985
+Created by Xianyuan Liu from modifying https://github.com/piergiaj/pytorch-i3d/blob/master/pytorch_i3d.py and
+https://github.com/deepmind/kinetics-i3d/blob/master/i3d.py
 """
 
 import torch
@@ -11,6 +12,9 @@ import numpy as np
 
 
 class MaxPool3dSamePadding(nn.MaxPool3d):
+    """Construct 3d max pool with same padding.
+        Pads such that the output size matches input size for stride=1.
+    """
 
     def compute_pad(self, dim, s):
         if s % self.stride[dim] == 0:
@@ -21,15 +25,9 @@ class MaxPool3dSamePadding(nn.MaxPool3d):
     def forward(self, x):
         # compute 'same' padding
         (batch, channel, t, h, w) = x.size()
-        # print t,h,w
-        out_t = np.ceil(float(t) / float(self.stride[0]))
-        out_h = np.ceil(float(h) / float(self.stride[1]))
-        out_w = np.ceil(float(w) / float(self.stride[2]))
-        # print out_t, out_h, out_w
         pad_t = self.compute_pad(0, t)
         pad_h = self.compute_pad(1, h)
         pad_w = self.compute_pad(2, w)
-        # print pad_t, pad_h, pad_w
 
         pad_t_f = pad_t // 2
         pad_t_b = pad_t - pad_t_f
@@ -39,13 +37,15 @@ class MaxPool3dSamePadding(nn.MaxPool3d):
         pad_w_b = pad_w - pad_w_f
 
         pad = (pad_w_f, pad_w_b, pad_h_f, pad_h_b, pad_t_f, pad_t_b)
-        # print x.size()
-        # print pad
+        # print(x.size())
+        # print(pad)
         x = F.pad(x, pad)
+        # print(x.size())
         return super(MaxPool3dSamePadding, self).forward(x)
 
 
 class Unit3D(nn.Module):
+    """Basic unit containing Conv3D + BatchNorm + non-linearity."""
 
     def __init__(self, in_channels,
                  output_channels,
@@ -87,12 +87,20 @@ class Unit3D(nn.Module):
             return max(self._kernel_shape[dim] - (s % self._stride[dim]), 0)
 
     def forward(self, x):
+        """
+        Connects the module to inputs. Dynamically pad based on input size in forward function.
+        Args:
+            x: Inputs to the Unit3D component.
+
+        Returns:
+            Outputs from the module.
+        """
         # compute 'same' padding
         (batch, channel, t, h, w) = x.size()
         # print t,h,w
-        out_t = np.ceil(float(t) / float(self._stride[0]))
-        out_h = np.ceil(float(h) / float(self._stride[1]))
-        out_w = np.ceil(float(w) / float(self._stride[2]))
+        # out_t = np.ceil(float(t) / float(self._stride[0]))
+        # out_h = np.ceil(float(h) / float(self._stride[1]))
+        # out_w = np.ceil(float(w) / float(self._stride[2]))
         # print out_t, out_h, out_w
         pad_t = self.compute_pad(0, t)
         pad_h = self.compute_pad(1, h)
@@ -121,6 +129,11 @@ class Unit3D(nn.Module):
 
 
 class InceptionModule(nn.Module):
+    """
+    Construct Inception module
+    Four branches (1x1x1 conv; 1x1x1 + 3x3x3 convs; 1x1x1 + 3x3x3 convs; 3x3x3 max-pool + 1x1x1 conv)
+    Concatenation after four branches
+    """
     def __init__(self, in_channels, out_channels, name):
         super(InceptionModule, self).__init__()
 
@@ -149,7 +162,8 @@ class InceptionModule(nn.Module):
 
 
 class InceptionI3d(nn.Module):
-    """Inception-v1 I3D architecture.
+    """
+    Inception-v1 I3D architecture.
     The model is introduced in:
         Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset
         Joao Carreira, Andrew Zisserman
@@ -187,7 +201,9 @@ class InceptionI3d(nn.Module):
 
     def __init__(self, num_classes=400, spatial_squeeze=True,
                  final_endpoint='Logits', name='inception_i3d', in_channels=3, dropout_keep_prob=0.5):
-        """Initializes I3D model instance.
+        """
+        Initializes I3D model instance.
+
         Args:
           num_classes: The number of outputs in the logit layer (default 400, which
               matches the Kinetics dataset).
@@ -200,6 +216,7 @@ class InceptionI3d(nn.Module):
               dictionary. `final_endpoint` must be one of
               InceptionI3d.VALID_ENDPOINTS (default 'Logits').
           name: A string (optional). The name of this module.
+
         Raises:
           ValueError: if `final_endpoint` is not recognized.
         """
@@ -216,6 +233,7 @@ class InceptionI3d(nn.Module):
         if self._final_endpoint not in self.VALID_ENDPOINTS:
             raise ValueError('Unknown final endpoint %s' % self._final_endpoint)
 
+        """Construct I3D architecture"""
         self.end_points = {}
         end_point = 'Conv3d_1a_7x7'
         self.end_points[end_point] = Unit3D(in_channels=in_channels, output_channels=64, kernel_shape=[7, 7, 7],
@@ -304,8 +322,6 @@ class InceptionI3d(nn.Module):
                              use_batch_norm=False,
                              use_bias=True,
                              name='logits')
-
-        # self.cls_rgb = Cls_rgb()
 
         self.build()
 
