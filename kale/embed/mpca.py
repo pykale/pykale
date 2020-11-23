@@ -158,12 +158,12 @@ class MPCA(BaseEstimator, TransformerMixin):
         return multi_mode_dot(X, self.tPs, modes=[m for m in range(self.ndim - 1)], transpose=True)
 
 
-def MPCA_(X, variance_explained=0.97, max_iter=1):
+def MPCA_(X, var_explained=0.97, max_iter=1):
     """MPCA implementation as an independent function
 
     Args:
         X (ndarray): training data, shape (I1, I2, ..., n_samples)
-        variance_explained (float, optional): ration of variance to keep (between 0 and 1). Defaults to 0.97.
+        var_explained (float, optional): ration of variance to keep (between 0 and 1). Defaults to 0.97.
         max_iter (int, optional): max number of iteration. Defaults to 1.
 
     Returns:
@@ -215,7 +215,7 @@ def MPCA_(X, variance_explained=0.97, max_iter=1):
         var_tot = np.sum(Vs[i])
 
         for j in range(Vs[i].shape[0]):
-            if np.sum(Vs[i][:j]) / var_tot > self.var_explained:
+            if np.sum(Vs[i][:j]) / var_tot > var_explained:
                 cums[i] = j + 1
                 break
 
