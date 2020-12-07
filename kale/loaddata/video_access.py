@@ -5,7 +5,7 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/d
 
 import os
 from enum import Enum
-import kale.prepdata.video_transform as video_transform
+import kale.prepdata.video_transform_for_action_dann as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.video_data.epickitchen import EPIC
 from kale.loaddata.video_data.basic_video_dataset import BasicVideoDataset
