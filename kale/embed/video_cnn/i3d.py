@@ -99,6 +99,7 @@ class Unit3D(nn.Module):
         Returns:
             Outputs from the module.
         """
+
         # compute 'same' padding
         (batch, channel, time, height, width) = x.size()
         pad_t = self.compute_pad(0, time)
@@ -338,6 +339,8 @@ class InceptionI3d(nn.Module):
         self.build()
 
     def replace_logits(self, num_classes):
+        """Update the num_classes according to the specific setting"""
+
         self._num_classes = num_classes
         self.logits = Unit3D(in_channels=384 + 384 + 128 + 128, output_channels=self._num_classes,
                              kernel_shape=[1, 1, 1],
@@ -352,6 +355,8 @@ class InceptionI3d(nn.Module):
             self.add_module(k, self.end_points[k])
 
     def forward(self, x):
+        """The output is the result of the final average pooling layer with 1024 dimensions """
+
         for end_point in self.VALID_ENDPOINTS:
             if end_point in self.end_points:
                 x = self._modules[end_point](x)  # use _modules to work with dataparallel
