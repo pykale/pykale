@@ -29,7 +29,7 @@ class EPIC(BasicVideoDataset):
 
     def make_dataset(self):
         """
-        Load data from the EPIC-Kitchen list file.
+        Load data from the EPIC-Kitchen list file and make them into the united format.
         Because the original list files are not the same, inherit from class BasicVideoDataset and be modified.
         """
         data = []

@@ -9,7 +9,7 @@ examples/data/
 examples/*/data/
 examples/*/outputs/
 examples/*/lightning_logs/
-examples/action_dann_lightn/configs/
+examples/action_dann_lightn/configs_xianyuan/
 
 # Sphinx documentation
 docs/build/

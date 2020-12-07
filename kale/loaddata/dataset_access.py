@@ -5,6 +5,7 @@ Dataset Access API adapted from https://github.com/criteo-research/pytorch-ada/b
 import torch
 import torch.utils.data
 
+
 class DatasetAccess:
     """
     This class ensures a unique API is used to access training, validation and test splits
@@ -37,7 +38,7 @@ class DatasetAccess:
 
         Returns:
             Dataset: a torch.utils.data.Dataset
-        """        
+        """
         train_dataset = self.get_train()
         ntotal = len(train_dataset)
         ntrain = int((1 - val_ratio) * ntotal)

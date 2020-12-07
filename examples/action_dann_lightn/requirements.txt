@@ -4,8 +4,9 @@
 # core dependencies
 pytorch==1.7.0
 pytorch-lightning==1.0.2
+pytorch-memlab==0.2.2
 numpy==1.19.1
-Python==3.8
+python==3.8
 
 # utils
 torchvision==0.8.1

@@ -1,11 +1,10 @@
 """
-Define C3D, MC3_18, Res3D_18, Res2plus1D_18 on Action Recognition from https://arxiv.org/abs/1711.11248
+Define MC3_18, R3D_18, R2plus1D_18 on Action Recognition from https://arxiv.org/abs/1711.11248
 Created by Xianyuan Liu from modifying https://github.com/pytorch/vision/blob/master/torchvision/models/video/resnet.py
 """
 
 import torch.nn as nn
 from torchvision.models.utils import load_state_dict_from_url
-
 
 __all__ = ['r3d_18', 'mc3_18', 'r2plus1d_18']
 
@@ -17,13 +16,14 @@ model_urls = {
 
 
 class Conv3DSimple(nn.Conv3d):
+    """3D convolutions for R3D (3x3x3 kernel)"""
+
     def __init__(self,
                  in_planes,
                  out_planes,
                  midplanes=None,
                  stride=1,
                  padding=1):
-
         super(Conv3DSimple, self).__init__(
             in_channels=in_planes,
             out_channels=out_planes,
@@ -38,6 +38,8 @@ class Conv3DSimple(nn.Conv3d):
 
 
 class Conv2Plus1D(nn.Sequential):
+    """(2+1)D convolutions for R2plus1D (1x3x3 kernel + 3x1x1 kernel)"""
+
     def __init__(self,
                  in_planes,
                  out_planes,
@@ -60,13 +62,14 @@ class Conv2Plus1D(nn.Sequential):
 
 
 class Conv3DNoTemporal(nn.Conv3d):
+    """3D convolutions without temporal dimension for MCx (1x3x3 kernel)"""
+
     def __init__(self,
                  in_planes,
                  out_planes,
                  midplanes=None,
                  stride=1,
                  padding=1):
-
         super(Conv3DNoTemporal, self).__init__(
             in_channels=in_planes,
             out_channels=out_planes,
@@ -81,9 +84,12 @@ class Conv3DNoTemporal(nn.Conv3d):
 
 
 class BasicBlock(nn.Module):
+    """
+    Basic ResNet building block. Each block consists of two convolutional layers with a ReLU activation function
+    after each layer and residual connections.
+    """
 
     expansion = 1
-
     def __init__(self, inplanes, planes, conv_builder, stride=1, downsample=None):
         midplanes = (inplanes * planes * 3 * 3 * 3) // (inplanes * 3 * 3 + 3 * planes)
 
@@ -116,10 +122,13 @@ class BasicBlock(nn.Module):
 
 
 class Bottleneck(nn.Module):
+    """
+    BottleNeck building block. Default: No use. Each block consists of two 1*n*n and one n*n*n convolutional layers
+    with a ReLU activation function after each layer and residual connections.
+    """
     expansion = 4
 
     def __init__(self, inplanes, planes, conv_builder, stride=1, downsample=None):
-
         super(Bottleneck, self).__init__()
         midplanes = (inplanes * planes * 3 * 3 * 3) // (inplanes * 3 * 3 + 3 * planes)
 
@@ -162,8 +171,8 @@ class Bottleneck(nn.Module):
 
 
 class BasicStem(nn.Sequential):
-    """The default conv-batchnorm-relu stem
-    """
+    """The default conv-batchnorm-relu stem. The first layer normally. (64 3x7x7 kernels)"""
+
     def __init__(self):
         super(BasicStem, self).__init__(
             nn.Conv3d(3, 64, kernel_size=(3, 7, 7), stride=(1, 2, 2),
@@ -173,8 +182,11 @@ class BasicStem(nn.Sequential):
 
 
 class R2Plus1dStem(nn.Sequential):
-    """R(2+1)D stem is different than the default one as it uses separated 3D convolution
     """
+    R(2+1)D stem is different than the default one as it uses separated 3D convolution.
+    (45 1x7x7 kernels + 64 3x1x1 kernel)
+    """
+
     def __init__(self):
         super(R2Plus1dStem, self).__init__(
             nn.Conv3d(3, 45, kernel_size=(1, 7, 7),
@@ -235,7 +247,7 @@ class VideoResNet(nn.Module):
         x = self.avgpool(x)
         # Flatten the layer to fc
         x = x.flatten(1)
-        x = self.fc(x)
+        # x = self.fc(x)
 
         return x
 
@@ -310,6 +322,7 @@ def mc3_18(pretrained=False, progress=True, **kwargs):
     Returns:
         nn.Module: MC3 Network definition
     """
+
     return _video_resnet('mc3_18',
                          pretrained, progress,
                          block=BasicBlock,
@@ -327,6 +340,7 @@ def r2plus1d_18(pretrained=False, progress=True, **kwargs):
     Returns:
         nn.Module: R(2+1)D-18 network
     """
+
     return _video_resnet('r2plus1d_18',
                          pretrained, progress,
                          block=BasicBlock,
