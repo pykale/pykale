@@ -10,7 +10,7 @@ DATASET:
 DAN:
   METHOD: 'DANN'
 MODEL:
-  METHOD: 'r3d_18'
+  METHOD: 'r3d_18' #'r3d_18', 'r2plus1d_18', 'mc3_18', 'i3d'
 OUTPUT:
   DIR: 'outputs/EPIC-d12d2-dann/'
   TB_DIR: 'lightning_logs/EPIC-d12d2-dann/'

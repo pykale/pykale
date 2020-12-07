@@ -344,7 +344,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         raise NotImplementedError("Loss needs to be defined.")
 
     #########################################
-    @profile  # For getting active GPU peak memory. Ignore this when training.
+    # @profile  # For getting active GPU peak memory. Ignore this when training.
     #########################################
     def training_step(self, batch, batch_nb):
         """The most generic of training steps

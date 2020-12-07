@@ -84,11 +84,12 @@ class Conv3DNoTemporal(nn.Conv3d):
 
 
 class BasicBlock(nn.Module):
-    """Basic ResNet building block. Each block consists of two convolutional layers with a ReLU activation function
+    """
+    Basic ResNet building block. Each block consists of two convolutional layers with a ReLU activation function
     after each layer and residual connections.
     """
-    expansion = 1
 
+    expansion = 1
     def __init__(self, inplanes, planes, conv_builder, stride=1, downsample=None):
         midplanes = (inplanes * planes * 3 * 3 * 3) // (inplanes * 3 * 3 + 3 * planes)
 
@@ -121,7 +122,8 @@ class BasicBlock(nn.Module):
 
 
 class Bottleneck(nn.Module):
-    """BottleNeck building block. Default: No use. Each block consists of two 1*n*n and one n*n*n convolutional layers
+    """
+    BottleNeck building block. Default: No use. Each block consists of two 1*n*n and one n*n*n convolutional layers
     with a ReLU activation function after each layer and residual connections.
     """
     expansion = 4
@@ -169,8 +171,7 @@ class Bottleneck(nn.Module):
 
 
 class BasicStem(nn.Sequential):
-    """The default conv-batchnorm-relu stem. The first layer normally. (64 3x7x7 kernels)
-    """
+    """The default conv-batchnorm-relu stem. The first layer normally. (64 3x7x7 kernels)"""
 
     def __init__(self):
         super(BasicStem, self).__init__(
@@ -181,7 +182,8 @@ class BasicStem(nn.Sequential):
 
 
 class R2Plus1dStem(nn.Sequential):
-    """R(2+1)D stem is different than the default one as it uses separated 3D convolution.
+    """
+    R(2+1)D stem is different than the default one as it uses separated 3D convolution.
     (45 1x7x7 kernels + 64 3x1x1 kernel)
     """
 
@@ -320,6 +322,7 @@ def mc3_18(pretrained=False, progress=True, **kwargs):
     Returns:
         nn.Module: MC3 Network definition
     """
+
     return _video_resnet('mc3_18',
                          pretrained, progress,
                          block=BasicBlock,
@@ -337,6 +340,7 @@ def r2plus1d_18(pretrained=False, progress=True, **kwargs):
     Returns:
         nn.Module: R(2+1)D-18 network
     """
+
     return _video_resnet('r2plus1d_18',
                          pretrained, progress,
                          block=BasicBlock,

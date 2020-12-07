@@ -12,35 +12,36 @@ import numpy as np
 
 
 class MaxPool3dSamePadding(nn.MaxPool3d):
-    """Construct 3d max pool with same padding.
-        Pads such that the output size matches input size for stride=1.
+    """
+    Construct 3d max pool with same padding. PyTorch does not provide same padding.
+    Same padding means the output size matches input size for stride=1.
     """
 
     def compute_pad(self, dim, s):
+        """Get the zero padding number."""
+
         if s % self.stride[dim] == 0:
             return max(self.kernel_size[dim] - self.stride[dim], 0)
         else:
             return max(self.kernel_size[dim] - (s % self.stride[dim]), 0)
 
     def forward(self, x):
-        # compute 'same' padding
-        (batch, channel, t, h, w) = x.size()
-        pad_t = self.compute_pad(0, t)
-        pad_h = self.compute_pad(1, h)
-        pad_w = self.compute_pad(2, w)
+        """Compute 'same' padding. Add zero to the back position first."""
 
-        pad_t_f = pad_t // 2
-        pad_t_b = pad_t - pad_t_f
-        pad_h_f = pad_h // 2
-        pad_h_b = pad_h - pad_h_f
-        pad_w_f = pad_w // 2
-        pad_w_b = pad_w - pad_w_f
+        (batch, channel, time, height, width) = x.size()
+        pad_t = self.compute_pad(0, time)
+        pad_h = self.compute_pad(1, height)
+        pad_w = self.compute_pad(2, width)
 
-        pad = (pad_w_f, pad_w_b, pad_h_f, pad_h_b, pad_t_f, pad_t_b)
-        # print(x.size())
-        # print(pad)
+        pad_t_front = pad_t // 2
+        pad_t_back = pad_t - pad_t_front
+        pad_h_front = pad_h // 2
+        pad_h_back = pad_h - pad_h_front
+        pad_w_front = pad_w // 2
+        pad_w_back = pad_w - pad_w_front
+
+        pad = (pad_w_front, pad_w_back, pad_h_front, pad_h_back, pad_t_front, pad_t_back)
         x = F.pad(x, pad)
-        # print(x.size())
         return super(MaxPool3dSamePadding, self).forward(x)
 
 
@@ -56,8 +57,8 @@ class Unit3D(nn.Module):
                  use_batch_norm=True,
                  use_bias=False,
                  name='unit_3d'):
-
         """Initializes Unit3D module."""
+
         super(Unit3D, self).__init__()
 
         self._output_channels = output_channels
@@ -74,13 +75,16 @@ class Unit3D(nn.Module):
                                 kernel_size=self._kernel_shape,
                                 stride=self._stride,
                                 padding=0,
-                                # we always want padding to be 0 here. We will dynamically pad based on input size in forward function
+                                # we always want padding to be 0 here. We will dynamically pad based on input size in
+                                # forward function
                                 bias=self._use_bias)
 
         if self._use_batch_norm:
             self.bn = nn.BatchNorm3d(self._output_channels, eps=0.001, momentum=0.01)
 
     def compute_pad(self, dim, s):
+        """Get the zero padding number."""
+
         if s % self._stride[dim] == 0:
             return max(self._kernel_shape[dim] - self._stride[dim], 0)
         else:
@@ -96,29 +100,20 @@ class Unit3D(nn.Module):
             Outputs from the module.
         """
         # compute 'same' padding
-        (batch, channel, t, h, w) = x.size()
-        # print t,h,w
-        # out_t = np.ceil(float(t) / float(self._stride[0]))
-        # out_h = np.ceil(float(h) / float(self._stride[1]))
-        # out_w = np.ceil(float(w) / float(self._stride[2]))
-        # print out_t, out_h, out_w
-        pad_t = self.compute_pad(0, t)
-        pad_h = self.compute_pad(1, h)
-        pad_w = self.compute_pad(2, w)
-        # print pad_t, pad_h, pad_w
+        (batch, channel, time, height, width) = x.size()
+        pad_t = self.compute_pad(0, time)
+        pad_h = self.compute_pad(1, height)
+        pad_w = self.compute_pad(2, width)
 
-        pad_t_f = pad_t // 2
-        pad_t_b = pad_t - pad_t_f
-        pad_h_f = pad_h // 2
-        pad_h_b = pad_h - pad_h_f
-        pad_w_f = pad_w // 2
-        pad_w_b = pad_w - pad_w_f
+        pad_t_front = pad_t // 2
+        pad_t_back = pad_t - pad_t_front
+        pad_h_front = pad_h // 2
+        pad_h_back = pad_h - pad_h_front
+        pad_w_front = pad_w // 2
+        pad_w_back = pad_w - pad_w_front
 
-        pad = (pad_w_f, pad_w_b, pad_h_f, pad_h_b, pad_t_f, pad_t_b)
-        # print x.size()
-        # print pad
+        pad = (pad_w_front, pad_w_back, pad_h_front, pad_h_back, pad_t_front, pad_t_back)
         x = F.pad(x, pad)
-        # print x.size()
 
         x = self.conv3d(x)
         if self._use_batch_norm:
@@ -134,6 +129,7 @@ class InceptionModule(nn.Module):
     Four branches (1x1x1 conv; 1x1x1 + 3x3x3 convs; 1x1x1 + 3x3x3 convs; 3x3x3 max-pool + 1x1x1 conv)
     Concatenation after four branches
     """
+
     def __init__(self, in_channels, out_channels, name):
         super(InceptionModule, self).__init__()
 
@@ -206,7 +202,7 @@ class InceptionI3d(nn.Module):
 
         Args:
           num_classes: The number of outputs in the logit layer (default 400, which
-              matches the Kinetics dataset).
+              matches the Kinetics dataset). Use `replace_logits` to update num_classes.
           spatial_squeeze: Whether to squeeze the spatial dimensions for the logits
               before returning (default True).
           final_endpoint: The model contains many possible endpoints.
@@ -238,76 +234,92 @@ class InceptionI3d(nn.Module):
         end_point = 'Conv3d_1a_7x7'
         self.end_points[end_point] = Unit3D(in_channels=in_channels, output_channels=64, kernel_shape=[7, 7, 7],
                                             stride=(2, 2, 2), padding=(3, 3, 3), name=name + end_point)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'MaxPool3d_2a_3x3'
         self.end_points[end_point] = MaxPool3dSamePadding(kernel_size=[1, 3, 3], stride=(1, 2, 2),
                                                           padding=0)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'Conv3d_2b_1x1'
         self.end_points[end_point] = Unit3D(in_channels=64, output_channels=64, kernel_shape=[1, 1, 1], padding=0,
                                             name=name + end_point)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'Conv3d_2c_3x3'
         self.end_points[end_point] = Unit3D(in_channels=64, output_channels=192, kernel_shape=[3, 3, 3], padding=1,
                                             name=name + end_point)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'MaxPool3d_3a_3x3'
         self.end_points[end_point] = MaxPool3dSamePadding(kernel_size=[1, 3, 3], stride=(1, 2, 2),
                                                           padding=0)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'Mixed_3b'
         self.end_points[end_point] = InceptionModule(192, [64, 96, 128, 16, 32, 32], name + end_point)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'Mixed_3c'
         self.end_points[end_point] = InceptionModule(256, [128, 128, 192, 32, 96, 64], name + end_point)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'MaxPool3d_4a_3x3'
         self.end_points[end_point] = MaxPool3dSamePadding(kernel_size=[3, 3, 3], stride=(2, 2, 2),
                                                           padding=0)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'Mixed_4b'
         self.end_points[end_point] = InceptionModule(128 + 192 + 96 + 64, [192, 96, 208, 16, 48, 64], name + end_point)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'Mixed_4c'
         self.end_points[end_point] = InceptionModule(192 + 208 + 48 + 64, [160, 112, 224, 24, 64, 64], name + end_point)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'Mixed_4d'
         self.end_points[end_point] = InceptionModule(160 + 224 + 64 + 64, [128, 128, 256, 24, 64, 64], name + end_point)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'Mixed_4e'
         self.end_points[end_point] = InceptionModule(128 + 256 + 64 + 64, [112, 144, 288, 32, 64, 64], name + end_point)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'Mixed_4f'
         self.end_points[end_point] = InceptionModule(112 + 288 + 64 + 64, [256, 160, 320, 32, 128, 128],
                                                      name + end_point)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'MaxPool3d_5a_2x2'
         self.end_points[end_point] = MaxPool3dSamePadding(kernel_size=[2, 2, 2], stride=(2, 2, 2),
                                                           padding=0)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'Mixed_5b'
         self.end_points[end_point] = InceptionModule(256 + 320 + 128 + 128, [256, 160, 320, 32, 128, 128],
                                                      name + end_point)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'Mixed_5c'
         self.end_points[end_point] = InceptionModule(256 + 320 + 128 + 128, [384, 192, 384, 48, 128, 128],
                                                      name + end_point)
-        if self._final_endpoint == end_point: return
+        if self._final_endpoint == end_point:
+            return
 
         end_point = 'Logits'
         self.avg_pool = nn.AvgPool3d(kernel_size=[2, 7, 7],
@@ -346,11 +358,11 @@ class InceptionI3d(nn.Module):
 
         # For EPIC datasets, RGB window has 16 frames while flow has 8. We apply different avg_pool to them.
         if x.shape[2] == 2:
-            # x = self.dropout(self.avg_pool(x))
-            x = self.logits(self.dropout(self.avg_pool(x)))
+            x = self.avg_pool(x)
+            # x = self.logits(self.dropout(self.avg_pool(x)))
         elif x.shape[2] == 1:
-            # x = self.dropout(self.avg_pool_flow(x))
-            x = self.logits(self.dropout(self.avg_pool_flow(x)))
+            x = self.avg_pool_flow(x)
+            # x = self.logits(self.dropout(self.avg_pool_flow(x)))
         if self._spatial_squeeze:
             logits = x.squeeze(3).squeeze(3)
         # logits is batch X time X classes, which is what we want to work with
