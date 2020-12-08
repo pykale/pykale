@@ -1,8 +1,7 @@
 import torch
 import time
 import numpy as np
-from utils import *
-from kale.utils.print import tprint, pprint_without_newline
+from utils import auprc_auroc_ap, EPS
 
 
 class Trainer(object):

@@ -1,0 +1,23 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==1.7.0+cpu 
+torchvision==0.8.1+cpu
+
+torchsummary==1.5.0
+yacs==0.1.7
+
+# Needed only for graph
+ogb==1.2.0
+
+# Needed only for torch-geometric
+#torch-cluster==1.5.4
+#torch-scatter==2.0.4
+#torch-sparse==0.6.5
+#torch-spline-conv==1.2.0
+#torch-geometric==1.5.0
+
+# Documentation packages
+nbsphinx
+nbsphinx-link
+pytorch-lightning
+scikit-image
+tensorly

@@ -6,6 +6,14 @@ Preprocess data
 Submodules
 ----------
 
+kale.prepdata.video\_transform module
+-------------------------------------
+
+.. automodule:: kale.prepdata.video_transform
+	:members:
+	:exclude-members:
+	:show-inheritance:
+
 kale.prepdata.image\_transform module
 -------------------------------------
 
