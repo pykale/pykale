@@ -6,13 +6,12 @@ from yacs.config import CfgNode
 
 C = CfgNode()
 
-
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
 C.DATASET = CfgNode()
 C.DATASET.ROOT = 'examples/data'
-C.DATASET.NAME = 'pose'
+C.DATASET.NAME = 'PoSE'
 C.DATASET.DD = 'drug-drug.pt'
 C.DATASET.GD = 'gene-drug.pt'
 C.DATASET.GG = 'gene-gene.pt'
@@ -27,7 +26,7 @@ C.SOLVER.LR_MILESTONES = [30, 60, 90]
 C.SOLVER.LR_GAMMA = 0.1
 C.SOLVER.MAX_EPOCHS = 5
 C.SOLVER.WARMUP = False
-C.SOLVER.WARMUP_EPOCHS = 5
+C.SOLVER.WARMUP_EPOCHS = 100
 
 # ---------------------------------------------------------------------------- #
 # GripNet configs
@@ -41,3 +40,7 @@ C.GRIPN.DD_LAYERS = [sum(C.GRIPN.GD_LAYERS), 16]
 # Misc options
 # ---------------------------------------------------------------------------- #
 C.OUTPUT_DIR = './outputs'
+
+
+def get_cfg_defaults():
+    return C.clone()
