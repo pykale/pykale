@@ -23,6 +23,7 @@ def get_config(cfg):
     Args:
         cfg: A YACS config object.
     """
+
     config_params = {
         "train_params": {
             "adapt_lambda": cfg.SOLVER.AD_LAMBDA,
