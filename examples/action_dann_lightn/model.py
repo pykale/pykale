@@ -6,7 +6,10 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 # Initial Date: 7 December 2020
 
 from copy import deepcopy
-from kale.embed.video_cnn.i3d import InceptionI3d
+
+import torch
+
+from kale.embed.video_cnn.i3d import i3d
 from kale.embed.video_cnn.res3d import r3d_18, r2plus1d_18, mc3_18
 from kale.predict.class_domain_nets import ClassNetSmallImage, \
     DomainNetSmallImage
@@ -20,6 +23,7 @@ def get_config(cfg):
     Args:
         cfg: A YACS config object.
     """
+
     config_params = {
         "train_params": {
             "adapt_lambda": cfg.SOLVER.AD_LAMBDA,
@@ -51,18 +55,29 @@ def get_config(cfg):
 
 
 def get_feat_extractor(model_name, num_classes, num_channels):
+    """
+    Get the feature extractor w/o the pre-trained model. The pre-trained models are saved in the path
+    ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
+    For Windows, default path is ``C:/Users/$USER_NAME/.cache/torch/hub/checkpoints/``
+
+    Args:
+        model_name: The name of the feature extractor.
+        num_classes: The class number for the specific setting. (Default: No use)
+        num_channels: The number of image channels. (Default: No use, may used in RGB & Flow)
+    """
+
     if model_name == 'I3D':
-        model = InceptionI3d()
+        model = i3d(name='rgb_imagenet', pretrained=True)
         # model.replace_logits(num_classes)
         feature_dim = 1024
     elif model_name == 'R3D_18':
-        model = r3d_18(num_channels)
+        model = r3d_18(pretrained=True)
         feature_dim = 512
     elif model_name == 'R2PLUS1D_18':
-        model = r2plus1d_18(num_channels)
+        model = r2plus1d_18(pretrained=True)
         feature_dim = 512
     elif model_name == 'MC3_18':
-        model = mc3_18(num_channels)
+        model = mc3_18(pretrained=True)
         feature_dim = 512
     else:
         raise ValueError("Unsupported model: {}".format(model_name))
