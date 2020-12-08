@@ -7,8 +7,15 @@ https://github.com/deepmind/kinetics-i3d/blob/master/i3d.py
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision.models.utils import load_state_dict_from_url
 
-import numpy as np
+
+model_urls = {
+    'rgb_imagenet': 'https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt',
+    'flow_imagenet': 'https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/flow_imagenet.pt',
+    'rgb_charades': 'https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_charades.pt',
+    'flow_charades': 'https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/flow_charades.pt'
+}
 
 
 class MaxPool3dSamePadding(nn.MaxPool3d):
@@ -378,3 +385,13 @@ class InceptionI3d(nn.Module):
             if end_point in self.end_points:
                 x = self._modules[end_point](x)
         return self.avg_pool(x)
+
+
+def i3d(name, pretrained=False, progress=True):
+    model = InceptionI3d()
+
+    if pretrained:
+        state_dict = load_state_dict_from_url(model_urls[name],
+                                              progress=progress)
+        model.load_state_dict(state_dict)
+    return model
