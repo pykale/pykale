@@ -66,7 +66,7 @@ torch >= 1.7.0
 python >= 3.6
 ```
 ### 2. Custom Dataset
-	(This description explains using custom datasets where each sample has a single class label. If you want to know how to
+(This description explains using custom datasets where each sample has a single class label. If you want to know how to
 use a dataset where a sample can have more than a single class label, read this anyways and then read `6.` below)  
   
 To use any dataset, two conditions must be met.
