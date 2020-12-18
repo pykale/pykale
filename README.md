@@ -4,7 +4,7 @@
      alt="Machine learning workflow"
      style="float: center;" />
 
-PyKale aims to consolidate *interdisciplinary* research on *knowledge-aware* machine learning for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications, with pipeline-based APIs.
+PyKale aims to consolidate *interdisciplinary* research on *knowledge-aware* machine learning for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications, with pipeline-based APIs. See our [public Trello board](https://trello.com/b/X8VBNAvf/pykale-api-overview) for an overview.
 
 Please star and/or fork PyKale to follow the latest update. Welcome to join / contact us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a>.
 * **To contribute**
