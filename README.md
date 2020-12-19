@@ -123,6 +123,6 @@ The development of PyKale is partially supported by the following project(s).
 
 * Wellcome Trust Innovator Awards: Digital Technologies Ref 215799/Z/19/Z "Developing a Machine Learning Tool to Improve Prognostic and Treatment Response Assessment on Cardiac MRI Data"
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Wellcome_Trust_logo.svg/200px-Wellcome_Trust_logo.svg.png"
+<img src="https://www.cimr.cam.ac.uk/images/Wellcomeawardlogo/image"
      alt="Machine learning workflow"
-     style="float: center;width:90px;" />
+     style="float: center;width:60px;" />
