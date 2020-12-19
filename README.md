@@ -122,3 +122,7 @@ We need to design these core modules to be generic, reusable, customizable, and 
 The development of PyKale is partially supported by the following project(s).
 
 * Wellcome Trust Innovator Awards: Digital Technologies Ref 215799/Z/19/Z "Developing a Machine Learning Tool to Improve Prognostic and Treatment Response Assessment on Cardiac MRI Data"
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Wellcome_Trust_logo.svg/200px-Wellcome_Trust_logo.svg.png"
+     alt="Machine learning workflow"
+     style="float: center;width:90px;" />
