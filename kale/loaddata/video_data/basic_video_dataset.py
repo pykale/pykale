@@ -142,9 +142,5 @@ class BasicVideoDataset(Dataset):
         """
         arr = arr.astype('float')
         for i in range(arr.shape[-1]):
-            # a = arr[..., i]
-            # b = a / 255.
-            # c = b - 0.5
-            # d = c * 2
             arr[..., i] = ((arr[..., i] / 255.) - 0.5) * 2
         return arr
