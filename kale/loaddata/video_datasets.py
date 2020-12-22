@@ -130,4 +130,3 @@ class EPIC(VideoFrameDataset):
                             i = i + 1
         print("Number of {:5} action segments: {}".format(self.dataset, i))
         return data
-
