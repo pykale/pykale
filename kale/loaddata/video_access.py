@@ -5,10 +5,9 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/d
 
 import os
 from enum import Enum
-import kale.prepdata.video_transform_for_action_dann as video_transform
+import kale.prepdata.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
-from kale.loaddata.video_data.epickitchen import EPIC
-from kale.loaddata.video_data.basic_video_dataset import BasicVideoDataset
+from kale.loaddata.video_datasets import BasicVideoDataset, EPIC
 from copy import deepcopy
 
 
@@ -22,9 +21,9 @@ def get_videodata_config(cfg):
             "dataset_tar_name": cfg.DATASET.TARGET,
             "dataset_tar_trainlist": cfg.DATASET.TAR_TRAINLIST,
             "dataset_tar_testlist": cfg.DATASET.TAR_TESTLIST,
-            "dataset_mode": cfg.DATASET.MODE,
+            "dataset_image_mode": cfg.DATASET.IMAGE_MODE,
             "num_classes": cfg.DATASET.NUM_CLASSES,
-            "window_len": cfg.DATASET.WINDOW_LEN
+            "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT
         }
     }
     return config_params
@@ -87,9 +86,9 @@ class VideoDataset(Enum):
         src_data_path, src_tr_listpath, src_te_listpath = generate_list(data_src_name, data_params_local, domain='src')
         data_tar_name = data_params_local['dataset_tar_name'].upper()
         tar_data_path, tar_tr_listpath, tar_te_listpath = generate_list(data_tar_name, data_params_local, domain='tar')
-        mode = data_params_local['dataset_mode']
+        image_mode = data_params_local['dataset_image_mode']
         n_classes = data_params_local['num_classes']
-        window_len = data_params_local['window_len']
+        frames_per_segment = data_params_local['frames_per_segment']
 
         channel_numbers = {
             VideoDataset.EPIC: 3,
@@ -118,9 +117,9 @@ class VideoDataset(Enum):
         target_tf = transform_names[(target, num_channels)]
 
         return (
-            factories[source](src_data_path, src_tr_listpath, src_te_listpath, mode, window_len, n_classes,
+            factories[source](src_data_path, src_tr_listpath, src_te_listpath, image_mode, frames_per_segment, n_classes,
                               source_tf),
-            factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, mode, window_len, n_classes,
+            factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, image_mode, frames_per_segment, n_classes,
                               target_tf),
             num_channels
         )
@@ -134,20 +133,20 @@ class VideoDatasetAccess(DatasetAccess):
         data_path (string): image directory of dataset
         train_list (string): training list file directory of dataset
         test_list (string): test list file directory of dataset
-        mode (string): image type (RGB or Optical Flow)
-        window_len (int): length of each action sample (the unit is number of frame)
+        image_mode (string): image type (RGB or Optical Flow)
+        frames_per_segment (int): length of each action sample (the unit is number of frame)
         n_classes (int): number of class
         transform_kind (string): types of video transforms
     """
 
     def __init__(self, data_path, train_list, test_list,
-                 mode, window_len, n_classes, transform_kind):
+                 image_mode, frames_per_segment, n_classes, transform_kind):
         super().__init__(n_classes)
         self._data_path = data_path
         self._train_list = train_list
         self._test_list = test_list
-        self._mode = mode
-        self._window_len = window_len
+        self._image_mode = image_mode
+        self._frames_per_segment = frames_per_segment
         self._transform = video_transform.get_transform(transform_kind)
 
 
@@ -155,24 +154,32 @@ class EPICDatasetAccess(VideoDatasetAccess):
     """EPIC data loader"""
     def get_train(self):
         return EPIC(
-            data_path=self._data_path,
-            list_path=self._train_list,
-            mode=self._mode,
-            window_len=self._window_len,
-            n_classes=self.n_classes(),
+            root_path=self._data_path,
+            annotationfile_path=self._train_list,
+            num_segments=1,
+            frames_per_segment=self._frames_per_segment,
+            imagefile_template='frame_{:010d}.jpg',
+            transform=self._transform['train'],
+            random_shift=True,
+            test_mode=False,
+            image_mode='rgb',
             dataset_split='train',
-            transforms=self._transform['train']
+            n_classes=self._n_classes
         )
 
     def get_test(self):
         return EPIC(
-            data_path=self._data_path,
-            list_path=self._test_list,
-            mode=self._mode,
-            window_len=self._window_len,
-            n_classes=self.n_classes(),
+            root_path=self._data_path,
+            annotationfile_path=self._test_list,
+            num_segments=1,
+            frames_per_segment=self._frames_per_segment,
+            imagefile_template='frame_{:010d}.jpg',
+            transform=self._transform['test'],
+            random_shift=False,
+            test_mode=True,
+            image_mode='rgb',
             dataset_split='test',
-            transforms=self._transform['test']
+            n_classes=self._n_classes,
         )
 
 
@@ -180,24 +187,32 @@ class GTEADatasetAccess(VideoDatasetAccess):
     """GTEA data loader"""
     def get_train(self):
         return BasicVideoDataset(
-            data_path=self._data_path,
-            list_path=self._train_list,
-            mode=self._mode,
-            window_len=self._window_len,
-            n_classes=self.n_classes(),
+            root_path=self._data_path,
+            annotationfile_path=self._train_list,
+            num_segments=1,
+            frames_per_segment=self._frames_per_segment,
+            imagefile_template='frame_{:010d}.jpg',
+            transform=self._transform['train'],
+            random_shift=False,
+            test_mode=False,
+            image_mode='rgb',
             dataset_split='train',
-            transforms=self._transform['train']
+            n_classes=self._n_classes
         )
 
     def get_test(self):
         return BasicVideoDataset(
-            data_path=self._data_path,
-            list_path=self._test_list,
-            mode=self._mode,
-            window_len=self._window_len,
-            n_classes=self.n_classes(),
+            root_path=self._data_path,
+            annotationfile_path=self._test_list,
+            num_segments=1,
+            frames_per_segment=self._frames_per_segment,
+            imagefile_template='frame_{:010d}.jpg',
+            transform=self._transform['test'],
+            random_shift=False,
+            test_mode=True,
+            image_mode='rgb',
             dataset_split='test',
-            transforms=self._transform['test']
+            n_classes=self._n_classes,
         )
 
 
@@ -205,24 +220,32 @@ class ADLDatasetAccess(VideoDatasetAccess):
     """ADL data loader"""
     def get_train(self):
         return BasicVideoDataset(
-            data_path=self._data_path,
-            list_path=self._train_list,
-            mode=self._mode,
-            window_len=self._window_len,
-            n_classes=self.n_classes(),
+            root_path=self._data_path,
+            annotationfile_path=self._train_list,
+            num_segments=1,
+            frames_per_segment=self._frames_per_segment,
+            imagefile_template='frame_{:010d}.jpg',
+            transform=self._transform['train'],
+            random_shift=False,
+            test_mode=False,
+            image_mode='rgb',
             dataset_split='train',
-            transforms=self._transform['train']
+            n_classes=self._n_classes
         )
 
     def get_test(self):
         return BasicVideoDataset(
-            data_path=self._data_path,
-            list_path=self._test_list,
-            mode=self._mode,
-            window_len=self._window_len,
-            n_classes=self.n_classes(),
+            root_path=self._data_path,
+            annotationfile_path=self._test_list,
+            num_segments=1,
+            frames_per_segment=self._frames_per_segment,
+            imagefile_template='frame_{:010d}.jpg',
+            transform=self._transform['test'],
+            random_shift=False,
+            test_mode=True,
+            image_mode='rgb',
             dataset_split='test',
-            transforms=self._transform['test']
+            n_classes=self._n_classes,
         )
 
 
@@ -230,22 +253,30 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
     """KITCHEN data loader"""
     def get_train(self):
         return BasicVideoDataset(
-            data_path=self._data_path,
-            list_path=self._train_list,
-            mode=self._mode,
-            window_len=self._window_len,
-            n_classes=self.n_classes(),
+            root_path=self._data_path,
+            annotationfile_path=self._train_list,
+            num_segments=1,
+            frames_per_segment=self._frames_per_segment,
+            imagefile_template='frame_{:010d}.jpg',
+            transform=self._transform['train'],
+            random_shift=False,
+            test_mode=False,
+            image_mode='rgb',
             dataset_split='train',
-            transforms=self._transform['train']
+            n_classes=self._n_classes
         )
 
     def get_test(self):
         return BasicVideoDataset(
-            data_path=self._data_path,
-            list_path=self._test_list,
-            mode=self._mode,
-            window_len=self._window_len,
-            n_classes=self.n_classes(),
+            root_path=self._data_path,
+            annotationfile_path=self._test_list,
+            num_segments=1,
+            frames_per_segment=self._frames_per_segment,
+            imagefile_template='frame_{:010d}.jpg',
+            transform=self._transform['test'],
+            random_shift=False,
+            test_mode=True,
+            image_mode='rgb',
             dataset_split='test',
-            transforms=self._transform['test']
+            n_classes=self._n_classes,
         )

@@ -120,3 +120,9 @@ We need to design these core modules to be generic, reusable, customizable, and 
   * Image classification (baselines): [CVonline Image Databases (including video etc)](http://homepages.inf.ed.ac.uk/rbf/CVonline/Imagedbase.htm)
 * Recommended package
   * [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
+
+## Funding Acknowledgements
+
+The development of PyKale is partially supported by the following project(s).
+
+* Wellcome Trust Innovator Awards: Digital Technologies Ref 215799/Z/19/Z "Developing a Machine Learning Tool to Improve Prognostic and Treatment Response Assessment on Cardiac MRI Data"

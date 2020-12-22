@@ -23,9 +23,9 @@ _C.DATASET.SRC_TESTLIST = 'epic_D1_test.pkl'
 _C.DATASET.TARGET = 'EPIC'  # s_dataset_path  , help="The target dataset path list"
 _C.DATASET.TAR_TRAINLIST = 'epic_D2_train.pkl'
 _C.DATASET.TAR_TESTLIST = 'epic_D2_test.pkl'
-_C.DATASET.MODE = 'rgb'  # mode choices=['rgb', 'flow', 'rgb+flow']
+_C.DATASET.IMAGE_MODE = 'rgb'  # mode choices=['rgb', 'flow', 'rgb+flow']
 _C.DATASET.NUM_CLASSES = 8
-_C.DATASET.WINDOW_LEN = 16
+_C.DATASET.FRAMES_PER_SEGMENT = 16
 _C.DATASET.NUM_REPEAT = 5  # 10
 # _C.DATASET.DIMENSION = 784
 _C.DATASET.WEIGHT_TYPE = 'natural'
