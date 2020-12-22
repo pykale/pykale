@@ -90,6 +90,7 @@ class BasicBlock(nn.Module):
     """
 
     expansion = 1
+
     def __init__(self, inplanes, planes, conv_builder, stride=1, downsample=None):
         midplanes = (inplanes * planes * 3 * 3 * 3) // (inplanes * 3 * 3 + 3 * planes)
 
