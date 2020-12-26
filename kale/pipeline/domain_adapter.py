@@ -13,6 +13,8 @@ from torch.autograd import Function
 import kale.predict.losses as losses
 
 import pytorch_lightning as pl
+from pytorch_memlab import profile
+
 
 class ReverseLayerF(Function):
     """The gradient reversal layer (GRL)
@@ -24,6 +26,7 @@ class ReverseLayerF(Function):
     
     From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/layers.py
     """
+
     @staticmethod
     def forward(ctx, x, alpha):
         ctx.alpha = alpha
@@ -79,6 +82,7 @@ def get_metrics_from_parameter_dict(parameter_dict, device):
     """
     return {k: torch.tensor(v, device=device) for k, v in parameter_dict.items()}
 
+
 class Method(Enum):
     """
     Lists the available methods.
@@ -113,7 +117,7 @@ class Method(Enum):
 
 
 def create_mmd_based(
-    method: Method, dataset, feature_extractor, task_classifier, **train_params
+        method: Method, dataset, feature_extractor, task_classifier, **train_params
 ):
     """MMD-based deep learning methods for domain adaptation: DAN and JAN
     """
@@ -136,7 +140,7 @@ def create_mmd_based(
 
 
 def create_dann_like(
-    method: Method, dataset, feature_extractor, task_classifier, critic, **train_params
+        method: Method, dataset, feature_extractor, task_classifier, critic, **train_params
 ):
     """DANN-based deep learning methods for domain adaptation: DANN, CDAN, CDAN+E
     """
@@ -189,7 +193,7 @@ def create_dann_like(
 
 
 def create_fewshot_trainer(
-    method: Method, dataset, feature_extractor, task_classifier, critic, **train_params
+        method: Method, dataset, feature_extractor, task_classifier, critic, **train_params
 ):
     """DANN-based few-shot deep learning methods for domain adaptation: FSDANN, MME
     """
@@ -213,19 +217,19 @@ def create_fewshot_trainer(
 
 class BaseAdaptTrainer(pl.LightningModule):
     def __init__(
-        self,
-        dataset,
-        feature_extractor,
-        task_classifier,
-        method=None,
-        lambda_init=1.0,
-        adapt_lambda=True,
-        adapt_lr=True,
-        nb_init_epochs=10,
-        nb_adapt_epochs=50,
-        batch_size=32,
-        init_lr=1e-3,
-        optimizer=None,
+            self,
+            dataset,
+            feature_extractor,
+            task_classifier,
+            method=None,
+            lambda_init=1.0,
+            adapt_lambda=True,
+            adapt_lr=True,
+            nb_init_epochs=10,
+            nb_adapt_epochs=50,
+            batch_size=32,
+            init_lr=1e-3,
+            optimizer=None,
     ):
         r"""Base class for all domain adaptation architectures.
 
@@ -299,7 +303,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         if self.current_epoch >= self._init_epochs:
             delta_epoch = self.current_epoch - self._init_epochs
             p = (batch_id + delta_epoch * self._nb_training_batches) / (
-                self._non_init_epochs * self._nb_training_batches
+                    self._non_init_epochs * self._nb_training_batches
             )
             self._grow_fact = 2.0 / (1.0 + np.exp(-10 * p)) - 1
 
@@ -339,6 +343,9 @@ class BaseAdaptTrainer(pl.LightningModule):
         """
         raise NotImplementedError("Loss needs to be defined.")
 
+    #########################################
+    # @profile  # For getting active GPU peak memory. Ignore this when training.
+    #########################################
     def training_step(self, batch, batch_nb):
         """The most generic of training steps
 
@@ -371,10 +378,13 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_metrics["T_total_loss"] = loss
         log_metrics["T_task_loss"] = task_loss
 
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
+
         return {
             "loss": loss,  # required, for backward pass
-            "progress_bar": {"class_loss": task_loss},
-            "log": log_metrics,
+            # "progress_bar": {"class_loss": task_loss},
+            # "log": log_metrics,
         }
 
     def validation_step(self, batch, batch_nb):
@@ -389,12 +399,16 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_dict.update(
             get_metrics_from_parameter_dict(self.get_parameters_watch_list(), device)
         )
-        avg_loss = log_dict["val_loss"]
-        return {
-            "val_loss": avg_loss,  # for callbacks (eg early stopping)
-            "progress_bar": {"val_loss": avg_loss},
-            "log": log_dict,
-        }
+        # avg_loss = log_dict["val_loss"]
+
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+        # return {
+        #     "val_loss": avg_loss,  # for callbacks (eg early stopping)
+        #     "progress_bar": {"val_loss": avg_loss},
+        #     "log": log_dict,
+        # }
 
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
@@ -418,11 +432,14 @@ class BaseAdaptTrainer(pl.LightningModule):
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
-        return {
-            "avg_test_loss": log_dict["test_loss"],
-            "progress_bar": log_dict,
-            "log": log_dict,
-        }
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+        # return {
+        #     "avg_test_loss": log_dict["test_loss"],
+        #     "progress_bar": log_dict,
+        #     "log": log_dict,
+        # }
 
     def _configure_optimizer(self, parameters):
         if self._optimizer_params is None:
@@ -473,19 +490,19 @@ class BaseAdaptTrainer(pl.LightningModule):
 
 class BaseDANNLike(BaseAdaptTrainer):
     def __init__(
-        self,
-        dataset,
-        feature_extractor,
-        task_classifier,
-        critic,
-        alpha=1.0,
-        entropy_reg=0.0,  # not used
-        adapt_reg=True,  # not used
-        batch_reweighting=False,  # not used
-        **base_params,
+            self,
+            dataset,
+            feature_extractor,
+            task_classifier,
+            critic,
+            alpha=1.0,
+            entropy_reg=0.0,  # not used
+            adapt_reg=True,  # not used
+            batch_reweighting=False,  # not used
+            **base_params,
     ):
         """Common API for DANN-based methods: DANN, CDAN, CDAN+E, WDGRL, MME, FSDANN
-        """     
+        """
 
         super().__init__(dataset, feature_extractor, task_classifier, **base_params)
 
@@ -563,11 +580,14 @@ class BaseDANNLike(BaseAdaptTrainer):
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
-        return {
-            "avg_test_loss": log_dict["test_loss"],
-            "progress_bar": log_dict,
-            "log": log_dict,
-        }
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+        # return {
+        #     "avg_test_loss": log_dict["test_loss"],
+        #     "progress_bar": log_dict,
+        #     "log": log_dict,
+        # }
 
 
 class DANNtrainer(BaseDANNLike):
@@ -581,13 +601,13 @@ class DANNtrainer(BaseDANNLike):
     """
 
     def __init__(
-        self,
-        dataset,
-        feature_extractor,
-        task_classifier,
-        critic,
-        method=None,
-        **base_params,
+            self,
+            dataset,
+            feature_extractor,
+            task_classifier,
+            critic,
+            method=None,
+            **base_params,
     ):
         super().__init__(
             dataset, feature_extractor, task_classifier, critic, **base_params
@@ -618,15 +638,15 @@ class CDANtrainer(BaseDANNLike):
     """
 
     def __init__(
-        self,
-        dataset,
-        feature_extractor,
-        task_classifier,
-        critic,
-        use_entropy=False,
-        use_random=False,
-        random_dim=1024,
-        **base_params,
+            self,
+            dataset,
+            feature_extractor,
+            task_classifier,
+            critic,
+            use_entropy=False,
+            use_random=False,
+            random_dim=1024,
+            **base_params,
     ):
         super().__init__(
             dataset, feature_extractor, task_classifier, critic, **base_params
@@ -731,15 +751,15 @@ class WDGRLtrainer(BaseDANNLike):
     """
 
     def __init__(
-        self,
-        dataset,
-        feature_extractor,
-        task_classifier,
-        critic,
-        k_critic=5,
-        gamma=10,
-        beta_ratio=0,
-        **base_params,
+            self,
+            dataset,
+            feature_extractor,
+            task_classifier,
+            critic,
+            k_critic=5,
+            gamma=10,
+            beta_ratio=0,
+            **base_params,
     ):
         """
         parameters:
@@ -808,7 +828,7 @@ class WDGRLtrainer(BaseDANNLike):
             critic_s = self.domain_classifier(h_s)
             critic_t = self.domain_classifier(h_t)
             wasserstein_distance = (
-                critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean()
+                    critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean()
             )
 
             critic_cost = -wasserstein_distance + self._gamma * gp
@@ -843,10 +863,13 @@ class WDGRLtrainer(BaseDANNLike):
         log_metrics["T_total_loss"] = loss
         log_metrics["T_task_loss"] = task_loss
 
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
+
         return {
             "loss": loss,  # required, for backward pass
-            "progress_bar": {"class_loss": task_loss},
-            "log": log_metrics,
+            # "progress_bar": {"class_loss": task_loss},
+            # "log": log_metrics,
         }
 
     def configure_optimizers(self):
@@ -889,15 +912,15 @@ class WDGRLtrainerMod(WDGRLtrainer):
     """
 
     def __init__(
-        self,
-        dataset,
-        feature_extractor,
-        task_classifier,
-        critic,
-        k_critic=5,
-        gamma=10,
-        beta_ratio=0,
-        **base_params,
+            self,
+            dataset,
+            feature_extractor,
+            task_classifier,
+            critic,
+            k_critic=5,
+            gamma=10,
+            beta_ratio=0,
+            **base_params,
     ):
         """
         parameters:
@@ -922,7 +945,7 @@ class WDGRLtrainerMod(WDGRLtrainer):
         critic_s = self.domain_classifier(h_s)
         critic_t = self.domain_classifier(h_t)
         wasserstein_distance = (
-            critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean()
+                critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean()
         )
 
         critic_cost = -wasserstein_distance + self._gamma * gp
@@ -958,14 +981,17 @@ class WDGRLtrainerMod(WDGRLtrainer):
         log_metrics["T_total_loss"] = loss
         log_metrics["T_task_loss"] = task_loss
 
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
+
         return {
             "loss": loss,  # required, for backward pass
-            "progress_bar": {"class_loss": task_loss},
-            "log": log_metrics,
+            # "progress_bar": {"class_loss": task_loss},
+            # "log": log_metrics,
         }
 
     def optimizer_step(
-        self, current_epoch, batch_nb, optimizer, optimizer_i, second_order_closure=None
+            self, current_epoch, batch_nb, optimizer, optimizer_i, second_order_closure=None
     ):
         if current_epoch < self._init_epochs:
             # do not update critic
@@ -1012,7 +1038,7 @@ class FewShotDANNtrainer(BaseDANNLike):
     """
 
     def __init__(
-        self, dataset, feature_extractor, task_classifier, critic, method, **base_params
+            self, dataset, feature_extractor, task_classifier, critic, method, **base_params
     ):
         super().__init__(
             dataset, feature_extractor, task_classifier, critic, **base_params
@@ -1050,7 +1076,7 @@ class FewShotDANNtrainer(BaseDANNLike):
             task_loss = loss_cls_s
         else:
             task_loss = (batch_size * loss_cls_s + len(y_tl) * loss_cls_tl) / (
-                batch_size + len(y_tl)
+                    batch_size + len(y_tl)
             )
 
         loss_dmn_src, dok_src = losses.cross_entropy_logits(
@@ -1079,17 +1105,17 @@ class FewShotDANNtrainer(BaseDANNLike):
 
 class BaseMMDLike(BaseAdaptTrainer):
     def __init__(
-        self,
-        dataset,
-        feature_extractor,
-        task_classifier,
-        kernel_mul=2.0,
-        kernel_num=5,
-        **base_params,
+            self,
+            dataset,
+            feature_extractor,
+            task_classifier,
+            kernel_mul=2.0,
+            kernel_num=5,
+            **base_params,
     ):
         """Common API for MME-based deep learning DA methods: DAN, JAN
         """
-        
+
         super().__init__(dataset, feature_extractor, task_classifier, **base_params)
 
         self._kernel_mul = kernel_mul
@@ -1144,11 +1170,14 @@ class BaseMMDLike(BaseAdaptTrainer):
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
-        return {
-            "avg_test_loss": log_dict["test_loss"],
-            "progress_bar": log_dict,
-            "log": log_dict,
-        }
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+        # return {
+        #     "avg_test_loss": log_dict["test_loss"],
+        #     "progress_bar": log_dict,
+        #     "log": log_dict,
+        # }
 
 
 class DANtrainer(BaseMMDLike):
@@ -1183,13 +1212,13 @@ class JANtrainer(BaseMMDLike):
     """
 
     def __init__(
-        self,
-        dataset,
-        feature_extractor,
-        task_classifier,
-        kernel_mul=(2.0, 2.0),
-        kernel_num=(5, 1),
-        **base_params,
+            self,
+            dataset,
+            feature_extractor,
+            task_classifier,
+            kernel_mul=(2.0, 2.0),
+            kernel_num=(5, 1),
+            **base_params,
     ):
         super().__init__(
             dataset,
@@ -1208,7 +1237,7 @@ class JANtrainer(BaseMMDLike):
 
         joint_kernels = None
         for source, target, k_mul, k_num, sigma in zip(
-            source_list, target_list, self._kernel_mul, self._kernel_num, [None, 1.68]
+                source_list, target_list, self._kernel_mul, self._kernel_num, [None, 1.68]
         ):
             kernels = losses.gaussian_kernel(
                 source, target, kernel_mul=k_mul, kernel_num=k_num, fix_sigma=sigma

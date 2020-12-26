@@ -20,6 +20,7 @@ _IN_STAGE_DS = {
     152: (3, 8, 36, 3),
 }
 
+
 def get_trans_fun(name):
     """Retrieves the transformation function by name."""
     trans_funs = {
@@ -33,6 +34,7 @@ def get_trans_fun(name):
 
 class SReLU(nn.Module):
     """Shifted ReLU"""
+
     def __init__(self, nc):
         super(SReLU, self).__init__()
         self.srelu_bias = nn.Parameter(torch.Tensor(1, nc, 1, 1))
@@ -80,8 +82,8 @@ class BasicTransform(nn.Module):
         assert w_b is None and num_gs == 1, \
             'Basic transform does not support w_b and num_gs options'
         super(BasicTransform, self).__init__()
-        self.has_bn=has_bn
-        self.use_srelu=use_srelu
+        self.has_bn = has_bn
+        self.use_srelu = use_srelu
         self._construct(w_in, w_out, stride)
 
     def _construct(self, w_in, w_out, stride):
@@ -116,8 +118,8 @@ class BottleneckTransform(nn.Module):
 
     def __init__(self, w_in, w_out, stride, has_bn, use_srelu, w_b, num_gs):
         super(BottleneckTransform, self).__init__()
-        self.has_bn=has_bn
-        self.use_srelu=use_srelu        
+        self.has_bn = has_bn
+        self.use_srelu = use_srelu
         self._construct(w_in, w_out, stride, w_b, num_gs)
 
     def _construct(self, w_in, w_out, stride, w_b, num_gs):
@@ -161,12 +163,12 @@ class ResBlock(nn.Module):
     """Residual block: x + F(x)"""
 
     def __init__(
-        self, w_in, w_out, stride, trans_fun, has_bn, has_st, use_srelu, w_b=None, num_gs=1
+            self, w_in, w_out, stride, trans_fun, has_bn, has_st, use_srelu, w_b=None, num_gs=1
     ):
         super(ResBlock, self).__init__()
-        self.has_bn=has_bn
-        self.has_st=has_st
-        self.use_srelu=use_srelu               
+        self.has_bn = has_bn
+        self.has_st = has_st
+        self.use_srelu = use_srelu
         self._construct(w_in, w_out, stride, trans_fun, w_b, num_gs)
 
     def _add_skip_proj(self, w_in, w_out, stride):
@@ -182,7 +184,7 @@ class ResBlock(nn.Module):
         self.proj_block = (w_in != w_out) or (stride != 1)
         if self.proj_block and self.has_st:
             self._add_skip_proj(w_in, w_out, stride)
-        self.f = trans_fun(w_in, w_out, stride, self.has_bn, self.use_srelu,  w_b, num_gs)
+        self.f = trans_fun(w_in, w_out, stride, self.has_bn, self.use_srelu, w_b, num_gs)
         self.relu = nn.ReLU(True) if not self.use_srelu else SReLU(w_out)
 
     def forward(self, x):
@@ -207,7 +209,7 @@ class ResStage(nn.Module):
 
     def __init__(self, w_in, w_out, stride, net_params, d, w_b=None, num_gs=1):
         super(ResStage, self).__init__()
-        self.transfun=net_params['transfun']
+        self.transfun = net_params['transfun']
         self.has_bn = net_params['has_bn']
         self.has_st = net_params['has_st']
         self.use_srelu = net_params['use_srelu']
@@ -224,7 +226,7 @@ class ResStage(nn.Module):
             # Construct the block
             res_block = ResBlock(
                 b_w_in, w_out, b_stride, trans_fun, self.has_bn, self.has_st, self.use_srelu, w_b, num_gs
-            )    
+            )
             self.add_module('b{}'.format(i + 1), res_block)
 
     def forward(self, x):
@@ -237,20 +239,19 @@ class ResStem(nn.Module):
     """Stem of ResNet."""
 
     def __init__(self, w_in, w_out, net_params, kernelsize=3, stride=1, padding=1,
-                use_maxpool=False, poolksize=3, poolstride=2, poolpadding=1):
+                 use_maxpool=False, poolksize=3, poolstride=2, poolpadding=1):
         super(ResStem, self).__init__()
-        self.has_bn=net_params['has_bn']
-        self.use_srelu=net_params['use_srelu']
-        self.kernelsize=kernelsize
-        self.stride=stride
-        self.padding=padding
-        self.use_maxpool=use_maxpool        
-        self.poolksize=poolksize
-        self.poolstride=poolstride
-        self.poolpadding=poolpadding
+        self.has_bn = net_params['has_bn']
+        self.use_srelu = net_params['use_srelu']
+        self.kernelsize = kernelsize
+        self.stride = stride
+        self.padding = padding
+        self.use_maxpool = use_maxpool
+        self.poolksize = poolksize
+        self.poolstride = poolstride
+        self.poolpadding = poolpadding
         self._construct(w_in, w_out)
-        
-        
+
     def _construct(self, w_in, w_out):
         # 3x3, BN, ReLU for cifar and  7x7, BN, ReLU, maxpool for imagenet
         self.conv = nn.Conv2d(
@@ -268,12 +269,13 @@ class ResStem(nn.Module):
             x = layer(x)
         return x
 
+
 class ISONet(nn.Module):
     """ISONet, a modified ResNet model."""
 
     # def __init__(self, use_dirac=True):
     def __init__(self, net_params):
-        super(ISONet, self).__init__()       
+        super(ISONet, self).__init__()
         # define network structures
         # self._construct()
         self._construct(net_params)
@@ -282,10 +284,10 @@ class ISONet(nn.Module):
 
     # Depth for ResNet, e.g. [3, 4, 6, 3] for ResNet50
     def _construct(self, net_params):
-        print('>>>>>>>>>>>>>>>>>>>>>>>>...-----Core Con') 
+        print('>>>>>>>>>>>>>>>>>>>>>>>>...-----Core Con')
         # Setting for ImageNet image size. To override if different.
         # Retrieve the number of blocks per stage
-        (d1, d2, d3, d4) = _IN_STAGE_DS[net_params['depths']] # _depths
+        (d1, d2, d3, d4) = _IN_STAGE_DS[net_params['depths']]  # _depths
         # Compute the initial bottleneck width
         # Stem: (N, 3, 224, 224) -> (N, 64, 56, 56)
         self.stem = ResStem(w_in=3, w_out=64, net_params=net_params)
@@ -299,7 +301,7 @@ class ISONet(nn.Module):
         self.s4 = ResStage(w_in=256, w_out=512, stride=2, net_params=net_params, d=d4)
         # Head: (N, 2048, 7, 7) -> (N, num_classes)
         self.head = ResHead(w_in=512, net_params=net_params)
- 
+
     def _network_init(self, use_dirac=True):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -316,7 +318,7 @@ class ISONet(nn.Module):
                     nn.init.zeros_(m.bias)
             elif isinstance(m, nn.BatchNorm2d):
                 zero_init_gamma = (
-                    hasattr(m, 'final_bn') and m.final_bn
+                        hasattr(m, 'final_bn') and m.final_bn
                 )
                 m.weight.data.fill_(0.0 if zero_init_gamma else 1.0)
                 m.bias.data.zero_()
@@ -324,7 +326,7 @@ class ISONet(nn.Module):
     def forward(self, x):
         for module in self.children():
             x = module(x)
-        return x   
+        return x
 
     def ortho(self, device):
         """regularizes the convolution kernel to be (near) orthogonal during training. 
