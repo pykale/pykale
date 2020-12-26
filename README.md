@@ -4,13 +4,9 @@
      alt="Machine learning workflow"
      style="float: center;" />
 
-PyKale aims to consolidate *interdisciplinary* research on *knowledge-aware* machine learning for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications, with pipeline-based APIs.
+PyKale aims to consolidate *interdisciplinary* research on *knowledge-aware* machine learning for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications, with pipeline-based APIs. See our [public Trello board](https://trello.com/b/X8VBNAvf/pykale-api-overview) for an overview.
 
-We need your support. Please star / fork this repository, open an issue / pull request, and join / contact us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a>.
-* Known issues and recent focuses (advisor: [David Jones](https://github.com/drj11))
-  * Fix and enrich documentation
-  * Add continuous integration and tests
-  * Public release
+Please star and/or fork PyKale to follow the latest update. Welcome to join / contact us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a>.
 * **To contribute**
   * [Fork](https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo) pykale (also see the [guide on forking projects](https://guides.github.com/activities/forking/)).
   * Make changes to the source in your fork following [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md).
@@ -120,3 +116,13 @@ We need to design these core modules to be generic, reusable, customizable, and 
   * Image classification (baselines): [CVonline Image Databases (including video etc)](http://homepages.inf.ed.ac.uk/rbf/CVonline/Imagedbase.htm)
 * Recommended package
   * [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
+
+## Funding Acknowledgements
+
+The development of PyKale is partially supported by the following project(s).
+
+* Wellcome Trust Innovator Awards: Digital Technologies Ref 215799/Z/19/Z "Developing a Machine Learning Tool to Improve Prognostic and Treatment Response Assessment on Cardiac MRI Data"
+
+[<img src="https://www.cimr.cam.ac.uk/images/Wellcomeawardlogo/image"
+     alt="Wellcome Trust logo"
+     width="60" height="60" />](https://wellcome.org/)

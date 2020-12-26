@@ -29,4 +29,8 @@ torch-geometric==1.5.0
 
 # For MPCA
 scikit-learn
+
+# Need to specify version
+pytorch-lightning
+scikit-image
 tensorly
