@@ -1,4 +1,4 @@
-"""Commonly used losses, from domain adapation package 
+"""Commonly used losses, from domain adaptation package 
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/losses.py
 """
 
@@ -9,10 +9,10 @@ from torch.autograd import grad
 
 
 def cross_entropy_logits(linear_output, label, weights=None):
-    """Computes cross entropy with ligits  
+    """Computes cross entropy with logits 
     
     Examples:
-        See DANN, WDGRL, and MMD trainers in kale.pipeline.domain_adapater  
+        See DANN, WDGRL, and MMD trainers in kale.pipeline.domain_adapter  
     """    
     
     class_output = F.log_softmax(linear_output, dim=1)
@@ -30,10 +30,10 @@ def cross_entropy_logits(linear_output, label, weights=None):
 
 
 def entropy_logits(linear_output):
-    """Computes entropy ligits in CDAN with entropy conditioning (CDAN+E)
+    """Computes entropy logits in CDAN with entropy conditioning (CDAN+E)
     
     Examples:
-        See CDANtrainer in kale.pipeline.domain_adapater  
+        See CDANtrainer in kale.pipeline.domain_adapter  
     """    
     p = F.softmax(linear_output, dim=1)
     loss_ent = -torch.sum(p * (torch.log(p + 1e-5)), dim=1)
@@ -41,10 +41,10 @@ def entropy_logits(linear_output):
 
 
 def entropy_logits_loss(linear_output):
-    """Computes entropy ligits loss in semi-supervised or few-shot domain adapatation
+    """Computes entropy logits loss in semi-supervised or few-shot domain adapatation
     
     Examples:
-        See FewShotDANNtrainer in kale.pipeline.domain_adapater  
+        See FewShotDANNtrainer in kale.pipeline.domain_adapter  
     """    
     return torch.mean(entropy_logits(linear_output))
 
@@ -53,7 +53,7 @@ def gradient_penalty(critic, h_s, h_t):
     """Computes gradient penelty in Wasserstein distance guided representation learning
     
     Examples:
-        See WDGRLtrainer and WDGRLtrainerMod in kale.pipeline.domain_adapater  
+        See WDGRLtrainer and WDGRLtrainerMod in kale.pipeline.domain_adapter  
     """
     
     alpha = torch.rand(h_s.size(0), 1)
@@ -87,7 +87,7 @@ def gaussian_kernel(source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None
     with the linear MMD estimate.
 
     Examples:
-        See DANtrainer and JANtrainer in kale.pipeline.domain_adapater
+        See DANtrainer and JANtrainer in kale.pipeline.domain_adapter
     """
     n_samples = int(source.size()[0]) + int(target.size()[0])
     total = torch.cat([source, target], dim=0)
@@ -114,7 +114,7 @@ def compute_mmd_loss(kernel_values, batch_size):
     """Computes the Maximum Mean Discrepancy (MMD) between domains.
 
     Examples:
-        See DANtrainer and JANtrainer in kale.pipeline.domain_adapater
+        See DANtrainer and JANtrainer in kale.pipeline.domain_adapter
     """
     loss = 0
     for i in range(batch_size):

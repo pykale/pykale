@@ -1,6 +1,6 @@
 # =============================================================================
 # Author: Shuo Zhou, szhou20@sheffield.ac.uk
-#         Haiping Lu, h.lu@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
 """Python implementation of Multilinear Principal Component Analysis (MPCA)
@@ -13,6 +13,7 @@ Reference:
     implementation, please go to https://uk.mathworks.com/matlabcentral/fileexchange/26168.
 """
 
+import sys
 import numpy as np
 # import tensorly as tl
 from tensorly.base import unfold
@@ -20,17 +21,59 @@ from tensorly.tenalg import multi_mode_dot
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
+def check_ndim(X, ndim):
+    """Check if the order/mode of the input data is consistent with the given number of order/mode
+
+    Args:
+        X (ndarray): input data
+        ndim (int): number of order/mode expected
+
+    Returns:
+        boolean value: True if the order of X is consistent with ndim, False vise versa
+    """
+
+    return X.ndim == ndim
+
+
+def check_shape(X, shape_):
+    """Check if the shape (excluding the last mode) of the input data is consistent with the given shape
+
+    Args:
+        X (ndarray): input data
+        shape_: shape expected
+
+    Returns:
+        boolean value: True if the shape of X is consistent with shape_, False vise versa
+    """
+
+    return X.shape[:-1] == shape_
+
+
+def _check_dim_shape(X, ndim, shape_):
+    """Check if the order/mode of the input data is consistent with the given number of order/mode
+
+    Args:
+        X (ndarray): input data
+        ndim (int): number of order/mode expected
+        shape_: shape expected
+
+    """
+    if not check_ndim(X, ndim) or not check_shape(X, shape_):
+        print("The given data should be consistent with the order and shape of training data")
+        sys.exit()
+
+
 class MPCA(BaseEstimator, TransformerMixin):
     """MPCA implementation compatible with sickit-learn
 
     Args:
-        var_explained (float, optional): ration of variance to keep
+        var_explained (float, optional): amount of variance to keep
             (between 0 and 1). Defaults to 0.97.
         max_iter (int, optional): max number of iteration. Defaults to 1.
 
     Attributes:
-        tPs: list of projection matrices
-
+        proj_mats: a list of transposed projection matrices
+        idx_order: the ordering index of projected (and vectorised) features in decreasing variance
     Examples:
         >>> import numpy as np
         >>> from kale.embed.mpca import MPCA
@@ -41,22 +84,30 @@ class MPCA(BaseEstimator, TransformerMixin):
         >>> X_transformed = mpca.fit_transform(X)
         >>> X_transformed.shape
         (18, 23, 18, 40)
+        >>> from tensorly.base import unfold
+        >>> X_vec = unfold(X_transformed)
+        >>> X_vec.shape
+        (40, 7452)
         >>> X_inverse = mpca.inverse_transform(X_transformed)
         >>> X_inverse.shape
         (20, 25, 20, 40)
     """
     def __init__(self, var_explained=0.97, max_iter=1):
         self.var_explained = var_explained
-        self.max_iter = max_iter
-        self.tPs = []
+        if max_iter > 0 and isinstance(max_iter, int):
+            self.max_iter = max_iter
+        else:
+            print('Number of max iterations must be an integer and greater than 0')
+            sys.exit()
+        self.proj_mats = []
 
     def fit(self, X, y=None):
-        """Fit the model with X.
+        """Fit the model with input training data X.
 
         Args
-            X (ndarray): input data, shape (I1, I2, ..., n_samples), where n_samples
-                is the number of samples, I1, I2 ... are the dimensions of corresponding
-                mode (1, 2, ...), respectively.
+            X (ndarray): input data, shape (P_1, P_2, ..., P_N, n_samples), where n_samples
+                is the number of samples, P_1, P_2, ..., P_N are the dimensions of corresponding
+                mode (1, 2, ..., N), respectively.
             y (None): Ignored variable.
 
         Returns:
@@ -68,17 +119,20 @@ class MPCA(BaseEstimator, TransformerMixin):
     def _fit(self, X):
         """Solve MPCA"""
 
-        dim_in = X.shape
-        n_spl = dim_in[-1]  # number of samples
+        shape_ = X.shape  # shape of input data
+        n_spl = shape_[-1]  # number of samples
         self.ndim = X.ndim
+        self.shape_in = shape_[:-1]
         self.Xmean = np.mean(X, axis=-1)
         X_ = np.zeros(X.shape)
         # init
         Phi = dict()
         Us = dict()  # eigenvectors
-        Vs = dict()  # eigenvalues
+        # Vs = dict()  # eigenvalues
+        lmds = dict()  # eigenvalues
         cums = dict()  # cumulative distribution of eigenvalues
-        tPs = []
+        proj_mats = []
+        shape_out = ()
         for i in range(n_spl):
             X_[..., i] = X[..., i] - self.Xmean
             for j in range(self.ndim - 1):
@@ -91,14 +145,14 @@ class MPCA(BaseEstimator, TransformerMixin):
             eig_vals, eig_vecs = np.linalg.eig(Phi[i])
             idx_sorted = eig_vals.argsort()[::-1]
             Us[i] = eig_vecs[:, idx_sorted]
-            Vs[i] = eig_vals[idx_sorted]
-            var_tot = np.sum(Vs[i])
+            cum = eig_vals[idx_sorted]
+            var_tot = np.sum(cum)
 
-            for j in range(Vs[i].shape[0]):
-                if np.sum(Vs[i][:j]) / var_tot > self.var_explained:
-                    cums[i] = j + 1
+            for j in range(cum.shape[0]):
+                if np.sum(cum[:j]) / var_tot > self.var_explained:
+                    shape_out += (j + 1,)
                     break
-
+            cums[i] = cum
             # if Vs[i][0] / sum_ > self.var_explained:
             #     cums[i] = 1
             # else:
@@ -106,25 +160,33 @@ class MPCA(BaseEstimator, TransformerMixin):
             #         if np.sum(Vs[i][j:]) / sum_ > (1 - self.var_explained):
             #             cums[i] = j + 1
             #             break
-            tPs.append(Us[i][:, :cums[i]].T)
+            proj_mats.append(Us[i][:, :shape_out[i]].T)
 
         for i_iter in range(self.max_iter):
             Phi = dict()
-            for i in range(self.ndim - 1):
+            for i in range(self.ndim - 1):  # ith mode
                 if i not in Phi:
                     Phi[i] = 0
                 for j in range(n_spl):
-                    X_i = X_[..., j]
-                    Xi_ = multi_mode_dot(X_i, [tPs[m] for m in range(self.ndim - 1) if m != i],
+                    X_j = X_[..., j]  # jth tensor/sample
+                    Xj_ = multi_mode_dot(X_j, [proj_mats[m] for m in range(self.ndim - 1) if m != i],
                                          modes=[m for m in range(self.ndim - 1) if m != i])
-                    tXi = unfold(Xi_, i)
-                    Phi[i] = np.dot(tXi, tXi.T) + Phi[i]
+                    Xj_unfold = unfold(Xj_, i)
+                    Phi[i] = np.dot(Xj_unfold, Xj_unfold.T) + Phi[i]
 
                 eig_vals, eig_vecs = np.linalg.eig(Phi[i])
                 idx_sorted = eig_vals.argsort()[::-1]
-                tPs[i] = eig_vecs[:, idx_sorted]
-                tPs[i] = tPs[i][:, :cums[i]].T
-        self.tPs = tPs
+                lmds[i] = eig_vals[idx_sorted]
+                proj_mats[i] = eig_vecs[:, idx_sorted]
+                proj_mats[i] = (proj_mats[i][:, :shape_out[i]]).T
+
+        x_transformed = multi_mode_dot(X, proj_mats, modes=[m for m in range(self.ndim - 1)])
+        x_trans_vecs = unfold(x_transformed, mode=-1)
+        x_trans_vars = np.diag(np.dot(x_trans_vecs, x_trans_vecs.T))
+        idx_order = x_trans_vars.argsort()[::-1]
+
+        self.proj_mats = proj_mats
+        self.idx_order = idx_order
 
         return self
 
@@ -132,111 +194,112 @@ class MPCA(BaseEstimator, TransformerMixin):
         """Perform dimension reduction on X
 
         Args:
-            X (ndarray): shape (I1, I2, ..., n_samples)
+            X (ndarray): shape (P_1, P_2, ..., P_N, n_samples)
 
         Returns:
-            ndarray: Transformed data, shape (i1, i2, ..., n_samples)
+            ndarray: Transformed data, shape (i_1, i_2, ..., i_N, n_samples)
         """
+        _check_dim_shape(X, self.ndim, self.shape_in)
         n_spl = X.shape[-1]
         for i in range(n_spl):
             X[..., i] = X[..., i] - self.Xmean
-        return multi_mode_dot(X, self.tPs, modes=[m for m in range(self.ndim - 1)])
+        return multi_mode_dot(X, self.proj_mats, modes=[m for m in range(self.ndim - 1)])
 
     def inverse_transform(self, X):
         """Transform data in the shape of reduced dimension 
         back to the original shape
 
         Args:
-            X (ndarray): shape (i1, i2, ..., n_samples), where i1, i2, ... 
+            X (ndarray): shape (i_1, i_2, ..., i_N, n_samples), where i_1, i_2, ..., i_N 
                 are the reduced dimensions of of corresponding mode
-                (1, 2, ...), respectively.
+                (1, 2, ..., N), respectively.
 
         Returns:
-            ndarray: Data in original shape, shape (I1, I2, ..., n_samples)
+            ndarray: Data in original shape, shape (P_1, P_2, ..., P_N, n_samples)
         """
-        
-        return multi_mode_dot(X, self.tPs, modes=[m for m in range(self.ndim - 1)], transpose=True)
+        _check_dim_shape(X, self.ndim, self.shape_out)
+        return multi_mode_dot(X, self.proj_mats, modes=[m for m in range(self.ndim - 1)], transpose=True)
 
 
-def MPCA_(X, var_explained=0.97, max_iter=1):
-    """MPCA implementation as an independent function
-
-    Args:
-        X (ndarray): training data, shape (I1, I2, ..., n_samples)
-        var_explained (float, optional): ration of variance to keep (between 0 and 1). Defaults to 0.97.
-        max_iter (int, optional): max number of iteration. Defaults to 1.
-
-    Returns:
-        list: a list of projection matrices
-    
-    Examples:
-        >>> import numpy as np
-        >>> from tensorly.tenalg import multi_mode_dot
-        >>> from kale.embed.mpca import MPCA_
-        >>> X = np.random.random((20, 25, 20, 40))
-        >>> X.shape
-        (20, 25, 20, 40)
-        >>> tPs = MPCA_(X, variance_explained=0.9)
-        >>> X_transformed = multi_mode_dot(X, tPs, modes=[0, 1, 2])
-        >>> X_transformed.shape
-        (18, 23, 18, 40)
-    """
-    dim_in = X.shape
-    n_spl = dim_in[-1]
-    n_dim = X.ndim
-    # Is = dim_in[:-1]
-    Xmean = np.mean(X, axis=-1)
-    X_ = np.zeros(X.shape)
-    # init
-    Phi = dict()
-    Us = dict()  # eigenvectors
-    Vs = dict()  # eigenvalues
-    cums = dict()  # cumulative distribution of eigenvalues
-    tPs = []
-    for i in range(n_spl):
-        X_[..., i] = X[..., i] - Xmean
-        for j in range(n_dim-1):
-            X_i = unfold(X_[..., i], mode=j)
-            if j not in Phi:
-                Phi[j] = 0
-            Phi[j] = Phi[j] + np.dot(X_i, X_i.T)
-
-    for i in range(n_dim-1):
-        eig_vals, eig_vecs = np.linalg.eig(Phi[i])
-        idx_sorted = eig_vals.argsort()[::-1]
-        Us[i] = eig_vecs[:, idx_sorted]
-        Vs[i] = eig_vals[idx_sorted]
-        # sum_ = np.sum(Vs[i])
-        # for j in range(Vs[i].shape[0] - 1, 0, -1):
-        #     if np.sum(Vs[i][j:]) / sum_ > (1 - variance_explained):
-        #         cums[i] = j + 1
-        #         break
-
-        var_tot = np.sum(Vs[i])
-
-        for j in range(Vs[i].shape[0]):
-            if np.sum(Vs[i][:j]) / var_tot > var_explained:
-                cums[i] = j + 1
-                break
-
-        tPs.append(Us[i][:, :cums[i]].T)
-
-    for i_iter in range(max_iter):
-        Phi = dict()
-        for i in range(n_dim-1):
-            # dim_in_ = dim_in[i]
-            if i not in Phi:
-                Phi[i] = 0
-            for j in range(n_spl):
-                X_i = X_[..., j]
-                Xi_ = multi_mode_dot(X_i, [tPs[m] for m in range(n_dim-1) if m != i],
-                                     modes=[m for m in range(n_dim) if m != i])
-                tXi = unfold(Xi_, i)
-                Phi[i] = np.dot(tXi, tXi.T) + Phi[i]
-
-            eig_vals, eig_vecs = np.linalg.eig(Phi[i])
-            idx_sorted = eig_vals.argsort()[::-1]
-            tPs[i] = eig_vecs[:, idx_sorted]
-            tPs[i] = tPs[i][:, :cums[i]].T
-
-    return tPs
+# def MPCA_(X, var_explained=0.97, max_iter=1):
+#     """MPCA implementation as an independent function
+#
+#     Args:
+#         X (ndarray): training data, shape (P_1, P_2, ..., P_N, n_samples)
+#         var_explained (float, optional): ration of variance to keep (between 0 and 1). Defaults to 0.97.
+#         max_iter (int, optional): max number of iteration. Defaults to 1.
+#
+#     Returns:
+#         list: a list of transposed projection matrices
+#
+#     Examples:
+#         >>> import numpy as np
+#         >>> from tensorly.tenalg import multi_mode_dot
+#         >>> from kale.embed.mpca import MPCA_
+#         >>> X = np.random.random((20, 25, 20, 40))
+#         >>> X.shape
+#         (20, 25, 20, 40)
+#         >>> proj_mats = MPCA_(X, variance_explained=0.9)
+#         >>> X_transformed = multi_mode_dot(X, proj_mats, modes=[0, 1, 2])
+#         >>> X_transformed.shape
+#         (18, 23, 18, 40)
+#     """
+#     dim_in = X.shape
+#     n_spl = dim_in[-1]
+#     n_dim = X.ndim
+#     # Is = dim_in[:-1]
+#     Xmean = np.mean(X, axis=-1)
+#     X_ = np.zeros(X.shape)
+#     # init
+#     Phi = dict()
+#     Us = dict()  # eigenvectors
+#     Vs = dict()  # eigenvalues
+#     cums = dict()  # cumulative distribution of eigenvalues
+#     proj_mats = []
+#     for i in range(n_spl):
+#         X_[..., i] = X[..., i] - Xmean
+#         for j in range(n_dim-1):
+#             X_i = unfold(X_[..., i], mode=j)
+#             if j not in Phi:
+#                 Phi[j] = 0
+#             Phi[j] = Phi[j] + np.dot(X_i, X_i.T)
+#
+#     for i in range(n_dim-1):
+#         eig_vals, eig_vecs = np.linalg.eig(Phi[i])
+#         idx_sorted = eig_vals.argsort()[::-1]
+#         Us[i] = eig_vecs[:, idx_sorted]
+#         Vs[i] = eig_vals[idx_sorted]
+#         # sum_ = np.sum(Vs[i])
+#         # for j in range(Vs[i].shape[0] - 1, 0, -1):
+#         #     if np.sum(Vs[i][j:]) / sum_ > (1 - variance_explained):
+#         #         cums[i] = j + 1
+#         #         break
+#
+#         var_tot = np.sum(Vs[i])
+#
+#         for j in range(Vs[i].shape[0]):
+#             if np.sum(Vs[i][:j]) / var_tot > var_explained:
+#                 cums[i] = j + 1
+#                 break
+#
+#         proj_mats.append(Us[i][:, :cums[i]].T)
+#
+#     for i_iter in range(max_iter):
+#         Phi = dict()
+#         for i in range(n_dim-1):
+#             # dim_in_ = dim_in[i]
+#             if i not in Phi:
+#                 Phi[i] = 0
+#             for j in range(n_spl):
+#                 X_i = X_[..., j]
+#                 Xi_ = multi_mode_dot(X_i, [proj_mats[m] for m in range(n_dim-1) if m != i],
+#                                      modes=[m for m in range(n_dim) if m != i])
+#                 tXi = unfold(Xi_, i)
+#                 Phi[i] = np.dot(tXi, tXi.T) + Phi[i]
+#
+#             eig_vals, eig_vecs = np.linalg.eig(Phi[i])
+#             idx_sorted = eig_vals.argsort()[::-1]
+#             proj_mats[i] = eig_vecs[:, idx_sorted]
+#             proj_mats[i] = proj_mats[i][:, :cums[i]].T
+#
+#     return proj_mats
