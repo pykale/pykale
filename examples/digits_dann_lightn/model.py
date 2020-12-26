@@ -7,12 +7,13 @@ Define the learning model and configure training parameters.
 from copy import deepcopy
 from kale.embed.image_cnn import SmallCNNFeature
 from kale.predict.class_domain_nets import ClassNetSmallImage, \
-                                              DomainNetSmallImage
+    DomainNetSmallImage
 import kale.pipeline.domain_adapter as domain_adapter
+
 
 def get_config(cfg):
     """
-    Sets the hypermeters for the optimizer and experiment using the config file
+    Set the hyperparameters for the optimizer and experiment using the config file
 
     Args:
         cfg: A YACS config object.
@@ -46,6 +47,7 @@ def get_config(cfg):
     }
     return config_params
 
+
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 def get_model(cfg, dataset, num_channels):
     """
@@ -56,13 +58,13 @@ def get_model(cfg, dataset, num_channels):
         dataset: A multidomain dataset consisting of source and target datasets.
         num_channels: The number of image channels.        
     """
-    
+
     # setup feature extractor
     feature_network = SmallCNNFeature(num_channels)
     # setup classifier
     feature_dim = feature_network.output_size()
     classifier_network = ClassNetSmallImage(feature_dim, cfg.DATASET.NUM_CLASSES)
-    
+
     method = domain_adapter.Method(cfg.DAN.METHOD)
     critic_input_size = feature_dim
     # setup critic network
@@ -77,7 +79,7 @@ def get_model(cfg, dataset, num_channels):
     train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
     method_params = {}
-    if cfg.DAN.METHOD is 'CDAN':
+    if cfg.DAN.METHOD == 'CDAN':
         method_params["use_random"] = cfg.DAN.USERANDOM
 
     # The following calls kale.loaddata.dataset_access for the first time

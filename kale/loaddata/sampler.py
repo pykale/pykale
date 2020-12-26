@@ -1,6 +1,7 @@
+"""Various sampling strategies for datasets to construct dataloader,
+from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py
 """
-Various sampling strategies for datasts to construct dataloader, from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py
-"""
+
 import torchvision
 import torch.utils.data
 import logging

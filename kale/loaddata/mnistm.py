@@ -15,6 +15,7 @@ import torch
 import torch.utils.data as data
 from PIL import Image
 
+
 class MNISTM(data.Dataset):
     """
     MNIST-M Dataset.
@@ -45,7 +46,7 @@ class MNISTM(data.Dataset):
     test_file = "mnist_m_test.pt"
 
     def __init__(
-        self, root, train=True, transform=None, target_transform=None, download=False,
+            self, root, train=True, transform=None, target_transform=None, download=False,
     ):
         """Init MNIST-M dataset."""
         super(MNISTM, self).__init__()
@@ -135,7 +136,7 @@ class MNISTM(data.Dataset):
             with open(file_path, "wb") as f:
                 f.write(data.read())
             with open(file_path.replace(".gz", ""), "wb") as out_f, gzip.GzipFile(
-                file_path
+                    file_path
             ) as zip_f:
                 out_f.write(zip_f.read())
             os.unlink(file_path)
@@ -161,11 +162,11 @@ class MNISTM(data.Dataset):
         training_set = (mnist_m_train_data, mnist_train_labels)
         test_set = (mnist_m_test_data, mnist_test_labels)
         with open(
-            os.path.join(self.root, self.processed_folder, self.training_file), "wb"
+                os.path.join(self.root, self.processed_folder, self.training_file), "wb"
         ) as f:
             torch.save(training_set, f)
         with open(
-            os.path.join(self.root, self.processed_folder, self.test_file), "wb"
+                os.path.join(self.root, self.processed_folder, self.test_file), "wb"
         ) as f:
             torch.save(test_set, f)
 

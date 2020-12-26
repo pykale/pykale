@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch
 from torchvision import models
 
+
 # Previously FFSoftmaxClassifier
 class SoftmaxNet(nn.Module):
     """Regular and domain classifier network for regular-size images
@@ -20,17 +21,18 @@ class SoftmaxNet(nn.Module):
         name (str, optional): the classifier name. Defaults to "c".
         hidden (tuple, optional): the hidden layer sizes. Defaults to ().
         activation_fn ([type], optional): the activation function. Defaults to nn.ReLU.
-    """    
+    """
+
     def __init__(
-        self,
-        input_dim=15,
-        n_classes=2,
-        name="c",
-        hidden=(),
-        activation_fn=nn.ReLU,
-        **activation_args,
+            self,
+            input_dim=15,
+            n_classes=2,
+            name="c",
+            hidden=(),
+            activation_fn=nn.ReLU,
+            **activation_args,
     ):
-      
+
         super(SoftmaxNet, self).__init__()
         self._n_classes = n_classes
         self._activation_fn = activation_fn
@@ -62,6 +64,7 @@ class SoftmaxNet(nn.Module):
     def n_classes(self):
         return self._n_classes
 
+
 # Previously DataClassifierDigits
 class ClassNetSmallImage(nn.Module):
     """Regular classifier network for small-size images
@@ -70,6 +73,7 @@ class ClassNetSmallImage(nn.Module):
         input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
         n_class (int, optional): the number of classes. Defaults to 10.
     """
+
     def __init__(self, input_size=128, n_class=10):
         super(ClassNetSmallImage, self).__init__()
         self._n_classes = n_class
@@ -91,6 +95,7 @@ class ClassNetSmallImage(nn.Module):
         x = self.fc3(x)
         return x
 
+
 # Previously DomainClassifierDigits
 class DomainNetSmallImage(nn.Module):
     """Domain classifier network for small-size images
@@ -99,6 +104,7 @@ class DomainNetSmallImage(nn.Module):
         input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
         bigger_discrim (bool, optional): whether to use deeper network. Defaults to False.
     """
+
     def __init__(self, input_size=128, bigger_discrim=False):
 
         super(DomainNetSmallImage, self).__init__()

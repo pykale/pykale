@@ -69,24 +69,24 @@ def get_transform(kind, augment=False):
         )
     elif kind == "cifar":
         if augment:
-            transform_aug=transforms.Compose(
+            transform_aug = transforms.Compose(
                 [
-                    transforms.RandomCrop(32, padding=4), 
+                    transforms.RandomCrop(32, padding=4),
                     transforms.RandomHorizontalFlip(),
                 ]
             )
         else:
-            transform_aug=transforms.Compose([])           
+            transform_aug = transforms.Compose([])
         transform = transforms.Compose(
             [
-               transform_aug,                  
-               transforms.ToTensor(),
-               transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+                transform_aug,
+                transforms.ToTensor(),
+                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
             ]
-        )        
+        )
     elif kind == "office":
         if augment:
-            transform_aug=transforms.Compose(
+            transform_aug = transforms.Compose(
                 [
                     transforms.Resize(256),
                     transforms.RandomResizedCrop(224),
@@ -94,11 +94,11 @@ def get_transform(kind, augment=False):
                 ]
             )
         else:
-            transform_aug=transforms.Compose(
+            transform_aug = transforms.Compose(
                 [
                     transforms.Resize(256)
-                ]    
-            )        
+                ]
+            )
         transform = transforms.Compose(
             [
                 transform_aug,

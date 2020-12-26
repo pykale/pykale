@@ -1,11 +1,11 @@
-# Examples in computer vision - Domain adapatation for digit classification using PyTorch Lightning
+# Examples in computer vision - Domain adaptation for digit classification using PyTorch Lightning
 
 This example is constructed by refactoring the [ADA: (Yet) Another Domain Adaptation library](https://github.com/criteo-research/pytorch-ada), with many domain adapatation algorithms included.
 
 ## Default
 
 * Dataset: MNIST (source) to UPSP (target)
-* Algorithms: DANN, CDAN, CDNA+E, ...
+* Algorithms: DANN, CDAN, CDAN+E, ...
 
 `python main.py --cfg configs/MN2UP-CDAN.yaml --gpus 0`
 
@@ -15,12 +15,12 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 
 * Using PyTorch Lightning
 * Removed loaddata.py, using common API in kale.loaddata instead
-* kale.utils.seed: rename to set_seed? May be confusing when using multipe seeds
-* The ADA code will write multiple results in a CSV, not essentail here
+* kale.utils.seed: rename to set_seed? May be confusing when using multiple seeds
+* The ADA code will write multiple results in a CSV, not essential here
 * cfg.OUTPUT.PB_FRESH: set to 0 at batch mode; nonzero at interactive mode
 * To standardise example file structures
 * What to keep here
-* Top of file: docstrings for gengerating documentation later? Or comment
+* Top of file: docstrings for generating documentation later? Or comment
 * Discuss im_transform in prepdata: have cifar built-in.
 
 ## PyKale examples
@@ -35,14 +35,14 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 
 ## Kale core
 
-Those starting with `da_` are for domain adapation but may be reusuable so pending further refactoring. 
+Those starting with `da_` are for domain adaptation but may be reusable so pending further refactoring. 
 
 `kale.embed.da_feature`: Feature extractor network
 `kale.loaddata`: `digits`, `mnistm` and `usps` for loading digit datasets. `Multisource` for constructing source and target datasets for data loader. `sampler` facilitates `Multisource` dataset construction. `splits` provides common API for generating train/val/test splits, not sure whether the rename from DatasetAccess to DatasetSplit is better. 
 
-`kale.pipeline.da_systems`: This constructs the lightning **trainers** so contains algorithms that are more pipelines rather than building modules. It may not be good to divide them into steps so they are more systems. To discuss and confirm. Shall we move other trainers in isonet or cnntransformer to here if they are standard and reusuable?
+`kale.pipeline.da_systems`: This constructs the lightning **trainers** so contains algorithms that are more pipelines rather than building modules. It may not be good to divide them into steps so they are more systems. To discuss and confirm. Shall we move other trainers in isonet or cnntransformer to here if they are standard and reusable?
 
-`kale.predict`: `da_classify` contains the class and domain classifiers. `losses` are various losses, which should be highly reusuable. 
+`kale.predict`: `da_classify` contains the class and domain classifiers. `losses` are various losses, which should be highly reusable. 
 
 `kale.prepdata.im_transform`: This is a good way to unify the interface so we consider to load cifar from here in isonet and cnntransformer.
 
