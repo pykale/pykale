@@ -21,7 +21,7 @@ def get_videodata_config(cfg):
             "dataset_tar_name": cfg.DATASET.TARGET,
             "dataset_tar_trainlist": cfg.DATASET.TAR_TRAINLIST,
             "dataset_tar_testlist": cfg.DATASET.TAR_TESTLIST,
-            "dataset_image_mode": cfg.DATASET.IMAGE_MODE,
+            "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
             "num_classes": cfg.DATASET.NUM_CLASSES,
             "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT
         }
@@ -86,7 +86,7 @@ class VideoDataset(Enum):
         src_data_path, src_tr_listpath, src_te_listpath = generate_list(data_src_name, data_params_local, domain='src')
         data_tar_name = data_params_local['dataset_tar_name'].upper()
         tar_data_path, tar_tr_listpath, tar_te_listpath = generate_list(data_tar_name, data_params_local, domain='tar')
-        image_mode = data_params_local['dataset_image_mode']
+        image_modality = data_params_local['dataset_image_modality']
         n_classes = data_params_local['num_classes']
         frames_per_segment = data_params_local['frames_per_segment']
 
@@ -117,9 +117,9 @@ class VideoDataset(Enum):
         target_tf = transform_names[(target, num_channels)]
 
         return (
-            factories[source](src_data_path, src_tr_listpath, src_te_listpath, image_mode, frames_per_segment, n_classes,
+            factories[source](src_data_path, src_tr_listpath, src_te_listpath, image_modality, frames_per_segment, n_classes,
                               source_tf),
-            factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, image_mode, frames_per_segment, n_classes,
+            factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, image_modality, frames_per_segment, n_classes,
                               target_tf),
             num_channels
         )
@@ -133,21 +133,21 @@ class VideoDatasetAccess(DatasetAccess):
         data_path (string): image directory of dataset
         train_list (string): training list file directory of dataset
         test_list (string): test list file directory of dataset
-        image_mode (string): image type (RGB or Optical Flow)
+        image_modality (string): image type (RGB or Optical Flow)
         frames_per_segment (int): length of each action sample (the unit is number of frame)
         n_classes (int): number of class
         transform_kind (string): types of video transforms
     """
 
     def __init__(self, data_path, train_list, test_list,
-                 image_mode, frames_per_segment, n_classes, transform_kind):
+                 image_modality, frames_per_segment, n_classes, transform_kind):
         super().__init__(n_classes)
         self._data_path = data_path
         self._train_list = train_list
         self._test_list = test_list
-        self._image_mode = image_mode
+        self._image_modality = image_modality
         self._frames_per_segment = frames_per_segment
-        self._transform = video_transform.get_transform(transform_kind)
+        self._transform = video_transform.get_transform(transform_kind, self._image_modality)
 
 
 class EPICDatasetAccess(VideoDatasetAccess):
@@ -162,7 +162,7 @@ class EPICDatasetAccess(VideoDatasetAccess):
             transform=self._transform['train'],
             random_shift=True,
             test_mode=False,
-            image_mode='rgb',
+            image_modality=self._image_modality,
             dataset_split='train',
             n_classes=self._n_classes
         )
@@ -177,7 +177,7 @@ class EPICDatasetAccess(VideoDatasetAccess):
             transform=self._transform['test'],
             random_shift=False,
             test_mode=True,
-            image_mode='rgb',
+            image_modality=self._image_modality,
             dataset_split='test',
             n_classes=self._n_classes,
         )
@@ -195,7 +195,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
             transform=self._transform['train'],
             random_shift=False,
             test_mode=False,
-            image_mode='rgb',
+            image_modality=self._image_modality,
             dataset_split='train',
             n_classes=self._n_classes
         )
@@ -210,7 +210,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
             transform=self._transform['test'],
             random_shift=False,
             test_mode=True,
-            image_mode='rgb',
+            image_modality=self._image_modality,
             dataset_split='test',
             n_classes=self._n_classes,
         )
@@ -228,7 +228,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
             transform=self._transform['train'],
             random_shift=False,
             test_mode=False,
-            image_mode='rgb',
+            image_modality=self._image_modality,
             dataset_split='train',
             n_classes=self._n_classes
         )
@@ -243,7 +243,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
             transform=self._transform['test'],
             random_shift=False,
             test_mode=True,
-            image_mode='rgb',
+            image_modality=self._image_modality,
             dataset_split='test',
             n_classes=self._n_classes,
         )
@@ -261,7 +261,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
             transform=self._transform['train'],
             random_shift=False,
             test_mode=False,
-            image_mode='rgb',
+            image_modality=self._image_modality,
             dataset_split='train',
             n_classes=self._n_classes
         )
@@ -276,7 +276,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
             transform=self._transform['test'],
             random_shift=False,
             test_mode=True,
-            image_mode='rgb',
+            image_modality=self._image_modality,
             dataset_split='test',
             n_classes=self._n_classes,
         )

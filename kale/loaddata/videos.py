@@ -1,3 +1,4 @@
+import math
 import os
 import os.path
 import random
@@ -98,6 +99,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
                    this is ROOT_DATA from the description above.
         annotationfile_path: The .txt annotation file containing
                              one row per video sample as described above.
+        image_modality: Image modality (RGB or Optical Flow).
         num_segments: The number of segments the video should
                       be divided into to sample frames from.
         frames_per_segment: The number of frames that should
@@ -120,6 +122,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
     def __init__(self,
                  root_path: str,
                  annotationfile_path: str,
+                 image_modality: str,
                  num_segments: int = 3,
                  frames_per_segment: int = 1,
                  imagefile_template: str = 'img_{:05d}.jpg',
@@ -130,6 +133,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
         self.root_path = root_path
         self.annotationfile_path = annotationfile_path
+        self.image_modality = image_modality
         self.num_segments = num_segments
         self.frames_per_segment = frames_per_segment
         self.imagefile_template = imagefile_template
@@ -140,9 +144,13 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         self._parse_list()
 
     def _load_image(self, directory, idx):
-        return [Image.open(os.path.join(directory, self.imagefile_template.format(idx))).convert('RGB')]
-
-    # TODO: add optical flow
+        if self.image_modality == 'rgb':
+            return [Image.open(os.path.join(directory, self.imagefile_template.format(idx))).convert('RGB')]
+        elif self.image_modality == 'flow':
+            idx = math.ceil(idx / 2) - 1 if idx > 2 else 1
+            img_u = Image.open(os.path.join(directory, 'u', self.imagefile_template.format(idx))).convert('L')
+            img_v = Image.open(os.path.join(directory, 'v', self.imagefile_template.format(idx))).convert('L')
+            return [img_u, img_v]
 
     def _parse_list(self):
         self.video_list = [VideoRecord(x.strip().split(' '), self.root_path) for x in open(self.annotationfile_path)]
@@ -212,6 +220,10 @@ class VideoFrameDataset(torch.utils.data.Dataset):
                                                                                      record.num_frames,
                                                                                      self.num_segments,
                                                                                      self.frames_per_segment))
+
+        if self.image_modality == 'flow':
+            if self.frames_per_segment > 1:
+                self.frames_per_segment = self.frames_per_segment // 2
 
         if not self.test_mode:
             segment_indices = self._get_random_indices(record) if self.random_shift else self._get_symmetric_indices(

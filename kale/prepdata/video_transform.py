@@ -2,38 +2,65 @@ import torch
 from torchvision import transforms
 
 
-def get_transform(kind):
+def get_transform(kind, modality):
     """
     Define transforms (for commonly used datasets)
 
     Args:
         kind ([type]): the dataset (transformation) name
+        modality (string): image type (RGB or Optical Flow)
     """
 
     if kind in ["epic", "gtea", "adl", "kitchen"]:
-        transform = {
-            'train': transforms.Compose([
-                ImglistToTensor(),
-                transforms.Resize(size=256),
-                transforms.RandomCrop(size=224),
-                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                TensorPermute(),
-            ]),
-            'valid': transforms.Compose([
-                ImglistToTensor(),
-                transforms.Resize(size=256),
-                transforms.CenterCrop(size=224),
-                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                TensorPermute(),
-            ]),
-            'test': transforms.Compose([
-                ImglistToTensor(),
-                transforms.Resize(size=256),
-                transforms.CenterCrop(size=224),
-                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                TensorPermute(),
-            ])
-        }
+        if modality == 'rgb':
+            transform = {
+                'train': transforms.Compose([
+                    ImglistToTensor(),
+                    transforms.Resize(size=256),
+                    transforms.RandomCrop(size=224),
+                    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                    TensorPermute(),
+                ]),
+                'valid': transforms.Compose([
+                    ImglistToTensor(),
+                    transforms.Resize(size=256),
+                    transforms.CenterCrop(size=224),
+                    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                    TensorPermute(),
+                ]),
+                'test': transforms.Compose([
+                    ImglistToTensor(),
+                    transforms.Resize(size=256),
+                    transforms.CenterCrop(size=224),
+                    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                    TensorPermute(),
+                ])
+            }
+        elif modality == 'flow':
+            transform = {
+                'train': transforms.Compose([
+                    ImglistToTensor(),
+                    transforms.Resize(size=256),
+                    transforms.RandomCrop(size=224),
+                    transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
+                    TensorPermute(),
+                ]),
+                'valid': transforms.Compose([
+                    ImglistToTensor(),
+                    transforms.Resize(size=256),
+                    transforms.CenterCrop(size=224),
+                    transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
+                    TensorPermute(),
+                ]),
+                'test': transforms.Compose([
+                    ImglistToTensor(),
+                    transforms.Resize(size=256),
+                    transforms.CenterCrop(size=224),
+                    transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
+                    TensorPermute(),
+                ])
+            }
+
 
     else:
         raise ValueError(f"Unknown transform kind '{kind}'")
@@ -69,4 +96,4 @@ class TensorPermute(torch.nn.Module):
     """
 
     def forward(self, tensor):
-        return tensor.permute(1, 0, 2, 3)
+        return tensor.permute(1, 0, 2, 3).contiguous()
