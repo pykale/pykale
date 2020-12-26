@@ -6,7 +6,7 @@ DATASET:
   TARGET: 'EPIC'
   TAR_TRAINLIST: 'epic_D2_train.pkl'
   TAR_TESTLIST: 'epic_D2_test.pkl'
-  IMAGE_MODE: 'rgb'
+  IMAGE_MODALITY: 'rgb'
 DAN:
   METHOD: 'CDAN'
 MODEL:

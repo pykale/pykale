@@ -13,7 +13,7 @@ class BasicVideoDataset(VideoFrameDataset):
         root_path (string): The root path in which video folders lie.
         annotationfile_path (string): The annotation file containing one row per video sample.
         dataset_split (string): Split type (train or test)
-        image_mode (string): Image type (RGB or Optical Flow)
+        image_modality (string): Image modality (RGB or Optical Flow)
         num_segments (int): The number of segments the video should be divided into to sample frames from.
         frames_per_segment (int): The number of frames that should be loaded per segment.
         imagefile_template (string): The image filename template.
@@ -28,7 +28,7 @@ class BasicVideoDataset(VideoFrameDataset):
                  root_path: str,
                  annotationfile_path: str,
                  dataset_split: str,
-                 image_mode: str,
+                 image_modality: str,
                  num_segments: int = 1,
                  frames_per_segment: int = 16,
                  imagefile_template: str = 'img_{:010d}.jpg',
@@ -38,13 +38,14 @@ class BasicVideoDataset(VideoFrameDataset):
                  n_classes: int = 8
                  ):
         self.root_path = Path(root_path)
-        self.image_type = image_mode
+        self.image_modality = image_modality
         self.dataset = dataset_split
         self.n_classes = n_classes
-        self.img_path = self.root_path / self.image_type
+        self.img_path = self.root_path / self.image_modality
         super(BasicVideoDataset, self).__init__(
             root_path,
             annotationfile_path,
+            image_modality,
             num_segments,
             frames_per_segment,
             imagefile_template,
@@ -84,7 +85,7 @@ class EPIC(VideoFrameDataset):
                  root_path: str,
                  annotationfile_path: str,
                  dataset_split: str,
-                 image_mode: str,
+                 image_modality: str,
                  num_segments: int = 1,
                  frames_per_segment: int = 16,
                  imagefile_template: str = 'img_{:010d}.jpg',
@@ -94,13 +95,14 @@ class EPIC(VideoFrameDataset):
                  n_classes: int = 8
                  ):
         self.root_path = Path(root_path)
-        self.image_type = image_mode
+        self.image_modality = image_modality
         self.dataset = dataset_split
         self.n_classes = n_classes
-        self.img_path = self.root_path / self.image_type / self.dataset
+        self.img_path = self.root_path / self.image_modality / self.dataset
         super(EPIC, self).__init__(
             root_path,
             annotationfile_path,
+            image_modality,
             num_segments,
             frames_per_segment,
             imagefile_template,
