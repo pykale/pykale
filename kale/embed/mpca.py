@@ -72,8 +72,10 @@ class MPCA(BaseEstimator, TransformerMixin):
         max_iter (int, optional): max number of iteration. Defaults to 1.
 
     Attributes:
-        proj_mats: a list of transposed projection matrices
-        idx_order: the ordering index of projected (and vectorised) features in decreasing variance
+        proj_mats (list): a list of transposed projection matrices
+        idx_order (ndarray): the ordering index of projected (and vectorised) features in decreasing variance
+        shape_in (tuple): input tensor shapes, i.e. (P_1, P_2, ..., P_N)
+        shape_out (tuple): output tensor shapes, i.e. (i_1, i_2, ..., i_N)
     Examples:
         >>> import numpy as np
         >>> from kale.embed.mpca import MPCA
@@ -187,6 +189,7 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         self.proj_mats = proj_mats
         self.idx_order = idx_order
+        self.shape_out = shape_out
 
         return self
 
