@@ -19,5 +19,7 @@ ogb==1.2.0
 nbsphinx
 nbsphinx-link
 pytorch-lightning
-scikit-image
+scikit-learn
+# scikit-image
+numpy
 tensorly
