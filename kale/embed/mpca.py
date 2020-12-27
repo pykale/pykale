@@ -133,7 +133,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         # init
         Phi = dict()
         Vs = dict()  # dictionary of eigenvectors for all modes/orders
-        lmds = dict()  # dictionary of eigenvalues for all modes/orders
+        lambdas = dict()  # dictionary of eigenvalues for all modes/orders
         # dictionary of cumulative distribution of eigenvalues for all modes/orders
         cums = dict()  
         proj_mats = []
@@ -181,7 +181,7 @@ class MPCA(BaseEstimator, TransformerMixin):
 
                 eig_vals, eig_vecs = np.linalg.eig(Phi[i])
                 idx_sorted = eig_vals.argsort()[::-1]
-                lmds[i] = eig_vals[idx_sorted]
+                lambdas[i] = eig_vals[idx_sorted]
                 proj_mats[i] = eig_vecs[:, idx_sorted]
                 proj_mats[i] = (proj_mats[i][:, :shape_out[i]]).T
 
