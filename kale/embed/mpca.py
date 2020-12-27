@@ -132,7 +132,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         X_ = np.zeros(X.shape)
         # init
         Phi = dict()
-        Vs = dict()  # dictionary of eigenvectors for all modes/orders
+        eig_vecs_sorted = dict()  # dictionary of eigenvectors for all modes/orders
         lambdas = dict()  # dictionary of eigenvalues for all modes/orders
         # dictionary of cumulative distribution of eigenvalues for all modes/orders
         cums = dict()  
@@ -149,7 +149,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         for i in range(self.ndim - 1):
             eig_vals, eig_vecs = np.linalg.eig(Phi[i])
             idx_sorted = eig_vals.argsort()[::-1]
-            Vs[i] = eig_vecs[:, idx_sorted]
+            eig_vecs_sorted[i] = eig_vecs[:, idx_sorted]
             cum = eig_vals[idx_sorted]
             var_tot = np.sum(cum)
 
@@ -158,14 +158,8 @@ class MPCA(BaseEstimator, TransformerMixin):
                     shape_out += (j + 1,)
                     break
             cums[i] = cum
-            # if Vs[i][0] / sum_ > self.var_ratio:
-            #     cums[i] = 1
-            # else:
-            #     for j in range(Vs[i].shape[0] - 1, 0, -1):
-            #         if np.sum(Vs[i][j:]) / sum_ > (1 - self.var_ratio):
-            #             cums[i] = j + 1
-            #             break
-            proj_mats.append(Vs[i][:, :shape_out[i]].T)
+
+            proj_mats.append(eig_vecs_sorted[i][:, :shape_out[i]].T)
 
         for i_iter in range(self.max_iter):
             Phi = dict()
@@ -207,7 +201,9 @@ class MPCA(BaseEstimator, TransformerMixin):
                 Defaults to None.
 
         Returns:
-            ndarray: Transformed data, shape (P_1, P_2, ..., P_N, n_samples).
+            ndarray: Transformed data, shape (P_1, P_2, ..., P_N, n_samples) if vectorise=Flase, 
+                shape (n_samples, P_1 * P_2 * ... * P_N) if vectorise=True,
+                shape (n_samples, n_components) if vectorise=True and n_component is given.
         """
         _check_dim_shape(X, self.ndim, self.shape_in)
         n_spl = X.shape[-1]
@@ -218,7 +214,7 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         if vectorise:
             X_transformed = unfold(X_transformed, mode=-1)
-            if isinstance(n_components, int) and n_components<=np.prod(self.shape_out):
+            if isinstance(n_components, int) and n_components <= np.prod(self.shape_out):
                 X_transformed = X_transformed[:, self.idx_order]
                 X_transformed = X_transformed[:, :n_components]
 
@@ -237,88 +233,3 @@ class MPCA(BaseEstimator, TransformerMixin):
         """
         _check_dim_shape(X, self.ndim, self.shape_out)
         return multi_mode_dot(X, self.proj_mats, modes=[m for m in range(self.ndim - 1)], transpose=True)
-
-
-# The following implementation kept for a tensorly function
-# def MPCA_(X, var_explained=0.97, max_iter=1):
-#     """MPCA implementation as an independent function
-#
-#     Args:
-#         X (ndarray): training data, shape (P_1, P_2, ..., P_N, n_samples)
-#         var_explained (float, optional): ration of variance to keep (between 0 and 1). Defaults to 0.97.
-#         max_iter (int, optional): max number of iteration. Defaults to 1.
-#
-#     Returns:
-#         list: a list of transposed projection matrices
-#
-#     Examples:
-#         >>> import numpy as np
-#         >>> from tensorly.tenalg import multi_mode_dot
-#         >>> from kale.embed.mpca import MPCA_
-#         >>> X = np.random.random((20, 25, 20, 40))
-#         >>> X.shape
-#         (20, 25, 20, 40)
-#         >>> proj_mats = MPCA_(X, variance_explained=0.9)
-#         >>> X_transformed = multi_mode_dot(X, proj_mats, modes=[0, 1, 2])
-#         >>> X_transformed.shape
-#         (18, 23, 18, 40)
-#     """
-#     dim_in = X.shape
-#     n_spl = dim_in[-1]
-#     n_dim = X.ndim
-#     # Is = dim_in[:-1]
-#     Xmean = np.mean(X, axis=-1)
-#     X_ = np.zeros(X.shape)
-#     # init
-#     Phi = dict()
-#     Us = dict()  # eigenvectors
-#     Vs = dict()  # eigenvalues
-#     cums = dict()  # cumulative distribution of eigenvalues
-#     proj_mats = []
-#     for i in range(n_spl):
-#         X_[..., i] = X[..., i] - Xmean
-#         for j in range(n_dim-1):
-#             X_i = unfold(X_[..., i], mode=j)
-#             if j not in Phi:
-#                 Phi[j] = 0
-#             Phi[j] = Phi[j] + np.dot(X_i, X_i.T)
-#
-#     for i in range(n_dim-1):
-#         eig_vals, eig_vecs = np.linalg.eig(Phi[i])
-#         idx_sorted = eig_vals.argsort()[::-1]
-#         Us[i] = eig_vecs[:, idx_sorted]
-#         Vs[i] = eig_vals[idx_sorted]
-#         # sum_ = np.sum(Vs[i])
-#         # for j in range(Vs[i].shape[0] - 1, 0, -1):
-#         #     if np.sum(Vs[i][j:]) / sum_ > (1 - variance_explained):
-#         #         cums[i] = j + 1
-#         #         break
-#
-#         var_tot = np.sum(Vs[i])
-#
-#         for j in range(Vs[i].shape[0]):
-#             if np.sum(Vs[i][:j]) / var_tot > var_explained:
-#                 cums[i] = j + 1
-#                 break
-#
-#         proj_mats.append(Us[i][:, :cums[i]].T)
-#
-#     for i_iter in range(max_iter):
-#         Phi = dict()
-#         for i in range(n_dim-1):
-#             # dim_in_ = dim_in[i]
-#             if i not in Phi:
-#                 Phi[i] = 0
-#             for j in range(n_spl):
-#                 X_i = X_[..., j]
-#                 Xi_ = multi_mode_dot(X_i, [proj_mats[m] for m in range(n_dim-1) if m != i],
-#                                      modes=[m for m in range(n_dim) if m != i])
-#                 tXi = unfold(Xi_, i)
-#                 Phi[i] = np.dot(tXi, tXi.T) + Phi[i]
-#
-#             eig_vals, eig_vecs = np.linalg.eig(Phi[i])
-#             idx_sorted = eig_vals.argsort()[::-1]
-#             proj_mats[i] = eig_vecs[:, idx_sorted]
-#             proj_mats[i] = proj_mats[i][:, :cums[i]].T
-#
-#     return proj_mats
