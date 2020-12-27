@@ -1,5 +1,6 @@
 import os
 import sys
+
 # No need if pykale is installed
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
@@ -11,10 +12,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
 from torchvision.datasets.utils import download_file_from_google_drive, extract_archive
 
-
 """
 Ignore this function and look at "main" below.
 """
+
+
 def download_dummy_dataset():
     # Full File URL: https://drive.google.com/file/d/1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga/view?usp=sharing
     gdrive_file_id = '1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga'
@@ -39,6 +41,8 @@ def download_dummy_dataset():
 """
 Ignore this function too
 """
+
+
 def plot_video(rows, cols, frame_list, plot_width, plot_height):
     fig = plt.figure(figsize=(plot_width, plot_height))
     grid = ImageGrid(fig, 111,  # similar to subplot(111)
@@ -51,6 +55,7 @@ def plot_video(rows, cols, frame_list, plot_width, plot_height):
         ax.imshow(im)
         ax.set_title(index)
     plt.show()
+
 
 if __name__ == '__main__':
     """
@@ -84,12 +89,9 @@ if __name__ == '__main__':
 
     sample = dataset[0]
     frames = sample[0]  # list of PIL images
-    label = sample[1]   # integer label
+    label = sample[1]  # integer label
 
     plot_video(rows=1, cols=5, frame_list=frames, plot_width=15., plot_height=3.)
-
-
-
 
     """ DEMO 2 SINGLE CONTINUOUS FRAME CLIP INSTEAD OF SAMPLED FRAMES, WITHOUT TRANSFORMS """
     # If you do not want to use sparse temporal sampling, and instead
@@ -113,9 +115,6 @@ if __name__ == '__main__':
     label = sample[1]  # integer label
 
     plot_video(rows=3, cols=3, frame_list=frames, plot_width=10., plot_height=5.)
-
-
-
 
     """ DEMO 3 WITH TRANSFORMS """
     # As of torchvision 0.8.0, torchvision transforms support batches of images
@@ -145,11 +144,13 @@ if __name__ == '__main__':
     label = sample[1]  # integer label
 
     print('Video Tensor Size:', frame_tensor.size())
-    
+
     """
     Denormalize is just for visualization purposes, to undo the transforms applied
     to the list of frames of a video.
     """
+
+
     def denormalize(video_tensor):
         """
         Undoes mean/standard deviation normalization, zero to one scaling,
@@ -166,7 +167,6 @@ if __name__ == '__main__':
 
     frame_tensor = denormalize(frame_tensor)
     plot_video(rows=1, cols=5, frame_list=frames, plot_width=15., plot_height=3.)
-
 
     """ DEMO 3 CONTINUED: DATALOADER """
     dataloader = torch.utils.data.DataLoader(

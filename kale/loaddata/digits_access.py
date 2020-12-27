@@ -10,6 +10,7 @@ from kale.loaddata.usps import USPS
 from kale.loaddata.mnistm import MNISTM
 from kale.loaddata.dataset_access import DatasetAccess
 
+
 class DigitDataset(Enum):
     MNIST = "MNIST"
     MNISTM = "MNISTM"
@@ -71,6 +72,7 @@ class DigitDatasetAccess(DatasetAccess):
         data_path (string): root directory of dataset
         transform_kind (string): types of image transforms
     """
+
     def __init__(self, data_path, transform_kind):
         super().__init__(n_classes=10)
         self._data_path = data_path
@@ -81,6 +83,7 @@ class MNISTDatasetAccess(DigitDatasetAccess):
     """
     MNIST data loader
     """
+
     def get_train(self):
         return MNIST(
             self._data_path, train=True, transform=self._transform, download=True
@@ -96,6 +99,7 @@ class MNISTMDatasetAccess(DigitDatasetAccess):
     """
     Modified MNIST (MNISTM) data loader
     """
+
     def get_train(self):
         return MNISTM(
             self._data_path, train=True, transform=self._transform, download=True
@@ -111,6 +115,7 @@ class USPSDatasetAccess(DigitDatasetAccess):
     """
     USPS data loader
     """
+
     def get_train(self):
         return USPS(
             self._data_path, train=True, transform=self._transform, download=True
@@ -126,6 +131,7 @@ class SVHNDatasetAccess(DigitDatasetAccess):
     """
     SVHN data loader
     """
+
     def get_train(self):
         return SVHN(
             self._data_path, split="train", transform=self._transform, download=True
