@@ -218,7 +218,7 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         if vectorise:
             X_transformed = unfold(X_transformed, mode=-1)
-            if n_components is not None and isinstance(n_components, int):
+            if isinstance(n_components, int) and n_components<=np.prod(self.shape_out):
                 X_transformed = X_transformed[:, self.idx_order]
                 X_transformed = X_transformed[:, :n_components]
 
