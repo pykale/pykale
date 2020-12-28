@@ -4,6 +4,11 @@ import os
 _C = CN()
 
 # -----------------------------------------------------------------------------
+# Basic
+# -----------------------------------------------------------------------------
+_C.OUTPUT_DIR = 'results'
+
+# -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
@@ -11,14 +16,14 @@ _C.DATASET.ROOT = "dataset/ogbl_ddi"
 _C.DATASET.NAME = 'ogbl-ddi'
 _C.DATASET.NUM_HOPS = 1
 _C.DATASET.TRAIN_PERCENT = 1.0
-_C.DATASET.VAL_PERCENT = 100
-_C.DATASET.TEST_PERCENT = 100
+_C.DATASET.VAL_PERCENT = 100.0
+_C.DATASET.TEST_PERCENT = 100.0
 _C.DATASET.COALESCE = False
 _C.DATASET.NODE_LABEL = 'drnl'
 _C.DATASET.RATIO_PER_HOP = 0.2
 _C.DATASET.MAX_NODES_PER_HOP = False
 _C.DATASET.BATCH_SIZE = 32
-_C.DATASET.NUM_WORKERS = 8
+_C.DATASET.NUM_WORKERS = 0
 _C.DATASET.MAX_Z = 1000  # set a large max_z so that every z has embeddings to look up
 _C.DATASET.TRAIN_NODE_EMBEDDING = False
 
@@ -29,6 +34,7 @@ _C.SOLVER = CN()
 _C.SOLVER.SEED = 2020
 _C.SOLVER.MAX_EPOCHS = 10
 _C.SOLVER.LR = 0.0005
+_C.SOLVER.EVAL_STEPS = 1
 
 # -----------------------------------------------------------------------------
 # SEAL config

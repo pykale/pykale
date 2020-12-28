@@ -1,0 +1,4 @@
+DATASET: # for quick testing
+  VAL_PERCENT: 0.1
+  TEST_PERCENT: 0.1
+  TRAIN_PERCENT: 0.1

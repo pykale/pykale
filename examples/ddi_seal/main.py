@@ -4,6 +4,7 @@ import sys
 
 import torch
 import torch.nn as nn
+import warnings
 from config import get_cfg_defaults
 from model import SAGE
 from kale.utils.seed import set_seed
@@ -11,6 +12,8 @@ from ogb.linkproppred import PygLinkPropPredDataset, Evaluator
 from dataloader import SEALDataset, SEALDynamicDataset
 from torch_geometric.data import DataLoader
 from trainer import Trainer
+from scipy.sparse import SparseEfficiencyWarning
+warnings.simplefilter('ignore', SparseEfficiencyWarning)
 
 
 def arg_parse():
@@ -19,7 +22,7 @@ def arg_parse():
     parser.add_argument('--cfg', required=True, help='path to config file', type=str)
     parser.add_argument('--output', default='results', help='folder to save output', type=str)
     parser.add_argument('--data_appendix', type=str, default='')
-    parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--resume', default='', type=str)
     args = parser.parse_args()
     return args
 
@@ -92,14 +95,10 @@ def main():
         max_nodes_per_hop=cfg.DATASET.MAX_NODES_PER_HOP,
     )
 
-    max_z = 1000  # set a large max_z so that every z has embeddings to look up
-
     train_loader = DataLoader(train_dataset, batch_size=cfg.DATASET.BATCH_SIZE,
                               shuffle=True, num_workers=cfg.DATASET.NUM_WORKERS)
-    val_loader = DataLoader(val_dataset, batch_size=cfg.DATASET.BATCH_SIZE,
-                            num_workers=cfg.DATASET.NUM_WORKERS)
-    test_loader = DataLoader(test_dataset, batch_size=cfg.DATASET.BATCH_SIZE,
-                             num_workers=cfg.DATASET.NUM_WORKERS)
+    val_loader = DataLoader(val_dataset, batch_size=cfg.DATASET.BATCH_SIZE, num_workers=cfg.DATASET.NUM_WORKERS)
+    test_loader = DataLoader(test_dataset, batch_size=cfg.DATASET.BATCH_SIZE, num_workers=cfg.DATASET.NUM_WORKERS)
 
     if cfg.DATASET.TRAIN_NODE_EMBEDDING:
         emb = nn.Embedding(data.num_nodes, cfg.SEAL.HIDDEN_CHANNELS).to(device)
@@ -116,6 +115,15 @@ def main():
     optimizer = torch.optim.Adam(params=parameters, lr=cfg.SOLVER.LR)
 
     trainer = Trainer(cfg, model, emb, train_loader, val_loader, test_loader, device, optimizer, evaluator)
+    if args.resume:
+        # Load checkpoint
+        print('==> Resuming from checkpoint..')
+        cp = torch.load(args.resume)
+        trainer.model.load_state_dict(cp['net'])
+        trainer.optim.load_state_dict(cp['optim'])
+        trainer.epochs = cp['epoch']
+        trainer.train_loss, trainer.val_loss, trainer.test_loss = cp['train_loss'], cp['val_loss'], cp['test_loss']
+        trainer.hits = cp['hits']
     trainer.train()
 
 
