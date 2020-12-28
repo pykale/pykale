@@ -1,5 +1,6 @@
 import torch
 from torchvision import transforms
+import numpy as np
 
 
 def get_transform(kind, modality):
@@ -12,6 +13,7 @@ def get_transform(kind, modality):
     """
 
     if kind in ["epic", "gtea", "adl", "kitchen"]:
+        transform = dict()
         if modality == 'rgb':
             transform = {
                 'train': transforms.Compose([
@@ -39,6 +41,7 @@ def get_transform(kind, modality):
         elif modality == 'flow':
             transform = {
                 'train': transforms.Compose([
+                    # Stack(),
                     ImglistToTensor(),
                     transforms.Resize(size=256),
                     transforms.RandomCrop(size=224),
@@ -46,6 +49,7 @@ def get_transform(kind, modality):
                     TensorPermute(),
                 ]),
                 'valid': transforms.Compose([
+                    # Stack(),
                     ImglistToTensor(),
                     transforms.Resize(size=256),
                     transforms.CenterCrop(size=224),
@@ -53,6 +57,7 @@ def get_transform(kind, modality):
                     TensorPermute(),
                 ]),
                 'test': transforms.Compose([
+                    # Stack(),
                     ImglistToTensor(),
                     transforms.Resize(size=256),
                     transforms.CenterCrop(size=224),
@@ -60,7 +65,6 @@ def get_transform(kind, modality):
                     TensorPermute(),
                 ])
             }
-
 
     else:
         raise ValueError(f"Unknown transform kind '{kind}'")
@@ -76,17 +80,19 @@ class ImglistToTensor(torch.nn.Module):
 
     def forward(self, img_list):
         """
-        Converts each PIL image in a list to
-        a torch Tensor and stacks them into
-        a single tensor.
+        Converts each PIL image in a list to a torch Tensor and stacks them into a single tensor.
 
         Args:
             img_list: list of PIL images.
         Returns:
             tensor of size `` NUM_IMAGES x CHANNELS x HEIGHT x WIDTH``
         """
-
-        return torch.stack([transforms.functional.to_tensor(pic) for pic in img_list])
+        img_t = torch.stack([transforms.functional.to_tensor(pic) for pic in img_list])
+        if img_list[0].mode == 'RGB':
+            return img_t
+        elif img_list[0].mode == 'L':
+            img_f = torch.reshape(img_t, shape=(img_t.shape[0] // 2, 2, img_t.shape[2], img_t.shape[3]))
+            return img_f
 
 
 class TensorPermute(torch.nn.Module):
