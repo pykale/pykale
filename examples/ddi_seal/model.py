@@ -1,9 +1,7 @@
-import math
 import torch
 import torch.nn.functional as F
-import numpy as np
-from torch_geometric.nn import GCNConv, SAGEConv, global_sort_pool, global_add_pool
-from torch.nn import ModuleList, Linear, Conv1d, MaxPool1d, Embedding
+from torch_geometric.nn import SAGEConv, global_add_pool
+from torch.nn import Linear, Embedding
 
 
 class SAGE(torch.nn.Module):
