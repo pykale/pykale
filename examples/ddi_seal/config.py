@@ -19,18 +19,26 @@ _C.DATASET.RATIO_PER_HOP = 0.2
 _C.DATASET.MAX_NODES_PER_HOP = False
 _C.DATASET.BATCH_SIZE = 32
 _C.DATASET.NUM_WORKERS = 8
-_C.DATASET.MAX_Z = 1000 # set a large max_z so that every z has embeddings to look up
+_C.DATASET.MAX_Z = 1000  # set a large max_z so that every z has embeddings to look up
+_C.DATASET.TRAIN_NODE_EMBEDDING = False
 
 # -----------------------------------------------------------------------------
 # Solver
 # -----------------------------------------------------------------------------
 _C.SOLVER = CN()
 _C.SOLVER.SEED = 2020
+_C.SOLVER.MAX_EPOCHS = 10
+_C.SOLVER.LR = 0.0005
 
 # -----------------------------------------------------------------------------
-# SEAL
+# SEAL config
 # -----------------------------------------------------------------------------
-_C.SEAL.MODEL = 'DGCNN' # for downstream gnn model selection, support DGCNN/SAGE
+_C.SEAL = CN()
+_C.SEAL.MODEL = 'SAGE'  # for SEAL downstream gnn model selection, support DGCNN/SAGE
+_C.SEAL.HIDDEN_CHANNELS = 32
+_C.SEAL.NUM_LAYERS = 3
+_C.SEAL.USE_FEATURES = False
+_C.SEAL.EVAL = 'hits'
 
 
 def get_cfg_defaults():

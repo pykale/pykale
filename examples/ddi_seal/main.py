@@ -3,11 +3,14 @@ import os
 import sys
 
 import torch
+import torch.nn as nn
 from config import get_cfg_defaults
+from model import SAGE
 from kale.utils.seed import set_seed
 from ogb.linkproppred import PygLinkPropPredDataset, Evaluator
 from dataloader import SEALDataset, SEALDynamicDataset
 from torch_geometric.data import DataLoader
+from trainer import Trainer
 
 
 def arg_parse():
@@ -45,6 +48,7 @@ def main():
 
     # ---- load ogbl data ----
     dataset = PygLinkPropPredDataset(name=cfg.DATASET.NAME)
+    evaluator = Evaluator(name=cfg.DATASET.NAME)
     split_edge = dataset.get_edge_split()
     data = dataset[0]
 
@@ -97,8 +101,23 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=cfg.DATASET.BATCH_SIZE,
                              num_workers=cfg.DATASET.NUM_WORKERS)
 
-    return train_loader, val_loader, test_loader
+    if cfg.DATASET.TRAIN_NODE_EMBEDDING:
+        emb = nn.Embedding(data.num_nodes, cfg.SEAL.HIDDEN_CHANNELS).to(device)
+    else:
+        emb = None
+
+    if cfg.SEAL.MODEL == 'SAGE':
+        model = SAGE(hidden_channels=cfg.SEAL.HIDDEN_CHANNELS, num_layers=cfg.SEAL.NUM_LAYERS,
+                     max_z=cfg.DATASET.MAX_Z, node_embedding=emb).to(device)
+    parameters = model.parameters()
+    if cfg.DATASET.TRAIN_NODE_EMBEDDING:
+        torch.nn.init.xavier_uniform_(emb.weight)
+        parameters += list(emb.parameters())
+    optimizer = torch.optim.Adam(params=parameters, lr=cfg.SOLVER.LR)
+
+    trainer = Trainer(cfg, model, emb, train_loader, val_loader, test_loader, device, optimizer, evaluator)
+    trainer.train()
 
 
 if __name__ == '__main__':
-    train, val, test = main()
+    main()
