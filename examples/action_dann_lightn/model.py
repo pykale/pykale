@@ -62,11 +62,16 @@ def get_feat_extractor(model_name, num_classes, num_channels):
         model_name: The name of the feature extractor.
         num_classes: The class number for the specific setting. (Default: No use)
         num_channels: The number of image channels. (Default: No use, may used in RGB & Flow)
+
+    Returns:
+        feature_network: The network to extract features.
+        feature_dim: The dimension of the feature network output. It is a convention when
+                    the input dimension and the network is fixed.
     """
 
     if model_name == 'I3D':
-        pt_name = 'rgb_imagenet' if num_channels == 3 else 'flow_imagenet'
-        feature_network = i3d(name=pt_name, num_channels=num_channels, pretrained=True)
+        pretrained_model = 'rgb_imagenet' if num_channels == 3 else 'flow_imagenet'
+        feature_network = i3d(name=pretrained_model, num_channels=num_channels, pretrained=True)
         # model.replace_logits(num_classes)
         feature_dim = 1024
     elif model_name == 'R3D_18':
