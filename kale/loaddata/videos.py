@@ -140,6 +140,8 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         self.transform = transform
         self.random_shift = random_shift
         self.test_mode = test_mode
+        if self.image_modality == 'flow' and self.frames_per_segment > 1:
+            self.frames_per_segment //= 2
 
         self._parse_list()
 
@@ -148,9 +150,9 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             return [Image.open(os.path.join(directory, self.imagefile_template.format(idx))).convert('RGB')]
         elif self.image_modality == 'flow':
             idx = math.ceil(idx / 2) - 1 if idx > 2 else 1
-            img_u = Image.open(os.path.join(directory, 'u', self.imagefile_template.format(idx))).convert('L')
-            img_v = Image.open(os.path.join(directory, 'v', self.imagefile_template.format(idx))).convert('L')
-            return [img_u, img_v]
+            x_img = Image.open(os.path.join(directory, self.imagefile_template.format('x', idx))).convert('L')
+            y_img = Image.open(os.path.join(directory, self.imagefile_template.format('y', idx))).convert('L')
+            return [x_img, y_img]
 
     def _parse_list(self):
         self.video_list = [VideoRecord(x.strip().split(' '), self.root_path) for x in open(self.annotationfile_path)]
@@ -220,10 +222,6 @@ class VideoFrameDataset(torch.utils.data.Dataset):
                                                                                      record.num_frames,
                                                                                      self.num_segments,
                                                                                      self.frames_per_segment))
-
-        if self.image_modality == 'flow':
-            if self.frames_per_segment > 1:
-                self.frames_per_segment = self.frames_per_segment // 2
 
         if not self.test_mode:
             segment_indices = self._get_random_indices(record) if self.random_shift else self._get_symmetric_indices(

@@ -77,7 +77,7 @@ class VideoDataset(Enum):
             params: (CfgNode): hyper parameters from configure file
 
         Examples::
-            >>> source, target, num_channel = get_source_target(sourcename, targetname, data_path)
+            >>> source, target, num_channel = get_source_target(sourcename, targetname, cfg)
         """
         config_params = get_videodata_config(params)
         data_params = config_params['data_params']
@@ -90,19 +90,34 @@ class VideoDataset(Enum):
         n_classes = data_params_local['num_classes']
         frames_per_segment = data_params_local['frames_per_segment']
 
-        channel_numbers = {
-            VideoDataset.EPIC: 3,
-            VideoDataset.GTEA: 3,
-            VideoDataset.ADL: 3,
-            VideoDataset.KITCHEN: 3,
-        }
+        if image_modality == 'rgb':
+            channel_numbers = {
+                VideoDataset.EPIC: 3,
+                VideoDataset.GTEA: 3,
+                VideoDataset.ADL: 3,
+                VideoDataset.KITCHEN: 3,
+            }
 
-        transform_names = {
-            (VideoDataset.EPIC, 3): 'epic',
-            (VideoDataset.GTEA, 3): 'gtea',
-            (VideoDataset.ADL, 3): 'adl',
-            (VideoDataset.KITCHEN, 3): 'kitchen',
-        }
+            transform_names = {
+                (VideoDataset.EPIC, 3): 'epic',
+                (VideoDataset.GTEA, 3): 'gtea',
+                (VideoDataset.ADL, 3): 'adl',
+                (VideoDataset.KITCHEN, 3): 'kitchen',
+            }
+        elif image_modality == 'flow':
+            channel_numbers = {
+                VideoDataset.EPIC: 2,
+                VideoDataset.GTEA: 2,
+                VideoDataset.ADL: 2,
+                VideoDataset.KITCHEN: 2,
+            }
+
+            transform_names = {
+                (VideoDataset.EPIC, 2): 'epic',
+                (VideoDataset.GTEA, 2): 'gtea',
+                (VideoDataset.ADL, 2): 'adl',
+                (VideoDataset.KITCHEN, 2): 'kitchen',
+            }
 
         factories = {
             VideoDataset.EPIC: EPICDatasetAccess,
@@ -191,7 +206,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
             annotationfile_path=self._train_list,
             num_segments=1,
             frames_per_segment=self._frames_per_segment,
-            imagefile_template='frame_{:010d}.jpg',
+            imagefile_template='frame_{:010d}.jpg' if self._image_modality in ['rgb'] else 'flow_{}_{:010d}.jpg',
             transform=self._transform['train'],
             random_shift=False,
             test_mode=False,
@@ -206,7 +221,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
             annotationfile_path=self._test_list,
             num_segments=1,
             frames_per_segment=self._frames_per_segment,
-            imagefile_template='frame_{:010d}.jpg',
+            imagefile_template='frame_{:010d}.jpg' if self._image_modality in ['rgb'] else 'flow_{}_{:010d}.jpg',
             transform=self._transform['test'],
             random_shift=False,
             test_mode=True,
@@ -224,7 +239,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
             annotationfile_path=self._train_list,
             num_segments=1,
             frames_per_segment=self._frames_per_segment,
-            imagefile_template='frame_{:010d}.jpg',
+            imagefile_template='frame_{:010d}.jpg' if self._image_modality in ['rgb'] else 'flow_{}_{:010d}.jpg',
             transform=self._transform['train'],
             random_shift=False,
             test_mode=False,
@@ -239,7 +254,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
             annotationfile_path=self._test_list,
             num_segments=1,
             frames_per_segment=self._frames_per_segment,
-            imagefile_template='frame_{:010d}.jpg',
+            imagefile_template='frame_{:010d}.jpg' if self._image_modality in ['rgb'] else 'flow_{}_{:010d}.jpg',
             transform=self._transform['test'],
             random_shift=False,
             test_mode=True,
@@ -257,7 +272,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
             annotationfile_path=self._train_list,
             num_segments=1,
             frames_per_segment=self._frames_per_segment,
-            imagefile_template='frame_{:010d}.jpg',
+            imagefile_template='frame_{:010d}.jpg' if self._image_modality in ['rgb'] else 'flow_{}_{:010d}.jpg',
             transform=self._transform['train'],
             random_shift=False,
             test_mode=False,
@@ -272,7 +287,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
             annotationfile_path=self._test_list,
             num_segments=1,
             frames_per_segment=self._frames_per_segment,
-            imagefile_template='frame_{:010d}.jpg',
+            imagefile_template='frame_{:010d}.jpg' if self._image_modality in ['rgb'] else 'flow_{}_{:010d}.jpg',
             transform=self._transform['test'],
             random_shift=False,
             test_mode=True,

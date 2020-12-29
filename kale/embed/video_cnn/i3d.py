@@ -387,8 +387,8 @@ class InceptionI3d(nn.Module):
         return self.avg_pool(x)
 
 
-def i3d(name, pretrained=False, progress=True):
-    model = InceptionI3d()
+def i3d(name, num_channels, pretrained=False, progress=True):
+    model = InceptionI3d(in_channels=num_channels)
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[name],

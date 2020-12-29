@@ -55,7 +55,8 @@ def get_feat_extractor(model_name, num_classes, num_channels):
     """
     Get the feature extractor w/o the pre-trained model. The pre-trained models are saved in the path
     ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
-    For Windows, default path is ``C:/Users/$USER_NAME/.cache/torch/hub/checkpoints/``
+    For Windows, default path is ``C:/Users/$USER_NAME/.cache/torch/hub/checkpoints/``.
+    Provide four pre-trained models: 'rgb_imagenet', 'flow_imagenet', 'rgb_charades', 'flow_charades'.
 
     Args:
         model_name: The name of the feature extractor.
@@ -64,7 +65,8 @@ def get_feat_extractor(model_name, num_classes, num_channels):
     """
 
     if model_name == 'I3D':
-        feature_network = i3d(name='rgb_imagenet', pretrained=True)
+        pt_name = 'rgb_imagenet' if num_channels == 3 else 'flow_imagenet'
+        feature_network = i3d(name=pt_name, num_channels=num_channels, pretrained=True)
         # model.replace_logits(num_classes)
         feature_dim = 1024
     elif model_name == 'R3D_18':
