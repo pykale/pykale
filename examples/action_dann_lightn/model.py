@@ -60,7 +60,7 @@ def get_feat_extractor(model_name, num_classes, num_channels):
 
     Args:
         model_name: The name of the feature extractor.
-        num_classes: The class number for the specific setting. (Default: No use)
+        num_classes: The class number of specific dataset. (Default: No use)
         num_channels: The number of image channels. (Default: No use, may used in RGB & Flow)
 
     Returns:
@@ -89,20 +89,21 @@ def get_feat_extractor(model_name, num_classes, num_channels):
 
 
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
-def get_model(cfg, dataset, num_channels):
+def get_model(cfg, dataset, num_channels, num_classes):
     """
     Builds and returns a model and associated hyper parameters according to the config object passed.
 
     Args:
         cfg: A YACS config object.
         dataset: A multi domain dataset consisting of source and target datasets.
-        num_channels: The number of image channels.        
+        num_channels: The number of image channels.
+        num_classes: The class number of specific dataset.
     """
 
     # setup feature extractor
-    feature_network, feature_dim = get_feat_extractor(cfg.MODEL.METHOD.upper(), cfg.DATASET.NUM_CLASSES, num_channels)
+    feature_network, feature_dim = get_feat_extractor(cfg.MODEL.METHOD.upper(), num_classes, num_channels)
     # setup classifier
-    classifier_network = ClassNetSmallImage(feature_dim, cfg.DATASET.NUM_CLASSES)
+    classifier_network = ClassNetSmallImage(feature_dim, num_classes)
 
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
@@ -127,7 +128,7 @@ def get_model(cfg, dataset, num_channels):
             if cfg.DAN.USERANDOM:
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
-                critic_input_size = feature_dim * cfg.DATASET.NUM_CLASSES
+                critic_input_size = feature_dim * num_classes
         critic_network = DomainNetSmallImage(critic_input_size)
 
         if cfg.DAN.METHOD == 'CDAN':

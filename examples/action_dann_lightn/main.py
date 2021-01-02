@@ -46,9 +46,9 @@ def main():
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
-    source, target, num_channels = VideoDataset.get_source_target(VideoDataset(cfg.DATASET.SOURCE.upper()),
-                                                                  VideoDataset(cfg.DATASET.TARGET.upper()),
-                                                                  cfg)
+    source, target, num_channels, num_classes = VideoDataset.get_source_target(VideoDataset(cfg.DATASET.SOURCE.upper()),
+                                                                               VideoDataset(cfg.DATASET.TARGET.upper()),
+                                                                               cfg)
     dataset = MultiDomainDatasets(source, target, config_weight_type=cfg.DATASET.WEIGHT_TYPE,
                                   config_size_type=cfg.DATASET.SIZE_TYPE)
 
@@ -58,7 +58,7 @@ def main():
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         print(f'==> Building model for seed {seed} ......')
         # ---- setup model and logger ----                                                     
-        model, train_params = get_model(cfg, dataset, num_channels)
+        model, train_params = get_model(cfg, dataset, num_channels, num_classes)
         logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params,
                                                                            cfg.OUTPUT.DIR,
                                                                            cfg.DAN.METHOD,

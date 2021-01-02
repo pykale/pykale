@@ -22,7 +22,6 @@ def get_videodata_config(cfg):
             "dataset_tar_trainlist": cfg.DATASET.TAR_TRAINLIST,
             "dataset_tar_testlist": cfg.DATASET.TAR_TESTLIST,
             "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
-            "num_classes": cfg.DATASET.NUM_CLASSES,
             "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT
         }
     }
@@ -70,6 +69,8 @@ class VideoDataset(Enum):
     def get_source_target(source: "VideoDataset", target: "VideoDataset", params):
         """
         Gets data loaders for source and target datasets
+        Sets channel_number as 3 for RGB, 2 for flow.
+        Sets class_number as 8 for EPIC, 7 for ADL, 6 for both GTEA and KITCHEN.
 
         Args:
             source: (VideoDataset): source dataset name
@@ -87,7 +88,6 @@ class VideoDataset(Enum):
         data_tar_name = data_params_local['dataset_tar_name'].upper()
         tar_data_path, tar_tr_listpath, tar_te_listpath = generate_list(data_tar_name, data_params_local, domain='tar')
         image_modality = data_params_local['dataset_image_modality']
-        n_classes = data_params_local['num_classes']
         frames_per_segment = data_params_local['frames_per_segment']
 
         if image_modality == 'rgb':
@@ -119,6 +119,13 @@ class VideoDataset(Enum):
                 (VideoDataset.KITCHEN, 2): 'kitchen',
             }
 
+        class_numbers = {
+            VideoDataset.EPIC: 8,
+            VideoDataset.GTEA: 6,
+            VideoDataset.ADL: 7,
+            VideoDataset.KITCHEN: 6,
+        }
+
         factories = {
             VideoDataset.EPIC: EPICDatasetAccess,
             VideoDataset.GTEA: GTEADatasetAccess,
@@ -128,15 +135,17 @@ class VideoDataset(Enum):
 
         # handle color/nb channels
         num_channels = max(channel_numbers[source], channel_numbers[target])
+        num_classes = min(class_numbers[source], class_numbers[target])
         source_tf = transform_names[(source, num_channels)]
         target_tf = transform_names[(target, num_channels)]
 
         return (
-            factories[source](src_data_path, src_tr_listpath, src_te_listpath, image_modality, frames_per_segment, n_classes,
-                              source_tf),
-            factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, image_modality, frames_per_segment, n_classes,
-                              target_tf),
-            num_channels
+            factories[source](src_data_path, src_tr_listpath, src_te_listpath, image_modality, frames_per_segment,
+                              num_classes, source_tf),
+            factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, image_modality, frames_per_segment,
+                              num_classes, target_tf),
+            num_channels,
+            num_classes
         )
 
 
