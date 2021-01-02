@@ -203,6 +203,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             of applying self.transform on this list if
             self.transform is not None.
         """
+
         record = self.video_list[index]
 
         if record.num_frames < self.frames_per_segment:
