@@ -78,7 +78,7 @@ class VideoDataset(Enum):
             params: (CfgNode): hyper parameters from configure file
 
         Examples::
-            >>> source, target, num_channel = get_source_target(sourcename, targetname, cfg)
+            >>> source, target, num_channels, num_classes = get_source_target(sourcename, targetname, cfg)
         """
         config_params = get_videodata_config(params)
         data_params = config_params['data_params']
@@ -118,6 +118,8 @@ class VideoDataset(Enum):
                 (VideoDataset.ADL, 2): 'adl',
                 (VideoDataset.KITCHEN, 2): 'kitchen',
             }
+        else:
+            raise RuntimeError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
 
         class_numbers = {
             VideoDataset.EPIC: 8,

@@ -153,6 +153,8 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             x_img = Image.open(os.path.join(directory, self.imagefile_template.format('x', idx))).convert('L')
             y_img = Image.open(os.path.join(directory, self.imagefile_template.format('y', idx))).convert('L')
             return [x_img, y_img]
+        else:
+            raise RuntimeError("Input modality is not in [rgb, flow, joint]. Current is {}".format(self.image_modality))
 
     def _parse_list(self):
         self.video_list = [VideoRecord(x.strip().split(' '), self.root_path) for x in open(self.annotationfile_path)]

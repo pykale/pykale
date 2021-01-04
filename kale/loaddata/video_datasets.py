@@ -127,6 +127,8 @@ class EPIC(VideoFrameDataset):
             u_img = Image.open(os.path.join(directory, 'u', self.imagefile_template.format(idx))).convert('L')
             v_img = Image.open(os.path.join(directory, 'v', self.imagefile_template.format(idx))).convert('L')
             return [u_img, v_img]
+        else:
+            raise RuntimeError("Input modality is not in [rgb, flow, joint]. Current is {}".format(self.image_modality))
 
     def make_dataset(self):
         """

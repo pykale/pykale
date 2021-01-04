@@ -51,7 +51,7 @@ def get_config(cfg):
     return config_params
 
 
-def get_feat_extractor(model_name, num_classes, num_channels):
+def get_feat_extractor(model_name, image_modality, num_classes, num_channels):
     """
     Get the feature extractor w/o the pre-trained model. The pre-trained models are saved in the path
     ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
@@ -60,6 +60,7 @@ def get_feat_extractor(model_name, num_classes, num_channels):
 
     Args:
         model_name: The name of the feature extractor.
+        image_modality: Image type. (RGB or Optical Flow)
         num_classes: The class number of specific dataset. (Default: No use)
         num_channels: The number of image channels. (Default: No use, may used in RGB & Flow)
 
@@ -69,22 +70,44 @@ def get_feat_extractor(model_name, num_classes, num_channels):
                     the input dimension and the network is fixed.
     """
 
-    if model_name == 'I3D':
-        pretrained_model = 'rgb_imagenet' if num_channels == 3 else 'flow_imagenet'
-        feature_network = i3d(name=pretrained_model, num_channels=num_channels, pretrained=True)
-        # model.replace_logits(num_classes)
-        feature_dim = 1024
-    elif model_name == 'R3D_18':
-        feature_network = r3d_18(pretrained=True)
-        feature_dim = 512
-    elif model_name == 'R2PLUS1D_18':
-        feature_network = r2plus1d_18(pretrained=True)
-        feature_dim = 512
-    elif model_name == 'MC3_18':
-        feature_network = mc3_18(pretrained=True)
-        feature_dim = 512
+    if image_modality == 'rgb':
+        if model_name == 'I3D':
+            pretrained_model = 'rgb_imagenet'
+            feature_network = i3d(name=pretrained_model, num_channels=num_channels, pretrained=True)
+            # model.replace_logits(num_classes)
+            feature_dim = 1024
+        elif model_name == 'R3D_18':
+            feature_network = r3d_18(pretrained=True)
+            feature_dim = 512
+        elif model_name == 'R2PLUS1D_18':
+            feature_network = r2plus1d_18(pretrained=True)
+            feature_dim = 512
+        elif model_name == 'MC3_18':
+            feature_network = mc3_18(pretrained=True)
+            feature_dim = 512
+        else:
+            raise ValueError("Unsupported model: {}".format(model_name))
+
+    elif image_modality == 'flow':
+        if model_name == 'I3D':
+            pretrained_model = 'flow_imagenet'
+            feature_network = i3d(name=pretrained_model, num_channels=num_channels, pretrained=True)
+            feature_dim = 1024
+        else:
+            raise RuntimeError('Only provides I3D model for optical flow input. Current is {}.'.format(model_name))
+
+    elif image_modality == 'JOINT':
+        if model_name == 'I3D':
+            # TODO: add joint model
+            rgb_pretrained_model = 'rgb_imagenet'
+            flow_pretrained_model = 'flow_imagenet'
+            feature_network = i3d_joint(name=pretrained_model, num_channels=num_channels, pretrained=True)
+            feature_dim = 1024
+        else:
+            raise RuntimeError("Only provides I3D model for optical joint inputs. Current is {}.".format(model_name))
+
     else:
-        raise ValueError("Unsupported model: {}".format(model_name))
+        raise RuntimeError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
     return feature_network, feature_dim
 
 
@@ -101,7 +124,8 @@ def get_model(cfg, dataset, num_channels, num_classes):
     """
 
     # setup feature extractor
-    feature_network, feature_dim = get_feat_extractor(cfg.MODEL.METHOD.upper(), num_classes, num_channels)
+    feature_network, feature_dim = get_feat_extractor(cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY,
+                                                      num_classes, num_channels)
     # setup classifier
     classifier_network = ClassNetSmallImage(feature_dim, num_classes)
 
