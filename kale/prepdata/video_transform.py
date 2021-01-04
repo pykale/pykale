@@ -3,18 +3,18 @@ from torchvision import transforms
 import numpy as np
 
 
-def get_transform(kind, modality):
+def get_transform(kind, image_modality):
     """
     Define transforms (for commonly used datasets)
 
     Args:
         kind ([type]): the dataset (transformation) name
-        modality (string): image type (RGB or Optical Flow)
+        image_modality (string): image type (RGB or Optical Flow)
     """
 
     if kind in ["epic", "gtea", "adl", "kitchen"]:
         transform = dict()
-        if modality == 'rgb':
+        if image_modality == 'rgb':
             transform = {
                 'train': transforms.Compose([
                     ImglistToTensor(),
@@ -38,7 +38,7 @@ def get_transform(kind, modality):
                     TensorPermute(),
                 ])
             }
-        elif modality == 'flow':
+        elif image_modality == 'flow':
             transform = {
                 'train': transforms.Compose([
                     # Stack(),
@@ -65,7 +65,8 @@ def get_transform(kind, modality):
                     TensorPermute(),
                 ])
             }
-
+        else:
+            raise RuntimeError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
     else:
         raise ValueError(f"Unknown transform kind '{kind}'")
     return transform
