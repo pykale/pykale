@@ -16,7 +16,7 @@ Reference:
 import sys
 import numpy as np
 # import tensorly as tl
-from tensorly.base import unfold
+from tensorly.base import unfold, fold
 from tensorly.tenalg import multi_mode_dot
 from sklearn.base import BaseEstimator, TransformerMixin
 
@@ -70,6 +70,9 @@ class MPCA(BaseEstimator, TransformerMixin):
         var_ratio (float, optional): Percentage of variance explained
             (between 0 and 1). Defaults to 0.97.
         max_iter (int, optional): Maximum number of iteration. Defaults to 1.
+        vectorise (bool): Whether vectorise the transformed tensor. Defaults to Flase.
+        n_components (int): Number of components to keep. Applies only when vectorise=True. 
+            Defaults to None.
 
     Attributes:
         proj_mats (list): A list of transposed projection matrices.
@@ -97,7 +100,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         >>> X_inverse.shape
         (20, 25, 20, 40)
     """
-    def __init__(self, var_ratio=0.97, max_iter=1):
+    def __init__(self, var_ratio=0.97, max_iter=1, vectorise=False, n_components=None):
         self.var_ratio = var_ratio
         if max_iter > 0 and isinstance(max_iter, int):
             self.max_iter = max_iter
@@ -105,6 +108,8 @@ class MPCA(BaseEstimator, TransformerMixin):
             print('Number of max iterations must be an integer and greater than 0')
             sys.exit()
         self.proj_mats = []
+        self.vectorise = vectorise
+        self.n_components = n_components
 
     def fit(self, X, y=None):
         """Fit the model with input training data X.
@@ -191,19 +196,17 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         return self
 
-    def transform(self, X, vectorise=False, n_components=None):
+    def transform(self, X):
         """Perform dimension reduction on X
 
         Args:
             X (ndarray): Data to perform dimension reduction, shape (I_1, I_2, ..., I_N, n_samples).
-            vectorise (bool): Whether vectorise the transformed tensor. Defaults to Flase.
-            n_components (int): Number of components to keep. Applies only when vectorise=True. 
-                Defaults to None.
 
         Returns:
-            ndarray: Transformed data, shape (P_1, P_2, ..., P_N, n_samples) if vectorise=Flase, 
-                shape (n_samples, P_1 * P_2 * ... * P_N) if vectorise=True,
-                shape (n_samples, n_components) if vectorise=True and n_component is given.
+            ndarray: Transformed data, shape (P_1, P_2, ..., P_N, n_samples) if self.vectorise==False.
+                If self.vectorise==True, features will be sorted based on their explained variance ratio,
+                shape (n_samples, P_1 * P_2 * ... * P_N) if self.n_components is None,
+                and shape (n_samples, n_components) if self.n_component is not None.                
         """
         _check_dim_shape(X, self.ndim, self.shape_in)
         n_spl = X.shape[-1]
@@ -212,24 +215,51 @@ class MPCA(BaseEstimator, TransformerMixin):
         
         X_transformed = multi_mode_dot(X, self.proj_mats, modes=[m for m in range(self.ndim - 1)])
 
-        if vectorise:
+        if self.vectorise:
             X_transformed = unfold(X_transformed, mode=-1)
-            if isinstance(n_components, int) and n_components <= np.prod(self.shape_out):
-                X_transformed = X_transformed[:, self.idx_order]
-                X_transformed = X_transformed[:, :n_components]
+            X_transformed = X_transformed[:, self.idx_order]
+            if isinstance(self.n_components, int) and self.n_components <= np.prod(self.shape_out):
+                X_transformed = X_transformed[:, :self.n_components]
 
         return X_transformed
 
-    def inverse_transform(self, X):
-        """Transform data in the shape of reduced dimension 
-        back to the original shape
+    def inverse_transform(self, X, add_mean=False):
+        """Transform data in the shape of reduced dimension back to the original shape
 
         Args:
-            X (ndarray): New data, shape (P_1, P_2, ..., P_N, n_samples), where P_1, P_2, ..., P_N 
-                are the reduced dimensions of of corresponding mode (1, 2, ..., N), respectively.
+            X (ndarray): Data to be transfromed back. If self.vectorise == Flase, shape 
+                (P_1, P_2, ..., P_N, n_samples), where P_1, P_2, ..., P_N are the reduced 
+                dimensions of of corresponding mode (1, 2, ..., N), respectively. If 
+                self.vectorise == True, shape (n_samples, self.n_components) or shape
+                (n_samples, P_1 * P_2 * ... * P_N).
+            add_mean (bool): Whether add the mean estimated from the training set to the output.
+                Defaults to False.
 
         Returns:
             ndarray: Data in original shape, shape (I_1, I_2, ..., I_N, n_samples)
         """
-        _check_dim_shape(X, self.ndim, self.shape_out)
-        return multi_mode_dot(X, self.proj_mats, modes=[m for m in range(self.ndim - 1)], transpose=True)
+        # reshape X to tensor in self.shape_out if X is vectorised data
+        if X.ndim <= 2:
+            if X.ndim == 1:
+                X = X.reshape((1, -1))
+            n_spl = X.shape[0]
+            n_feat = X.shape[1]
+            if n_feat <= np.prod(self.shape_out):
+                X_ = np.zeros((n_spl, np.prod(self.shape_out)))
+                X_[:, :self.idx_order[:n_feat]] = X[:]
+            else:
+                print('Feature dimension exceeds the shape upper limit')
+                sys.exit()
+
+            X = fold(X_, -1, self.shape_out + (n_spl,))
+        else:
+            _check_dim_shape(X, self.ndim, self.shape_out)
+
+        X_orig = multi_mode_dot(X, self.proj_mats, modes=[m for m in range(self.ndim - 1)], transpose=True)
+
+        if add_mean:
+            n_spl = X_orig.shape[-1]
+            for i in range(n_spl):
+                X_orig[..., i] = X_orig[..., i] + self.mean_
+
+        return X_orig
