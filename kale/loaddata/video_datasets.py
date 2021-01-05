@@ -1,6 +1,8 @@
+import math
 import os
 import pickle
 from pathlib import Path
+from PIL import Image
 
 from kale.loaddata.videos import VideoFrameDataset, VideoRecord
 
@@ -113,6 +115,15 @@ class EPIC(VideoFrameDataset):
 
     def _parse_list(self):
         self.video_list = [VideoRecord(x, self.img_path) for x in list(self.make_dataset())]
+
+    def _load_image(self, directory, idx):
+        if self.image_modality == 'rgb':
+            return [Image.open(os.path.join(directory, self.imagefile_template.format(idx))).convert('RGB')]
+        elif self.image_modality == 'flow':
+            idx = math.ceil(idx / 2) - 1 if idx > 2 else 1
+            u_img = Image.open(os.path.join(directory, 'u', self.imagefile_template.format(idx))).convert('L')
+            v_img = Image.open(os.path.join(directory, 'v', self.imagefile_template.format(idx))).convert('L')
+            return [u_img, v_img]
 
     def make_dataset(self):
         """
