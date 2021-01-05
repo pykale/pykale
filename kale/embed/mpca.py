@@ -4,7 +4,6 @@
 # =============================================================================
 
 """Python implementation of Multilinear Principal Component Analysis (MPCA)
-Includeing implementaion as a scikit-learn object and an independent function.
 
 Reference:
     Haiping Lu, K.N. Plataniotis, and A.N. Venetsanopoulos, "MPCA: Multilinear
@@ -70,7 +69,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         var_ratio (float, optional): Percentage of variance explained
             (between 0 and 1). Defaults to 0.97.
         max_iter (int, optional): Maximum number of iteration. Defaults to 1.
-        vectorise (bool): Whether vectorise the transformed tensor. Defaults to Flase.
+        vectorise (bool): Whether vectorise the transformed tensor. Defaults to False.
         n_components (int): Number of components to keep. Applies only when vectorise=True. 
             Defaults to None.
 
@@ -203,7 +202,8 @@ class MPCA(BaseEstimator, TransformerMixin):
             X (ndarray): Data to perform dimension reduction, shape (I_1, I_2, ..., I_N, n_samples).
 
         Returns:
-            ndarray: Transformed data, shape (P_1, P_2, ..., P_N, n_samples) if self.vectorise==False.
+            ndarray: 
+                Transformed data, shape (P_1, P_2, ..., P_N, n_samples) if self.vectorise==False.
                 If self.vectorise==True, features will be sorted based on their explained variance ratio,
                 shape (n_samples, P_1 * P_2 * ... * P_N) if self.n_components is None,
                 and shape (n_samples, n_components) if self.n_component is not None.                
