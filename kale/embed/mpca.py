@@ -21,7 +21,7 @@ from tensorly.tenalg import multi_mode_dot
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
-def check_ndim(X, ndim):
+def _check_ndim(X, ndim):
     """Check if the order/mode of the input data is consistent with the given number of order/mode
 
     Args:
@@ -35,7 +35,7 @@ def check_ndim(X, ndim):
     return X.ndim == ndim
 
 
-def check_shape(X, shape_):
+def _check_shape(X, shape_):
     """Check if the shape (excluding the last mode) of the input data is consistent with the given shape
 
     Args:
@@ -58,7 +58,7 @@ def _check_dim_shape(X, ndim, shape_):
         shape_: shape expected
 
     """
-    if not check_ndim(X, ndim) or not check_shape(X, shape_):
+    if not _check_ndim(X, ndim) or not _check_shape(X, shape_):
         print("The given data should be consistent with the order and shape of training data")
         sys.exit()
 
