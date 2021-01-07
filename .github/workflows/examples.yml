@@ -23,6 +23,6 @@ jobs:
       run: |
         pip install pytest nbval jupyter tqdm matplotlib torchvision scipy
         python setup.py build develop
-    - name: Run example notebooks
-      run: |
-        grep -l smoke_test examples/**/*.ipynb | xargs grep -L 'smoke_test = False' | CI=true xargs pytest --nbval-lax --current-env
+    # - name: Run example notebooks
+    #   run: |
+    #     grep -l smoke_test examples/**/*.ipynb | xargs grep -L 'smoke_test = False' | CI=true xargs pytest --nbval-lax --current-env

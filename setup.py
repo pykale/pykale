@@ -22,7 +22,7 @@ def find_version(*file_paths):
 
 
 readme = open("README.md").read()
-version = find_version("pykale", "__init__.py")
+version = find_version("kale", "__init__.py")
 
 
 torch_min = "1.7"
