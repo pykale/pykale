@@ -59,7 +59,9 @@ setup(
     extras_require={
         "dev": ["black", "twine", "pre-commit"],
         "docs": ["ipython", "ipykernel", "sphinx<3.0.0", "sphinx_rtd_theme", "nbsphinx", "m2r"],
-        "examples": ["ipython", "jupyter", "matplotlib", "numpy", "torchvision", "tqdm"],
+        "examples": ["scikit-image", "tensorly", "matplotlib", "numpy", "torchvision", "tqdm", "pytorch-lightning"],
+        "torchsummary": ["torchsummary>=1.5.0"],
+        "yacs": ["yacs>=0.1.7"],
         "test": ["flake8", "flake8-print", "pytest", "nbval"],
     },
 )
