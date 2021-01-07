@@ -82,7 +82,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
                 to define the few-shot, semi-supervised setting. Defaults to None.
             random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label selection. Defaults to None.
         Examples::
-            >>> dataset = MultiDomainDatasets(source, target)
+            >>> dataset = MultiDomainDatasets(source_access, target_access)
         """
         weight_type = WeightingType(config_weight_type)
         size_type = DatasetSizeType(config_size_type)

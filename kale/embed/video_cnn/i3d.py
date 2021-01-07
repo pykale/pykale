@@ -9,7 +9,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models.utils import load_state_dict_from_url
 
-
 model_urls = {
     'rgb_imagenet': 'https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt',
     'flow_imagenet': 'https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/flow_imagenet.pt',
@@ -395,3 +394,16 @@ def i3d(name, num_channels, pretrained=False, progress=True):
                                               progress=progress)
         model.load_state_dict(state_dict)
     return model
+
+
+def i3d_joint(rgb_pt, flow_pt, pretrained=False, progress=True):
+    i3d_rgb = i3d_flow = None
+    if rgb_pt is not None and flow_pt is None:
+        i3d_rgb = i3d(name=rgb_pt, num_channels=3, pretrained=pretrained, progress=progress)
+    elif rgb_pt is None and flow_pt is not None:
+        i3d_flow = i3d(name=flow_pt, num_channels=2, pretrained=pretrained, progress=progress)
+    elif rgb_pt is not None and flow_pt is not None:
+        i3d_rgb = i3d(name=rgb_pt, num_channels=3, pretrained=pretrained, progress=progress)
+        i3d_flow = i3d(name=flow_pt, num_channels=2, pretrained=pretrained, progress=progress)
+    models = {'rgb': i3d_rgb, 'flow': i3d_flow}
+    return models
