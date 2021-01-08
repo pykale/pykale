@@ -1,0 +1,41 @@
+{% set data = load_setup_py_data(setup_file="../setup.py", from_recipe_dir=True) %}
+
+package:
+  name: {{ data.get("name")|lower }}
+  version: {{ data.get("version") }}
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  script: "$PYTHON ./setup.py install --single-version-externally-managed --record=record.txt"
+
+requirements:
+  host:
+    - python>=3.6
+
+  run:
+    - pytorch>=1.7
+    - scikit-learn
+    - scipy
+
+test:
+  imports:
+    - kale
+    - kale.embed
+│   - kale.evaluate
+│   - kale.interpret
+│   - kale.loaddata
+│   - kale.pipeline
+│   - kale.predict
+│   - kale.prepdata
+│   - kale.utils
+
+about:
+  home: https://pykale.readthedocs.io
+  license: MIT
+  license_file: LICENSE
+  summary: Knowledge-aware machine learning for  graphs, images, and videos in PyTorch
+  doc_url: https://pykale.readthedocs.io/en/latest/
+  dev_url: https://github.com/pykale/pykale
