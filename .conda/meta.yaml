@@ -33,7 +33,7 @@ test:
 │   - kale.utils
 
 about:
-  home: https://pykale.readthedocs.io
+  home: https://github.com/pykale/pykale
   license: MIT
   license_file: LICENSE
   summary: Knowledge-aware machine learning for  graphs, images, and videos in PyTorch

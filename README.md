@@ -1,6 +1,6 @@
 # Knowledge-aware learning for graphs, images, & videos
 
-<img src="docs/pykaleWorkflow.png"
+<img src="https://raw.githubusercontent.com/pykale/pykale/master/docs/pykaleWorkflow.png"
      alt="Machine learning workflow"
      style="float: center;" />
 
@@ -56,30 +56,6 @@ We need to design these core modules to be generic, reusable, customizable, and 
 * Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). Example: [ISONet](https://github.com/HaozhiQi/ISONet)
 * Use [PyTorch](https://pytorch.org/tutorials/) when possible. **Highly recommend** [PyTorch Lightning](https://towardsdatascience.com/from-pytorch-to-pytorch-lightning-a-gentle-introduction-b371b7caaf09) ([Video](https://www.youtube.com/watch?v=QHww1JH7IDU))
 * Key references include [MONAI](https://github.com/Project-MONAI/MONAI) for `medim`, [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) for `graph`, and [kornia](https://github.com/kornia/kornia) for `vision`.
-* Repository structure
-
-```
-├───docs
-├───examples
-│   ├───cifar
-│   │   ├───configs
-│   │   ├───data
-│   │   └───outputs
-│   ├───cora
-│   └───future
-│       └───abidenyu
-├───kale
-│   ├───embed
-│   ├───evaluate
-│   ├───interpret
-│   ├───loaddata
-│   ├───pipeline
-│   ├───predict
-│   ├───prepdata
-│   └───utils
-└───tests
-    └───data
-```
 
 ### General recommendation
 

@@ -1,0 +1,4 @@
+include LICENSE
+
+recursive-include test *
+recursive-exclude examples *
