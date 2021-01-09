@@ -64,7 +64,7 @@ setup(
         'numpy>=1.18.0',
         'torch>=1.7.0',
         'torchvision>=0.8.1',
-        'scikit-image',
+        # 'scikit-image',
         # 'scikit-learn>=0.23,!=0.24.0',
         'tensorly',
     ],
