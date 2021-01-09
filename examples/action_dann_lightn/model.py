@@ -7,10 +7,11 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 
 from copy import deepcopy
 
-from kale.embed.video_i3d import i3d
+from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_res3d import r3d_18, r2plus1d_18, mc3_18
 from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
 import kale.pipeline.domain_adapter as domain_adapter
+import kale.pipeline.action_domain_adapter as action_domain_adapter
 
 
 def get_config(cfg):
@@ -51,7 +52,7 @@ def get_config(cfg):
     return config_params
 
 
-def get_feat_extractor(model_name, image_modality, num_classes, num_channels):
+def get_feat_extractor(model_name, image_modality, num_classes):
     """
     Get the feature extractor w/o the pre-trained model. The pre-trained models are saved in the path
     ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
@@ -73,7 +74,7 @@ def get_feat_extractor(model_name, image_modality, num_classes, num_channels):
     if image_modality == 'rgb':
         if model_name == 'I3D':
             pretrained_model = 'rgb_imagenet'
-            feature_network = i3d(name=pretrained_model, num_channels=num_channels, pretrained=True)
+            feature_network = i3d_joint(rgb_pt=pretrained_model, flow_pt=None, pretrained=True)
             # model.replace_logits(num_classes)
             feature_dim = 1024
         elif model_name == 'R3D_18':
@@ -91,18 +92,19 @@ def get_feat_extractor(model_name, image_modality, num_classes, num_channels):
     elif image_modality == 'flow':
         if model_name == 'I3D':
             pretrained_model = 'flow_imagenet'
-            feature_network = i3d(name=pretrained_model, num_channels=num_channels, pretrained=True)
+            feature_network = i3d_joint(rgb_pt=None, flow_pt=pretrained_model, pretrained=True)
             feature_dim = 1024
         else:
             raise RuntimeError('Only provides I3D model for optical flow input. Current is {}.'.format(model_name))
 
-    elif image_modality == 'JOINT':
+    elif image_modality == 'joint':
         if model_name == 'I3D':
-            # TODO: add joint model
             rgb_pretrained_model = 'rgb_imagenet'
             flow_pretrained_model = 'flow_imagenet'
-            feature_network = i3d_joint(name=pretrained_model, num_channels=num_channels, pretrained=True)
-            feature_dim = 1024
+            feature_network = i3d_joint(rgb_pt=rgb_pretrained_model,
+                                        flow_pt=flow_pretrained_model,
+                                        pretrained=True)
+            feature_dim = 2048
         else:
             raise RuntimeError("Only provides I3D model for optical joint inputs. Current is {}.".format(model_name))
 
@@ -112,7 +114,7 @@ def get_feat_extractor(model_name, image_modality, num_classes, num_channels):
 
 
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
-def get_model(cfg, dataset, num_channels, num_classes):
+def get_model(cfg, dataset, num_classes):
     """
     Builds and returns a model and associated hyper parameters according to the config object passed.
 
@@ -125,7 +127,7 @@ def get_model(cfg, dataset, num_channels, num_classes):
 
     # setup feature extractor
     feature_network, feature_dim = get_feat_extractor(cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY,
-                                                      num_classes, num_channels)
+                                                      num_classes)
     # setup classifier
     classifier_network = ClassNetSmallImage(feature_dim, num_classes)
 
@@ -137,9 +139,11 @@ def get_model(cfg, dataset, num_channels, num_classes):
     method = domain_adapter.Method(cfg.DAN.METHOD)
 
     if method.is_mmd_method():
-        model = domain_adapter.create_mmd_based(
+        # model = domain_adapter.create_mmd_based(
+        model = action_domain_adapter.create_mmd_based_4video(
             method=method,
             dataset=dataset,
+            image_modality=cfg.DATASET.IMAGE_MODALITY,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             **method_params,
@@ -159,9 +163,10 @@ def get_model(cfg, dataset, num_channels, num_classes):
             method_params["use_random"] = cfg.DAN.USERANDOM
 
         # The following calls kale.loaddata.dataset_access for the first time
-        model = domain_adapter.create_dann_like(
+        model = action_domain_adapter.create_dann_like_4video(
             method=method,
             dataset=dataset,
+            image_modality=cfg.DATASET.IMAGE_MODALITY,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             critic=critic_network,

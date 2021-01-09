@@ -17,7 +17,9 @@ from pytorch_lightning import loggers as pl_loggers
 from examples.action_dann_lightn.config import get_cfg_defaults
 from examples.action_dann_lightn.model import get_model
 from kale.loaddata.video_access import VideoDataset
+# from kale.loaddata.video_access_org import VideoDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
+from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
 from kale.utils.seed import set_seed
 
 
@@ -46,11 +48,15 @@ def main():
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
-    source, target, num_channels, num_classes = VideoDataset.get_source_target(VideoDataset(cfg.DATASET.SOURCE.upper()),
-                                                                               VideoDataset(cfg.DATASET.TARGET.upper()),
-                                                                               cfg)
-    dataset = MultiDomainDatasets(source, target, config_weight_type=cfg.DATASET.WEIGHT_TYPE,
-                                  config_size_type=cfg.DATASET.SIZE_TYPE)
+    source, target, num_classes = VideoDataset.get_source_target(VideoDataset(cfg.DATASET.SOURCE.upper()),
+                                                                 VideoDataset(cfg.DATASET.TARGET.upper()),
+                                                                 cfg)
+    # dataset = MultiDomainDatasets(source, target, config_weight_type=cfg.DATASET.WEIGHT_TYPE,
+    #                               config_size_type=cfg.DATASET.SIZE_TYPE)
+    dataset = VideoMultiDomainDatasets(source, target,
+                                       image_modality=cfg.DATASET.IMAGE_MODALITY,
+                                       config_weight_type=cfg.DATASET.WEIGHT_TYPE,
+                                       config_size_type=cfg.DATASET.SIZE_TYPE)
 
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
@@ -58,7 +64,7 @@ def main():
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         print(f'==> Building model for seed {seed} ......')
         # ---- setup model and logger ----                                                     
-        model, train_params = get_model(cfg, dataset, num_channels, num_classes)
+        model, train_params = get_model(cfg, dataset, num_classes)
         logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params,
                                                                            cfg.OUTPUT.DIR,
                                                                            cfg.DAN.METHOD,
