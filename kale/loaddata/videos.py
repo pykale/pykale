@@ -154,7 +154,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             y_img = Image.open(os.path.join(directory, self.imagefile_template.format('y', idx))).convert('L')
             return [x_img, y_img]
         else:
-            raise RuntimeError("Input modality is not in [rgb, flow, joint]. Current is {}".format(self.image_modality))
+            raise ValueError("Input modality is not in [rgb, flow, joint]. Current is {}".format(self.image_modality))
 
     def _parse_list(self):
         self.video_list = [VideoRecord(x.strip().split(' '), self.root_path) for x in open(self.annotationfile_path)]
@@ -209,16 +209,16 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         record = self.video_list[index]
 
         if record.num_frames < self.frames_per_segment:
-            raise RuntimeError('Path:{}, start:{}, end:{}.\n Video_length is {}, which should be larger than '
+            raise ValueError('Path:{}, start:{}, end:{}.\n Video_length is {}, which should be larger than '
                                'frame_per_segment {}.'.format(record.path, record.start_frame, record.end_frame,
                                                               record.num_frames, self.frames_per_segment))
         elif record.num_frames < self.num_segments:
-            raise RuntimeError('Path:{}, start:{}, end:{}.\n Video_length is {}, which should be larger than '
+            raise ValueError('Path:{}, start:{}, end:{}.\n Video_length is {}, which should be larger than '
                                'num_segments {}.'.format(record.path, record.start_frame, record.end_frame,
                                                          record.num_frames, self.num_segments))
         elif record.num_frames < self.num_segments * self.frames_per_segment:
             if self.num_segments > record.num_frames - self.frames_per_segment + 1:
-                raise RuntimeError('Path:{}, start:{}, end:{}.\n Video_length is {}, num_segments is {} and '
+                raise ValueError('Path:{}, start:{}, end:{}.\n Video_length is {}, num_segments is {} and '
                                    'frame_per_segment is {}. Please make num_segments<frame_length-frames_per_segment '
                                    'to avoid getting too many same segments.'.format(record.path, record.start_frame,
                                                                                      record.end_frame,
