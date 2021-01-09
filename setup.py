@@ -61,6 +61,7 @@ setup(
         # if you add any additional libraries, please also
         # add them to `docs/requirements.txt`
         # numpy is necessary for some functionality of PyTorch
+        'Cython>= 0.28.5',
         'numpy>=1.18.0',
         'torch>=1.7.0',
         'torchvision>=0.8.1',
