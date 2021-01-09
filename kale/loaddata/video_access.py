@@ -5,6 +5,9 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/d
 
 import os
 from enum import Enum
+
+import torch
+
 import kale.prepdata.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.video_datasets import BasicVideoDataset, EPIC
@@ -49,7 +52,7 @@ def generate_list(data_name, data_params_local, domain):
         dataset_path = os.path.join(data_params_local['dataset_root'], data_name)
         data_path = os.path.join(dataset_path, 'frames_rgb_flow')
     else:
-        raise RuntimeError('Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN]')
+        raise ValueError('Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN]')
 
     train_listpath = os.path.join(
         dataset_path, 'annotations', 'labels_train_test', data_params_local['dataset_{}_trainlist'.format(domain)])
@@ -78,7 +81,7 @@ class VideoDataset(Enum):
             params: (CfgNode): hyper parameters from configure file
 
         Examples::
-            >>> source, target, num_channels, num_classes = get_source_target(sourcename, targetname, cfg)
+            >>> source, target, num_classes = get_source_target(source, target, params)
         """
         config_params = get_videodata_config(params)
         data_params = config_params['data_params']
@@ -90,36 +93,12 @@ class VideoDataset(Enum):
         image_modality = data_params_local['dataset_image_modality']
         frames_per_segment = data_params_local['frames_per_segment']
 
-        if image_modality == 'rgb':
-            channel_numbers = {
-                VideoDataset.EPIC: 3,
-                VideoDataset.GTEA: 3,
-                VideoDataset.ADL: 3,
-                VideoDataset.KITCHEN: 3,
-            }
-
-            transform_names = {
-                (VideoDataset.EPIC, 3): 'epic',
-                (VideoDataset.GTEA, 3): 'gtea',
-                (VideoDataset.ADL, 3): 'adl',
-                (VideoDataset.KITCHEN, 3): 'kitchen',
-            }
-        elif image_modality == 'flow':
-            channel_numbers = {
-                VideoDataset.EPIC: 2,
-                VideoDataset.GTEA: 2,
-                VideoDataset.ADL: 2,
-                VideoDataset.KITCHEN: 2,
-            }
-
-            transform_names = {
-                (VideoDataset.EPIC, 2): 'epic',
-                (VideoDataset.GTEA, 2): 'gtea',
-                (VideoDataset.ADL, 2): 'adl',
-                (VideoDataset.KITCHEN, 2): 'kitchen',
-            }
-        else:
-            raise RuntimeError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
+        transform_names = {
+            VideoDataset.EPIC: 'epic',
+            VideoDataset.GTEA: 'gtea',
+            VideoDataset.ADL: 'adl',
+            VideoDataset.KITCHEN: 'kitchen',
+        }
 
         class_numbers = {
             VideoDataset.EPIC: 8,
@@ -135,19 +114,47 @@ class VideoDataset(Enum):
             VideoDataset.KITCHEN: KITCHENDatasetAccess,
         }
 
-        # handle color/nb channels
-        num_channels = max(channel_numbers[source], channel_numbers[target])
+        # handle color/nb classes
         num_classes = min(class_numbers[source], class_numbers[target])
-        source_tf = transform_names[(source, num_channels)]
-        target_tf = transform_names[(target, num_channels)]
+        source_tf = transform_names[source]
+        target_tf = transform_names[target]
+
+        if image_modality == 'rgb':
+            rgb_source = factories[source](src_data_path, src_tr_listpath, src_te_listpath, image_modality,
+                                           frames_per_segment,
+                                           num_classes, source_tf)
+            rgb_target = factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, image_modality,
+                                           frames_per_segment,
+                                           num_classes, target_tf)
+            flow_source = flow_target = None
+        elif image_modality == 'flow':
+            flow_source = factories[source](src_data_path, src_tr_listpath, src_te_listpath, image_modality,
+                                            frames_per_segment,
+                                            num_classes, source_tf)
+            flow_target = factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, image_modality,
+                                            frames_per_segment,
+                                            num_classes, target_tf)
+            rgb_source = rgb_target = None
+        elif image_modality == 'joint':
+            rgb_source = factories[source](src_data_path, src_tr_listpath, src_te_listpath, 'rgb',
+                                           frames_per_segment,
+                                           num_classes, source_tf)
+            rgb_target = factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, 'rgb',
+                                           frames_per_segment,
+                                           num_classes, target_tf)
+            flow_source = factories[source](src_data_path, src_tr_listpath, src_te_listpath, 'flow',
+                                            frames_per_segment,
+                                            num_classes, source_tf)
+            flow_target = factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, 'flow',
+                                            frames_per_segment,
+                                            num_classes, target_tf)
+        else:
+            raise ValueError("Invalid modality option: {}".format(image_modality))
 
         return (
-            factories[source](src_data_path, src_tr_listpath, src_te_listpath, image_modality, frames_per_segment,
-                              num_classes, source_tf),
-            factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, image_modality, frames_per_segment,
-                              num_classes, target_tf),
-            num_channels,
-            num_classes
+            {'rgb': rgb_source, 'flow': flow_source},
+            {'rgb': rgb_target, 'flow': flow_target},
+            num_classes,
         )
 
 
@@ -175,9 +182,21 @@ class VideoDatasetAccess(DatasetAccess):
         self._frames_per_segment = frames_per_segment
         self._transform = video_transform.get_transform(transform_kind, self._image_modality)
 
+    def get_train_val(self, val_ratio):
+        train_dataset = self.get_train()
+        ntotal = len(train_dataset)
+        ntrain = int((1 - val_ratio) * ntotal)
+        # torch.cuda.manual_seed_all(2021)
+        a = torch.utils.data.random_split(train_dataset, [ntrain, ntotal - ntrain],
+                                          generator=torch.Generator().manual_seed(2020)
+                                          )
+        return torch.utils.data.random_split(train_dataset, [ntrain, ntotal - ntrain],
+                                             generator=torch.Generator().manual_seed(2020))
+
 
 class EPICDatasetAccess(VideoDatasetAccess):
     """EPIC data loader"""
+
     def get_train(self):
         return EPIC(
             root_path=self._data_path,
@@ -211,6 +230,7 @@ class EPICDatasetAccess(VideoDatasetAccess):
 
 class GTEADatasetAccess(VideoDatasetAccess):
     """GTEA data loader"""
+
     def get_train(self):
         return BasicVideoDataset(
             root_path=self._data_path,
@@ -244,6 +264,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
 
 class ADLDatasetAccess(VideoDatasetAccess):
     """ADL data loader"""
+
     def get_train(self):
         return BasicVideoDataset(
             root_path=self._data_path,
@@ -277,6 +298,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
 
 class KITCHENDatasetAccess(VideoDatasetAccess):
     """KITCHEN data loader"""
+
     def get_train(self):
         return BasicVideoDataset(
             root_path=self._data_path,

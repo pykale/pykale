@@ -17,7 +17,6 @@ from pytorch_lightning import loggers as pl_loggers
 from examples.action_dann_lightn.config import get_cfg_defaults
 from examples.action_dann_lightn.model import get_model
 from kale.loaddata.video_access import VideoDataset
-# from kale.loaddata.video_access_org import VideoDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
 from kale.utils.seed import set_seed
