@@ -9,12 +9,12 @@ numpy==1.19.0
 torchvision==0.8.1
 
 # Need to specify version
-scikit-learn==0.23.1 # To confirm version 
-tensorly==0.5.1 # To confirm version 
-scikit-image==0.18.1 # To confirm version 
+scikit-learn # To confirm version 
+tensorly  # To confirm version 
+scikit-image # To confirm version 
 
 # Needed only for pipeline API
-pytorch-lightning==1.0.2 # To confirm version 
+pytorch-lightning # To confirm version 
 
 # utils
 torchsummary==1.5.0
