@@ -15,6 +15,18 @@ Please star and/or fork PyKale to follow the latest update. Welcome to join / co
   * Create a [pull request](https://github.com/pykale/pykale/pulls) explaining the changes and choose **reviewers**: Raivo, Xianyuan, Haiping, Shuo, David
   * After passing the review, your pull request gets merged and pykale has your contribution incorporated.
 
+## Installation
+
+**Requirements**:
+- Python >= 3.6
+- PyTorch >= 1.7
+
+Install PyKale using pip:
+
+```bash
+pip install pykale
+```
+
 ## Overview
 
 **Long term goal**: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)

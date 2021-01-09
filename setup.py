@@ -24,19 +24,6 @@ def find_version(*file_paths):
 readme = open("README.md").read()
 version = find_version("kale", "__init__.py")
 
-
-torch_min = "1.7"
-install_requires = [">=".join(["torch", torch_min]), "scikit-learn"]
-# if recent dev version of PyTorch is installed, no need to install stable
-try:
-    import torch
-
-    if torch.__version__ >= torch_min:
-        install_requires = []
-except ImportError:
-    pass
-
-
 # Run the setup
 setup(
     name="pykale",
@@ -69,13 +56,23 @@ setup(
     ],    
     packages=find_packages(),
     python_requires=">=3.6",
-    install_requires=install_requires,
+    # install_requires = [">=".join(["torch", torch_min]), "scikit-learn", "numpy", "pytorch-lightning", "tensorly", "torchvision"]
+    install_requires=[
+        # if you add any additional libraries, please also
+        # add them to `docs/requirements.txt`
+        # numpy is necessary for some functionality of PyTorch
+        'numpy>=1.18.0',
+        'torch>=1.7.0',
+        'torchvision>=0.8.1',
+        'scikit-image>=0.16.1',
+        'scikit-learn>=0.23.1',
+        'tensorly>=0.4.2',
+    ],
     extras_require={
         "dev": ["black", "twine", "pre-commit"],
-        "docs": ["ipython", "ipykernel", "sphinx<3.0.0", "sphinx_rtd_theme", "nbsphinx", "m2r"],
-        "examples": ["scikit-image", "tensorly", "matplotlib", "numpy", "torchvision", "tqdm", "pytorch-lightning"],
-        "torchsummary": ["torchsummary>=1.5.0"],
-        "yacs": ["yacs>=0.1.7"],
+        "pipeline": ["pytorch-lightning>=1.0.2"],
+        "docs": ["ipython", "ipykernel", "sphinx", "sphinx_rtd_theme", "nbsphinx", "m2r"],
+        "utils": ["matplotlib", "tqdm", "torchsummary>=1.5.0", "yacs>=0.1.7"],
         "test": ["flake8", "flake8-print", "pytest", "nbval"],
     },
 )
