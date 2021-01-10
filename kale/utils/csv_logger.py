@@ -15,9 +15,11 @@ from datetime import datetime
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
+
 def param_to_str(param_dict):
     """Convert (hyper)parameter to a string
     """
+
     def key_val_mapper(kv):
         if isinstance(kv[1], dict):
             return param_to_str(kv[1])
@@ -34,10 +36,12 @@ def param_to_str(param_dict):
 
     return "-".join(map(key_val_mapper, param_dict.items()))
 
+
 def create_timestamp_string(fmt="%Y-%m-%d.%H.%M.%S.%f"):
     now = datetime.now()
     time_str = now.strftime(fmt)
     return time_str
+
 
 def param_to_hash(param_dict):
     """Generate a hash for a fixed hyperparameter setting
@@ -46,6 +50,7 @@ def param_to_hash(param_dict):
         json.dumps(param_dict, sort_keys=True).encode("utf-8")
     ).hexdigest()
     return config_hash
+
 
 def record_hashes(hash_file, hash_, value):
     """Record the hash and assoicated (training) parameters
@@ -68,6 +73,7 @@ def record_hashes(hash_file, hash_, value):
             fd.write('\n')
         return True
     return False
+
 
 def setup_logger(train_params, output_dir, method_name, seed):
     """[summary]
@@ -94,7 +100,7 @@ def setup_logger(train_params, output_dir, method_name, seed):
     checkpoint_dir = os.path.join(output_dir, "checkpoints", params_hash)
 
     # To simplify
-    
+
     path_method_name = re.sub(r"[^-/\w\.]", "_", method_name)
     full_checkpoint_dir = os.path.join(
         checkpoint_dir, path_method_name, f"seed_{seed}"
@@ -104,14 +110,14 @@ def setup_logger(train_params, output_dir, method_name, seed):
         monitor="last_epoch",
         mode="max",
     )
-    
+
     results = XpResults.from_file(
         ["source acc", "target acc", "domain acc"], test_csv_file
     )
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)  
+    logger.setLevel(logging.INFO)
 
     return logger, results, checkpoint_callback, test_csv_file
 
@@ -123,7 +129,8 @@ class XpResults:
         metrics (list of string): Which metrics to record.
         df (pandas.DataFrame, optional): columns are: metrics + [seed, method, split]. 
         Defaults to None.
-    """    
+    """
+
     @staticmethod
     def from_file(metrics, filepath):
         """Set up what metrics to log and where to log
@@ -179,7 +186,7 @@ class XpResults:
 
     def update(self, is_validation, method_name, seed, metric_values):
         """Update the log with metric values
-        """        
+        """
         split, prefix = ("Validation", "V") if is_validation else ("Test", "Te")
         results = pd.DataFrame(
             {
@@ -199,8 +206,8 @@ class XpResults:
     def get_best_archi_seed(self):
         return (
             self._df.sort_values(by=self._metrics, ascending=False)
-            .head(1)
-            .seed.values[0]
+                .head(1)
+                .seed.values[0]
         )
 
     def get_last_seed(self):
@@ -232,13 +239,13 @@ class XpResults:
         self._df.to_csv(filepath)
 
     def print_scores(
-        self,
-        method_name,
-        split="Validation",
-        stdout=True,
-        fdout=None,
-        print_func=print,
-        file_format="markdown",
+            self,
+            method_name,
+            split="Validation",
+            stdout=True,
+            fdout=None,
+            print_func=print,
+            file_format="markdown",
     ):
         """Print out the performance scores (over multiple runs)
         """
