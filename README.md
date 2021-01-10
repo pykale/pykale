@@ -7,8 +7,8 @@
 ![build](https://github.com/pykale/pykale/workflows/build/badge.svg)
 ![Unit Tests](https://github.com/pykale/pykale/workflows/unit%20tests/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
-[![Conda license](https://anaconda.org/gpytorch/gpytorch/badges/license.svg)](https://anaconda.org/pykale/pykale)
 [![PyPI version](https://badge.fury.io/py/pykale.svg)](https://badge.fury.io/py/pykale)
+[![Conda license](https://anaconda.org/gpytorch/gpytorch/badges/license.svg)](https://anaconda.org/pykale/pykale)
 <!-- [![Conda version](https://anaconda.org/pykale/pykale/badges/version.svg)](https://anaconda.org/pykale/pykale) -->
 <!-- [![Downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale) -->
 <!-- [![Downloads](https://anaconda.org/pykale/pykale/badges/downloads.svg)](https://anaconda.org/pykale/pykale) -->
