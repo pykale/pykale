@@ -28,7 +28,7 @@ version = find_version("kale", "__init__.py")
 setup(
     name="pykale",
     version=version,
-    description="A Python library for knowledge-aware machine learning",
+    description="Knowledge-aware machine learning from multiple sources in Python",
     long_description=readme,
     long_description_content_type="text/markdown",
     author="The PyKale team",
@@ -38,7 +38,7 @@ setup(
         "Documentation": "https://pykale.readthedocs.io",
         "Source": "https://github.com/pykale/pykale",
     },
-    keywords='machine learning, pytorch, multimodal learning, transfer learning',
+    keywords='machine learning, pytorch, dimensionality reduction, deep learning, multimodal learning, transfer learning',
     license="MIT",
     classifiers=[
         'Development Status :: 3 - Alpha',

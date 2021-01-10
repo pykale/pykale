@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/pykale/pykale/raw/master/docs/images/pykale_logo.png" width="3%" alt='project-monai'> <font size="5"> PyKale </font>
+  <img src="https://github.com/pykale/pykale/raw/master/docs/images/pykale_logo.png" width="5%" alt='project-monai'> PyKale
 </p>
 
 -----------------------------------------
@@ -7,11 +7,11 @@
 ![build](https://github.com/pykale/pykale/workflows/build/badge.svg)
 ![Unit Tests](https://github.com/pykale/pykale/workflows/unit%20tests/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
-[![PyPI version](https://badge.fury.io/py/pykale.svg)](https://badge.fury.io/py/pykale)
-[![Conda version](https://anaconda.org/pykale/pykale/badges/version.svg)](https://anaconda.org/pykale/pykale)
-[![Downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
-[![Downloads](https://anaconda.org/pykale/pykale/badges/downloads.svg)](https://anaconda.org/pykale/pykale)
 [![Conda license](https://anaconda.org/gpytorch/gpytorch/badges/license.svg)](https://anaconda.org/pykale/pykale)
+[![PyPI version](https://badge.fury.io/py/pykale.svg)](https://badge.fury.io/py/pykale)
+<!-- [![Conda version](https://anaconda.org/pykale/pykale/badges/version.svg)](https://anaconda.org/pykale/pykale) -->
+<!-- [![Downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale) -->
+<!-- [![Downloads](https://anaconda.org/pykale/pykale/badges/downloads.svg)](https://anaconda.org/pykale/pykale) -->
 
 [Getting Started](https://github.com/pykale/pykale/tree/master/examples) |
 [Documentation](https://pykale.readthedocs.io/) |
@@ -46,7 +46,7 @@ PyKale also aims to facilitate *interdisciplinary* research on *knowledge-aware*
 - Python >= 3.6
 - PyTorch >= 1.7
 
-Install PyKale using pip or conda:
+Install PyKale using `pip` or `conda`:
 
 ```bash
 pip install pykale
@@ -85,9 +85,9 @@ We would like to thank our other contributors including (but not limited to) Dav
 
 ## Citation
 
-    @Misc{pykale2020,
+    @Misc{pykale2021,
       author =   {Haiping Lu and Raivo Koot and Xianyuan Liu and Shuo Zhou and Peizhen Bai},
-      title =    {{PyKale}: Knowledge-aware machine learning from multiple sources},
+      title =    {{PyKale}: Knowledge-aware machine learning from multiple sources in Python},
       howpublished = {\url{https://github.com/pykale/pykale}},
       year = {2021}
     }

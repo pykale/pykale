@@ -29,6 +29,6 @@ about:
   home: https://github.com/pykale/pykale
   license: MIT
   license_file: LICENSE
-  summary: Knowledge-aware machine learning for  graphs, images, and videos in PyTorch
+  summary: Knowledge-aware machine learning from multiple sources in Python
   doc_url: https://pykale.readthedocs.io/en/latest/
   dev_url: https://github.com/pykale/pykale
