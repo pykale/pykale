@@ -69,7 +69,7 @@ class VideoDataset(Enum):
     KITCHEN = 'KITCHEN'
 
     @staticmethod
-    def get_source_target(source: "VideoDataset", target: "VideoDataset", params):
+    def get_source_target(source: "VideoDataset", target: "VideoDataset", seed, params):
         """
         Gets data loaders for source and target datasets
         Sets channel_number as 3 for RGB, 2 for flow.
@@ -78,10 +78,11 @@ class VideoDataset(Enum):
         Args:
             source: (VideoDataset): source dataset name
             target: (VideoDataset): target dataset name
+            seed: (int): seed value set manually.
             params: (CfgNode): hyper parameters from configure file
 
         Examples::
-            >>> source, target, num_classes = get_source_target(source, target, params)
+            >>> source, target, num_classes = get_source_target(source, target, seed, params)
         """
         config_params = get_videodata_config(params)
         data_params = config_params['data_params']
@@ -122,32 +123,32 @@ class VideoDataset(Enum):
         if image_modality == 'rgb':
             rgb_source = factories[source](src_data_path, src_tr_listpath, src_te_listpath, image_modality,
                                            frames_per_segment,
-                                           num_classes, source_tf)
+                                           num_classes, source_tf, seed)
             rgb_target = factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, image_modality,
                                            frames_per_segment,
-                                           num_classes, target_tf)
+                                           num_classes, target_tf, seed)
             flow_source = flow_target = None
         elif image_modality == 'flow':
             flow_source = factories[source](src_data_path, src_tr_listpath, src_te_listpath, image_modality,
                                             frames_per_segment,
-                                            num_classes, source_tf)
+                                            num_classes, source_tf, seed)
             flow_target = factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, image_modality,
                                             frames_per_segment,
-                                            num_classes, target_tf)
+                                            num_classes, target_tf, seed)
             rgb_source = rgb_target = None
         elif image_modality == 'joint':
             rgb_source = factories[source](src_data_path, src_tr_listpath, src_te_listpath, 'rgb',
                                            frames_per_segment,
-                                           num_classes, source_tf)
+                                           num_classes, source_tf, seed)
             rgb_target = factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, 'rgb',
                                            frames_per_segment,
-                                           num_classes, target_tf)
+                                           num_classes, target_tf, seed)
             flow_source = factories[source](src_data_path, src_tr_listpath, src_te_listpath, 'flow',
                                             frames_per_segment,
-                                            num_classes, source_tf)
+                                            num_classes, source_tf, seed)
             flow_target = factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, 'flow',
                                             frames_per_segment,
-                                            num_classes, target_tf)
+                                            num_classes, target_tf, seed)
         else:
             raise ValueError("Invalid modality option: {}".format(image_modality))
 
@@ -170,10 +171,11 @@ class VideoDatasetAccess(DatasetAccess):
         frames_per_segment (int): length of each action sample (the unit is number of frame)
         n_classes (int): number of class
         transform_kind (string): types of video transforms
+        seed: (int): seed value set manually.
     """
 
     def __init__(self, data_path, train_list, test_list,
-                 image_modality, frames_per_segment, n_classes, transform_kind):
+                 image_modality, frames_per_segment, n_classes, transform_kind, seed):
         super().__init__(n_classes)
         self._data_path = data_path
         self._train_list = train_list
@@ -181,17 +183,16 @@ class VideoDatasetAccess(DatasetAccess):
         self._image_modality = image_modality
         self._frames_per_segment = frames_per_segment
         self._transform = video_transform.get_transform(transform_kind, self._image_modality)
+        self._seed = seed
 
     def get_train_val(self, val_ratio):
+        """Get the train and validation dataset with the fixed random split.
+        """
         train_dataset = self.get_train()
         ntotal = len(train_dataset)
         ntrain = int((1 - val_ratio) * ntotal)
-        # torch.cuda.manual_seed_all(2021)
-        a = torch.utils.data.random_split(train_dataset, [ntrain, ntotal - ntrain],
-                                          generator=torch.Generator().manual_seed(2020)
-                                          )
         return torch.utils.data.random_split(train_dataset, [ntrain, ntotal - ntrain],
-                                             generator=torch.Generator().manual_seed(2020))
+                                             generator=torch.Generator().manual_seed(self._seed))
 
 
 class EPICDatasetAccess(VideoDatasetAccess):

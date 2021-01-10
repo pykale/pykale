@@ -42,6 +42,37 @@ class SamplingConfig:
         return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler)
 
 
+class FixedSeedSamplingConfig(SamplingConfig):
+    def __init__(self, seed=1, balance=False, class_weights=None):
+        """Sampling with fixed seed.
+        """
+        super(FixedSeedSamplingConfig, self).__init__(balance, class_weights)
+        self._seed = seed
+
+    def create_loader(self, dataset, batch_size):
+        """Create the data loader
+        """
+        if self._balance:
+            sampler = BalancedBatchSampler(dataset, batch_size=batch_size)
+        elif self._class_weights is not None:
+            sampler = ReweightedBatchSampler(
+                dataset, batch_size=batch_size, class_weights=self._class_weights
+            )
+        else:
+            if len(dataset) < batch_size:
+                sub_sampler = RandomSampler(
+                    dataset, replacement=True, num_samples=batch_size,
+                    generator=torch.Generator().manual_seed(self._seed)
+                )
+            else:
+                sub_sampler = RandomSampler(
+                    dataset,
+                    generator=torch.Generator().manual_seed(self._seed)
+                )
+            sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=True)
+        return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler)
+
+
 # TODO: deterministic shuffle?
 class MultiDataLoader:
     """
@@ -69,7 +100,6 @@ class MultiDataLoader:
                 self._iterators[di] = new_dl
                 batch = next(new_dl)
             return batch
-
         return [_get_next_dl_batch(di, dl) for di, dl in enumerate(self._iterators)]
 
     def __iter__(self):

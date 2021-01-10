@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 from kale.loaddata.multi_domain import MultiDomainDatasets, DatasetSizeType, WeightingType
-from kale.loaddata.sampler import MultiDataLoader, SamplingConfig
+from kale.loaddata.sampler import MultiDataLoader, FixedSeedSamplingConfig
 from sklearn.utils import check_random_state
 
 
@@ -11,6 +11,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             source_access_dict,
             target_access_dict,
             image_modality,
+            seed,
             config_weight_type="natural",
             config_size_type=DatasetSizeType.Max,
             val_split_ratio=0.1,
@@ -19,7 +20,17 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             n_fewshot=None,
             random_state=None,
     ):
+        """The class controlling how the source and target domains are iterated over when the input is joint.
+            Inherited from MultiDomainDatasets.
+        Args:
+            source_access_dict (dictionary): dictionary of source RGB and flow dataset accessors
+            target_access_dict (dictionary): dictionary of target RGB and flow dataset accessors
+            image_modality (string): image type (RGB or Optical Flow)
+            seed: (int): seed value set manually.
+        """
+
         self._image_modality = image_modality
+        self._seed = seed
         if self._image_modality == "joint":
             self.rgb = self.flow = True
         elif self._image_modality == "rgb" or self._image_modality == "flow":
@@ -39,20 +50,20 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         size_type = DatasetSizeType(config_size_type)
 
         if weight_type is WeightingType.PRESET0:
-            self._source_sampling_config = SamplingConfig(
+            self._source_sampling_config = FixedSeedSamplingConfig(
                 class_weights=np.arange(source_access.n_classes(), 0, -1)
             )
-            self._target_sampling_config = SamplingConfig(
+            self._target_sampling_config = FixedSeedSamplingConfig(
                 class_weights=random_state.randint(1, 4, size=target_access.n_classes())
             )
         elif weight_type is WeightingType.BALANCED:
-            self._source_sampling_config = SamplingConfig(balance=True)
-            self._target_sampling_config = SamplingConfig(balance=True)
+            self._source_sampling_config = FixedSeedSamplingConfig(balance=True)
+            self._target_sampling_config = FixedSeedSamplingConfig(balance=True)
         elif weight_type not in WeightingType:
             raise ValueError(f"Unknown weighting method {weight_type}.")
         else:
-            self._source_sampling_config = SamplingConfig()
-            self._target_sampling_config = SamplingConfig()
+            self._source_sampling_config = FixedSeedSamplingConfig(seed=self._seed)
+            self._target_sampling_config = FixedSeedSamplingConfig(seed=self._seed)
 
         self._source_access_dict = source_access_dict
         self._target_access_dict = target_access_dict
@@ -139,7 +150,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                 rgb_target_labeled_ds = self._labeled_target_by_split[split]
                 rgb_target_unlabeled_ds = rgb_target_ds
                 # label domain: always balanced
-                rgb_target_labeled_loader = SamplingConfig(
+                rgb_target_labeled_loader = FixedSeedSamplingConfig(
                     balance=True, class_weights=None
                 ).create_loader(
                     rgb_target_labeled_ds, batch_size=min(len(rgb_target_labeled_ds), batch_size)
@@ -154,7 +165,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             if self.flow:
                 flow_target_labeled_ds = self._labeled_target_by_split[split]
                 flow_target_unlabeled_ds = flow_target_ds
-                flow_target_labeled_loader = SamplingConfig(
+                flow_target_labeled_loader = FixedSeedSamplingConfig(
                     balance=True, class_weights=None
                 ).create_loader(
                     flow_target_labeled_ds, batch_size=min(len(flow_target_labeled_ds), batch_size)
@@ -166,6 +177,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                     self._size_type, rgb_source_ds, flow_target_labeled_ds, flow_target_unlabeled_ds
                 )
 
+            # combine loaders into a list and remove the loader which is NONE.
             dataloaders = [rgb_source_loader, flow_source_loader,
                            rgb_target_labeled_loader, flow_target_labeled_loader,
                            rgb_target_unlabeled_loader, flow_target_unlabeled_loader]
