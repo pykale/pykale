@@ -1,19 +1,44 @@
-# Knowledge-aware learning for graphs, images, & videos
+<p align="center">
+  <img src="https://github.com/pykale/pykale/raw/master/docs/images/pykale_logo.png" width="3%" alt='project-monai'> <font size="5"> PyKale </font>
+</p>
 
-<img src="https://raw.githubusercontent.com/pykale/pykale/master/docs/pykaleWorkflow.png"
-     alt="Machine learning workflow"
+-----------------------------------------
+
+![build](https://github.com/pykale/pykale/workflows/build/badge.svg)
+![Unit Tests](https://github.com/pykale/pykale/workflows/unit%20tests/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
+[![PyPI version](https://badge.fury.io/py/pykale.svg)](https://badge.fury.io/py/pykale)
+[![Conda version](https://anaconda.org/pykale/pykale/badges/version.svg)](https://anaconda.org/pykale/pykale)
+[![Downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
+[![Downloads](https://anaconda.org/pykale/pykale/badges/downloads.svg)](https://anaconda.org/pykale/pykale)
+[![Conda license](https://anaconda.org/gpytorch/gpytorch/badges/license.svg)](https://anaconda.org/pykale/pykale)
+
+[Getting Started](https://github.com/pykale/pykale/tree/master/examples) |
+[Documentation](https://pykale.readthedocs.io/) |
+[Contributing](https://github.com/pykale/pykale/blob/master/CONTRIBUTING.md) |
+[Discussions](https://github.com/pykale/pykale/discussions)
+
+PyKale is a machine learning library that leverages knowledge from multiple sources for accurate and *interpretable* prediction. It supports graphs, images, and videos now. It is based on [PyTorch](https://pytorch.org/) and several other libraries but differs from existing ones by adopting a unified pipeline-based APIs design and incorporating key recent developments. See the [Trello board](https://trello.com/b/X8VBNAvf/pykale-api-overview) for an overview.
+
+<img src="https://github.com/pykale/pykale/raw/master/docs/images/pykale_pipeline.png"
+     alt="Machine learning pipeline"
      style="float: center;" />
 
-PyKale aims to consolidate *interdisciplinary* research on *knowledge-aware* machine learning for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications, with pipeline-based APIs. See our [public Trello board](https://trello.com/b/X8VBNAvf/pykale-api-overview) for an overview.
+PyKale also aims to facilitate *interdisciplinary* research on *knowledge-aware* machine learning for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications. Key machine learning areas of interests include **dimensionality reduction**, **deep learning**, **multimodal learning**, and **transfer learning**.
 
-Please star and/or fork PyKale to follow the latest update. Welcome to join / contact us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a>.
-* **To contribute**
-  * [Fork](https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo) pykale (also see the [guide on forking projects](https://guides.github.com/activities/forking/)).
-  * Make changes to the source in your fork following [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md).
-  * **Document** the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) and [update `docs`](https://github.com/pykale/pykale/tree/master/docs) to verify its API [documentations](https://pykale.readthedocs.io/en/latest/).
-  * Keep **data** and other large files [local/external](https://github.com/pykale/pykale/tree/master/examples/data) to keep the repository small (via `.gitignore`)
-  * Create a [pull request](https://github.com/pykale/pykale/pulls) explaining the changes and choose **reviewers**: Raivo, Xianyuan, Haiping, Shuo, David
-  * After passing the review, your pull request gets merged and pykale has your contribution incorporated.
+### Pipeline-based modules (core, generic, and reusable)
+
+- `loaddata` load data from disk or online resources as in input
+- `prepdata` preprocess data to fit machine learning modules below (transforms)
+- `embed` embed data in a new space to learn a new representation (feature extraction/selection)
+- `predict` predict a desired output
+- `evaluate` evaluate the performance using some metrics
+- `interpret` interpret the features and outputs via post-prediction analysis mainly via visualisation
+- `pipeline` specify a machine learning workflow by combining several other modules
+
+### Dataset-specific modules
+
+- `examples`: Real-application on particular datasets.
 
 ## Installation
 
@@ -21,96 +46,54 @@ Please star and/or fork PyKale to follow the latest update. Welcome to join / co
 - Python >= 3.6
 - PyTorch >= 1.7
 
-Install PyKale using pip:
+Install PyKale using pip or conda:
 
 ```bash
 pip install pykale
+conda install -c pykale pykale
 ```
 
-## Overview
+You need to first install [PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning) for `kale.embed.pipeline` and [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) to work on graphs.
 
-**Long term goal**: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)
+To upgrade to the latest (unstable) version, run
 
-### Objectives
+```bash
+pip install --upgrade git+https://github.com/pykale/pykale.git
+```
 
-* Share and consolidate resources/expertise in several related areas
-* Build reusable and trustable tools for research and development
-* Avoid duplicated efforts and identify key missing components
+To run the unit tests:
 
-### Principles
+```bash
+python -m unittest
+```
 
-* Keep it **lean** in content, and memory/time cost. Quality first!
-* Use existing top code when it fits (**credit@top + license**) and build when NA or we can do much better
-* Keep it modular following the pipeline below and separate [core functionalities](https://github.com/pykale/pykale/tree/master/kale) from [specific applications](https://github.com/pykale/pykale/tree/master/examples).
+## Examples, Tutorials, and Discussions
 
-### Pipeline-based modules
+See our numerous [**examples (and tutorials)**](https://github.com/pykale/pykale/tree/master/examples) on how to perform prediction tasks in PyKale.
 
-* `loaddata` load data from disk or online resources as in input
-* `prepdata` preprocess data to fit machine learning modules below (transforms)
-* `embed` embed data in a new space to learn a new representation (feature extraction/selection)
-* `predict` predict a desired output
-* `evaluate` evaluate the performance using some metrics
-* `interpret` interpret the features and outputs via post-prediction analysis mainly via visualisation
-* `pipeline` specify a machine learning workflow by combining several other modules
+Ask and answer questions over on [PyKale's GitHub Discussions tab](https://github.com/pykale/pykale/discussions).
 
-We need to design these core modules to be generic, reusable, customizable, and not specific to a particular dataset. 
+## Contributing
 
-### Dataset-specific modules
+PyKale is under active development. Please star and fork PyKale to follow the latest update. Welcome to [contribute](https://github.com/pykale/pykale/blob/master/CONTRIBUTING.md) and join / contact us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a>. The participation in this open source project is subject to [Code of Conduct](https://github.com/pykale/pykale/blob/master/CODE_OF_CONDUCT.md).
 
-* `examples`: Real-application on particular datasets, with notebooks, GUI applications, and [TorchScript](https://pytorch.org/docs/stable/jit.html) support.
+## The Team
 
-## Coding
+PyKale is primarily maintained by a group of researchers at the University of Sheffield: [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/), [Raivo Koot](https://github.com/RaivoKoot), [Xianyuan Liu](https://github.com/XianyuanLiu), [Shuo Zhou](https://sz144.github.io/), and [Peizhen Bai](https://github.com/pz-white).
 
-### Coding style
+We would like to thank our other contributors including (but not limited to) David Jones, and Will Furnass.
 
-* Follow [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md)
-* Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html)
-* Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). Example: [ISONet](https://github.com/HaozhiQi/ISONet)
-* Use [PyTorch](https://pytorch.org/tutorials/) when possible. **Highly recommend** [PyTorch Lightning](https://towardsdatascience.com/from-pytorch-to-pytorch-lightning-a-gentle-introduction-b371b7caaf09) ([Video](https://www.youtube.com/watch?v=QHww1JH7IDU))
-* Key references include [MONAI](https://github.com/Project-MONAI/MONAI) for `medim`, [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) for `graph`, and [kornia](https://github.com/kornia/kornia) for `vision`.
+## Citation
 
-### General recommendation
+    @Misc{pykale2020,
+      author =   {Haiping Lu and Raivo Koot and Xianyuan Liu and Shuo Zhou and Peizhen Bai},
+      title =    {{PyKale}: Knowledge-aware machine learning from multiple sources},
+      howpublished = {\url{https://github.com/pykale/pykale}},
+      year = {2021}
+    }
 
-* Python: pytorch, [Visual Studio Code](https://code.visualstudio.com/download), pycharm
-* GitHub: GitHub Desktop, [GitHub guides](https://guides.github.com/), [UCL guidance](https://www.ucl.ac.uk/isd/services/research-it/research-software-development-tools/support-for-ucl-researchers-to-use-github)
-
-## Domain specifics
-
-### Medical imaging
-
-* Data and tasks
-  * Brain fMRI for diagnosis, neural decoding ([Data](https://github.com/cMadan/openMorph))
-  * Cardiac MRI (CMRI) for diagnosis, prognosis ([Data](http://www.cardiacatlas.org/challenges/))
-  * CMRI Landmark localisation
-  * CMRI segmentation?
-  * Data: [Medical Data for Machine Learning](https://github.com/beamandrew/medical-data)
-* Recommended package
-  * [MONAI](https://github.com/Project-MONAI/MONAI): deep learning-based healthcare imaging workflows, with great [highlights](https://docs.monai.io/en/latest/highlights.html)
-
-### Graph analysis
-
-* Data and tasks
-  * [Knowledge graph](https://github.com/shaoxiongji/awesome-knowledge-graph) and user-item interactions for recommender systems
-  * Biomedical knowledge graph for drug-drug interaction prediction
-  * Data: [OGB](https://github.com/snap-stanford/ogb), [OpenBioLink](https://github.com/OpenBioLink/OpenBioLink), [Chemistry/Biology graphs](https://github.com/mufeili/DL4MolecularGraph#benchmark-and-dataset)
-* Recommended package
-  * [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric): deep learning library for graphs
-
-### Computer vision
-
-* Data and tasks
-  * Action recognition from [videos](https://www.di.ens.fr/~miech/datasetviz/): [Data at GitHub listing](https://github.com/jinwchoi/awesome-action-recognition)
-  * Pose estimation from [images](https://www.simonwenkel.com/2018/12/09/Datasets-for-human-pose-estimation.html): [Data at GitHub listing](https://github.com/cbsudux/awesome-human-pose-estimation#datasets)
-  * Image classification (baselines): [CVonline Image Databases (including video etc)](http://homepages.inf.ed.ac.uk/rbf/CVonline/Imagedbase.htm)
-* Recommended package
-  * [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
-
-## Funding Acknowledgements
+## Acknowledgements
 
 The development of PyKale is partially supported by the following project(s).
 
-* Wellcome Trust Innovator Awards: Digital Technologies Ref 215799/Z/19/Z "Developing a Machine Learning Tool to Improve Prognostic and Treatment Response Assessment on Cardiac MRI Data"
-
-[<img src="https://www.cimr.cam.ac.uk/images/Wellcomeawardlogo/image"
-     alt="Wellcome Trust logo"
-     width="60" height="60" />](https://wellcome.org/)
+- Wellcome Trust Innovator Awards: Digital Technologies Ref 215799/Z/19/Z "Developing a Machine Learning Tool to Improve Prognostic and Treatment Response Assessment on Cardiac MRI Data".
