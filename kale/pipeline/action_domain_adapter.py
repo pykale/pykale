@@ -141,7 +141,8 @@ class BaseMMDLike4Video(BaseMMDLike):
         else:
             raise NotImplementedError("Batch len is {}. Check the Dataloader.".format(len(batch)))
 
-        print('rgb_s:{}, flow_s:{}, rgb_f:{}, flow_f:{}'.format(y_s, y_s_flow, y_tu, y_tu_flow))
+        # Uncomment when checking whether rgb & flow labels are equal.
+        # print('rgb_s:{}, flow_s:{}, rgb_f:{}, flow_f:{}'.format(y_s, y_s_flow, y_tu, y_tu_flow))
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
