@@ -78,13 +78,13 @@ def get_feat_extractor(model_name, image_modality, num_classes):
             # model.replace_logits(num_classes)
             feature_dim = 1024
         elif model_name == 'R3D_18':
-            feature_network = r3d(rgb=True, pretrained=True)
+            feature_network = r3d(rgb=True, flow=False, pretrained=True)
             feature_dim = 512
         elif model_name == 'R2PLUS1D_18':
-            feature_network = r2plus1d(pretrained=True)
+            feature_network = r2plus1d(rgb=True, flow=False, pretrained=True)
             feature_dim = 512
         elif model_name == 'MC3_18':
-            feature_network = mc3(pretrained=True)
+            feature_network = mc3(rgb=True, flow=False, pretrained=True)
             feature_dim = 512
         else:
             raise ValueError("Unsupported model: {}".format(model_name))
