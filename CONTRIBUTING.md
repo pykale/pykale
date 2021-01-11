@@ -25,6 +25,10 @@
 
 We need to design the core modules to be generic, reusable, customizable, and not specific to a particular dataset. 
 
+### Linting
+
+Use our [pre-commit-config.yaml](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml) to lint your code before commit.
+
 ### Coding style
 
 - Follow [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md)
@@ -68,3 +72,19 @@ We need to design the core modules to be generic, reusable, customizable, and no
   - Image classification (baselines): [CVonline Image Databases (including video etc)](http://homepages.inf.ed.ac.uk/rbf/CVonline/Imagedbase.htm)
 - Recommended package
   - [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
+
+## Management
+
+### Project boards
+
+We follow [MONAI project boards](https://github.com/Project-MONAI/MONAI/projects) to manage our project boards.
+
+### Versions
+
+Refer to the [Semantic Versioning](https://semver.org/) guidelines. Given a version number `MAJOR.MINOR.PATCH`, increment the:
+
+- MAJOR version when you make incompatible API changes,
+- MINOR version when you add functionality in a backwards compatible manner, and
+- PATCH version when you make backwards compatible bug fixes.
+
+Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format.
