@@ -10,8 +10,9 @@
 ![PyPI](https://img.shields.io/pypi/v/pykale?color=blue)
 ![Conda](https://img.shields.io/conda/v/pykale/pykale?color=blue)
 ![Conda](https://img.shields.io/conda/dn/pykale/pykale?color=lightgrey&label=conda%20downloads)
+<!-- ![PyPI - Downloads](https://img.shields.io/pypi/dd/pykale?color=lightgrey&label=pypi%20downloads) -->
+<!-- ![GitHub all releases](https://img.shields.io/github/downloads/pykale/pykale/total?color=lightgrey&label=github%20downloads) -->
 <!-- [![Downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale) -->
-<!-- [![Conda license](https://anaconda.org/pykale/pykale/badges/license.svg)](https://anaconda.org/pykale/pykale) -->
 
 [Getting Started](https://github.com/pykale/pykale/tree/master/examples) |
 [Documentation](https://pykale.readthedocs.io/) |
