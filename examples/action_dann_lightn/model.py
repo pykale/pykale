@@ -8,7 +8,7 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 from copy import deepcopy
 
 from kale.embed.video_i3d import i3d_joint
-from kale.embed.video_res3d import r3d_18, r2plus1d_18, mc3_18
+from kale.embed.video_res3d import r3d, r2plus1d, mc3
 from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
 import kale.pipeline.domain_adapter as domain_adapter
 import kale.pipeline.action_domain_adapter as action_domain_adapter
@@ -78,13 +78,13 @@ def get_feat_extractor(model_name, image_modality, num_classes):
             # model.replace_logits(num_classes)
             feature_dim = 1024
         elif model_name == 'R3D_18':
-            feature_network = r3d_18(pretrained=True)
+            feature_network = r3d(rgb=True, pretrained=True)
             feature_dim = 512
         elif model_name == 'R2PLUS1D_18':
-            feature_network = r2plus1d_18(pretrained=True)
+            feature_network = r2plus1d(pretrained=True)
             feature_dim = 512
         elif model_name == 'MC3_18':
-            feature_network = mc3_18(pretrained=True)
+            feature_network = mc3(pretrained=True)
             feature_dim = 512
         else:
             raise ValueError("Unsupported model: {}".format(model_name))
@@ -95,7 +95,7 @@ def get_feat_extractor(model_name, image_modality, num_classes):
             feature_network = i3d_joint(rgb_pt=None, flow_pt=pretrained_model, pretrained=True)
             feature_dim = 1024
         else:
-            raise RuntimeError('Only provides I3D model for optical flow input. Current is {}.'.format(model_name))
+            raise ValueError('Only provides I3D model for optical flow input. Current is {}.'.format(model_name))
 
     elif image_modality == 'joint':
         if model_name == 'I3D':
@@ -106,10 +106,10 @@ def get_feat_extractor(model_name, image_modality, num_classes):
                                         pretrained=True)
             feature_dim = 2048
         else:
-            raise RuntimeError("Only provides I3D model for optical joint inputs. Current is {}.".format(model_name))
+            raise ValueError("Only provides I3D model for optical joint inputs. Current is {}.".format(model_name))
 
     else:
-        raise RuntimeError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
+        raise ValueError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
     return feature_network, feature_dim
 
 

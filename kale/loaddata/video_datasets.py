@@ -135,7 +135,7 @@ class EPIC(VideoFrameDataset):
         Load data from the EPIC-Kitchen list file and make them into the united format.
         Because the original list files are not the same, inherit from class BasicVideoDataset and be modified.
         """
-        
+
         data = []
         i = 0
         with open(self.annotationfile_path, 'rb') as input_file:

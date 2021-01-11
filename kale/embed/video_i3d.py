@@ -9,6 +9,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models.utils import load_state_dict_from_url
 
+__all__ = ['i3d_joint']
+
 model_urls = {
     'rgb_imagenet': 'https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt',
     'flow_imagenet': 'https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/flow_imagenet.pt',
@@ -236,7 +238,7 @@ class InceptionI3d(nn.Module):
         if self._final_endpoint not in self.VALID_ENDPOINTS:
             raise ValueError('Unknown final endpoint %s' % self._final_endpoint)
 
-        """Construct I3D architecture"""
+        """Construct I3D architecture."""
         self.end_points = {}
         end_point = 'Conv3d_1a_7x7'
         self.end_points[end_point] = Unit3D(in_channels=in_channels, output_channels=64, kernel_shape=[7, 7, 7],
@@ -345,7 +347,7 @@ class InceptionI3d(nn.Module):
         self.build()
 
     def replace_logits(self, num_classes):
-        """Update the num_classes according to the specific setting"""
+        """Update the num_classes according to the specific setting."""
 
         self._num_classes = num_classes
         self.logits = Unit3D(in_channels=384 + 384 + 128 + 128, output_channels=self._num_classes,
@@ -361,7 +363,7 @@ class InceptionI3d(nn.Module):
             self.add_module(k, self.end_points[k])
 
     def forward(self, x):
-        """The output is the result of the final average pooling layer with 1024 dimensions """
+        """The output is the result of the final average pooling layer with 1024 dimensions."""
 
         for end_point in self.VALID_ENDPOINTS:
             if end_point in self.end_points:
@@ -387,6 +389,7 @@ class InceptionI3d(nn.Module):
 
 
 def i3d(name, num_channels, pretrained=False, progress=True):
+    """Get InceptionI3d module w/o pretrained model."""
     model = InceptionI3d(in_channels=num_channels)
 
     if pretrained:
@@ -397,6 +400,7 @@ def i3d(name, num_channels, pretrained=False, progress=True):
 
 
 def i3d_joint(rgb_pt, flow_pt, pretrained=False, progress=True):
+    """Get I3D models."""
     i3d_rgb = i3d_flow = None
     if rgb_pt is not None and flow_pt is None:
         i3d_rgb = i3d(name=rgb_pt, num_channels=3, pretrained=pretrained, progress=progress)

@@ -159,8 +159,7 @@ class BaseMMDLike4Video(BaseMMDLike):
 
 
 class DANtrainer4Video(BaseMMDLike4Video):
-    """
-    This is an implementation of DAN for video data.
+    """This is an implementation of DAN for video data.
     """
 
     def __init__(self, dataset, image_modality, feature_extractor, task_classifier, **base_params):
@@ -175,8 +174,7 @@ class DANtrainer4Video(BaseMMDLike4Video):
 
 
 class JANtrainer4Video(BaseMMDLike4Video):
-    """
-    This is an implementation of JAN for video data.
+    """This is an implementation of JAN for video data.
     """
 
     def __init__(self,
@@ -220,8 +218,7 @@ class JANtrainer4Video(BaseMMDLike4Video):
 
 
 class DANNtrainer4Video(DANNtrainer):
-    """
-    This is an implementation of DANN for video data.
+    """This is an implementation of DANN for video data.
     """
 
     def __init__(
@@ -297,8 +294,7 @@ class DANNtrainer4Video(DANNtrainer):
 
 
 class CDANtrainer4Video(CDANtrainer):
-    """
-    This is an implementation of CDAN for video data.
+    """This is an implementation of CDAN for video data.
     """
 
     def __init__(
@@ -408,8 +404,7 @@ class CDANtrainer4Video(CDANtrainer):
 
 
 class WDGRLtrainer4Video(WDGRLtrainer):
-    """
-    This is an implementation of WDGRL for video data.
+    """This is an implementation of WDGRL for video data.
     """
 
     def __init__(

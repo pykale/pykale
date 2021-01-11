@@ -6,7 +6,7 @@ Created by Xianyuan Liu from modifying https://github.com/pytorch/vision/blob/ma
 import torch.nn as nn
 from torchvision.models.utils import load_state_dict_from_url
 
-__all__ = ['r3d_18', 'mc3_18', 'r2plus1d_18']
+__all__ = ['r3d', 'mc3', 'r2plus1d', 'r3d_18', 'mc3_18', 'r2plus1d_18']
 
 model_urls = {
     'r3d_18': 'https://download.pytorch.org/models/r3d_18-b3b3357e.pth',
@@ -348,3 +348,45 @@ def r2plus1d_18(pretrained=False, progress=True, **kwargs):
                          conv_makers=[Conv2Plus1D] * 4,
                          layers=[2, 2, 2, 2],
                          stem=R2Plus1dStem, **kwargs)
+
+
+def r3d(rgb=False, flow=False, pretrained=False, progress=True):
+    """Get R3D_18 models."""
+    r3d_rgb = r3d_flow = None
+    if rgb and not flow:
+        r3d_rgb = r3d_18(pretrained=pretrained, progress=progress)
+    # elif not rgb and flow:
+    #     r3d_flow = r3d_18(pretrained=False, progress=progress)
+    # elif rgb and flow:
+    #     r3d_rgb = r3d_18(pretrained=pretrained, progress=progress)
+    #     r3d_flow = r3d_18(pretrained=False, progress=progress)
+    models = {'rgb': r3d_rgb, 'flow': r3d_flow}
+    return models
+
+
+def mc3(rgb=False, flow=False, pretrained=False, progress=True):
+    """Get R3D_18 models."""
+    mc3_rgb = mc3_flow = None
+    if rgb and not flow:
+        mc3_rgb = mc3_18(pretrained=pretrained, progress=progress)
+    # elif not rgb and flow:
+    #     mc3_flow = mc3_18(pretrained=False, progress=progress)
+    # elif rgb and flow:
+    #     mc3_rgb = mc3_18(pretrained=pretrained, progress=progress)
+    #     mc3_flow = mc3_18(pretrained=False, progress=progress)
+    models = {'rgb': mc3_rgb, 'flow': mc3_flow}
+    return models
+
+
+def r2plus1d(rgb=False, flow=False, pretrained=False, progress=True):
+    """Get R3D_18 models."""
+    r2plus1d_rgb = r2plus1d_flow = None
+    if rgb and not flow:
+        r2plus1d_rgb = r2plus1d_18(pretrained=pretrained, progress=progress)
+    # elif not rgb and flow:
+    #     r2plus1d_flow = r2plus1d_18(pretrained=False, progress=progress)
+    # elif rgb and flow:
+    #     r2plus1d_rgb = r2plus1d_18(pretrained=pretrained, progress=progress)
+    #     r2plus1d_flow = r2plus1d_18(pretrained=False, progress=progress)
+    models = {'rgb': r2plus1d_rgb, 'flow': r2plus1d_flow}
+    return models

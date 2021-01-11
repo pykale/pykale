@@ -66,7 +66,7 @@ def get_transform(kind, image_modality):
                 ])
             }
         else:
-            raise RuntimeError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
+            raise ValueError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
     else:
         raise ValueError(f"Unknown transform kind '{kind}'")
     return transform
@@ -81,24 +81,23 @@ class ImglistToTensor(torch.nn.Module):
 
     def forward(self, img_list):
         """
-        For RGB input, Converts each PIL image in a list to a torch Tensor and stacks them into a single tensor.
-        For flow input, after the previous step, reshapes the tensor to combine the x(u)_img, y(v)_img. For example,
-        assuming flow tensor size is [16, 1, 224, 224], the frame order is [frame 1_x, frame 1_y, frame 2_x,
-        frame 2_y, frame 3_x, ..., frame 8_x, frame 8_y], reshapes it to [8, 2, 224, 224] to create [[frame 1_x,
-        frame 1_y], [frame 2_x, frame 2_y], [frame 3_x, ..., [frame 8_x, frame 8_y]] to combine x and y. Now Frame
-        num is 8, channel num is 2.
+        For RGB input, converts each PIL image in a list to a torch Tensor and stacks them into a single tensor.
+        For flow input, converts every two PIL images (x(u)_img, y(v)_img) in a list to a torch Tensor and stacks them.
+        For example, if input list size is 16, the dimension is [16, 1, 224, 224] and the frame order is
+        [frame 1_x, frame 1_y, frame 2_x, frame 2_y, frame 3_x, ..., frame 8_x, frame 8_y]. The output will be
+        [[frame 1_x, frame 1_y], [frame 2_x, frame 2_y], [frame 3_x, ..., [frame 8_x, frame 8_y]] and the dimension is
+        [8, 2, 224, 224].
 
         Args:
             img_list: list of PIL images.
         Returns:
             tensor of size `` NUM_IMAGES x CHANNELS x HEIGHT x WIDTH``
         """
-        img_t = torch.stack([transforms.functional.to_tensor(pic) for pic in img_list])
         if img_list[0].mode == 'RGB':
-            return img_t
+            return torch.stack([transforms.functional.to_tensor(pic) for pic in img_list])
         elif img_list[0].mode == 'L':
-            img_f = torch.reshape(img_t, shape=(img_t.shape[0] // 2, 2, img_t.shape[2], img_t.shape[3]))
-            return img_f
+            it = iter([transforms.functional.to_tensor(pic) for pic in img_list])
+            return torch.stack([torch.cat((i, next(it)), dim=0) for i in it])
         else:
             raise RuntimeError('Image modality is not in [rgb, flow].')
 
