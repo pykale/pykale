@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/pykale/pykale/raw/master/docs/images/pykale_logo.png" width="5%" alt='project-monai'> PyKale
+  <img src="https://github.com/pykale/pykale/raw/master/docs/images/pykale_logo.png" width="5%" alt='project-monai'> PyKale <a href="https://pypi.org/project/pykale/"><img alt="PyPI" src="https://img.shields.io/pypi/v/pykale?color=blue"></a> <a href="https://anaconda.org/pykale/pykale"><img alt="Conda" src="https://img.shields.io/conda/v/pykale/pykale?color=blue"></a>
 </p>
 
 -----------------------------------------
@@ -7,11 +7,10 @@
 ![build](https://github.com/pykale/pykale/workflows/build/badge.svg)
 ![Unit Tests](https://github.com/pykale/pykale/workflows/unit%20tests/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
-![PyPI](https://img.shields.io/pypi/v/pykale?color=blue)
-![Conda](https://img.shields.io/conda/v/pykale/pykale?color=blue)
+[![Downloads](https://static.pepy.tech/personalized-badge/pykale?period=total&units=international_system&left_color=grey&right_color=lightgrey&left_text=pypi%20downloads)](https://pepy.tech/project/pykale)
 ![Conda](https://img.shields.io/conda/dn/pykale/pykale?color=lightgrey&label=conda%20downloads)
+![GitHub all releases](https://img.shields.io/github/downloads/pykale/pykale/total?color=lightgrey&label=github%20downloads)
 <!-- ![PyPI - Downloads](https://img.shields.io/pypi/dd/pykale?color=lightgrey&label=pypi%20downloads) -->
-<!-- ![GitHub all releases](https://img.shields.io/github/downloads/pykale/pykale/total?color=lightgrey&label=github%20downloads) -->
 <!-- [![Downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale) -->
 
 [Getting Started](https://github.com/pykale/pykale/tree/master/examples) |
@@ -82,7 +81,7 @@ PyKale is under active development. Please star and fork PyKale to follow the la
 
 PyKale is primarily maintained by a group of researchers at the University of Sheffield: [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/), [Raivo Koot](https://github.com/RaivoKoot), [Xianyuan Liu](https://github.com/XianyuanLiu), [Shuo Zhou](https://sz144.github.io/), and [Peizhen Bai](https://github.com/pz-white).
 
-We would like to thank our other contributors including (but not limited to) David Jones, and Will Furnass.
+We would like to thank our other contributors including (but not limited to) Cameron Mcwilliam, David Jones, and Will Furnass.
 
 ## Citation
 
