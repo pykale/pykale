@@ -9,7 +9,7 @@ from copy import deepcopy
 
 from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_res3d import r3d, r2plus1d, mc3
-from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
+from kale.predict.class_domain_nets import ClassNetVideo, DomainNetSmallImage
 import kale.pipeline.domain_adapter as domain_adapter
 import kale.pipeline.action_domain_adapter as action_domain_adapter
 
@@ -129,7 +129,7 @@ def get_model(cfg, dataset, num_classes):
     feature_network, feature_dim = get_feat_extractor(cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY,
                                                       num_classes)
     # setup classifier
-    classifier_network = ClassNetSmallImage(feature_dim, num_classes)
+    classifier_network = ClassNetVideo(feature_dim, num_classes)
 
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
