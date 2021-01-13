@@ -4,6 +4,7 @@
 - Make changes to the source in your fork following [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md).
 - **Document** the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) and [update `docs`](https://github.com/pykale/pykale/tree/master/docs) to verify its API [documentations](https://pykale.readthedocs.io/en/latest/).
 - Keep **data** and other large files [local/external](https://github.com/pykale/pykale/tree/master/examples/data) to keep the repository small (via `.gitignore`)
+- Run linting via `flake8 ` to fix any style problems identified if you did not turn automatic linting on.
 - Create a [pull request](https://github.com/pykale/pykale/pulls) explaining the changes and choose reviewers.
 - After passing the review, your pull request gets merged and pykale has your contribution incorporated.
 
@@ -28,6 +29,24 @@ We need to design the core modules to be generic, reusable, customizable, and no
 ### Linting
 
 Use our [pre-commit-config.yaml](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml) to lint your code before commit.
+We mainly learned from [**GPyTorch**](https://github.com/cornellius-gp/gpytorch), [Kornia](https://github.com/kornia/kornia), [MONAI](https://github.com/Project-MONAI/MONAI), and [Torchio](https://github.com/fepegar/torchio).
+
+You need to run linting locally and remove the flagged warnings before a push to the repo anyway.
+
+
+### flake8
+
+To install it: `pip install flake8`.
+
+Usage:
+`flake8 {source_file_or_directory}`
+
+To get statics also
+`flake8 {source_file_or_directory} --statistics`
+
+Auto run before any commit
+`pip install pre-commit`
+`pre-commit install`
 
 ### Coding style
 
