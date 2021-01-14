@@ -2,7 +2,7 @@ import os
 import sys
 
 # No need if pykale is installed
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from kale.loaddata.videos import VideoFrameDataset
 from kale.prepdata.video_transform import ImglistToTensor
@@ -19,14 +19,14 @@ Ignore this function and look at "main" below.
 
 def download_dummy_dataset():
     # Full File URL: https://drive.google.com/file/d/1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga/view?usp=sharing
-    gdrive_file_id = '1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga'
+    gdrive_file_id = "1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga"
     output_directory = os.path.join(os.getcwd())
-    output_file_name = 'demo_datasets.zip'
+    output_file_name = "demo_datasets.zip"
 
     print("Downloading Dummy Datasets")
     download_file_from_google_drive(gdrive_file_id, output_directory, output_file_name)
 
-    if os.path.exists(os.path.join(os.getcwd(), 'demo_dataset')):
+    if os.path.exists(os.path.join(os.getcwd(), "demo_dataset")):
         print("Skipping Download and Extraction")
         return
 
@@ -45,10 +45,12 @@ Ignore this function too
 
 def plot_video(rows, cols, frame_list, plot_width, plot_height):
     fig = plt.figure(figsize=(plot_width, plot_height))
-    grid = ImageGrid(fig, 111,  # similar to subplot(111)
-                     nrows_ncols=(rows, cols),  # creates 2x2 grid of axes
-                     axes_pad=0.3,  # pad between axes in inch.
-                     )
+    grid = ImageGrid(
+        fig,
+        111,  # similar to subplot(111)
+        nrows_ncols=(rows, cols),  # creates 2x2 grid of axes
+        axes_pad=0.3,  # pad between axes in inch.
+    )
 
     for index, (ax, im) in enumerate(zip(grid, frame_list)):
         # Iterating over the grid returns the Axes.
@@ -57,23 +59,23 @@ def plot_video(rows, cols, frame_list, plot_width, plot_height):
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     """
     This demo uses the dummy dataset inside of the folder "demo_dataset".
     It is structured just like a real dataset would need to be structured.
-    
+
     TABLE OF CODE CONTENTS:
     1. Minimal demo without image transforms
     2. Minimal demo without sparse temporal sampling for single continuous frame clips, without image transforms
     3. Demo with image transforms
     4. Demo 3 continued with PyTorch dataloader
     5. Demo of using a dataset where samples have multiple separate class labels
-    
+
     """
     download_dummy_dataset()
 
-    videos_root = os.path.join(os.getcwd(), 'demo_dataset')
-    annotation_file = os.path.join(videos_root, 'annotations.txt')
+    videos_root = os.path.join(os.getcwd(), "demo_dataset")
+    annotation_file = os.path.join(videos_root, "annotations.txt")
 
     """ DEMO 1 WITHOUT IMAGE TRANSFORMS """
     dataset = VideoFrameDataset(
@@ -81,17 +83,17 @@ if __name__ == '__main__':
         annotationfile_path=annotation_file,
         num_segments=5,
         frames_per_segment=1,
-        imagefile_template='img_{:05d}.jpg',
+        imagefile_template="img_{:05d}.jpg",
         transform=None,
         random_shift=True,
-        test_mode=False
+        test_mode=False,
     )
 
     sample = dataset[0]
     frames = sample[0]  # list of PIL images
     label = sample[1]  # integer label
 
-    plot_video(rows=1, cols=5, frame_list=frames, plot_width=15., plot_height=3.)
+    plot_video(rows=1, cols=5, frame_list=frames, plot_width=15.0, plot_height=3.0)
 
     """ DEMO 2 SINGLE CONTINUOUS FRAME CLIP INSTEAD OF SAMPLED FRAMES, WITHOUT TRANSFORMS """
     # If you do not want to use sparse temporal sampling, and instead
@@ -104,52 +106,55 @@ if __name__ == '__main__':
         annotationfile_path=annotation_file,
         num_segments=1,
         frames_per_segment=9,
-        imagefile_template='img_{:05d}.jpg',
+        imagefile_template="img_{:05d}.jpg",
         transform=None,
         random_shift=True,
-        test_mode=False
+        test_mode=False,
     )
 
     sample = dataset[1]
     frames = sample[0]  # list of PIL images
     label = sample[1]  # integer label
 
-    plot_video(rows=3, cols=3, frame_list=frames, plot_width=10., plot_height=5.)
+    plot_video(rows=3, cols=3, frame_list=frames, plot_width=10.0, plot_height=5.0)
 
     """ DEMO 3 WITH TRANSFORMS """
     # As of torchvision 0.8.0, torchvision transforms support batches of images
     # of size (BATCH x CHANNELS x HEIGHT x WIDTH) and apply deterministic or random
     # transformations on the batch identically on all images of the batch. Any torchvision
     # transform for image augmentation can thus also be used  for video augmentation.
-    preprocess = transforms.Compose([
-        ImglistToTensor(),  # list of PIL images to (FRAMES x CHANNELS x HEIGHT x WIDTH) tensor
-        transforms.Resize(299),  # image batch, resize smaller edge to 299
-        transforms.CenterCrop(299),  # image batch, center crop to square 299x299
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
+    preprocess = transforms.Compose(
+        [
+            ImglistToTensor(),  # list of PIL images to (FRAMES x CHANNELS x HEIGHT x WIDTH) tensor
+            transforms.Resize(299),  # image batch, resize smaller edge to 299
+            transforms.CenterCrop(299),  # image batch, center crop to square 299x299
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
 
     dataset = VideoFrameDataset(
         root_path=videos_root,
         annotationfile_path=annotation_file,
         num_segments=5,
         frames_per_segment=1,
-        imagefile_template='img_{:05d}.jpg',
+        imagefile_template="img_{:05d}.jpg",
         transform=preprocess,
         random_shift=True,
-        test_mode=False
+        test_mode=False,
     )
 
     sample = dataset[1]
-    frame_tensor = sample[0]  # tensor of shape (NUM_SEGMENTS*FRAMES_PER_SEGMENT) x CHANNELS x HEIGHT x WIDTH
+    frame_tensor = sample[
+        0
+    ]  # tensor of shape (NUM_SEGMENTS*FRAMES_PER_SEGMENT) x CHANNELS x HEIGHT x WIDTH
     label = sample[1]  # integer label
 
-    print('Video Tensor Size:', frame_tensor.size())
+    print("Video Tensor Size:", frame_tensor.size())
 
     """
     Denormalize is just for visualization purposes, to undo the transforms applied
     to the list of frames of a video.
     """
-
 
     def denormalize(video_tensor):
         """
@@ -160,21 +165,21 @@ if __name__ == '__main__':
         """
         inverse_normalize = transforms.Normalize(
             mean=[-0.485 / 0.229, -0.456 / 0.224, -0.406 / 0.225],
-            std=[1 / 0.229, 1 / 0.224, 1 / 0.225]
+            std=[1 / 0.229, 1 / 0.224, 1 / 0.225],
         )
-        return (inverse_normalize(video_tensor) * 255.).type(torch.uint8).permute(0, 2, 3, 1).numpy()
-
+        return (
+            (inverse_normalize(video_tensor) * 255.0)
+            .type(torch.uint8)
+            .permute(0, 2, 3, 1)
+            .numpy()
+        )
 
     frame_tensor = denormalize(frame_tensor)
-    plot_video(rows=1, cols=5, frame_list=frames, plot_width=15., plot_height=3.)
+    plot_video(rows=1, cols=5, frame_list=frames, plot_width=15.0, plot_height=3.0)
 
     """ DEMO 3 CONTINUED: DATALOADER """
     dataloader = torch.utils.data.DataLoader(
-        dataset=dataset,
-        batch_size=2,
-        shuffle=True,
-        num_workers=4,
-        pin_memory=True
+        dataset=dataset, batch_size=2, shuffle=True, num_workers=4, pin_memory=True
     )
 
     for epoch in range(10):
@@ -204,26 +209,22 @@ if __name__ == '__main__':
     where the second tuple item is itself a tuple, with N BATCH-sized tensors of labels, where N is the 
     number of labels assigned to each sample.
     """
-    videos_root = os.path.join(os.getcwd(), 'demo_dataset_multilabel')
-    annotation_file = os.path.join(videos_root, 'annotations.txt')
+    videos_root = os.path.join(os.getcwd(), "demo_dataset_multilabel")
+    annotation_file = os.path.join(videos_root, "annotations.txt")
 
     dataset = VideoFrameDataset(
         root_path=videos_root,
         annotationfile_path=annotation_file,
         num_segments=5,
         frames_per_segment=1,
-        imagefile_template='img_{:05d}.jpg',
+        imagefile_template="img_{:05d}.jpg",
         transform=preprocess,
         random_shift=True,
-        test_mode=False
+        test_mode=False,
     )
 
     dataloader = torch.utils.data.DataLoader(
-        dataset=dataset,
-        batch_size=3,
-        shuffle=True,
-        num_workers=2,
-        pin_memory=True
+        dataset=dataset, batch_size=3, shuffle=True, num_workers=2, pin_memory=True
     )
 
     print("\nMulti-Label Example")

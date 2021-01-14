@@ -6,8 +6,7 @@ Define the learning model and configure training parameters.
 
 from copy import deepcopy
 from kale.embed.image_cnn import SmallCNNFeature
-from kale.predict.class_domain_nets import ClassNetSmallImage, \
-    DomainNetSmallImage
+from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
 import kale.pipeline.domain_adapter as domain_adapter
 
 
@@ -32,18 +31,18 @@ def get_config(cfg):
                 "optim_params": {
                     "momentum": cfg.SOLVER.MOMENTUM,
                     "weight_decay": cfg.SOLVER.WEIGHT_DECAY,
-                    "nesterov": cfg.SOLVER.NESTEROV
-                }
-            }
+                    "nesterov": cfg.SOLVER.NESTEROV,
+                },
+            },
         },
         "data_params": {
             "dataset_group": cfg.DATASET.NAME,
-            "dataset_name": cfg.DATASET.SOURCE + '2' + cfg.DATASET.TARGET,
+            "dataset_name": cfg.DATASET.SOURCE + "2" + cfg.DATASET.TARGET,
             "source": cfg.DATASET.SOURCE,
             "target": cfg.DATASET.TARGET,
             "size_type": cfg.DATASET.SIZE_TYPE,
-            "weight_type": cfg.DATASET.WEIGHT_TYPE
-        }
+            "weight_type": cfg.DATASET.WEIGHT_TYPE,
+        },
     }
     return config_params
 
@@ -56,7 +55,7 @@ def get_model(cfg, dataset, num_channels):
     Args:
         cfg: A YACS config object.
         dataset: A multidomain dataset consisting of source and target datasets.
-        num_channels: The number of image channels.        
+        num_channels: The number of image channels.
     """
 
     # setup feature extractor
@@ -79,7 +78,7 @@ def get_model(cfg, dataset, num_channels):
     train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
     method_params = {}
-    if cfg.DAN.METHOD == 'CDAN':
+    if cfg.DAN.METHOD == "CDAN":
         method_params["use_random"] = cfg.DAN.USERANDOM
 
     # The following calls kale.loaddata.dataset_access for the first time

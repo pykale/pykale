@@ -8,9 +8,11 @@ import logging
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from kale.utils.csv_logger import setup_logger  # np error if move this to later, not sure why
+from kale.utils.csv_logger import (
+    setup_logger,
+)  # np error if move this to later, not sure why
 import pytorch_lightning as pl
 
 from pytorch_lightning import loggers as pl_loggers
@@ -23,10 +25,12 @@ from kale.utils.seed import set_seed
 
 def arg_parse():
     """Parsing arguments"""
-    parser = argparse.ArgumentParser(description='Domain Adversarial Networks on Action Datasets')
-    parser.add_argument('--cfg', required=True, help='path to config file', type=str)
-    parser.add_argument('--gpus', default='0', help='gpu id(s) to use', type=str)
-    parser.add_argument('--resume', default='', type=str)
+    parser = argparse.ArgumentParser(
+        description="Domain Adversarial Networks on Action Datasets"
+    )
+    parser.add_argument("--cfg", required=True, help="path to config file", type=str)
+    parser.add_argument("--gpus", default="0", help="gpu id(s) to use", type=str)
+    parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
 
@@ -41,28 +45,35 @@ def main():
     cfg.freeze()
     print(cfg)
 
-    # ---- setup output ----    
+    # ---- setup output ----
     os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
-    source, target, num_channels = VideoDataset.get_source_target(VideoDataset(cfg.DATASET.SOURCE.upper()),
-                                                                  VideoDataset(cfg.DATASET.TARGET.upper()),
-                                                                  cfg)
-    dataset = MultiDomainDatasets(source, target, config_weight_type=cfg.DATASET.WEIGHT_TYPE,
-                                  config_size_type=cfg.DATASET.SIZE_TYPE)
+    source, target, num_channels = VideoDataset.get_source_target(
+        VideoDataset(cfg.DATASET.SOURCE.upper()),
+        VideoDataset(cfg.DATASET.TARGET.upper()),
+        cfg,
+    )
+    dataset = MultiDomainDatasets(
+        source,
+        target,
+        config_weight_type=cfg.DATASET.WEIGHT_TYPE,
+        config_size_type=cfg.DATASET.SIZE_TYPE,
+    )
 
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = cfg.SOLVER.SEED + i * 10
-        set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
-        print(f'==> Building model for seed {seed} ......')
-        # ---- setup model and logger ----                                                     
+        set_seed(
+            seed
+        )  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
+        print(f"==> Building model for seed {seed} ......")
+        # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, num_channels)
-        logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params,
-                                                                           cfg.OUTPUT.DIR,
-                                                                           cfg.DAN.METHOD,
-                                                                           seed)
+        logger, results, checkpoint_callback, test_csv_file = setup_logger(
+            train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD, seed
+        )
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR)
         trainer = pl.Trainer(
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
@@ -72,7 +83,7 @@ def main():
             # resume_from_checkpoint=last_checkpoint_file,
             gpus=args.gpus,
             logger=tb_logger,  # logger,
-            # weights_summary='full',  
+            # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
         )
 
@@ -95,5 +106,5 @@ def main():
         results.print_scores(cfg.DAN.METHOD)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

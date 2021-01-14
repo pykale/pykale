@@ -61,7 +61,7 @@ class DigitDataset(Enum):
         return (
             factories[source](data_path, source_tf),
             factories[target](data_path, target_tf),
-            num_channels
+            num_channels,
         )
 
 

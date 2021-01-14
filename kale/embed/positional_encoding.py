@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import math
 
+
 class PositionalEncoding(nn.Module):
     """
     Implements the positional encoding as described in the NIPS2017 paper
@@ -20,18 +21,20 @@ class PositionalEncoding(nn.Module):
                   encodings should support (required).
     """
 
-    def __init__(self, d_model: int, max_len: int=5000):
+    def __init__(self, d_model: int, max_len: int = 5000):
         super(PositionalEncoding, self).__init__()
 
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
 
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        div_term = torch.exp(
+            torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)
+        )
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
 
         pe = pe.unsqueeze(0).transpose(0, 1)
-        self.register_buffer('pe', pe)
+        self.register_buffer("pe", pe)
 
         self.scaling_term = math.sqrt(d_model)
         self.max_len = max_len
@@ -47,6 +50,8 @@ class PositionalEncoding(nn.Module):
         Args:
             x: a sequence input of shape (sequence_length, batch_size, num_features) (required).
         """
-        x = x * self.scaling_term # make embedding relatively larger than positional encoding
-        x = x + self.pe[:x.size(0), :]
+        x = (
+            x * self.scaling_term
+        )  # make embedding relatively larger than positional encoding
+        x = x + self.pe[: x.size(0), :]
         return x

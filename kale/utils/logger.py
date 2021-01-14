@@ -7,9 +7,9 @@ import logging
 import datetime
 import subprocess
 
+
 def git_hash():
-    """Gets a hash for different runs to have unique logfile names.
-    """
+    """Gets a hash for different runs to have unique logfile names."""
     cmd = 'git log -n 1 --pretty="%h"'
     ret = subprocess.check_output(shlex.split(cmd)).strip()
     if isinstance(ret, bytes):
@@ -29,8 +29,10 @@ def construct_logger(name, save_dir):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
-    date = str(datetime.datetime.now().strftime('%m%d%H'))
-    fh = logging.FileHandler(os.path.join(save_dir, f'log-{date}-{git_hash()}.txt'), encoding='utf-8')
+    date = str(datetime.datetime.now().strftime("%m%d%H"))
+    fh = logging.FileHandler(
+        os.path.join(save_dir, f"log-{date}-{git_hash()}.txt"), encoding="utf-8"
+    )
     fh.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s")
     fh.setFormatter(formatter)

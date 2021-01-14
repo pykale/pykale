@@ -25,7 +25,7 @@ class LinearTransformerEncoderLayer(Module):
     O(n^2) to O(n) by implementing the proposed adjusted linear attention block from:
     `Linformer: Self-Attention with Linear Complexity` (2020) (https://arxiv.org/abs/2006.04768).
 
-    Note: 
+    Note:
         For more information see PyTorch's nn.TransformerEncoderLayer docs.
 
     Args:
@@ -48,14 +48,27 @@ class LinearTransformerEncoderLayer(Module):
 
     """
 
-    def __init__(self, d_model: int, nhead: int, 
-                seq_len: int, proj_k: int=128, proj_param_sharing: str='none',
-                dim_feedforward: int=2048, dropout: float=0.1,
-                activation: str="relu"):
+    def __init__(
+        self,
+        d_model: int,
+        nhead: int,
+        seq_len: int,
+        proj_k: int = 128,
+        proj_param_sharing: str = "none",
+        dim_feedforward: int = 2048,
+        dropout: float = 0.1,
+        activation: str = "relu",
+    ):
         super(LinearTransformerEncoderLayer, self).__init__()
         # self.self_attn = MultiheadAttention(d_model, nhead, dropout=dropout)
-        self.self_attn = LinearMultiheadAttention(d_model, nhead, dropout=dropout, seq_len=seq_len,
-                                                 proj_k=proj_k, param_sharing=proj_param_sharing)
+        self.self_attn = LinearMultiheadAttention(
+            d_model,
+            nhead,
+            dropout=dropout,
+            seq_len=seq_len,
+            proj_k=proj_k,
+            param_sharing=proj_param_sharing,
+        )
 
         # Implementation of Feedforward model
         self.linear1 = Linear(d_model, dim_feedforward)
@@ -70,11 +83,16 @@ class LinearTransformerEncoderLayer(Module):
         self.activation = _get_activation_fn(activation)
 
     def __setstate__(self, state):
-        if 'activation' not in state:
-            state['activation'] = F.relu
+        if "activation" not in state:
+            state["activation"] = F.relu
         super(LinearTransformerEncoderLayer, self).__setstate__(state)
 
-    def forward(self, src: Tensor, src_mask: Optional[Tensor] = None, src_key_padding_mask: Optional[Tensor] = None) -> Tensor:
+    def forward(
+        self,
+        src: Tensor,
+        src_mask: Optional[Tensor] = None,
+        src_key_padding_mask: Optional[Tensor] = None,
+    ) -> Tensor:
         r"""Pass the input through the encoder layer.
 
         Args:
@@ -91,7 +109,7 @@ class LinearTransformerEncoderLayer(Module):
             positions. If a ByteTensor is provided, the non-zero positions are not allowed to attend
             while the zero positions will be unchanged. If a BoolTensor is provided, positions with ``True``
             are not allowed to attend while ``False`` values will be unchanged. If a FloatTensor
-            is provided, it will be added to the attention weight. 
+            is provided, it will be added to the attention weight.
             src_key_padding_mask provides specified elements in the key to be ignored by
             the attention. If a ByteTensor is provided, the non-zero positions will be ignored while the zero
             positions will be unchanged. If a BoolTensor is provided, the positions with the
@@ -102,14 +120,16 @@ class LinearTransformerEncoderLayer(Module):
             where S is the input sequence length, N is the
             batch size, E is the feature number
         """
-        src2 = self.self_attn(src, src, src, attn_mask=src_mask,
-                              key_padding_mask=src_key_padding_mask)[0]
+        src2 = self.self_attn(
+            src, src, src, attn_mask=src_mask, key_padding_mask=src_key_padding_mask
+        )[0]
         src = src + self.dropout1(src2)
         src = self.norm1(src)
         src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))
         src = src + self.dropout2(src2)
         src = self.norm2(src)
         return src
+
 
 def _get_activation_fn(activation):
     if activation == "relu":
@@ -118,6 +138,7 @@ def _get_activation_fn(activation):
         return F.gelu
 
     raise RuntimeError("activation should be relu/gelu, not {}".format(activation))
+
 
 # Code from here on taken exactly as is from https://github.com/kuixu/Linear-Multihead-Attention
 #
@@ -132,7 +153,7 @@ class LinearMultiheadAttention(nn.Module):
     attention complexity in space and time instead of quadratic. See
     reference: `Linformer: Self-Attention with Linear Complexity` (2020).
 
-    Note: 
+    Note:
         For more information see PyTorch's nn.MultiheadAttention docs.
 
     Args:
@@ -153,18 +174,36 @@ class LinearMultiheadAttention(nn.Module):
         >>> multihead_attn = LinearMultiheadAttention(embed_dim, num_heads, seq_len=10000, proj_k=128)
         >>> attn_output, attn_output_weights = multihead_attn(query, key, value)
 
-    Note: 
+    Note:
         Code taken exactly as is from https://github.com/kuixu/Linear-Multihead-Attention. Many thanks you to the author.
     """
     __annotations__ = {
-        'bias_k': torch._jit_internal.Optional[torch.Tensor],
-        'bias_v': torch._jit_internal.Optional[torch.Tensor],
+        "bias_k": torch._jit_internal.Optional[torch.Tensor],
+        "bias_v": torch._jit_internal.Optional[torch.Tensor],
     }
-    __constants__ = ['q_proj_weight', 'k_proj_weight', 'v_proj_weight', 'in_proj_weight', 'e_proj_weight', 'f_proj_weight']
+    __constants__ = [
+        "q_proj_weight",
+        "k_proj_weight",
+        "v_proj_weight",
+        "in_proj_weight",
+        "e_proj_weight",
+        "f_proj_weight",
+    ]
 
-    def __init__(self, embed_dim, num_heads, dropout=0.1, 
-                 bias=True, add_bias_kv=False, add_zero_attn=False, 
-                 kdim=None, vdim=None, seq_len=512, proj_k=128, param_sharing='none'):
+    def __init__(
+        self,
+        embed_dim,
+        num_heads,
+        dropout=0.1,
+        bias=True,
+        add_bias_kv=False,
+        add_zero_attn=False,
+        kdim=None,
+        vdim=None,
+        seq_len=512,
+        proj_k=128,
+        param_sharing="none",
+    ):
         super(LinearMultiheadAttention, self).__init__()
         self.embed_dim = embed_dim
         self.kdim = kdim if kdim is not None else embed_dim
@@ -174,19 +213,21 @@ class LinearMultiheadAttention(nn.Module):
         self.num_heads = num_heads
         self.dropout = dropout
         self.head_dim = embed_dim // num_heads
-        assert self.head_dim * num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
+        assert (
+            self.head_dim * num_heads == self.embed_dim
+        ), "embed_dim must be divisible by num_heads"
 
         if self._qkv_same_embed_dim is False:
             self.q_proj_weight = Parameter(torch.Tensor(embed_dim, embed_dim))
             self.k_proj_weight = Parameter(torch.Tensor(embed_dim, self.kdim))
             self.v_proj_weight = Parameter(torch.Tensor(embed_dim, self.vdim))
-            self.register_parameter('in_proj_weight', None)
+            self.register_parameter("in_proj_weight", None)
         else:
             self.in_proj_weight = Parameter(torch.empty(3 * embed_dim, embed_dim))
-            self.register_parameter('q_proj_weight', None)
-            self.register_parameter('k_proj_weight', None)
-            self.register_parameter('v_proj_weight', None)
-        
+            self.register_parameter("q_proj_weight", None)
+            self.register_parameter("k_proj_weight", None)
+            self.register_parameter("v_proj_weight", None)
+
         self.e_proj_weight = Parameter(torch.Tensor(proj_k, seq_len))
         if param_sharing == "layerwise":
             self.f_proj_weight = self.e_proj_weight
@@ -196,7 +237,7 @@ class LinearMultiheadAttention(nn.Module):
         if bias:
             self.in_proj_bias = Parameter(torch.empty(3 * embed_dim))
         else:
-            self.register_parameter('in_proj_bias', None)
+            self.register_parameter("in_proj_bias", None)
         self.out_proj = Linear(embed_dim, embed_dim, bias=bias)
 
         if add_bias_kv:
@@ -223,8 +264,8 @@ class LinearMultiheadAttention(nn.Module):
         xavier_uniform_(self.f_proj_weight)
 
         if self.in_proj_bias is not None:
-            constant_(self.in_proj_bias, 0.)
-            constant_(self.out_proj.bias, 0.)
+            constant_(self.in_proj_bias, 0.0)
+            constant_(self.out_proj.bias, 0.0)
         if self.bias_k is not None:
             xavier_normal_(self.bias_k)
         if self.bias_v is not None:
@@ -236,69 +277,108 @@ class LinearMultiheadAttention(nn.Module):
 
     def __setstate__(self, state):
         # Support loading old MultiheadAttention checkpoints generated by v1.1.0
-        if '_qkv_same_embed_dim' not in state:
-            state['_qkv_same_embed_dim'] = True
+        if "_qkv_same_embed_dim" not in state:
+            state["_qkv_same_embed_dim"] = True
 
         super(LinearMultiheadAttention, self).__setstate__(state)
 
-    def forward(self, query, key, value, key_padding_mask=None,
-                need_weights=True, attn_mask=None):
+    def forward(
+        self,
+        query,
+        key,
+        value,
+        key_padding_mask=None,
+        need_weights=True,
+        attn_mask=None,
+    ):
         # type: (Tensor, Tensor, Tensor, Optional[Tensor], bool, Optional[Tensor]) -> Tuple[Tensor, Optional[Tensor]]
         r"""
         See PyTorch's nn.MultiheadAttention docs.
         """
         if not self._qkv_same_embed_dim:
             return _linear_multi_head_attention_forward(
-                query, key, value, self.embed_dim, self.num_heads,
-                self.in_proj_weight, self.in_proj_bias,
-                self.bias_k, self.bias_v, self.bias_e, self.bias_f, self.add_zero_attn,
-                self.dropout, self.out_proj.weight, self.out_proj.bias,
+                query,
+                key,
+                value,
+                self.embed_dim,
+                self.num_heads,
+                self.in_proj_weight,
+                self.in_proj_bias,
+                self.bias_k,
+                self.bias_v,
+                self.bias_e,
+                self.bias_f,
+                self.add_zero_attn,
+                self.dropout,
+                self.out_proj.weight,
+                self.out_proj.bias,
                 training=self.training,
-                key_padding_mask=key_padding_mask, need_weights=need_weights,
-                attn_mask=attn_mask, use_separate_proj_weight=True,
-                q_proj_weight=self.q_proj_weight, k_proj_weight=self.k_proj_weight,
-                v_proj_weight=self.v_proj_weight, e_proj_weight=self.e_proj_weight,
-                f_proj_weight=self.f_proj_weight)
+                key_padding_mask=key_padding_mask,
+                need_weights=need_weights,
+                attn_mask=attn_mask,
+                use_separate_proj_weight=True,
+                q_proj_weight=self.q_proj_weight,
+                k_proj_weight=self.k_proj_weight,
+                v_proj_weight=self.v_proj_weight,
+                e_proj_weight=self.e_proj_weight,
+                f_proj_weight=self.f_proj_weight,
+            )
         else:
             return _linear_multi_head_attention_forward(
-                query, key, value, self.embed_dim, self.num_heads,
-                self.in_proj_weight, self.in_proj_bias,
-                self.bias_k, self.bias_v, self.bias_e, self.bias_f, self.add_zero_attn,
-                self.dropout, self.out_proj.weight, self.out_proj.bias,
+                query,
+                key,
+                value,
+                self.embed_dim,
+                self.num_heads,
+                self.in_proj_weight,
+                self.in_proj_bias,
+                self.bias_k,
+                self.bias_v,
+                self.bias_e,
+                self.bias_f,
+                self.add_zero_attn,
+                self.dropout,
+                self.out_proj.weight,
+                self.out_proj.bias,
                 training=self.training,
-                key_padding_mask=key_padding_mask, need_weights=need_weights,
-                attn_mask=attn_mask, e_proj_weight=self.e_proj_weight,
-                f_proj_weight=self.f_proj_weight)
+                key_padding_mask=key_padding_mask,
+                need_weights=need_weights,
+                attn_mask=attn_mask,
+                e_proj_weight=self.e_proj_weight,
+                f_proj_weight=self.f_proj_weight,
+            )
+
 
 # Copy-paste with slight modification from torch.nn.functional.multi_head_attention_forward
-def _linear_multi_head_attention_forward(query,                           # type: Tensor
-                                 key,                             # type: Tensor
-                                 value,                           # type: Tensor
-                                 embed_dim_to_check,              # type: int
-                                 num_heads,                       # type: int
-                                 in_proj_weight,                  # type: Tensor
-                                 in_proj_bias,                    # type: Tensor
-                                 bias_k,                          # type: Optional[Tensor]
-                                 bias_v,                          # type: Optional[Tensor]
-                                 bias_e,                          # type: Optional[Tensor]
-                                 bias_f,                          # type: Optional[Tensor]
-                                 add_zero_attn,                   # type: bool
-                                 dropout_p,                       # type: float
-                                 out_proj_weight,                 # type: Tensor
-                                 out_proj_bias,                   # type: Tensor
-                                 training=True,                   # type: bool
-                                 key_padding_mask=None,           # type: Optional[Tensor]
-                                 need_weights=True,               # type: bool
-                                 attn_mask=None,                  # type: Optional[Tensor]
-                                 use_separate_proj_weight=False,  # type: bool
-                                 q_proj_weight=None,              # type: Optional[Tensor]
-                                 k_proj_weight=None,              # type: Optional[Tensor]
-                                 v_proj_weight=None,              # type: Optional[Tensor]
-                                 e_proj_weight=None,              # type: Optional[Tensor]
-                                 f_proj_weight=None,              # type: Optional[Tensor]
-                                 static_k=None,                   # type: Optional[Tensor]
-                                 static_v=None                    # type: Optional[Tensor]
-                                 ):
+def _linear_multi_head_attention_forward(
+    query,  # type: Tensor
+    key,  # type: Tensor
+    value,  # type: Tensor
+    embed_dim_to_check,  # type: int
+    num_heads,  # type: int
+    in_proj_weight,  # type: Tensor
+    in_proj_bias,  # type: Tensor
+    bias_k,  # type: Optional[Tensor]
+    bias_v,  # type: Optional[Tensor]
+    bias_e,  # type: Optional[Tensor]
+    bias_f,  # type: Optional[Tensor]
+    add_zero_attn,  # type: bool
+    dropout_p,  # type: float
+    out_proj_weight,  # type: Tensor
+    out_proj_bias,  # type: Tensor
+    training=True,  # type: bool
+    key_padding_mask=None,  # type: Optional[Tensor]
+    need_weights=True,  # type: bool
+    attn_mask=None,  # type: Optional[Tensor]
+    use_separate_proj_weight=False,  # type: bool
+    q_proj_weight=None,  # type: Optional[Tensor]
+    k_proj_weight=None,  # type: Optional[Tensor]
+    v_proj_weight=None,  # type: Optional[Tensor]
+    e_proj_weight=None,  # type: Optional[Tensor]
+    f_proj_weight=None,  # type: Optional[Tensor]
+    static_k=None,  # type: Optional[Tensor]
+    static_v=None,  # type: Optional[Tensor]
+):
     # type: (...) -> Tuple[Tensor, Optional[Tensor]]
     r"""
     Args:
@@ -367,7 +447,7 @@ def _linear_multi_head_attention_forward(query,                           # type
     #             need_weights=need_weights, attn_mask=attn_mask,
     #             use_separate_proj_weight=use_separate_proj_weight,
     #             q_proj_weight=q_proj_weight, k_proj_weight=k_proj_weight,
-    #             v_proj_weight=v_proj_weight, e_proj_weight=q_proj_weight, 
+    #             v_proj_weight=v_proj_weight, e_proj_weight=q_proj_weight,
     #             f_proj_weight=k_proj_weight, static_k=static_k, static_v=static_v)
     tgt_len, bsz, embed_dim = query.size()
     seq_len, proj_k = e_proj_weight.size()
@@ -438,7 +518,6 @@ def _linear_multi_head_attention_forward(query,                           # type
                 _b = _b[_start:]
             v = linear(value, _w, _b)
 
-            
     else:
         q_proj_weight_non_opt = torch.jit._unwrap_optional(q_proj_weight)
         len1, len2 = q_proj_weight_non_opt.size()
@@ -454,8 +533,10 @@ def _linear_multi_head_attention_forward(query,                           # type
 
         if in_proj_bias is not None:
             q = linear(query, q_proj_weight_non_opt, in_proj_bias[0:embed_dim])
-            k = linear(key, k_proj_weight_non_opt, in_proj_bias[embed_dim:(embed_dim * 2)])
-            v = linear(value, v_proj_weight_non_opt, in_proj_bias[(embed_dim * 2):])
+            k = linear(
+                key, k_proj_weight_non_opt, in_proj_bias[embed_dim : (embed_dim * 2)]
+            )
+            v = linear(value, v_proj_weight_non_opt, in_proj_bias[(embed_dim * 2) :])
         else:
             q = linear(query, q_proj_weight_non_opt, in_proj_bias)
             k = linear(key, k_proj_weight_non_opt, in_proj_bias)
@@ -463,27 +544,39 @@ def _linear_multi_head_attention_forward(query,                           # type
     q = q * scaling
 
     if attn_mask is not None:
-        assert attn_mask.dtype == torch.float32 or attn_mask.dtype == torch.float64 or \
-            attn_mask.dtype == torch.float16 or attn_mask.dtype == torch.uint8 or attn_mask.dtype == torch.bool, \
-            'Only float, byte, and bool types are supported for attn_mask, not {}'.format(attn_mask.dtype)
+        assert (
+            attn_mask.dtype == torch.float32
+            or attn_mask.dtype == torch.float64
+            or attn_mask.dtype == torch.float16
+            or attn_mask.dtype == torch.uint8
+            or attn_mask.dtype == torch.bool
+        ), "Only float, byte, and bool types are supported for attn_mask, not {}".format(
+            attn_mask.dtype
+        )
         if attn_mask.dtype == torch.uint8:
-            warnings.warn("Byte tensor for attn_mask in nn.MultiheadAttention is deprecated. Use bool tensor instead.")
+            warnings.warn(
+                "Byte tensor for attn_mask in nn.MultiheadAttention is deprecated. Use bool tensor instead."
+            )
             attn_mask = attn_mask.to(torch.bool)
 
         if attn_mask.dim() == 2:
             attn_mask = attn_mask.unsqueeze(0)
             if list(attn_mask.size()) != [1, query.size(0), key.size(0)]:
-                raise RuntimeError('The size of the 2D attn_mask is not correct.')
+                raise RuntimeError("The size of the 2D attn_mask is not correct.")
         elif attn_mask.dim() == 3:
             if list(attn_mask.size()) != [bsz * num_heads, query.size(0), key.size(0)]:
-                raise RuntimeError('The size of the 3D attn_mask is not correct.')
+                raise RuntimeError("The size of the 3D attn_mask is not correct.")
         else:
-            raise RuntimeError("attn_mask's dimension {} is not supported".format(attn_mask.dim()))
+            raise RuntimeError(
+                "attn_mask's dimension {} is not supported".format(attn_mask.dim())
+            )
         # attn_mask's dim is 3 now.
 
     # convert ByteTensor key_padding_mask to bool
     if key_padding_mask is not None and key_padding_mask.dtype == torch.uint8:
-        warnings.warn("Byte tensor for key_padding_mask in nn.MultiheadAttention is deprecated. Use bool tensor instead.")
+        warnings.warn(
+            "Byte tensor for key_padding_mask in nn.MultiheadAttention is deprecated. Use bool tensor instead."
+        )
         key_padding_mask = key_padding_mask.to(torch.bool)
 
     if bias_k is not None and bias_v is not None:
@@ -531,22 +624,37 @@ def _linear_multi_head_attention_forward(query,                           # type
 
     if add_zero_attn:
         src_len += 1
-        k = torch.cat([k, torch.zeros((k.size(0), 1) + k.size()[2:], dtype=k.dtype, device=k.device)], dim=1)
-        v = torch.cat([v, torch.zeros((v.size(0), 1) + v.size()[2:], dtype=v.dtype, device=v.device)], dim=1)
+        k = torch.cat(
+            [
+                k,
+                torch.zeros(
+                    (k.size(0), 1) + k.size()[2:], dtype=k.dtype, device=k.device
+                ),
+            ],
+            dim=1,
+        )
+        v = torch.cat(
+            [
+                v,
+                torch.zeros(
+                    (v.size(0), 1) + v.size()[2:], dtype=v.dtype, device=v.device
+                ),
+            ],
+            dim=1,
+        )
         if attn_mask is not None:
             attn_mask = pad(attn_mask, (0, 1))
         if key_padding_mask is not None:
             key_padding_mask = pad(key_padding_mask, (0, 1))
-    
+
     attn_output_weights = torch.bmm(q, k.transpose(1, 2))
     assert list(attn_output_weights.size()) == [bsz * num_heads, tgt_len, src_len]
 
     if attn_mask is not None:
         if attn_mask.dtype == torch.bool:
-            attn_output_weights.masked_fill_(attn_mask, float('-inf'))
+            attn_output_weights.masked_fill_(attn_mask, float("-inf"))
         else:
             attn_output_weights += attn_mask
-
 
     # if key_padding_mask is not None:
     #     attn_output_weights = attn_output_weights.view(bsz, num_heads, tgt_len, src_len)
@@ -556,11 +664,10 @@ def _linear_multi_head_attention_forward(query,                           # type
     #     )
     #     attn_output_weights = attn_output_weights.view(bsz * num_heads, tgt_len, src_len)
 
-    attn_output_weights = softmax(
-        attn_output_weights, dim=-1)
+    attn_output_weights = softmax(attn_output_weights, dim=-1)
     attn_output_weights = dropout(attn_output_weights, p=dropout_p, training=training)
 
-    attn_output = torch.bmm(attn_output_weights, v) 
+    attn_output = torch.bmm(attn_output_weights, v)
     assert list(attn_output.size()) == [bsz * num_heads, tgt_len, head_dim]
     attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, embed_dim)
     attn_output = linear(attn_output, out_proj_weight, out_proj_bias)

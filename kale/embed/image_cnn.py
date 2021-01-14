@@ -57,7 +57,7 @@ class ResNet18Feature(nn.Module):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
 
-    Note: 
+    Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
@@ -99,7 +99,7 @@ class ResNet34Feature(nn.Module):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
 
-    Note: 
+    Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
@@ -141,7 +141,7 @@ class ResNet50Feature(nn.Module):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
 
-    Note: 
+    Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
@@ -183,7 +183,7 @@ class ResNet101Feature(nn.Module):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
 
-    Note: 
+    Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
@@ -225,7 +225,7 @@ class ResNet152Feature(nn.Module):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
 
-    Note: 
+    Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 

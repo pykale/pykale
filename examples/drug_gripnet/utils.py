@@ -35,7 +35,9 @@ def auprc_auroc_ap(target_tensor, score_tensor):
 def micro_macro(target_tensor, score_tensor):
     y = target_tensor.detach().cpu().numpy()
     pred = score_tensor.detach().cpu().numpy()
-    micro, macro = metrics.f1_score(y, pred, average='micro'), metrics.f1_score(y, pred, average='macro')
+    micro, macro = metrics.f1_score(y, pred, average="micro"), metrics.f1_score(
+        y, pred, average="macro"
+    )
 
     return micro, macro
 
@@ -46,7 +48,7 @@ def acc(target_tensor, score_tensor):
     return accuracy_score(y, pred)
 
 
-def load_graph(pt_file_path='./sample_graph.pt'):
+def load_graph(pt_file_path="./sample_graph.pt"):
     """
     Parameters
     ----------
@@ -74,7 +76,7 @@ def load_graph(pt_file_path='./sample_graph.pt'):
     return torch.load(pt_file_path)
 
 
-def load_node_idx_to_id_dict(pkl_file_path='./data/pose-1/map.pkl'):
+def load_node_idx_to_id_dict(pkl_file_path="./data/pose-1/map.pkl"):
     """
     Parameters:
     -----------
@@ -84,14 +86,14 @@ def load_node_idx_to_id_dict(pkl_file_path='./data/pose-1/map.pkl'):
     --------
     a dictionary of map from node index to entity id/name
     """
-    with open(pkl_file_path, 'rb') as f:
+    with open(pkl_file_path, "rb") as f:
         out = pickle.load(f)
     return out
 
 
 def negative_sampling(pos_edge_index, num_nodes):
-    idx = (pos_edge_index[0] * num_nodes + pos_edge_index[1])
-    idx = idx.to(torch.device('cpu'))
+    idx = pos_edge_index[0] * num_nodes + pos_edge_index[1]
+    idx = idx.to(torch.device("cpu"))
 
     perm = torch.tensor(np.random.choice(num_nodes ** 2, idx.size(0)))
     mask = torch.from_numpy(np.isin(perm, idx).astype(np.uint8))
@@ -109,5 +111,5 @@ def negative_sampling(pos_edge_index, num_nodes):
 def typed_negative_sampling(pos_edge_index, num_nodes, range_list):
     tmp = []
     for start, end in range_list:
-        tmp.append(negative_sampling(pos_edge_index[:, start: end], num_nodes))
+        tmp.append(negative_sampling(pos_edge_index[:, start:end], num_nodes))
     return torch.cat(tmp, dim=1)

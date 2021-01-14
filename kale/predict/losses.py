@@ -9,12 +9,12 @@ from torch.autograd import grad
 
 
 def cross_entropy_logits(linear_output, label, weights=None):
-    """Computes cross entropy with logits 
-    
+    """Computes cross entropy with logits
+
     Examples:
-        See DANN, WDGRL, and MMD trainers in kale.pipeline.domain_adapter  
-    """    
-    
+        See DANN, WDGRL, and MMD trainers in kale.pipeline.domain_adapter
+    """
+
     class_output = F.log_softmax(linear_output, dim=1)
     max_class = class_output.max(1)
     y_hat = max_class[1]  # get the index of the max log-probability
@@ -31,10 +31,10 @@ def cross_entropy_logits(linear_output, label, weights=None):
 
 def entropy_logits(linear_output):
     """Computes entropy logits in CDAN with entropy conditioning (CDAN+E)
-    
+
     Examples:
-        See CDANtrainer in kale.pipeline.domain_adapter  
-    """    
+        See CDANtrainer in kale.pipeline.domain_adapter
+    """
     p = F.softmax(linear_output, dim=1)
     loss_ent = -torch.sum(p * (torch.log(p + 1e-5)), dim=1)
     return loss_ent
@@ -42,20 +42,20 @@ def entropy_logits(linear_output):
 
 def entropy_logits_loss(linear_output):
     """Computes entropy logits loss in semi-supervised or few-shot domain adapatation
-    
+
     Examples:
-        See FewShotDANNtrainer in kale.pipeline.domain_adapter  
-    """    
+        See FewShotDANNtrainer in kale.pipeline.domain_adapter
+    """
     return torch.mean(entropy_logits(linear_output))
 
 
 def gradient_penalty(critic, h_s, h_t):
     """Computes gradient penelty in Wasserstein distance guided representation learning
-    
+
     Examples:
-        See WDGRLtrainer and WDGRLtrainerMod in kale.pipeline.domain_adapter  
+        See WDGRLtrainer and WDGRLtrainerMod in kale.pipeline.domain_adapter
     """
-    
+
     alpha = torch.rand(h_s.size(0), 1)
     alpha = alpha.expand(h_s.size()).type_as(h_s)
     try:

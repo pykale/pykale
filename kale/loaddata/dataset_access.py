@@ -13,7 +13,7 @@ class DatasetAccess:
 
     Args:
         n_classes: the number of classes (default=3).
-        ckernel_size: the size of the convolution kernel (default=5).    
+        ckernel_size: the size of the convolution kernel (default=5).
     """
 
     def __init__(self, n_classes):
