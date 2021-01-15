@@ -63,8 +63,8 @@ _C.CNN.OUTPUT_SHAPE = (-1, 64, 8, 8)
 # Transformer configs
 # ---------------------------------------------------------------------------- #
 _C.TRANSFORMER = CN()
-_C.TRANSFORMER.USE_TRANSFORMER = True  # Will not attach the Transformer ontop
-# of the CNN in the model if False
+# Will not attach the Transformer on top of the CNN in the model if False
+_C.TRANSFORMER.USE_TRANSFORMER = True
 _C.TRANSFORMER.NUM_LAYERS = 3
 _C.TRANSFORMER.NUM_HEADS = 2
 _C.TRANSFORMER.DIM_FEEDFORWARD = 128
