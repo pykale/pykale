@@ -26,6 +26,7 @@ class BasicVideoDataset(VideoFrameDataset):
         test_mode (bool): Whether this is a test dataset. If so, chooses frames from segments with random_shift=False.
         n_classes (int): The number of classes.
     """
+
     def __init__(self,
                  root_path: str,
                  annotationfile_path: str,
@@ -67,6 +68,7 @@ class BasicVideoDataset(VideoFrameDataset):
         Returns:
             data (list): list of (video_name, start_frame, end_frame, label)
         """
+
         data = []
         i = 0
         with open(self.annotationfile_path, 'rb') as input_file:
@@ -83,6 +85,7 @@ class EPIC(VideoFrameDataset):
     """
     Dataset for EPIC-Kitchen.
     """
+
     def __init__(self,
                  root_path: str,
                  annotationfile_path: str,
@@ -130,6 +133,7 @@ class EPIC(VideoFrameDataset):
         Load data from the EPIC-Kitchen list file and make them into the united format.
         Because the original list files are not the same, inherit from class BasicVideoDataset and be modified.
         """
+        
         data = []
         i = 0
         with open(self.annotationfile_path, 'rb') as input_file:

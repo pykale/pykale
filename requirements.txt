@@ -6,16 +6,22 @@
 # core dependencies
 torch==1.7.0
 numpy==1.19.0
+torchvision==0.8.1
+
+# Need to specify version
+scikit-learn # To confirm version 
+tensorly  # To confirm version 
+scikit-image # To confirm version 
+
+# Needed only for pipeline API
+pytorch-lightning # To confirm version 
 
 # utils
-torchvision==0.8.1
 torchsummary==1.5.0
 yacs==0.1.7
 
-# Needed only for graph
-ogb==1.2.0
 
-# Needed only for torch-geometric
+# Needed only for graph
 # torch-cluster and following won't install unless
 # torch is already installed;
 # please install with
@@ -25,12 +31,7 @@ ogb==1.2.0
 # torch-scatter==2.0.4
 # torch-sparse==0.6.5
 # torch-spline-conv==1.2.0
-torch-geometric==1.5.0
+# torch-geometric==1.5.0
+# ogb==1.2.0
 
-# For MPCA
-scikit-learn
 
-# Need to specify version
-pytorch-lightning
-scikit-image
-tensorly

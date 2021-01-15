@@ -122,7 +122,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
     def __init__(self,
                  root_path: str,
                  annotationfile_path: str,
-                 image_modality: str,
+                 image_modality: str = 'rgb',
                  num_segments: int = 3,
                  frames_per_segment: int = 1,
                  imagefile_template: str = 'img_{:05d}.jpg',
@@ -203,6 +203,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             of applying self.transform on this list if
             self.transform is not None.
         """
+
         record = self.video_list[index]
 
         if record.num_frames < self.frames_per_segment:

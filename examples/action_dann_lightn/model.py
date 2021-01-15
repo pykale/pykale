@@ -7,8 +7,8 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 
 from copy import deepcopy
 
-from kale.embed.video_cnn.i3d import i3d
-from kale.embed.video_cnn.res3d import r3d_18, r2plus1d_18, mc3_18
+from kale.embed.video_i3d import i3d
+from kale.embed.video_res3d import r3d_18, r2plus1d_18, mc3_18
 from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
 import kale.pipeline.domain_adapter as domain_adapter
 
@@ -62,11 +62,16 @@ def get_feat_extractor(model_name, num_classes, num_channels):
         model_name: The name of the feature extractor.
         num_classes: The class number for the specific setting. (Default: No use)
         num_channels: The number of image channels. (Default: No use, may used in RGB & Flow)
+
+    Returns:
+        feature_network: The network to extract features.
+        feature_dim: The dimension of the feature network output. It is a convention when
+                    the input dimension and the network is fixed.
     """
 
     if model_name == 'I3D':
-        pt_name = 'rgb_imagenet' if num_channels == 3 else 'flow_imagenet'
-        feature_network = i3d(name=pt_name, num_channels=num_channels, pretrained=True)
+        pretrained_model = 'rgb_imagenet' if num_channels == 3 else 'flow_imagenet'
+        feature_network = i3d(name=pretrained_model, num_channels=num_channels, pretrained=True)
         # model.replace_logits(num_classes)
         feature_dim = 1024
     elif model_name == 'R3D_18':
