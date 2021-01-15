@@ -1,6 +1,6 @@
 import torch
 from torchvision import transforms
-import numpy as np
+# import numpy as np
 
 
 def get_transform(kind, modality):

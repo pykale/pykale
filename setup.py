@@ -41,7 +41,7 @@ setup(
         "Documentation": "https://pykale.readthedocs.io",
         "Source": "https://github.com/pykale/pykale",
     },
-    keywords="machine learning, pytorch, dimensionality reduction, deep learning, multimodal learning, transfer learning",
+    keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
     license="MIT",
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -59,7 +59,6 @@ setup(
     ],
     packages=find_packages(),
     python_requires=">=3.6",
-    # install_requires = [">=".join(["torch", torch_min]), "scikit-learn", "numpy", "pytorch-lightning", "tensorly", "torchvision"]
     install_requires=[
         # if you add any additional libraries, please also
         # add them to `docs/requirements.txt`

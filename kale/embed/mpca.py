@@ -8,7 +8,7 @@ Includeing implementaion as a scikit-learn object and an independent function.
 
 Reference:
     Haiping Lu, K.N. Plataniotis, and A.N. Venetsanopoulos, "MPCA: Multilinear
-    Principal Component Analysis of Tensor Objects", IEEE Transactions on Neural 
+    Principal Component Analysis of Tensor Objects", IEEE Transactions on Neural
     Networks, Vol. 19, No. 1, Page: 18-39, January 2008. For initial Matlab
     implementation, please go to https://uk.mathworks.com/matlabcentral/fileexchange/26168.
 """

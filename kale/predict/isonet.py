@@ -1,5 +1,5 @@
-""" 
-The ISONet module, which is based on the ResNet module, 
+"""
+The ISONet module, which is based on the ResNet module,
 from https://github.com/HaozhiQi/ISONet/blob/master/isonet/models/isonet.py
 (based on https://github.com/facebookresearch/pycls/blob/master/pycls/models/resnet.py)
 """
@@ -142,7 +142,7 @@ class BottleneckTransform(nn.Module):
             kernel_size=1,
             stride=str1x1,
             padding=0,
-            bias=not self.has_bn and notself.use_srelu,
+            bias=not self.has_bn and not self.use_srelu,
         )
         if self.has_bn:
             self.a_bn = nn.BatchNorm2d(w_b)

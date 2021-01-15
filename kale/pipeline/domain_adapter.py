@@ -1,6 +1,6 @@
 """Domain adaptation systems (pipelines) with three types of architectures
 
-This module takes individual modules as input and organises them into an architecture. This is taken directly from 
+This module takes individual modules as input and organises them into an architecture. This is taken directly from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/architectures.py with minor changes.
 
 This module uses `PyTorch Lightning <https://github.com/PyTorchLightning/pytorch-lightning>`_ to standardize the flow.
@@ -13,7 +13,7 @@ from torch.autograd import Function
 import kale.predict.losses as losses
 
 import pytorch_lightning as pl
-from pytorch_memlab import profile
+# from pytorch_memlab import profile
 
 
 class ReverseLayerF(Function):
@@ -192,7 +192,7 @@ def create_fewshot_trainer(
 ):
     """DANN-based few-shot deep learning methods for domain adaptation: FSDANN, MME"""
     if not dataset.is_semi_supervised():
-        raise ValueError(f"Dataset must be semi-supervised for few-shot methods.")
+        raise ValueError("Dataset must be semi-supervised for few-shot methods.")
 
     if method.is_fewshot_method():
         alpha = 0 if method is Method.Source else 1
@@ -231,8 +231,9 @@ class BaseAdaptTrainer(pl.LightningModule):
         for domain adaptation.
         If you inherit from this class, you will have to implement only:
          - a forward pass
-         - a `compute_loss` function that returns the task loss :math:`\mathcal{L}_c` and adaptation loss :math:`\mathcal{L}_a`, as well as
-           a dictionary for summary statistics and other metrics you may want to have access to.
+         - a `compute_loss` function that returns the task loss :math:`\mathcal{L}_c` and adaptation loss
+          :math:`\mathcal{L}_a`, as well as a dictionary for summary statistics and other metrics you may
+          want to have access to.
 
         The default training step uses only the task loss :math:`\mathcal{L}_c` during warmup,
         then uses the loss defined as:
@@ -247,8 +248,8 @@ class BaseAdaptTrainer(pl.LightningModule):
         Args:
             dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used
                 for train, validation, and tests.
-            feature_extractor (torch.nn.Module): the feature extractor network (mapping inputs :math:`x\in\mathcal{X}` to
-                a latent space :math:`\mathcal{Z}`,)
+            feature_extractor (torch.nn.Module): the feature extractor network (mapping inputs :math:`x\in\mathcal{X}`
+            to a latent space :math:`\mathcal{Z}`,)
             task_classifier (torch.nn.Module): the task classifier network that learns to predict labels
                 :math:`y \in \mathcal{Y}` from latent vectors,
             method (Method, optional): the method implemented by the class. Defaults to None.
@@ -258,7 +259,7 @@ class BaseAdaptTrainer(pl.LightningModule):
                 the DANN paper. Defaults to True.
             adapt_lr (bool, optional): Whether to use the schedule for the learning rate as defined
                 in the DANN paper. Defaults to True.
-            nb_init_epochs (int, optional): Number of warmup epochs (during which lambda=0, training only on the source). Defaults to 10.
+            nb_init_epochs (int, optional): Number of warmup epochs (during which lambda=0, training only on the source). Defaults to 10. # noqa: E501
             nb_adapt_epochs (int, optional): Number of training epochs. Defaults to 50.
             batch_size (int, optional): Defaults to 32.
             init_lr (float, optional): Initial learning rate. Defaults to 1e-3.
@@ -346,7 +347,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         Args:
             batch (tuple): the batch as returned by the MultiDomainLoader dataloader iterator:
                 2 tuples: (x_source, y_source), (x_target, y_target) in the unsupervised setting
-                3 tuples: (x_source, y_source), (x_target_labeled, y_target_labeled), (x_target_unlabeled, y_target_unlabeled) in the semi-supervised setting
+                3 tuples: (x_source, y_source), (x_target_labeled, y_target_labeled), (x_target_unlabeled, y_target_unlabeled) in the semi-supervised setting # noqa: E501
             batch_nb (int): id of the current batch.
 
         Returns:

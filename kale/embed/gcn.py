@@ -23,7 +23,7 @@ class GCNEncoderLayer(MessagePassing):
     :math:`\hat{D}_{ii} = \sum_{j=0} \hat{A}_{ij}` its diagonal degree matrix.
 
     Note: For more information please see Pytorch Geomertic's `nn.GCNConv
-    <https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#module-torch_geometric.nn.conv.message_passing>`_ docs.
+    <https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#module-torch_geometric.nn.conv.message_passing>`_ docs. # noqa: E501
 
     Args:
         in_channels (int): Size of each input sample.
@@ -163,7 +163,7 @@ class RGCNEncoderLayer(MessagePassing):
     :math:`\in \{ 0, \ldots, |\mathcal{R}| - 1\}` for each edge.
 
     Note: For more information please see Pytorch Geomertic’s `nn.RGCNConv
-    <https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#module-torch_geometric.nn.conv.message_passing>`_ docs.
+    <https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#module-torch_geometric.nn.conv.message_passing>`_ docs. # noqa: E501
 
     Args:
         in_channels (int): Size of each input sample.

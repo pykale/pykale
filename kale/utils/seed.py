@@ -11,8 +11,10 @@ import numpy as np
 def set_seed(seed=1000):
     """Sets the seed for generating random numbers to get (as) reproducible (as possible) results.
 
-    The CuDNN options are set according to the official PyTorch guidance on reproducibility: https://pytorch.org/docs/stable/notes/randomness.html.
-    Another reference is https://discuss.pytorch.org/t/difference-between-torch-manual-seed-and-torch-cuda-manual-seed/13848/6
+    The CuDNN options are set according to the official PyTorch guidance on reproducibility:
+    https://pytorch.org/docs/stable/notes/randomness.html.
+    Another reference is
+    https://discuss.pytorch.org/t/difference-between-torch-manual-seed-and-torch-cuda-manual-seed/13848/6
 
     Args:
         seed (int, optional): The desired seed. Defaults to 1000.

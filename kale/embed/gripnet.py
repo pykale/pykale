@@ -25,7 +25,7 @@ class GripNetSuperVertex(Module):
             start point of the whole information propagation. (default :obj:`False`)
         in_channels (int, optional): Size of each input sample for start graph. (default :obj:`None`)
         multi_relational: If set to :obj: 'True', the supervertex is a multi relation graph. (default :obj:`False`)
-        num_relations (int, optional): Number of edge relations if supervertex is a multi relation graph. (default :obj:`None`)
+        num_relations (int, optional): Number of edge relations if supervertex is a multi relation graph. (default :obj:`None`) # noqa: E501
         num_bases (int, optional): Number of bases if supervertex is a multi relation graph. (default :obj:`None`)
     """
 
@@ -201,9 +201,9 @@ class TypicalGripNetEncoder(Module):
     <https://arxiv.org/abs/2010.15914>`_.
 
     Args:
-        source_channels_list (list): Channels list of source nodes' hidden layers e.g. [channel_1, channel_2, ... channel_n]
+        source_channels_list (list): Channels list of source nodes' hidden layers e.g. [channel_1, channel_2, ... channel_n] # noqa: E501
         inter_channels_list (list): Channels list of superedge between source and target node sets with length 2.
-        target_channels_list (list): Channels list of target nodes' hidden layers e.g. [channel_1, channel_2, ... channel_n]
+        target_channels_list (list): Channels list of target nodes' hidden layers e.g. [channel_1, channel_2, ... channel_n] # noqa: E501
         num_target_nodes (int): Numbers of target nodes.
         num_source_nodes (int): Numbers of source nodes.
         num_target_edge_relations (int): Number of edge relations of target supervertex.

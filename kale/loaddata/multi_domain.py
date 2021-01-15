@@ -1,5 +1,6 @@
 """
-Construct a dataset with (multiple) source and target domains, from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py
+Construct a dataset with (multiple) source and target domains, from
+https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py
 """
 
 import logging
@@ -75,12 +76,12 @@ class MultiDomainDatasets(DomainsDatasetBase):
             source_access (DatasetAccess): accessor for the source dataset
             target_access (DatasetAccess): accessor for the target dataset
             val_split_ratio (float, optional): ratio for the validation part of the train dataset. Defaults to 0.1.
-            source_sampling_config (SamplingConfig, optional): How to sample from the source. Defaults to None (=> RandomSampler).
-            target_sampling_config (SamplingConfig, optional): How to sample from the target. Defaults to None (=> RandomSampler).
-            size_type (DatasetSizeType, optional): Which dataset size to use to define the number of epochs vs batch_size. Defaults to DatasetSizeType.Max.
+            source_sampling_config (SamplingConfig, optional): How to sample from the source. Defaults to None (=> RandomSampler). # noqa: E501
+            target_sampling_config (SamplingConfig, optional): How to sample from the target. Defaults to None (=> RandomSampler). # noqa: E501
+            size_type (DatasetSizeType, optional): Which dataset size to use to define the number of epochs vs batch_size. Defaults to DatasetSizeType.Max. # noqa: E501
             n_fewshot (int, optional): Number of target samples for which the label may be used,
                 to define the few-shot, semi-supervised setting. Defaults to None.
-            random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label selection. Defaults to None.
+            random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label selection. Defaults to None. # noqa: E501
         Examples::
             >>> dataset = MultiDomainDatasets(source, target)
         """

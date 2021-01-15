@@ -1,5 +1,5 @@
 """
-Dataset setting and data loader for MNIST-M, from 
+Dataset setting and data loader for MNIST-M, from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/dataset_mnistm.py
 (based on https://github.com/pytorch/vision/blob/master/torchvision/datasets/mnist.py)
 CREDIT: https://github.com/corenel

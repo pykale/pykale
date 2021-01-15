@@ -12,7 +12,7 @@ def get_transform(kind, augment=False):
 
     Args:
         kind ([type]): the dataset (transformation) name
-        augment (bool, optional): whether to do data augmentation (random crop and flipping). Defaults to False. (Not implemented for digits yet.)
+        augment (bool, optional): whether to do data augmentation (random crop and flipping). Defaults to False. (Not implemented for digits yet.) # noqa: E501
 
     """
     if kind == "mnist32":

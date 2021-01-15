@@ -1,11 +1,10 @@
 """
-CNNs for extracting features from small images of size 32x32 (e.g. MNIST) and regular images of size 224x224 (e.g. ImageNet). The code is based on  
-https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py, which is for domain adaptation.
+CNNs for extracting features from small images of size 32x32 (e.g. MNIST) and regular images of size 224x224
+(e.g. ImageNet). The code is based on
+https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py, which is for domain adaptation. # noqa: E501
 """
 
-import numpy as np
 import torch.nn as nn
-import torch
 from torchvision import models
 
 

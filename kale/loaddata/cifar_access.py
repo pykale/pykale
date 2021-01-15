@@ -1,12 +1,11 @@
 """CIFAR10 or CIFAR100 dataset loading
 
-Reference: https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/dataset.py 
+Reference: https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/dataset.py
 """
 
-import os
 import torch
 import torchvision
-import torchvision.transforms as transforms
+# import torchvision.transforms as transforms
 from kale.prepdata.image_transform import get_transform
 
 

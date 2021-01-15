@@ -1,4 +1,4 @@
-"""Commonly used losses, from domain adaptation package 
+"""Commonly used losses, from domain adaptation package
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/losses.py
 """
 
@@ -58,24 +58,24 @@ def gradient_penalty(critic, h_s, h_t):
 
     alpha = torch.rand(h_s.size(0), 1)
     alpha = alpha.expand(h_s.size()).type_as(h_s)
-    try:
-        differences = h_t - h_s
+    # try:
+    differences = h_t - h_s
 
-        interpolates = h_s + (alpha * differences)
-        interpolates = torch.cat((interpolates, h_s, h_t), dim=0).requires_grad_()
+    interpolates = h_s + (alpha * differences)
+    interpolates = torch.cat((interpolates, h_s, h_t), dim=0).requires_grad_()
 
-        preds = critic(interpolates)
-        gradients = grad(
-            preds,
-            interpolates,
-            grad_outputs=torch.ones_like(preds),
-            retain_graph=True,
-            create_graph=True,
-        )[0]
-        gradient_norm = gradients.norm(2, dim=1)
-        gradient_penalty = ((gradient_norm - 1) ** 2).mean()
-    except:
-        gradient_penalty = 0
+    preds = critic(interpolates)
+    gradients = grad(
+        preds,
+        interpolates,
+        grad_outputs=torch.ones_like(preds),
+        retain_graph=True,
+        create_graph=True,
+    )[0]
+    gradient_norm = gradients.norm(2, dim=1)
+    gradient_penalty = ((gradient_norm - 1) ** 2).mean()
+    # except:
+    # gradient_penalty = 0
 
     return gradient_penalty
 

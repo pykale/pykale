@@ -1,5 +1,5 @@
 import warnings
-from typing import Optional, Any
+from typing import Optional, Tuple
 
 import torch
 from torch import nn
@@ -16,6 +16,7 @@ from torch.nn import Module
 from torch.nn import Dropout
 from torch.nn import LayerNorm
 from torch.nn.functional import pad
+
 
 # Copy-paste with slight modification from torch.nn.TransformerEncoderLayer
 class LinearTransformerEncoderLayer(Module):
@@ -168,14 +169,14 @@ class LinearMultiheadAttention(nn.Module):
         vdim: total number of features in key. Default: None.
         seq_len: the sequence length. Default: 100.
         proj_k: the projected seq-dimension `k` of key and value. Default: 128.
-        param_sharing: parameter sharing mode of linformer projection: layerwise, none. headwise is not implemented. Default: none.
+        param_sharing: parameter sharing mode of linformer projection: layerwise, none. headwise is not implemented. Default: none.  # noqa: E501
 
     Examples::
         >>> multihead_attn = LinearMultiheadAttention(embed_dim, num_heads, seq_len=10000, proj_k=128)
         >>> attn_output, attn_output_weights = multihead_attn(query, key, value)
 
     Note:
-        Code taken exactly as is from https://github.com/kuixu/Linear-Multihead-Attention. Many thanks you to the author.
+        Code taken exactly as is from https://github.com/kuixu/Linear-Multihead-Attention. Many thanks you to the author. # noqa: E501
     """
     __annotations__ = {
         "bias_k": torch._jit_internal.Optional[torch.Tensor],
@@ -291,7 +292,7 @@ class LinearMultiheadAttention(nn.Module):
         need_weights=True,
         attn_mask=None,
     ):
-        # type: (Tensor, Tensor, Tensor, Optional[Tensor], bool, Optional[Tensor]) -> Tuple[Tensor, Optional[Tensor]]
+        # type: (Tensor, Tensor, Tensor, Optional[Tensor], bool, Optional[Tensor]) -> Tuple[Tensor, Optional[Tensor]] # noqa: E501
         r"""
         See PyTorch's nn.MultiheadAttention docs.
         """
@@ -379,7 +380,7 @@ def _linear_multi_head_attention_forward(
     static_k=None,  # type: Optional[Tensor]
     static_v=None,  # type: Optional[Tensor]
 ):
-    # type: (...) -> Tuple[Tensor, Optional[Tensor]]
+    # type: (...) -> Tuple[Tensor, Optional[Tensor]] # noqa: F821
     r"""
     Args:
         query, key, value: map a query and a set of key-value pairs to an output.
@@ -593,7 +594,7 @@ def _linear_multi_head_attention_forward(
     else:
         assert bias_k is None
         assert bias_v is None
-    ##======= linformer =========##
+    # ======= linformer ========= #
     k = k.transpose(0, 1).transpose(1, 2)
     k = linear(k, e_proj_weight, bias_e)
     v = v.transpose(0, 1).transpose(1, 2)
