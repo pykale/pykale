@@ -54,8 +54,8 @@ class USPS(data.Dataset):
             total_num_samples = self.data.shape[0]
             indices = np.arange(total_num_samples)
             np.random.shuffle(indices)
-            self.data = self.data[indices[0 : self.dataset_size], ::]
-            self.targets = self.targets[indices[0 : self.dataset_size]]
+            self.data = self.data[indices[0:self.dataset_size], ::]
+            self.targets = self.targets[indices[0:self.dataset_size]]
         # self.train_data *= 255.0  # TODO check bug
         self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
 
