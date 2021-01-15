@@ -4,7 +4,8 @@ repos:
     hooks:
     -   id: flake8
         args: [--config=setup.cfg]
-        exclude: ^(examples/*)|(docs/*)
+    -   id: check-added-large-files
+        args: ['--maxkb=300']
     -   id: check-byte-order-marker
     -   id: check-case-conflict
     -   id: check-merge-conflict
@@ -14,19 +15,25 @@ repos:
         args: [--fix=lf]
     -   id: trailing-whitespace
     -   id: debug-statements
+    -   id: check-yaml
+    -   id: requirements-txt-fixer
 -   repo: https://github.com/ambv/black
-    rev: 19.10b0
+    rev: 20.8b1
     hooks:
     -   id: black
-        exclude: ^(build/*)|(docs/*)|(examples/*)
-        args: [-l 120, --target-version=py36]
+        exclude: ^(build/*)
+        args: [--line-length 120, --target-version=py36, --config=pyproject.toml]
 -   repo: https://github.com/pre-commit/mirrors-isort
     rev: v4.3.21
     hooks:
     -   id: isort
+        name: isort
+        entry: python -m isort
+        language: system
+        types: [python]    
         language_version: python3
-        exclude: ^(build/*)|(docs/*)|(examples/*)
-        args: [-w 120, -m 3, -tc, --project=pykale]
+        exclude: ^(build/*)
+        args: [--settings-path, ./pyproject.toml]
 -   repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 1.11.0
     hooks:
@@ -40,3 +47,7 @@ repos:
     hooks:
     -   id: forbid-crlf
     -   id: forbid-tabs
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.790
+    hooks:
+    -   id: mypy    
