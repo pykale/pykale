@@ -21,8 +21,9 @@ repos:
     rev: 20.8b1
     hooks:
     -   id: black
+        language_version: python3 # Should be a command that runs python3.6+    
         # exclude: ^(build/*)
-        args: [-l 120, --diff, --color, --target-version=py38, --config=pyproject.toml]
+        # args: [-l 120, --diff, --color, --target-version=py38, --config=pyproject.toml]
 # -   repo: https://github.com/pre-commit/mirrors-isort
 #     rev: v4.3.21
     # hooks:
