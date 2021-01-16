@@ -59,11 +59,7 @@ class DigitDataset(Enum):
         source_tf = transform_names[(source, num_channels)]
         target_tf = transform_names[(target, num_channels)]
 
-        return (
-            factories[source](data_path, source_tf),
-            factories[target](data_path, target_tf),
-            num_channels
-        )
+        return (factories[source](data_path, source_tf), factories[target](data_path, target_tf), num_channels)
 
 
 class DigitDatasetAccess(DatasetAccess):
