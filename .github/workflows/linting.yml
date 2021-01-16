@@ -21,9 +21,8 @@ jobs:
         python-version: "3.6"
     - name: Install dependencies
       run: |
-        pip install flake8==3.8.3 pre-commit
+        pip install flake8==3.8.3 pre-commit isort
         pre-commit install
-        pre-commit run seed-isort-config || true
     - name: Run linting
       run: |
         flake8

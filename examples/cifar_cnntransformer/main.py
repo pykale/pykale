@@ -60,7 +60,7 @@ def main():
     net = net.to(device)
 
     model_stats = summary(net, (3, 32, 32))
-    logger.info('\n'+str(model_stats))
+    logger.info("\n" + str(model_stats))
 
     if device == "cuda":
         net = torch.nn.DataParallel(net)
