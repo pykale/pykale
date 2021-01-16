@@ -23,8 +23,8 @@ repos:
     -   id: black
         # exclude: ^(build/*)
         args: [-l 120, --target-version=py36, --config=pyproject.toml]
--   repo: https://github.com/pre-commit/mirrors-isort
-    rev: v4.3.21
+# -   repo: https://github.com/pre-commit/mirrors-isort
+#     rev: v4.3.21
     # hooks:
     # -   id: isort
     #     name: isort
