@@ -15,6 +15,7 @@ Reference:
 
 import sys
 import numpy as np
+
 # import tensorly as tl
 from tensorly.base import unfold, fold
 from tensorly.tenalg import multi_mode_dot
@@ -71,7 +72,7 @@ class MPCA(BaseEstimator, TransformerMixin):
             (between 0 and 1). Defaults to 0.97.
         max_iter (int, optional): Maximum number of iteration. Defaults to 1.
         vectorise (bool): Whether vectorise the transformed tensor. Defaults to Flase.
-        n_components (int): Number of components to keep. Applies only when vectorise=True. 
+        n_components (int): Number of components to keep. Applies only when vectorise=True.
             Defaults to None.
 
     Attributes:
@@ -100,12 +101,13 @@ class MPCA(BaseEstimator, TransformerMixin):
         >>> X_inverse.shape
         (20, 25, 20, 40)
     """
+
     def __init__(self, var_ratio=0.97, max_iter=1, vectorise=False, n_components=None):
         self.var_ratio = var_ratio
         if max_iter > 0 and isinstance(max_iter, int):
             self.max_iter = max_iter
         else:
-            print('Number of max iterations must be an integer and greater than 0')
+            print("Number of max iterations must be an integer and greater than 0")
             sys.exit()
         self.proj_mats = []
         self.vectorise = vectorise
@@ -116,7 +118,7 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         Args
             X (ndarray): Input data, shape (I_1, I_2, ..., I_N, n_samples), where n_samples
-                is the number of samples, I_1, I_2, ..., I_N are the dimensions of 
+                is the number of samples, I_1, I_2, ..., I_N are the dimensions of
                 corresponding mode (1, 2, ..., N), respectively.
             y (None): Ignored variable.
 
@@ -140,7 +142,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         eig_vecs_sorted = dict()  # dictionary of eigenvectors for all modes/orders
         lambdas = dict()  # dictionary of eigenvalues for all modes/orders
         # dictionary of cumulative distribution of eigenvalues for all modes/orders
-        cums = dict()  
+        cums = dict()
         proj_mats = []
         shape_out = ()
         for i in range(n_spl):
@@ -164,7 +166,7 @@ class MPCA(BaseEstimator, TransformerMixin):
                     break
             cums[i] = cum
 
-            proj_mats.append(eig_vecs_sorted[i][:, :shape_out[i]].T)
+            proj_mats.append(eig_vecs_sorted[i][:, : shape_out[i]].T)
 
         for i_iter in range(self.max_iter):
             Phi = dict()
@@ -173,8 +175,11 @@ class MPCA(BaseEstimator, TransformerMixin):
                     Phi[i] = 0
                 for j in range(n_spl):
                     X_j = X_[..., j]  # jth tensor/sample
-                    Xj_ = multi_mode_dot(X_j, [proj_mats[m] for m in range(self.ndim - 1) if m != i],
-                                         modes=[m for m in range(self.ndim - 1) if m != i])
+                    Xj_ = multi_mode_dot(
+                        X_j,
+                        [proj_mats[m] for m in range(self.ndim - 1) if m != i],
+                        modes=[m for m in range(self.ndim - 1) if m != i],
+                    )
                     Xj_unfold = unfold(Xj_, i)
                     Phi[i] = np.dot(Xj_unfold, Xj_unfold.T) + Phi[i]
 
@@ -182,7 +187,7 @@ class MPCA(BaseEstimator, TransformerMixin):
                 idx_sorted = eig_vals.argsort()[::-1]
                 lambdas[i] = eig_vals[idx_sorted]
                 proj_mats[i] = eig_vecs[:, idx_sorted]
-                proj_mats[i] = (proj_mats[i][:, :shape_out[i]]).T
+                proj_mats[i] = (proj_mats[i][:, : shape_out[i]]).T
 
         x_transformed = multi_mode_dot(X, proj_mats, modes=[m for m in range(self.ndim - 1)])
         x_trans_vec = unfold(x_transformed, mode=-1)  # vectorise the transformed features
@@ -206,20 +211,20 @@ class MPCA(BaseEstimator, TransformerMixin):
             ndarray: Transformed data, shape (P_1, P_2, ..., P_N, n_samples) if self.vectorise==False.
                 If self.vectorise==True, features will be sorted based on their explained variance ratio,
                 shape (n_samples, P_1 * P_2 * ... * P_N) if self.n_components is None,
-                and shape (n_samples, n_components) if self.n_component is not None.                
+                and shape (n_samples, n_components) if self.n_component is not None.
         """
         _check_dim_shape(X, self.ndim, self.shape_in)
         n_spl = X.shape[-1]
         for i in range(n_spl):
             X[..., i] = X[..., i] - self.mean_
-        
+
         X_transformed = multi_mode_dot(X, self.proj_mats, modes=[m for m in range(self.ndim - 1)])
 
         if self.vectorise:
             X_transformed = unfold(X_transformed, mode=-1)
             X_transformed = X_transformed[:, self.idx_order]
             if isinstance(self.n_components, int) and self.n_components <= np.prod(self.shape_out):
-                X_transformed = X_transformed[:, :self.n_components]
+                X_transformed = X_transformed[:, : self.n_components]
 
         return X_transformed
 
@@ -227,9 +232,9 @@ class MPCA(BaseEstimator, TransformerMixin):
         """Transform data in the shape of reduced dimension back to the original shape
 
         Args:
-            X (ndarray): Data to be transfromed back. If self.vectorise == Flase, shape 
-                (P_1, P_2, ..., P_N, n_samples), where P_1, P_2, ..., P_N are the reduced 
-                dimensions of of corresponding mode (1, 2, ..., N), respectively. If 
+            X (ndarray): Data to be transfromed back. If self.vectorise == Flase, shape
+                (P_1, P_2, ..., P_N, n_samples), where P_1, P_2, ..., P_N are the reduced
+                dimensions of of corresponding mode (1, 2, ..., N), respectively. If
                 self.vectorise == True, shape (n_samples, self.n_components) or shape
                 (n_samples, P_1 * P_2 * ... * P_N).
             add_mean (bool): Whether add the mean estimated from the training set to the output.
@@ -246,9 +251,9 @@ class MPCA(BaseEstimator, TransformerMixin):
             n_feat = X.shape[1]
             if n_feat <= np.prod(self.shape_out):
                 X_ = np.zeros((n_spl, np.prod(self.shape_out)))
-                X_[:, :self.idx_order[:n_feat]] = X[:]
+                X_[:, : self.idx_order[:n_feat]] = X[:]
             else:
-                print('Feature dimension exceeds the shape upper limit')
+                print("Feature dimension exceeds the shape upper limit")
                 sys.exit()
 
             X = fold(X_, -1, self.shape_out + (n_spl,))

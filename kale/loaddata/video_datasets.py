@@ -27,19 +27,20 @@ class BasicVideoDataset(VideoFrameDataset):
         n_classes (int): The number of classes.
     """
 
-    def __init__(self,
-                 root_path: str,
-                 annotationfile_path: str,
-                 dataset_split: str,
-                 image_modality: str,
-                 num_segments: int = 1,
-                 frames_per_segment: int = 16,
-                 imagefile_template: str = 'img_{:010d}.jpg',
-                 transform=None,
-                 random_shift: bool = True,
-                 test_mode: bool = False,
-                 n_classes: int = 8
-                 ):
+    def __init__(
+        self,
+        root_path: str,
+        annotationfile_path: str,
+        dataset_split: str,
+        image_modality: str,
+        num_segments: int = 1,
+        frames_per_segment: int = 16,
+        imagefile_template: str = "img_{:010d}.jpg",
+        transform=None,
+        random_shift: bool = True,
+        test_mode: bool = False,
+        n_classes: int = 8,
+    ):
         self.root_path = Path(root_path)
         self.image_modality = image_modality
         self.dataset = dataset_split
@@ -54,7 +55,7 @@ class BasicVideoDataset(VideoFrameDataset):
             imagefile_template,
             transform,
             random_shift,
-            test_mode
+            test_mode,
         )
 
     def _parse_list(self):
@@ -71,7 +72,7 @@ class BasicVideoDataset(VideoFrameDataset):
 
         data = []
         i = 0
-        with open(self.annotationfile_path, 'rb') as input_file:
+        with open(self.annotationfile_path, "rb") as input_file:
             input_file = pickle.load(input_file)
             for line in input_file.values:
                 if 0 <= eval(line[5]) < self.n_classes:
@@ -86,19 +87,20 @@ class EPIC(VideoFrameDataset):
     Dataset for EPIC-Kitchen.
     """
 
-    def __init__(self,
-                 root_path: str,
-                 annotationfile_path: str,
-                 dataset_split: str,
-                 image_modality: str,
-                 num_segments: int = 1,
-                 frames_per_segment: int = 16,
-                 imagefile_template: str = 'img_{:010d}.jpg',
-                 transform=None,
-                 random_shift: bool = True,
-                 test_mode: bool = False,
-                 n_classes: int = 8
-                 ):
+    def __init__(
+        self,
+        root_path: str,
+        annotationfile_path: str,
+        dataset_split: str,
+        image_modality: str,
+        num_segments: int = 1,
+        frames_per_segment: int = 16,
+        imagefile_template: str = "img_{:010d}.jpg",
+        transform=None,
+        random_shift: bool = True,
+        test_mode: bool = False,
+        n_classes: int = 8,
+    ):
         self.root_path = Path(root_path)
         self.image_modality = image_modality
         self.dataset = dataset_split
@@ -113,19 +115,19 @@ class EPIC(VideoFrameDataset):
             imagefile_template,
             transform,
             random_shift,
-            test_mode
+            test_mode,
         )
 
     def _parse_list(self):
         self.video_list = [VideoRecord(x, self.img_path) for x in list(self.make_dataset())]
 
     def _load_image(self, directory, idx):
-        if self.image_modality == 'rgb':
-            return [Image.open(os.path.join(directory, self.imagefile_template.format(idx))).convert('RGB')]
-        elif self.image_modality == 'flow':
+        if self.image_modality == "rgb":
+            return [Image.open(os.path.join(directory, self.imagefile_template.format(idx))).convert("RGB")]
+        elif self.image_modality == "flow":
             idx = math.ceil(idx / 2) - 1 if idx > 2 else 1
-            u_img = Image.open(os.path.join(directory, 'u', self.imagefile_template.format(idx))).convert('L')
-            v_img = Image.open(os.path.join(directory, 'v', self.imagefile_template.format(idx))).convert('L')
+            u_img = Image.open(os.path.join(directory, "u", self.imagefile_template.format(idx))).convert("L")
+            v_img = Image.open(os.path.join(directory, "v", self.imagefile_template.format(idx))).convert("L")
             return [u_img, v_img]
 
     def make_dataset(self):
@@ -133,13 +135,13 @@ class EPIC(VideoFrameDataset):
         Load data from the EPIC-Kitchen list file and make them into the united format.
         Because the original list files are not the same, inherit from class BasicVideoDataset and be modified.
         """
-        
+
         data = []
         i = 0
-        with open(self.annotationfile_path, 'rb') as input_file:
+        with open(self.annotationfile_path, "rb") as input_file:
             input_file = pickle.load(input_file)
             for line in input_file.values:
-                if line[1] in ['P01', 'P08', 'P22']:
+                if line[1] in ["P01", "P08", "P22"]:
                     if 0 <= line[9] < self.n_classes:
                         if line[7] - line[6] + 1 >= self.frames_per_segment:
                             label = line[9]

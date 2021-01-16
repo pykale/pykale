@@ -87,25 +87,15 @@ def get_transform(kind, augment=False):
     elif kind == "office":
         if augment:
             transform_aug = transforms.Compose(
-                [
-                    transforms.Resize(256),
-                    transforms.RandomResizedCrop(224),
-                    transforms.RandomHorizontalFlip()
-                ]
+                [transforms.Resize(256), transforms.RandomResizedCrop(224), transforms.RandomHorizontalFlip()]
             )
         else:
-            transform_aug = transforms.Compose(
-                [
-                    transforms.Resize(256)
-                ]
-            )
+            transform_aug = transforms.Compose([transforms.Resize(256)])
         transform = transforms.Compose(
             [
                 transform_aug,
                 transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-                ),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ]
         )
     else:

@@ -15,9 +15,10 @@ from datetime import datetime
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
+
 def param_to_str(param_dict):
-    """Convert (hyper)parameter to a string
-    """
+    """Convert (hyper)parameter to a string"""
+
     def key_val_mapper(kv):
         if isinstance(kv[1], dict):
             return param_to_str(kv[1])
@@ -34,18 +35,18 @@ def param_to_str(param_dict):
 
     return "-".join(map(key_val_mapper, param_dict.items()))
 
+
 def create_timestamp_string(fmt="%Y-%m-%d.%H.%M.%S.%f"):
     now = datetime.now()
     time_str = now.strftime(fmt)
     return time_str
 
+
 def param_to_hash(param_dict):
-    """Generate a hash for a fixed hyperparameter setting
-    """
-    config_hash = hashlib.md5(
-        json.dumps(param_dict, sort_keys=True).encode("utf-8")
-    ).hexdigest()
+    """Generate a hash for a fixed hyperparameter setting"""
+    config_hash = hashlib.md5(json.dumps(param_dict, sort_keys=True).encode("utf-8")).hexdigest()
     return config_hash
+
 
 def record_hashes(hash_file, hash_, value):
     """Record the hash and assoicated (training) parameters
@@ -65,9 +66,10 @@ def record_hashes(hash_file, hash_, value):
         known_hashes[hash_] = value
         with open(hash_file, "w") as fd:
             json.dump(known_hashes, fd, indent=2)
-            fd.write('\n')
+            fd.write("\n")
         return True
     return False
+
 
 def setup_logger(train_params, output_dir, method_name, seed):
     """[summary]
@@ -75,7 +77,7 @@ def setup_logger(train_params, output_dir, method_name, seed):
     Args:
         train_params (dictionary): training parameters to generate a unique hash for logging
         output_dir (string): the path to log results
-        method_name (string): the ML method 
+        method_name (string): the ML method
 
     Returns:
         [type]: [description]
@@ -94,24 +96,20 @@ def setup_logger(train_params, output_dir, method_name, seed):
     checkpoint_dir = os.path.join(output_dir, "checkpoints", params_hash)
 
     # To simplify
-    
+
     path_method_name = re.sub(r"[^-/\w\.]", "_", method_name)
-    full_checkpoint_dir = os.path.join(
-        checkpoint_dir, path_method_name, f"seed_{seed}"
-    )
+    full_checkpoint_dir = os.path.join(checkpoint_dir, path_method_name, f"seed_{seed}")
     checkpoint_callback = ModelCheckpoint(
         filepath=os.path.join(full_checkpoint_dir, "{epoch}"),
         monitor="last_epoch",
         mode="max",
     )
-    
-    results = XpResults.from_file(
-        ["source acc", "target acc", "domain acc"], test_csv_file
-    )
+
+    results = XpResults.from_file(["source acc", "target acc", "domain acc"], test_csv_file)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)  
+    logger.setLevel(logging.INFO)
 
     return logger, results, checkpoint_callback, test_csv_file
 
@@ -121,9 +119,10 @@ class XpResults:
     """
     Args:
         metrics (list of string): Which metrics to record.
-        df (pandas.DataFrame, optional): columns are: metrics + [seed, method, split]. 
+        df (pandas.DataFrame, optional): columns are: metrics + [seed, method, split].
         Defaults to None.
-    """    
+    """
+
     @staticmethod
     def from_file(metrics, filepath):
         """Set up what metrics to log and where to log
@@ -150,7 +149,7 @@ class XpResults:
         """
         Args:
             metrics (list of string): Which metrics to record.
-            df (pandas.DataFrame, optional): columns are: metrics + [seed, method, split]. 
+            df (pandas.DataFrame, optional): columns are: metrics + [seed, method, split].
             Defaults to None.
         """
         self._metrics = metrics[:]
@@ -178,14 +177,10 @@ class XpResults:
         self._df = self._df[~self._df["method"].isin(method_names)]
 
     def update(self, is_validation, method_name, seed, metric_values):
-        """Update the log with metric values
-        """        
+        """Update the log with metric values"""
         split, prefix = ("Validation", "V") if is_validation else ("Test", "Te")
         results = pd.DataFrame(
-            {
-                k: metric_values.get(f"{prefix}_{k.replace(' ', '_')}", None)
-                for k in self._metrics
-            },
+            {k: metric_values.get(f"{prefix}_{k.replace(' ', '_')}", None) for k in self._metrics},
             index=[0],
         )
         results["seed"] = seed
@@ -197,18 +192,13 @@ class XpResults:
         return self._df
 
     def get_best_archi_seed(self):
-        return (
-            self._df.sort_values(by=self._metrics, ascending=False)
-            .head(1)
-            .seed.values[0]
-        )
+        return self._df.sort_values(by=self._metrics, ascending=False).head(1).seed.values[0]
 
     def get_last_seed(self):
         return self._df.tail(1).seed.values[0]
 
     def get_mean_seed(self, mean_metric):
-        """Sorted (ascending) mean metric values for all seeds
-        """
+        """Sorted (ascending) mean metric values for all seeds"""
         if mean_metric not in self._metrics:
             raise ValueError(f"Unknown metric: {mean_metric}")
         all_res_valid = self._df.query("split=='Validation'").dropna()
@@ -216,9 +206,7 @@ class XpResults:
             all_res_valid = self._df.query("split=='Test'").dropna()
         all_res_valid[mean_metric] = all_res_valid[mean_metric].astype(np.float)
         tres_means = all_res_valid.groupby("method").mean()[mean_metric]
-        all_seed_res = all_res_valid.pivot(
-            index="seed", columns="method", values=mean_metric
-        )
+        all_seed_res = all_res_valid.pivot(index="seed", columns="method", values=mean_metric)
 
         def dist_to_mean(row):
             return np.mean((row - tres_means) ** 2)
@@ -227,8 +215,7 @@ class XpResults:
         return all_seed_res.sort_values(by="dist", ascending=True).head(1).index[0]
 
     def to_csv(self, filepath):
-        """Data frame to CSV
-        """
+        """Data frame to CSV"""
         self._df.to_csv(filepath)
 
     def print_scores(
@@ -240,48 +227,29 @@ class XpResults:
         print_func=print,
         file_format="markdown",
     ):
-        """Print out the performance scores (over multiple runs)
-        """
+        """Print out the performance scores (over multiple runs)"""
         mres = self._df.query(f"method == '{method_name}' and split == '{split}'")
         nsamples = len(mres)
-        mmres = [
-            (mres[m].mean(), mres[m].std() / np.sqrt(nsamples)) for m in self._metrics
-        ]
+        mmres = [(mres[m].mean(), mres[m].std() / np.sqrt(nsamples)) for m in self._metrics]
         if stdout:
             print_func(split, end=" ")
             print_func(method_name, end="")
             print_func(" " * (10 - len(method_name)), end="")
-            print_func(
-                "\t\t".join(
-                    (
-                        f"{m * 100:.1f}% +- {1.96 * s * 100:.2f} ({nsamples} runs)"
-                        for m, s in mmres
-                    )
-                )
-            )
+            print_func("\t\t".join((f"{m * 100:.1f}% +- {1.96 * s * 100:.2f} ({nsamples} runs)" for m, s in mmres)))
         if fdout is not None:
             if file_format == "markdown":
                 fdout.write(f"|{method_name}|")
-                fdout.write(
-                    "|".join(
-                        (f"{m * 100:.1f}% +- {1.96 * s * 100:.2f}" for m, s in mmres)
-                    )
-                )
+                fdout.write("|".join((f"{m * 100:.1f}% +- {1.96 * s * 100:.2f}" for m, s in mmres)))
                 fdout.write("|\n")
             else:
                 fdout.write(method_name)
                 fdout.write(" " * (10 - len(method_name)))
-                fdout.write(
-                    "\t\t".join(
-                        (f"{m * 100:.1f}% +- {1.96 * s * 100:.2f}" for m, s in mmres)
-                    )
-                )
+                fdout.write("\t\t".join((f"{m * 100:.1f}% +- {1.96 * s * 100:.2f}" for m, s in mmres)))
                 fdout.write(f" ({split})")
                 fdout.write("\n")
 
     def append_to_txt(self, filepath, test_params, nseeds, splits=None):
-        """Append log info to a text log file
-        """
+        """Append log info to a text log file"""
         if splits is None:
             splits = ["Validation", "Test"]
         with open(filepath, "a") as fd:
@@ -307,8 +275,7 @@ class XpResults:
             fd.write("\n")
 
     def append_to_markdown(self, filepath, test_params, nseeds, splits=None):
-        """Append log info to a markdown log file
-        """
+        """Append log info to a markdown log file"""
         if splits is None:
             splits = ["Validation", "Test"]
         with open(filepath, "a") as fd:
@@ -326,7 +293,5 @@ class XpResults:
             fd.write("\n")
             for name in self._df.method.unique():
                 for split in splits:
-                    self.print_scores(
-                        method_name=name, split=split, stdout=True, fdout=fd
-                    )
+                    self.print_scores(method_name=name, split=split, stdout=True, fdout=fd)
             fd.write("\n")

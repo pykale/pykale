@@ -3,8 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Tuple
 
-from kale.prepdata.tensor_reshape import spatial_to_seq, \
-                                         seq_to_spatial
+from kale.prepdata.tensor_reshape import spatial_to_seq, seq_to_spatial
 from kale.embed.positional_encoding import PositionalEncoding
 
 
@@ -32,7 +31,7 @@ class ContextCNNGeneric(nn.Module):
                       If Sequence then the output sequence is returned as is (required).
 
     Examples:
-        >>> cnn = nn.Sequential(nn.Conv2d(3, 32, kernel_size=3), 
+        >>> cnn = nn.Sequential(nn.Conv2d(3, 32, kernel_size=3),
         >>>                     nn.Conv2d(32, 64, kernel_size=3),
         >>>                     nn.MaxPool2d(2))
         >>> cnn_output_shape = (-1, 64, 8, 8)
@@ -45,12 +44,13 @@ class ContextCNNGeneric(nn.Module):
         >>> output.size() == cnn_output_shape # True
     """
 
-    def __init__(self, cnn: nn.Module, cnn_output_shape: Tuple[int, int, int, int], contextualizer: nn.Module, 
-        output_type: str):
+    def __init__(
+        self, cnn: nn.Module, cnn_output_shape: Tuple[int, int, int, int], contextualizer: nn.Module, output_type: str
+    ):
         super(ContextCNNGeneric, self).__init__()
-        assert output_type in ['spatial', 'sequence'], \
-            "parameter 'output_type' must be one of ('spatial', 'sequence')" +\
-            f" but is {output_type}"
+        assert output_type in ["spatial", "sequence"], (
+            "parameter 'output_type' must be one of ('spatial', 'sequence')" + f" but is {output_type}"
+        )
 
         self.cnn = cnn
         self.cnn_output_shape = cnn_output_shape
@@ -69,12 +69,13 @@ class ContextCNNGeneric(nn.Module):
         seq_rep = self.contextualizer(seq_rep)
 
         output = seq_rep
-        if self.output_type == 'spatial':
+        if self.output_type == "spatial":
             desired_height = self.cnn_output_shape[2]
             desired_width = self.cnn_output_shape[3]
             output = seq_to_spatial(output, desired_height, desired_width)
 
         return output
+
 
 class CNNTransformer(ContextCNNGeneric):
     """
@@ -108,21 +109,28 @@ class CNNTransformer(ContextCNNGeneric):
         See pykale/examples/cifar_cnntransformer/model.py
     """
 
-    def __init__(self, cnn: nn.Module, cnn_output_shape: Tuple[int, int, int, int], num_layers: int, 
-                num_heads: int, dim_feedforward: int, dropout: float, output_type: str, 
-                positional_encoder: nn.Module=None):
+    def __init__(
+        self,
+        cnn: nn.Module,
+        cnn_output_shape: Tuple[int, int, int, int],
+        num_layers: int,
+        num_heads: int,
+        dim_feedforward: int,
+        dropout: float,
+        output_type: str,
+        positional_encoder: nn.Module = None,
+    ):
 
         num_channels = cnn_output_shape[1]
         height = cnn_output_shape[2]
         width = cnn_output_shape[3]
 
-        encoder_layer = nn.TransformerEncoderLayer(num_channels, num_heads, \
-                                                   dim_feedforward, dropout)
+        encoder_layer = nn.TransformerEncoderLayer(num_channels, num_heads, dim_feedforward, dropout)
         encoder_normalizer = nn.LayerNorm(num_channels)
         encoder = nn.TransformerEncoder(encoder_layer, num_layers, encoder_normalizer)
 
         if positional_encoder == None:
-            positional_encoder = PositionalEncoding(d_model=num_channels, max_len=height*width)
+            positional_encoder = PositionalEncoding(d_model=num_channels, max_len=height * width)
         else:
             # allows for passing the identity block to skip this step
             # or chosing a different encoding
@@ -131,8 +139,7 @@ class CNNTransformer(ContextCNNGeneric):
         transformer_input_dropout = nn.Dropout(dropout)
         contextualizer = nn.Sequential(positional_encoder, transformer_input_dropout, encoder)
 
-        super(CNNTransformer, self).__init__(cnn, cnn_output_shape, \
-                                             contextualizer, output_type)
+        super(CNNTransformer, self).__init__(cnn, cnn_output_shape, contextualizer, output_type)
 
         # Copied from https://pytorch.org/docs/stable/_modules/torch/nn/modules/transformer.html#Transformer
         for p in encoder.parameters():
