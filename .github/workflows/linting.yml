@@ -27,6 +27,6 @@ jobs:
     - name: Run linting
       run: |
         flake8
-    - name: Run pre-commit checks
-      run: |
-        SKIP=flake8 pre-commit run --files tests/*.py kale/**/*.py
+    # - name: Run pre-commit checks
+    #   run: |
+    #     SKIP=flake8 pre-commit run --files tests/*.py kale/**/*.py
