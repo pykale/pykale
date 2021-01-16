@@ -1,7 +1,6 @@
 """Screen printing functions, from https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/logger.py"""
 
 import os
-import sys
 import shlex
 import logging
 import datetime

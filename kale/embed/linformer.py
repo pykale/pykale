@@ -1,5 +1,5 @@
 import warnings
-from typing import Optional, Any
+from typing import Optional, Tuple  # Any
 
 import torch
 from torch import nn
@@ -16,6 +16,7 @@ from torch.nn import Module
 from torch.nn import Dropout
 from torch.nn import LayerNorm
 from torch.nn.functional import pad
+
 
 # Copy-paste with slight modification from torch.nn.TransformerEncoderLayer
 class LinearTransformerEncoderLayer(Module):
@@ -565,7 +566,7 @@ def _linear_multi_head_attention_forward(
     else:
         assert bias_k is None
         assert bias_v is None
-    ##======= linformer =========##
+    # ======= linformer ========= #
     k = k.transpose(0, 1).transpose(1, 2)
     k = linear(k, e_proj_weight, bias_e)
     v = v.transpose(0, 1).transpose(1, 2)

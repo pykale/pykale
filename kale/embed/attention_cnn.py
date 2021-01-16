@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from typing import Tuple
 
 from kale.prepdata.tensor_reshape import spatial_to_seq, seq_to_spatial
@@ -129,7 +128,7 @@ class CNNTransformer(ContextCNNGeneric):
         encoder_normalizer = nn.LayerNorm(num_channels)
         encoder = nn.TransformerEncoder(encoder_layer, num_layers, encoder_normalizer)
 
-        if positional_encoder == None:
+        if positional_encoder is None:
             positional_encoder = PositionalEncoding(d_model=num_channels, max_len=height * width)
         else:
             # allows for passing the identity block to skip this step

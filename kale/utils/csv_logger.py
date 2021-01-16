@@ -1,5 +1,5 @@
 """
-Logging functions, including saving results from multiple runs to CSV, from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py and 
+Logging functions, including saving results from multiple runs to CSV, from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py and
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation_results.py
 """
 import os.path
@@ -9,11 +9,9 @@ import pandas as pd
 import numpy as np
 import json
 import hashlib
-import glob
 import re
 from datetime import datetime
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import TensorBoardLogger
 
 
 def param_to_str(param_dict):

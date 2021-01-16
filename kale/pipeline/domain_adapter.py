@@ -1,6 +1,6 @@
 """Domain adaptation systems (pipelines) with three types of architectures
 
-This module takes individual modules as input and organises them into an architecture. This is taken directly from 
+This module takes individual modules as input and organises them into an architecture. This is taken directly from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/architectures.py with minor changes.
 
 This module uses `PyTorch Lightning <https://github.com/PyTorchLightning/pytorch-lightning>`_ to standardize the flow.
@@ -13,7 +13,6 @@ from torch.autograd import Function
 import kale.predict.losses as losses
 
 import pytorch_lightning as pl
-from pytorch_memlab import profile
 
 
 class ReverseLayerF(Function):
@@ -180,7 +179,7 @@ def create_dann_like(method: Method, dataset, feature_extractor, task_classifier
 def create_fewshot_trainer(method: Method, dataset, feature_extractor, task_classifier, critic, **train_params):
     """DANN-based few-shot deep learning methods for domain adaptation: FSDANN, MME"""
     if not dataset.is_semi_supervised():
-        raise ValueError(f"Dataset must be semi-supervised for few-shot methods.")
+        raise ValueError("Dataset must be semi-supervised for few-shot methods.")
 
     if method.is_fewshot_method():
         alpha = 0 if method is Method.Source else 1

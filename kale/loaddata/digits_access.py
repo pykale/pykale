@@ -1,5 +1,5 @@
 """
-Digits dataset (source and target domain) loading for MNIST, SVHN, MNIST-M (modified MNIST), and USPS. The code is based on 
+Digits dataset (source and target domain) loading for MNIST, SVHN, MNIST-M (modified MNIST), and USPS. The code is based on
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py
 """
 
