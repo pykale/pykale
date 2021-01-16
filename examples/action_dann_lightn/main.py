@@ -6,9 +6,9 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 import argparse
 import logging
 import os
-import sys
+# import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from kale.utils.csv_logger import setup_logger  # np error if move this to later, not sure why
 import pytorch_lightning as pl
