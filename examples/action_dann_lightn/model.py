@@ -67,8 +67,9 @@ def get_feat_extractor(model_name, image_modality, num_classes):
 
     Returns:
         feature_network: The network to extract features.
-        feature_dim: The dimension of the feature network output. It is a convention when
-                    the input dimension and the network is fixed.
+        class_feature_dim: The dimension of the feature network output for ClassNet.
+                        It is a convention when the input dimension and the network is fixed.
+        dmn_feature_dim: The dimension of the feature network output for DomainNet.
     """
 
     if image_modality == 'rgb':
@@ -76,16 +77,20 @@ def get_feat_extractor(model_name, image_modality, num_classes):
             pretrained_model = 'rgb_imagenet'
             feature_network = i3d_joint(rgb_pt=pretrained_model, flow_pt=None, pretrained=True)
             # model.replace_logits(num_classes)
-            feature_dim = 1024
+            class_feature_dim = 1024
+            dmn_feature_dim = class_feature_dim
         elif model_name == 'R3D_18':
             feature_network = r3d(rgb=True, flow=False, pretrained=True)
-            feature_dim = 512
+            class_feature_dim = 512
+            dmn_feature_dim = class_feature_dim
         elif model_name == 'R2PLUS1D_18':
             feature_network = r2plus1d(rgb=True, flow=False, pretrained=True)
-            feature_dim = 512
+            class_feature_dim = 512
+            dmn_feature_dim = class_feature_dim
         elif model_name == 'MC3_18':
             feature_network = mc3(rgb=True, flow=False, pretrained=True)
-            feature_dim = 512
+            class_feature_dim = 512
+            dmn_feature_dim = class_feature_dim
         else:
             raise ValueError("Unsupported model: {}".format(model_name))
 
@@ -93,7 +98,8 @@ def get_feat_extractor(model_name, image_modality, num_classes):
         if model_name == 'I3D':
             pretrained_model = 'flow_imagenet'
             feature_network = i3d_joint(rgb_pt=None, flow_pt=pretrained_model, pretrained=True)
-            feature_dim = 1024
+            class_feature_dim = 1024
+            dmn_feature_dim = class_feature_dim
         else:
             raise ValueError('Only provides I3D model for optical flow input. Current is {}.'.format(model_name))
 
@@ -104,13 +110,14 @@ def get_feat_extractor(model_name, image_modality, num_classes):
             feature_network = i3d_joint(rgb_pt=rgb_pretrained_model,
                                         flow_pt=flow_pretrained_model,
                                         pretrained=True)
-            feature_dim = 2048
+            class_feature_dim = 2048
+            dmn_feature_dim = class_feature_dim / 2
         else:
             raise ValueError("Only provides I3D model for optical joint inputs. Current is {}.".format(model_name))
 
     else:
         raise ValueError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
-    return feature_network, feature_dim
+    return feature_network, int(class_feature_dim), int(dmn_feature_dim)
 
 
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
@@ -126,10 +133,13 @@ def get_model(cfg, dataset, num_classes):
     """
 
     # setup feature extractor
-    feature_network, feature_dim = get_feat_extractor(cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY,
-                                                      num_classes)
+    feature_network, class_feature_dim, dmn_feature_dim = get_feat_extractor(
+        cfg.MODEL.METHOD.upper(),
+        cfg.DATASET.IMAGE_MODALITY,
+        num_classes
+    )
     # setup classifier
-    classifier_network = ClassNetVideo(feature_dim, num_classes)
+    classifier_network = ClassNetVideo(class_feature_dim, num_classes)
 
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
@@ -150,13 +160,13 @@ def get_model(cfg, dataset, num_classes):
             **train_params_local,
         )
     else:
-        critic_input_size = feature_dim
+        critic_input_size = dmn_feature_dim
         # setup critic network
         if method.is_cdan_method():
             if cfg.DAN.USERANDOM:
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
-                critic_input_size = feature_dim * num_classes
+                critic_input_size = dmn_feature_dim * num_classes
         critic_network = DomainNetSmallImage(critic_input_size)
 
         if cfg.DAN.METHOD == 'CDAN':
