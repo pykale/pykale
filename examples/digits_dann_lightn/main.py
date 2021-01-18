@@ -5,14 +5,14 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 
 import os
 import argparse
-import warnings
-import sys
+# import warnings
+# import sys
 import logging
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from kale.utils.csv_logger import setup_logger  # np error if move this to later, not sure why
-import torch
+# import torch
 import pytorch_lightning as pl
 
 from config import get_cfg_defaults
@@ -56,8 +56,8 @@ def main():
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = cfg.SOLVER.SEED + i * 10
-        set_seed(
-            seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
+        # seed_everything in pytorch_lightning did not set torch.backends.cudnn
+        set_seed(seed)
         print(f'==> Building model for seed {seed} ......')
         # ---- setup model and logger ----                                                     
         model, train_params = get_model(cfg, dataset, num_channels)
