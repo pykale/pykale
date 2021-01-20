@@ -14,7 +14,7 @@ from examples.action_dann_lightn.config import get_cfg_defaults
 from examples.action_dann_lightn.model import get_model
 from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.loaddata.video_access import VideoDataset
-from kale.utils.csv_logger import setup_logger  # np error if move this to later, not sure why
+from kale.utils.csv_logger import setup_logger 
 from kale.utils.seed import set_seed
 
 # import sys

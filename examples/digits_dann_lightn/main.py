@@ -17,7 +17,7 @@ from model import get_model
 
 from kale.loaddata.digits_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
-from kale.utils.csv_logger import setup_logger  # np error if move this to later, not sure why
+from kale.utils.csv_logger import setup_logger 
 from kale.utils.seed import set_seed
 
 # sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
