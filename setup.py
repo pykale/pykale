@@ -72,7 +72,7 @@ setup(
         "dev": ["black", "twine", "pre-commit"],
         "pipeline": ["pytorch-lightning"],
         "docs": ["ipython", "ipykernel", "sphinx", "sphinx_rtd_theme", "nbsphinx", "m2r"],
-        "utils": ["matplotlib", "tqdm", "torchsummary>=1.5.0", "yacs>=0.1.7"],
+        "utils": ["matplotlib", "tqdm>=4.1.0", "torchsummary>=1.5.0", "yacs>=0.1.7"],
         "test": ["flake8", "flake8-print", "pytest", "nbval"],
     },
 )

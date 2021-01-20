@@ -19,6 +19,7 @@ pytorch-lightning # To confirm version
 # utils
 torchsummary==1.5.0
 yacs==0.1.7
+tqdm==4.1.0
 
 
 # Needed only for graph
