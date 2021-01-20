@@ -5,7 +5,6 @@ from https://github.com/HaozhiQi/ISONet/blob/master/isonet/models/isonet.py
 """
 
 import numpy as np
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

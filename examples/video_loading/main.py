@@ -4,13 +4,14 @@ import sys
 # No need if pykale is installed
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
+import matplotlib.pyplot as plt
+import torch
+from mpl_toolkits.axes_grid1 import ImageGrid
+from torchvision import transforms
+from torchvision.datasets.utils import download_file_from_google_drive, extract_archive
+
 from kale.loaddata.videos import VideoFrameDataset
 from kale.prepdata.video_transform import ImglistToTensor
-from torchvision import transforms
-import torch
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import ImageGrid
-from torchvision.datasets.utils import download_file_from_google_drive, extract_archive
 
 """
 Ignore this function and look at "main" below.

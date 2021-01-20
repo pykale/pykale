@@ -1,9 +1,10 @@
-import torch
-import torch.nn as nn
 from typing import Tuple
 
-from kale.prepdata.tensor_reshape import spatial_to_seq, seq_to_spatial
+import torch
+import torch.nn as nn
+
 from kale.embed.positional_encoding import PositionalEncoding
+from kale.prepdata.tensor_reshape import seq_to_spatial, spatial_to_seq
 
 
 class ContextCNNGeneric(nn.Module):

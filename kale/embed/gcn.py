@@ -1,9 +1,9 @@
 import numpy as np
 import torch
-from torch_geometric.utils import add_remaining_self_loops
-from torch_geometric.nn.conv import MessagePassing
-from torch_scatter import scatter_add
 from torch.nn import Parameter
+from torch_geometric.nn.conv import MessagePassing
+from torch_geometric.utils import add_remaining_self_loops
+from torch_scatter import scatter_add
 
 
 # Copy-paste with slight modification from torch_geometric.nn.GCNConv

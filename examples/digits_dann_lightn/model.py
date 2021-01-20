@@ -5,10 +5,10 @@ Define the learning model and configure training parameters.
 # Initial Date: 27 July 2020
 
 from copy import deepcopy
-from kale.embed.image_cnn import SmallCNNFeature
-from kale.predict.class_domain_nets import ClassNetSmallImage, \
-    DomainNetSmallImage
+
 import kale.pipeline.domain_adapter as domain_adapter
+from kale.embed.image_cnn import SmallCNNFeature
+from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
 
 
 def get_config(cfg):

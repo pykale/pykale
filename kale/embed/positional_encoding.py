@@ -1,8 +1,9 @@
 # Created by Raivo Koot from modifying https://pytorch.org/tutorials/beginner/transformer_tutorial.html
 
+import math
+
 import torch
 import torch.nn as nn
-import math
 
 
 class PositionalEncoding(nn.Module):

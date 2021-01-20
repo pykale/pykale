@@ -5,9 +5,10 @@ the `GripNet
 <https://github.com/NYXFLOWER/GripNet>`_ source repo.
 """
 
-import torch.nn.functional as F
 import torch
+import torch.nn.functional as F
 from torch.nn import Module
+
 from kale.embed.gcn import GCNEncoderLayer, RGCNEncoderLayer
 
 

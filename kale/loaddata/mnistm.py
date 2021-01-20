@@ -8,8 +8,8 @@ CREDIT: https://github.com/corenel
 from __future__ import print_function
 
 import errno
-import os
 import logging
+import os
 
 import torch
 import torch.utils.data as data
@@ -105,9 +105,10 @@ class MNISTM(data.Dataset):
     def download(self):
         """Download the MNISTM data."""
         # import essential packages
-        from six.moves import urllib
         import gzip
         import pickle
+
+        from six.moves import urllib
         from torchvision import datasets
 
         # check if dataset already exists

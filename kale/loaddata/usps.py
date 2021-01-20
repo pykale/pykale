@@ -4,10 +4,10 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/d
 (based on https://github.com/mingyuliutw/CoGAN/blob/master/cogan_pytorch/src/dataset_usps.py)
 """
 import gzip
+import logging
 import os
 import pickle
 import urllib
-import logging
 
 import numpy as np
 import torch

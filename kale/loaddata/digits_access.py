@@ -5,11 +5,13 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/d
 """
 
 from enum import Enum
+
 from torchvision.datasets import MNIST, SVHN
+
 import kale.prepdata.image_transform as image_transform
-from kale.loaddata.usps import USPS
-from kale.loaddata.mnistm import MNISTM
 from kale.loaddata.dataset_access import DatasetAccess
+from kale.loaddata.mnistm import MNISTM
+from kale.loaddata.usps import USPS
 
 
 class DigitDataset(Enum):

@@ -2,11 +2,12 @@
 from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py
 """
 
-import torchvision
-import torch.utils.data
 import logging
+
 import numpy as np
-from torch.utils.data.sampler import RandomSampler, BatchSampler
+import torch.utils.data
+import torchvision
+from torch.utils.data.sampler import BatchSampler, RandomSampler
 
 
 class SamplingConfig:

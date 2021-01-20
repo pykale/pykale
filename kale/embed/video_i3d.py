@@ -9,7 +9,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models.utils import load_state_dict_from_url
 
-
 model_urls = {
     "rgb_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt",
     "flow_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/flow_imagenet.pt",
