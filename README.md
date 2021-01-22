@@ -7,11 +7,9 @@
 ![build](https://github.com/pykale/pykale/workflows/build/badge.svg)
 ![Unit Tests](https://github.com/pykale/pykale/workflows/unit%20tests/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
-[![Downloads](https://static.pepy.tech/personalized-badge/pykale?period=total&units=international_system&left_color=grey&right_color=lightgrey&left_text=pypi%20downloads)](https://pepy.tech/project/pykale)
+[![Downloads](https://static.pepy.tech/personalized-badge/pykale?period=total&units=international_system&left_color=grey&right_color=lightgrey&left_text=pypi%20downloads&kill_cache=1)](https://pepy.tech/project/pykale)
 ![Conda](https://img.shields.io/conda/dn/pykale/pykale?color=lightgrey&label=conda%20downloads)
 ![GitHub all releases](https://img.shields.io/github/downloads/pykale/pykale/total?color=lightgrey&label=github%20downloads)
-<!-- ![PyPI - Downloads](https://img.shields.io/pypi/dd/pykale?color=lightgrey&label=pypi%20downloads) -->
-<!-- [![Downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale) -->
 
 [Getting Started](https://github.com/pykale/pykale/tree/master/examples) |
 [Documentation](https://pykale.readthedocs.io/) |

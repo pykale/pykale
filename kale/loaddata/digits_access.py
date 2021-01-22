@@ -1,5 +1,6 @@
 """
-Digits dataset (source and target domain) loading for MNIST, SVHN, MNIST-M (modified MNIST), and USPS. The code is based on 
+Digits dataset (source and target domain) loading for MNIST, SVHN, MNIST-M (modified MNIST), and USPS.
+The code is based on
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py
 """
 
@@ -58,11 +59,7 @@ class DigitDataset(Enum):
         source_tf = transform_names[(source, num_channels)]
         target_tf = transform_names[(target, num_channels)]
 
-        return (
-            factories[source](data_path, source_tf),
-            factories[target](data_path, target_tf),
-            num_channels
-        )
+        return (factories[source](data_path, source_tf), factories[target](data_path, target_tf), num_channels)
 
 
 class DigitDatasetAccess(DatasetAccess):

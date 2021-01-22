@@ -43,14 +43,8 @@ class GCNEncoderLayer(MessagePassing):
             :class:`torch_geometric.nn.conv.MessagePassing`.
     """
 
-    def __init__(self,
-                 in_channels,
-                 out_channels,
-                 improved=False,
-                 cached=False,
-                 bias=True,
-                 **kwargs):
-        super(GCNEncoderLayer, self).__init__(aggr='add', **kwargs)
+    def __init__(self, in_channels, out_channels, improved=False, cached=False, bias=True, **kwargs):
+        super(GCNEncoderLayer, self).__init__(aggr="add", **kwargs)
 
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -63,7 +57,7 @@ class GCNEncoderLayer(MessagePassing):
         if bias:
             self.bias = Parameter(torch.Tensor(out_channels))
         else:
-            self.register_parameter('bias', None)
+            self.register_parameter("bias", None)
 
         self.reset_parameters()
 
@@ -83,18 +77,15 @@ class GCNEncoderLayer(MessagePassing):
         Add self-loops and apply symmetric normalization
         """
         if edge_weight is None:
-            edge_weight = torch.ones((edge_index.size(1),),
-                                     dtype=dtype,
-                                     device=edge_index.device)
+            edge_weight = torch.ones((edge_index.size(1),), dtype=dtype, device=edge_index.device)
 
         fill_value = 1 if not improved else 2
-        edge_index, edge_weight = add_remaining_self_loops(
-            edge_index, edge_weight, fill_value, num_nodes)
+        edge_index, edge_weight = add_remaining_self_loops(edge_index, edge_weight, fill_value, num_nodes)
 
         row, col = edge_index
         deg = scatter_add(edge_weight, col, dim=0, dim_size=num_nodes)
         deg_inv_sqrt = deg.pow(-0.5)
-        deg_inv_sqrt[deg_inv_sqrt == float('inf')] = 0
+        deg_inv_sqrt[deg_inv_sqrt == float("inf")] = 0
 
         return edge_index, deg_inv_sqrt[row] * edge_weight * deg_inv_sqrt[col]
 
@@ -111,13 +102,12 @@ class GCNEncoderLayer(MessagePassing):
         if self.cached and self.cached_result is not None:
             if edge_index.size(1) != self.cached_num_edges:
                 raise RuntimeError(
-                    'Cached {} number of edges, but found {}'.format(
-                        self.cached_num_edges, edge_index.size(1)))
+                    "Cached {} number of edges, but found {}".format(self.cached_num_edges, edge_index.size(1))
+                )
 
         if not self.cached or self.cached_result is None:
             self.cached_num_edges = edge_index.size(1)
-            edge_index, norm = self.norm(edge_index, x.size(0), edge_weight,
-                                         self.improved, x.dtype)
+            edge_index, norm = self.norm(edge_index, x.size(0), edge_weight, self.improved, x.dtype)
             self.cached_result = edge_index, norm
 
         edge_index, norm = self.cached_result
@@ -133,8 +123,7 @@ class GCNEncoderLayer(MessagePassing):
         return aggr_out
 
     def __repr__(self):
-        return '{}({}, {})'.format(self.__class__.__name__, self.in_channels,
-                                   self.out_channels)
+        return "{}({}, {})".format(self.__class__.__name__, self.in_channels, self.out_channels)
 
 
 # Copy-paste with slight modification from torch_geometric.nn.RGCNConv
@@ -170,15 +159,8 @@ class RGCNEncoderLayer(MessagePassing):
             :class:`torch_geometric.nn.conv.MessagePassing`.
     """
 
-    def __init__(self,
-                 in_channels,
-                 out_channels,
-                 num_relations,
-                 num_bases,
-                 after_relu,
-                 bias=False,
-                 **kwargs):
-        super(RGCNEncoderLayer, self).__init__(aggr='mean', **kwargs)
+    def __init__(self, in_channels, out_channels, num_relations, num_bases, after_relu, bias=False, **kwargs):
+        super(RGCNEncoderLayer, self).__init__(aggr="mean", **kwargs)
 
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -186,15 +168,14 @@ class RGCNEncoderLayer(MessagePassing):
         self.num_bases = num_bases
         self.after_relu = after_relu
 
-        self.basis = Parameter(
-            torch.Tensor(num_bases, in_channels, out_channels))
+        self.basis = Parameter(torch.Tensor(num_bases, in_channels, out_channels))
         self.att = Parameter(torch.Tensor(num_relations, num_bases))
         self.root = Parameter(torch.Tensor(in_channels, out_channels))
 
         if bias:
             self.bias = Parameter(torch.Tensor(out_channels))
         else:
-            self.register_parameter('bias', None)
+            self.register_parameter("bias", None)
 
         self.reset_parameters()
 
@@ -222,8 +203,7 @@ class RGCNEncoderLayer(MessagePassing):
                 :obj:`edge_index`.
             range_list (torch.Tensor): The index range list of each edge type with shape [num_types, 2].
         """
-        return self.propagate(
-            edge_index, x=x, edge_type=edge_type, range_list=range_list)
+        return self.propagate(edge_index, x=x, edge_type=edge_type, range_list=range_list)
 
     def message(self, x_j, edge_index, edge_type, range_list):
         w = torch.matmul(self.att, self.basis.view(self.num_bases, -1))
@@ -235,7 +215,7 @@ class RGCNEncoderLayer(MessagePassing):
         for et in range(range_list.shape[0]):
             start, end = range_list[et]
 
-            tmp = torch.matmul(x_j[start: end, :], w[et])
+            tmp = torch.matmul(x_j[start:end, :], w[et])
 
             # xxx = x_j[start: end, :]
             # tmp = checkpoint(torch.matmul, xxx, w[et])
@@ -254,6 +234,6 @@ class RGCNEncoderLayer(MessagePassing):
         return out
 
     def __repr__(self):
-        return '{}({}, {}, num_relations={})'.format(
-            self.__class__.__name__, self.in_channels, self.out_channels,
-            self.num_relations)
+        return "{}({}, {}, num_relations={})".format(
+            self.__class__.__name__, self.in_channels, self.out_channels, self.num_relations
+        )
