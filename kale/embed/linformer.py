@@ -2,20 +2,13 @@ import warnings
 from typing import Optional, Tuple  # Any
 
 import torch
-from torch import nn
-
-from torch.nn import Linear
-from torch.nn.parameter import Parameter
-from torch.nn.init import xavier_uniform_
-from torch.nn.init import constant_
-from torch.nn.init import xavier_normal_
-from torch.nn.functional import linear, softmax, dropout
-from torch import Tensor
-from torch.nn import functional as F
-from torch.nn import Module
+from torch import nn, Tensor
 from torch.nn import Dropout
-from torch.nn import LayerNorm
-from torch.nn.functional import pad
+from torch.nn import functional as F
+from torch.nn import LayerNorm, Linear, Module
+from torch.nn.functional import dropout, linear, pad, softmax
+from torch.nn.init import constant_, xavier_normal_, xavier_uniform_
+from torch.nn.parameter import Parameter
 
 
 # Copy-paste with slight modification from torch.nn.TransformerEncoderLayer

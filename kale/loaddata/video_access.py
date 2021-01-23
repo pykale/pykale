@@ -4,11 +4,12 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/d
 """
 
 import os
+from copy import deepcopy
 from enum import Enum
+
 import kale.prepdata.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.video_datasets import BasicVideoDataset, EPIC
-from copy import deepcopy
 
 
 def get_videodata_config(cfg):

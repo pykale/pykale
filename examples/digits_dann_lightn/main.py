@@ -3,23 +3,26 @@
 Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 """
 
-import os
 import argparse
+
 # import warnings
 # import sys
 import logging
+import os
+
+# import torch
+import pytorch_lightning as pl
+from config import get_cfg_defaults
+from model import get_model
+
+from kale.loaddata.digits_access import DigitDataset
+from kale.loaddata.multi_domain import MultiDomainDatasets
+from kale.utils.csv_logger import setup_logger 
+from kale.utils.seed import set_seed
 
 # sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from kale.utils.csv_logger import setup_logger  # np error if move this to later, not sure why
-# import torch
-import pytorch_lightning as pl
 
-from config import get_cfg_defaults
-from model import get_model
-from kale.loaddata.digits_access import DigitDataset
-from kale.loaddata.multi_domain import MultiDomainDatasets
-from kale.utils.seed import set_seed
 
 
 def arg_parse():

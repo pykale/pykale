@@ -4,9 +4,11 @@ From: https://github.com/HaozhiQi/ISONet/blob/master/isonet/trainer.py
 """
 
 import time
+
 import torch
 import torch.nn as nn
-from kale.utils.print import tprint, pprint_without_newline
+
+from kale.utils.print import pprint_without_newline, tprint
 
 
 class Trainer(object):

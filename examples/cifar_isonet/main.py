@@ -3,21 +3,20 @@
 Reference: https://github.com/HaozhiQi/ISONet/blob/master/train.py 
 """
 
-import os
 import argparse
-import warnings
+import os
 import sys
+import warnings
 
 # No need if pykale is installed
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import torch
-from torchsummary import summary
-
 from config import get_cfg_defaults
 
 # from model_old import get_model
 from model import get_model
+from torchsummary import summary
 from trainer import Trainer
 
 from kale.loaddata.cifar_access import get_cifar

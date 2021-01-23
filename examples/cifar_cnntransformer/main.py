@@ -4,23 +4,22 @@ for image classification on CIFAR10.
 
 Reference: See kale.embed.attention_cnn for more details.
 """
-import os
 import argparse
-import warnings
+import os
 import sys
+import warnings
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import torch
-from torchsummary import summary
-
 from config import get_cfg_defaults
 from model import get_model
+from torchsummary import summary
 from trainer import Trainer
-from kale.loaddata.cifar_access import get_cifar
 
 import kale.utils.logger as logging
 import kale.utils.seed as seed
+from kale.loaddata.cifar_access import get_cifar
 
 
 def arg_parse():

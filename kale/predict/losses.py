@@ -4,8 +4,8 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/los
 
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
 from torch.autograd import grad
+from torch.nn import functional as F
 
 
 def cross_entropy_logits(linear_output, label, weights=None):

@@ -7,12 +7,13 @@ This module uses `PyTorch Lightning <https://github.com/PyTorchLightning/pytorch
 """
 
 from enum import Enum
+
 import numpy as np
+import pytorch_lightning as pl
 import torch
 from torch.autograd import Function
-import kale.predict.losses as losses
 
-import pytorch_lightning as pl
+import kale.predict.losses as losses
 
 
 class ReverseLayerF(Function):

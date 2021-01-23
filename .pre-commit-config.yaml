@@ -25,17 +25,17 @@ repos:
         args: [--diff, --color]
         # exclude: ^(build/*)
         # args: [-l 120, --diff, --color, --target-version=py38, --config=pyproject.toml]
-# -   repo: https://github.com/pre-commit/mirrors-isort
-#     rev: v4.3.21
-    # hooks:
-    # -   id: isort
-    #     name: isort
-    #     entry: python -m isort
-    #     language: system
-    #     types: [python]    
-    #     language_version: python3
-    #     # exclude: ^(build/*)
-    #     args: [--settings-path, ./pyproject.toml]
+-   repo: https://github.com/pre-commit/mirrors-isort
+    rev: v4.3.21
+    hooks:
+    -   id: isort
+        name: isort
+        entry: python -m isort
+        language: system
+        types: [python]    
+        language_version: python3
+        # exclude: ^(build/*)
+        args: [--settings-path, ./pyproject.toml]
 # -   repo: https://github.com/jumanjihouse/pre-commit-hooks
 #     rev: 1.11.0
 #     hooks:

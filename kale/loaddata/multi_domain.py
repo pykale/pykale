@@ -4,11 +4,13 @@ Construct a dataset with (multiple) source and target domains, from https://gith
 
 import logging
 from enum import Enum
+
 import numpy as np
-from sklearn.utils import check_random_state
 import torch.utils.data
-from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
+from sklearn.utils import check_random_state
+
 from kale.loaddata.dataset_access import DatasetAccess
+from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
 
 
 class WeightingType(Enum):
