@@ -14,7 +14,7 @@ Reference:
 import numpy as np
 
 # import tensorly as tl
-from tensorly.base import unfold, fold
+from tensorly.base import fold, unfold
 from tensorly.tenalg import multi_mode_dot
 from sklearn.base import BaseEstimator, TransformerMixin
 
