@@ -1,19 +1,20 @@
-import os
 import argparse
+import os
 import sys
 
 # No need if pykale is installed
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import torch
-import kale.utils.logger as lu
-import kale.utils.seed as seed
 from config import get_cfg_defaults
 from loaddata import construct_dataset
 from model import GripNet
-from kale.embed.gripnet import TypicalGripNetEncoder
 from torchsummary import summary
 from trainer import Trainer
+
+import kale.utils.logger as lu
+import kale.utils.seed as seed
+from kale.embed.gripnet import TypicalGripNetEncoder
 
 
 def arg_parse():

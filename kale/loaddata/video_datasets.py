@@ -2,6 +2,7 @@ import math
 import os
 import pickle
 from pathlib import Path
+
 from PIL import Image
 
 from kale.loaddata.videos import VideoFrameDataset, VideoRecord

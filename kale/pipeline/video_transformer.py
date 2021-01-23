@@ -1,10 +1,12 @@
 from typing import Tuple
+
+import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-import pytorch_lightning as pl
+
 from ..embed.attention_cnn import ContextCNNGeneric
-from ..embed.positional_encoding import PositionalEncoding
 from ..embed.linformer import LinearTransformerEncoderLayer
+from ..embed.positional_encoding import PositionalEncoding
 
 
 class VideoTransformer(pl.LightningModule):

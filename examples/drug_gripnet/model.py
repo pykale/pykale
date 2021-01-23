@@ -1,8 +1,9 @@
-import torch
 import numpy as np
+import torch
 from torch import nn
-from kale.embed.gripnet import TypicalGripNetEncoder
 from utils import negative_sampling
+
+from kale.embed.gripnet import TypicalGripNetEncoder
 
 
 class MultiRelaInnerProductDecoder(nn.Module):
