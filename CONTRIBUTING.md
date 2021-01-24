@@ -22,6 +22,10 @@
 - Use existing top code when it fits (**credit@top + license**) and build when NA or we can do much better
 - Keep it modular following the pipeline below and separate [core functionalities](https://github.com/pykale/pykale/tree/master/kale) from [specific applications](https://github.com/pykale/pykale/tree/master/examples).
 
+## Contributing code
+
+Please follow the [fork and pull model](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-collaborative-development-models). Keeping the forked master clean up to date with the `pykale:master`. Create a branch on your fork to make changes and when ready, create a pull request to `pykale:master`.
+
 ## Coding
 
 We need to design the core modules to be generic, reusable, customizable, and not specific to a particular dataset. 
@@ -32,7 +36,6 @@ Use our [pre-commit-config.yaml](https://github.com/pykale/pykale/blob/master/.p
 We mainly learned from [**GPyTorch**](https://github.com/cornellius-gp/gpytorch), [Kornia](https://github.com/kornia/kornia), [MONAI](https://github.com/Project-MONAI/MONAI), and [Torchio](https://github.com/fepegar/torchio).
 
 You need to run linting locally and remove the flagged warnings before a push to the repo anyway.
-
 
 ### flake8
 
@@ -47,6 +50,14 @@ To get statics also
 Auto run before any commit
 `pip install pre-commit`
 `pre-commit install`
+
+### Automation
+
+We have adopted the following GitHub automation
+
+- [Automerge](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/automatically-merging-a-pull-request): merges automatically when all reviews are completed and checks are passed.
+- [Auto branch deletion](https://github.blog/changelog/2019-07-31-automatically-delete-head-branches-of-pull-requests/): deletes the head branches automatically after pull requests are merged. Deleted branches can be restored if needed.
+- [Project board automation](https://docs.github.com/en/github/managing-your-work-on-github/about-automation-for-project-boards): automates project board card management.
 
 ### Coding style
 
