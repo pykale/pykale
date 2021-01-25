@@ -75,7 +75,7 @@ Ask and answer questions over on [PyKale's GitHub Discussions tab](https://githu
 
 We appreciate all contributions. You can contribute in three ways:
 
-- [Star](https://docs.github.com/en/github/getting-started-with-github/saving-repositories-with-stars) and [fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) PyKale to follow its latest developments and share it with your networks.
+- [Star](https://docs.github.com/en/github/getting-started-with-github/saving-repositories-with-stars) and [fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) PyKale to follow its latest developments, share it with your networks, and [ask questions](https://github.com/pykale/pykale/discussions)  about it.
 - Use PyKale in your project and let us know any bugs (& fixes) and feature requests/suggestions via creating an [issue](https://github.com/pykale/pykale/issues).
 - Contribute your code such as new features, functions, or examples via [fork and pull](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-collaborative-development-models) to become one of the [contributors](https://github.com/pykale/pykale/graphs/contributors).
 

@@ -2,25 +2,33 @@
 
 [Light involvements (viewers/users)](#light-involvements-viewersusers) |
 [*Medium involvements (contributors)*](#medium-involvements-contributors) |
-[**Heavy involvements (core team members)**](#heavy-involvements-core-team-members)
+[**Heavy involvements (maintainers)**](#heavy-involvements-maintainers)
 
 [Ask questions](#ask-questions) |
-[Report bugs](#bug-report) |
-[Suggest improvements](#bug-report) |
+[Report bugs](#report-bugs) |
+[Suggest improvements](#suggest-improvements) |
 [*Fork & pull*](#fork-and-pull) |
 [*Coding style*](#coding-style) |
-[**Review & merge PRs**](#review-and-merge-pull-requests) |
-[**Release and management**](#release-and-management)
+[**Review & merge**](#review-and-merge-pull-requests) |
+[**Release & management**](#release-and-management)
 
 Thank you for your interest! You can contribute to the PyKale project in a wide range of ways listed above, from light to heavy involvements. You can also reach us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a> if needed. The participation in this open source project is subject to [Code of Conduct](https://github.com/pykale/pykale/blob/master/CODE_OF_CONDUCT.md).
 
 ## Light involvements (viewers/users)
 
+See the [ReadMe](https://github.com/pykale/pykale/blob/master/README.md) for installation instructions. Your contribution can start as light as asking questions.
+
 ### Ask questions
+
+Ask any questions about PyKale on the [PyKale's GitHub Discussions tab](https://github.com/pykale/pykale/discussions) and we will discuss and answer you there. Questions help us identify *blind spots* in our development and can greatly improve the code quality.
 
 ### Report bugs
 
+Search current issues to see whether they are already reported. If not, report bugs by [creating issues](https://github.com/pykale/pykale/issues) using the provided template. Even better, if you know how to fix them, make the suggestions and/or propose changes with [pull requests](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/proposing-changes-to-your-work-with-pull-requests).
+
 ### Suggest improvements
+
+Suggest possible improvements such as new features or code refactoring by [creating issues](https://github.com/pykale/pykale/issues) using the respective templates. Even better, you are welcome to propose such changes with [pull requests](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/proposing-changes-to-your-work-with-pull-requests).
 
 ## Medium involvements (contributors)
 
@@ -35,6 +43,7 @@ Use the [*fork and pull* model]((https://docs.github.com/en/github/collaborating
   - Install `pre-commit` to enforce style via `pip install pre-commit` and `pre-commit install` at the root.
 - [Create a branch](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-and-deleting-branches-within-your-repository) based on the *latest master* in your fork with a *descriptive* name on what you plan to do, e.g. to fix an issue, starting with the issue ticket number.
   - Make changes to this branch using detailed commit messages and following the [coding style](#coding-style) below.
+  - [Sync your branch](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/syncing-your-branch) with the master frequently so that potential problems can be identified earlier.
   - Document the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html). Update `docs` following [docs update steps](https://github.com/pykale/pykale/tree/master/docs). Build `docs` via `make html` and verify locally built documentations under `docs\build\html`.
   - Build tests and do tests (not enforced yet, to be done).
 - Create a [pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) from the task branch above to the master branch `pykale:master` explaining the changes and choose reviewers, using a [template](#pull-request-template).
@@ -49,7 +58,7 @@ We set up several  [`pre-commit`](https://pre-commit.com/) hooks to ensure code 
 
 - Linting tools: [flake8](https://gitlab.com/pycqa/flake8), [black](https://github.com/psf/black), and [isort](https://github.com/timothycrosley/isort)).
 - Static type analysis: [mypy](https://github.com/python/mypy) (to do, not yet active)
-- Other hooks as specified in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml), such as restricting the largest file size to 300KB and forbidding tabs and"Carriage Return, Line Feed".
+- Other hooks as specified in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml), such as restricting the largest file size to 300KB.
 
 You need to install pre-commit and the hooks from the root directory via
 
@@ -58,27 +67,30 @@ pip install pre-commit
 pre-commit install
 ```
 
-The hooks will be triggered for each new commit so that problems can be detected early. Pre-commit hooks are configured in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml). If your commits can not pass the above checks, you need to fix them based on the error messages.
+This will install the `pre-commit` hooks at `pykale\.git\hooks`, to be triggered for each new commit to automatically run them *over the files you commit*. In this way, problems can be detected early. Several points to note:
 
-You can fix many reported style problems automatically by running [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https://pycqa.github.io/isort/) **from the root directory** (so that the PyKale configurations are used) and then fix the remaining by manual editing. For example,
+- Pre-commit hooks are configured in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml).
+- These hooks, e.g.,  [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https://pycqa.github.io/isort/), will automatically fix some problems for you by **changing the files**, so please check the changes after you trigger `commit`.
+- If your commits can not pass the above checks, you need to fix them based on the error messages, e.g. flake8 errors. Some flake8 errors will be fixed by some hooks so you can rerun (or re-trigger) the pre-commit or just flake8 to see the updated flake8 errors.
+
+#### Manual checks and fixes (be *CAREFUL*)
+
+Required libraries will be automatically installed but if you wish, you may install them manually and run them **from the root directory** (so that the PyKale configurations are used). For example,
 
 ```bash
 pip install black # The first time
 black ./kale/embed/new_module.py # "black ." do it for all files
 pip install isort # The first time
 isort ./kale/embed/new_module.py # "isort ." do it for all files
-```
-
-You can also run [flake8](https://flake8.pycqa.org/en/latest/) checking yourself. For example,
-
-```bash
 pip install flake8 # The first time
-flake8 ./kale/embed/new_module.py --output-file ../flake8pykale.txt # "flake8 ." do it for all files
+flake8 ./kale/embed/new_module.py # "flake8 ." do it for all files
 ```
 
-**Important**: Run these commands from the root directory so that the PyKale configuration files ([`setup.cfg`](https://github.com/pykale/pykale/blob/master/setup.cfg), [`pyproject.toml`](https://github.com/pykale/pykale/blob/master/pyproject.toml), and [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml)) are used for these tools. Otherwise, the default configurations will be used, which **differ** from the PyKale configurations.
+Run [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https://pycqa.github.io/isort/) will fix the found problems automatically by modifying the files but they will be automatically run and you do *not* need to do it manually. Remaining [flake8](https://flake8.pycqa.org/en/latest/) or other errors need to be manually fixed.
 
-**IDE integration**: flake8 linting can be set up for both [VSCode](https://code.visualstudio.com/docs/python/linting) and [PyCharm](https://tirinox.ru/flake8-pycharm/) but you must use [`setup.cfg`](https://github.com/pykale/pykale/blob/master/setup.cfg) to configure it.
+**Important**: Run these commands from the root directory so that the PyKale configuration files ([`setup.cfg`](https://github.com/pykale/pykale/blob/master/setup.cfg), [`pyproject.toml`](https://github.com/pykale/pykale/blob/master/pyproject.toml), and [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml)) are used for these tools. Otherwise, the default configurations will be used, which **differ** from the PyKale configurations and are consistent.
+
+**IDE integration**: flake8 linting can be set up for both [VSCode](https://code.visualstudio.com/docs/python/linting) and [PyCharm](https://tirinox.ru/flake8-pycharm/) but you must use [`setup.cfg`](https://github.com/pykale/pykale/blob/master/setup.cfg) to configure it. In this way, you could fix linting errors on the go.
 
 #### Automated GitHub workflows (continuous integration)
 
@@ -102,22 +114,25 @@ We have a pull request template. Please use it for all pull requests and mark th
 
 We aim to design the core `kale` modules to be highly **reusable**, generic, and customizable, and follow these guidelines:
 
-- Enforce styles using [flake8](https://gitlab.com/pycqa/flake8), [black](https://github.com/psf/black), and [isort](https://github.com/timothycrosley/isort)), using common PyKale configuration files.
-- Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html)
+- Use highly *readable* names for variables, functions, and classes.
+- Make small changes and commit frequently with clear descriptions for others to understand what you have done.
+- Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
+- Highly reusable modules should go into `kale`. Highly data/example-specific code goes into `Examples`.
 - Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). See our [examples](https://github.com/pykale/pykale/tree/master/examples).
 - Use [PyTorch](https://pytorch.org/tutorials/) and [PyTorch Lightning](https://towardsdatascience.com/from-pytorch-to-pytorch-lightning-a-gentle-introduction-b371b7caaf09) ([Video](https://www.youtube.com/watch?v=QHww1JH7IDU)) as much as possible.
 - If high-quality existing code from other sources are used, add credit and license information at the top of the file.
+- Use pre-commit hooks to enforce consistent styles via [flake8](https://gitlab.com/pycqa/flake8), [black](https://github.com/psf/black), and [isort](https://github.com/timothycrosley/isort)), with common PyKale configuration files.
 
 #### Recommended development software
 
 - Python IDE: [Visual Studio Code](https://code.visualstudio.com/download), [PyCharm](https://www.jetbrains.com/pycharm/download/)
 - GitHub: GitHub Desktop, [GitHub guides](https://guides.github.com/), [GitHub documentations](https://docs.github.com/en)
 
-## Heavy involvements (core team members)
+## Heavy involvements (maintainers)
 
 ### Review and merge pull requests
 
-You should be a core team member to be able to review and merge a pull request.  Please follow GitHub guidelines on how to [review changes in pull requests](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/reviewing-changes-in-pull-requests) and [incorporate changes from a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/incorporating-changes-from-a-pull-request) to review and merge the pull requests. The merge is automated in this project (see [Automation](#automation)).
+A maintainer follows GitHub guidelines on how to [review changes in pull requests](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/reviewing-changes-in-pull-requests) and [incorporate changes from a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/incorporating-changes-from-a-pull-request) to review and merge the pull requests. The merge is automated in this project (see [Automation](#automation)).
 
 ### Release and management
 
