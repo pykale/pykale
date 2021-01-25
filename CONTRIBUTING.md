@@ -1,57 +1,143 @@
-# To contribute
+# Contributing to PyKale
 
-- [Fork](https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo) pykale (also see the [guide on forking projects](https://guides.github.com/activities/forking/)).
-- Make changes to the source in your fork following [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md).
-- **Document** the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) and [update `docs`](https://github.com/pykale/pykale/tree/master/docs) to verify its API [documentations](https://pykale.readthedocs.io/en/latest/).
-- Keep **data** and other large files [local/external](https://github.com/pykale/pykale/tree/master/examples/data) to keep the repository small (via `.gitignore`)
-- Run linting via `flake8 ` to fix any style problems identified if you did not turn automatic linting on.
-- Create a [pull request](https://github.com/pykale/pykale/pulls) explaining the changes and choose reviewers.
-- After passing the review, your pull request gets merged and pykale has your contribution incorporated.
+[Light involvements (viewers/users)](#light-involvements-viewersusers) |
+[*Medium involvements (contributors)*](#medium-involvements-contributors) |
+[**Heavy involvements (core team members)**](#heavy-involvements-core-team-members)
 
-**Long term goal**: Satisfy the [requirements](https://pytorch.org/ecosystem/join) to join the [pytorch ecosysmtem](https://pytorch.org/ecosystem/)
+[Ask questions](#ask-questions) |
+[Report bugs](#bug-report) |
+[Suggest improvements](#bug-report) |
+[*Fork & pull*](#fork-and-pull) |
+[*Coding style*](#coding-style) |
+[**Review & merge PRs**](#review-and-merge-pull-requests) |
+[**Release and management**](#release-and-management)
 
-## Objectives (Why this library)
+Thank you for your interest! You can contribute to the PyKale project in a wide range of ways listed above, from light to heavy involvements. You can also reach us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a> if needed. The participation in this open source project is subject to [Code of Conduct](https://github.com/pykale/pykale/blob/master/CODE_OF_CONDUCT.md).
 
-- Share and consolidate resources/expertise in several related areas
-- Build reusable and trustable tools for research and development
-- Avoid duplicated efforts and identify key missing components
+## Light involvements (viewers/users)
 
-## Principles
+### Ask questions
 
-- Keep it **lean** in content, and memory/time cost. Quality first!
-- Use existing top code when it fits (**credit@top + license**) and build when NA or we can do much better
-- Keep it modular following the pipeline below and separate [core functionalities](https://github.com/pykale/pykale/tree/master/kale) from [specific applications](https://github.com/pykale/pykale/tree/master/examples).
+### Report bugs
 
-## Contributing code
+### Suggest improvements
 
-Please follow the [fork and pull model](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-collaborative-development-models). Keeping the forked master clean up to date with the `pykale:master`. Create a branch on your fork to make changes and when ready, create a pull request to `pykale:master`.
+## Medium involvements (contributors)
 
-## Coding
+We follow PyTorch to use **US English spelling**.
 
-We need to design the core modules to be generic, reusable, customizable, and not specific to a particular dataset. 
+### Fork and pull
 
-### Linting
+Use the [*fork and pull* model]((https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-collaborative-development-models)) to contribute code to PyKale:
 
-Use our [pre-commit-config.yaml](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml) to lint your code before commit.
-We mainly learned from [**GPyTorch**](https://github.com/cornellius-gp/gpytorch), [Kornia](https://github.com/kornia/kornia), [MONAI](https://github.com/Project-MONAI/MONAI), and [Torchio](https://github.com/fepegar/torchio).
+- [**Fork**](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) pykale (also see the [guide on forking projects](https://guides.github.com/activities/forking/)).
+  - Keep the fork master branch synced with `pykale:master` by [syncing a fork](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork).
+  - Install `pre-commit` to enforce style via `pip install pre-commit` and `pre-commit install` at the root.
+- [Create a branch](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-and-deleting-branches-within-your-repository) based on the *latest master* in your fork with a *descriptive* name on what you plan to do, e.g. to fix an issue, starting with the issue ticket number.
+  - Make changes to this branch using detailed commit messages and following the [coding style](#coding-style) below.
+  - Document the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html). Update `docs` following [docs update steps](https://github.com/pykale/pykale/tree/master/docs). Build `docs` via `make html` and verify locally built documentations under `docs\build\html`.
+  - Build tests and do tests (not enforced yet, to be done).
+- Create a [pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) from the task branch above to the master branch `pykale:master` explaining the changes and choose reviewers, using a [template](#pull-request-template).
+  - Check the [CI/CD status of the pull request](https://github.com/pykale/pykale/actions) and fix andy reported errors.
+  - After passing all CI/CD tests, your pull request is ready for [review and merge](#review-and-merge-pull-requests) to have your contribution incorporated.
+  - Reviewers may discuss with you and request explanations/changes before merging.
+  - You need to [address merge conflicts](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/addressing-merge-conflicts) if they arise. Resolve the conflicts locally.
 
-You need to run linting locally and remove the flagged warnings before a push to the repo anyway.
+#### Before pull requests: pre-commit hooks
 
-### flake8
+We set up several  [`pre-commit`](https://pre-commit.com/) hooks to ensure code quality, including
 
-To install it: `pip install flake8`.
+- Linting tools: [flake8](https://gitlab.com/pycqa/flake8), [black](https://github.com/psf/black), and [isort](https://github.com/timothycrosley/isort)).
+- Static type analysis: [mypy](https://github.com/python/mypy) (to do, not yet active)
+- Other hooks as specified in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml), such as restricting the largest file size to 300KB and forbidding tabs and"Carriage Return, Line Feed".
 
-Usage:
-`flake8 {source_file_or_directory}`
+You need to install pre-commit and the hooks from the root directory via
 
-To get statics also
-`flake8 {source_file_or_directory} --statistics`
+```bash
+pip install pre-commit
+pre-commit install
+```
 
-Auto run before any commit
-`pip install pre-commit`
-`pre-commit install`
+The hooks will be triggered for each new commit so that problems can be detected early. Pre-commit hooks are configured in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml). If your commits can not pass the above checks, you need to fix them based on the error messages. 
 
-### Automation
+You can fix many reported style problems automatically by running [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https://pycqa.github.io/isort/) **from the root directory** (so that the PyKale configurations are used) and then fix the remaining by manual editing. For example,
+
+```bash
+pip install black # The first time
+black ./kale/embed/new_module.py # "black ." do it for all files
+pip install isort # The first time
+isort ./kale/embed/new_module.py # "isort ." do it for all files
+```
+
+You can also run [flake8](https://flake8.pycqa.org/en/latest/) checking yourself. For example,
+
+```bash
+pip install flake8 # The first time
+flake8 ./kale/embed/new_module.py --output-file ../flake8pykale.txt # "flake8 ." do it for all files
+```
+
+**Important**: Run these commands from the root directory so that the PyKale configuration files ([`setup.cfg`](https://github.com/pykale/pykale/blob/master/setup.cfg), [`pyproject.toml`](https://github.com/pykale/pykale/blob/master/pyproject.toml), and [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml)) are used for these tools. Otherwise, the default configurations will be used, which **differ** from the PyKale configurations. 
+
+**IDE integration**: flake8 linting can be set up for both [VSCode](https://code.visualstudio.com/docs/python/linting) and [PyCharm](https://tirinox.ru/flake8-pycharm/) but you must use [`setup.cfg`](https://github.com/pykale/pykale/blob/master/setup.cfg) to configure it.
+
+#### Automated GitHub workflows (continuous integration)
+
+For continuous integration (CI) and continuous deployment (CD), we use several [GitHub workflows (actions)](https://github.com/pykale/pykale/actions) that will be triggered upon a push or pull request as specified at [`pykale/.github/workflows/`](https://github.com/pykale/pykale/tree/master/.github/workflows)
+
+- Build: install Python dependencies (set up).
+- Linting: run flake8 and pre-commit
+- Unit tests: simple unit tests
+
+We will make the above more complete and rigorous, e.g. with more tests and code coverage analysis etc.
+
+#### Pull request template
+
+We have a pull request template. Please use it for all pull requests and mark the status of your pull requests.
+
+- **Ready**: ready for review and merge (if no problems found). Reviewers will be assigned.
+- **Work in progress**: for core team's awareness of this development (e.g. to avoid duplicated efforts) and possible feedback (e.g. to find problems early, such as linting/CI issues). Not ready to merge yet. Change it to **Ready** when ready to merge.
+- **Hold**: not for attention yet.
+
+### Coding style
+
+We aim to design the core `kale` modules to be highly **reusable**, generic, and customizable, and follow these guidelines:
+
+- Enforce styles using [flake8](https://gitlab.com/pycqa/flake8), [black](https://github.com/psf/black), and [isort](https://github.com/timothycrosley/isort)), using common PyKale configuration files. 
+- Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html)
+- Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). See our [examples](https://github.com/pykale/pykale/tree/master/examples).
+- Use [PyTorch](https://pytorch.org/tutorials/) and [PyTorch Lightning](https://towardsdatascience.com/from-pytorch-to-pytorch-lightning-a-gentle-introduction-b371b7caaf09) ([Video](https://www.youtube.com/watch?v=QHww1JH7IDU)) as much as possible.
+- If high-quality existing code from other sources are used, add credit and license information at the top of the file. 
+
+#### Recommended development software
+
+- Python IDE: [Visual Studio Code](https://code.visualstudio.com/download), [PyCharm](https://www.jetbrains.com/pycharm/download/)
+- GitHub: GitHub Desktop, [GitHub guides](https://guides.github.com/), [GitHub documentations](https://docs.github.com/en)
+
+## Heavy involvements (core team members)
+
+### Review and merge pull requests
+
+You should be a core team member to be able to review and merge a pull request.  Please follow GitHub guidelines on how to [review changes in pull requests](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/reviewing-changes-in-pull-requests) and [incorporate changes from a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/incorporating-changes-from-a-pull-request) to review and merge the pull requests. The merge is automated in this project (see [Automation](#automation)).
+
+### Release and management
+
+The first release is done manually and we will consider a workflow to automate it in future.
+
+#### Versions
+
+We follow the [Semantic Versioning](https://semver.org/) guidelines. Given a version number `MAJOR.MINOR.PATCH`, increment the:
+
+- MAJOR version when you make incompatible API changes,
+- MINOR version when you add functionality in a backwards compatible manner, and
+- PATCH version when you make backwards compatible bug fixes.
+
+Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format.
+
+#### Project boards
+
+We set up [project boards](https://github.com/pykale/pykale/projects) to manage the progress of development.
+
+#### Automation
 
 We have adopted the following GitHub automation
 
@@ -59,62 +145,12 @@ We have adopted the following GitHub automation
 - [Auto branch deletion](https://github.blog/changelog/2019-07-31-automatically-delete-head-branches-of-pull-requests/): deletes the head branches automatically after pull requests are merged. Deleted branches can be restored if needed.
 - [Project board automation](https://docs.github.com/en/github/managing-your-work-on-github/about-automation-for-project-boards): automates project board card management.
 
-### Coding style
+## References
 
-- Follow [Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md)
-- Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html)
-- Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). Example: [ISONet](https://github.com/HaozhiQi/ISONet)
-- Use [PyTorch](https://pytorch.org/tutorials/) when possible. **Highly recommend** [PyTorch Lightning](https://towardsdatascience.com/from-pytorch-to-pytorch-lightning-a-gentle-introduction-b371b7caaf09) ([Video](https://www.youtube.com/watch?v=QHww1JH7IDU))
-- Key references include [MONAI](https://github.com/Project-MONAI/MONAI) for `medim`, [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric) for `graph`, and [kornia](https://github.com/kornia/kornia) for `vision`.
+The following libraries from the [PyTorch ecosystem](https://pytorch.org/ecosystem/) are good resources to learn from:
 
-### General recommendation
-
-- Python: pytorch, [Visual Studio Code](https://code.visualstudio.com/download), pycharm
-- GitHub: GitHub Desktop, [GitHub guides](https://guides.github.com/), [UCL guidance](https://www.ucl.ac.uk/isd/services/research-it/research-software-development-tools/support-for-ucl-researchers-to-use-github)
-
-## Domain specifics
-
-### Medical imaging
-
-- Data and tasks
-  - Brain fMRI for diagnosis, neural decoding ([Data](https://github.com/cMadan/openMorph))
-  - Cardiac MRI (CMRI) for diagnosis, prognosis ([Data](http://www.cardiacatlas.org/challenges/))
-  - CMRI Landmark localisation
-  - CMRI segmentation?
-  - Data: [Medical Data for Machine Learning](https://github.com/beamandrew/medical-data)
-- Recommended package
-  - [MONAI](https://github.com/Project-MONAI/MONAI): deep learning-based healthcare imaging workflows, with great [highlights](https://docs.monai.io/en/latest/highlights.html)
-
-### Graph analysis
-
-- Data and tasks
-  - [Knowledge graph](https://github.com/shaoxiongji/awesome-knowledge-graph) and user-item interactions for recommender systems
-  - Biomedical knowledge graph for drug-drug interaction prediction
-  - Data: [OGB](https://github.com/snap-stanford/ogb), [OpenBioLink](https://github.com/OpenBioLink/OpenBioLink), [Chemistry/Biology graphs](https://github.com/mufeili/DL4MolecularGraph#benchmark-and-dataset)
-- Recommended package
-  - [pytorch_geometric](https://github.com/rusty1s/pytorch_geometric): deep learning library for graphs
-
-### Computer vision
-
-- Data and tasks
-  - Action recognition from [videos](https://www.di.ens.fr/~miech/datasetviz/): [Data at GitHub listing](https://github.com/jinwchoi/awesome-action-recognition)
-  - Pose estimation from [images](https://www.simonwenkel.com/2018/12/09/Datasets-for-human-pose-estimation.html): [Data at GitHub listing](https://github.com/cbsudux/awesome-human-pose-estimation#datasets)
-  - Image classification (baselines): [CVonline Image Databases (including video etc)](http://homepages.inf.ed.ac.uk/rbf/CVonline/Imagedbase.htm)
-- Recommended package
-  - [kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
-
-## Management
-
-### Project boards
-
-We follow [MONAI project boards](https://github.com/Project-MONAI/MONAI/projects) to manage our project boards.
-
-### Versions
-
-Refer to the [Semantic Versioning](https://semver.org/) guidelines. Given a version number `MAJOR.MINOR.PATCH`, increment the:
-
-- MAJOR version when you make incompatible API changes,
-- MINOR version when you add functionality in a backwards compatible manner, and
-- PATCH version when you make backwards compatible bug fixes.
-
-Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format.
+- [GPyTorch](https://github.com/cornellius-gp/gpytorch): a highly efficient and modular implementation of Gaussian Processes in PyTorch
+- [MONAI](https://github.com/Project-MONAI/MONAI): deep learning-based healthcare imaging workflows.
+- [Kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
+- [PyTorch_Geometric](https://github.com/rusty1s/pytorch_geometric): deep learning library for graphs
+- [Torchio](https://github.com/fepegar/torchio): medical image preprocessing and augmentation toolkit for deep learning
