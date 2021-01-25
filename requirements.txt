@@ -1,25 +1,25 @@
 # Install these dependencies using
 # python -m pip install -r requirements.txt
 
+numpy==1.19.0
+
+# Needed only for pipeline API
+pytorch-lightning # To confirm version
+scikit-image # To confirm version
+
+# Need to specify version
+scikit-learn # To confirm version
+tensorly  # To confirm version
 # We currently recommend Python 3.6 or above.
 
 # core dependencies
 torch==1.7.0
-numpy==1.19.0
-torchvision==0.8.1
-
-# Need to specify version
-scikit-learn # To confirm version 
-tensorly  # To confirm version 
-scikit-image # To confirm version 
-
-# Needed only for pipeline API
-pytorch-lightning # To confirm version 
 
 # utils
 torchsummary==1.5.0
-yacs==0.1.7
+torchvision==0.8.1
 tqdm==4.1.0
+yacs==0.1.7
 
 
 # Needed only for graph
@@ -34,5 +34,3 @@ tqdm==4.1.0
 # torch-spline-conv==1.2.0
 # torch-geometric==1.5.0
 # ogb==1.2.0
-
-

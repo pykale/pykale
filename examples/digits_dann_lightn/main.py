@@ -4,25 +4,17 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 """
 
 import argparse
-
-# import warnings
-# import sys
 import logging
 import os
 
-# import torch
 import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
 
 from kale.loaddata.digits_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
-from kale.utils.csv_logger import setup_logger 
+from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
-
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-
-
 
 
 def arg_parse():
@@ -45,7 +37,7 @@ def main():
     cfg.freeze()
     print(cfg)
 
-    # ---- setup output ----    
+    # ---- setup output ----
     os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
@@ -62,7 +54,7 @@ def main():
         # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         set_seed(seed)
         print(f'==> Building model for seed {seed} ......')
-        # ---- setup model and logger ----                                                     
+        # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, num_channels)
         logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params,
                                                                            cfg.OUTPUT.DIR,
@@ -76,7 +68,7 @@ def main():
             # resume_from_checkpoint=last_checkpoint_file,
             gpus=args.gpus,
             logger=False,  # logger,
-            # weights_summary='full',  
+            # weights_summary='full',
             fast_dev_run=True,  # True,
         )
 

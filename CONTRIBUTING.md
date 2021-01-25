@@ -58,7 +58,7 @@ pip install pre-commit
 pre-commit install
 ```
 
-The hooks will be triggered for each new commit so that problems can be detected early. Pre-commit hooks are configured in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml). If your commits can not pass the above checks, you need to fix them based on the error messages. 
+The hooks will be triggered for each new commit so that problems can be detected early. Pre-commit hooks are configured in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml). If your commits can not pass the above checks, you need to fix them based on the error messages.
 
 You can fix many reported style problems automatically by running [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https://pycqa.github.io/isort/) **from the root directory** (so that the PyKale configurations are used) and then fix the remaining by manual editing. For example,
 
@@ -76,7 +76,7 @@ pip install flake8 # The first time
 flake8 ./kale/embed/new_module.py --output-file ../flake8pykale.txt # "flake8 ." do it for all files
 ```
 
-**Important**: Run these commands from the root directory so that the PyKale configuration files ([`setup.cfg`](https://github.com/pykale/pykale/blob/master/setup.cfg), [`pyproject.toml`](https://github.com/pykale/pykale/blob/master/pyproject.toml), and [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml)) are used for these tools. Otherwise, the default configurations will be used, which **differ** from the PyKale configurations. 
+**Important**: Run these commands from the root directory so that the PyKale configuration files ([`setup.cfg`](https://github.com/pykale/pykale/blob/master/setup.cfg), [`pyproject.toml`](https://github.com/pykale/pykale/blob/master/pyproject.toml), and [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml)) are used for these tools. Otherwise, the default configurations will be used, which **differ** from the PyKale configurations.
 
 **IDE integration**: flake8 linting can be set up for both [VSCode](https://code.visualstudio.com/docs/python/linting) and [PyCharm](https://tirinox.ru/flake8-pycharm/) but you must use [`setup.cfg`](https://github.com/pykale/pykale/blob/master/setup.cfg) to configure it.
 
@@ -102,11 +102,11 @@ We have a pull request template. Please use it for all pull requests and mark th
 
 We aim to design the core `kale` modules to be highly **reusable**, generic, and customizable, and follow these guidelines:
 
-- Enforce styles using [flake8](https://gitlab.com/pycqa/flake8), [black](https://github.com/psf/black), and [isort](https://github.com/timothycrosley/isort)), using common PyKale configuration files. 
+- Enforce styles using [flake8](https://gitlab.com/pycqa/flake8), [black](https://github.com/psf/black), and [isort](https://github.com/timothycrosley/isort)), using common PyKale configuration files.
 - Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html)
 - Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). See our [examples](https://github.com/pykale/pykale/tree/master/examples).
 - Use [PyTorch](https://pytorch.org/tutorials/) and [PyTorch Lightning](https://towardsdatascience.com/from-pytorch-to-pytorch-lightning-a-gentle-introduction-b371b7caaf09) ([Video](https://www.youtube.com/watch?v=QHww1JH7IDU)) as much as possible.
-- If high-quality existing code from other sources are used, add credit and license information at the top of the file. 
+- If high-quality existing code from other sources are used, add credit and license information at the top of the file.
 
 #### Recommended development software
 

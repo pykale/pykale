@@ -1,12 +1,4 @@
 --find-links https://download.pytorch.org/whl/torch_stable.html
-torch==1.7.0+cpu 
-torchvision==0.8.1+cpu
-
-torchsummary==1.5.0
-yacs==0.1.7
-
-# Needed only for graph
-ogb==1.2.0
 
 # Needed only for torch-geometric
 #torch-cluster==1.5.4
@@ -18,8 +10,16 @@ ogb==1.2.0
 # Documentation packages
 nbsphinx
 nbsphinx-link
-pytorch-lightning
-scikit-learn
 # scikit-image
 numpy
+
+# Needed only for graph
+ogb==1.2.0
+pytorch-lightning
+scikit-learn
 tensorly
+torch==1.7.0+cpu
+
+torchsummary==1.5.0
+torchvision==0.8.1+cpu
+yacs==0.1.7
