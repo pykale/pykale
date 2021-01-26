@@ -47,7 +47,7 @@ Use the [*fork and pull* model]((https://docs.github.com/en/github/collaborating
   - Document the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html). Update `docs` following [docs update steps](https://github.com/pykale/pykale/tree/master/docs). Build `docs` via `make html` and verify locally built documentations under `docs\build\html`.
   - Build tests and do tests (not enforced yet, to be done).
 - Create a [pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) from the task branch above to the master branch `pykale:master` explaining the changes and choose reviewers, using a [template](#pull-request-template).
-  - Check the [CI/CD status of the pull request](https://github.com/pykale/pykale/actions) and fix andy reported errors.
+  - Check the [CI/CD status of the pull request](https://github.com/pykale/pykale/actions) and fix any reported errors.
   - After passing all CI/CD tests, your pull request is ready for [review and merge](#review-and-merge-pull-requests) to have your contribution incorporated.
   - Reviewers may discuss with you and request explanations/changes before merging.
   - You need to [address merge conflicts](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/addressing-merge-conflicts) if they arise. Resolve the conflicts locally.
@@ -56,7 +56,7 @@ Use the [*fork and pull* model]((https://docs.github.com/en/github/collaborating
 
 We set up several  [`pre-commit`](https://pre-commit.com/) hooks to ensure code quality, including
 
-- Linting tools: [flake8](https://gitlab.com/pycqa/flake8), [black](https://github.com/psf/black), and [isort](https://github.com/timothycrosley/isort)).
+- Linting tools: [flake8](https://gitlab.com/pycqa/flake8), [black](https://github.com/psf/black), and [isort](https://github.com/timothycrosley/isort).
 - Static type analysis: [mypy](https://github.com/python/mypy) (to do, not yet active)
 - Other hooks as specified in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml), such as restricting the largest file size to 300KB.
 
@@ -126,13 +126,15 @@ We aim to design the core `kale` modules to be highly **reusable**, generic, and
 #### Recommended development software
 
 - Python IDE: [Visual Studio Code](https://code.visualstudio.com/download), [PyCharm](https://www.jetbrains.com/pycharm/download/)
-- GitHub: GitHub Desktop, [GitHub guides](https://guides.github.com/), [GitHub documentations](https://docs.github.com/en)
+- GitHub: [GitHub Desktop](https://desktop.github.com/), [GitHub guides](https://guides.github.com/), [GitHub documentations](https://docs.github.com/en)
 
 ## Heavy involvements (maintainers)
 
 ### Review and merge pull requests
 
-A maintainer follows GitHub guidelines on how to [review changes in pull requests](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/reviewing-changes-in-pull-requests) and [incorporate changes from a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/incorporating-changes-from-a-pull-request) to review and merge the pull requests. The merge is automated in this project (see [Automation](#automation)).
+A maintainer follows GitHub guidelines on how to [review changes in pull requests](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/reviewing-changes-in-pull-requests) and [incorporate changes from a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/incorporating-changes-from-a-pull-request) to review and merge the pull requests. The merge can be automated in this project (see [Automation](#automation)).
+
+For simple problems, such as typos, hyperlinks, the reviewers can fix it directly and push the changes rather than comment and wait for the author to fix. This will speed up the development.
 
 ### Release and management
 
@@ -165,7 +167,7 @@ We have adopted the following GitHub automation
 The following libraries from the [PyTorch ecosystem](https://pytorch.org/ecosystem/) are good resources to learn from:
 
 - [GPyTorch](https://github.com/cornellius-gp/gpytorch): a highly efficient and modular implementation of Gaussian Processes in PyTorch
-- [MONAI](https://github.com/Project-MONAI/MONAI): deep learning-based healthcare imaging workflows.
-- [Kornia](https://github.com/kornia/kornia): Computer Vision Library for PyTorch by the OpenCV team
+- [MONAI](https://github.com/Project-MONAI/MONAI): deep learning-based healthcare imaging workflows
+- [Kornia](https://github.com/kornia/kornia): computer vision Library for PyTorch by the OpenCV team
 - [PyTorch_Geometric](https://github.com/rusty1s/pytorch_geometric): deep learning library for graphs
-- [Torchio](https://github.com/fepegar/torchio): medical image preprocessing and augmentation toolkit for deep learning
+- [Torchio](https://github.com/fepegar/torchio): medical image pre-processing and augmentation toolkit for deep learning
