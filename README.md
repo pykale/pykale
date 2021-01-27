@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/pykale/pykale/raw/master/docs/images/pykale_logo.png" width="5%" alt='project-monai'> PyKale <a href="https://pypi.org/project/pykale/"><img alt="PyPI" src="https://img.shields.io/pypi/v/pykale?color=blue"></a> <a href="https://anaconda.org/pykale/pykale"><img alt="Conda" src="https://img.shields.io/conda/v/pykale/pykale?color=blue"></a>
+  <img src="https://github.com/pykale/pykale/raw/master/docs/images/pykale_logo.png" width="5%" alt='project-monai'> PyKale
 </p>
 
 -----------------------------------------
@@ -7,9 +7,9 @@
 ![build](https://github.com/pykale/pykale/workflows/build/badge.svg)
 ![Unit Tests](https://github.com/pykale/pykale/workflows/unit%20tests/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
-[![Downloads](https://static.pepy.tech/personalized-badge/pykale?period=total&units=international_system&left_color=grey&right_color=lightgrey&left_text=pypi%20downloads&kill_cache=1)](https://pepy.tech/project/pykale)
-![Conda](https://img.shields.io/conda/dn/pykale/pykale?color=lightgrey&label=conda%20downloads)
-![GitHub all releases](https://img.shields.io/github/downloads/pykale/pykale/total?color=lightgrey&label=github%20downloads)
+[![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
+[![Conda](https://img.shields.io/conda/v/pykale/pykale?color=blue)](https://anaconda.org/pykale/pykale)
+[![PyPI downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
 
 [Getting Started](https://github.com/pykale/pykale/tree/master/examples) |
 [Documentation](https://pykale.readthedocs.io/) |
