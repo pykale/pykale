@@ -48,9 +48,11 @@ Use the [*fork and pull* model]((https://docs.github.com/en/github/collaborating
   - Build tests and do tests (not enforced yet, to be done).
 - Create a [pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) from the task branch above to the master branch `pykale:master` explaining the changes and choose reviewers, using a [template](#pull-request-template).
   - Check the [CI/CD status of the pull request](https://github.com/pykale/pykale/actions) and fix any reported errors.
-  - After passing all CI/CD tests, your pull request is ready for [review and merge](#review-and-merge-pull-requests) to have your contribution incorporated.
-  - Reviewers may discuss with you and request explanations/changes before merging.
   - You need to [address merge conflicts](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/addressing-merge-conflicts) if they arise. Resolve the conflicts locally.
+  - After passing all CI/CD tests and resolving the conflicts, your pull request is ready for [review and merge](#review-and-merge-pull-requests) to have your contribution incorporated.
+  - If you know who should review your changes, request/assign that person. Otherwise, we will assign one shortly.
+  - Reviewers may discuss with you and request explanations/changes before merging. Merging to the master branch **requires** *at least one approving review*.
+
 
 #### Before pull requests: pre-commit hooks
 
@@ -67,11 +69,11 @@ pip install pre-commit
 pre-commit install
 ```
 
-This will install the `pre-commit` hooks at `pykale\.git\hooks`, to be triggered for each new commit to automatically run them *over the files you commit*. In this way, problems can be detected early. Several points to note:
+This will install the `pre-commit` hooks at `pykale\.git\hooks`, to be **triggered by each new commit** to automatically run them *over the files you commit*. In this way, problems can be detected and fixed early. Several **important** points to note:
 
-- Pre-commit hooks are configured in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml).
-- These hooks, e.g.,  [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https://pycqa.github.io/isort/), will automatically fix some problems for you by **changing the files**, so please check the changes after you trigger `commit`.
-- If your commits can not pass the above checks, you need to fix them based on the error messages, e.g. flake8 errors. Some flake8 errors will be fixed by some hooks so you can rerun (or re-trigger) the pre-commit or just flake8 to see the updated flake8 errors.
+- Pre-commit hooks are configured in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml). Only administrator should modify it.
+- These hooks, e.g.,  [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https://pycqa.github.io/isort/), will **automatically fix** some problems for you by **changing the files**, so please check the changes after you trigger `commit`.
+- If your commits can not pass the above checks, read the error message to see what has been automatically fixed and what needs your manual fix, e.g. flake8 errors. Some flake8 errors may be fixed by some hooks so you can rerun the pre-commit (e.g. re-commit to trigger it) or just run flake8 to see the updated flake8 errors.
 
 #### Manual checks and fixes (be *CAREFUL*)
 
@@ -132,7 +134,9 @@ We aim to design the core `kale` modules to be highly **reusable**, generic, and
 
 ### Review and merge pull requests
 
-A maintainer follows GitHub guidelines on how to [review changes in pull requests](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/reviewing-changes-in-pull-requests) and [incorporate changes from a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/incorporating-changes-from-a-pull-request) to review and merge the pull requests. The merge can be automated in this project (see [Automation](#automation)).
+A maintainer assigned to review a pull request should follow GitHub guidelines on how to [review changes in pull requests](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/reviewing-changes-in-pull-requests) and [incorporate changes from a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/incorporating-changes-from-a-pull-request) to review and merge the pull requests. Merging can be automated (see [Automation](#automation)), in which case an approving review will trigger the merging. You should NOT approve the changes if they are not ready to merge.
+
+If you think you are not the right person to review, let the administrator (haipinglu) know for a reassignment. If multiple reviewers are assigned, anyone can approve and merge unless more approvals are explicitly required.
 
 For simple problems, such as typos, hyperlinks, the reviewers can fix it directly and push the changes rather than comment and wait for the author to fix. This will speed up the development.
 
