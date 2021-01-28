@@ -169,8 +169,10 @@ We have adopted the following GitHub automation
 
 The following libraries from the [PyTorch ecosystem](https://pytorch.org/ecosystem/) are good resources to learn from:
 
-- [GPyTorch](https://github.com/cornellius-gp/gpytorch): a highly efficient and modular implementation of Gaussian Processes in PyTorch
+- [**PyTorchLightning**](https://github.com/PyTorchLightning/pytorch-lightning): a lightweight PyTorch wrapper for high-performance AI research
+- [GPyTorch](https://github.com/cornellius-gp/gpytorch): a highly efficient and modular implementation of Gaussian processes in PyTorch
+- [Kornia](https://github.com/kornia/kornia): computer vision library for PyTorch by the OpenCV team
 - [MONAI](https://github.com/Project-MONAI/MONAI): deep learning-based healthcare imaging workflows
-- [Kornia](https://github.com/kornia/kornia): computer vision Library for PyTorch by the OpenCV team
 - [PyTorch_Geometric](https://github.com/rusty1s/pytorch_geometric): deep learning library for graphs
+- [TensorLy](https://github.com/tensorly/tensorly): a library for tensor learning in Python
 - [Torchio](https://github.com/fepegar/torchio): medical image pre-processing and augmentation toolkit for deep learning
