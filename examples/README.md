@@ -16,7 +16,7 @@ Domain-specific development in three areas
   * Node classification on `Cora`
   * `biokg` subset from OGB?
   * `movielens` subset and what KG?
-* `vision` Computer vision  
+* `vision` Computer vision
   * Image classificaiton on `CIFAR10`
   * Action recognition from EPIC-Kitchen subset?
   * Pose estimation from COCO subset?

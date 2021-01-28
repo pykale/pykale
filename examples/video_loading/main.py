@@ -1,8 +1,4 @@
 import os
-import sys
-
-# No need if pykale is installed
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import matplotlib.pyplot as plt
 import torch
@@ -199,7 +195,7 @@ if __name__ == "__main__":
     When paired with the `torch.utils.data.DataLoader`, instead of yielding each batch as
     ((BATCHxFRAMESxCHANNELSxHEIGHTxWIDTH), (BATCH)) where the second tuple item is the labels of the batch,
     `torch.utils.data.DataLoader` returns a batch as ((BATCHxFRAMESxCHANNELSxHEIGHTxWIDTH), ((BATCH),...,(BATCH))
-    where the second tuple item is itself a tuple, with N BATCH-sized tensors of labels, where N is the 
+    where the second tuple item is itself a tuple, with N BATCH-sized tensors of labels, where N is the
     number of labels assigned to each sample.
     """
     videos_root = os.path.join(os.getcwd(), "demo_dataset_multilabel")

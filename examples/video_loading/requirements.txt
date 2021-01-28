@@ -1,6 +1,6 @@
+matplotlib
+numpy
+Pillow
 python >= 3.6
 torch >= 1.7.0
 torchvision >= 0.8.0
-matplotlib
-Pillow
-numpy

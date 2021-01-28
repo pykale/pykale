@@ -1,22 +1,14 @@
 """ISONet (an extension of ResNet) on CIFAR image classification
 
-Reference: https://github.com/HaozhiQi/ISONet/blob/master/train.py 
+Reference: https://github.com/HaozhiQi/ISONet/blob/master/train.py
 """
 
 import argparse
 import os
-import sys
-import warnings
-
-# No need if pykale is installed
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import torch
 from config import get_cfg_defaults
-
-# from model_old import get_model
 from model import get_model
-from torchsummary import summary
 from trainer import Trainer
 
 from kale.loaddata.cifar_access import get_cifar

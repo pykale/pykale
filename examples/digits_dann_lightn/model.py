@@ -56,7 +56,7 @@ def get_model(cfg, dataset, num_channels):
     Args:
         cfg: A YACS config object.
         dataset: A multidomain dataset consisting of source and target datasets.
-        num_channels: The number of image channels.        
+        num_channels: The number of image channels.
     """
 
     # setup feature extractor
