@@ -42,7 +42,7 @@ Use the [*fork and pull* model]((https://docs.github.com/en/github/collaborating
   - Keep the fork master branch synced with `pykale:master` by [syncing a fork](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork).
   - Install `pre-commit` to enforce style via `pip install pre-commit` and `pre-commit install` at the root.
 - [Create a branch](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-and-deleting-branches-within-your-repository) based on the *latest master* in your fork with a *descriptive* name on what you plan to do, e.g. to fix an issue, starting with the issue ticket number.
-  - Make changes to this branch using detailed commit messages and following the [coding style](#coding-style) below.
+  - Make changes to this branch using detailed commit messages and following the [coding style](#coding-style) below. In particular, do [**frequent commits**](https://docs.github.com/en/actions/guides/about-continuous-integration#about-continuous-integration) and **small-scale pull requests** to make them more focused and easier to review.
   - [Sync your branch](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/syncing-your-branch) with the master frequently so that potential problems can be identified earlier.
   - Document the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html). Update `docs` following [docs update steps](https://github.com/pykale/pykale/tree/master/docs). Build `docs` via `make html` and verify locally built documentations under `docs\build\html`.
   - Build tests and do tests (not enforced yet, to be done).
@@ -116,8 +116,8 @@ We have a pull request template. Please use it for all pull requests and mark th
 
 We aim to design the core `kale` modules to be highly **reusable**, generic, and customizable, and follow these guidelines:
 
+- Follow the [continuous integration practice](https://docs.github.com/en/actions/guides/about-continuous-integration#about-continuous-integration) to make small changes and commit frequently with clear descriptions for others to understand what you have done. This can detect errors sooner, reduces debug need, make it easier to merge changes, and eventually save the overall time.
 - Use highly *readable* names for variables, functions, and classes.
-- Make small changes and commit frequently with clear descriptions for others to understand what you have done.
 - Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
 - Highly reusable modules should go into `kale`. Highly data/example-specific code goes into `Examples`.
 - Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). See our [examples](https://github.com/pykale/pykale/tree/master/examples).
