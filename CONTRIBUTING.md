@@ -7,7 +7,7 @@
 [Ask questions](#ask-questions) |
 [Report bugs](#report-bugs) |
 [Suggest improvements](#suggest-improvements) |
-[*Fork & pull*](#fork-and-pull) |
+[*Branch, fork & pull*](#branch-fork-and-pull) |
 [*Coding style*](#coding-style) |
 [**Review & merge**](#review-and-merge-pull-requests) |
 [**Release & management**](#release-and-management)
@@ -34,9 +34,11 @@ Suggest possible improvements such as new features or code refactoring by [creat
 
 We follow PyTorch to use **US English spelling**.
 
-### Fork and pull
+### Branch, fork and pull
 
-Use the [*fork and pull* model]((https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-collaborative-development-models)) to contribute code to PyKale:
+A maintainer with *write* access can [create a branch](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-and-deleting-branches-within-your-repository) directly here in `pykale` to make changes under the [shared repository model](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-collaborative-development-models),  following the steps below while skipping the fork step.
+
+Anyone can use the [*fork and pull* model](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-collaborative-development-models) to contribute code to PyKale:
 
 - [**Fork**](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) pykale (also see the [guide on forking projects](https://guides.github.com/activities/forking/)).
   - Keep the fork master branch synced with `pykale:master` by [syncing a fork](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork).
