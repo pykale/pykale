@@ -47,11 +47,10 @@ Use the [*fork and pull* model]((https://docs.github.com/en/github/collaborating
   - Document the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html). Update `docs` following [docs update steps](https://github.com/pykale/pykale/tree/master/docs). Build `docs` via `make html` and verify locally built documentations under `docs\build\html`.
   - Build tests and do tests (not enforced yet, to be done).
 - Create a [pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) from the task branch above to the master branch `pykale:master` explaining the changes and choose reviewers, using a [template](#pull-request-template).
-  - Check the [CI/CD status of the pull request](https://github.com/pykale/pykale/actions) and fix any reported errors.
+  - View the [continuous integration (CI) status checks](https://github.com/pykale/pykale/actions). When the check messages say files are changed, they mean changes on their simulated environment, *NOT* on the branch. The problems are not fixed and you need to fix them as well as other reported errors locally.
   - You need to [address merge conflicts](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/addressing-merge-conflicts) if they arise. Resolve the conflicts locally.
-  - After passing all CI/CD tests and resolving the conflicts, your pull request is ready for [review and merge](#review-and-merge-pull-requests) to have your contribution incorporated.
-  - If you know who should review your changes, request/assign that person. Otherwise, we will assign one shortly.
-  - Reviewers may discuss with you and request explanations/changes before merging.
+  - After passing all CI checks and resolving the conflicts, you should [request a review](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/requesting-a-pull-request-review). If you know who is appropriate or like the [suggested reviewers](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/requesting-a-pull-request-review#:~:text=Suggested%20reviewers%20are%20based%20on,review%20from%20the%20same%20reviewer.), request/assign that person. Otherwise, we will assign one shortly.
+  - A reviewer will follow the [review and merge guidelines](#review-and-merge-pull-requests). The reviewer may discuss with you and request explanations/changes before merging.
   - Merging to the master branch **requires** *ALL checks to pass* AND *at least one approving review*.
 
 #### Before pull requests: pre-commit hooks
@@ -117,7 +116,7 @@ We have a pull request template. Please use it for all pull requests and mark th
 We aim to design the core `kale` modules to be highly **reusable**, generic, and customizable, and follow these guidelines:
 
 - Follow the [continuous integration practice](https://docs.github.com/en/actions/guides/about-continuous-integration#about-continuous-integration) to make small changes and commit frequently with clear descriptions for others to understand what you have done. This can detect errors sooner, reduces debug need, make it easier to merge changes, and eventually save the overall time.
-- Use highly *readable* names for variables, functions, and classes.
+- Use highly *readable* names for variables, functions, and classes. Using *verbs* is preferred when feasible for compactness.
 - Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
 - Highly reusable modules should go into `kale`. Highly data/example-specific code goes into `Examples`.
 - Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). See our [examples](https://github.com/pykale/pykale/tree/master/examples).
