@@ -51,8 +51,8 @@ Use the [*fork and pull* model]((https://docs.github.com/en/github/collaborating
   - You need to [address merge conflicts](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/addressing-merge-conflicts) if they arise. Resolve the conflicts locally.
   - After passing all CI/CD tests and resolving the conflicts, your pull request is ready for [review and merge](#review-and-merge-pull-requests) to have your contribution incorporated.
   - If you know who should review your changes, request/assign that person. Otherwise, we will assign one shortly.
-  - Reviewers may discuss with you and request explanations/changes before merging. Merging to the master branch **requires** *at least one approving review*.
-
+  - Reviewers may discuss with you and request explanations/changes before merging.
+  - Merging to the master branch **requires** *ALL checks to pass* AND *at least one approving review*.
 
 #### Before pull requests: pre-commit hooks
 
