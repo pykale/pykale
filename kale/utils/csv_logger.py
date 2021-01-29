@@ -15,7 +15,6 @@ import pandas as pd
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 
-
 def param_to_str(param_dict):
     """Convert (hyper)parameter to a string"""
 

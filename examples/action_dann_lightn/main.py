@@ -12,9 +12,9 @@ from pytorch_lightning import loggers as pl_loggers
 
 from examples.action_dann_lightn.config import get_cfg_defaults
 from examples.action_dann_lightn.model import get_model
-from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
-from kale.utils.csv_logger import setup_logger 
+from kale.loaddata.video_access import VideoDataset
+from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
 
 
@@ -59,7 +59,7 @@ def main():
         seed = seed + i * 10
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         print(f'==> Building model for seed {seed} ......')
-        # ---- setup model and logger ----                                                     
+        # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, num_classes)
         logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params,
                                                                            cfg.OUTPUT.DIR,

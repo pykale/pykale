@@ -7,6 +7,8 @@ import os
 from copy import deepcopy
 from enum import Enum
 
+import torch
+
 import kale.prepdata.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.video_datasets import BasicVideoDataset, EPIC
@@ -174,7 +176,7 @@ class VideoDatasetAccess(DatasetAccess):
         seed: (int): seed value set manually.
     """
 
-    def __init__(self, data_path, train_list, test_list, image_modality, frames_per_segment, n_classes, transform_kind):
+    def __init__(self, data_path, train_list, test_list, image_modality, frames_per_segment, n_classes, transform_kind, seed):
         super().__init__(n_classes)
         self._data_path = data_path
         self._train_list = train_list

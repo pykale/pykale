@@ -1,8 +1,15 @@
 import torch
 
-from kale.pipeline.domain_adapter import Method, BaseMMDLike, DANNtrainer, CDANtrainer, ReverseLayerF, WDGRLtrainer, \
-    WDGRLtrainerMod, set_requires_grad, get_aggregated_metrics_from_dict, get_metrics_from_parameter_dict
 import kale.predict.losses as losses
+from kale.pipeline.domain_adapter import (
+    BaseMMDLike,
+    CDANtrainer,
+    DANNtrainer,
+    Method,
+    ReverseLayerF,
+    set_requires_grad,
+    WDGRLtrainer,
+)
 
 
 def create_mmd_based_4video(
@@ -611,9 +618,7 @@ class WDGRLtrainer4Video(WDGRLtrainer):
 
                 critic_s = self.domain_classifier(h_s)
                 critic_t = self.domain_classifier(h_t)
-                wasserstein_distance = (
-                        critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean()
-                )
+                wasserstein_distance = (critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean())
 
                 critic_cost = -wasserstein_distance + self._gamma * gp
 
@@ -646,9 +651,7 @@ class WDGRLtrainer4Video(WDGRLtrainer):
 
                 critic_s = self.domain_classifier(h_s)
                 critic_t = self.domain_classifier(h_t)
-                wasserstein_distance = (
-                        critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean()
-                )
+                wasserstein_distance = (critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean())
 
                 critic_cost = -wasserstein_distance + self._gamma * gp
 

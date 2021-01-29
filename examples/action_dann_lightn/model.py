@@ -7,11 +7,11 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 
 from copy import deepcopy
 
-from kale.embed.video_i3d import i3d_joint
-from kale.embed.video_res3d import r3d, r2plus1d, mc3
-from kale.predict.class_domain_nets import ClassNetVideo, DomainNetSmallImage
-import kale.pipeline.domain_adapter as domain_adapter
 import kale.pipeline.action_domain_adapter as action_domain_adapter
+import kale.pipeline.domain_adapter as domain_adapter
+from kale.embed.video_i3d import i3d_joint
+from kale.embed.video_res3d import mc3, r2plus1d, r3d
+from kale.predict.class_domain_nets import ClassNetVideo, DomainNetSmallImage
 
 
 def get_config(cfg):
