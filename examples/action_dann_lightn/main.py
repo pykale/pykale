@@ -17,10 +17,6 @@ from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
 from kale.utils.csv_logger import setup_logger 
 from kale.utils.seed import set_seed
 
-# import sys
-
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-
 
 def arg_parse():
     """Parsing arguments"""

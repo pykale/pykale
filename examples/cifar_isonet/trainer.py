@@ -108,7 +108,7 @@ class Trainer(object):
             for batch_idx, (inputs, targets) in enumerate(self.val_loader):
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)
-                loss = self.loss(outputs, targets)
+                # loss = self.loss(outputs, targets)
 
                 _, predicted = outputs.max(1)
                 total += targets.size(0)
