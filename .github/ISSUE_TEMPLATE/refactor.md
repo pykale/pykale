@@ -1,8 +1,8 @@
 ---
 name: "\U0001F527 Refactor"
 about: Propose a refactor/speedup/improvement to PyKale's internals
-title: ''
-labels: ''
+title: "[Refactor]"
+labels: refactor
 assignees: ''
 
 ---

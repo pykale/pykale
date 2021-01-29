@@ -5,9 +5,10 @@ the `GripNet
 <https://github.com/NYXFLOWER/GripNet>`_ source repo.
 """
 
-import torch.nn.functional as F
 import torch
+import torch.nn.functional as F
 from torch.nn import Module
+
 from kale.embed.gcn import GCNEncoderLayer, RGCNEncoderLayer
 
 
@@ -29,8 +30,16 @@ class GripNetSuperVertex(Module):
         num_bases (int, optional): Number of bases if supervertex is a multi relation graph. (default :obj:`None`)
     """
 
-    def __init__(self, channels_list, requires_grad=True, start_graph=False,
-                 in_channels=None, multi_relational=False, num_relations=None, num_bases=32):
+    def __init__(
+        self,
+        channels_list,
+        requires_grad=True,
+        start_graph=False,
+        in_channels=None,
+        multi_relational=False,
+        num_relations=None,
+        num_bases=32,
+    ):
         super(GripNetSuperVertex, self).__init__()
         self.multi_relational = multi_relational
         self.start_graph = start_graph
@@ -44,21 +53,25 @@ class GripNetSuperVertex(Module):
 
         if multi_relational:
             assert num_relations is not None
-            after_relu = [False if i == 0 else True for i in
-                          range(len(channels_list) - 1)]
-            self.conv_list = torch.nn.ModuleList([
-                RGCNEncoderLayer(channels_list[i], channels_list[i + 1], num_relations, num_bases, after_relu[i])
-                for i in range(len(channels_list) - 1)])
+            after_relu = [False if i == 0 else True for i in range(len(channels_list) - 1)]
+            self.conv_list = torch.nn.ModuleList(
+                [
+                    RGCNEncoderLayer(channels_list[i], channels_list[i + 1], num_relations, num_bases, after_relu[i])
+                    for i in range(len(channels_list) - 1)
+                ]
+            )
         else:
-            self.conv_list = torch.nn.ModuleList([
-                GCNEncoderLayer(channels_list[i], channels_list[i + 1], cached=True)
-                for i in range(len(channels_list) - 1)])
+            self.conv_list = torch.nn.ModuleList(
+                [
+                    GCNEncoderLayer(channels_list[i], channels_list[i + 1], cached=True)
+                    for i in range(len(channels_list) - 1)
+                ]
+            )
 
     def reset_parameters(self):
         self.embedding.data.normal_()
 
-    def forward(self, x, homo_edge_index, edge_weight=None, edge_type=None,
-                range_list=None, if_catout=False):
+    def forward(self, x, homo_edge_index, edge_weight=None, edge_type=None, range_list=None, if_catout=False):
         """
         Args:
             x (torch.Tensor): the input node feature embedding.
@@ -80,16 +93,20 @@ class GripNetSuperVertex(Module):
             assert range_list is not None
 
         for net in self.conv_list[:-1]:
-            x = net(x, homo_edge_index, edge_type, range_list) \
-                if self.multi_relational \
+            x = (
+                net(x, homo_edge_index, edge_type, range_list)
+                if self.multi_relational
                 else net(x, homo_edge_index, edge_weight)
+            )
             x = F.relu(x, inplace=True)
             if if_catout:
                 tmp.append(x)
 
-        x = self.conv_list[-1](x, homo_edge_index, edge_type, range_list) \
-            if self.multi_relational \
+        x = (
+            self.conv_list[-1](x, homo_edge_index, edge_type, range_list)
+            if self.multi_relational
             else self.conv_list[-1](x, homo_edge_index, edge_weight)
+        )
 
         x = F.relu(x, inplace=True)
         if if_catout:
@@ -114,15 +131,13 @@ class GripNetSuperEdges(Module):
             (default: :obj:`True`)
     """
 
-    def __init__(self, source_dim, target_dim, n_target, target_feat_dim=32,
-                 requires_grad=True):
+    def __init__(self, source_dim, target_dim, n_target, target_feat_dim=32, requires_grad=True):
         super(GripNetSuperEdges, self).__init__()
         self.source_dim = source_dim
         self.target_dim = target_dim
         self.target_feat_dim = target_feat_dim
         self.n_target = n_target
-        self.target_feat = torch.nn.Parameter(
-            torch.Tensor(n_target, target_feat_dim))
+        self.target_feat = torch.nn.Parameter(torch.Tensor(n_target, target_feat_dim))
 
         self.target_feat.requires_grad = requires_grad
 
@@ -132,7 +147,7 @@ class GripNetSuperEdges(Module):
     def reset_parameters(self):
         self.target_feat.data.normal_()
 
-    def forward(self, x, inter_edge_index, edge_weight=None, if_relu=True, mod='cat'):
+    def forward(self, x, inter_edge_index, edge_weight=None, if_relu=True, mod="cat"):
         """
         Args:
             x (torch.Tensor): the input node feature embedding.
@@ -145,12 +160,11 @@ class GripNetSuperEdges(Module):
         tmp = inter_edge_index + 0
         tmp[1, :] += n_source
 
-        x = torch.cat(
-            [x, torch.zeros((self.n_target, x.shape[1])).to(x.device)], dim=0)
+        x = torch.cat([x, torch.zeros((self.n_target, x.shape[1])).to(x.device)], dim=0)
         x = self.conv(x, tmp, edge_weight)[n_source:, :]
         if if_relu:
             x = F.relu(x)
-        if mod == 'cat':
+        if mod == "cat":
             x = torch.cat([x, torch.abs(self.target_feat)], dim=1)
         else:
             assert x.shape[1] == self.target_feat.shape[1]
@@ -176,17 +190,39 @@ class TypicalGripNetEncoder(Module):
         num_target_edge_relations (int): Number of edge relations of target supervertex.
     """
 
-    def __init__(self, source_channels_list, inter_channels_list, target_channels_list, num_target_nodes, num_source_nodes, num_target_edge_relations):
+    def __init__(
+        self,
+        source_channels_list,
+        inter_channels_list,
+        target_channels_list,
+        num_target_nodes,
+        num_source_nodes,
+        num_target_edge_relations,
+    ):
         super(TypicalGripNetEncoder, self).__init__()
         self.n_target_node = num_target_nodes
         self.n_source_node = num_source_nodes
         self.source_graph = GripNetSuperVertex(source_channels_list, start_graph=True, in_channels=self.n_source_node)
-        self.s2t_graph = GripNetSuperEdges(sum(source_channels_list), inter_channels_list[0],
-                                           self.n_target_node, target_feat_dim=inter_channels_list[-1])
-        self.target_graph = GripNetSuperVertex(target_channels_list, multi_relational=True, num_relations=num_target_edge_relations)
+        self.s2t_graph = GripNetSuperEdges(
+            sum(source_channels_list),
+            inter_channels_list[0],
+            self.n_target_node,
+            target_feat_dim=inter_channels_list[-1],
+        )
+        self.target_graph = GripNetSuperVertex(
+            target_channels_list, multi_relational=True, num_relations=num_target_edge_relations
+        )
 
-    def forward(self, source_x, source_edge_index, source_edge_weight,
-                inter_edge_index, target_edge_index, target_edge_relations, target_edge_range):
+    def forward(
+        self,
+        source_x,
+        source_edge_index,
+        source_edge_weight,
+        inter_edge_index,
+        target_edge_index,
+        target_edge_relations,
+        target_edge_range,
+    ):
         """
         Args:
             source_x (torch.Tensor): The input source node feature embedding.
@@ -201,6 +237,7 @@ class TypicalGripNetEncoder(Module):
         """
         z = self.source_graph(source_x, source_edge_index, edge_weight=source_edge_weight, if_catout=True)
         z = self.s2t_graph(z, inter_edge_index)
-        z = self.target_graph(z, target_edge_index, edge_type=target_edge_relations,
-                              range_list=target_edge_range, if_catout=True)
+        z = self.target_graph(
+            z, target_edge_index, edge_type=target_edge_relations, range_list=target_edge_range, if_catout=True
+        )
         return z

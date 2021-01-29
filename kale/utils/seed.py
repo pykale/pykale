@@ -2,8 +2,9 @@
 
 import os
 import random
-import torch
+
 import numpy as np
+import torch
 
 
 # Results can be software/hardware-dependent
@@ -22,7 +23,7 @@ def set_seed(seed=1000):
     """
 
     # 1. Set `PYTHONHASHSEED` environment variable at a fixed value
-    os.environ['PYTHONHASHSEED'] = str(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
     # 2. Set `python` built-in pseudo-random generator at a fixed value
     random.seed(seed)
     # 3. Set `numpy` pseudo-random generator at a fixed value

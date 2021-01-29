@@ -4,11 +4,13 @@ Construct a dataset with (multiple) source and target domains, from https://gith
 
 import logging
 from enum import Enum
+
 import numpy as np
-from sklearn.utils import check_random_state
 import torch.utils.data
-from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
+from sklearn.utils import check_random_state
+
 from kale.loaddata.dataset_access import DatasetAccess
+from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
 
 
 class WeightingType(Enum):
@@ -28,9 +30,7 @@ class DatasetSizeType(Enum):
         elif size_type is DatasetSizeType.Source:
             return len(source_dataset)
         else:
-            raise ValueError(
-                f"Size type size must be 'max' or 'source', had '{size_type}'"
-            )
+            raise ValueError(f"Size type size must be 'max' or 'source', had '{size_type}'")
 
 
 class DomainsDatasetBase:
@@ -47,9 +47,9 @@ class DomainsDatasetBase:
         Args:
             split (string, optional): ["train"|"valid"|"test"]. Which dataset to iterate on. Defaults to "train".
             batch_size (int, optional): Defaults to 32.
-        
+
         Returns:
-            MultiDataLoader: A dataloader with API similar to the torch.dataloader, but returning 
+            MultiDataLoader: A dataloader with API similar to the torch.dataloader, but returning
             batches from several domains at each iteration.
         """
         raise NotImplementedError()
@@ -57,18 +57,18 @@ class DomainsDatasetBase:
 
 class MultiDomainDatasets(DomainsDatasetBase):
     def __init__(
-            self,
-            source_access: DatasetAccess,
-            target_access: DatasetAccess,
-            config_weight_type="natural",
-            config_size_type=DatasetSizeType.Max,
-            val_split_ratio=0.1,
-            source_sampling_config=None,
-            target_sampling_config=None,
-            n_fewshot=None,
-            random_state=None,
+        self,
+        source_access: DatasetAccess,
+        target_access: DatasetAccess,
+        config_weight_type="natural",
+        config_size_type=DatasetSizeType.Max,
+        val_split_ratio=0.1,
+        source_sampling_config=None,
+        target_sampling_config=None,
+        n_fewshot=None,
+        random_state=None,
     ):
-        """The class controlling how the source and target domains are 
+        """The class controlling how the source and target domains are
             iterated over.
 
         Args:
@@ -78,7 +78,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
             source_sampling_config (SamplingConfig, optional): How to sample from the source. Defaults to None (=> RandomSampler).
             target_sampling_config (SamplingConfig, optional): How to sample from the target. Defaults to None (=> RandomSampler).
             size_type (DatasetSizeType, optional): Which dataset size to use to define the number of epochs vs batch_size. Defaults to DatasetSizeType.Max.
-            n_fewshot (int, optional): Number of target samples for which the label may be used, 
+            n_fewshot (int, optional): Number of target samples for which the label may be used,
                 to define the few-shot, semi-supervised setting. Defaults to None.
             random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label selection. Defaults to None.
         Examples::
@@ -88,9 +88,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
         size_type = DatasetSizeType(config_size_type)
 
         if weight_type is WeightingType.PRESET0:
-            self._source_sampling_config = SamplingConfig(
-                class_weights=np.arange(source_access.n_classes(), 0, -1)
-            )
+            self._source_sampling_config = SamplingConfig(class_weights=np.arange(source_access.n_classes(), 0, -1))
             self._target_sampling_config = SamplingConfig(
                 class_weights=random_state.randint(1, 4, size=target_access.n_classes())
             )
@@ -151,22 +149,16 @@ class MultiDomainDatasets(DomainsDatasetBase):
                 (
                     self._labeled_target_by_split[part],
                     self._target_by_split[part],
-                ) = _split_dataset_few_shot(
-                    self._target_by_split[part], self._n_fewshot
-                )
+                ) = _split_dataset_few_shot(self._target_by_split[part], self._n_fewshot)
 
     def get_domain_loaders(self, split="train", batch_size=32):
         source_ds = self._source_by_split[split]
-        source_loader = self._source_sampling_config.create_loader(
-            source_ds, batch_size
-        )
+        source_loader = self._source_sampling_config.create_loader(source_ds, batch_size)
         target_ds = self._target_by_split[split]
 
         if self._labeled_target_by_split is None:
             # unsupervised target domain
-            target_loader = self._target_sampling_config.create_loader(
-                target_ds, batch_size
-            )
+            target_loader = self._target_sampling_config.create_loader(target_ds, batch_size)
             n_dataset = DatasetSizeType.get_size(self._size_type, source_ds, target_ds)
             return MultiDataLoader(
                 dataloaders=[source_loader, target_loader],
@@ -177,17 +169,11 @@ class MultiDomainDatasets(DomainsDatasetBase):
             target_labeled_ds = self._labeled_target_by_split[split]
             target_unlabeled_ds = target_ds
             # label domain: always balanced
-            target_labeled_loader = SamplingConfig(
-                balance=True, class_weights=None
-            ).create_loader(
+            target_labeled_loader = SamplingConfig(balance=True, class_weights=None).create_loader(
                 target_labeled_ds, batch_size=min(len(target_labeled_ds), batch_size)
             )
-            target_unlabeled_loader = self._target_sampling_config.create_loader(
-                target_unlabeled_ds, batch_size
-            )
-            n_dataset = DatasetSizeType.get_size(
-                self._size_type, source_ds, target_labeled_ds, target_unlabeled_ds
-            )
+            target_unlabeled_loader = self._target_sampling_config.create_loader(target_unlabeled_ds, batch_size)
+            n_dataset = DatasetSizeType.get_size(self._size_type, source_ds, target_labeled_ds, target_unlabeled_ds)
             return MultiDataLoader(
                 dataloaders=[
                     source_loader,
@@ -204,9 +190,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
             return DatasetSizeType.get_size(self._size_type, source_ds, target_ds)
         else:
             labeled_target_ds = self._labeled_target_by_split["train"]
-            return DatasetSizeType.get_size(
-                self._size_type, source_ds, labeled_target_ds, target_ds
-            )
+            return DatasetSizeType.get_size(self._size_type, source_ds, labeled_target_ds, target_ds)
 
 
 def _split_dataset_few_shot(dataset, n_fewshot, random_state=None):

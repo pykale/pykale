@@ -1,14 +1,11 @@
 """Classification of data or domain
 
-Modules for typical classification tasks (into class labels) and 
+Modules for typical classification tasks (into class labels) and
 adversarial discrimination of source vs target domains, from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
 """
 
-import numpy as np
 import torch.nn as nn
-import torch
-from torchvision import models
 
 
 # Previously FFSoftmaxClassifier
@@ -24,13 +21,13 @@ class SoftmaxNet(nn.Module):
     """
 
     def __init__(
-            self,
-            input_dim=15,
-            n_classes=2,
-            name="c",
-            hidden=(),
-            activation_fn=nn.ReLU,
-            **activation_args,
+        self,
+        input_dim=15,
+        n_classes=2,
+        name="c",
+        hidden=(),
+        activation_fn=nn.ReLU,
+        **activation_args,
     ):
 
         super(SoftmaxNet, self).__init__()
@@ -42,9 +39,7 @@ class SoftmaxNet(nn.Module):
         last_dim = input_dim
         for i, h in enumerate(self._hidden_sizes):
             self.chain.add_module(f"{name}_fc{i}", nn.Linear(last_dim, h))
-            self.chain.add_module(
-                f"f_{activation_fn.__name__}{i}", activation_fn(**activation_args)
-            )
+            self.chain.add_module(f"f_{activation_fn.__name__}{i}", activation_fn(**activation_args))
             last_dim = h
         self.chain.add_module(f"{name}_fc_last", nn.Linear(last_dim, self._n_classes))
         self.activation = nn.LogSoftmax(dim=1)
@@ -56,9 +51,7 @@ class SoftmaxNet(nn.Module):
 
     def extra_repr(self):
         if len(self._hidden_sizes) > 0:
-            return (
-                f"{self.name}: {self.hidden_sizes}x{self._activation_fn.__name__}xLin"
-            )
+            return f"{self.name}: {self.hidden_sizes}x{self._activation_fn.__name__}xLin"
         return f"{self.name}: Linear"
 
     def n_classes(self):
@@ -114,9 +107,7 @@ class DomainNetSmallImage(nn.Module):
         self.fc1 = nn.Linear(input_size, output_size)
         self.bn1 = nn.BatchNorm1d(output_size)
         self.relu1 = nn.ReLU()
-        self.fc2 = (
-            nn.Linear(output_size, 100) if bigger_discrim else nn.Linear(output_size, 2)
-        )
+        self.fc2 = nn.Linear(output_size, 100) if bigger_discrim else nn.Linear(output_size, 2)
         self.bn2 = nn.BatchNorm1d(100)
         self.relu2 = nn.ReLU()
         self.fc3 = nn.Linear(100, 2)

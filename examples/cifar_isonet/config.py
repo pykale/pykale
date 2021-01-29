@@ -15,8 +15,8 @@ _C = CN()
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.DATASET.ROOT = '../data'
-_C.DATASET.NAME = 'CIFAR10'
+_C.DATASET.ROOT = "../data"
+_C.DATASET.NAME = "CIFAR10"
 _C.DATASET.NUM_CLASSES = 10
 _C.DATASET.NUM_WORKERS = 1
 
@@ -56,13 +56,14 @@ _C.ISON.RES_MULTIPLIER = 1.0
 _C.ISON.DROPOUT = False
 _C.ISON.DROPOUT_RATE = 0.0
 
-_C.ISON.TRANS_FUN = 'basic_transform'
+_C.ISON.TRANS_FUN = "basic_transform"
 
 
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-_C.OUTPUT_DIR = './outputs'
+_C.OUTPUT_DIR = "./outputs"
+
 
 def get_cfg_defaults():
     return _C.clone()

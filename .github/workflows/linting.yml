@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: PyKale Linting
+name: linting
 
 on:
   push:
@@ -21,12 +21,11 @@ jobs:
         python-version: "3.6"
     - name: Install dependencies
       run: |
-        pip install flake8==3.7.9 flake8-print==3.1.4 pre-commit
+        pip install flake8==3.8.3 pre-commit isort
         pre-commit install
-        pre-commit run seed-isort-config || true
-    # - name: Run linting
-    #   run: |
-    #     flake8
-    # - name: Run pre-commit checks
-    #   run: |
-    #     SKIP=flake8 pre-commit run --files tests/**/*.py kale/**/*.py
+    - name: Run linting
+      run: |
+        flake8
+    - name: Run pre-commit checks
+      run: |
+        SKIP=flake8 pre-commit run --files tests/*.py kale/**/*.py

@@ -2,11 +2,12 @@
 from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/sampler.py
 """
 
-import torchvision
-import torch.utils.data
 import logging
+
 import numpy as np
-from torch.utils.data.sampler import RandomSampler, BatchSampler
+import torch.utils.data
+import torchvision
+from torch.utils.data.sampler import BatchSampler, RandomSampler
 
 
 class SamplingConfig:
@@ -28,14 +29,10 @@ class SamplingConfig:
         if self._balance:
             sampler = BalancedBatchSampler(dataset, batch_size=batch_size)
         elif self._class_weights is not None:
-            sampler = ReweightedBatchSampler(
-                dataset, batch_size=batch_size, class_weights=self._class_weights
-            )
+            sampler = ReweightedBatchSampler(dataset, batch_size=batch_size, class_weights=self._class_weights)
         else:
             if len(dataset) < batch_size:
-                sub_sampler = RandomSampler(
-                    dataset, replacement=True, num_samples=batch_size
-                )
+                sub_sampler = RandomSampler(dataset, replacement=True, num_samples=batch_size)
             else:
                 sub_sampler = RandomSampler(dataset)
             sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=True)
@@ -125,22 +122,15 @@ class BalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
         n_classes = len(classes)
         self._n_samples = batch_size // n_classes
         if self._n_samples == 0:
-            raise ValueError(
-                f"batch_size should be bigger than the number of classes, got {batch_size}"
-            )
+            raise ValueError(f"batch_size should be bigger than the number of classes, got {batch_size}")
 
-        self._class_iters = [
-            InfiniteSliceIterator(np.where(labels == class_)[0], class_=class_)
-            for class_ in classes
-        ]
+        self._class_iters = [InfiniteSliceIterator(np.where(labels == class_)[0], class_=class_) for class_ in classes]
 
         batch_size = self._n_samples * n_classes
         self.n_dataset = len(labels)
         self._n_batches = self.n_dataset // batch_size
         if self._n_batches == 0:
-            raise ValueError(
-                f"Dataset is not big enough to generate batches with size {batch_size}"
-            )
+            raise ValueError(f"Dataset is not big enough to generate batches with size {batch_size}")
         logging.debug("K=", n_classes, "nk=", self._n_samples)
         logging.debug("Batch size = ", batch_size)
 
@@ -180,9 +170,7 @@ class ReweightedBatchSampler(torch.utils.data.sampler.BatchSampler):
                 class_weights /= sum_w * k / n_classes + (n_classes - k) / n_classes
             krem = k - n_classes
             wrem = 1 - sum_w
-            logging.warning(
-                f"will assume uniform distribution for labels > {len(class_weights)}"
-            )
+            logging.warning(f"will assume uniform distribution for labels > {len(class_weights)}")
             self._class_weights = np.ones(n_classes, dtype=np.float)
             self._class_weights[:k] = class_weights
             self._class_weights[k:] = wrem / krem
@@ -194,22 +182,17 @@ class ReweightedBatchSampler(torch.utils.data.sampler.BatchSampler):
 
         logging.debug("Using weights=", self._class_weights)
         if batch_size == 0:
-            raise ValueError(
-                f"batch_size should be bigger than the number of classes, got {batch_size}"
-            )
+            raise ValueError(f"batch_size should be bigger than the number of classes, got {batch_size}")
 
         self._class_to_iter = {
-            class_: InfiniteSliceIterator(np.where(labels == class_)[0], class_=class_)
-            for class_ in self._classes
+            class_: InfiniteSliceIterator(np.where(labels == class_)[0], class_=class_) for class_ in self._classes
         }
 
         self.n_dataset = len(labels)
         self._batch_size = batch_size
         self._n_batches = self.n_dataset // self._batch_size
         if self._n_batches == 0:
-            raise ValueError(
-                f"Dataset is not big enough to generate batches with size {self._batch_size}"
-            )
+            raise ValueError(f"Dataset is not big enough to generate batches with size {self._batch_size}")
         logging.debug("K=", n_classes, "nk=", self._batch_size)
         logging.debug("Batch size = ", self._batch_size)
 

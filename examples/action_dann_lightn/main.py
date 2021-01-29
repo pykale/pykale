@@ -6,27 +6,28 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 import argparse
 import logging
 import os
-import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-
-from kale.utils.csv_logger import setup_logger  # np error if move this to later, not sure why
 import pytorch_lightning as pl
-
 from pytorch_lightning import loggers as pl_loggers
+
 from examples.action_dann_lightn.config import get_cfg_defaults
 from examples.action_dann_lightn.model import get_model
 from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
+from kale.utils.csv_logger import setup_logger 
 from kale.utils.seed import set_seed
+
+# import sys
+
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 
 def arg_parse():
     """Parsing arguments"""
-    parser = argparse.ArgumentParser(description='Domain Adversarial Networks on Action Datasets')
-    parser.add_argument('--cfg', required=True, help='path to config file', type=str)
-    parser.add_argument('--gpus', default='0', help='gpu id(s) to use', type=str)
-    parser.add_argument('--resume', default='', type=str)
+    parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Action Datasets")
+    parser.add_argument("--cfg", required=True, help="path to config file", type=str)
+    parser.add_argument("--gpus", default="0", help="gpu id(s) to use", type=str)
+    parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
 
@@ -41,7 +42,7 @@ def main():
     cfg.freeze()
     print(cfg)
 
-    # ---- setup output ----    
+    # ---- setup output ----
     os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
@@ -77,7 +78,7 @@ def main():
             # resume_from_checkpoint=last_checkpoint_file,
             gpus=args.gpus,
             logger=tb_logger,  # logger,
-            # weights_summary='full',  
+            # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
         )
 
@@ -100,5 +101,5 @@ def main():
         results.print_scores(cfg.DAN.METHOD)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

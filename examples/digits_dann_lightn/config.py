@@ -2,8 +2,9 @@
 Default configurations for domain adaptation
 """
 
-from yacs.config import CfgNode as CN
 import os
+
+from yacs.config import CfgNode as CN
 
 # -----------------------------------------------------------------------------
 # Config definition

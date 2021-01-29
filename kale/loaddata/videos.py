@@ -4,8 +4,8 @@ import os.path
 import random
 
 import numpy as np
-from PIL import Image
 import torch
+from PIL import Image
 
 
 class VideoRecord(object):
@@ -119,16 +119,18 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
     """
 
-    def __init__(self,
-                 root_path: str,
-                 annotationfile_path: str,
-                 image_modality: str = 'rgb',
-                 num_segments: int = 3,
-                 frames_per_segment: int = 1,
-                 imagefile_template: str = 'img_{:05d}.jpg',
-                 transform=None,
-                 random_shift: bool = True,
-                 test_mode: bool = False):
+    def __init__(
+        self,
+        root_path: str,
+        annotationfile_path: str,
+        image_modality: str = "rgb",
+        num_segments: int = 3,
+        frames_per_segment: int = 1,
+        imagefile_template: str = "img_{:05d}.jpg",
+        transform=None,
+        random_shift: bool = True,
+        test_mode: bool = False,
+    ):
         super(VideoFrameDataset, self).__init__()
 
         self.root_path = root_path
@@ -140,24 +142,24 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         self.transform = transform
         self.random_shift = random_shift
         self.test_mode = test_mode
-        if self.image_modality == 'flow' and self.frames_per_segment > 1:
+        if self.image_modality == "flow" and self.frames_per_segment > 1:
             self.frames_per_segment //= 2
 
         self._parse_list()
 
     def _load_image(self, directory, idx):
-        if self.image_modality == 'rgb':
-            return [Image.open(os.path.join(directory, self.imagefile_template.format(idx))).convert('RGB')]
-        elif self.image_modality == 'flow':
+        if self.image_modality == "rgb":
+            return [Image.open(os.path.join(directory, self.imagefile_template.format(idx))).convert("RGB")]
+        elif self.image_modality == "flow":
             idx = math.ceil(idx / 2) - 1 if idx > 2 else 1
-            x_img = Image.open(os.path.join(directory, self.imagefile_template.format('x', idx))).convert('L')
-            y_img = Image.open(os.path.join(directory, self.imagefile_template.format('y', idx))).convert('L')
+            x_img = Image.open(os.path.join(directory, self.imagefile_template.format("x", idx))).convert("L")
+            y_img = Image.open(os.path.join(directory, self.imagefile_template.format("y", idx))).convert("L")
             return [x_img, y_img]
         else:
             raise ValueError("Input modality is not in [rgb, flow, joint]. Current is {}".format(self.image_modality))
 
     def _parse_list(self):
-        self.video_list = [VideoRecord(x.strip().split(' '), self.root_path) for x in open(self.annotationfile_path)]
+        self.video_list = [VideoRecord(x.strip().split(" "), self.root_path) for x in open(self.annotationfile_path)]
 
     def _get_random_indices(self, record):
         """
@@ -172,7 +174,8 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         if record.num_frames > self.num_segments * self.frames_per_segment - 1:
             segment_duration = (record.num_frames - self.frames_per_segment + 1) // self.num_segments
             offsets = np.multiply(list(range(self.num_segments)), segment_duration) + np.random.randint(
-                segment_duration, size=self.num_segments)
+                segment_duration, size=self.num_segments
+            )
         else:
             offsets = np.sort(random.sample(range(record.num_frames - self.frames_per_segment), self.num_segments))
         return offsets
@@ -209,26 +212,38 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         record = self.video_list[index]
 
         if record.num_frames < self.frames_per_segment:
-            raise ValueError('Path:{}, start:{}, end:{}.\n Video_length is {}, which should be larger than '
-                               'frame_per_segment {}.'.format(record.path, record.start_frame, record.end_frame,
-                                                              record.num_frames, self.frames_per_segment))
+            raise RuntimeError(
+                "Path:{}, start:{}, end:{}.\n Video_length is {}, which should be larger than "
+                "frame_per_segment {}.".format(
+                    record.path, record.start_frame, record.end_frame, record.num_frames, self.frames_per_segment
+                )
+            )
         elif record.num_frames < self.num_segments:
-            raise ValueError('Path:{}, start:{}, end:{}.\n Video_length is {}, which should be larger than '
-                               'num_segments {}.'.format(record.path, record.start_frame, record.end_frame,
-                                                         record.num_frames, self.num_segments))
+            raise RuntimeError(
+                "Path:{}, start:{}, end:{}.\n Video_length is {}, which should be larger than "
+                "num_segments {}.".format(
+                    record.path, record.start_frame, record.end_frame, record.num_frames, self.num_segments
+                )
+            )
         elif record.num_frames < self.num_segments * self.frames_per_segment:
             if self.num_segments > record.num_frames - self.frames_per_segment + 1:
-                raise ValueError('Path:{}, start:{}, end:{}.\n Video_length is {}, num_segments is {} and '
-                                   'frame_per_segment is {}. Please make num_segments<frame_length-frames_per_segment '
-                                   'to avoid getting too many same segments.'.format(record.path, record.start_frame,
-                                                                                     record.end_frame,
-                                                                                     record.num_frames,
-                                                                                     self.num_segments,
-                                                                                     self.frames_per_segment))
+                raise RuntimeError(
+                    "Path:{}, start:{}, end:{}.\n Video_length is {}, num_segments is {} and "
+                    "frame_per_segment is {}. Please make num_segments<frame_length-frames_per_segment "
+                    "to avoid getting too many same segments.".format(
+                        record.path,
+                        record.start_frame,
+                        record.end_frame,
+                        record.num_frames,
+                        self.num_segments,
+                        self.frames_per_segment,
+                    )
+                )
 
         if not self.test_mode:
-            segment_indices = self._get_random_indices(record) if self.random_shift else self._get_symmetric_indices(
-                record)
+            segment_indices = (
+                self._get_random_indices(record) if self.random_shift else self._get_symmetric_indices(record)
+            )
         else:
             segment_indices = self._get_symmetric_indices(record)
 

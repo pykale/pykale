@@ -1,6 +1,5 @@
 import torch
 from torchvision import transforms
-import numpy as np
 
 
 def get_transform(kind, image_modality):
@@ -16,54 +15,66 @@ def get_transform(kind, image_modality):
         transform = dict()
         if image_modality == 'rgb':
             transform = {
-                'train': transforms.Compose([
-                    ImglistToTensor(),
-                    transforms.Resize(size=256),
-                    transforms.RandomCrop(size=224),
-                    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                    TensorPermute(),
-                ]),
-                'valid': transforms.Compose([
-                    ImglistToTensor(),
-                    transforms.Resize(size=256),
-                    transforms.CenterCrop(size=224),
-                    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                    TensorPermute(),
-                ]),
-                'test': transforms.Compose([
-                    ImglistToTensor(),
-                    transforms.Resize(size=256),
-                    transforms.CenterCrop(size=224),
-                    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                    TensorPermute(),
-                ])
+                "train": transforms.Compose(
+                    [
+                        ImglistToTensor(),
+                        transforms.Resize(size=256),
+                        transforms.RandomCrop(size=224),
+                        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                        TensorPermute(),
+                    ]
+                ),
+                "valid": transforms.Compose(
+                    [
+                        ImglistToTensor(),
+                        transforms.Resize(size=256),
+                        transforms.CenterCrop(size=224),
+                        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                        TensorPermute(),
+                    ]
+                ),
+                "test": transforms.Compose(
+                    [
+                        ImglistToTensor(),
+                        transforms.Resize(size=256),
+                        transforms.CenterCrop(size=224),
+                        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                        TensorPermute(),
+                    ]
+                ),
             }
         elif image_modality == 'flow':
             transform = {
-                'train': transforms.Compose([
-                    # Stack(),
-                    ImglistToTensor(),
-                    transforms.Resize(size=256),
-                    transforms.RandomCrop(size=224),
-                    transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
-                    TensorPermute(),
-                ]),
-                'valid': transforms.Compose([
-                    # Stack(),
-                    ImglistToTensor(),
-                    transforms.Resize(size=256),
-                    transforms.CenterCrop(size=224),
-                    transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
-                    TensorPermute(),
-                ]),
-                'test': transforms.Compose([
-                    # Stack(),
-                    ImglistToTensor(),
-                    transforms.Resize(size=256),
-                    transforms.CenterCrop(size=224),
-                    transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
-                    TensorPermute(),
-                ])
+                "train": transforms.Compose(
+                    [
+                        # Stack(),
+                        ImglistToTensor(),
+                        transforms.Resize(size=256),
+                        transforms.RandomCrop(size=224),
+                        transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
+                        TensorPermute(),
+                    ]
+                ),
+                "valid": transforms.Compose(
+                    [
+                        # Stack(),
+                        ImglistToTensor(),
+                        transforms.Resize(size=256),
+                        transforms.CenterCrop(size=224),
+                        transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
+                        TensorPermute(),
+                    ]
+                ),
+                "test": transforms.Compose(
+                    [
+                        # Stack(),
+                        ImglistToTensor(),
+                        transforms.Resize(size=256),
+                        transforms.CenterCrop(size=224),
+                        transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
+                        TensorPermute(),
+                    ]
+                ),
             }
         else:
             raise ValueError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
@@ -99,7 +110,7 @@ class ImglistToTensor(torch.nn.Module):
             it = iter([transforms.functional.to_tensor(pic) for pic in img_list])
             return torch.stack([torch.cat((i, next(it)), dim=0) for i in it])
         else:
-            raise RuntimeError('Image modality is not in [rgb, flow].')
+            raise RuntimeError("Image modality is not in [rgb, flow].")
 
 
 class TensorPermute(torch.nn.Module):

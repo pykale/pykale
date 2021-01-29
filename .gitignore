@@ -4,6 +4,12 @@
 *.pth
 *.zip
 
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+
 # Pycharm
 .idea
 
