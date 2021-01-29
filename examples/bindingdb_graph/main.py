@@ -1,14 +1,55 @@
 import torch
-import torch.nn as nn
 from create_dataloader import DTIDataset
 from tdc.multi_pred import DTI
 from torch_geometric.data import DataLoader
 from model import DrugGCNEncoder, TargetConvEncoder, MLPDecoder
-from tqdm import tqdm
+from torch.nn import functional as F
+import pytorch_lightning as pl
 
 TRAIN_BATCH_SIZE, TEST_BATCH_SIZE = 512, 512
 NUM_EPOCH = 100
 LR = 0.005
+
+
+class LitGraphDTA(pl.LightningModule):
+    def __init__(self):
+        super().__init__()
+        self.drug_encoder = DrugGCNEncoder()
+        self.target_encoder = TargetConvEncoder()
+        self.mlp_decoder = MLPDecoder()
+
+    def forward(self, x_d, x_t, edge_index, batch):
+        drug_emb = self.drug_encoder(x_d, edge_index, batch)
+        target_emb = self.target_encoder(x_t)
+        com_emb = torch.cat((drug_emb, target_emb), dim=1)
+        output = self.mlp_decoder(com_emb)
+        return output
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=LR)
+        return optimizer
+
+    def training_step(self, train_batch, batch_idx):
+        x_d, x_t, edge_index, batch = train_batch.x, train_batch.target, train_batch.edge_index, train_batch.batch
+        y_hat = self(x_d, x_t, edge_index, batch)
+        loss = F.mse_loss(y_hat, train_batch.y.view(-1, 1))
+        self.log("train_loss", loss)
+        return loss
+
+    def validation_step(self, val_batch, batch_idx):
+        x_d, x_t, edge_index, batch = val_batch.x, val_batch.target, val_batch.edge_index, val_batch.batch
+        y_hat = self(x_d, x_t, edge_index, batch)
+        loss = F.mse_loss(y_hat, val_batch.y.view(-1, 1))
+        self.log("val_loss", loss)
+        return loss
+
+    def test_step(self, test_batch, batch_idx):
+        x_d, x_t, edge_index, batch = test_batch.x, test_batch.target, test_batch.edge_index, test_batch.batch
+        y_hat = self(x_d, x_t, edge_index, batch)
+        loss = F.mse_loss(y_hat, test_batch.y.view(-1, 1))
+        self.log("test_loss", loss)
+        return loss
+
 
 if __name__ == "__main__":
     dataset = "DAVIS"
@@ -22,32 +63,7 @@ if __name__ == "__main__":
     valid_loader = DataLoader(dataset=valid_data, batch_size=TEST_BATCH_SIZE, shuffle=False)
     test_loader = DataLoader(dataset=test_data, batch_size=TEST_BATCH_SIZE, shuffle=False)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    drug_encoder = DrugGCNEncoder()
-    drug_encoder = drug_encoder.to(device)
-    target_encoder = TargetConvEncoder()
-    target_encoder = target_encoder.to(device)
-    mlp_decoder = MLPDecoder()
-    mlp_decoder = mlp_decoder.to(device)
-
-    loss_fn = nn.MSELoss()
-    params = list(drug_encoder.parameters()) + list(target_encoder.parameters()) + list(mlp_decoder.parameters())
-    optim = torch.optim.Adam(params, lr=LR)
-
-    for epoch in range(NUM_EPOCH):
-        drug_encoder.train()
-        total_loss = 0
-        for data in tqdm(train_loader):
-            data = data.to(device)
-            x, edge_index, batch = data.x, data.edge_index, data.batch
-            optim.zero_grad()
-            drugs_emb = drug_encoder(x, edge_index, batch)
-            targets_emb = target_encoder(data.target)
-            com_emb = torch.cat((drugs_emb, targets_emb), dim=1)
-            output = mlp_decoder(com_emb)
-            loss = loss_fn(output, data.y.view(-1, 1).to(device))
-            loss.backward()
-            optim.step()
-            total_loss += loss.item()
-        print(f"Epoch: {epoch+1}, mse_loss: {total_loss}")
+    model = LitGraphDTA()
+    trainer = pl.Trainer(max_epochs=2)
+    trainer.fit(model, train_dataloader=train_loader, val_dataloaders=valid_loader)
+    trainer.test(model, test_dataloaders=test_loader)
