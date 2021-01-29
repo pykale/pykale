@@ -9,6 +9,8 @@ build/
 dist/
 *.egg-info/
 
+# MacOS
+.DS_Store
 
 # Pycharm
 .idea

@@ -54,3 +54,10 @@ def smile_to_graph(smile, iso=False):
         edge_index.append([e1, e2])
 
     return num_node, features, edge_index
+
+
+def seq_cat(prot, seq_dict):
+    x = np.zeros(1000)
+    for i, ch in enumerate(prot[:1000]):
+        x[i] = seq_dict[ch]
+    return x
