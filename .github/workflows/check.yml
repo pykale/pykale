@@ -5,9 +5,9 @@ name: check
 
 on:
   push:
-    branches: [ master ]
+    branches: [ action-da ]
   pull_request:
-    branches: [ master ]
+    branches: [ action-da ]
 
 jobs:
   build:
@@ -18,7 +18,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: "3.6"
+        python-version: "3.8"
     - name: Install dependencies
       run: |
         pip install pre-commit isort
