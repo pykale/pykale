@@ -32,7 +32,7 @@ Suggest possible improvements such as new features or code refactoring by [creat
 
 ## Medium involvements (contributors)
 
-We follow PyTorch to use **US English spelling**.
+We follow PyTorch to use **US English spelling** and recommend spell check via [Grazie](https://github.com/JetBrains/intellij-community/tree/master/plugins/grazie) in PyCharm and [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker) in VS code with US English setting.
 
 ### Branch, fork and pull
 
@@ -119,7 +119,7 @@ We have a pull request template. Please use it for all pull requests and mark th
 We aim to design the core `kale` modules to be highly **reusable**, generic, and customizable, and follow these guidelines:
 
 - Follow the [continuous integration practice](https://docs.github.com/en/actions/guides/about-continuous-integration#about-continuous-integration) to make small changes and commit frequently with clear descriptions for others to understand what you have done. This can detect errors sooner, reduces debug need, make it easier to merge changes, and eventually save the overall time.
-- Use highly *readable* names for variables, functions, and classes. Using *verbs* is preferred when feasible for compactness.
+- Use highly *readable* names for variables, functions, and classes. Using *verbs* is preferred when feasible for compactness. Use spell check with **US** English setting, e.g., [Grazie](https://github.com/JetBrains/intellij-community/tree/master/plugins/grazie) in PyCharm and [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker) in VS code.
 - Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
 - Highly reusable modules should go into `kale`. Highly data/example-specific code goes into `Examples`.
 - Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). See our [examples](https://github.com/pykale/pykale/tree/master/examples).
