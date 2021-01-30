@@ -11,7 +11,7 @@
 # from kale.predict import class_domain_nets, isonet, losses
 # from kale.prepdata import image_transform, prep_cmr, tensor_reshape, video_transform
 # from kale.utils import csv_logger, logger, seed
-
+import logging
 
 from kale.utils import seed
 
@@ -20,4 +20,5 @@ seed.set_seed(2020)
 """ These only work with the optional graph modules
 from kale.embed import gcn, gripnet
 """
-print("kale imported")
+logging.getLogger().setLevel(logging.INFO)
+logging.info("kale imported")

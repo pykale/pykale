@@ -172,7 +172,7 @@ class XpResults:
         return True
 
     def remove(self, method_names):
-        print(method_names)
+        logging.info(method_names)
         self._df = self._df[~self._df["method"].isin(method_names)]
 
     def update(self, is_validation, method_name, seed, metric_values):
@@ -223,7 +223,7 @@ class XpResults:
         split="Validation",
         stdout=True,
         fdout=None,
-        print_func=print,
+        print_func=logging.info,
         file_format="markdown",
     ):
         """Print out the performance scores (over multiple runs)"""
@@ -255,7 +255,7 @@ class XpResults:
             fd.write(param_to_str(test_params))
             # fd.write(xp.param_to_str(test_params))
             fd.write("\n")
-            print(" " * 10, "\t\t".join(self._metrics))
+            logging.info(" " * 10, "\t\t".join(self._metrics))
             fd.write("nseeds = ")
             fd.write(str(nseeds))
             fd.write("\n")
@@ -281,7 +281,7 @@ class XpResults:
             fd.write(param_to_str(test_params))
             # fd.write(xp.param_to_str(test_params))
             fd.write("\n")
-            print(" " * 10, "\t\t".join(self._metrics))
+            logging.info(" " * 10, "\t\t".join(self._metrics))
             fd.write("nseeds = ")
             fd.write(str(nseeds))
             fd.write("\n")
