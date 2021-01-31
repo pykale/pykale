@@ -3,7 +3,9 @@ repos:
     rev: v2.4.0
     hooks:
     -   id: flake8
+        additional_dependencies: [flake8-print]
         args: [--config=setup.cfg]
+        exclude: ^(examples/*)
     -   id: check-added-large-files
         args: ['--maxkb=300']
     -   id: check-byte-order-marker
