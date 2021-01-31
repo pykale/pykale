@@ -223,7 +223,7 @@ class XpResults:
         split="Validation",
         stdout=True,
         fdout=None,
-        print_func=print,  # noqa: T002
+        print_func=logging.info,
         file_format="markdown",
     ):
         """Print out the performance scores (over multiple runs)"""
@@ -231,10 +231,7 @@ class XpResults:
         nsamples = len(mres)
         mmres = [(mres[m].mean(), mres[m].std() / np.sqrt(nsamples)) for m in self._metrics]
         if stdout:
-            print_func(split, end=" ")
-            print_func(method_name, end="")
-            print_func(" " * (10 - len(method_name)), end="")
-            print_func("\t\t".join((f"{m * 100:.1f}% +- {1.96 * s * 100:.2f} ({nsamples} runs)" for m, s in mmres)))
+            print_func("{} {}\t {}".format(split, method_name, "\t\t".join((f"{m * 100:.1f}% +- {1.96 * s * 100:.2f} ({nsamples} runs)" for m, s in mmres))))
         if fdout is not None:
             if file_format == "markdown":
                 fdout.write(f"|{method_name}|")
