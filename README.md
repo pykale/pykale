@@ -16,47 +16,53 @@
 [Contributing](https://github.com/pykale/pykale/blob/master/CONTRIBUTING.md) |
 [Discussions](https://github.com/pykale/pykale/discussions)
 
-PyKale is a machine learning library that leverages knowledge from multiple sources for accurate and *interpretable* prediction. It supports graphs, images, and videos now. It is based on [PyTorch](https://pytorch.org/) and several other libraries but differs from existing ones by adopting a unified pipeline-based APIs design, enforcing standardization and minimalism, and incorporating key recent developments. See the [Trello board](https://trello.com/b/X8VBNAvf/pykale-api-overview) for an overview.
-
-<img src="https://github.com/pykale/pykale/raw/master/docs/images/pykale_pipeline.png"
-     alt="Machine learning pipeline"
-     style="float: center;" />
+PyKale is a machine learning library that leverages knowledge from multiple sources for accurate and *interpretable* prediction. It supports graphs, images, and videos now. It is based on [PyTorch](https://pytorch.org/) and several other libraries but differs from existing ones by adopting a unified *pipeline-based API* design, enforcing *standardization* and *minimalism*, and incorporating key recent developments. See the [Trello board](https://trello.com/b/X8VBNAvf/pykale-api-overview) for an overview.
 
 PyKale aims to facilitate *interdisciplinary* research on *knowledge-aware* machine learning for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications. Key machine learning areas of interests include **dimensionality reduction**, **deep learning**, **multimodal learning**, and **transfer learning**.
 
-### Pipeline-based modules (core, generic, and reusable)
+### Pipeline-based core API (generic and reusable)
 
-- `loaddata` load data from disk or online resources as in input
-- `prepdata` preprocess data to fit machine learning modules below (transforms)
-- `embed` embed data in a new space to learn a new representation (feature extraction/selection)
-- `predict` predict a desired output
-- `evaluate` evaluate the performance using some metrics
-- `interpret` interpret the features and outputs via post-prediction analysis mainly via visualisation
-- `pipeline` specify a machine learning workflow by combining several other modules
+- `loaddata` loads data from disk or online resources as in input
+- `prepdata` preprocesses data to fit machine learning modules below (transforms)
+- `embed` embeds data in a new space to learn a new representation (feature extraction/selection)
+- `predict` predicts a desired output
+- `evaluate` evaluates the performance using some metrics
+- `interpret` interprets the features and outputs via post-prediction analysis mainly via visualisation
+- `pipeline` specifies a machine learning workflow by combining several other modules
 
-### Dataset-specific modules
+### Example usage
 
-- `examples`: Real-application on particular datasets.
+- `examples` demonstrate real applications on specific datasets.
 
 ## Installation
 
-**Requirements**:
-- Python >= 3.6
-- PyTorch >= 1.7
+You should [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware first. To work on graphs, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) first follow its official instructions.
 
-Install PyKale using `pip` or `conda`:
+Install PyKale using `pip` or `conda` for the core `kale` API:
 
 ```bash
 pip install pykale
 conda install -c pykale pykale
 ```
 
-You need to first install [PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning) for `kale.embed.pipeline` and [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) to work on graphs.
+Install with extra packages required for `Examples/Tutorials` and development:
 
-To upgrade to the latest (unstable) version, run
+```sh
+pip install pykale[extras]
+```
+
+To upgrade to the latest (possibly unstable) version, run
 
 ```bash
 pip install --upgrade git+https://github.com/pykale/pykale.git
+```
+
+Install from source:
+
+```sh
+git clone https://github.com/pykale/pykale
+cd pykale
+pip install .  # pip install .[extras] for examples/tutorials
 ```
 
 To run the unit tests:
