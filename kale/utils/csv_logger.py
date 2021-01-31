@@ -172,7 +172,7 @@ class XpResults:
         return True
 
     def remove(self, method_names):
-        print(method_names)
+        logging.info(method_names)
         self._df = self._df[~self._df["method"].isin(method_names)]
 
     def update(self, is_validation, method_name, seed, metric_values):
@@ -218,23 +218,20 @@ class XpResults:
         self._df.to_csv(filepath)
 
     def print_scores(
-            self,
-            method_name,
-            split="Validation",
-            stdout=True,
-            fdout=None,
-            print_func=print,
-            file_format="markdown",
+        self,
+        method_name,
+        split="Validation",
+        stdout=True,
+        fdout=None,
+        print_func=logging.info,
+        file_format="markdown",
     ):
         """Print out the performance scores (over multiple runs)"""
         mres = self._df.query(f"method == '{method_name}' and split == '{split}'")
         nsamples = len(mres)
         mmres = [(mres[m].mean(), mres[m].std() / np.sqrt(nsamples)) for m in self._metrics]
         if stdout:
-            print_func(split, end=" ")
-            print_func(method_name, end="")
-            print_func(" " * (10 - len(method_name)), end="")
-            print_func("\t\t".join((f"{m * 100:.1f}% +- {1.96 * s * 100:.2f} ({nsamples} runs)" for m, s in mmres)))
+            print_func("{} {}\t {}".format(split, method_name, "\t\t".join((f"{m * 100:.1f}% +- {1.96 * s * 100:.2f} ({nsamples} runs)" for m, s in mmres))))
         if fdout is not None:
             if file_format == "markdown":
                 fdout.write(f"|{method_name}|")
@@ -255,7 +252,7 @@ class XpResults:
             fd.write(param_to_str(test_params))
             # fd.write(xp.param_to_str(test_params))
             fd.write("\n")
-            print(" " * 10, "\t\t".join(self._metrics))
+            logging.info(" " * 10, "\t\t".join(self._metrics))
             fd.write("nseeds = ")
             fd.write(str(nseeds))
             fd.write("\n")
@@ -281,7 +278,7 @@ class XpResults:
             fd.write(param_to_str(test_params))
             # fd.write(xp.param_to_str(test_params))
             fd.write("\n")
-            print(" " * 10, "\t\t".join(self._metrics))
+            logging.info(" " * 10, "\t\t".join(self._metrics))
             fd.write("nseeds = ")
             fd.write(str(nseeds))
             fd.write("\n")

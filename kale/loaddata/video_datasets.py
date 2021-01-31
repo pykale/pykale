@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 import pickle
@@ -79,7 +80,7 @@ class BasicVideoDataset(VideoFrameDataset):
                 if 0 <= eval(line[5]) < self.n_classes:
                     data.append((line[0], eval(line[1]), eval(line[2]), eval(line[5])))
                     i = i + 1
-        print("Number of {:5} action segments: {}".format(self.dataset, i))
+        logging.info("Number of {:5} action segments: {}".format(self.dataset, i))
         return data
 
 
@@ -150,5 +151,5 @@ class EPIC(VideoFrameDataset):
                             label = line[9]
                             data.append((os.path.join(line[1], line[2]), line[6], line[7], label))
                             i = i + 1
-        print("Number of {:5} action segments: {}".format(self.dataset, i))
+        logging.info("Number of {:5} action segments: {}".format(self.dataset, i))
         return data

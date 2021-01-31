@@ -119,6 +119,7 @@ We aim to design the core `kale` modules to be highly **reusable**, generic, and
 
 - Follow the [continuous integration practice](https://docs.github.com/en/actions/guides/about-continuous-integration#about-continuous-integration) to make small changes and commit frequently with clear descriptions for others to understand what you have done. This can detect errors sooner, reduces debug need, make it easier to merge changes, and eventually save the overall time.
 - Use highly *readable* names for variables, functions, and classes. Using *verbs* is preferred when feasible for compactness.
+- Use [`logging`](https://docs.python.org/3/howto/logging.html#logging-basic-tutorial) instead of `print` to log messages. Users can choose the level via, e.g., `logging.getLogger().setLevel(logging.INFO)`. See the [benefits](https://stackoverflow.com/questions/6918493/in-python-why-use-logging-instead-of-print).
 - Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
 - Highly reusable modules should go into `kale`. Highly data/example-specific code goes into `Examples`.
 - Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). See our [examples](https://github.com/pykale/pykale/tree/master/examples).
