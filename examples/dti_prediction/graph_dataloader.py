@@ -80,7 +80,6 @@ class DTIDataset(InMemoryDataset):
         # save preprocessed data:
         torch.save((data, slices), self.processed_paths[0])
 
-
 if __name__ == '__main__':
     dataset = "DAVIS"
     y_convert_log = True
