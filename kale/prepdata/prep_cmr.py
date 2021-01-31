@@ -1,6 +1,7 @@
 """
 Author: Shuo Zhou, szhou20@sheffield.ac.uk
 """
+import logging
 import os
 import sys
 
@@ -12,7 +13,7 @@ from skimage import exposure, transform
 def regMRI(data, reg_df, reg_id=1):
     n_sample = data.shape[-1]
     if n_sample != reg_df.shape[0]:
-        print("Error, registration and data not match. Please check")
+        logging.error("Error, registration and data not match. Please check")
         sys.exit()
     n_landmark = int((reg_df.shape[1] - 1) / 2)
     # reg_target = data[..., 0, reg_id]
@@ -100,7 +101,7 @@ def scale_cmr_mask(mask, scale):
 
 
 def cmr_proc(basedir, db, scale, mask_id, level, save_data=True, return_data=False):
-    print("Preprocssing Data Scale: 1/%s, Mask ID: %s, Processing level: %s" % (scale, mask_id, level))
+    logging.info("Preprocssing Data Scale: 1/%s, Mask ID: %s, Processing level: %s" % (scale, mask_id, level))
     datadir = os.path.join(basedir, "DB%s/NoPrs%sDB%s.npy" % (db, scale, db))
     maskdir = os.path.join(basedir, "Prep/AllMasks.mat")
     data = np.load(datadir)

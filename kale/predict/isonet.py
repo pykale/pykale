@@ -292,7 +292,6 @@ class ISONet(nn.Module):
 
     # Depth for ResNet, e.g. [3, 4, 6, 3] for ResNet50
     def _construct(self, net_params):
-        print(">>>>>>>>>>>>>>>>>>>>>>>>...-----Core Con")
         # Setting for ImageNet image size. To override if different.
         # Retrieve the number of blocks per stage
         (d1, d2, d3, d4) = _IN_STAGE_DS[net_params["depths"]]  # _depths

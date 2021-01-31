@@ -1,6 +1,7 @@
 """CIFAR10 or CIFAR100 dataset loading
 Reference: https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/dataset.py
 """
+import logging
 
 import torch
 import torchvision
@@ -14,7 +15,7 @@ def get_cifar(cfg):
     Args:
         cfg: A YACS config object.
     """
-    print("==> Preparing to load data " + cfg.DATASET.NAME + " at " + cfg.DATASET.ROOT)
+    logging.info("==> Preparing to load data " + cfg.DATASET.NAME + " at " + cfg.DATASET.ROOT)
     cifar_train_transform = get_transform("cifar", augment=True)
     cifar_test_transform = get_transform("cifar", augment=False)
     # transform = {
