@@ -1,5 +1,5 @@
 """
-Default configurations for image classification using ISONet, 
+Default configurations for image classification using ISONet,
 based on https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/config.py
 """
 

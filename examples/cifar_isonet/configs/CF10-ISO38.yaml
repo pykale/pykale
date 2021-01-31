@@ -4,6 +4,6 @@ SOLVER:
   WARMUP: True
   MAX_EPOCHS: 10  # For quick testing
 ISON:
-  DEPTH: 38 # From an ECCV18 paper: ResNet with depth 38, 74, 110, 152 (6n+2) for CIFAR  
+  DEPTH: 38 # From an ECCV18 paper: ResNet with depth 38, 74, 110, 152 (6n+2) for CIFAR
   DROPOUT: True
   DROPOUT_RATE: 0.1
