@@ -223,7 +223,7 @@ class XpResults:
         split="Validation",
         stdout=True,
         fdout=None,
-        print_func=logging.info,
+        print_func=print,  # noqa: T002
         file_format="markdown",
     ):
         """Print out the performance scores (over multiple runs)"""
