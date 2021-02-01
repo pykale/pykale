@@ -6,9 +6,12 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 import argparse
 import logging
 import os
+import sys
 
 import pytorch_lightning as pl
 from pytorch_lightning import loggers as pl_loggers
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from examples.action_dann_lightn.config import get_cfg_defaults
 from examples.action_dann_lightn.model import get_model
