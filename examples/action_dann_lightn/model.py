@@ -9,7 +9,8 @@ from copy import deepcopy
 
 import kale.pipeline.action_domain_adapter as action_domain_adapter
 import kale.pipeline.domain_adapter as domain_adapter
-from kale.embed.video_i3d import i3d_joint
+# from kale.embed.video_i3d import i3d_joint
+from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetSmallImage
 
@@ -75,7 +76,7 @@ def get_feat_extractor(model_name, image_modality, num_classes):
     if image_modality == 'rgb':
         if model_name == 'I3D':
             pretrained_model = 'rgb_imagenet'
-            feature_network = i3d_joint(rgb_pt=pretrained_model, flow_pt=None, pretrained=True)
+            feature_network = se_i3d_joint(rgb_pt=pretrained_model, flow_pt=None, pretrained=True)
             # model.replace_logits(num_classes)
             class_feature_dim = 1024
             dmn_feature_dim = class_feature_dim
@@ -97,7 +98,7 @@ def get_feat_extractor(model_name, image_modality, num_classes):
     elif image_modality == 'flow':
         if model_name == 'I3D':
             pretrained_model = 'flow_imagenet'
-            feature_network = i3d_joint(rgb_pt=None, flow_pt=pretrained_model, pretrained=True)
+            feature_network = se_i3d_joint(rgb_pt=None, flow_pt=pretrained_model, pretrained=True)
             class_feature_dim = 1024
             dmn_feature_dim = class_feature_dim
         else:
@@ -107,9 +108,9 @@ def get_feat_extractor(model_name, image_modality, num_classes):
         if model_name == 'I3D':
             rgb_pretrained_model = 'rgb_imagenet'
             flow_pretrained_model = 'flow_imagenet'
-            feature_network = i3d_joint(rgb_pt=rgb_pretrained_model,
-                                        flow_pt=flow_pretrained_model,
-                                        pretrained=True)
+            feature_network = se_i3d_joint(rgb_pt=rgb_pretrained_model,
+                                           flow_pt=flow_pretrained_model,
+                                           pretrained=True)
             class_feature_dim = 2048
             dmn_feature_dim = class_feature_dim / 2
         else:

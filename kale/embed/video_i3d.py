@@ -8,8 +8,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models.utils import load_state_dict_from_url
+from torchvision.models.inception import Inception3
 
-__all__ = ['i3d_joint']
+__all__ = ['i3d_joint', 'InceptionI3d', 'InceptionModule']
 
 model_urls = {
     "rgb_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt",
@@ -190,12 +191,21 @@ class InceptionModule(nn.Module):
         )
         self.name = name
 
-    def forward(self, x):
+    def _forward(self, x):
         b0 = self.b0(x)
         b1 = self.b1b(self.b1a(x))
         b2 = self.b2b(self.b2a(x))
         b3 = self.b3b(self.b3a(x))
-        return torch.cat([b0, b1, b2, b3], dim=1)
+
+        output = [b0, b1, b2, b3]
+        return output
+
+    def forward(self, x):
+        outputs = self._forward(x)
+        out = torch.cat(outputs, dim=1)
+        if "SELayer" in dir(self):  # Check self.SELayer
+            out = self.SELayer(out)
+        return out
 
 
 class InceptionI3d(nn.Module):
