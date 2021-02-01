@@ -56,7 +56,7 @@ _C.SOLVER.INIT_LAMBDA = 1
 # ---------------------------------------------------------------------------- #
 _C.MODEL = CN()
 _C.MODEL.METHOD = "i3d"  # choices=['r3d_18', 'r2plus1d_18', 'mc3_18', 'i3d']
-_C.MODEL.ATTENTION = None
+_C.MODEL.ATTENTION = "None"  # choices=['None', 'SELayer']
 
 # ---------------------------------------------------------------------------- #
 # Domain Adaptation Net (DAN) configs

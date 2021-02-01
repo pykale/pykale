@@ -77,7 +77,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
     if model_name != "I3D" and attention == "SELayer":
         raise ValueError("Attention SELayer is only applied to I3D. Current: {}, Attention: {}".format(model_name, attention))
 
-    if attention not in [None, "SELayer"]:
+    if attention not in ["None", "SELayer"]:
         raise ValueError("Wrong attention. Current: {}".format(attention))
 
     if image_modality == 'rgb':
