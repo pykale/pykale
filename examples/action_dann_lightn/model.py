@@ -5,11 +5,12 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 # Author: Haiping Lu & Xianyuan Liu
 # Initial Date: 7 December 2020
 
+import logging
 from copy import deepcopy
 
 import kale.pipeline.action_domain_adapter as action_domain_adapter
 import kale.pipeline.domain_adapter as domain_adapter
-# from kale.embed.video_i3d import i3d_joint
+from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetSmallImage
@@ -53,7 +54,7 @@ def get_config(cfg):
     return config_params
 
 
-def get_feat_extractor(model_name, image_modality, num_classes):
+def get_feat_extractor(model_name, image_modality, attention, num_classes):
     """
     Get the feature extractor w/o the pre-trained model. The pre-trained models are saved in the path
     ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
@@ -63,8 +64,8 @@ def get_feat_extractor(model_name, image_modality, num_classes):
     Args:
         model_name: The name of the feature extractor.
         image_modality: Image type. (RGB or Optical Flow)
+        attention: The attention type.
         num_classes: The class number of specific dataset. (Default: No use)
-        num_channels: The number of image channels. (Default: No use, may used in RGB & Flow)
 
     Returns:
         feature_network: The network to extract features.
@@ -73,10 +74,21 @@ def get_feat_extractor(model_name, image_modality, num_classes):
         dmn_feature_dim: The dimension of the feature network output for DomainNet.
     """
 
+    if model_name != "I3D" and attention == "SELayer":
+        raise ValueError("Attention SELayer is only applied to I3D. Current: {}, Attention: {}".format(model_name, attention))
+
+    if attention not in [None, "SELayer"]:
+        raise ValueError("Wrong attention. Current: {}".format(attention))
+
     if image_modality == 'rgb':
         if model_name == 'I3D':
             pretrained_model = 'rgb_imagenet'
-            feature_network = se_i3d_joint(rgb_pt=pretrained_model, flow_pt=None, pretrained=True)
+            if attention == "SELayer":
+                logging.info("Using SELayer.")
+                feature_network = se_i3d_joint(rgb_pt=pretrained_model, flow_pt=None, pretrained=True)
+            else:
+                logging.info("No SELayer.")
+                feature_network = i3d_joint(rgb_pt=pretrained_model, flow_pt=None, pretrained=True)
             # model.replace_logits(num_classes)
             class_feature_dim = 1024
             dmn_feature_dim = class_feature_dim
@@ -98,7 +110,12 @@ def get_feat_extractor(model_name, image_modality, num_classes):
     elif image_modality == 'flow':
         if model_name == 'I3D':
             pretrained_model = 'flow_imagenet'
-            feature_network = se_i3d_joint(rgb_pt=None, flow_pt=pretrained_model, pretrained=True)
+            if attention == "SELayer":
+                logging.info("Using SELayer.")
+                feature_network = se_i3d_joint(rgb_pt=None, flow_pt=pretrained_model, pretrained=True)
+            else:
+                logging.info("No SELayer.")
+                feature_network = i3d_joint(rgb_pt=None, flow_pt=pretrained_model, pretrained=True)
             class_feature_dim = 1024
             dmn_feature_dim = class_feature_dim
         else:
@@ -108,9 +125,17 @@ def get_feat_extractor(model_name, image_modality, num_classes):
         if model_name == 'I3D':
             rgb_pretrained_model = 'rgb_imagenet'
             flow_pretrained_model = 'flow_imagenet'
-            feature_network = se_i3d_joint(rgb_pt=rgb_pretrained_model,
-                                           flow_pt=flow_pretrained_model,
-                                           pretrained=True)
+
+            if attention == "SELayer":
+                logging.info("Using SELayer.")
+                feature_network = se_i3d_joint(rgb_pt=rgb_pretrained_model,
+                                               flow_pt=flow_pretrained_model,
+                                               pretrained=True)
+            else:
+                logging.info("No SELayer.")
+                feature_network = i3d_joint(rgb_pt=rgb_pretrained_model,
+                                            flow_pt=flow_pretrained_model,
+                                            pretrained=True)
             class_feature_dim = 2048
             dmn_feature_dim = class_feature_dim / 2
         else:
@@ -137,6 +162,7 @@ def get_model(cfg, dataset, num_classes):
     feature_network, class_feature_dim, dmn_feature_dim = get_feat_extractor(
         cfg.MODEL.METHOD.upper(),
         cfg.DATASET.IMAGE_MODALITY,
+        cfg.MODEL.ATTENTION,
         num_classes
     )
     # setup classifier

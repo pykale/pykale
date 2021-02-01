@@ -8,7 +8,7 @@ import torch.nn as nn
 from torchvision.models.utils import load_state_dict_from_url
 from kale.embed.video_i3d import InceptionI3d
 
-__all__ = ['se_i3d_joint', 'InceptionI3d']
+__all__ = ['se_i3d_joint', 'SEInceptionI3D', 'SELayer']
 
 model_urls = {
     "rgb_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt",
@@ -69,7 +69,7 @@ def se_inception_i3d(name, num_channels, pretrained=False, progress=True):
         for k, v in state_dict.items():
             name = "model.{}".format(k)
             new_state_dict[name] = v
-        # Load params
+        # Load params except SELayer
         model.load_state_dict(new_state_dict, strict=False)
     return model
 

@@ -55,7 +55,8 @@ _C.SOLVER.INIT_LAMBDA = 1
 # Domain Adaptation Net (DAN) configs
 # ---------------------------------------------------------------------------- #
 _C.MODEL = CN()
-_C.MODEL.METHOD = "r3d_18"  # choices=['r3d_18', 'r2plus1d_18', 'mc3_18', 'i3d']
+_C.MODEL.METHOD = "i3d"  # choices=['r3d_18', 'r2plus1d_18', 'mc3_18', 'i3d']
+_C.MODEL.ATTENTION = None
 
 # ---------------------------------------------------------------------------- #
 # Domain Adaptation Net (DAN) configs
