@@ -12,7 +12,7 @@ Reference:
     Networks, Vol. 19, No. 1, Page: 18-39, January 2008. For initial Matlab
     implementation, please go to https://uk.mathworks.com/matlabcentral/fileexchange/26168.
 """
-
+import logging
 import sys
 
 import numpy as np
@@ -61,7 +61,7 @@ def _check_dim_shape(X, ndim, shape_):
 
     """
     if not check_ndim(X, ndim) or not check_shape(X, shape_):
-        print("The given data should be consistent with the order and shape of training data")
+        logging.error("The given data should be consistent with the order and shape of training data")
         sys.exit()
 
 
@@ -108,7 +108,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         if max_iter > 0 and isinstance(max_iter, int):
             self.max_iter = max_iter
         else:
-            print("Number of max iterations must be an integer and greater than 0")
+            logging.error("Number of max iterations must be an integer and greater than 0")
             sys.exit()
         self.proj_mats = []
         self.vectorise = vectorise
@@ -254,7 +254,7 @@ class MPCA(BaseEstimator, TransformerMixin):
                 X_ = np.zeros((n_spl, np.prod(self.shape_out)))
                 X_[:, : self.idx_order[:n_feat]] = X[:]
             else:
-                print("Feature dimension exceeds the shape upper limit")
+                logging.error("Feature dimension exceeds the shape upper limit")
                 sys.exit()
 
             X = fold(X_, -1, self.shape_out + (n_spl,))
