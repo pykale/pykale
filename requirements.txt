@@ -18,7 +18,6 @@ torch==1.7.0
 # utils
 torchsummary==1.5.0
 torchvision==0.8.1
-tqdm==4.1.0
 yacs==0.1.7
 
 
