@@ -6,6 +6,12 @@ A few sentences describing the changes proposed in this pull request.
 ### Status
 **Ready/Work in progress/Hold**
 
+On the right (delete these after selection):
+
+- Select a reviewer if ready for review. Use the suggested one if unsure.
+- Select at least one appropriate label.
+- Select a project (the next version typically).
+
 ### Types of changes
 <!--- Put an `x` in all the boxes that apply, and remove the not applicable items -->
 - [x] Non-breaking change (fix or new feature that would not break existing functionality).
