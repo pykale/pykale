@@ -43,11 +43,11 @@ class BasicVideoDataset(VideoFrameDataset):
         test_mode: bool = False,
         n_classes: int = 8,
     ):
-        self.root_path = Path(root_path)
+        self.root_path = Path(root_path)  # type: ignore
         self.image_modality = image_modality
         self.dataset = dataset_split
         self.n_classes = n_classes
-        self.img_path = self.root_path / self.image_modality
+        self.img_path = self.root_path / self.image_modality  # type: ignore
         super(BasicVideoDataset, self).__init__(
             root_path,
             annotationfile_path,
@@ -103,11 +103,12 @@ class EPIC(VideoFrameDataset):
         test_mode: bool = False,
         n_classes: int = 8,
     ):
-        self.root_path = Path(root_path)
+        # type: ignore
+        self.root_path = Path(root_path)  # type: ignore
         self.image_modality = image_modality
         self.dataset = dataset_split
         self.n_classes = n_classes
-        self.img_path = self.root_path / self.image_modality / self.dataset
+        self.img_path = self.root_path / self.image_modality / self.dataset  # type: ignore
         super(EPIC, self).__init__(
             root_path,
             annotationfile_path,
