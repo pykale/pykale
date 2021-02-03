@@ -2,6 +2,7 @@ import math
 import os
 import os.path
 import random
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -133,8 +134,8 @@ class VideoFrameDataset(torch.utils.data.Dataset):
     ):
         super(VideoFrameDataset, self).__init__()
 
-        self.root_path = root_path
-        self.annotationfile_path = annotationfile_path
+        self.root_path = Path(root_path)
+        self.annotationfile_path = Path(annotationfile_path)
         self.image_modality = image_modality
         self.num_segments = num_segments
         self.frames_per_segment = frames_per_segment
