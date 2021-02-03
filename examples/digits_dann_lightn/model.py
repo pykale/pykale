@@ -65,31 +65,44 @@ def get_model(cfg, dataset, num_channels):
     feature_dim = feature_network.output_size()
     classifier_network = ClassNetSmallImage(feature_dim, cfg.DATASET.NUM_CLASSES)
 
-    method = domain_adapter.Method(cfg.DAN.METHOD)
-    critic_input_size = feature_dim
-    # setup critic network
-    if method.is_cdan_method():
-        if cfg.DAN.USERANDOM:
-            critic_input_size = cfg.DAN.RANDOM_DIM
-        else:
-            critic_input_size = feature_dim * cfg.DATASET.NUM_CLASSES
-    critic_network = DomainNetSmallImage(critic_input_size)
-
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
     method_params = {}
-    if cfg.DAN.METHOD == 'CDAN':
-        method_params["use_random"] = cfg.DAN.USERANDOM
 
-    # The following calls kale.loaddata.dataset_access for the first time
-    model = domain_adapter.create_dann_like(
-        method=method,
-        dataset=dataset,
-        feature_extractor=feature_network,
-        task_classifier=classifier_network,
-        critic=critic_network,
-        **method_params,
-        **train_params_local,
-    )
+    method = domain_adapter.Method(cfg.DAN.METHOD)
+
+    if method.is_mmd_method():
+        # model = domain_adapter.create_mmd_based(
+        model = domain_adapter.create_mmd_based(
+            method=method,
+            dataset=dataset,
+            feature_extractor=feature_network,
+            task_classifier=classifier_network,
+            **method_params,
+            **train_params_local,
+        )
+    else:
+        critic_input_size = feature_dim
+        # setup critic network
+        if method.is_cdan_method():
+            if cfg.DAN.USERANDOM:
+                critic_input_size = cfg.DAN.RANDOM_DIM
+            else:
+                critic_input_size = feature_dim * cfg.DATASET.NUM_CLASSES
+        critic_network = DomainNetSmallImage(critic_input_size)
+
+        if cfg.DAN.METHOD == 'CDAN':
+            method_params["use_random"] = cfg.DAN.USERANDOM
+
+        # The following calls kale.loaddata.dataset_access for the first time
+        model = domain_adapter.create_dann_like(
+            method=method,
+            dataset=dataset,
+            feature_extractor=feature_network,
+            task_classifier=classifier_network,
+            critic=critic_network,
+            **method_params,
+            **train_params_local,
+        )
     return model, train_params
