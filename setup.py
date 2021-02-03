@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import re
 from io import open
 from os import path
 
@@ -12,19 +13,29 @@ with open("requirements.txt", encoding='utf-8') as f:
 with open("requirements-extras.txt", encoding='utf-8') as f:
     extra_requirements = f.read().splitlines()
 
-# Get __version__ from __init__.py in kale
-version_file = path.join("kale", "__init__.py")
-with open(version_file) as f:
-    exec(f.read())
 
-# Get README content
-with open('README.md', encoding='utf8') as readme_file:
-    readme = readme_file.read()
+# Get version
+def read(*names, **kwargs):
+    with open(path.join(path.dirname(__file__), *names), encoding=kwargs.get("encoding", "utf8")) as fp:
+        return fp.read()
+
+
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
+
+readme = open("README.md").read()
+version = find_version("kale", "__init__.py")
+
 
 # Run the setup
 setup(
     name="pykale",
-    version=__version__,  # noqa: F821; variable available from exec(f.read())
+    version=version,
     description="Knowledge-aware machine learning from multiple sources in Python",
     long_description=readme,
     long_description_content_type="text/markdown",
