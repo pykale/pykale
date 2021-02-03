@@ -39,7 +39,7 @@ class PositionalEncoding(nn.Module):
         self.max_len = max_len
         self.d_model = d_model
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x):
         """
         Expects input of shape (sequence_length, batch_size, num_features)
         and returns output of the same shape. sequence_length is at most
