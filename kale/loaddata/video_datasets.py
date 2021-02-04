@@ -47,7 +47,7 @@ class BasicVideoDataset(VideoFrameDataset):
         self.image_modality = image_modality
         self.dataset = dataset_split
         self.n_classes = n_classes
-        self.img_path = self.root_path / self.image_modality
+        self.img_path = self.root_path.joinpath(self.image_modality)
         super(BasicVideoDataset, self).__init__(
             root_path,
             annotationfile_path,
@@ -107,7 +107,7 @@ class EPIC(VideoFrameDataset):
         self.image_modality = image_modality
         self.dataset = dataset_split
         self.n_classes = n_classes
-        self.img_path = self.root_path / self.image_modality / self.dataset
+        self.img_path = self.root_path.joinpath(self.image_modality, self.dataset)
         super(EPIC, self).__init__(
             root_path,
             annotationfile_path,

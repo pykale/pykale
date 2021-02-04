@@ -32,7 +32,7 @@ Suggest possible improvements such as new features or code refactoring by [creat
 
 ## Medium involvements (contributors)
 
-We follow PyTorch to use **US English spelling**.
+We follow PyTorch to use **US English spelling** and recommend spell check via [Grazie](https://github.com/JetBrains/intellij-community/tree/master/plugins/grazie) in PyCharm and [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker) in VS code with US English setting.
 
 ### Branch, fork and pull
 
@@ -48,7 +48,8 @@ Anyone can use the [*fork and pull* model](https://docs.github.com/en/github/col
   - [Sync your branch](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/syncing-your-branch) with the master frequently so that potential problems can be identified earlier.
   - Document the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html). Update `docs` following [docs update steps](https://github.com/pykale/pykale/tree/master/docs). Build `docs` via `make html` and verify locally built documentations under `docs\build\html`.
   - Build tests and do tests (not enforced yet, to be done).
-- Create a [pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) from the task branch above to the master branch `pykale:master` explaining the changes and choose reviewers, using a [template](#pull-request-template).
+- Create a [draft pull request](https://github.blog/2019-02-14-introducing-draft-pull-requests/) or [pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) or from the task branch above to the master branch `pykale:master` explaining the changes and choose reviewers, using a [template](#pull-request-template).
+  - A draft pull request helps start a conversation with collaborators in a draft state. It will not be reviewed or merged until you change the status to “Ready for review” near the bottom of your pull request.
   - View the [continuous integration (CI) status checks](https://github.com/pykale/pykale/actions). When the check messages say files are changed, they mean changes on their simulated environment, *NOT* on the branch. The problems are not fixed and you need to fix them as well as other reported errors locally.
   - You need to [address merge conflicts](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/addressing-merge-conflicts) if they arise. Resolve the conflicts locally.
   - After passing all CI checks and resolving the conflicts, you should [request a review](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/requesting-a-pull-request-review). If you know who is appropriate or like the [suggested reviewers](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/requesting-a-pull-request-review#:~:text=Suggested%20reviewers%20are%20based%20on,review%20from%20the%20same%20reviewer.), request/assign that person. Otherwise, we will assign one shortly.
@@ -118,7 +119,7 @@ We have a pull request template. Please use it for all pull requests and mark th
 We aim to design the core `kale` modules to be highly **reusable**, generic, and customizable, and follow these guidelines:
 
 - Follow the [continuous integration practice](https://docs.github.com/en/actions/guides/about-continuous-integration#about-continuous-integration) to make small changes and commit frequently with clear descriptions for others to understand what you have done. This can detect errors sooner, reduces debug need, make it easier to merge changes, and eventually save the overall time.
-- Use highly *readable* names for variables, functions, and classes. Using *verbs* is preferred when feasible for compactness.
+- Use highly *readable* names for variables, functions, and classes. Using *verbs* is preferred when feasible for compactness. Use spell check with **US** English setting, e.g., [Grazie](https://github.com/JetBrains/intellij-community/tree/master/plugins/grazie) in PyCharm and [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker) in VS code.
 - Use [`logging`](https://docs.python.org/3/howto/logging.html#logging-basic-tutorial) instead of `print` to log messages. Users can choose the level via, e.g., `logging.getLogger().setLevel(logging.INFO)`. See the [benefits](https://stackoverflow.com/questions/6918493/in-python-why-use-logging-instead-of-print).
 - Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
 - Highly reusable modules should go into `kale`. Highly data/example-specific code goes into `Examples`.
