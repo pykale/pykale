@@ -6,12 +6,36 @@ from os import path
 from setuptools import find_packages, setup
 
 # Core kale API dependencies
-with open("requirements.txt", encoding='utf-8') as f:
-    requirements = f.read().splitlines()
+requirements = [
+    'numpy>=1.18.0',
+    'pytorch-lightning',
+    'scikit-image',
+    'scikit-learn',
+    'tensorly',
+    'torch>=1.7.0',
+    'torchvision',  # >=0.8.1
+]
 
 # Additional dependencies for examples/tutorials and development
-with open("requirements-extras.txt", encoding='utf-8') as f:
-    extra_requirements = f.read().splitlines()
+extra_requirements = [
+    'black',
+    'flake8',
+    'flake8-print',
+    'ipykernel',
+    'ipython',
+    'isort',
+    'm2r',
+    'matplotlib',
+    'mypy',
+    'nbsphinx',
+    'nbval',
+    'pre-commit',
+    'pytest',
+    'sphinx',
+    'sphinx_rtd_theme',
+    'torchsummary>=1.5.0',
+    'yacs>=0.1.7',
+]
 
 
 # Get version
