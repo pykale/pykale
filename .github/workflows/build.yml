@@ -21,8 +21,7 @@ jobs:
         python-version: "3.6"
     - name: Install dependencies
       run: |
-        pip install pytest nbval jupyter tqdm matplotlib torchvision scipy
-        python setup.py build develop
-    # - name: Run example notebooks
+        pip install -e .[extras]
+    # - name: Run example (notebooks)  # to activate later!!!!
     #   run: |
     #     grep -l smoke_test examples/**/*.ipynb | xargs grep -L 'smoke_test = False' | CI=true xargs pytest --nbval-lax --current-env
