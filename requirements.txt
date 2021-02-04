@@ -5,11 +5,11 @@ numpy==1.19.0
 
 # Needed only for pipeline API
 pytorch-lightning # To confirm version
-scikit-image # To confirm version
+scikit-image==0.16.2  # To confirm version
 
 # Need to specify version
-scikit-learn # To confirm version
-tensorly  # To confirm version
+scikit-learn==0.23.2  # To confirm version
+tensorly==0.5.1  # To confirm version
 # We currently recommend Python 3.6 or above.
 
 # core dependencies
