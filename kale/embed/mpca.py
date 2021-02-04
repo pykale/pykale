@@ -267,6 +267,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         # reshape X to tensor in shape (n_samples, self.shape_out) if X is vectorised
         if x.ndim <= 2:
             if x.ndim == 1:
+                # reshape x to a 2D matrix (1, n_components) if x in shape (n_components,)
                 x = x.reshape((1, -1))
             n_spl = x.shape[0]
             n_feat = x.shape[1]
