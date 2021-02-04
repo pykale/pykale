@@ -62,7 +62,9 @@ Install from source:
 ```sh
 git clone https://github.com/pykale/pykale
 cd pykale
-pip install .  # pip install .[extras] for examples/tutorials
+pip install .  # for core API only
+pip install .[extras]  # with extras for examples/tutorials
+pip install -e .[extras]  # editable install for developers
 ```
 
 To run the unit tests:
@@ -70,6 +72,8 @@ To run the unit tests:
 ```bash
 python -m unittest
 ```
+
+More comprehensive test cases are not yet available.
 
 ## Examples, Tutorials, and Discussions
 
