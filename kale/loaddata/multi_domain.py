@@ -117,9 +117,9 @@ class MultiDomainDatasets(DomainsDatasetBase):
         self._size_type = size_type
         self._n_fewshot = n_fewshot
         self._random_state = check_random_state(random_state)
-        self._source_by_split = None
+        self._source_by_split = {}  # type: dict
         self._labeled_target_by_split = None
-        self._target_by_split = None
+        self._target_by_split = {}  # type: dict
 
     def is_semi_supervised(self):
         return self._n_fewshot is not None and self._n_fewshot > 0
