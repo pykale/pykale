@@ -292,9 +292,19 @@ class DANNtrainer4Video(DANNtrainer):
             loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(len(d_t_hat_flow)))
             loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
             loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
-            # Sum rgb and flow results(True/False) to get the domain accuracy result.
-            dok_src = dok_src_rgb + dok_src_flow
-            dok_tgt = dok_tgt_rgb + dok_tgt_flow
+
+            loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
+            _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+            adv_loss = loss_dmn_src + loss_dmn_tgt
+            task_loss = loss_cls
+
+            log_metrics = {
+                f"{split_name}_source_acc": ok_src,
+                f"{split_name}_target_acc": ok_tgt,
+                f"{split_name}_domain_acc": torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow)),
+                f"{split_name}_source_domain_acc": torch.cat((dok_src_rgb, dok_src_flow)),
+                f"{split_name}_target_domain_acc": torch.cat((dok_tgt_rgb, dok_tgt_flow)),
+            }
         elif self.image_modality in ['rgb', 'flow'] and len(batch) == 2:
             (x_s, y_s), (x_tu, y_tu) = batch
             _, y_hat, d_hat = self.forward(x_s)
@@ -302,22 +312,22 @@ class DANNtrainer4Video(DANNtrainer):
             batch_size = len(y_s)
             loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
             loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)))
+
+            loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
+            _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+            adv_loss = loss_dmn_src + loss_dmn_tgt
+            task_loss = loss_cls
+
+            log_metrics = {
+                f"{split_name}_source_acc": ok_src,
+                f"{split_name}_target_acc": ok_tgt,
+                f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
+                f"{split_name}_source_domain_acc": dok_src,
+                f"{split_name}_target_domain_acc": dok_tgt,
+            }
         else:
             raise NotImplementedError("Batch len is {}. Check the Dataloader.".format(len(batch)))
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-
-        adv_loss = loss_dmn_src + loss_dmn_tgt
-        task_loss = loss_cls
-
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-        }
         return task_loss, adv_loss, log_metrics
 
 
