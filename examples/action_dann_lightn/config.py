@@ -42,7 +42,7 @@ _C.SOLVER.NESTEROV = True
 _C.SOLVER.TYPE = "SGD"
 _C.SOLVER.MAX_EPOCHS = 100  # "nb_adapt_epochs": 100,
 # _C.SOLVER.WARMUP = True
-_C.SOLVER.MIN_EPOCHS = 1  # "nb_init_epochs": 20,
+_C.SOLVER.MIN_EPOCHS = 20  # "nb_init_epochs": 20,
 _C.SOLVER.TRAIN_BATCH_SIZE = 16  # 150
 # _C.SOLVER.TEST_BATCH_SIZE = 32  # No difference in ADA
 
