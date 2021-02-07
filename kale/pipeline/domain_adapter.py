@@ -348,8 +348,10 @@ class BaseAdaptTrainer(pl.LightningModule):
             # init phase doesn't use few-shot learning
             # ad-hoc decision but makes models more comparable between each other
             loss = task_loss
+            print("1, loss")
         else:
             loss = task_loss
+            print("2, loss")
             # loss = task_loss + self.lamb_da * adv_loss
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
