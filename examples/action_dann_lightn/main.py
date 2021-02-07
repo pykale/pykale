@@ -68,7 +68,7 @@ def main():
                                                                            seed)
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR)
         # Set early stopping
-        # early_stop_callback = EarlyStopping(monitor="V_target_acc", min_delta=0.0000, patience=20, mode="max")
+        early_stop_callback = EarlyStopping(monitor="V_target_acc", min_delta=0.0000, patience=20, mode="max")
         trainer = pl.Trainer(
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
@@ -79,7 +79,7 @@ def main():
             logger=tb_logger,  # logger,
             # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
-            # callbacks=[early_stop_callback],
+            callbacks=[early_stop_callback],
         )
 
         # find learning_rate
