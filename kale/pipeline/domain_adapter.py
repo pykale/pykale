@@ -5,7 +5,7 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/arc
 
 This module uses `PyTorch Lightning <https://github.com/PyTorchLightning/pytorch-lightning>`_ to standardize the flow.
 """
-import logging
+
 from enum import Enum
 
 import numpy as np
@@ -341,7 +341,6 @@ class BaseAdaptTrainer(pl.LightningModule):
             dict: must contain a "loss" key with the loss to be used for back-propagation.
                 see pytorch-lightning for more details.
         """
-        logging.info("training")
         self._update_batch_epoch_factors(batch_nb)
 
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="T")
@@ -349,10 +348,10 @@ class BaseAdaptTrainer(pl.LightningModule):
             # init phase doesn't use few-shot learning
             # ad-hoc decision but makes models more comparable between each other
             loss = task_loss
-            logging.info("1")
+            print("1, loss")
         else:
             loss = task_loss
-            logging.info("2")
+            print("2, loss")
             # loss = task_loss + self.lamb_da * adv_loss
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
