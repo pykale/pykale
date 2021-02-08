@@ -71,7 +71,7 @@ pip install -e .[extras]  # editable install for developers
 To run the unit tests:
 
 ```bash
-python -m unittest
+pytest
 ```
 
 More comprehensive test cases are not yet available.
