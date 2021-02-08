@@ -58,16 +58,16 @@ class Unit3D(nn.Module):
     """Basic unit containing Conv3D + BatchNorm + non-linearity."""
 
     def __init__(
-        self,
-        in_channels,
-        output_channels,
-        kernel_shape=(1, 1, 1),
-        stride=(1, 1, 1),
-        padding=0,
-        activation_fn=F.relu,
-        use_batch_norm=True,
-        use_bias=False,
-        name="unit_3d",
+            self,
+            in_channels,
+            output_channels,
+            kernel_shape=(1, 1, 1),
+            stride=(1, 1, 1),
+            padding=0,
+            activation_fn=F.relu,
+            use_batch_norm=True,
+            use_bias=False,
+            name="unit_3d",
     ):
         """Initializes Unit3D module."""
 
@@ -203,8 +203,12 @@ class InceptionModule(nn.Module):
     def forward(self, x):
         outputs = self._forward(x)
         out = torch.cat(outputs, dim=1)
-        if "SELayer" in dir(self):  # Check self.SELayer
-            out = self.SELayer(out)
+        if "SELayerC" in dir(self):  # Check self.SELayer
+            out = self.SELayerC(out)
+        if "SELayerT" in dir(self):  # Check self.SELayer
+            out = self.SELayerT(out)
+        if "SELayerConv" in dir(self):  # Check self.SELayer
+            out = self.SELayerConv(out)
         return out
 
 
@@ -247,13 +251,13 @@ class InceptionI3d(nn.Module):
     )
 
     def __init__(
-        self,
-        num_classes=400,
-        spatial_squeeze=True,
-        final_endpoint="Logits",
-        name="inception_i3d",
-        in_channels=3,
-        dropout_keep_prob=0.5,
+            self,
+            num_classes=400,
+            spatial_squeeze=True,
+            final_endpoint="Logits",
+            name="inception_i3d",
+            in_channels=3,
+            dropout_keep_prob=0.5,
     ):
         """
         Initializes I3D model instance.
@@ -387,8 +391,9 @@ class InceptionI3d(nn.Module):
             return
 
         end_point = "Logits"
-        self.avg_pool = nn.AvgPool3d(kernel_size=[2, 7, 7], stride=(1, 1, 1))
-        self.avg_pool_flow = nn.AvgPool3d(kernel_size=[1, 7, 7], stride=(1, 1, 1))
+        # self.avg_pool = nn.AvgPool3d(kernel_size=[2, 7, 7], stride=(1, 1, 1))
+        # self.avg_pool_flow = nn.AvgPool3d(kernel_size=[1, 7, 7], stride=(1, 1, 1))
+        self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.dropout = nn.Dropout(dropout_keep_prob)
         self.logits = Unit3D(
             in_channels=384 + 384 + 128 + 128,
@@ -430,16 +435,17 @@ class InceptionI3d(nn.Module):
                 x = self._modules[end_point](x)  # use _modules to work with dataparallel
 
         # For EPIC datasets, RGB window has 16 frames while flow has 8. We apply different avg_pool to them.
-        if x.shape[2] == 2:
-            x = self.avg_pool(x)
-            # x = self.logits(self.dropout(self.avg_pool(x)))
-        elif x.shape[2] == 1:
-            x = self.avg_pool_flow(x)
-            # x = self.logits(self.dropout(self.avg_pool_flow(x)))
+        x = self.avg_pool(x)
+        # if x.shape[2] == 2:
+        #     x = self.avg_pool(x)
+        #     x = self.logits(self.dropout(self.avg_pool(x)))
+        # elif x.shape[2] == 1:
+        #     x = self.avg_pool_flow(x)
+        #     x = self.logits(self.dropout(self.avg_pool_flow(x)))
         if self._spatial_squeeze:
-            logits = x.squeeze(3).squeeze(3)
-        # logits is batch X time X classes, which is what we want to work with
-        return logits
+            x = x.squeeze(3).squeeze(3)
+        # x is batch X time X classes, which is what we want to work with
+        return x
 
     def extract_features(self, x):
         for end_point in self.VALID_ENDPOINTS:
