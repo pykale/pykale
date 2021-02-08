@@ -10,6 +10,7 @@ import os
 import pytorch_lightning as pl
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.callbacks import LearningRateMonitor
 
 from config import get_cfg_defaults
 from model import get_model
@@ -69,6 +70,7 @@ def main():
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR)
         # Set early stopping
         early_stop_callback = EarlyStopping(monitor="V_target_acc", min_delta=0.0000, patience=30, mode="max")
+        lr_monitor = LearningRateMonitor(logging_interval="epoch")
         trainer = pl.Trainer(
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
@@ -79,7 +81,10 @@ def main():
             logger=tb_logger,  # logger,
             # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
-            callbacks=[early_stop_callback],
+            callbacks=[early_stop_callback, lr_monitor],
+            # limit_train_batches=0.01,
+            # limit_val_batches=0.1,
+            # limit_test_batches=0.1,
         )
 
         # find learning_rate
