@@ -68,7 +68,7 @@ def main():
                                                                            seed)
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR)
         # Set early stopping
-        early_stop_callback = EarlyStopping(monitor="V_target_acc", min_delta=0.0000, patience=10, mode="max")
+        early_stop_callback = EarlyStopping(monitor="V_target_acc", min_delta=0.0000, patience=30, mode="max")
         trainer = pl.Trainer(
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
@@ -83,28 +83,28 @@ def main():
         )
 
         # find learning_rate
-        lr_finder = trainer.tuner.lr_find(model, max_lr=0.1)
+        # lr_finder = trainer.tuner.lr_find(model, max_lr=0.1)
         # fig = lr_finder.plot(suggest=True)
         # fig.show()
-        logging.info(lr_finder.suggestion())
+        # logging.info(lr_finder.suggestion())
 
-        # trainer.fit(model)
-        # results.update(
-        #     is_validation=True,
-        #     method_name=cfg.DAN.METHOD,
-        #     seed=seed,
-        #     metric_values=trainer.callback_metrics,
-        # )
-        # # test scores
-        # trainer.test()
-        # results.update(
-        #     is_validation=False,
-        #     method_name=cfg.DAN.METHOD,
-        #     seed=seed,
-        #     metric_values=trainer.callback_metrics,
-        # )
-        # results.to_csv(test_csv_file)
-        # results.print_scores(cfg.DAN.METHOD)
+        trainer.fit(model)
+        results.update(
+            is_validation=True,
+            method_name=cfg.DAN.METHOD,
+            seed=seed,
+            metric_values=trainer.callback_metrics,
+        )
+        # test scores
+        trainer.test()
+        results.update(
+            is_validation=False,
+            method_name=cfg.DAN.METHOD,
+            seed=seed,
+            metric_values=trainer.callback_metrics,
+        )
+        results.to_csv(test_csv_file)
+        results.print_scores(cfg.DAN.METHOD)
 
 
 if __name__ == "__main__":
