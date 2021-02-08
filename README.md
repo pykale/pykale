@@ -6,6 +6,7 @@
 
 ![build](https://github.com/pykale/pykale/workflows/build/badge.svg)
 ![Unit Tests](https://github.com/pykale/pykale/workflows/unit%20tests/badge.svg)
+[![Code Coverage](https://codecov.io/github/pykale/pykale/coverage.svg?branch=master&token=)](https://codecov.io/gh/pykale/pykale)
 [![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
 [![Conda](https://img.shields.io/conda/v/pykale/pykale?color=blue)](https://anaconda.org/pykale/pykale)
