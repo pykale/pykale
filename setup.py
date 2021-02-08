@@ -23,6 +23,7 @@ requirements = [
 # Additional dependencies for examples/tutorials and development
 extra_requirements = [
     'black',
+    'coverage',
     'flake8',
     'flake8-print',
     'ipykernel',
