@@ -133,6 +133,10 @@ We aim to design the core `kale` modules to be highly **reusable**, generic, and
 - Python IDE: [Visual Studio Code](https://code.visualstudio.com/download), [PyCharm](https://www.jetbrains.com/pycharm/download/)
 - GitHub: [GitHub Desktop](https://desktop.github.com/), [GitHub guides](https://guides.github.com/), [GitHub documentations](https://docs.github.com/en)
 
+### Testing
+
+All new code must be covered by unit tests, and regression tests where appropriate.
+
 ## Heavy involvements (maintainers)
 
 ### Review and merge pull requests
