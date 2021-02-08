@@ -83,28 +83,28 @@ def main():
         )
 
         # find learning_rate
-        # lr_finder = trainer.tuner.lr_find(model, max_lr=0.1)
+        lr_finder = trainer.tuner.lr_find(model, max_lr=0.1)
         # fig = lr_finder.plot(suggest=True)
         # fig.show()
-        # logging.info(lr_finder.suggestion())
+        logging.info(lr_finder.suggestion())
 
-        trainer.fit(model)
-        results.update(
-            is_validation=True,
-            method_name=cfg.DAN.METHOD,
-            seed=seed,
-            metric_values=trainer.callback_metrics,
-        )
-        # test scores
-        trainer.test()
-        results.update(
-            is_validation=False,
-            method_name=cfg.DAN.METHOD,
-            seed=seed,
-            metric_values=trainer.callback_metrics,
-        )
-        results.to_csv(test_csv_file)
-        results.print_scores(cfg.DAN.METHOD)
+        # trainer.fit(model)
+        # results.update(
+        #     is_validation=True,
+        #     method_name=cfg.DAN.METHOD,
+        #     seed=seed,
+        #     metric_values=trainer.callback_metrics,
+        # )
+        # # test scores
+        # trainer.test()
+        # results.update(
+        #     is_validation=False,
+        #     method_name=cfg.DAN.METHOD,
+        #     seed=seed,
+        #     metric_values=trainer.callback_metrics,
+        # )
+        # results.to_csv(test_csv_file)
+        # results.print_scores(cfg.DAN.METHOD)
 
 
 if __name__ == "__main__":
