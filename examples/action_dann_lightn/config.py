@@ -34,7 +34,7 @@ _C.DATASET.SIZE_TYPE = "source"
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CN()
 _C.SOLVER.SEED = 2021
-_C.SOLVER.BASE_LR = 0.001  # Initial learning rate
+_C.SOLVER.BASE_LR = 0.01  # Initial learning rate
 _C.SOLVER.MOMENTUM = 0.9
 _C.SOLVER.WEIGHT_DECAY = 0.0005  # 1e-4
 _C.SOLVER.NESTEROV = True
