@@ -73,19 +73,25 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
                         It is a convention when the input dimension and the network is fixed.
         dmn_feature_dim: The dimension of the feature network output for DomainNet.
     """
-
-    if model_name != "I3D" and attention == "SELayer":
+    attention_list = ["SELayerC", "SELayerT", "SELayerCoC"]
+    if model_name != "I3D" and attention in attention_list:
         raise ValueError("Attention SELayer is only applied to I3D. Current: {}, Attention: {}".format(model_name, attention))
 
-    if attention not in ["None", "SELayer"]:
+    if attention in attention_list:
+        att = True
+    elif attention == "None":
+        att = False
+    else:
         raise ValueError("Wrong attention. Current: {}".format(attention))
 
     if image_modality == 'rgb':
         if model_name == 'I3D':
             pretrained_model = 'rgb_imagenet'
-            if attention == "SELayer":
-                logging.info("Using SELayer.")
-                feature_network = se_i3d_joint(rgb_pt=pretrained_model, flow_pt=None, pretrained=True)
+            if att:
+                logging.info("Using {}".format(attention))
+                feature_network = se_i3d_joint(
+                    rgb_pt=pretrained_model, flow_pt=None, attention=attention, pretrained=True
+                )
             else:
                 logging.info("No SELayer.")
                 feature_network = i3d_joint(rgb_pt=pretrained_model, flow_pt=None, pretrained=True)
@@ -110,9 +116,11 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
     elif image_modality == 'flow':
         if model_name == 'I3D':
             pretrained_model = 'flow_imagenet'
-            if attention == "SELayer":
-                logging.info("Using SELayer.")
-                feature_network = se_i3d_joint(rgb_pt=None, flow_pt=pretrained_model, pretrained=True)
+            if att:
+                logging.info("Using {}".format(attention))
+                feature_network = se_i3d_joint(
+                    rgb_pt=None, flow_pt=pretrained_model, attention=attention, pretrained=True
+                )
             else:
                 logging.info("No SELayer.")
                 feature_network = i3d_joint(rgb_pt=None, flow_pt=pretrained_model, pretrained=True)
@@ -126,15 +134,17 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
             rgb_pretrained_model = 'rgb_imagenet'
             flow_pretrained_model = 'flow_imagenet'
 
-            if attention == "SELayer":
-                logging.info("Using SELayer.")
+            if att:
+                logging.info("Using {}".format(attention))
                 feature_network = se_i3d_joint(rgb_pt=rgb_pretrained_model,
                                                flow_pt=flow_pretrained_model,
+                                               attention=attention,
                                                pretrained=True)
             else:
                 logging.info("No SELayer.")
                 feature_network = i3d_joint(rgb_pt=rgb_pretrained_model,
                                             flow_pt=flow_pretrained_model,
+                                            attention=attention,
                                             pretrained=True)
             class_feature_dim = 2048
             dmn_feature_dim = class_feature_dim / 2

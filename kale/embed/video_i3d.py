@@ -207,8 +207,8 @@ class InceptionModule(nn.Module):
             out = self.SELayerC(out)
         if "SELayerT" in dir(self):  # Check self.SELayer
             out = self.SELayerT(out)
-        if "SELayerConv" in dir(self):  # Check self.SELayer
-            out = self.SELayerConv(out)
+        if "SELayerCoC" in dir(self):  # Check self.SELayer
+            out = self.SELayerCoC(out)
         return out
 
 
