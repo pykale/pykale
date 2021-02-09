@@ -144,7 +144,6 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
                 logging.info("No SELayer.")
                 feature_network = i3d_joint(rgb_pt=rgb_pretrained_model,
                                             flow_pt=flow_pretrained_model,
-                                            attention=attention,
                                             pretrained=True)
             class_feature_dim = 2048
             dmn_feature_dim = class_feature_dim / 2
