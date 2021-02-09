@@ -156,7 +156,21 @@ Comparisons / assertions involving `pandas` `data frames` (or other `pandas` obj
 
 Comparisons / assertions involving `numpy` `arrays` (or other `numpy` objects) should be made using [`numpy` testing routines](https://numpy.org/doc/stable/reference/routines.testing.html).
 
-#### Stochasticity
+#### Random Numbers
+
+Random numbers in pykale are generated using base python, numpy and pytorch. Prior to making an assertion where objects that make use of random numbers are compared, the `set_seed()` function from `kale.utils.seed` should be called e.g.
+
+In `__init__.py` or `test_<modulename>.py`:
+
+```
+from kale.utils.seed import set_seed
+```
+
+In test, before assertion:
+
+```
+set_seed()
+```
 
 #### Logging
 
