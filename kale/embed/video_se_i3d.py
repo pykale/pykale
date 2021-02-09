@@ -33,7 +33,9 @@ class SELayerC(nn.Module):
         b, c, _, _, _ = x.size()
         y = self.avg_pool(x).view(b, c)
         y = self.fc(y).view(b, c, 1, 1, 1)
-        return x * y.expand_as(x)
+        # out1 = x * y.expand_as(x)
+        out = x + x * y.expand_as(x)
+        return out
 
 
 class SELayerT(nn.Module):
@@ -53,7 +55,9 @@ class SELayerT(nn.Module):
         y = self.avg_pool(output).view(b, t)
         y = self.fc(y).view(b, t, 1, 1, 1)
         y = y.transpose(1, 2).contiguous()
-        return x * y.expand_as(x)
+        # out = x * y.expand_as(x)
+        out = x + x * y.expand_as(x)
+        return out
 
 
 class SELayerCoC(nn.Module):
@@ -89,8 +93,8 @@ class SELayerCoC(nn.Module):
         y = self.conv2(y)  # n, c, 1, 1, 1
         y = self.bn2(y)  # n, c, 1, 1, 1
         y = self.sigmoid(y)  # n, c, 1, 1, 1
-        out = x * y.expand_as(x)  # n, c, t, h, w
-        # output = x + x * y.expand_as(x)
+        # out = x * y.expand_as(x)  # n, c, t, h, w
+        out = x + x * y.expand_as(x)
         return out
 
 
