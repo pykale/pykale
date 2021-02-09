@@ -182,6 +182,8 @@ Data needed for testing should be placed in `tests/data`. This should be limited
 
 #### Side effects
 
+Be aware that the code for which you are adding a test may have side effects (e.g. a function changing something in a file or database, as well as returning a variable). Minimising side effects makes code easier to test. Try and minimise side effects and ensure, where present, they are covered by tests.
+
 ## Heavy involvements (maintainers)
 
 ### Review and merge pull requests
