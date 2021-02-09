@@ -135,7 +135,32 @@ We aim to design the core `kale` modules to be highly **reusable**, generic, and
 
 ### Testing
 
-All new code must be covered by unit tests, and regression tests where appropriate.
+All new code must be covered by unit tests, and regression tests where appropriate. We will extend test coverage to exisiting code. [General advice on testing should be consulted](https://realpython.com/python-testing/), if needed. This will inform you on how to write tests and help with decisions on what aspects of your code need to be tested. There is some subjectivity involved in deciding how much of the potential behaviour of your code to check.
+
+#### Test runner
+
+`pykale` uses the `pytest` test runner. This offers a balance of functionality, ease of use and wide community support.
+#### Unit tests
+
+Within the `tests/` folder is a folder structure that mimics that of the `kale` python module. Unit tests for code in a given file in `kale/` should be placed in their equivalent file in `tests/` e.g. unit tests for a function in `pykale/kale/loaddata/cifar_access.py` should be located in `pykale/tests/loaddata/test_cifar_access.py`.
+
+#### Regression tests
+
+Regression tests should be placed in `tests/regression`. Further subfolders can be added, as required. We plan to add regression tests covering exisiting functionality based on examples in the `examples/` folder.
+
+#### Common parameters
+
+#### Testing data frames and arrays
+
+#### Stochasticity
+
+#### Logging
+
+#### Test data
+
+Data needed for testing should be placed in `tests/data`. This should be limited to small text files e.g. `.csv`, `.json`, `.yml`. Binary data should be stored outside the repository and referenced e.g. using a DOI. Discuss more complex test data requirements for your **pull request** in the motivating **issue**.
+
+#### Side effects
 
 ## Heavy involvements (maintainers)
 
