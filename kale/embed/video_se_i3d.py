@@ -111,7 +111,7 @@ class SEInceptionI3DRGB(nn.Module):
             model.Mixed_5c.add_module("SELayerC", SELayerC(1024))
 
         elif attention == "SELayerT":
-            n = 8
+            n = 16
             model.Mixed_3b.add_module("SELayerT", SELayerT(n//2))
             model.Mixed_3c.add_module("SELayerT", SELayerT(n//2))
             model.Mixed_4b.add_module("SELayerT", SELayerT(n//4))
