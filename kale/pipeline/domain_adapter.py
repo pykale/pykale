@@ -204,7 +204,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         feature_extractor,
         task_classifier,
         method=None,
-        lambda_init=0.01,
+        lambda_init=0.1,
         adapt_lambda=True,
         adapt_lr=True,
         nb_init_epochs=10,
