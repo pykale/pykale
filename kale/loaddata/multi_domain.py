@@ -4,6 +4,7 @@ Construct a dataset with (multiple) source and target domains, from https://gith
 
 import logging
 from enum import Enum
+from typing import Dict
 
 import numpy as np
 import torch.utils.data
@@ -117,9 +118,9 @@ class MultiDomainDatasets(DomainsDatasetBase):
         self._size_type = size_type
         self._n_fewshot = n_fewshot
         self._random_state = check_random_state(random_state)
-        self._source_by_split = None
+        self._source_by_split: Dict[str, torch.utils.data.Subset] = {}
         self._labeled_target_by_split = None
-        self._target_by_split = None
+        self._target_by_split: Dict[str, torch.utils.data.Subset] = {}
 
     def is_semi_supervised(self):
         return self._n_fewshot is not None and self._n_fewshot > 0
