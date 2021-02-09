@@ -295,7 +295,7 @@ class DANNtrainer4Video(DANNtrainer):
 
             loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
             _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-            adv_loss = loss_dmn_src + loss_dmn_tgt
+            adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
             task_loss = loss_cls
 
             log_metrics = {
@@ -315,7 +315,7 @@ class DANNtrainer4Video(DANNtrainer):
 
             loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
             _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-            adv_loss = loss_dmn_src + loss_dmn_tgt
+            adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
             task_loss = loss_cls
 
             log_metrics = {
