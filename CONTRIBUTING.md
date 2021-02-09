@@ -140,6 +140,7 @@ All new code must be covered by unit tests, and regression tests where appropria
 #### Test runner
 
 `pykale` uses the `pytest` test runner. This offers a balance of functionality, ease of use and wide community support.
+
 #### Unit tests
 
 Within the `tests/` folder is a folder structure that mimics that of the `kale` python module. Unit tests for code in a given file in `kale/` should be placed in their equivalent file in `tests/` e.g. unit tests for a function in `pykale/kale/loaddata/cifar_access.py` should be located in `pykale/tests/loaddata/test_cifar_access.py`.
@@ -175,9 +176,9 @@ In test, before assertion:
 set_seed()
 ```
 
-#### Logging
+#### Logging and handling of warnings
 
-#### Handling of warnings
+`pytest` [captures log messages of level WARNING or above](https://docs.pytest.org/en/stable/logging.html) and outputs them to the terminal.
 
 #### Test data
 
