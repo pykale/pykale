@@ -152,13 +152,15 @@ Regression tests should be placed in `tests/regression`. Further subfolders can 
 
 #### Testing data frames and arrays
 
-Comparisons / assertions involving `pandas` `data frames` (or other `pandas` objects) should be made using pandas utility functions: [`pandas.testing.assert_frame_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_frame_equal.html), [`pandas.testing.assert_series_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_series_equal.html), [`pandas.testing.assert_index_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_index_equal.html), [`pandas.testing.assert_extension_array_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_extension_array_equal.html).
+Comparisons / assertions involving `pandas` `data frames` (or other `pandas` objects) should be made using `pandas` utility functions: [`pandas.testing.assert_frame_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_frame_equal.html), [`pandas.testing.assert_series_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_series_equal.html), [`pandas.testing.assert_index_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_index_equal.html), [`pandas.testing.assert_extension_array_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_extension_array_equal.html).
 
 Comparisons / assertions involving `numpy` `arrays` (or other `numpy` objects) should be made using [`numpy` testing routines](https://numpy.org/doc/stable/reference/routines.testing.html).
 
 #### Stochasticity
 
 #### Logging
+
+#### Handling of warnings
 
 #### Test data
 
