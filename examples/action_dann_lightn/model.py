@@ -73,7 +73,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
                         It is a convention when the input dimension and the network is fixed.
         dmn_feature_dim: The dimension of the feature network output for DomainNet.
     """
-    attention_list = ["SELayerC", "SELayerT", "SELayerCoC"]
+    attention_list = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerCT"]
     if model_name != "I3D" and attention in attention_list:
         raise ValueError("Attention SELayer is only applied to I3D. Current: {}, Attention: {}".format(model_name, attention))
 

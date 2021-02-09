@@ -34,6 +34,7 @@ class SELayerC(nn.Module):
         y = self.avg_pool(x).view(b, c)
         y = self.fc(y).view(b, c, 1, 1, 1)
         # out1 = x * y.expand_as(x)
+        # y = y - 0.5
         out = x + x * y.expand_as(x)
         return out
 
@@ -56,6 +57,7 @@ class SELayerT(nn.Module):
         y = self.fc(y).view(b, t, 1, 1, 1)
         y = y.transpose(1, 2).contiguous()
         # out = x * y.expand_as(x)
+        # y = y - 0.5
         out = x + x * y.expand_as(x)
         return out
 
@@ -94,6 +96,7 @@ class SELayerCoC(nn.Module):
         y = self.bn2(y)  # n, c, 1, 1, 1
         y = self.sigmoid(y)  # n, c, 1, 1, 1
         # out = x * y.expand_as(x)  # n, c, t, h, w
+        # y = y - 0.5
         out = x + x * y.expand_as(x)
         return out
 
@@ -103,6 +106,7 @@ class SEInceptionI3DRGB(nn.Module):
     def __init__(self, num_channels, attention):
         super(SEInceptionI3DRGB, self).__init__()
         model = InceptionI3d(in_channels=num_channels)
+        n = 16
         if attention == "SELayerC":
             model.Mixed_3b.add_module("SELayerC", SELayerC(256))
             model.Mixed_3c.add_module("SELayerC", SELayerC(480))
@@ -115,7 +119,6 @@ class SEInceptionI3DRGB(nn.Module):
             model.Mixed_5c.add_module("SELayerC", SELayerC(1024))
 
         elif attention == "SELayerT":
-            n = 16
             model.Mixed_3b.add_module("SELayerT", SELayerT(n//2))
             model.Mixed_3c.add_module("SELayerT", SELayerT(n//2))
             model.Mixed_4b.add_module("SELayerT", SELayerT(n//4))
@@ -137,6 +140,27 @@ class SEInceptionI3DRGB(nn.Module):
             model.Mixed_5b.add_module("SELayerCoC", SELayerCoC(832))
             model.Mixed_5c.add_module("SELayerCoC", SELayerCoC(1024))
 
+        elif attention == "SELayerCT":
+            model.Mixed_3b.add_module("SELayerC", SELayerC(256))
+            model.Mixed_3c.add_module("SELayerC", SELayerC(480))
+            model.Mixed_4b.add_module("SELayerC", SELayerC(512))
+            model.Mixed_4c.add_module("SELayerC", SELayerC(512))
+            model.Mixed_4d.add_module("SELayerC", SELayerC(512))
+            model.Mixed_4e.add_module("SELayerC", SELayerC(528))
+            model.Mixed_4f.add_module("SELayerC", SELayerC(832))
+            model.Mixed_5b.add_module("SELayerC", SELayerC(832))
+            model.Mixed_5c.add_module("SELayerC", SELayerC(1024))
+
+            model.Mixed_3b.add_module("SELayerT", SELayerT(n // 2))
+            model.Mixed_3c.add_module("SELayerT", SELayerT(n // 2))
+            model.Mixed_4b.add_module("SELayerT", SELayerT(n // 4))
+            model.Mixed_4c.add_module("SELayerT", SELayerT(n // 4))
+            model.Mixed_4d.add_module("SELayerT", SELayerT(n // 4))
+            model.Mixed_4e.add_module("SELayerT", SELayerT(n // 4))
+            model.Mixed_4f.add_module("SELayerT", SELayerT(n // 4))
+            model.Mixed_5b.add_module("SELayerT", SELayerT(n // 8))
+            model.Mixed_5c.add_module("SELayerT", SELayerT(n // 8))
+
         self.model = model
 
     def forward(self, x):
@@ -148,6 +172,7 @@ class SEInceptionI3DFlow(nn.Module):
     def __init__(self, num_channels, attention):
         super(SEInceptionI3DFlow, self).__init__()
         model = InceptionI3d(in_channels=num_channels)
+        n = 16
         # if attention == "SELayerC":
         #     model.Mixed_3b.add_module("SELayerC", SELayerC(256))
         #     model.Mixed_3c.add_module("SELayerC", SELayerC(480))
@@ -160,7 +185,6 @@ class SEInceptionI3DFlow(nn.Module):
         #     model.Mixed_5c.add_module("SELayerC", SELayerC(1024))
         #
         # elif attention == "SELayerT":
-        #     n = 16
         #     model.Mixed_3b.add_module("SELayerT", SELayerT(n // 4))
         #     model.Mixed_3c.add_module("SELayerT", SELayerT(n // 4))
         #     model.Mixed_4b.add_module("SELayerT", SELayerT(n // 8))
