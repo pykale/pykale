@@ -149,6 +149,10 @@ Within the `tests/` folder is a folder structure that mimics that of the `kale` 
 
 Regression tests should be placed in `tests/regression`. Further subfolders can be added, as required. We plan to add regression tests covering exisiting functionality based on examples in the `examples/` folder.
 
+#### Test data
+
+Data needed for testing should be placed in `tests/data`. This should be limited to small text files e.g. `.csv`, `.json`, `.yml`. Binary data should be stored outside the repository and referenced e.g. using a DOI. Discuss more complex test data requirements for your **pull request** in the motivating **issue**.
+
 #### Common parameters
 
 Consider adding parameters (or objects etc.) that may be useful to multiple tests as fixtures in a [`conftest.py`](
@@ -180,9 +184,9 @@ set_seed()
 
 `pytest` [captures log messages of level WARNING or above](https://docs.pytest.org/en/stable/logging.html) and outputs them to the terminal.
 
-#### Test data
+#### Definition and response to errors and warnings
 
-Data needed for testing should be placed in `tests/data`. This should be limited to small text files e.g. `.csv`, `.json`, `.yml`. Binary data should be stored outside the repository and referenced e.g. using a DOI. Discuss more complex test data requirements for your **pull request** in the motivating **issue**.
+https://numpy.org/doc/stable/reference/generated/numpy.seterr.html#numpy.seterr
 
 #### Side effects
 
