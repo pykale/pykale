@@ -49,7 +49,7 @@ _C.SOLVER.TRAIN_BATCH_SIZE = 16  # 150
 # Adaptation-specific solver config
 _C.SOLVER.AD_LAMBDA = True
 _C.SOLVER.AD_LR = True
-_C.SOLVER.INIT_LAMBDA = 1
+_C.SOLVER.INIT_LAMBDA = 1.0
 
 # ---------------------------------------------------------------------------- #
 # Domain Adaptation Net (DAN) configs
