@@ -82,6 +82,7 @@ def main():
             # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
             callbacks=[early_stop_callback, lr_monitor],
+            # auto_scale_batch_size='binsearch',
             # limit_train_batches=0.01,
             # limit_val_batches=0.1,
             # limit_test_batches=0.1,
@@ -92,6 +93,8 @@ def main():
         # fig = lr_finder.plot(suggest=True)
         # fig.show()
         # logging.info(lr_finder.suggestion())
+
+        # trainer.tune(model)
 
         trainer.fit(model)
         results.update(
