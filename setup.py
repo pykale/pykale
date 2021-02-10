@@ -36,6 +36,7 @@ extra_requirements = [
     'nbval',
     'pre-commit',
     'pytest',
+    'pytest-cov',
     'sphinx',
     'sphinx_rtd_theme',
     'torchsummary>=1.5.0',
