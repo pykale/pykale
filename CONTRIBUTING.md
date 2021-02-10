@@ -184,9 +184,10 @@ set_seed()
 
 `pytest` [captures log messages of level WARNING or above](https://docs.pytest.org/en/stable/logging.html) and outputs them to the terminal.
 
-#### Definition and response to errors and warnings
+#### Floating point errors
 
-https://numpy.org/doc/stable/reference/generated/numpy.seterr.html#numpy.seterr
+`numpy` can be configured to [respond differently to floating point errors](
+https://numpy.org/doc/stable/reference/generated/numpy.seterr.html#numpy.seterr). `pykale` normally uses the default configuration.
 
 #### Side effects
 
