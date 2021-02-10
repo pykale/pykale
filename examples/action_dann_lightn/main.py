@@ -73,7 +73,7 @@ def main():
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
         trainer = pl.Trainer(
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
-            # min_epochs=cfg.SOLVER.MIN_EPOCHS,
+            min_epochs=cfg.SOLVER.MIN_EPOCHS + 20,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
             checkpoint_callback=checkpoint_callback,
             # resume_from_checkpoint=last_checkpoint_file,
