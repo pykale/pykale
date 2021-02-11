@@ -8,7 +8,6 @@ numpy
 ogb==1.2.0
 pillow>=6.2.0
 pytorch-lightning
-# scikit-image
 scikit-learn
 tensorly
 torch==1.7.0+cpu
