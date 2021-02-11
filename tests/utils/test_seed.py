@@ -16,7 +16,7 @@ def base_rand():
 def test_set_seed_base(base_rand):
     set_seed()
     result = random.random()
-    testing.assert_almost_equal(result, base_rand)
+    testing.assert_equal(result, base_rand)
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def np_rand():
 def test_set_seed_numpy(np_rand):
     set_seed()
     result = np.random.rand()
-    testing.assert_almost_equal(result, np_rand)
+    testing.assert_equal(result, np_rand)
 
 
 @pytest.fixture
@@ -38,4 +38,4 @@ def torch_rand():
 def test_set_seed_torch(torch_rand):
     set_seed()
     result = torch.rand(1).item()
-    testing.assert_almost_equal(result, torch_rand)
+    testing.assert_equal(result, torch_rand)
