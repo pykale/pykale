@@ -36,7 +36,7 @@ extra_requirements = [
     'pre-commit',
     'pytest',
     'sphinx',
-    'sphinx_rtd_theme',
+    'sphinx-rtd-theme',
     'torchsummary>=1.5.0',
     'yacs>=0.1.7',
 ]
