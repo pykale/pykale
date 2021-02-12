@@ -100,7 +100,8 @@ def setup_logger(train_params, output_dir, method_name, seed):
     full_checkpoint_dir = os.path.join(checkpoint_dir, path_method_name, f"seed_{seed}")
     checkpoint_callback = ModelCheckpoint(
         filepath=os.path.join(full_checkpoint_dir, "{epoch}"),
-        monitor="last_epoch",
+        save_top_k=1,
+        monitor="V_target_acc",
         mode="max",
     )
 
