@@ -209,6 +209,10 @@ class InceptionModule(nn.Module):
             out = self.SELayerT(out)
         if "SELayerCoC" in dir(self):  # Check self.SELayer
             out = self.SELayerCoC(out)
+        if "SELayerMC" in dir(self):  # Check self.SELayer
+            out = self.SELayerMC(out)
+        if "SELayerMAC" in dir(self):  # Check self.SELayer
+            out = self.SELayerMAC(out)
         return out
 
 
