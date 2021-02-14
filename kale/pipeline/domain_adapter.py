@@ -290,7 +290,8 @@ class BaseAdaptTrainer(pl.LightningModule):
             self._grow_fact = 2.0 / (1.0 + np.exp(-10 * p)) - 1
 
             if self._adapt_lr:
-                self._lr_fact = 1.0 / ((1.0 + 10 * p) ** 0.75)
+                # self._lr_fact = 1.0 / ((1.0 + 10 * p) ** 0.75)
+                self._lr_fact = 0.5
 
         if self._adapt_lambda:
             self.lamb_da = self._init_lambda * self._grow_fact
