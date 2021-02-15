@@ -440,12 +440,7 @@ class InceptionI3d(nn.Module):
 
         # For EPIC datasets, RGB window has 16 frames while flow has 8. We apply different avg_pool to them.
         x = self.avg_pool(x)
-        # if x.shape[2] == 2:
-        #     x = self.avg_pool(x)
-        #     x = self.logits(self.dropout(self.avg_pool(x)))
-        # elif x.shape[2] == 1:
-        #     x = self.avg_pool_flow(x)
-        #     x = self.logits(self.dropout(self.avg_pool_flow(x)))
+        # logits = self.logits(self.dropout(x))
         if self._spatial_squeeze:
             x = x.squeeze(3).squeeze(3)
         # x is batch X time X classes, which is what we want to work with
@@ -458,25 +453,28 @@ class InceptionI3d(nn.Module):
         return self.avg_pool(x)
 
 
-def i3d(name, num_channels, pretrained=False, progress=True):
+def i3d(name, num_channels, num_classes, pretrained=False, progress=True):
     """Get InceptionI3d module w/o pretrained model."""
-    model = InceptionI3d(in_channels=num_channels)
+    model = InceptionI3d(in_channels=num_channels, num_classes=num_classes)
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[name], progress=progress)
-        model.load_state_dict(state_dict)
+        # delete logits.conv3d parameters due to different class number.
+        state_dict.pop("logits.conv3d.weight")
+        state_dict.pop("logits.conv3d.bias")
+        model.load_state_dict(state_dict, strict=False)
     return model
 
 
-def i3d_joint(rgb_pt, flow_pt, pretrained=False, progress=True):
+def i3d_joint(rgb_pt, flow_pt, num_classes, pretrained=False, progress=True):
     """Get I3D models."""
     i3d_rgb = i3d_flow = None
     if rgb_pt is not None and flow_pt is None:
-        i3d_rgb = i3d(name=rgb_pt, num_channels=3, pretrained=pretrained, progress=progress)
+        i3d_rgb = i3d(name=rgb_pt, num_channels=3, num_classes=num_classes, pretrained=pretrained, progress=progress)
     elif rgb_pt is None and flow_pt is not None:
-        i3d_flow = i3d(name=flow_pt, num_channels=2, pretrained=pretrained, progress=progress)
+        i3d_flow = i3d(name=flow_pt, num_channels=2, num_classes=num_classes, pretrained=pretrained, progress=progress)
     elif rgb_pt is not None and flow_pt is not None:
-        i3d_rgb = i3d(name=rgb_pt, num_channels=3, pretrained=pretrained, progress=progress)
-        i3d_flow = i3d(name=flow_pt, num_channels=2, pretrained=pretrained, progress=progress)
+        i3d_rgb = i3d(name=rgb_pt, num_channels=3, num_classes=num_classes, pretrained=pretrained, progress=progress)
+        i3d_flow = i3d(name=flow_pt, num_channels=2, num_classes=num_classes, pretrained=pretrained, progress=progress)
     models = {'rgb': i3d_rgb, 'flow': i3d_flow}
     return models

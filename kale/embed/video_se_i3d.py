@@ -155,9 +155,9 @@ class SELayerMAC(nn.Module):
 
 class SEInceptionI3DRGB(nn.Module):
 
-    def __init__(self, num_channels, attention):
+    def __init__(self, num_channels, num_classes, attention):
         super(SEInceptionI3DRGB, self).__init__()
-        model = InceptionI3d(in_channels=num_channels)
+        model = InceptionI3d(in_channels=num_channels, num_classes=num_classes)
         n = 16
         if attention == "SELayerC":
             model.Mixed_3b.add_module("SELayerC", SELayerC(256))
@@ -243,9 +243,9 @@ class SEInceptionI3DRGB(nn.Module):
 
 class SEInceptionI3DFlow(nn.Module):
 
-    def __init__(self, num_channels, attention):
+    def __init__(self, num_channels, num_classes, attention):
         super(SEInceptionI3DFlow, self).__init__()
-        model = InceptionI3d(in_channels=num_channels)
+        model = InceptionI3d(in_channels=num_channels, num_classes=num_classes)
         n = 16
         # if attention == "SELayerC":
         #     model.Mixed_3b.add_module("SELayerC", SELayerC(256))
@@ -273,43 +273,47 @@ class SEInceptionI3DFlow(nn.Module):
         return self.model(x)
 
 
-def se_inception_i3d(name, num_channels, attention, pretrained=False, progress=True, rgb=True):
+def se_inception_i3d(name, num_channels, num_classes, attention, pretrained=False, progress=True, rgb=True):
     """Get InceptionI3d module w/o pretrained model."""
     if rgb:
-        model = SEInceptionI3DRGB(num_channels, attention)
+        model = SEInceptionI3DRGB(num_channels, num_classes, attention)
     else:
-        model = SEInceptionI3DFlow(num_channels, attention)
+        model = SEInceptionI3DFlow(num_channels, num_classes, attention)
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[name], progress=progress)
+        # delete logits.conv3d parameters due to different class number.
+        state_dict.pop("logits.conv3d.weight")
+        state_dict.pop("logits.conv3d.bias")
         # Create new OrderedDict that add `model.`
         from collections import OrderedDict
         new_state_dict = OrderedDict()
         for k, v in state_dict.items():
             name = "model.{}".format(k)
             new_state_dict[name] = v
+
         # Load params except SELayer
         model.load_state_dict(new_state_dict, strict=False)
     return model
 
 
-def se_i3d_joint(rgb_pt, flow_pt, attention, pretrained=False, progress=True):
+def se_i3d_joint(rgb_pt, flow_pt, num_classes, attention, pretrained=False, progress=True):
     """Get I3D models."""
     i3d_rgb = i3d_flow = None
     if rgb_pt is not None and flow_pt is None:
         i3d_rgb = se_inception_i3d(
-            name=rgb_pt, num_channels=3, attention=attention, pretrained=pretrained, progress=progress, rgb=True
+            name=rgb_pt, num_channels=3, num_classes=num_classes, attention=attention, pretrained=pretrained, progress=progress, rgb=True
         )
     elif rgb_pt is None and flow_pt is not None:
         i3d_flow = se_inception_i3d(
-            name=flow_pt, num_channels=2, attention=attention, pretrained=pretrained, progress=progress, rgb=False
+            name=flow_pt, num_channels=2, num_classes=num_classes, attention=attention, pretrained=pretrained, progress=progress, rgb=False
         )
     elif rgb_pt is not None and flow_pt is not None:
         i3d_rgb = se_inception_i3d(
-            name=rgb_pt, num_channels=3, attention=attention, pretrained=pretrained, progress=progress, rgb=True
+            name=rgb_pt, num_channels=3, num_classes=num_classes, attention=attention, pretrained=pretrained, progress=progress, rgb=True
         )
         i3d_flow = se_inception_i3d(
-            name=flow_pt, num_channels=2, attention=attention, pretrained=pretrained, progress=progress, rgb=False
+            name=flow_pt, num_channels=2, num_classes=num_classes, attention=attention, pretrained=pretrained, progress=progress, rgb=False
         )
     models = {'rgb': i3d_rgb, 'flow': i3d_flow}
     return models
