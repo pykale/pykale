@@ -17,9 +17,7 @@
 [Contributing](https://github.com/pykale/pykale/blob/master/CONTRIBUTING.md) |
 [Discussions](https://github.com/pykale/pykale/discussions)
 
-PyKale is a machine learning library that leverages knowledge from multiple sources for accurate and *interpretable* prediction. It supports graphs, images, and videos now. It is based on [PyTorch](https://pytorch.org/) and several other libraries but differs from existing ones by adopting a unified *pipeline-based API* design, enforcing *standardization* and *minimalism*, and incorporating key recent developments. See the [Trello board](https://trello.com/b/X8VBNAvf/pykale-api-overview) for an overview.
-
-PyKale aims to facilitate *interdisciplinary* research on *knowledge-aware* machine learning for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications. Key machine learning areas of interests include **dimensionality reduction**, **deep learning**, **multimodal learning**, and **transfer learning**.
+ PyKale is a [PyTorch](https://pytorch.org/) library for [multimodal learning](https://en.wikipedia.org/wiki/Multimodal_learning) and [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning) on graphs, images, and videos. By adopting a unified *pipeline-based* API design, PyKale enforces *standardization* and *minimalism*. PyKale aims to facilitate *interdisciplinary*, *knowledge-aware* machine learning research for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications. It focuses on leveraging knowledge from multiple sources for accurate and *interpretable* prediction. PyKale's other key machine learning areas of interests include **dimensionality reduction** and **deep learning**. See the [Trello board](https://trello.com/b/X8VBNAvf/pykale-api-overview) for an API overview.
 
 ### Pipeline-based core API (generic and reusable)
 
