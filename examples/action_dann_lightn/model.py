@@ -90,11 +90,11 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
             if att:
                 logging.info("Using {}".format(attention))
                 feature_network = se_i3d_joint(
-                    rgb_pt=pretrained_model, flow_pt=None, attention=attention, pretrained=True
+                    rgb_pt=pretrained_model, flow_pt=None, num_classes=num_classes, attention=attention, pretrained=True
                 )
             else:
                 logging.info("No SELayer.")
-                feature_network = i3d_joint(rgb_pt=pretrained_model, flow_pt=None, pretrained=True)
+                feature_network = i3d_joint(rgb_pt=pretrained_model, flow_pt=None, num_classes=num_classes, pretrained=True)
             # model.replace_logits(num_classes)
             class_feature_dim = 1024
             dmn_feature_dim = class_feature_dim
@@ -119,11 +119,11 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
             if att:
                 logging.info("Using {}".format(attention))
                 feature_network = se_i3d_joint(
-                    rgb_pt=None, flow_pt=pretrained_model, attention=attention, pretrained=True
+                    rgb_pt=None, flow_pt=pretrained_model, num_classes=num_classes, attention=attention, pretrained=True
                 )
             else:
                 logging.info("No SELayer.")
-                feature_network = i3d_joint(rgb_pt=None, flow_pt=pretrained_model, pretrained=True)
+                feature_network = i3d_joint(rgb_pt=None, flow_pt=pretrained_model, num_classes=num_classes, pretrained=True)
             class_feature_dim = 1024
             dmn_feature_dim = class_feature_dim
         else:
@@ -138,12 +138,14 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
                 logging.info("Using {}".format(attention))
                 feature_network = se_i3d_joint(rgb_pt=rgb_pretrained_model,
                                                flow_pt=flow_pretrained_model,
+                                               num_classes=num_classes,
                                                attention=attention,
                                                pretrained=True)
             else:
                 logging.info("No SELayer.")
                 feature_network = i3d_joint(rgb_pt=rgb_pretrained_model,
                                             flow_pt=flow_pretrained_model,
+                                            num_classes=num_classes,
                                             pretrained=True)
             class_feature_dim = 2048
             dmn_feature_dim = class_feature_dim / 2
