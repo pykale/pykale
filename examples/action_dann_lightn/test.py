@@ -26,6 +26,7 @@ def arg_parse():
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument("--gpus", default="0", help="gpu id(s) to use", type=str)
     parser.add_argument("--resume", default="", type=str)
+    parser.add_argument("--ckpt", default="", type=str)
     args = parser.parse_args()
     return args
 
@@ -56,22 +57,16 @@ def main():
                                        config_weight_type=cfg.DATASET.WEIGHT_TYPE,
                                        config_size_type=cfg.DATASET.SIZE_TYPE)
 
-    # Repeat multiple times to get std
-    for i in range(0, cfg.DATASET.NUM_REPEAT):
-        seed = seed + i * 10
-        set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
-        print(f'==> Building model for seed {seed} ......')
-        # ---- setup model and logger ----
-        model, train_params = get_model(cfg, dataset, num_classes)
-        trainer = pl.Trainer(
-            # progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
-            resume_from_checkpoint="./configs_xianyuan/epoch=40.ckpt",
-            gpus=args.gpus,
-        )
+    # ---- setup model and logger ----
+    model, train_params = get_model(cfg, dataset, num_classes)
+    trainer = pl.Trainer(
+        # progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
+        resume_from_checkpoint=args.ckpt,
+        gpus=args.gpus,
+    )
 
-        # test scores
-        # trainer.test(model=model, ckpt_path="configs_xianyuan/epoch=40.ckpt")
-        trainer.test(model=model)
+    # test scores
+    trainer.test(model=model)
 
 
 if __name__ == "__main__":
