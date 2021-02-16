@@ -6,9 +6,8 @@
 """Python implementation of Multilinear Principal Component Analysis (MPCA)
 
 Reference:
-    Haiping Lu, K.N. Plataniotis, and A.N. Venetsanopoulos, "MPCA: Multilinear
-    Principal Component Analysis of Tensor Objects", IEEE Transactions on Neural
-    Networks, Vol. 19, No. 1, Page: 18-39, January 2008. For initial Matlab
+    Haiping Lu, K.N. Plataniotis, and A.N. Venetsanopoulos, "MPCA: Multilinear Principal Component Analysis of Tensor
+    Objects", IEEE Transactions on Neural Networks, Vol. 19, No. 1, Page: 18-39, January 2008. For initial Matlab
     implementation, please go to https://uk.mathworks.com/matlabcentral/fileexchange/26168.
 """
 import logging
@@ -23,12 +22,11 @@ from tensorly.tenalg import multi_mode_dot
 
 
 def _check_ndim(x, n_dim):
-    """Raise error if the order/mode of the input data does not
-        consistent with the given number of order/mode
+    """Raise error if the order of the input data is not consistent with the given order value
 
     Args:
         x (array-like tensor): input data
-        n_dim (int): number of order/mode expected
+        n_dim (int): tensor order expected
 
     """
     if not x.ndim == n_dim:
@@ -38,8 +36,7 @@ def _check_ndim(x, n_dim):
 
 
 def _check_shape(x, shape_):
-    """Raise error if the shape (excluding the last mode) of the input data does not
-        consistent with the given shape
+    """Raise error if the shape (excluding the first order) of the input data is not consistent with the given shape
 
     Args:
         x (array-like tensor): input data
@@ -53,11 +50,11 @@ def _check_shape(x, shape_):
 
 
 def _check_dim_shape(x, n_dim, shape_):
-    """Check whether the order/mode of the input data is consistent with the given number of mode
+    """Check whether the order of the input data is consistent with the given value of order
 
     Args:
         x (array-like): input data
-        n_dim (int): number of order/mode expected
+        n_dim (int): tensor order expected
         shape_: shape expected
 
     """
@@ -69,19 +66,16 @@ class MPCA(BaseEstimator, TransformerMixin):
     """MPCA implementation compatible with sickit-learn
 
     Args:
-        var_ratio (float, optional): Percentage of variance explained
-            (between 0 and 1). Defaults to 0.97.
+        var_ratio (float, optional): Percentage of variance explained (between 0 and 1). Defaults to 0.97.
         max_iter (int, optional): Maximum number of iteration. Defaults to 1.
-        return_vector (bool): Whether return_vector the transformed tensor. Defaults to False.
-        n_components (int): Number of components to keep. Applies only when return_vector=True.
-            Defaults to None.
+        return_vector (bool): Whether ruturn the transformed/projected tensor in vector. Defaults to False.
+        n_components (int): Number of components to keep. Applies only when return_vector=True. Defaults to None.
 
     Attributes:
         proj_mats (list of array-like): A list of transposed projection matrices, shapes (P_1, I_1), ...,
             (P_N, I_N), where P_1, ..., P_N are output tensor shape for each sample.
         idx_order (array-like): The ordering index of projected (and vectorised) features in decreasing variance.
-        mean_ (array-like): Per-feature empirical mean, estimated from the training set,
-            shape (I_1, I_2, ..., I_N).
+        mean_ (array-like): Per-feature empirical mean, estimated from the training set, shape (I_1, I_2, ..., I_N).
         shape_in (tuple): Input tensor shapes, i.e. (I_1, I_2, ..., I_N).
         shape_out (tuple): Output tensor shapes, i.e. (P_1, P_2, ..., P_N).
     Examples:
@@ -91,16 +85,16 @@ class MPCA(BaseEstimator, TransformerMixin):
         >>> x.shape
         (40, 20, 25, 20)
         >>> mpca = MPCA(variance_explained=0.9)
-        >>> x_transformed = mpca.fit_transform(x)
-        >>> x_transformed.shape
+        >>> x_projected = mpca.fit_transform(x)
+        >>> x_projected.shape
         (40, 18, 23, 18)
-        >>> x_transformed = mpca.transform(x)
-        >>> x_transformed.shape
+        >>> x_projected = mpca.transform(x)
+        >>> x_projected.shape
         (40, 7452)
-        >>> x_transformed = mpca.transform(x)
-        >>> x_transformed.shape
+        >>> x_projected = mpca.transform(x)
+        >>> x_projected.shape
         (40, 50)
-        >>> x_rec = mpca.inverse_transform(x_transformed)
+        >>> x_rec = mpca.inverse_transform(x_projected)
         >>> x_rec.shape
         (40, 20, 25, 20)
     """
@@ -110,7 +104,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         if max_iter > 0 and isinstance(max_iter, int):
             self.max_iter = max_iter
         else:
-            msg = "Number of max iterations must be an positive integer but given %s" % max_iter
+            msg = "Number of max iterations must be a positive integer but given %s" % max_iter
             logging.error(msg)
             raise ValueError(msg)
         self.proj_mats = []
@@ -121,9 +115,8 @@ class MPCA(BaseEstimator, TransformerMixin):
         """Fit the model with input training data X.
 
         Args
-            X (array-like tensor): Input data, shape (I_1, I_2, ..., I_N, n_samples),
-                where n_samples is the number of samples, I_1, I_2, ..., I_N are the
-                dimensions of corresponding mode (1, 2, ..., N), respectively.
+            X (array-like tensor): Input data, shape (n_samples, I_1, I_2, ..., I_N), where n_samples is the number of
+                samples, I_1, I_2, ..., I_N are the dimensions of corresponding mode (1, 2, ..., N), respectively.
             y (None): Ignored variable.
 
         Returns:
@@ -145,10 +138,6 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         # init
         phi = dict()
-        # ev_sorted = dict()  # dictionary of eigenvectors for all modes/orders
-        # lambdas = dict()  # dictionary of eigenvalues for all modes/orders
-        # dictionary of cumulative distribution of eigenvalues for all modes/orders
-        # cums = dict()
         shape_out = ()
         proj_mats = []
 
@@ -160,10 +149,10 @@ class MPCA(BaseEstimator, TransformerMixin):
                     phi[i] = 0
                 phi[i] = phi[i] + np.dot(x_ji, x_ji.T)
 
+        # get the output tensor shape based on the cumulative distribution of eigenvalues for each mode
         for i in range(1, n_dim):
             eig_values, eig_vectors = np.linalg.eig(phi[i])
             idx_sorted = (-1 * eig_values).argsort()
-            # ev_sorted[i] = eig_vectors[:, idx_sorted]
             cum = eig_values[idx_sorted]
             var_tot = np.sum(cum)
 
@@ -171,16 +160,11 @@ class MPCA(BaseEstimator, TransformerMixin):
                 if np.sum(cum[:j]) / var_tot > self.var_ratio:
                     shape_out += (j,)
                     break
-            # cums[i] = cum
             proj_mats.append(eig_vectors[:, idx_sorted][:, : shape_out[i - 1]].T)
 
-        if self.return_vector and isinstance(self.n_components, int):
-            if self.n_components > np.prod(shape_out):
-                self.n_components = np.prod(shape_out)
-                warn_msg = "n_components exceeds the maximum number of components, " \
-                           "all components will be returned instead."
-                logging.warning(warn_msg)
-                warnings.warn(warn_msg)
+        # set n_components to the maximum n_features if it is None
+        if self.n_components is None:
+            self.n_components = int(np.prod(shape_out))
 
         for i_iter in range(self.max_iter):
             phi = dict()
@@ -198,15 +182,14 @@ class MPCA(BaseEstimator, TransformerMixin):
 
                 eig_values, eig_vectors = np.linalg.eig(phi[i])
                 idx_sorted = (-1 * eig_values).argsort()
-                # lambdas[i] = eig_values[idx_sorted]
                 proj_mats[i - 1] = (eig_vectors[:, idx_sorted][:, : shape_out[i - 1]]).T
 
-        tensor_pc = multi_mode_dot(x, proj_mats,
-                                   modes=[m for m in range(1, n_dim)])
-        tensor_pc_vec = unfold(tensor_pc, mode=0)  # return_vector the tensor principal components
-        # diagonal of the covariance of vectorised features
-        tensor_pc_cov_diag = np.diag(np.dot(tensor_pc_vec.T, tensor_pc_vec))
-        idx_order = (-1 * tensor_pc_cov_diag).argsort()
+        x_projected = multi_mode_dot(x, proj_mats,
+                                     modes=[m for m in range(1, n_dim)])
+        x_proj_unfold = unfold(x_projected, mode=0)  # unfold the tensor projection to shape (n_samples, n_features)
+        # x_proj_cov = np.diag(np.dot(x_proj_unfold.T, x_proj_unfold))  # covariance of unfolded features
+        x_proj_cov = np.sum(np.multiply(x_proj_unfold, x_proj_unfold), axis=1)  # memory saving computing covariance
+        idx_order = (-1 * x_proj_cov).argsort()
 
         self.proj_mats = proj_mats
         self.idx_order = idx_order
@@ -215,50 +198,48 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         return self
 
-    def transform(self, x, reduce_mean=True):
+    def transform(self, x):
         """Perform dimension reduction on X
 
         Args:
-            x (array-like tensor): Data to perform dimension reduction,
-                shape (n_samples, I_1, I_2, ..., I_N).
-            reduce_mean (bool): Whether reduce the mean estimated from training data for X.
-                Defaults to True.
+            x (array-like tensor): Data to perform dimension reduction, shape (n_samples, I_1, I_2, ..., I_N).
 
         Returns:
             array-like tensor:
-                Transformed data, shape (n_samples, P_1, P_2, ..., P_N) if self.return_vector==False.
-                If self.return_vector==True, features will be sorted based on their explained variance ratio,
-                shape (n_samples, P_1 * P_2 * ... * P_N) if self.n_components is None,
-                and shape (n_samples, n_components) if self.n_component is not None.
+                Projected data in lower dimension, shape (n_samples, P_1, P_2, ..., P_N) if self.return_vector==False.
+                If self.return_vector==True, features will be sorted based on their explained variance ratio, shape
+                (n_samples, P_1 * P_2 * ... * P_N) if self.n_components is None, and shape (n_samples, n_components)
+                if self.n_component is a valid integer.
         """
         _check_dim_shape(x, self.n_dim, self.shape_in)
-        if reduce_mean:
-            x -= self.mean_
+        x = x - self.mean_
 
-        # tensor principal components
-        tensor_pc = multi_mode_dot(
+        # projected tensor in lower dimensions
+        x_projected = multi_mode_dot(
             x, self.proj_mats,
             modes=[m for m in range(1, self.n_dim)])
 
         if self.return_vector:
-            tensor_pc = unfold(tensor_pc, mode=0)
-            tensor_pc = tensor_pc[:, self.idx_order]
+            x_projected = unfold(x_projected, mode=0)
+            x_projected = x_projected[:, self.idx_order]
             if isinstance(self.n_components, int):
-                tensor_pc = tensor_pc[:, : self.n_components]
+                if self.n_components > np.prod(self.shape_out):
+                    self.n_components = np.prod(self.shape_out)
+                    warn_msg = "n_components exceeds the maximum number, all features will be returned."
+                    logging.warning(warn_msg)
+                    warnings.warn(warn_msg)
+                x_projected = x_projected[:, : self.n_components]
 
-        return tensor_pc
+        return x_projected
 
-    def inverse_transform(self, x, add_mean=False):
-        """Reconstruct transformed data back to the original shape
+    def inverse_transform(self, x):
+        """Reconstruct projected data to the original shape and add the estimated mean back
 
         Args:
-            x (array-like tensor): Data to be transformed back. If self.return_vector == False,
-                shape (n_samples, P_1, P_2, ..., P_N), where P_1, P_2, ..., P_N are the
-                reduced dimensions of of corresponding mode (1, 2, ..., N), respectively.
-                If self.return_vector == True, shape (n_samples, self.n_components) or shape
-                (n_samples, P_1 * P_2 * ... * P_N).
-            add_mean (bool): Whether add the mean estimated from the training set to the output.
-                Defaults to False.
+            x (array-like tensor): Data to be reconstructed, shape (n_samples, P_1, P_2, ..., P_N), if
+                self.return_vector == False, where P_1, P_2, ..., P_N are the reduced dimensions of of corresponding
+                mode (1, 2, ..., N), respectively. If self.return_vector == True, shape (n_samples, self.n_components)
+                or shape (n_samples, P_1 * P_2 * ... * P_N).
 
         Returns:
             array-like tensor:
@@ -273,7 +254,7 @@ class MPCA(BaseEstimator, TransformerMixin):
             n_feat = x.shape[1]
             if n_feat <= np.prod(self.shape_out):
                 x_ = np.zeros((n_spl, np.prod(self.shape_out)))
-                x_[:, : self.idx_order[:n_feat]] = x[:]
+                x_[:, self.idx_order[:n_feat]] = x[:]
             else:
                 msg = "Feature dimension exceeds the shape upper limit."
                 logging.error(msg)
@@ -285,7 +266,6 @@ class MPCA(BaseEstimator, TransformerMixin):
                                modes=[m for m in range(1, self.n_dim)],
                                transpose=True)
 
-        if add_mean:
-            x_rec += self.mean_
+        x_rec = x_rec + self.mean_
 
         return x_rec
