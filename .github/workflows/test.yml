@@ -29,7 +29,7 @@ jobs:
         else
           pip install torch==1.7+cpu -f https://download.pytorch.org/whl/torch_stable.html;
         fi
-        pip install -r requirements.txt
+        pip install .
     - name: Run unit tests
       run: |
         python -m unittest discover
