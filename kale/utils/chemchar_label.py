@@ -1,3 +1,8 @@
+"""
+Functions for labeling and encoding chemical characters like Compound SMILES and atom string, refer to
+https://github.com/hkmztrk/DeepDTA and https://github.com/thinng/GraphDTA.
+"""
+
 import logging
 
 import numpy as np
