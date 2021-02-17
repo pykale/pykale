@@ -35,16 +35,12 @@
 
 You should [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware first. To work on graphs, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) first follow its official instructions.
 
-Install PyKale using `pip` for the core `kale` API:
+Install PyKale using `pip` :
 
 ```bash
-pip install pykale
-```
-
-Install with extra packages required for `Examples/Tutorials` and development:
-
-```sh
-pip install pykale[extras]
+pip install pykale  # for the core kale API only
+pip install pykale[extras]  # for Examples/Tutorials (including core API)
+pip install pykale[dev]  # for development (including Examples/Tutorials and core API)
 ```
 
 To upgrade to the latest (possibly unstable) version, run
@@ -60,7 +56,7 @@ git clone https://github.com/pykale/pykale
 cd pykale
 pip install .  # for core API only
 pip install .[extras]  # with extras for examples/tutorials
-pip install -e .[extras]  # editable install for developers
+pip install -e .[dev]  # editable install for developers
 ```
 
 To run the unit tests:

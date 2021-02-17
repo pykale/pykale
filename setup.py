@@ -20,16 +20,23 @@ requirements = [
     'torchvision',  # >=0.8.1
 ]
 
-# Additional dependencies for examples/tutorials and development
+# Additional dependencies for examples/tutorials
 extra_requirements = [
-    'black',
-    'flake8',
-    'flake8-print',
     'ipykernel',
     'ipython',
+    'matplotlib',
+    'torchsummary>=1.5.0',
+    'yacs>=0.1.7',
+]
+
+# Additional dependencies for development
+dev_requirements = [
+    'black',
+    'coverage',
+    'flake8',
+    'flake8-print',
     'isort',
     'm2r',
-    'matplotlib',
     'mypy',
     'nbsphinx',
     'nbval',
@@ -37,8 +44,6 @@ extra_requirements = [
     'pytest',
     'sphinx',
     'sphinx_rtd_theme',
-    'torchsummary>=1.5.0',
-    'yacs>=0.1.7',
 ]
 
 
@@ -78,7 +83,7 @@ setup(
     packages=find_packages(exclude=("docs", "examples", "tests")),
     python_requires=">=3.6",
     install_requires=requirements,
-    extras_require={'extras': extra_requirements},
+    extras_require={'extras': extra_requirements, 'dev': extra_requirements + dev_requirements},
     setup_requires=['setuptools>=38.6.0'],
     license="MIT",
     keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
