@@ -8,7 +8,6 @@
 ![Unit Tests](https://github.com/pykale/pykale/workflows/unit%20tests/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
-[![Conda](https://img.shields.io/conda/v/pykale/pykale?color=blue)](https://anaconda.org/pykale/pykale)
 [![PyPI downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
 
 [Getting Started](https://github.com/pykale/pykale/tree/master/examples) |
@@ -36,11 +35,10 @@
 
 You should [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware first. To work on graphs, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) first follow its official instructions.
 
-Install PyKale using `pip` or `conda` for the core `kale` API:
+Install PyKale using `pip` for the core `kale` API:
 
 ```bash
 pip install pykale
-conda install -c pykale pykale
 ```
 
 Install with extra packages required for `Examples/Tutorials` and development:
