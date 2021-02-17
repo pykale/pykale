@@ -43,13 +43,7 @@ pip install pykale[extras]  # for Examples/Tutorials (including core API)
 pip install pykale[dev]  # for development (including Examples/Tutorials and core API)
 ```
 
-To upgrade to the latest (possibly unstable) version, run
-
-```bash
-pip install --upgrade git+https://github.com/pykale/pykale.git
-```
-
-Install from source:
+Install from source (for the latest version):
 
 ```sh
 git clone https://github.com/pykale/pykale
