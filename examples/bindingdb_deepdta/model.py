@@ -6,6 +6,10 @@ from kale.embed.deep_dta import DeepDTAEncoder, MLPDecoder
 
 
 class LitDeepDTA(pl.LightningModule):
+    """
+    An implementation of DeepDTA model based on pytorch lightning wrapper, for more details about pytorch
+    lightning, please check https://github.com/PyTorchLightning/pytorch-lightning.
+    """
     def __init__(self, num_drug_embeddings, drug_dim, drug_length, num_filters, drug_filter_length,
                  num_target_embeddings, target_dim, target_length, target_filter_length, decoder_in_dim,
                  decoder_hidden_dim, decoder_out_dim, dropout_rate, learning_rate):
