@@ -29,7 +29,7 @@ _C.MODEL.NUM_SMILE_CHAR = 64
 _C.MODEL.NUM_ATOM_CHAR = 25
 _C.MODEL.MLP_HIDDEN_DIM = 1024
 _C.MODEL.MLP_OUT_DIM = 512
-_C.MODEL.MLP_DROPOUT = 0.1
+_C.MODEL.MLP_DROPOUT = 0.2
 
 # -----------------------------------------------------------------------------
 # Solver

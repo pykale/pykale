@@ -28,30 +28,27 @@ class LitDeepDTA(pl.LightningModule):
         return output
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.005)
+        optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
         return optimizer
 
     def training_step(self, train_batch, batch_idx):
         x_d, x_t, y = train_batch
         y_hat = self(x_d, x_t)
         loss = F.mse_loss(y_hat, y.view(-1, 1))
-        self.log("train_loss", loss)
+        self.log("train_loss", loss, on_step=False, on_epoch=True)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
         x_d, x_t, y = val_batch
         y_hat = self(x_d, x_t)
         loss = F.mse_loss(y_hat, y.view(-1, 1))
-        self.log("val_loss", loss)
-        return loss
+        self.log("val_loss", loss, on_step=False, on_epoch=True)
 
     def test_step(self, test_batch, batch_idx):
         x_d, x_t, y = test_batch
         y_hat = self(x_d, x_t)
         loss = F.mse_loss(y_hat, y.view(-1, 1))
-        self.log("test_loss", loss)
-        return loss
-
+        self.log("test_loss", loss, on_step=False, on_epoch=True)
 
 def get_model(cfg):
     # ---- encoder hyper-parameter ----
