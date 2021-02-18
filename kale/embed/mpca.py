@@ -21,26 +21,27 @@ from tensorly.base import fold, unfold
 from tensorly.tenalg import multi_mode_dot
 
 
-def _check_order(x, n_dims):
-    """Raise error if the order of the input data is not consistent with the given order value
+def _check_n_dim(x, n_dims):
+    """Raise error if the number of dimensions of the input data is not consistent with the expected value.
 
     Args:
-        x (array-like tensor): input data
-        n_dims (int): tensor order expected
+        x (array-like tensor): input data, shape (n_samples, I_1, I_2, ..., I_N)
+        n_dims (int): number of dimensions expected, i.e. N+1
 
     """
     if not x.ndim == n_dims:
-        error_msg = "The given data should be %s order tensor but given a %s order tensor" % (n_dims, x.ndim)
+        error_msg = "The expected number of dimensions is %s but it is %s for given data" % (n_dims, x.ndim)
         logging.error(error_msg)
         raise ValueError(error_msg)
 
 
 def _check_shape(x, shape_):
-    """Raise error if the shape (excluding the first order) of the input data is not consistent with the given shape
+    """Raise error if the shape for each sample (i.e. excluding the first dimension) of the input data is not consistent
+        with the given shape.
 
     Args:
-        x (array-like tensor): input data
-        shape_: shape expected
+        x (array-like tensor): input data, shape (n_samples, I_1, I_2, ..., I_N)
+        shape_: expected shape for each sample, i.e. (I_1, I_2, ..., I_N)
 
     """
     if not x.shape[1:] == shape_:
@@ -49,16 +50,17 @@ def _check_shape(x, shape_):
         raise ValueError(error_msg)
 
 
-def _check_order_shape(x, n_dims, shape_):
-    """Check whether the order of the input data is consistent with the given value of order
+def _check_tensor_dim_shape(x, n_dims, shape_):
+    """Check whether the number of dimensions of the input data and the shape for each sample are consistent with
+        expected values
 
     Args:
-        x (array-like): input data
-        n_dims (int): tensor order expected
-        shape_: shape expected
+        x (array-like): input data, shape (n_samples, I_1, I_2, ..., I_N)
+        n_dims (int): number of dimensions expected, i.e. N+1
+        shape_: expected shape for each sample, i.e. (I_1, I_2, ..., I_N)
 
     """
-    _check_order(x, n_dims)
+    _check_n_dim(x, n_dims)
     _check_shape(x, shape_)
 
 
@@ -211,7 +213,7 @@ class MPCA(BaseEstimator, TransformerMixin):
                 (n_samples, P_1 * P_2 * ... * P_N) if self.n_components is None, and shape (n_samples, n_components)
                 if self.n_component is a valid integer.
         """
-        _check_order_shape(x, self.n_dims, self.shape_in)
+        _check_tensor_dim_shape(x, self.n_dims, self.shape_in)
         x = x - self.mean_
 
         # projected tensor in lower dimensions
@@ -251,10 +253,10 @@ class MPCA(BaseEstimator, TransformerMixin):
                 # reshape x to a 2D matrix (1, n_components) if x in shape (n_components,)
                 x = x.reshape((1, -1))
             n_samples = x.shape[0]
-            n_feat = x.shape[1]
-            if n_feat <= np.prod(self.shape_out):
+            n_features = x.shape[1]
+            if n_features <= np.prod(self.shape_out):
                 x_ = np.zeros((n_samples, np.prod(self.shape_out)))
-                x_[:, self.idx_order[:n_feat]] = x[:]
+                x_[:, self.idx_order[:n_features]] = x[:]
             else:
                 msg = "Feature dimension exceeds the shape upper limit."
                 logging.error(msg)
