@@ -21,16 +21,16 @@ from tensorly.base import fold, unfold
 from tensorly.tenalg import multi_mode_dot
 
 
-def _check_ndim(x, n_dim):
+def _check_order(x, n_dims):
     """Raise error if the order of the input data is not consistent with the given order value
 
     Args:
         x (array-like tensor): input data
-        n_dim (int): tensor order expected
+        n_dims (int): tensor order expected
 
     """
-    if not x.ndim == n_dim:
-        error_msg = "The given data should be %s order tensor but given a %s order tensor" % (n_dim, x.ndim)
+    if not x.ndim == n_dims:
+        error_msg = "The given data should be %s order tensor but given a %s order tensor" % (n_dims, x.ndim)
         logging.error(error_msg)
         raise ValueError(error_msg)
 
@@ -49,16 +49,16 @@ def _check_shape(x, shape_):
         raise ValueError(error_msg)
 
 
-def _check_dim_shape(x, n_dim, shape_):
+def _check_order_shape(x, n_dims, shape_):
     """Check whether the order of the input data is consistent with the given value of order
 
     Args:
         x (array-like): input data
-        n_dim (int): tensor order expected
+        n_dims (int): tensor order expected
         shape_: shape expected
 
     """
-    _check_ndim(x, n_dim)
+    _check_order(x, n_dims)
     _check_shape(x, shape_)
 
 
@@ -129,8 +129,8 @@ class MPCA(BaseEstimator, TransformerMixin):
         """Solve MPCA"""
 
         shape_ = x.shape  # shape of input data
-        n_spl = shape_[0]  # number of samples
-        n_dim = x.ndim
+        n_samples = shape_[0]  # number of samples
+        n_dims = x.ndim
 
         self.shape_in = shape_[1:]
         self.mean_ = np.mean(x, axis=0)
@@ -141,8 +141,8 @@ class MPCA(BaseEstimator, TransformerMixin):
         shape_out = ()
         proj_mats = []
 
-        for i in range(1, n_dim):
-            for j in range(n_spl):
+        for i in range(1, n_dims):
+            for j in range(n_samples):
                 # unfold the j_th tensor along the i_th mode
                 x_ji = unfold(x[j, :], mode=i - 1)
                 if i not in phi:
@@ -150,7 +150,7 @@ class MPCA(BaseEstimator, TransformerMixin):
                 phi[i] = phi[i] + np.dot(x_ji, x_ji.T)
 
         # get the output tensor shape based on the cumulative distribution of eigenvalues for each mode
-        for i in range(1, n_dim):
+        for i in range(1, n_dims):
             eig_values, eig_vectors = np.linalg.eig(phi[i])
             idx_sorted = (-1 * eig_values).argsort()
             cum = eig_values[idx_sorted]
@@ -168,14 +168,14 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         for i_iter in range(self.max_iter):
             phi = dict()
-            for i in range(1, n_dim):  # ith mode
+            for i in range(1, n_dims):  # ith mode
                 if i not in phi:
                     phi[i] = 0
-                for j in range(n_spl):
+                for j in range(n_samples):
                     xj = multi_mode_dot(
                         x[j, :],  # jth tensor/sample
-                        [proj_mats[m] for m in range(n_dim - 1) if m != i - 1],
-                        modes=[m for m in range(n_dim - 1) if m != i - 1],
+                        [proj_mats[m] for m in range(n_dims - 1) if m != i - 1],
+                        modes=[m for m in range(n_dims - 1) if m != i - 1],
                     )
                     xj_unfold = unfold(xj, i - 1)
                     phi[i] = np.dot(xj_unfold, xj_unfold.T) + phi[i]
@@ -185,7 +185,7 @@ class MPCA(BaseEstimator, TransformerMixin):
                 proj_mats[i - 1] = (eig_vectors[:, idx_sorted][:, : shape_out[i - 1]]).T
 
         x_projected = multi_mode_dot(x, proj_mats,
-                                     modes=[m for m in range(1, n_dim)])
+                                     modes=[m for m in range(1, n_dims)])
         x_proj_unfold = unfold(x_projected, mode=0)  # unfold the tensor projection to shape (n_samples, n_features)
         # x_proj_cov = np.diag(np.dot(x_proj_unfold.T, x_proj_unfold))  # covariance of unfolded features
         x_proj_cov = np.sum(np.multiply(x_proj_unfold, x_proj_unfold), axis=1)  # memory saving computing covariance
@@ -194,7 +194,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         self.proj_mats = proj_mats
         self.idx_order = idx_order
         self.shape_out = shape_out
-        self.n_dim = n_dim
+        self.n_dims = n_dims
 
         return self
 
@@ -211,13 +211,13 @@ class MPCA(BaseEstimator, TransformerMixin):
                 (n_samples, P_1 * P_2 * ... * P_N) if self.n_components is None, and shape (n_samples, n_components)
                 if self.n_component is a valid integer.
         """
-        _check_dim_shape(x, self.n_dim, self.shape_in)
+        _check_order_shape(x, self.n_dims, self.shape_in)
         x = x - self.mean_
 
         # projected tensor in lower dimensions
         x_projected = multi_mode_dot(
             x, self.proj_mats,
-            modes=[m for m in range(1, self.n_dim)])
+            modes=[m for m in range(1, self.n_dims)])
 
         if self.return_vector:
             x_projected = unfold(x_projected, mode=0)
@@ -250,20 +250,20 @@ class MPCA(BaseEstimator, TransformerMixin):
             if x.ndim == 1:
                 # reshape x to a 2D matrix (1, n_components) if x in shape (n_components,)
                 x = x.reshape((1, -1))
-            n_spl = x.shape[0]
+            n_samples = x.shape[0]
             n_feat = x.shape[1]
             if n_feat <= np.prod(self.shape_out):
-                x_ = np.zeros((n_spl, np.prod(self.shape_out)))
+                x_ = np.zeros((n_samples, np.prod(self.shape_out)))
                 x_[:, self.idx_order[:n_feat]] = x[:]
             else:
                 msg = "Feature dimension exceeds the shape upper limit."
                 logging.error(msg)
                 raise ValueError(msg)
 
-            x = fold(x_, mode=0, shape=((n_spl,) + self.shape_out))
+            x = fold(x_, mode=0, shape=((n_samples,) + self.shape_out))
 
         x_rec = multi_mode_dot(x, self.proj_mats,
-                               modes=[m for m in range(1, self.n_dim)],
+                               modes=[m for m in range(1, self.n_dims)],
                                transpose=True)
 
         x_rec = x_rec + self.mean_
