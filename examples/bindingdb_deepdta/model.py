@@ -2,13 +2,13 @@ import pytorch_lightning as pl
 import torch
 from torch.nn import functional as F
 
-from kale.embed.deepdta import DeepDTAEncoder, MLPDecoder
+from kale.embed.deep_dta import DeepDTAEncoder, MLPDecoder
 
 
 class LitDeepDTA(pl.LightningModule):
     def __init__(self, num_drug_embeddings, drug_dim, drug_length, num_filters, drug_filter_length,
                  num_target_embeddings, target_dim, target_length, target_filter_length, decoder_in_dim,
-                 decoder_hidden_dim, decoder_out_dim, dropout):
+                 decoder_hidden_dim, decoder_out_dim, dropout_rate, learning_rate):
         super().__init__()
         self.drug_encoder = DeepDTAEncoder(num_embeddings=num_drug_embeddings, embedding_dim=drug_dim,
                                            sequence_length=drug_length, num_kernels=num_filters,
@@ -18,37 +18,39 @@ class LitDeepDTA(pl.LightningModule):
                                              sequence_length=target_length, num_kernels=num_filters,
                                              kernel_length=target_filter_length)
         self.decoder = MLPDecoder(in_dim=decoder_in_dim, hidden_dim=decoder_hidden_dim,
-                                  out_dim=decoder_out_dim, dropout=dropout)
+                                  out_dim=decoder_out_dim, dropout=dropout_rate)
+        self.lr = learning_rate
 
-    def forward(self, x_d, x_t):
-        drug_emb = self.drug_encoder(x_d)
-        target_emb = self.target_encoder(x_t)
-        com_emb = torch.cat((drug_emb, target_emb), dim=1)
-        output = self.decoder(com_emb)
+    def forward(self, x_drug, x_target):
+        drug_emb = self.drug_encoder(x_drug)
+        target_emb = self.target_encoder(x_target)
+        comb_emb = torch.cat((drug_emb, target_emb), dim=1)
+        output = self.decoder(comb_emb)
         return output
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
         return optimizer
 
     def training_step(self, train_batch, batch_idx):
-        x_d, x_t, y = train_batch
-        y_hat = self(x_d, x_t)
-        loss = F.mse_loss(y_hat, y.view(-1, 1))
+        x_drug, x_target, y = train_batch
+        y_pred = self(x_drug, x_target)
+        loss = F.mse_loss(y_pred, y.view(-1, 1))
         self.log("train_loss", loss, on_step=False, on_epoch=True)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
-        x_d, x_t, y = val_batch
-        y_hat = self(x_d, x_t)
-        loss = F.mse_loss(y_hat, y.view(-1, 1))
+        x_drug, x_target, y = val_batch
+        y_pred = self(x_drug, x_target)
+        loss = F.mse_loss(y_pred, y.view(-1, 1))
         self.log("val_loss", loss, on_step=False, on_epoch=True)
 
     def test_step(self, test_batch, batch_idx):
-        x_d, x_t, y = test_batch
-        y_hat = self(x_d, x_t)
-        loss = F.mse_loss(y_hat, y.view(-1, 1))
+        x_drug, x_target, y = test_batch
+        y_pred = self(x_drug, x_target)
+        loss = F.mse_loss(y_pred, y.view(-1, 1))
         self.log("test_loss", loss, on_step=False, on_epoch=True)
+
 
 def get_model(cfg):
     # ---- encoder hyper-parameter ----
@@ -66,10 +68,13 @@ def get_model(cfg):
     decoder_in_dim = cfg.MODEL.MLP_IN_DIM
     decoder_hidden_dim = cfg.MODEL.MLP_HIDDEN_DIM
     decoder_out_dim = cfg.MODEL.MLP_OUT_DIM
-    dropout = cfg.MODEL.MLP_DROPOUT
+    dropout_rate = cfg.MODEL.MLP_DROPOUT_RATE
+
+    # ---- learning rate ----
+    lr = cfg.SOLVER.LR
 
     model = LitDeepDTA(num_drug_embeddings, drug_dim, drug_length, num_filters, drug_filter_length,
                        num_target_embeddings, target_dim, target_length, target_filter_length, decoder_in_dim,
-                       decoder_hidden_dim, decoder_out_dim, dropout)
+                       decoder_hidden_dim, decoder_out_dim, dropout_rate, lr)
 
     return model
