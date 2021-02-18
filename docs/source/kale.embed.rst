@@ -20,7 +20,9 @@ kale.embed.deepdta module
 .. automodule:: kale.embed.deepdta
    :members:
    :undoc-members:
-   :show-inheritance: bysource
+   :show-inheritance:
+   :exclude-members:
+   :member-order: bysource
 
 kale.embed.gcn module
 ----------------------------
