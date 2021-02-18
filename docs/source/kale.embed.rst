@@ -14,10 +14,10 @@ kale.embed.attention\_cnn module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.deepdta module
+kale.embed.deep_dta module
 --------------------------------
 
-.. automodule:: kale.embed.deepdta
+.. automodule:: kale.embed.deep_dta
    :members:
    :undoc-members:
    :show-inheritance:
