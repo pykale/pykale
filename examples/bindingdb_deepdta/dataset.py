@@ -10,12 +10,13 @@ class DTIDeepDataset(Dataset):
     A custom dataset for loading and processing original TDC data, which is used as input data in DeepDTA model.
     Args:
          dataset (str): TDC dataset name.
+         path (str): dataset download/local load path (default: "./data")
          split (str): Data split type (train, valid or test).
          transform: Transform operation (default: None)
          y_log (bool): Whether convert y values to log space. (default: True)
     """
-    def __init__(self, dataset, split="train", transform=None, y_log=True):
-        self.data = DTI(name=dataset)
+    def __init__(self, dataset, path='./data', split="train", transform=None, y_log=True):
+        self.data = DTI(name=dataset, path=path)
         if y_log:
             self.data.convert_to_log()
         self.data = self.data.get_split()[split]

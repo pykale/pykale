@@ -81,16 +81,16 @@ class MLPDecoder(nn.Module):
         in_dim (int): Dimension of input feature.
         hidden_dim (int): Dimension of hidden layers.
         out_dim (int): Dimension of output layer.
-        dropout (float): probability of an element to be zeroed.
+        dropout_rate (float): probability of an element to be zeroed.
     """
-    def __init__(self, in_dim, hidden_dim, out_dim, dropout=0.1):
+    def __init__(self, in_dim, hidden_dim, out_dim, dropout_rate=0.1):
         super(MLPDecoder, self).__init__()
         self.fc1 = nn.Linear(in_dim, hidden_dim)
         self.fc2 = nn.Linear(hidden_dim, hidden_dim)
         self.fc3 = nn.Linear(hidden_dim, out_dim)
         self.fc4 = nn.Linear(out_dim, 1)
         torch.nn.init.normal_(self.fc4.weight)
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))

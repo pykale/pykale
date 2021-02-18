@@ -22,7 +22,7 @@ class LitDeepDTA(pl.LightningModule):
                                              sequence_length=target_length, num_kernels=num_filters,
                                              kernel_length=target_filter_length)
         self.decoder = MLPDecoder(in_dim=decoder_in_dim, hidden_dim=decoder_hidden_dim,
-                                  out_dim=decoder_out_dim, dropout=dropout_rate)
+                                  out_dim=decoder_out_dim, dropout_rate=dropout_rate)
         self.lr = learning_rate
 
     def forward(self, x_drug, x_target):
