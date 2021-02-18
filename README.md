@@ -9,7 +9,6 @@
 [![Code Coverage](https://codecov.io/github/pykale/pykale/coverage.svg?branch=master&token=)](https://codecov.io/gh/pykale/pykale)
 [![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
-[![Conda](https://img.shields.io/conda/v/pykale/pykale?color=blue)](https://anaconda.org/pykale/pykale)
 [![PyPI downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
 
 [Getting Started](https://github.com/pykale/pykale/tree/master/examples) |
@@ -37,33 +36,21 @@
 
 You should [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware first. To work on graphs, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) first follow its official instructions.
 
-Install PyKale using `pip` or `conda` for the core `kale` API:
+Install PyKale using `pip` for the stable version:
 
 ```bash
-pip install pykale
-conda install -c pykale pykale
+pip install pykale  # for the core kale API only
+pip install pykale[extras]  # for Examples/Tutorials (including core API)
 ```
 
-Install with extra packages required for `Examples/Tutorials` and development:
-
-```sh
-pip install pykale[extras]
-```
-
-To upgrade to the latest (possibly unstable) version, run
-
-```bash
-pip install --upgrade git+https://github.com/pykale/pykale.git
-```
-
-Install from source:
+Install from source for the latest version and/or development:
 
 ```sh
 git clone https://github.com/pykale/pykale
 cd pykale
 pip install .  # for core API only
 pip install .[extras]  # with extras for examples/tutorials
-pip install -e .[extras]  # editable install for developers
+pip install -e .[dev]  # editable install for developers including all dependencies
 ```
 
 To run the unit tests:

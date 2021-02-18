@@ -17,5 +17,4 @@ On the right (delete these after selection):
 - [x] Non-breaking change (fix or new feature that would not break existing functionality).
 - [ ] Breaking change (fix or new feature that would cause existing functionality to change).
 - [ ] New tests added to cover the changes.
-- [ ] In-line docstrings updated.
-- [ ] Documentation updated, tested `make html` command in the `docs/` folder.
+- [ ] In-line docstrings updated and documentation `docs` updated.

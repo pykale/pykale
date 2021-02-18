@@ -225,7 +225,7 @@ We set up [project boards](https://github.com/pykale/pykale/projects) to manage 
 
 We have adopted the following GitHub automation
 
-- [Automerge](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/automatically-merging-a-pull-request): merges automatically when all reviews are completed and checks are passed.
+- [Automerge](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/automatically-merging-a-pull-request): merges automatically when 1) one approving review is completed; 2) all CI checks have passed; and 3) one maintainer has **enabled the auto-merge** for a PR.
 - [Auto branch deletion](https://github.blog/changelog/2019-07-31-automatically-delete-head-branches-of-pull-requests/): deletes the head branches automatically after pull requests are merged. Deleted branches can be restored if needed.
 - [Project board automation](https://docs.github.com/en/github/managing-your-work-on-github/about-automation-for-project-boards): automates project board card management.
 
