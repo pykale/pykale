@@ -9,8 +9,9 @@
 [Suggest improvements](#suggest-improvements) |
 [*Branch, fork & pull*](#branch-fork-and-pull) |
 [*Coding style*](#coding-style) |
-[**Review & merge**](#review-and-merge-pull-requests) |
-[**Release & management**](#release-and-management)
+[*Test*](#testing) |
+[Review & merge](#review-and-merge-pull-requests) |
+[Release & management](#release-and-management)
 
 Thank you for your interest! You can contribute to the PyKale project in a wide range of ways listed above, from light to heavy involvements. You can also reach us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a> if needed. The participation in this open source project is subject to [Code of Conduct](https://github.com/pykale/pykale/blob/master/CODE_OF_CONDUCT.md).
 
@@ -100,9 +101,9 @@ Run [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https
 
 For continuous integration (CI) and continuous deployment (CD), we use several [GitHub workflows (actions)](https://github.com/pykale/pykale/actions) that will be triggered upon a push or pull request as specified at [`pykale/.github/workflows/`](https://github.com/pykale/pykale/tree/master/.github/workflows)
 
-- Build: install Python dependencies (set up).
+- Build: install Python dependencies (set up)
 - Linting: run flake8 and pre-commit
-- Unit tests: simple unit tests
+- Tests: unit and regression tests (in progress)
 
 We will make the above more complete and rigorous, e.g. with more tests and code coverage analysis etc.
 
@@ -158,11 +159,11 @@ Data needed for testing should be placed in `tests/data`. This should be limited
 Consider adding parameters (or objects etc.) that may be useful to multiple tests as fixtures in a [`conftest.py`](
 https://docs.pytest.org/en/stable/fixture.html#conftest-py-sharing-fixtures-across-multiple-files) file, either in `tests/` or the appropriate sub-module.
 
-#### Testing data frames and arrays
+#### Testing DataFrames and arrays
 
-Comparisons / assertions involving `pandas` `data frames` (or other `pandas` objects) should be made using `pandas` utility functions: [`pandas.testing.assert_frame_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_frame_equal.html), [`pandas.testing.assert_series_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_series_equal.html), [`pandas.testing.assert_index_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_index_equal.html), [`pandas.testing.assert_extension_array_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_extension_array_equal.html).
+Comparisons / assertions involving `pandas` `DataFrames` (or other `pandas` objects) should be made using `pandas` utility functions: [`pandas.testing.assert_frame_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_frame_equal.html), [`pandas.testing.assert_series_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_series_equal.html), [`pandas.testing.assert_index_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_index_equal.html), [`pandas.testing.assert_extension_array_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_extension_array_equal.html).
 
-Comparisons / assertions involving `numpy` `arrays` (or other `numpy` objects) should be made using [`numpy` testing routines](https://numpy.org/doc/stable/reference/routines.testing.html). `numpy` floting point "problem" response will be [as default](https://numpy.org/doc/stable/reference/generated/numpy.seterr.html#numpy.seterr).
+Comparisons / assertions involving `numpy` `arrays` (or other `numpy` objects) should be made using [`numpy` testing routines](https://numpy.org/doc/stable/reference/routines.testing.html). `numpy` floating point "problem" response will be [as default](https://numpy.org/doc/stable/reference/generated/numpy.seterr.html#numpy.seterr).
 
 #### Random Numbers
 
@@ -205,7 +206,7 @@ For simple problems, such as typos, hyperlinks, the reviewers can fix it directl
 
 ### Release and management
 
-The first release is done manually and we will consider a workflow to automate it in future.
+The release will be done manually in GitHub, but with automatic upload to PyPI.
 
 #### Versions
 
