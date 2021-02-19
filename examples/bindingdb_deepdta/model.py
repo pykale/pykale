@@ -10,20 +10,27 @@ class LitDeepDTA(pl.LightningModule):
     An implementation of DeepDTA model based on pytorch lightning wrapper, for more details about pytorch
     lightning, please check https://github.com/PyTorchLightning/pytorch-lightning.
     """
-    def __init__(self, num_drug_embeddings, drug_dim, drug_length, num_filters, drug_filter_length,
-                 num_target_embeddings, target_dim, target_length, target_filter_length, decoder_in_dim,
-                 decoder_hidden_dim, decoder_out_dim, dropout_rate, learning_rate):
+    def __init__(self, num_drug_embeddings, drug_dim, drug_length, drug_filter_length, num_target_embeddings,
+                 target_dim, target_length, target_filter_length, decoder_in_dim, **kwargs):
+        prop_defaults = {
+            "dropout_rate": 0.2,
+            "learning_rate": 0.001,
+            "num_filters": 32,
+            "decoder_hidden_dim": 1204,
+            "decoder_out_dim": 512
+        }
+        self.__dict__.update(prop_defaults)
+        self.__dict__.update(kwargs)
         super().__init__()
         self.drug_encoder = DeepDTAEncoder(num_embeddings=num_drug_embeddings, embedding_dim=drug_dim,
-                                           sequence_length=drug_length, num_kernels=num_filters,
+                                           sequence_length=drug_length, num_kernels=self.num_filters,
                                            kernel_length=drug_filter_length)
 
         self.target_encoder = DeepDTAEncoder(num_embeddings=num_target_embeddings, embedding_dim=target_dim,
-                                             sequence_length=target_length, num_kernels=num_filters,
+                                             sequence_length=target_length, num_kernels=self.num_filters,
                                              kernel_length=target_filter_length)
-        self.decoder = MLPDecoder(in_dim=decoder_in_dim, hidden_dim=decoder_hidden_dim,
-                                  out_dim=decoder_out_dim, dropout_rate=dropout_rate)
-        self.lr = learning_rate
+        self.decoder = MLPDecoder(in_dim=decoder_in_dim, hidden_dim=self.decoder_hidden_dim,
+                                  out_dim=self.decoder_out_dim, dropout_rate=self.dropout_rate)
 
     def forward(self, x_drug, x_target):
         drug_emb = self.drug_encoder(x_drug)
@@ -33,7 +40,7 @@ class LitDeepDTA(pl.LightningModule):
         return output
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         return optimizer
 
     def training_step(self, train_batch, batch_idx):
@@ -77,8 +84,9 @@ def get_model(cfg):
     # ---- learning rate ----
     lr = cfg.SOLVER.LR
 
-    model = LitDeepDTA(num_drug_embeddings, drug_dim, drug_length, num_filters, drug_filter_length,
-                       num_target_embeddings, target_dim, target_length, target_filter_length, decoder_in_dim,
-                       decoder_hidden_dim, decoder_out_dim, dropout_rate, lr)
+    model = LitDeepDTA(num_drug_embeddings, drug_dim, drug_length, drug_filter_length, num_target_embeddings,
+                       target_dim, target_length, target_filter_length, decoder_in_dim, num_filters=num_filters,
+                       decoder_hidden_dim=decoder_hidden_dim, decoder_out_dim=decoder_out_dim,
+                       dropout_rate=dropout_rate, learning_rate=lr)
 
     return model
