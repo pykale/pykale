@@ -36,15 +36,24 @@ CHARATOMSET = ['C', 'N', 'O', 'S', 'F', 'Si', 'P', 'Cl', 'Br', 'Mg', 'Na', 'Ca',
 CHARATOMLEN = 44
 
 
-def label_isosmile(smile, max_length=85, iso=False):
-    if not iso:
-        mol = Chem.MolFromSmiles(smile)
+def integer_label_smiles(smiles, max_length=85, isomeric=False):
+    """
+    Integer encoding for SMILES string sequence.
+
+    Args:
+        smiles (str): Simplified molecular-input line-entry system, which is a specification in the form of a line
+        notation for describing the structure of chemical species using short ASCII strings.
+        max_length (int): Maximum encoding length of input SMILES string. (default: 85)
+        isomeric (bool): Whether the input SMILES string includes isomeric information (default: False).
+    """
+    if not isomeric:
+        mol = Chem.MolFromSmiles(smiles)
         if mol is None:
-            logging.warning(f"rdkit cannot find this SMILES {smile}.")
+            logging.warning(f"rdkit cannot find this SMILES {smiles}.")
             return None
-        smile = Chem.MolToSmiles(Chem.MolFromSmiles(smile), isomericSmiles=True)
+        smiles = Chem.MolToSmiles(Chem.MolFromSmiles(smiles), isomericSmiles=True)
     encoding = np.zeros(max_length)
-    for idx, letter in enumerate(smile[:max_length]):
+    for idx, letter in enumerate(smiles[:max_length]):
         try:
             encoding[idx] = CHARISOSMISET[letter]
         except KeyError:
@@ -54,7 +63,14 @@ def label_isosmile(smile, max_length=85, iso=False):
     return encoding
 
 
-def label_prot(sequence, max_length=1200):
+def integer_label_protein(sequence, max_length=1200):
+    """
+    Integer encoding for protein string sequence.
+
+    Args:
+        sequence (str): protein string sequence.
+        max_length: Maximum encoding length of input protein string. (default: 1200)
+    """
     encoding = np.zeros(max_length)
     for idx, letter in enumerate(sequence[:max_length]):
         try:
@@ -63,20 +79,3 @@ def label_prot(sequence, max_length=1200):
             logging.warning(f"character {letter} does not exists in sequence category encoding, skip and treat as "
                             f"padding.")
     return encoding
-
-
-def atom_one_hot(atom):
-    return np.array(one_hot(atom.GetSymbol(), CHARATOMSET)
-                    + one_hot(atom.GetDegree(), [i for i in range(10)])
-                    + one_hot(atom.GetTotalNumHs(), [i for i in range(10)])
-                    + one_hot(atom.GetImplicitValence(), [i for i in range(10)])
-                    + [atom.GetIsAromatic()])
-
-
-def one_hot(x, category_set, allow_unknown=True):
-    if x not in category_set:
-        if allow_unknown:
-            x = category_set[-1]
-        else:
-            raise Exception(f"input {x} not in allowed category set")
-    return list(map(lambda s: x == s, category_set))

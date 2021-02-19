@@ -2,7 +2,7 @@ import torch
 from tdc.multi_pred import DTI
 from torch.utils.data import Dataset
 
-from kale.prepdata.chemical_transform import label_isosmile, label_prot
+from kale.prepdata.chemical_transform import integer_label_protein, integer_label_smiles
 
 
 class DTIDeepDataset(Dataset):
@@ -33,7 +33,7 @@ class DTIDeepDataset(Dataset):
         Represent a map from index to data sample. The drug and target sequences are transformed by integer/label
         encoding.
         """
-        x_drug = torch.LongTensor(label_isosmile(self.drug_smile[idx]))
-        x_target = torch.LongTensor(label_prot(self.prot_sequence[idx]))
+        x_drug = torch.LongTensor(integer_label_smiles(self.drug_smile[idx]))
+        x_target = torch.LongTensor(integer_label_protein(self.prot_sequence[idx]))
         y = torch.Tensor([self.y[idx]])
         return x_drug, x_target, y

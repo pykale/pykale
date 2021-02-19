@@ -38,6 +38,13 @@ kale.prepdata.tensor\_reshape module
    :undoc-members:
    :show-inheritance:
 
+kale.prepdata.chemical_transform module
+------------------------------------
+
+.. automodule:: kale.prepdata.chemical_transform
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------
