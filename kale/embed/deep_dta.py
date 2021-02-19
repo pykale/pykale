@@ -51,7 +51,7 @@ class DrugGCNEncoder(nn.Module):
     Args:
         in_channel (int): Dimension of each input node feature.
         out_channel (int): Dimension of each output node feature.
-        dropout_rate (float): Dropout rate (probability of an element to be zeroed in after full connected layer).
+        dropout_rate (float): dropout rate during training.
     """
     def __init__(self, in_channel=78, out_channel=128, dropout_rate=0.2):
         super(DrugGCNEncoder, self).__init__()
@@ -81,7 +81,7 @@ class MLPDecoder(nn.Module):
         in_dim (int): Dimension of input feature.
         hidden_dim (int): Dimension of hidden layers.
         out_dim (int): Dimension of output layer.
-        dropout_rate (float): probability of an element to be zeroed.
+        dropout_rate (float): dropout rate during training.
     """
     def __init__(self, in_dim, hidden_dim, out_dim, dropout_rate=0.1):
         super(MLPDecoder, self).__init__()

@@ -2,7 +2,7 @@ import torch
 from tdc.multi_pred import DTI
 from torch.utils.data import Dataset
 
-from kale.utils.chemchar_label import label_isosmile, label_prot
+from kale.prepdata.chemical_transform import label_isosmile, label_prot
 
 
 class DTIDeepDataset(Dataset):
