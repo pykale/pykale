@@ -6,6 +6,7 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/mod
 """
 
 import torch.nn as nn
+from kale.embed.video_i3d import Unit3D
 
 
 # Previously FFSoftmaxClassifier
@@ -21,13 +22,13 @@ class SoftmaxNet(nn.Module):
     """
 
     def __init__(
-        self,
-        input_dim=15,
-        n_classes=2,
-        name="c",
-        hidden=(),
-        activation_fn=nn.ReLU,
-        **activation_args,
+            self,
+            input_dim=15,
+            n_classes=2,
+            name="c",
+            hidden=(),
+            activation_fn=nn.ReLU,
+            **activation_args,
     ):
 
         super(SoftmaxNet, self).__init__()
@@ -137,7 +138,7 @@ class ClassNetVideo(nn.Module):
         self.fc1 = nn.Linear(input_size, 256)
         self.bn1 = nn.BatchNorm1d(256)
         self.relu1 = nn.ReLU()
-        self.dp1 = nn.Dropout2d()
+        self.dp1 = nn.Dropout2d(p=0)
         self.fc2 = nn.Linear(256, 128)
         self.bn2 = nn.BatchNorm1d(128)
         self.relu2 = nn.ReLU()
@@ -150,4 +151,48 @@ class ClassNetVideo(nn.Module):
         x = self.dp1(self.relu1(self.bn1(self.fc1(input))))
         x = self.relu2(self.bn2(self.fc2(x)))
         x = self.fc3(x)
+        return x
+
+
+# TODO
+# Dima's classifier
+class ClassNetVideoConv(nn.Module):
+    def __init__(self, input_size=1024, n_class=8):
+        super(ClassNetVideoConv, self).__init__()
+        self.dp = nn.Dropout()
+        self.logits = Unit3D(
+            in_channels=input_size,
+            output_channels=n_class,
+            kernel_shape=[1, 1, 1],
+            padding=0,
+            activation_fn=None,
+            use_batch_norm=False,
+            use_bias=True,
+        )
+
+    def forward(self, input):
+        x = self.logits(self.dp(input))
+        return x
+
+
+# TODO
+# For Video/Action Recognition, DomainClassifier.
+class DomainNetVideo(nn.Module):
+    """Domain classifier network for video input
+
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
+    """
+
+    def __init__(self, input_size=128):
+        super(DomainNetVideo, self).__init__()
+
+        self.fc1 = nn.Linear(input_size, 100)
+        self.bn1 = nn.BatchNorm1d(100)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(100, 2)
+
+    def forward(self, input):
+        x = self.relu1(self.bn1(self.fc1(input)))
+        x = self.fc2(x)
         return x
