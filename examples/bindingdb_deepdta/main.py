@@ -3,10 +3,11 @@ import argparse
 import pytorch_lightning as pl
 import torch
 from config import get_cfg_defaults
-from dataset import DTIDeepDataset
 from model import get_model
 from pytorch_lightning.loggers import CSVLogger, TensorBoardLogger
 from torch.utils.data import DataLoader
+
+from kale.loaddata.tdc_datasets import BindingDBDataset
 
 
 def arg_parse():
@@ -31,9 +32,9 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # ---- set dataset ----
-    train_dataset = DTIDeepDataset(dataset=cfg.DATASET.NAME, split="train")
-    val_dataset = DTIDeepDataset(dataset=cfg.DATASET.NAME, split="valid")
-    test_dataset = DTIDeepDataset(dataset=cfg.DATASET.NAME, split="test")
+    train_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="train")
+    val_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="valid")
+    test_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="test")
     train_loader = DataLoader(dataset=train_dataset, shuffle=True, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE)
     val_loader = DataLoader(dataset=val_dataset, shuffle=True, batch_size=cfg.SOLVER.TEST_BATCH_SIZE)
     test_loader = DataLoader(dataset=test_dataset, shuffle=True, batch_size=cfg.SOLVER.TEST_BATCH_SIZE)
