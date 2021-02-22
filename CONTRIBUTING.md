@@ -206,7 +206,29 @@ https://numpy.org/doc/stable/reference/generated/numpy.seterr.html#numpy.seterr)
 
 #### Side effects
 
-Be aware that the code for which you are adding a test may have side effects (e.g. a function changing something in a file or database, as well as returning a variable). Minimising side effects makes code easier to test. Try and minimise side effects and ensure, where present, they are covered by tests.
+Be aware that the code for which you are adding a test may have [side effects](https://en.wikipedia.org/wiki/Side_effect_(computer_science)) (e.g. a function changing something in a file or database, as well as returning a variable). e.g.
+
+```{python}
+import math
+
+def add(numbers):
+  math.pi += numbers[1] # Add first number in list to math.pi
+  return sum(numbers) # Add list of numbers together
+
+print("Sum:", add([1, 1])) # Show numbers are added
+print("pi:", math.pi) # Show side effect
+```
+
+will output:
+
+```
+Sum: 2
+pi: 4.141592653589793
+```
+
+...having redefined the value of `math.pi`! `math.pi` will be redefined each time the function is run and nothing returned by the function gives any indication this has happended.
+
+Minimising side effects makes code easier to test. Try and minimise side effects and ensure, where present, they are covered by tests.
 
 ## Heavy involvements (maintainers)
 
