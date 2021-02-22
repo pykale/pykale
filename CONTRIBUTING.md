@@ -136,11 +136,13 @@ We aim to design the core `kale` modules to be highly **reusable**, generic, and
 
 ### Testing
 
-All new code should be covered by [unit tests](https://en.wikipedia.org/wiki/Unit_testing), and [regression tests](https://en.wikipedia.org/wiki/Regression_testing) where appropriate. We will extend test coverage to exisiting code.
+All new code should be covered by [unit tests](https://carpentries-incubator.github.io/python-testing/04-units/index.html), and [regression tests](https://carpentries-incubator.github.io/python-testing/07-integration/index.html) where appropriate. We will extend test coverage to exisiting code.
+
+Definitions of different types of tests can be somewhat subjective. These guidelines are intended to enable `pykale` to have a high level of test coverage, for these tests to address suffciently compact pieces of code such that it is easy to identify causes of faliure and for tests to also cover larger workflows such that confidence can be built in reproduciblity of outputs.
 
 Please use [pykale discussions](https://github.com/pykale/pykale/discussions/testing) to talk about tests and ask for help.
 
-Refer to the [official pytest documentation](https://docs.pytest.org/en/stable/), or less formal [general advice on testing](https://realpython.com/python-testing/), if needed. This will help you to write tests and help with decisions on what aspects of your code need to be tested. There is some subjectivity involved in deciding how much of the potential behaviour of your code to check.
+Refer to the [official pytest documentation](https://docs.pytest.org/en/stable/), or less formal [python testing software carpentry (alpha)](https://carpentries-incubator.github.io/python-testing/), if needed. This will help you to write tests and help with decisions on what aspects of your code need to be tested. There is some subjectivity involved in deciding how much of the potential behaviour of your code to check.
 
 #### Test runner
 
@@ -152,11 +154,15 @@ A **unit test** checks that a small "unit" of software (e.g. a function) perform
 
 Within the `tests/` folder is a folder structure that mimics that of the `kale` python module. Unit tests for code in a given file in `kale/` should be placed in their equivalent file in `tests/` e.g. unit tests for a function in `pykale/kale/loaddata/cifar_access.py` should be located in `pykale/tests/loaddata/test_cifar_access.py`.
 
+Philosophically, the author of a "unit" of code knows exactly what it should do and can write the test criteria accordingly.
+
 #### Regression tests
 
-A **regression test** checks that software produces the same results after a change is made. A single regression test might test loading some input files, setting up a model and generating a plot based on the model. This could be achieved by running the software with previously stored baseline inputs and checking the output is the same as previously stored baseline outputs.
+A **regression test** checks that software produces the same results after a change is made. In `pykale`, we expect regression tests to achieve this by testing several different parts of the software at once (in effect, an [integration test](https://carpentries-incubator.github.io/python-testing/07-integration/index.html)). A single regression test might test *loading some input files*, *setting up a model* and *generating a plot* based on the model. This could be achieved by running the software with previously stored baseline inputs and checking the output is the same as previously stored baseline outputs.
 
 Regression tests should be placed in `tests/regression`. Further subfolders can be added, as required. We plan to add regression tests covering exisiting functionality based on examples in the `examples/` folder.
+
+Philosophically, regression tests treat the "past as truth" - the correct output / behaviour is the way it worked before a change.
 
 #### Test data
 
