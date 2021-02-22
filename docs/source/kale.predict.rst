@@ -30,6 +30,14 @@ kale.predict.losses module
    :undoc-members:
    :show-inheritance:
 
+kale.predict.decode module
+--------------------------
+
+.. automodule:: kale.predict.decode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------

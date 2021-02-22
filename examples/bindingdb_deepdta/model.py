@@ -1,5 +1,6 @@
-from kale.embed.deep_dta import DeepDTAEncoder, MLPDecoder
+from kale.embed.seq_nn import CNNEncoder
 from kale.pipeline.deep_dti import DeepDTATrainer
+from kale.predict.decode import MLPDecoder
 
 
 def get_model(cfg):
@@ -14,13 +15,13 @@ def get_model(cfg):
     drug_filter_length = cfg.MODEL.DRUG_FILTER_LENGTH
     target_filter_length = cfg.MODEL.TARGET_FILTER_LENGTH
 
-    drug_encoder = DeepDTAEncoder(num_embeddings=num_drug_embeddings, embedding_dim=drug_dim,
-                                  sequence_length=drug_length, num_kernels=num_filters,
-                                  kernel_length=drug_filter_length)
+    drug_encoder = CNNEncoder(num_embeddings=num_drug_embeddings, embedding_dim=drug_dim,
+                              sequence_length=drug_length, num_kernels=num_filters,
+                              kernel_length=drug_filter_length)
 
-    target_encoder = DeepDTAEncoder(num_embeddings=num_target_embeddings, embedding_dim=target_dim,
-                                    sequence_length=target_length, num_kernels=num_filters,
-                                    kernel_length=target_filter_length)
+    target_encoder = CNNEncoder(num_embeddings=num_target_embeddings, embedding_dim=target_dim,
+                                sequence_length=target_length, num_kernels=num_filters,
+                                kernel_length=target_filter_length)
 
     # ---- decoder hyper-parameter ----
     decoder_in_dim = cfg.MODEL.MLP_IN_DIM
