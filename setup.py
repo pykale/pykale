@@ -42,6 +42,7 @@ dev_requirements = [
     'nbval',
     'pre-commit',
     'pytest',
+    'pytest-cov',
     'sphinx',
     'sphinx-rtd-theme',
 ]

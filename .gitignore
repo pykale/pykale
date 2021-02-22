@@ -13,6 +13,9 @@ dist/
 # Pycharm
 .idea
 
+# vscode
+.vscode
+
 # Data and outputs
 examples/data/
 examples/*/data/
@@ -24,3 +27,6 @@ examples/action_dann_lightn/configs_xianyuan/
 # Sphinx documentation
 docs/build/
 docs/source/backup
+
+# Testing
+.coverage

@@ -29,7 +29,11 @@ jobs:
         else
           pip install torch==1.7+cpu -f https://download.pytorch.org/whl/torch_stable.html;
         fi
-        pip install .
+        pip install -e .[dev]
     - name: Run unit tests
       run: |
-        python -m unittest discover
+        pytest --cov=kale
+    - name: Report coverage
+      run: |
+        coverage xml
+        bash <(curl -s https://codecov.io/bash)

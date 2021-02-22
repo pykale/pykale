@@ -4,8 +4,7 @@
 
 -----------------------------------------
 
-![build](https://github.com/pykale/pykale/workflows/build/badge.svg)
-![Unit Tests](https://github.com/pykale/pykale/workflows/unit%20tests/badge.svg)
+![tests](https://github.com/pykale/pykale/workflows/test/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
 [![PyPI downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
@@ -55,7 +54,7 @@ pip install -e .[dev]  # editable install for developers including all dependenc
 To run the unit tests:
 
 ```bash
-python -m unittest
+pytest
 ```
 
 More comprehensive test cases are not yet available.
