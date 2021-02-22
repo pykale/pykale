@@ -136,9 +136,11 @@ We aim to design the core `kale` modules to be highly **reusable**, generic, and
 
 ### Testing
 
-All new code should be covered by unit tests, and regression tests where appropriate. We will extend test coverage to exisiting code. Please use [pykale discussions](https://github.com/pykale/pykale/discussions/testing) to talk about tests and ask for help.
+All new code should be covered by [unit tests](https://en.wikipedia.org/wiki/Unit_testing), and [regression tests](https://en.wikipedia.org/wiki/Regression_testing) where appropriate. We will extend test coverage to exisiting code.
 
-[General advice on testing should be consulted](https://realpython.com/python-testing/), if needed. This will inform you on how to write tests and help with decisions on what aspects of your code need to be tested. There is some subjectivity involved in deciding how much of the potential behaviour of your code to check.
+Please use [pykale discussions](https://github.com/pykale/pykale/discussions/testing) to talk about tests and ask for help.
+
+Refer to the [official pytest documentation](https://docs.pytest.org/en/stable/), or less formal [general advice on testing](https://realpython.com/python-testing/), if needed. This will help you to write tests and help with decisions on what aspects of your code need to be tested. There is some subjectivity involved in deciding how much of the potential behaviour of your code to check.
 
 #### Test runner
 
