@@ -2,7 +2,7 @@ import torch
 from tdc.multi_pred import DTI
 from torch.utils import data
 
-from kale.prepdata.prep_chem import integer_label_protein, integer_label_smiles
+from kale.prepdata.chem_transform import integer_label_protein, integer_label_smiles
 
 
 class BindingDBDataset(data.Dataset):
