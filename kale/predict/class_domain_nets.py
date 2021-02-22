@@ -138,7 +138,7 @@ class ClassNetVideo(nn.Module):
         self.fc1 = nn.Linear(input_size, 256)
         self.bn1 = nn.BatchNorm1d(256)
         self.relu1 = nn.ReLU()
-        self.dp1 = nn.Dropout2d(p=0)
+        self.dp1 = nn.Dropout2d()
         self.fc2 = nn.Linear(256, 128)
         self.bn2 = nn.BatchNorm1d(128)
         self.relu2 = nn.ReLU()
