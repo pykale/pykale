@@ -33,7 +33,7 @@ jobs:
     - name: Run unit tests
       run: |
         pytest --cov=kale
-#    - name: Report coverage
-#      run: |
-#        coverage xml
-#        bash <(curl -s https://codecov.io/bash)
+    - name: Report coverage
+      run: |
+        coverage xml
+        bash <(curl -s https://codecov.io/bash)
