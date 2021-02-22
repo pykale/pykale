@@ -68,7 +68,7 @@ def integer_label_protein(sequence, max_length=1200):
     Integer encoding for protein string sequence.
 
     Args:
-        sequence (str): protein string sequence.
+        sequence (str): Protein string sequence.
         max_length: Maximum encoding length of input protein string. (default: 1200)
     """
     encoding = np.zeros(max_length)

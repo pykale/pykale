@@ -6,16 +6,20 @@ from kale.prepdata.prep_chem import integer_label_protein, integer_label_smiles
 
 
 class BindingDBDataset(data.Dataset):
-    def __init__(
-        self,
-        name: str,
-        split: str = "train",
-        path: str = "./data",
-        mode: str = "cnn_cnn",
-        y_log: bool = True,
-        drug_transform=None,
-        protein_transform=None
-    ):
+    """
+    A custom dataset for loading and processing original TDC data, which is used as input data in DeepDTA model.
+
+    Args:
+         name (str): TDC dataset name.
+         split (str): Data split type (train, valid or test).
+         path (str): dataset download/local load path (default: "./data")
+         mode (str): encoding mode (default: cnn_cnn)
+         drug_transform: Transform operation (default: None)
+         protein_transform: Transform operation (default: None)
+         y_log (bool): Whether convert y values to log space. (default: True)
+    """
+    def __init__(self, name: str, split="train", path="./data", mode="cnn_cnn", y_log=True, drug_transform=None,
+                 protein_transform=None):
         self.data = DTI(name=name, path=path)
         self.mode = mode.lower()
         if y_log:
