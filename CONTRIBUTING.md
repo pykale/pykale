@@ -132,7 +132,7 @@ We aim to design the core `kale` modules to be highly **reusable**, generic, and
 #### Recommended development software
 
 - Python IDE: [Visual Studio Code](https://code.visualstudio.com/download), [PyCharm](https://www.jetbrains.com/pycharm/download/)
-- GitHub: [GitHub Desktop](https://desktop.github.com/), [GitHub guides](https://guides.github.com/), [GitHub documentations](https://docs.github.com/en)
+- GitHub: [GitHub Desktop (for Windows/Mac)](https://desktop.github.com/), [GitKraken (for Linux)](https://www.gitkraken.com/), [GitHub guides](https://guides.github.com/), [GitHub documentations](https://docs.github.com/en)
 
 ### Testing
 
