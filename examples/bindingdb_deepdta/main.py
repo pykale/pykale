@@ -46,7 +46,7 @@ def main():
     gpus = 1 if device == "cuda" else 0
     trainer = pl.Trainer(max_epochs=cfg.SOLVER.MAX_EPOCHS, gpus=gpus, logger=[csv_logger, tb_logger])
     trainer.fit(model, train_dataloader=train_loader, val_dataloaders=val_loader)
-    trainer.test(model, test_dataloaders=test_loader)
+    trainer.test(test_dataloaders=test_loader)
 
 
 if __name__ == "__main__":
