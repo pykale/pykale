@@ -6,6 +6,14 @@ Pipeline (ML System)
 Submodules
 ----------
 
+kale.pipeline.deep_dti module
+------------------------------------
+
+.. automodule:: kale.pipeline.deep_dti
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.pipeline.domain\_adapter module
 ------------------------------------
 

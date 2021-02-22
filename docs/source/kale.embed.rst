@@ -14,6 +14,16 @@ kale.embed.attention\_cnn module
    :undoc-members:
    :show-inheritance:
 
+kale.embed.seq\_nn module
+--------------------------------
+
+.. automodule:: kale.embed.seq_nn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :exclude-members:
+   :member-order: bysource
+
 kale.embed.gcn module
 ----------------------------
 
