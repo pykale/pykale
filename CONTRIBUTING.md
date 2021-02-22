@@ -136,11 +136,11 @@ We aim to design the core `kale` modules to be highly **reusable**, generic, and
 
 ### Testing
 
-All new code should be covered by [unit tests](https://carpentries-incubator.github.io/python-testing/04-units/index.html), and [regression tests](https://carpentries-incubator.github.io/python-testing/07-integration/index.html) where appropriate. We will extend test coverage to exisiting code.
+All new code should be covered by [unit tests](https://carpentries-incubator.github.io/python-testing/04-units/index.html), and [regression tests](https://carpentries-incubator.github.io/python-testing/07-integration/index.html) where appropriate. We will extend test coverage to existing code.
 
-Definitions of different types of tests can be somewhat subjective. These guidelines are intended to enable `pykale` to have a high level of test coverage, for these tests to address suffciently compact pieces of code such that it is easy to identify causes of faliure and for tests to also cover larger workflows such that confidence can be built in reproduciblity of outputs.
+Definitions of different types of tests can be somewhat subjective. These guidelines are intended to enable `pykale` to have a high level of test coverage, for these tests to address sufficiently compact pieces of code such that it is easy to identify causes of failure and for tests to also cover larger workflows such that confidence can be built in reproducibility of outputs.
 
-Please use [pykale discussions](https://github.com/pykale/pykale/discussions/testing) to talk about tests and ask for help.
+Please use [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing) to talk about tests and ask for help.
 
 Refer to the [official pytest documentation](https://docs.pytest.org/en/stable/), or less formal [python testing software carpentry (alpha)](https://carpentries-incubator.github.io/python-testing/), if needed. This will help you to write tests and help with decisions on what aspects of your code need to be tested. There is some subjectivity involved in deciding how much of the potential behaviour of your code to check.
 
@@ -160,7 +160,7 @@ Philosophically, the author of a "unit" of code knows exactly what it should do 
 
 A **regression test** checks that software produces the same results after a change is made. In `pykale`, we expect regression tests to achieve this by testing several different parts of the software at once (in effect, an [integration test](https://carpentries-incubator.github.io/python-testing/07-integration/index.html)). A single regression test might test *loading some input files*, *setting up a model* and *generating a plot* based on the model. This could be achieved by running the software with previously stored baseline inputs and checking the output is the same as previously stored baseline outputs.
 
-Regression tests should be placed in `tests/regression`. Further subfolders can be added, as required. We plan to add regression tests covering exisiting functionality based on examples in the `examples/` folder.
+Regression tests should be placed in `tests/regression`. Further subfolders can be added, as required. We plan to add regression tests covering existing functionality based on examples in the `examples/` folder.
 
 Philosophically, regression tests treat the "past as truth" - the correct output / behaviour is the way it worked before a change.
 
@@ -226,7 +226,7 @@ Sum: 2
 pi: 4.141592653589793
 ```
 
-...having redefined the value of `math.pi`! `math.pi` will be redefined each time the function is run and nothing returned by the function gives any indication this has happended.
+...having redefined the value of `math.pi`! `math.pi` will be redefined each time the function is run and nothing returned by the function gives any indication this has happened.
 
 Minimising side effects makes code easier to test. Try and minimise side effects and ensure, where present, they are covered by tests.
 
