@@ -148,6 +148,8 @@ Refer to the [official pytest documentation](https://docs.pytest.org/en/stable/)
 
 #### Unit tests
 
+A unit test checks that a small "unit" of software (e.g. a function) performs correctly. It might, for example, check that the function `add` returns the number `2` when a list `[1, 1]` is the input.
+
 Within the `tests/` folder is a folder structure that mimics that of the `kale` python module. Unit tests for code in a given file in `kale/` should be placed in their equivalent file in `tests/` e.g. unit tests for a function in `pykale/kale/loaddata/cifar_access.py` should be located in `pykale/tests/loaddata/test_cifar_access.py`.
 
 #### Regression tests
