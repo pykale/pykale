@@ -401,7 +401,8 @@ class InceptionI3d(nn.Module):
         self.dropout = nn.Dropout(dropout_keep_prob)
         self.logits = Unit3D(
             in_channels=384 + 384 + 128 + 128,
-            output_channels=self._num_classes,
+            output_channels=400,
+            # output_channels=self._num_classes,
             kernel_shape=[1, 1, 1],
             padding=0,
             activation_fn=None,
@@ -434,11 +435,27 @@ class InceptionI3d(nn.Module):
     def forward(self, x):
         """The output is the result of the final average pooling layer with 1024 dimensions."""
 
-        for end_point in self.VALID_ENDPOINTS:
-            if end_point in self.end_points:
-                x = self._modules[end_point](x)  # use _modules to work with dataparallel
+        x = self._modules["Conv3d_1a_7x7"](x)       # out: [2, 64, 1, 112, 112]
+        x = self._modules["MaxPool3d_2a_3x3"](x)    # [2, 64, 1, 56, 56]
+        x = self._modules["Conv3d_2b_1x1"](x)       # [2, 64, 1, 56, 56]
+        x = self._modules["Conv3d_2c_3x3"](x)       # [2, 192, 1, 56, 56]
+        x = self._modules["MaxPool3d_3a_3x3"](x)    # [2, 192, 1, 28, 28]
+        x = self._modules["Mixed_3b"](x)            # [2, 256, 1, 28, 28]
+        x = self._modules["Mixed_3c"](x)            # [2, 480, 1, 28, 28]
+        x = self._modules["MaxPool3d_4a_3x3"](x)    # [2, 480, 1, 14, 14]
+        x = self._modules["Mixed_4b"](x)            # [2, 512, 1, 14, 14]
+        x = self._modules["Mixed_4c"](x)            # [2, 512, 1, 14, 14]
+        x = self._modules["Mixed_4d"](x)            # [2, 512, 1, 14, 14]
+        x = self._modules["Mixed_4e"](x)            # [2, 528, 1, 14, 14]
+        x = self._modules["Mixed_4f"](x)            # [2, 832, 1, 14, 14]
+        x = self._modules["MaxPool3d_5a_2x2"](x)    # [2, 832, 1, 7, 7]
+        x = self._modules["Mixed_5b"](x)            # [2, 832, 1, 7, 7]
+        x = self._modules["Mixed_5c"](x)            # [2, 1024, 1, 7, 7]
 
-        # For EPIC datasets, RGB window has 16 frames while flow has 8. We apply different avg_pool to them.
+        # for end_point in self.VALID_ENDPOINTS:
+        #     if end_point in self.end_points:
+        #         x = self._modules[end_point](x)  # use _modules to work with dataparallel
+
         x = self.avg_pool(x)
         # logits = self.logits(self.dropout(x))
         if self._spatial_squeeze:
@@ -460,9 +477,10 @@ def i3d(name, num_channels, num_classes, pretrained=False, progress=True):
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[name], progress=progress)
         # delete logits.conv3d parameters due to different class number.
-        state_dict.pop("logits.conv3d.weight")
-        state_dict.pop("logits.conv3d.bias")
-        model.load_state_dict(state_dict, strict=False)
+        # state_dict.pop("logits.conv3d.weight")
+        # state_dict.pop("logits.conv3d.bias")
+        # model.load_state_dict(state_dict, strict=False)
+        model.load_state_dict(state_dict)
     return model
 
 
