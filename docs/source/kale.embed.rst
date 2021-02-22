@@ -14,7 +14,7 @@ kale.embed.attention\_cnn module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.deep_dta module
+kale.embed.deep\_dta module
 --------------------------------
 
 .. automodule:: kale.embed.deep_dta

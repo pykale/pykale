@@ -39,7 +39,7 @@ kale.loaddata.digits\_access module
    :show-inheritance:
 
 kale.loaddata.mnistm module
----------------------------
+-----------------------------------
 
 .. automodule:: kale.loaddata.mnistm
    :members:
@@ -47,7 +47,7 @@ kale.loaddata.mnistm module
    :show-inheritance:
 
 kale.loaddata.multi\_domain module
-----------------------------------
+-----------------------------------
 
 .. automodule:: kale.loaddata.multi_domain
    :members:
@@ -55,7 +55,7 @@ kale.loaddata.multi\_domain module
    :show-inheritance:
 
 kale.loaddata.sampler module
-----------------------------
+-----------------------------------
 
 .. automodule:: kale.loaddata.sampler
    :members:
@@ -63,7 +63,7 @@ kale.loaddata.sampler module
    :show-inheritance:
 
 kale.loaddata.usps module
--------------------------
+-----------------------------------
 
 .. automodule:: kale.loaddata.usps
    :members:
@@ -71,7 +71,7 @@ kale.loaddata.usps module
    :show-inheritance:
 
 kale.loaddata.tdc\_datasets module
--------------------------
+----------------------------------
 
 .. automodule:: kale.loaddata.tdc_datasets
    :members:
