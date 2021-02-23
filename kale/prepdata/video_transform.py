@@ -19,7 +19,8 @@ def get_transform(kind, image_modality):
                     [
                         ImglistToTensor(),
                         transforms.Resize(size=256),
-                        transforms.RandomCrop(size=224),
+                        transforms.CenterCrop(size=224),
+                        # transforms.RandomCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
                         TensorPermute(),
                     ]
