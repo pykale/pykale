@@ -205,13 +205,13 @@ class InceptionModule(nn.Module):
         out = torch.cat(outputs, dim=1)
         if "SELayerC" in dir(self):  # Check self.SELayer
             out = self.SELayerC(out)
-        if "SELayerT" in dir(self):  # Check self.SELayer
+        if "SELayerT" in dir(self):
             out = self.SELayerT(out)
-        if "SELayerCoC" in dir(self):  # Check self.SELayer
+        if "SELayerCoC" in dir(self):
             out = self.SELayerCoC(out)
-        if "SELayerMC" in dir(self):  # Check self.SELayer
+        if "SELayerMC" in dir(self):
             out = self.SELayerMC(out)
-        if "SELayerMAC" in dir(self):  # Check self.SELayer
+        if "SELayerMAC" in dir(self):
             out = self.SELayerMAC(out)
         return out
 

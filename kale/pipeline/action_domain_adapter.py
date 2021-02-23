@@ -288,8 +288,8 @@ class DANNtrainer4Video(DANNtrainer):
             batch_size = len(y_s)
             loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(batch_size))
             loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(batch_size))
-            loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(len(d_t_hat_rgb)))
-            loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(len(d_t_hat_flow)))
+            loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(batch_size))
+            loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(batch_size))
             loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
             loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
 
@@ -311,7 +311,7 @@ class DANNtrainer4Video(DANNtrainer):
             _, y_t_hat, d_t_hat = self.forward(x_tu)
             batch_size = len(y_s)
             loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
-            loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)))
+            loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
 
             loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
             _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
