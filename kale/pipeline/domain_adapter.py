@@ -289,8 +289,10 @@ class BaseAdaptTrainer(pl.LightningModule):
             )
             self._grow_fact = 2.0 / (1.0 + np.exp(-10 * p)) - 1
 
+            # TODO
             if self._adapt_lr:
-                self._lr_fact = 1.0 / ((1.0 + 10 * p) ** 0.75)
+                # self._lr_fact = 1.0 / ((1.0 + 10 * p) ** 0.75)
+                self._lr_fact = 0.7
 
         if self._adapt_lambda:
             self.lamb_da = self._init_lambda * self._grow_fact
@@ -348,10 +350,12 @@ class BaseAdaptTrainer(pl.LightningModule):
             # init phase doesn't use few-shot learning
             # ad-hoc decision but makes models more comparable between each other
             # loss = task_loss + self.lamb_da * adv_loss
-            loss = task_loss
+            loss = task_loss + 0.1 * adv_loss
+            # loss = task_loss
         else:
             # loss = task_loss
-            loss = task_loss + self.lamb_da * adv_loss
+            loss = task_loss + 0.1 * adv_loss
+            # loss = task_loss + self.lamb_da * adv_loss
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
@@ -372,6 +376,8 @@ class BaseAdaptTrainer(pl.LightningModule):
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="V")
         loss = task_loss + self.lamb_da * adv_loss
         log_metrics["val_loss"] = loss
+        log_metrics["val_task_loss"] = task_loss
+        log_metrics["val_adv_loss"] = adv_loss
         return log_metrics
 
     def _validation_epoch_end(self, outputs, metrics_at_valid):
@@ -518,7 +524,7 @@ class BaseDANNLike(BaseAdaptTrainer):
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
 
         loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
-        loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)))
+        loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
         adv_loss = loss_dmn_src + loss_dmn_tgt
         task_loss = loss_cls
 
@@ -534,6 +540,8 @@ class BaseDANNLike(BaseAdaptTrainer):
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
             "val_loss",
+            "val_task_loss",
+            "val_adv_loss",
             "V_source_acc",
             "V_target_acc",
             "V_source_domain_acc",
