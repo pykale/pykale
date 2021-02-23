@@ -13,7 +13,7 @@ import kale.pipeline.domain_adapter as domain_adapter
 from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
-from kale.predict.class_domain_nets import ClassNetVideo, DomainNetSmallImage
+from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo, DomainNetSmallImage
 
 
 def get_config(cfg):
@@ -205,7 +205,7 @@ def get_model(cfg, dataset, num_classes):
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
                 critic_input_size = dmn_feature_dim * num_classes
-        critic_network = DomainNetSmallImage(critic_input_size)
+        critic_network = DomainNetVideo(critic_input_size)
 
         if cfg.DAN.METHOD == "CDAN":
             method_params["use_random"] = cfg.DAN.USERANDOM
