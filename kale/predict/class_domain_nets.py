@@ -138,7 +138,7 @@ class ClassNetVideo(nn.Module):
         self.fc1 = nn.Linear(input_size, 256)
         self.bn1 = nn.BatchNorm1d(256)
         self.relu1 = nn.ReLU()
-        self.dp1 = nn.Dropout2d()
+        self.dp1 = nn.Dropout2d(0)
         self.fc2 = nn.Linear(256, 128)
         self.bn2 = nn.BatchNorm1d(128)
         self.relu2 = nn.ReLU()
@@ -190,9 +190,10 @@ class DomainNetVideo(nn.Module):
         self.fc1 = nn.Linear(input_size, 100)
         self.bn1 = nn.BatchNorm1d(100)
         self.relu1 = nn.ReLU()
+        self.dp1 = nn.Dropout(0)
         self.fc2 = nn.Linear(100, 2)
 
     def forward(self, input):
-        x = self.relu1(self.bn1(self.fc1(input)))
+        x = self.dp1(self.relu1(self.bn1(self.fc1(input))))
         x = self.fc2(x)
         return x
