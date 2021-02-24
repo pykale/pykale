@@ -354,7 +354,7 @@ class BaseAdaptTrainer(pl.LightningModule):
             loss = task_loss
         else:
             # loss = task_loss
-            loss = task_loss + 0.1 * adv_loss
+            loss = task_loss + 1.0 * adv_loss
             # loss = task_loss + self.lamb_da * adv_loss
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
