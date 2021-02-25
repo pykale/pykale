@@ -22,10 +22,10 @@ torch.backends.cudnn.benchmark = False
 
 x1 = torch.rand([16, 1024], device=cuda0)
 
-y1 = torch.ones(16, 2, device=cuda0)
+y1 = torch.ones(16, 8, device=cuda0)
 
-model1 = DomainNetVideo(input_size=1024).cuda()
-# model1 = ClassNetVideo(input_size=1024).cuda()
+# model1 = DomainNetVideo(input_size=1024).cuda()
+model1 = ClassNetVideo(input_size=1024).cuda()
 
 opt1 = torch.optim.SGD(model1.parameters(), lr=0.01, momentum=0.01, weight_decay=0.0005, nesterov=True)
 
