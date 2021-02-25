@@ -153,7 +153,8 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         # get the output tensor shape based on the cumulative distribution of eigenvalues for each mode
         for i in range(1, n_dims):
-            eig_values, eig_vectors = np.linalg.eig(phi[i])
+            # eig_values, eig_vectors = np.linalg.eig(phi[i])
+            eig_vectors, eig_values, vt = np.linalg.svd(phi[i])
             idx_sorted = (-1 * eig_values).argsort()
             cum = eig_values[idx_sorted]
             var_tot = np.sum(cum)
@@ -182,7 +183,8 @@ class MPCA(BaseEstimator, TransformerMixin):
                     xj_unfold = unfold(xj, i - 1)
                     phi[i] = np.dot(xj_unfold, xj_unfold.T) + phi[i]
 
-                eig_values, eig_vectors = np.linalg.eig(phi[i])
+                # eig_values, eig_vectors = np.linalg.eig(phi[i])
+                eig_vectors, eig_values, vt = np.linalg.svd(phi[i])
                 idx_sorted = (-1 * eig_values).argsort()
                 proj_mats[i - 1] = (eig_vectors[:, idx_sorted][:, : shape_out[i - 1]]).T
 
@@ -190,7 +192,7 @@ class MPCA(BaseEstimator, TransformerMixin):
                                      modes=[m for m in range(1, n_dims)])
         x_proj_unfold = unfold(x_projected, mode=0)  # unfold the tensor projection to shape (n_samples, n_features)
         # x_proj_cov = np.diag(np.dot(x_proj_unfold.T, x_proj_unfold))  # covariance of unfolded features
-        x_proj_cov = np.sum(np.multiply(x_proj_unfold, x_proj_unfold), axis=1)  # memory saving computing covariance
+        x_proj_cov = np.sum(np.multiply(x_proj_unfold.T, x_proj_unfold.T), axis=1)  # memory saving computing covariance
         idx_order = (-1 * x_proj_cov).argsort()
 
         self.proj_mats = proj_mats
