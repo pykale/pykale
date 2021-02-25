@@ -5,6 +5,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from kale.embed.video_res3d import r3d_18
+from kale.embed.video_i3d import InceptionI3d
 
 cuda0 = torch.device('cuda:0')
 
@@ -23,7 +24,8 @@ x1 = torch.rand([16, 3, 2, 224, 224], device=cuda0)
 
 y1 = torch.ones([16, 8], device=cuda0)
 
-model1 = r3d_18().cuda()
+# model1 = r3d_18().cuda()
+model1 = InceptionI3d().cuda()
 
 opt1 = torch.optim.SGD(model1.parameters(), lr=0.01, momentum=0.01, weight_decay=0.0005, nesterov=True)
 
