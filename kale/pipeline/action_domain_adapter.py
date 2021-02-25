@@ -306,6 +306,8 @@ class DANNtrainer4Video(DANNtrainer):
                 f"{split_name}_target_domain_acc": torch.cat((dok_tgt_rgb, dok_tgt_flow)),
             }
         elif self.image_modality in ['rgb', 'flow'] and len(batch) == 2:
+            print(batch)
+
             (x_s, y_s), (x_tu, y_tu) = batch
             _, y_hat, d_hat = self.forward(x_s)
             _, y_t_hat, d_t_hat = self.forward(x_tu)
