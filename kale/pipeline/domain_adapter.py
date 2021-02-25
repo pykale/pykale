@@ -349,11 +349,11 @@ class BaseAdaptTrainer(pl.LightningModule):
         if self.current_epoch < self._init_epochs:
             # init phase doesn't use few-shot learning
             # ad-hoc decision but makes models more comparable between each other
-            # loss = task_loss + 0.1 * adv_loss
-            loss = task_loss
+            loss = task_loss + 0.1 * adv_loss
+            # loss = task_loss
         else:
-            loss = task_loss
-            # loss = task_loss + 0.1 * adv_loss
+            # loss = task_loss
+            loss = task_loss + 0.1 * adv_loss
             # loss = task_loss + self.lamb_da * adv_loss
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
