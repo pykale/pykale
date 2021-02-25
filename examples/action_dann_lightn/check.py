@@ -38,7 +38,7 @@ for epoch in range(100):
     print(epoch)
     o1 = model1(x1).squeeze()
     o11 = o1.view(o1.size(0), -1)
-    o12 = nn.Linear(512, 8, bias=False).cuda()(o11)
+    o12 = nn.Linear(1024, 8, bias=False).cuda()(o11)
 
     opt1.zero_grad()
 
