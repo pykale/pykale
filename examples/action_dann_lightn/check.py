@@ -21,7 +21,7 @@ torch.backends.cudnn.benchmark = False
 
 x1 = torch.rand([16, 3, 2, 224, 224], device=cuda0)
 
-y1 = torch.ones([2, 8], device=cuda0)
+y1 = torch.ones([16, 8], device=cuda0)
 
 model1 = r3d_18().cuda()
 
