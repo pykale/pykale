@@ -6,6 +6,8 @@ from torch import nn
 import torch.nn.functional as F
 from kale.embed.video_res3d import r3d_18
 from kale.embed.video_i3d import InceptionI3d
+from kale.predict.class_domain_nets import DomainNetVideo, ClassNetVideo
+from kale.pipeline.domain_adapter import ReverseLayerF
 
 cuda0 = torch.device('cuda:0')
 
@@ -20,36 +22,57 @@ torch.backends.cudnn.benchmark = False
 # torch.set_deterministic(True)
 
 
-x1 = torch.rand([16, 3, 2, 224, 224], device=cuda0)
+class Res(nn.Module):
+    def __init__(self):
+        super(Res, self).__init__()
+        self.ext = r3d_18()
+        self.classifier = ClassNetVideo(input_size=512)
+        self.domain = DomainNetVideo(input_size=512)
 
-y1 = torch.ones([16, 8], device=cuda0)
+    def forward(self, x):
+        feat = self.ext(x)
+        feat1 = feat.view(feat.size(0), -1)
+        class_output = self.classifier(feat1)
 
-model1 = r3d_18().cuda()
-# model1 = InceptionI3d().cuda()
+        reverse_feature = ReverseLayerF.apply(feat1, 1.0)
+        adversarial_output = self.domain(reverse_feature)
+        return x, class_output, adversarial_output
 
-opt1 = torch.optim.SGD(model1.parameters(), lr=0.01, momentum=0.01, weight_decay=0.0005, nesterov=True)
 
-l = []
+x1 = torch.rand([2, 3, 2, 224, 224], device=cuda0)
+
+yc = torch.ones([2, 8], device=cuda0)
+yd = torch.ones([2, 2], device=cuda0)
+
+model = Res().cuda()
+
+opt = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.01, weight_decay=0.0005, nesterov=True)
+
+l1 = []
+l2 = []
 out = []
 
 n = 1
 
 for epoch in range(100):
     print(epoch)
-    o1 = model1(x1).squeeze()
-    o11 = o1.view(o1.size(0), -1)
-    o12 = nn.Linear(512, 8, bias=False).cuda()(o11)
+    x, oc, oadv = model(x1)
 
-    opt1.zero_grad()
+    opt.zero_grad()
 
-    loss1 = F.binary_cross_entropy_with_logits(o12, y1)
+    loss1 = F.binary_cross_entropy_with_logits(oc, yc)
+    loss2 = F.binary_cross_entropy_with_logits(oadv, yd)
 
-    l.append(loss1.item())
-    out.append(o12.tolist())
+    l1.append(loss1.item())
+    l2.append(loss2.item())
+    loss = loss1 + loss2
 
-    loss1.backward()
+    # out.append(o12.tolist())
 
-    opt1.step()
+    loss.backward()
 
-print(l)
-print(out)
+    opt.step()
+
+print(l1)
+print(l2)
+# print(out)
