@@ -50,6 +50,7 @@ opt = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.01, weight_decay=0
 
 l1 = []
 l2 = []
+l3 = []
 out = []
 
 n = 1
@@ -66,7 +67,7 @@ for epoch in range(100):
     l1.append(loss1.item())
     l2.append(loss2.item())
     loss = loss1 + loss2
-
+    l3.append(loss.item())
     # out.append(o12.tolist())
 
     loss.backward()
@@ -75,4 +76,5 @@ for epoch in range(100):
 
 print(l1)
 print(l2)
+print(l3)
 # print(out)
