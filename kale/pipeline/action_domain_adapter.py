@@ -318,8 +318,6 @@ class DANNtrainer4Video(DANNtrainer):
             adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
             task_loss = loss_cls
 
-            print(loss_cls.item(), loss_dmn_src.item(), loss_dmn_tgt.item())
-
             log_metrics = {
                 f"{split_name}_source_acc": ok_src,
                 f"{split_name}_target_acc": ok_tgt,
