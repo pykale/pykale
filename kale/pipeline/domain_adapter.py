@@ -352,9 +352,9 @@ class BaseAdaptTrainer(pl.LightningModule):
             # loss = task_loss + 0.1 * adv_loss
             loss = task_loss
         else:
-            # loss = task_loss
+            loss = task_loss
             # loss = task_loss + 0.1 * adv_loss
-            loss = task_loss + self.lamb_da * adv_loss
+            # loss = task_loss + self.lamb_da * adv_loss
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
@@ -383,7 +383,6 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_dict = get_aggregated_metrics(metrics_at_valid, outputs)
         device = outputs[0].get("val_loss").device
         log_dict.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), device))
-        # avg_loss = log_dict["val_loss"]
 
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
