@@ -150,8 +150,8 @@ def se_inception_i3d(name, num_channels, num_classes, attention, pretrained=Fals
         state_dict = load_state_dict_from_url(model_urls[name], progress=progress)
 
         # delete logits.conv3d parameters due to different class number.
-        state_dict.pop("logits.conv3d.weight")
-        state_dict.pop("logits.conv3d.bias")
+        # state_dict.pop("logits.conv3d.weight")
+        # state_dict.pop("logits.conv3d.bias")
 
         # Create new OrderedDict that add `model.`
         from collections import OrderedDict

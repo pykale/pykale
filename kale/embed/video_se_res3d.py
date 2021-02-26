@@ -1,79 +1,15 @@
-"""
-Define MC3_18, R3D_18, R2plus1D_18 on Action Recognition from https://arxiv.org/abs/1711.11248
-Created by Xianyuan Liu from modifying https://github.com/pytorch/vision/blob/master/torchvision/models/video/resnet.py
-"""
-
 import torch.nn as nn
 from torchvision.models.utils import load_state_dict_from_url
+from kale.embed.video_res3d import Conv3DSimple, Conv2Plus1D, Conv3DNoTemporal
+from kale.embed.video_se_cnn import SELayerC, SELayerT, SELayerCoC, SELayerMC, SELayerMAC
 
-__all__ = ['r3d', 'mc3', 'r2plus1d', 'r3d_18', 'mc3_18', 'r2plus1d_18']
+__all__ = ['se_r3d']
 
 model_urls = {
     "r3d_18": "https://download.pytorch.org/models/r3d_18-b3b3357e.pth",
     "mc3_18": "https://download.pytorch.org/models/mc3_18-a90a0ba3.pth",
     "r2plus1d_18": "https://download.pytorch.org/models/r2plus1d_18-91a641e6.pth",
 }
-
-
-class Conv3DSimple(nn.Conv3d):
-    """3D convolutions for R3D (3x3x3 kernel)"""
-
-    def __init__(self, in_planes, out_planes, midplanes=None, stride=1, padding=1):
-        super(Conv3DSimple, self).__init__(
-            in_channels=in_planes,
-            out_channels=out_planes,
-            kernel_size=(3, 3, 3),
-            stride=stride,
-            padding=padding,
-            bias=False,
-        )
-
-    @staticmethod
-    def get_downsample_stride(stride):
-        return (stride, stride, stride)
-
-
-class Conv2Plus1D(nn.Sequential):
-    """(2+1)D convolutions for R2plus1D (1x3x3 kernel + 3x1x1 kernel)"""
-
-    def __init__(self, in_planes, out_planes, midplanes, stride=1, padding=1):
-        super(Conv2Plus1D, self).__init__(
-            nn.Conv3d(
-                in_planes,
-                midplanes,
-                kernel_size=(1, 3, 3),
-                stride=(1, stride, stride),
-                padding=(0, padding, padding),
-                bias=False,
-            ),
-            nn.BatchNorm3d(midplanes),
-            nn.ReLU(inplace=True),
-            nn.Conv3d(
-                midplanes, out_planes, kernel_size=(3, 1, 1), stride=(stride, 1, 1), padding=(padding, 0, 0), bias=False
-            ),
-        )
-
-    @staticmethod
-    def get_downsample_stride(stride):
-        return (stride, stride, stride)
-
-
-class Conv3DNoTemporal(nn.Conv3d):
-    """3D convolutions without temporal dimension for MCx (1x3x3 kernel)"""
-
-    def __init__(self, in_planes, out_planes, midplanes=None, stride=1, padding=1):
-        super(Conv3DNoTemporal, self).__init__(
-            in_channels=in_planes,
-            out_channels=out_planes,
-            kernel_size=(1, 3, 3),
-            stride=(1, stride, stride),
-            padding=(0, padding, padding),
-            bias=False,
-        )
-
-    @staticmethod
-    def get_downsample_stride(stride):
-        return (1, stride, stride)
 
 
 class BasicBlock(nn.Module):
@@ -106,6 +42,17 @@ class BasicBlock(nn.Module):
 
         out += residual
         out = self.relu(out)
+
+        if "SELayerC" in dir(self):  # Check self.SELayer
+            out = self.SELayerC(out)
+        if "SELayerT" in dir(self):  # Check self.SELayer
+            out = self.SELayerT(out)
+        if "SELayerCoC" in dir(self):  # Check self.SELayer
+            out = self.SELayerCoC(out)
+        if "SELayerMC" in dir(self):  # Check self.SELayer
+            out = self.SELayerMC(out)
+        if "SELayerMAC" in dir(self):  # Check self.SELayer
+            out = self.SELayerMAC(out)
 
         return out
 
@@ -186,15 +133,6 @@ class R2Plus1dStem(nn.Sequential):
 
 class VideoResNet(nn.Module):
     def __init__(self, block, conv_makers, layers, stem, num_classes=400, zero_init_residual=False):
-        """Generic resnet video generator.
-        Args:
-            block (nn.Module): resnet building block
-            conv_makers (list(functions)): generator function for each layer
-            layers (List[int]): number of blocks per layer
-            stem (nn.Module, optional): Resnet stem, if None, defaults to conv-bn-relu. Defaults to None.
-            num_classes (int, optional): Dimension of the final FC layer. Defaults to 400.
-            zero_init_residual (bool, optional): Zero init bottleneck residual BN. Defaults to False.
-        """
         super(VideoResNet, self).__init__()
         self.inplanes = 64
 
@@ -263,27 +201,29 @@ class VideoResNet(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
 
-def _video_resnet(arch, pretrained=False, progress=True, **kwargs):
+def _se_video_resnet(arch, attention, pretrained=False, progress=True, **kwargs):
     model = VideoResNet(**kwargs)
+
+    if attention == "SELayerC":
+        model.layer1.modules["0"].add_module("SELayerC", SELayerC(256))
+        model.layer1.modules["1"].add_module("SELayerC", SELayerC(256))
+        model.layer2.modules["0"].add_module("SELayerC", SELayerC(256))
+        model.layer2.modules["1"].add_module("SELayerC", SELayerC(256))
+        model.layer3.modules["0"].add_module("SELayerC", SELayerC(256))
+        model.layer3.modules["1"].add_module("SELayerC", SELayerC(256))
+        model.layer4.modules["0"].add_module("SELayerC", SELayerC(256))
+        model.layer4.modules["1"].add_module("SELayerC", SELayerC(256))
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
-        model.load_state_dict(state_dict)
+        model.load_state_dict(state_dict, strict=False)
     return model
 
 
-def r3d_18(pretrained=False, progress=True, **kwargs):
-    """Construct 18 layer Resnet3D model as in
-    https://arxiv.org/abs/1711.11248
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on Kinetics-400
-        progress (bool): If True, displays a progress bar of the download to stderr
-    Returns:
-        nn.Module: R3D-18 network
-    """
-
-    return _video_resnet(
+def se_r3d_18(attention, pretrained=False, progress=True, **kwargs):
+    return _se_video_resnet(
         "r3d_18",
+        attention,
         pretrained,
         progress,
         block=BasicBlock,
@@ -295,16 +235,7 @@ def r3d_18(pretrained=False, progress=True, **kwargs):
 
 
 def mc3_18(pretrained=False, progress=True, **kwargs):
-    """Constructor for 18 layer Mixed Convolution network as in
-    https://arxiv.org/abs/1711.11248
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on Kinetics-400
-        progress (bool): If True, displays a progress bar of the download to stderr
-    Returns:
-        nn.Module: MC3 Network definition
-    """
-
-    return _video_resnet(
+    return _se_video_resnet(
         "mc3_18",
         pretrained,
         progress,
@@ -317,16 +248,7 @@ def mc3_18(pretrained=False, progress=True, **kwargs):
 
 
 def r2plus1d_18(pretrained=False, progress=True, **kwargs):
-    """Constructor for the 18 layer deep R(2+1)D network as in
-    https://arxiv.org/abs/1711.11248
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on Kinetics-400
-        progress (bool): If True, displays a progress bar of the download to stderr
-    Returns:
-        nn.Module: R(2+1)D-18 network
-    """
-
-    return _video_resnet('r2plus1d_18',
+    return _se_video_resnet('r2plus1d_18',
                          pretrained, progress,
                          block=BasicBlock,
                          conv_makers=[Conv2Plus1D] * 4,
@@ -334,11 +256,11 @@ def r2plus1d_18(pretrained=False, progress=True, **kwargs):
                          stem=R2Plus1dStem, **kwargs)
 
 
-def r3d(rgb=False, flow=False, pretrained=False, progress=True):
+def se_r3d(attention, rgb=False, flow=False, pretrained=False, progress=True):
     """Get R3D_18 models."""
     r3d_rgb = r3d_flow = None
     if rgb and not flow:
-        r3d_rgb = r3d_18(pretrained=pretrained, progress=progress)
+        r3d_rgb = se_r3d_18(attention=attention, pretrained=pretrained, progress=progress)
     # elif not rgb and flow:
     #     r3d_flow = r3d_18(pretrained=False, progress=progress)
     # elif rgb and flow:
@@ -348,7 +270,7 @@ def r3d(rgb=False, flow=False, pretrained=False, progress=True):
     return models
 
 
-def mc3(rgb=False, flow=False, pretrained=False, progress=True):
+def se_mc3(attention, rgb=False, flow=False, pretrained=False, progress=True):
     """Get R3D_18 models."""
     mc3_rgb = mc3_flow = None
     if rgb and not flow:
@@ -362,7 +284,7 @@ def mc3(rgb=False, flow=False, pretrained=False, progress=True):
     return models
 
 
-def r2plus1d(rgb=False, flow=False, pretrained=False, progress=True):
+def se_r2plus1d(attention, rgb=False, flow=False, pretrained=False, progress=True):
     """Get R3D_18 models."""
     r2plus1d_rgb = r2plus1d_flow = None
     if rgb and not flow:

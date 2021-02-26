@@ -13,6 +13,7 @@ import kale.pipeline.domain_adapter as domain_adapter
 from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
+from kale.embed.video_se_res3d import se_r3d, se_r2plus1d, se_mc3
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 
 
@@ -74,8 +75,8 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
         dmn_feature_dim: The dimension of the feature network output for DomainNet.
     """
     attention_list = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerCT", "SELayerMC", "SELayerMAC"]
-    if model_name != "I3D" and attention in attention_list:
-        raise ValueError("Attention SELayer is only applied to I3D. Current: {}, Attention: {}".format(model_name, attention))
+    # if model_name != "I3D" and attention in attention_list:
+    #     raise ValueError("Attention SELayer is only applied to I3D. Current: {}, Attention: {}".format(model_name, attention))
 
     if attention in attention_list:
         att = True
@@ -88,7 +89,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
         if model_name == 'I3D':
             pretrained_model = 'rgb_imagenet'
             if att:
-                logging.info("Using {}".format(attention))
+                logging.info("{} using {}".format(model_name, attention))
                 feature_network = se_i3d_joint(
                     rgb_pt=pretrained_model, flow_pt=None, num_classes=num_classes, attention=attention, pretrained=True
                 )
@@ -98,18 +99,37 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
             # model.replace_logits(num_classes)
             class_feature_dim = 1024
             dmn_feature_dim = class_feature_dim
+
         elif model_name == 'R3D_18':
-            feature_network = r3d(rgb=True, flow=False, pretrained=True)
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                feature_network = se_r3d(rgb=True, flow=False, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = r3d(rgb=True, flow=False, pretrained=True)
             class_feature_dim = 512
             dmn_feature_dim = class_feature_dim
+
         elif model_name == 'R2PLUS1D_18':
-            feature_network = r2plus1d(rgb=True, flow=False, pretrained=True)
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                feature_network = se_r2plus1d(rgb=True, flow=False, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = r2plus1d(rgb=True, flow=False, pretrained=True)
             class_feature_dim = 512
             dmn_feature_dim = class_feature_dim
+
         elif model_name == 'MC3_18':
-            feature_network = mc3(rgb=True, flow=False, pretrained=True)
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                feature_network = se_mc3(rgb=True, flow=False, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = mc3(rgb=True, flow=False, pretrained=True)
             class_feature_dim = 512
             dmn_feature_dim = class_feature_dim
+
         else:
             raise ValueError("Unsupported model: {}".format(model_name))
 
