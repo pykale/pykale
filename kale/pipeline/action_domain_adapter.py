@@ -256,12 +256,14 @@ class DANNtrainer4Video(DANNtrainer):
                 else:
                     x = self.flow_feat(x)
                 x = x.view(x.size(0), -1)
-
                 class_output = self.classifier(x)
 
                 reverse_feature = ReverseLayerF.apply(x, self.alpha)
 
                 adversarial_output = self.domain_classifier(reverse_feature)
+                print(x)
+                print(reverse_feature)
+                print(adversarial_output)
                 return x, class_output, adversarial_output
 
             elif self.image_modality == 'joint':
@@ -306,8 +308,6 @@ class DANNtrainer4Video(DANNtrainer):
                 f"{split_name}_target_domain_acc": torch.cat((dok_tgt_rgb, dok_tgt_flow)),
             }
         elif self.image_modality in ['rgb', 'flow'] and len(batch) == 2:
-            print(batch)
-
             (x_s, y_s), (x_tu, y_tu) = batch
             _, y_hat, d_hat = self.forward(x_s)
             _, y_t_hat, d_t_hat = self.forward(x_tu)
