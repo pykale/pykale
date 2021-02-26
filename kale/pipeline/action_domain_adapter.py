@@ -262,7 +262,7 @@ class DANNtrainer4Video(DANNtrainer):
 
                 adversarial_output = self.domain_classifier(reverse_feature)
                 print(x)
-                print(reverse_feature)
+                print(class_output)
                 print(adversarial_output)
                 return x, class_output, adversarial_output
 
