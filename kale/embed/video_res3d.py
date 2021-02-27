@@ -246,7 +246,7 @@ class VideoResNet(nn.Module):
         self._initialize_weights()
 
         if zero_init_residual:
-            for m in self.modules:
+            for m in self.modules():
                 if isinstance(m, Bottleneck):
                     nn.init.constant_(m.bn3.weight, 0)
 
@@ -284,7 +284,7 @@ class VideoResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def _initialize_weights(self):
-        for m in self.modules:
+        for m in self.modules():
             if isinstance(m, nn.Conv3d):
                 nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
                 if m.bias is not None:
