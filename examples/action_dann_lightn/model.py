@@ -148,7 +148,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
         elif model_name == 'R3D_18':
             if att:
                 logging.info("{} using {}".format(model_name, attention))
-                # feature_network = se_r3d(rgb=False, flow=True, pretrained=True, attention=attention)
+                feature_network = se_r3d(rgb=False, flow=True, pretrained=True, attention=attention)
             else:
                 logging.info("No SELayer.")
                 feature_network = r3d(rgb=False, flow=True, pretrained=True)
@@ -158,7 +158,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
         elif model_name == 'R2PLUS1D_18':
             if att:
                 logging.info("{} using {}".format(model_name, attention))
-                # feature_network = se_r2plus1d(rgb=False, flow=True, pretrained=True, attention=attention)
+                feature_network = se_r2plus1d(rgb=False, flow=True, pretrained=True, attention=attention)
             else:
                 logging.info("No SELayer.")
                 feature_network = r2plus1d(rgb=False, flow=True, pretrained=True)
@@ -168,7 +168,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
         elif model_name == 'MC3_18':
             if att:
                 logging.info("{} using {}".format(model_name, attention))
-                # feature_network = se_mc3(rgb=False, flow=True, pretrained=True, attention=attention)
+                feature_network = se_mc3(rgb=False, flow=True, pretrained=True, attention=attention)
             else:
                 logging.info("No SELayer.")
                 feature_network = mc3(rgb=False, flow=True, pretrained=True)
@@ -202,7 +202,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
         elif model_name == 'R3D_18':
             if att:
                 logging.info("{} using {}".format(model_name, attention))
-                # feature_network = se_r3d(rgb=False, flow=True, pretrained=True, attention=attention)
+                feature_network = se_r3d(rgb=True, flow=True, pretrained=True, attention=attention)
             else:
                 logging.info("No SELayer.")
                 feature_network = r3d(rgb=True, flow=True, pretrained=True)
@@ -212,7 +212,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
         elif model_name == 'R2PLUS1D_18':
             if att:
                 logging.info("{} using {}".format(model_name, attention))
-                # feature_network = se_r2plus1d(rgb=False, flow=True, pretrained=True, attention=attention)
+                feature_network = se_r2plus1d(rgb=True, flow=True, pretrained=True, attention=attention)
             else:
                 logging.info("No SELayer.")
                 feature_network = r2plus1d(rgb=True, flow=True, pretrained=True)
