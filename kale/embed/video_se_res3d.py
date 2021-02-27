@@ -1,9 +1,9 @@
 import torch.nn as nn
 from torchvision.models.utils import load_state_dict_from_url
-from kale.embed.video_res3d import Conv3DSimple, Conv2Plus1D, Conv3DNoTemporal
+from kale.embed.video_res3d import \
+    Conv3DSimple, Conv2Plus1D, Conv3DNoTemporal, \
+    BasicBlock, BasicStem, BasicFLowStem, R2Plus1dStem, R2Plus1dFlowStem, VideoResNet
 from kale.embed.video_se_cnn import SELayerC, SELayerT, SELayerCoC, SELayerMC, SELayerMAC
-
-__all__ = ['se_r3d']
 
 model_urls = {
     "r3d_18": "https://download.pytorch.org/models/r3d_18-b3b3357e.pth",
@@ -12,207 +12,18 @@ model_urls = {
 }
 
 
-class BasicBlock(nn.Module):
-    """
-    Basic ResNet building block. Each block consists of two convolutional layers with a ReLU activation function
-    after each layer and residual connections.
-    """
-
-    expansion = 1
-
-    def __init__(self, inplanes, planes, conv_builder, stride=1, downsample=None):
-        midplanes = (inplanes * planes * 3 * 3 * 3) // (inplanes * 3 * 3 + 3 * planes)
-
-        super(BasicBlock, self).__init__()
-        self.conv1 = nn.Sequential(
-            conv_builder(inplanes, planes, midplanes, stride), nn.BatchNorm3d(planes), nn.ReLU(inplace=True)
-        )
-        self.conv2 = nn.Sequential(conv_builder(planes, planes, midplanes), nn.BatchNorm3d(planes))
-        self.relu = nn.ReLU(inplace=True)
-        self.downsample = downsample
-        self.stride = stride
-
-    def forward(self, x):
-        residual = x
-
-        out = self.conv1(x)
-        out = self.conv2(out)
-        if self.downsample is not None:
-            residual = self.downsample(x)
-
-        out += residual
-        out = self.relu(out)
-
-        if "SELayerC" in dir(self):  # Check self.SELayer
-            out = self.SELayerC(out)
-        if "SELayerT" in dir(self):  # Check self.SELayer
-            out = self.SELayerT(out)
-        if "SELayerCoC" in dir(self):  # Check self.SELayer
-            out = self.SELayerCoC(out)
-        if "SELayerMC" in dir(self):  # Check self.SELayer
-            out = self.SELayerMC(out)
-        if "SELayerMAC" in dir(self):  # Check self.SELayer
-            out = self.SELayerMAC(out)
-
-        return out
-
-
-class Bottleneck(nn.Module):
-    """
-    BottleNeck building block. Default: No use. Each block consists of two 1*n*n and one n*n*n convolutional layers
-    with a ReLU activation function after each layer and residual connections.
-    """
-
-    expansion = 4
-
-    def __init__(self, inplanes, planes, conv_builder, stride=1, downsample=None):
-        super(Bottleneck, self).__init__()
-        midplanes = (inplanes * planes * 3 * 3 * 3) // (inplanes * 3 * 3 + 3 * planes)
-
-        # 1x1x1
-        self.conv1 = nn.Sequential(
-            nn.Conv3d(inplanes, planes, kernel_size=1, bias=False), nn.BatchNorm3d(planes), nn.ReLU(inplace=True)
-        )
-        # Second kernel
-        self.conv2 = nn.Sequential(
-            conv_builder(planes, planes, midplanes, stride), nn.BatchNorm3d(planes), nn.ReLU(inplace=True)
-        )
-
-        # 1x1x1
-        self.conv3 = nn.Sequential(
-            nn.Conv3d(planes, planes * self.expansion, kernel_size=1, bias=False),
-            nn.BatchNorm3d(planes * self.expansion),
-        )
-        self.relu = nn.ReLU(inplace=True)
-        self.downsample = downsample
-        self.stride = stride
-
-    def forward(self, x):
-        residual = x
-
-        out = self.conv1(x)
-        out = self.conv2(out)
-        out = self.conv3(out)
-
-        if self.downsample is not None:
-            residual = self.downsample(x)
-
-        out += residual
-        out = self.relu(out)
-
-        return out
-
-
-class BasicStem(nn.Sequential):
-    """The default conv-batchnorm-relu stem. The first layer normally. (64 3x7x7 kernels)"""
-
-    def __init__(self):
-        super(BasicStem, self).__init__(
-            nn.Conv3d(3, 64, kernel_size=(3, 7, 7), stride=(1, 2, 2), padding=(1, 3, 3), bias=False),
-            nn.BatchNorm3d(64),
-            nn.ReLU(inplace=True),
-        )
-
-
-class R2Plus1dStem(nn.Sequential):
-    """
-    R(2+1)D stem is different than the default one as it uses separated 3D convolution.
-    (45 1x7x7 kernels + 64 3x1x1 kernel)
-    """
-
-    def __init__(self):
-        super(R2Plus1dStem, self).__init__(
-            nn.Conv3d(3, 45, kernel_size=(1, 7, 7), stride=(1, 2, 2), padding=(0, 3, 3), bias=False),
-            nn.BatchNorm3d(45),
-            nn.ReLU(inplace=True),
-            nn.Conv3d(45, 64, kernel_size=(3, 1, 1), stride=(1, 1, 1), padding=(1, 0, 0), bias=False),
-            nn.BatchNorm3d(64),
-            nn.ReLU(inplace=True),
-        )
-
-
-class VideoResNet(nn.Module):
-    def __init__(self, block, conv_makers, layers, stem, num_classes=400, zero_init_residual=False):
-        super(VideoResNet, self).__init__()
-        self.inplanes = 64
-
-        self.stem = stem()
-
-        self.layer1 = self._make_layer(block, conv_makers[0], 64, layers[0], stride=1)
-        self.layer2 = self._make_layer(block, conv_makers[1], 128, layers[1], stride=2)
-        self.layer3 = self._make_layer(block, conv_makers[2], 256, layers[2], stride=2)
-        self.layer4 = self._make_layer(block, conv_makers[3], 512, layers[3], stride=2)
-
-        self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
-
-        # init weights
-        self._initialize_weights()
-
-        if zero_init_residual:
-            for m in self.modules:
-                if isinstance(m, Bottleneck):
-                    nn.init.constant_(m.bn3.weight, 0)
-
-    def forward(self, x):
-        x = self.stem(x)
-
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
-
-        x = self.avgpool(x)
-        # Flatten the layer to fc
-        x = x.flatten(1)
-        # x = self.fc(x)
-
-        return x
-
-    def _make_layer(self, block, conv_builder, planes, blocks, stride=1):
-        downsample = None
-
-        if stride != 1 or self.inplanes != planes * block.expansion:
-            ds_stride = conv_builder.get_downsample_stride(stride)
-            downsample = nn.Sequential(
-                nn.Conv3d(self.inplanes, planes * block.expansion, kernel_size=1, stride=ds_stride, bias=False),
-                nn.BatchNorm3d(planes * block.expansion),
-            )
-        layers = []
-        layers.append(block(self.inplanes, planes, conv_builder, stride, downsample))
-
-        self.inplanes = planes * block.expansion
-        for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes, conv_builder))
-
-        return nn.Sequential(*layers)
-
-    def _initialize_weights(self):
-        for m in self.modules:
-            if isinstance(m, nn.Conv3d):
-                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.BatchNorm3d):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.Linear):
-                nn.init.normal_(m.weight, 0, 0.01)
-                nn.init.constant_(m.bias, 0)
-
-
 def _se_video_resnet(arch, attention, pretrained=False, progress=True, **kwargs):
     model = VideoResNet(**kwargs)
 
     if attention == "SELayerC":
-        model.layer1.modules["0"].add_module("SELayerC", SELayerC(256))
-        model.layer1.modules["1"].add_module("SELayerC", SELayerC(256))
-        model.layer2.modules["0"].add_module("SELayerC", SELayerC(256))
-        model.layer2.modules["1"].add_module("SELayerC", SELayerC(256))
+        model.layer1.modules["0"].add_module("SELayerC", SELayerC(64))
+        model.layer1.modules["1"].add_module("SELayerC", SELayerC(64))
+        model.layer2.modules["0"].add_module("SELayerC", SELayerC(128))
+        model.layer2.modules["1"].add_module("SELayerC", SELayerC(128))
         model.layer3.modules["0"].add_module("SELayerC", SELayerC(256))
         model.layer3.modules["1"].add_module("SELayerC", SELayerC(256))
-        model.layer4.modules["0"].add_module("SELayerC", SELayerC(256))
-        model.layer4.modules["1"].add_module("SELayerC", SELayerC(256))
+        model.layer4.modules["0"].add_module("SELayerC", SELayerC(512))
+        model.layer4.modules["1"].add_module("SELayerC", SELayerC(512))
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
@@ -220,7 +31,27 @@ def _se_video_resnet(arch, attention, pretrained=False, progress=True, **kwargs)
     return model
 
 
-def se_r3d_18(attention, pretrained=False, progress=True, **kwargs):
+def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kwargs):
+    model = VideoResNet(**kwargs)
+
+    if attention == "SELayerC":
+        model.layer1.modules["0"].add_module("SELayerC", SELayerC(64))
+        model.layer1.modules["1"].add_module("SELayerC", SELayerC(64))
+        model.layer2.modules["0"].add_module("SELayerC", SELayerC(128))
+        model.layer2.modules["1"].add_module("SELayerC", SELayerC(128))
+        model.layer3.modules["0"].add_module("SELayerC", SELayerC(256))
+        model.layer3.modules["1"].add_module("SELayerC", SELayerC(256))
+        model.layer4.modules["0"].add_module("SELayerC", SELayerC(512))
+        model.layer4.modules["1"].add_module("SELayerC", SELayerC(512))
+
+    if pretrained:
+        state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
+        state_dict.pop("stem.0.weight")
+        model.load_state_dict(state_dict, strict=False)
+    return model
+
+
+def se_r3d_18_rgb(attention, pretrained=False, progress=True, **kwargs):
     return _se_video_resnet(
         "r3d_18",
         attention,
@@ -234,9 +65,24 @@ def se_r3d_18(attention, pretrained=False, progress=True, **kwargs):
     )
 
 
-def mc3_18(pretrained=False, progress=True, **kwargs):
+def se_r3d_18_flow(attention, pretrained=False, progress=True, **kwargs):
+    return _se_video_resnet_flow(
+        "r3d_18",
+        attention,
+        pretrained,
+        progress,
+        block=BasicBlock,
+        conv_makers=[Conv3DSimple] * 4,
+        layers=[2, 2, 2, 2],
+        stem=BasicFLowStem,
+        **kwargs,
+    )
+
+
+def se_mc3_18_rgb(attention, pretrained=False, progress=True, **kwargs):
     return _se_video_resnet(
         "mc3_18",
+        attention,
         pretrained,
         progress,
         block=BasicBlock,
@@ -247,25 +93,58 @@ def mc3_18(pretrained=False, progress=True, **kwargs):
     )
 
 
-def r2plus1d_18(pretrained=False, progress=True, **kwargs):
-    return _se_video_resnet('r2plus1d_18',
-                         pretrained, progress,
-                         block=BasicBlock,
-                         conv_makers=[Conv2Plus1D] * 4,
-                         layers=[2, 2, 2, 2],
-                         stem=R2Plus1dStem, **kwargs)
+def se_mc3_18_flow(attention, pretrained=False, progress=True, **kwargs):
+    return _se_video_resnet(
+        "mc3_18",
+        attention,
+        pretrained,
+        progress,
+        block=BasicBlock,
+        conv_makers=[Conv3DSimple] + [Conv3DNoTemporal] * 3,
+        layers=[2, 2, 2, 2],
+        stem=BasicFLowStem,
+        **kwargs,
+    )
+
+
+def se_r2plus1d_18_rgb(attention, pretrained=False, progress=True, **kwargs):
+    return _se_video_resnet(
+        'r2plus1d_18',
+        attention,
+        pretrained,
+        progress,
+        block=BasicBlock,
+        conv_makers=[Conv2Plus1D] * 4,
+        layers=[2, 2, 2, 2],
+        stem=R2Plus1dStem,
+        **kwargs,
+    )
+
+
+def se_r2plus1d_18_flow(attention, pretrained=False, progress=True, **kwargs):
+    return _se_video_resnet(
+        'r2plus1d_18',
+        attention,
+        pretrained,
+        progress,
+        block=BasicBlock,
+        conv_makers=[Conv2Plus1D] * 4,
+        layers=[2, 2, 2, 2],
+        stem=R2Plus1dFlowStem,
+        **kwargs,
+    )
 
 
 def se_r3d(attention, rgb=False, flow=False, pretrained=False, progress=True):
     """Get R3D_18 models."""
     r3d_rgb = r3d_flow = None
     if rgb and not flow:
-        r3d_rgb = se_r3d_18(attention=attention, pretrained=pretrained, progress=progress)
-    # elif not rgb and flow:
-    #     r3d_flow = r3d_18(pretrained=False, progress=progress)
-    # elif rgb and flow:
-    #     r3d_rgb = r3d_18(pretrained=pretrained, progress=progress)
-    #     r3d_flow = r3d_18(pretrained=False, progress=progress)
+        r3d_rgb = se_r3d_18_rgb(attention=attention, pretrained=pretrained, progress=progress)
+    elif not rgb and flow:
+        r3d_flow = se_r3d_18_flow(attention=attention, pretrained=pretrained, progress=progress)
+    elif rgb and flow:
+        r3d_rgb = se_r3d_18_rgb(attention=attention, pretrained=pretrained, progress=progress)
+        r3d_flow = se_r3d_18_flow(attention=attention, pretrained=pretrained, progress=progress)
     models = {'rgb': r3d_rgb, 'flow': r3d_flow}
     return models
 
@@ -274,12 +153,12 @@ def se_mc3(attention, rgb=False, flow=False, pretrained=False, progress=True):
     """Get R3D_18 models."""
     mc3_rgb = mc3_flow = None
     if rgb and not flow:
-        mc3_rgb = mc3_18(pretrained=pretrained, progress=progress)
-    # elif not rgb and flow:
-    #     mc3_flow = mc3_18(pretrained=False, progress=progress)
-    # elif rgb and flow:
-    #     mc3_rgb = mc3_18(pretrained=pretrained, progress=progress)
-    #     mc3_flow = mc3_18(pretrained=False, progress=progress)
+        mc3_rgb = se_mc3_18_rgb(attention=attention, pretrained=pretrained, progress=progress)
+    elif not rgb and flow:
+        mc3_flow = se_mc3_18_flow(attention=attention, pretrained=pretrained, progress=progress)
+    elif rgb and flow:
+        mc3_rgb = se_mc3_18_rgb(attention=attention, pretrained=pretrained, progress=progress)
+        mc3_flow = se_mc3_18_flow(attention=attention, pretrained=pretrained, progress=progress)
     models = {'rgb': mc3_rgb, 'flow': mc3_flow}
     return models
 
@@ -288,11 +167,11 @@ def se_r2plus1d(attention, rgb=False, flow=False, pretrained=False, progress=Tru
     """Get R3D_18 models."""
     r2plus1d_rgb = r2plus1d_flow = None
     if rgb and not flow:
-        r2plus1d_rgb = r2plus1d_18(pretrained=pretrained, progress=progress)
-    # elif not rgb and flow:
-    #     r2plus1d_flow = r2plus1d_18(pretrained=False, progress=progress)
-    # elif rgb and flow:
-    #     r2plus1d_rgb = r2plus1d_18(pretrained=pretrained, progress=progress)
-    #     r2plus1d_flow = r2plus1d_18(pretrained=False, progress=progress)
+        r2plus1d_rgb = se_r2plus1d_18_rgb(attention=attention, pretrained=pretrained, progress=progress)
+    elif not rgb and flow:
+        r2plus1d_flow = se_r2plus1d_18_flow(attention=attention, pretrained=pretrained, progress=progress)
+    elif rgb and flow:
+        r2plus1d_rgb = se_r2plus1d_18_rgb(attention=attention, pretrained=pretrained, progress=progress)
+        r2plus1d_flow = se_r2plus1d_18_flow(attention=attention, pretrained=pretrained, progress=progress)
     models = {'rgb': r2plus1d_rgb, 'flow': r2plus1d_flow}
     return models

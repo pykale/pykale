@@ -6,8 +6,6 @@ Created by Xianyuan Liu from modifying https://github.com/pytorch/vision/blob/ma
 import torch.nn as nn
 from torchvision.models.utils import load_state_dict_from_url
 
-__all__ = ['r3d', 'mc3', 'r2plus1d', 'r3d_18', 'mc3_18', 'r2plus1d_18']
-
 model_urls = {
     "r3d_18": "https://download.pytorch.org/models/r3d_18-b3b3357e.pth",
     "mc3_18": "https://download.pytorch.org/models/mc3_18-a90a0ba3.pth",
@@ -30,7 +28,7 @@ class Conv3DSimple(nn.Conv3d):
 
     @staticmethod
     def get_downsample_stride(stride):
-        return (stride, stride, stride)
+        return stride, stride, stride
 
 
 class Conv2Plus1D(nn.Sequential):
@@ -55,7 +53,7 @@ class Conv2Plus1D(nn.Sequential):
 
     @staticmethod
     def get_downsample_stride(stride):
-        return (stride, stride, stride)
+        return stride, stride, stride
 
 
 class Conv3DNoTemporal(nn.Conv3d):
@@ -73,7 +71,7 @@ class Conv3DNoTemporal(nn.Conv3d):
 
     @staticmethod
     def get_downsample_stride(stride):
-        return (1, stride, stride)
+        return 1, stride, stride
 
 
 class BasicBlock(nn.Module):
@@ -106,6 +104,17 @@ class BasicBlock(nn.Module):
 
         out += residual
         out = self.relu(out)
+
+        if "SELayerC" in dir(self):  # Check self.SELayer
+            out = self.SELayerC(out)
+        if "SELayerT" in dir(self):  # Check self.SELayer
+            out = self.SELayerT(out)
+        if "SELayerCoC" in dir(self):  # Check self.SELayer
+            out = self.SELayerCoC(out)
+        if "SELayerMC" in dir(self):  # Check self.SELayer
+            out = self.SELayerMC(out)
+        if "SELayerMAC" in dir(self):  # Check self.SELayer
+            out = self.SELayerMAC(out)
 
         return out
 
@@ -167,6 +176,17 @@ class BasicStem(nn.Sequential):
         )
 
 
+class BasicFLowStem(nn.Sequential):
+    """The default stem for optical flow."""
+
+    def __init__(self):
+        super(BasicFLowStem, self).__init__(
+            nn.Conv3d(2, 64, kernel_size=(3, 7, 7), stride=(1, 2, 2), padding=(1, 3, 3), bias=False),
+            nn.BatchNorm3d(64),
+            nn.ReLU(inplace=True),
+        )
+
+
 class R2Plus1dStem(nn.Sequential):
     """
     R(2+1)D stem is different than the default one as it uses separated 3D convolution.
@@ -176,6 +196,20 @@ class R2Plus1dStem(nn.Sequential):
     def __init__(self):
         super(R2Plus1dStem, self).__init__(
             nn.Conv3d(3, 45, kernel_size=(1, 7, 7), stride=(1, 2, 2), padding=(0, 3, 3), bias=False),
+            nn.BatchNorm3d(45),
+            nn.ReLU(inplace=True),
+            nn.Conv3d(45, 64, kernel_size=(3, 1, 1), stride=(1, 1, 1), padding=(1, 0, 0), bias=False),
+            nn.BatchNorm3d(64),
+            nn.ReLU(inplace=True),
+        )
+
+
+class R2Plus1dFlowStem(nn.Sequential):
+    """R(2+1)D stem for optical flow."""
+
+    def __init__(self):
+        super(R2Plus1dFlowStem, self).__init__(
+            nn.Conv3d(2, 45, kernel_size=(1, 7, 7), stride=(1, 2, 2), padding=(0, 3, 3), bias=False),
             nn.BatchNorm3d(45),
             nn.ReLU(inplace=True),
             nn.Conv3d(45, 64, kernel_size=(3, 1, 1), stride=(1, 1, 1), padding=(1, 0, 0), bias=False),
@@ -217,16 +251,16 @@ class VideoResNet(nn.Module):
                     nn.init.constant_(m.bn3.weight, 0)
 
     def forward(self, x):
-        x = self.stem(x)
+        x = self.stem(x)  # [b, 64, 16, 112, 112]
 
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
+        x = self.layer1(x)  # [b, 64, 16, 112, 112]
+        x = self.layer2(x)  # [b, 128, 8, 56, 56]
+        x = self.layer3(x)  # [b, 256, 4, 28, 28]
+        x = self.layer4(x)  # [b, 512, 2, 14, 14]
 
-        x = self.avgpool(x)
+        x = self.avgpool(x)  # [b, 512, 1, 1, 1]
         # Flatten the layer to fc
-        x = x.flatten(1)
+        x = x.flatten(1)  # [b, 512]
         # x = self.fc(x)
 
         return x
@@ -272,7 +306,17 @@ def _video_resnet(arch, pretrained=False, progress=True, **kwargs):
     return model
 
 
-def r3d_18(pretrained=False, progress=True, **kwargs):
+def _video_resnet_flow(arch, pretrained=False, progress=True, **kwargs):
+    model = VideoResNet(**kwargs)
+
+    if pretrained:
+        state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
+        state_dict.pop("stem.0.weight")
+        model.load_state_dict(state_dict, strict=False)
+    return model
+
+
+def r3d_18_rgb(pretrained=False, progress=True, **kwargs):
     """Construct 18 layer Resnet3D model as in
     https://arxiv.org/abs/1711.11248
     Args:
@@ -294,7 +338,22 @@ def r3d_18(pretrained=False, progress=True, **kwargs):
     )
 
 
-def mc3_18(pretrained=False, progress=True, **kwargs):
+def r3d_18_flow(pretrained=False, progress=True, **kwargs):
+    """Construct 18 layer Resnet3D model for optical flow."""
+
+    return _video_resnet_flow(
+        "r3d_18",
+        pretrained,
+        progress,
+        block=BasicBlock,
+        conv_makers=[Conv3DSimple] * 4,
+        layers=[2, 2, 2, 2],
+        stem=BasicFLowStem,
+        **kwargs,
+    )
+
+
+def mc3_18_rgb(pretrained=False, progress=True, **kwargs):
     """Constructor for 18 layer Mixed Convolution network as in
     https://arxiv.org/abs/1711.11248
     Args:
@@ -316,7 +375,22 @@ def mc3_18(pretrained=False, progress=True, **kwargs):
     )
 
 
-def r2plus1d_18(pretrained=False, progress=True, **kwargs):
+def mc3_18_flow(pretrained=False, progress=True, **kwargs):
+    """Constructor for 18 layer Mixed Convolution network for optical flow."""
+
+    return _video_resnet_flow(
+        "mc3_18",
+        pretrained,
+        progress,
+        block=BasicBlock,
+        conv_makers=[Conv3DSimple] + [Conv3DNoTemporal] * 3,
+        layers=[2, 2, 2, 2],
+        stem=BasicFLowStem,
+        **kwargs,
+    )
+
+
+def r2plus1d_18_rgb(pretrained=False, progress=True, **kwargs):
     """Constructor for the 18 layer deep R(2+1)D network as in
     https://arxiv.org/abs/1711.11248
     Args:
@@ -326,51 +400,70 @@ def r2plus1d_18(pretrained=False, progress=True, **kwargs):
         nn.Module: R(2+1)D-18 network
     """
 
-    return _video_resnet('r2plus1d_18',
-                         pretrained, progress,
-                         block=BasicBlock,
-                         conv_makers=[Conv2Plus1D] * 4,
-                         layers=[2, 2, 2, 2],
-                         stem=R2Plus1dStem, **kwargs)
+    return _video_resnet(
+        'r2plus1d_18',
+        pretrained,
+        progress,
+        block=BasicBlock,
+        conv_makers=[Conv2Plus1D] * 4,
+        layers=[2, 2, 2, 2],
+        stem=R2Plus1dStem,
+        **kwargs,
+    )
+
+
+def r2plus1d_18_flow(pretrained=False, progress=True, **kwargs):
+    """Constructor for the 18 layer deep R(2+1)D network for optical flow."""
+
+    return _video_resnet_flow(
+        'r2plus1d_18',
+        pretrained,
+        progress,
+        block=BasicBlock,
+        conv_makers=[Conv2Plus1D] * 4,
+        layers=[2, 2, 2, 2],
+        stem=R2Plus1dFlowStem,
+        **kwargs,
+    )
 
 
 def r3d(rgb=False, flow=False, pretrained=False, progress=True):
     """Get R3D_18 models."""
     r3d_rgb = r3d_flow = None
     if rgb and not flow:
-        r3d_rgb = r3d_18(pretrained=pretrained, progress=progress)
-    # elif not rgb and flow:
-    #     r3d_flow = r3d_18(pretrained=False, progress=progress)
-    # elif rgb and flow:
-    #     r3d_rgb = r3d_18(pretrained=pretrained, progress=progress)
-    #     r3d_flow = r3d_18(pretrained=False, progress=progress)
+        r3d_rgb = r3d_18_rgb(pretrained=pretrained, progress=progress)
+    elif not rgb and flow:
+        r3d_flow = r3d_18_flow(pretrained=pretrained, progress=progress)
+    elif rgb and flow:
+        r3d_rgb = r3d_18_rgb(pretrained=pretrained, progress=progress)
+        r3d_flow = r3d_18_flow(pretrained=pretrained, progress=progress)
     models = {'rgb': r3d_rgb, 'flow': r3d_flow}
     return models
 
 
 def mc3(rgb=False, flow=False, pretrained=False, progress=True):
-    """Get R3D_18 models."""
+    """Get MC3_18 models."""
     mc3_rgb = mc3_flow = None
     if rgb and not flow:
-        mc3_rgb = mc3_18(pretrained=pretrained, progress=progress)
-    # elif not rgb and flow:
-    #     mc3_flow = mc3_18(pretrained=False, progress=progress)
-    # elif rgb and flow:
-    #     mc3_rgb = mc3_18(pretrained=pretrained, progress=progress)
-    #     mc3_flow = mc3_18(pretrained=False, progress=progress)
+        mc3_rgb = mc3_18_rgb(pretrained=pretrained, progress=progress)
+    elif not rgb and flow:
+        mc3_flow = mc3_18_flow(pretrained=pretrained, progress=progress)
+    elif rgb and flow:
+        mc3_rgb = mc3_18_rgb(pretrained=pretrained, progress=progress)
+        mc3_flow = mc3_18_flow(pretrained=pretrained, progress=progress)
     models = {'rgb': mc3_rgb, 'flow': mc3_flow}
     return models
 
 
 def r2plus1d(rgb=False, flow=False, pretrained=False, progress=True):
-    """Get R3D_18 models."""
+    """Get R2PLUS1D_18 models."""
     r2plus1d_rgb = r2plus1d_flow = None
     if rgb and not flow:
-        r2plus1d_rgb = r2plus1d_18(pretrained=pretrained, progress=progress)
-    # elif not rgb and flow:
-    #     r2plus1d_flow = r2plus1d_18(pretrained=False, progress=progress)
-    # elif rgb and flow:
-    #     r2plus1d_rgb = r2plus1d_18(pretrained=pretrained, progress=progress)
-    #     r2plus1d_flow = r2plus1d_18(pretrained=False, progress=progress)
+        r2plus1d_rgb = r2plus1d_18_rgb(pretrained=pretrained, progress=progress)
+    elif not rgb and flow:
+        r2plus1d_flow = r2plus1d_18_flow(pretrained=pretrained, progress=progress)
+    elif rgb and flow:
+        r2plus1d_rgb = r2plus1d_18_rgb(pretrained=pretrained, progress=progress)
+        r2plus1d_flow = r2plus1d_18_flow(pretrained=pretrained, progress=progress)
     models = {'rgb': r2plus1d_rgb, 'flow': r2plus1d_flow}
     return models

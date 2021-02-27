@@ -75,8 +75,6 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
         dmn_feature_dim: The dimension of the feature network output for DomainNet.
     """
     attention_list = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerCT", "SELayerMC", "SELayerMAC"]
-    # if model_name != "I3D" and attention in attention_list:
-    #     raise ValueError("Attention SELayer is only applied to I3D. Current: {}, Attention: {}".format(model_name, attention))
 
     if attention in attention_list:
         att = True
@@ -146,8 +144,39 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
                 feature_network = i3d_joint(rgb_pt=None, flow_pt=pretrained_model, num_classes=num_classes, pretrained=True)
             class_feature_dim = 1024
             dmn_feature_dim = class_feature_dim
+
+        elif model_name == 'R3D_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                # feature_network = se_r3d(rgb=False, flow=True, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = r3d(rgb=False, flow=True, pretrained=True)
+            class_feature_dim = 512
+            dmn_feature_dim = class_feature_dim
+
+        elif model_name == 'R2PLUS1D_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                # feature_network = se_r2plus1d(rgb=False, flow=True, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = r2plus1d(rgb=False, flow=True, pretrained=True)
+            class_feature_dim = 512
+            dmn_feature_dim = class_feature_dim
+
+        elif model_name == 'MC3_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                # feature_network = se_mc3(rgb=False, flow=True, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = mc3(rgb=False, flow=True, pretrained=True)
+            class_feature_dim = 512
+            dmn_feature_dim = class_feature_dim
+
         else:
-            raise ValueError('Only provides I3D model for optical flow input. Current is {}.'.format(model_name))
+            raise ValueError("Unsupported model: {}".format(model_name))
 
     elif image_modality == 'joint':
         if model_name == 'I3D':
@@ -169,8 +198,39 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
                                             pretrained=True)
             class_feature_dim = 2048
             dmn_feature_dim = class_feature_dim / 2
+
+        elif model_name == 'R3D_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                # feature_network = se_r3d(rgb=False, flow=True, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = r3d(rgb=True, flow=True, pretrained=True)
+            class_feature_dim = 1024
+            dmn_feature_dim = class_feature_dim / 2
+
+        elif model_name == 'R2PLUS1D_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                # feature_network = se_r2plus1d(rgb=False, flow=True, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = r2plus1d(rgb=True, flow=True, pretrained=True)
+            class_feature_dim = 1024
+            dmn_feature_dim = class_feature_dim / 2
+
+        elif model_name == 'MC3_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                # feature_network = se_mc3(rgb=False, flow=True, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = mc3(rgb=True, flow=True, pretrained=True)
+            class_feature_dim = 1024
+            dmn_feature_dim = class_feature_dim / 2
+
         else:
-            raise ValueError("Only provides I3D model for optical joint inputs. Current is {}.".format(model_name))
+            raise ValueError("Unsupported model: {}".format(model_name))
 
     else:
         raise ValueError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
