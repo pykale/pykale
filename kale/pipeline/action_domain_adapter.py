@@ -261,9 +261,9 @@ class DANNtrainer4Video(DANNtrainer):
                 reverse_feature = ReverseLayerF.apply(x, self.alpha)
 
                 adversarial_output = self.domain_classifier(reverse_feature)
-                print(x)
-                print(class_output)
-                print(adversarial_output)
+                # print(x)
+                # print(class_output)
+                # print(adversarial_output)
                 return x, class_output, adversarial_output
 
             elif self.image_modality == 'joint':
@@ -320,7 +320,7 @@ class DANNtrainer4Video(DANNtrainer):
             adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
             task_loss = loss_cls
 
-            print(loss_cls.item(), loss_dmn_src.item(), loss_dmn_tgt.item())
+            # print(loss_cls.item(), loss_dmn_src.item(), loss_dmn_tgt.item())
 
             log_metrics = {
                 f"{split_name}_source_acc": ok_src,

@@ -34,15 +34,15 @@ def _se_video_resnet(arch, attention, pretrained=False, progress=True, **kwargs)
 def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kwargs):
     model = VideoResNet(**kwargs)
 
-    if attention == "SELayerC":
-        model.layer1.modules["0"].add_module("SELayerC", SELayerC(64))
-        model.layer1.modules["1"].add_module("SELayerC", SELayerC(64))
-        model.layer2.modules["0"].add_module("SELayerC", SELayerC(128))
-        model.layer2.modules["1"].add_module("SELayerC", SELayerC(128))
-        model.layer3.modules["0"].add_module("SELayerC", SELayerC(256))
-        model.layer3.modules["1"].add_module("SELayerC", SELayerC(256))
-        model.layer4.modules["0"].add_module("SELayerC", SELayerC(512))
-        model.layer4.modules["1"].add_module("SELayerC", SELayerC(512))
+    # if attention == "SELayerC":
+    #     model.layer1.modules["0"].add_module("SELayerC", SELayerC(64))
+    #     model.layer1.modules["1"].add_module("SELayerC", SELayerC(64))
+    #     model.layer2.modules["0"].add_module("SELayerC", SELayerC(128))
+    #     model.layer2.modules["1"].add_module("SELayerC", SELayerC(128))
+    #     model.layer3.modules["0"].add_module("SELayerC", SELayerC(256))
+    #     model.layer3.modules["1"].add_module("SELayerC", SELayerC(256))
+    #     model.layer4.modules["0"].add_module("SELayerC", SELayerC(512))
+    #     model.layer4.modules["1"].add_module("SELayerC", SELayerC(512))
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
