@@ -1,9 +1,13 @@
 import argparse
+import sys
+
+sys.path.append("/home/baipeizhen/projects/pykale")
 
 import pytorch_lightning as pl
 import torch
 from config import get_cfg_defaults
 from model import get_model
+from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import CSVLogger, TensorBoardLogger
 from torch.utils.data import DataLoader
 
@@ -27,8 +31,7 @@ def main():
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
     cfg.freeze()
-    csv_logger = CSVLogger("csv_logs", name="deepdta")
-    tb_logger = TensorBoardLogger("tb_logs", name="deepdta")
+    tb_logger = TensorBoardLogger("tb_logs", name="test")
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # ---- set dataset ----
@@ -44,7 +47,8 @@ def main():
 
     # ---- training and evaluation ----
     gpus = 1 if device == "cuda" else 0
-    trainer = pl.Trainer(max_epochs=cfg.SOLVER.MAX_EPOCHS, gpus=gpus, logger=[csv_logger, tb_logger])
+    checkpoint_callback = ModelCheckpoint(monitor='val_loss', mode="min")
+    trainer = pl.Trainer(max_epochs=cfg.SOLVER.MAX_EPOCHS, gpus=gpus, logger=tb_logger, callbacks=[checkpoint_callback])
     trainer.fit(model, train_dataloader=train_loader, val_dataloaders=val_loader)
     trainer.test(test_dataloaders=test_loader)
 

@@ -2,6 +2,8 @@ import pytorch_lightning as pl
 import torch
 from torch.nn import functional as F
 
+from kale.evaluate.metrics import c_index
+
 
 class BaseDTATrainer(pl.LightningModule):
     """
@@ -15,12 +17,15 @@ class BaseDTATrainer(pl.LightningModule):
         decoder: drug-target representations decoder.
         lr: learning rate.
     """
-    def __init__(self, drug_encoder, target_encoder, decoder, lr):
+
+    def __init__(self, drug_encoder, target_encoder, decoder, lr, **kwargs):
         super(BaseDTATrainer, self).__init__()
         self.drug_encoder = drug_encoder
         self.target_encoder = target_encoder
         self.decoder = decoder
         self.lr = lr
+        if kwargs:
+            self.save_hyperparameters(kwargs)
 
     def configure_optimizers(self):
         """
@@ -42,7 +47,7 @@ class BaseDTATrainer(pl.LightningModule):
         x_drug, x_target, y = train_batch
         y_pred = self(x_drug, x_target)
         loss = F.mse_loss(y_pred, y.view(-1, 1))
-        self.log("train_loss", loss, on_step=False, on_epoch=True)
+        self.logger.log_metrics({"train_step_loss": loss}, self.global_step)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
@@ -52,7 +57,7 @@ class BaseDTATrainer(pl.LightningModule):
         x_drug, x_target, y = val_batch
         y_pred = self(x_drug, x_target)
         loss = F.mse_loss(y_pred, y.view(-1, 1))
-        self.log("val_loss", loss, on_step=False, on_epoch=True)
+        return loss
 
     def test_step(self, test_batch, batch_idx):
         """
@@ -61,7 +66,8 @@ class BaseDTATrainer(pl.LightningModule):
         x_drug, x_target, y = test_batch
         y_pred = self(x_drug, x_target)
         loss = F.mse_loss(y_pred, y.view(-1, 1))
-        self.log("test_loss", loss, on_step=False, on_epoch=True)
+        self.log("test_loss", loss, on_epoch=True, on_step=False)
+        return loss
 
 
 class DeepDTATrainer(BaseDTATrainer):
@@ -73,8 +79,9 @@ class DeepDTATrainer(BaseDTATrainer):
         decoder: drug-target MLP decoder.
         lr: learning rate.
     """
-    def __init__(self, drug_encoder, target_encoder, decoder, lr):
-        super().__init__(drug_encoder, target_encoder, decoder, lr)
+
+    def __init__(self, drug_encoder, target_encoder, decoder, lr, **kwargs):
+        super().__init__(drug_encoder, target_encoder, decoder, lr, **kwargs)
 
     def forward(self, x_drug, x_target):
         """
@@ -89,3 +96,22 @@ class DeepDTATrainer(BaseDTATrainer):
         comb_emb = torch.cat((drug_emb, target_emb), dim=1)
         output = self.decoder(comb_emb)
         return output
+
+    def validation_step(self, val_batch, batch_idx):
+        x_drug, x_target, y = val_batch
+        y_pred = self(x_drug, x_target)
+        loss = F.mse_loss(y_pred, y.view(-1, 1))
+        self.log("val_loss", loss, on_epoch=True, on_step=False)
+        return {"loss": loss, "y": y, "y_pred": y_pred}
+
+    def validation_epoch_end(self, val_step_outputs):
+        for i in range(len(val_step_outputs) - 1):
+            if i == 0:
+                y = torch.cat([val_step_outputs[i]["y"], val_step_outputs[i + 1]["y"]])
+                y_pred = torch.cat([val_step_outputs[i]["y_pred"], val_step_outputs[i + 1]["y_pred"]])
+            else:
+                y = torch.cat([y, val_step_outputs[i + 1]["y"]])
+                y_pred = torch.cat([y_pred, val_step_outputs[i + 1]["y_pred"]])
+        y, y_pred = y.cpu().detach().numpy(), y_pred.cpu().detach().numpy()
+        ci = c_index(y, y_pred)
+        self.logger.log_metrics({"val_ci": ci.item()}, self.global_step)

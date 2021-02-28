@@ -35,6 +35,6 @@ def get_model(cfg):
     # ---- learning rate ----
     lr = cfg.SOLVER.LR
 
-    model = DeepDTATrainer(drug_encoder, target_encoder, decoder, lr)
+    model = DeepDTATrainer(drug_encoder, target_encoder, decoder, lr, **cfg.MODEL, **cfg.SOLVER)
 
     return model
