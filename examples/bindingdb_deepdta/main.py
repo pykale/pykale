@@ -35,9 +35,9 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # ---- set dataset ----
-    train_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="train")
-    val_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="valid")
-    test_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="test")
+    train_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="train", path=cfg.DATASET.PATH)
+    val_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="valid", path=cfg.DATASET.PATH)
+    test_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="test", path=cfg.DATASET.PATH)
     train_loader = DataLoader(dataset=train_dataset, shuffle=True, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE)
     val_loader = DataLoader(dataset=val_dataset, shuffle=True, batch_size=cfg.SOLVER.TEST_BATCH_SIZE)
     test_loader = DataLoader(dataset=test_dataset, shuffle=True, batch_size=cfg.SOLVER.TEST_BATCH_SIZE)
