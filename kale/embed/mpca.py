@@ -12,10 +12,8 @@ Reference:
 """
 import logging
 import warnings
-
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
-
 # import tensorly as tl
 from tensorly.base import fold, unfold
 from tensorly.tenalg import multi_mode_dot
@@ -74,7 +72,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         n_components (int): Number of components to keep. Applies only when return_vector=True. Defaults to None.
 
     Attributes:
-        proj_mats (list of array-like): A list of transposed projection matrices, shapes (P_1, I_1), ...,
+        proj_mats (list of arraies): A list of transposed projection matrices, shapes (P_1, I_1), ...,
             (P_N, I_N), where P_1, ..., P_N are output tensor shape for each sample.
         idx_order (array-like): The ordering index of projected (and vectorised) features in decreasing variance.
         mean_ (array-like): Per-feature empirical mean, estimated from the training set, shape (I_1, I_2, ..., I_N).
@@ -114,10 +112,10 @@ class MPCA(BaseEstimator, TransformerMixin):
         self.n_components = n_components
 
     def fit(self, x, y=None):
-        """Fit the model with input training data X.
+        """Fit the model with input training data x.
 
         Args
-            X (array-like tensor): Input data, shape (n_samples, I_1, I_2, ..., I_N), where n_samples is the number of
+            x (array-like tensor): Input data, shape (n_samples, I_1, I_2, ..., I_N), where n_samples is the number of
                 samples, I_1, I_2, ..., I_N are the dimensions of corresponding mode (1, 2, ..., N), respectively.
             y (None): Ignored variable.
 
@@ -203,7 +201,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, x):
-        """Perform dimension reduction on X
+        """Perform dimension reduction on x
 
         Args:
             x (array-like tensor): Data to perform dimension reduction, shape (n_samples, I_1, I_2, ..., I_N).
@@ -249,7 +247,7 @@ class MPCA(BaseEstimator, TransformerMixin):
             array-like tensor:
                 Reconstructed tensor in original shape, shape (n_samples, I_1, I_2, ..., I_N)
         """
-        # reshape X to tensor in shape (n_samples, self.shape_out) if X is vectorised
+        # reshape x to tensor in shape (n_samples, self.shape_out) if x is vectorised
         if x.ndim <= 2:
             if x.ndim == 1:
                 # reshape x to a 2D matrix (1, n_components) if x in shape (n_components,)
