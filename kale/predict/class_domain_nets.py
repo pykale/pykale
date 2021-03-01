@@ -150,7 +150,6 @@ class ClassNetVideo(nn.Module):
         return x
 
 
-# TODO
 # Dima's classifier
 class ClassNetVideoConv(nn.Module):
     def __init__(self, input_size=1024, n_class=8):
@@ -171,7 +170,6 @@ class ClassNetVideoConv(nn.Module):
         return x
 
 
-# TODO
 # For Video/Action Recognition, DomainClassifier.
 class DomainNetVideo(nn.Module):
     """Domain classifier network for video input
