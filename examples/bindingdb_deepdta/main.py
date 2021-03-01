@@ -31,7 +31,7 @@ def main():
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
     cfg.freeze()
-    tb_logger = TensorBoardLogger("tb_logs", name="test")
+    tb_logger = TensorBoardLogger("tb_logs", name=cfg.DATASET.NAME)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # ---- set dataset ----

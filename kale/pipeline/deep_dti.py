@@ -2,8 +2,6 @@ import pytorch_lightning as pl
 import torch
 from torch.nn import functional as F
 
-from kale.evaluate.metrics import c_index
-
 
 class BaseDTATrainer(pl.LightningModule):
     """
@@ -69,6 +67,27 @@ class BaseDTATrainer(pl.LightningModule):
         self.log("test_loss", loss, on_epoch=True, on_step=False)
         return loss
 
+    """
+    def test_epoch_end(self, test_step_outputs):
+        time1 = timeit.default_timer()
+        for i in range(len(test_step_outputs) - 1):
+            if i == 0:
+                y = torch.cat([test_step_outputs[i]["y"], test_step_outputs[i + 1]["y"]])
+                y_pred = torch.cat([test_step_outputs[i]["y_pred"], test_step_outputs[i + 1]["y_pred"]])
+            else:
+                y = torch.cat([y, test_step_outputs[i + 1]["y"]])
+                y_pred = torch.cat([y_pred, test_step_outputs[i + 1]["y_pred"]])
+        time2 = timeit.default_timer()
+        print("cat time: ", time2-time1)
+        y, y_pred = y.cpu().detach().numpy(), y_pred.cpu().detach().numpy()
+        time3 = timeit.default_timer()
+        print("to cpu time: ", time3 - time2)
+        ci = c_index(y, y_pred)
+        time4 = timeit.default_timer()
+        print("ci calculate time: ", time4 - time3)
+        self.logger.log_metrics({"test_ci": ci.item()}, self.global_step)
+    """
+
 
 class DeepDTATrainer(BaseDTATrainer):
     """
@@ -102,16 +121,4 @@ class DeepDTATrainer(BaseDTATrainer):
         y_pred = self(x_drug, x_target)
         loss = F.mse_loss(y_pred, y.view(-1, 1))
         self.log("val_loss", loss, on_epoch=True, on_step=False)
-        return {"loss": loss, "y": y, "y_pred": y_pred}
-
-    def validation_epoch_end(self, val_step_outputs):
-        for i in range(len(val_step_outputs) - 1):
-            if i == 0:
-                y = torch.cat([val_step_outputs[i]["y"], val_step_outputs[i + 1]["y"]])
-                y_pred = torch.cat([val_step_outputs[i]["y_pred"], val_step_outputs[i + 1]["y_pred"]])
-            else:
-                y = torch.cat([y, val_step_outputs[i + 1]["y"]])
-                y_pred = torch.cat([y_pred, val_step_outputs[i + 1]["y_pred"]])
-        y, y_pred = y.cpu().detach().numpy(), y_pred.cpu().detach().numpy()
-        ci = c_index(y, y_pred)
-        self.logger.log_metrics({"val_ci": ci.item()}, self.global_step)
+        return loss
