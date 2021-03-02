@@ -1,7 +1,4 @@
 import argparse
-import sys
-
-sys.path.append("/home/baipeizhen/projects/pykale")
 
 import pytorch_lightning as pl
 import torch
