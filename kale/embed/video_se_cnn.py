@@ -26,7 +26,7 @@ class SELayerC(nn.Module):
 
 
 class SELayerT(nn.Module):
-    def __init__(self, channel, reduction=1):
+    def __init__(self, channel, reduction=2):
         super(SELayerT, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.fc = nn.Sequential(

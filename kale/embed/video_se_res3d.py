@@ -82,8 +82,6 @@ def _se_video_resnet(arch, attention, pretrained=False, progress=True, **kwargs)
         model.layer2._modules["1"].add_module("SELayerT", SELayerT(n//2))
         model.layer3._modules["0"].add_module("SELayerT", SELayerT(n//4))
         model.layer3._modules["1"].add_module("SELayerT", SELayerT(n//4))
-        model.layer4._modules["0"].add_module("SELayerT", SELayerT(n//8))
-        model.layer4._modules["1"].add_module("SELayerT", SELayerT(n//8))
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
