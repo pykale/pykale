@@ -15,15 +15,75 @@ model_urls = {
 def _se_video_resnet(arch, attention, pretrained=False, progress=True, **kwargs):
     model = VideoResNet(**kwargs)
 
+    n = 16
     if attention == "SELayerC":
-        model.layer1.modules["0"].add_module("SELayerC", SELayerC(64))
-        model.layer1.modules["1"].add_module("SELayerC", SELayerC(64))
-        model.layer2.modules["0"].add_module("SELayerC", SELayerC(128))
-        model.layer2.modules["1"].add_module("SELayerC", SELayerC(128))
-        model.layer3.modules["0"].add_module("SELayerC", SELayerC(256))
-        model.layer3.modules["1"].add_module("SELayerC", SELayerC(256))
-        model.layer4.modules["0"].add_module("SELayerC", SELayerC(512))
-        model.layer4.modules["1"].add_module("SELayerC", SELayerC(512))
+        model.layer1._modules["0"].add_module("SELayerC", SELayerC(64))
+        model.layer1._modules["1"].add_module("SELayerC", SELayerC(64))
+        model.layer2._modules["0"].add_module("SELayerC", SELayerC(128))
+        model.layer2._modules["1"].add_module("SELayerC", SELayerC(128))
+        model.layer3._modules["0"].add_module("SELayerC", SELayerC(256))
+        model.layer3._modules["1"].add_module("SELayerC", SELayerC(256))
+        model.layer4._modules["0"].add_module("SELayerC", SELayerC(512))
+        model.layer4._modules["1"].add_module("SELayerC", SELayerC(512))
+
+    elif attention == "SELayerT":
+        model.layer1._modules["0"].add_module("SELayerT", SELayerT(n))
+        model.layer1._modules["1"].add_module("SELayerT", SELayerT(n))
+        model.layer2._modules["0"].add_module("SELayerT", SELayerT(n//2))
+        model.layer2._modules["1"].add_module("SELayerT", SELayerT(n//2))
+        model.layer3._modules["0"].add_module("SELayerT", SELayerT(n//4))
+        model.layer3._modules["1"].add_module("SELayerT", SELayerT(n//4))
+        model.layer4._modules["0"].add_module("SELayerT", SELayerT(n//8))
+        model.layer4._modules["1"].add_module("SELayerT", SELayerT(n//8))
+
+    elif attention == "SELayerCoC":
+        model.layer1._modules["0"].add_module("SELayerCoC", SELayerCoC(64))
+        model.layer1._modules["1"].add_module("SELayerCoC", SELayerCoC(64))
+        model.layer2._modules["0"].add_module("SELayerCoC", SELayerCoC(128))
+        model.layer2._modules["1"].add_module("SELayerCoC", SELayerCoC(128))
+        model.layer3._modules["0"].add_module("SELayerCoC", SELayerCoC(256))
+        model.layer3._modules["1"].add_module("SELayerCoC", SELayerCoC(256))
+        model.layer4._modules["0"].add_module("SELayerCoC", SELayerCoC(512))
+        model.layer4._modules["1"].add_module("SELayerCoC", SELayerCoC(512))
+
+    elif attention == "SELayerMAC":
+        model.layer1._modules["0"].add_module("SELayerMAC", SELayerMAC(64))
+        model.layer1._modules["1"].add_module("SELayerMAC", SELayerMAC(64))
+        model.layer2._modules["0"].add_module("SELayerMAC", SELayerMAC(128))
+        model.layer2._modules["1"].add_module("SELayerMAC", SELayerMAC(128))
+        model.layer3._modules["0"].add_module("SELayerMAC", SELayerMAC(256))
+        model.layer3._modules["1"].add_module("SELayerMAC", SELayerMAC(256))
+        model.layer4._modules["0"].add_module("SELayerMAC", SELayerMAC(512))
+        model.layer4._modules["1"].add_module("SELayerMAC", SELayerMAC(512))
+
+    elif attention == "SELayerMC":
+        model.layer1._modules["0"].add_module("SELayerMC", SELayerMC(64))
+        model.layer1._modules["1"].add_module("SELayerMC", SELayerMC(64))
+        model.layer2._modules["0"].add_module("SELayerMC", SELayerMC(128))
+        model.layer2._modules["1"].add_module("SELayerMC", SELayerMC(128))
+        model.layer3._modules["0"].add_module("SELayerMC", SELayerMC(256))
+        model.layer3._modules["1"].add_module("SELayerMC", SELayerMC(256))
+        model.layer4._modules["0"].add_module("SELayerMC", SELayerMC(512))
+        model.layer4._modules["1"].add_module("SELayerMC", SELayerMC(512))
+
+    elif attention == "SELayerCT":
+        model.layer1._modules["0"].add_module("SELayerC", SELayerC(64))
+        model.layer1._modules["1"].add_module("SELayerC", SELayerC(64))
+        model.layer2._modules["0"].add_module("SELayerC", SELayerC(128))
+        model.layer2._modules["1"].add_module("SELayerC", SELayerC(128))
+        model.layer3._modules["0"].add_module("SELayerC", SELayerC(256))
+        model.layer3._modules["1"].add_module("SELayerC", SELayerC(256))
+        model.layer4._modules["0"].add_module("SELayerC", SELayerC(512))
+        model.layer4._modules["1"].add_module("SELayerC", SELayerC(512))
+
+        model.layer1._modules["0"].add_module("SELayerT", SELayerT(64))
+        model.layer1._modules["1"].add_module("SELayerT", SELayerT(64))
+        model.layer2._modules["0"].add_module("SELayerT", SELayerT(128))
+        model.layer2._modules["1"].add_module("SELayerT", SELayerT(128))
+        model.layer3._modules["0"].add_module("SELayerT", SELayerT(256))
+        model.layer3._modules["1"].add_module("SELayerT", SELayerT(256))
+        model.layer4._modules["0"].add_module("SELayerT", SELayerT(512))
+        model.layer4._modules["1"].add_module("SELayerT", SELayerT(512))
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
