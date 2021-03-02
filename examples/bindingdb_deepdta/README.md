@@ -43,8 +43,8 @@ python main.py --cfg configs/Ki-DeepDTA.yaml
 ```
 
 ### 6. Results
-Here are the MSE loss results for the three BindingDB datasets, the minimal validation loss's epoch is saved as best
-checkpoint, which is applied to calculate test dataset loss. All default maximum epochs are 100.
+Here are the MSE loss results for the three BindingDB datasets, and the minimal validation loss's epoch is saved as the
+best checkpoint, which is applied to calculate test dataset loss. All default maximum epochs are 100.
 
 |  Datasets   | val_loss | test_loss | best_epoch |
 |  :----:  | :----:  |   :----:  | :----:  |
