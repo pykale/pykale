@@ -8,6 +8,22 @@ Please use [pykale discussions on testing](https://github.com/pykale/pykale/disc
 
 Refer to the [official pytest documentation](https://docs.pytest.org/en/stable/), or less formal [python testing software carpentry (alpha)](https://carpentries-incubator.github.io/python-testing/), if needed. This will help you to write tests and help with decisions on what aspects of your code need to be tested. There is some subjectivity involved in deciding how much of the potential behaviour of your code to check.
 
+## Running tests locally
+
+To run tests locally you will need to have installed `pykale` with the development requirements:
+
+```
+git clone https://github.com/pykale/pykale
+cd pykale
+pip install -e .[dev] 
+```
+
+then run:
+
+```
+pytest
+```
+
 ## Test runner
 
 `pykale` uses the `pytest` test runner. This offers a balance of functionality, ease of use and wide community support.
