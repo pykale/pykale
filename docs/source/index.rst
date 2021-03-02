@@ -22,6 +22,7 @@ PyKale documentation
     kale.embed
     kale.predict
     kale.pipeline
+    kale.evaluate
     kale.utils
 
 The core APIs above are ordered following the machine learning pipeline rather than alphabetically.
