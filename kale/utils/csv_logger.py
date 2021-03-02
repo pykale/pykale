@@ -102,7 +102,7 @@ def setup_logger(train_params, output_dir, method_name, seed):
         dirpath=full_checkpoint_dir,
         filename="{epoch}-{step}-{V_target_acc:.4f}",
         save_last=True,
-        save_top_k=2,
+        save_top_k=1,
         monitor="V_target_acc",
         mode="max",
     )
