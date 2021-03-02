@@ -42,8 +42,18 @@ python main.py --cfg configs/Kd-DeepDTA.yaml
 python main.py --cfg configs/Ki-DeepDTA.yaml
 ```
 
-### 6. Architecture
-Below is the architecture of the DeepDTA with default hyperparameters setting.
+### 6. Results
+Here are the MSE loss results for the three BindingDB datasets, the minimal validation loss's epoch is saved as best
+checkpoint, which is applied to calculate test dataset loss. All default maximum epochs are 100.
+
+|  Datasets   | val_loss | test_loss | best_epoch |
+|  :----:  | :----:  |   :----:  | :----:  |
+| Kd  | 0.7898 | 0.7453 | 47 |
+| IC50  | 0.9264 | 0.9198 | 83 |
+| Ki | 1.071 | 1.072 | 91 |
+
+### 7. Architecture
+Below is the architecture of DeepDTA with default hyperparameters settings.
 
 <pre>
 ==========================================================================================
