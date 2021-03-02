@@ -15,7 +15,7 @@ To run tests locally you will need to have installed `pykale` with the developme
 ```
 git clone https://github.com/pykale/pykale
 cd pykale
-pip install -e .[dev] 
+pip install -e .[dev]
 ```
 
 then run:
