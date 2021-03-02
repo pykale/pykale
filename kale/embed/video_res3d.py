@@ -102,9 +102,6 @@ class BasicBlock(nn.Module):
         if self.downsample is not None:
             residual = self.downsample(x)
 
-        out += residual
-        out = self.relu(out)
-
         if "SELayerC" in dir(self):  # Check self.SELayer
             out = self.SELayerC(out)
         if "SELayerT" in dir(self):  # Check self.SELayer
@@ -115,6 +112,9 @@ class BasicBlock(nn.Module):
             out = self.SELayerMC(out)
         if "SELayerMAC" in dir(self):  # Check self.SELayer
             out = self.SELayerMAC(out)
+
+        out += residual
+        out = self.relu(out)
 
         return out
 
