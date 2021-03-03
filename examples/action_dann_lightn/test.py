@@ -6,6 +6,7 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 import argparse
 import logging
 import os
+import torch
 
 import pytorch_lightning as pl
 from pytorch_lightning import loggers as pl_loggers
@@ -29,6 +30,14 @@ def arg_parse():
     parser.add_argument("--ckpt", default="", type=str)
     args = parser.parse_args()
     return args
+
+
+def weights_update(model, checkpoint):
+    model_dict = model.state_dict()
+    pretrained_dict = {k: v for k, v in checkpoint['state_dict'].items() if k in model_dict}
+    model_dict.update(pretrained_dict)
+    model.load_state_dict(model_dict)
+    return model
 
 
 def main():
@@ -64,9 +73,11 @@ def main():
         resume_from_checkpoint=args.ckpt,
         gpus=args.gpus,
     )
+    
+    model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt))
 
     # test scores
-    trainer.test(model=model)
+    trainer.test(model=model_test)
 
 
 if __name__ == "__main__":
