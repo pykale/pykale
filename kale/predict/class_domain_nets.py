@@ -135,11 +135,11 @@ class ClassNetVideo(nn.Module):
     def __init__(self, input_size=512, n_class=8):
         super(ClassNetVideo, self).__init__()
         self._n_classes = n_class
-        self.fc1 = nn.Linear(input_size, 256)
-        self.bn1 = nn.BatchNorm1d(256)
+        self.fc1 = nn.Linear(input_size, 100)
+        self.bn1 = nn.BatchNorm1d(100)
         self.relu1 = nn.ReLU()
         self.dp1 = nn.Dropout(0.5)
-        self.fc2 = nn.Linear(256, n_class)
+        self.fc2 = nn.Linear(100, n_class)
 
     def n_classes(self):
         return self._n_classes
