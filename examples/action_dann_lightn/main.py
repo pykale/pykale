@@ -83,10 +83,9 @@ def main():
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
             callbacks=[lr_monitor],
             # callbacks=[early_stop_callback, lr_monitor],
-            # auto_scale_batch_size='binsearch',
-            # limit_train_batches=0.01,
-            # limit_val_batches=0.1,
-            # limit_test_batches=0.1,
+            # limit_train_batches=0.005,
+            # limit_val_batches=0.06,
+            # limit_test_batches=0.06,
         )
 
         # find learning_rate
@@ -113,7 +112,7 @@ def main():
             metric_values=trainer.callback_metrics,
         )
         results.to_csv(test_csv_file)
-        results.print_scores(cfg.DAN.METHOD)
+        results.print_scores(method_name=cfg.DAN.METHOD, split="Test")
 
 
 if __name__ == "__main__":
