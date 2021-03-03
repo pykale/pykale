@@ -136,17 +136,16 @@ class ClassNetVideo(nn.Module):
         super(ClassNetVideo, self).__init__()
         self._n_classes = n_class
         self.fc1 = nn.Linear(input_size, 100)
-        # self.bn1 = nn.BatchNorm1d(100)
+        self.bn1 = nn.BatchNorm1d(100)
         self.relu1 = nn.ReLU()
-        # self.dp1 = nn.Dropout(0.5)
+        self.dp1 = nn.Dropout(0.5)
         self.fc2 = nn.Linear(100, n_class)
 
     def n_classes(self):
         return self._n_classes
 
     def forward(self, input):
-        # x = self.dp1(self.relu1(self.bn1(self.fc1(input))))
-        x = self.relu1(self.fc1(input))
+        x = self.dp1(self.relu1(self.bn1(self.fc1(input))))
         x = self.fc2(x)
         return x
 
@@ -183,13 +182,11 @@ class DomainNetVideo(nn.Module):
         super(DomainNetVideo, self).__init__()
 
         self.fc1 = nn.Linear(input_size, 100)
-        # self.bn1 = nn.BatchNorm1d(100)
+        self.bn1 = nn.BatchNorm1d(100)
         self.relu1 = nn.ReLU()
-        # self.dp1 = nn.Dropout(0.5)
         self.fc2 = nn.Linear(100, 2)
 
     def forward(self, input):
-        # x = self.dp1(self.relu1(self.bn1(self.fc1(input))))
-        x = self.relu1(self.fc1(input))
+        x = self.relu1(self.bn1(self.fc1(input)))
         x = self.fc2(x)
         return x
