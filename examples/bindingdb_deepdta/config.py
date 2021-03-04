@@ -10,6 +10,7 @@ _C = CN()
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
+_C.DATASET.PATH = "./data"
 _C.DATASET.NAME = "BindingDB_IC50"
 _C.DATASET.Y_LOG = True
 
