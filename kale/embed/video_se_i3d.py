@@ -44,8 +44,8 @@ class SEInceptionI3DRGB(nn.Module):
             model.Mixed_4d.add_module("SELayerT", SELayerT(n//4))
             model.Mixed_4e.add_module("SELayerT", SELayerT(n//4))
             model.Mixed_4f.add_module("SELayerT", SELayerT(n//4))
-            model.Mixed_5b.add_module("SELayerT", SELayerT(n//8))
-            model.Mixed_5c.add_module("SELayerT", SELayerT(n//8))
+            # model.Mixed_5b.add_module("SELayerT", SELayerT(n//8))
+            # model.Mixed_5c.add_module("SELayerT", SELayerT(n//8))
 
         elif attention == "SELayerCoC":
             model.Mixed_3b.add_module("SELayerCoC", SELayerCoC(256))
