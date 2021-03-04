@@ -75,7 +75,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         n_components (int): Number of components to keep. Applies only when return_vector=True. Defaults to None.
 
     Attributes:
-        proj_mats (list of arraies): A list of transposed projection matrices, shapes (P_1, I_1), ...,
+        proj_mats (list of arrays): A list of transposed projection matrices, shapes (P_1, I_1), ...,
             (P_N, I_N), where P_1, ..., P_N are output tensor shape for each sample.
         idx_order (array-like): The ordering index of projected (and vectorised) features in decreasing variance.
         mean_ (array-like): Per-feature empirical mean, estimated from the training set, shape (I_1, I_2, ..., I_N).
@@ -83,7 +83,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         shape_out (tuple): Output tensor shapes, i.e. (P_1, P_2, ..., P_N).
     Examples:
         >>> import numpy as np
-        >>> from kale.embed import MPCA
+        >>> from kale.embed.mpca import MPCA
         >>> x = np.random.random((40, 20, 25, 20))
         >>> x.shape
         (40, 20, 25, 20)
