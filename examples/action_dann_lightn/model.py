@@ -74,7 +74,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
                         It is a convention when the input dimension and the network is fixed.
         dmn_feature_dim: The dimension of the feature network output for DomainNet.
     """
-    attention_list = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerCT", "SELayerMC", "SELayerMAC"]
+    attention_list = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"]
 
     if attention in attention_list:
         att = True
