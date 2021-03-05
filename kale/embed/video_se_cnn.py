@@ -102,9 +102,9 @@ class SELayerMC(nn.Module):
         b, c, _, _, _ = x.size()
         y = self.max_pool(x).view(b, c)
         y = self.fc(y).view(b, c, 1, 1, 1)
-        out = x * y.expand_as(x)
-        # y = y - 0.5
-        # out = x + x * y.expand_as(x)
+        # out = x * y.expand_as(x)
+        y = y - 0.5
+        out = x + x * y.expand_as(x)
         return out
 
 
@@ -133,7 +133,7 @@ class SELayerMAC(nn.Module):
         y = torch.cat((y_avg, y_max), dim=2).squeeze().unsqueeze(dim=1)
         y = self.conv(y).squeeze()
         y = self.fc(y).view(b, c, 1, 1, 1)
-        out = x * y.expand_as(x)
-        # y = y - 0.5
-        # out = x + x * y.expand_as(x)
+        # out = x * y.expand_as(x)
+        y = y - 0.5
+        out = x + x * y.expand_as(x)
         return out
