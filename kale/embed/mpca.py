@@ -142,16 +142,17 @@ class MPCA(BaseEstimator, TransformerMixin):
         shape_out = ()
         proj_mats = []
 
-        # get the output tensor shape based on the cumulative distribution of singular values for each mode
+        # get the output tensor shape based on the cumulative distribution of eigen values for each mode
         for i in range(1, n_dims):
             mode_data_mat = unfold(x, mode=i)
             singular_vec_left, singular_val, singular_vec_right = linalg.svd(mode_data_mat, full_matrices=False)
-            idx_sorted = (-1 * singular_val).argsort()
-            cum = singular_val[idx_sorted]
-            sg_val_sum = np.sum(cum)
+            eig_values = np.square(singular_val)
+            idx_sorted = (-1 * eig_values).argsort()
+            cum = eig_values[idx_sorted]
+            tot_var = np.sum(cum)
 
             for j in range(1, cum.shape[0] + 1):
-                if np.sum(cum[:j]) / sg_val_sum > self.var_ratio:
+                if np.sum(cum[:j]) / tot_var > self.var_ratio:
                     shape_out += (j,)
                     break
             proj_mats.append(singular_vec_left[:, idx_sorted][:, : shape_out[i - 1]].T)
@@ -170,7 +171,8 @@ class MPCA(BaseEstimator, TransformerMixin):
                 mode_data_mat = unfold(x_projected, i)
 
                 singular_vec_left, singular_val, singular_vec_right = linalg.svd(mode_data_mat, full_matrices=False)
-                idx_sorted = (-1 * singular_val).argsort()
+                eig_values = np.square(singular_val)
+                idx_sorted = (-1 * eig_values).argsort()
                 proj_mats[i - 1] = (singular_vec_left[:, idx_sorted][:, : shape_out[i - 1]]).T
 
         x_projected = multi_mode_dot(
