@@ -139,25 +139,22 @@ class MPCA(BaseEstimator, TransformerMixin):
         x = x - self.mean_
 
         # init
-        phi = dict()
         shape_out = ()
         proj_mats = []
 
+        # get the output tensor shape based on the cumulative distribution of singular values for each mode
         for i in range(1, n_dims):
-            phi[i] = unfold(x, mode=i)
-
-        # get the output tensor shape based on the cumulative distribution of eigenvalues for each mode
-        for i in range(1, n_dims):
-            u, s, v = linalg.svd(phi[i], full_matrices=False)
-            idx_sorted = (-1 * s).argsort()
-            cum = s[idx_sorted]
-            var_tot = np.sum(cum)
+            mode_data_mat = unfold(x, mode=i)
+            singular_vec_left, singular_val, singular_vec_right = linalg.svd(mode_data_mat, full_matrices=False)
+            idx_sorted = (-1 * singular_val).argsort()
+            cum = singular_val[idx_sorted]
+            sg_val_sum = np.sum(cum)
 
             for j in range(1, cum.shape[0] + 1):
-                if np.sum(cum[:j]) / var_tot > self.var_ratio:
+                if np.sum(cum[:j]) / sg_val_sum > self.var_ratio:
                     shape_out += (j,)
                     break
-            proj_mats.append(u[:, idx_sorted][:, : shape_out[i - 1]].T)
+            proj_mats.append(singular_vec_left[:, idx_sorted][:, : shape_out[i - 1]].T)
 
         # set n_components to the maximum n_features if it is None
         if self.n_components is None:
@@ -170,11 +167,11 @@ class MPCA(BaseEstimator, TransformerMixin):
                     [proj_mats[m] for m in range(n_dims - 1) if m != i - 1],
                     modes=[m for m in range(1, n_dims) if m != i]
                 )
-                phi[i] = unfold(x_projected, i)
+                mode_data_mat = unfold(x_projected, i)
 
-                u, s, v = linalg.svd(phi[i], full_matrices=False)
-                idx_sorted = (-1 * s).argsort()
-                proj_mats[i - 1] = (u[:, idx_sorted][:, : shape_out[i - 1]]).T
+                singular_vec_left, singular_val, singular_vec_right = linalg.svd(mode_data_mat, full_matrices=False)
+                idx_sorted = (-1 * singular_val).argsort()
+                proj_mats[i - 1] = (singular_vec_left[:, idx_sorted][:, : shape_out[i - 1]]).T
 
         x_projected = multi_mode_dot(
             x,
