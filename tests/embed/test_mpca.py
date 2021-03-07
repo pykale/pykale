@@ -1,22 +1,25 @@
 import numpy as np
 import pytest
 from numpy import testing
-
+from scipy.io import loadmat
+from tensorly.tenalg import multi_mode_dot
 from kale.embed.mpca import MPCA
+
+
+gait = loadmat("../test_data/Gal.mat")
+# y = gait['gnd']
 
 # RETURN_VECTOR = [True, False]
 N_COMPS = [1, 5, 20, 50, 100]
-VAR_RATIOS = [0.7, 0.8, 0.9]
+VAR_RATIOS = [0.85, 0.9, 0.95]
 
 
 # @pytest.mark.parametrize('return_vector', RETURN_VECTOR)
 @pytest.mark.parametrize("n_components", N_COMPS)
 @pytest.mark.parametrize("var_ratio", VAR_RATIOS)
 def test_mpca(var_ratio, n_components):
-    rng = np.random.RandomState(0)
-    x = rng.random(size=(40, 20, 25, 20))
-
     # basic mpca test, return tensor
+    x = gait['fea3D'].transpose((3, 0, 1, 2))
     mpca = MPCA(var_ratio=var_ratio, return_vector=False)
     x_proj = mpca.fit(x).transform(x)
 
@@ -55,3 +58,24 @@ def test_mpca(var_ratio, n_components):
     mpca.set_params(**{"return_vector": True, "n_components": np.prod(x.shape[1:]) + 1})
     x_proj = mpca.transform(x)
     testing.assert_equal(x_proj.shape[1], np.prod(mpca.shape_out))
+
+
+def test_mpca_aganist_baseline():
+    baseline_model = loadmat("../test_data/mpca_baseline_res.mat")
+    x = gait['fea3D'].transpose((3, 0, 1, 2))
+    baseline_proj_mats = [baseline_model["tUs"][i][0] for i in range(baseline_model["tUs"].size)]
+    mpca = MPCA(var_ratio=0.97)
+    x_proj = mpca.fit(x).transform(x)
+    baseline_proj_x = multi_mode_dot(x, baseline_proj_mats, modes=[1, 2, 3])
+    testing.assert_equal(x_proj.shape, baseline_proj_x.shape)
+
+    for i in range(x.ndim - 1):
+        for j in range(baseline_proj_mats[i].shape[0]):
+            # subtraction of eigen-vector columns
+            eig_col_sub = mpca.proj_mats[i][j:] - baseline_proj_mats[i][j:]
+            # sum of eigen-vector columns
+            eig_col_sum = mpca.proj_mats[i][j:] + baseline_proj_mats[i][j:]
+            compare_ = np.multiply(eig_col_sub, eig_col_sum)
+            # eigen-vector column should be equal to/opposite of baseline eigen-vector columns
+            # plus one for avoiding inf relative tolerance
+            testing.assert_allclose(compare_ + 1, np.ones(compare_.shape))
