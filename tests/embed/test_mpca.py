@@ -3,8 +3,8 @@ import pytest
 from numpy import testing
 from scipy.io import loadmat
 from tensorly.tenalg import multi_mode_dot
-from kale.embed.mpca import MPCA
 
+from kale.embed.mpca import MPCA
 
 gait = loadmat("../test_data/Gal.mat")
 # y = gait['gnd']
@@ -60,7 +60,7 @@ def test_mpca(var_ratio, n_components):
     testing.assert_equal(x_proj.shape[1], np.prod(mpca.shape_out))
 
 
-def test_mpca_aganist_baseline():
+def test_mpca_against_baseline():
     baseline_model = loadmat("../test_data/mpca_baseline_res.mat")
     x = gait['fea3D'].transpose((3, 0, 1, 2))
     baseline_proj_mats = [baseline_model["tUs"][i][0] for i in range(baseline_model["tUs"].size)]
