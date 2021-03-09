@@ -10,9 +10,7 @@
 #     SmallCNNFeature,
 # )
 # from .linformer import LinearMultiheadAttention, LinearTransformerEncoderLayer
-# from ._mpca import MPCA
 # from .mpca import MPCA
-# from ._mpca_torch import MPCA
 # from .positional_encoding import PositionalEncoding
 # from .video_i3d import i3d, InceptionI3d, InceptionModule, MaxPool3dSamePadding, Unit3D
 # from .video_res3d import (

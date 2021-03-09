@@ -14,6 +14,7 @@ import logging
 import warnings
 
 import numpy as np
+from scipy import linalg
 from sklearn.base import BaseEstimator, TransformerMixin
 
 # import tensorly as tl
@@ -74,7 +75,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         n_components (int): Number of components to keep. Applies only when return_vector=True. Defaults to None.
 
     Attributes:
-        proj_mats (list of array-like): A list of transposed projection matrices, shapes (P_1, I_1), ...,
+        proj_mats (list of arrays): A list of transposed projection matrices, shapes (P_1, I_1), ...,
             (P_N, I_N), where P_1, ..., P_N are output tensor shape for each sample.
         idx_order (array-like): The ordering index of projected (and vectorised) features in decreasing variance.
         mean_ (array-like): Per-feature empirical mean, estimated from the training set, shape (I_1, I_2, ..., I_N).
@@ -82,7 +83,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         shape_out (tuple): Output tensor shapes, i.e. (P_1, P_2, ..., P_N).
     Examples:
         >>> import numpy as np
-        >>> from kale.embed import MPCA
+        >>> from kale.embed.mpca import MPCA
         >>> x = np.random.random((40, 20, 25, 20))
         >>> x.shape
         (40, 20, 25, 20)
@@ -114,10 +115,10 @@ class MPCA(BaseEstimator, TransformerMixin):
         self.n_components = n_components
 
     def fit(self, x, y=None):
-        """Fit the model with input training data X.
+        """Fit the model with input training data x.
 
         Args
-            X (array-like tensor): Input data, shape (n_samples, I_1, I_2, ..., I_N), where n_samples is the number of
+            x (array-like tensor): Input data, shape (n_samples, I_1, I_2, ..., I_N), where n_samples is the number of
                 samples, I_1, I_2, ..., I_N are the dimensions of corresponding mode (1, 2, ..., N), respectively.
             y (None): Ignored variable.
 
@@ -131,7 +132,6 @@ class MPCA(BaseEstimator, TransformerMixin):
         """Solve MPCA"""
 
         shape_ = x.shape  # shape of input data
-        n_samples = shape_[0]  # number of samples
         n_dims = x.ndim
 
         self.shape_in = shape_[1:]
@@ -139,58 +139,50 @@ class MPCA(BaseEstimator, TransformerMixin):
         x = x - self.mean_
 
         # init
-        phi = dict()
         shape_out = ()
         proj_mats = []
 
+        # get the output tensor shape based on the cumulative distribution of eigen values for each mode
         for i in range(1, n_dims):
-            for j in range(n_samples):
-                # unfold the j_th tensor along the i_th mode
-                x_ji = unfold(x[j, :], mode=i - 1)
-                if i not in phi:
-                    phi[i] = 0
-                phi[i] = phi[i] + np.dot(x_ji, x_ji.T)
-
-        # get the output tensor shape based on the cumulative distribution of eigenvalues for each mode
-        for i in range(1, n_dims):
-            eig_values, eig_vectors = np.linalg.eig(phi[i])
+            mode_data_mat = unfold(x, mode=i)
+            singular_vec_left, singular_val, singular_vec_right = linalg.svd(mode_data_mat, full_matrices=False)
+            eig_values = np.square(singular_val)
             idx_sorted = (-1 * eig_values).argsort()
             cum = eig_values[idx_sorted]
-            var_tot = np.sum(cum)
+            tot_var = np.sum(cum)
 
             for j in range(1, cum.shape[0] + 1):
-                if np.sum(cum[:j]) / var_tot > self.var_ratio:
+                if np.sum(cum[:j]) / tot_var > self.var_ratio:
                     shape_out += (j,)
                     break
-            proj_mats.append(eig_vectors[:, idx_sorted][:, : shape_out[i - 1]].T)
+            proj_mats.append(singular_vec_left[:, idx_sorted][:, : shape_out[i - 1]].T)
 
         # set n_components to the maximum n_features if it is None
         if self.n_components is None:
             self.n_components = int(np.prod(shape_out))
 
         for i_iter in range(self.max_iter):
-            phi = dict()
             for i in range(1, n_dims):  # ith mode
-                if i not in phi:
-                    phi[i] = 0
-                for j in range(n_samples):
-                    xj = multi_mode_dot(
-                        x[j, :],  # jth tensor/sample
-                        [proj_mats[m] for m in range(n_dims - 1) if m != i - 1],
-                        modes=[m for m in range(n_dims - 1) if m != i - 1],
-                    )
-                    xj_unfold = unfold(xj, i - 1)
-                    phi[i] = np.dot(xj_unfold, xj_unfold.T) + phi[i]
+                x_projected = multi_mode_dot(
+                    x,
+                    [proj_mats[m] for m in range(n_dims - 1) if m != i - 1],
+                    modes=[m for m in range(1, n_dims) if m != i]
+                )
+                mode_data_mat = unfold(x_projected, i)
 
-                eig_values, eig_vectors = np.linalg.eig(phi[i])
+                singular_vec_left, singular_val, singular_vec_right = linalg.svd(mode_data_mat, full_matrices=False)
+                eig_values = np.square(singular_val)
                 idx_sorted = (-1 * eig_values).argsort()
-                proj_mats[i - 1] = (eig_vectors[:, idx_sorted][:, : shape_out[i - 1]]).T
+                proj_mats[i - 1] = (singular_vec_left[:, idx_sorted][:, : shape_out[i - 1]]).T
 
-        x_projected = multi_mode_dot(x, proj_mats,
-                                     modes=[m for m in range(1, n_dims)])
+        x_projected = multi_mode_dot(
+            x,
+            proj_mats,
+            modes=[m for m in range(1, n_dims)]
+        )
         x_proj_unfold = unfold(x_projected, mode=0)  # unfold the tensor projection to shape (n_samples, n_features)
         # x_proj_cov = np.diag(np.dot(x_proj_unfold.T, x_proj_unfold))  # covariance of unfolded features
-        x_proj_cov = np.sum(np.multiply(x_proj_unfold, x_proj_unfold), axis=1)  # memory saving computing covariance
+        x_proj_cov = np.sum(np.multiply(x_proj_unfold.T, x_proj_unfold.T), axis=1)  # memory saving computing covariance
         idx_order = (-1 * x_proj_cov).argsort()
 
         self.proj_mats = proj_mats
@@ -201,7 +193,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, x):
-        """Perform dimension reduction on X
+        """Perform dimension reduction on x
 
         Args:
             x (array-like tensor): Data to perform dimension reduction, shape (n_samples, I_1, I_2, ..., I_N).
@@ -213,6 +205,9 @@ class MPCA(BaseEstimator, TransformerMixin):
                 (n_samples, P_1 * P_2 * ... * P_N) if self.n_components is None, and shape (n_samples, n_components)
                 if self.n_component is a valid integer.
         """
+        # reshape x to shape (1, I_1, I_2, ..., I_N) if x in shape (I_1, I_2, ..., I_N), i.e. n_samples = 1
+        if x.ndim == self.n_dims - 1:
+            x = x.reshape((1, ) + x.shape)
         _check_tensor_dim_shape(x, self.n_dims, self.shape_in)
         x = x - self.mean_
 
@@ -247,7 +242,7 @@ class MPCA(BaseEstimator, TransformerMixin):
             array-like tensor:
                 Reconstructed tensor in original shape, shape (n_samples, I_1, I_2, ..., I_N)
         """
-        # reshape X to tensor in shape (n_samples, self.shape_out) if X is vectorised
+        # reshape x to tensor in shape (n_samples, self.shape_out) if x has been unfolded
         if x.ndim <= 2:
             if x.ndim == 1:
                 # reshape x to a 2D matrix (1, n_components) if x in shape (n_components,)
