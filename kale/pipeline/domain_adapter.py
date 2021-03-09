@@ -345,15 +345,15 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._update_batch_epoch_factors(batch_nb)
 
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="T")
-        if self.current_epoch < self._init_epochs:
-            # init phase doesn't use few-shot learning
-            # ad-hoc decision but makes models more comparable between each other
-            # loss = task_loss + 1.0 * adv_loss
-            loss = task_loss
-        else:
-            # loss = task_loss
-            # loss = task_loss + 1.0 * adv_loss
-            loss = task_loss + self.lamb_da * adv_loss
+        # if self.current_epoch < self._init_epochs:
+        #     # init phase doesn't use few-shot learning
+        #     # ad-hoc decision but makes models more comparable between each other
+        #     loss = task_loss
+        # else:
+        #     # loss = task_loss + 1.0 * adv_loss
+        #     loss = task_loss + self.lamb_da * adv_loss
+
+        loss = task_loss
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
