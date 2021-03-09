@@ -12,13 +12,13 @@ from setuptools import find_packages, setup
 # python -m pip install torch-cluster torch-scatter torch-sparse torch-spline
 requirements = [
     'numpy>=1.18.0',
-    'scipy>=1.5.4',
     'pytorch-lightning',
     'scikit-image>=0.16.2',
     'scikit-learn>=0.23.2',
     'tensorly>=0.5.1',
     'torch>=1.7.0',
     'torchvision',  # >=0.8.1
+    'scipy>=1.5.4',
 ]
 
 # Additional dependencies for examples/tutorials
