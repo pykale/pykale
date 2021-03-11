@@ -89,7 +89,7 @@ def main():
         )
 
         # find learning_rate
-        # lr_finder = trainer.tuner.lr_find(model, max_lr=0.1)
+        # lr_finder = trainer.tuner.lr_find(model, max_lr=0.1, min_lr=1e-6)
         # fig = lr_finder.plot(suggest=True)
         # fig.show()
         # logging.info(lr_finder.suggestion())
