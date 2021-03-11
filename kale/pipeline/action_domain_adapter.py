@@ -248,54 +248,23 @@ class DANNtrainer4Video(DANNtrainer):
         self.rgb_feat = self.feat['rgb']
         self.flow_feat = self.feat['flow']
 
-        self.domain_classifier = torch.nn.ModuleList(self.domain_classifier)
-
     def forward(self, x):
-        # if self.feat is not None:
-        #     if self.image_modality in ['rgb', 'flow']:
-        #         if self.rgb_feat is not None:
-        #             x = self.rgb_feat(x)
-        #         else:
-        #             x = self.flow_feat(x)
-        #         x = x.view(x.size(0), -1)
-        #         class_output = self.classifier(x)
-        #
-        #         reverse_feature = ReverseLayerF.apply(x, self.alpha)
-        #
-        #         adversarial_output = self.domain_classifier(reverse_feature)
-        #         # print(x)
-        #         # print(class_output)
-        #         # print(adversarial_output)
-        #         return x, class_output, adversarial_output
-
         if self.feat is not None:
             if self.image_modality in ['rgb', 'flow']:
                 if self.rgb_feat is not None:
-                    x, x_4b, x_4c, x_4d, x_4e, x_4f = self.rgb_feat(x)
+                    x = self.rgb_feat(x)
                 else:
                     x = self.flow_feat(x)
                 x = x.view(x.size(0), -1)
-                x_4b = x_4b.view(x_4b.size(0), -1)
-                x_4c = x_4c.view(x_4c.size(0), -1)
-                x_4d = x_4d.view(x_4d.size(0), -1)
-                x_4e = x_4e.view(x_4e.size(0), -1)
-                x_4f = x_4f.view(x_4f.size(0), -1)
                 class_output = self.classifier(x)
 
                 reverse_feature = ReverseLayerF.apply(x, self.alpha)
-                rf_4b = ReverseLayerF.apply(x_4b, self.alpha)
-                rf_4c = ReverseLayerF.apply(x_4c, self.alpha)
-                rf_4d = ReverseLayerF.apply(x_4d, self.alpha)
-                rf_4e = ReverseLayerF.apply(x_4e, self.alpha)
-                rf_4f = ReverseLayerF.apply(x_4f, self.alpha)
 
-                adversarial_output = self.domain_classifier[0](reverse_feature)
-                ao_4b = self.domain_classifier[1](rf_4b)
-                ao_4c = self.domain_classifier[2](rf_4c)
-                ao_4d = self.domain_classifier[3](rf_4d)
-                ao_4e = self.domain_classifier[4](rf_4e)
-                ao_4f = self.domain_classifier[5](rf_4f)
-                return x, class_output, adversarial_output, ao_4b, ao_4c, ao_4d, ao_4e, ao_4f
+                adversarial_output = self.domain_classifier(reverse_feature)
+                # print(x)
+                # print(class_output)
+                # print(adversarial_output)
+                return x, class_output, adversarial_output
 
             elif self.image_modality == 'joint':
                 x_rgb = self.rgb_feat(x['rgb'])
@@ -338,59 +307,17 @@ class DANNtrainer4Video(DANNtrainer):
                 f"{split_name}_source_domain_acc": torch.cat((dok_src_rgb, dok_src_flow)),
                 f"{split_name}_target_domain_acc": torch.cat((dok_tgt_rgb, dok_tgt_flow)),
             }
-        # elif self.image_modality in ['rgb', 'flow'] and len(batch) == 2:
-        #     (x_s, y_s), (x_tu, y_tu) = batch
-        #     _, y_hat, d_hat = self.forward(x_s)
-        #     _, y_t_hat, d_t_hat = self.forward(x_tu)
-        #     batch_size = len(y_s)
-        #     loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
-        #     loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
-        #
-        #     loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        #     _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-        #     adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-        #     task_loss = loss_cls
-        #
-        #     log_metrics = {
-        #         f"{split_name}_source_acc": ok_src,
-        #         f"{split_name}_target_acc": ok_tgt,
-        #         f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
-        #         f"{split_name}_source_domain_acc": dok_src,
-        #         f"{split_name}_target_domain_acc": dok_tgt,
-        #     }
         elif self.image_modality in ['rgb', 'flow'] and len(batch) == 2:
             (x_s, y_s), (x_tu, y_tu) = batch
-            _, y_hat, d_hat, d_4b_hat, d_4c_hat, d_4d_hat, d_4e_hat, d_4f_hat = self.forward(x_s)
-            _, y_t_hat, d_t_hat, d_t_4b_hat, d_t_4c_hat, d_t_4d_hat, d_t_4e_hat, d_t_4f_hat = self.forward(x_tu)
+            _, y_hat, d_hat = self.forward(x_s)
+            _, y_t_hat, d_t_hat = self.forward(x_tu)
             batch_size = len(y_s)
             loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
             loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
 
-            lds_4b, doks_4b = losses.cross_entropy_logits(d_4b_hat, torch.zeros(batch_size))
-            ldt_4b, dokt_4b = losses.cross_entropy_logits(d_t_4b_hat, torch.ones(batch_size))
-
-            lds_4c, doks_4c = losses.cross_entropy_logits(d_4c_hat, torch.zeros(batch_size))
-            ldt_4c, dokt_4c = losses.cross_entropy_logits(d_t_4c_hat, torch.ones(batch_size))
-
-            lds_4d, doks_4d = losses.cross_entropy_logits(d_4d_hat, torch.zeros(batch_size))
-            ldt_4d, dokt_4d = losses.cross_entropy_logits(d_t_4d_hat, torch.ones(batch_size))
-
-            lds_4e, doks_4e = losses.cross_entropy_logits(d_4e_hat, torch.zeros(batch_size))
-            ldt_4e, dokt_4e = losses.cross_entropy_logits(d_t_4e_hat, torch.ones(batch_size))
-
-            lds_4f, doks_4f = losses.cross_entropy_logits(d_4f_hat, torch.zeros(batch_size))
-            ldt_4f, dokt_4f = losses.cross_entropy_logits(d_t_4f_hat, torch.ones(batch_size))
-
             loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
             _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
             adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-
-            avl_4b = lds_4b + ldt_4b
-            avl_4c = lds_4c + ldt_4c
-            avl_4d = lds_4d + ldt_4d
-            avl_4e = lds_4e + ldt_4e
-            avl_4f = lds_4f + ldt_4f
-
             task_loss = loss_cls
 
             log_metrics = {
@@ -399,17 +326,11 @@ class DANNtrainer4Video(DANNtrainer):
                 f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
                 f"{split_name}_source_domain_acc": dok_src,
                 f"{split_name}_target_domain_acc": dok_tgt,
-                f"{split_name}_4b_domain_acc": torch.cat((doks_4b, dokt_4b)),
-                f"{split_name}_4c_domain_acc": torch.cat((doks_4c, dokt_4c)),
-                f"{split_name}_4d_domain_acc": torch.cat((doks_4d, dokt_4d)),
-                f"{split_name}_4e_domain_acc": torch.cat((doks_4e, dokt_4e)),
-                f"{split_name}_4f_domain_acc": torch.cat((doks_4f, dokt_4f)),
             }
-
         else:
             raise NotImplementedError("Batch len is {}. Check the Dataloader.".format(len(batch)))
 
-        return task_loss, adv_loss, log_metrics, avl_4b, avl_4c, avl_4d, avl_4e, avl_4f
+        return task_loss, adv_loss, log_metrics
 
 
 class CDANtrainer4Video(CDANtrainer):

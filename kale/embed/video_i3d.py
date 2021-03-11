@@ -408,11 +408,6 @@ class InceptionI3d(nn.Module):
         end_point = "Logits"
         # self.avg_pool = nn.AvgPool3d(kernel_size=[2, 7, 7], stride=(1, 1, 1))
         # self.avg_pool_flow = nn.AvgPool3d(kernel_size=[1, 7, 7], stride=(1, 1, 1))
-        self.avg_pool_4b = nn.AdaptiveAvgPool3d(1)
-        self.avg_pool_4c = nn.AdaptiveAvgPool3d(1)
-        self.avg_pool_4d = nn.AdaptiveAvgPool3d(1)
-        self.avg_pool_4e = nn.AdaptiveAvgPool3d(1)
-        self.avg_pool_4f = nn.AdaptiveAvgPool3d(1)
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.dropout = nn.Dropout(dropout_keep_prob)
         self.logits = Unit3D(
@@ -451,23 +446,6 @@ class InceptionI3d(nn.Module):
     def forward(self, x):
         """The output is the result of the final average pooling layer with 1024 dimensions."""
 
-        # x = self._modules["Conv3d_1a_7x7"](x)       # out: [2, 64, 1, 112, 112]
-        # x = self._modules["MaxPool3d_2a_3x3"](x)    # [2, 64, 1, 56, 56]
-        # x = self._modules["Conv3d_2b_1x1"](x)       # [2, 64, 1, 56, 56]
-        # x = self._modules["Conv3d_2c_3x3"](x)       # [2, 192, 1, 56, 56]
-        # x = self._modules["MaxPool3d_3a_3x3"](x)    # [2, 192, 1, 28, 28]
-        # x = self._modules["Mixed_3b"](x)            # [2, 256, 1, 28, 28]
-        # x = self._modules["Mixed_3c"](x)            # [2, 480, 1, 28, 28]
-        # x = self._modules["MaxPool3d_4a_3x3"](x)    # [2, 480, 1, 14, 14]
-        # x = self._modules["Mixed_4b"](x)            # [2, 512, 1, 14, 14]
-        # x = self._modules["Mixed_4c"](x)            # [2, 512, 1, 14, 14]
-        # x = self._modules["Mixed_4d"](x)            # [2, 512, 1, 14, 14]
-        # x = self._modules["Mixed_4e"](x)            # [2, 528, 1, 14, 14]
-        # x = self._modules["Mixed_4f"](x)            # [2, 832, 1, 14, 14]
-        # x = self._modules["MaxPool3d_5a_2x2"](x)    # [2, 832, 1, 7, 7]
-        # x = self._modules["Mixed_5b"](x)            # [2, 832, 1, 7, 7]
-        # x = self._modules["Mixed_5c"](x)            # [2, 1024, 1, 7, 7]
-
         x = self._modules["Conv3d_1a_7x7"](x)       # out: [2, 64, 1, 112, 112]
         x = self._modules["MaxPool3d_2a_3x3"](x)    # [2, 64, 1, 56, 56]
         x = self._modules["Conv3d_2b_1x1"](x)       # [2, 64, 1, 56, 56]
@@ -476,12 +454,12 @@ class InceptionI3d(nn.Module):
         x = self._modules["Mixed_3b"](x)            # [2, 256, 1, 28, 28]
         x = self._modules["Mixed_3c"](x)            # [2, 480, 1, 28, 28]
         x = self._modules["MaxPool3d_4a_3x3"](x)    # [2, 480, 1, 14, 14]
-        x_4b = self._modules["Mixed_4b"](x)            # [2, 512, 1, 14, 14]
-        x_4c = self._modules["Mixed_4c"](x_4b)            # [2, 512, 1, 14, 14]
-        x_4d = self._modules["Mixed_4d"](x_4c)            # [2, 512, 1, 14, 14]
-        x_4e = self._modules["Mixed_4e"](x_4d)            # [2, 528, 1, 14, 14]
-        x_4f = self._modules["Mixed_4f"](x_4e)            # [2, 832, 1, 14, 14]
-        x = self._modules["MaxPool3d_5a_2x2"](x_4f)    # [2, 832, 1, 7, 7]
+        x = self._modules["Mixed_4b"](x)            # [2, 512, 1, 14, 14]
+        x = self._modules["Mixed_4c"](x)            # [2, 512, 1, 14, 14]
+        x = self._modules["Mixed_4d"](x)            # [2, 512, 1, 14, 14]
+        x = self._modules["Mixed_4e"](x)            # [2, 528, 1, 14, 14]
+        x = self._modules["Mixed_4f"](x)            # [2, 832, 1, 14, 14]
+        x = self._modules["MaxPool3d_5a_2x2"](x)    # [2, 832, 1, 7, 7]
         x = self._modules["Mixed_5b"](x)            # [2, 832, 1, 7, 7]
         x = self._modules["Mixed_5c"](x)            # [2, 1024, 1, 7, 7]
 
@@ -490,17 +468,11 @@ class InceptionI3d(nn.Module):
         #         x = self._modules[end_point](x)  # use _modules to work with dataparallel
 
         x = self.avg_pool(x)
-        x_4b = self.avg_pool_4b(x_4b)
-        x_4c = self.avg_pool_4c(x_4c)
-        x_4d = self.avg_pool_4d(x_4d)
-        x_4e = self.avg_pool_4e(x_4e)
-        x_4f = self.avg_pool_4f(x_4f)
-
         # logits = self.logits(self.dropout(x))
         if self._spatial_squeeze:
             x = x.squeeze(3).squeeze(3)
         # x is batch X time X classes, which is what we want to work with
-        return x, x_4b, x_4c, x_4d, x_4e, x_4f
+        return x
 
     def extract_features(self, x):
         for end_point in self.VALID_ENDPOINTS:

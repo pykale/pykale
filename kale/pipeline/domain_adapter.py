@@ -344,19 +344,16 @@ class BaseAdaptTrainer(pl.LightningModule):
         """
         self._update_batch_epoch_factors(batch_nb)
 
-        task_loss, adv_loss, log_metrics, avl_4b, avl_4c, avl_4d, avl_4e, avl_4f = self.compute_loss(batch, split_name="T")
-        if self.current_epoch < self._init_epochs:
-            # init phase doesn't use few-shot learning
-            # ad-hoc decision but makes models more comparable between each other
-            loss = task_loss
-            # print((avl_4b + avl_4c + avl_4d + avl_4e + avl_4f) / 5)
-            # loss = task_loss + self.lamb_da * adv_loss + (avl_4b + avl_4c + avl_4d + avl_4e + avl_4f) / 5
-            # print(loss)
-        else:
-            # loss = task_loss + 1.0 * adv_loss
-            loss = task_loss + self.lamb_da * adv_loss + (avl_4b + avl_4c + avl_4d + avl_4e + avl_4f) / 5
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="T")
+        # if self.current_epoch < self._init_epochs:
+        #     # init phase doesn't use few-shot learning
+        #     # ad-hoc decision but makes models more comparable between each other
+        #     loss = task_loss
+        # else:
+        #     # loss = task_loss + 1.0 * adv_loss
+        #     loss = task_loss + self.lamb_da * adv_loss
 
-        # loss = task_loss
+        loss = task_loss
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
@@ -374,11 +371,8 @@ class BaseAdaptTrainer(pl.LightningModule):
         }
 
     def validation_step(self, batch, batch_nb):
-        task_loss, adv_loss, log_metrics, avl_4b, avl_4c, avl_4d, avl_4e, avl_4f = self.compute_loss(batch, split_name="V")
-        loss = task_loss + self.lamb_da * adv_loss + (avl_4b + avl_4c + avl_4d + avl_4e + avl_4f) / 5
-
-        # task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="V")
-        # loss = task_loss + self.lamb_da * adv_loss
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="V")
+        loss = task_loss + self.lamb_da * adv_loss
         log_metrics["val_loss"] = loss
         log_metrics["val_task_loss"] = task_loss
         log_metrics["val_adv_loss"] = adv_loss
@@ -407,11 +401,8 @@ class BaseAdaptTrainer(pl.LightningModule):
         return self._validation_epoch_end(outputs, metrics_to_log)
 
     def test_step(self, batch, batch_nb):
-        # task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="Te")
-        # loss = task_loss + self.lamb_da * adv_loss
-        task_loss, adv_loss, log_metrics, avl_4b, avl_4c, avl_4d, avl_4e, avl_4f = self.compute_loss(batch, split_name="Te")
-        loss = task_loss + self.lamb_da * adv_loss + (avl_4b + avl_4c + avl_4d + avl_4e + avl_4f) / 5
-
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="Te")
+        loss = task_loss + self.lamb_da * adv_loss
         log_metrics["test_loss"] = loss
         return log_metrics
 
