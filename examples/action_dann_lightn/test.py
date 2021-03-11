@@ -51,7 +51,6 @@ def main():
     print(cfg)
 
     # ---- setup output ----
-    os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
@@ -70,6 +69,7 @@ def main():
     model, train_params = get_model(cfg, dataset, num_classes)
     trainer = pl.Trainer(
         # progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
+        logger=False,
         resume_from_checkpoint=args.ckpt,
         gpus=args.gpus,
     )
