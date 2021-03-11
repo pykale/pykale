@@ -6,15 +6,13 @@ from tensorly.tenalg import multi_mode_dot
 
 from kale.embed.mpca import MPCA
 
-gait = loadmat("../test_data/Gal.mat")
+gait = loadmat("../test_data/gait_gallery_data.mat")
 # y = gait['gnd']
 
-# RETURN_VECTOR = [True, False]
 N_COMPS = [1, 5, 20, 50, 100]
 VAR_RATIOS = [0.85, 0.9, 0.95]
 
 
-# @pytest.mark.parametrize('return_vector', RETURN_VECTOR)
 @pytest.mark.parametrize("n_components", N_COMPS)
 @pytest.mark.parametrize("var_ratio", VAR_RATIOS)
 def test_mpca(var_ratio, n_components):
@@ -33,8 +31,6 @@ def test_mpca(var_ratio, n_components):
 
     x_rec = mpca.inverse_transform(x_proj)
     testing.assert_equal(x_rec.shape, x.shape)
-    # tol = 10 ** (-10 * var_ratio + 3)
-    # testing.assert_allclose(x_rec, x, rtol=tol)
 
     # test return vector
     mpca.set_params(**{"return_vector": True, "n_components": n_components})
@@ -67,15 +63,16 @@ def test_mpca_against_baseline():
     mpca = MPCA(var_ratio=0.97)
     x_proj = mpca.fit(x).transform(x)
     baseline_proj_x = multi_mode_dot(x, baseline_proj_mats, modes=[1, 2, 3])
+    # check whether the output shape is consistent with the baseline output by keeping the same variance ratio 97%
     testing.assert_equal(x_proj.shape, baseline_proj_x.shape)
 
     for i in range(x.ndim - 1):
+        # check whether each eigen-vector column is equal to/opposite of corresponding baseline eigen-vector column
         for j in range(baseline_proj_mats[i].shape[0]):
             # subtraction of eigen-vector columns
             eig_col_sub = mpca.proj_mats[i][j:] - baseline_proj_mats[i][j:]
             # sum of eigen-vector columns
             eig_col_sum = mpca.proj_mats[i][j:] + baseline_proj_mats[i][j:]
             compare_ = np.multiply(eig_col_sub, eig_col_sum)
-            # eigen-vector column should be equal to/opposite of baseline eigen-vector columns
-            # plus one for avoiding inf relative tolerance
+            # plus one for avoiding inf relative difference
             testing.assert_allclose(compare_ + 1, np.ones(compare_.shape))
