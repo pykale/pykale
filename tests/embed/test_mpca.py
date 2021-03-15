@@ -6,8 +6,8 @@ from tensorly.tenalg import multi_mode_dot
 
 from kale.embed.mpca import MPCA
 
-gait = loadmat("../test_data/gait_gallery_data.mat")
-# y = gait['gnd']
+gait = loadmat("tests/test_data/gait_gallery_data.mat")
+baseline_model = loadmat("tests/test_data/mpca_baseline_res.mat")
 
 N_COMPS = [1, 5, 20, 50, 100]
 VAR_RATIOS = [0.85, 0.9, 0.95]
@@ -17,7 +17,7 @@ VAR_RATIOS = [0.85, 0.9, 0.95]
 @pytest.mark.parametrize("var_ratio", VAR_RATIOS)
 def test_mpca(var_ratio, n_components):
     # basic mpca test, return tensor
-    x = gait['fea3D'].transpose((3, 0, 1, 2))
+    x = gait["fea3D"].transpose((3, 0, 1, 2))
     mpca = MPCA(var_ratio=var_ratio, return_vector=False)
     x_proj = mpca.fit(x).transform(x)
 
@@ -57,8 +57,7 @@ def test_mpca(var_ratio, n_components):
 
 
 def test_mpca_against_baseline():
-    baseline_model = loadmat("../test_data/mpca_baseline_res.mat")
-    x = gait['fea3D'].transpose((3, 0, 1, 2))
+    x = gait["fea3D"].transpose((3, 0, 1, 2))
     baseline_proj_mats = [baseline_model["tUs"][i][0] for i in range(baseline_model["tUs"].size)]
     mpca = MPCA(var_ratio=0.97)
     x_proj = mpca.fit(x).transform(x)
