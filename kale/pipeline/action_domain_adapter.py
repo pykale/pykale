@@ -163,7 +163,7 @@ class BaseMMDLike4Video(BaseMMDLike):
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_mmd": mmd,
+            f"{split_name}_domain_acc": mmd,
         }
         return task_loss, mmd, log_metrics
 
