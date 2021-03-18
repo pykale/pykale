@@ -15,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        matrix-os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        matrix-os: [ubuntu-latest, macos-latest, windows-latest]
         pytorch-version: ["master", "stable"]
 
     steps:
