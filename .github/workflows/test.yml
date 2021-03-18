@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Ex1 (${{ matrix.os }}, ${{ matrix.pytorch-version }})
+    name: Run tests (${{ matrix.os }}, ${{ matrix.pytorch-version }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
