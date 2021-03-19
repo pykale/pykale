@@ -44,6 +44,7 @@ dev_requirements = [
     'pre-commit',
     'pytest',
     'pytest-cov',
+    'recommonmark',
     'sphinx',
     'sphinx-rtd-theme',
 ]

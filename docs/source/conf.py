@@ -48,7 +48,11 @@ release = version
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+
+source_suffix = {".rst": "restructuredtext", ".txt": "restructuredtext", ".md": "markdown"}
+
 extensions = [
+    "recommonmark",
     "sphinx_rtd_theme",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
