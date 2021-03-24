@@ -27,6 +27,7 @@ extra_requirements = [
     'ipython',
     'matplotlib',
     'Pillow',
+    'PyTDC',
     'pytorch-memlab',
     'torchsummary>=1.5.0',
     'yacs>=0.1.7',
