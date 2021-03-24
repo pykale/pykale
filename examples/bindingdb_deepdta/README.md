@@ -27,7 +27,7 @@ log space.
 ![Binding affinity distribution](figures/bindingdb.jpg)
 
 ### 4. Requirements
-You'll need to install the external RDKit package for running the example codes.
+You'll need to install the external [RDKit](https://github.com/rdkit/rdkit) package for running the example codes.
 
 ```
 conda install -c conda-forge rdkit
