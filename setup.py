@@ -40,6 +40,7 @@ dev_requirements = [
     'm2r',
     'mypy',
     'nbsphinx',
+    'nbsphinx-link',
     'nbval',
     'pre-commit',
     'pytest',
