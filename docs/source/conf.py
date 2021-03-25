@@ -10,28 +10,49 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
+import re
 import sys
+from io import open
+from os import path
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-# sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, path.abspath(path.join(path.dirname(__file__), "../..")))
+
+
+# Get version
+def read(*names, **kwargs):
+    with open(path.join(path.dirname(__file__), "..", "..", *names), encoding=kwargs.get("encoding", "utf8")) as fp:
+        return fp.read()
+
+
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
+
+version = find_version("kale", "__init__.py")
 
 # -- Project information -----------------------------------------------------
 
 project = "PyKale"
-copyright = "2020, Haiping Lu, Shuo Zhou, Raivo Koot"
-author = "Haiping Lu, Shuo Zhou, Raivo Koot"
+copyright = "2020 - 2021 PyKale Contributors"
+author = "PyKale Contributors"
 
 # The full version, including alpha/beta/rc tags
-release = "0.0.1"
-
+release = version
 
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+
+source_suffix = {".rst": "restructuredtext", ".txt": "restructuredtext", ".md": "markdown"}
+
 extensions = [
+    "recommonmark",
     "sphinx_rtd_theme",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",

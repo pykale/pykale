@@ -11,7 +11,7 @@ PyKale documentation
     :maxdepth: 1
     :caption: Getting started
 
-    modules
+    installation
 
 .. toctree::
     :maxdepth: 1

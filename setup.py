@@ -43,10 +43,12 @@ dev_requirements = [
     'm2r',
     'mypy',
     'nbsphinx',
+    'nbsphinx-link',
     'nbval',
     'pre-commit',
     'pytest',
     'pytest-cov',
+    'recommonmark',
     'sphinx',
     'sphinx-rtd-theme',
 ]
