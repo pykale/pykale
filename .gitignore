@@ -24,6 +24,9 @@ examples/*/lightning_logs/
 examples/*/demo*/
 examples/action_dann_lightn/configs_xianyuan/
 
+# Logs
+log-*.txt
+
 # Sphinx documentation
 docs/build/
 docs/source/backup
