@@ -3,20 +3,16 @@
 import datetime
 import logging
 import os
-import shlex
-import subprocess
+import uuid
 
 
-def git_hash():
-    """Gets a hash for different runs to have unique logfile names."""
-    cmd = 'git log -n 1 --pretty="%h"'
-    ret = subprocess.check_output(shlex.split(cmd)).strip()
-    if isinstance(ret, bytes):
-        ret = ret.decode()
-    return ret
+def log_file_name():
+    """Creates a log file name concatenating a formatted date and uuid"""
+    date = str(datetime.datetime.now().strftime("%m%d%H"))
+    return f"log-{date}-{str(uuid.uuid4())}.txt"
 
 
-def construct_logger(name, save_dir):
+def construct_logger(name, save_dir, file_name=log_file_name()):
     """Constructs a simple txt logger with a specified name at a specified path
 
     Reference: https://docs.python.org/3/library/logging.html
@@ -28,8 +24,7 @@ def construct_logger(name, save_dir):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
-    date = str(datetime.datetime.now().strftime("%m%d%H"))
-    fh = logging.FileHandler(os.path.join(save_dir, f"log-{date}-{git_hash()}.txt"), encoding="utf-8")
+    fh = logging.FileHandler(os.path.join(save_dir, file_name), encoding="utf-8")
     fh.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s")
     fh.setFormatter(formatter)
