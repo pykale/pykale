@@ -26,6 +26,7 @@ examples/action_dann_lightn/configs_xianyuan/
 
 # Logs
 log-*.txt
+gitdiff.patch
 
 # Sphinx documentation
 docs/build/
