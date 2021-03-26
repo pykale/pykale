@@ -12,7 +12,7 @@ def log_file_name():
     return f"log-{date}-{str(uuid.uuid4())}.txt"
 
 
-def construct_logger(name, save_dir, file_name=log_file_name()):
+def construct_logger(name, save_dir):
     """Constructs a simple txt logger with a specified name at a specified path
 
     Reference: https://docs.python.org/3/library/logging.html
@@ -24,7 +24,7 @@ def construct_logger(name, save_dir, file_name=log_file_name()):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
-    fh = logging.FileHandler(os.path.join(save_dir, file_name), encoding="utf-8")
+    fh = logging.FileHandler(os.path.join(save_dir, log_file_name()), encoding="utf-8")
     fh.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s")
     fh.setFormatter(formatter)
