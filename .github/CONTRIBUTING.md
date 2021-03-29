@@ -164,11 +164,11 @@ Additional labels for pre-release and build metadata are available as extensions
 
 #### Project boards
 
-We set up [project boards](https://github.com/pykale/pykale/projects) to manage the progress of development.
+We set up [project boards](https://github.com/pykale/pykale/projects) to manage the progress of development. A single default project contains all active/planned works, with automation.
 
 #### Automation
 
-We have adopted the following GitHub automation
+We have adopted the GitHub automations including
 
 - [Automerge](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/automatically-merging-a-pull-request): merges automatically when 1) one approving review is completed; 2) all CI checks have passed; and 3) one maintainer has **enabled the auto-merge** for a PR.
 - [Auto branch deletion](https://github.blog/changelog/2019-07-31-automatically-delete-head-branches-of-pull-requests/): deletes the head branches automatically after pull requests are merged. Deleted branches can be restored if needed.
