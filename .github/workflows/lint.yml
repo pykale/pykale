@@ -1,5 +1,5 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+# This workflow will run lint and many other pre-commit hooks
+# https://pre-commit.com/
 
 name: lint
 
@@ -12,7 +12,7 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-
+    name: Lint and pre-commit checks
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
