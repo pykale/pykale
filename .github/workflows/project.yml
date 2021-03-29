@@ -5,6 +5,8 @@
 name: auto assign to project
 
 on:
+  push:
+    branches: [master]
   issues:
     types: [opened, labeled]
   pull_request:
