@@ -15,7 +15,7 @@ env:
 jobs:
   assign_one_project:
     runs-on: ubuntu-latest
-    name: Assign to One Project
+    name: Assign to one default project
     steps:
     - name: Assign NEW issues and NEW pull requests to a default project
       uses: srggrs/assign-one-project-github-action@1.2.1
