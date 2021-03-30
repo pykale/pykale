@@ -7,7 +7,11 @@ import uuid
 
 
 def out_file_core():
-    """Creates an output file name concatenating a formatted date and uuid, but without an extension."""
+    """Creates an output file name concatenating a formatted date and uuid, but without an extension.
+
+    Returns:
+        string: A string to be used in a file name.
+    """
     date = str(datetime.datetime.now().strftime("%Y%d%m_%H%M%S"))
     return f"log-{date}-{str(uuid.uuid4())}"
 
