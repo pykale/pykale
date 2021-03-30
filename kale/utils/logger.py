@@ -6,10 +6,10 @@ import os
 import uuid
 
 
-def log_file_name():
-    """Creates a log file name concatenating a formatted date and uuid"""
+def out_file_core():
+    """Creates an output file name concatenating a formatted date and uuid, but without an extension."""
     date = str(datetime.datetime.now().strftime("%m%d%H"))
-    return f"log-{date}-{str(uuid.uuid4())}.txt"
+    return f"log-{date}-{str(uuid.uuid4())}"
 
 
 def construct_logger(name, save_dir):
@@ -24,11 +24,14 @@ def construct_logger(name, save_dir):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
-    fh = logging.FileHandler(os.path.join(save_dir, log_file_name()), encoding="utf-8")
+    file_no_ext = out_file_core()
+
+    fh = logging.FileHandler(os.path.join(save_dir, file_no_ext + ".txt"), encoding="utf-8")
     fh.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s")
     fh.setFormatter(formatter)
     logger.addHandler(fh)
-    os.system(f"git diff HEAD > {save_dir}/gitdiff.patch")
+    gitdiff_patch = os.path.join(save_dir, file_no_ext + ".gitdiff.patch")
+    os.system(f"git diff HEAD > {gitdiff_patch}")
 
     return logger

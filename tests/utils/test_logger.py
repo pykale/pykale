@@ -12,12 +12,18 @@ def testing_logger():
     testing_logger = logger.construct_logger("test", save_dir)
     yield testing_logger
 
-    # Teardown
+    # Gather info
     filehandler = testing_logger.handlers[0]
     log_file_name = filehandler.baseFilename
-    gitdiff_file_name = os.path.join(save_dir, "gitdiff.patch")
+
+    # Teardown log file
     filehandler.close()
     os.remove(log_file_name)
+
+    # Teardown gitdiff.patch file
+    [folder, file] = os.path.split(log_file_name)
+    file_core = os.path.splitext(file)[0]
+    gitdiff_file_name = os.path.join(folder, file_core + ".gitdiff.patch")
     os.remove(gitdiff_file_name)
 
 
