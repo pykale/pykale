@@ -27,5 +27,10 @@ def testing_logger():
     os.remove(gitdiff_file_name)
 
 
+def test_out_file_core():
+    out_file_eg = logger.out_file_core()
+    assert isinstance(out_file_eg, str)
+
+
 def test_logger_type(testing_logger):
     assert isinstance(testing_logger, logging.Logger)
