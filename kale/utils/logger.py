@@ -1,4 +1,4 @@
-"""Screen printing functions, from https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/logger.py"""
+"""Logging functions, based on https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/logger.py"""
 
 import datetime
 import logging
@@ -17,9 +17,7 @@ def out_file_core():
 
 
 def construct_logger(name, save_dir):
-    """Constructs a logger. Saves the output as a text file with a name based on the `name` input
-     at a specified path. Also saves the output of `git diff HEAD` to the same folder with a name
-     based on the `name` input.
+    """Constructs a logger. Saves the output as a text file at a specified path. Also saves the output of `git diff HEAD` to the same folder.
 
     Reference: https://docs.python.org/3/library/logging.html
 
