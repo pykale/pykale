@@ -17,7 +17,9 @@ def out_file_core():
 
 
 def construct_logger(name, save_dir):
-    """Constructs a simple txt logger with a specified name at a specified path
+    """Constructs a logger. Saves the output as a text file with a name based on the `name` input
+     at a specified path. Also saves the output of `git diff HEAD` to the same folder with a name
+     based on the `name` input.
 
     Reference: https://docs.python.org/3/library/logging.html
 
