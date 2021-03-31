@@ -26,6 +26,6 @@ def set_seed(seed=1000):
     np.random.seed(seed)
     # 4. Set `pytorch` pseudo-random generator at a fixed value
     torch.manual_seed(seed)
-    # if torch.cuda.is_available():
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    if torch.cuda.is_available():
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
