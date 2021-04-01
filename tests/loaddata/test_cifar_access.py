@@ -11,11 +11,11 @@ DATASET_NAMES = ["CIFAR10", "CIFAR100"]
 
 
 @pytest.fixture(scope="module")
-def testing_cfg():
+def testing_cfg(download_path):
     cfg = CN()
     cfg.DATASET = CN()
     cfg.SOLVER = CN()
-    cfg.DATASET.ROOT = "tests/test_data/temp"
+    cfg.DATASET.ROOT = download_path
     # cfg.DATASET.DOWNLOAD = True
     cfg.SOLVER.TRAIN_BATCH_SIZE = 16
     cfg.SOLVER.TEST_BATCH_SIZE = 20
