@@ -6,7 +6,7 @@ import pytest
 from kale.utils import logger
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def testing_logger():
     save_dir = os.getcwd()
     testing_logger = logger.construct_logger("test", save_dir)
