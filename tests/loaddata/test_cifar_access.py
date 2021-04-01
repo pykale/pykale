@@ -10,7 +10,7 @@ from kale.loaddata.cifar_access import get_cifar
 DATASET_NAMES = ["CIFAR10", "CIFAR100"]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def testing_cfg():
     cfg = CN()
     cfg.DATASET = CN()
