@@ -1,8 +1,7 @@
 import pytest
 
 from kale.loaddata.digits_access import DigitDataset, DigitDatasetAccess
-
-# from kale.loaddata.multi_domain import DomainsDatasetBase, MultiDomainDatasets
+from kale.loaddata.multi_domain import DomainsDatasetBase, MultiDomainDatasets
 
 # import torch
 # from typing import Dict
@@ -36,8 +35,8 @@ def test_get_source_target(source_name, target_name, weight_type, datasize_type,
     assert isinstance(source, DigitDatasetAccess)
     assert isinstance(target, DigitDatasetAccess)
 
-    # dataset = MultiDomainDatasets(source, target, config_weight_type=weight_type, config_size_type=datasize_type)
-    # assert isinstance(dataset, DomainsDatasetBase)
+    dataset = MultiDomainDatasets(source, target, config_weight_type=weight_type, config_size_type=datasize_type)
+    assert isinstance(dataset, DomainsDatasetBase)
 
 
 # @pytest.mark.parametrize("dataset", ALL)

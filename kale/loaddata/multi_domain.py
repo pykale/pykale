@@ -91,7 +91,8 @@ class MultiDomainDatasets(DomainsDatasetBase):
         if weight_type is WeightingType.PRESET0:
             self._source_sampling_config = SamplingConfig(class_weights=np.arange(source_access.n_classes(), 0, -1))
             self._target_sampling_config = SamplingConfig(
-                class_weights=random_state.randint(1, 4, size=target_access.n_classes())
+                # class_weights=random_state.randint(1, 4, size=target_access.n_classes())
+                class_weights=np.random.randint(1, 4, size=target_access.n_classes())
             )
         elif weight_type is WeightingType.BALANCED:
             self._source_sampling_config = SamplingConfig(balance=True)
