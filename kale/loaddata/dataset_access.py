@@ -12,8 +12,7 @@ class DatasetAccess:
     of any dataset.
 
     Args:
-        n_classes: the number of classes (default=3).
-        ckernel_size: the size of the convolution kernel (default=5).
+        n_classes: the number of classes.
     """
 
     def __init__(self, n_classes):
@@ -42,7 +41,7 @@ class DatasetAccess:
         train_dataset = self.get_train()
         ntotal = len(train_dataset)
         ntrain = int((1 - val_ratio) * ntotal)
-        # torch.manual_seed(torch.initial_seed())  # Not necessary with pl.seed_everything(seed) in main.py
+
         return torch.utils.data.random_split(train_dataset, [ntrain, ntotal - ntrain])
 
     def get_test(self):
