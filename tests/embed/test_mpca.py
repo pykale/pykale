@@ -9,8 +9,8 @@ from kale.embed.mpca import MPCA
 gait = loadmat("tests/test_data/gait_gallery_data.mat")
 baseline_model = loadmat("tests/test_data/mpca_baseline_res.mat")
 
-N_COMPS = [1, 5, 20, 50, 100]
-VAR_RATIOS = [0.85, 0.9, 0.95]
+N_COMPS = [1, 50, 100]
+VAR_RATIOS = [0.7, 0.95]
 
 
 @pytest.mark.parametrize("n_components", N_COMPS)
@@ -47,7 +47,7 @@ def test_mpca(var_ratio, n_components):
     testing.assert_equal(x0_proj.ndim, 2)
     testing.assert_equal(x0_proj.shape[0], 1)
     testing.assert_equal(x0_proj.shape[1], n_components)
-    x0_rec = mpca.inverse_transform(x0_proj)
+    x0_rec = mpca.inverse_transform(x0_proj.reshape(-1))
     testing.assert_equal(x0_rec.shape[1:], x[0].shape)
 
     # test n_components exceeds upper limit
@@ -59,19 +59,16 @@ def test_mpca(var_ratio, n_components):
 def test_mpca_against_baseline():
     x = gait["fea3D"].transpose((3, 0, 1, 2))
     baseline_proj_mats = [baseline_model["tUs"][i][0] for i in range(baseline_model["tUs"].size)]
+    baseline_mean = baseline_model['TXmean']
     mpca = MPCA(var_ratio=0.97)
     x_proj = mpca.fit(x).transform(x)
-    baseline_proj_x = multi_mode_dot(x, baseline_proj_mats, modes=[1, 2, 3])
-    # check whether the output shape is consistent with the baseline output by keeping the same variance ratio 97%
-    testing.assert_equal(x_proj.shape, baseline_proj_x.shape)
+    testing.assert_allclose(baseline_mean, mpca.mean_)
+    baseline_proj_x = multi_mode_dot(x - baseline_mean, baseline_proj_mats, modes=[1, 2, 3])
+    # check whether the output embeddings is close to the baseline output by keeping the same variance ratio 97%
+    testing.assert_allclose(x_proj ** 2, baseline_proj_x ** 2)
+    # testing.assert_equal(x_proj.shape, baseline_proj_x.shape)
 
     for i in range(x.ndim - 1):
         # check whether each eigen-vector column is equal to/opposite of corresponding baseline eigen-vector column
-        for j in range(baseline_proj_mats[i].shape[0]):
-            # subtraction of eigen-vector columns
-            eig_col_sub = mpca.proj_mats[i][j:] - baseline_proj_mats[i][j:]
-            # sum of eigen-vector columns
-            eig_col_sum = mpca.proj_mats[i][j:] + baseline_proj_mats[i][j:]
-            compare_ = np.multiply(eig_col_sub, eig_col_sum)
-            # plus one for avoiding inf relative difference
-            testing.assert_allclose(compare_ + 1, np.ones(compare_.shape))
+        # testing.assert_allclose(abs(mpca.proj_mats[i]), abs(baseline_proj_mats[i]))
+        testing.assert_allclose(mpca.proj_mats[i] ** 2, baseline_proj_mats[i] ** 2)

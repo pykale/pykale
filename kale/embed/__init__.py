@@ -10,7 +10,7 @@
 #     SmallCNNFeature,
 # )
 # from .linformer import LinearMultiheadAttention, LinearTransformerEncoderLayer
-# from .mpca import MPCA, fisher_score
+# from .mpca import MPCA
 # from .positional_encoding import PositionalEncoding
 # from .video_i3d import i3d, InceptionI3d, InceptionModule, MaxPool3dSamePadding, Unit3D
 # from .video_res3d import (
@@ -35,6 +35,6 @@
 #     "ResNet50Feature", "ResNet101Feature", "ResNet152Feature",
 #     "LinearMultiheadAttention", "LinearTransformerEncoderLayer",
 #     "PositionalEncoding", "i3d", "InceptionI3d", "InceptionModule",
-#     "MaxPool3dSamePadding", "Unit3D", "MPCA", "fisher_score",
+#     "MaxPool3dSamePadding", "Unit3D", "MPCA",
 #     "mc3_18", "r2plus1d_18", "r3d_18",
 # ]
