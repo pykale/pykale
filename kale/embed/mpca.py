@@ -64,27 +64,6 @@ def _check_tensor_dim_shape(x, n_dims, shape_):
     _check_n_dim(x, n_dims)
     _check_shape(x, shape_)
 
-#
-# def fisher_score(x, y):
-#     n_class = np.unique(y).shape[0]
-#     mean = np.mean(x, axis=0)
-#     tsb = np.zeros(x.shape[1])
-#     tsw = np.zeros(x.shape[1])
-#     for i in range(n_class):
-#         idx_ = np.where(y == y[i])
-#         x_ = x[idx_]
-#         n_samples = x_.shape[0]
-#         class_mean = np.mean(x_, axis=0)
-#         diff = x_ - class_mean
-#         tsw += np.sum(diff ** 2, axis=0)
-#
-#         mean_diff = class_mean - mean
-#         tsb += mean_diff ** 2 * n_samples
-#
-#     f_score = np.divide(tsw, tsb)
-#
-#     return f_score
-
 
 class MPCA(BaseEstimator, TransformerMixin):
     """MPCA implementation compatible with sickit-learn
