@@ -81,7 +81,7 @@ exclude_patterns = ["_build", "**.ipynb_checkpoints"]
 html_theme = "sphinx_rtd_theme"
 
 # Automatically documented members are sorted by source order
-autodoc_member_order = 'bysource'
+autodoc_member_order = "bysource"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
