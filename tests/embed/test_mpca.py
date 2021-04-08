@@ -65,10 +65,10 @@ def test_mpca_against_baseline():
     testing.assert_allclose(baseline_mean, mpca.mean_)
     baseline_proj_x = multi_mode_dot(x - baseline_mean, baseline_proj_mats, modes=[1, 2, 3])
     # check whether the output embeddings is close to the baseline output by keeping the same variance ratio 97%
-    testing.assert_allclose(x_proj ** 2, baseline_proj_x ** 2)
+    testing.assert_allclose(x_proj ** 2, baseline_proj_x ** 2, rtol=0.00001)
     # testing.assert_equal(x_proj.shape, baseline_proj_x.shape)
 
     for i in range(x.ndim - 1):
         # check whether each eigen-vector column is equal to/opposite of corresponding baseline eigen-vector column
         # testing.assert_allclose(abs(mpca.proj_mats[i]), abs(baseline_proj_mats[i]))
-        testing.assert_allclose(mpca.proj_mats[i] ** 2, baseline_proj_mats[i] ** 2)
+        testing.assert_allclose(mpca.proj_mats[i] ** 2, baseline_proj_mats[i] ** 2, rtol=0.00001)
