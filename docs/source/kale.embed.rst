@@ -22,7 +22,6 @@ kale.embed.seq\_nn module
    :undoc-members:
    :show-inheritance:
    :exclude-members:
-   :member-order: bysource
 
 kale.embed.gcn module
 ----------------------------
@@ -32,7 +31,6 @@ kale.embed.gcn module
    :undoc-members:
    :show-inheritance:
    :exclude-members: message, update
-   :member-order: bysource
 
 kale.embed.gripnet module
 ----------------------------
@@ -42,7 +40,6 @@ kale.embed.gripnet module
    :undoc-members:
    :show-inheritance:
    :exclude-members: message, update
-   :member-order: bysource
 
 
 kale.embed.image\_cnn module
