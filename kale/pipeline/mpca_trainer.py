@@ -18,8 +18,8 @@ from sklearn.utils.validation import check_is_fitted
 
 from ..embed.mpca import MPCA
 
-classifiers = {"svc": [SVC, {"kernel": "linear", "C": np.logspace(-4, 3, 8)}],
-               "lr": [LogisticRegression, {"C": np.logspace(-4, 3, 8)}]}
+classifiers = {"svc": [SVC, {"kernel": ["linear"], "C": np.logspace(-3, 2, 6)}],
+               "lr": [LogisticRegression, {"C": np.logspace(-3, 2, 6)}]}
 
 default_search_params = {'cv': 5}
 default_mpca_params = {"var_ratio": 0.97, "return_vector": True}
@@ -45,7 +45,7 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
             logging.error(error_msg)
             raise ValueError(error_msg)
 
-        self.classifier = classifiers[classifier][0]
+        self.classifier = classifier
         # init mpca object
         if mpca_params is None:
             self.mpca_params = default_mpca_params
@@ -65,10 +65,12 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         if classifier_params == "auto":
             self.auto_classifier_param = True
             clf_param_gird = classifiers[classifier][1]
-            self.grid_search = GridSearchCV(self.classifier, param_grid=clf_param_gird, **self.search_params)
+            self.grid_search = GridSearchCV(classifiers[classifier][0](),
+                                            param_grid=clf_param_gird,
+                                            **self.search_params)
             self.clf = None
         elif isinstance(classifier_params, dict):
-            self.clf = self.classifier(**classifier_params)
+            self.clf = classifiers[classifier][0](**classifier_params)
         else:
             error_msg = "Invalid classifier parameter type"
             logging.error(error_msg)
