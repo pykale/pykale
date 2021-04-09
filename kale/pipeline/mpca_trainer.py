@@ -7,17 +7,16 @@
 """
 
 import logging
+
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.feature_selection import f_classif
-from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC
 from sklearn.utils.validation import check_is_fitted
 
-
 from ..embed.mpca import MPCA
-
 
 classifiers = {"svc": [SVC, {"kernel": "linear", "C": np.logspace(-4, 3, 8)}],
                "lr": [LogisticRegression, {"C": np.logspace(-4, 3, 8)}]}
@@ -39,7 +38,7 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
             mpca_params (dict, optional): Parameters of Multi-linear PCA. Defaults to None.
             n_features (int, optional): Number of features for feature selection. Defaults to None.
             search_params (dict, optional): Parameters of grid search. Defaults to None.
-        
+
         """
         if classifier not in ['svc', 'lr']:
             error_msg = "Valid classifier should be 'svc' or 'lr', but given %s" % classifier
