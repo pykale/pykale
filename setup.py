@@ -1,15 +1,62 @@
 #!/usr/bin/env python3
-
-import io
-import os
 import re
+from io import open
+from os import path
 
 from setuptools import find_packages, setup
+
+# Core kale API dependencies. If updating this, you may need to update docs/requirements.txt too.
+# Not all have a min-version specified, which is not uncommon. Specify when known or necessary (e.g. errors).
+# Install PyTorch from the official website to match the hardware.
+# To work on graphs, install torch-geometric following the official instructions (e.g. below):
+# python -m pip install torch-cluster torch-scatter torch-sparse torch-spline
+requirements = [
+    'numpy>=1.18.0',
+    'pytorch-lightning',
+    'scikit-image>=0.16.2',
+    'scikit-learn>=0.23.2',
+    'tensorly>=0.5.1',
+    'torch>=1.7.0',
+    'torchvision',  # >=0.8.1
+    'scipy>=1.5.4',
+]
+
+# Additional dependencies for examples/tutorials
+extra_requirements = [
+    'ipykernel',
+    'ipython',
+    'matplotlib',
+    'Pillow',
+    'PyTDC',
+    'pytorch-memlab',
+    'torchsummary>=1.5.0',
+    'yacs>=0.1.7',
+]
+
+# Additional dependencies for development
+dev_requirements = [
+    'black',
+    'coverage',
+    'flake8',
+    'flake8-print',
+    'isort',
+    'm2r',
+    'mypy',
+    'nbsphinx',
+    'nbsphinx-link',
+    'nbval',
+    'pre-commit',
+    'pytest',
+    'pytest-cov',
+    'recommonmark',
+    'sphinx',
+    'sphinx-rtd-theme',
+]
 
 
 # Get version
 def read(*names, **kwargs):
-    with io.open(os.path.join(os.path.dirname(__file__), *names), encoding=kwargs.get("encoding", "utf8")) as fp:
+    with open(path.join(path.dirname(__file__), *names), encoding=kwargs.get("encoding", "utf8")) as fp:
         return fp.read()
 
 
@@ -24,6 +71,7 @@ def find_version(*file_paths):
 readme = open("README.md").read()
 version = find_version("kale", "__init__.py")
 
+
 # Run the setup
 setup(
     name="pykale",
@@ -35,11 +83,17 @@ setup(
     url="https://github.com/pykale/pykale",
     author_email="pykale-group@sheffield.ac.uk",
     project_urls={
+        "Bug Tracker": "https://github.com/pykale/pykale/issues",
         "Documentation": "https://pykale.readthedocs.io",
         "Source": "https://github.com/pykale/pykale",
     },
-    keywords="machine learning, pytorch, dimensionality reduction, deep learning, multimodal learning, transfer learning",
+    packages=find_packages(exclude=("docs", "examples", "tests")),
+    python_requires=">=3.6",
+    install_requires=requirements,
+    extras_require={'extras': extra_requirements, 'dev': extra_requirements + dev_requirements},
+    setup_requires=['setuptools>=38.6.0'],
     license="MIT",
+    keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
@@ -54,25 +108,4 @@ setup(
         "Topic :: Software Development :: Libraries",
         "Natural Language :: English",
     ],
-    packages=find_packages(),
-    python_requires=">=3.6",
-    # install_requires = [">=".join(["torch", torch_min]), "scikit-learn", "numpy", "pytorch-lightning", "tensorly", "torchvision"]
-    install_requires=[
-        # if you add any additional libraries, please also
-        # add them to `docs/requirements.txt`
-        # numpy is necessary for some functionality of PyTorch
-        "numpy>=1.18.0",
-        "torch>=1.7.0",
-        "torchvision>=0.8.1",
-        # 'scikit-image',
-        # 'scikit-learn>=0.23,!=0.24.0',
-        "tensorly",
-    ],
-    extras_require={
-        "dev": ["black", "twine", "pre-commit"],
-        "pipeline": ["pytorch-lightning"],
-        "docs": ["ipython", "ipykernel", "sphinx", "sphinx_rtd_theme", "nbsphinx", "m2r"],
-        "utils": ["matplotlib", "tqdm>=4.1.0", "torchsummary>=1.5.0", "yacs>=0.1.7"],
-        "test": ["flake8", "flake8-print", "pytest", "nbval"],
-    },
 )

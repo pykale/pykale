@@ -73,7 +73,6 @@ def get_model(cfg, dataset, num_channels):
     method = domain_adapter.Method(cfg.DAN.METHOD)
 
     if method.is_mmd_method():
-        # model = domain_adapter.create_mmd_based(
         model = domain_adapter.create_mmd_based(
             method=method,
             dataset=dataset,

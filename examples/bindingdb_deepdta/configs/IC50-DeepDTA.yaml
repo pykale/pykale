@@ -1,0 +1,6 @@
+DATASET:
+  NAME: "BindingDB_IC50"
+  PATH: "./data"
+
+SOLVER:
+  MAX_EPOCHS: 100

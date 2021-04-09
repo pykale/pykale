@@ -1,0 +1,20 @@
+# This workflow will build the documentation using Sphinx
+# https://github.com/ammaraskar/sphinx-action
+
+name: docs
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    name: Build the documentation
+    steps:
+    - uses: actions/checkout@v1
+    - uses: ammaraskar/sphinx-action@master
+      with:
+        docs-folder: "docs/"

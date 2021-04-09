@@ -1,23 +1,23 @@
-"""Screen printing functions, from https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/logger.py"""
+"""Logging functions, based on https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/logger.py"""
 
 import datetime
 import logging
 import os
-import shlex
-import subprocess
+import uuid
 
 
-def git_hash():
-    """Gets a hash for different runs to have unique logfile names."""
-    cmd = 'git log -n 1 --pretty="%h"'
-    ret = subprocess.check_output(shlex.split(cmd)).strip()
-    if isinstance(ret, bytes):
-        ret = ret.decode()
-    return ret
+def out_file_core():
+    """Creates an output file name concatenating a formatted date and uuid, but without an extension.
+
+    Returns:
+        string: A string to be used in a file name.
+    """
+    date = str(datetime.datetime.now().strftime("%Y%d%m_%H%M%S"))
+    return f"log-{date}-{str(uuid.uuid4())}"
 
 
 def construct_logger(name, save_dir):
-    """Constructs a simple txt logger with a specified name at a specified path
+    """Constructs a logger. Saves the output as a text file at a specified path. Also saves the output of `git diff HEAD` to the same folder.
 
     Reference: https://docs.python.org/3/library/logging.html
 
@@ -28,12 +28,14 @@ def construct_logger(name, save_dir):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
-    date = str(datetime.datetime.now().strftime("%m%d%H"))
-    fh = logging.FileHandler(os.path.join(save_dir, f"log-{date}-{git_hash()}.txt"), encoding="utf-8")
+    file_no_ext = out_file_core()
+
+    fh = logging.FileHandler(os.path.join(save_dir, file_no_ext + ".txt"), encoding="utf-8")
     fh.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s")
     fh.setFormatter(formatter)
     logger.addHandler(fh)
-    os.system(f"git diff HEAD > {save_dir}/gitdiff.patch")
+    gitdiff_patch = os.path.join(save_dir, file_no_ext + ".gitdiff.patch")
+    os.system(f"git diff HEAD > {gitdiff_patch}")
 
     return logger

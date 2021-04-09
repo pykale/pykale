@@ -4,66 +4,41 @@
 
 -----------------------------------------
 
-![build](https://github.com/pykale/pykale/workflows/build/badge.svg)
-![Unit Tests](https://github.com/pykale/pykale/workflows/unit%20tests/badge.svg)
+![tests](https://github.com/pykale/pykale/workflows/test/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
-[![Conda](https://img.shields.io/conda/v/pykale/pykale?color=blue)](https://anaconda.org/pykale/pykale)
 [![PyPI downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
 
 [Getting Started](https://github.com/pykale/pykale/tree/master/examples) |
 [Documentation](https://pykale.readthedocs.io/) |
-[Contributing](https://github.com/pykale/pykale/blob/master/CONTRIBUTING.md) |
+[Contributing](https://github.com/pykale/pykale/blob/master/.github/CONTRIBUTING.md) |
 [Discussions](https://github.com/pykale/pykale/discussions)
 
-PyKale is a machine learning library that leverages knowledge from multiple sources for accurate and *interpretable* prediction. It supports graphs, images, and videos now. It is based on [PyTorch](https://pytorch.org/) and several other libraries but differs from existing ones by adopting a unified pipeline-based APIs design, enforcing standardization and minimalism, and incorporating key recent developments. See the [Trello board](https://trello.com/b/X8VBNAvf/pykale-api-overview) for an overview.
+ PyKale is a [PyTorch](https://pytorch.org/) library for [multimodal learning](https://en.wikipedia.org/wiki/Multimodal_learning) and [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning) on graphs, images, and videos. By adopting a unified *pipeline-based* API design, PyKale enforces *standardization* and *minimalism*. PyKale aims to facilitate *interdisciplinary*, *knowledge-aware* machine learning research for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications. It focuses on leveraging knowledge from multiple sources for accurate and *interpretable* prediction. PyKale's other key machine learning areas of interests include **dimensionality reduction** and **deep learning**. See the [Trello board](https://trello.com/b/X8VBNAvf/pykale-api-overview) for an API overview.
 
-<img src="https://github.com/pykale/pykale/raw/master/docs/images/pykale_pipeline.png"
-     alt="Machine learning pipeline"
-     style="float: center;" />
+### Pipeline-based core API (generic and reusable)
 
-PyKale aims to facilitate *interdisciplinary* research on *knowledge-aware* machine learning for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications. Key machine learning areas of interests include **dimensionality reduction**, **deep learning**, **multimodal learning**, and **transfer learning**.
+- `loaddata` loads data from disk or online resources as in input
+- `prepdata` preprocesses data to fit machine learning modules below (transforms)
+- `embed` embeds data in a new space to learn a new representation (feature extraction/selection)
+- `predict` predicts a desired output
+- `evaluate` evaluates the performance using some metrics
+- `interpret` interprets the features and outputs via post-prediction analysis mainly via visualisation
+- `pipeline` specifies a machine learning workflow by combining several other modules
 
-### Pipeline-based modules (core, generic, and reusable)
+### Example usage
 
-- `loaddata` load data from disk or online resources as in input
-- `prepdata` preprocess data to fit machine learning modules below (transforms)
-- `embed` embed data in a new space to learn a new representation (feature extraction/selection)
-- `predict` predict a desired output
-- `evaluate` evaluate the performance using some metrics
-- `interpret` interpret the features and outputs via post-prediction analysis mainly via visualisation
-- `pipeline` specify a machine learning workflow by combining several other modules
-
-### Dataset-specific modules
-
-- `examples`: Real-application on particular datasets.
+- `examples` demonstrate real applications on specific datasets.
 
 ## Installation
 
-**Requirements**:
-- Python >= 3.6
-- PyTorch >= 1.7
-
-Install PyKale using `pip` or `conda`:
+Simple installation from [PyPI](https://pypi.org/project/pykale/):
 
 ```bash
 pip install pykale
-conda install -c pykale pykale
 ```
 
-You need to first install [PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning) for `kale.embed.pipeline` and [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) to work on graphs.
-
-To upgrade to the latest (unstable) version, run
-
-```bash
-pip install --upgrade git+https://github.com/pykale/pykale.git
-```
-
-To run the unit tests:
-
-```bash
-python -m unittest
-```
+For more details and other options, please refer to [the installation guide](https://pykale.readthedocs.io/en/latest/installation.html).
 
 ## Examples, Tutorials, and Discussions
 
@@ -77,9 +52,9 @@ We appreciate all contributions. You can contribute in three ways:
 
 - [Star](https://docs.github.com/en/github/getting-started-with-github/saving-repositories-with-stars) and [fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) PyKale to follow its latest developments, share it with your networks, and [ask questions](https://github.com/pykale/pykale/discussions)  about it.
 - Use PyKale in your project and let us know any bugs (& fixes) and feature requests/suggestions via creating an [issue](https://github.com/pykale/pykale/issues).
-- Contribute your code such as new features, functions, or examples via [fork and pull](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-collaborative-development-models) to become one of the [contributors](https://github.com/pykale/pykale/graphs/contributors).
+- Contribute via [branch, fork, and pull](https://github.com/pykale/pykale/blob/master/CONTRIBUTING.md#branch-fork-and-pull) for minor fixes and new features, functions, or examples to become one of the [contributors](https://github.com/pykale/pykale/graphs/contributors).
 
-See [contributing guidelines](https://github.com/pykale/pykale/blob/master/CONTRIBUTING.md) for more details. You can also reach us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a> if needed. The participation in this open source project is subject to [Code of Conduct](https://github.com/pykale/pykale/blob/master/CODE_OF_CONDUCT.md).
+See [contributing guidelines](https://github.com/pykale/pykale/blob/master/.github/CONTRIBUTING.md) for more details. You can also reach us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a> if needed. The participation in this open source project is subject to [Code of Conduct](https://github.com/pykale/pykale/blob/master/.github/CODE_OF_CONDUCT.md).
 
 ## The Team
 

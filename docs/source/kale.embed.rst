@@ -14,6 +14,15 @@ kale.embed.attention\_cnn module
    :undoc-members:
    :show-inheritance:
 
+kale.embed.seq\_nn module
+--------------------------------
+
+.. automodule:: kale.embed.seq_nn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :exclude-members:
+
 kale.embed.gcn module
 ----------------------------
 
@@ -22,7 +31,6 @@ kale.embed.gcn module
    :undoc-members:
    :show-inheritance:
    :exclude-members: message, update
-   :member-order: bysource
 
 kale.embed.gripnet module
 ----------------------------
@@ -32,21 +40,12 @@ kale.embed.gripnet module
    :undoc-members:
    :show-inheritance:
    :exclude-members: message, update
-   :member-order: bysource
 
 
 kale.embed.image\_cnn module
 ----------------------------
 
 .. automodule:: kale.embed.image_cnn
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kale.embed.linformer module
----------------------------
-
-.. automodule:: kale.embed.linformer
    :members:
    :undoc-members:
    :show-inheritance:
