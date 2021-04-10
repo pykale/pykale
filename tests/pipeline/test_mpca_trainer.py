@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 
 from kale.pipeline.mpca_trainer import MPCATrainer
 
-gait = loadmat("../test_data/gait_gallery_data.mat")
+gait = loadmat("tests/test_data/gait_gallery_data.mat")
 x = gait["fea3D"].transpose((3, 0, 1, 2))
 x = x[:20, :]
 y = gait["gnd"][:20]
