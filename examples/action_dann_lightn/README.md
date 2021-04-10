@@ -5,13 +5,13 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 
 ### 2. Usage
 
-* Dataset: GTEA, KITCHEN, ADL(P04, P06, P11), EPIC(D1, D2, D3)
-* Algorithms: DANN, CDAN, CDAN+E, ...
+* Dataset: GTEA, KITCHEN, ADL(P4, P6, P11), EPIC(D1, D2, D3)
+* Algorithms: DANN, CDAN, DAN, ...
 * Example:
 
-`python main.py --cfg configs/EPIC-D12D2-DANN.yaml --gpus 1`
+`python main.py --cfg configs/EPIC-D12D2-DANN.yaml --gpus 0`
 
-`python main.py --cfg configs/EPIC-D12D2-CDAN.yaml --gpus 1`
+`python main.py --cfg configs/EPIC-D12D2-CDAN.yaml --gpus 0`
 
 ### 3. Related Kale core
 

@@ -9,12 +9,11 @@ import os
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
-from model import get_model
-
 from kale.loaddata.digits_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
+from model import get_model
 
 
 def arg_parse():
@@ -69,7 +68,9 @@ def main():
             gpus=args.gpus,
             logger=False,  # logger,
             # weights_summary='full',
-            fast_dev_run=True,  # True,
+            # limit_train_batches=0.005,
+            # limit_val_batches=0.06,
+            # limit_test_batches=0.06,
         )
 
         trainer.fit(model)
