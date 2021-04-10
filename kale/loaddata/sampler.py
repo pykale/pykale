@@ -47,7 +47,7 @@ class FixedSeedSamplingConfig(SamplingConfig):
         self._seed = seed
 
     def create_loader(self, dataset, batch_size):
-        """Create the data loader
+        """Create the data loader with fixed seed.
         """
         if self._balance:
             sampler = BalancedBatchSampler(dataset, batch_size=batch_size)
