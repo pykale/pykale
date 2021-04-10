@@ -6,19 +6,19 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 import argparse
 import logging
 import os
+
 import torch
 
 import pytorch_lightning as pl
-from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-from pytorch_lightning.callbacks import LearningRateMonitor
-
 from config import get_cfg_defaults
-from model import get_model
 from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
 from kale.loaddata.video_access import VideoDataset
 from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
+from model import get_model
+from pytorch_lightning import loggers as pl_loggers
+from pytorch_lightning.callbacks import LearningRateMonitor
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 
 def arg_parse():
@@ -73,7 +73,7 @@ def main():
         resume_from_checkpoint=args.ckpt,
         gpus=args.gpus,
     )
-    
+
     model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt))
 
     # test scores

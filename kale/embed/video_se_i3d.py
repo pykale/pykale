@@ -3,11 +3,11 @@ Define Inflated 3D ConvNets(I3D) on Action Recognition from https://ieeexplore.i
 Created by Xianyuan Liu from modifying https://github.com/piergiaj/pytorch-i3d/blob/master/pytorch_i3d.py and
 https://github.com/deepmind/kinetics-i3d/blob/master/i3d.py
 """
-import torch
 import torch.nn as nn
-from torchvision.models.utils import load_state_dict_from_url
+
 from kale.embed.video_i3d import InceptionI3d
-from kale.embed.video_se_cnn import SELayerC, SELayerT, SELayerMC, SELayerCoC, SELayerMAC
+from kale.embed.video_se_cnn import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
+from torchvision.models.utils import load_state_dict_from_url
 
 __all__ = ['se_i3d_joint', 'SEInceptionI3DRGB', 'SEInceptionI3DFlow']
 
@@ -37,13 +37,13 @@ class SEInceptionI3DRGB(nn.Module):
             model.Mixed_5c.add_module("SELayerC", SELayerC(1024))
 
         elif attention == "SELayerT":
-            model.Mixed_3b.add_module("SELayerT", SELayerT(n//2))
-            model.Mixed_3c.add_module("SELayerT", SELayerT(n//2))
-            model.Mixed_4b.add_module("SELayerT", SELayerT(n//4))
-            model.Mixed_4c.add_module("SELayerT", SELayerT(n//4))
-            model.Mixed_4d.add_module("SELayerT", SELayerT(n//4))
-            model.Mixed_4e.add_module("SELayerT", SELayerT(n//4))
-            model.Mixed_4f.add_module("SELayerT", SELayerT(n//4))
+            model.Mixed_3b.add_module("SELayerT", SELayerT(n // 2))
+            model.Mixed_3c.add_module("SELayerT", SELayerT(n // 2))
+            model.Mixed_4b.add_module("SELayerT", SELayerT(n // 4))
+            model.Mixed_4c.add_module("SELayerT", SELayerT(n // 4))
+            model.Mixed_4d.add_module("SELayerT", SELayerT(n // 4))
+            model.Mixed_4e.add_module("SELayerT", SELayerT(n // 4))
+            model.Mixed_4f.add_module("SELayerT", SELayerT(n // 4))
             # model.Mixed_5b.add_module("SELayerT", SELayerT(n//8))
             # model.Mixed_5c.add_module("SELayerT", SELayerT(n//8))
 
@@ -133,7 +133,7 @@ class SEInceptionI3DFlow(nn.Module):
     def __init__(self, num_channels, num_classes, attention):
         super(SEInceptionI3DFlow, self).__init__()
         model = InceptionI3d(in_channels=num_channels, num_classes=num_classes)
-        n = 16
+        # n = 16
         # if attention == "SELayerC":
         #     model.Mixed_3b.add_module("SELayerC", SELayerC(256))
         #     model.Mixed_3c.add_module("SELayerC", SELayerC(480))

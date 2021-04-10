@@ -122,6 +122,11 @@ class VideoDataset(Enum):
         source_tf = transform_names[source]
         target_tf = transform_names[target]
 
+        rgb_source = None
+        rgb_target = None
+        flow_source = None
+        flow_target = None
+
         if image_modality == 'rgb':
             rgb_source = factories[source](src_data_path, src_tr_listpath, src_te_listpath, image_modality,
                                            frames_per_segment,
@@ -129,7 +134,7 @@ class VideoDataset(Enum):
             rgb_target = factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, image_modality,
                                            frames_per_segment,
                                            num_classes, target_tf, seed)
-            flow_source = flow_target = None
+            # flow_source = flow_target = None
         elif image_modality == 'flow':
             flow_source = factories[source](src_data_path, src_tr_listpath, src_te_listpath, image_modality,
                                             frames_per_segment,
@@ -137,7 +142,7 @@ class VideoDataset(Enum):
             flow_target = factories[target](tar_data_path, tar_tr_listpath, tar_te_listpath, image_modality,
                                             frames_per_segment,
                                             num_classes, target_tf, seed)
-            rgb_source = rgb_target = None
+            # rgb_source = rgb_target = None
         elif image_modality == 'joint':
             rgb_source = factories[source](src_data_path, src_tr_listpath, src_te_listpath, 'rgb',
                                            frames_per_segment,

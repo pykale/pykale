@@ -7,8 +7,8 @@ https://github.com/deepmind/kinetics-i3d/blob/master/i3d.py
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from torchvision.models.utils import load_state_dict_from_url
-from torchvision.models.inception import Inception3
 
 __all__ = ['i3d_joint', 'InceptionI3d', 'InceptionModule']
 

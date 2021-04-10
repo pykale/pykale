@@ -1,9 +1,7 @@
-import torch.nn as nn
+from kale.embed.video_res3d import (BasicBlock, BasicFLowStem, BasicStem, Conv2Plus1D, Conv3DNoTemporal, Conv3DSimple,
+                                    R2Plus1dFlowStem, R2Plus1dStem, VideoResNet)
+from kale.embed.video_se_cnn import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
 from torchvision.models.utils import load_state_dict_from_url
-from kale.embed.video_res3d import \
-    Conv3DSimple, Conv2Plus1D, Conv3DNoTemporal, \
-    BasicBlock, BasicStem, BasicFLowStem, R2Plus1dStem, R2Plus1dFlowStem, VideoResNet
-from kale.embed.video_se_cnn import SELayerC, SELayerT, SELayerCoC, SELayerMC, SELayerMAC
 
 model_urls = {
     "r3d_18": "https://download.pytorch.org/models/r3d_18-b3b3357e.pth",
@@ -29,12 +27,12 @@ def _se_video_resnet(arch, attention, pretrained=False, progress=True, **kwargs)
     elif attention == "SELayerT":
         model.layer1._modules["0"].add_module("SELayerT", SELayerT(n))
         model.layer1._modules["1"].add_module("SELayerT", SELayerT(n))
-        model.layer2._modules["0"].add_module("SELayerT", SELayerT(n//2))
-        model.layer2._modules["1"].add_module("SELayerT", SELayerT(n//2))
-        model.layer3._modules["0"].add_module("SELayerT", SELayerT(n//4))
-        model.layer3._modules["1"].add_module("SELayerT", SELayerT(n//4))
-        model.layer4._modules["0"].add_module("SELayerT", SELayerT(n//8))
-        model.layer4._modules["1"].add_module("SELayerT", SELayerT(n//8))
+        model.layer2._modules["0"].add_module("SELayerT", SELayerT(n // 2))
+        model.layer2._modules["1"].add_module("SELayerT", SELayerT(n // 2))
+        model.layer3._modules["0"].add_module("SELayerT", SELayerT(n // 4))
+        model.layer3._modules["1"].add_module("SELayerT", SELayerT(n // 4))
+        model.layer4._modules["0"].add_module("SELayerT", SELayerT(n // 8))
+        model.layer4._modules["1"].add_module("SELayerT", SELayerT(n // 8))
 
     elif attention == "SELayerCoC":
         model.layer1._modules["0"].add_module("SELayerCoC", SELayerCoC(64))
@@ -78,10 +76,10 @@ def _se_video_resnet(arch, attention, pretrained=False, progress=True, **kwargs)
 
         model.layer1._modules["0"].add_module("SELayerT", SELayerT(n))
         model.layer1._modules["1"].add_module("SELayerT", SELayerT(n))
-        model.layer2._modules["0"].add_module("SELayerT", SELayerT(n//2))
-        model.layer2._modules["1"].add_module("SELayerT", SELayerT(n//2))
-        model.layer3._modules["0"].add_module("SELayerT", SELayerT(n//4))
-        model.layer3._modules["1"].add_module("SELayerT", SELayerT(n//4))
+        model.layer2._modules["0"].add_module("SELayerT", SELayerT(n // 2))
+        model.layer2._modules["1"].add_module("SELayerT", SELayerT(n // 2))
+        model.layer3._modules["0"].add_module("SELayerT", SELayerT(n // 4))
+        model.layer3._modules["1"].add_module("SELayerT", SELayerT(n // 4))
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
@@ -104,12 +102,12 @@ def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kw
         model.layer4._modules["1"].add_module("SELayerC", SELayerC(512))
 
     elif attention == "SELayerT":
-        model.layer1._modules["0"].add_module("SELayerT", SELayerT(n//2))
-        model.layer1._modules["1"].add_module("SELayerT", SELayerT(n//2))
-        model.layer2._modules["0"].add_module("SELayerT", SELayerT(n//4))
-        model.layer2._modules["1"].add_module("SELayerT", SELayerT(n//4))
-        model.layer3._modules["0"].add_module("SELayerT", SELayerT(n//8))
-        model.layer3._modules["1"].add_module("SELayerT", SELayerT(n//8))
+        model.layer1._modules["0"].add_module("SELayerT", SELayerT(n // 2))
+        model.layer1._modules["1"].add_module("SELayerT", SELayerT(n // 2))
+        model.layer2._modules["0"].add_module("SELayerT", SELayerT(n // 4))
+        model.layer2._modules["1"].add_module("SELayerT", SELayerT(n // 4))
+        model.layer3._modules["0"].add_module("SELayerT", SELayerT(n // 8))
+        model.layer3._modules["1"].add_module("SELayerT", SELayerT(n // 8))
 
     elif attention == "SELayerCoC":
         model.layer1._modules["0"].add_module("SELayerCoC", SELayerCoC(64))
