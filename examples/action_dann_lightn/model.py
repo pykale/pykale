@@ -11,9 +11,9 @@ from copy import deepcopy
 import kale.pipeline.action_domain_adapter as action_domain_adapter
 import kale.pipeline.domain_adapter as domain_adapter
 from kale.embed.video_i3d import i3d_joint
-from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
-from kale.embed.video_se_res3d import se_r3d, se_r2plus1d, se_mc3
+from kale.embed.video_se_i3d import se_i3d_joint
+from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 
 

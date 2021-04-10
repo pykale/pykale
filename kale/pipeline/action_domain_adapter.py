@@ -1,15 +1,9 @@
 import torch
 
 import kale.predict.losses as losses
-from kale.pipeline.domain_adapter import (
-    BaseMMDLike,
-    CDANtrainer,
-    DANNtrainer,
-    Method,
-    ReverseLayerF,
-    set_requires_grad,
-    WDGRLtrainer, get_aggregated_metrics_from_dict, get_metrics_from_parameter_dict,
-)
+from kale.pipeline.domain_adapter import (BaseMMDLike, CDANtrainer, DANNtrainer, get_aggregated_metrics_from_dict,
+                                          get_metrics_from_parameter_dict, Method, ReverseLayerF, set_requires_grad,
+                                          WDGRLtrainer)
 
 
 def create_mmd_based_4video(

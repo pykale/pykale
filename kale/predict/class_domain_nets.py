@@ -6,6 +6,7 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/mod
 """
 
 import torch.nn as nn
+
 from kale.embed.video_i3d import Unit3D
 
 
