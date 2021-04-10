@@ -13,14 +13,17 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.feature_selection import f_classif
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
-from sklearn.svm import SVC
+from sklearn.svm import SVC, LinearSVC
 from sklearn.utils.validation import check_is_fitted
 
 from ..embed.mpca import MPCA
 
-classifiers = {"svc": [SVC, {"kernel": ["linear"], "C": np.logspace(-3, 2, 6)}],
-               "lr": [LogisticRegression, {"C": np.logspace(-3, 2, 6)}]}
+param_c_grids = list(np.logspace(-4, 2, 7))
+classifiers = {"svc": [SVC, {"kernel": ["linear"], "C": param_c_grids}],
+               "linear_svc": [LinearSVC, {"C": param_c_grids}],
+               "lr": [LogisticRegression, {"C": param_c_grids}]}
 
+# k-fold cross validation used for grid search, i.e. searching for optimal value of C
 default_search_params = {'cv': 5}
 default_mpca_params = {"var_ratio": 0.97, "return_vector": True}
 
@@ -35,13 +38,13 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
             classifier (str, optional): Classifier for training. Options: support vector machine (svc) or
                 logistic regression (lr). Defaults to 'svc'.
             classifier_params (dict, optional): Parameters of classifier. Defaults to 'auto'.
-            mpca_params (dict, optional): Parameters of Multi-linear PCA. Defaults to None.
+            mpca_params (dict, optional): Parameters of MPCA. Defaults to None.
             n_features (int, optional): Number of features for feature selection. Defaults to None.
             search_params (dict, optional): Parameters of grid search. Defaults to None.
 
         """
-        if classifier not in ['svc', 'lr']:
-            error_msg = "Valid classifier should be 'svc' or 'lr', but given %s" % classifier
+        if classifier not in ["svc", "linear_svc", "lr"]:
+            error_msg = "Valid classifier should be 'svc', 'linear_svc', or 'lr', but given %s" % classifier
             logging.error(error_msg)
             raise ValueError(error_msg)
 
@@ -64,9 +67,9 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         self.auto_classifier_param = False
         if classifier_params == "auto":
             self.auto_classifier_param = True
-            clf_param_gird = classifiers[classifier][1]
+            clf_param_grid = classifiers[classifier][1]
             self.grid_search = GridSearchCV(classifiers[classifier][0](),
-                                            param_grid=clf_param_gird,
+                                            param_grid=clf_param_grid,
                                             **self.search_params)
             self.clf = None
         elif isinstance(classifier_params, dict):
@@ -89,25 +92,26 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         # fit mpca
         self.mpca.fit(x)
         self.mpca.set_params(**{"return_vector": True})
-        x_proj = self.mpca.transform(x)
+        x_transformed = self.mpca.transform(x)
 
         # feature selection
         if self.n_features is None:
-            self.n_features = x_proj.shape[0]
+            self.n_features = x_transformed.shape[1]
             self.feature_order = self.mpca.idx_order
         else:
-            f_score, p_val = f_classif(x_proj, y)
+            f_score, p_val = f_classif(x_transformed, y)
             self.feature_order = (-1 * f_score).argsort()
-        x_proj = x_proj[:, self.feature_order][:, :self.n_features]
+        x_transformed = x_transformed[:, self.feature_order][:, :self.n_features]
 
         # fit classifier
         if self.auto_classifier_param:
-            self.grid_search.fit(x_proj, y)
+            self.grid_search.param_grid["C"].append(1/x.shape[0])
+            self.grid_search.fit(x_transformed, y)
             self.clf = self.grid_search.best_estimator_
         if self.classifier == "svc":
             self.clf.set_params(**{"probability": True})
 
-        self.clf.fit(x_proj, y)
+        self.clf.fit(x_transformed, y)
 
     def predict(self, x):
         """Predict the labels for the given data x
@@ -140,6 +144,10 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         Returns:
             array-like: probabilities, shape (n_samples, n_class)
         """
+        if self.classifier == 'linear_svc':
+            error_msg = "Linear SVC does not support computing probability."
+            logging.error(error_msg)
+            raise ValueError(error_msg)
         return self.clf.predict_proba(self.feature_extract(x))
 
     def feature_extract(self, x):
@@ -152,8 +160,6 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
             array-like: n_new, shape (n_samples, n_features)
         """
         check_is_fitted(self.clf)
+        x_transformed = self.mpca.transform(x)
 
-        x_proj = self.mpca.transform(x)
-        x_new = x_proj[:, self.feature_order][:, :self.n_features]
-
-        return x_new
+        return x_transformed[:, self.feature_order][:, :self.n_features]
