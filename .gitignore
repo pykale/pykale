@@ -3,6 +3,7 @@
 *.pt
 *.pth
 *.zip
+*.ckpt
 
 # Distribution / packaging
 build/

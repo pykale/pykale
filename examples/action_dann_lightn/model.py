@@ -5,12 +5,16 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 # Author: Haiping Lu & Xianyuan Liu
 # Initial Date: 7 December 2020
 
+import logging
 from copy import deepcopy
 
+import kale.pipeline.action_domain_adapter as action_domain_adapter
 import kale.pipeline.domain_adapter as domain_adapter
-from kale.embed.video_i3d import i3d
-from kale.embed.video_res3d import mc3_18, r2plus1d_18, r3d_18
-from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
+from kale.embed.video_i3d import i3d_joint
+from kale.embed.video_se_i3d import se_i3d_joint
+from kale.embed.video_res3d import mc3, r2plus1d, r3d
+from kale.embed.video_se_res3d import se_r3d, se_r2plus1d, se_mc3
+from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 
 
 def get_config(cfg):
@@ -51,7 +55,7 @@ def get_config(cfg):
     return config_params
 
 
-def get_feat_extractor(model_name, num_classes, num_channels):
+def get_feat_extractor(model_name, image_modality, attention, num_classes):
     """
     Get the feature extractor w/o the pre-trained model. The pre-trained models are saved in the path
     ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
@@ -60,36 +64,181 @@ def get_feat_extractor(model_name, num_classes, num_channels):
 
     Args:
         model_name: The name of the feature extractor.
-        num_classes: The class number for the specific setting. (Default: No use)
-        num_channels: The number of image channels. (Default: No use, may used in RGB & Flow)
+        image_modality: Image type. (RGB or Optical Flow)
+        attention: The attention type.
+        num_classes: The class number of specific dataset. (Default: No use)
 
     Returns:
         feature_network: The network to extract features.
-        feature_dim: The dimension of the feature network output. It is a convention when
-                    the input dimension and the network is fixed.
+        class_feature_dim: The dimension of the feature network output for ClassNet.
+                        It is a convention when the input dimension and the network is fixed.
+        dmn_feature_dim: The dimension of the feature network output for DomainNet.
     """
+    attention_list = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"]
 
-    if model_name == "I3D":
-        pretrained_model = "rgb_imagenet" if num_channels == 3 else "flow_imagenet"
-        feature_network = i3d(name=pretrained_model, num_channels=num_channels, pretrained=True)
-        # model.replace_logits(num_classes)
-        feature_dim = 1024
-    elif model_name == "R3D_18":
-        feature_network = r3d_18(pretrained=True)
-        feature_dim = 512
-    elif model_name == "R2PLUS1D_18":
-        feature_network = r2plus1d_18(pretrained=True)
-        feature_dim = 512
-    elif model_name == "MC3_18":
-        feature_network = mc3_18(pretrained=True)
-        feature_dim = 512
+    if attention in attention_list:
+        att = True
+    elif attention == "None":
+        att = False
     else:
-        raise ValueError("Unsupported model: {}".format(model_name))
-    return feature_network, feature_dim
+        raise ValueError("Wrong attention. Current: {}".format(attention))
+
+    if image_modality == 'rgb':
+        if model_name == 'I3D':
+            pretrained_model = 'rgb_imagenet'
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                feature_network = se_i3d_joint(
+                    rgb_pt=pretrained_model, flow_pt=None, num_classes=num_classes, attention=attention, pretrained=True
+                )
+            else:
+                logging.info("No SELayer.")
+                feature_network = i3d_joint(rgb_pt=pretrained_model, flow_pt=None, num_classes=num_classes, pretrained=True)
+            # model.replace_logits(num_classes)
+            class_feature_dim = 1024
+            dmn_feature_dim = class_feature_dim
+
+        elif model_name == 'R3D_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                feature_network = se_r3d(rgb=True, flow=False, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = r3d(rgb=True, flow=False, pretrained=True)
+            class_feature_dim = 512
+            dmn_feature_dim = class_feature_dim
+
+        elif model_name == 'R2PLUS1D_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                feature_network = se_r2plus1d(rgb=True, flow=False, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = r2plus1d(rgb=True, flow=False, pretrained=True)
+            class_feature_dim = 512
+            dmn_feature_dim = class_feature_dim
+
+        elif model_name == 'MC3_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                feature_network = se_mc3(rgb=True, flow=False, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = mc3(rgb=True, flow=False, pretrained=True)
+            class_feature_dim = 512
+            dmn_feature_dim = class_feature_dim
+
+        else:
+            raise ValueError("Unsupported model: {}".format(model_name))
+
+    elif image_modality == 'flow':
+        if model_name == 'I3D':
+            pretrained_model = 'flow_imagenet'
+            if att:
+                logging.info("Using {}".format(attention))
+                feature_network = se_i3d_joint(
+                    rgb_pt=None, flow_pt=pretrained_model, num_classes=num_classes, attention=attention, pretrained=True
+                )
+            else:
+                logging.info("No SELayer.")
+                feature_network = i3d_joint(rgb_pt=None, flow_pt=pretrained_model, num_classes=num_classes, pretrained=True)
+            class_feature_dim = 1024
+            dmn_feature_dim = class_feature_dim
+
+        elif model_name == 'R3D_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                feature_network = se_r3d(rgb=False, flow=True, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = r3d(rgb=False, flow=True, pretrained=True)
+            class_feature_dim = 512
+            dmn_feature_dim = class_feature_dim
+
+        elif model_name == 'R2PLUS1D_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                feature_network = se_r2plus1d(rgb=False, flow=True, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = r2plus1d(rgb=False, flow=True, pretrained=True)
+            class_feature_dim = 512
+            dmn_feature_dim = class_feature_dim
+
+        elif model_name == 'MC3_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                feature_network = se_mc3(rgb=False, flow=True, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = mc3(rgb=False, flow=True, pretrained=True)
+            class_feature_dim = 512
+            dmn_feature_dim = class_feature_dim
+
+        else:
+            raise ValueError("Unsupported model: {}".format(model_name))
+
+    elif image_modality == 'joint':
+        if model_name == 'I3D':
+            rgb_pretrained_model = 'rgb_imagenet'
+            flow_pretrained_model = 'flow_imagenet'
+
+            if att:
+                logging.info("Using {}".format(attention))
+                feature_network = se_i3d_joint(rgb_pt=rgb_pretrained_model,
+                                               flow_pt=flow_pretrained_model,
+                                               num_classes=num_classes,
+                                               attention=attention,
+                                               pretrained=True)
+            else:
+                logging.info("No SELayer.")
+                feature_network = i3d_joint(rgb_pt=rgb_pretrained_model,
+                                            flow_pt=flow_pretrained_model,
+                                            num_classes=num_classes,
+                                            pretrained=True)
+            class_feature_dim = 2048
+            dmn_feature_dim = class_feature_dim / 2
+
+        elif model_name == 'R3D_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                feature_network = se_r3d(rgb=True, flow=True, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = r3d(rgb=True, flow=True, pretrained=True)
+            class_feature_dim = 1024
+            dmn_feature_dim = class_feature_dim / 2
+
+        elif model_name == 'R2PLUS1D_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                feature_network = se_r2plus1d(rgb=True, flow=True, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = r2plus1d(rgb=True, flow=True, pretrained=True)
+            class_feature_dim = 1024
+            dmn_feature_dim = class_feature_dim / 2
+
+        elif model_name == 'MC3_18':
+            if att:
+                logging.info("{} using {}".format(model_name, attention))
+                # feature_network = se_mc3(rgb=False, flow=True, pretrained=True, attention=attention)
+            else:
+                logging.info("No SELayer.")
+                feature_network = mc3(rgb=True, flow=True, pretrained=True)
+            class_feature_dim = 1024
+            dmn_feature_dim = class_feature_dim / 2
+
+        else:
+            raise ValueError("Unsupported model: {}".format(model_name))
+
+    else:
+        raise ValueError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
+    return feature_network, int(class_feature_dim), int(dmn_feature_dim)
 
 
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
-def get_model(cfg, dataset, num_channels):
+def get_model(cfg, dataset, num_classes):
     """
     Builds and returns a model and associated hyper parameters according to the config object passed.
 
@@ -97,12 +246,18 @@ def get_model(cfg, dataset, num_channels):
         cfg: A YACS config object.
         dataset: A multi domain dataset consisting of source and target datasets.
         num_channels: The number of image channels.
+        num_classes: The class number of specific dataset.
     """
 
     # setup feature extractor
-    feature_network, feature_dim = get_feat_extractor(cfg.MODEL.METHOD.upper(), cfg.DATASET.NUM_CLASSES, num_channels)
+    feature_network, class_feature_dim, dmn_feature_dim = get_feat_extractor(
+        cfg.MODEL.METHOD.upper(),
+        cfg.DATASET.IMAGE_MODALITY,
+        cfg.MODEL.ATTENTION,
+        num_classes
+    )
     # setup classifier
-    classifier_network = ClassNetSmallImage(feature_dim, cfg.DATASET.NUM_CLASSES)
+    classifier_network = ClassNetVideo(class_feature_dim, num_classes)
 
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
@@ -112,31 +267,34 @@ def get_model(cfg, dataset, num_channels):
     method = domain_adapter.Method(cfg.DAN.METHOD)
 
     if method.is_mmd_method():
-        model = domain_adapter.create_mmd_based(
+        # model = domain_adapter.create_mmd_based(
+        model = action_domain_adapter.create_mmd_based_4video(
             method=method,
             dataset=dataset,
+            image_modality=cfg.DATASET.IMAGE_MODALITY,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             **method_params,
             **train_params_local,
         )
     else:
-        critic_input_size = feature_dim
+        critic_input_size = dmn_feature_dim
         # setup critic network
         if method.is_cdan_method():
             if cfg.DAN.USERANDOM:
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
-                critic_input_size = feature_dim * cfg.DATASET.NUM_CLASSES
-        critic_network = DomainNetSmallImage(critic_input_size)
+                critic_input_size = dmn_feature_dim * num_classes
+        critic_network = DomainNetVideo(critic_input_size)
 
         if cfg.DAN.METHOD == "CDAN":
             method_params["use_random"] = cfg.DAN.USERANDOM
 
         # The following calls kale.loaddata.dataset_access for the first time
-        model = domain_adapter.create_dann_like(
+        model = action_domain_adapter.create_dann_like_4video(
             method=method,
             dataset=dataset,
+            image_modality=cfg.DATASET.IMAGE_MODALITY,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             critic=critic_network,

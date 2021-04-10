@@ -99,8 +99,11 @@ def setup_logger(train_params, output_dir, method_name, seed):
     path_method_name = re.sub(r"[^-/\w\.]", "_", method_name)
     full_checkpoint_dir = os.path.join(checkpoint_dir, path_method_name, f"seed_{seed}")
     checkpoint_callback = ModelCheckpoint(
-        filepath=os.path.join(full_checkpoint_dir, "{epoch}"),
-        monitor="last_epoch",
+        dirpath=full_checkpoint_dir,
+        filename="{epoch}-{step}-{V_target_acc:.4f}",
+        save_last=True,
+        save_top_k=1,
+        monitor="V_target_acc",
         mode="max",
     )
 
@@ -179,7 +182,7 @@ class XpResults:
         """Update the log with metric values"""
         split, prefix = ("Validation", "V") if is_validation else ("Test", "Te")
         results = pd.DataFrame(
-            {k: metric_values.get(f"{prefix}_{k.replace(' ', '_')}", None) for k in self._metrics},
+            {k: metric_values.get(f"{prefix}_{k.replace(' ', '_')}", None).item() for k in self._metrics},
             index=[0],
         )
         results["seed"] = seed

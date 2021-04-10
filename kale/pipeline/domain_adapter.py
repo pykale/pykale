@@ -354,6 +354,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
         log_metrics["T_total_loss"] = loss
+        log_metrics["T_adv_loss"] = adv_loss
         log_metrics["T_task_loss"] = task_loss
 
         for key in log_metrics:
@@ -369,13 +370,14 @@ class BaseAdaptTrainer(pl.LightningModule):
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="V")
         loss = task_loss + self.lamb_da * adv_loss
         log_metrics["val_loss"] = loss
+        log_metrics["val_task_loss"] = task_loss
+        log_metrics["val_adv_loss"] = adv_loss
         return log_metrics
 
     def _validation_epoch_end(self, outputs, metrics_at_valid):
         log_dict = get_aggregated_metrics(metrics_at_valid, outputs)
         device = outputs[0].get("val_loss").device
         log_dict.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), device))
-        # avg_loss = log_dict["val_loss"]
 
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
@@ -515,7 +517,7 @@ class BaseDANNLike(BaseAdaptTrainer):
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
 
         loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
-        loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)))
+        loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
         adv_loss = loss_dmn_src + loss_dmn_tgt
         task_loss = loss_cls
 
@@ -531,6 +533,8 @@ class BaseDANNLike(BaseAdaptTrainer):
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
             "val_loss",
+            "val_task_loss",
+            "val_adv_loss",
             "V_source_acc",
             "V_target_acc",
             "V_source_domain_acc",
@@ -1069,7 +1073,7 @@ class BaseMMDLike(BaseAdaptTrainer):
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_mmd": mmd,
+            f"{split_name}_domain_acc": mmd,
         }
         return task_loss, mmd, log_metrics
 
@@ -1078,7 +1082,7 @@ class BaseMMDLike(BaseAdaptTrainer):
             "val_loss",
             "V_source_acc",
             "V_target_acc",
-            "V_mmd",
+            "V_domain_acc",
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 
@@ -1087,7 +1091,7 @@ class BaseMMDLike(BaseAdaptTrainer):
             "test_loss",
             "Te_source_acc",
             "Te_target_acc",
-            "Te_mmd",
+            "Te_domain_acc",
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 

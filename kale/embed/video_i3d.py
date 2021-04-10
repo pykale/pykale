@@ -7,7 +7,10 @@ https://github.com/deepmind/kinetics-i3d/blob/master/i3d.py
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from torchvision.models.utils import load_state_dict_from_url
+
+__all__ = ['i3d_joint', 'InceptionI3d', 'InceptionModule']
 
 model_urls = {
     "rgb_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt",
@@ -55,16 +58,16 @@ class Unit3D(nn.Module):
     """Basic unit containing Conv3D + BatchNorm + non-linearity."""
 
     def __init__(
-        self,
-        in_channels,
-        output_channels,
-        kernel_shape=(1, 1, 1),
-        stride=(1, 1, 1),
-        padding=0,
-        activation_fn=F.relu,
-        use_batch_norm=True,
-        use_bias=False,
-        name="unit_3d",
+            self,
+            in_channels,
+            output_channels,
+            kernel_shape=(1, 1, 1),
+            stride=(1, 1, 1),
+            padding=0,
+            activation_fn=F.relu,
+            use_batch_norm=True,
+            use_bias=False,
+            name="unit_3d",
     ):
         """Initializes Unit3D module."""
 
@@ -188,12 +191,40 @@ class InceptionModule(nn.Module):
         )
         self.name = name
 
-    def forward(self, x):
+    def _forward(self, x):
         b0 = self.b0(x)
         b1 = self.b1b(self.b1a(x))
         b2 = self.b2b(self.b2a(x))
         b3 = self.b3b(self.b3a(x))
-        return torch.cat([b0, b1, b2, b3], dim=1)
+
+        output = [b0, b1, b2, b3]
+        return output
+
+    def forward(self, x):
+        outputs = self._forward(x)
+        out = torch.cat(outputs, dim=1)
+        if "SELayerC" in dir(self):  # Check self.SELayer
+            out = self.SELayerC(out)
+        if "SELayerT" in dir(self):
+            out = self.SELayerT(out)
+        if "SELayerCoC" in dir(self):
+            out = self.SELayerCoC(out)
+        if "SELayerMC" in dir(self):
+            out = self.SELayerMC(out)
+        if "SELayerMAC" in dir(self):
+            out = self.SELayerMAC(out)
+
+        if "SELayerCTc" in dir(self):
+            out = self.SELayerCTc(out)
+        if "SELayerCTt" in dir(self):
+            out = self.SELayerCTt(out)
+
+        if "SELayerTCt" in dir(self):
+            out = self.SELayerTCt(out)
+        if "SELayerTCc" in dir(self):
+            out = self.SELayerTCc(out)
+
+        return out
 
 
 class InceptionI3d(nn.Module):
@@ -235,13 +266,13 @@ class InceptionI3d(nn.Module):
     )
 
     def __init__(
-        self,
-        num_classes=400,
-        spatial_squeeze=True,
-        final_endpoint="Logits",
-        name="inception_i3d",
-        in_channels=3,
-        dropout_keep_prob=0.5,
+            self,
+            num_classes=400,
+            spatial_squeeze=True,
+            final_endpoint="Logits",
+            name="inception_i3d",
+            in_channels=3,
+            dropout_keep_prob=0.5,
     ):
         """
         Initializes I3D model instance.
@@ -275,7 +306,7 @@ class InceptionI3d(nn.Module):
         if self._final_endpoint not in self.VALID_ENDPOINTS:
             raise ValueError("Unknown final endpoint %s" % self._final_endpoint)
 
-        """Construct I3D architecture"""
+        """Construct I3D architecture."""
         self.end_points = {}
         end_point = "Conv3d_1a_7x7"
         self.end_points[end_point] = Unit3D(
@@ -375,12 +406,14 @@ class InceptionI3d(nn.Module):
             return
 
         end_point = "Logits"
-        self.avg_pool = nn.AvgPool3d(kernel_size=[2, 7, 7], stride=(1, 1, 1))
-        self.avg_pool_flow = nn.AvgPool3d(kernel_size=[1, 7, 7], stride=(1, 1, 1))
+        # self.avg_pool = nn.AvgPool3d(kernel_size=[2, 7, 7], stride=(1, 1, 1))
+        # self.avg_pool_flow = nn.AvgPool3d(kernel_size=[1, 7, 7], stride=(1, 1, 1))
+        self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.dropout = nn.Dropout(dropout_keep_prob)
         self.logits = Unit3D(
             in_channels=384 + 384 + 128 + 128,
-            output_channels=self._num_classes,
+            output_channels=400,
+            # output_channels=self._num_classes,
             kernel_shape=[1, 1, 1],
             padding=0,
             activation_fn=None,
@@ -392,7 +425,7 @@ class InceptionI3d(nn.Module):
         self.build()
 
     def replace_logits(self, num_classes):
-        """Update the num_classes according to the specific setting"""
+        """Update the num_classes according to the specific setting."""
 
         self._num_classes = num_classes
         self.logits = Unit3D(
@@ -411,23 +444,35 @@ class InceptionI3d(nn.Module):
             self.add_module(k, self.end_points[k])
 
     def forward(self, x):
-        """The output is the result of the final average pooling layer with 1024 dimensions """
+        """The output is the result of the final average pooling layer with 1024 dimensions."""
 
-        for end_point in self.VALID_ENDPOINTS:
-            if end_point in self.end_points:
-                x = self._modules[end_point](x)  # use _modules to work with dataparallel
+        x = self._modules["Conv3d_1a_7x7"](x)       # out: [2, 64, 1, 112, 112]
+        x = self._modules["MaxPool3d_2a_3x3"](x)    # [2, 64, 1, 56, 56]
+        x = self._modules["Conv3d_2b_1x1"](x)       # [2, 64, 1, 56, 56]
+        x = self._modules["Conv3d_2c_3x3"](x)       # [2, 192, 1, 56, 56]
+        x = self._modules["MaxPool3d_3a_3x3"](x)    # [2, 192, 1, 28, 28]
+        x = self._modules["Mixed_3b"](x)            # [2, 256, 1, 28, 28]
+        x = self._modules["Mixed_3c"](x)            # [2, 480, 1, 28, 28]
+        x = self._modules["MaxPool3d_4a_3x3"](x)    # [2, 480, 1, 14, 14]
+        x = self._modules["Mixed_4b"](x)            # [2, 512, 1, 14, 14]
+        x = self._modules["Mixed_4c"](x)            # [2, 512, 1, 14, 14]
+        x = self._modules["Mixed_4d"](x)            # [2, 512, 1, 14, 14]
+        x = self._modules["Mixed_4e"](x)            # [2, 528, 1, 14, 14]
+        x = self._modules["Mixed_4f"](x)            # [2, 832, 1, 14, 14]
+        x = self._modules["MaxPool3d_5a_2x2"](x)    # [2, 832, 1, 7, 7]
+        x = self._modules["Mixed_5b"](x)            # [2, 832, 1, 7, 7]
+        x = self._modules["Mixed_5c"](x)            # [2, 1024, 1, 7, 7]
 
-        # For EPIC datasets, RGB window has 16 frames while flow has 8. We apply different avg_pool to them.
-        if x.shape[2] == 2:
-            x = self.avg_pool(x)
-            # x = self.logits(self.dropout(self.avg_pool(x)))
-        elif x.shape[2] == 1:
-            x = self.avg_pool_flow(x)
-            # x = self.logits(self.dropout(self.avg_pool_flow(x)))
+        # for end_point in self.VALID_ENDPOINTS:
+        #     if end_point in self.end_points:
+        #         x = self._modules[end_point](x)  # use _modules to work with dataparallel
+
+        x = self.avg_pool(x)
+        # logits = self.logits(self.dropout(x))
         if self._spatial_squeeze:
-            logits = x.squeeze(3).squeeze(3)
-        # logits is batch X time X classes, which is what we want to work with
-        return logits
+            x = x.squeeze(3).squeeze(3)
+        # x is batch X time X classes, which is what we want to work with
+        return x
 
     def extract_features(self, x):
         for end_point in self.VALID_ENDPOINTS:
@@ -436,10 +481,29 @@ class InceptionI3d(nn.Module):
         return self.avg_pool(x)
 
 
-def i3d(name, num_channels, pretrained=False, progress=True):
-    model = InceptionI3d(in_channels=num_channels)
+def i3d(name, num_channels, num_classes, pretrained=False, progress=True):
+    """Get InceptionI3d module w/o pretrained model."""
+    model = InceptionI3d(in_channels=num_channels, num_classes=num_classes)
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[name], progress=progress)
+        # delete logits.conv3d parameters due to different class number.
+        # state_dict.pop("logits.conv3d.weight")
+        # state_dict.pop("logits.conv3d.bias")
+        # model.load_state_dict(state_dict, strict=False)
         model.load_state_dict(state_dict)
     return model
+
+
+def i3d_joint(rgb_pt, flow_pt, num_classes, pretrained=False, progress=True):
+    """Get I3D models."""
+    i3d_rgb = i3d_flow = None
+    if rgb_pt is not None and flow_pt is None:
+        i3d_rgb = i3d(name=rgb_pt, num_channels=3, num_classes=num_classes, pretrained=pretrained, progress=progress)
+    elif rgb_pt is None and flow_pt is not None:
+        i3d_flow = i3d(name=flow_pt, num_channels=2, num_classes=num_classes, pretrained=pretrained, progress=progress)
+    elif rgb_pt is not None and flow_pt is not None:
+        i3d_rgb = i3d(name=rgb_pt, num_channels=3, num_classes=num_classes, pretrained=pretrained, progress=progress)
+        i3d_flow = i3d(name=flow_pt, num_channels=2, num_classes=num_classes, pretrained=pretrained, progress=progress)
+    models = {'rgb': i3d_rgb, 'flow': i3d_flow}
+    return models
