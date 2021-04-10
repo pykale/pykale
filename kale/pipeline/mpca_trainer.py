@@ -13,7 +13,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.feature_selection import f_classif
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
-from sklearn.svm import SVC, LinearSVC
+from sklearn.svm import LinearSVC, SVC
 from sklearn.utils.validation import check_is_fitted
 
 from ..embed.mpca import MPCA
@@ -105,7 +105,7 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
 
         # fit classifier
         if self.auto_classifier_param:
-            self.grid_search.param_grid["C"].append(1/x.shape[0])
+            self.grid_search.param_grid["C"].append(1 / x.shape[0])
             self.grid_search.fit(x_transformed, y)
             self.clf = self.grid_search.best_estimator_
         if self.classifier == "svc":
