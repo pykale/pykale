@@ -291,7 +291,6 @@ class BaseAdaptTrainer(pl.LightningModule):
 
             if self._adapt_lr:
                 self._lr_fact = 1.0 / ((1.0 + 10 * p) ** 0.75)
-                # self._lr_fact = 0.7
 
         if self._adapt_lambda:
             self.lamb_da = self._init_lambda * self._grow_fact
@@ -350,7 +349,6 @@ class BaseAdaptTrainer(pl.LightningModule):
             # ad-hoc decision but makes models more comparable between each other
             loss = task_loss
         else:
-            # loss = task_loss + 1.0 * adv_loss
             loss = task_loss + self.lamb_da * adv_loss
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)

@@ -8,14 +8,14 @@ from kale.pipeline.domain_adapter import (
     Method,
     ReverseLayerF,
     set_requires_grad,
-    WDGRLtrainer,
+    WDGRLtrainer, get_aggregated_metrics_from_dict, get_metrics_from_parameter_dict,
 )
 
 
 def create_mmd_based_4video(
         method: Method, dataset, image_modality, feature_extractor, task_classifier, **train_params
 ):
-    """MMD-based deep learning methods for domain adaptation: DAN and JAN
+    """MMD-based deep learning methods for action recognition DA: DAN and JAN
     """
     if not method.is_mmd_method():
         raise ValueError(f"Unsupported MMD method: {method}")
@@ -44,7 +44,7 @@ def create_mmd_based_4video(
 def create_dann_like_4video(
         method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, **train_params
 ):
-    """DANN-based deep learning methods for domain adaptation: DANN, CDAN, CDAN+E
+    """DANN-based deep learning methods for action recognition DA: DANN, CDAN, CDAN+E
     """
     # if dataset.is_semi_supervised():
     #     return create_fewshot_trainer(
@@ -109,7 +109,7 @@ class BaseMMDLike4Video(BaseMMDLike):
             kernel_num=5,
             **base_params,
     ):
-        """Common API for MME-based deep learning DA methods: DAN, JAN
+        """Common API for MME-based action recognition DA methods: DAN, JAN
         """
 
         super().__init__(dataset, feature_extractor, task_classifier, kernel_mul, kernel_num, **base_params)
@@ -261,9 +261,6 @@ class DANNtrainer4Video(DANNtrainer):
                 reverse_feature = ReverseLayerF.apply(x, self.alpha)
 
                 adversarial_output = self.domain_classifier(reverse_feature)
-                # print(x)
-                # print(class_output)
-                # print(adversarial_output)
                 return x, class_output, adversarial_output
 
             elif self.image_modality == 'joint':
@@ -331,6 +328,26 @@ class DANNtrainer4Video(DANNtrainer):
             raise NotImplementedError("Batch len is {}. Check the Dataloader.".format(len(batch)))
 
         return task_loss, adv_loss, log_metrics
+
+    def training_step(self, batch, batch_nb):
+        self._update_batch_epoch_factors(batch_nb)
+
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="T")
+        if self.current_epoch < self._init_epochs:
+            loss = task_loss
+        else:
+            loss = task_loss + self.lamb_da * adv_loss
+
+        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
+        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
+        log_metrics["T_total_loss"] = loss
+        log_metrics["T_adv_loss"] = adv_loss
+        log_metrics["T_task_loss"] = task_loss
+
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
+
+        return {"loss": loss}
 
 
 class CDANtrainer4Video(CDANtrainer):
