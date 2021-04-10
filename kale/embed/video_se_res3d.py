@@ -247,7 +247,7 @@ def se_r3d(attention, rgb=False, flow=False, pretrained=False, progress=True):
 
 
 def se_mc3(attention, rgb=False, flow=False, pretrained=False, progress=True):
-    """Get R3D_18 models."""
+    """Get MC3_18 models."""
     mc3_rgb = mc3_flow = None
     if rgb and not flow:
         mc3_rgb = se_mc3_18_rgb(attention=attention, pretrained=pretrained, progress=progress)
@@ -261,7 +261,7 @@ def se_mc3(attention, rgb=False, flow=False, pretrained=False, progress=True):
 
 
 def se_r2plus1d(attention, rgb=False, flow=False, pretrained=False, progress=True):
-    """Get R3D_18 models."""
+    """Get R2+1D_18 models."""
     r2plus1d_rgb = r2plus1d_flow = None
     if rgb and not flow:
         r2plus1d_rgb = se_r2plus1d_18_rgb(attention=attention, pretrained=pretrained, progress=progress)
