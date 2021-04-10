@@ -29,7 +29,9 @@ def test_mpca_trainer(classifier, params):
     y_proba = trainer.predict_proba(x)
     assert np.max(y_proba) <= 1.0
     assert np.min(y_proba) >= 0.0
-    assert roc_auc_score(y, y_proba) >= 0.8
+    y_ = np.zeros(y.shape)
+    y_[np.where(y == 1)] = 1
+    assert roc_auc_score(y_, y_proba[:, 0]) >= 0.8
 
     y_dec_score = trainer.decision_function(x)
     assert roc_auc_score(y, y_dec_score) >= 0.8
