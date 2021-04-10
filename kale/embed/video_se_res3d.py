@@ -1,7 +1,17 @@
-from kale.embed.video_res3d import (BasicBlock, BasicFLowStem, BasicStem, Conv2Plus1D, Conv3DNoTemporal, Conv3DSimple,
-                                    R2Plus1dFlowStem, R2Plus1dStem, VideoResNet)
-from kale.embed.video_se_cnn import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
 from torchvision.models.utils import load_state_dict_from_url
+
+from kale.embed.video_res3d import (
+    BasicBlock,
+    BasicFLowStem,
+    BasicStem,
+    Conv2Plus1D,
+    Conv3DNoTemporal,
+    Conv3DSimple,
+    R2Plus1dFlowStem,
+    R2Plus1dStem,
+    VideoResNet,
+)
+from kale.embed.video_se_cnn import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
 
 model_urls = {
     "r3d_18": "https://download.pytorch.org/models/r3d_18-b3b3357e.pth",
