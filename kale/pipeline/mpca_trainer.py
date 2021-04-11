@@ -13,7 +13,7 @@ References:
     classification. In International Conference on Medical Image Computing and Computer-Assisted Intervention
     (pp. 613-620). Springer, Cham.
     [3] Lu, H., Plataniotis, K. N., & Venetsanopoulos, A. N. (2008). MPCA: Multilinear principal component analysis of
-    tensor objects. IEEE transactions on Neural Networks, 19(1), 18-39.
+    tensor objects. IEEE Transactions on Neural Networks, 19(1), 18-39.
 """
 
 import logging
