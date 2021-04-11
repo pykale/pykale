@@ -231,7 +231,13 @@ class XpResults:
         nsamples = len(mres)
         mmres = [(mres[m].mean(), mres[m].std() / np.sqrt(nsamples)) for m in self._metrics]
         if stdout:
-            print_func("{} {}\t {}".format(split, method_name, "\t\t".join((f"{m * 100:.1f}% +- {1.96 * s * 100:.2f} ({nsamples} runs)" for m, s in mmres))))
+            print_func(
+                "{} {}\t {}".format(
+                    split,
+                    method_name,
+                    "\t\t".join((f"{m * 100:.1f}% +- {1.96 * s * 100:.2f} ({nsamples} runs)" for m, s in mmres)),
+                )
+            )
         if fdout is not None:
             if file_format == "markdown":
                 fdout.write(f"|{method_name}|")

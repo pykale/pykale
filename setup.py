@@ -11,46 +11,46 @@ from setuptools import find_packages, setup
 # To work on graphs, install torch-geometric following the official instructions (e.g. below):
 # python -m pip install torch-cluster torch-scatter torch-sparse torch-spline
 requirements = [
-    'numpy>=1.18.0',
-    'pytorch-lightning',
-    'scikit-image>=0.16.2',
-    'scikit-learn>=0.23.2',
-    'tensorly>=0.5.1',
-    'torch>=1.7.0',
-    'torchvision',  # >=0.8.1
-    'scipy>=1.5.4',
+    "numpy>=1.18.0",
+    "pytorch-lightning",
+    "scikit-image>=0.16.2",
+    "scikit-learn>=0.23.2",
+    "tensorly>=0.5.1",
+    "torch>=1.7.0",
+    "torchvision",  # >=0.8.1
+    "scipy>=1.5.4",
 ]
 
 # Additional dependencies for examples/tutorials
 extra_requirements = [
-    'ipykernel',
-    'ipython',
-    'matplotlib',
-    'Pillow',
-    'PyTDC',
-    'pytorch-memlab',
-    'torchsummary>=1.5.0',
-    'yacs>=0.1.7',
+    "ipykernel",
+    "ipython",
+    "matplotlib",
+    "Pillow",
+    "PyTDC",
+    "pytorch-memlab",
+    "torchsummary>=1.5.0",
+    "yacs>=0.1.7",
 ]
 
 # Additional dependencies for development
 dev_requirements = [
-    'black',
-    'coverage',
-    'flake8',
-    'flake8-print',
-    'isort',
-    'm2r',
-    'mypy',
-    'nbsphinx',
-    'nbsphinx-link',
-    'nbval',
-    'pre-commit',
-    'pytest',
-    'pytest-cov',
-    'recommonmark',
-    'sphinx',
-    'sphinx-rtd-theme',
+    "black",
+    "coverage",
+    "flake8",
+    "flake8-print",
+    "isort",
+    "m2r",
+    "mypy",
+    "nbsphinx",
+    "nbsphinx-link",
+    "nbval",
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "recommonmark",
+    "sphinx",
+    "sphinx-rtd-theme",
 ]
 
 
@@ -90,8 +90,8 @@ setup(
     packages=find_packages(exclude=("docs", "examples", "tests")),
     python_requires=">=3.6",
     install_requires=requirements,
-    extras_require={'extras': extra_requirements, 'dev': extra_requirements + dev_requirements},
-    setup_requires=['setuptools>=38.6.0'],
+    extras_require={"extras": extra_requirements, "dev": extra_requirements + dev_requirements},
+    setup_requires=["setuptools>=38.6.0"],
     license="MIT",
     keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
     classifiers=[

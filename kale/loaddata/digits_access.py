@@ -84,14 +84,10 @@ class MNISTDatasetAccess(DigitDatasetAccess):
     """
 
     def get_train(self):
-        return MNIST(
-            self._data_path, train=True, transform=self._transform, download=True
-        )
+        return MNIST(self._data_path, train=True, transform=self._transform, download=True)
 
     def get_test(self):
-        return MNIST(
-            self._data_path, train=False, transform=self._transform, download=True
-        )
+        return MNIST(self._data_path, train=False, transform=self._transform, download=True)
 
 
 class MNISTMDatasetAccess(DigitDatasetAccess):
@@ -100,14 +96,10 @@ class MNISTMDatasetAccess(DigitDatasetAccess):
     """
 
     def get_train(self):
-        return MNISTM(
-            self._data_path, train=True, transform=self._transform, download=True
-        )
+        return MNISTM(self._data_path, train=True, transform=self._transform, download=True)
 
     def get_test(self):
-        return MNISTM(
-            self._data_path, train=False, transform=self._transform, download=True
-        )
+        return MNISTM(self._data_path, train=False, transform=self._transform, download=True)
 
 
 class USPSDatasetAccess(DigitDatasetAccess):
@@ -116,14 +108,10 @@ class USPSDatasetAccess(DigitDatasetAccess):
     """
 
     def get_train(self):
-        return USPS(
-            self._data_path, train=True, transform=self._transform, download=True
-        )
+        return USPS(self._data_path, train=True, transform=self._transform, download=True)
 
     def get_test(self):
-        return USPS(
-            self._data_path, train=False, transform=self._transform, download=True
-        )
+        return USPS(self._data_path, train=False, transform=self._transform, download=True)
 
 
 class SVHNDatasetAccess(DigitDatasetAccess):
@@ -132,11 +120,7 @@ class SVHNDatasetAccess(DigitDatasetAccess):
     """
 
     def get_train(self):
-        return SVHN(
-            self._data_path, split="train", transform=self._transform, download=True
-        )
+        return SVHN(self._data_path, split="train", transform=self._transform, download=True)
 
     def get_test(self):
-        return SVHN(
-            self._data_path, split="test", transform=self._transform, download=True
-        )
+        return SVHN(self._data_path, split="test", transform=self._transform, download=True)

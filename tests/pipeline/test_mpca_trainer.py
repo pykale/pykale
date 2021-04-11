@@ -12,9 +12,15 @@ x = x[:20, :]
 y = gait["gnd"][:20].reshape(-1)
 
 CLASSIFIERS = ["svc", "linear_svc", "lr"]
-PARAMS = [{"classifier_params": "auto", "mpca_params": None, "n_features": None, "search_params": None},
-          {"classifier_params": {"C": 1}, "mpca_params": {"var_ratio": 0.9, "return_vector": True},
-           "n_features": 100, "search_params": {'cv': 3}}]
+PARAMS = [
+    {"classifier_params": "auto", "mpca_params": None, "n_features": None, "search_params": None},
+    {
+        "classifier_params": {"C": 1},
+        "mpca_params": {"var_ratio": 0.9, "return_vector": True},
+        "n_features": 100,
+        "search_params": {"cv": 3},
+    },
+]
 
 
 @pytest.mark.parametrize("classifier", CLASSIFIERS)

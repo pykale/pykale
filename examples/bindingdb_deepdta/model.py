@@ -15,13 +15,21 @@ def get_model(cfg):
     drug_filter_length = cfg.MODEL.DRUG_FILTER_LENGTH
     target_filter_length = cfg.MODEL.TARGET_FILTER_LENGTH
 
-    drug_encoder = CNNEncoder(num_embeddings=num_drug_embeddings, embedding_dim=drug_dim,
-                              sequence_length=drug_length, num_kernels=num_filters,
-                              kernel_length=drug_filter_length)
+    drug_encoder = CNNEncoder(
+        num_embeddings=num_drug_embeddings,
+        embedding_dim=drug_dim,
+        sequence_length=drug_length,
+        num_kernels=num_filters,
+        kernel_length=drug_filter_length,
+    )
 
-    target_encoder = CNNEncoder(num_embeddings=num_target_embeddings, embedding_dim=target_dim,
-                                sequence_length=target_length, num_kernels=num_filters,
-                                kernel_length=target_filter_length)
+    target_encoder = CNNEncoder(
+        num_embeddings=num_target_embeddings,
+        embedding_dim=target_dim,
+        sequence_length=target_length,
+        num_kernels=num_filters,
+        kernel_length=target_filter_length,
+    )
 
     # ---- decoder hyper-parameter ----
     decoder_in_dim = cfg.MODEL.MLP_IN_DIM
@@ -29,8 +37,9 @@ def get_model(cfg):
     decoder_out_dim = cfg.MODEL.MLP_OUT_DIM
     dropout_rate = cfg.MODEL.MLP_DROPOUT_RATE
 
-    decoder = MLPDecoder(in_dim=decoder_in_dim, hidden_dim=decoder_hidden_dim, out_dim=decoder_out_dim,
-                         dropout_rate=dropout_rate)
+    decoder = MLPDecoder(
+        in_dim=decoder_in_dim, hidden_dim=decoder_hidden_dim, out_dim=decoder_out_dim, dropout_rate=dropout_rate
+    )
 
     # ---- learning rate ----
     lr = cfg.SOLVER.LR
