@@ -4,6 +4,16 @@
 # =============================================================================
 
 """Implementation of MPCA->Feature Selection->Linear SVM/LogisticRegression Pipeline
+
+References:
+    [1] Swift, A. J., Lu, H., Uthoff, J., Garg, P., Cogliano, M., Taylor, J., ... & Kiely, D. G. (2020). A machine
+    learning cardiac magnetic resonance approach to extract disease features and automate pulmonary arterial
+    hypertension diagnosis. European Heart Journal-Cardiovascular Imaging.
+    [2] Song, X., Meng, L., Shi, Q., & Lu, H. (2015, October). Learning tensor-based features for whole-brain fMRI
+    classification. In International Conference on Medical Image Computing and Computer-Assisted Intervention
+    (pp. 613-620). Springer, Cham.
+    [3] Lu, H., Plataniotis, K. N., & Venetsanopoulos, A. N. (2008). MPCA: Multilinear principal component analysis of
+    tensor objects. IEEE transactions on Neural Networks, 19(1), 18-39.
 """
 
 import logging
@@ -35,11 +45,15 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         """Trainer of pipeline: MPCA->Feature selection->Classifier
 
         Args:
-            classifier (str, optional): Classifier for training. Options: support vector machine (svc) or
-                logistic regression (lr). Defaults to 'svc'.
+            classifier (str, optional): Available classifier options: {"svc", "linear_svc", "lr"}, where "svc" trains a
+                support vector classifier, supports both linear and non-linear kernels, optimizes with library "libsvm";
+                "linear_svc" trains a support vector classifier with linear kernel only, and optimizes with library
+                "liblinear", which suppose to be faster and better in handling large number of samples; and "lr" trains
+                a classifier with logistic regression. Defaults to "svc".
             classifier_params (dict, optional): Parameters of classifier. Defaults to 'auto'.
             mpca_params (dict, optional): Parameters of MPCA. Defaults to None.
-            n_features (int, optional): Number of features for feature selection. Defaults to None.
+            n_features (int, optional): Number of features for feature selection. Defaults to None, i.e. all features
+                after dimension reduction will be used.
             search_params (dict, optional): Parameters of grid search. Defaults to None.
 
         """
@@ -122,7 +136,7 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         Returns:
             array-like: Predicted labels, shape (n_samples, )
         """
-        return self.clf.predict(self.feature_extract(x))
+        return self.clf.predict(self._extract_feature(x))
 
     def decision_function(self, x):
         """Decision scores of each class for the given data x
@@ -131,12 +145,12 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
             x (array-like tensor): input data, shape (n_samples, I_1, I_2, ..., I_N)
 
         Returns:
-            array-like: decision scores, shape (n_samples, n_class)
+            array-like: decision scores, shape (n_samples,) for binary case, else (n_samples, n_class)
         """
-        return self.clf.decision_function(self.feature_extract(x))
+        return self.clf.decision_function(self._extract_feature(x))
 
     def predict_proba(self, x):
-        """Probability of each class for the given data x
+        """Probability of each class for the given data x. Not supported by "linear_svc".
 
         Args:
             x (array-like tensor): input data, shape (n_samples, I_1, I_2, ..., I_N)
@@ -148,10 +162,10 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
             error_msg = "Linear SVC does not support computing probability."
             logging.error(error_msg)
             raise ValueError(error_msg)
-        return self.clf.predict_proba(self.feature_extract(x))
+        return self.clf.predict_proba(self._extract_feature(x))
 
-    def feature_extract(self, x):
-        """Extracting features for the given data x
+    def _extract_feature(self, x):
+        """Extracting features for the given data x with MPCA->Feature selection
 
         Args:
             x (array-like tensor): input data, shape (n_samples, I_1, I_2, ..., I_N)
