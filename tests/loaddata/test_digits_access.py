@@ -1,9 +1,9 @@
 import pytest
+import torch
 
 from kale.loaddata.digits_access import DigitDataset, DigitDatasetAccess
 from kale.loaddata.multi_domain import DomainsDatasetBase, MultiDomainDatasets
 
-# import torch
 # from typing import Dict
 
 
@@ -13,24 +13,22 @@ ALL = SOURCES + TARGETS
 
 WEIGHT_TYPE = ["natural", "balanced", "preset0"]
 DATASIZE_TYPE = ["max", "source"]
-
-# @pytest.fixture(scope="module")
-# def testing_access():
-#     access = DatasetAccess(n_classes)
-#     return access
-
-
-# def test_n_classes(testing_access):
-#     get_n_class = testing_access.n_classes()
-#     assert get_n_class == n_classes
+VAL_RATIO = [0.1]
 
 
 @pytest.mark.parametrize("source_name", SOURCES)
 @pytest.mark.parametrize("target_name", TARGETS)
+def test_get_source_target(source_name, target_name, download_path):
+    source, target, num_channels = DigitDataset.get_source_target(DigitDataset(source_name), DigitDataset(target_name), download_path)
+    assert num_channels == 3
+    assert isinstance(source, DigitDatasetAccess)
+    assert isinstance(target, DigitDatasetAccess)
+
+
 @pytest.mark.parametrize("weight_type", WEIGHT_TYPE)
 @pytest.mark.parametrize("datasize_type", DATASIZE_TYPE)
-def test_get_source_target(source_name, target_name, weight_type, datasize_type, download_path):
-    source, target, num_channels = DigitDataset.get_source_target(DigitDataset(source_name), DigitDataset(target_name), download_path)
+def test_multi_domain_datasets(weight_type, datasize_type, download_path):
+    source, target, num_channels = DigitDataset.get_source_target(DigitDataset(SOURCES[0]), DigitDataset(TARGETS[0]), download_path)
     assert num_channels == 3
     assert isinstance(source, DigitDatasetAccess)
     assert isinstance(target, DigitDatasetAccess)
@@ -39,9 +37,11 @@ def test_get_source_target(source_name, target_name, weight_type, datasize_type,
     assert isinstance(dataset, DomainsDatasetBase)
 
 
-# @pytest.mark.parametrize("dataset", ALL)
-# def test_get_train_test(dataset, download_path):
-#     source, target, num_channels = DigitDataset.get_source_target(DigitDataset(source_name), DigitDataset(target_name), download_path)
-#     assert num_channels == 3
-#     assert isinstance(source, DigitDatasetAccess)
-#     assert isinstance(target, DigitDatasetAccess)
+@pytest.mark.parametrize("dataset_name", ALL)
+def test_get_train_test(dataset_name, download_path):
+    source, target, num_channels = DigitDataset.get_source_target(DigitDataset(dataset_name), DigitDataset(dataset_name), download_path)
+    source_train = source.get_train()
+    source_test = source.get_test()
+    assert source.n_classes() == 10
+    assert isinstance(source_train, torch.utils.data.Dataset)
+    assert isinstance(source_test, torch.utils.data.Dataset)
