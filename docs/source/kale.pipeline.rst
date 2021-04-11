@@ -6,6 +6,14 @@ Pipeline (ML System)
 Submodules
 ----------
 
+kale.pipeline.mpca_trainer module
+------------------------------------
+
+.. automodule:: kale.pipeline.mpca_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.pipeline.deep_dti module
 ------------------------------------
 
