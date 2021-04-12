@@ -9,7 +9,7 @@ _C = CN()
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.DATASET.ROOT = '../data'
+_C.DATASET.ROOT = "../data"
 _C.DATASET.NAME = "CIFAR10"
 _C.DATASET.NUM_CLASSES = 10
 _C.DATASET.NUM_WORKERS = 0
