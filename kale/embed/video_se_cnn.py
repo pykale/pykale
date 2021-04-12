@@ -12,7 +12,7 @@ class SELayerC(nn.Module):
             nn.Linear(channel, channel // reduction, bias=False),
             nn.ReLU(inplace=True),
             nn.Linear(channel // reduction, channel, bias=False),
-            nn.Sigmoid()
+            nn.Sigmoid(),
         )
 
     def forward(self, x):
@@ -33,7 +33,7 @@ class SELayerT(nn.Module):
             nn.Linear(channel, channel // reduction, bias=False),
             nn.ReLU(inplace=True),
             nn.Linear(channel // reduction, channel, bias=False),
-            nn.Sigmoid()
+            nn.Sigmoid(),
         )
 
     def forward(self, x):
@@ -51,11 +51,7 @@ class SELayerT(nn.Module):
 class SELayerCoC(nn.Module):
     def __init__(self, channel, reduction=16):
         super(SELayerCoC, self).__init__()
-        self.conv1 = nn.Conv3d(
-            in_channels=channel,
-            out_channels=channel // reduction,
-            kernel_size=1,
-            bias=False)
+        self.conv1 = nn.Conv3d(in_channels=channel, out_channels=channel // reduction, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm3d(num_features=channel // reduction)
         # self.conv3 = nn.Conv2d(
         #     in_channels=channel // reduction,
@@ -66,11 +62,7 @@ class SELayerCoC(nn.Module):
         #     bias=False)
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.sigmoid = nn.Sigmoid()
-        self.conv2 = nn.Conv3d(
-            in_channels=channel // reduction,
-            out_channels=channel,
-            kernel_size=1,
-            bias=False)
+        self.conv2 = nn.Conv3d(in_channels=channel // reduction, out_channels=channel, kernel_size=1, bias=False)
         self.bn2 = nn.BatchNorm3d(num_features=channel)
 
     def forward(self, x):
@@ -95,7 +87,7 @@ class SELayerMC(nn.Module):
             nn.Linear(channel, channel // reduction, bias=False),
             nn.ReLU(inplace=True),
             nn.Linear(channel // reduction, channel, bias=False),
-            nn.Sigmoid()
+            nn.Sigmoid(),
         )
 
     def forward(self, x):
@@ -113,17 +105,12 @@ class SELayerMAC(nn.Module):
         super(SELayerMAC, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.max_pool = nn.AdaptiveMaxPool3d(1)
-        self.conv = nn.Conv2d(
-            in_channels=1,
-            out_channels=1,
-            kernel_size=(1, 2),
-            bias=False
-        )
+        self.conv = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=(1, 2), bias=False)
         self.fc = nn.Sequential(
             nn.Linear(channel, channel // reduction, bias=False),
             nn.ReLU(inplace=True),
             nn.Linear(channel // reduction, channel, bias=False),
-            nn.Sigmoid()
+            nn.Sigmoid(),
         )
 
     def forward(self, x):

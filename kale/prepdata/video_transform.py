@@ -1,4 +1,5 @@
 import torch
+
 from torchvision import transforms
 
 
@@ -13,7 +14,7 @@ def get_transform(kind, image_modality):
 
     if kind in ["epic", "gtea", "adl", "kitchen"]:
         transform = dict()
-        if image_modality == 'rgb':
+        if image_modality == "rgb":
             transform = {
                 "train": transforms.Compose(
                     [
@@ -44,7 +45,7 @@ def get_transform(kind, image_modality):
                     ]
                 ),
             }
-        elif image_modality == 'flow':
+        elif image_modality == "flow":
             transform = {
                 "train": transforms.Compose(
                     [
@@ -105,9 +106,9 @@ class ImglistToTensor(torch.nn.Module):
         Returns:
             tensor of size `` NUM_IMAGES x CHANNELS x HEIGHT x WIDTH``
         """
-        if img_list[0].mode == 'RGB':
+        if img_list[0].mode == "RGB":
             return torch.stack([transforms.functional.to_tensor(pic) for pic in img_list])
-        elif img_list[0].mode == 'L':
+        elif img_list[0].mode == "L":
             it = iter([transforms.functional.to_tensor(pic) for pic in img_list])
             return torch.stack([torch.cat((i, next(it)), dim=0) for i in it])
         else:

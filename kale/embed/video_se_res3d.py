@@ -1,17 +1,7 @@
-from torchvision.models.utils import load_state_dict_from_url
-
-from kale.embed.video_res3d import (
-    BasicBlock,
-    BasicFLowStem,
-    BasicStem,
-    Conv2Plus1D,
-    Conv3DNoTemporal,
-    Conv3DSimple,
-    R2Plus1dFlowStem,
-    R2Plus1dStem,
-    VideoResNet,
-)
+from kale.embed.video_res3d import (BasicBlock, BasicFLowStem, BasicStem, Conv2Plus1D, Conv3DNoTemporal, Conv3DSimple,
+                                    R2Plus1dFlowStem, R2Plus1dStem, VideoResNet)
 from kale.embed.video_se_cnn import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
+from torchvision.models.utils import load_state_dict_from_url
 
 model_urls = {
     "r3d_18": "https://download.pytorch.org/models/r3d_18-b3b3357e.pth",
@@ -214,7 +204,7 @@ def se_mc3_18_flow(attention, pretrained=False, progress=True, **kwargs):
 
 def se_r2plus1d_18_rgb(attention, pretrained=False, progress=True, **kwargs):
     return _se_video_resnet(
-        'r2plus1d_18',
+        "r2plus1d_18",
         attention,
         pretrained,
         progress,
@@ -228,7 +218,7 @@ def se_r2plus1d_18_rgb(attention, pretrained=False, progress=True, **kwargs):
 
 def se_r2plus1d_18_flow(attention, pretrained=False, progress=True, **kwargs):
     return _se_video_resnet(
-        'r2plus1d_18',
+        "r2plus1d_18",
         attention,
         pretrained,
         progress,
@@ -250,7 +240,7 @@ def se_r3d(attention, rgb=False, flow=False, pretrained=False, progress=True):
     elif rgb and flow:
         r3d_rgb = se_r3d_18_rgb(attention=attention, pretrained=pretrained, progress=progress)
         r3d_flow = se_r3d_18_flow(attention=attention, pretrained=pretrained, progress=progress)
-    models = {'rgb': r3d_rgb, 'flow': r3d_flow}
+    models = {"rgb": r3d_rgb, "flow": r3d_flow}
     return models
 
 
@@ -264,7 +254,7 @@ def se_mc3(attention, rgb=False, flow=False, pretrained=False, progress=True):
     elif rgb and flow:
         mc3_rgb = se_mc3_18_rgb(attention=attention, pretrained=pretrained, progress=progress)
         mc3_flow = se_mc3_18_flow(attention=attention, pretrained=pretrained, progress=progress)
-    models = {'rgb': mc3_rgb, 'flow': mc3_flow}
+    models = {"rgb": mc3_rgb, "flow": mc3_flow}
     return models
 
 
@@ -278,5 +268,5 @@ def se_r2plus1d(attention, rgb=False, flow=False, pretrained=False, progress=Tru
     elif rgb and flow:
         r2plus1d_rgb = se_r2plus1d_18_rgb(attention=attention, pretrained=pretrained, progress=progress)
         r2plus1d_flow = se_r2plus1d_18_flow(attention=attention, pretrained=pretrained, progress=progress)
-    models = {'rgb': r2plus1d_rgb, 'flow': r2plus1d_flow}
+    models = {"rgb": r2plus1d_rgb, "flow": r2plus1d_flow}
     return models

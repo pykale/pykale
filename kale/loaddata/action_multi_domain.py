@@ -1,26 +1,26 @@
 import logging
 
 import numpy as np
-from sklearn.utils import check_random_state
 
 from kale.loaddata.multi_domain import DatasetSizeType, MultiDomainDatasets, WeightingType
 from kale.loaddata.sampler import FixedSeedSamplingConfig, MultiDataLoader
+from sklearn.utils import check_random_state
 
 
 class VideoMultiDomainDatasets(MultiDomainDatasets):
     def __init__(
-            self,
-            source_access_dict,
-            target_access_dict,
-            image_modality,
-            seed,
-            config_weight_type="natural",
-            config_size_type=DatasetSizeType.Max,
-            val_split_ratio=0.1,
-            source_sampling_config=None,
-            target_sampling_config=None,
-            n_fewshot=None,
-            random_state=None,
+        self,
+        source_access_dict,
+        target_access_dict,
+        image_modality,
+        seed,
+        config_weight_type="natural",
+        config_size_type=DatasetSizeType.Max,
+        val_split_ratio=0.1,
+        source_sampling_config=None,
+        target_sampling_config=None,
+        n_fewshot=None,
+        random_state=None,
     ):
         """The class controlling how the source and target domains are iterated over when the input is joint.
             Inherited from MultiDomainDatasets.
@@ -42,11 +42,11 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             raise Exception("Invalid modality option: {}".format(self._image_modality))
 
         if self.rgb:
-            source_access = source_access_dict['rgb']
-            target_access = target_access_dict['rgb']
+            source_access = source_access_dict["rgb"]
+            target_access = target_access_dict["rgb"]
         elif self.flow:
-            source_access = source_access_dict['flow']
-            target_access = target_access_dict['flow']
+            source_access = source_access_dict["flow"]
+            target_access = target_access_dict["flow"]
 
         weight_type = WeightingType(config_weight_type)
         size_type = DatasetSizeType(config_size_type)
@@ -84,15 +84,13 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
     def prepare_data_loaders(self):
         if self.rgb:
             logging.debug("Load RGB train and val")
-            (
-                self._rgb_source_by_split["train"],
-                self._rgb_source_by_split["valid"],
-            ) = self._source_access_dict["rgb"].get_train_val(self._val_split_ratio)
+            (self._rgb_source_by_split["train"], self._rgb_source_by_split["valid"],) = self._source_access_dict[
+                "rgb"
+            ].get_train_val(self._val_split_ratio)
 
-            (
-                self._rgb_target_by_split["train"],
-                self._rgb_target_by_split["valid"],
-            ) = self._target_access_dict["rgb"].get_train_val(self._val_split_ratio)
+            (self._rgb_target_by_split["train"], self._rgb_target_by_split["valid"],) = self._target_access_dict[
+                "rgb"
+            ].get_train_val(self._val_split_ratio)
 
             logging.debug("Load RGB Test")
             self._rgb_source_by_split["test"] = self._source_access_dict["rgb"].get_test()
@@ -100,25 +98,36 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
 
         if self.flow:
             logging.debug("Load flow train and val")
-            (
-                self._flow_source_by_split["train"],
-                self._flow_source_by_split["valid"],
-            ) = self._source_access_dict["flow"].get_train_val(self._val_split_ratio)
+            (self._flow_source_by_split["train"], self._flow_source_by_split["valid"],) = self._source_access_dict[
+                "flow"
+            ].get_train_val(self._val_split_ratio)
 
-            (
-                self._flow_target_by_split["train"],
-                self._flow_target_by_split["valid"],
-            ) = self._target_access_dict["flow"].get_train_val(self._val_split_ratio)
+            (self._flow_target_by_split["train"], self._flow_target_by_split["valid"],) = self._target_access_dict[
+                "flow"
+            ].get_train_val(self._val_split_ratio)
 
             logging.debug("Load flow Test")
             self._flow_source_by_split["test"] = self._source_access_dict["flow"].get_test()
             self._flow_target_by_split["test"] = self._target_access_dict["flow"].get_test()
 
     def get_domain_loaders(self, split="train", batch_size=32):
-        rgb_source_ds = rgb_target_ds = flow_source_ds = flow_target_ds = \
-            rgb_source_loader = rgb_target_loader = flow_source_loader = flow_target_loader = \
-            rgb_target_labeled_loader = flow_target_labeled_loader = \
-            rgb_target_unlabeled_loader = flow_target_unlabeled_loader = n_dataset = None
+        rgb_source_ds = (
+            rgb_target_ds
+        ) = (
+            flow_source_ds
+        ) = (
+            flow_target_ds
+        ) = (
+            rgb_source_loader
+        ) = (
+            rgb_target_loader
+        ) = (
+            flow_source_loader
+        ) = (
+            flow_target_loader
+        ) = (
+            rgb_target_labeled_loader
+        ) = flow_target_labeled_loader = rgb_target_unlabeled_loader = flow_target_unlabeled_loader = n_dataset = None
 
         if self.rgb:
             rgb_source_ds = self._rgb_source_by_split[split]
@@ -152,9 +161,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                 rgb_target_labeled_ds = self._labeled_target_by_split[split]
                 rgb_target_unlabeled_ds = rgb_target_ds
                 # label domain: always balanced
-                rgb_target_labeled_loader = FixedSeedSamplingConfig(
-                    balance=True, class_weights=None
-                ).create_loader(
+                rgb_target_labeled_loader = FixedSeedSamplingConfig(balance=True, class_weights=None).create_loader(
                     rgb_target_labeled_ds, batch_size=min(len(rgb_target_labeled_ds), batch_size)
                 )
 
@@ -167,9 +174,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             if self.flow:
                 flow_target_labeled_ds = self._labeled_target_by_split[split]
                 flow_target_unlabeled_ds = flow_target_ds
-                flow_target_labeled_loader = FixedSeedSamplingConfig(
-                    balance=True, class_weights=None
-                ).create_loader(
+                flow_target_labeled_loader = FixedSeedSamplingConfig(balance=True, class_weights=None).create_loader(
                     flow_target_labeled_ds, batch_size=min(len(flow_target_labeled_ds), batch_size)
                 )
                 flow_target_unlabeled_loader = self._target_sampling_config.create_loader(
@@ -180,9 +185,14 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                 )
 
             # combine loaders into a list and remove the loader which is NONE.
-            dataloaders = [rgb_source_loader, flow_source_loader,
-                           rgb_target_labeled_loader, flow_target_labeled_loader,
-                           rgb_target_unlabeled_loader, flow_target_unlabeled_loader]
+            dataloaders = [
+                rgb_source_loader,
+                flow_source_loader,
+                rgb_target_labeled_loader,
+                flow_target_labeled_loader,
+                rgb_target_unlabeled_loader,
+                flow_target_unlabeled_loader,
+            ]
             dataloaders = [x for x in dataloaders if x is not None]
 
             return MultiDataLoader(
@@ -202,6 +212,4 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             return DatasetSizeType.get_size(self._size_type, source_ds, target_ds)
         else:
             labeled_target_ds = self._labeled_target_by_split["train"]
-            return DatasetSizeType.get_size(
-                self._size_type, source_ds, labeled_target_ds, target_ds
-            )
+            return DatasetSizeType.get_size(self._size_type, source_ds, labeled_target_ds, target_ds)

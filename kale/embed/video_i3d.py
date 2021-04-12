@@ -7,9 +7,10 @@ https://github.com/deepmind/kinetics-i3d/blob/master/i3d.py
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from torchvision.models.utils import load_state_dict_from_url
 
-__all__ = ['i3d_joint', 'InceptionI3d', 'InceptionModule']
+__all__ = ["i3d_joint", "InceptionI3d", "InceptionModule"]
 
 model_urls = {
     "rgb_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt",
@@ -57,16 +58,16 @@ class Unit3D(nn.Module):
     """Basic unit containing Conv3D + BatchNorm + non-linearity."""
 
     def __init__(
-            self,
-            in_channels,
-            output_channels,
-            kernel_shape=(1, 1, 1),
-            stride=(1, 1, 1),
-            padding=0,
-            activation_fn=F.relu,
-            use_batch_norm=True,
-            use_bias=False,
-            name="unit_3d",
+        self,
+        in_channels,
+        output_channels,
+        kernel_shape=(1, 1, 1),
+        stride=(1, 1, 1),
+        padding=0,
+        activation_fn=F.relu,
+        use_batch_norm=True,
+        use_bias=False,
+        name="unit_3d",
     ):
         """Initializes Unit3D module."""
 
@@ -265,13 +266,13 @@ class InceptionI3d(nn.Module):
     )
 
     def __init__(
-            self,
-            num_classes=400,
-            spatial_squeeze=True,
-            final_endpoint="Logits",
-            name="inception_i3d",
-            in_channels=3,
-            dropout_keep_prob=0.5,
+        self,
+        num_classes=400,
+        spatial_squeeze=True,
+        final_endpoint="Logits",
+        name="inception_i3d",
+        in_channels=3,
+        dropout_keep_prob=0.5,
     ):
         """
         Initializes I3D model instance.
@@ -445,22 +446,22 @@ class InceptionI3d(nn.Module):
     def forward(self, x):
         """The output is the result of the final average pooling layer with 1024 dimensions."""
 
-        x = self._modules["Conv3d_1a_7x7"](x)       # out: [2, 64, 1, 112, 112]
-        x = self._modules["MaxPool3d_2a_3x3"](x)    # [2, 64, 1, 56, 56]
-        x = self._modules["Conv3d_2b_1x1"](x)       # [2, 64, 1, 56, 56]
-        x = self._modules["Conv3d_2c_3x3"](x)       # [2, 192, 1, 56, 56]
-        x = self._modules["MaxPool3d_3a_3x3"](x)    # [2, 192, 1, 28, 28]
-        x = self._modules["Mixed_3b"](x)            # [2, 256, 1, 28, 28]
-        x = self._modules["Mixed_3c"](x)            # [2, 480, 1, 28, 28]
-        x = self._modules["MaxPool3d_4a_3x3"](x)    # [2, 480, 1, 14, 14]
-        x = self._modules["Mixed_4b"](x)            # [2, 512, 1, 14, 14]
-        x = self._modules["Mixed_4c"](x)            # [2, 512, 1, 14, 14]
-        x = self._modules["Mixed_4d"](x)            # [2, 512, 1, 14, 14]
-        x = self._modules["Mixed_4e"](x)            # [2, 528, 1, 14, 14]
-        x = self._modules["Mixed_4f"](x)            # [2, 832, 1, 14, 14]
-        x = self._modules["MaxPool3d_5a_2x2"](x)    # [2, 832, 1, 7, 7]
-        x = self._modules["Mixed_5b"](x)            # [2, 832, 1, 7, 7]
-        x = self._modules["Mixed_5c"](x)            # [2, 1024, 1, 7, 7]
+        x = self._modules["Conv3d_1a_7x7"](x)  # out: [2, 64, 1, 112, 112]
+        x = self._modules["MaxPool3d_2a_3x3"](x)  # [2, 64, 1, 56, 56]
+        x = self._modules["Conv3d_2b_1x1"](x)  # [2, 64, 1, 56, 56]
+        x = self._modules["Conv3d_2c_3x3"](x)  # [2, 192, 1, 56, 56]
+        x = self._modules["MaxPool3d_3a_3x3"](x)  # [2, 192, 1, 28, 28]
+        x = self._modules["Mixed_3b"](x)  # [2, 256, 1, 28, 28]
+        x = self._modules["Mixed_3c"](x)  # [2, 480, 1, 28, 28]
+        x = self._modules["MaxPool3d_4a_3x3"](x)  # [2, 480, 1, 14, 14]
+        x = self._modules["Mixed_4b"](x)  # [2, 512, 1, 14, 14]
+        x = self._modules["Mixed_4c"](x)  # [2, 512, 1, 14, 14]
+        x = self._modules["Mixed_4d"](x)  # [2, 512, 1, 14, 14]
+        x = self._modules["Mixed_4e"](x)  # [2, 528, 1, 14, 14]
+        x = self._modules["Mixed_4f"](x)  # [2, 832, 1, 14, 14]
+        x = self._modules["MaxPool3d_5a_2x2"](x)  # [2, 832, 1, 7, 7]
+        x = self._modules["Mixed_5b"](x)  # [2, 832, 1, 7, 7]
+        x = self._modules["Mixed_5c"](x)  # [2, 1024, 1, 7, 7]
 
         # for end_point in self.VALID_ENDPOINTS:
         #     if end_point in self.end_points:
@@ -504,5 +505,5 @@ def i3d_joint(rgb_pt, flow_pt, num_classes, pretrained=False, progress=True):
     elif rgb_pt is not None and flow_pt is not None:
         i3d_rgb = i3d(name=rgb_pt, num_channels=3, num_classes=num_classes, pretrained=pretrained, progress=progress)
         i3d_flow = i3d(name=flow_pt, num_channels=2, num_classes=num_classes, pretrained=pretrained, progress=progress)
-    models = {'rgb': i3d_rgb, 'flow': i3d_flow}
+    models = {"rgb": i3d_rgb, "flow": i3d_flow}
     return models

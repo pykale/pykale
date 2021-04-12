@@ -9,14 +9,13 @@ import os
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
-from model import get_model
-from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks import LearningRateMonitor
-
 from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
 from kale.loaddata.video_access import VideoDataset
 from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
+from model import get_model
+from pytorch_lightning import loggers as pl_loggers
+from pytorch_lightning.callbacks import LearningRateMonitor
 
 # from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
@@ -47,27 +46,28 @@ def main():
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
     seed = cfg.SOLVER.SEED
-    source, target, num_classes = VideoDataset.get_source_target(VideoDataset(cfg.DATASET.SOURCE.upper()),
-                                                                 VideoDataset(cfg.DATASET.TARGET.upper()),
-                                                                 seed,
-                                                                 cfg)
-    dataset = VideoMultiDomainDatasets(source, target,
-                                       image_modality=cfg.DATASET.IMAGE_MODALITY,
-                                       seed=seed,
-                                       config_weight_type=cfg.DATASET.WEIGHT_TYPE,
-                                       config_size_type=cfg.DATASET.SIZE_TYPE)
+    source, target, num_classes = VideoDataset.get_source_target(
+        VideoDataset(cfg.DATASET.SOURCE.upper()), VideoDataset(cfg.DATASET.TARGET.upper()), seed, cfg
+    )
+    dataset = VideoMultiDomainDatasets(
+        source,
+        target,
+        image_modality=cfg.DATASET.IMAGE_MODALITY,
+        seed=seed,
+        config_weight_type=cfg.DATASET.WEIGHT_TYPE,
+        config_size_type=cfg.DATASET.SIZE_TYPE,
+    )
 
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = seed + i * 10
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
-        print(f'==> Building model for seed {seed} ......')
+        print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, num_classes)
-        logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params,
-                                                                           cfg.OUTPUT.DIR,
-                                                                           cfg.DAN.METHOD,
-                                                                           seed)
+        logger, results, checkpoint_callback, test_csv_file = setup_logger(
+            train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD, seed
+        )
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR)
         # Set early stopping
         # early_stop_callback = EarlyStopping(monitor="V_target_acc", min_delta=0.0000, patience=100, mode="max")

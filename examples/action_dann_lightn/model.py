@@ -83,9 +83,9 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
     else:
         raise ValueError("Wrong attention. Current: {}".format(attention))
 
-    if image_modality == 'rgb':
-        if model_name == 'I3D':
-            pretrained_model = 'rgb_imagenet'
+    if image_modality == "rgb":
+        if model_name == "I3D":
+            pretrained_model = "rgb_imagenet"
             if att:
                 logging.info("{} using {}".format(model_name, attention))
                 feature_network = se_i3d_joint(
@@ -93,12 +93,14 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
                 )
             else:
                 logging.info("No SELayer.")
-                feature_network = i3d_joint(rgb_pt=pretrained_model, flow_pt=None, num_classes=num_classes, pretrained=True)
+                feature_network = i3d_joint(
+                    rgb_pt=pretrained_model, flow_pt=None, num_classes=num_classes, pretrained=True
+                )
             # model.replace_logits(num_classes)
             class_feature_dim = 1024
             dmn_feature_dim = class_feature_dim
 
-        elif model_name == 'R3D_18':
+        elif model_name == "R3D_18":
             if att:
                 logging.info("{} using {}".format(model_name, attention))
                 feature_network = se_r3d(rgb=True, flow=False, pretrained=True, attention=attention)
@@ -108,7 +110,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
             class_feature_dim = 512
             dmn_feature_dim = class_feature_dim
 
-        elif model_name == 'R2PLUS1D_18':
+        elif model_name == "R2PLUS1D_18":
             if att:
                 logging.info("{} using {}".format(model_name, attention))
                 feature_network = se_r2plus1d(rgb=True, flow=False, pretrained=True, attention=attention)
@@ -118,7 +120,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
             class_feature_dim = 512
             dmn_feature_dim = class_feature_dim
 
-        elif model_name == 'MC3_18':
+        elif model_name == "MC3_18":
             if att:
                 logging.info("{} using {}".format(model_name, attention))
                 feature_network = se_mc3(rgb=True, flow=False, pretrained=True, attention=attention)
@@ -131,9 +133,9 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
         else:
             raise ValueError("Unsupported model: {}".format(model_name))
 
-    elif image_modality == 'flow':
-        if model_name == 'I3D':
-            pretrained_model = 'flow_imagenet'
+    elif image_modality == "flow":
+        if model_name == "I3D":
+            pretrained_model = "flow_imagenet"
             if att:
                 logging.info("Using {}".format(attention))
                 feature_network = se_i3d_joint(
@@ -141,11 +143,13 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
                 )
             else:
                 logging.info("No SELayer.")
-                feature_network = i3d_joint(rgb_pt=None, flow_pt=pretrained_model, num_classes=num_classes, pretrained=True)
+                feature_network = i3d_joint(
+                    rgb_pt=None, flow_pt=pretrained_model, num_classes=num_classes, pretrained=True
+                )
             class_feature_dim = 1024
             dmn_feature_dim = class_feature_dim
 
-        elif model_name == 'R3D_18':
+        elif model_name == "R3D_18":
             if att:
                 logging.info("{} using {}".format(model_name, attention))
                 feature_network = se_r3d(rgb=False, flow=True, pretrained=True, attention=attention)
@@ -155,7 +159,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
             class_feature_dim = 512
             dmn_feature_dim = class_feature_dim
 
-        elif model_name == 'R2PLUS1D_18':
+        elif model_name == "R2PLUS1D_18":
             if att:
                 logging.info("{} using {}".format(model_name, attention))
                 feature_network = se_r2plus1d(rgb=False, flow=True, pretrained=True, attention=attention)
@@ -165,7 +169,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
             class_feature_dim = 512
             dmn_feature_dim = class_feature_dim
 
-        elif model_name == 'MC3_18':
+        elif model_name == "MC3_18":
             if att:
                 logging.info("{} using {}".format(model_name, attention))
                 feature_network = se_mc3(rgb=False, flow=True, pretrained=True, attention=attention)
@@ -178,28 +182,29 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
         else:
             raise ValueError("Unsupported model: {}".format(model_name))
 
-    elif image_modality == 'joint':
-        if model_name == 'I3D':
-            rgb_pretrained_model = 'rgb_imagenet'
-            flow_pretrained_model = 'flow_imagenet'
+    elif image_modality == "joint":
+        if model_name == "I3D":
+            rgb_pretrained_model = "rgb_imagenet"
+            flow_pretrained_model = "flow_imagenet"
 
             if att:
                 logging.info("Using {}".format(attention))
-                feature_network = se_i3d_joint(rgb_pt=rgb_pretrained_model,
-                                               flow_pt=flow_pretrained_model,
-                                               num_classes=num_classes,
-                                               attention=attention,
-                                               pretrained=True)
+                feature_network = se_i3d_joint(
+                    rgb_pt=rgb_pretrained_model,
+                    flow_pt=flow_pretrained_model,
+                    num_classes=num_classes,
+                    attention=attention,
+                    pretrained=True,
+                )
             else:
                 logging.info("No SELayer.")
-                feature_network = i3d_joint(rgb_pt=rgb_pretrained_model,
-                                            flow_pt=flow_pretrained_model,
-                                            num_classes=num_classes,
-                                            pretrained=True)
+                feature_network = i3d_joint(
+                    rgb_pt=rgb_pretrained_model, flow_pt=flow_pretrained_model, num_classes=num_classes, pretrained=True
+                )
             class_feature_dim = 2048
             dmn_feature_dim = class_feature_dim / 2
 
-        elif model_name == 'R3D_18':
+        elif model_name == "R3D_18":
             if att:
                 logging.info("{} using {}".format(model_name, attention))
                 feature_network = se_r3d(rgb=True, flow=True, pretrained=True, attention=attention)
@@ -209,7 +214,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
             class_feature_dim = 1024
             dmn_feature_dim = class_feature_dim / 2
 
-        elif model_name == 'R2PLUS1D_18':
+        elif model_name == "R2PLUS1D_18":
             if att:
                 logging.info("{} using {}".format(model_name, attention))
                 feature_network = se_r2plus1d(rgb=True, flow=True, pretrained=True, attention=attention)
@@ -219,7 +224,7 @@ def get_feat_extractor(model_name, image_modality, attention, num_classes):
             class_feature_dim = 1024
             dmn_feature_dim = class_feature_dim / 2
 
-        elif model_name == 'MC3_18':
+        elif model_name == "MC3_18":
             if att:
                 logging.info("{} using {}".format(model_name, attention))
                 # feature_network = se_mc3(rgb=False, flow=True, pretrained=True, attention=attention)
@@ -251,10 +256,7 @@ def get_model(cfg, dataset, num_classes):
 
     # setup feature extractor
     feature_network, class_feature_dim, dmn_feature_dim = get_feat_extractor(
-        cfg.MODEL.METHOD.upper(),
-        cfg.DATASET.IMAGE_MODALITY,
-        cfg.MODEL.ATTENTION,
-        num_classes
+        cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, num_classes
     )
     # setup classifier
     classifier_network = ClassNetVideo(class_feature_dim, num_classes)

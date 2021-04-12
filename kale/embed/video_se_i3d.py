@@ -4,12 +4,12 @@ Created by Xianyuan Liu from modifying https://github.com/piergiaj/pytorch-i3d/b
 https://github.com/deepmind/kinetics-i3d/blob/master/i3d.py
 """
 import torch.nn as nn
-from torchvision.models.utils import load_state_dict_from_url
 
 from kale.embed.video_i3d import InceptionI3d
 from kale.embed.video_se_cnn import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
+from torchvision.models.utils import load_state_dict_from_url
 
-__all__ = ['se_i3d_joint', 'SEInceptionI3DRGB', 'SEInceptionI3DFlow']
+__all__ = ["se_i3d_joint", "SEInceptionI3DRGB", "SEInceptionI3DFlow"]
 
 model_urls = {
     "rgb_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt",
@@ -20,7 +20,6 @@ model_urls = {
 
 
 class SEInceptionI3DRGB(nn.Module):
-
     def __init__(self, num_channels, num_classes, attention):
         super(SEInceptionI3DRGB, self).__init__()
         model = InceptionI3d(in_channels=num_channels, num_classes=num_classes)
@@ -129,7 +128,6 @@ class SEInceptionI3DRGB(nn.Module):
 
 
 class SEInceptionI3DFlow(nn.Module):
-
     def __init__(self, num_channels, num_classes, attention):
         super(SEInceptionI3DFlow, self).__init__()
         model = InceptionI3d(in_channels=num_channels, num_classes=num_classes)
@@ -176,6 +174,7 @@ def se_inception_i3d(name, num_channels, num_classes, attention, pretrained=Fals
 
         # Create new OrderedDict that add `model.`
         from collections import OrderedDict
+
         new_state_dict = OrderedDict()
         for k, v in state_dict.items():
             name = "model.{}".format(k)
@@ -191,18 +190,42 @@ def se_i3d_joint(rgb_pt, flow_pt, num_classes, attention, pretrained=False, prog
     i3d_rgb = i3d_flow = None
     if rgb_pt is not None and flow_pt is None:
         i3d_rgb = se_inception_i3d(
-            name=rgb_pt, num_channels=3, num_classes=num_classes, attention=attention, pretrained=pretrained, progress=progress, rgb=True
+            name=rgb_pt,
+            num_channels=3,
+            num_classes=num_classes,
+            attention=attention,
+            pretrained=pretrained,
+            progress=progress,
+            rgb=True,
         )
     elif rgb_pt is None and flow_pt is not None:
         i3d_flow = se_inception_i3d(
-            name=flow_pt, num_channels=2, num_classes=num_classes, attention=attention, pretrained=pretrained, progress=progress, rgb=False
+            name=flow_pt,
+            num_channels=2,
+            num_classes=num_classes,
+            attention=attention,
+            pretrained=pretrained,
+            progress=progress,
+            rgb=False,
         )
     elif rgb_pt is not None and flow_pt is not None:
         i3d_rgb = se_inception_i3d(
-            name=rgb_pt, num_channels=3, num_classes=num_classes, attention=attention, pretrained=pretrained, progress=progress, rgb=True
+            name=rgb_pt,
+            num_channels=3,
+            num_classes=num_classes,
+            attention=attention,
+            pretrained=pretrained,
+            progress=progress,
+            rgb=True,
         )
         i3d_flow = se_inception_i3d(
-            name=flow_pt, num_channels=2, num_classes=num_classes, attention=attention, pretrained=pretrained, progress=progress, rgb=False
+            name=flow_pt,
+            num_channels=2,
+            num_classes=num_classes,
+            attention=attention,
+            pretrained=pretrained,
+            progress=progress,
+            rgb=False,
         )
-    models = {'rgb': i3d_rgb, 'flow': i3d_flow}
+    models = {"rgb": i3d_rgb, "flow": i3d_flow}
     return models

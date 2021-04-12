@@ -4,6 +4,7 @@ Created by Xianyuan Liu from modifying https://github.com/pytorch/vision/blob/ma
 """
 
 import torch.nn as nn
+
 from torchvision.models.utils import load_state_dict_from_url
 
 model_urls = {
@@ -401,7 +402,7 @@ def r2plus1d_18_rgb(pretrained=False, progress=True, **kwargs):
     """
 
     return _video_resnet(
-        'r2plus1d_18',
+        "r2plus1d_18",
         pretrained,
         progress,
         block=BasicBlock,
@@ -416,7 +417,7 @@ def r2plus1d_18_flow(pretrained=False, progress=True, **kwargs):
     """Constructor for the 18 layer deep R(2+1)D network for optical flow."""
 
     return _video_resnet_flow(
-        'r2plus1d_18',
+        "r2plus1d_18",
         pretrained,
         progress,
         block=BasicBlock,
@@ -437,7 +438,7 @@ def r3d(rgb=False, flow=False, pretrained=False, progress=True):
     elif rgb and flow:
         r3d_rgb = r3d_18_rgb(pretrained=pretrained, progress=progress)
         r3d_flow = r3d_18_flow(pretrained=pretrained, progress=progress)
-    models = {'rgb': r3d_rgb, 'flow': r3d_flow}
+    models = {"rgb": r3d_rgb, "flow": r3d_flow}
     return models
 
 
@@ -451,7 +452,7 @@ def mc3(rgb=False, flow=False, pretrained=False, progress=True):
     elif rgb and flow:
         mc3_rgb = mc3_18_rgb(pretrained=pretrained, progress=progress)
         mc3_flow = mc3_18_flow(pretrained=pretrained, progress=progress)
-    models = {'rgb': mc3_rgb, 'flow': mc3_flow}
+    models = {"rgb": mc3_rgb, "flow": mc3_flow}
     return models
 
 
@@ -465,5 +466,5 @@ def r2plus1d(rgb=False, flow=False, pretrained=False, progress=True):
     elif rgb and flow:
         r2plus1d_rgb = r2plus1d_18_rgb(pretrained=pretrained, progress=progress)
         r2plus1d_flow = r2plus1d_18_flow(pretrained=pretrained, progress=progress)
-    models = {'rgb': r2plus1d_rgb, 'flow': r2plus1d_flow}
+    models = {"rgb": r2plus1d_rgb, "flow": r2plus1d_flow}
     return models

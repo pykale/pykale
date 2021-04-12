@@ -1,24 +1,15 @@
 import torch
 
 import kale.predict.losses as losses
-from kale.pipeline.domain_adapter import (
-    BaseMMDLike,
-    CDANtrainer,
-    DANNtrainer,
-    get_aggregated_metrics_from_dict,
-    get_metrics_from_parameter_dict,
-    Method,
-    ReverseLayerF,
-    set_requires_grad,
-    WDGRLtrainer,
-)
+from kale.pipeline.domain_adapter import (BaseMMDLike, CDANtrainer, DANNtrainer, get_aggregated_metrics_from_dict,
+                                          get_metrics_from_parameter_dict, Method, ReverseLayerF, set_requires_grad,
+                                          WDGRLtrainer)
 
 
 def create_mmd_based_4video(
-        method: Method, dataset, image_modality, feature_extractor, task_classifier, **train_params
+    method: Method, dataset, image_modality, feature_extractor, task_classifier, **train_params
 ):
-    """MMD-based deep learning methods for action recognition DA: DAN and JAN
-    """
+    """MMD-based deep learning methods for action recognition DA: DAN and JAN"""
     if not method.is_mmd_method():
         raise ValueError(f"Unsupported MMD method: {method}")
     if method is Method.DAN:
@@ -28,7 +19,7 @@ def create_mmd_based_4video(
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
             method=method,
-            **train_params
+            **train_params,
         )
     if method is Method.JAN:
         return JANtrainer4Video(
@@ -44,10 +35,9 @@ def create_mmd_based_4video(
 
 
 def create_dann_like_4video(
-        method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, **train_params
+    method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, **train_params
 ):
-    """DANN-based deep learning methods for action recognition DA: DANN, CDAN, CDAN+E
-    """
+    """DANN-based deep learning methods for action recognition DA: DANN, CDAN, CDAN+E"""
     # if dataset.is_semi_supervised():
     #     return create_fewshot_trainer(
     #         method, dataset, feature_extractor, task_classifier, critic, **train_params
@@ -102,26 +92,25 @@ def create_dann_like_4video(
 
 class BaseMMDLike4Video(BaseMMDLike):
     def __init__(
-            self,
-            dataset,
-            image_modality,
-            feature_extractor,
-            task_classifier,
-            kernel_mul=2.0,
-            kernel_num=5,
-            **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        kernel_mul=2.0,
+        kernel_num=5,
+        **base_params,
     ):
-        """Common API for MME-based action recognition DA methods: DAN, JAN
-        """
+        """Common API for MME-based action recognition DA methods: DAN, JAN"""
 
         super().__init__(dataset, feature_extractor, task_classifier, kernel_mul, kernel_num, **base_params)
         self.image_modality = image_modality
-        self.rgb_feat = self.feat['rgb']
-        self.flow_feat = self.feat['flow']
+        self.rgb_feat = self.feat["rgb"]
+        self.flow_feat = self.feat["flow"]
 
     def forward(self, x):
         if self.feat is not None:
-            if self.image_modality in ['rgb', 'flow']:
+            if self.image_modality in ["rgb", "flow"]:
                 if self.rgb_feat is not None:
                     x = self.rgb_feat(x)
                 else:
@@ -130,9 +119,9 @@ class BaseMMDLike4Video(BaseMMDLike):
                 class_output = self.classifier(x)
                 return x, class_output
 
-            elif self.image_modality == 'joint':
-                x_rgb = self.rgb_feat(x['rgb'])
-                x_flow = self.flow_feat(x['flow'])
+            elif self.image_modality == "joint":
+                x_rgb = self.rgb_feat(x["rgb"])
+                x_flow = self.flow_feat(x["flow"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
                 x_flow = x_flow.view(x_flow.size(0), -1)
                 x = torch.cat((x_rgb, x_flow), dim=1)
@@ -140,14 +129,14 @@ class BaseMMDLike4Video(BaseMMDLike):
                 return [x_rgb, x_flow], class_output
 
     def compute_loss(self, batch, split_name="V"):
-        if self.image_modality == 'joint' and len(batch) == 4:
+        if self.image_modality == "joint" and len(batch) == 4:
             (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-            [phi_s_rgb, phi_s_flow], y_hat = self.forward({'rgb': x_s_rgb, 'flow': x_s_flow})
-            [phi_t_rgb, phi_t_flow], y_t_hat = self.forward({'rgb': x_tu_rgb, 'flow': x_tu_flow})
+            [phi_s_rgb, phi_s_flow], y_hat = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
+            [phi_t_rgb, phi_t_flow], y_t_hat = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
             mmd_rgb = self._compute_mmd(phi_s_rgb, phi_t_rgb, y_hat, y_t_hat)
             mmd_flow = self._compute_mmd(phi_s_flow, phi_t_flow, y_hat, y_t_hat)
             mmd = mmd_rgb + mmd_flow
-        elif self.image_modality in ['rgb', 'flow'] and len(batch) == 2:
+        elif self.image_modality in ["rgb", "flow"] and len(batch) == 2:
             (x_s, y_s), (x_tu, y_tu) = batch
             phi_s, y_hat = self.forward(x_s)
             phi_t, y_t_hat = self.forward(x_tu)
@@ -171,8 +160,7 @@ class BaseMMDLike4Video(BaseMMDLike):
 
 
 class DANtrainer4Video(BaseMMDLike4Video):
-    """This is an implementation of DAN for video data.
-    """
+    """This is an implementation of DAN for video data."""
 
     def __init__(self, dataset, image_modality, feature_extractor, task_classifier, **base_params):
         super().__init__(dataset, image_modality, feature_extractor, task_classifier, **base_params)
@@ -180,24 +168,27 @@ class DANtrainer4Video(BaseMMDLike4Video):
     def _compute_mmd(self, phi_s, phi_t, y_hat, y_t_hat):
         batch_size = int(phi_s.size()[0])
         kernels = losses.gaussian_kernel(
-            phi_s, phi_t, kernel_mul=self._kernel_mul, kernel_num=self._kernel_num,
+            phi_s,
+            phi_t,
+            kernel_mul=self._kernel_mul,
+            kernel_num=self._kernel_num,
         )
         return losses.compute_mmd_loss(kernels, batch_size)
 
 
 class JANtrainer4Video(BaseMMDLike4Video):
-    """This is an implementation of JAN for video data.
-    """
+    """This is an implementation of JAN for video data."""
 
-    def __init__(self,
-                 dataset,
-                 image_modality,
-                 feature_extractor,
-                 task_classifier,
-                 kernel_mul=(2.0, 2.0),
-                 kernel_num=(5, 1),
-                 **base_params,
-                 ):
+    def __init__(
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        kernel_mul=(2.0, 2.0),
+        kernel_num=(5, 1),
+        **base_params,
+    ):
         super().__init__(
             dataset,
             image_modality,
@@ -216,11 +207,9 @@ class JANtrainer4Video(BaseMMDLike4Video):
 
         joint_kernels = None
         for source, target, k_mul, k_num, sigma in zip(
-                source_list, target_list, self._kernel_mul, self._kernel_num, [None, 1.68]
+            source_list, target_list, self._kernel_mul, self._kernel_num, [None, 1.68]
         ):
-            kernels = losses.gaussian_kernel(
-                source, target, kernel_mul=k_mul, kernel_num=k_num, fix_sigma=sigma
-            )
+            kernels = losses.gaussian_kernel(source, target, kernel_mul=k_mul, kernel_num=k_num, fix_sigma=sigma)
             if joint_kernels is not None:
                 joint_kernels = joint_kernels * kernels
             else:
@@ -230,29 +219,28 @@ class JANtrainer4Video(BaseMMDLike4Video):
 
 
 class DANNtrainer4Video(DANNtrainer):
-    """This is an implementation of DANN for video data.
-    """
+    """This is an implementation of DANN for video data."""
 
     def __init__(
-            self,
-            dataset,
-            image_modality,
-            feature_extractor,
-            task_classifier,
-            critic,
-            method,
-            **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        critic,
+        method,
+        **base_params,
     ):
         super(DANNtrainer4Video, self).__init__(
             dataset, feature_extractor, task_classifier, critic, method, **base_params
         )
         self.image_modality = image_modality
-        self.rgb_feat = self.feat['rgb']
-        self.flow_feat = self.feat['flow']
+        self.rgb_feat = self.feat["rgb"]
+        self.flow_feat = self.feat["flow"]
 
     def forward(self, x):
         if self.feat is not None:
-            if self.image_modality in ['rgb', 'flow']:
+            if self.image_modality in ["rgb", "flow"]:
                 if self.rgb_feat is not None:
                     x = self.rgb_feat(x)
                 else:
@@ -265,9 +253,9 @@ class DANNtrainer4Video(DANNtrainer):
                 adversarial_output = self.domain_classifier(reverse_feature)
                 return x, class_output, adversarial_output
 
-            elif self.image_modality == 'joint':
-                x_rgb = self.rgb_feat(x['rgb'])
-                x_flow = self.flow_feat(x['flow'])
+            elif self.image_modality == "joint":
+                x_rgb = self.rgb_feat(x["rgb"])
+                x_flow = self.flow_feat(x["flow"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
                 x_flow = x_flow.view(x_flow.size(0), -1)
                 x = torch.cat((x_rgb, x_flow), dim=1)
@@ -282,10 +270,10 @@ class DANNtrainer4Video(DANNtrainer):
                 return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
     def compute_loss(self, batch, split_name="V"):
-        if self.image_modality == 'joint' and len(batch) == 4:
+        if self.image_modality == "joint" and len(batch) == 4:
             (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-            _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({'rgb': x_s_rgb, 'flow': x_s_flow})
-            _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({'rgb': x_tu_rgb, 'flow': x_tu_flow})
+            _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
+            _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
             batch_size = len(y_s)
             loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(batch_size))
             loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(batch_size))
@@ -306,7 +294,7 @@ class DANNtrainer4Video(DANNtrainer):
                 f"{split_name}_source_domain_acc": torch.cat((dok_src_rgb, dok_src_flow)),
                 f"{split_name}_target_domain_acc": torch.cat((dok_tgt_rgb, dok_tgt_flow)),
             }
-        elif self.image_modality in ['rgb', 'flow'] and len(batch) == 2:
+        elif self.image_modality in ["rgb", "flow"] and len(batch) == 2:
             (x_s, y_s), (x_tu, y_tu) = batch
             _, y_hat, d_hat = self.forward(x_s)
             _, y_t_hat, d_t_hat = self.forward(x_tu)
@@ -353,38 +341,30 @@ class DANNtrainer4Video(DANNtrainer):
 
 
 class CDANtrainer4Video(CDANtrainer):
-    """This is an implementation of CDAN for video data.
-    """
+    """This is an implementation of CDAN for video data."""
 
     def __init__(
-            self,
-            dataset,
-            image_modality,
-            feature_extractor,
-            task_classifier,
-            critic,
-            use_entropy=False,
-            use_random=False,
-            random_dim=1024,
-            **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        critic,
+        use_entropy=False,
+        use_random=False,
+        random_dim=1024,
+        **base_params,
     ):
         super(CDANtrainer4Video, self).__init__(
-            dataset,
-            feature_extractor,
-            task_classifier,
-            critic,
-            use_entropy,
-            use_random,
-            random_dim,
-            **base_params
+            dataset, feature_extractor, task_classifier, critic, use_entropy, use_random, random_dim, **base_params
         )
         self.image_modality = image_modality
-        self.rgb_feat = self.feat['rgb']
-        self.flow_feat = self.feat['flow']
+        self.rgb_feat = self.feat["rgb"]
+        self.flow_feat = self.feat["flow"]
 
     def forward(self, x):
         if self.feat is not None:
-            if self.image_modality in ['rgb', 'flow']:
+            if self.image_modality in ["rgb", "flow"]:
                 if self.rgb_feat is not None:
                     x = self.rgb_feat(x)
                 else:
@@ -402,17 +382,15 @@ class CDANtrainer4Video(CDANtrainer):
                 feature = feature.view(-1, reverse_out.size(1) * reverse_feature.size(1))
                 if self.random_layer:
                     random_out = self.random_layer.forward(feature)
-                    adversarial_output = self.domain_classifier(
-                        random_out.view(-1, random_out.size(1))
-                    )
+                    adversarial_output = self.domain_classifier(random_out.view(-1, random_out.size(1)))
                 else:
                     adversarial_output = self.domain_classifier(feature)
 
                 return x, class_output, adversarial_output
 
-            elif self.image_modality == 'joint':
-                x_rgb = self.rgb_feat(x['rgb'])
-                x_flow = self.flow_feat(x['flow'])
+            elif self.image_modality == "joint":
+                x_rgb = self.rgb_feat(x["rgb"])
+                x_flow = self.flow_feat(x["flow"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
                 x_flow = x_flow.view(x_flow.size(0), -1)
                 x = torch.cat((x_rgb, x_flow), dim=1)
@@ -432,22 +410,18 @@ class CDANtrainer4Video(CDANtrainer):
                 if self.random_layer:
                     random_out_rgb = self.random_layer.forward(feature_rgb)
                     random_out_flow = self.random_layer.forward(feature_flow)
-                    adversarial_output_rgb = self.domain_classifier(
-                        random_out_rgb.view(-1, random_out_rgb.size(1))
-                    )
-                    adversarial_output_flow = self.domain_classifier(
-                        random_out_flow.view(-1, random_out_flow.size(1))
-                    )
+                    adversarial_output_rgb = self.domain_classifier(random_out_rgb.view(-1, random_out_rgb.size(1)))
+                    adversarial_output_flow = self.domain_classifier(random_out_flow.view(-1, random_out_flow.size(1)))
                 else:
                     adversarial_output_rgb = self.domain_classifier(feature_rgb)
                     adversarial_output_flow = self.domain_classifier(feature_flow)
                 return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
     def compute_loss(self, batch, split_name="V"):
-        if self.image_modality == 'joint' and len(batch) == 4:
+        if self.image_modality == "joint" and len(batch) == 4:
             (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-            _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({'rgb': x_s_rgb, 'flow': x_s_flow})
-            _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({'rgb': x_tu_rgb, 'flow': x_tu_flow})
+            _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
+            _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
             batch_size = len(y_s)
 
             if self.entropy:
@@ -460,20 +434,24 @@ class CDANtrainer4Video(CDANtrainer):
                 target_weight = None
 
             loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(
-                d_hat_rgb, torch.zeros(batch_size), source_weight)
+                d_hat_rgb, torch.zeros(batch_size), source_weight
+            )
             loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(
-                d_hat_flow, torch.zeros(batch_size), source_weight)
+                d_hat_flow, torch.zeros(batch_size), source_weight
+            )
             loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(
-                d_t_hat_rgb, torch.ones(len(d_t_hat_rgb)), target_weight)
+                d_t_hat_rgb, torch.ones(len(d_t_hat_rgb)), target_weight
+            )
             loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(
-                d_t_hat_flow, torch.ones(len(d_t_hat_flow)), target_weight)
+                d_t_hat_flow, torch.ones(len(d_t_hat_flow)), target_weight
+            )
             loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
             loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
             # Sum rgb and flow results(True/False) to get the domain accuracy result.
             dok_src = dok_src_rgb + dok_src_flow
             dok_tgt = dok_tgt_rgb + dok_tgt_flow
 
-        elif self.image_modality in ['rgb', 'flow'] and len(batch) == 2:
+        elif self.image_modality in ["rgb", "flow"] and len(batch) == 2:
             (x_s, y_s), (x_tu, y_tu) = batch
             _, y_hat, d_hat = self.forward(x_s)
             _, y_t_hat, d_t_hat = self.forward(x_tu)
@@ -488,12 +466,8 @@ class CDANtrainer4Video(CDANtrainer):
                 source_weight = None
                 target_weight = None
 
-            loss_dmn_src, dok_src = losses.cross_entropy_logits(
-                d_hat, torch.zeros(batch_size), source_weight
-            )
-            loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(
-                d_t_hat, torch.ones(len(d_t_hat)), target_weight
-            )
+            loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size), source_weight)
+            loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)), target_weight)
 
         else:
             raise NotImplementedError("Batch len is {}. Check the Dataloader.".format(len(batch)))
@@ -515,45 +489,37 @@ class CDANtrainer4Video(CDANtrainer):
 
 
 class WDGRLtrainer4Video(WDGRLtrainer):
-    """This is an implementation of WDGRL for video data.
-    """
+    """This is an implementation of WDGRL for video data."""
 
     def __init__(
-            self,
-            dataset,
-            image_modality,
-            feature_extractor,
-            task_classifier,
-            critic,
-            k_critic=5,
-            gamma=10,
-            beta_ratio=0,
-            **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        critic,
+        k_critic=5,
+        gamma=10,
+        beta_ratio=0,
+        **base_params,
     ):
         super(WDGRLtrainer4Video, self).__init__(
-            dataset,
-            feature_extractor,
-            task_classifier,
-            critic,
-            k_critic,
-            gamma,
-            beta_ratio,
-            **base_params
+            dataset, feature_extractor, task_classifier, critic, k_critic, gamma, beta_ratio, **base_params
         )
         self.image_modality = image_modality
-        self.rgb_feat = self.feat['rgb']
-        self.flow_feat = self.feat['flow']
+        self.rgb_feat = self.feat["rgb"]
+        self.flow_feat = self.feat["flow"]
 
     def forward(self, x):
         if self.feat is not None:
-            if self.image_modality in ['rgb', 'flow']:
+            if self.image_modality in ["rgb", "flow"]:
                 if self.rgb_feat is not None:
                     x = self.rgb_feat(x)
                 else:
                     x = self.flow_feat(x)
-            elif self.image_modality == 'joint':
-                x_rgb = self.rgb_feat(x['rgb'])
-                x_flow = self.flow_feat(x['flow'])
+            elif self.image_modality == "joint":
+                x_rgb = self.rgb_feat(x["rgb"])
+                x_flow = self.flow_feat(x["flow"])
                 x = torch.cat((x_rgb, x_flow), dim=1)
         x = x.view(x.size(0), -1)
 
@@ -564,8 +530,8 @@ class WDGRLtrainer4Video(WDGRLtrainer):
     def compute_loss(self, batch, split_name="V"):
         if len(batch) == 4:
             (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-            _, y_hat, d_hat = self.forward({'rgb': x_s_rgb, 'flow': x_s_flow})
-            _, y_t_hat, d_t_hat = self.forward({'rgb': x_tu_rgb, 'flow': x_tu_flow})
+            _, y_hat, d_hat = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
+            _, y_t_hat, d_t_hat = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
         elif len(batch) == 2:
             (x_s, y_s), (x_tu, y_tu) = batch
             _, y_hat, d_hat = self.forward(x_s)
@@ -595,12 +561,12 @@ class WDGRLtrainer4Video(WDGRLtrainer):
         return task_loss, adv_loss, log_metrics
 
     def configure_optimizers(self):
-        if self.image_modality in ['rgb', 'flow']:
+        if self.image_modality in ["rgb", "flow"]:
             if self.rgb_feat is not None:
                 nets = [self.rgb_feat, self.classifier]
             else:
                 nets = [self.flow_feat, self.classifier]
-        elif self.image_modality == 'joint':
+        elif self.image_modality == "joint":
             nets = [self.rgb_feat, self.flow_feat, self.classifier]
         parameters = set()
 
@@ -609,17 +575,13 @@ class WDGRLtrainer4Video(WDGRLtrainer):
 
         if self._adapt_lr:
             task_feat_optimizer, task_feat_sched = self._configure_optimizer(parameters)
-            self.critic_opt, self.critic_sched = self._configure_optimizer(
-                self.domain_classifier.parameters()
-            )
+            self.critic_opt, self.critic_sched = self._configure_optimizer(self.domain_classifier.parameters())
             self.critic_opt = self.critic_opt[0]
             self.critic_sched = self.critic_sched[0]
             return task_feat_optimizer, task_feat_sched
         else:
             task_feat_optimizer = self._configure_optimizer(parameters)
-            self.critic_opt = self._configure_optimizer(
-                self.domain_classifier.parameters()
-            )
+            self.critic_opt = self._configure_optimizer(self.domain_classifier.parameters())
             self.critic_sched = None
             self.critic_opt = self.critic_opt[0]
         return task_feat_optimizer
@@ -630,7 +592,7 @@ class WDGRLtrainer4Video(WDGRLtrainer):
 
         set_requires_grad(self.domain_classifier, requires_grad=True)
 
-        if self.image_modality in ['rgb', 'flow']:
+        if self.image_modality in ["rgb", "flow"]:
             if self.rgb_feat is not None:
                 set_requires_grad(self.rgb_feat, requires_grad=False)
                 (x_s, y_s), (x_tu, _) = batch
@@ -649,7 +611,7 @@ class WDGRLtrainer4Video(WDGRLtrainer):
 
                 critic_s = self.domain_classifier(h_s)
                 critic_t = self.domain_classifier(h_t)
-                wasserstein_distance = (critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean())
+                wasserstein_distance = critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean()
 
                 critic_cost = -wasserstein_distance + self._gamma * gp
 
@@ -665,7 +627,7 @@ class WDGRLtrainer4Video(WDGRLtrainer):
                 set_requires_grad(self.flow_feat, requires_grad=True)
             set_requires_grad(self.domain_classifier, requires_grad=False)
 
-        elif self.image_modality == 'joint':
+        elif self.image_modality == "joint":
             set_requires_grad(self.rgb_feat, requires_grad=False)
             set_requires_grad(self.flow_feat, requires_grad=False)
             (x_s_rgb, y_s), (x_s_flow, _), (x_tu_rgb, _), (x_tu_flow, _) = batch
@@ -682,7 +644,7 @@ class WDGRLtrainer4Video(WDGRLtrainer):
 
                 critic_s = self.domain_classifier(h_s)
                 critic_t = self.domain_classifier(h_t)
-                wasserstein_distance = (critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean())
+                wasserstein_distance = critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean()
 
                 critic_cost = -wasserstein_distance + self._gamma * gp
 
