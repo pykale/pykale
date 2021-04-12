@@ -1,6 +1,5 @@
 # This workflow will run lint and many other pre-commit hooks
 # https://pre-commit.com/
-# We found pre-commit is not running black fully so we force black after pre-commit
 
 name: lint
 
@@ -27,5 +26,3 @@ jobs:
     - name: Run pre-commit checks including linting
       run: |
         pre-commit run --all-files
-        pip install black
-        black .
