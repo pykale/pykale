@@ -9,11 +9,12 @@ import os
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
+from model import get_model
+
 from kale.loaddata.digits_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
-from model import get_model
 
 
 def arg_parse():

@@ -11,7 +11,6 @@ import shutil
 from datetime import datetime
 
 import numpy as np
-
 import pandas as pd
 from pytorch_lightning.callbacks import ModelCheckpoint
 

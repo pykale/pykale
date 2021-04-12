@@ -8,10 +8,10 @@ from typing import Dict
 
 import numpy as np
 import torch.utils.data
+from sklearn.utils import check_random_state
 
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
-from sklearn.utils import check_random_state
 
 
 class WeightingType(Enum):
