@@ -166,7 +166,7 @@ class MPCA(BaseEstimator, TransformerMixin):
                 x_projected = multi_mode_dot(
                     x,
                     [proj_mats[m] for m in range(n_dims - 1) if m != i - 1],
-                    modes=[m for m in range(1, n_dims) if m != i]
+                    modes=[m for m in range(1, n_dims) if m != i],
                 )
                 mode_data_mat = unfold(x_projected, i)
 
@@ -175,11 +175,7 @@ class MPCA(BaseEstimator, TransformerMixin):
                 idx_sorted = (-1 * eig_values).argsort()
                 proj_mats[i - 1] = (singular_vec_left[:, idx_sorted][:, : shape_out[i - 1]]).T
 
-        x_projected = multi_mode_dot(
-            x,
-            proj_mats,
-            modes=[m for m in range(1, n_dims)]
-        )
+        x_projected = multi_mode_dot(x, proj_mats, modes=[m for m in range(1, n_dims)])
         x_proj_unfold = unfold(x_projected, mode=0)  # unfold the tensor projection to shape (n_samples, n_features)
         # x_proj_cov = np.diag(np.dot(x_proj_unfold.T, x_proj_unfold))  # covariance of unfolded features
         x_proj_cov = np.sum(np.multiply(x_proj_unfold.T, x_proj_unfold.T), axis=1)  # memory saving computing covariance
@@ -207,14 +203,12 @@ class MPCA(BaseEstimator, TransformerMixin):
         """
         # reshape x to shape (1, I_1, I_2, ..., I_N) if x in shape (I_1, I_2, ..., I_N), i.e. n_samples = 1
         if x.ndim == self.n_dims - 1:
-            x = x.reshape((1, ) + x.shape)
+            x = x.reshape((1,) + x.shape)
         _check_tensor_dim_shape(x, self.n_dims, self.shape_in)
         x = x - self.mean_
 
         # projected tensor in lower dimensions
-        x_projected = multi_mode_dot(
-            x, self.proj_mats,
-            modes=[m for m in range(1, self.n_dims)])
+        x_projected = multi_mode_dot(x, self.proj_mats, modes=[m for m in range(1, self.n_dims)])
 
         if self.return_vector:
             x_projected = unfold(x_projected, mode=0)
@@ -259,9 +253,7 @@ class MPCA(BaseEstimator, TransformerMixin):
 
             x = fold(x_, mode=0, shape=((n_samples,) + self.shape_out))
 
-        x_rec = multi_mode_dot(x, self.proj_mats,
-                               modes=[m for m in range(1, self.n_dims)],
-                               transpose=True)
+        x_rec = multi_mode_dot(x, self.proj_mats, modes=[m for m in range(1, self.n_dims)], transpose=True)
 
         x_rec = x_rec + self.mean_
 

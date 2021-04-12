@@ -52,6 +52,7 @@ class GCNEncoder(nn.Module):
         out_channel (int): Dimension of each output node feature.
         dropout_rate (float): dropout rate during training.
     """
+
     def __init__(self, in_channel=78, out_channel=128, dropout_rate=0.2):
         super(GCNEncoder, self).__init__()
         self.conv1 = GCNConv(in_channel, in_channel)
