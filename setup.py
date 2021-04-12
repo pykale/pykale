@@ -35,7 +35,7 @@ extra_requirements = [
 
 # Additional dependencies for development
 dev_requirements = [
-    "black",
+    "black==19.10b0",
     "coverage",
     "flake8",
     "flake8-print",

@@ -21,13 +21,7 @@ class SoftmaxNet(nn.Module):
     """
 
     def __init__(
-        self,
-        input_dim=15,
-        n_classes=2,
-        name="c",
-        hidden=(),
-        activation_fn=nn.ReLU,
-        **activation_args,
+        self, input_dim=15, n_classes=2, name="c", hidden=(), activation_fn=nn.ReLU, **activation_args,
     ):
 
         super(SoftmaxNet, self).__init__()
