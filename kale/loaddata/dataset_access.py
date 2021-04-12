@@ -12,7 +12,7 @@ class DatasetAccess:
     of any dataset.
 
     Args:
-        n_classes: the number of classes.
+        n_classes (int): the number of classes.
     """
 
     def __init__(self, n_classes):
