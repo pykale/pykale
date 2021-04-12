@@ -23,8 +23,8 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Action Datasets")
-    parser.add_argument('--cfg', required=True, help="path to config file", type=str)
-    parser.add_argument('--gpus', default="0", help="gpu id(s) to use", type=str)
+    parser.add_argument("--cfg", required=True, help="path to config file", type=str)
+    parser.add_argument("--gpus", default="0", help="gpu id(s) to use", type=str)
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
@@ -99,18 +99,12 @@ def main():
 
         trainer.fit(model)
         results.update(
-            is_validation=True,
-            method_name=cfg.DAN.METHOD,
-            seed=seed,
-            metric_values=trainer.callback_metrics,
+            is_validation=True, method_name=cfg.DAN.METHOD, seed=seed, metric_values=trainer.callback_metrics,
         )
         # test scores
         trainer.test()
         results.update(
-            is_validation=False,
-            method_name=cfg.DAN.METHOD,
-            seed=seed,
-            metric_values=trainer.callback_metrics,
+            is_validation=False, method_name=cfg.DAN.METHOD, seed=seed, metric_values=trainer.callback_metrics,
         )
         results.to_csv(test_csv_file)
         results.print_scores(method_name=cfg.DAN.METHOD, split="Test")

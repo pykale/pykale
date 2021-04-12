@@ -8,10 +8,10 @@ from typing import Dict
 
 import numpy as np
 import torch.utils.data
-from sklearn.utils import check_random_state
 
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
+from sklearn.utils import check_random_state
 
 
 class WeightingType(Enum):
@@ -92,7 +92,8 @@ class MultiDomainDatasets(DomainsDatasetBase):
         if weight_type is WeightingType.PRESET0:
             self._source_sampling_config = SamplingConfig(class_weights=np.arange(source_access.n_classes(), 0, -1))
             self._target_sampling_config = SamplingConfig(
-                class_weights=random_state.randint(1, 4, size=target_access.n_classes())
+                # class_weights=random_state.randint(1, 4, size=target_access.n_classes())
+                class_weights=np.random.randint(1, 4, size=target_access.n_classes())
             )
         elif weight_type is WeightingType.BALANCED:
             self._source_sampling_config = SamplingConfig(balance=True)
@@ -128,16 +129,14 @@ class MultiDomainDatasets(DomainsDatasetBase):
 
     def prepare_data_loaders(self):
         logging.debug("Load source")
-        (
-            self._source_by_split["train"],
-            self._source_by_split["valid"],
-        ) = self._source_access.get_train_val(self._val_split_ratio)
+        (self._source_by_split["train"], self._source_by_split["valid"],) = self._source_access.get_train_val(
+            self._val_split_ratio
+        )
 
         logging.debug("Load target")
-        (
-            self._target_by_split["train"],
-            self._target_by_split["valid"],
-        ) = self._target_access.get_train_val(self._val_split_ratio)
+        (self._target_by_split["train"], self._target_by_split["valid"],) = self._target_access.get_train_val(
+            self._val_split_ratio
+        )
 
         logging.debug("Load source Test")
         self._source_by_split["test"] = self._source_access.get_test()
@@ -148,10 +147,9 @@ class MultiDomainDatasets(DomainsDatasetBase):
             # semi-supervised target domain
             self._labeled_target_by_split = {}
             for part in ["train", "valid", "test"]:
-                (
-                    self._labeled_target_by_split[part],
-                    self._target_by_split[part],
-                ) = _split_dataset_few_shot(self._target_by_split[part], self._n_fewshot)
+                (self._labeled_target_by_split[part], self._target_by_split[part],) = _split_dataset_few_shot(
+                    self._target_by_split[part], self._n_fewshot
+                )
 
     def get_domain_loaders(self, split="train", batch_size=32):
         source_ds = self._source_by_split[split]
@@ -163,8 +161,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
             target_loader = self._target_sampling_config.create_loader(target_ds, batch_size)
             n_dataset = DatasetSizeType.get_size(self._size_type, source_ds, target_ds)
             return MultiDataLoader(
-                dataloaders=[source_loader, target_loader],
-                n_batches=max(n_dataset // batch_size, 1),
+                dataloaders=[source_loader, target_loader], n_batches=max(n_dataset // batch_size, 1),
             )
         else:
             # semi-supervised target domain
@@ -177,11 +174,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
             target_unlabeled_loader = self._target_sampling_config.create_loader(target_unlabeled_ds, batch_size)
             n_dataset = DatasetSizeType.get_size(self._size_type, source_ds, target_labeled_ds, target_unlabeled_ds)
             return MultiDataLoader(
-                dataloaders=[
-                    source_loader,
-                    target_labeled_loader,
-                    target_unlabeled_loader,
-                ],
+                dataloaders=[source_loader, target_labeled_loader, target_unlabeled_loader],
                 n_batches=max(n_dataset // batch_size, 1),
             )
 

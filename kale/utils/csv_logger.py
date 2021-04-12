@@ -11,6 +11,7 @@ import shutil
 from datetime import datetime
 
 import numpy as np
+
 import pandas as pd
 from pytorch_lightning.callbacks import ModelCheckpoint
 
@@ -182,8 +183,7 @@ class XpResults:
         """Update the log with metric values"""
         split, prefix = ("Validation", "V") if is_validation else ("Test", "Te")
         results = pd.DataFrame(
-            {k: metric_values.get(f"{prefix}_{k.replace(' ', '_')}", None).item() for k in self._metrics},
-            index=[0],
+            {k: metric_values.get(f"{prefix}_{k.replace(' ', '_')}", None).item() for k in self._metrics}, index=[0],
         )
         results["seed"] = seed
         results["method"] = method_name
@@ -221,13 +221,7 @@ class XpResults:
         self._df.to_csv(filepath)
 
     def print_scores(
-        self,
-        method_name,
-        split="Validation",
-        stdout=True,
-        fdout=None,
-        print_func=logging.info,
-        file_format="markdown",
+        self, method_name, split="Validation", stdout=True, fdout=None, print_func=logging.info, file_format="markdown",
     ):
         """Print out the performance scores (over multiple runs)"""
         mres = self._df.query(f"method == '{method_name}' and split == '{split}'")
@@ -271,11 +265,7 @@ class XpResults:
             for name in self._df.method.unique():
                 for split in splits:
                     self.print_scores(
-                        method_name=name,
-                        split=split,
-                        stdout=True,
-                        fdout=fd,
-                        file_format="text",
+                        method_name=name, split=split, stdout=True, fdout=fd, file_format="text",
                     )
             fd.write("\n")
 

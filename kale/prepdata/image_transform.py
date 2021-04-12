@@ -17,11 +17,7 @@ def get_transform(kind, augment=False):
     """
     if kind == "mnist32":
         transform = transforms.Compose(
-            [
-                transforms.Resize(32),
-                transforms.ToTensor(),
-                transforms.Normalize([0.5], [0.5]),
-            ]
+            [transforms.Resize(32), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
         )
     elif kind == "mnist32rgb":
         transform = transforms.Compose(
@@ -34,12 +30,7 @@ def get_transform(kind, augment=False):
         )
     elif kind == "usps32":
         transform = transforms.Compose(
-            [
-                transforms.ToPILImage(),
-                transforms.Resize(32),
-                transforms.ToTensor(),
-                transforms.Normalize([0.5], [0.5]),
-            ]
+            [transforms.ToPILImage(), transforms.Resize(32), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
         )
     elif kind == "usps32rgb":
         transform = transforms.Compose(
@@ -53,27 +44,16 @@ def get_transform(kind, augment=False):
         )
     elif kind == "mnistm":
         transform = transforms.Compose(
-            [
-                transforms.Resize(32),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-            ]
+            [transforms.Resize(32), transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
         )
     elif kind == "svhn":
         transform = transforms.Compose(
-            [
-                transforms.Resize(32),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-            ]
+            [transforms.Resize(32), transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
         )
     elif kind == "cifar":
         if augment:
             transform_aug = transforms.Compose(
-                [
-                    transforms.RandomCrop(32, padding=4),
-                    transforms.RandomHorizontalFlip(),
-                ]
+                [transforms.RandomCrop(32, padding=4), transforms.RandomHorizontalFlip()]
             )
         else:
             transform_aug = transforms.Compose([])

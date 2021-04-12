@@ -72,10 +72,8 @@ class Trainer(object):
                 record[0, i], record[1, i], record[2, i] = auprc_auroc_ap(target, score)
 
         [auprc, auroc, ap] = record.mean(axis=1)
-        info_str = (
-            "train Epoch: {:3d}\tloss: {:0.4f}\tauprc: {:0.4f}\t auroc: {:0.4f}\tap@50: {:0.4f}s\ttime: {:0.2f}".format(
-                self.epochs, self.loss, auprc, auroc, ap, time.time() - epoch_t
-            )
+        info_str = "train Epoch: {:3d}\tloss: {:0.4f}\tauprc: {:0.4f}\t auroc: {:0.4f}\tap@50: {:0.4f}s\ttime: {:0.2f}".format(
+            self.epochs, self.loss, auprc, auroc, ap, time.time() - epoch_t
         )
         self.logger.info(info_str)
         print(info_str)

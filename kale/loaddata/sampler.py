@@ -6,8 +6,9 @@ import logging
 
 import numpy as np
 import torch.utils.data
-import torchvision
 from torch.utils.data.sampler import BatchSampler, RandomSampler
+
+import torchvision
 
 
 class SamplingConfig:
@@ -195,12 +196,7 @@ class ReweightedBatchSampler(torch.utils.data.sampler.BatchSampler):
     def __iter__(self):
         for _ in range(self._n_batches):
             # sample batch_size classes
-            class_idx = np.random.choice(
-                self._classes,
-                p=self._class_weights,
-                replace=True,
-                size=self._batch_size,
-            )
+            class_idx = np.random.choice(self._classes, p=self._class_weights, replace=True, size=self._batch_size,)
             indices = []
             for class_, num in zip(*np.unique(class_idx, return_counts=True)):
                 indices.extend(self._class_to_iter[class_].get(num))

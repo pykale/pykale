@@ -9,12 +9,11 @@ import os
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
-from model import get_model
-
 from kale.loaddata.digits_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
+from model import get_model
 
 
 def arg_parse():
@@ -76,18 +75,12 @@ def main():
 
         trainer.fit(model)
         results.update(
-            is_validation=True,
-            method_name=cfg.DAN.METHOD,
-            seed=seed,
-            metric_values=trainer.callback_metrics,
+            is_validation=True, method_name=cfg.DAN.METHOD, seed=seed, metric_values=trainer.callback_metrics,
         )
         # test scores
         trainer.test()
         results.update(
-            is_validation=False,
-            method_name=cfg.DAN.METHOD,
-            seed=seed,
-            metric_values=trainer.callback_metrics,
+            is_validation=False, method_name=cfg.DAN.METHOD, seed=seed, metric_values=trainer.callback_metrics,
         )
         results.to_csv(test_csv_file)
         results.print_scores(cfg.DAN.METHOD)
