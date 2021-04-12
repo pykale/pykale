@@ -9,14 +9,13 @@ import os
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
-from model import get_model
-from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks import LearningRateMonitor
-
 from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
 from kale.loaddata.video_access import VideoDataset
 from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
+from model import get_model
+from pytorch_lightning import loggers as pl_loggers
+from pytorch_lightning.callbacks import LearningRateMonitor
 
 # from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
@@ -24,8 +23,8 @@ from kale.utils.seed import set_seed
 def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Action Datasets")
-    parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    parser.add_argument("--gpus", default="0", help="gpu id(s) to use", type=str)
+    parser.add_argument('--cfg', required=True, help="path to config file", type=str)
+    parser.add_argument('--gpus', default="0", help="gpu id(s) to use", type=str)
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
