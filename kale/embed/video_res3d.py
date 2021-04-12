@@ -4,7 +4,6 @@ Created by Xianyuan Liu from modifying https://github.com/pytorch/vision/blob/ma
 """
 
 import torch.nn as nn
-
 from torchvision.models.utils import load_state_dict_from_url
 
 model_urls = {

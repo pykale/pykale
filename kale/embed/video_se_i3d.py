@@ -4,10 +4,10 @@ Created by Xianyuan Liu from modifying https://github.com/piergiaj/pytorch-i3d/b
 https://github.com/deepmind/kinetics-i3d/blob/master/i3d.py
 """
 import torch.nn as nn
+from torchvision.models.utils import load_state_dict_from_url
 
 from kale.embed.video_i3d import InceptionI3d
 from kale.embed.video_se_cnn import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
-from torchvision.models.utils import load_state_dict_from_url
 
 __all__ = ["se_i3d_joint", "SEInceptionI3DRGB", "SEInceptionI3DFlow"]
 

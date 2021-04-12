@@ -6,9 +6,8 @@ import logging
 
 import numpy as np
 import torch.utils.data
-from torch.utils.data.sampler import BatchSampler, RandomSampler
-
 import torchvision
+from torch.utils.data.sampler import BatchSampler, RandomSampler
 
 
 class SamplingConfig:
