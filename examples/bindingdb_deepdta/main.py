@@ -13,10 +13,10 @@ from kale.loaddata.tdc_datasets import BindingDBDataset
 
 def arg_parse():
     """Parsing arguments"""
-    parser = argparse.ArgumentParser(description='DeepDTA on BindingDB dataset')
-    parser.add_argument('--cfg', required=True, help='path to config file', type=str)
-    parser.add_argument('--gpus', default='0', help='gpu id(s) to use', type=str)
-    parser.add_argument('--resume', default='', type=str)
+    parser = argparse.ArgumentParser(description="DeepDTA on BindingDB dataset")
+    parser.add_argument("--cfg", required=True, help="path to config file", type=str)
+    parser.add_argument("--gpus", default="0", help="gpu id(s) to use", type=str)
+    parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
 
@@ -44,7 +44,7 @@ def main():
 
     # ---- training and evaluation ----
     gpus = 1 if device == "cuda" else 0
-    checkpoint_callback = ModelCheckpoint(monitor='val_loss', mode="min")
+    checkpoint_callback = ModelCheckpoint(monitor="val_loss", mode="min")
     trainer = pl.Trainer(max_epochs=cfg.SOLVER.MAX_EPOCHS, gpus=gpus, logger=tb_logger, callbacks=[checkpoint_callback])
     trainer.fit(model, train_dataloader=train_loader, val_dataloaders=val_loader)
     trainer.test(test_dataloaders=test_loader)

@@ -19,10 +19,10 @@ from kale.utils.seed import set_seed
 
 def arg_parse():
     """Parsing arguments"""
-    parser = argparse.ArgumentParser(description='Domain Adversarial Networks on Digits Datasets')
-    parser.add_argument('--cfg', required=True, help='path to config file', type=str)
-    parser.add_argument('--gpus', default='0', help='gpu id(s) to use', type=str)
-    parser.add_argument('--resume', default='', type=str)
+    parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Digits Datasets")
+    parser.add_argument("--cfg", required=True, help="path to config file", type=str)
+    parser.add_argument("--gpus", default="0", help="gpu id(s) to use", type=str)
+    parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
 
@@ -42,24 +42,24 @@ def main():
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
-    source, target, num_channels = DigitDataset.get_source_target(DigitDataset(cfg.DATASET.SOURCE.upper()),
-                                                                  DigitDataset(cfg.DATASET.TARGET.upper()),
-                                                                  cfg.DATASET.ROOT)
-    dataset = MultiDomainDatasets(source, target, config_weight_type=cfg.DATASET.WEIGHT_TYPE,
-                                  config_size_type=cfg.DATASET.SIZE_TYPE)
+    source, target, num_channels = DigitDataset.get_source_target(
+        DigitDataset(cfg.DATASET.SOURCE.upper()), DigitDataset(cfg.DATASET.TARGET.upper()), cfg.DATASET.ROOT
+    )
+    dataset = MultiDomainDatasets(
+        source, target, config_weight_type=cfg.DATASET.WEIGHT_TYPE, config_size_type=cfg.DATASET.SIZE_TYPE
+    )
 
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = cfg.SOLVER.SEED + i * 10
         # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         set_seed(seed)
-        print(f'==> Building model for seed {seed} ......')
+        print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, num_channels)
-        logger, results, checkpoint_callback, test_csv_file = setup_logger(train_params,
-                                                                           cfg.OUTPUT.DIR,
-                                                                           cfg.DAN.METHOD,
-                                                                           seed)
+        logger, results, checkpoint_callback, test_csv_file = setup_logger(
+            train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD, seed
+        )
         trainer = pl.Trainer(
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
@@ -93,5 +93,5 @@ def main():
         results.print_scores(cfg.DAN.METHOD)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

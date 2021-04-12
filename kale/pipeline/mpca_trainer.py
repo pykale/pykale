@@ -29,19 +29,21 @@ from sklearn.utils.validation import check_is_fitted
 from ..embed.mpca import MPCA
 
 param_c_grids = list(np.logspace(-4, 2, 7))
-classifiers = {"svc": [SVC, {"kernel": ["linear"], "C": param_c_grids}],
-               "linear_svc": [LinearSVC, {"C": param_c_grids}],
-               "lr": [LogisticRegression, {"C": param_c_grids}]}
+classifiers = {
+    "svc": [SVC, {"kernel": ["linear"], "C": param_c_grids}],
+    "linear_svc": [LinearSVC, {"C": param_c_grids}],
+    "lr": [LogisticRegression, {"C": param_c_grids}],
+}
 
 # k-fold cross validation used for grid search, i.e. searching for optimal value of C
-default_search_params = {'cv': 5}
+default_search_params = {"cv": 5}
 default_mpca_params = {"var_ratio": 0.97, "return_vector": True}
 
 
 class MPCATrainer(BaseEstimator, ClassifierMixin):
-
-    def __init__(self, classifier='svc', classifier_params='auto', mpca_params=None,
-                 n_features=None, search_params=None):
+    def __init__(
+        self, classifier="svc", classifier_params="auto", mpca_params=None, n_features=None, search_params=None
+    ):
         """Trainer of pipeline: MPCA->Feature selection->Classifier
 
         Args:
@@ -82,9 +84,9 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         if classifier_params == "auto":
             self.auto_classifier_param = True
             clf_param_grid = classifiers[classifier][1]
-            self.grid_search = GridSearchCV(classifiers[classifier][0](),
-                                            param_grid=clf_param_grid,
-                                            **self.search_params)
+            self.grid_search = GridSearchCV(
+                classifiers[classifier][0](), param_grid=clf_param_grid, **self.search_params
+            )
             self.clf = None
         elif isinstance(classifier_params, dict):
             self.clf = classifiers[classifier][0](**classifier_params)
@@ -115,7 +117,7 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         else:
             f_score, p_val = f_classif(x_transformed, y)
             self.feature_order = (-1 * f_score).argsort()
-        x_transformed = x_transformed[:, self.feature_order][:, :self.n_features]
+        x_transformed = x_transformed[:, self.feature_order][:, : self.n_features]
 
         # fit classifier
         if self.auto_classifier_param:
@@ -158,7 +160,7 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         Returns:
             array-like: probabilities, shape (n_samples, n_class)
         """
-        if self.classifier == 'linear_svc':
+        if self.classifier == "linear_svc":
             error_msg = "Linear SVC does not support computing probability."
             logging.error(error_msg)
             raise ValueError(error_msg)
@@ -176,4 +178,4 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         check_is_fitted(self.clf)
         x_transformed = self.mpca.transform(x)
 
-        return x_transformed[:, self.feature_order][:, :self.n_features]
+        return x_transformed[:, self.feature_order][:, : self.n_features]
