@@ -60,7 +60,7 @@ def test_mpca(var_ratio, n_components):
 def test_mpca_against_baseline():
     x = gait["fea3D"].transpose((3, 0, 1, 2))
     baseline_proj_mats = [baseline_model["tUs"][i][0] for i in range(baseline_model["tUs"].size)]
-    baseline_mean = baseline_model['TXmean']
+    baseline_mean = baseline_model["TXmean"]
     mpca = MPCA(var_ratio=0.97)
     x_proj = mpca.fit(x).transform(x)
     testing.assert_allclose(baseline_mean, mpca.mean_)

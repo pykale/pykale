@@ -18,8 +18,17 @@ class BindingDBDataset(data.Dataset):
          protein_transform: Transform operation (default: None)
          y_log (bool): Whether convert y values to log space. (default: True)
     """
-    def __init__(self, name: str, split="train", path="./data", mode="cnn_cnn", y_log=True, drug_transform=None,
-                 protein_transform=None):
+
+    def __init__(
+        self,
+        name: str,
+        split="train",
+        path="./data",
+        mode="cnn_cnn",
+        y_log=True,
+        drug_transform=None,
+        protein_transform=None,
+    ):
         self.data = DTI(name=name, path=path)
         self.mode = mode.lower()
         if y_log:
