@@ -22,7 +22,7 @@ jobs:
         python-version: "3.6"
     - name: Install dependencies
       run: |
-        pip install pre-commit isort flake8==3.8.4
+        pip install pre-commit isort black flake8==3.8.4
         pre-commit install
     - name: Run pre-commit checks including linting
       run: |
