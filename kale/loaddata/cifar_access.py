@@ -18,19 +18,7 @@ def get_cifar(cfg):
     logging.info("==> Preparing to load data " + cfg.DATASET.NAME + " at " + cfg.DATASET.ROOT)
     cifar_train_transform = get_transform("cifar", augment=True)
     cifar_test_transform = get_transform("cifar", augment=False)
-    # transform = {
-    #     'cifar_train': transforms.Compose([
-    #         # Data augmentation
-    #         transforms.RandomCrop(32, padding=4),
-    #         transforms.RandomHorizontalFlip(),
-    #         transforms.ToTensor(),
-    #         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    #     ]),
-    #     'cifar_test': transforms.Compose([
-    #         transforms.ToTensor(),
-    #         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    #     ])
-    # }
+
     if cfg.DATASET.NAME == "CIFAR10":
         train_set = torchvision.datasets.CIFAR10(
             cfg.DATASET.ROOT, train=True, download=True, transform=cifar_train_transform

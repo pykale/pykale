@@ -35,3 +35,4 @@ docs/source/backup
 # Testing
 .coverage
 cov.xml
+tests/test_data/download

@@ -46,12 +46,7 @@ class MNISTM(data.Dataset):
     test_file = "mnist_m_test.pt"
 
     def __init__(
-        self,
-        root,
-        train=True,
-        transform=None,
-        target_transform=None,
-        download=False,
+        self, root, train=True, transform=None, target_transform=None, download=False,
     ):
         """Init MNIST-M dataset."""
         super(MNISTM, self).__init__()
