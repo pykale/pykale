@@ -14,7 +14,7 @@
 [Contributing](https://github.com/pykale/pykale/blob/master/.github/CONTRIBUTING.md) |
 [Discussions](https://github.com/pykale/pykale/discussions)
 
- PyKale is a [PyTorch](https://pytorch.org/) library for [multimodal learning](https://en.wikipedia.org/wiki/Multimodal_learning) and [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning) on graphs, images, and videos. By adopting a unified *pipeline-based* API design, PyKale enforces *standardization* and *minimalism*. PyKale aims to facilitate *interdisciplinary*, *knowledge-aware* machine learning research for graphs, images, and videos in computer vision, graph analysis, and medical imaging applications. It focuses on leveraging knowledge from multiple sources for accurate and *interpretable* prediction. PyKale's other key machine learning areas of interests include **dimensionality reduction** and **deep learning**. See the [Trello board](https://trello.com/b/X8VBNAvf/pykale-api-overview) for an API overview.
+ PyKale is a [PyTorch](https://pytorch.org/) library for [multimodal learning](https://en.wikipedia.org/wiki/Multimodal_learning) and [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning) as well as **dimensionality reduction** and **deep learning** on graphs, images, texts, and videos. By adopting a unified *pipeline-based* API design, PyKale enforces *standardization* and *minimalism*, via reusing existing resources, reducing repetitions and redundancy, and recycle learning models across areas. PyKale aims to facilitate *interdisciplinary*, *knowledge-aware* machine learning research for graphs, images, texts, and videos in applications including bioinformatics, computer vision, graph analysis, and medical imaging. It focuses on leveraging knowledge from multiple sources for accurate and *interpretable* prediction. . See a [10-minute introduction on YouTube](https://www.youtube.com/playlist?list=PLuRoUKdWifzzXGInKdWG2VDeINBJ2MCYq).
 
 ### Pipeline-based core API (generic and reusable)
 
@@ -42,9 +42,9 @@ For more details and other options, please refer to [the installation guide](htt
 
 ## Examples, Tutorials, and Discussions
 
-See our numerous [**examples (and tutorials)**](https://github.com/pykale/pykale/tree/master/examples) on how to perform prediction tasks in PyKale.
+See our numerous [**examples (and tutorials)**](https://github.com/pykale/pykale/tree/master/examples) on how to perform various prediction tasks in a wide range of applications using PyKale.
 
-Ask and answer questions over on [PyKale's GitHub Discussions tab](https://github.com/pykale/pykale/discussions).
+Ask and answer questions on [PyKale's GitHub Discussions tab](https://github.com/pykale/pykale/discussions).
 
 ## Contributing
 
@@ -58,18 +58,20 @@ See [contributing guidelines](https://github.com/pykale/pykale/blob/master/.gith
 
 ## The Team
 
-PyKale is primarily maintained by a group of researchers at the University of Sheffield: [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/), [Raivo Koot](https://github.com/RaivoKoot), [Xianyuan Liu](https://github.com/XianyuanLiu), [Shuo Zhou](https://sz144.github.io/), and [Peizhen Bai](https://github.com/pz-white).
+PyKale is primarily maintained by a group of researchers at the University of Sheffield: [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/), [Raivo Koot](https://github.com/RaivoKoot), [Xianyuan Liu](https://github.com/XianyuanLiu), [Shuo Zhou](https://sz144.github.io/), [Peizhen Bai](https://github.com/pz-white), and [Robert Turner](https://github.com/bobturneruk).
 
-We would like to thank our other contributors including (but not limited to) Cameron Mcwilliam, Robert Turner, David Jones, and Will Furnass.
+We would like to thank our other contributors including (but not limited to) Cameron McWilliam, David Jones, and Will Furnass.
 
 ## Citation
 
+```lang-latex
     @Misc{pykale2021,
-      author =   {Haiping Lu and Raivo Koot and Xianyuan Liu and Shuo Zhou and Peizhen Bai},
+      author =   {Haiping Lu and Raivo Koot and Xianyuan Liu and Shuo Zhou and Peizhen Bai and Robert Turner},
       title =    {{PyKale}: Knowledge-aware machine learning from multiple sources in Python},
       howpublished = {\url{https://github.com/pykale/pykale}},
       year = {2021}
     }
+```
 
 ## Acknowledgements
 
