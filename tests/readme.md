@@ -1,18 +1,38 @@
 # Test Guidelines
 
-All new code should be covered by [unit tests](https://carpentries-incubator.github.io/python-testing/04-units/index.html), and [regression tests](https://carpentries-incubator.github.io/python-testing/07-integration/index.html) where appropriate. We will extend test coverage to existing code.
+We aim to cover all code by [unit tests](https://carpentries-incubator.github.io/python-testing/04-units/index.html) with *at least 70% coverage*, and [regression tests](https://carpentries-incubator.github.io/python-testing/07-integration/index.html) where appropriate. Please use [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing) to talk about tests and ask for help.
 
-Definitions of different types of tests can be somewhat subjective. These guidelines are intended to enable `pykale` to have a high level of test coverage, for these tests to address sufficiently compact pieces of code such that it is easy to identify causes of failure and for tests to also cover larger workflows such that confidence can be built in reproducibility of outputs.
+These guidelines will help you to write tests to address sufficiently compact pieces of code such that it is easy to identify causes of failure and for tests to also cover larger workflows such that confidence or trust can be built in reproducibility of outputs. We use [pytest](https://docs.pytest.org/en/stable/) (see tutorials [python testing software carpentry (alpha)](https://carpentries-incubator.github.io/python-testing/) and [tutorialspoint pytest tutorial](https://www.tutorialspoint.com/pytest/pytest_tutorial.pdf)). There is some subjectivity involved in deciding how much of the potential behaviour of your code to check.
 
-Please use [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing) to talk about tests and ask for help.
+## Quick start
 
-Refer to the [official pytest documentation](https://docs.pytest.org/en/stable/), or less formal [python testing software carpentry (alpha)](https://carpentries-incubator.github.io/python-testing/) and [tutorialspoint pytest tutorial](https://www.tutorialspoint.com/pytest/pytest_tutorial.pdf), if needed. This will help you to write tests and help with decisions on what aspects of your code need to be tested. There is some subjectivity involved in deciding how much of the potential behaviour of your code to check.
+- [Compact pytest tutorial](https://www.tutorialspoint.com/pytest/pytest_tutorial.pdf), [pytest fixtures](https://docs.pytest.org/en/stable/fixture.html), [pytest exceptions](https://docs.pytest.org/en/stable/assert.html#assertions-about-expected-exceptions)
+- Example [unit tests for deep learning code of Variational Autoencoder (VAE) in PyTorch](https://github.com/tilman151/unittest_dl) and the associated post [How to Trust Your Deep Learning Code](https://krokotsch.eu/cleancode/2020/08/11/Unit-Tests-for-Deep-Learning.html). *Note: it uses `unittest` but we use `pytest`*.
+- Learn from [existing pykale tests](https://github.com/pykale/pykale/tree/master/tests) (particularly recent ones) and pytest+pytorch examples [fastai1 tests](https://github.com/fastai/fastai1/tree/master/tests) and [Kornia tests](https://github.com/kornia/kornia/tree/master/test)
+- Use GitHub code links to find out definitions and references
+- Consider to use [pytest in vscode](https://code.visualstudio.com/docs/python/testing) or [pytest in pycharm](https://www.jetbrains.com/help/pycharm/pytest.html)
+- [fastai testing](https://fastai1.fast.ai/dev/test.html) is a good high-level reference. We adapt its recommendations on [writing tests](https://fastai1.fast.ai/dev/test.html#writing-tests) below:
+  - Think about how to create a test of the real functionality that runs quickly, e.g. based on our [`examples`](https://github.com/pykale/pykale/tree/master/examples).
+  - Use module scope fixtures to run initial code that can be shared amongst tests. When using fixtures, make sure the test doesn’t modify the global object it received. If there's a risk of modifying a broadly scoped fixture, you could clone it with a more tightly scoped fixture or create a fresh fixture/object instead.
+  - Avoid pretrained models, since they have to be downloaded from the internet to run the test.
+  - Create some minimal data for your test, or use data already in repo’s data/ directory.
+
+See more details below, particularly [test data](#test-data), [common parameters](#common-parameters), and [running tests locally](#running-tests-locally).
+
+## Test data
+
+Data needed for testing should be placed in [`tests/test_data`](https://github.com/pykale/pykale/tree/master/tests/test_data). Only small files (current limit: 300KB) should be uploaded directly. Larger data should be **automatically downloaded** during tests from external sources to `tests/test_data/download` as defined in [`tests/conftest.py`](https://github.com/pykale/pykale/blob/master/tests/conftest.py). Such data will be kept local, as set in [`.gitignore`](https://github.com/pykale/pykale/blob/master/.gitignore). Discuss more complex test data requirements for your **pull request** in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
+
+## Common parameters
+
+Consider adding parameters (or objects etc.) that may be useful to multiple tests as fixtures in a [`conftest.py`](
+https://docs.pytest.org/en/stable/fixture.html#conftest-py-sharing-fixtures-across-multiple-files) file, either in `tests/` or the appropriate sub-module.
 
 ## Running tests locally
 
 To run tests locally you will need to have installed `pykale` with the development requirements:
 
-```
+```sh
 git clone https://github.com/pykale/pykale
 cd pykale
 pip install -e .[dev]
@@ -20,13 +40,9 @@ pip install -e .[dev]
 
 then run:
 
-```
+```sh
 pytest
 ```
-
-## Test runner
-
-`pykale` uses the `pytest` test runner. This offers a balance of functionality, ease of use and wide community support.
 
 ## Unit tests
 
@@ -44,20 +60,15 @@ Regression tests should be placed in `tests/regression`. Further subfolders can 
 
 Philosophically, regression tests treat the "past as truth" - the correct output / behaviour is the way it worked before a change.
 
-## Test data
-
-Data needed for testing should be placed in `tests/data`. This should be limited to small text files e.g. `.csv`, `.json`, `.yml`. Binary data should be stored outside the repository and referenced e.g. using a DOI. Discuss more complex test data requirements for your **pull request** in the motivating **issue**.
-
-## Common parameters
-
-Consider adding parameters (or objects etc.) that may be useful to multiple tests as fixtures in a [`conftest.py`](
-https://docs.pytest.org/en/stable/fixture.html#conftest-py-sharing-fixtures-across-multiple-files) file, either in `tests/` or the appropriate sub-module.
-
 ## Testing DataFrames and arrays
 
 Comparisons / assertions involving `pandas` `DataFrames` (or other `pandas` objects) should be made using `pandas` utility functions: [`pandas.testing.assert_frame_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_frame_equal.html), [`pandas.testing.assert_series_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_series_equal.html), [`pandas.testing.assert_index_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_index_equal.html), [`pandas.testing.assert_extension_array_equal`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.testing.assert_extension_array_equal.html).
 
 Comparisons / assertions involving `numpy` `arrays` (or other `numpy` objects) should be made using [`numpy` testing routines](https://numpy.org/doc/stable/reference/routines.testing.html). `numpy` floating point "problem" response will be [as default](https://numpy.org/doc/stable/reference/generated/numpy.seterr.html#numpy.seterr).
+
+## Testing tensors
+
+There are [build-in torch testing modules](https://github.com/pytorch/pytorch/tree/master/torch/testing): [`assert_tensors_equal` and `assert_tensors_allclose`](https://github.com/pytorch/pytorch/blob/master/torch/testing/_asserts.py).
 
 ## Random Numbers
 
@@ -65,13 +76,13 @@ Random numbers in pykale are generated using base python, numpy and pytorch. Pri
 
 In `__init__.py` or `test_<modulename>.py`:
 
-```
+```python
 from kale.utils.seed import set_seed
 ```
 
 In test, before assertion:
 
-```
+```python
 set_seed()
 ```
 
@@ -88,7 +99,7 @@ https://numpy.org/doc/stable/reference/generated/numpy.seterr.html#numpy.seterr)
 
 Be aware that the code for which you are adding a test may have [side effects](https://en.wikipedia.org/wiki/Side_effect_(computer_science)) (e.g. a function changing something in a file or database, as well as returning a variable). e.g.
 
-```{python}
+```python
 import math
 
 def add(numbers):
@@ -101,7 +112,7 @@ print("pi:", math.pi) # Show side effect
 
 will output:
 
-```
+```python
 Sum: 2
 pi: 4.141592653589793
 ```
