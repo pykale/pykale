@@ -21,7 +21,7 @@ See more details below, particularly [test data](#test-data), [common parameters
 
 ## Test data
 
-Data needed for testing should be placed in [`tests/test_data`](https://github.com/pykale/pykale/tree/master/tests/test_data). Only small files (current limit: 300KB) should be uploaded directly. Larger data should be **automatically downloaded** during tests from external sources to `tests/test_data/download` as defined in [`tests/conftest.py`](https://github.com/pykale/pykale/blob/master/tests/conftest.py). Such data will be kept local, as set in [`.gitignore`](https://github.com/pykale/pykale/blob/master/.gitignore)). Discuss more complex test data requirements for your **pull request** in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
+Data needed for testing should be placed in [`tests/test_data`](https://github.com/pykale/pykale/tree/master/tests/test_data). Only small files (current limit: 300KB) should be uploaded directly. Larger data should be **automatically downloaded** during tests from external sources to `tests/test_data/download` as defined in [`tests/conftest.py`](https://github.com/pykale/pykale/blob/master/tests/conftest.py). Such data will be kept local, as set in [`.gitignore`](https://github.com/pykale/pykale/blob/master/.gitignore). Discuss more complex test data requirements for your **pull request** in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
 
 ## Common parameters
 
@@ -68,7 +68,7 @@ Comparisons / assertions involving `numpy` `arrays` (or other `numpy` objects) s
 
 ## Testing tensors
 
-There are [build-in torch testing modules](https://github.com/pytorch/pytorch/tree/master/torch/testing): `assert_tensors_equal` and `assert_tensors_allclose`.
+There are [build-in torch testing modules](https://github.com/pytorch/pytorch/tree/master/torch/testing): [`assert_tensors_equal` and `assert_tensors_allclose`](https://github.com/pytorch/pytorch/blob/master/torch/testing/_asserts.py).
 
 ## Random Numbers
 
