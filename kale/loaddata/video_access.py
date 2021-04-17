@@ -1,3 +1,8 @@
+# =============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# =============================================================================
+
 """
 Action video dataset loading for EPIC-Kitchen, ADL, GTEA, KITCHEN. The code is based on
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py
@@ -96,6 +101,14 @@ class VideoDataset(Enum):
         image_modality = data_params_local["dataset_image_modality"]
         frames_per_segment = data_params_local["frames_per_segment"]
 
+        if image_modality == "joint":
+            rgb = flow = True
+        elif image_modality == "rgb" or image_modality == "flow":
+            rgb = image_modality == "rgb"
+            flow = image_modality == "flow"
+        else:
+            raise Exception("Invalid modality option: {}".format(image_modality))
+
         transform_names = {
             VideoDataset.EPIC: "epic",
             VideoDataset.GTEA: "gtea",
@@ -122,17 +135,14 @@ class VideoDataset(Enum):
         source_tf = transform_names[source]
         target_tf = transform_names[target]
 
-        rgb_source = None
-        rgb_target = None
-        flow_source = None
-        flow_target = None
+        rgb_source, rgb_target, flow_source, flow_target = [None] * 4
 
-        if image_modality == "rgb":
+        if rgb:
             rgb_source = factories[source](
                 src_data_path,
                 src_tr_listpath,
                 src_te_listpath,
-                image_modality,
+                "rgb",
                 frames_per_segment,
                 num_classes,
                 source_tf,
@@ -142,42 +152,14 @@ class VideoDataset(Enum):
                 tar_data_path,
                 tar_tr_listpath,
                 tar_te_listpath,
-                image_modality,
+                "rgb",
                 frames_per_segment,
                 num_classes,
                 target_tf,
                 seed,
             )
-            # flow_source = flow_target = None
-        elif image_modality == "flow":
-            flow_source = factories[source](
-                src_data_path,
-                src_tr_listpath,
-                src_te_listpath,
-                image_modality,
-                frames_per_segment,
-                num_classes,
-                source_tf,
-                seed,
-            )
-            flow_target = factories[target](
-                tar_data_path,
-                tar_tr_listpath,
-                tar_te_listpath,
-                image_modality,
-                frames_per_segment,
-                num_classes,
-                target_tf,
-                seed,
-            )
-            # rgb_source = rgb_target = None
-        elif image_modality == "joint":
-            rgb_source = factories[source](
-                src_data_path, src_tr_listpath, src_te_listpath, "rgb", frames_per_segment, num_classes, source_tf, seed
-            )
-            rgb_target = factories[target](
-                tar_data_path, tar_tr_listpath, tar_te_listpath, "rgb", frames_per_segment, num_classes, target_tf, seed
-            )
+
+        if flow:
             flow_source = factories[source](
                 src_data_path,
                 src_tr_listpath,
@@ -198,8 +180,6 @@ class VideoDataset(Enum):
                 target_tf,
                 seed,
             )
-        else:
-            raise ValueError("Invalid modality option: {}".format(image_modality))
 
         return (
             {"rgb": rgb_source, "flow": flow_source},

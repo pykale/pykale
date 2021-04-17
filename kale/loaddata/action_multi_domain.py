@@ -1,10 +1,17 @@
+# =============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# =============================================================================
+
+"""Construct a dataset for action videos with (multiple) source and target domains"""
+
 import logging
 
 import numpy as np
-from sklearn.utils import check_random_state
 
 from kale.loaddata.multi_domain import DatasetSizeType, MultiDomainDatasets, WeightingType
 from kale.loaddata.sampler import FixedSeedSamplingConfig, MultiDataLoader
+from sklearn.utils import check_random_state
 
 
 class VideoMultiDomainDatasets(MultiDomainDatasets):
@@ -28,7 +35,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             source_access_dict (dictionary): dictionary of source RGB and flow dataset accessors
             target_access_dict (dictionary): dictionary of target RGB and flow dataset accessors
             image_modality (string): image type (RGB or Optical Flow)
-            seed: (int): seed value set manually.
+            seed (int): seed value set manually.
         """
 
         self._image_modality = image_modality
@@ -44,7 +51,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         if self.rgb:
             source_access = source_access_dict["rgb"]
             target_access = target_access_dict["rgb"]
-        elif self.flow:
+        if self.flow:
             source_access = source_access_dict["flow"]
             target_access = target_access_dict["flow"]
 
@@ -56,7 +63,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                 class_weights=np.arange(source_access.n_classes(), 0, -1)
             )
             self._target_sampling_config = FixedSeedSamplingConfig(
-                class_weights=random_state.randint(1, 4, size=target_access.n_classes())
+                class_weights=np.random.randint(1, 4, size=target_access.n_classes())
             )
         elif weight_type is WeightingType.BALANCED:
             self._source_sampling_config = FixedSeedSamplingConfig(balance=True)
@@ -84,11 +91,11 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
     def prepare_data_loaders(self):
         if self.rgb:
             logging.debug("Load RGB train and val")
-            (self._rgb_source_by_split["train"], self._rgb_source_by_split["valid"],) = self._source_access_dict[
+            (self._rgb_source_by_split["train"], self._rgb_source_by_split["valid"]) = self._source_access_dict[
                 "rgb"
             ].get_train_val(self._val_split_ratio)
 
-            (self._rgb_target_by_split["train"], self._rgb_target_by_split["valid"],) = self._target_access_dict[
+            (self._rgb_target_by_split["train"], self._rgb_target_by_split["valid"]) = self._target_access_dict[
                 "rgb"
             ].get_train_val(self._val_split_ratio)
 
@@ -111,23 +118,21 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             self._flow_target_by_split["test"] = self._target_access_dict["flow"].get_test()
 
     def get_domain_loaders(self, split="train", batch_size=32):
-        rgb_source_ds = (
-            rgb_target_ds
-        ) = (
-            flow_source_ds
-        ) = (
-            flow_target_ds
-        ) = (
-            rgb_source_loader
-        ) = (
-            rgb_target_loader
-        ) = (
-            flow_source_loader
-        ) = (
-            flow_target_loader
-        ) = (
-            rgb_target_labeled_loader
-        ) = flow_target_labeled_loader = rgb_target_unlabeled_loader = flow_target_unlabeled_loader = n_dataset = None
+        (
+            rgb_source_ds,
+            rgb_target_ds,
+            flow_source_ds,
+            flow_target_ds,
+            rgb_source_loader,
+            rgb_target_loader,
+            flow_source_loader,
+            flow_target_loader,
+            rgb_target_labeled_loader,
+            flow_target_labeled_loader,
+            rgb_target_unlabeled_loader,
+            flow_target_unlabeled_loader,
+            n_dataset,
+        ) = [None] * 13
 
         if self.rgb:
             rgb_source_ds = self._rgb_source_by_split[split]
@@ -198,7 +203,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         if self.rgb:
             source_ds = self._rgb_source_by_split["train"]
             target_ds = self._rgb_target_by_split["train"]
-        elif self.flow:
+        if self.flow:
             source_ds = self._flow_source_by_split["train"]
             target_ds = self._flow_target_by_split["train"]
 

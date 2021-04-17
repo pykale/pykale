@@ -1,3 +1,8 @@
+# =============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# =============================================================================
+
 """Classification of data or domain
 
 Modules for typical classification tasks (into class labels) and
@@ -124,17 +129,19 @@ class ClassNetVideo(nn.Module):
 
     Args:
         input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        n_channel (int, optional): the number of channel for Linear and BN layers.
+        dropout_keep_prob (int, optional): the dropout probability for keeping the parameters.
         n_class (int, optional): the number of classes. Defaults to 8.
     """
 
-    def __init__(self, input_size=512, n_class=8):
+    def __init__(self, input_size=512, n_channel=100, dropout_keep_prob=0.5, n_class=8):
         super(ClassNetVideo, self).__init__()
         self._n_classes = n_class
-        self.fc1 = nn.Linear(input_size, 100)
-        self.bn1 = nn.BatchNorm1d(100)
+        self.fc1 = nn.Linear(input_size, n_channel)
+        self.bn1 = nn.BatchNorm1d(n_channel)
         self.relu1 = nn.ReLU()
-        self.dp1 = nn.Dropout(0.5)
-        self.fc2 = nn.Linear(100, n_class)
+        self.dp1 = nn.Dropout(dropout_keep_prob)
+        self.fc2 = nn.Linear(n_channel, n_class)
 
     def n_classes(self):
         return self._n_classes
@@ -145,8 +152,18 @@ class ClassNetVideo(nn.Module):
         return x
 
 
-# Dima's classifier
 class ClassNetVideoConv(nn.Module):
+    """Classifier network for video input refer to MMSADA.
+
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 1024.
+        n_class (int, optional): the number of classes. Defaults to 8.
+
+    References:
+        Munro Jonathan, and Dima Damen. "Multi-modal domain adaptation for fine-grained action recognition."
+        In CVPR, pp. 122-132. 2020.
+    """
+
     def __init__(self, input_size=1024, n_class=8):
         super(ClassNetVideoConv, self).__init__()
         self.dp = nn.Dropout()
@@ -167,19 +184,20 @@ class ClassNetVideoConv(nn.Module):
 
 # For Video/Action Recognition, DomainClassifier.
 class DomainNetVideo(nn.Module):
-    """Domain classifier network for video input
+    """Regular domain classifier network for video input.
 
     Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        n_channel (int, optional): the number of channel for Linear and BN layers.
     """
 
-    def __init__(self, input_size=128):
+    def __init__(self, input_size=128, n_channel=100):
         super(DomainNetVideo, self).__init__()
 
-        self.fc1 = nn.Linear(input_size, 100)
-        self.bn1 = nn.BatchNorm1d(100)
+        self.fc1 = nn.Linear(input_size, n_channel)
+        self.bn1 = nn.BatchNorm1d(n_channel)
         self.relu1 = nn.ReLU()
-        self.fc2 = nn.Linear(100, 2)
+        self.fc2 = nn.Linear(n_channel, 2)
 
     def forward(self, input):
         x = self.relu1(self.bn1(self.fc1(input)))
