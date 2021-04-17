@@ -1,4 +1,4 @@
-changelog_type: pull_request  # or 'commit_message'
+changelog_type: "commit_message"  # "pull_request"  # or "commit_message"
 header_prefix: "Version "
 commit_changelog: true
 comment_changelog: true
