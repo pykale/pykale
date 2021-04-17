@@ -105,11 +105,11 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
 
         if self.flow:
             logging.debug("Load flow train and val")
-            (self._flow_source_by_split["train"], self._flow_source_by_split["valid"],) = self._source_access_dict[
+            (self._flow_source_by_split["train"], self._flow_source_by_split["valid"]) = self._source_access_dict[
                 "flow"
             ].get_train_val(self._val_split_ratio)
 
-            (self._flow_target_by_split["train"], self._flow_target_by_split["valid"],) = self._target_access_dict[
+            (self._flow_target_by_split["train"], self._flow_target_by_split["valid"]) = self._target_access_dict[
                 "flow"
             ].get_train_val(self._val_split_ratio)
 
@@ -197,7 +197,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             ]
             dataloaders = [x for x in dataloaders if x is not None]
 
-            return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1),)
+            return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1))
 
     def __len__(self):
         if self.rgb:
