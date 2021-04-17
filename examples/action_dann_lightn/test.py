@@ -1,24 +1,18 @@
-"""This example is about domain adaptation for action recognition, using PyTorch Lightning.
+"""This example is testing domain adaptation for action recognition, using PyTorch Lightning.
+We can load and test different trained models without training.
 
-Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 """
 
 import argparse
 import logging
-import os
+
+import torch
 
 import pytorch_lightning as pl
-import torch
 from config import get_cfg_defaults
-from model import get_model
-from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks import LearningRateMonitor
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-
 from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
 from kale.loaddata.video_access import VideoDataset
-from kale.utils.csv_logger import setup_logger
-from kale.utils.seed import set_seed
+from model import get_model
 
 
 def arg_parse():
@@ -33,6 +27,7 @@ def arg_parse():
 
 
 def weights_update(model, checkpoint):
+    """Load the pre-trained parameters to the model."""
     model_dict = model.state_dict()
     pretrained_dict = {k: v for k, v in checkpoint["state_dict"].items() if k in model_dict}
     model_dict.update(pretrained_dict)
