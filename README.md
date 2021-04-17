@@ -12,7 +12,8 @@
 [Getting Started](https://github.com/pykale/pykale/tree/master/examples) |
 [Documentation](https://pykale.readthedocs.io/) |
 [Contributing](https://github.com/pykale/pykale/blob/master/.github/CONTRIBUTING.md) |
-[Discussions](https://github.com/pykale/pykale/discussions)
+[Discussions](https://github.com/pykale/pykale/discussions) |
+[Changelog](https://github.com/pykale/pykale/tree/master/.github/CHANGELOG.md)
 
  PyKale is a [PyTorch](https://pytorch.org/) library for [multimodal learning](https://en.wikipedia.org/wiki/Multimodal_learning) and [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning) as well as **dimensionality reduction** and **deep learning** on graphs, images, texts, and videos. By adopting a unified *pipeline-based* API design, PyKale enforces *standardization* and *minimalism*, via *reusing* existing resources, *reducing* repetitions and redundancy, and *recycling* learning models across areas. PyKale aims to facilitate *interdisciplinary*, *knowledge-aware* machine learning research for graphs, images, texts, and videos in applications including bioinformatics, graph analysis, image/video recognition, and medical imaging. It focuses on leveraging knowledge from multiple sources for accurate and *interpretable* prediction. See a [12-minute introduction video on YouTube](https://youtu.be/i5BYdMfbpMQ).
 
