@@ -3,7 +3,7 @@ header_prefix: "Version "
 commit_changelog: true
 comment_changelog: true
 version_regex: "v?([0-9]{1,2})+[.]+([0-9]{1,2})+[.]+([0-9]{1,2})+[b]+([0-9]{1,2})"
-pull_request_title_regex: ^Release
+pull_request_title_regex: "^Release"
 group_config:
   - title: Bug Fixes
     labels:
