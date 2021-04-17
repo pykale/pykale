@@ -1,14 +1,14 @@
 # This workflow will generate a log of changes automatically upon a new release.
 # See https://github.com/marketplace/actions/changelog-ci
 
-name: Changelog CI
+name: changelog
 
 on:
   pull_request:
     types: [opened, reopened]
 
 jobs:
-  build:
+  log_changes:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
