@@ -1,3 +1,8 @@
+# =============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# =============================================================================
+
 """
 Define Inflated 3D ConvNets(I3D) on Action Recognition from https://ieeexplore.ieee.org/document/8099985
 Created by Xianyuan Liu from modifying https://github.com/piergiaj/pytorch-i3d/blob/master/pytorch_i3d.py and
@@ -7,6 +12,7 @@ https://github.com/deepmind/kinetics-i3d/blob/master/i3d.py
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from torchvision.models.utils import load_state_dict_from_url
 
 __all__ = ["i3d_joint", "InceptionI3d", "InceptionModule"]
@@ -139,9 +145,9 @@ class Unit3D(nn.Module):
 
 class InceptionModule(nn.Module):
     """
-    Construct Inception module
-    Four branches (1x1x1 conv; 1x1x1 + 3x3x3 convs; 1x1x1 + 3x3x3 convs; 3x3x3 max-pool + 1x1x1 conv)
-    Concatenation after four branches
+    Construct Inception module. Concatenation after four branches (1x1x1 conv; 1x1x1 + 3x3x3 convs; 1x1x1 + 3x3x3
+    convs; 3x3x3 max-pool + 1x1x1 conv). In `forward`, we check if SELayers are used, which are
+    channel-wise (SELayerC), temporal-wise (SELayerT), channel-temporal-wise (SELayerTC & SELayerCT).
     """
 
     def __init__(self, in_channels, out_channels, name):
@@ -202,23 +208,25 @@ class InceptionModule(nn.Module):
     def forward(self, x):
         outputs = self._forward(x)
         out = torch.cat(outputs, dim=1)
-        if "SELayerC" in dir(self):  # Check self.SELayer
-            out = self.SELayerC(out)
-        if "SELayerT" in dir(self):
-            out = self.SELayerT(out)
-        if "SELayerCoC" in dir(self):
-            out = self.SELayerCoC(out)
-        if "SELayerMC" in dir(self):
-            out = self.SELayerMC(out)
-        if "SELayerMAC" in dir(self):
-            out = self.SELayerMAC(out)
 
-        if "SELayerCTc" in dir(self):
+        # Check if SELayer is used.
+        if "SELayerC" in dir(self):  # check channel-wise
+            out = self.SELayerC(out)
+        if "SELayerT" in dir(self):  # check temporal-wise
+            out = self.SELayerT(out)
+        # if "SELayerCoC" in dir(self):
+        #     out = self.SELayerCoC(out)
+        # if "SELayerMC" in dir(self):
+        #     out = self.SELayerMC(out)
+        # if "SELayerMAC" in dir(self):
+        #     out = self.SELayerMAC(out)
+
+        if "SELayerCTc" in dir(self):  # check channel-temporal-wise
             out = self.SELayerCTc(out)
         if "SELayerCTt" in dir(self):
             out = self.SELayerCTt(out)
 
-        if "SELayerTCt" in dir(self):
+        if "SELayerTCt" in dir(self):  # check temporal-channel-wise
             out = self.SELayerTCt(out)
         if "SELayerTCc" in dir(self):
             out = self.SELayerTCc(out)
@@ -495,14 +503,22 @@ def i3d(name, num_channels, num_classes, pretrained=False, progress=True):
 
 
 def i3d_joint(rgb_pt, flow_pt, num_classes, pretrained=False, progress=True):
-    """Get I3D models."""
+    """Get I3D models for different inputs.
+
+    Args:
+        rgb_pt (string): the name of pre-trained model for RGB input.
+        flow_pt (string): the name of pre-trained model for flow input.
+        num_classes (int): the class number of dataset.
+        pretrained (bool): choose if pretrained parameters are used. (Default: False)
+        progress (bool, optional): whether or not to display a progress bar to stderr. (Default: True)
+
+    Returns:
+        models (dictionary): A dictionary contains RGB and flow models.
+    """
     i3d_rgb = i3d_flow = None
-    if rgb_pt is not None and flow_pt is None:
+    if rgb_pt is not None:
         i3d_rgb = i3d(name=rgb_pt, num_channels=3, num_classes=num_classes, pretrained=pretrained, progress=progress)
-    elif rgb_pt is None and flow_pt is not None:
-        i3d_flow = i3d(name=flow_pt, num_channels=2, num_classes=num_classes, pretrained=pretrained, progress=progress)
-    elif rgb_pt is not None and flow_pt is not None:
-        i3d_rgb = i3d(name=rgb_pt, num_channels=3, num_classes=num_classes, pretrained=pretrained, progress=progress)
+    if flow_pt is not None:
         i3d_flow = i3d(name=flow_pt, num_channels=2, num_classes=num_classes, pretrained=pretrained, progress=progress)
     models = {"rgb": i3d_rgb, "flow": i3d_flow}
     return models

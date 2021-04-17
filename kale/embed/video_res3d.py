@@ -1,9 +1,15 @@
+# =============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# =============================================================================
+
 """
 Define MC3_18, R3D_18, R2plus1D_18 on Action Recognition from https://arxiv.org/abs/1711.11248
 Created by Xianyuan Liu from modifying https://github.com/pytorch/vision/blob/master/torchvision/models/video/resnet.py
 """
 
 import torch.nn as nn
+
 from torchvision.models.utils import load_state_dict_from_url
 
 model_urls = {
@@ -77,7 +83,8 @@ class Conv3DNoTemporal(nn.Conv3d):
 class BasicBlock(nn.Module):
     """
     Basic ResNet building block. Each block consists of two convolutional layers with a ReLU activation function
-    after each layer and residual connections.
+    after each layer and residual connections. In `forward`, we check if SELayers are used, which are
+    channel-wise (SELayerC) and temporal-wise (SELayerT).
     """
 
     expansion = 1
@@ -102,16 +109,17 @@ class BasicBlock(nn.Module):
         if self.downsample is not None:
             residual = self.downsample(x)
 
-        if "SELayerC" in dir(self):  # Check self.SELayer
+        # Check if SELayer is used.
+        if "SELayerC" in dir(self):
             out = self.SELayerC(out)
-        if "SELayerT" in dir(self):  # Check self.SELayer
+        if "SELayerT" in dir(self):
             out = self.SELayerT(out)
-        if "SELayerCoC" in dir(self):  # Check self.SELayer
-            out = self.SELayerCoC(out)
-        if "SELayerMC" in dir(self):  # Check self.SELayer
-            out = self.SELayerMC(out)
-        if "SELayerMAC" in dir(self):  # Check self.SELayer
-            out = self.SELayerMAC(out)
+        # if "SELayerCoC" in dir(self):
+        #     out = self.SELayerCoC(out)
+        # if "SELayerMC" in dir(self):
+        #     out = self.SELayerMC(out)
+        # if "SELayerMAC" in dir(self):
+        #     out = self.SELayerMAC(out)
 
         out += residual
         out = self.relu(out)
@@ -221,6 +229,7 @@ class R2Plus1dFlowStem(nn.Sequential):
 class VideoResNet(nn.Module):
     def __init__(self, block, conv_makers, layers, stem, num_classes=400, zero_init_residual=False):
         """Generic resnet video generator.
+
         Args:
             block (nn.Module): resnet building block
             conv_makers (list(functions)): generator function for each layer
@@ -317,11 +326,13 @@ def _video_resnet_flow(arch, pretrained=False, progress=True, **kwargs):
 
 
 def r3d_18_rgb(pretrained=False, progress=True, **kwargs):
-    """Construct 18 layer Resnet3D model as in
+    """Construct 18 layer Resnet3D model for RGB as in
     https://arxiv.org/abs/1711.11248
+
     Args:
         pretrained (bool): If True, returns a model pre-trained on Kinetics-400
         progress (bool): If True, displays a progress bar of the download to stderr
+
     Returns:
         nn.Module: R3D-18 network
     """
@@ -354,11 +365,13 @@ def r3d_18_flow(pretrained=False, progress=True, **kwargs):
 
 
 def mc3_18_rgb(pretrained=False, progress=True, **kwargs):
-    """Constructor for 18 layer Mixed Convolution network as in
+    """Constructor for 18 layer Mixed Convolution network for RGB as in
     https://arxiv.org/abs/1711.11248
+
     Args:
         pretrained (bool): If True, returns a model pre-trained on Kinetics-400
         progress (bool): If True, displays a progress bar of the download to stderr
+
     Returns:
         nn.Module: MC3 Network definition
     """
@@ -391,11 +404,13 @@ def mc3_18_flow(pretrained=False, progress=True, **kwargs):
 
 
 def r2plus1d_18_rgb(pretrained=False, progress=True, **kwargs):
-    """Constructor for the 18 layer deep R(2+1)D network as in
+    """Constructor for the 18 layer deep R(2+1)D network for RGB as in
     https://arxiv.org/abs/1711.11248
+
     Args:
         pretrained (bool): If True, returns a model pre-trained on Kinetics-400
         progress (bool): If True, displays a progress bar of the download to stderr
+
     Returns:
         nn.Module: R(2+1)D-18 network
     """
@@ -430,12 +445,9 @@ def r2plus1d_18_flow(pretrained=False, progress=True, **kwargs):
 def r3d(rgb=False, flow=False, pretrained=False, progress=True):
     """Get R3D_18 models."""
     r3d_rgb = r3d_flow = None
-    if rgb and not flow:
+    if rgb:
         r3d_rgb = r3d_18_rgb(pretrained=pretrained, progress=progress)
-    elif not rgb and flow:
-        r3d_flow = r3d_18_flow(pretrained=pretrained, progress=progress)
-    elif rgb and flow:
-        r3d_rgb = r3d_18_rgb(pretrained=pretrained, progress=progress)
+    if flow:
         r3d_flow = r3d_18_flow(pretrained=pretrained, progress=progress)
     models = {"rgb": r3d_rgb, "flow": r3d_flow}
     return models
@@ -444,12 +456,9 @@ def r3d(rgb=False, flow=False, pretrained=False, progress=True):
 def mc3(rgb=False, flow=False, pretrained=False, progress=True):
     """Get MC3_18 models."""
     mc3_rgb = mc3_flow = None
-    if rgb and not flow:
+    if rgb:
         mc3_rgb = mc3_18_rgb(pretrained=pretrained, progress=progress)
-    elif not rgb and flow:
-        mc3_flow = mc3_18_flow(pretrained=pretrained, progress=progress)
-    elif rgb and flow:
-        mc3_rgb = mc3_18_rgb(pretrained=pretrained, progress=progress)
+    if flow:
         mc3_flow = mc3_18_flow(pretrained=pretrained, progress=progress)
     models = {"rgb": mc3_rgb, "flow": mc3_flow}
     return models
@@ -458,12 +467,9 @@ def mc3(rgb=False, flow=False, pretrained=False, progress=True):
 def r2plus1d(rgb=False, flow=False, pretrained=False, progress=True):
     """Get R2PLUS1D_18 models."""
     r2plus1d_rgb = r2plus1d_flow = None
-    if rgb and not flow:
+    if rgb:
         r2plus1d_rgb = r2plus1d_18_rgb(pretrained=pretrained, progress=progress)
-    elif not rgb and flow:
-        r2plus1d_flow = r2plus1d_18_flow(pretrained=pretrained, progress=progress)
-    elif rgb and flow:
-        r2plus1d_rgb = r2plus1d_18_rgb(pretrained=pretrained, progress=progress)
+    if flow:
         r2plus1d_flow = r2plus1d_18_flow(pretrained=pretrained, progress=progress)
     models = {"rgb": r2plus1d_rgb, "flow": r2plus1d_flow}
     return models

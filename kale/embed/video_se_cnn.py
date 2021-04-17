@@ -1,10 +1,27 @@
+# =============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# =============================================================================
+
+"""Python implementation of Squeeze-and-Excitation Layers (SELayer)
+Initial implementation: channel-wise (SELayerC)
+Improved implementation: temporal-wise (SELayerT), convolution-based channel-wise (SELayerCoC), max-pooling-based
+channel-wise (SELayerMC), multi-pooling-based channel-wise (SELayerMAC)
+
+References:
+    Hu Jie, Li Shen, and Gang Sun. "Squeeze-and-excitation networks." In CVPR, pp. 7132-7141. 2018.
+    For initial implementation, please go to https://github.com/hujie-frank/SENet
+"""
+
 import torch
 import torch.nn as nn
 
-__all__ = ["SELayerC", "SELayerT", "SELayerMC", "SELayerMAC", "SELayerCoC"]
+__all__ = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC"]
 
 
 class SELayerC(nn.Module):
+    """Construct channel-wise SELayer."""
+
     def __init__(self, channel, reduction=16):
         super(SELayerC, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
@@ -26,6 +43,8 @@ class SELayerC(nn.Module):
 
 
 class SELayerT(nn.Module):
+    """Construct temporal-wise SELayer."""
+
     def __init__(self, channel, reduction=2):
         super(SELayerT, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
@@ -49,6 +68,8 @@ class SELayerT(nn.Module):
 
 
 class SELayerCoC(nn.Module):
+    """Construct convolution-based channel-wise SELayer."""
+
     def __init__(self, channel, reduction=16):
         super(SELayerCoC, self).__init__()
         self.conv1 = nn.Conv3d(in_channels=channel, out_channels=channel // reduction, kernel_size=1, bias=False)
@@ -80,6 +101,8 @@ class SELayerCoC(nn.Module):
 
 
 class SELayerMC(nn.Module):
+    """Construct channel-wise SELayer with max pooling."""
+
     def __init__(self, channel, reduction=16):
         super(SELayerMC, self).__init__()
         self.max_pool = nn.AdaptiveMaxPool3d(1)
@@ -101,6 +124,8 @@ class SELayerMC(nn.Module):
 
 
 class SELayerMAC(nn.Module):
+    """Construct channel-wise SELayer with the mix of average pooling and max pooling."""
+
     def __init__(self, channel, reduction=16):
         super(SELayerMAC, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool3d(1)

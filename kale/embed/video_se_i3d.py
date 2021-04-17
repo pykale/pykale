@@ -1,13 +1,15 @@
-"""
-Define Inflated 3D ConvNets(I3D) on Action Recognition from https://ieeexplore.ieee.org/document/8099985
-Created by Xianyuan Liu from modifying https://github.com/piergiaj/pytorch-i3d/blob/master/pytorch_i3d.py and
-https://github.com/deepmind/kinetics-i3d/blob/master/i3d.py
-"""
+# =============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# =============================================================================
+
+"""Add SELayers to I3D"""
+
 import torch.nn as nn
-from torchvision.models.utils import load_state_dict_from_url
 
 from kale.embed.video_i3d import InceptionI3d
 from kale.embed.video_se_cnn import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
+from torchvision.models.utils import load_state_dict_from_url
 
 __all__ = ["se_i3d_joint", "SEInceptionI3DRGB", "SEInceptionI3DFlow"]
 
@@ -20,10 +22,22 @@ model_urls = {
 
 
 class SEInceptionI3DRGB(nn.Module):
+    """Add the several SELayers to I3D for RGB input.
+    Args:
+        num_channels (int): the channel number of the input.
+        num_classes (int): the class number of dataset.
+        attention (string): the name of the SELayer.
+            (Options: ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC", "SELayerCT" and "SELayerTC"])
+
+    Returns:
+        model (VideoResNet): I3D model with SELayers.
+    """
+
     def __init__(self, num_channels, num_classes, attention):
         super(SEInceptionI3DRGB, self).__init__()
         model = InceptionI3d(in_channels=num_channels, num_classes=num_classes)
-        n = 16
+        temporal_length = 16
+        # Add channel-wise SELayer
         if attention == "SELayerC":
             model.Mixed_3b.add_module("SELayerC", SELayerC(256))
             model.Mixed_3c.add_module("SELayerC", SELayerC(480))
@@ -35,17 +49,19 @@ class SEInceptionI3DRGB(nn.Module):
             model.Mixed_5b.add_module("SELayerC", SELayerC(832))
             model.Mixed_5c.add_module("SELayerC", SELayerC(1024))
 
+        # Add temporal-wise SELayer
         elif attention == "SELayerT":
-            model.Mixed_3b.add_module("SELayerT", SELayerT(n // 2))
-            model.Mixed_3c.add_module("SELayerT", SELayerT(n // 2))
-            model.Mixed_4b.add_module("SELayerT", SELayerT(n // 4))
-            model.Mixed_4c.add_module("SELayerT", SELayerT(n // 4))
-            model.Mixed_4d.add_module("SELayerT", SELayerT(n // 4))
-            model.Mixed_4e.add_module("SELayerT", SELayerT(n // 4))
-            model.Mixed_4f.add_module("SELayerT", SELayerT(n // 4))
-            # model.Mixed_5b.add_module("SELayerT", SELayerT(n//8))
-            # model.Mixed_5c.add_module("SELayerT", SELayerT(n//8))
+            model.Mixed_3b.add_module("SELayerT", SELayerT(temporal_length // 2))
+            model.Mixed_3c.add_module("SELayerT", SELayerT(temporal_length // 2))
+            model.Mixed_4b.add_module("SELayerT", SELayerT(temporal_length // 4))
+            model.Mixed_4c.add_module("SELayerT", SELayerT(temporal_length // 4))
+            model.Mixed_4d.add_module("SELayerT", SELayerT(temporal_length // 4))
+            model.Mixed_4e.add_module("SELayerT", SELayerT(temporal_length // 4))
+            model.Mixed_4f.add_module("SELayerT", SELayerT(temporal_length // 4))
+            # model.Mixed_5b.add_module("SELayerT", SELayerT(temporal_length//8))
+            # model.Mixed_5c.add_module("SELayerT", SELayerT(temporal_length//8))
 
+        # Add convolution-based channel-wise SELayer
         elif attention == "SELayerCoC":
             model.Mixed_3b.add_module("SELayerCoC", SELayerCoC(256))
             model.Mixed_3c.add_module("SELayerCoC", SELayerCoC(480))
@@ -57,6 +73,7 @@ class SEInceptionI3DRGB(nn.Module):
             model.Mixed_5b.add_module("SELayerCoC", SELayerCoC(832))
             model.Mixed_5c.add_module("SELayerCoC", SELayerCoC(1024))
 
+        # Add max-pooling-based channel-wise SELayer
         elif attention == "SELayerMC":
             model.Mixed_3b.add_module("SELayerMC", SELayerMC(256))
             model.Mixed_3c.add_module("SELayerMC", SELayerMC(480))
@@ -68,6 +85,7 @@ class SEInceptionI3DRGB(nn.Module):
             model.Mixed_5b.add_module("SELayerMC", SELayerMC(832))
             model.Mixed_5c.add_module("SELayerMC", SELayerMC(1024))
 
+        # Add multi-pooling-based channel-wise SELayer
         elif attention == "SELayerMAC":
             model.Mixed_3b.add_module("SELayerMAC", SELayerMAC(256))
             model.Mixed_3c.add_module("SELayerMAC", SELayerMAC(480))
@@ -79,6 +97,7 @@ class SEInceptionI3DRGB(nn.Module):
             model.Mixed_5b.add_module("SELayerMAC", SELayerMAC(832))
             model.Mixed_5c.add_module("SELayerMAC", SELayerMAC(1024))
 
+        # Add channel-temporal-wise SELayer
         elif attention == "SELayerCT":
             model.Mixed_3b.add_module("SELayerCTc", SELayerC(256))
             model.Mixed_3c.add_module("SELayerCTc", SELayerC(480))
@@ -90,26 +109,27 @@ class SEInceptionI3DRGB(nn.Module):
             model.Mixed_5b.add_module("SELayerCTc", SELayerC(832))
             model.Mixed_5c.add_module("SELayerCTc", SELayerC(1024))
 
-            model.Mixed_3b.add_module("SELayerCTt", SELayerT(n // 2))
-            model.Mixed_3c.add_module("SELayerCTt", SELayerT(n // 2))
-            model.Mixed_4b.add_module("SELayerCTt", SELayerT(n // 4))
-            model.Mixed_4c.add_module("SELayerCTt", SELayerT(n // 4))
-            model.Mixed_4d.add_module("SELayerCTt", SELayerT(n // 4))
-            model.Mixed_4e.add_module("SELayerCTt", SELayerT(n // 4))
-            model.Mixed_4f.add_module("SELayerCTt", SELayerT(n // 4))
-            # model.Mixed_5b.add_module("SELayerCTt", SELayerT(n // 8))
-            # model.Mixed_5c.add_module("SELayerCTt", SELayerT(n // 8))
+            model.Mixed_3b.add_module("SELayerCTt", SELayerT(temporal_length // 2))
+            model.Mixed_3c.add_module("SELayerCTt", SELayerT(temporal_length // 2))
+            model.Mixed_4b.add_module("SELayerCTt", SELayerT(temporal_length // 4))
+            model.Mixed_4c.add_module("SELayerCTt", SELayerT(temporal_length // 4))
+            model.Mixed_4d.add_module("SELayerCTt", SELayerT(temporal_length // 4))
+            model.Mixed_4e.add_module("SELayerCTt", SELayerT(temporal_length // 4))
+            model.Mixed_4f.add_module("SELayerCTt", SELayerT(temporal_length // 4))
+            # model.Mixed_5b.add_module("SELayerCTt", SELayerT(temporal_length // 8))
+            # model.Mixed_5c.add_module("SELayerCTt", SELayerT(temporal_length // 8))
 
+        # Add temporal-channel-wise SELayer
         elif attention == "SELayerTC":
-            model.Mixed_3b.add_module("SELayerTCt", SELayerT(n // 2))
-            model.Mixed_3c.add_module("SELayerTCt", SELayerT(n // 2))
-            model.Mixed_4b.add_module("SELayerTCt", SELayerT(n // 4))
-            model.Mixed_4c.add_module("SELayerTCt", SELayerT(n // 4))
-            model.Mixed_4d.add_module("SELayerTCt", SELayerT(n // 4))
-            model.Mixed_4e.add_module("SELayerTCt", SELayerT(n // 4))
-            model.Mixed_4f.add_module("SELayerTCt", SELayerT(n // 4))
-            model.Mixed_5b.add_module("SELayerTCt", SELayerT(n // 8))
-            model.Mixed_5c.add_module("SELayerTCt", SELayerT(n // 8))
+            model.Mixed_3b.add_module("SELayerTCt", SELayerT(temporal_length // 2))
+            model.Mixed_3c.add_module("SELayerTCt", SELayerT(temporal_length // 2))
+            model.Mixed_4b.add_module("SELayerTCt", SELayerT(temporal_length // 4))
+            model.Mixed_4c.add_module("SELayerTCt", SELayerT(temporal_length // 4))
+            model.Mixed_4d.add_module("SELayerTCt", SELayerT(temporal_length // 4))
+            model.Mixed_4e.add_module("SELayerTCt", SELayerT(temporal_length // 4))
+            model.Mixed_4f.add_module("SELayerTCt", SELayerT(temporal_length // 4))
+            model.Mixed_5b.add_module("SELayerTCt", SELayerT(temporal_length // 8))
+            model.Mixed_5c.add_module("SELayerTCt", SELayerT(temporal_length // 8))
 
             model.Mixed_3b.add_module("SELayerTCc", SELayerC(256))
             model.Mixed_3c.add_module("SELayerTCc", SELayerC(480))
@@ -128,29 +148,36 @@ class SEInceptionI3DRGB(nn.Module):
 
 
 class SEInceptionI3DFlow(nn.Module):
+    """
+    Add the several SELayers to I3D for optical flow input.
+    """
+
     def __init__(self, num_channels, num_classes, attention):
         super(SEInceptionI3DFlow, self).__init__()
         model = InceptionI3d(in_channels=num_channels, num_classes=num_classes)
-        # n = 16
-        # if attention == "SELayerC":
-        #     model.Mixed_3b.add_module("SELayerC", SELayerC(256))
-        #     model.Mixed_3c.add_module("SELayerC", SELayerC(480))
-        #     model.Mixed_4b.add_module("SELayerC", SELayerC(512))
-        #     model.Mixed_4c.add_module("SELayerC", SELayerC(512))
-        #     model.Mixed_4d.add_module("SELayerC", SELayerC(512))
-        #     model.Mixed_4e.add_module("SELayerC", SELayerC(528))
-        #     model.Mixed_4f.add_module("SELayerC", SELayerC(832))
-        #     model.Mixed_5b.add_module("SELayerC", SELayerC(832))
-        #     model.Mixed_5c.add_module("SELayerC", SELayerC(1024))
-        #
-        # elif attention == "SELayerT":
-        #     model.Mixed_3b.add_module("SELayerT", SELayerT(n // 4))
-        #     model.Mixed_3c.add_module("SELayerT", SELayerT(n // 4))
-        #     model.Mixed_4b.add_module("SELayerT", SELayerT(n // 8))
-        #     model.Mixed_4c.add_module("SELayerT", SELayerT(n // 8))
-        #     model.Mixed_4d.add_module("SELayerT", SELayerT(n // 8))
-        #     model.Mixed_4e.add_module("SELayerT", SELayerT(n // 8))
-        #     model.Mixed_4f.add_module("SELayerT", SELayerT(n // 8))
+        temporal_length = 16
+
+        # Add channel-wise SELayer
+        if attention == "SELayerC":
+            model.Mixed_3b.add_module("SELayerC", SELayerC(256))
+            model.Mixed_3c.add_module("SELayerC", SELayerC(480))
+            model.Mixed_4b.add_module("SELayerC", SELayerC(512))
+            model.Mixed_4c.add_module("SELayerC", SELayerC(512))
+            model.Mixed_4d.add_module("SELayerC", SELayerC(512))
+            model.Mixed_4e.add_module("SELayerC", SELayerC(528))
+            model.Mixed_4f.add_module("SELayerC", SELayerC(832))
+            model.Mixed_5b.add_module("SELayerC", SELayerC(832))
+            model.Mixed_5c.add_module("SELayerC", SELayerC(1024))
+
+        # Add temporal-wise SELayer
+        elif attention == "SELayerT":
+            model.Mixed_3b.add_module("SELayerT", SELayerT(temporal_length // 4))
+            model.Mixed_3c.add_module("SELayerT", SELayerT(temporal_length // 4))
+            model.Mixed_4b.add_module("SELayerT", SELayerT(temporal_length // 8))
+            model.Mixed_4c.add_module("SELayerT", SELayerT(temporal_length // 8))
+            model.Mixed_4d.add_module("SELayerT", SELayerT(temporal_length // 8))
+            model.Mixed_4e.add_module("SELayerT", SELayerT(temporal_length // 8))
+            model.Mixed_4f.add_module("SELayerT", SELayerT(temporal_length // 8))
 
         self.model = model
 
@@ -159,7 +186,7 @@ class SEInceptionI3DFlow(nn.Module):
 
 
 def se_inception_i3d(name, num_channels, num_classes, attention, pretrained=False, progress=True, rgb=True):
-    """Get InceptionI3d module w/o pretrained model."""
+    """Get InceptionI3d module w/o SELayer and pretrained model."""
     if rgb:
         model = SEInceptionI3DRGB(num_channels, num_classes, attention)
     else:
@@ -186,9 +213,22 @@ def se_inception_i3d(name, num_channels, num_classes, attention, pretrained=Fals
 
 
 def se_i3d_joint(rgb_pt, flow_pt, num_classes, attention, pretrained=False, progress=True):
-    """Get I3D models."""
+    """Get I3D models with SELayers for different inputs.
+
+    Args:
+        rgb_pt (string): the name of pre-trained model for RGB input.
+        flow_pt (string): the name of pre-trained model for optical flow input.
+        num_classes (int): the class number of dataset.
+        attention (string): the name of the SELayer.
+        pretrained (bool): choose if pretrained parameters are used. (Default: False)
+        progress (bool, optional): whether or not to display a progress bar to stderr. (Default: True)
+
+    Returns:
+        models (dictionary): A dictionary contains models for RGB and optical flow.
+    """
+
     i3d_rgb = i3d_flow = None
-    if rgb_pt is not None and flow_pt is None:
+    if rgb_pt is not None:
         i3d_rgb = se_inception_i3d(
             name=rgb_pt,
             num_channels=3,
@@ -198,26 +238,7 @@ def se_i3d_joint(rgb_pt, flow_pt, num_classes, attention, pretrained=False, prog
             progress=progress,
             rgb=True,
         )
-    elif rgb_pt is None and flow_pt is not None:
-        i3d_flow = se_inception_i3d(
-            name=flow_pt,
-            num_channels=2,
-            num_classes=num_classes,
-            attention=attention,
-            pretrained=pretrained,
-            progress=progress,
-            rgb=False,
-        )
-    elif rgb_pt is not None and flow_pt is not None:
-        i3d_rgb = se_inception_i3d(
-            name=rgb_pt,
-            num_channels=3,
-            num_classes=num_classes,
-            attention=attention,
-            pretrained=pretrained,
-            progress=progress,
-            rgb=True,
-        )
+    if flow_pt is not None:
         i3d_flow = se_inception_i3d(
             name=flow_pt,
             num_channels=2,
