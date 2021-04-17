@@ -9,14 +9,13 @@ import os
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
-from model import get_model
-from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks import LearningRateMonitor
-
 from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
 from kale.loaddata.video_access import VideoDataset
 from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
+from model import get_model
+from pytorch_lightning import loggers as pl_loggers
+from pytorch_lightning.callbacks import LearningRateMonitor
 
 # from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
@@ -59,7 +58,8 @@ def main():
         config_size_type=cfg.DATASET.SIZE_TYPE,
     )
 
-    # Repeat multiple times to get std
+    # ---- training/test process ----
+    ### Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = seed + i * 10
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
@@ -70,9 +70,15 @@ def main():
             train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD, seed
         )
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR)
-        # Set early stopping
+
+        ### Set early stopping
         # early_stop_callback = EarlyStopping(monitor="V_target_acc", min_delta=0.0000, patience=100, mode="max")
+
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
+
+        ### Set the lightning trainer. Comment `limit_train_batches`, `limit_val_batches`, `limit_test_batches` when
+        # training. Uncomment and change the ratio to test the code on the smallest sub-dataset for efficiency in
+        # debugging. Uncomment early_stop_callback to activate early stopping.
         trainer = pl.Trainer(
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
@@ -90,19 +96,19 @@ def main():
             # limit_test_batches=0.06,
         )
 
-        # find learning_rate
+        ### Find learning_rate
         # lr_finder = trainer.tuner.lr_find(model, max_lr=0.1, min_lr=1e-6)
         # fig = lr_finder.plot(suggest=True)
         # fig.show()
         # logging.info(lr_finder.suggestion())
 
-        # trainer.tune(model)
-
+        ### Training/validation process
         trainer.fit(model)
         results.update(
             is_validation=True, method_name=cfg.DAN.METHOD, seed=seed, metric_values=trainer.callback_metrics,
         )
-        # test scores
+
+        ### Test process
         trainer.test()
         results.update(
             is_validation=False, method_name=cfg.DAN.METHOD, seed=seed, metric_values=trainer.callback_metrics,
