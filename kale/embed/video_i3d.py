@@ -12,6 +12,7 @@ https://github.com/deepmind/kinetics-i3d/blob/master/i3d.py
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from torchvision.models.utils import load_state_dict_from_url
 
 __all__ = ["i3d_joint", "InceptionI3d", "InceptionModule"]
@@ -493,10 +494,14 @@ def i3d(name, num_channels, num_classes, pretrained=False, progress=True):
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[name], progress=progress)
-        # delete logits.conv3d parameters due to different class number.
+
+        # delete the last layer's parameter and only load the parameters before the last due to different class number.
+        # uncomment and change the output size of I3D when using the default classifier in I3D.
+
         # state_dict.pop("logits.conv3d.weight")
         # state_dict.pop("logits.conv3d.bias")
         # model.load_state_dict(state_dict, strict=False)
+
         model.load_state_dict(state_dict)
     return model
 
