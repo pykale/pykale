@@ -5,14 +5,14 @@ name: changelog
 
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [opened]
 
 jobs:
   log_changes:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Run Changelog CI
+      - name: Run changelog
         uses: saadmk11/changelog-ci@v0.7.0
         with:
           changelog_filename: .github/CHANGELOG.md
