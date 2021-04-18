@@ -4,7 +4,7 @@
     "commit_changelog": true,
     "comment_changelog": true,
     "pull_request_title_regex": "^Release",
-    "version_regex": "v?([0-9]{1,2})+[.]+([0-9]{1,2})+[.]+([0-9]{1,2})+[b]+([0-9]{1,2})",
+    "version_regex": "v?([0-9]{1,2})+[.]+([0-9]{1,2})+[.]+([0-9]{1,2})+a?b?r?c?(([0-9]{1,2}))?",
     "group_config": [
       {
         "title": "Bug Fixes",
