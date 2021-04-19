@@ -6,12 +6,10 @@
 """Add SELayers to I3D"""
 
 import torch.nn as nn
-from torchvision.models.utils import load_state_dict_from_url
 
 from kale.embed.video_i3d import InceptionI3d
 from kale.embed.video_se_cnn import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
-
-__all__ = ["se_i3d_joint", "SEInceptionI3DRGB", "SEInceptionI3DFlow"]
+from torchvision.models.utils import load_state_dict_from_url
 
 model_urls = {
     "rgb_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt",

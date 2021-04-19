@@ -16,8 +16,6 @@ References:
 import torch
 import torch.nn as nn
 
-__all__ = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC"]
-
 
 class SELayerC(nn.Module):
     """Construct channel-wise SELayer."""
