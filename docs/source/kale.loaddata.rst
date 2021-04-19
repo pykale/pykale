@@ -78,6 +78,29 @@ kale.loaddata.tdc\_datasets module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.video\_access module
+-----------------------------------
+
+.. automodule:: kale.loaddata.video_access
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.loaddata.video\_datasets module
+-----------------------------------
+
+.. automodule:: kale.loaddata.video_datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.loaddata.action\_multi\_domain module
+-----------------------------------
+
+.. automodule:: kale.loaddata.action_multi_domain
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------

@@ -66,6 +66,45 @@ kale.embed.positional\_encoding module
    :undoc-members:
    :show-inheritance:
 
+kale.embed.video\_i3d module
+--------------------------------------
+
+.. automodule:: kale.embed.video_i3d
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.embed.video\_res3d module
+--------------------------------------
+
+.. automodule:: kale.embed.video_res3d
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.embed.video\_se\_cnn module
+--------------------------------------
+
+.. automodule:: kale.embed.video_se_cnn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.embed.video\_se\_i3d module
+--------------------------------------
+
+.. automodule:: kale.embed.video_se_i3d
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.embed.video\_se\_res3d module
+--------------------------------------
+
+.. automodule:: kale.embed.video_se_res3d
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------
