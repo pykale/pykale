@@ -9,6 +9,7 @@ Created by Xianyuan Liu from modifying https://github.com/pytorch/vision/blob/ma
 """
 
 import torch.nn as nn
+
 from torchvision.models.utils import load_state_dict_from_url
 
 model_urls = {
@@ -257,6 +258,11 @@ class VideoResNet(nn.Module):
             for m in self.modules():
                 if isinstance(m, Bottleneck):
                     nn.init.constant_(m.bn3.weight, 0)
+
+    def replace_fc(self, num_classes, block=BasicBlock):
+        """Update the output size with num_classes according to the specific setting."""
+
+        self.fc = nn.Linear(512 * block.expansion, num_classes)
 
     def forward(self, x):
         x = self.stem(x)  # [b, 64, 16, 112, 112]
