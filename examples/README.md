@@ -8,7 +8,7 @@ Naming convention: `data_method` or `data_method_lightn` for lightning (optional
 
 All data in examples are from the public domain so they will be downloaded into local directories, either automatically or following instructions in specific examples. In general, we do not upload data here to keep the repository size small, unless the size is less than 300KB.  This is done by setting `.gitignore`. If we share some data, the data should be external to the PyKale repository (Google Drive is popular nowadays, while more consistent ways of data sharing such as DOIs are under exploration).
 
-## Eight examples in three areas
+## Examples available in three areas
 
 * Image/video recognition
   * Image classification on [CIFAR via Transformer](https://github.com/pykale/pykale/tree/master/examples/cifar_cnntransformer), [CIFAR via IsoNet](https://github.com/pykale/pykale/tree/master/examples/cifar_isonet), [Digits via Domain Adaptation](https://github.com/pykale/pykale/tree/master/examples/digits_dann_lightn)
