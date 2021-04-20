@@ -82,10 +82,10 @@ kale.embed.video\_res3d module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_se\_cnn module
+kale.embed.video\_selayer module
 --------------------------------------
 
-.. automodule:: kale.embed.video_se_cnn
+.. automodule:: kale.embed.video_selayer
    :members:
    :undoc-members:
    :show-inheritance:

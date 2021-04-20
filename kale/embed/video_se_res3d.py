@@ -18,7 +18,7 @@ from kale.embed.video_res3d import (
     R2Plus1dStem,
     VideoResNet,
 )
-from kale.embed.video_se_cnn import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
+from kale.embed.video_selayer import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
 
 model_urls = {
     "r3d_18": "https://download.pytorch.org/models/r3d_18-b3b3357e.pth",
