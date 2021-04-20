@@ -19,7 +19,22 @@ from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.video_datasets import BasicVideoDataset, EPIC
 
 
+def get_image_modality(image_modality):
+    """Change image_modality (string) to rgb (bool) and flow (bool) for efficiency"""
+
+    if image_modality == "joint":
+        rgb = flow = True
+    elif image_modality == "rgb" or image_modality == "flow":
+        rgb = image_modality == "rgb"
+        flow = image_modality == "flow"
+    else:
+        raise Exception("Invalid modality option: {}".format(image_modality))
+    return rgb, flow
+
+
 def get_videodata_config(cfg):
+    """Get the configure parameters for video data from the cfg files"""
+
     config_params = {
         "data_params": {
             "dataset_root": cfg.DATASET.ROOT,
@@ -101,13 +116,7 @@ class VideoDataset(Enum):
         image_modality = data_params_local["dataset_image_modality"]
         frames_per_segment = data_params_local["frames_per_segment"]
 
-        if image_modality == "joint":
-            rgb = flow = True
-        elif image_modality == "rgb" or image_modality == "flow":
-            rgb = image_modality == "rgb"
-            flow = image_modality == "flow"
-        else:
-            raise Exception("Invalid modality option: {}".format(image_modality))
+        rgb, flow = get_image_modality(image_modality)
 
         transform_names = {
             VideoDataset.EPIC: "epic",

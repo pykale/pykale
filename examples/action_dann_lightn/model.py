@@ -1,17 +1,16 @@
+# =============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# =============================================================================
+
 """
 Define the learning model and configure training parameters.
 References from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 """
-# Author: Haiping Lu & Xianyuan Liu
-# Initial Date: 7 December 2020
 
-import logging
 from copy import deepcopy
 
-from kale.embed.video_i3d import i3d_joint
-from kale.embed.video_res3d import mc3, r2plus1d, r3d
-from kale.embed.video_se_i3d import se_i3d_joint
-from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
+from kale.embed.video_feature_extractor import get_video_feat_extractor
 from kale.pipeline import action_domain_adapter, domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 
@@ -54,193 +53,6 @@ def get_config(cfg):
     return config_params
 
 
-def get_feat_extractor(model_name, image_modality, attention, num_classes):
-    """
-    Get the feature extractor w/o the pre-trained model. The pre-trained models are saved in the path
-    ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
-    For Windows, default path is ``C:/Users/$USER_NAME/.cache/torch/hub/checkpoints/``.
-    Provide four pre-trained models: "rgb_imagenet", "flow_imagenet", "rgb_charades", "flow_charades".
-
-    Args:
-        model_name (string): The name of the feature extractor. (Choices=["I3D", "R3D_18", "R2PLUS1D_18", "MC3_18"])
-        image_modality (string): Image type. (Choices=["rgb", "flow", "joint"])
-        attention (string): The attention type. (Choices=["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"])
-        num_classes (int): The class number of specific dataset. (Default: No use)
-
-    Returns:
-        feature_network (dictionary): The network to extract features.
-        class_feature_dim (int): The dimension of the feature network output for ClassNet.
-                            It is a convention when the input dimension and the network is fixed.
-        domain_feature_dim (int): The dimension of the feature network output for DomainNet.
-    """
-    attention_list = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"]
-
-    if attention in attention_list:
-        att = True
-    elif attention == "None":
-        att = False
-    else:
-        raise ValueError("Wrong attention. Current: {}".format(attention))
-
-    if image_modality == "rgb":
-        if model_name == "I3D":
-            pretrained_model = "rgb_imagenet"
-            if att:
-                logging.info("{} using {}".format(model_name, attention))
-                feature_network = se_i3d_joint(
-                    rgb_pt=pretrained_model, flow_pt=None, num_classes=num_classes, attention=attention, pretrained=True
-                )
-            else:
-                logging.info("No SELayer.")
-                feature_network = i3d_joint(
-                    rgb_pt=pretrained_model, flow_pt=None, num_classes=num_classes, pretrained=True
-                )
-            # model.replace_logits(num_classes)
-            class_feature_dim = 1024
-            domain_feature_dim = class_feature_dim
-
-        elif model_name == "R3D_18":
-            if att:
-                logging.info("{} using {}".format(model_name, attention))
-                feature_network = se_r3d(rgb=True, flow=False, pretrained=True, attention=attention)
-            else:
-                logging.info("No SELayer.")
-                feature_network = r3d(rgb=True, flow=False, pretrained=True)
-            class_feature_dim = 512
-            domain_feature_dim = class_feature_dim
-
-        elif model_name == "R2PLUS1D_18":
-            if att:
-                logging.info("{} using {}".format(model_name, attention))
-                feature_network = se_r2plus1d(rgb=True, flow=False, pretrained=True, attention=attention)
-            else:
-                logging.info("No SELayer.")
-                feature_network = r2plus1d(rgb=True, flow=False, pretrained=True)
-            class_feature_dim = 512
-            domain_feature_dim = class_feature_dim
-
-        elif model_name == "MC3_18":
-            if att:
-                logging.info("{} using {}".format(model_name, attention))
-                feature_network = se_mc3(rgb=True, flow=False, pretrained=True, attention=attention)
-            else:
-                logging.info("No SELayer.")
-                feature_network = mc3(rgb=True, flow=False, pretrained=True)
-            class_feature_dim = 512
-            domain_feature_dim = class_feature_dim
-
-        else:
-            raise ValueError("Unsupported model: {}".format(model_name))
-
-    elif image_modality == "flow":
-        if model_name == "I3D":
-            pretrained_model = "flow_imagenet"
-            if att:
-                logging.info("Using {}".format(attention))
-                feature_network = se_i3d_joint(
-                    rgb_pt=None, flow_pt=pretrained_model, num_classes=num_classes, attention=attention, pretrained=True
-                )
-            else:
-                logging.info("No SELayer.")
-                feature_network = i3d_joint(
-                    rgb_pt=None, flow_pt=pretrained_model, num_classes=num_classes, pretrained=True
-                )
-            class_feature_dim = 1024
-            domain_feature_dim = class_feature_dim
-
-        elif model_name == "R3D_18":
-            if att:
-                logging.info("{} using {}".format(model_name, attention))
-                feature_network = se_r3d(rgb=False, flow=True, pretrained=True, attention=attention)
-            else:
-                logging.info("No SELayer.")
-                feature_network = r3d(rgb=False, flow=True, pretrained=True)
-            class_feature_dim = 512
-            domain_feature_dim = class_feature_dim
-
-        elif model_name == "R2PLUS1D_18":
-            if att:
-                logging.info("{} using {}".format(model_name, attention))
-                feature_network = se_r2plus1d(rgb=False, flow=True, pretrained=True, attention=attention)
-            else:
-                logging.info("No SELayer.")
-                feature_network = r2plus1d(rgb=False, flow=True, pretrained=True)
-            class_feature_dim = 512
-            domain_feature_dim = class_feature_dim
-
-        elif model_name == "MC3_18":
-            if att:
-                logging.info("{} using {}".format(model_name, attention))
-                feature_network = se_mc3(rgb=False, flow=True, pretrained=True, attention=attention)
-            else:
-                logging.info("No SELayer.")
-                feature_network = mc3(rgb=False, flow=True, pretrained=True)
-            class_feature_dim = 512
-            domain_feature_dim = class_feature_dim
-
-        else:
-            raise ValueError("Unsupported model: {}".format(model_name))
-
-    elif image_modality == "joint":
-        if model_name == "I3D":
-            rgb_pretrained_model = "rgb_imagenet"
-            flow_pretrained_model = "flow_imagenet"
-
-            if att:
-                logging.info("Using {}".format(attention))
-                feature_network = se_i3d_joint(
-                    rgb_pt=rgb_pretrained_model,
-                    flow_pt=flow_pretrained_model,
-                    num_classes=num_classes,
-                    attention=attention,
-                    pretrained=True,
-                )
-            else:
-                logging.info("No SELayer.")
-                feature_network = i3d_joint(
-                    rgb_pt=rgb_pretrained_model, flow_pt=flow_pretrained_model, num_classes=num_classes, pretrained=True
-                )
-            class_feature_dim = 2048
-            domain_feature_dim = class_feature_dim / 2
-
-        elif model_name == "R3D_18":
-            if att:
-                logging.info("{} using {}".format(model_name, attention))
-                feature_network = se_r3d(rgb=True, flow=True, pretrained=True, attention=attention)
-            else:
-                logging.info("No SELayer.")
-                feature_network = r3d(rgb=True, flow=True, pretrained=True)
-            class_feature_dim = 1024
-            domain_feature_dim = class_feature_dim / 2
-
-        elif model_name == "R2PLUS1D_18":
-            if att:
-                logging.info("{} using {}".format(model_name, attention))
-                feature_network = se_r2plus1d(rgb=True, flow=True, pretrained=True, attention=attention)
-            else:
-                logging.info("No SELayer.")
-                feature_network = r2plus1d(rgb=True, flow=True, pretrained=True)
-            class_feature_dim = 1024
-            domain_feature_dim = class_feature_dim / 2
-
-        elif model_name == "MC3_18":
-            if att:
-                logging.info("{} using {}".format(model_name, attention))
-                # feature_network = se_mc3(rgb=False, flow=True, pretrained=True, attention=attention)
-            else:
-                logging.info("No SELayer.")
-                feature_network = mc3(rgb=True, flow=True, pretrained=True)
-            class_feature_dim = 1024
-            domain_feature_dim = class_feature_dim / 2
-
-        else:
-            raise ValueError("Unsupported model: {}".format(model_name))
-
-    else:
-        raise ValueError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
-    return feature_network, int(class_feature_dim), int(domain_feature_dim)
-
-
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 def get_model(cfg, dataset, num_classes):
     """
@@ -253,7 +65,7 @@ def get_model(cfg, dataset, num_classes):
     """
 
     # setup feature extractor
-    feature_network, class_feature_dim, domain_feature_dim = get_feat_extractor(
+    feature_network, class_feature_dim, domain_feature_dim = get_video_feat_extractor(
         cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, num_classes
     )
     # setup classifier
@@ -267,7 +79,6 @@ def get_model(cfg, dataset, num_classes):
     method = domain_adapter.Method(cfg.DAN.METHOD)
 
     if method.is_mmd_method():
-        # model = domain_adapter.create_mmd_based(
         model = action_domain_adapter.create_mmd_based_4video(
             method=method,
             dataset=dataset,

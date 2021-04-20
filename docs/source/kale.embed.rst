@@ -66,6 +66,14 @@ kale.embed.positional\_encoding module
    :undoc-members:
    :show-inheritance:
 
+kale.embed.video\_feature\_extractor module
+--------------------------------------
+
+.. automodule:: kale.embed.video_feature_extractor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.embed.video\_i3d module
 --------------------------------------
 
