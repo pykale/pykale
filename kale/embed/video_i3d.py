@@ -12,6 +12,7 @@ https://github.com/deepmind/kinetics-i3d/blob/master/i3d.py
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from torchvision.models.utils import load_state_dict_from_url
 
 model_urls = {
@@ -417,7 +418,6 @@ class InceptionI3d(nn.Module):
         self.logits = Unit3D(
             in_channels=384 + 384 + 128 + 128,
             output_channels=400,
-            # output_channels=self._num_classes,
             kernel_shape=[1, 1, 1],
             padding=0,
             activation_fn=None,
@@ -429,7 +429,7 @@ class InceptionI3d(nn.Module):
         self.build()
 
     def replace_logits(self, num_classes):
-        """Update the num_classes according to the specific setting."""
+        """Update the output size with num_classes according to the specific setting."""
 
         self._num_classes = num_classes
         self.logits = Unit3D(
@@ -450,26 +450,26 @@ class InceptionI3d(nn.Module):
     def forward(self, x):
         """The output is the result of the final average pooling layer with 1024 dimensions."""
 
-        x = self._modules["Conv3d_1a_7x7"](x)  # out: [2, 64, 1, 112, 112]
-        x = self._modules["MaxPool3d_2a_3x3"](x)  # [2, 64, 1, 56, 56]
-        x = self._modules["Conv3d_2b_1x1"](x)  # [2, 64, 1, 56, 56]
-        x = self._modules["Conv3d_2c_3x3"](x)  # [2, 192, 1, 56, 56]
-        x = self._modules["MaxPool3d_3a_3x3"](x)  # [2, 192, 1, 28, 28]
-        x = self._modules["Mixed_3b"](x)  # [2, 256, 1, 28, 28]
-        x = self._modules["Mixed_3c"](x)  # [2, 480, 1, 28, 28]
-        x = self._modules["MaxPool3d_4a_3x3"](x)  # [2, 480, 1, 14, 14]
-        x = self._modules["Mixed_4b"](x)  # [2, 512, 1, 14, 14]
-        x = self._modules["Mixed_4c"](x)  # [2, 512, 1, 14, 14]
-        x = self._modules["Mixed_4d"](x)  # [2, 512, 1, 14, 14]
-        x = self._modules["Mixed_4e"](x)  # [2, 528, 1, 14, 14]
-        x = self._modules["Mixed_4f"](x)  # [2, 832, 1, 14, 14]
-        x = self._modules["MaxPool3d_5a_2x2"](x)  # [2, 832, 1, 7, 7]
-        x = self._modules["Mixed_5b"](x)  # [2, 832, 1, 7, 7]
-        x = self._modules["Mixed_5c"](x)  # [2, 1024, 1, 7, 7]
+        # x = self._modules["Conv3d_1a_7x7"](x)  # out: [2, 64, 1, 112, 112]
+        # x = self._modules["MaxPool3d_2a_3x3"](x)  # [2, 64, 1, 56, 56]
+        # x = self._modules["Conv3d_2b_1x1"](x)  # [2, 64, 1, 56, 56]
+        # x = self._modules["Conv3d_2c_3x3"](x)  # [2, 192, 1, 56, 56]
+        # x = self._modules["MaxPool3d_3a_3x3"](x)  # [2, 192, 1, 28, 28]
+        # x = self._modules["Mixed_3b"](x)  # [2, 256, 1, 28, 28]
+        # x = self._modules["Mixed_3c"](x)  # [2, 480, 1, 28, 28]
+        # x = self._modules["MaxPool3d_4a_3x3"](x)  # [2, 480, 1, 14, 14]
+        # x = self._modules["Mixed_4b"](x)  # [2, 512, 1, 14, 14]
+        # x = self._modules["Mixed_4c"](x)  # [2, 512, 1, 14, 14]
+        # x = self._modules["Mixed_4d"](x)  # [2, 512, 1, 14, 14]
+        # x = self._modules["Mixed_4e"](x)  # [2, 528, 1, 14, 14]
+        # x = self._modules["Mixed_4f"](x)  # [2, 832, 1, 14, 14]
+        # x = self._modules["MaxPool3d_5a_2x2"](x)  # [2, 832, 1, 7, 7]
+        # x = self._modules["Mixed_5b"](x)  # [2, 832, 1, 7, 7]
+        # x = self._modules["Mixed_5c"](x)  # [2, 1024, 1, 7, 7]
 
-        # for end_point in self.VALID_ENDPOINTS:
-        #     if end_point in self.end_points:
-        #         x = self._modules[end_point](x)  # use _modules to work with dataparallel
+        for end_point in self.VALID_ENDPOINTS:
+            if end_point in self.end_points:
+                x = self._modules[end_point](x)  # use _modules to work with dataparallel
 
         x = self.avg_pool(x)
         # logits = self.logits(self.dropout(x))
@@ -507,8 +507,8 @@ def i3d_joint(rgb_pt, flow_pt, num_classes, pretrained=False, progress=True):
     """Get I3D models for different inputs.
 
     Args:
-        rgb_pt (string): the name of pre-trained model for RGB input.
-        flow_pt (string): the name of pre-trained model for flow input.
+        rgb_pt (string, optional): the name of pre-trained model for RGB input.
+        flow_pt (string, optional): the name of pre-trained model for flow input.
         num_classes (int): the class number of dataset.
         pretrained (bool): choose if pretrained parameters are used. (Default: False)
         progress (bool, optional): whether or not to display a progress bar to stderr. (Default: True)
