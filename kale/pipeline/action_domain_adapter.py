@@ -1,3 +1,10 @@
+# =============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# =============================================================================
+
+"""Domain adaptation systems (pipelines) for action video on action recognition"""
+
 import torch
 
 import kale.predict.losses as losses
@@ -100,7 +107,14 @@ def create_dann_like_4video(
 
 class BaseMMDLike4Video(BaseMMDLike):
     def __init__(
-        self, dataset, image_modality, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5, **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        kernel_mul=2.0,
+        kernel_num=5,
+        **base_params,
     ):
         """Common API for MME-based action recognition DA methods: DAN, JAN"""
 
@@ -168,7 +182,12 @@ class DANtrainer4Video(BaseMMDLike4Video):
 
     def _compute_mmd(self, phi_s, phi_t, y_hat, y_t_hat):
         batch_size = int(phi_s.size()[0])
-        kernels = losses.gaussian_kernel(phi_s, phi_t, kernel_mul=self._kernel_mul, kernel_num=self._kernel_num,)
+        kernels = losses.gaussian_kernel(
+            phi_s,
+            phi_t,
+            kernel_mul=self._kernel_mul,
+            kernel_num=self._kernel_num,
+        )
         return losses.compute_mmd_loss(kernels, batch_size)
 
 
@@ -218,7 +237,14 @@ class DANNtrainer4Video(DANNtrainer):
     """This is an implementation of DANN for video data."""
 
     def __init__(
-        self, dataset, image_modality, feature_extractor, task_classifier, critic, method, **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        critic,
+        method,
+        **base_params,
     ):
         super(DANNtrainer4Video, self).__init__(
             dataset, feature_extractor, task_classifier, critic, method, **base_params
