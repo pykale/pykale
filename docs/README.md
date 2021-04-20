@@ -1,6 +1,6 @@
 # Documentation
 
-Learn more about [Python Docstrings](https://www.datacamp.com/community/tutorials/docstrings-python) to contribute high-quality documentation while coding. We follow [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) (click to check out examples).
+Learn more about [Python Docstrings](https://www.datacamp.com/community/tutorials/docstrings-python) to contribute high-quality documentation while coding. We follow [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
 
 ## Workflow
 
@@ -18,9 +18,9 @@ We call `kale` and `examples` the **root**-level modules, `kale.xxx` and `exampl
     :undoc-members:
     :show-inheritance:
     ```
-    Alternatively (e.g., lots of modules are renamed), remove all relevant `.rst` files under `source` and then recreate them, e.g., via running `sphinx-apidoc -o source/ ../kale`. After creation, edit the heading of `.rst` files, e.g., from **kale.embed package** to **Embed** (see those in an earlier version).
+    *Caution*: Alternatively (e.g., lots of modules are renamed), remove all relevant `.rst` files under `source` and then recreate them, e.g., via running `sphinx-apidoc -o source/ ../kale`. After creation, edit the heading of `.rst` files, e.g., from **kale.embed package** to **Embed** (see those in an earlier version).
 
-3. **Final update step**: Run `make html` from `docs` to update the `.html` files under the `build` folder using the source files under the `source` folder and verify the updated documentation in a browser at `pykale/docs/build/html/index.html`. Run `make clean` will clean the `build` folder for a fresh build. Do **NOT** commit `docs/build` (see `.gitignore`). Build and view offline to check. Haiping will have an online version updated at [his website](http://staffwww.dcs.shef.ac.uk/people/H.Lu/pykale/html/index.html).
+3. **Final update step**: Run `make html` from `docs` to update the `.html` files under the `build` folder using the source files under the `source` folder and verify the updated documentation in a browser at `pykale/docs/build/html/index.html`. Run `make clean` will clean the `build` folder for a fresh build. Do **NOT** commit `docs/build` (see `.gitignore`). Build and view offline to check.
 
 4. Other standardization
 
@@ -29,13 +29,16 @@ We call `kale` and `examples` the **root**-level modules, `kale.xxx` and `exampl
 
 If you are aware of a better way to auto-generate documentations, create an issue or push your suggested changes.
 
-## Sphinx autodocumentation and Read the Doc
+## References
 
-* To release on [Read the Doc](https://readthedocs.org/) using [Sphinx](https://sphinx-rtd-tutorial.readthedocs.io/en/latest/sphinx-quickstart.html) (already set up). See my test [SimplyDeep](https://simplydeep.readthedocs.io/en/latest/)
-* [https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html](https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html) to generate documentations automatically. [Tutorial: Autodocumenting your Python code with Sphinx](https://romanvm.pythonanywhere.com/post/autodocumenting-your-python-code-sphinx-part-i-5/)
+### Sphinx autodocumentation and Read the Doc
+
+* We use [Read the Doc](https://readthedocs.org/) with [Sphinx](https://sphinx-rtd-tutorial.readthedocs.io/en/latest/sphinx-quickstart.html).
+* Documentations can be [automatically generated]([https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html](https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html)). [Tutorial: Autodocumenting your Python code with Sphinx](https://romanvm.pythonanywhere.com/post/autodocumenting-your-python-code-sphinx-part-i-5/)
 * [Python Docstring Generator for VScode](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring)
 
-Key references - all from [JMLR Machine Learning Open Source Software](http://www.jmlr.org/mloss/)
+### Key references from [JMLR Machine Learning Open Source Software](http://www.jmlr.org/mloss/)
+
 * [Tensor Train Decomposition on TensorFlow (T3F)](https://github.com/Bihaqo/t3f)
 * [A Graph Kernel Library in Python](https://github.com/ysig/GraKeL)
 * [A Python Toolbox to Tackle the Curse of Imbalanced Datasets in Machine Learning](https://github.com/scikit-learn-contrib/imbalanced-learn)
