@@ -50,12 +50,13 @@ def get_video_feat_extractor(model_name, image_modality, attention, num_classes)
     if model_name not in model_list:
         raise ValueError("Wrong MODEL.METHOD. Current:{}".format(model_name))
 
+    # Get I3D w/o SELayers for RGB, Flow or joint input
     if model_name == "I3D":
         rgb_pretrained_model = flow_pretrained_model = None
         if rgb:
-            rgb_pretrained_model = "rgb_imagenet"
+            rgb_pretrained_model = "rgb_imagenet"  # Options=["rgb_imagenet", "rgb_charades"]
         if flow:
-            flow_pretrained_model = "flow_imagenet"
+            flow_pretrained_model = "flow_imagenet"  # Options=["flow_imagenet", "flow_charades"]
 
         if rgb and flow:
             class_feature_dim = 2048
@@ -79,7 +80,8 @@ def get_video_feat_extractor(model_name, image_modality, attention, num_classes)
                 pretrained=True,
             )
 
-    elif model_name in ["R3D_18", "MC3_18", "R2PLUS1D_18"]:
+    # Get R3D_18/R2PLUS1D_18/MC3_18 w/o SELayers for RGB, Flow or joint input
+    elif model_name in ["R3D_18", "R2PLUS1D_18", "MC3_18"]:
         if rgb and flow:
             class_feature_dim = 1024
             domain_feature_dim = class_feature_dim / 2

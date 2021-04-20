@@ -8,6 +8,8 @@ Initial implementation: channel-wise (SELayerC)
 Improved implementation: temporal-wise (SELayerT), convolution-based channel-wise (SELayerCoC), max-pooling-based
 channel-wise (SELayerMC), multi-pooling-based channel-wise (SELayerMAC)
 
+[Redundancy and repeat of code will be reduced in the future.]
+
 References:
     Hu Jie, Li Shen, and Gang Sun. "Squeeze-and-excitation networks." In CVPR, pp. 7132-7141. 2018.
     For initial implementation, please go to https://github.com/hujie-frank/SENet

@@ -8,10 +8,11 @@
 import logging
 
 import numpy as np
-from sklearn.utils import check_random_state
 
 from kale.loaddata.multi_domain import DatasetSizeType, MultiDomainDatasets, WeightingType
 from kale.loaddata.sampler import FixedSeedSamplingConfig, MultiDataLoader
+from kale.loaddata.video_access import get_image_modality
+from sklearn.utils import check_random_state
 
 
 class VideoMultiDomainDatasets(MultiDomainDatasets):
@@ -39,14 +40,8 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         """
 
         self._image_modality = image_modality
+        self.rgb, self.flow = get_image_modality(self._image_modality)
         self._seed = seed
-        if self._image_modality == "joint":
-            self.rgb = self.flow = True
-        elif self._image_modality == "rgb" or self._image_modality == "flow":
-            self.rgb = self._image_modality == "rgb"
-            self.flow = self._image_modality == "flow"
-        else:
-            raise Exception("Invalid modality option: {}".format(self._image_modality))
 
         if self.rgb:
             source_access = source_access_dict["rgb"]

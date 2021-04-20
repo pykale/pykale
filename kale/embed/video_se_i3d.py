@@ -6,10 +6,10 @@
 """Add SELayers to I3D"""
 
 import torch.nn as nn
-from torchvision.models.utils import load_state_dict_from_url
 
 from kale.embed.video_i3d import InceptionI3d
 from kale.embed.video_selayer import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
+from torchvision.models.utils import load_state_dict_from_url
 
 model_urls = {
     "rgb_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt",
@@ -214,10 +214,10 @@ def se_i3d_joint(rgb_pt, flow_pt, num_classes, attention, pretrained=False, prog
     """Get I3D models with SELayers for different inputs.
 
     Args:
-        rgb_pt (string): the name of pre-trained model for RGB input.
-        flow_pt (string): the name of pre-trained model for optical flow input.
+        rgb_pt (string, optional): the name of pre-trained model for RGB input.
+        flow_pt (string, optional): the name of pre-trained model for optical flow input.
         num_classes (int): the class number of dataset.
-        attention (string): the name of the SELayer.
+        attention (string, optional): the name of the SELayer.
         pretrained (bool): choose if pretrained parameters are used. (Default: False)
         progress (bool, optional): whether or not to display a progress bar to stderr. (Default: True)
 

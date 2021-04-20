@@ -226,7 +226,7 @@ class VideoDatasetAccess(DatasetAccess):
 
     def get_train_val(self, val_ratio):
         """Get the train and validation dataset with the fixed random split. This is used for joint input like RGB and
-        optical flow, which will call `get_train_val` twice. Setting the random seed here can keep the seeds for twice
+        optical flow, which will call `get_train_val` twice. Fixing the random seed here can keep the seeds for twice
         the same."""
         train_dataset = self.get_train()
         ntotal = len(train_dataset)
