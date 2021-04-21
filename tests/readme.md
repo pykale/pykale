@@ -66,10 +66,6 @@ Comparisons / assertions involving `pandas` `DataFrames` (or other `pandas` obje
 
 Comparisons / assertions involving `numpy` `arrays` (or other `numpy` objects) should be made using [`numpy` testing routines](https://numpy.org/doc/stable/reference/routines.testing.html). `numpy` floating point "problem" response will be [as default](https://numpy.org/doc/stable/reference/generated/numpy.seterr.html#numpy.seterr).
 
-## Testing tensors
-
-There are [build-in torch testing modules](https://github.com/pytorch/pytorch/tree/master/torch/testing): [`assert_tensors_equal` and `assert_tensors_allclose`](https://github.com/pytorch/pytorch/blob/master/torch/testing/_asserts.py).
-
 ## Random Numbers
 
 Random numbers in pykale are generated using base python, numpy and pytorch. Prior to making an assertion where objects that make use of random numbers are compared, the `set_seed()` function from `kale.utils.seed` should be called e.g.
