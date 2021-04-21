@@ -95,7 +95,6 @@ setup(
     license="MIT",
     keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
     classifiers=[
-        "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Intended Audience :: Education",
         "Intended Audience :: Healthcare Industry",
