@@ -13,11 +13,11 @@
 [Review & merge](#review-and-merge-pull-requests) |
 [Release & management](#release-and-management)
 
-Thank you for your interest! You can contribute to the PyKale project in a wide range of ways listed above, from light to heavy involvements. You can also reach us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a> if needed. The participation in this open source project is subject to [Code of Conduct](https://github.com/pykale/pykale/blob/master/CODE_OF_CONDUCT.md).
+Thank you for your interest! You can contribute to the PyKale project in a wide range of ways listed above, from light to heavy involvements. You can also reach us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a> if needed. The participation in this open source project is subject to [Code of Conduct](https://github.com/pykale/pykale/blob/main/CODE_OF_CONDUCT.md).
 
 ## Light involvements (viewers/users)
 
-See the [ReadMe](https://github.com/pykale/pykale/blob/master/README.md) for installation instructions. Your contribution can start as light as asking questions.
+See the [ReadMe](https://github.com/pykale/pykale/blob/main/README.md) for installation instructions. Your contribution can start as light as asking questions.
 
 ### Ask questions
 
@@ -42,20 +42,20 @@ A maintainer with *write* access can [create a branch](https://docs.github.com/e
 Anyone can use the [*fork and pull* model](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-collaborative-development-models) to contribute code to PyKale:
 
 - [**Fork**](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) pykale (also see the [guide on forking projects](https://guides.github.com/activities/forking/)).
-  - Keep the fork master branch synced with `pykale:master` by [syncing a fork](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork).
+  - Keep the fork main branch synced with `pykale:main` by [syncing a fork](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork).
   - Install `pre-commit` to enforce style via `pip install pre-commit` and `pre-commit install` at the root.
-- [Create a branch](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-and-deleting-branches-within-your-repository) based on the *latest master* in your fork with a *descriptive* name on what you plan to do, e.g. to fix an issue, starting with the issue ticket number.
+- [Create a branch](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-and-deleting-branches-within-your-repository) based on the *latest main* in your fork with a *descriptive* name on what you plan to do, e.g. to fix an issue, starting with the issue ticket number.
   - Make changes to this branch using detailed commit messages and following the [coding style](#coding-style) below. In particular, do [**frequent commits**](https://docs.github.com/en/actions/guides/about-continuous-integration#about-continuous-integration) and **small-scale pull requests** to make them more focused and easier to review.
-  - [Sync your branch](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/syncing-your-branch) with the master frequently so that potential problems can be identified earlier.
-  - Document the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html). Update `docs` following [docs update steps](https://github.com/pykale/pykale/tree/master/docs). Build `docs` via `make html` and verify locally built documentations under `docs\build\html`.
+  - [Sync your branch](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/syncing-your-branch) with the main frequently so that potential problems can be identified earlier.
+  - Document the update in [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html). Update `docs` following [docs update steps](https://github.com/pykale/pykale/tree/main/docs). Build `docs` via `make html` and verify locally built documentations under `docs\build\html`.
   - Build tests and do tests (not enforced yet, to be done).
-- Create a [draft pull request](https://github.blog/2019-02-14-introducing-draft-pull-requests/) or [pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) or from the task branch above to the master branch `pykale:master` explaining the changes and choose reviewers, using a [template](#pull-request-template).
+- Create a [draft pull request](https://github.blog/2019-02-14-introducing-draft-pull-requests/) or [pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) or from the task branch above to the main branch `pykale:main` explaining the changes and choose reviewers, using a [template](#pull-request-template).
   - A draft pull request helps start a conversation with collaborators in a draft state. It will not be reviewed or merged until you change the status to “Ready for review” near the bottom of your pull request.
   - View the [continuous integration (CI) status checks](https://github.com/pykale/pykale/actions). When the check messages say files are changed, they mean changes on their simulated environment, *NOT* on the branch. The problems are not fixed and you need to fix them as well as other reported errors locally.
   - You need to [address merge conflicts](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/addressing-merge-conflicts) if they arise. Resolve the conflicts locally.
   - After passing all CI checks and resolving the conflicts, you should [request a review](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/requesting-a-pull-request-review). If you know who is appropriate or like the [suggested reviewers](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/requesting-a-pull-request-review#:~:text=Suggested%20reviewers%20are%20based%20on,review%20from%20the%20same%20reviewer.), request/assign that person. Otherwise, we will assign one shortly.
   - A reviewer will follow the [review and merge guidelines](#review-and-merge-pull-requests). The reviewer may discuss with you and request explanations/changes before merging.
-  - Merging to the master branch **requires** *ALL checks to pass* AND *at least one approving review*.
+  - Merging to the main branch **requires** *ALL checks to pass* AND *at least one approving review*.
 
 #### Before pull requests: pre-commit hooks
 
@@ -63,7 +63,7 @@ We set up several  [`pre-commit`](https://pre-commit.com/) hooks to ensure code 
 
 - Linting tools: [flake8](https://gitlab.com/pycqa/flake8), [black](https://github.com/psf/black), and [isort](https://github.com/timothycrosley/isort).
 - Static type analysis: [mypy](https://github.com/python/mypy) (to do, not yet active)
-- Other hooks as specified in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml), such as restricting the largest file size to 300KB.
+- Other hooks as specified in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/main/.pre-commit-config.yaml), such as restricting the largest file size to 300KB.
 
 You need to install pre-commit and the hooks from the root directory via
 
@@ -74,7 +74,7 @@ pre-commit install
 
 This will install the `pre-commit` hooks at `pykale\.git\hooks`, to be **triggered by each new commit** to automatically run them *over the files you commit*. In this way, problems can be detected and fixed early. Several **important** points to note:
 
-- Pre-commit hooks are configured in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml). Only administrator should modify it.
+- Pre-commit hooks are configured in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/main/.pre-commit-config.yaml). Only administrator should modify it.
 - These hooks, e.g.,  [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https://pycqa.github.io/isort/), will **automatically fix** some problems for you by **changing the files**, so please check the changes after you trigger `commit`.
 - If your commits can not pass the above checks, read the error message to see what has been automatically fixed and what needs your manual fix, e.g. flake8 errors. Some flake8 errors may be fixed by some hooks so you can rerun the pre-commit (e.g. re-commit to trigger it) or just run flake8 to see the updated flake8 errors.
 
@@ -93,13 +93,13 @@ flake8 ./kale/embed/new_module.py # "flake8 ." do it for all files
 
 Run [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https://pycqa.github.io/isort/) will fix the found problems automatically by modifying the files but they will be automatically run and you do *not* need to do it manually. Remaining [flake8](https://flake8.pycqa.org/en/latest/) or other errors need to be manually fixed.
 
-**Important**: Run these commands from the root directory so that the PyKale configuration files ([`setup.cfg`](https://github.com/pykale/pykale/blob/master/setup.cfg), [`pyproject.toml`](https://github.com/pykale/pykale/blob/master/pyproject.toml), and [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/master/.pre-commit-config.yaml)) are used for these tools. Otherwise, the default configurations will be used, which **differ** from the PyKale configurations and are consistent.
+**Important**: Run these commands from the root directory so that the PyKale configuration files ([`setup.cfg`](https://github.com/pykale/pykale/blob/main/setup.cfg), [`pyproject.toml`](https://github.com/pykale/pykale/blob/main/pyproject.toml), and [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/main/.pre-commit-config.yaml)) are used for these tools. Otherwise, the default configurations will be used, which **differ** from the PyKale configurations and are consistent.
 
-**IDE integration**: flake8 linting can be set up for both [VSCode](https://code.visualstudio.com/docs/python/linting) and [PyCharm](https://tirinox.ru/flake8-pycharm/) but you must use [`setup.cfg`](https://github.com/pykale/pykale/blob/master/setup.cfg) to configure it. In this way, you could fix linting errors on the go.
+**IDE integration**: flake8 linting can be set up for both [VSCode](https://code.visualstudio.com/docs/python/linting) and [PyCharm](https://tirinox.ru/flake8-pycharm/) but you must use [`setup.cfg`](https://github.com/pykale/pykale/blob/main/setup.cfg) to configure it. In this way, you could fix linting errors on the go.
 
 #### Automated GitHub workflows (continuous integration)
 
-For continuous integration (CI) and continuous deployment (CD), we use several [GitHub workflows (actions)](https://github.com/pykale/pykale/actions) that will be triggered upon a push or pull request as specified at [`pykale/.github/workflows/`](https://github.com/pykale/pykale/tree/master/.github/workflows)
+For continuous integration (CI) and continuous deployment (CD), we use several [GitHub workflows (actions)](https://github.com/pykale/pykale/actions) that will be triggered upon a push or pull request as specified at [`pykale/.github/workflows/`](https://github.com/pykale/pykale/tree/main/.github/workflows)
 
 - Build: install Python dependencies (set up)
 - Linting: run flake8 and pre-commit
@@ -124,7 +124,7 @@ We aim to design the core `kale` modules to be highly **reusable**, generic, and
 - Use [`logging`](https://docs.python.org/3/howto/logging.html#logging-basic-tutorial) instead of `print` to log messages. Users can choose the level via, e.g., `logging.getLogger().setLevel(logging.INFO)`. See the [benefits](https://stackoverflow.com/questions/6918493/in-python-why-use-logging-instead-of-print).
 - Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
 - Highly reusable modules should go into `kale`. Highly data/example-specific code goes into `Examples`.
-- Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). See our [examples](https://github.com/pykale/pykale/tree/master/examples).
+- Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). See our [examples](https://github.com/pykale/pykale/tree/main/examples).
 - Use [PyTorch](https://pytorch.org/tutorials/) and [PyTorch Lightning](https://towardsdatascience.com/from-pytorch-to-pytorch-lightning-a-gentle-introduction-b371b7caaf09) ([Video](https://www.youtube.com/watch?v=QHww1JH7IDU)) as much as possible.
 - If high-quality existing code from other sources are used, add credit and license information at the top of the file.
 - Use pre-commit hooks to enforce consistent styles via [flake8](https://gitlab.com/pycqa/flake8), [black](https://github.com/psf/black), and [isort](https://github.com/timothycrosley/isort)), with common PyKale configuration files.
