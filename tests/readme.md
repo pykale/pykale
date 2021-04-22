@@ -1,6 +1,6 @@
 # Test Guidelines
 
-We aim to cover all code by [unit tests](https://carpentries-incubator.github.io/python-testing/04-units/index.html) with *at least 70% coverage*, and [regression tests](https://carpentries-incubator.github.io/python-testing/07-integration/index.html) where appropriate. Please use [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing) to talk about tests and ask for help.
+We aim to cover all code by [unit tests](https://carpentries-incubator.github.io/python-testing/04-units/index.html) with at least 70% coverage, and [regression tests](https://carpentries-incubator.github.io/python-testing/07-integration/index.html) where appropriate. Please use [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing) to talk about tests and ask for help.
 
 These guidelines will help you to write tests to address sufficiently compact pieces of code such that it is easy to identify causes of failure and for tests to also cover larger workflows such that confidence or trust can be built in reproducibility of outputs. We use [pytest](https://docs.pytest.org/en/stable/) (see tutorials [python testing software carpentry (alpha)](https://carpentries-incubator.github.io/python-testing/) and [tutorialspoint pytest tutorial](https://www.tutorialspoint.com/pytest/pytest_tutorial.pdf)). There is some subjectivity involved in deciding how much of the potential behaviour of your code to check.
 
