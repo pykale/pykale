@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/pykale/pykale/raw/master/docs/images/pykale_logo.png" width="5%" alt='project-monai'> PyKale
+  <img src="https://github.com/pykale/pykale/raw/main/docs/images/pykale_logo.png" width="5%" alt='project-pykale'> PyKale
 </p>
 
 -----------------------------------------
@@ -9,11 +9,11 @@
 [![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
 [![PyPI downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
 
-[Getting Started](https://github.com/pykale/pykale/tree/master/examples) |
+[Getting Started](https://github.com/pykale/pykale/tree/main/examples) |
 [Documentation](https://pykale.readthedocs.io/) |
-[Contributing](https://github.com/pykale/pykale/blob/master/.github/CONTRIBUTING.md) |
+[Contributing](https://github.com/pykale/pykale/blob/main/.github/CONTRIBUTING.md) |
 [Discussions](https://github.com/pykale/pykale/discussions) |
-[Changelog](https://github.com/pykale/pykale/tree/master/.github/CHANGELOG.md)
+[Changelog](https://github.com/pykale/pykale/tree/main/.github/CHANGELOG.md)
 
  PyKale is a [PyTorch](https://pytorch.org/) library for [multimodal learning](https://en.wikipedia.org/wiki/Multimodal_learning) and [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning) as well as [deep learning](https://en.wikipedia.org/wiki/Deep_learning) and [dimensionality reduction](https://en.wikipedia.org/wiki/Dimensionality_reduction) on graphs, images, texts, and videos. By adopting a unified *pipeline-based* API design, PyKale enforces *standardization* and *minimalism*, via *reusing* existing resources, *reducing* repetitions and redundancy, and *recycling* learning models across areas. PyKale aims to facilitate *interdisciplinary*, *knowledge-aware* machine learning research for graphs, images, texts, and videos in applications including bioinformatics, graph analysis, image/video recognition, and medical imaging. It focuses on leveraging knowledge from multiple sources for accurate and *interpretable* prediction. See a [12-minute introduction video on YouTube](https://youtu.be/i5BYdMfbpMQ).
 
@@ -43,7 +43,7 @@ For more details and other options, please refer to [the installation guide](htt
 
 ## Examples, Tutorials, and Discussions
 
-See our numerous [**examples (and tutorials)**](https://github.com/pykale/pykale/tree/master/examples) on how to perform various prediction tasks in a wide range of applications using PyKale.
+See our numerous [**examples (and tutorials)**](https://github.com/pykale/pykale/tree/main/examples) on how to perform various prediction tasks in a wide range of applications using PyKale.
 
 Ask and answer questions on [PyKale's GitHub Discussions tab](https://github.com/pykale/pykale/discussions).
 
@@ -53,9 +53,9 @@ We appreciate all contributions. You can contribute in three ways:
 
 - [Star](https://docs.github.com/en/github/getting-started-with-github/saving-repositories-with-stars) and [fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) PyKale to follow its latest developments, share it with your networks, and [ask questions](https://github.com/pykale/pykale/discussions)  about it.
 - Use PyKale in your project and let us know any bugs (& fixes) and feature requests/suggestions via creating an [issue](https://github.com/pykale/pykale/issues).
-- Contribute via [branch, fork, and pull](https://github.com/pykale/pykale/blob/master/CONTRIBUTING.md#branch-fork-and-pull) for minor fixes and new features, functions, or examples to become one of the [contributors](https://github.com/pykale/pykale/graphs/contributors).
+- Contribute via [branch, fork, and pull](https://github.com/pykale/pykale/blob/main/CONTRIBUTING.md#branch-fork-and-pull) for minor fixes and new features, functions, or examples to become one of the [contributors](https://github.com/pykale/pykale/graphs/contributors).
 
-See [contributing guidelines](https://github.com/pykale/pykale/blob/master/.github/CONTRIBUTING.md) for more details. You can also reach us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a> if needed. The participation in this open source project is subject to [Code of Conduct](https://github.com/pykale/pykale/blob/master/.github/CODE_OF_CONDUCT.md).
+See [contributing guidelines](https://github.com/pykale/pykale/blob/main/.github/CONTRIBUTING.md) for more details. You can also reach us via <a href="mailto:pykale-group&#64;sheffield.ac.uk">email</a> if needed. The participation in this open source project is subject to [Code of Conduct](https://github.com/pykale/pykale/blob/main/.github/CODE_OF_CONDUCT.md).
 
 ## The Team
 
