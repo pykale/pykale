@@ -8,11 +8,11 @@ These guidelines will help you to write tests to address sufficiently compact pi
 
 - [Compact pytest tutorial](https://www.tutorialspoint.com/pytest/pytest_tutorial.pdf), [pytest fixtures](https://docs.pytest.org/en/stable/fixture.html), [pytest exceptions](https://docs.pytest.org/en/stable/assert.html#assertions-about-expected-exceptions)
 - Example [unit tests for deep learning code of Variational Autoencoder (VAE) in PyTorch](https://github.com/tilman151/unittest_dl) and the associated post [How to Trust Your Deep Learning Code](https://krokotsch.eu/cleancode/2020/08/11/Unit-Tests-for-Deep-Learning.html). *Note: it uses `unittest` but we use `pytest`*.
-- Learn from [existing pykale tests](https://github.com/pykale/pykale/tree/master/tests) (particularly recent ones) and pytest+pytorch examples [fastai1 tests](https://github.com/fastai/fastai1/tree/master/tests) and [Kornia tests](https://github.com/kornia/kornia/tree/master/test)
+- Learn from [existing pykale tests](https://github.com/pykale/pykale/tree/main/tests) (particularly recent ones) and pytest+pytorch examples [fastai1 tests](https://github.com/fastai/fastai1/tree/master/tests) and [Kornia tests](https://github.com/kornia/kornia/tree/master/test)
 - Use GitHub code links to find out definitions and references
 - Consider to use [pytest in vscode](https://code.visualstudio.com/docs/python/testing) or [pytest in pycharm](https://www.jetbrains.com/help/pycharm/pytest.html)
 - [fastai testing](https://fastai1.fast.ai/dev/test.html) is a good high-level reference. We adapt its recommendations on [writing tests](https://fastai1.fast.ai/dev/test.html#writing-tests) below:
-  - Think about how to create a test of the real functionality that runs quickly, e.g. based on our [`examples`](https://github.com/pykale/pykale/tree/master/examples).
+  - Think about how to create a test of the real functionality that runs quickly, e.g. based on our [`examples`](https://github.com/pykale/pykale/tree/main/examples).
   - Use module scope fixtures to run initial code that can be shared amongst tests. When using fixtures, make sure the test doesn’t modify the global object it received. If there's a risk of modifying a broadly scoped fixture, you could clone it with a more tightly scoped fixture or create a fresh fixture/object instead.
   - Avoid pretrained models, since they have to be downloaded from the internet to run the test.
   - Create some minimal data for your test, or use data already in repo’s data/ directory.
@@ -21,7 +21,7 @@ See more details below, particularly [test data](#test-data), [common parameters
 
 ## Test data
 
-Data needed for testing should be placed in [`tests/test_data`](https://github.com/pykale/pykale/tree/master/tests/test_data). Only small files (current limit: 300KB) should be uploaded directly. Larger data should be **automatically downloaded** during tests from external sources to `tests/test_data/download` as defined in [`tests/conftest.py`](https://github.com/pykale/pykale/blob/master/tests/conftest.py). Such data will be kept local, as set in [`.gitignore`](https://github.com/pykale/pykale/blob/master/.gitignore). Discuss more complex test data requirements for your **pull request** in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
+Data needed for testing should be placed in [`tests/test_data`](https://github.com/pykale/pykale/tree/main/tests/test_data). Only small files (current limit: 300KB) should be uploaded directly. Larger data should be **automatically downloaded** during tests from external sources to `tests/test_data/download` as defined in [`tests/conftest.py`](https://github.com/pykale/pykale/blob/main/tests/conftest.py). Such data will be kept local, as set in [`.gitignore`](https://github.com/pykale/pykale/blob/main/.gitignore). Discuss more complex test data requirements for your **pull request** in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
 
 ## Common parameters
 
