@@ -136,7 +136,7 @@ We aim to design the core `kale` modules to be highly **reusable**, generic, and
 
 ### Testing
 
-All new code should be covered by tests following the [`pykale` test guidelines](tests/readme.md).
+All new code should be covered by tests following the [`pykale` test guidelines](https://github.com/pykale/pykale/blob/main/tests/README.md).
 
 ## Heavy involvements (maintainers)
 
