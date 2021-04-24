@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/pykale/pykale/raw/main/docs/images/pykale_logo.png" width="5%" alt='project-pykale'> PyKale
+  <img src="https://github.com/pykale/pykale/raw/main/docs/images/pykale_logo_long.png" width="40%" alt='project-pykale'>
 </p>
 
 -----------------------------------------
