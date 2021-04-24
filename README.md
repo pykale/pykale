@@ -1,6 +1,5 @@
 <p align="center">
-  <!-- <img src="https://github.com/pykale/pykale/raw/main/docs/images/pykale_logo_long.png" width="40%" alt='project-pykale'> -->
-  <img src="docs/images/pykale_logo_long.png" width="40%" alt='project-pykale'>
+  <img src="https://github.com/pykale/pykale/raw/main/docs/images/pykale_logo_long.png" width="40%" alt='project-pykale'>
 </p>
 
 -----------------------------------------
