@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests, and report the coverage with a variety of Python versions and OSs
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: test
+name: test_graph
 
 on:
   push:
@@ -15,17 +15,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
         python-version: [3.6, 3.7, 3.8]
-        exclude:
-          - os: macos-latest
-            python-version: "3.6"
-          - os: macos-latest
-            python-version: "3.7"
-          - os: windows-latest
-            python-version: "3.6"
-          - os: windows-latest
-            python-version: "3.7"
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -34,7 +25,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          conda install -y scipy
           pip install torch==1.7.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torchvision==0.8.2+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html
