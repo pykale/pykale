@@ -3,8 +3,10 @@ import torch
 
 from kale.embed.seq_nn import CNNEncoder, GCNEncoder
 
+pytestmark = pytest.mark.graph  # global
 
-@pytest.mark.graph
+
+# @pytest.mark.graph
 def test_cnn_encoder():
     num_embeddings, embedding_dim = 64, 128
     sequence_length = 85
@@ -30,7 +32,7 @@ def test_cnn_encoder():
     assert output_encoding.size() == (8, 96)
 
 
-@pytest.mark.graph
+# @pytest.mark.graph
 def test_gcn_encoder():
     gcn_encoder = GCNEncoder(in_channel=8, out_channel=32).eval()
     assert gcn_encoder.conv1.__repr__() == "GCNConv(8, 8)"
