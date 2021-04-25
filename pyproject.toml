@@ -9,10 +9,10 @@ requires = [
 line-length = 120
 target-version = ["py36"]
 
-[tool.pytest.ini_options]
-markers = [
-    "graph",  # marks graph tests
-]
+# [tool.pytest.ini_options]
+# markers = [
+#     "graph",  # marks graph tests
+# ]
 
 [tool.isort]
 known_first_party = [

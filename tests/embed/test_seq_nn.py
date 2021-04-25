@@ -1,9 +1,9 @@
-import pytest
+# import pytest
 import torch
 
 from kale.embed.seq_nn import CNNEncoder, GCNEncoder
 
-pytestmark = pytest.mark.graph  # global
+# pytestmark = pytest.mark.graph  # global
 
 
 # @pytest.mark.graph
