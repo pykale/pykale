@@ -34,7 +34,12 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          pip install torch==1.7 -f https://download.pytorch.org/whl/torch_stable.html;
+          pip install torch==1.7 -f https://download.pytorch.org/whl/torch_stable.html
+          pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html
+          pip install torch-sparse -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html
+          pip install torch-cluster -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html
+          pip install torch-spline-conv -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html
+          pip install torch-geometric
           pip install -e .[dev]
         shell: bash
       - name: Run unit tests
