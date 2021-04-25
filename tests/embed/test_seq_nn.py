@@ -1,3 +1,4 @@
+import pytest
 import torch
 from torch_sparse import SparseTensor
 
@@ -29,6 +30,7 @@ def test_cnn_encoder():
     assert output_encoding.size() == (8, 96)
 
 
+@pytest.mark.graph
 def test_gcn_encoder():
     gcn_encoder = GCNEncoder(in_channel=8, out_channel=32).eval()
     assert gcn_encoder.conv1.__repr__() == "GCNConv(8, 8)"
