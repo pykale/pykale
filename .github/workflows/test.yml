@@ -51,7 +51,7 @@ jobs:
         shell: bash
       - name: Run unit tests
         run: |
-          pytest -v -m "not graph" --cov=kale
+          pytest --cov=kale
         shell: bash
       - name: Report coverage
         run: |
