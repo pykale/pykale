@@ -4,6 +4,7 @@ import torch
 from kale.embed.seq_nn import CNNEncoder, GCNEncoder
 
 
+@pytest.mark.graph
 def test_cnn_encoder():
     num_embeddings, embedding_dim = 64, 128
     sequence_length = 85
