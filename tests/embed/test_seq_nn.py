@@ -1,6 +1,5 @@
 import pytest
 import torch
-from torch_sparse import SparseTensor
 
 from kale.embed.seq_nn import CNNEncoder, GCNEncoder
 
@@ -41,6 +40,8 @@ def test_gcn_encoder():
     batch = torch.tensor([0 for _ in range(N1)] + [1 for _ in range(N2)])
     edge_index = torch.tensor([[0, 0, 0, 1, 2, 3, 3, 5, 7, 8], [1, 2, 3, 0, 0, 0, 2, 6, 6, 0]], dtype=torch.long)
     row, col = edge_index
+    from torch_sparse import SparseTensor
+
     adj = SparseTensor(row=row, col=col, value=None, sparse_sizes=(9, 9))
 
     out1 = gcn_encoder(x, edge_index, batch)
