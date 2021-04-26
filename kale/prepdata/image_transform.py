@@ -1,6 +1,11 @@
 """
 Preprocessing of image datasets, i.e., transforms, from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/preprocessing.py
+
+References for processing stacked images:
+    Swift, A. J., Lu, H., Uthoff, J., Garg, P., Cogliano, M., Taylor, J., ... & Kiely, D. G. (2020). A machine
+    learning cardiac magnetic resonance approach to extract disease features and automate pulmonary arterial
+    hypertension diagnosis. European Heart Journal-Cardiovascular Imaging.
 """
 import logging
 
@@ -15,7 +20,8 @@ def get_transform(kind, augment=False):
 
     Args:
         kind ([type]): the dataset (transformation) name
-        augment (bool, optional): whether to do data augmentation (random crop and flipping). Defaults to False. (Not implemented for digits yet.)
+        augment (bool, optional): whether to do data augmentation (random crop and flipping). Defaults to False.
+            (Not implemented for digits yet.)
 
     """
     if kind == "mnist32":
@@ -96,7 +102,7 @@ def reg_img_stack(images, coords, dst_id=0):
 
     Returns:
         array-like: Registered images, shape (dim1, dim2, n_phases, n_samples).
-        array-like: Maximum distance of transformed source coordinate to destination coordinate, shape (n_samples,)
+        array-like: Maximum distance of transformed source coordinates to destination coordinates, shape (n_samples,)
     """
     n_phases, n_samples = images.shape[-2:]
     if n_samples != coords.shape[0]:
@@ -162,7 +168,7 @@ def mask_img_stack(images, mask):
         images (array-like): input image data, shape (dim1, dim2, n_phases, n_subject)
         mask (array-like): mask, shape (dim1, dim2)
     Returns:
-        array-like: masked images, shape (dim1, dim2, n_phases, n_subject)
+        array-like tensor: masked images, shape (dim1, dim2, n_phases, n_subject)
     """
     n_phases, n_samples = images.shape[-2:]
     for i in range(n_samples):
