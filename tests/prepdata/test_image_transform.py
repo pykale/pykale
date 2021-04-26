@@ -5,7 +5,7 @@ from scipy.io import loadmat
 
 from kale.prepdata.image_transform import mask_img_stack, reg_img_stack, rescale_img_stack
 
-gait = loadmat("../test_data/gait_gallery_data.mat")
+gait = loadmat("tests/test_data/gait_gallery_data.mat")
 images = gait["fea3D"][..., :10]
 SCALES = [4, 8]
 
@@ -18,7 +18,7 @@ def test_reg():
     with pytest.raises(Exception):
         reg_img_stack(images, coords[1:, :])
     images_reg, max_dist = reg_img_stack(images, coords)
-    testing.assert_allclose(images_reg.shape, images.shape)
+    testing.assert_allclose(images_reg, images)
     testing.assert_equal(max_dist.shape, (n_samples,))
 
 
