@@ -8,6 +8,7 @@
 import torch
 
 import kale.predict.losses as losses
+from kale.loaddata.video_access import get_image_modality
 from kale.pipeline.domain_adapter import (
     BaseMMDLike,
     CDANtrainer,
@@ -231,87 +232,88 @@ class DANNtrainer4Video(DANNtrainer):
             dataset, feature_extractor, task_classifier, critic, method, **base_params
         )
         self.image_modality = image_modality
+        self.rgb, self.flow = get_image_modality(self.image_modality)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
 
     def forward(self, x):
         if self.feat is not None:
-            if self.image_modality in ["rgb", "flow"]:
-                if self.rgb_feat is not None:
-                    x = self.rgb_feat(x)
-                else:
-                    x = self.flow_feat(x)
-                x = x.view(x.size(0), -1)
-                class_output = self.classifier(x)
+            x_rgb = x_flow = adversarial_output_rgb = adversarial_output_flow = None
 
-                reverse_feature = ReverseLayerF.apply(x, self.alpha)
-
-                adversarial_output = self.domain_classifier(reverse_feature)
-                return x, class_output, adversarial_output
-
-            elif self.image_modality == "joint":
+            # For joint input, both two ifs are used
+            if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
-                x_flow = self.flow_feat(x["flow"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                x_flow = x_flow.view(x_flow.size(0), -1)
-                x = torch.cat((x_rgb, x_flow), dim=1)
-
-                class_output = self.classifier(x)
-
                 reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.alpha)
-                reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
-
                 adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
+            if self.flow:
+                x_flow = self.flow_feat(x["flow"])
+                x_flow = x_flow.view(x_flow.size(0), -1)
+                reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
                 adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
-                return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
+
+            if self.rgb:
+                if self.flow:  # For joint input
+                    x = torch.cat((x_rgb, x_flow), dim=1)
+                else:  # For rgb input
+                    x = x_rgb
+            else:  # For flow input
+                x = x_flow
+            class_output = self.classifier(x)
+
+            return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
     def compute_loss(self, batch, split_name="V"):
-        if self.image_modality == "joint" and len(batch) == 4:
-            (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-            _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
-            _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
-            batch_size = len(y_s)
+        x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
+        if self.rgb:
+            if self.flow:  # For joint input
+                (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
+            else:  # For rgb input
+                (x_s_rgb, y_s), (x_tu_rgb, y_tu) = batch
+        else:  # For flow input
+            (x_s_flow, y_s), (x_tu_flow, y_tu) = batch
+
+        _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
+        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
+        batch_size = len(y_s)
+
+        if self.rgb:
             loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(batch_size))
-            loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(batch_size))
             loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(batch_size))
+        if self.flow:
+            loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(batch_size))
             loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(batch_size))
+
+        if self.rgb and self.flow:  # For joint input
             loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
             loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
+            dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
+            dok_src = torch.cat((dok_src_rgb, dok_src_flow))
+            dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
+        else:
+            if self.rgb:  # For rgb input
+                d_hat = d_hat_rgb
+                d_t_hat = d_t_hat_rgb
+            else:  # For flow input
+                d_hat = d_hat_flow
+                d_t_hat = d_t_hat_flow
 
-            loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-            _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-            adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-            task_loss = loss_cls
-
-            log_metrics = {
-                f"{split_name}_source_acc": ok_src,
-                f"{split_name}_target_acc": ok_tgt,
-                f"{split_name}_domain_acc": torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow)),
-                f"{split_name}_source_domain_acc": torch.cat((dok_src_rgb, dok_src_flow)),
-                f"{split_name}_target_domain_acc": torch.cat((dok_tgt_rgb, dok_tgt_flow)),
-            }
-        elif self.image_modality in ["rgb", "flow"] and len(batch) == 2:
-            (x_s, y_s), (x_tu, y_tu) = batch
-            _, y_hat, d_hat = self.forward(x_s)
-            _, y_t_hat, d_t_hat = self.forward(x_tu)
-            batch_size = len(y_s)
             loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
             loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
+            dok = torch.cat((dok_src, dok_tgt))
 
-            loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-            _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-            adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-            task_loss = loss_cls
+        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
+        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
+        task_loss = loss_cls
 
-            log_metrics = {
-                f"{split_name}_source_acc": ok_src,
-                f"{split_name}_target_acc": ok_tgt,
-                f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
-                f"{split_name}_source_domain_acc": dok_src,
-                f"{split_name}_target_domain_acc": dok_tgt,
-            }
-        else:
-            raise NotImplementedError("Batch len is {}. Check the Dataloader.".format(len(batch)))
+        log_metrics = {
+            f"{split_name}_source_acc": ok_src,
+            f"{split_name}_target_acc": ok_tgt,
+            f"{split_name}_domain_acc": dok,
+            f"{split_name}_source_domain_acc": dok_src,
+            f"{split_name}_target_domain_acc": dok_tgt,
+        }
 
         return task_loss, adv_loss, log_metrics
 
@@ -355,132 +357,124 @@ class CDANtrainer4Video(CDANtrainer):
             dataset, feature_extractor, task_classifier, critic, use_entropy, use_random, random_dim, **base_params
         )
         self.image_modality = image_modality
+        self.rgb, self.flow = get_image_modality(image_modality)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
 
     def forward(self, x):
         if self.feat is not None:
-            if self.image_modality in ["rgb", "flow"]:
-                if self.rgb_feat is not None:
-                    x = self.rgb_feat(x)
-                else:
-                    x = self.flow_feat(x)
-                x = x.view(x.size(0), -1)
-                class_output = self.classifier(x)
+            x_rgb = x_flow = adversarial_output_rgb = adversarial_output_flow = None
 
-                # The GRL hook is applied to all inputs to the adversary
-                reverse_feature = ReverseLayerF.apply(x, self.alpha)
-
-                softmax_output = torch.nn.Softmax(dim=1)(class_output)
-                reverse_out = ReverseLayerF.apply(softmax_output, self.alpha)
-
-                feature = torch.bmm(reverse_out.unsqueeze(2), reverse_feature.unsqueeze(1))
-                feature = feature.view(-1, reverse_out.size(1) * reverse_feature.size(1))
-                if self.random_layer:
-                    random_out = self.random_layer.forward(feature)
-                    adversarial_output = self.domain_classifier(random_out.view(-1, random_out.size(1)))
-                else:
-                    adversarial_output = self.domain_classifier(feature)
-
-                return x, class_output, adversarial_output
-
-            elif self.image_modality == "joint":
+            # For joint input, both two ifs are used
+            if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
-                x_flow = self.flow_feat(x["flow"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                x_flow = x_flow.view(x_flow.size(0), -1)
-                x = torch.cat((x_rgb, x_flow), dim=1)
-
-                class_output = self.classifier(x)
-                softmax_output = torch.nn.Softmax(dim=1)(class_output)
-                reverse_out = ReverseLayerF.apply(softmax_output, self.alpha)
-
                 reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.alpha)
+            if self.flow:
+                x_flow = self.flow_feat(x["flow"])
+                x_flow = x_flow.view(x_flow.size(0), -1)
                 reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
 
+            if self.rgb:
+                if self.flow:  # For joint input
+                    x = torch.cat((x_rgb, x_flow), dim=1)
+                else:  # For rgb input
+                    x = x_rgb
+            else:  # For flow input
+                x = x_flow
+            class_output = self.classifier(x)
+            softmax_output = torch.nn.Softmax(dim=1)(class_output)
+            reverse_out = ReverseLayerF.apply(softmax_output, self.alpha)
+
+            if self.rgb:
                 feature_rgb = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_rgb.unsqueeze(1))
                 feature_rgb = feature_rgb.view(-1, reverse_out.size(1) * reverse_feature_rgb.size(1))
-                feature_flow = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_flow.unsqueeze(1))
-                feature_flow = feature_flow.view(-1, reverse_out.size(1) * reverse_feature_flow.size(1))
-
                 if self.random_layer:
                     random_out_rgb = self.random_layer.forward(feature_rgb)
-                    random_out_flow = self.random_layer.forward(feature_flow)
                     adversarial_output_rgb = self.domain_classifier(random_out_rgb.view(-1, random_out_rgb.size(1)))
-                    adversarial_output_flow = self.domain_classifier(random_out_flow.view(-1, random_out_flow.size(1)))
                 else:
                     adversarial_output_rgb = self.domain_classifier(feature_rgb)
+
+            if self.flow:
+                feature_flow = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_flow.unsqueeze(1))
+                feature_flow = feature_flow.view(-1, reverse_out.size(1) * reverse_feature_flow.size(1))
+                if self.random_layer:
+                    random_out_flow = self.random_layer.forward(feature_flow)
+                    adversarial_output_flow = self.domain_classifier(random_out_flow.view(-1, random_out_flow.size(1)))
+                else:
                     adversarial_output_flow = self.domain_classifier(feature_flow)
-                return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
+            return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
     def compute_loss(self, batch, split_name="V"):
-        if self.image_modality == "joint" and len(batch) == 4:
-            (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-            _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
-            _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
-            batch_size = len(y_s)
+        x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
+        if self.rgb:
+            if self.flow:  # For joint input
+                (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
+            else:  # For rgb input
+                (x_s_rgb, y_s), (x_tu_rgb, y_tu) = batch
+        else:  # For flow input
+            (x_s_flow, y_s), (x_tu_flow, y_tu) = batch
 
-            if self.entropy:
-                e_s = self._compute_entropy_weights(y_hat)
-                e_t = self._compute_entropy_weights(y_t_hat)
-                source_weight = e_s / torch.sum(e_s)
-                target_weight = e_t / torch.sum(e_t)
-            else:
-                source_weight = None
-                target_weight = None
+        _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
+        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
+        batch_size = len(y_s)
 
+        if self.entropy:
+            e_s = self._compute_entropy_weights(y_hat)
+            e_t = self._compute_entropy_weights(y_t_hat)
+            source_weight = e_s / torch.sum(e_s)
+            target_weight = e_t / torch.sum(e_t)
+        else:
+            source_weight = None
+            target_weight = None
+
+        if self.rgb:
             loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(
                 d_hat_rgb, torch.zeros(batch_size), source_weight
             )
+            loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(
+                d_t_hat_rgb, torch.ones(batch_size), target_weight
+            )
+
+        if self.flow:
             loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(
                 d_hat_flow, torch.zeros(batch_size), source_weight
             )
-            loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(
-                d_t_hat_rgb, torch.ones(len(d_t_hat_rgb)), target_weight
-            )
             loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(
-                d_t_hat_flow, torch.ones(len(d_t_hat_flow)), target_weight
+                d_t_hat_flow, torch.ones(batch_size), target_weight
             )
+
+        if self.rgb and self.flow:  # For joint input
             loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
             loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
-            # Sum rgb and flow results(True/False) to get the domain accuracy result.
-            dok_src = dok_src_rgb + dok_src_flow
-            dok_tgt = dok_tgt_rgb + dok_tgt_flow
-
-        elif self.image_modality in ["rgb", "flow"] and len(batch) == 2:
-            (x_s, y_s), (x_tu, y_tu) = batch
-            _, y_hat, d_hat = self.forward(x_s)
-            _, y_t_hat, d_t_hat = self.forward(x_tu)
-            batch_size = len(y_s)
-
-            if self.entropy:
-                e_s = self._compute_entropy_weights(y_hat)
-                e_t = self._compute_entropy_weights(y_t_hat)
-                source_weight = e_s / torch.sum(e_s)
-                target_weight = e_t / torch.sum(e_t)
-            else:
-                source_weight = None
-                target_weight = None
-
-            loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size), source_weight)
-            loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)), target_weight)
-
+            dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
+            dok_src = torch.cat((dok_src_rgb, dok_src_flow))
+            dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
         else:
-            raise NotImplementedError("Batch len is {}. Check the Dataloader.".format(len(batch)))
+            if self.rgb:  # For rgb input
+                d_hat = d_hat_rgb
+                d_t_hat = d_t_hat_rgb
+            else:  # For flow input
+                d_hat = d_hat_flow
+                d_t_hat = d_t_hat_flow
+
+            loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
+            loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
+            dok = torch.cat((dok_src, dok_tgt))
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-
-        adv_loss = loss_dmn_src + loss_dmn_tgt
+        adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
         task_loss = loss_cls
 
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
+            f"{split_name}_domain_acc": dok,
             f"{split_name}_source_domain_acc": dok_src,
             f"{split_name}_target_domain_acc": dok_tgt,
         }
+
         return task_loss, adv_loss, log_metrics
 
 

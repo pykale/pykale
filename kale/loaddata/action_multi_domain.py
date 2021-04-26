@@ -113,21 +113,10 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             self._flow_target_by_split["test"] = self._target_access_dict["flow"].get_test()
 
     def get_domain_loaders(self, split="train", batch_size=32):
-        (
-            rgb_source_ds,
-            rgb_target_ds,
-            flow_source_ds,
-            flow_target_ds,
-            rgb_source_loader,
-            rgb_target_loader,
-            flow_source_loader,
-            flow_target_loader,
-            rgb_target_labeled_loader,
-            flow_target_labeled_loader,
-            rgb_target_unlabeled_loader,
-            flow_target_unlabeled_loader,
-            n_dataset,
-        ) = [None] * 13
+        rgb_source_ds = rgb_target_ds = flow_source_ds = flow_target_ds = None
+        rgb_source_loader = rgb_target_loader = flow_source_loader = flow_target_loader = None
+        rgb_target_labeled_loader = flow_target_labeled_loader = None
+        rgb_target_unlabeled_loader = flow_target_unlabeled_loader = n_dataset = None
 
         if self.rgb:
             rgb_source_ds = self._rgb_source_by_split[split]
