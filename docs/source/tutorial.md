@@ -5,8 +5,8 @@
 The `kale` API has a unique pipeline-based API design. Here we use the [domain adaptation for digits classification example](https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn) to explain our design. Each example contains through essential modules and one directory:
 
 - `main.py` is the main module to be run, showing the main workflow.
-- `config.py` is the configuration module setting the data, prediction problem, and hyper-parameters, etc. The settings in this module is the default configuration.
-  - `configs` is the directory to place the *customized* configurations for each individual run. We use `.yaml` files for this purpose.
+- `config.py` is the configuration module setting the data, prediction problem, and hyper-parameters, etc. The settings in this module are the default configuration.
+  - `configs` is the directory to place the *customized* configuration for each individual run. We use `.yaml` files for this purpose.
 - `model.py` is the  model module to define the machine learning model and configure its training parameters.
 - `trainer.py` is the trainer module to define the trainer, *only needed when not using `pytorch lightning`*.
 
