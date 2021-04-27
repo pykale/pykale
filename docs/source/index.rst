@@ -11,11 +11,13 @@ PyKale Documentation
     :maxdepth: 1
     :caption: Getting Started
 
+    introduction
     installation
+    tutorial
 
 .. toctree::
     :maxdepth: 1
-    :caption: Core API
+    :caption: Kale API
 
     kale.loaddata
     kale.prepdata
@@ -25,16 +27,20 @@ PyKale Documentation
     kale.evaluate
     kale.utils
 
-The core APIs above are ordered following the machine learning pipeline rather than alphabetically.
+Kale APIs above are ordered following the machine learning pipeline, i.e., functionalities, rather than alphabetically.
 
 .. toctree::
     :maxdepth: 1
     :caption: Example Projects
 
-	CIFAR - CNN Transformer <https://github.com/pykale/pykale/tree/main/examples/cifar_cnntransformer>
-	VIDEOS - Data Loading <https://github.com/pykale/pykale/tree/main/examples/video_loading>
+	Action - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/action_dann_lightn>
+    BindingDB - DeepDTA <https://github.com/pykale/pykale/tree/main/examples/bindingdb_deepdta>
+    CardiacMRI - MPCA <https://github.com/pykale/pykale/tree/main/examples/cmri_mpca>
+    CIFAR - CNN Transformer <https://github.com/pykale/pykale/tree/main/examples/cifar_cnntransformer>
 	CIFAR - ISONet <https://github.com/pykale/pykale/tree/main/examples/cifar_isonet>
 	Digits - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn>
+    Drug - GripNet <https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn>
+    VIDEOS - Data Loading <https://github.com/pykale/pykale/tree/main/examples/video_loading>
 
 .. To study later the best way to document examples
 .. examples/examples.cifar_cnntransformer
