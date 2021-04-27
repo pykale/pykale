@@ -4,12 +4,12 @@
    contain the root `toctree` directive.
 
 
-PyKale documentation
+PyKale Documentation
 ==================================
 
 .. toctree::
     :maxdepth: 1
-    :caption: Getting started
+    :caption: Getting Started
 
     installation
 
@@ -48,7 +48,7 @@ The core APIs above are ordered following the machine learning pipeline rather t
 .. examples/CMR_PAH.nblink
     "path": "../../examples/cmri_mpca/CMR_PAH.ipynb"
 
-Indices and tables
+Indices and Tables
 ==================
 
 * :ref:`genindex`
