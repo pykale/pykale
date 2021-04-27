@@ -2,18 +2,18 @@
 
 ## Usage of Pipeline-based API in Examples
 
-The `kale` API has a unique pipeline-based API design. Each example typically has three essential modules (`main.py`, `config.py`, `model.py`) and one directory (`configs`), and possibly other modules (`trainer.py`):
+The `kale` API has a unique pipeline-based API design. Each example typically has three essential modules (`main.py`, `config.py`, `model.py`), one optional directory (`configs`), and possibly other modules (`trainer.py`):
 
 - `main.py` is the main module to be run, showing the main workflow.
 - `config.py` is the configuration module setting the data, prediction problem, and hyper-parameters, etc. The settings in this module is the default configuration.
   - `configs` is the directory to place the *customized* configuration for each individual run. We use `.yaml` files for this purpose.
 - `model.py` is the model module to define the machine learning model and configure its training parameters.
-- `trainer.py` is the trainer module to define the trainer/workflow. This module is *only needed when NOT using `pytorch lightning`*.
+  - `trainer.py` is the trainer module to define the trainer/workflow. This module is *only needed when NOT using `pytorch lightning`*.
 
 Next, we explain the usage of the pipeline-based API in the modules above, mainly using the [domain adaptation for digits classification example](https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn).
 
-- The `kale.pipeline` module provides existing (off-the-shelf) machine learning pipelines for plug-in usage, e.g. `import kale.pipeline.domain_adapter as domain_adapter` in [`digits_dann_lightn`'s `model` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/model.py)
-- The `kale.utils` module provides common utility functions, such as `from kale.utils.seed import set_seed` in [`digits_dann_lightn`'s `main` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/main.py)
+- The `kale.pipeline` module provides existing (off-the-shelf) machine learning pipelines for plug-in usage, e.g. `import kale.pipeline.domain_adapter as domain_adapter` in [`digits_dann_lightn`'s `model` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/model.py).
+- The `kale.utils` module provides common utility functions, such as `from kale.utils.seed import set_seed` in [`digits_dann_lightn`'s `main` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/main.py).
 - The `kale.loaddata` module provides the input to the machine learning system, such as`from kale.loaddata.digits_access import DigitDatase` in  [`digits_dann_lightn`'s `main` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/main.py).
 - The `kale.prepdata` module provides pre-processing functions to transform the raw input data into a suitable form for machine learning, such as `import kale.prepdata.image_transform as image_transform` in `kale.loaddata.digits_access` used in  [`digits_dann_lightn`'s `main` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/main.py) for image data augmentation.
 - The `kale.embed` module provides *embedding* functions (the *encoder*) to *learn* suitable representations from the (pre-processed) input data, such as `from kale.embed.image_cnn import SmallCNNFeature` in [`digits_dann_lightn`'s `model` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/model.py). This is a machine learning module.
@@ -21,7 +21,7 @@ Next, we explain the usage of the pipeline-based API in the modules above, mainl
 - The `kale.evaluate` module implements evaluation metrics not yet available, such as the Concordance Index (CI) for measuring the proportion of [concordant pairs](https://en.wikipedia.org/wiki/Concordant_pair).
 - The `kale.interpret` module aims to provide functions for interpretation of the learned model or the prediction results, such as visualisation. This module has no implementation yet.
 
-## Building New Projects/Modules
+## Building New Modules or Projects
 
 New modules/projects can be built following the steps below.
 

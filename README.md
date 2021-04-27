@@ -55,7 +55,7 @@ Ask questions on [PyKale's GitHub Discussions tab](https://github.com/pykale/pyk
 
 ### Step 2: Building and Contributing
 
-Build new modules and/or projects with PyKale referring to the [tutorial](https://pykale.readthedocs.io/en/latest/tutorial.html##building-new-projectsmodules), e.g., on how to modify an existing pipeline or build a new one.
+Build new modules and/or projects with PyKale referring to the [tutorial](https://pykale.readthedocs.io/en/latest/tutorial.html#building-new-modules-or-projects), e.g., on how to modify an existing pipeline or build a new one.
 
 This is an open-source project welcoming your contributions. You can contribute in three ways:
 
