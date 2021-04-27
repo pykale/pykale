@@ -79,7 +79,7 @@ kale.loaddata.tdc\_datasets module
    :show-inheritance:
 
 kale.loaddata.video\_access module
------------------------------------
+----------------------------------
 
 .. automodule:: kale.loaddata.video_access
    :members:
@@ -87,7 +87,7 @@ kale.loaddata.video\_access module
    :show-inheritance:
 
 kale.loaddata.video\_datasets module
------------------------------------
+------------------------------------
 
 .. automodule:: kale.loaddata.video_datasets
    :members:
@@ -95,7 +95,7 @@ kale.loaddata.video\_datasets module
    :show-inheritance:
 
 kale.loaddata.action\_multi\_domain module
------------------------------------
+------------------------------------------
 
 .. automodule:: kale.loaddata.action_multi_domain
    :members:
