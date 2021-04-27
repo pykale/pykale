@@ -6,7 +6,7 @@ The `kale` API has a unique pipeline-based API design. Each example typically ha
 
 - `main.py` is the main module to be run, showing the main workflow.
 - `config.py` is the configuration module setting the data, prediction problem, and hyper-parameters, etc. The settings in this module is the default configuration.
-  - `configs` is the directory to place the *customized* configurations for each individual run. We use `.yaml` files for this purpose.
+  - `configs` is the directory to place the *customized* configuration for each individual run. We use `.yaml` files for this purpose.
 - `model.py` is the model module to define the machine learning model and configure its training parameters.
 - `trainer.py` is the trainer module to define the trainer/workflow. This module is *only needed when NOT using `pytorch lightning`*.
 
