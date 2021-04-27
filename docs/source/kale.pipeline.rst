@@ -31,7 +31,7 @@ kale.pipeline.domain\_adapter module
    :show-inheritance:
 
 kale.pipeline.action\_domain\_adapter module
-------------------------------------
+--------------------------------------------
 
 .. automodule:: kale.pipeline.action_domain_adapter
    :members:
