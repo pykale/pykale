@@ -47,9 +47,9 @@ jobs:
       - name: Run unit tests
         run: |
           pytest --cov=kale
-        shell: bash
+        shell: bash -l {0}
       - name: Report coverage
         run: |
           coverage xml
           bash <(curl -s https://codecov.io/bash)
-        shell: bash
+        shell: bash -l {0}
