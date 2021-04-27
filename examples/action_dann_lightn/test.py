@@ -6,13 +6,13 @@ We can load and test different trained models without training.
 import argparse
 import logging
 
-import torch
-
 import pytorch_lightning as pl
+import torch
 from config import get_cfg_defaults
+from model import get_model
+
 from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
 from kale.loaddata.video_access import VideoDataset
-from model import get_model
 
 
 def arg_parse():

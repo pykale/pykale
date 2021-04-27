@@ -18,7 +18,7 @@ from kale.embed.video_res3d import (
     R2Plus1dStem,
     VideoResNet,
 )
-from kale.embed.video_selayer import SELayerC, SELayerCoC, SELayerMAC, SELayerMC, SELayerT
+from kale.embed.video_selayer import get_selayer, SELayerC, SELayerT
 
 model_urls = {
     "r3d_18": "https://download.pytorch.org/models/r3d_18-b3b3357e.pth",
@@ -33,7 +33,7 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
     Args:
         arch (string): the name of basic architecture. (Options: ["r3d_18", "mc3_18" and "r2plus1d_18"])
         attention (string): the name of the SELayer.
-                        (Options: ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC" and "SELayerCT"])
+            (Options: ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC", "SELayerCT", and "SELayerTC"])
         pretrained (bool): choose if pretrained parameters are used. (Default: False)
         progress (bool, optional): whether or not to display a progress bar to stderr. (Default: True)
 
@@ -44,77 +44,65 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
     temporal_length = 16
 
     # Add channel-wise SELayer
-    if attention == "SELayerC":
-        model.layer1._modules["0"].add_module("SELayerC", SELayerC(64))
-        model.layer1._modules["1"].add_module("SELayerC", SELayerC(64))
-        model.layer2._modules["0"].add_module("SELayerC", SELayerC(128))
-        model.layer2._modules["1"].add_module("SELayerC", SELayerC(128))
-        model.layer3._modules["0"].add_module("SELayerC", SELayerC(256))
-        model.layer3._modules["1"].add_module("SELayerC", SELayerC(256))
-        model.layer4._modules["0"].add_module("SELayerC", SELayerC(512))
-        model.layer4._modules["1"].add_module("SELayerC", SELayerC(512))
+    if attention in ["SELayerC", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
+        se_layer = get_selayer(attention)
+        model.layer1._modules["0"].add_module(attention, se_layer(64))
+        model.layer1._modules["1"].add_module(attention, se_layer(64))
+        model.layer2._modules["0"].add_module(attention, se_layer(128))
+        model.layer2._modules["1"].add_module(attention, se_layer(128))
+        model.layer3._modules["0"].add_module(attention, se_layer(256))
+        model.layer3._modules["1"].add_module(attention, se_layer(256))
+        model.layer4._modules["0"].add_module(attention, se_layer(512))
+        model.layer4._modules["1"].add_module(attention, se_layer(512))
 
     # Add temporal-wise SELayer
     elif attention == "SELayerT":
-        model.layer1._modules["0"].add_module("SELayerT", SELayerT(temporal_length))
-        model.layer1._modules["1"].add_module("SELayerT", SELayerT(temporal_length))
-        model.layer2._modules["0"].add_module("SELayerT", SELayerT(temporal_length // 2))
-        model.layer2._modules["1"].add_module("SELayerT", SELayerT(temporal_length // 2))
-        model.layer3._modules["0"].add_module("SELayerT", SELayerT(temporal_length // 4))
-        model.layer3._modules["1"].add_module("SELayerT", SELayerT(temporal_length // 4))
-        model.layer4._modules["0"].add_module("SELayerT", SELayerT(temporal_length // 8))
-        model.layer4._modules["1"].add_module("SELayerT", SELayerT(temporal_length // 8))
-
-    # Add convolution-based channel-wise SELayer
-    elif attention == "SELayerCoC":
-        model.layer1._modules["0"].add_module("SELayerCoC", SELayerCoC(64))
-        model.layer1._modules["1"].add_module("SELayerCoC", SELayerCoC(64))
-        model.layer2._modules["0"].add_module("SELayerCoC", SELayerCoC(128))
-        model.layer2._modules["1"].add_module("SELayerCoC", SELayerCoC(128))
-        model.layer3._modules["0"].add_module("SELayerCoC", SELayerCoC(256))
-        model.layer3._modules["1"].add_module("SELayerCoC", SELayerCoC(256))
-        model.layer4._modules["0"].add_module("SELayerCoC", SELayerCoC(512))
-        model.layer4._modules["1"].add_module("SELayerCoC", SELayerCoC(512))
-
-    # Add multi-pooling-based channel-wise SELayer
-    elif attention == "SELayerMAC":
-        model.layer1._modules["0"].add_module("SELayerMAC", SELayerMAC(64))
-        model.layer1._modules["1"].add_module("SELayerMAC", SELayerMAC(64))
-        model.layer2._modules["0"].add_module("SELayerMAC", SELayerMAC(128))
-        model.layer2._modules["1"].add_module("SELayerMAC", SELayerMAC(128))
-        model.layer3._modules["0"].add_module("SELayerMAC", SELayerMAC(256))
-        model.layer3._modules["1"].add_module("SELayerMAC", SELayerMAC(256))
-        model.layer4._modules["0"].add_module("SELayerMAC", SELayerMAC(512))
-        model.layer4._modules["1"].add_module("SELayerMAC", SELayerMAC(512))
-
-    # Add max-pooling-based channel-wise SELayer
-    elif attention == "SELayerMC":
-        model.layer1._modules["0"].add_module("SELayerMC", SELayerMC(64))
-        model.layer1._modules["1"].add_module("SELayerMC", SELayerMC(64))
-        model.layer2._modules["0"].add_module("SELayerMC", SELayerMC(128))
-        model.layer2._modules["1"].add_module("SELayerMC", SELayerMC(128))
-        model.layer3._modules["0"].add_module("SELayerMC", SELayerMC(256))
-        model.layer3._modules["1"].add_module("SELayerMC", SELayerMC(256))
-        model.layer4._modules["0"].add_module("SELayerMC", SELayerMC(512))
-        model.layer4._modules["1"].add_module("SELayerMC", SELayerMC(512))
+        se_layer = get_selayer(attention)
+        model.layer1._modules["0"].add_module(attention, se_layer(temporal_length))
+        model.layer1._modules["1"].add_module(attention, se_layer(temporal_length))
+        model.layer2._modules["0"].add_module(attention, se_layer(temporal_length // 2))
+        model.layer2._modules["1"].add_module(attention, se_layer(temporal_length // 2))
+        model.layer3._modules["0"].add_module(attention, se_layer(temporal_length // 4))
+        model.layer3._modules["1"].add_module(attention, se_layer(temporal_length // 4))
 
     # Add channel-temporal-wise SELayer
     elif attention == "SELayerCT":
-        model.layer1._modules["0"].add_module("SELayerC", SELayerC(64))
-        model.layer1._modules["1"].add_module("SELayerC", SELayerC(64))
-        model.layer2._modules["0"].add_module("SELayerC", SELayerC(128))
-        model.layer2._modules["1"].add_module("SELayerC", SELayerC(128))
-        model.layer3._modules["0"].add_module("SELayerC", SELayerC(256))
-        model.layer3._modules["1"].add_module("SELayerC", SELayerC(256))
-        model.layer4._modules["0"].add_module("SELayerC", SELayerC(512))
-        model.layer4._modules["1"].add_module("SELayerC", SELayerC(512))
+        model.layer1._modules["0"].add_module(attention + "c", SELayerC(64))
+        model.layer1._modules["1"].add_module(attention + "c", SELayerC(64))
+        model.layer2._modules["0"].add_module(attention + "c", SELayerC(128))
+        model.layer2._modules["1"].add_module(attention + "c", SELayerC(128))
+        model.layer3._modules["0"].add_module(attention + "c", SELayerC(256))
+        model.layer3._modules["1"].add_module(attention + "c", SELayerC(256))
+        model.layer4._modules["0"].add_module(attention + "c", SELayerC(512))
+        model.layer4._modules["1"].add_module(attention + "c", SELayerC(512))
 
-        model.layer1._modules["0"].add_module("SELayerT", SELayerT(temporal_length))
-        model.layer1._modules["1"].add_module("SELayerT", SELayerT(temporal_length))
-        model.layer2._modules["0"].add_module("SELayerT", SELayerT(temporal_length // 2))
-        model.layer2._modules["1"].add_module("SELayerT", SELayerT(temporal_length // 2))
-        model.layer3._modules["0"].add_module("SELayerT", SELayerT(temporal_length // 4))
-        model.layer3._modules["1"].add_module("SELayerT", SELayerT(temporal_length // 4))
+        model.layer1._modules["0"].add_module(attention + "t", SELayerT(temporal_length))
+        model.layer1._modules["1"].add_module(attention + "t", SELayerT(temporal_length))
+        model.layer2._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 2))
+        model.layer2._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 2))
+        model.layer3._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 4))
+        model.layer3._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 4))
+
+    # Add temporal-channel-wise SELayer
+    elif attention == "SELayerTC":
+        model.layer1._modules["0"].add_module(attention + "t", SELayerT(temporal_length))
+        model.layer1._modules["1"].add_module(attention + "t", SELayerT(temporal_length))
+        model.layer2._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 2))
+        model.layer2._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 2))
+        model.layer3._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 4))
+        model.layer3._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 4))
+
+        model.layer1._modules["0"].add_module(attention + "c", SELayerC(64))
+        model.layer1._modules["1"].add_module(attention + "c", SELayerC(64))
+        model.layer2._modules["0"].add_module(attention + "c", SELayerC(128))
+        model.layer2._modules["1"].add_module(attention + "c", SELayerC(128))
+        model.layer3._modules["0"].add_module(attention + "c", SELayerC(256))
+        model.layer3._modules["1"].add_module(attention + "c", SELayerC(256))
+        model.layer4._modules["0"].add_module(attention + "c", SELayerC(512))
+        model.layer4._modules["1"].add_module(attention + "c", SELayerC(512))
+
+    else:
+        raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
@@ -128,75 +116,59 @@ def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kw
     temporal_length = 16
 
     # Add channel-wise SELayer
-    if attention == "SELayerC":
-        model.layer1._modules["0"].add_module("SELayerC", SELayerC(64))
-        model.layer1._modules["1"].add_module("SELayerC", SELayerC(64))
-        model.layer2._modules["0"].add_module("SELayerC", SELayerC(128))
-        model.layer2._modules["1"].add_module("SELayerC", SELayerC(128))
-        model.layer3._modules["0"].add_module("SELayerC", SELayerC(256))
-        model.layer3._modules["1"].add_module("SELayerC", SELayerC(256))
-        model.layer4._modules["0"].add_module("SELayerC", SELayerC(512))
-        model.layer4._modules["1"].add_module("SELayerC", SELayerC(512))
+    if attention in ["SELayerC", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
+        se_layer = get_selayer(attention)
+        model.layer1._modules["0"].add_module(attention, se_layer(64))
+        model.layer1._modules["1"].add_module(attention, se_layer(64))
+        model.layer2._modules["0"].add_module(attention, se_layer(128))
+        model.layer2._modules["1"].add_module(attention, se_layer(128))
+        model.layer3._modules["0"].add_module(attention, se_layer(256))
+        model.layer3._modules["1"].add_module(attention, se_layer(256))
+        model.layer4._modules["0"].add_module(attention, se_layer(512))
+        model.layer4._modules["1"].add_module(attention, se_layer(512))
 
     # Add temporal-wise SELayer
     elif attention == "SELayerT":
-        model.layer1._modules["0"].add_module("SELayerT", SELayerT(temporal_length // 2))
-        model.layer1._modules["1"].add_module("SELayerT", SELayerT(temporal_length // 2))
-        model.layer2._modules["0"].add_module("SELayerT", SELayerT(temporal_length // 4))
-        model.layer2._modules["1"].add_module("SELayerT", SELayerT(temporal_length // 4))
-        model.layer3._modules["0"].add_module("SELayerT", SELayerT(temporal_length // 8))
-        model.layer3._modules["1"].add_module("SELayerT", SELayerT(temporal_length // 8))
-
-    # Add convolution-based channel-wise SELayer
-    elif attention == "SELayerCoC":
-        model.layer1._modules["0"].add_module("SELayerCoC", SELayerCoC(64))
-        model.layer1._modules["1"].add_module("SELayerCoC", SELayerCoC(64))
-        model.layer2._modules["0"].add_module("SELayerCoC", SELayerCoC(128))
-        model.layer2._modules["1"].add_module("SELayerCoC", SELayerCoC(128))
-        model.layer3._modules["0"].add_module("SELayerCoC", SELayerCoC(256))
-        model.layer3._modules["1"].add_module("SELayerCoC", SELayerCoC(256))
-        model.layer4._modules["0"].add_module("SELayerCoC", SELayerCoC(512))
-        model.layer4._modules["1"].add_module("SELayerCoC", SELayerCoC(512))
-
-    # Add multi-pooling-based channel-wise SELayer
-    elif attention == "SELayerMAC":
-        model.layer1._modules["0"].add_module("SELayerMAC", SELayerMAC(64))
-        model.layer1._modules["1"].add_module("SELayerMAC", SELayerMAC(64))
-        model.layer2._modules["0"].add_module("SELayerMAC", SELayerMAC(128))
-        model.layer2._modules["1"].add_module("SELayerMAC", SELayerMAC(128))
-        model.layer3._modules["0"].add_module("SELayerMAC", SELayerMAC(256))
-        model.layer3._modules["1"].add_module("SELayerMAC", SELayerMAC(256))
-        model.layer4._modules["0"].add_module("SELayerMAC", SELayerMAC(512))
-        model.layer4._modules["1"].add_module("SELayerMAC", SELayerMAC(512))
-
-    # Add max-pooling-based channel-wise SELayer
-    elif attention == "SELayerMC":
-        model.layer1._modules["0"].add_module("SELayerMC", SELayerMC(64))
-        model.layer1._modules["1"].add_module("SELayerMC", SELayerMC(64))
-        model.layer2._modules["0"].add_module("SELayerMC", SELayerMC(128))
-        model.layer2._modules["1"].add_module("SELayerMC", SELayerMC(128))
-        model.layer3._modules["0"].add_module("SELayerMC", SELayerMC(256))
-        model.layer3._modules["1"].add_module("SELayerMC", SELayerMC(256))
-        model.layer4._modules["0"].add_module("SELayerMC", SELayerMC(512))
-        model.layer4._modules["1"].add_module("SELayerMC", SELayerMC(512))
+        se_layer = get_selayer(attention)
+        model.layer1._modules["0"].add_module(attention, se_layer(temporal_length // 2))
+        model.layer1._modules["1"].add_module(attention, se_layer(temporal_length // 2))
+        model.layer2._modules["0"].add_module(attention, se_layer(temporal_length // 4))
+        model.layer2._modules["1"].add_module(attention, se_layer(temporal_length // 4))
 
     # Add channel-temporal-wise SELayer
     elif attention == "SELayerCT":
-        model.layer1._modules["0"].add_module("SELayerC", SELayerC(64))
-        model.layer1._modules["1"].add_module("SELayerC", SELayerC(64))
-        model.layer2._modules["0"].add_module("SELayerC", SELayerC(128))
-        model.layer2._modules["1"].add_module("SELayerC", SELayerC(128))
-        model.layer3._modules["0"].add_module("SELayerC", SELayerC(256))
-        model.layer3._modules["1"].add_module("SELayerC", SELayerC(256))
-        model.layer4._modules["0"].add_module("SELayerC", SELayerC(512))
-        model.layer4._modules["1"].add_module("SELayerC", SELayerC(512))
+        model.layer1._modules["0"].add_module(attention + "c", SELayerC(64))
+        model.layer1._modules["1"].add_module(attention + "c", SELayerC(64))
+        model.layer2._modules["0"].add_module(attention + "c", SELayerC(128))
+        model.layer2._modules["1"].add_module(attention + "c", SELayerC(128))
+        model.layer3._modules["0"].add_module(attention + "c", SELayerC(256))
+        model.layer3._modules["1"].add_module(attention + "c", SELayerC(256))
+        model.layer4._modules["0"].add_module(attention + "c", SELayerC(512))
+        model.layer4._modules["1"].add_module(attention + "c", SELayerC(512))
 
-        model.layer1._modules["0"].add_module("SELayerT", SELayerT(temporal_length // 2))
-        model.layer1._modules["1"].add_module("SELayerT", SELayerT(temporal_length // 2))
-        model.layer2._modules["0"].add_module("SELayerT", SELayerT(temporal_length // 4))
-        model.layer2._modules["1"].add_module("SELayerT", SELayerT(temporal_length // 4))
-        model.layer3._modules["0"].add_module("SELayerT", SELayerT(temporal_length // 8))
-        model.layer3._modules["1"].add_module("SELayerT", SELayerT(temporal_length // 8))
+        model.layer1._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 2))
+        model.layer1._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 2))
+        model.layer2._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 4))
+        model.layer2._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 4))
+
+    # Add temporal-channel-wise SELayer
+    elif attention == "SELayerTC":
+        model.layer1._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 2))
+        model.layer1._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 2))
+        model.layer2._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 4))
+        model.layer2._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 4))
+
+        model.layer1._modules["0"].add_module(attention + "c", SELayerC(64))
+        model.layer1._modules["1"].add_module(attention + "c", SELayerC(64))
+        model.layer2._modules["0"].add_module(attention + "c", SELayerC(128))
+        model.layer2._modules["1"].add_module(attention + "c", SELayerC(128))
+        model.layer3._modules["0"].add_module(attention + "c", SELayerC(256))
+        model.layer3._modules["1"].add_module(attention + "c", SELayerC(256))
+        model.layer4._modules["0"].add_module(attention + "c", SELayerC(512))
+        model.layer4._modules["1"].add_module(attention + "c", SELayerC(512))
+
+    else:
+        raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))
 
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)

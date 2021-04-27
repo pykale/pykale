@@ -109,16 +109,27 @@ class BasicBlock(nn.Module):
             residual = self.downsample(x)
 
         # Check if SELayer is used.
-        if "SELayerC" in dir(self):
+        if "SELayerC" in dir(self):  # check channel-wise
             out = self.SELayerC(out)
-        if "SELayerT" in dir(self):
+        if "SELayerCoC" in dir(self):
+            out = self.SELayerCoC(out)
+        if "SELayerMC" in dir(self):
+            out = self.SELayerMC(out)
+        if "SELayerMAC" in dir(self):
+            out = self.SELayerMAC(out)
+
+        if "SELayerT" in dir(self):  # check temporal-wise
             out = self.SELayerT(out)
-        # if "SELayerCoC" in dir(self):
-        #     out = self.SELayerCoC(out)
-        # if "SELayerMC" in dir(self):
-        #     out = self.SELayerMC(out)
-        # if "SELayerMAC" in dir(self):
-        #     out = self.SELayerMAC(out)
+
+        if "SELayerCTc" in dir(self):  # check channel-temporal-wise
+            out = self.SELayerCTc(out)
+        if "SELayerCTt" in dir(self):
+            out = self.SELayerCTt(out)
+
+        if "SELayerTCt" in dir(self):  # check temporal-channel-wise
+            out = self.SELayerTCt(out)
+        if "SELayerTCc" in dir(self):
+            out = self.SELayerTCc(out)
 
         out += residual
         out = self.relu(out)

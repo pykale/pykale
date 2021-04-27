@@ -19,6 +19,33 @@ import torch
 import torch.nn as nn
 
 
+def get_selayer(attention):
+    """Get SELayers referring to attention.
+
+    Args:
+        attention (string): the name of the SELayer.
+            (Options: ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC"])
+
+    Returns:
+        se_layer (SELayer, optional): the SELayer.
+    """
+    if attention == "SELayerC":
+        se_layer = SELayerC
+    elif attention == "SELayerCoC":
+        se_layer = SELayerCoC
+    elif attention == "SELayerMC":
+        se_layer = SELayerMC
+    elif attention == "SELayerMAC":
+        se_layer = SELayerMAC
+    elif attention == "SELayerCoC":
+        se_layer = SELayerCoC
+    elif attention == "SELayerT":
+        se_layer = SELayerT
+    else:
+        raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))
+    return se_layer
+
+
 class SELayerC(nn.Module):
     """Construct channel-wise SELayer."""
 
