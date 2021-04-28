@@ -46,16 +46,28 @@ def get_selayer(attention):
     return se_layer
 
 
-class SELayerC(nn.Module):
+class SELayer(nn.Module):
+    """Helper class for SELayer design."""
+
+    def __init__(self, channel, reduction=16):
+        super(SELayer, self).__init__()
+        self.channel = channel
+        self.reduction = reduction
+
+    def forward(self, x):
+        return NotImplementedError()
+
+
+class SELayerC(SELayer):
     """Construct channel-wise SELayer."""
 
     def __init__(self, channel, reduction=16):
-        super(SELayerC, self).__init__()
+        super(SELayerC, self).__init__(channel, reduction)
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.fc = nn.Sequential(
-            nn.Linear(channel, channel // reduction, bias=False),
+            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
             nn.ReLU(inplace=True),
-            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Linear(self.channel // self.reduction, self.channel, bias=False),
             nn.Sigmoid(),
         )
 
@@ -69,16 +81,16 @@ class SELayerC(nn.Module):
         return out
 
 
-class SELayerT(nn.Module):
+class SELayerT(SELayer):
     """Construct temporal-wise SELayer."""
 
     def __init__(self, channel, reduction=2):
-        super(SELayerT, self).__init__()
+        super(SELayerT, self).__init__(channel, reduction)
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.fc = nn.Sequential(
-            nn.Linear(channel, channel // reduction, bias=False),
+            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
             nn.ReLU(inplace=True),
-            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Linear(self.channel // self.reduction, self.channel, bias=False),
             nn.Sigmoid(),
         )
 
@@ -94,24 +106,21 @@ class SELayerT(nn.Module):
         return out
 
 
-class SELayerCoC(nn.Module):
+class SELayerCoC(SELayer):
     """Construct convolution-based channel-wise SELayer."""
 
     def __init__(self, channel, reduction=16):
-        super(SELayerCoC, self).__init__()
-        self.conv1 = nn.Conv3d(in_channels=channel, out_channels=channel // reduction, kernel_size=1, bias=False)
-        self.bn1 = nn.BatchNorm3d(num_features=channel // reduction)
-        # self.conv3 = nn.Conv2d(
-        #     in_channels=channel // reduction,
-        #     out_channels=channel // reduction,
-        #     kernel_size=3,
-        #     padding=1,
-        #     groups=channel // reduction,
-        #     bias=False)
+        super(SELayerCoC, self).__init__(channel, reduction)
+        self.conv1 = nn.Conv3d(
+            in_channels=self.channel, out_channels=self.channel // self.reduction, kernel_size=1, bias=False
+        )
+        self.bn1 = nn.BatchNorm3d(num_features=self.channel // self.reduction)
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.sigmoid = nn.Sigmoid()
-        self.conv2 = nn.Conv3d(in_channels=channel // reduction, out_channels=channel, kernel_size=1, bias=False)
-        self.bn2 = nn.BatchNorm3d(num_features=channel)
+        self.conv2 = nn.Conv3d(
+            in_channels=self.channel // self.reduction, out_channels=self.channel, kernel_size=1, bias=False
+        )
+        self.bn2 = nn.BatchNorm3d(num_features=self.channel)
 
     def forward(self, x):
         b, c, t, _, _ = x.size()  # n, c, t, h, w
@@ -127,16 +136,16 @@ class SELayerCoC(nn.Module):
         return out
 
 
-class SELayerMC(nn.Module):
+class SELayerMC(SELayer):
     """Construct channel-wise SELayer with max pooling."""
 
     def __init__(self, channel, reduction=16):
-        super(SELayerMC, self).__init__()
+        super(SELayerMC, self).__init__(channel, reduction)
         self.max_pool = nn.AdaptiveMaxPool3d(1)
         self.fc = nn.Sequential(
-            nn.Linear(channel, channel // reduction, bias=False),
+            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
             nn.ReLU(inplace=True),
-            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Linear(self.channel // self.reduction, self.channel, bias=False),
             nn.Sigmoid(),
         )
 
@@ -150,18 +159,18 @@ class SELayerMC(nn.Module):
         return out
 
 
-class SELayerMAC(nn.Module):
+class SELayerMAC(SELayer):
     """Construct channel-wise SELayer with the mix of average pooling and max pooling."""
 
     def __init__(self, channel, reduction=16):
-        super(SELayerMAC, self).__init__()
+        super(SELayerMAC, self).__init__(channel, reduction)
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.max_pool = nn.AdaptiveMaxPool3d(1)
         self.conv = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=(1, 2), bias=False)
         self.fc = nn.Sequential(
-            nn.Linear(channel, channel // reduction, bias=False),
+            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
             nn.ReLU(inplace=True),
-            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Linear(self.channel // self.reduction, self.channel, bias=False),
             nn.Sigmoid(),
         )
 
