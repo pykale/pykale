@@ -12,25 +12,32 @@ SCALES = [4, 8]
 
 def test_reg():
     n_samples = images.shape[-1]
+    # generate synthetic coordinates
     coords = np.ones((n_samples, 4))
     coords[:, 2:] += 20
+    # use first row as destination coordinates, add small random noise to the remaining coordinates
     coords[1:, :] += np.random.random(size=(n_samples - 1, 4))
     with pytest.raises(Exception):
         reg_img_stack(images, coords[1:, :])
     images_reg, max_dist = reg_img_stack(images, coords)
+    # images after registration should be close to original images, because values of noise are small
     testing.assert_allclose(images_reg, images)
-    testing.assert_equal(max_dist.shape, (n_samples,))
+    # add one for avoiding inf relative difference
+    testing.assert_allclose(max_dist + 1, np.ones(n_samples))
 
 
 @pytest.mark.parametrize("scale", SCALES)
 def test_rescale(scale):
     img_rescaled = rescale_img_stack(images, scale)
+    # dim1 and dim2 have been rescaled
     testing.assert_equal(img_rescaled.shape[0], round(images.shape[0] / scale))
     testing.assert_equal(img_rescaled.shape[1], round(images.shape[1] / scale))
+    # n_phases and n_samples are unchanged
     testing.assert_equal(img_rescaled.shape[-2:], images.shape[-2:])
 
 
 def test_masking():
+    # generate synthetic mask randomly
     mask = np.random.randint(0, 2, size=(images.shape[0], images.shape[1]))
     idx_zeros = np.where(mask == 0)
     idx_ones = np.where(mask == 1)

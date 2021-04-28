@@ -117,7 +117,6 @@ def reg_img_stack(images, coords, dst_id=0):
         if i == dst_id:
             continue
         else:
-            # epts = landmarks.iloc[i, 1:].values
             src_coord = coords[i, :]
             src_coord = src_coord.reshape((n_landmarks, 2))
             idx_valid = np.isnan(src_coord[:, 0])
