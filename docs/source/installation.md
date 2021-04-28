@@ -1,6 +1,8 @@
 # Installation
 
-PyKale requires a Python version between 3.6 and 3.8. You should [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware first. To work on graphs, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) first follow its official instructions.
+PyKale requires a Python version 3.6 or above. Before installing pykale, you should
+- manually [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware first, and
+- if you will use APIs related to graphs, you need to manually install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) first following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation) and matching your PyTorch installation.
 
 Install PyKale using `pip` for the stable version:
 
