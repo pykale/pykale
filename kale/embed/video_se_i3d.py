@@ -6,10 +6,10 @@
 """Add SELayers to I3D"""
 
 import torch.nn as nn
-from torchvision.models.utils import load_state_dict_from_url
 
 from kale.embed.video_i3d import InceptionI3d
 from kale.embed.video_selayer import get_selayer, SELayerC, SELayerT
+from torchvision.models.utils import load_state_dict_from_url
 
 model_urls = {
     "rgb_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt",
@@ -206,9 +206,12 @@ def se_inception_i3d(name, num_channels, num_classes, attention, pretrained=Fals
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[name], progress=progress)
 
-        # delete logits.conv3d parameters due to different class number.
+        # delete the last layer's parameter and only load the parameters before the last due to different class number.
+        # uncomment and change the output size of I3D when using the default classifier in I3D.
+
         # state_dict.pop("logits.conv3d.weight")
         # state_dict.pop("logits.conv3d.bias")
+        # model.load_state_dict(state_dict, strict=False)
 
         # Create new OrderedDict that add `model.`
         from collections import OrderedDict
