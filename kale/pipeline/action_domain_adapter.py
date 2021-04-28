@@ -54,8 +54,12 @@ def create_dann_like_4video(
     method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, **train_params
 ):
     """DANN-based deep learning methods for action recognition DA: DANN, CDAN, CDAN+E"""
+
+    # Uncomment for later work.
+    # Set up a new create_fewshot_trainer for video data based on original one in `domain_adapter.py`
+
     # if dataset.is_semi_supervised():
-    #     return create_fewshot_trainer(
+    #     return create_fewshot_trainer_4video(
     #         method, dataset, feature_extractor, task_classifier, critic, **train_params
     #     )
 
@@ -92,16 +96,6 @@ def create_dann_like_4video(
             method=method,
             **train_params,
         )
-    # elif method is Method.WDGRLMod:
-    #     return WDGRLtrainerMod4Video(
-    #         dataset=dataset,
-    #         image_modality=image_modality,
-    #         feature_extractor=feature_extractor,
-    #         task_classifier=task_classifier,
-    #         critic=critic,
-    #         method=method,
-    #         **train_params,
-    #     )
     else:
         raise ValueError(f"Unsupported method: {method}")
 
@@ -577,8 +571,8 @@ class WDGRLtrainer4Video(WDGRLtrainer):
         return task_feat_optimizer
 
     def critic_update_steps(self, batch):
-        # if self.current_epoch < self._init_epochs:
-        #     return
+        if self.current_epoch < self._init_epochs:
+            return
 
         set_requires_grad(self.domain_classifier, requires_grad=True)
 
