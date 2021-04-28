@@ -1,3 +1,8 @@
+# =============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# =============================================================================
+
 """Classification of data or domain
 
 Modules for typical classification tasks (into class labels) and
@@ -6,6 +11,8 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/mod
 """
 
 import torch.nn as nn
+
+from kale.embed.video_i3d import Unit3D
 
 
 # Previously FFSoftmaxClassifier
@@ -113,4 +120,86 @@ class DomainNetSmallImage(nn.Module):
             x = self.fc3(x)
         else:
             x = self.fc2(x)
+        return x
+
+
+# For Video/Action Recognition, DataClassifier.
+class ClassNetVideo(nn.Module):
+    """Regular classifier network for video input.
+
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        n_channel (int, optional): the number of channel for Linear and BN layers.
+        dropout_keep_prob (int, optional): the dropout probability for keeping the parameters.
+        n_class (int, optional): the number of classes. Defaults to 8.
+    """
+
+    def __init__(self, input_size=512, n_channel=100, dropout_keep_prob=0.5, n_class=8):
+        super(ClassNetVideo, self).__init__()
+        self._n_classes = n_class
+        self.fc1 = nn.Linear(input_size, n_channel)
+        self.bn1 = nn.BatchNorm1d(n_channel)
+        self.relu1 = nn.ReLU()
+        self.dp1 = nn.Dropout(dropout_keep_prob)
+        self.fc2 = nn.Linear(n_channel, n_class)
+
+    def n_classes(self):
+        return self._n_classes
+
+    def forward(self, input):
+        x = self.dp1(self.relu1(self.bn1(self.fc1(input))))
+        x = self.fc2(x)
+        return x
+
+
+class ClassNetVideoConv(nn.Module):
+    """Classifier network for video input refer to MMSADA.
+
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 1024.
+        n_class (int, optional): the number of classes. Defaults to 8.
+
+    References:
+        Munro Jonathan, and Dima Damen. "Multi-modal domain adaptation for fine-grained action recognition."
+        In CVPR, pp. 122-132. 2020.
+    """
+
+    def __init__(self, input_size=1024, n_class=8):
+        super(ClassNetVideoConv, self).__init__()
+        self.dp = nn.Dropout()
+        self.logits = Unit3D(
+            in_channels=input_size,
+            output_channels=n_class,
+            kernel_shape=[1, 1, 1],
+            padding=0,
+            activation_fn=None,
+            use_batch_norm=False,
+            use_bias=True,
+        )
+
+    def forward(self, input):
+        x = self.logits(self.dp(input))
+        return x
+
+
+# For Video/Action Recognition, DomainClassifier.
+class DomainNetVideo(nn.Module):
+    """Regular domain classifier network for video input.
+
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        n_channel (int, optional): the number of channel for Linear and BN layers.
+    """
+
+    def __init__(self, input_size=128, n_channel=100):
+        super(DomainNetVideo, self).__init__()
+
+        self.fc1 = nn.Linear(input_size, n_channel)
+        self.bn1 = nn.BatchNorm1d(n_channel)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(n_channel, 2)
+
+    def forward(self, input):
+        x = self.relu1(self.bn1(self.fc1(input)))
+        x = self.fc2(x)
         return x

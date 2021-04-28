@@ -22,13 +22,6 @@ kale.prepdata.image\_transform module
    :undoc-members:
    :show-inheritance:
 
-kale.prepdata.prep\_cmr module
-------------------------------
-
-.. automodule:: kale.prepdata.prep_cmr
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 kale.prepdata.tensor\_reshape module
 ------------------------------------
