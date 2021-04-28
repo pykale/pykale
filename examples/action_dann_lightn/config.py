@@ -16,19 +16,19 @@ _C = CN()
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.DATASET.ROOT = "I:/Datasets/EgoAction/"  # '/shared/tale2/Shared'
-_C.DATASET.SOURCE = "EPIC"  # dataset choices=['EPIC', 'GTEA', 'ADL', 'KITCHEN']
+_C.DATASET.ROOT = "I:/Datasets/EgoAction/"  # "/shared/tale2/Shared"
+_C.DATASET.SOURCE = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
 _C.DATASET.SRC_TRAINLIST = "epic_D1_train.pkl"
 _C.DATASET.SRC_TESTLIST = "epic_D1_test.pkl"
-_C.DATASET.TARGET = "EPIC"  # dataset choices=['EPIC', 'GTEA', 'ADL', 'KITCHEN']
+_C.DATASET.TARGET = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
 _C.DATASET.TAR_TRAINLIST = "epic_D2_train.pkl"
 _C.DATASET.TAR_TESTLIST = "epic_D2_test.pkl"
-_C.DATASET.IMAGE_MODALITY = "rgb"  # mode choices=['rgb', 'flow', 'joint']
+_C.DATASET.IMAGE_MODALITY = "rgb"  # mode options=["rgb", "flow", "joint"]
 # _C.DATASET.NUM_CLASSES = 8
 _C.DATASET.FRAMES_PER_SEGMENT = 16
 _C.DATASET.NUM_REPEAT = 5  # 10
 _C.DATASET.WEIGHT_TYPE = "natural"
-_C.DATASET.SIZE_TYPE = "source"
+_C.DATASET.SIZE_TYPE = "max"  # options=["source", "max"]
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
@@ -55,14 +55,14 @@ _C.SOLVER.INIT_LAMBDA = 1.0
 # Domain Adaptation Net (DAN) configs
 # ---------------------------------------------------------------------------- #
 _C.MODEL = CN()
-_C.MODEL.METHOD = "i3d"  # choices=['r3d_18', 'r2plus1d_18', 'mc3_18', 'i3d']
-_C.MODEL.ATTENTION = "None"  # choices=['None', 'SELayer']
+_C.MODEL.METHOD = "i3d"  # options=["r3d_18", "r2plus1d_18", "mc3_18", "i3d"]
+_C.MODEL.ATTENTION = "None"  # options=["None", "SELayer"]
 
 # ---------------------------------------------------------------------------- #
 # Domain Adaptation Net (DAN) configs
 # ---------------------------------------------------------------------------- #
 _C.DAN = CN()
-_C.DAN.METHOD = "CDAN"  # choices=['CDAN', 'CDAN-E', 'DANN', 'DAN']
+_C.DAN.METHOD = "CDAN"  # options=["CDAN", "CDAN-E", "DANN", "DAN"]
 _C.DAN.USERANDOM = False
 _C.DAN.RANDOM_DIM = 1024
 # ---------------------------------------------------------------------------- #
