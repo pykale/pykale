@@ -1,16 +1,18 @@
+# =============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# =============================================================================
+
 """
 Define the learning model and configure training parameters.
 References from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 """
-# Author: Haiping Lu & Xianyuan Liu
-# Initial Date: 7 December 2020
 
 from copy import deepcopy
 
-import kale.pipeline.domain_adapter as domain_adapter
-from kale.embed.video_i3d import i3d
-from kale.embed.video_res3d import mc3_18, r2plus1d_18, r3d_18
-from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
+from kale.embed.video_feature_extractor import get_video_feat_extractor
+from kale.pipeline import action_domain_adapter, domain_adapter
+from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 
 
 def get_config(cfg):
@@ -51,58 +53,23 @@ def get_config(cfg):
     return config_params
 
 
-def get_feat_extractor(model_name, num_classes, num_channels):
-    """
-    Get the feature extractor w/o the pre-trained model. The pre-trained models are saved in the path
-    ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
-    For Windows, default path is ``C:/Users/$USER_NAME/.cache/torch/hub/checkpoints/``.
-    Provide four pre-trained models: 'rgb_imagenet', 'flow_imagenet', 'rgb_charades', 'flow_charades'.
-
-    Args:
-        model_name: The name of the feature extractor.
-        num_classes: The class number for the specific setting. (Default: No use)
-        num_channels: The number of image channels. (Default: No use, may used in RGB & Flow)
-
-    Returns:
-        feature_network: The network to extract features.
-        feature_dim: The dimension of the feature network output. It is a convention when
-                    the input dimension and the network is fixed.
-    """
-
-    if model_name == "I3D":
-        pretrained_model = "rgb_imagenet" if num_channels == 3 else "flow_imagenet"
-        feature_network = i3d(name=pretrained_model, num_channels=num_channels, pretrained=True)
-        # model.replace_logits(num_classes)
-        feature_dim = 1024
-    elif model_name == "R3D_18":
-        feature_network = r3d_18(pretrained=True)
-        feature_dim = 512
-    elif model_name == "R2PLUS1D_18":
-        feature_network = r2plus1d_18(pretrained=True)
-        feature_dim = 512
-    elif model_name == "MC3_18":
-        feature_network = mc3_18(pretrained=True)
-        feature_dim = 512
-    else:
-        raise ValueError("Unsupported model: {}".format(model_name))
-    return feature_network, feature_dim
-
-
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
-def get_model(cfg, dataset, num_channels):
+def get_model(cfg, dataset, num_classes):
     """
     Builds and returns a model and associated hyper parameters according to the config object passed.
 
     Args:
         cfg: A YACS config object.
         dataset: A multi domain dataset consisting of source and target datasets.
-        num_channels: The number of image channels.
+        num_classes: The class number of specific dataset.
     """
 
     # setup feature extractor
-    feature_network, feature_dim = get_feat_extractor(cfg.MODEL.METHOD.upper(), cfg.DATASET.NUM_CLASSES, num_channels)
+    feature_network, class_feature_dim, domain_feature_dim = get_video_feat_extractor(
+        cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, num_classes
+    )
     # setup classifier
-    classifier_network = ClassNetSmallImage(feature_dim, cfg.DATASET.NUM_CLASSES)
+    classifier_network = ClassNetVideo(input_size=class_feature_dim, n_class=num_classes)
 
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
@@ -112,31 +79,33 @@ def get_model(cfg, dataset, num_channels):
     method = domain_adapter.Method(cfg.DAN.METHOD)
 
     if method.is_mmd_method():
-        model = domain_adapter.create_mmd_based(
+        model = action_domain_adapter.create_mmd_based_4video(
             method=method,
             dataset=dataset,
+            image_modality=cfg.DATASET.IMAGE_MODALITY,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             **method_params,
             **train_params_local,
         )
     else:
-        critic_input_size = feature_dim
+        critic_input_size = domain_feature_dim
         # setup critic network
         if method.is_cdan_method():
             if cfg.DAN.USERANDOM:
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
-                critic_input_size = feature_dim * cfg.DATASET.NUM_CLASSES
-        critic_network = DomainNetSmallImage(critic_input_size)
+                critic_input_size = domain_feature_dim * num_classes
+        critic_network = DomainNetVideo(input_size=critic_input_size)
 
         if cfg.DAN.METHOD == "CDAN":
             method_params["use_random"] = cfg.DAN.USERANDOM
 
         # The following calls kale.loaddata.dataset_access for the first time
-        model = domain_adapter.create_dann_like(
+        model = action_domain_adapter.create_dann_like_4video(
             method=method,
             dataset=dataset,
+            image_modality=cfg.DATASET.IMAGE_MODALITY,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             critic=critic_network,

@@ -69,7 +69,9 @@ def main():
             gpus=args.gpus,
             logger=False,  # logger,
             # weights_summary='full',
-            fast_dev_run=True,  # True,
+            # limit_train_batches=0.005,
+            # limit_val_batches=0.06,
+            # limit_test_batches=0.06,
         )
 
         trainer.fit(model)
