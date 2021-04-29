@@ -14,6 +14,14 @@ kale.utils.csv\_logger module
    :undoc-members:
    :show-inheritance:
 
+kale.utils.download module
+--------------------------
+
+.. automodule:: kale.utils.download
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.utils.logger module
 ------------------------
 
