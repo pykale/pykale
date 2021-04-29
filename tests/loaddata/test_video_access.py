@@ -1,9 +1,13 @@
-import pytest
-import torch
-from yacs.config import CfgNode as CN
+import os
+from pathlib import Path
 
+import torch
+
+import pytest
 from kale.loaddata.video_access import get_image_modality, VideoDataset, VideoDatasetAccess
+from kale.utils.download import download_compressed_file_by_url
 from kale.utils.seed import set_seed
+from yacs.config import CfgNode as CN
 
 SOURCES = [
     "EPIC;8;epic_D1_train.pkl;epic_D1_test.pkl",
@@ -18,18 +22,20 @@ TARGETS = [
     "KITCHEN;6;kitchen_train.pkl;kitchen_test.pkl",
 ]
 ALL = SOURCES + TARGETS
-
 IMAGE_MODALITY = ["rgb", "flow", "joint"]
 VAL_RATIO = [0.1]
 seed = 36
 set_seed(seed)
 
+root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+url = "https://github.com/pykale/data/raw/main/video_data/video_test_data.zip"
+
 
 @pytest.fixture(scope="module")
-def testing_cfg():
+def testing_cfg(download_path):
     cfg = CN()
     cfg.DATASET = CN()
-    cfg.DATASET.ROOT = "E:/out/python/pt/pykale/tests/test_data/video_data/"
+    cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
     cfg.DATASET.IMAGE_MODALITY = "joint"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
     yield cfg
@@ -60,11 +66,15 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, testing_cfg):
     cfg.DATASET.TAR_TRAINLIST = target_trainlist
     cfg.DATASET.TAR_TESTLIST = target_testlist
 
+    download_compressed_file_by_url(
+        url=url, output_directory=str(Path(cfg.DATASET.ROOT).parent.absolute()), output_file_name="video_test_data.zip"
+    )
+
+    # test get_source_target
     source, target, num_classes = VideoDataset.get_source_target(
         VideoDataset(source_name), VideoDataset(target_name), seed, cfg
     )
 
-    # Test get_source_target
     assert num_classes == n_class
     assert isinstance(source, dict)
     assert isinstance(target, dict)
