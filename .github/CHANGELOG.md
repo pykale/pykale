@@ -1,3 +1,25 @@
+# Version  0.1.0rc1
+
+**Important**: Rename `master` to `main`.
+
+#### Code Improvements
+
+* [#92](https://github.com/pykale/pykale/pull/92): Update action domain adaptation pipeline and modules (big PR)
+* [#123](https://github.com/pykale/pykale/pull/123): Merge prep_cmr with image_transform plus tests
+
+#### Tests
+
+* [#104](https://github.com/pykale/pykale/pull/104): Test attention_cnn
+* [#107](https://github.com/pykale/pykale/pull/107): Do only CI test multiple python versions on Linux
+* [#122](https://github.com/pykale/pykale/pull/122): Test deep_dta
+
+#### Documentation Updates
+
+* [#106](https://github.com/pykale/pykale/pull/106): Update the readmes of docs, examples, and tests
+* [#120](https://github.com/pykale/pykale/pull/120): Update PR for changelog, cherry pick, and test re-run tip
+* [#121](https://github.com/pykale/pykale/pull/121): Update new logos
+* [#125](https://github.com/pykale/pykale/pull/125): Update documentation, esp. guidance on how to use pykale
+
 # Version  0.1.0b3
 
 #### Code Improvements
