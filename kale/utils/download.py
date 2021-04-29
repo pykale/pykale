@@ -14,7 +14,6 @@ import os
 from pathlib import Path
 
 from torch.hub import download_url_to_file
-
 from torchvision.datasets.utils import download_and_extract_archive
 
 
