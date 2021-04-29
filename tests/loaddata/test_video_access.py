@@ -1,9 +1,9 @@
-import torch
-
 import pytest
+import torch
+from yacs.config import CfgNode as CN
+
 from kale.loaddata.video_access import get_image_modality, VideoDataset, VideoDatasetAccess
 from kale.utils.seed import set_seed
-from yacs.config import CfgNode as CN
 
 SOURCES = [
     "EPIC;8;epic_D1_train.pkl;epic_D1_test.pkl",
