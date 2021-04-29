@@ -1,3 +1,36 @@
+# Version  0.1.0rc1
+
+
+#### Code Improvements
+
+
+* [#113](https://github.com/pykale/pykale/pull/113): Update reference to pykale master to pykale main
+* [#123](https://github.com/pykale/pykale/pull/123): Merge prep_cmr with image_transform plus tests
+* [#121](https://github.com/pykale/pykale/pull/121): Update new logos
+* [#92](https://github.com/pykale/pykale/pull/92): Update Action DA Pipeline
+
+#### Tests
+
+
+* [#107](https://github.com/pykale/pykale/pull/107): only ci test multiple python versions on linux
+* [#104](https://github.com/pykale/pykale/pull/104): Test attention_cnn
+
+#### Documentation Updates
+
+
+* [#115](https://github.com/pykale/pykale/pull/115): Fix tests readme link
+* [#106](https://github.com/pykale/pykale/pull/106): Update the readmes of docs, examples, and tests
+
+#### Other Changes
+
+* [#108](https://github.com/pykale/pykale/pull/108): Remove Development Status in meta info
+* [#122](https://github.com/pykale/pykale/pull/122): Test deep_dta
+* [#125](https://github.com/pykale/pykale/pull/125): Update documentation, esp. guidance on how to use pykale
+* [#101](https://github.com/pykale/pykale/pull/101): Keep __init__ simple without public and private interfaces
+* [#102](https://github.com/pykale/pykale/pull/102): Release 0.1.0b3
+* [#120](https://github.com/pykale/pykale/pull/120): Update PR for changelog, cherry pick, and test re-run tip
+
+
 # Version  0.1.0b3
 
 #### Code Improvements
