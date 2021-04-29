@@ -15,6 +15,8 @@ from pathlib import Path
 
 from torch.hub import download_url_to_file
 
+from torchvision.datasets.utils import download_and_extract_archive
+
 
 def download_compressed_file_by_url(url, output_directory, output_file_name):
     """Download and extract the compressed file by url.
@@ -39,7 +41,7 @@ def download_compressed_file_by_url(url, output_directory, output_file_name):
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
     logging.info("Downloading and extracting {}.".format(output_file_name))
-    logging.info(url=url, download_root=output_directory, filename=output_file_name)
+    download_and_extract_archive(url=url, download_root=output_directory, filename=output_file_name)
     logging.info("Datasets downloaded and extracted in {}".format(file))
 
 
