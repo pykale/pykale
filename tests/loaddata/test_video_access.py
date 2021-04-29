@@ -29,7 +29,7 @@ set_seed(seed)
 def testing_cfg():
     cfg = CN()
     cfg.DATASET = CN()
-    cfg.DATASET.ROOT = "I:/Datasets/EgoAction/"
+    cfg.DATASET.ROOT = "E:/out/python/pt/pykale/tests/test_data/video_data/"
     cfg.DATASET.IMAGE_MODALITY = "joint"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
     yield cfg
@@ -63,6 +63,7 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, testing_cfg):
     source, target, num_classes = VideoDataset.get_source_target(
         VideoDataset(source_name), VideoDataset(target_name), seed, cfg
     )
+
     # Test get_source_target
     assert num_classes == n_class
     assert isinstance(source, dict)
