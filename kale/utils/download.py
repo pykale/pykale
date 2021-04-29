@@ -18,7 +18,7 @@ from torchvision.datasets.utils import download_and_extract_archive
 
 
 def download_compressed_file_by_url(url, output_directory, output_file_name):
-    """Download and extract the compressed file by url.
+    """Download and extract the compressed file by url (Support ".tar.xz", ".tar", ".tar.gz", ".tgz", ".gz", ".zip").
 
     Args:
         url (string): URL of the object to download
