@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import pytest
+
 from kale.utils.download import download_file_by_url
 
 output_directory = Path().absolute().parent.joinpath("test_data/download")
