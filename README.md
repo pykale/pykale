@@ -2,6 +2,10 @@
   <img src="https://github.com/pykale/pykale/raw/main/docs/images/pykale_logo_long.png" width="40%" alt='project-pykale'>
 </p>
 
+> *Very cool library with lots of great ideas on moving toward 'green', efficient multimodal machine learning and AI*.
+
+[Kevin Carlberg](https://kevintcarlberg.net/), AI Research Science Manager at Facebook Reality Labs (quoted from [tweet](https://twitter.com/kcarlberg/status/1387511298259177474)).
+
 -----------------------------------------
 
 ![tests](https://github.com/pykale/pykale/workflows/test/badge.svg)
