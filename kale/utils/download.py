@@ -1,8 +1,8 @@
-# =============================================================================
-# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
+# ===============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk or xianyuan.liu@outlook.com
 #         Raivo Koot, rekoot1@sheffield.ac.uk
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
-# =============================================================================
+# ===============================================================================
 
 """Data downloading and compressed data extraction functions, Based on
 https://github.com/pytorch/vision/blob/master/torchvision/datasets/utils.py
