@@ -17,7 +17,7 @@ BATCH_SIZE = 2
 # the input is the output of the I3D last average pooling layer and the shape is
 # batch_size * num_channel * frame_per_segment * height * weight.
 INPUT_BATCH = torch.randn(BATCH_SIZE, 128)
-INPUT_BATCH_LOGITS = torch.randn(BATCH_SIZE, 1024, 1, 1, 1)
+INPUT_BATCH_AVERAGE = torch.randn(BATCH_SIZE, 1024, 1, 1, 1)
 CLASSNET_MODEL = [ClassNetSmallImage, ClassNetVideo]
 DOMAINNET_MODEL = [DomainNetSmallImage, DomainNetVideo]
 
