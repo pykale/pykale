@@ -14,7 +14,7 @@ class SmallCNNFeature(nn.Module):
 
     Args:
         num_channels: the number of input channels (default=3).
-        ckernel_size: the size of the convolution kernel (default=5).
+        kernel_size: the size of the convolution kernel (default=5).
 
     Examples::
         >>> feature_network = SmallCNNFeature(num_channels)
