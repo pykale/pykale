@@ -32,7 +32,7 @@ def test_classnet_shapes(model):
     assert output_batch.size() == (BATCH_SIZE, 8)
 
 
-def test_classnetvideoconv_shape():
+def test_classnetvideoconv_shapes():
     model = ClassNetVideoConv(n_class=8)
     model.eval()
     output_batch = model(INPUT_BATCH_LOGITS)
