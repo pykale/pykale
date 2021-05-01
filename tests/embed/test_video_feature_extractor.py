@@ -20,7 +20,6 @@ def test_get_video_feat_extractor(model_name, image_modality, attention, num_cla
 
     assert isinstance(feature_network, dict)
 
-    assert isinstance(feature_network, dict)
     if image_modality == "joint":
         assert isinstance(feature_network["rgb"], torch.nn.Module)
         assert isinstance(feature_network["flow"], torch.nn.Module)

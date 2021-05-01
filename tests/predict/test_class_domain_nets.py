@@ -9,8 +9,13 @@ from kale.predict.class_domain_nets import (
     DomainNetVideo,
     SoftmaxNet,
 )
+from kale.utils.seed import set_seed
 
+set_seed(36)
 BATCH_SIZE = 2
+# The default input shape for basic ClassNet and DomainNet is batch_size * dimension. However, for ClassNetVideoConv,
+# the input is the output of the I3D last average pooling layer and the shape is
+# batch_size * num_channel * frame_per_segment * height * weight.
 INPUT_BATCH = torch.randn(BATCH_SIZE, 128)
 INPUT_BATCH_LOGITS = torch.randn(BATCH_SIZE, 1024, 1, 1, 1)
 CLASSNET_MODEL = [ClassNetSmallImage, ClassNetVideo]
