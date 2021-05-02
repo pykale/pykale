@@ -11,7 +11,7 @@ All data in examples are from the public domain so they will be downloaded into 
 ## Examples available in three areas
 
 * Image/video recognition
-  * Image classification on [CIFAR via s](https://github.com/pykale/pykale/tree/master/examples/cifar_cnntransformer), [CIFAR via ISONet](https://github.com/pykale/pykale/tree/master/examples/cifar_isonet), [digits via domain adaptation](https://github.com/pykale/pykale/tree/master/examples/digits_dann_lightn)
+  * Image classification on [CIFAR via transformers](https://github.com/pykale/pykale/tree/master/examples/cifar_cnntransformer), [CIFAR via ISONet](https://github.com/pykale/pykale/tree/master/examples/cifar_isonet), [digits via domain adaptation](https://github.com/pykale/pykale/tree/master/examples/digits_dann_lightn)
   * [Action recognition via domain adaptation](https://github.com/pykale/pykale/tree/master/examples/action_dann_lightn)
     * [Video loading](https://github.com/pykale/pykale/tree/master/examples/video_loading)
 * Bioinformatics/graph analysis
