@@ -1,54 +1,39 @@
 # Image Classification: Domain Adaptation on Digits with Lightning
 
-This example is constructed by refactoring the [ADA: (Yet) Another Domain Adaptation library](https://github.com/criteo-research/pytorch-ada), with many domain adapatation algorithms included.
+### 1. Description
 
-## Default
+This example is constructed by refactoring the [ADA: (Yet) Another Domain Adaptation library](https://github.com/criteo-research/pytorch-ada), with many domain adaptation algorithms included.
 
-* Dataset: MNIST (source) to UPSP (target)
+### 2. Usage
+
+* Datasets: MNIST, Modified MNIST (MNISTM), UPSP, SVHN
 * Algorithms: DANN, CDAN, CDAN+E, ...
+* Example: MNIST (source) to UPSP (target) using CDAN and DANN
 
 `python main.py --cfg configs/MN2UP-CDAN.yaml --gpus 0`
 
 `python main.py --cfg configs/MN2UP-DANN.yaml --gpus 0`
 
-## Notes for discussion
+### 3. Related `kale` API
 
-* Using PyTorch Lightning
-* Removed loaddata.py, using common API in kale.loaddata instead
-* kale.utils.seed: rename to set_seed? May be confusing when using multiple seeds
-* The ADA code will write multiple results in a CSV, not essential here
-* cfg.OUTPUT.PB_FRESH: set to 0 at batch mode; nonzero at interactive mode
-* To standardise example file structures
-* What to keep here
-* Top of file: docstrings for generating documentation later? Or comment
-* Discuss im_transform in prepdata: have cifar built-in.
+`kale.embed.image_cnn`: Extract features from small-size (32x32) images using CNN.
 
-## PyKale examples
+`kale.loaddata.digits_access`: Data loaders for digits datasets.
 
-`digits_dann_lightn`: `lightn` stands for `lightning`. Due to the use of lightning, only three `.py` files are needed, without `loaddata` (now in `kale.loaddata`) and `trainer` (using lightning trainer).
+`kale.loaddata.mnistm`: Data loader for the [modified MNIST] data](https://github.com/zumpchke/keras_mnistm).
 
-`main.py`: As lightning as possible
+`kale.loaddata.multi_domain`: Construct the dataset for (multiple) source and target domains.
 
-`model.py`: This has followed cnntransformer example. We may do this for the isonet example as well.
+`kale.loaddata.usps`: Data loader for the [USPS data](https://git-disl.github.io/GTDLBench/datasets/usps_dataset/).
 
-`config.py`: The same style as cnntransformer.
+`kale.pipeline.domain_adapter`: Domain adaptation pipelines for image classification.
 
-## Kale core
+`kale.predict.class_domain_nets`: Classifiers for data or domain.
 
-Those starting with `da_` are for domain adaptation but may be reusable so pending further refactoring.
+`kale.prepdata.image_transform`: Transforms for image data.
 
-`kale.embed.da_feature`: Feature extractor network
-`kale.loaddata`: `digits`, `mnistm` and `usps` for loading digit datasets. `Multisource` for constructing source and target datasets for data loader. `sampler` facilitates `Multisource` dataset construction. `splits` provides common API for generating train/val/test splits, not sure whether the rename from DatasetAccess to DatasetSplit is better.
 
-`kale.pipeline.da_systems`: This constructs the lightning **trainers** so contains algorithms that are more pipelines rather than building modules. It may not be good to divide them into steps so they are more systems. To discuss and confirm. Shall we move other trainers in isonet or cnntransformer to here if they are standard and reusable?
-
-`kale.predict`: `da_classify` contains the class and domain classifiers. `losses` are various losses, which should be highly reusable.
-
-`kale.prepdata.im_transform`: This is a good way to unify the interface so we consider to load cifar from here in isonet and cnntransformer.
-
-`kale.utils.da_logger`: This logger is quite interesting and can write multiple run results to a CSV and has quite some nice handling functions that are highly reusable. Not sure whether to keep all or make it simpler. To discuss and confirm.
-
-## Sample output CSV of 10 runs (generated via [CSV To Markdown Table Generator](https://donatstudios.com/CsvToMarkdownTable))
+## 4. *Sample* output CSV of 10 runs for reference
 
 |    |                     |                     |                     |      |        |            |
 |----|---------------------|---------------------|---------------------|------|--------|------------|
