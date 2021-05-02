@@ -16,6 +16,7 @@ sphinx-rtd-theme
 tensorly
 torch>=1.7.0
 torch-geometric
+torch-sparse
 
 torchsummary>=1.5.0
 torchvision
