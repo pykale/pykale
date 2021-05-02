@@ -11,8 +11,8 @@ from kale.utils.seed import set_seed
 # import torch
 
 
-SOURCE = "MNIST"
-TARGET = "USPS"
+SOURCE = "USPS"
+TARGET = "SVHN"
 
 DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN"]
 # DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN", "FSDANN", "MME", "Source"]
