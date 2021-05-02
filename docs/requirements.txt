@@ -4,7 +4,6 @@
 # Learn from https://github.com/rusty1s/pytorch_geometric/blob/master/docs/requirements.txt
 # Remove if switching to DGL
 cython
-https://download.pytorch.org/whl/cpu/torch-1.7.1%2Bcpu-cp36-cp36m-linux_x86_64.whl
 https://pytorch-geometric.com/whl/torch-1.7.0+cpu/torch_scatter-2.0.5-cp36-cp36m-linux_x86_64.whl
 https://pytorch-geometric.com/whl/torch-1.7.0+cpu/torch_sparse-0.6.8-cp36-cp36m-linux_x86_64.whl
 
@@ -21,7 +20,7 @@ recommonmark
 scikit-learn
 sphinx-rtd-theme
 tensorly
-torch>=1.7.0
+torch==1.7.1+cpu
 torch-geometric
 
 torchsummary>=1.5.0
