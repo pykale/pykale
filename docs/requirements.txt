@@ -10,7 +10,6 @@ https://pytorch-geometric.com/whl/torch-1.7.0+cpu/torch_sparse-0.6.8-cp37-cp37m-
 
 nbsphinx
 nbsphinx-link
-numba==0.50.1  # Not sure needed or not, test remove later
 numpy
 
 pandas
