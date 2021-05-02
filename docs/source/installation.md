@@ -3,9 +3,8 @@
 ## Requirements
 
 PyKale requires a Python version 3.6 or above. Before installing pykale, you should
-- manually [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware first,
-- if you will use APIs related to graphs, you need to manually install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) first following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation) and matching your PyTorch installation, and
-- If [RDKit](https://www.rdkit.org/) will be used, you need to install it via `conda install -c conda-forge rdkit`.
+- manually [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware first, and
+- if you will use APIs related to graphs, you need to manually install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) first following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation) and matching your PyTorch installation.
 
 ## Pip install
 
@@ -30,7 +29,7 @@ pip install -e .[dev]  # editable install for developers including all dependenc
 
 ## Tests
 
-For local unit tests on all `kale` API, you need to have PyTorch, PyTorch Geometric, and RDKit installed (see the top) and then run [pytest](https://pytest.org/) at the root directory:
+For local unit tests on all `kale` API, you need to have PyTorch and PyTorch Geometric RDKit installed (see the top) and then run [pytest](https://pytest.org/) at the root directory:
 
 ```bash
 pytest

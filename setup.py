@@ -13,6 +13,7 @@ from setuptools import find_packages, setup
 requirements = [
     "numpy>=1.18.0",
     "pytorch-lightning",
+    "rdkit-pypi",
     "scikit-image>=0.16.2",
     "scikit-learn>=0.23.2",
     "tensorly>=0.5.1",
