@@ -21,6 +21,7 @@ kale.embed.seq\_nn module
    :members:
    :undoc-members:
    :show-inheritance:
+   :exclude-members:
 
 kale.embed.gcn module
 ----------------------------
@@ -29,6 +30,7 @@ kale.embed.gcn module
    :members:
    :undoc-members:
    :show-inheritance:
+   :exclude-members: message, update
 
 kale.embed.gripnet module
 ----------------------------
@@ -37,6 +39,7 @@ kale.embed.gripnet module
    :members:
    :undoc-members:
    :show-inheritance:
+   :exclude-members: message, update
 
 
 kale.embed.image\_cnn module

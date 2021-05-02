@@ -6,7 +6,7 @@ Utilities
 Submodules
 ----------
 
-kale.utils.csv_logger module
+kale.utils.csv\_logger module
 -----------------------------
 
 .. automodule:: kale.utils.csv_logger
