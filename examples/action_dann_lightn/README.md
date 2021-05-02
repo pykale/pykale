@@ -1,6 +1,7 @@
-# Examples in computer vision - Domain adaptation for action recognition using PyTorch Lightning
+# Video Classification: Domain Adaptation for Action Recognition with Lightning
 
 ### 1. Description
+
 This example is constructed by refactoring the [ADA: (Yet) Another Domain Adaptation library](https://github.com/criteo-research/pytorch-ada), with many domain adaptation algorithms included and is modified from `digits_dann_lightn`, by replacing the feature extractor and the data loaders for video data.
 
 ### 2. Usage

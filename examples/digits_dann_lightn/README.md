@@ -1,4 +1,4 @@
-# Examples in computer vision - Domain adaptation for digit classification using PyTorch Lightning
+# Image Classification: Domain Adaptation on Digits with Lightning
 
 This example is constructed by refactoring the [ADA: (Yet) Another Domain Adaptation library](https://github.com/criteo-research/pytorch-ada), with many domain adapatation algorithms included.
 
