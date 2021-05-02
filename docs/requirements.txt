@@ -4,9 +4,9 @@
 # Learn from https://github.com/rusty1s/pytorch_geometric/blob/master/docs/requirements.txt
 # Remove if switching to DGL
 cython
-https://download.pytorch.org/whl/cpu/torch-1.7.0%2Bcpu-cp37-cp37m-linux_x86_64.whl
-https://pytorch-geometric.com/whl/torch-1.7.0+cpu/torch_scatter-2.0.6-cp37-cp37m-linux_x86_64.whl
-https://pytorch-geometric.com/whl/torch-1.7.0+cpu/torch_sparse-0.6.8-cp37-cp37m-linux_x86_64.whl
+https://download.pytorch.org/whl/cpu/torch-1.7.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
+https://pytorch-geometric.com/whl/torch-1.7.0+cpu/torch_scatter-2.0.6-cp36-cp36m-linux_x86_64.whl
+https://pytorch-geometric.com/whl/torch-1.7.0+cpu/torch_sparse-0.6.8-cp36-cp36m-linux_x86_64.whl
 
 nbsphinx
 nbsphinx-link
