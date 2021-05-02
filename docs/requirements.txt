@@ -14,7 +14,7 @@ recommonmark
 scikit-learn
 sphinx-rtd-theme
 tensorly
-torch>=1.7.0
+torch==1.7.1+cpu
 torch-geometric
 torch-sparse
 
