@@ -1,4 +1,4 @@
-# Link Prediction: GripNet framework on PoSE sample dataset.
+# Link Prediction: GripNet Framework on PoSE Sample Dataset
 
 ## 1. Description
 This example is constructed by [GripNet Framework](https://arxiv.org/abs/2010.15914) on Polypharmacy Side Effect (PoSE) prediction task. The PoSE sample dataset is from BioSNAP-Decagon dataset and the target is to predict relations between drug nodes on the whole gene-drug heterogeneous graph.

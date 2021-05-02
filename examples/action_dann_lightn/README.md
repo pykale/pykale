@@ -1,11 +1,12 @@
-# Examples in computer vision - Domain adaptation for action recognition using PyTorch Lightning
+# Video Classification: Domain Adaptation for Action Recognition with Lightning
 
 ### 1. Description
+
 This example is constructed by refactoring the [ADA: (Yet) Another Domain Adaptation library](https://github.com/criteo-research/pytorch-ada), with many domain adaptation algorithms included and is modified from `digits_dann_lightn`, by replacing the feature extractor and the data loaders for video data.
 
 ### 2. Usage
 
-* Dataset: GTEA, KITCHEN, ADL(P4, P6, P11), EPIC(D1, D2, D3)
+* Datasets: GTEA, KITCHEN, ADL(P4, P6, P11), EPIC(D1, D2, D3)
 * Algorithms: DANN, CDAN, DAN, ...
 * Example:
 
@@ -21,7 +22,7 @@ For test:
 
 `python test.py --cfg configs/EPIC-D12D2-DANN.yaml --gpus 0 --ckpt your_pretrained_model.ckpt `
 
-### 3. Related Kale core
+### 3. Related `kale` API
 
 `kale.embed.video_feature_extractor`: Get video feature extractor networks (Res3D, I3D, etc.).
 
