@@ -10,8 +10,15 @@ def test_csv_logger(download_path):
     method = "DANN"
     seed = 32  # To define in conftest later?
     testing_logger, results, _, test_csv_file = setup_logger(train_params, download_path, method, seed)
-    results.to_csv(test_csv_file)
     assert isinstance(testing_logger, logging.Logger)
+
+    # metrics = {"metric1": [1, 2], "metric2": [3, 4]}
+    # df_metrics = pd.DataFrame(data=metrics)
+    # results.update(
+    #         is_validation=False, method_name=method, seed=seed, metric_values=df_metrics,
+    #     )
+    # results.print_score(method)
+    results.to_csv(test_csv_file)
     assert os.path.isfile(test_csv_file)
 
     # Teardown log file
