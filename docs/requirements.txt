@@ -4,9 +4,11 @@
 # Learn from https://github.com/rusty1s/pytorch_geometric/blob/master/docs/requirements.txt
 # Remove if switching to DGL
 # cython
+# The following passed docs actions but failed rtd build
 # https://download.pytorch.org/whl/rocm4.0.1/torch-1.8.1%2Brocm4.0.1-cp38-cp38-linux_x86_64.whl
 # https://pytorch-geometric.com/whl/torch-1.8.0+cpu/torch_scatter-2.0.6-cp38-cp38-linux_x86_64.whl
 # https://pytorch-geometric.com/whl/torch-1.8.0+cpu/torch_sparse-0.6.9-cp38-cp38-linux_x86_64.whl
+# The following passed rtd build but failed docs actions
 # https://download.pytorch.org/whl/cpu/torch-1.7.0%2Bcpu-cp37-cp37m-linux_x86_64.whl
 # https://pytorch-geometric.com/whl/torch-1.7.0+cpu/torch_scatter-2.0.6-cp37-cp37m-linux_x86_64.whl
 # https://pytorch-geometric.com/whl/torch-1.7.0+cpu/torch_sparse-0.6.8-cp37-cp37m-linux_x86_64.whl
@@ -24,7 +26,7 @@ recommonmark
 scikit-learn
 sphinx-rtd-theme
 tensorly
-# torch>=1.7.0
+torch>=1.7.0
 torch-geometric
 torch-scatter
 torch-sparse
