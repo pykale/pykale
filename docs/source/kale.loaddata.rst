@@ -70,8 +70,8 @@ kale.loaddata.usps module
    :undoc-members:
    :show-inheritance:
 
-kale.loaddata.tdc\_datasets module
-----------------------------------
+kale.loaddata.tdc_datasets module
+------------------------------------
 
 .. automodule:: kale.loaddata.tdc_datasets
    :members:
