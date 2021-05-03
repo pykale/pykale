@@ -6,7 +6,8 @@ from kale.embed.image_cnn import SmallCNNFeature
 from kale.loaddata.digits_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
-from kale.utils.seed import set_seed
+
+# from kale.utils.seed import set_seed
 
 SOURCE = "USPS"
 TARGET = "USPS"
@@ -15,13 +16,11 @@ DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN", "FSDA
 
 WEIGHT_TYPE = "natural"
 DATASIZE_TYPE = "source"
-VAL_RATIO = [0.1]
 NUM_CLASSES = 10
 FEW_SHOT = [None, 2]
-
-# To move to conftest later, or no need
-seed = 36
-set_seed(seed)
+# Not checking values so seed is not needed. If seed, move all seeds to conftest later
+# seed = 36
+# set_seed(seed)
 
 
 @pytest.fixture(scope="module")
