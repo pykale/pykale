@@ -1,4 +1,5 @@
 import pytest
+import pytorch_lightning as pl
 
 import kale.pipeline.domain_adapter as domain_adapter
 from kale.embed.image_cnn import SmallCNNFeature
@@ -12,9 +13,9 @@ from kale.utils.seed import set_seed
 
 
 SOURCE = "USPS"
-TARGET = "SVHN"
+TARGET = "USPS"
 
-DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN"]
+DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "DAN", "JAN"]
 # DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN", "FSDANN", "MME", "Source"]
 
 WEIGHT_TYPE = "natural"
@@ -37,7 +38,7 @@ def testing_cfg(download_path):
             "nb_adapt_epochs": 2,
             "nb_init_epochs": 1,
             "init_lr": 0.001,
-            "batch_size": 3,
+            "batch_size": 10,
             "optimizer": {"type": "SGD", "optim_params": {"momentum": 0.9, "weight_decay": 0.0005, "nesterov": True}},
         }
     }
@@ -73,12 +74,10 @@ def test_domain_adaptor(DA_method, download_path, testing_cfg):
         critic_input_size = feature_dim
         # setup critic network
         if method.is_cdan_method():
-            critic_input_size = feature_dim * NUM_CLASSES
+            critic_input_size = 1024
+            method_params["use_random"] = True
 
         critic_network = DomainNetSmallImage(critic_input_size)
-
-        if DA_method == "CDAN":
-            method_params["use_random"] = True
 
         # The following calls kale.loaddata.dataset_access for the first time
         model = domain_adapter.create_dann_like(
@@ -92,3 +91,8 @@ def test_domain_adaptor(DA_method, download_path, testing_cfg):
         )
 
     assert isinstance(model, domain_adapter.BaseAdaptTrainer)
+
+    trainer = pl.Trainer(min_epochs=train_params["nb_init_epochs"], max_epochs=train_params["nb_adapt_epochs"])
+    trainer.fit(model)
+    metric_values = trainer.callback_metrics
+    assert isinstance(metric_values, dict)
