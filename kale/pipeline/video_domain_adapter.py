@@ -3,7 +3,9 @@
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
-"""Domain adaptation systems (pipelines) for action video on action recognition"""
+"""Domain adaptation systems (pipelines) for video data, e.g., for action recognition.
+Most are inherited from kale.pipeline.domain_adapter.
+"""
 
 import torch
 
@@ -25,7 +27,7 @@ from kale.pipeline.domain_adapter import (
 def create_mmd_based_4video(
     method: Method, dataset, image_modality, feature_extractor, task_classifier, **train_params
 ):
-    """MMD-based deep learning methods for action recognition DA: DAN and JAN"""
+    """MMD-based deep learning methods for domain adaptation on video data: DAN and JAN"""
     if not method.is_mmd_method():
         raise ValueError(f"Unsupported MMD method: {method}")
     if method is Method.DAN:
@@ -53,7 +55,7 @@ def create_mmd_based_4video(
 def create_dann_like_4video(
     method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, **train_params
 ):
-    """DANN-based deep learning methods for action recognition DA: DANN, CDAN, CDAN+E"""
+    """DANN-based deep learning methods for domain adaptation on video data: DANN, CDAN, CDAN+E"""
 
     # Uncomment for later work.
     # Set up a new create_fewshot_trainer for video data based on original one in `domain_adapter.py`
@@ -104,7 +106,7 @@ class BaseMMDLike4Video(BaseMMDLike):
     def __init__(
         self, dataset, image_modality, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5, **base_params,
     ):
-        """Common API for MME-based action recognition DA methods: DAN, JAN"""
+        """Common API for MME-based domain adaptation on video data: DAN, JAN"""
 
         super().__init__(dataset, feature_extractor, task_classifier, kernel_mul, kernel_num, **base_params)
         self.image_modality = image_modality

@@ -11,7 +11,7 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 from copy import deepcopy
 
 from kale.embed.video_feature_extractor import get_video_feat_extractor
-from kale.pipeline import action_domain_adapter, domain_adapter
+from kale.pipeline import domain_adapter, video_domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 
 
@@ -79,7 +79,7 @@ def get_model(cfg, dataset, num_classes):
     method = domain_adapter.Method(cfg.DAN.METHOD)
 
     if method.is_mmd_method():
-        model = action_domain_adapter.create_mmd_based_4video(
+        model = video_domain_adapter.create_mmd_based_4video(
             method=method,
             dataset=dataset,
             image_modality=cfg.DATASET.IMAGE_MODALITY,
@@ -102,7 +102,7 @@ def get_model(cfg, dataset, num_classes):
             method_params["use_random"] = cfg.DAN.USERANDOM
 
         # The following calls kale.loaddata.dataset_access for the first time
-        model = action_domain_adapter.create_dann_like_4video(
+        model = video_domain_adapter.create_dann_like_4video(
             method=method,
             dataset=dataset,
             image_modality=cfg.DATASET.IMAGE_MODALITY,
