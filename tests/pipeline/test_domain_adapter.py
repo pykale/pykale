@@ -15,7 +15,8 @@ from kale.utils.seed import set_seed
 SOURCE = "USPS"
 TARGET = "USPS"
 
-DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "DAN", "JAN"]
+# Weird error for WDGRLMod: TypeError: optimizer_step() got an unexpected keyword argument 'on_tpu'
+DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN"]
 # DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN", "FSDANN", "MME", "Source"]
 
 WEIGHT_TYPE = "natural"
@@ -92,7 +93,7 @@ def test_domain_adaptor(DA_method, download_path, testing_cfg):
 
     assert isinstance(model, domain_adapter.BaseAdaptTrainer)
 
-    trainer = pl.Trainer(min_epochs=train_params["nb_init_epochs"], max_epochs=train_params["nb_adapt_epochs"])
+    trainer = pl.Trainer(min_epochs=train_params["nb_init_epochs"], max_epochs=train_params["nb_adapt_epochs"], gpus=0)
     trainer.fit(model)
     metric_values = trainer.callback_metrics
     assert isinstance(metric_values, dict)
