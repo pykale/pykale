@@ -8,21 +8,16 @@ from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
 from kale.utils.seed import set_seed
 
-# import pytorch_lightning as pl
-# import torch
-
-
 SOURCE = "USPS"
 TARGET = "USPS"
 
-# Weird error for WDGRLMod: TypeError: optimizer_step() got an unexpected keyword argument 'on_tpu'
-DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN"]
-# DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN", "FSDANN", "MME", "Source"]
+DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN", "FSDANN", "MME", "Source"]
 
 WEIGHT_TYPE = "natural"
 DATASIZE_TYPE = "source"
 VAL_RATIO = [0.1]
 NUM_CLASSES = 10
+FEW_SHOT = [None, 2]
 
 # To move to conftest later, or no need
 seed = 36
@@ -47,11 +42,21 @@ def testing_cfg(download_path):
 
 
 @pytest.mark.parametrize("DA_method", DA_METHODS)
-def test_domain_adaptor(DA_method, download_path, testing_cfg):
+@pytest.mark.parametrize("n_fewshot", FEW_SHOT)
+def test_domain_adaptor(DA_method, n_fewshot, download_path, testing_cfg):
+    if n_fewshot is None:
+        if DA_method in ["FSDANN", "MME", "Source"]:
+            return
+    else:
+        if DA_method in ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN"]:
+            return
+
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(SOURCE), DigitDataset(TARGET), download_path
     )
-    dataset = MultiDomainDatasets(source, target, config_weight_type=WEIGHT_TYPE, config_size_type=DATASIZE_TYPE)
+    dataset = MultiDomainDatasets(
+        source, target, config_weight_type=WEIGHT_TYPE, config_size_type=DATASIZE_TYPE, n_fewshot=n_fewshot
+    )
 
     # setup feature extractor
     feature_network = SmallCNNFeature(num_channels)
@@ -71,7 +76,7 @@ def test_domain_adaptor(DA_method, download_path, testing_cfg):
             **method_params,
             **train_params,
         )
-    else:
+    else:  # All other non-mmd DA methods are dann like with critic
         critic_input_size = feature_dim
         # setup critic network
         if method.is_cdan_method():
