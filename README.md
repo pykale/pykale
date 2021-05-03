@@ -11,6 +11,7 @@
 ![tests](https://github.com/pykale/pykale/workflows/test/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
+[![codecov](https://codecov.io/gh/pykale/pykale/branch/main/graph/badge.svg?token=jmIYPbA2le)](https://codecov.io/gh/pykale/pykale)
 [![PyPI downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
 
 [Getting Started](https://github.com/pykale/pykale#how-to-use) |
