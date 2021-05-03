@@ -3,7 +3,7 @@
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
-"""Domain adaptation systems (pipelines) for video data: action recognition
+"""Domain adaptation systems (pipelines) for video data, e.g., for action recognition.
 Most are inherited from kale.pipeline.domain_adapter.
 """
 
