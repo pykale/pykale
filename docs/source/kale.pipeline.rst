@@ -30,10 +30,10 @@ kale.pipeline.domain\_adapter module
    :undoc-members:
    :show-inheritance:
 
-kale.pipeline.action\_domain\_adapter module
+kale.pipeline.video\_domain\_adapter module
 --------------------------------------------
 
-.. automodule:: kale.pipeline.action_domain_adapter
+.. automodule:: kale.pipeline.video_domain_adapter
    :members:
    :undoc-members:
    :show-inheritance:
