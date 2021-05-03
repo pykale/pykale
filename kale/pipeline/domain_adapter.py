@@ -895,7 +895,18 @@ class WDGRLtrainerMod(WDGRLtrainer):
             # "log": log_metrics,
         }
 
-    def optimizer_step(self, current_epoch, batch_nb, optimizer, optimizer_i, second_order_closure=None):
+    # Add on_tpu=False etc following https://github.com/PyTorchLightning/pytorch-lightning/issues/2934 to fix error for WDGRLMod: TypeError: optimizer_step() got an unexpected keyword argument 'on_tpu'
+    def optimizer_step(
+        self,
+        current_epoch,
+        batch_nb,
+        optimizer,
+        optimizer_i,
+        second_order_closure=None,
+        on_tpu=False,
+        using_native_amp=False,
+        using_lbfgs=False,
+    ):
         if current_epoch < self._init_epochs:
             # do not update critic
             if optimizer_i == 0:
