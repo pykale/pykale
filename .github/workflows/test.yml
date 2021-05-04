@@ -45,8 +45,9 @@ jobs:
         run: |
           pytest --cov=kale
         shell: bash -l {0}
-      - name: Report coverage
+      - name: Determine coverage
         run: |
           coverage xml
-          bash <(curl -s https://codecov.io/bash)
         shell: bash -l {0}
+      - name: Report coverage
+        uses: codecov/codecov-action@v1
