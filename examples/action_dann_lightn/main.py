@@ -93,9 +93,9 @@ def main():
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
             callbacks=[lr_monitor],
             # callbacks=[early_stop_callback, lr_monitor],
-            limit_train_batches=0.005,
+            # limit_train_batches=0.005,
             # limit_val_batches=1.0,
-            limit_test_batches=0.6,
+            # limit_test_batches=0.6,
         )
 
         ### Find learning_rate
