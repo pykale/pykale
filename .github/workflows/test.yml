@@ -23,6 +23,7 @@ jobs:
           - os: windows-latest
             python-version: "3.7"
     steps:
+      - uses: actions/checkout@v2
       - name: Set up Python using Miniconda
         uses: conda-incubator/setup-miniconda@v2
         with:
