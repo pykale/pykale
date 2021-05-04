@@ -8,15 +8,17 @@ Action video dataset loading for EPIC-Kitchen, ADL, GTEA, KITCHEN. The code is b
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py
 """
 
-import os
 from copy import deepcopy
 from enum import Enum
+from pathlib import Path
 
+import pandas as pd
 import torch
 
 import kale.prepdata.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.video_datasets import BasicVideoDataset, EPIC
+from kale.loaddata.videos_feature import TSNDataSet
 
 
 def get_image_modality(image_modality):
@@ -41,11 +43,13 @@ def get_videodata_config(cfg):
             "dataset_src_name": cfg.DATASET.SOURCE,
             "dataset_src_trainlist": cfg.DATASET.SRC_TRAINLIST,
             "dataset_src_testlist": cfg.DATASET.SRC_TESTLIST,
-            "dataset_tar_name": cfg.DATASET.TARGET,
-            "dataset_tar_trainlist": cfg.DATASET.TAR_TRAINLIST,
-            "dataset_tar_testlist": cfg.DATASET.TAR_TESTLIST,
+            "dataset_tgt_name": cfg.DATASET.TARGET,
+            "dataset_tgt_trainlist": cfg.DATASET.TGT_TRAINLIST,
+            "dataset_tgt_testlist": cfg.DATASET.TGT_TESTLIST,
+            "dataset_input_type": cfg.DATASET.INPUT_TYPE,
             "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
             "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT,
+            "train_batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
         }
     }
     return config_params
@@ -66,18 +70,23 @@ def generate_list(data_name, data_params_local, domain):
     """
 
     if data_name == "EPIC":
-        dataset_path = os.path.join(data_params_local["dataset_root"], data_name, "EPIC_KITCHENS_2018")
-        data_path = os.path.join(dataset_path, "frames_rgb_flow")
-    elif data_name in ["ADL", "GTEA", "KITCHEN"]:
-        dataset_path = os.path.join(data_params_local["dataset_root"], data_name)
-        data_path = os.path.join(dataset_path, "frames_rgb_flow")
+        # dataset_path = os.path.join(data_params_local["dataset_root"], data_name, "EPIC_KITCHENS_2018")
+        dataset_path = Path(data_params_local["dataset_root"]).joinpath(data_name, "EPIC_KITCHENS_2018")
+    elif data_name in ["ADL", "GTEA", "KITCHEN", "EPIC-100"]:
+        # dataset_path = os.path.join(data_params_local["dataset_root"], data_name)
+        dataset_path = Path(data_params_local["dataset_root"]).joinpath(data_name)
     else:
-        raise ValueError("Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN]")
+        raise ValueError("Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN, EPIC-100]")
 
-    train_listpath = os.path.join(
+    # data_path = os.path.join(dataset_path, "frames_rgb_flow")
+    data_path = Path.joinpath(dataset_path, "frames_rgb_flow")
+
+    # train_listpath = os.path.join(
+    train_listpath = Path.joinpath(
         dataset_path, "annotations", "labels_train_test", data_params_local["dataset_{}_trainlist".format(domain)]
     )
-    test_listpath = os.path.join(
+    # test_listpath = os.path.join(
+    test_listpath = Path.joinpath(
         dataset_path, "annotations", "labels_train_test", data_params_local["dataset_{}_testlist".format(domain)]
     )
 
@@ -89,6 +98,7 @@ class VideoDataset(Enum):
     ADL = "ADL"
     GTEA = "GTEA"
     KITCHEN = "KITCHEN"
+    EPIC100 = "EPIC-100"
 
     @staticmethod
     def get_source_target(source: "VideoDataset", target: "VideoDataset", seed, params):
@@ -111,10 +121,12 @@ class VideoDataset(Enum):
         data_params_local = deepcopy(data_params)
         data_src_name = data_params_local["dataset_src_name"].upper()
         src_data_path, src_tr_listpath, src_te_listpath = generate_list(data_src_name, data_params_local, domain="src")
-        data_tar_name = data_params_local["dataset_tar_name"].upper()
-        tar_data_path, tar_tr_listpath, tar_te_listpath = generate_list(data_tar_name, data_params_local, domain="tar")
+        data_tgt_name = data_params_local["dataset_tgt_name"].upper()
+        tgt_data_path, tgt_tr_listpath, tgt_te_listpath = generate_list(data_tgt_name, data_params_local, domain="tgt")
         image_modality = data_params_local["dataset_image_modality"]
         frames_per_segment = data_params_local["frames_per_segment"]
+        input_type = data_params_local["dataset_input_type"]
+        # train_batch_size = data_params_local["train_batch_size"]
 
         rgb, flow = get_image_modality(image_modality)
 
@@ -130,6 +142,7 @@ class VideoDataset(Enum):
             VideoDataset.GTEA: 6,
             VideoDataset.ADL: 7,
             VideoDataset.KITCHEN: 6,
+            VideoDataset.EPIC100: 97,
         }
 
         factories = {
@@ -141,54 +154,97 @@ class VideoDataset(Enum):
 
         # handle color/nb classes
         num_classes = min(class_numbers[source], class_numbers[target])
-        source_tf = transform_names[source]
-        target_tf = transform_names[target]
 
         rgb_source, rgb_target, flow_source, flow_target = [None] * 4
+        if input_type == "image":
+            # handle color/nb classes
+            source_tf = transform_names[source]
+            target_tf = transform_names[target]
 
-        if rgb:
-            rgb_source = factories[source](
-                src_data_path,
-                src_tr_listpath,
-                src_te_listpath,
-                "rgb",
-                frames_per_segment,
-                num_classes,
-                source_tf,
-                seed,
-            )
-            rgb_target = factories[target](
-                tar_data_path,
-                tar_tr_listpath,
-                tar_te_listpath,
-                "rgb",
-                frames_per_segment,
-                num_classes,
-                target_tf,
-                seed,
-            )
+            if rgb:
+                rgb_source = factories[source](
+                    src_data_path,
+                    src_tr_listpath,
+                    src_te_listpath,
+                    "rgb",
+                    frames_per_segment,
+                    num_classes,
+                    source_tf,
+                    seed,
+                )
+                rgb_target = factories[target](
+                    tgt_data_path,
+                    tgt_tr_listpath,
+                    tgt_te_listpath,
+                    "rgb",
+                    frames_per_segment,
+                    num_classes,
+                    target_tf,
+                    seed,
+                )
 
-        if flow:
-            flow_source = factories[source](
-                src_data_path,
+            if flow:
+                flow_source = factories[source](
+                    src_data_path,
+                    src_tr_listpath,
+                    src_te_listpath,
+                    "flow",
+                    frames_per_segment,
+                    num_classes,
+                    source_tf,
+                    seed,
+                )
+                flow_target = factories[target](
+                    tgt_data_path,
+                    tgt_tr_listpath,
+                    tgt_te_listpath,
+                    "flow",
+                    frames_per_segment,
+                    num_classes,
+                    target_tf,
+                    seed,
+                )
+
+        elif input_type == "feature":
+            num_source = len(pd.read_pickle(src_tr_listpath).index)
+            num_target = len(pd.read_pickle(tgt_tr_listpath).index)
+
+            # num_iter_source = num_source / train_batch_size
+            # num_iter_target = num_target / train_batch_size
+            # num_max_iter = max(num_iter_source, num_iter_target)
+            # num_source_train = round(num_max_iter * train_batch_size) if args.copy_list[0] == 'Y' else num_source
+            # num_target_train = round(num_max_iter * train_batch_size) if args.copy_list[1] == 'Y' else num_target
+            num_source_train = num_source
+            num_target_train = num_target
+
+            rgb_source = TSNDataSet(
+                Path.joinpath(src_data_path, "feature", "source_train.pkl"),
                 src_tr_listpath,
-                src_te_listpath,
-                "flow",
-                frames_per_segment,
-                num_classes,
-                source_tf,
-                seed,
+                num_dataload=num_source_train,
+                num_segments=5,
+                new_length=1,
+                modality=image_modality.upper(),
+                image_tmpl="img_{:05d}.t7"
+                if image_modality in ["rgb", "RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
+                else input_type + "{}_{:05d}.t7",
+                random_shift=False,
+                test_mode=True,
             )
-            flow_target = factories[target](
-                tar_data_path,
-                tar_tr_listpath,
-                tar_te_listpath,
-                "flow",
-                frames_per_segment,
-                num_classes,
-                target_tf,
-                seed,
+            rgb_target = TSNDataSet(
+                Path.joinpath(tgt_data_path, "feature", "target_train.pkl"),
+                tgt_tr_listpath,
+                num_dataload=num_target_train,
+                num_segments=5,
+                new_length=1,
+                modality=image_modality.upper(),
+                image_tmpl="img_{:05d}.t7"
+                if image_modality in ["rgb", "RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
+                else input_type + "{}_{:05d}.t7",
+                random_shift=False,
+                test_mode=True,
             )
+        else:
+            raise Exception("Invalid input type option: {}".format(input_type))
 
         return (
             {"rgb": rgb_source, "flow": flow_source},

@@ -21,10 +21,10 @@ _C.DATASET.SOURCE = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
 _C.DATASET.SRC_TRAINLIST = "epic_D1_train.pkl"
 _C.DATASET.SRC_TESTLIST = "epic_D1_test.pkl"
 _C.DATASET.TARGET = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
-_C.DATASET.TAR_TRAINLIST = "epic_D2_train.pkl"
-_C.DATASET.TAR_TESTLIST = "epic_D2_test.pkl"
+_C.DATASET.TGT_TRAINLIST = "epic_D2_train.pkl"
+_C.DATASET.TGT_TESTLIST = "epic_D2_test.pkl"
 _C.DATASET.IMAGE_MODALITY = "rgb"  # mode options=["rgb", "flow", "joint"]
-# _C.DATASET.NUM_CLASSES = 8
+_C.DATASET.INPUT_TYPE = "image"  # type options=["image", "feature"]
 _C.DATASET.FRAMES_PER_SEGMENT = 16
 _C.DATASET.NUM_REPEAT = 5  # 10
 _C.DATASET.WEIGHT_TYPE = "natural"
