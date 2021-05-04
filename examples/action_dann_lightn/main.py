@@ -94,7 +94,7 @@ def main():
             callbacks=[lr_monitor],
             # callbacks=[early_stop_callback, lr_monitor],
             limit_train_batches=0.005,
-            limit_val_batches=1.0,
+            # limit_val_batches=1.0,
             limit_test_batches=0.6,
         )
 
