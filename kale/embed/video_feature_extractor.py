@@ -14,9 +14,10 @@ from kale.embed.video_res3d import mc3, r2plus1d, r3d
 from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
 from kale.loaddata.video_access import get_image_modality
+from kale.predict.class_domain_nets import ClassNetVideo
 
 
-def get_video_feat_extractor(model_name, image_modality, attention, num_classes):
+def get_feat_extractor4video(model_name, image_modality, attention, num_classes):
     """
     Get the feature extractor w/o the pre-trained model and SELayers. The pre-trained models are saved in the path
     ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
@@ -113,4 +114,10 @@ def get_video_feat_extractor(model_name, image_modality, attention, num_classes)
                 logging.info("{} with {}.".format(model_name, attention))
                 feature_network = se_mc3(rgb=rgb, flow=flow, pretrained=True, attention=attention)
 
+    return feature_network, int(class_feature_dim), int(domain_feature_dim)
+
+
+def get_feat_extractor4feature(attention, num_classes):
+    feature_network = ClassNetVideo(input_size=1024, n_class=num_classes)
+    class_feature_dim = domain_feature_dim = 256
     return feature_network, int(class_feature_dim), int(domain_feature_dim)

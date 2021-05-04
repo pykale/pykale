@@ -10,7 +10,7 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 
 from copy import deepcopy
 
-from kale.embed.video_feature_extractor import get_video_feat_extractor
+from kale.embed.video_feature_extractor import get_feat_extractor4feature, get_feat_extractor4video
 from kale.pipeline import domain_adapter, video_domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 
@@ -48,6 +48,7 @@ def get_config(cfg):
             "target": cfg.DATASET.TARGET,
             "size_type": cfg.DATASET.SIZE_TYPE,
             "weight_type": cfg.DATASET.WEIGHT_TYPE,
+            "input_type": cfg.DATASET.INPUT_TYPE,
         },
     }
     return config_params
@@ -64,16 +65,26 @@ def get_model(cfg, dataset, num_classes):
         num_classes: The class number of specific dataset.
     """
 
-    # setup feature extractor
-    feature_network, class_feature_dim, domain_feature_dim = get_video_feat_extractor(
-        cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, num_classes
-    )
-    # setup classifier
-    classifier_network = ClassNetVideo(input_size=class_feature_dim, n_class=num_classes)
-
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
+    data_params = config_params["data_params"]
+    data_params_local = deepcopy(data_params)
+    input_type = data_params_local["input_type"]
+
+    # setup feature extractor
+    if input_type == "image":
+        feature_network, class_feature_dim, domain_feature_dim = get_feat_extractor4video(
+            cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, num_classes
+        )
+    else:
+        feature_network, class_feature_dim, domain_feature_dim = get_feat_extractor4feature(
+            cfg.MODEL.ATTENTION, num_classes
+        )
+
+    # setup classifier
+    classifier_network = ClassNetVideo(input_size=class_feature_dim, n_class=num_classes)
+
     method_params = {}
 
     method = domain_adapter.Method(cfg.DAN.METHOD)
