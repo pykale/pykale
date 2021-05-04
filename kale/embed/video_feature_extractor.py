@@ -9,12 +9,13 @@ Define the feature extractor for video including I3D, R3D_18, MC3_18 and R2PLUS1
 
 import logging
 
+from torch import nn
+
 from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
 from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
 from kale.loaddata.video_access import get_image_modality
-from kale.predict.class_domain_nets import ClassNetVideo
 
 
 def get_feat_extractor4video(model_name, image_modality, attention, num_classes):
@@ -117,7 +118,35 @@ def get_feat_extractor4video(model_name, image_modality, attention, num_classes)
     return feature_network, int(class_feature_dim), int(domain_feature_dim)
 
 
+class BoringNetVideo(nn.Module):
+    """Regular simple network for video input.
+
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        n_channel (int, optional): the number of channel for Linear and BN layers.
+        dropout_keep_prob (int, optional): the dropout probability for keeping the parameters.
+        n_class (int, optional): the number of classes. Defaults to 8.
+    """
+
+    def __init__(self, input_size=512, n_channel=100, dropout_keep_prob=0.5, n_class=8):
+        super(BoringNetVideo, self).__init__()
+        self._n_classes = n_class
+        self.fc1 = nn.Linear(input_size, n_channel)
+        self.bn1 = nn.BatchNorm1d(n_channel)
+        self.relu1 = nn.ReLU()
+        self.dp1 = nn.Dropout(dropout_keep_prob)
+        self.fc2 = nn.Linear(n_channel, n_class)
+
+    def n_classes(self):
+        return self._n_classes
+
+    def forward(self, x):
+        x = self.dp1(self.relu1(self.bn1(self.fc1(x))))
+        x = self.fc2(x)
+        return x
+
+
 def get_feat_extractor4feature(attention, num_classes):
-    feature_network = ClassNetVideo(input_size=1024, n_class=num_classes)
+    feature_network = BoringNetVideo(input_size=1024, n_class=num_classes)
     class_feature_dim = domain_feature_dim = 256
-    return feature_network, int(class_feature_dim), int(domain_feature_dim)
+    return {"rgb": feature_network, "flow": None}, int(class_feature_dim), int(domain_feature_dim)
