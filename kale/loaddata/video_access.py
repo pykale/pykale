@@ -12,7 +12,6 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 
-import pandas as pd
 import torch
 
 import kale.prepdata.video_transform as video_transform
@@ -150,6 +149,7 @@ class VideoDataset(Enum):
             VideoDataset.GTEA: GTEADatasetAccess,
             VideoDataset.ADL: ADLDatasetAccess,
             VideoDataset.KITCHEN: KITCHENDatasetAccess,
+            VideoDataset.EPIC100: EPIC100DatasetAccess,
         }
 
         # handle color/nb classes
@@ -206,43 +206,64 @@ class VideoDataset(Enum):
                 )
 
         elif input_type == "feature":
-            num_source = len(pd.read_pickle(src_tr_listpath).index)
-            num_target = len(pd.read_pickle(tgt_tr_listpath).index)
+            # num_source = len(pd.read_pickle(src_tr_listpath).index)
+            # num_target = len(pd.read_pickle(tgt_tr_listpath).index)
 
             # num_iter_source = num_source / train_batch_size
             # num_iter_target = num_target / train_batch_size
             # num_max_iter = max(num_iter_source, num_iter_target)
             # num_source_train = round(num_max_iter * train_batch_size) if args.copy_list[0] == 'Y' else num_source
             # num_target_train = round(num_max_iter * train_batch_size) if args.copy_list[1] == 'Y' else num_target
-            num_source_train = num_source
-            num_target_train = num_target
+            # num_source_train = num_source
+            # num_target_train = num_target
 
-            rgb_source = TSNDataSet(
-                Path.joinpath(src_data_path, "feature", "source_train.pkl"),
-                src_tr_listpath,
-                num_dataload=num_source_train,
-                num_segments=5,
-                new_length=1,
-                modality=image_modality.upper(),
-                image_tmpl="img_{:05d}.t7"
-                if image_modality in ["rgb", "RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
-                else input_type + "{}_{:05d}.t7",
-                random_shift=False,
-                test_mode=True,
+            rgb_source = factories[source](
+                domain="source",
+                data_path=src_data_path,
+                train_list=src_tr_listpath,
+                test_list=src_te_listpath,
+                image_modality=image_modality,
+                frames_per_segment=frames_per_segment,
+                n_classes=num_classes,
+                input_type=input_type,
             )
-            rgb_target = TSNDataSet(
-                Path.joinpath(tgt_data_path, "feature", "target_train.pkl"),
-                tgt_tr_listpath,
-                num_dataload=num_target_train,
-                num_segments=5,
-                new_length=1,
-                modality=image_modality.upper(),
-                image_tmpl="img_{:05d}.t7"
-                if image_modality in ["rgb", "RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
-                else input_type + "{}_{:05d}.t7",
-                random_shift=False,
-                test_mode=True,
+
+            rgb_target = factories[source](
+                domain="target",
+                data_path=tgt_data_path,
+                train_list=tgt_tr_listpath,
+                test_list=tgt_te_listpath,
+                image_modality=image_modality,
+                frames_per_segment=frames_per_segment,
+                n_classes=num_classes,
+                input_type=input_type,
             )
+            # rgb_source = TSNDataSet(
+            #     Path.joinpath(src_data_path, "feature", "source_train.pkl"),
+            #     src_tr_listpath,
+            #     num_dataload=num_source_train,
+            #     num_segments=5,
+            #     new_length=1,
+            #     modality=image_modality.upper(),
+            #     image_tmpl="img_{:05d}.t7"
+            #     if image_modality.upper() in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
+            #     else input_type + "{}_{:05d}.t7",
+            #     random_shift=False,
+            #     test_mode=True,
+            # )
+            # rgb_target = TSNDataSet(
+            #     Path.joinpath(tgt_data_path, "feature", "target_train.pkl"),
+            #     tgt_tr_listpath,
+            #     num_dataload=num_target_train,
+            #     num_segments=5,
+            #     new_length=1,
+            #     modality=image_modality.upper(),
+            #     image_tmpl="img_{:05d}.t7"
+            #     if image_modality.upper() in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
+            #     else input_type + "{}_{:05d}.t7",
+            #     random_shift=False,
+            #     test_mode=True,
+            # )
         else:
             raise Exception("Invalid input type option: {}".format(input_type))
 
@@ -258,9 +279,9 @@ class VideoDatasetAccess(DatasetAccess):
     Common API for video dataset access
 
     Args:
-        data_path (string): image directory of dataset
-        train_list (string): training list file directory of dataset
-        test_list (string): test list file directory of dataset
+        data_path (string, optional): image directory of dataset
+        train_list (string, optional): training list file directory of dataset
+        test_list (string, optional): test list file directory of dataset
         image_modality (string): image type (RGB or Optical Flow)
         frames_per_segment (int): length of each action sample (the unit is number of frame)
         n_classes (int): number of class
@@ -269,7 +290,15 @@ class VideoDatasetAccess(DatasetAccess):
     """
 
     def __init__(
-        self, data_path, train_list, test_list, image_modality, frames_per_segment, n_classes, transform_kind, seed
+        self,
+        data_path,
+        train_list,
+        test_list,
+        image_modality,
+        frames_per_segment,
+        n_classes,
+        transform_kind=None,
+        seed=36,
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -293,7 +322,7 @@ class VideoDatasetAccess(DatasetAccess):
 
 
 class EPICDatasetAccess(VideoDatasetAccess):
-    """EPIC data loader"""
+    """EPIC video data loader"""
 
     def get_train(self):
         return EPIC(
@@ -327,7 +356,7 @@ class EPICDatasetAccess(VideoDatasetAccess):
 
 
 class GTEADatasetAccess(VideoDatasetAccess):
-    """GTEA data loader"""
+    """GTEA video data loader"""
 
     def get_train(self):
         return BasicVideoDataset(
@@ -361,7 +390,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
 
 
 class ADLDatasetAccess(VideoDatasetAccess):
-    """ADL data loader"""
+    """ADL video data loader"""
 
     def get_train(self):
         return BasicVideoDataset(
@@ -395,7 +424,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
 
 
 class KITCHENDatasetAccess(VideoDatasetAccess):
-    """KITCHEN data loader"""
+    """KITCHEN video data loader"""
 
     def get_train(self):
         return BasicVideoDataset(
@@ -425,4 +454,51 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
             image_modality=self._image_modality,
             dataset_split="test",
             n_classes=self._n_classes,
+        )
+
+
+class EPIC100DatasetAccess(VideoDatasetAccess):
+    """EPIC-100 video feature data loader"""
+
+    def __init__(
+        self, domain, data_path, train_list, test_list, image_modality, frames_per_segment, n_classes, input_type
+    ):
+        super(EPIC100DatasetAccess, self).__init__(
+            data_path, train_list, test_list, image_modality, frames_per_segment, n_classes
+        )
+        self._input_type = input_type
+        self._domain = domain
+        # num_source = len(pd.read_pickle(src_tr_listpath).index)
+        # num_target = len(pd.read_pickle(tgt_tr_listpath).index)
+
+    def get_train(self):
+        return TSNDataSet(
+            data_path=Path.joinpath(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
+            list_file=self._train_list,
+            # num_dataload=num_train,
+            num_dataload=100,
+            num_segments=5,
+            new_length=1,
+            modality=self._image_modality.upper(),
+            image_tmpl="img_{:05d}.t7"
+            if self._image_modality.upper() in ["rgb", "RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
+            else self._input_type + "{}_{:05d}.t7",
+            random_shift=False,
+            test_mode=True,
+        )
+
+    def get_test(self):
+        return TSNDataSet(
+            data_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
+            list_file=self._test_list,
+            # num_dataload=num_test,
+            num_dataload=100,
+            num_segments=5,
+            new_length=1,
+            modality=self._image_modality.upper(),
+            image_tmpl="img_{:05d}.t7"
+            if self._image_modality.upper() in ["rgb", "RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
+            else self._input_type + "{}_{:05d}.t7",
+            random_shift=False,
+            test_mode=True,
         )
