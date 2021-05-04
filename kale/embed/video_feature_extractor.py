@@ -128,7 +128,7 @@ class BoringNetVideo(nn.Module):
         n_class (int, optional): the number of classes. Defaults to 8.
     """
 
-    def __init__(self, input_size=512, n_channel=100, dropout_keep_prob=0.5, n_class=8):
+    def __init__(self, input_size=512, n_channel=256, dropout_keep_prob=0.5, n_class=8):
         super(BoringNetVideo, self).__init__()
         self._n_classes = n_class
         # self.conv3d = nn.Conv3d(in_channels=input_size, out_channels=512, kernel_size=(1, 1, 1))
@@ -136,7 +136,7 @@ class BoringNetVideo(nn.Module):
         self.bn1 = nn.BatchNorm1d(n_channel)
         self.relu1 = nn.ReLU()
         self.dp1 = nn.Dropout(dropout_keep_prob)
-        self.fc2 = nn.Linear(n_channel, n_class)
+        self.fc2 = nn.Linear(n_channel, n_channel)
 
     def n_classes(self):
         return self._n_classes
