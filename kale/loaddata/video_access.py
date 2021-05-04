@@ -477,7 +477,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             list_file=self._train_list,
             # num_dataload=num_train,
             num_dataload=100,
-            num_segments=5,
+            num_segments=1,
             new_length=1,
             modality=self._image_modality.upper(),
             image_tmpl="img_{:05d}.t7"
@@ -493,7 +493,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             list_file=self._test_list,
             # num_dataload=num_test,
             num_dataload=100,
-            num_segments=5,
+            num_segments=1,
             new_length=1,
             modality=self._image_modality.upper(),
             image_tmpl="img_{:05d}.t7"

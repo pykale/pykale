@@ -220,7 +220,8 @@ class TSNDataSet(data.Dataset):
         else:
             process_data = process_data_verb
 
-        return process_data, record.label, record.segment_id
+        return process_data, record.label[0]
+        # return process_data, record.label, record.segment_id
 
     def __len__(self):
         return len(self.video_list)
