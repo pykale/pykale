@@ -45,6 +45,7 @@ def main():
     os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
+
     # ---- setup dataset ----
     seed = cfg.SOLVER.SEED
     source, target, num_classes = VideoDataset.get_source_target(
@@ -92,9 +93,9 @@ def main():
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
             callbacks=[lr_monitor],
             # callbacks=[early_stop_callback, lr_monitor],
-            # limit_train_batches=0.005,
-            # limit_val_batches=0.06,
-            # limit_test_batches=0.06,
+            limit_train_batches=0.00005,
+            limit_val_batches=0.0006,
+            limit_test_batches=0.0006,
         )
 
         ### Find learning_rate
