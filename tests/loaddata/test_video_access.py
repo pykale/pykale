@@ -5,9 +5,9 @@ import pytest
 import torch
 from yacs.config import CfgNode as CN
 
-from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
 from kale.loaddata.multi_domain import DomainsDatasetBase
 from kale.loaddata.video_access import get_image_modality, VideoDataset, VideoDatasetAccess
+from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
 from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
 

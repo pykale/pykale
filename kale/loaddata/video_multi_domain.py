@@ -3,7 +3,7 @@
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
-"""Construct a dataset for action videos with (multiple) source and target domains"""
+"""Construct a dataset for videos with (multiple) source and target domains"""
 
 import logging
 
