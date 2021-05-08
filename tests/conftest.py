@@ -6,5 +6,5 @@ import pytest
 
 @pytest.fixture(scope="session")
 def download_path():
-    path = os.path.join("tests", "test_data", "download")
+    path = os.path.join("tests", "test_data")
     return path
