@@ -1,19 +1,18 @@
 import numpy as np
 import pytest
 from numpy import testing
-from scipy.io import loadmat
 
 from kale.prepdata.image_transform import mask_img_stack, reg_img_stack, rescale_img_stack
-from kale.utils.download import download_file_by_url
 
-gait_url = "https://github.com/pykale/data/raw/main/video_data/gait/gait_gallery_data.mat"
-download_file_by_url(gait_url, "../test_data", "gait.mat", "mat")
-gait = loadmat("../test_data/gait.mat")
-images = gait["fea3D"][..., :10]
 SCALES = [4, 8]
 
 
-def test_reg():
+@pytest.fixture(scope="module")
+def images(gait):
+    return gait["fea3D"][..., :10]
+
+
+def test_reg(images):
     n_samples = images.shape[-1]
     # generate synthetic coordinates
     coords = np.ones((n_samples, 4))
@@ -30,7 +29,7 @@ def test_reg():
 
 
 @pytest.mark.parametrize("scale", SCALES)
-def test_rescale(scale):
+def test_rescale(scale, images):
     img_rescaled = rescale_img_stack(images, scale)
     # dim1 and dim2 have been rescaled
     testing.assert_equal(img_rescaled.shape[0], round(images.shape[0] / scale))
@@ -39,7 +38,7 @@ def test_rescale(scale):
     testing.assert_equal(img_rescaled.shape[-2:], images.shape[-2:])
 
 
-def test_masking():
+def test_masking(images):
     # generate synthetic mask randomly
     mask = np.random.randint(0, 2, size=(images.shape[0], images.shape[1]))
     idx_zeros = np.where(mask == 0)

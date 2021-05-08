@@ -1,18 +1,9 @@
 import numpy as np
 import pytest
 from numpy import testing
-from scipy.io import loadmat
 from sklearn.metrics import accuracy_score, roc_auc_score
 
 from kale.pipeline.mpca_trainer import MPCATrainer
-from kale.utils.download import download_file_by_url
-
-gait_url = "https://github.com/pykale/data/raw/main/video_data/gait/gait_gallery_data.mat"
-download_file_by_url(gait_url, "../test_data", "gait.mat", "mat")
-gait = loadmat("../test_data/gait.mat")
-x = gait["fea3D"].transpose((3, 0, 1, 2))
-x = x[:20, :]
-y = gait["gnd"][:20].reshape(-1)
 
 CLASSIFIERS = ["svc", "linear_svc", "lr"]
 PARAMS = [
@@ -28,7 +19,10 @@ PARAMS = [
 
 @pytest.mark.parametrize("classifier", CLASSIFIERS)
 @pytest.mark.parametrize("params", PARAMS)
-def test_mpca_trainer(classifier, params):
+def test_mpca_trainer(classifier, params, gait):
+    x = gait["fea3D"].transpose((3, 0, 1, 2))
+    x = x[:20, :]
+    y = gait["gnd"][:20].reshape(-1)
     trainer = MPCATrainer(classifier=classifier, **params)
     trainer.fit(x, y)
     y_pred = trainer.predict(x)

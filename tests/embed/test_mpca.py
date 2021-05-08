@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pytest
 from numpy import testing
@@ -7,21 +9,21 @@ from tensorly.tenalg import multi_mode_dot
 from kale.embed.mpca import MPCA
 from kale.utils.download import download_file_by_url
 
-gait_url = "https://github.com/pykale/data/raw/main/video_data/gait/gait_gallery_data.mat"
-baseline_url = "https://github.com/pykale/data/raw/main/video_data/gait/mpca_baseline.mat"
-download_file_by_url(gait_url, "../test_data", "gait.mat", "mat")
-download_file_by_url(baseline_url, "../test_data", "baseline.mat", "mat")
-gait = loadmat("../test_data/gait.mat")
-baseline_model = loadmat("../test_data/baseline.mat")
-
 N_COMPS = [1, 50, 100]
 VAR_RATIOS = [0.7, 0.95]
 relative_tol = 0.00001
+baseline_url = "https://github.com/pykale/data/raw/main/video_data/gait/mpca_baseline.mat"
+
+
+@pytest.fixture(scope="module")
+def baseline_model(download_path):
+    download_file_by_url(baseline_url, download_path, "baseline.mat", "mat")
+    return loadmat(os.path.join(download_path, "baseline.mat"))
 
 
 @pytest.mark.parametrize("n_components", N_COMPS)
 @pytest.mark.parametrize("var_ratio", VAR_RATIOS)
-def test_mpca(var_ratio, n_components):
+def test_mpca(var_ratio, n_components, gait):
     # basic mpca test, return tensor
     x = gait["fea3D"].transpose((3, 0, 1, 2))
     mpca = MPCA(var_ratio=var_ratio, return_vector=False)
@@ -62,7 +64,7 @@ def test_mpca(var_ratio, n_components):
     testing.assert_equal(x_proj.shape[1], np.prod(mpca.shape_out))
 
 
-def test_mpca_against_baseline():
+def test_mpca_against_baseline(gait, baseline_model):
     x = gait["fea3D"].transpose((3, 0, 1, 2))
     baseline_proj_mats = [baseline_model["tUs"][i][0] for i in range(baseline_model["tUs"].size)]
     baseline_mean = baseline_model["TXmean"]
