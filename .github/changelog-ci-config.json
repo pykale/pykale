@@ -7,6 +7,10 @@
     "version_regex": "v?([0-9]{1,2})+[.]+([0-9]{1,2})+[.]+([0-9]{1,2})+a?b?r?c?(([0-9]{1,2}))?",
     "group_config": [
       {
+        "title": "New Features",
+        "labels": ["new feature"]
+      },
+      {
         "title": "Bug Fixes",
         "labels": ["bug", "dependencies"]
       },
