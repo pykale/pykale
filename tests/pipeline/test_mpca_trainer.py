@@ -5,8 +5,11 @@ from scipy.io import loadmat
 from sklearn.metrics import accuracy_score, roc_auc_score
 
 from kale.pipeline.mpca_trainer import MPCATrainer
+from kale.utils.download import download_file_by_url
 
-gait = loadmat("tests/test_data/gait_gallery_data.mat")
+gait_url = "https://github.com/pykale/data/raw/main/video_data/gait/gait_gallery_data.mat"
+download_file_by_url(gait_url, "../test_data", "gait.mat", "mat")
+gait = loadmat("../test_data/gait.mat")
 x = gait["fea3D"].transpose((3, 0, 1, 2))
 x = x[:20, :]
 y = gait["gnd"][:20].reshape(-1)

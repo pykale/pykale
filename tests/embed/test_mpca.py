@@ -5,9 +5,14 @@ from scipy.io import loadmat
 from tensorly.tenalg import multi_mode_dot
 
 from kale.embed.mpca import MPCA
+from kale.utils.download import download_file_by_url
 
-gait = loadmat("tests/test_data/gait_gallery_data.mat")
-baseline_model = loadmat("tests/test_data/mpca_baseline_res.mat")
+gait_url = "https://github.com/pykale/data/raw/main/video_data/gait/gait_gallery_data.mat"
+baseline_url = "https://github.com/pykale/data/raw/main/video_data/gait/mpca_baseline.mat"
+download_file_by_url(gait_url, "../test_data", "gait.mat", "mat")
+download_file_by_url(baseline_url, "../test_data", "baseline.mat", "mat")
+gait = loadmat("../test_data/gait.mat")
+baseline_model = loadmat("../test_data/baseline.mat")
 
 N_COMPS = [1, 50, 100]
 VAR_RATIOS = [0.7, 0.95]

@@ -4,8 +4,11 @@ from numpy import testing
 from scipy.io import loadmat
 
 from kale.prepdata.image_transform import mask_img_stack, reg_img_stack, rescale_img_stack
+from kale.utils.download import download_file_by_url
 
-gait = loadmat("tests/test_data/gait_gallery_data.mat")
+gait_url = "https://github.com/pykale/data/raw/main/video_data/gait/gait_gallery_data.mat"
+download_file_by_url(gait_url, "../test_data", "gait.mat", "mat")
+gait = loadmat("../test_data/gait.mat")
 images = gait["fea3D"][..., :10]
 SCALES = [4, 8]
 
