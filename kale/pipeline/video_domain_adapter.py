@@ -536,18 +536,6 @@ class WDGRLtrainer4Video(WDGRLtrainer):
         _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
         batch_size = len(y_s)
 
-        # if len(batch) == 4:
-        #     (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-        #     _, y_hat, d_hat = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
-        #     _, y_t_hat, d_t_hat = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
-        # elif len(batch) == 2:
-        #     (x_s, y_s), (x_tu, y_tu) = batch
-        #     _, y_hat, d_hat = self.forward(x_s)
-        #     _, y_t_hat, d_t_hat = self.forward(x_tu)
-        # else:
-        #     raise NotImplementedError("Batch len is {}. Check the Dataloader.".format(len(batch)))
-        # batch_size = len(y_s)
-
         if self.rgb:
             _, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(batch_size))
             _, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(batch_size))
