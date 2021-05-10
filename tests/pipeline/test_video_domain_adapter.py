@@ -1,15 +1,11 @@
 import os
-from copy import deepcopy
 from pathlib import Path
 
 import pytest
 import pytorch_lightning as pl
-import torch
 from yacs.config import CfgNode as CN
 
-from kale.embed.video_feature_extractor import get_video_feat_extractor
-from kale.loaddata.multi_domain import DomainsDatasetBase
-from kale.loaddata.video_access import get_image_modality, VideoDataset, VideoDatasetAccess
+from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
 from kale.pipeline import domain_adapter, video_domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
@@ -24,10 +20,8 @@ TARGETS = [
     "ADL;7;adl_P_11_train.pkl;adl_P_11_test.pkl",
 ]
 ALL = SOURCES + TARGETS
-# IMAGE_MODALITY = ["joint"]
 IMAGE_MODALITY = ["rgb", "flow", "joint"]
 DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "DAN", "JAN", "Source"]
-# DA_METHODS = ["WDGRL"]
 WEIGHT_TYPE = "natural"
 DATASIZE_TYPE = "max"
 VAL_RATIO = 0.1
@@ -86,6 +80,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
     cfg.DATASET.SIZE_TYPE = DATASIZE_TYPE
     cfg.DAN.USERANDOM = False
 
+    # download example data
     download_file_by_url(
         url=url,
         output_directory=str(Path(cfg.DATASET.ROOT).parent.absolute()),
@@ -93,6 +88,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
         file_format="zip",
     )
 
+    # build dataset
     source, target, num_classes = VideoDataset.get_source_target(
         VideoDataset(source_name), VideoDataset(target_name), seed, cfg
     )
@@ -125,6 +121,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
     method_params = {}
     method = domain_adapter.Method(da_method)
 
+    # setup DA method
     if method.is_mmd_method():
         model = video_domain_adapter.create_mmd_based_4video(
             method=method,
@@ -148,7 +145,6 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
         if da_method == "CDAN":
             method_params["use_random"] = cfg.DAN.USERANDOM
 
-        # The following calls kale.loaddata.dataset_access for the first time
         model = video_domain_adapter.create_dann_like_4video(
             method=method,
             dataset=dataset,
@@ -162,6 +158,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
 
     assert isinstance(model, domain_adapter.BaseAdaptTrainer)
 
+    # training process
     trainer = pl.Trainer(min_epochs=train_params["nb_init_epochs"], max_epochs=train_params["nb_adapt_epochs"], gpus=0)
     trainer.fit(model)
     trainer.test()
