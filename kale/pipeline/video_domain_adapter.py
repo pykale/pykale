@@ -493,53 +493,99 @@ class WDGRLtrainer4Video(WDGRLtrainer):
             dataset, feature_extractor, task_classifier, critic, k_critic, gamma, beta_ratio, **base_params
         )
         self.image_modality = image_modality
+        self.rgb, self.flow = get_image_modality(self.image_modality)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
 
     def forward(self, x):
         if self.feat is not None:
-            if self.image_modality in ["rgb", "flow"]:
-                if self.rgb_feat is not None:
-                    x = self.rgb_feat(x)
-                else:
-                    x = self.flow_feat(x)
-            elif self.image_modality == "joint":
-                x_rgb = self.rgb_feat(x["rgb"])
-                x_flow = self.flow_feat(x["flow"])
-                x = torch.cat((x_rgb, x_flow), dim=1)
-        x = x.view(x.size(0), -1)
+            x_rgb = x_flow = adversarial_output_rgb = adversarial_output_flow = None
 
-        class_output = self.classifier(x)
-        adversarial_output = self.domain_classifier(x)
-        return x, class_output, adversarial_output
+            # For joint input, both two ifs are used
+            if self.rgb:
+                x_rgb = self.rgb_feat(x["rgb"])
+                x_rgb = x_rgb.view(x_rgb.size(0), -1)
+                adversarial_output_rgb = self.domain_classifier(x_rgb)
+            if self.flow:
+                x_flow = self.flow_feat(x["flow"])
+                x_flow = x_flow.view(x_flow.size(0), -1)
+                adversarial_output_flow = self.domain_classifier(x_flow)
+
+            if self.rgb:
+                if self.flow:  # For joint input
+                    x = torch.cat((x_rgb, x_flow), dim=1)
+                else:  # For rgb input
+                    x = x_rgb
+            else:  # For flow input
+                x = x_flow
+            class_output = self.classifier(x)
+
+            return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
     def compute_loss(self, batch, split_name="V"):
-        if len(batch) == 4:
-            (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-            _, y_hat, d_hat = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
-            _, y_t_hat, d_t_hat = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
-        elif len(batch) == 2:
-            (x_s, y_s), (x_tu, y_tu) = batch
-            _, y_hat, d_hat = self.forward(x_s)
-            _, y_t_hat, d_t_hat = self.forward(x_tu)
-        else:
-            raise NotImplementedError("Batch len is {}. Check the Dataloader.".format(len(batch)))
+        x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
+        if self.rgb:
+            if self.flow:  # For joint input
+                (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
+            else:  # For rgb input
+                (x_s_rgb, y_s), (x_tu_rgb, y_tu) = batch
+        else:  # For flow input
+            (x_s_flow, y_s), (x_tu_flow, y_tu) = batch
+
+        _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
+        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
         batch_size = len(y_s)
+
+        # if len(batch) == 4:
+        #     (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
+        #     _, y_hat, d_hat = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
+        #     _, y_t_hat, d_t_hat = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
+        # elif len(batch) == 2:
+        #     (x_s, y_s), (x_tu, y_tu) = batch
+        #     _, y_hat, d_hat = self.forward(x_s)
+        #     _, y_t_hat, d_t_hat = self.forward(x_tu)
+        # else:
+        #     raise NotImplementedError("Batch len is {}. Check the Dataloader.".format(len(batch)))
+        # batch_size = len(y_s)
+
+        if self.rgb:
+            _, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(batch_size))
+            _, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(batch_size))
+        if self.flow:
+            _, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(batch_size))
+            _, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(batch_size))
+
+        if self.rgb and self.flow:  # For joint input
+            dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
+            dok_src = torch.cat((dok_src_rgb, dok_src_flow))
+            dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
+            wasserstein_distance_rgb = d_hat_rgb.mean() - (1 + self._beta_ratio) * d_t_hat_rgb.mean()
+            wasserstein_distance_flow = d_hat_flow.mean() - (1 + self._beta_ratio) * d_t_hat_flow.mean()
+            wasserstein_distance = (wasserstein_distance_rgb + wasserstein_distance_flow) / 2
+        else:
+            if self.rgb:  # For rgb input
+                d_hat = d_hat_rgb
+                d_t_hat = d_t_hat_rgb
+                dok_src = dok_src_rgb
+                dok_tgt = dok_tgt_rgb
+            else:  # For flow input
+                d_hat = d_hat_flow
+                d_t_hat = d_t_hat_flow
+                dok_src = dok_src_flow
+                dok_tgt = dok_tgt_flow
+
+            wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
+            dok = torch.cat((dok_src, dok_tgt))
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-
-        _, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
-        _, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)))
-
-        wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
         adv_loss = wasserstein_distance
         task_loss = loss_cls
 
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
+            f"{split_name}_domain_acc": dok,
             f"{split_name}_source_domain_acc": dok_src,
             f"{split_name}_target_domain_acc": dok_tgt,
             f"{split_name}_wasserstein_dist": wasserstein_distance,
@@ -625,39 +671,24 @@ class WDGRLtrainer4Video(WDGRLtrainer):
                 h_s = torch.cat((h_s_rgb, h_s_flow), dim=1)
                 h_t = torch.cat((h_t_rgb, h_t_flow), dim=1)
 
+            # Need to improve to process rgb and flow dividedly in the future.
             for _ in range(self._k_critic):
-                gp = losses.gradient_penalty(self.domain_classifier, h_s, h_t)
+                gp_rgb = losses.gradient_penalty(self.domain_classifier, h_s_rgb, h_t_rgb)
+                gp_flow = losses.gradient_penalty(self.domain_classifier, h_s_flow, h_t_flow)
 
-                critic_s = self.domain_classifier(h_s)
-                critic_t = self.domain_classifier(h_t)
-                wasserstein_distance = critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean()
+                critic_s_rgb = self.domain_classifier(h_s_rgb)
+                critic_s_flow = self.domain_classifier(h_s_flow)
+                critic_t_rgb = self.domain_classifier(h_t_rgb)
+                critic_t_flow = self.domain_classifier(h_t_flow)
+                wasserstein_distance_rgb = critic_s_rgb.mean() - (1 + self._beta_ratio) * critic_t_rgb.mean()
+                wasserstein_distance_flow = critic_s_flow.mean() - (1 + self._beta_ratio) * critic_t_flow.mean()
 
-                critic_cost = -wasserstein_distance + self._gamma * gp
-
-                self.critic_opt.zero_grad()
-                critic_cost.backward()
-                self.critic_opt.step()
-                if self.critic_sched:
-                    self.critic_sched.step()
-
-                # Uncomment for later work. Process rgb and flow dividedly.
-                # for _ in range(self._k_critic):
-                #     gp_rgb = losses.gradient_penalty(self.domain_classifier, h_s_rgb, h_t_rgb)
-                #     gp_flow = losses.gradient_penalty(self.domain_classifier, h_s_flow, h_t_flow)
-                #
-                #     critic_s_rgb = self.domain_classifier(h_s_rgb)
-                #     critic_s_flow = self.domain_classifier(h_s_flow)
-                #     critic_t_rgb = self.domain_classifier(h_t_rgb)
-                #     critic_t_flow = self.domain_classifier(h_t_flow)
-                #     wasserstein_distance_rgb = (
-                #             critic_s_rgb.mean() - (1 + self._beta_ratio) * critic_t_rgb.mean()
-                #     )
-                #     wasserstein_distance_flow = (
-                #             critic_s_flow.mean() - (1 + self._beta_ratio) * critic_t_flow.mean()
-                #     )
-                #
-                #     critic_cost = (-wasserstein_distance_rgb + -wasserstein_distance_flow +
-                #                    self._gamma * gp_rgb + self._gamma * gp_flow) * 0.5
+                critic_cost = (
+                    -wasserstein_distance_rgb
+                    + -wasserstein_distance_flow
+                    + self._gamma * gp_rgb
+                    + self._gamma * gp_flow
+                ) * 0.5
 
                 self.critic_opt.zero_grad()
                 critic_cost.backward()

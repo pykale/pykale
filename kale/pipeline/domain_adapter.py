@@ -102,7 +102,7 @@ class Method(Enum):
         return self in (Method.DANN, Method.Source)
 
     def is_cdan_method(self):
-        return self is Method.CDAN or self is Method.CDAN_E
+        return self in (Method.CDAN, Method.CDAN_E)
 
     def is_fewshot_method(self):
         return self in (Method.FSDANN, Method.MME, Method.Source)
