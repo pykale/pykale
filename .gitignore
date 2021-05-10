@@ -35,8 +35,8 @@ docs/source/backup
 
 # Testing
 .coverage
-cov.xml
-tests/test_data/download
+cov*.xml
+tests/test_data
 
 # Lightning
 lightning_logs

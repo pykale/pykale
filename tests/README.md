@@ -1,6 +1,6 @@
 # Test Guidelines
 
-We aim to cover all code by [unit tests](https://carpentries-incubator.github.io/python-testing/04-units/index.html) with at least 70% coverage, and [regression tests](https://carpentries-incubator.github.io/python-testing/07-integration/index.html) where appropriate. Please use [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing) to talk about tests and ask for help.
+All code should be covered by [unit tests](https://carpentries-incubator.github.io/python-testing/04-units/index.html) with at least 70% coverage, and [regression tests](https://carpentries-incubator.github.io/python-testing/07-integration/index.html) where appropriate. When a bug is located and fixed, new test(s) should be added that would catch this bug. Please use [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing) to talk about tests and ask for help.
 
 These guidelines will help you to write tests to address sufficiently compact pieces of code such that it is easy to identify causes of failure and for tests to also cover larger workflows such that confidence or trust can be built in reproducibility of outputs. We use [pytest](https://docs.pytest.org/en/stable/) (see tutorials [python testing software carpentry (alpha)](https://carpentries-incubator.github.io/python-testing/) and [tutorialspoint pytest tutorial](https://www.tutorialspoint.com/pytest/pytest_tutorial.pdf)). There is some subjectivity involved in deciding how much of the potential behaviour of your code to check.
 
@@ -21,7 +21,7 @@ See more details below, particularly [test data](#test-data), [common parameters
 
 ## Test data
 
-Data needed for testing should be placed in [`tests/test_data`](https://github.com/pykale/pykale/tree/main/tests/test_data). Only small files (current limit: 300KB) should be uploaded directly. Larger data should be **automatically downloaded** during tests from external sources to `tests/test_data/download` as defined in [`tests/conftest.py`](https://github.com/pykale/pykale/blob/main/tests/conftest.py). Such data will be kept local, as set in [`.gitignore`](https://github.com/pykale/pykale/blob/main/.gitignore). Discuss more complex test data requirements for your **pull request** in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
+Data needed for testing should be uploaded to [pykale/data](https://github.com/pykale/data) (preferred) or other external sources, and **automatically downloaded** via `download_file_by_url` from `kale.utils.download` during tests to `tests/test_data` as defined `download_path` of [`tests/conftest.py`](https://github.com/pykale/pykale/blob/main/tests/conftest.py). More complex test data requirements for your **pull request** can be discussed in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
 
 ## Common parameters
 
