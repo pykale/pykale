@@ -13,7 +13,7 @@ from kale.utils.seed import set_seed
 
 SOURCES = [
     "EPIC;8;epic_D1_train.pkl;epic_D1_test.pkl",
-    "ADL;7;adl_P_04_train.pkl;adl_P_04_test.pkl",
+    "ADL;7;adl_P_11_train.pkl;adl_P_11_test.pkl",
     "GTEA;6;gtea_train.pkl;gtea_test.pkl",
     "KITCHEN;6;kitchen_train.pkl;kitchen_test.pkl",
 ]
