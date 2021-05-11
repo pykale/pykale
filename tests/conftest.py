@@ -9,8 +9,7 @@ from kale.utils.download import download_file_by_url
 
 @pytest.fixture(scope="session")
 def download_path():
-    path = os.path.dirname(os.path.dirname(os.getcwd()))
-    path = os.path.join(path, "tests", "test_data")
+    path = os.path.join("tests", "test_data")
     return path
 
 
