@@ -1,4 +1,7 @@
-# Models for efficient test.
+""" Models for efficient test following PyTorch-Lightning.
+
+References: https://github.com/PyTorchLightning/pytorch-lightning/blob/master/tests/helpers/boring_model.py
+"""
 
 import torch.nn as nn
 
