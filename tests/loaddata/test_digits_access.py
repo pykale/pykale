@@ -1,5 +1,3 @@
-import os
-
 import pytest
 import torch
 
@@ -21,7 +19,6 @@ VAL_RATIO = [0.1]
 @pytest.mark.parametrize("source_name", SOURCES)
 @pytest.mark.parametrize("target_name", TARGETS)
 def test_get_source_target(source_name, target_name, download_path):
-    download_path = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), download_path)
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(source_name), DigitDataset(target_name), download_path
     )
@@ -33,7 +30,6 @@ def test_get_source_target(source_name, target_name, download_path):
 @pytest.mark.parametrize("weight_type", WEIGHT_TYPE)
 @pytest.mark.parametrize("datasize_type", DATASIZE_TYPE)
 def test_multi_domain_datasets(weight_type, datasize_type, download_path):
-    download_path = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), download_path)
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(SOURCES[0]), DigitDataset(TARGETS[0]), download_path
     )
@@ -47,7 +43,6 @@ def test_multi_domain_datasets(weight_type, datasize_type, download_path):
 
 @pytest.mark.parametrize("dataset_name", ALL)
 def test_get_train_test(dataset_name, download_path):
-    download_path = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), download_path)
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(dataset_name), DigitDataset(dataset_name), download_path
     )
