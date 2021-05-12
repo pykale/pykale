@@ -134,6 +134,7 @@ class BaseMMDLike4Video(BaseMMDLike):
                 return [x_rgb, x_flow], class_output
 
     def compute_loss(self, batch, split_name="V"):
+        # _s refers to source, _tu refers to unlabeled target
         if self.image_modality == "joint" and len(batch) == 4:
             (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
             [phi_s_rgb, phi_s_flow], y_hat = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
@@ -153,6 +154,7 @@ class BaseMMDLike4Video(BaseMMDLike):
         # print('rgb_s:{}, flow_s:{}, rgb_f:{}, flow_f:{}'.format(y_s, y_s_flow, y_tu, y_tu_flow))
         # print('equal: {}/{}'.format(torch.all(torch.eq(y_s, y_s_flow)), torch.all(torch.eq(y_tu, y_tu_flow))))
 
+        # ok is abbreviation for (all) correct
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
         task_loss = loss_cls
@@ -260,6 +262,7 @@ class DANNtrainer4Video(DANNtrainer):
             return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
     def compute_loss(self, batch, split_name="V"):
+        # _s refers to source, _tu refers to unlabeled target
         x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
         if self.rgb:
             if self.flow:  # For joint input
@@ -294,6 +297,7 @@ class DANNtrainer4Video(DANNtrainer):
                 d_hat = d_hat_flow
                 d_t_hat = d_t_hat_flow
 
+            # ok is abbreviation for (all) correct, dok refers to domain correct
             loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
             loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
             dok = torch.cat((dok_src, dok_tgt))
@@ -402,6 +406,7 @@ class CDANtrainer4Video(CDANtrainer):
             return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
     def compute_loss(self, batch, split_name="V"):
+        # _s refers to source, _tu refers to unlabeled target
         x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
         if self.rgb:
             if self.flow:  # For joint input
@@ -440,6 +445,7 @@ class CDANtrainer4Video(CDANtrainer):
                 d_t_hat_flow, torch.ones(batch_size), target_weight
             )
 
+        # ok is abbreviation for (all) correct, dok refers to domain correct
         if self.rgb and self.flow:  # For joint input
             loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
             loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
@@ -523,6 +529,7 @@ class WDGRLtrainer4Video(WDGRLtrainer):
             return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
     def compute_loss(self, batch, split_name="V"):
+        # _s refers to source, _tu refers to unlabeled target
         x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
         if self.rgb:
             if self.flow:  # For joint input
@@ -536,6 +543,7 @@ class WDGRLtrainer4Video(WDGRLtrainer):
         _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
         batch_size = len(y_s)
 
+        # ok is abbreviation for (all) correct, dok refers to domain correct
         if self.rgb:
             _, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(batch_size))
             _, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(batch_size))
@@ -627,6 +635,7 @@ class WDGRLtrainer4Video(WDGRLtrainer):
                     h_t = self.flow_feat(x_tu).data.view(x_tu.shape[0], -1)
 
             for _ in range(self._k_critic):
+                # gp refers to gradient penelty in Wasserstein distance.
                 gp = losses.gradient_penalty(self.domain_classifier, h_s, h_t)
 
                 critic_s = self.domain_classifier(h_s)
@@ -659,8 +668,9 @@ class WDGRLtrainer4Video(WDGRLtrainer):
                 h_s = torch.cat((h_s_rgb, h_s_flow), dim=1)
                 h_t = torch.cat((h_t_rgb, h_t_flow), dim=1)
 
-            # Need to improve to process rgb and flow dividedly in the future.
+            # Need to improve to process rgb and flow separately in the future.
             for _ in range(self._k_critic):
+                # gp_x refers to gradient penelty for the input with the modality x.
                 gp_rgb = losses.gradient_penalty(self.domain_classifier, h_s_rgb, h_t_rgb)
                 gp_flow = losses.gradient_penalty(self.domain_classifier, h_s_flow, h_t_flow)
 
