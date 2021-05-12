@@ -11,8 +11,8 @@ import torch
 from config import get_cfg_defaults
 from model import get_model
 
-from kale.loaddata.action_multi_domain import VideoMultiDomainDatasets
 from kale.loaddata.video_access import VideoDataset
+from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
 
 
 def arg_parse():

@@ -94,10 +94,10 @@ kale.loaddata.video\_datasets module
    :undoc-members:
    :show-inheritance:
 
-kale.loaddata.action\_multi\_domain module
+kale.loaddata.video\_multi\_domain module
 ------------------------------------------
 
-.. automodule:: kale.loaddata.action_multi_domain
+.. automodule:: kale.loaddata.video_multi_domain
    :members:
    :undoc-members:
    :show-inheritance:
