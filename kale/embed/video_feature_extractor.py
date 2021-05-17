@@ -127,27 +127,28 @@ class BoringNetVideo(nn.Module):
         n_class (int, optional): the number of classes. Defaults to 8.
     """
 
-    def __init__(self, input_size=512, n_channel=256, dropout_keep_prob=0.5, n_class=8):
+    def __init__(self, input_size=512, n_channel=256, n_out=256, dropout_keep_prob=0.5, n_class=8):
         super(BoringNetVideo, self).__init__()
         self._n_classes = n_class
         # self.conv3d = nn.Conv3d(in_channels=input_size, out_channels=512, kernel_size=(1, 1, 1))
         self.fc1 = nn.Linear(input_size, n_channel)
-        self.bn1 = nn.BatchNorm1d(n_channel)
-        self.relu1 = nn.ReLU()
-        self.dp1 = nn.Dropout(dropout_keep_prob)
-        self.fc2 = nn.Linear(n_channel, n_channel)
+        # self.bn1 = nn.BatchNorm1d(n_channel)
+        # self.relu1 = nn.ReLU()
+        # self.dp1 = nn.Dropout(dropout_keep_prob)
+        # self.fc2 = nn.Linear(n_channel, n_out)
 
     def n_classes(self):
         return self._n_classes
 
     def forward(self, x):
         x = x.squeeze()
-        x = self.dp1(self.relu1(self.bn1(self.fc1(x))))
-        x = self.fc2(x)
+        x = self.fc1(x)
+        # x = self.dp1(self.relu1(self.bn1(self.fc1(x))))
+        # x = self.fc2(x)
         return x
 
 
-def get_feat_extractor4feature(attention, num_classes):
-    feature_network = BoringNetVideo(input_size=1024, n_class=num_classes)
-    class_feature_dim = domain_feature_dim = 256
+def get_feat_extractor4feature(attention, num_classes, num_out=256):
+    feature_network = BoringNetVideo(input_size=1024, n_class=num_classes, n_out=num_out)
+    class_feature_dim = domain_feature_dim = num_out
     return {"rgb": feature_network, "flow": None}, int(class_feature_dim), int(domain_feature_dim)
