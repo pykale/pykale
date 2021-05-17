@@ -274,14 +274,15 @@ class DANNtrainer4Video(DANNtrainer):
 
         _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
         _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
-        batch_size = len(y_s)
+        source_batch_size = len(y_s)
+        target_batch_sieze = len(y_tu)
 
         if self.rgb:
-            loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(batch_size))
-            loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(batch_size))
+            loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(source_batch_size))
+            loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(target_batch_sieze))
         if self.flow:
-            loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(batch_size))
-            loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(batch_size))
+            loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(source_batch_size))
+            loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(target_batch_sieze))
 
         if self.rgb and self.flow:  # For joint input
             loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
@@ -298,8 +299,8 @@ class DANNtrainer4Video(DANNtrainer):
                 d_t_hat = d_t_hat_flow
 
             # ok is abbreviation for (all) correct, dok refers to domain correct
-            loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
-            loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
+            loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(source_batch_size))
+            loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(target_batch_sieze))
             dok = torch.cat((dok_src, dok_tgt))
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
