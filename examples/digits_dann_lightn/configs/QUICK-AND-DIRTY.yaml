@@ -1,0 +1,9 @@
+DAN:
+  METHOD: "CDAN"
+
+DATASET:
+  SOURCE: "svhn"
+
+SOLVER:
+  MIN_EPOCHS: 1
+  MAX_EPOCHS: 3
