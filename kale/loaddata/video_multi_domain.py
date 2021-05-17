@@ -131,11 +131,15 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         if self._labeled_target_by_split is None:
             # unsupervised target domain
             if self.rgb:
-                rgb_target_loader = self._target_sampling_config.create_loader(rgb_target_ds, batch_size)
-                n_dataset = DatasetSizeType.get_size(self._size_type, rgb_source_ds, rgb_target_ds)
+                n_dataset, target_batch_size = DatasetSizeType.get_size(
+                    self._size_type, batch_size, rgb_source_ds, rgb_target_ds
+                )
+                rgb_target_loader = self._target_sampling_config.create_loader(rgb_target_ds, target_batch_size)
             if self.flow:
-                flow_target_loader = self._target_sampling_config.create_loader(flow_target_ds, batch_size)
-                n_dataset = DatasetSizeType.get_size(self._size_type, flow_source_ds, flow_target_ds)
+                n_dataset, target_batch_size = DatasetSizeType.get_size(
+                    self._size_type, batch_size, flow_source_ds, flow_target_ds
+                )
+                flow_target_loader = self._target_sampling_config.create_loader(flow_target_ds, target_batch_size)
 
             dataloaders = [rgb_source_loader, flow_source_loader, rgb_target_loader, flow_target_loader]
             dataloaders = [x for x in dataloaders if x is not None]
@@ -147,6 +151,9 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                 rgb_target_labeled_ds = self._labeled_target_by_split[split]
                 rgb_target_unlabeled_ds = rgb_target_ds
                 # label domain: always balanced
+                n_dataset, target_batch_size = DatasetSizeType.get_size(
+                    self._size_type, batch_size, rgb_source_ds, rgb_target_labeled_ds, rgb_target_unlabeled_ds
+                )
                 rgb_target_labeled_loader = FixedSeedSamplingConfig(balance=True, class_weights=None).create_loader(
                     rgb_target_labeled_ds, batch_size=min(len(rgb_target_labeled_ds), batch_size)
                 )
@@ -154,20 +161,18 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                 rgb_target_unlabeled_loader = self._target_sampling_config.create_loader(
                     rgb_target_unlabeled_ds, batch_size
                 )
-                n_dataset = DatasetSizeType.get_size(
-                    self._size_type, rgb_source_ds, rgb_target_labeled_ds, rgb_target_unlabeled_ds
-                )
+
             if self.flow:
                 flow_target_labeled_ds = self._labeled_target_by_split[split]
                 flow_target_unlabeled_ds = flow_target_ds
+                n_dataset, _ = DatasetSizeType.get_size(
+                    self._size_type, batch_size, rgb_source_ds, flow_target_labeled_ds, flow_target_unlabeled_ds
+                )
                 flow_target_labeled_loader = FixedSeedSamplingConfig(balance=True, class_weights=None).create_loader(
                     flow_target_labeled_ds, batch_size=min(len(flow_target_labeled_ds), batch_size)
                 )
                 flow_target_unlabeled_loader = self._target_sampling_config.create_loader(
                     flow_target_unlabeled_ds, batch_size
-                )
-                n_dataset = DatasetSizeType.get_size(
-                    self._size_type, rgb_source_ds, flow_target_labeled_ds, flow_target_unlabeled_ds
                 )
 
             # combine loaders into a list and remove the loader which is NONE.

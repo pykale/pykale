@@ -28,7 +28,10 @@ _C.DATASET.INPUT_TYPE = "image"  # type options=["image", "feature"]
 _C.DATASET.FRAMES_PER_SEGMENT = 16
 _C.DATASET.NUM_REPEAT = 5  # 10
 _C.DATASET.WEIGHT_TYPE = "natural"
-_C.DATASET.SIZE_TYPE = "max"  # options=["source", "max"]
+_C.DATASET.SIZE_TYPE = "adaptive"  # options=["source", "max", "adaptive"]
+_C.DATASET.VERB_CLASS = True
+_C.DATASET.NOUN_CLASS = False
+
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
@@ -44,7 +47,7 @@ _C.SOLVER.MAX_EPOCHS = 30  # "nb_adapt_epochs": 100,
 # _C.SOLVER.WARMUP = True
 _C.SOLVER.MIN_EPOCHS = 5  # "nb_init_epochs": 20,
 _C.SOLVER.TRAIN_BATCH_SIZE = 16  # 150
-# _C.SOLVER.TEST_BATCH_SIZE = 32  # No difference in ADA
+# _C.SOLVER.TEST_BATCH_SIZE = 16  # No difference in ADA
 
 # Adaptation-specific solver config
 _C.SOLVER.AD_LAMBDA = True
