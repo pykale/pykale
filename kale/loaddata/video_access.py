@@ -12,6 +12,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 
+# import pandas as pd
 import torch
 
 import kale.prepdata.video_transform as video_transform
@@ -48,6 +49,8 @@ def get_videodata_config(cfg):
             "dataset_input_type": cfg.DATASET.INPUT_TYPE,
             "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
             "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT,
+            "dataset_verb_class": cfg.DATASET.VERB_CLASS,
+            "dataset_noun_class": cfg.DATASET.NOUN_CLASS,
             "train_batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
         }
     }
@@ -125,6 +128,8 @@ class VideoDataset(Enum):
         image_modality = data_params_local["dataset_image_modality"]
         frames_per_segment = data_params_local["frames_per_segment"]
         input_type = data_params_local["dataset_input_type"]
+        verb_class = data_params_local["dataset_verb_class"]
+        noun_class = data_params_local["dataset_noun_class"]
         # train_batch_size = data_params_local["train_batch_size"]
 
         rgb, flow = get_image_modality(image_modality)
@@ -136,13 +141,17 @@ class VideoDataset(Enum):
             VideoDataset.KITCHEN: "kitchen",
         }
 
-        class_numbers = {
+        verb_class_numbers = {
             VideoDataset.EPIC: 8,
             VideoDataset.GTEA: 6,
             VideoDataset.ADL: 7,
             VideoDataset.KITCHEN: 6,
             VideoDataset.EPIC100: 97,
         }
+
+        # noun_class_numbers = {
+        #     VideoDataset.EPIC100: 300,
+        # }
 
         factories = {
             VideoDataset.EPIC: EPICDatasetAccess,
@@ -153,7 +162,12 @@ class VideoDataset(Enum):
         }
 
         # handle color/nb classes
-        num_classes = min(class_numbers[source], class_numbers[target])
+        if verb_class:
+            num_verb_classes = min(verb_class_numbers[source], verb_class_numbers[target])
+        # if noun_class:
+        #     num_noun_classes = min(noun_class_numbers[source], noun_class_numbers[target])
+        if not verb_class and not noun_class:
+            raise ValueError("Invalid class option: verb class {}, noun class {}".format(verb_class, noun_class))
 
         rgb_source, rgb_target, flow_source, flow_target = [None] * 4
         if input_type == "image":
@@ -168,7 +182,7 @@ class VideoDataset(Enum):
                     src_te_listpath,
                     "rgb",
                     frames_per_segment,
-                    num_classes,
+                    num_verb_classes,
                     source_tf,
                     seed,
                 )
@@ -178,7 +192,7 @@ class VideoDataset(Enum):
                     tgt_te_listpath,
                     "rgb",
                     frames_per_segment,
-                    num_classes,
+                    num_verb_classes,
                     target_tf,
                     seed,
                 )
@@ -190,7 +204,7 @@ class VideoDataset(Enum):
                     src_te_listpath,
                     "flow",
                     frames_per_segment,
-                    num_classes,
+                    num_verb_classes,
                     source_tf,
                     seed,
                 )
@@ -200,7 +214,7 @@ class VideoDataset(Enum):
                     tgt_te_listpath,
                     "flow",
                     frames_per_segment,
-                    num_classes,
+                    num_verb_classes,
                     target_tf,
                     seed,
                 )
@@ -210,7 +224,7 @@ class VideoDataset(Enum):
             # num_target = len(pd.read_pickle(tgt_tr_listpath).index)
 
             # num_iter_source = num_source / train_batch_size
-            # num_iter_target = num_target / train_batch_size
+            # num_iter_target = num_target / (train_batch_size * num_source / num_target)
             # num_max_iter = max(num_iter_source, num_iter_target)
             # num_source_train = round(num_max_iter * train_batch_size) if args.copy_list[0] == 'Y' else num_source
             # num_target_train = round(num_max_iter * train_batch_size) if args.copy_list[1] == 'Y' else num_target
@@ -224,7 +238,7 @@ class VideoDataset(Enum):
                 test_list=src_te_listpath,
                 image_modality=image_modality,
                 frames_per_segment=frames_per_segment,
-                n_classes=num_classes,
+                n_classes=num_verb_classes,
                 input_type=input_type,
             )
 
@@ -235,7 +249,7 @@ class VideoDataset(Enum):
                 test_list=tgt_te_listpath,
                 image_modality=image_modality,
                 frames_per_segment=frames_per_segment,
-                n_classes=num_classes,
+                n_classes=num_verb_classes,
                 input_type=input_type,
             )
             # rgb_source = TSNDataSet(
@@ -270,7 +284,7 @@ class VideoDataset(Enum):
         return (
             {"rgb": rgb_source, "flow": flow_source},
             {"rgb": rgb_target, "flow": flow_target},
-            num_classes,
+            num_verb_classes,
         )
 
 
@@ -473,15 +487,15 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
 
     def get_train(self):
         return TSNDataSet(
-            data_path=Path.joinpath(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
+            data_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
             list_file=self._train_list,
             # num_dataload=num_train,
-            num_dataload=100,
+            num_dataload=5002,
             num_segments=1,
             new_length=1,
             modality=self._image_modality.upper(),
             image_tmpl="img_{:05d}.t7"
-            if self._image_modality.upper() in ["rgb", "RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
+            if self._image_modality.upper() in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
             random_shift=False,
             test_mode=True,
@@ -492,12 +506,12 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             data_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
             list_file=self._test_list,
             # num_dataload=num_test,
-            num_dataload=100,
+            num_dataload=7906,
             num_segments=1,
             new_length=1,
             modality=self._image_modality.upper(),
             image_tmpl="img_{:05d}.t7"
-            if self._image_modality.upper() in ["rgb", "RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
+            if self._image_modality.upper() in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
             random_shift=False,
             test_mode=True,
