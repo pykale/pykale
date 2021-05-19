@@ -171,8 +171,8 @@ def integer_label_smiles(smiles, max_length=85, isomeric=False):
         mol = Chem.MolFromSmiles(smiles)
         if mol is None:
             logging.warning(f"rdkit cannot find this SMILES {smiles}.")
-            return None
-        smiles = Chem.MolToSmiles(Chem.MolFromSmiles(smiles), isomericSmiles=True)
+        else:
+            smiles = Chem.MolToSmiles(Chem.MolFromSmiles(smiles), isomericSmiles=True)
     encoding = np.zeros(max_length)
     for idx, letter in enumerate(smiles[:max_length]):
         try:
@@ -196,6 +196,7 @@ def integer_label_protein(sequence, max_length=1200):
     encoding = np.zeros(max_length)
     for idx, letter in enumerate(sequence[:max_length]):
         try:
+            letter = letter.upper()
             encoding[idx] = CHARPROTSET[letter]
         except KeyError:
             logging.warning(
