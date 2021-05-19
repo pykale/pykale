@@ -109,3 +109,27 @@ def compute_mmd_loss(kernel_values, batch_size):
         loss += kernel_values[s1, s2] + kernel_values[t1, t2]
         loss -= kernel_values[s1, t2] + kernel_values[s2, t1]
     return loss / float(batch_size)
+
+
+def hsic(kx, ky):
+    """Perform independent test (HSIC) between two set of variables x and y.
+
+    Args:
+        kx (2-D tensor): kernel matrix of x, shape (n_samples, n_samples)
+        ky (2-D tensor): kernel matrix of y, shape (n_samples, n_samples)
+
+    Returns:
+        [tensor]: Independent test score >= 0
+    
+    Reference:
+        [1] Gretton, Arthur, Bousquet, Olivier, Smola, Alex, and Schölkopf, Bernhard. Measuring Statistical Dependence
+            with Hilbert-Schmidt Norms. In Algorithmic Learning Theory (ALT), pp. 63–77. 2005.
+        [2] Gretton, Arthur, Fukumizu, Kenji, Teo, Choon H., Song, Le, Schölkopf, Bernhard, and Smola, Alex J. A Kernel
+            Statistical Test of Independence. In Advances in Neural Information Processing Systems, pp. 585–592. 2008.
+    """
+
+    n = kx.shape[0]
+    if ky.shape[0] != n:
+        raise ValueError('kx and ky are expected to have the same sample sizes.')
+    ctr_mat = torch.eye(n) - torch.ones((n, n)) / n
+    return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (n ** 2)
