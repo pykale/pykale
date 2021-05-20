@@ -3,7 +3,7 @@ from kale.prepdata.chem_transform import integer_label_protein, integer_label_sm
 
 def test_chem_wrong_smiles():
     wrong_smiles = "NS(=O)(=O)*c1cc2C"
-    assert not integer_label_smiles(wrong_smiles)
+    integer_label_smiles(wrong_smiles)
 
 
 def test_chem_illegal_character():
