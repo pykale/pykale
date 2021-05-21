@@ -46,7 +46,11 @@ def main():
         DigitDataset(cfg.DATASET.SOURCE.upper()), DigitDataset(cfg.DATASET.TARGET.upper()), cfg.DATASET.ROOT
     )
     dataset = MultiDomainDatasets(
-        source, target, config_weight_type=cfg.DATASET.WEIGHT_TYPE, config_size_type=cfg.DATASET.SIZE_TYPE
+        source,
+        target,
+        config_weight_type=cfg.DATASET.WEIGHT_TYPE,
+        config_size_type=cfg.DATASET.SIZE_TYPE,
+        val_split_ratio=0.5,
     )
 
     # Repeat multiple times to get std
