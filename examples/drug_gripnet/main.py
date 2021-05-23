@@ -3,12 +3,12 @@ import os
 
 import torch
 from config import get_cfg_defaults
-from loaddata import construct_dataset
 from model import GripNet
 from trainer import Trainer
 
 import kale.utils.logger as lu
 import kale.utils.seed as seed
+from kale.utils.download import download_file_by_url
 
 
 def arg_parse():
@@ -38,7 +38,8 @@ def main():
     logger.info("Using " + device)
     logger.info(cfg.dump())
     # ---- setup dataset ----
-    data = construct_dataset(cfg)
+    download_file_by_url(cfg.DATASET.URL, cfg.DATASET.ROOT, "pose.pt", "pt")
+    data = torch.load(os.path.join(cfg.DATASET.ROOT, "pose.pt"))
     device = torch.device(device)
     data = data.to(device)
     # ---- setup model ----

@@ -6,7 +6,7 @@ This example is constructed by [GripNet Framework](https://arxiv.org/abs/2010.15
 The original implementation of GripNet is [here](https://github.com/NYXFLOWER/GripNet.git).
 
 ## 2. Usage
-* Dataset download: [PoSE](https://drive.google.com/file/d/1FQ8VFPDYeuXq3pKfV7HXk5Vf41vbRNHn/view?usp=sharing)
+* Dataset download: [PoSE](https://github.com/pykale/data/tree/main/graph_data)
 
 * Algorithm: GripNet
 

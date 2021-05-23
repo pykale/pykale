@@ -10,11 +10,9 @@ C = CfgNode()
 # Dataset
 # -----------------------------------------------------------------------------
 C.DATASET = CfgNode()
-C.DATASET.ROOT = "examples/data"
+C.DATASET.ROOT = "./data"
 C.DATASET.NAME = "PoSE"
-C.DATASET.DD = "drug-drug.pt"
-C.DATASET.GD = "gene-drug.pt"
-C.DATASET.GG = "gene-gene.pt"
+C.DATASET.URL = "https://github.com/pykale/data/raw/main/graph_data/pose.pt"
 
 # ---------------------------------------------------------------------------- #
 # Solver
