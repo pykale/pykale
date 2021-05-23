@@ -49,6 +49,7 @@ def get_config(cfg):
             "size_type": cfg.DATASET.SIZE_TYPE,
             "weight_type": cfg.DATASET.WEIGHT_TYPE,
             "input_type": cfg.DATASET.INPUT_TYPE,
+            "class_type": cfg.DATASET.CLASS_TYPE,
         },
     }
     return config_params
@@ -71,6 +72,7 @@ def get_model(cfg, dataset, num_classes):
     data_params = config_params["data_params"]
     data_params_local = deepcopy(data_params)
     input_type = data_params_local["input_type"]
+    class_type = data_params_local["class_type"]
 
     # setup feature extractor
     if input_type == "image":
@@ -96,6 +98,8 @@ def get_model(cfg, dataset, num_classes):
             image_modality=cfg.DATASET.IMAGE_MODALITY,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
+            input_type=input_type,
+            class_type=class_type,
             **method_params,
             **train_params_local,
         )
@@ -120,6 +124,8 @@ def get_model(cfg, dataset, num_classes):
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             critic=critic_network,
+            input_type=input_type,
+            class_type=class_type,
             **method_params,
             **train_params_local,
         )
