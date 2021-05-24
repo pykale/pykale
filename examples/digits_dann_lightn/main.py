@@ -50,7 +50,7 @@ def main():
         target,
         config_weight_type=cfg.DATASET.WEIGHT_TYPE,
         config_size_type=cfg.DATASET.SIZE_TYPE,
-        val_split_ratio=0.5,
+        val_split_ratio=cfg.DATASET.VAL_SPLIT_RATIO,
     )
 
     # Repeat multiple times to get std

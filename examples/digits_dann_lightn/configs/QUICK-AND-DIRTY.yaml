@@ -3,6 +3,7 @@ DAN:
 
 DATASET:
   SOURCE: "svhn"
+  VAL_SPLIT_RATIO: 0.5
 
 SOLVER:
   MIN_EPOCHS: 0
