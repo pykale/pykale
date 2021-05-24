@@ -2,6 +2,7 @@ DAN:
   METHOD: "CDAN"
 
 DATASET:
+  NUM_REPEAT: 1
   SOURCE: "svhn"
   VAL_SPLIT_RATIO: 0.5
 
