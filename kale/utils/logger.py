@@ -1,6 +1,7 @@
 """Logging functions, based on https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/logger.py"""
 
 import datetime
+import json
 import logging
 import os
 import uuid
@@ -39,3 +40,31 @@ def construct_logger(name, save_dir):
     os.system(f"git diff HEAD > {gitdiff_patch}")
 
     return logger
+
+
+def save_result_to_json(pred_verb, pred_noun, val_id, file_name="test.json"):
+    pred_verb_cpu = pred_verb.cpu().tolist()
+    pred_noun_cpu = pred_noun.cpu().tolist()
+
+    results_dict = {}
+    for p_verb, p_noun, id in zip(pred_verb_cpu, pred_noun_cpu, val_id):
+        verb_dict = {}
+        noun_dict = {}
+        for i, prob in enumerate(p_verb):
+            verb_dict[str(i)] = prob
+        for i, prob in enumerate(p_noun):
+            noun_dict[str(i)] = prob
+        results_dict[id] = {"verb": verb_dict, "noun": noun_dict}
+
+    with open(file_name, "w") as f:
+        json.dump(
+            {
+                "results_target": results_dict,
+                "version": "0.2",
+                "challenge": "domain_adaptation",
+                "sls_pt": 0,
+                "sls_tl": 0,
+                "sls_td": 0,
+            },
+            f,
+        )

@@ -17,7 +17,7 @@ from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
 from kale.loaddata.video_access import get_image_modality
 
 
-def get_feat_extractor4video(model_name, image_modality, attention, num_classes):
+def get_feat_extractor4video(model_name, image_modality, attention, dict_num_classes):
     """
     Get the feature extractor w/o the pre-trained model and SELayers. The pre-trained models are saved in the path
     ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
@@ -28,7 +28,7 @@ def get_feat_extractor4video(model_name, image_modality, attention, num_classes)
         model_name (string): The name of the feature extractor. (Choices=["I3D", "R3D_18", "R2PLUS1D_18", "MC3_18"])
         image_modality (string): Image type. (Choices=["rgb", "flow", "joint"])
         attention (string): The attention type. (Choices=["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"])
-        num_classes (int): The class number of specific dataset. (Default: No use)
+        dict_num_classes (dict): The dictionary of class number for specific dataset.
 
     Returns:
         feature_network (dictionary): The network to extract features.
@@ -36,7 +36,9 @@ def get_feat_extractor4video(model_name, image_modality, attention, num_classes)
                             It is a convention when the input dimension and the network is fixed.
         domain_feature_dim (int): The dimension of the feature network output for DomainNet.
     """
-    rgb, flow = get_image_modality(image_modality)
+    rgb, flow, audio = get_image_modality(image_modality)
+    # only use verb class when input is image.
+    num_classes = dict_num_classes["verb"]
 
     attention_list = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"]
     model_list = ["I3D", "R3D_18", "MC3_18", "R2PLUS1D_18"]
@@ -113,7 +115,7 @@ def get_feat_extractor4video(model_name, image_modality, attention, num_classes)
             else:
                 logging.info("{} with {}.".format(model_name, attention))
                 feature_network = se_mc3(rgb=rgb, flow=flow, pretrained=True, attention=attention)
-
+    feature_network.update({"audio": None})
     return feature_network, int(class_feature_dim), int(domain_feature_dim)
 
 
@@ -124,21 +126,16 @@ class BoringNetVideo(nn.Module):
         input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
         n_channel (int, optional): the number of channel for Linear and BN layers.
         dropout_keep_prob (int, optional): the dropout probability for keeping the parameters.
-        n_class (int, optional): the number of classes. Defaults to 8.
     """
 
-    def __init__(self, input_size=512, n_channel=256, n_out=256, dropout_keep_prob=0.5, n_class=8):
+    def __init__(self, input_size=512, n_channel=256, n_out=256, dropout_keep_prob=0.5):
         super(BoringNetVideo, self).__init__()
-        self._n_classes = n_class
         # self.conv3d = nn.Conv3d(in_channels=input_size, out_channels=512, kernel_size=(1, 1, 1))
         self.fc1 = nn.Linear(input_size, n_channel)
         # self.bn1 = nn.BatchNorm1d(n_channel)
         # self.relu1 = nn.ReLU()
         # self.dp1 = nn.Dropout(dropout_keep_prob)
         # self.fc2 = nn.Linear(n_channel, n_out)
-
-    def n_classes(self):
-        return self._n_classes
 
     def forward(self, x):
         x = x.squeeze()
@@ -149,6 +146,6 @@ class BoringNetVideo(nn.Module):
 
 
 def get_feat_extractor4feature(attention, num_classes, num_out=256):
-    feature_network = BoringNetVideo(input_size=1024, n_class=num_classes, n_out=num_out)
+    feature_network = BoringNetVideo(input_size=1024, n_out=num_out)
     class_feature_dim = domain_feature_dim = num_out
-    return {"rgb": feature_network, "flow": None}, int(class_feature_dim), int(domain_feature_dim)
+    return {"rgb": feature_network, "flow": None, "audio": None}, int(class_feature_dim), int(domain_feature_dim)

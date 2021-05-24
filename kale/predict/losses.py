@@ -1,7 +1,7 @@
 """Commonly used losses, from domain adaptation package
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/losses.py
 """
-
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.autograd import grad
@@ -25,6 +25,55 @@ def cross_entropy_logits(linear_output, label, weights=None):
         losses = nn.NLLLoss(reduction="none")(class_output, label.type_as(y_hat).view(label.size(0)))
         loss = torch.sum(weights * losses) / torch.sum(weights)
     return loss, correct
+
+
+def topk_accuracy(output, label, topk=(1,)):
+    """Computes the precision@k for the specified values of k"""
+    maxk = max(topk)
+    batch_size = label.size(0)
+
+    _, y_hat = output.topk(maxk, 1, True, True)
+    y_hat = y_hat.t()
+    correct = y_hat.eq(label.view(1, -1).expand_as(y_hat))
+
+    res = []
+    for k in topk:
+        correct_k = correct[:k].view(-1).float().sum(0)
+        res.append(correct_k.mul_(100.0 / batch_size))
+    return res
+
+
+def multitask_topk_accuracy(output, label, topk=(1,)):
+    """
+    Args:
+        output: tuple(torch.FloatTensor), each tensor should be of shape
+            [batch_size, class_count], class_count can vary on a per task basis, i.e.
+            outputs[i].shape[1] can be different to outputs[j].shape[j].
+        label: tuple(torch.LongTensor), each tensor should be of shape [batch_size]
+        topk: tuple(int), compute accuracy at top-k for the values of k specified
+            in this parameter.
+    Returns:
+        tuple(float), same length at topk with the corresponding accuracy@k in.
+    """
+    max_k = int(np.max(topk))
+    task_count = len(output)
+    batch_size = label[0].size(0)
+    all_correct = torch.zeros(max_k, batch_size).type(torch.ByteTensor)
+    if torch.cuda.is_available():
+        all_correct = all_correct.cuda()
+    for output, label in zip(output, label):
+        _, max_k_idx = output.topk(max_k, dim=1, largest=True, sorted=True)
+        # Flip batch_size, class_count as .view doesn't work on non-contiguous
+        max_k_idx = max_k_idx.t()
+        correct_for_task = max_k_idx.eq(label.view(1, -1).expand_as(max_k_idx))
+        all_correct.add_(correct_for_task)
+
+    accuracies = []
+    for k in topk:
+        all_tasks_correct = torch.ge(all_correct[:k].float().sum(0), task_count)
+        accuracy_at_k = float(all_tasks_correct.float().sum(0) * 100.0 / batch_size)
+        accuracies.append(accuracy_at_k)
+    return tuple(accuracies)
 
 
 def entropy_logits(linear_output):
