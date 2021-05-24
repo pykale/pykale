@@ -35,7 +35,10 @@ class VideoRecord(object):
     @property
     def label(self):
         if ("verb_class" in self._data) and ("noun_class" in self._data):
+            # return {"verb": int(self._data.verb_class), "noun": int(self._data.noun_class)}
             return int(self._data.verb_class), int(self._data.noun_class)
+        elif ("verb_class" in self._data) and ("noun_class" not in self._data):
+            return [int(self._data.verb_class)]
         else:
             return 0, 0
 
@@ -220,7 +223,8 @@ class TSNDataSet(data.Dataset):
         else:
             process_data = process_data_verb
 
-        return process_data, record.label[0]  # TODO
+        return process_data, record.label
+        # return process_data, record.label[0]  # TODO
         # return process_data, record.label, record.segment_id
 
     def __len__(self):
