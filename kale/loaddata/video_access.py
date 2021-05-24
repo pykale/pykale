@@ -22,16 +22,33 @@ from kale.loaddata.videos_feature import TSNDataSet
 
 
 def get_image_modality(image_modality):
-    """Change image_modality (string) to rgb (bool) and flow (bool) for efficiency"""
+    """Change image_modality (string) to rgb (bool), flow (bool) and audio (bool) for efficiency"""
 
-    if image_modality == "joint":
+    if image_modality.lower() == "all":
+        rgb = flow = audio = True
+    elif image_modality.lower() == "joint":
         rgb = flow = True
-    elif image_modality == "rgb" or image_modality == "flow":
+        audio = False
+    elif image_modality.lower() in ["rgb", "flow", "audio"]:
         rgb = image_modality == "rgb"
         flow = image_modality == "flow"
+        audio = image_modality == "audio"
     else:
         raise Exception("Invalid modality option: {}".format(image_modality))
-    return rgb, flow
+    return rgb, flow, audio
+
+
+def get_class_type(class_type):
+    """Change class_type (string) to verb (bool) and noun (bool) for efficiency"""
+
+    verb = True
+    if class_type.lower() == "verb":
+        noun = False
+    elif class_type.lower() == "verb+noun":
+        noun = True
+    else:
+        raise ValueError("Invalid class type option: {}".format(class_type))
+    return verb, noun
 
 
 def get_videodata_config(cfg):
@@ -49,8 +66,7 @@ def get_videodata_config(cfg):
             "dataset_input_type": cfg.DATASET.INPUT_TYPE,
             "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
             "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT,
-            "dataset_verb_class": cfg.DATASET.VERB_CLASS,
-            "dataset_noun_class": cfg.DATASET.NOUN_CLASS,
+            "dataset_class_type": cfg.DATASET.CLASS_TYPE,
             "train_batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
         }
     }
@@ -72,22 +88,17 @@ def generate_list(data_name, data_params_local, domain):
     """
 
     if data_name == "EPIC":
-        # dataset_path = os.path.join(data_params_local["dataset_root"], data_name, "EPIC_KITCHENS_2018")
         dataset_path = Path(data_params_local["dataset_root"]).joinpath(data_name, "EPIC_KITCHENS_2018")
     elif data_name in ["ADL", "GTEA", "KITCHEN", "EPIC-100"]:
-        # dataset_path = os.path.join(data_params_local["dataset_root"], data_name)
         dataset_path = Path(data_params_local["dataset_root"]).joinpath(data_name)
     else:
         raise ValueError("Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN, EPIC-100]")
 
-    # data_path = os.path.join(dataset_path, "frames_rgb_flow")
     data_path = Path.joinpath(dataset_path, "frames_rgb_flow")
 
-    # train_listpath = os.path.join(
     train_listpath = Path.joinpath(
         dataset_path, "annotations", "labels_train_test", data_params_local["dataset_{}_trainlist".format(domain)]
     )
-    # test_listpath = os.path.join(
     test_listpath = Path.joinpath(
         dataset_path, "annotations", "labels_train_test", data_params_local["dataset_{}_testlist".format(domain)]
     )
@@ -110,13 +121,13 @@ class VideoDataset(Enum):
         Sets class_number as 8 for EPIC, 7 for ADL, 6 for both GTEA and KITCHEN.
 
         Args:
-            source: (VideoDataset): source dataset name
-            target: (VideoDataset): target dataset name
-            seed: (int): seed value set manually.
-            params: (CfgNode): hyper parameters from configure file
+            source (VideoDataset): source dataset name
+            target (VideoDataset): target dataset name
+            seed (int): seed value set manually.
+            params (CfgNode): hyper parameters from configure file
 
         Examples::
-            >>> source, target, num_classes = get_source_target(source, target, seed, params)
+            >>> source, target, dict_num_classes = get_source_target(source, target, seed, params)
         """
         config_params = get_videodata_config(params)
         data_params = config_params["data_params"]
@@ -128,11 +139,11 @@ class VideoDataset(Enum):
         image_modality = data_params_local["dataset_image_modality"]
         frames_per_segment = data_params_local["frames_per_segment"]
         input_type = data_params_local["dataset_input_type"]
-        verb_class = data_params_local["dataset_verb_class"]
-        noun_class = data_params_local["dataset_noun_class"]
+        class_type = data_params_local["dataset_class_type"]
         # train_batch_size = data_params_local["train_batch_size"]
 
-        rgb, flow = get_image_modality(image_modality)
+        rgb, flow, audio = get_image_modality(image_modality)
+        verb, noun = get_class_type(class_type)
 
         transform_names = {
             VideoDataset.EPIC: "epic",
@@ -149,9 +160,9 @@ class VideoDataset(Enum):
             VideoDataset.EPIC100: 97,
         }
 
-        # noun_class_numbers = {
-        #     VideoDataset.EPIC100: 300,
-        # }
+        noun_class_numbers = {
+            VideoDataset.EPIC100: 300,
+        }
 
         factories = {
             VideoDataset.EPIC: EPICDatasetAccess,
@@ -161,15 +172,15 @@ class VideoDataset(Enum):
             VideoDataset.EPIC100: EPIC100DatasetAccess,
         }
 
+        rgb_source = rgb_target = flow_source = flow_target = num_verb_classes = num_noun_classes = None
         # handle color/nb classes
-        if verb_class:
+        if verb:
             num_verb_classes = min(verb_class_numbers[source], verb_class_numbers[target])
-        # if noun_class:
-        #     num_noun_classes = min(noun_class_numbers[source], noun_class_numbers[target])
-        if not verb_class and not noun_class:
-            raise ValueError("Invalid class option: verb class {}, noun class {}".format(verb_class, noun_class))
+        if noun:
+            num_noun_classes = min(noun_class_numbers[source], noun_class_numbers[target])
+        if not verb and not noun:
+            raise ValueError("Invalid class option: verb class {}, noun class {}".format(verb, noun))
 
-        rgb_source, rgb_target, flow_source, flow_target = [None] * 4
         if input_type == "image":
             # handle color/nb classes
             source_tf = transform_names[source]
@@ -284,7 +295,7 @@ class VideoDataset(Enum):
         return (
             {"rgb": rgb_source, "flow": flow_source},
             {"rgb": rgb_target, "flow": flow_target},
-            num_verb_classes,
+            {"verb": num_verb_classes, "noun": num_noun_classes},
         )
 
 

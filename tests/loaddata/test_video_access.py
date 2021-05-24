@@ -47,7 +47,7 @@ def testing_cfg(download_path):
 
 @pytest.mark.parametrize("image_modality", IMAGE_MODALITY)
 def test_get_image_modality(image_modality):
-    rgb, flow = get_image_modality(image_modality)
+    rgb, flow, audio = get_image_modality(image_modality)
 
     assert isinstance(rgb, bool)
     assert isinstance(flow, bool)

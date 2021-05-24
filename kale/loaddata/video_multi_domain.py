@@ -40,7 +40,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         """
 
         self._image_modality = image_modality
-        self.rgb, self.flow = get_image_modality(self._image_modality)
+        self.rgb, self.flow, self.audio = get_image_modality(self._image_modality)
         self._seed = seed
 
         if self.rgb:
