@@ -42,29 +42,87 @@ def construct_logger(name, save_dir):
     return logger
 
 
-def save_result_to_json(pred_verb, pred_noun, val_id, file_name="test.json"):
-    pred_verb_cpu = pred_verb.cpu().tolist()
-    pred_noun_cpu = pred_noun.cpu().tolist()
+def create_multi_results_dict(pred_verb_cpu, pred_noun_cpu, pred_id, name1="verb", name2="noun"):
+    """Construct a dictionary to save multi class results (verb and noun).
 
+    Args:
+        pred_verb_cpu (list): results for verb class.
+        pred_noun_cpu (list): results for noun class.
+        pred_id (tuple): corresponding segment ids to results.
+        name1 (string): the name of the first class.
+        name2 (string): the name of the second class.
+
+    Returns:
+        results_dict (dict): the dictionary covering class names and results.
+    """
     results_dict = {}
-    for p_verb, p_noun, id in zip(pred_verb_cpu, pred_noun_cpu, val_id):
+    for p_verb, p_noun, p_id in zip(pred_verb_cpu, pred_noun_cpu, pred_id):
         verb_dict = {}
         noun_dict = {}
         for i, prob in enumerate(p_verb):
             verb_dict[str(i)] = prob
         for i, prob in enumerate(p_noun):
             noun_dict[str(i)] = prob
-        results_dict[id] = {"verb": verb_dict, "noun": noun_dict}
+        results_dict[p_id] = {name1: verb_dict, name2: noun_dict}
+    return results_dict
+
+
+def create_single_results_dict(pred_cpu, pred_id, name="verb"):
+    """Construct a dictionary to save single class results.
+
+    Args:
+        pred_cpu (list): results for the class.
+        pred_id (tuple): corresponding segment ids to results.
+        name (string): the name of the class.
+
+    Returns:
+        results_dict (dict): the dictionary covering class name and results.
+    """
+    results_dict = {}
+    for p, p_id in zip(pred_cpu, pred_id):
+        d = {}
+        for i, prob in enumerate(p):
+            d[str(i)] = prob
+        results_dict[p_id] = {name: d}
+    return results_dict
+
+
+def save_results_to_json(y_hat, y_t_hat, y_ids, y_t_ids, verb=True, noun=False, file_name="test.json"):
+    """Save the output for each class to a json file.
+
+    Args:
+        y_hat (list): results for all classes from the source data. y_hat[0] is for verb. y_hat[1] is for noun.
+        y_t_hat (list): results for all classes from the target data. y_t_hat[0] is for verb. y_t_hat[1] is for noun.
+        y_ids (tuple): corresponding segment ids to source data results. size is batch size.
+        y_t_ids (tuple): corresponding segment ids to target data results. size is batch size.
+        verb (bool): check if results covers verb class.
+        noun (bool): check if results covers noun class.
+        file_name (string): the name of the file to save.
+    """
+    if verb:
+        pred_verb_cpu = y_hat[0].cpu().tolist()
+        pred_t_verb_cpu = y_t_hat[0].cpu().tolist()
+    if noun:
+        pred_noun_cpu = y_hat[1].cpu().tolist()
+        pred_t_noun_cpu = y_t_hat[1].cpu().tolist()
+
+    if verb and noun:
+        results_dict = create_multi_results_dict(pred_verb_cpu, pred_noun_cpu, y_ids)
+        results_t_dict = create_multi_results_dict(pred_t_verb_cpu, pred_t_noun_cpu, y_t_ids)
+    elif verb and not noun:
+        results_dict = create_single_results_dict(pred_verb_cpu, y_ids)
+        results_t_dict = create_single_results_dict(pred_t_verb_cpu, y_t_ids)
 
     with open(file_name, "w") as f:
         json.dump(
             {
-                "results_target": results_dict,
+                "results_source": results_dict,
+                "results_target": results_t_dict,
                 "version": "0.2",
                 "challenge": "domain_adaptation",
-                "sls_pt": 0,
-                "sls_tl": 0,
-                "sls_td": 0,
+                "sls_pt": 2,
+                "sls_tl": 3,
+                "sls_td": 3,
             },
             f,
         )

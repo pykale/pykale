@@ -23,6 +23,7 @@ from kale.pipeline.domain_adapter import (
     set_requires_grad,
     WDGRLtrainer,
 )
+from kale.utils.logger import save_results_to_json
 
 
 def create_mmd_based_4video(
@@ -324,28 +325,43 @@ class DANNtrainer4Video(DANNtrainer):
             if self.flow:
                 if self.audio:  # For all inputs
                     (
-                        (x_s_rgb, y_s),
-                        (x_s_flow, y_s_flow),
-                        (x_s_audio, y_s_audio),
-                        (x_tu_rgb, y_tu),
-                        (x_tu_flow, y_tu_flow),
-                        (x_tu_audio, y_tu_audio),
+                        (x_s_rgb, y_s, s_id),
+                        (x_s_flow, y_s_flow, _),
+                        (x_s_audio, y_s_audio, _),
+                        (x_tu_rgb, y_tu, tu_id),
+                        (x_tu_flow, y_tu_flow, _),
+                        (x_tu_audio, y_tu_audio, _),
                     ) = batch
                 else:  # For joint(rgb+flow) input
-                    (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
+                    (
+                        (x_s_rgb, y_s, s_id),
+                        (x_s_flow, y_s_flow, _),
+                        (x_tu_rgb, y_tu, tu_id),
+                        (x_tu_flow, y_tu_flow, _),
+                    ) = batch
             else:
                 if self.audio:  # For rgb+audio input
-                    (x_s_rgb, y_s), (x_s_audio, y_s_audio), (x_tu_rgb, y_tu), (x_tu_audio, y_tu_audio) = batch
+                    (
+                        (x_s_rgb, y_s, s_id),
+                        (x_s_audio, y_s_audio, _),
+                        (x_tu_rgb, y_tu, tu_id),
+                        (x_tu_audio, y_tu_audio, _),
+                    ) = batch
                 else:  # For rgb input
-                    (x_s_rgb, y_s), (x_tu_rgb, y_tu) = batch
+                    (x_s_rgb, y_s, s_id), (x_tu_rgb, y_tu, tu_id) = batch
         else:
             if self.flow:
                 if self.audio:  # For flow+audio input
-                    (x_s_flow, y_s), (x_s_audio, y_s_audio), (x_tu_flow, y_tu), (x_tu_audio, y_tu_audio) = batch
+                    (
+                        (x_s_flow, y_s, s_id),
+                        (x_s_audio, y_s_audio, _),
+                        (x_tu_flow, y_tu, tu_id),
+                        (x_tu_audio, y_tu_audio, _),
+                    ) = batch
                 else:  # For flow input
-                    (x_s_flow, y_s), (x_tu_flow, y_tu) = batch
+                    (x_s_flow, y_s, s_id), (x_tu_flow, y_tu, tu_id) = batch
             else:  # For audio input
-                (x_s_audio, y_s), (x_tu_audio, y_tu) = batch
+                (x_s_audio, y_s, s_id), (x_tu_audio, y_tu, tu_id) = batch
 
         _, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio] = self.forward(
             {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
@@ -448,7 +464,12 @@ class DANNtrainer4Video(DANNtrainer):
                 f"{split_name}_target_domain_acc": dok_tgt,
             }
 
+        # save to json for EPIC challenge
+        if split_name == "Te":
+            save_results_to_json(y_hat, y_t_hat, s_id, tu_id, self.verb, self.noun)
+
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
+
         return task_loss, adv_loss, log_metrics
 
     def training_step(self, batch, batch_nb):
