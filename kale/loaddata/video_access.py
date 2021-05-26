@@ -13,6 +13,7 @@ from enum import Enum
 from pathlib import Path
 
 # import pandas as pd
+import pandas as pd
 import torch
 
 import kale.prepdata.video_transform as video_transform
@@ -493,16 +494,16 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
         )
         self._input_type = input_type
         self._domain = domain
-        # num_source = len(pd.read_pickle(src_tr_listpath).index)
-        # num_target = len(pd.read_pickle(tgt_tr_listpath).index)
+        self._num_dataload = len(pd.read_pickle(self._train_list).index)
+        print(self._num_dataload)
 
     def get_train(self):
         return TSNDataSet(
             data_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
             list_file=self._train_list,
             # num_dataload=num_train,
-            num_dataload=5002,
-            num_segments=1,
+            num_dataload=self._num_dataload,
+            num_segments=5,
             new_length=1,
             modality=self._image_modality.upper(),
             image_tmpl="img_{:05d}.t7"
@@ -517,8 +518,8 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             data_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
             list_file=self._test_list,
             # num_dataload=num_test,
-            num_dataload=7906,
-            num_segments=1,
+            num_dataload=self._num_dataload,
+            num_segments=5,
             new_length=1,
             modality=self._image_modality.upper(),
             image_tmpl="img_{:05d}.t7"
