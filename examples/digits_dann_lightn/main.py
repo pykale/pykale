@@ -70,7 +70,7 @@ def main():
                 progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
                 min_epochs=cfg.SOLVER.MIN_EPOCHS,
                 max_epochs=cfg.SOLVER.MAX_EPOCHS,
-                checkpoint_callback=checkpoint_callback,
+                callbacks=[checkpoint_callback],
                 logger=False,
             )
         else:
@@ -78,7 +78,7 @@ def main():
                 progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
                 min_epochs=cfg.SOLVER.MIN_EPOCHS,
                 max_epochs=cfg.SOLVER.MAX_EPOCHS,
-                checkpoint_callback=checkpoint_callback,
+                callbacks=[checkpoint_callback],
                 logger=False,
                 gpus=args.gpus,
             )

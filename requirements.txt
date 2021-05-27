@@ -1,1 +1,1 @@
-pykale[extras]
+.[extras]
