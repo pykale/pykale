@@ -62,7 +62,7 @@ class FixedSeedSamplingConfig(SamplingConfig):
             else:
                 sub_sampler = RandomSampler(dataset, generator=torch.Generator().manual_seed(self._seed))
             sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=True)
-        return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler)
+        return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler, num_workers=4, pin_memory=True)
 
 
 # TODO: deterministic shuffle?

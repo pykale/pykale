@@ -7,7 +7,7 @@
 Action video dataset loading for EPIC-Kitchen, ADL, GTEA, KITCHEN. The code is based on
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py
 """
-
+import logging
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
@@ -327,15 +327,15 @@ class VideoDatasetAccess(DatasetAccess):
     """
 
     def __init__(
-            self,
-            data_path,
-            train_list,
-            test_list,
-            image_modality,
-            frames_per_segment,
-            n_classes,
-            transform_kind=None,
-            seed=36,
+        self,
+        data_path,
+        train_list,
+        test_list,
+        image_modality,
+        frames_per_segment,
+        n_classes,
+        transform_kind=None,
+        seed=36,
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -498,7 +498,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     """EPIC-100 video feature data loader"""
 
     def __init__(
-            self, domain, data_path, train_list, test_list, image_modality, frames_per_segment, n_classes, input_type
+        self, domain, data_path, train_list, test_list, image_modality, frames_per_segment, n_classes, input_type
     ):
         super(EPIC100DatasetAccess, self).__init__(
             data_path, train_list, test_list, image_modality, frames_per_segment, n_classes
@@ -508,7 +508,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
         self._num_train_dataload = len(pd.read_pickle(self._train_list).index)
         self._num_test_dataload = len(pd.read_pickle(self._test_list).index)
         self._update_format()
-        print(self._num_train_dataload, self._num_test_dataload)
+        logging.info(self._num_train_dataload, self._num_test_dataload)
 
     def _update_format(self):
         if self._image_modality == "rgb":

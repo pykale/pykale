@@ -133,7 +133,8 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
 
     def get_domain_loaders(self, split="train", batch_size=32):
         rgb_source_ds = rgb_target_ds = flow_source_ds = flow_target_ds = audio_source_ds = audio_target_ds = None
-        rgb_source_loader = rgb_target_loader = flow_source_loader = flow_target_loader = audio_source_loader = audio_target_loader = None
+        rgb_source_loader = rgb_target_loader = flow_source_loader = flow_target_loader = None
+        audio_source_loader = audio_target_loader = None
         rgb_target_labeled_loader = flow_target_labeled_loader = audio_target_labeled_loader = None
         rgb_target_unlabeled_loader = flow_target_unlabeled_loader = audio_target_unlabeled_loader = n_dataset = None
 
@@ -170,7 +171,14 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                 )
                 audio_target_loader = self._target_sampling_config.create_loader(audio_target_ds, target_batch_size)
 
-            dataloaders = [rgb_source_loader, flow_source_loader, audio_source_loader, rgb_target_loader, flow_target_loader, audio_target_loader]
+            dataloaders = [
+                rgb_source_loader,
+                flow_source_loader,
+                audio_source_loader,
+                rgb_target_loader,
+                flow_target_loader,
+                audio_target_loader,
+            ]
             dataloaders = [x for x in dataloaders if x is not None]
 
             return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1),)

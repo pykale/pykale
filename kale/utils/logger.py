@@ -100,11 +100,15 @@ def save_results_to_json(y_hat, y_t_hat, y_ids, y_t_ids, verb=True, noun=False, 
         file_name (string): the name of the file to save.
     """
     if verb:
-        pred_verb_cpu = y_hat[0].cpu().tolist()
-        pred_t_verb_cpu = y_t_hat[0].cpu().tolist()
+        # pred_verb_cpu = y_hat[0].cpu().tolist()
+        # pred_t_verb_cpu = y_t_hat[0].cpu().tolist()
+        pred_verb_cpu = y_hat[0].detach().tolist()
+        pred_t_verb_cpu = y_t_hat[0].detach().tolist()
     if noun:
-        pred_noun_cpu = y_hat[1].cpu().tolist()
-        pred_t_noun_cpu = y_t_hat[1].cpu().tolist()
+        pred_noun_cpu = y_hat[1].detach().tolist()
+        pred_t_noun_cpu = y_t_hat[1].detach().tolist()
+        # pred_noun_cpu = y_hat[1].cpu().tolist()
+        # pred_t_noun_cpu = y_t_hat[1].cpu().tolist()
 
     if verb and noun:
         results_dict = create_multi_results_dict(pred_verb_cpu, pred_noun_cpu, y_ids)

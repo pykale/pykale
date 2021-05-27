@@ -175,4 +175,8 @@ def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=2
         else:  # For audio input
             class_feature_dim = domain_feature_dim
 
-    return {"rgb": feature_network_rgb, "flow": feature_network_flow, "audio": feature_network_audio}, int(class_feature_dim), int(domain_feature_dim)
+    return (
+        {"rgb": feature_network_rgb, "flow": feature_network_flow, "audio": feature_network_audio},
+        int(class_feature_dim),
+        int(domain_feature_dim),
+    )
