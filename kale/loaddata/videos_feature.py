@@ -61,28 +61,28 @@ class TSNDataSet(data.Dataset):
         noun_data_path=None,
     ):
         self.modality = modality
-        try:
-            with open(data_path, "rb") as f:
+        # try:
+        with open(data_path, "rb") as f:
+            data = pickle.load(f)
+            if modality == "ALL":
+                self.data = np.concatenate(list(data["features"].values()), -1)
+            else:
+                self.data = data["features"][modality]
+            data_narrations = data["narration_ids"]
+            self.data = dict(zip(data_narrations, self.data))
+        if noun_data_path is not None:
+            with open(noun_data_path, "rb") as f:
                 data = pickle.load(f)
                 if modality == "ALL":
-                    self.data = np.concatenate(list(data["features"].values()), -1)
+                    self.noun_data = np.concatenate(list(data["features"].values()), -1)
                 else:
-                    self.data = data["features"][modality]
+                    self.noun_data = data["features"][modality]
                 data_narrations = data["narration_ids"]
-                self.data = dict(zip(data_narrations, self.data))
-            if noun_data_path is not None:
-                with open(noun_data_path, "rb") as f:
-                    data = pickle.load(f)
-                    if modality == "ALL":
-                        self.noun_data = np.concatenate(list(data["features"].values()), -1)
-                    else:
-                        self.noun_data = data["features"][modality]
-                    data_narrations = data["narration_ids"]
-                    self.noun_data = dict(zip(data_narrations, self.noun_data))
-            else:
-                self.noun_data = None
-        except Exception:
-            raise Exception("Cannot read the data in the given pickle file {}".format(data_path))
+                self.noun_data = dict(zip(data_narrations, self.noun_data))
+        else:
+            self.noun_data = None
+        # except Exception:
+        #     raise Exception("Cannot read the data in the given pickle file {}".format(data_path))
 
         self.list_file = list_file
         self.num_segments = num_segments

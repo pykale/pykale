@@ -81,7 +81,7 @@ def get_model(cfg, dataset, dict_num_classes):
         )
     else:
         feature_network, class_feature_dim, domain_feature_dim = get_feat_extractor4feature(
-            cfg.MODEL.ATTENTION, dict_num_classes
+            cfg.MODEL.ATTENTION, cfg.DATASET.IMAGE_MODALITY, dict_num_classes
         )
 
     # setup classifier

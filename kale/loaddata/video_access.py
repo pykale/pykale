@@ -173,7 +173,8 @@ class VideoDataset(Enum):
             VideoDataset.EPIC100: EPIC100DatasetAccess,
         }
 
-        rgb_source = rgb_target = flow_source = flow_target = num_verb_classes = num_noun_classes = None
+        rgb_source = rgb_target = flow_source = flow_target = audio_source = audio_target = None
+        num_verb_classes = num_noun_classes = None
         # handle color/nb classes
         if verb:
             num_verb_classes = min(verb_class_numbers[source], verb_class_numbers[target])
@@ -230,72 +231,82 @@ class VideoDataset(Enum):
                     target_tf,
                     seed,
                 )
+            if audio:
+                raise ValueError("Not support {} for {} input_type".format(image_modality, input_type))
 
         elif input_type == "feature":
-            # num_source = len(pd.read_pickle(src_tr_listpath).index)
-            # num_target = len(pd.read_pickle(tgt_tr_listpath).index)
+            if rgb:
+                rgb_source = factories[source](
+                    domain="source",
+                    data_path=src_data_path,
+                    train_list=src_tr_listpath,
+                    test_list=src_te_listpath,
+                    image_modality="rgb",
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    input_type=input_type,
+                )
 
-            # num_iter_source = num_source / train_batch_size
-            # num_iter_target = num_target / (train_batch_size * num_source / num_target)
-            # num_max_iter = max(num_iter_source, num_iter_target)
-            # num_source_train = round(num_max_iter * train_batch_size) if args.copy_list[0] == 'Y' else num_source
-            # num_target_train = round(num_max_iter * train_batch_size) if args.copy_list[1] == 'Y' else num_target
-            # num_source_train = num_source
-            # num_target_train = num_target
+                rgb_target = factories[source](
+                    domain="target",
+                    data_path=tgt_data_path,
+                    train_list=tgt_tr_listpath,
+                    test_list=tgt_te_listpath,
+                    image_modality="rgb",
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    input_type=input_type,
+                )
+            if flow:
+                flow_source = factories[source](
+                    domain="source",
+                    data_path=src_data_path,
+                    train_list=src_tr_listpath,
+                    test_list=src_te_listpath,
+                    image_modality="flow",
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    input_type=input_type,
+                )
 
-            rgb_source = factories[source](
-                domain="source",
-                data_path=src_data_path,
-                train_list=src_tr_listpath,
-                test_list=src_te_listpath,
-                image_modality=image_modality,
-                frames_per_segment=frames_per_segment,
-                n_classes=num_verb_classes,
-                input_type=input_type,
-            )
+                flow_target = factories[source](
+                    domain="target",
+                    data_path=tgt_data_path,
+                    train_list=tgt_tr_listpath,
+                    test_list=tgt_te_listpath,
+                    image_modality="flow",
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    input_type=input_type,
+                )
+            if audio:
+                audio_source = factories[source](
+                    domain="source",
+                    data_path=src_data_path,
+                    train_list=src_tr_listpath,
+                    test_list=src_te_listpath,
+                    image_modality="audio",
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    input_type=input_type,
+                )
 
-            rgb_target = factories[source](
-                domain="target",
-                data_path=tgt_data_path,
-                train_list=tgt_tr_listpath,
-                test_list=tgt_te_listpath,
-                image_modality=image_modality,
-                frames_per_segment=frames_per_segment,
-                n_classes=num_verb_classes,
-                input_type=input_type,
-            )
-            # rgb_source = TSNDataSet(
-            #     Path.joinpath(src_data_path, "feature", "source_train.pkl"),
-            #     src_tr_listpath,
-            #     num_dataload=num_source_train,
-            #     num_segments=5,
-            #     new_length=1,
-            #     modality=image_modality.upper(),
-            #     image_tmpl="img_{:05d}.t7"
-            #     if image_modality.upper() in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
-            #     else input_type + "{}_{:05d}.t7",
-            #     random_shift=False,
-            #     test_mode=True,
-            # )
-            # rgb_target = TSNDataSet(
-            #     Path.joinpath(tgt_data_path, "feature", "target_train.pkl"),
-            #     tgt_tr_listpath,
-            #     num_dataload=num_target_train,
-            #     num_segments=5,
-            #     new_length=1,
-            #     modality=image_modality.upper(),
-            #     image_tmpl="img_{:05d}.t7"
-            #     if image_modality.upper() in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
-            #     else input_type + "{}_{:05d}.t7",
-            #     random_shift=False,
-            #     test_mode=True,
-            # )
+                audio_target = factories[source](
+                    domain="target",
+                    data_path=tgt_data_path,
+                    train_list=tgt_tr_listpath,
+                    test_list=tgt_te_listpath,
+                    image_modality="audio",
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    input_type=input_type,
+                )
         else:
             raise Exception("Invalid input type option: {}".format(input_type))
 
         return (
-            {"rgb": rgb_source, "flow": flow_source},
-            {"rgb": rgb_target, "flow": flow_target},
+            {"rgb": rgb_source, "flow": flow_source, "audio": audio_source},
+            {"rgb": rgb_target, "flow": flow_target, "audio": audio_target},
             {"verb": num_verb_classes, "noun": num_noun_classes},
         )
 
@@ -316,15 +327,15 @@ class VideoDatasetAccess(DatasetAccess):
     """
 
     def __init__(
-        self,
-        data_path,
-        train_list,
-        test_list,
-        image_modality,
-        frames_per_segment,
-        n_classes,
-        transform_kind=None,
-        seed=36,
+            self,
+            data_path,
+            train_list,
+            test_list,
+            image_modality,
+            frames_per_segment,
+            n_classes,
+            transform_kind=None,
+            seed=36,
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -487,27 +498,37 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     """EPIC-100 video feature data loader"""
 
     def __init__(
-        self, domain, data_path, train_list, test_list, image_modality, frames_per_segment, n_classes, input_type
+            self, domain, data_path, train_list, test_list, image_modality, frames_per_segment, n_classes, input_type
     ):
         super(EPIC100DatasetAccess, self).__init__(
             data_path, train_list, test_list, image_modality, frames_per_segment, n_classes
         )
         self._input_type = input_type
         self._domain = domain
-        self._num_dataload = len(pd.read_pickle(self._train_list).index)
-        print(self._num_dataload)
+        self._num_train_dataload = len(pd.read_pickle(self._train_list).index)
+        self._num_test_dataload = len(pd.read_pickle(self._test_list).index)
+        self._update_format()
+        print(self._num_train_dataload, self._num_test_dataload)
+
+    def _update_format(self):
+        if self._image_modality == "rgb":
+            self._image_modality = "RGB"
+        elif self._image_modality == "flow":
+            self._image_modality = "Flow"
+        else:
+            self._image_modality = "Audio"
 
     def get_train(self):
         return TSNDataSet(
             data_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
+            # data_path=Path.joinpath(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
             list_file=self._train_list,
-            # num_dataload=num_train,
-            num_dataload=self._num_dataload,
+            num_dataload=self._num_train_dataload,
             num_segments=5,
             new_length=1,
-            modality=self._image_modality.upper(),
+            modality=self._image_modality,
             image_tmpl="img_{:05d}.t7"
-            if self._image_modality.upper() in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
+            if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
             random_shift=False,
             test_mode=True,
@@ -516,14 +537,14 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     def get_test(self):
         return TSNDataSet(
             data_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
+            # data_path=Path.joinpath(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
             list_file=self._test_list,
-            # num_dataload=num_test,
-            num_dataload=self._num_dataload,
+            num_dataload=self._num_test_dataload,
             num_segments=5,
             new_length=1,
-            modality=self._image_modality.upper(),
+            modality=self._image_modality,
             image_tmpl="img_{:05d}.t7"
-            if self._image_modality.upper() in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
+            if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
             random_shift=False,
             test_mode=True,

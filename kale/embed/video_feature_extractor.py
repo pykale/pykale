@@ -145,7 +145,34 @@ class BoringNetVideo(nn.Module):
         return x
 
 
-def get_feat_extractor4feature(attention, num_classes, num_out=256):
-    feature_network = BoringNetVideo(input_size=1024, n_out=num_out)
-    class_feature_dim = domain_feature_dim = num_out
-    return {"rgb": feature_network, "flow": None, "audio": None}, int(class_feature_dim), int(domain_feature_dim)
+def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=256):
+    rgb, flow, audio = get_image_modality(image_modality)
+    if rgb:
+        feature_network_rgb = BoringNetVideo(input_size=1024, n_out=num_out)
+    if flow:
+        feature_network_flow = BoringNetVideo(input_size=1024, n_out=num_out)
+    if audio:
+        feature_network_audio = BoringNetVideo(input_size=1024, n_out=num_out)
+
+    domain_feature_dim = int(num_out * 5)
+    if rgb:
+        if flow:
+            if audio:  # For all inputs
+                class_feature_dim = int(domain_feature_dim * 3)
+            else:  # For joint(rgb+flow) input
+                class_feature_dim = int(domain_feature_dim * 2)
+        else:
+            if audio:  # For rgb+audio input
+                class_feature_dim = int(domain_feature_dim * 2)
+            else:  # For rgb input
+                class_feature_dim = domain_feature_dim
+    else:
+        if flow:
+            if audio:  # For flow+audio input
+                class_feature_dim = int(domain_feature_dim * 2)
+            else:  # For flow input
+                class_feature_dim = domain_feature_dim
+        else:  # For audio input
+            class_feature_dim = domain_feature_dim
+
+    return {"rgb": feature_network_rgb, "flow": feature_network_flow, "audio": feature_network_audio}, int(class_feature_dim), int(domain_feature_dim)

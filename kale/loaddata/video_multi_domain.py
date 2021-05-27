@@ -49,6 +49,9 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         if self.flow:
             source_access = source_access_dict["flow"]
             target_access = target_access_dict["flow"]
+        if self.audio:
+            source_access = source_access_dict["audio"]
+            target_access = target_access_dict["audio"]
 
         weight_type = WeightingType(config_weight_type)
         size_type = DatasetSizeType(config_size_type)
@@ -74,8 +77,10 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         self._val_split_ratio = val_split_ratio
         self._rgb_source_by_split = {}
         self._flow_source_by_split = {}
+        self._audio_source_by_split = {}
         self._rgb_target_by_split = {}
         self._flow_target_by_split = {}
+        self._audio_target_by_split = {}
         self._size_type = size_type
         self._n_fewshot = n_fewshot
         self._random_state = check_random_state(random_state)
@@ -112,11 +117,25 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             self._flow_source_by_split["test"] = self._source_access_dict["flow"].get_test()
             self._flow_target_by_split["test"] = self._target_access_dict["flow"].get_test()
 
+        if self.audio:
+            logging.debug("Load audio train and val")
+            (self._audio_source_by_split["train"], self._audio_source_by_split["valid"]) = self._source_access_dict[
+                "audio"
+            ].get_train_val(self._val_split_ratio)
+
+            (self._audio_target_by_split["train"], self._audio_target_by_split["valid"]) = self._target_access_dict[
+                "audio"
+            ].get_train_val(self._val_split_ratio)
+
+            logging.debug("Load RGB Test")
+            self._audio_source_by_split["test"] = self._source_access_dict["audio"].get_test()
+            self._audio_target_by_split["test"] = self._target_access_dict["audio"].get_test()
+
     def get_domain_loaders(self, split="train", batch_size=32):
-        rgb_source_ds = rgb_target_ds = flow_source_ds = flow_target_ds = None
-        rgb_source_loader = rgb_target_loader = flow_source_loader = flow_target_loader = None
-        rgb_target_labeled_loader = flow_target_labeled_loader = None
-        rgb_target_unlabeled_loader = flow_target_unlabeled_loader = n_dataset = None
+        rgb_source_ds = rgb_target_ds = flow_source_ds = flow_target_ds = audio_source_ds = audio_target_ds = None
+        rgb_source_loader = rgb_target_loader = flow_source_loader = flow_target_loader = audio_source_loader = audio_target_loader = None
+        rgb_target_labeled_loader = flow_target_labeled_loader = audio_target_labeled_loader = None
+        rgb_target_unlabeled_loader = flow_target_unlabeled_loader = audio_target_unlabeled_loader = n_dataset = None
 
         if self.rgb:
             rgb_source_ds = self._rgb_source_by_split[split]
@@ -127,6 +146,11 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             flow_source_ds = self._flow_source_by_split[split]
             flow_source_loader = self._source_sampling_config.create_loader(flow_source_ds, batch_size)
             flow_target_ds = self._flow_target_by_split[split]
+
+        if self.audio:
+            audio_source_ds = self._audio_source_by_split[split]
+            audio_source_loader = self._source_sampling_config.create_loader(audio_source_ds, batch_size)
+            audio_target_ds = self._audio_target_by_split[split]
 
         if self._labeled_target_by_split is None:
             # unsupervised target domain
@@ -140,8 +164,13 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                     self._size_type, batch_size, flow_source_ds, flow_target_ds
                 )
                 flow_target_loader = self._target_sampling_config.create_loader(flow_target_ds, target_batch_size)
+            if self.audio:
+                n_dataset, target_batch_size = DatasetSizeType.get_size(
+                    self._size_type, batch_size, audio_source_ds, audio_target_ds
+                )
+                audio_target_loader = self._target_sampling_config.create_loader(audio_target_ds, target_batch_size)
 
-            dataloaders = [rgb_source_loader, flow_source_loader, rgb_target_loader, flow_target_loader]
+            dataloaders = [rgb_source_loader, flow_source_loader, audio_source_loader, rgb_target_loader, flow_target_loader, audio_target_loader]
             dataloaders = [x for x in dataloaders if x is not None]
 
             return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1),)
@@ -166,7 +195,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                 flow_target_labeled_ds = self._labeled_target_by_split[split]
                 flow_target_unlabeled_ds = flow_target_ds
                 n_dataset, _ = DatasetSizeType.get_size(
-                    self._size_type, batch_size, rgb_source_ds, flow_target_labeled_ds, flow_target_unlabeled_ds
+                    self._size_type, batch_size, flow_source_ds, flow_target_labeled_ds, flow_target_unlabeled_ds
                 )
                 flow_target_labeled_loader = FixedSeedSamplingConfig(balance=True, class_weights=None).create_loader(
                     flow_target_labeled_ds, batch_size=min(len(flow_target_labeled_ds), batch_size)
@@ -175,14 +204,32 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                     flow_target_unlabeled_ds, batch_size
                 )
 
+            if self.audio:
+                audio_target_labeled_ds = self._labeled_target_by_split[split]
+                audio_target_unlabeled_ds = audio_target_ds
+                # label domain: always balanced
+                n_dataset, target_batch_size = DatasetSizeType.get_size(
+                    self._size_type, batch_size, audio_source_ds, audio_target_labeled_ds, audio_target_unlabeled_ds
+                )
+                audio_target_labeled_loader = FixedSeedSamplingConfig(balance=True, class_weights=None).create_loader(
+                    audio_target_labeled_ds, batch_size=min(len(audio_target_labeled_ds), batch_size)
+                )
+
+                audio_target_unlabeled_loader = self._target_sampling_config.create_loader(
+                    audio_target_unlabeled_ds, batch_size
+                )
+
             # combine loaders into a list and remove the loader which is NONE.
             dataloaders = [
                 rgb_source_loader,
                 flow_source_loader,
+                audio_source_loader,
                 rgb_target_labeled_loader,
                 flow_target_labeled_loader,
+                audio_target_labeled_loader,
                 rgb_target_unlabeled_loader,
                 flow_target_unlabeled_loader,
+                audio_target_unlabeled_loader,
             ]
             dataloaders = [x for x in dataloaders if x is not None]
 
@@ -195,6 +242,9 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         if self.flow:
             source_ds = self._flow_source_by_split["train"]
             target_ds = self._flow_target_by_split["train"]
+        if self.audio:
+            source_ds = self._audio_source_by_split["train"]
+            target_ds = self._audio_target_by_split["train"]
 
         if self._labeled_target_by_split is None:
             return DatasetSizeType.get_size(self._size_type, source_ds, target_ds)
