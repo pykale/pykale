@@ -34,8 +34,8 @@ class DatasetSizeType(Enum):
         elif size_type is DatasetSizeType.Adaptive:
             if len(other_datasets) > 1:
                 raise ValueError("Invalid SIZE_TYPE. Not support {} for semi-supervised".format(size_type))
-            test_batch_size = int(batch_size * len(source_dataset) / len(other_datasets[0]))
-            return len(source_dataset), test_batch_size
+            target_batch_size = int(batch_size * len(other_datasets[0]) / len(source_dataset))
+            return len(source_dataset), target_batch_size
         else:
             raise ValueError(f"Size type size must be 'max' or 'source', had '{size_type}'")
 
