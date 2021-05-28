@@ -5,6 +5,7 @@
 
 """Construct a dataset for videos with (multiple) source and target domains"""
 
+import math
 import logging
 
 import numpy as np
@@ -181,7 +182,8 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             ]
             dataloaders = [x for x in dataloaders if x is not None]
 
-            return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1),)
+            # return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1),)
+            return MultiDataLoader(dataloaders=dataloaders, n_batches=max(int(math.ceil(n_dataset / batch_size)), 1))
         else:
             # semi-supervised target domain
             if self.rgb:
@@ -242,6 +244,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             dataloaders = [x for x in dataloaders if x is not None]
 
             return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1))
+            # return MultiDataLoader(dataloaders=dataloaders, n_batches=max(int(math.ceil(n_dataset / batch_size)), 1))
 
     def __len__(self):
         if self.rgb:
