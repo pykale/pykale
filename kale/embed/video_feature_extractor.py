@@ -128,20 +128,25 @@ class BoringNetVideo(nn.Module):
         dropout_keep_prob (int, optional): the dropout probability for keeping the parameters.
     """
 
-    def __init__(self, input_size=512, n_channel=256, n_out=256, dropout_keep_prob=0.5):
+    def __init__(self, input_size=512, n_channel=512, n_out=256, dropout_keep_prob=0.5):
         super(BoringNetVideo, self).__init__()
         # self.conv3d = nn.Conv3d(in_channels=input_size, out_channels=512, kernel_size=(1, 1, 1))
         self.fc1 = nn.Linear(input_size, n_channel)
         # self.bn1 = nn.BatchNorm1d(n_channel)
-        # self.relu1 = nn.ReLU()
-        # self.dp1 = nn.Dropout(dropout_keep_prob)
-        # self.fc2 = nn.Linear(n_channel, n_out)
+        self.relu1 = nn.ReLU()
+        self.dp1 = nn.Dropout(dropout_keep_prob)
+        self.fc2 = nn.Linear(n_channel, n_channel)
+        self.relu2 = nn.ReLU()
+        self.dp2 = nn.Dropout(dropout_keep_prob)
+        self.fc3 = nn.Linear(n_channel, n_out)
 
     def forward(self, x):
-        x = x.squeeze()
-        x = self.fc1(x)
+        # x = x.squeeze()
+        # x = self.fc1(x)
         # x = self.dp1(self.relu1(self.bn1(self.fc1(x))))
-        # x = self.fc2(x)
+        x = self.dp1(self.relu1(self.fc1(x)))
+        x = self.dp2(self.relu2(self.fc2(x)))
+        x = self.fc3(x)
         return x
 
 
