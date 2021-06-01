@@ -141,13 +141,40 @@ class BoringNetVideo(nn.Module):
         # self.relu2 = nn.ReLU()
         # self.dp2 = nn.Dropout(dropout_keep_prob)
         # self.fc3 = nn.Linear(n_channel, n_out)
-        self.transformer = TransformerBlock(
+        self.transformer1 = TransformerBlock(
             emb_dim=input_size,
             num_heads=8,
             att_dropout=0.1,
             att_resid_dropout=0.1,
             final_dropout=0.1,
-            max_seq_len=17,
+            max_seq_len=9,
+            ff_dim=input_size,
+        )
+        self.transformer2 = TransformerBlock(
+            emb_dim=input_size,
+            num_heads=8,
+            att_dropout=0.1,
+            att_resid_dropout=0.1,
+            final_dropout=0.1,
+            max_seq_len=9,
+            ff_dim=input_size,
+        )
+        self.transformer3 = TransformerBlock(
+            emb_dim=input_size,
+            num_heads=8,
+            att_dropout=0.1,
+            att_resid_dropout=0.1,
+            final_dropout=0.1,
+            max_seq_len=9,
+            ff_dim=input_size,
+        )
+        self.transformer4 = TransformerBlock(
+            emb_dim=input_size,
+            num_heads=8,
+            att_dropout=0.1,
+            att_resid_dropout=0.1,
+            final_dropout=0.1,
+            max_seq_len=9,
             ff_dim=input_size,
         )
         self.fc1 = nn.Linear(input_size, n_channel)
@@ -163,7 +190,10 @@ class BoringNetVideo(nn.Module):
         # x = self.dp1(self.relu1(self.fc1(x)))
         # x = self.dp2(self.relu2(self.fc2(x)))
         # x = self.fc3(x)
-        x = self.transformer(x)
+        x = self.transformer1(x)
+        x = self.transformer2(x)
+        x = self.transformer3(x)
+        x = self.transformer4(x)
         x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
         x = self.selayer1(x)
         return x
