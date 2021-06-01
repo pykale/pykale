@@ -16,6 +16,7 @@ from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
 from kale.loaddata.video_access import get_image_modality
 from kale.embed.video_selayer import SELayer4feat
+from kale.embed.video_transformer import TransformerBlock
 
 
 def get_feat_extractor4video(model_name, image_modality, attention, dict_num_classes):
@@ -132,23 +133,38 @@ class BoringNetVideo(nn.Module):
     def __init__(self, input_size=512, n_channel=512, n_out=256, dropout_keep_prob=0.5):
         super(BoringNetVideo, self).__init__()
         # self.conv3d = nn.Conv3d(in_channels=input_size, out_channels=512, kernel_size=(1, 1, 1))
-        self.fc1 = nn.Linear(input_size, n_channel)
+        # self.fc1 = nn.Linear(input_size, n_channel)
         # self.bn1 = nn.BatchNorm1d(n_channel)
+        # self.relu1 = nn.ReLU()
+        # self.dp1 = nn.Dropout(dropout_keep_prob)
+        # self.fc2 = nn.Linear(n_channel, n_channel)
+        # self.relu2 = nn.ReLU()
+        # self.dp2 = nn.Dropout(dropout_keep_prob)
+        # self.fc3 = nn.Linear(n_channel, n_out)
+        self.transformer = TransformerBlock(
+            emb_dim=input_size,
+            num_heads=8,
+            att_dropout=0.1,
+            att_resid_dropout=0.1,
+            final_dropout=0.1,
+            max_seq_len=17,
+            ff_dim=input_size,
+        )
+        self.fc1 = nn.Linear(input_size, n_channel)
         self.relu1 = nn.ReLU()
         self.dp1 = nn.Dropout(dropout_keep_prob)
-        self.fc2 = nn.Linear(n_channel, n_channel)
-        self.relu2 = nn.ReLU()
-        self.dp2 = nn.Dropout(dropout_keep_prob)
-        self.fc3 = nn.Linear(n_channel, n_out)
+        self.fc2 = nn.Linear(n_channel, n_out)
         self.selayer1 = SELayer4feat(channel=8, reduction=2)
 
     def forward(self, x):
         # x = x.squeeze()
         # x = self.fc1(x)
         # x = self.dp1(self.relu1(self.bn1(self.fc1(x))))
-        x = self.dp1(self.relu1(self.fc1(x)))
-        x = self.dp2(self.relu2(self.fc2(x)))
-        x = self.fc3(x)
+        # x = self.dp1(self.relu1(self.fc1(x)))
+        # x = self.dp2(self.relu2(self.fc2(x)))
+        # x = self.fc3(x)
+        x = self.transformer(x)
+        x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
         x = self.selayer1(x)
         return x
 
