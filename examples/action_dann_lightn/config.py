@@ -41,7 +41,7 @@ _C.SOLVER.MOMENTUM = 0.9
 _C.SOLVER.WEIGHT_DECAY = 0.0005  # 1e-4
 _C.SOLVER.NESTEROV = True
 
-_C.SOLVER.TYPE = "Adam"  # "SGD"
+_C.SOLVER.TYPE = "SGD"
 _C.SOLVER.MAX_EPOCHS = 30  # "nb_adapt_epochs": 100,
 # _C.SOLVER.WARMUP = True
 _C.SOLVER.MIN_EPOCHS = 5  # "nb_init_epochs": 20,
