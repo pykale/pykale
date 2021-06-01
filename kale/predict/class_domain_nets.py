@@ -135,23 +135,23 @@ class ClassNetVideo(nn.Module):
         dict_n_class (dict, optional): the dictionary of class number for specific dataset.
     """
 
-    def __init__(self, input_size=512, n_channel=100, dropout_keep_prob=0.5, dict_n_class=8, class_type="verb"):
+    def __init__(self, input_size=512, n_verb_channel=256, n_noun_channel=512, dropout_keep_prob=0.5, dict_n_class=8, class_type="verb"):
         super(ClassNetVideo, self).__init__()
         self.verb, self.noun = get_class_type(class_type)
         if self.verb:
             self.n_verb_class = dict_n_class["verb"]
-            self.fc1 = nn.Linear(input_size, n_channel)
-            self.bn1 = nn.BatchNorm1d(n_channel)
+            self.fc1 = nn.Linear(input_size, n_verb_channel)
+            self.bn1 = nn.BatchNorm1d(n_verb_channel)
             self.relu1 = nn.ReLU()
             self.dp1 = nn.Dropout(dropout_keep_prob)
-            self.fc11 = nn.Linear(n_channel, self.n_verb_class)
+            self.fc11 = nn.Linear(n_verb_channel, self.n_verb_class)
         if self.noun:
             self.n_noun_class = dict_n_class["noun"]
-            self.fc2 = nn.Linear(input_size, n_channel)
-            self.bn2 = nn.BatchNorm1d(n_channel)
+            self.fc2 = nn.Linear(input_size, n_noun_channel)
+            self.bn2 = nn.BatchNorm1d(n_noun_channel)
             self.relu2 = nn.ReLU()
             self.dp2 = nn.Dropout(dropout_keep_prob)
-            self.fc21 = nn.Linear(n_channel, self.n_noun_class)
+            self.fc21 = nn.Linear(n_noun_channel, self.n_noun_class)
 
     def forward(self, input):
         x_verb = self.fc11(self.dp1(self.relu1(self.bn1(self.fc1(input)))))
