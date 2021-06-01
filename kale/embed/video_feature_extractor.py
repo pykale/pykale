@@ -201,7 +201,7 @@ class BoringNetVideo(nn.Module):
         self.relu1 = nn.ReLU()
         self.dp1 = nn.Dropout(dropout_keep_prob)
         self.fc2 = nn.Linear(n_channel, n_out)
-        self.selayer1 = SELayer4feat(channel=9, reduction=3)
+        self.selayer1 = SELayer4feat(channel=8, reduction=2)
 
         # self.dim_reduction_layer = torch.nn.Identity()
         #
