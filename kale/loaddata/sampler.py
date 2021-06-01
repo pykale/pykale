@@ -61,7 +61,8 @@ class FixedSeedSamplingConfig(SamplingConfig):
                 )
             else:
                 sub_sampler = RandomSampler(dataset, generator=torch.Generator().manual_seed(self._seed))
-            sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=True)
+            # sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=True)
+            sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=False)
         return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler)
 
 
