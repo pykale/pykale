@@ -15,6 +15,7 @@ from kale.embed.video_res3d import mc3, r2plus1d, r3d
 from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
 from kale.loaddata.video_access import get_image_modality
+from kale.embed.video_selayer import SELayer4feat
 
 
 def get_feat_extractor4video(model_name, image_modality, attention, dict_num_classes):
@@ -139,6 +140,7 @@ class BoringNetVideo(nn.Module):
         self.relu2 = nn.ReLU()
         self.dp2 = nn.Dropout(dropout_keep_prob)
         self.fc3 = nn.Linear(n_channel, n_out)
+        self.selayer1 = SELayer4feat(channel=8, reduction=2)
 
     def forward(self, x):
         # x = x.squeeze()
@@ -147,6 +149,7 @@ class BoringNetVideo(nn.Module):
         x = self.dp1(self.relu1(self.fc1(x)))
         x = self.dp2(self.relu2(self.fc2(x)))
         x = self.fc3(x)
+        x = self.selayer1(x)
         return x
 
 
@@ -160,7 +163,7 @@ def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=2
     if audio:
         feature_network_audio = BoringNetVideo(input_size=1024, n_out=num_out)
 
-    domain_feature_dim = int(num_out * 5)
+    domain_feature_dim = int(num_out * 8)
     if rgb:
         if flow:
             if audio:  # For all inputs

@@ -522,7 +522,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
             list_file=self._train_list,
             num_dataload=self._num_train_dataload,
-            num_segments=5,
+            num_segments=8,
             new_length=1,
             modality=self._image_modality,
             image_tmpl="img_{:05d}.t7"
@@ -538,7 +538,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
             list_file=self._test_list,
             num_dataload=self._num_test_dataload,
-            num_segments=5,
+            num_segments=8,
             new_length=1,
             modality=self._image_modality,
             image_tmpl="img_{:05d}.t7"
