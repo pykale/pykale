@@ -133,8 +133,8 @@ class BoringNetVideo(nn.Module):
 
     def __init__(self, input_size=512, n_channel=512, n_out=256, dropout_keep_prob=0.5):
         super(BoringNetVideo, self).__init__()
-        self.hidden_sizes = 768
-        self.num_layers = 12
+        self.hidden_sizes = 512
+        self.num_layers = 4
 
         # self.conv3d = nn.Conv3d(in_channels=input_size, out_channels=512, kernel_size=(1, 1, 1))
         # self.fc1 = nn.Linear(input_size, n_channel)
@@ -201,13 +201,13 @@ class BoringNetVideo(nn.Module):
         self.relu1 = nn.ReLU()
         self.dp1 = nn.Dropout(dropout_keep_prob)
         self.fc2 = nn.Linear(n_channel, n_out)
-        self.selayer1 = SELayer4feat(channel=8, reduction=2)
+        self.selayer1 = SELayer4feat(channel=9, reduction=3)
 
         self.dim_reduction_layer = torch.nn.Identity()
 
         self.classification_vector = nn.Parameter(torch.randn(1, 1, input_size))
         self.pos_encoding = nn.Parameter(
-            torch.randn(1, 8, input_size)
+            torch.randn(1, 9, input_size)
         )
 
     def forward(self, x):
@@ -224,15 +224,15 @@ class BoringNetVideo(nn.Module):
 
         # (B, F, INPUT_DIM) -> (B, F, D)
 
-        # x = self.dim_reduction_layer(x)
-        # B, F, D = x.size()
+        x = self.dim_reduction_layer(x)
+        B, F, D = x.size()
 
-        # classification_vector = self.classification_vector.repeat((B, 1, 1))
+        classification_vector = self.classification_vector.repeat((B, 1, 1))
         # (B, F, D) -> (B, 1+F, D)
-        # x = torch.cat([classification_vector, x], dim=1)
-        # seq_len = x.size(1)
+        x = torch.cat([classification_vector, x], dim=1)
+        seq_len = x.size(1)
         for layer in self.transformer:
-            # x = x + self.pos_encoding[:, :seq_len, :]
+            x = x + self.pos_encoding[:, :seq_len, :]
             x = layer(x)
         x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
         x = self.selayer1(x)
