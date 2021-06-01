@@ -8,6 +8,7 @@ Define the feature extractor for video including I3D, R3D_18, MC3_18 and R2PLUS1
 
 import logging
 
+import torch
 from torch import nn
 
 from kale.embed.video_i3d import i3d_joint
@@ -134,6 +135,7 @@ class BoringNetVideo(nn.Module):
         super(BoringNetVideo, self).__init__()
         self.hidden_sizes = 512
         self.num_layers = 4
+
         # self.conv3d = nn.Conv3d(in_channels=input_size, out_channels=512, kernel_size=(1, 1, 1))
         # self.fc1 = nn.Linear(input_size, n_channel)
         # self.bn1 = nn.BatchNorm1d(n_channel)
@@ -151,7 +153,7 @@ class BoringNetVideo(nn.Module):
                     att_dropout=0.1,
                     att_resid_dropout=0.1,
                     final_dropout=0.1,
-                    max_seq_len=0.1,
+                    max_seq_len=9,
                     ff_dim=self.hidden_sizes,
                     causal=False,
                 )
@@ -201,6 +203,13 @@ class BoringNetVideo(nn.Module):
         self.fc2 = nn.Linear(n_channel, n_out)
         self.selayer1 = SELayer4feat(channel=8, reduction=2)
 
+        self.dim_reduction_layer = torch.nn.Identity()
+
+        self.classification_vector = nn.Parameter(torch.randn(1, 1, input_size))
+        self.pos_encoding = nn.Parameter(
+            torch.randn(1, 9, input_size)
+        )
+
     def forward(self, x):
         # x = x.squeeze()
         # x = self.fc1(x)
@@ -212,6 +221,16 @@ class BoringNetVideo(nn.Module):
         # x = self.transformer2(x)
         # x = self.transformer3(x)
         # x = self.transformer4(x)
+
+        # (B, F, INPUT_DIM) -> (B, F, D)
+
+        # x = self.dim_reduction_layer(x)
+        # B, F, D = x.size()
+        #
+        # classification_vector = self.classification_vector.repeat((B, 1, 1))
+        # # (B, F, D) -> (B, 1+F, D)
+        # x = torch.cat([classification_vector, x], dim=1)
+        # seq_len = x.size(1)
         for layer in self.transformer:
             # x = x + self.pos_encoding[:, :seq_len, :]
             x = layer(x)
