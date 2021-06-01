@@ -367,6 +367,8 @@ class BaseAdaptTrainer(pl.LightningModule):
         }
 
     def validation_step(self, batch, batch_nb):
+        # print("val src{} tgt{}".format(len(batch[0][2]), len(batch[1][2])))
+
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="V")
         loss = task_loss + self.lamb_da * adv_loss
         log_metrics["val_loss"] = loss
@@ -397,6 +399,8 @@ class BaseAdaptTrainer(pl.LightningModule):
         return self._validation_epoch_end(outputs, metrics_to_log)
 
     def test_step(self, batch, batch_nb):
+        # print("te src{} tgt{}".format(len(batch[0][2]), len(batch[1][2])))
+
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="Te")
         loss = task_loss + self.lamb_da * adv_loss
         log_metrics["test_loss"] = loss

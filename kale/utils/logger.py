@@ -67,7 +67,7 @@ def create_multi_results_dict(pred_verb_cpu, pred_noun_cpu, pred_id, name1="verb
     return results_dict
 
 
-def create_single_results_dict(pred_cpu, pred_id, name="verb"):
+def create_single_result_dict(pred_cpu, pred_id, name="verb"):
     """Construct a dictionary to save single class results.
 
     Args:
@@ -87,35 +87,35 @@ def create_single_results_dict(pred_cpu, pred_id, name="verb"):
     return results_dict
 
 
-def save_results_to_json(y_hat, y_t_hat, y_ids, y_t_ids, verb=True, noun=False, file_name="test.json"):
+def save_results_to_json(
+    y_hat, y_t_hat, y_ids, y_t_ids, y_hat_noun=None, y_t_hat_noun=None, verb=True, noun=False, file_name="test.json"
+):
     """Save the output for each class to a json file.
 
     Args:
-        y_hat (list): results for all classes from the source data. y_hat[0] is for verb. y_hat[1] is for noun.
-        y_t_hat (list): results for all classes from the target data. y_t_hat[0] is for verb. y_t_hat[1] is for noun.
-        y_ids (tuple): corresponding segment ids to source data results. size is batch size.
-        y_t_ids (tuple): corresponding segment ids to target data results. size is batch size.
+        y_hat (list): results for verb classes from the source data.
+        y_t_hat (list): results for verb classes from the target data.
+        y_ids (list): corresponding segment ids to source data results.
+        y_t_ids (list): corresponding segment ids to target data results.
+        y_hat_noun (list): results for noun classes from the source data.
+        y_t_hat_noun (list): results for noun classes from the target data.
         verb (bool): check if results covers verb class.
         noun (bool): check if results covers noun class.
         file_name (string): the name of the file to save.
     """
     if verb:
-        # pred_verb_cpu = y_hat[0].cpu().tolist()
-        # pred_t_verb_cpu = y_t_hat[0].cpu().tolist()
-        pred_verb_cpu = y_hat[0].detach().tolist()
-        pred_t_verb_cpu = y_t_hat[0].detach().tolist()
+        pred_verb_cpu = y_hat
+        pred_t_verb_cpu = y_t_hat
     if noun:
-        pred_noun_cpu = y_hat[1].detach().tolist()
-        pred_t_noun_cpu = y_t_hat[1].detach().tolist()
-        # pred_noun_cpu = y_hat[1].cpu().tolist()
-        # pred_t_noun_cpu = y_t_hat[1].cpu().tolist()
+        pred_noun_cpu = y_hat_noun
+        pred_t_noun_cpu = y_t_hat_noun
 
     if verb and noun:
         results_dict = create_multi_results_dict(pred_verb_cpu, pred_noun_cpu, y_ids)
         results_t_dict = create_multi_results_dict(pred_t_verb_cpu, pred_t_noun_cpu, y_t_ids)
     elif verb and not noun:
-        results_dict = create_single_results_dict(pred_verb_cpu, y_ids)
-        results_t_dict = create_single_results_dict(pred_t_verb_cpu, y_t_ids)
+        results_dict = create_single_result_dict(pred_verb_cpu, y_ids)
+        results_t_dict = create_single_result_dict(pred_t_verb_cpu, y_t_ids)
 
     with open(file_name, "w") as f:
         json.dump(

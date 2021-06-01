@@ -5,8 +5,8 @@
 
 """Construct a dataset for videos with (multiple) source and target domains"""
 
-import math
 import logging
+import math
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -181,6 +181,8 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                 audio_target_loader,
             ]
             dataloaders = [x for x in dataloaders if x is not None]
+
+            # print("n_dataset {}; n_batches {}; src_bs {}; tgt_bs {}".format(n_dataset, int(math.ceil(n_dataset / batch_size)), batch_size, target_batch_size))
 
             # return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1),)
             return MultiDataLoader(dataloaders=dataloaders, n_batches=max(int(math.ceil(n_dataset / batch_size)), 1))

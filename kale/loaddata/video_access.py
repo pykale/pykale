@@ -7,7 +7,6 @@
 Action video dataset loading for EPIC-Kitchen, ADL, GTEA, KITCHEN. The code is based on
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py
 """
-import logging
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
@@ -508,7 +507,6 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
         self._num_train_dataload = len(pd.read_pickle(self._train_list).index)
         self._num_test_dataload = len(pd.read_pickle(self._test_list).index)
         self._update_format()
-        logging.info(self._num_train_dataload, self._num_test_dataload)
 
     def _update_format(self):
         if self._image_modality == "rgb":

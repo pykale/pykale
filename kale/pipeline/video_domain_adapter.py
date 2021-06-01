@@ -122,6 +122,19 @@ def create_dann_like_4video(
         raise ValueError(f"Unsupported method: {method}")
 
 
+# def dummy_data(batch_size, current_size, data):
+#     # add dummy tensors to keep the same batch size for each epoch (for the last epoch)
+#     if current_size[0] < batch_size:
+#         data_dummy = torch.zeros(batch_size - current_size[0], current_size[1], current_size[2])
+#         data = torch.cat((data, data_dummy))
+#     return data
+#
+#
+# def remove_dummy(data, batch_size):
+#     data = data[:batch_size]
+#     return data
+
+
 class BaseMMDLike4Video(BaseMMDLike):
     def __init__(
         self, dataset, image_modality, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5, **base_params,
@@ -266,6 +279,12 @@ class DANNtrainer4Video(DANNtrainer):
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
         self.input_type = input_type
+        self.y_hat = []
+        self.y_hat_noun = []
+        self.y_t_hat = []
+        self.y_t_hat_noun = []
+        self.s_id = []
+        self.tu_id = []
 
     def forward(self, x):
         if self.feat is not None:
@@ -466,13 +485,21 @@ class DANNtrainer4Video(DANNtrainer):
 
         # save to json for EPIC challenge
         if split_name == "Te":
-            save_results_to_json(y_hat, y_t_hat, s_id, tu_id, self.verb, self.noun)
+            self.y_hat.extend(y_hat[0].tolist())
+            self.y_hat_noun.extend(y_hat[1].tolist())
+            self.y_t_hat.extend(y_t_hat[0].tolist())
+            self.y_t_hat_noun.extend(y_t_hat[1].tolist())
+            self.s_id.extend(s_id)
+            self.tu_id.extend(tu_id)
+            # save_results_to_json(y_hat, y_t_hat, s_id, tu_id, self.verb, self.noun)
 
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
 
         return task_loss, adv_loss, log_metrics
 
     def training_step(self, batch, batch_nb):
+        # print("tr src{} tgt{}".format(len(batch[0][2]), len(batch[1][2])))
+
         self._update_batch_epoch_factors(batch_nb)
 
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="T")
@@ -536,6 +563,10 @@ class DANNtrainer4Video(DANNtrainer):
                 "Te_noun_target_acc",
                 "Te_domain_acc",
             )
+
+        save_results_to_json(
+            self.y_hat, self.y_t_hat, self.s_id, self.tu_id, self.y_hat_noun, self.y_t_hat_noun, self.verb, self.noun
+        )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
         for key in log_dict:
