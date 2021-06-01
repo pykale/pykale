@@ -35,7 +35,7 @@ def get_config(cfg):
             "optimizer": {
                 "type": cfg.SOLVER.TYPE,
                 "optim_params": {
-                    "momentum": cfg.SOLVER.MOMENTUM,
+                    # "momentum": cfg.SOLVER.MOMENTUM,
                     "weight_decay": cfg.SOLVER.WEIGHT_DECAY,
                     "nesterov": cfg.SOLVER.NESTEROV,
                 },
