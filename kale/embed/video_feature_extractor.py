@@ -132,6 +132,8 @@ class BoringNetVideo(nn.Module):
 
     def __init__(self, input_size=512, n_channel=512, n_out=256, dropout_keep_prob=0.5):
         super(BoringNetVideo, self).__init__()
+        self.hidden_sizes = 768
+        self.num_layers = 12
         # self.conv3d = nn.Conv3d(in_channels=input_size, out_channels=512, kernel_size=(1, 1, 1))
         # self.fc1 = nn.Linear(input_size, n_channel)
         # self.bn1 = nn.BatchNorm1d(n_channel)
@@ -141,42 +143,58 @@ class BoringNetVideo(nn.Module):
         # self.relu2 = nn.ReLU()
         # self.dp2 = nn.Dropout(dropout_keep_prob)
         # self.fc3 = nn.Linear(n_channel, n_out)
-        self.transformer1 = TransformerBlock(
-            emb_dim=input_size,
-            num_heads=8,
-            att_dropout=0.1,
-            att_resid_dropout=0.1,
-            final_dropout=0.1,
-            max_seq_len=9,
-            ff_dim=input_size,
+        self.transformer = nn.ModuleList(
+            [
+                TransformerBlock(
+                    emb_dim=input_size,
+                    num_heads=8,
+                    att_dropout=0.1,
+                    att_resid_dropout=0.1,
+                    final_dropout=0.1,
+                    max_seq_len=0.1,
+                    ff_dim=self.hidden_sizes,
+                    causal=False,
+                )
+                for _ in range(self.num_layers)
+            ]
         )
-        self.transformer2 = TransformerBlock(
-            emb_dim=input_size,
-            num_heads=8,
-            att_dropout=0.1,
-            att_resid_dropout=0.1,
-            final_dropout=0.1,
-            max_seq_len=9,
-            ff_dim=input_size,
-        )
-        self.transformer3 = TransformerBlock(
-            emb_dim=input_size,
-            num_heads=8,
-            att_dropout=0.1,
-            att_resid_dropout=0.1,
-            final_dropout=0.1,
-            max_seq_len=9,
-            ff_dim=input_size,
-        )
-        self.transformer4 = TransformerBlock(
-            emb_dim=input_size,
-            num_heads=8,
-            att_dropout=0.1,
-            att_resid_dropout=0.1,
-            final_dropout=0.1,
-            max_seq_len=9,
-            ff_dim=input_size,
-        )
+
+        # self.transformer1 = TransformerBlock(
+        #     emb_dim=input_size,
+        #     num_heads=8,
+        #     att_dropout=0.1,
+        #     att_resid_dropout=0.1,
+        #     final_dropout=0.1,
+        #     max_seq_len=9,
+        #     ff_dim=input_size,
+        # )
+        # self.transformer2 = TransformerBlock(
+        #     emb_dim=input_size,
+        #     num_heads=8,
+        #     att_dropout=0.1,
+        #     att_resid_dropout=0.1,
+        #     final_dropout=0.1,
+        #     max_seq_len=9,
+        #     ff_dim=input_size,
+        # )
+        # self.transformer3 = TransformerBlock(
+        #     emb_dim=input_size,
+        #     num_heads=8,
+        #     att_dropout=0.1,
+        #     att_resid_dropout=0.1,
+        #     final_dropout=0.1,
+        #     max_seq_len=9,
+        #     ff_dim=input_size,
+        # )
+        # self.transformer4 = TransformerBlock(
+        #     emb_dim=input_size,
+        #     num_heads=8,
+        #     att_dropout=0.1,
+        #     att_resid_dropout=0.1,
+        #     final_dropout=0.1,
+        #     max_seq_len=9,
+        #     ff_dim=input_size,
+        # )
         self.fc1 = nn.Linear(input_size, n_channel)
         self.relu1 = nn.ReLU()
         self.dp1 = nn.Dropout(dropout_keep_prob)
@@ -190,10 +208,13 @@ class BoringNetVideo(nn.Module):
         # x = self.dp1(self.relu1(self.fc1(x)))
         # x = self.dp2(self.relu2(self.fc2(x)))
         # x = self.fc3(x)
-        x = self.transformer1(x)
-        x = self.transformer2(x)
-        x = self.transformer3(x)
-        x = self.transformer4(x)
+        # x = self.transformer1(x)
+        # x = self.transformer2(x)
+        # x = self.transformer3(x)
+        # x = self.transformer4(x)
+        for layer in self.transformer:
+            # x = x + self.pos_encoding[:, :seq_len, :]
+            x = layer(x)
         x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
         x = self.selayer1(x)
         return x
