@@ -226,7 +226,7 @@ def _split_dataset_few_shot(dataset, n_fewshot, random_state=None):
     return labeled_dataset, unlabeled_dataset
 
 
-class MultiDomainDataFolder(VisionDataset):
+class MultiDomainImageFolder(VisionDataset):
     """A generic data loader where the samples are arranged in this way: ::
 
             root/class_x/xxx.ext
@@ -270,7 +270,7 @@ class MultiDomainDataFolder(VisionDataset):
         target_transform: Optional[Callable] = None,
         is_valid_file: Optional[Callable[[str], bool]] = None,
     ) -> None:
-        super(MultiDomainDataFolder, self).__init__(root, transform=transform, target_transform=target_transform)
+        super(MultiDomainImageFolder, self).__init__(root, transform=transform, target_transform=target_transform)
         domains, domain_to_idx = self._find_classes(self.root)
         classes, class_to_idx = self._find_classes(os.path.join(self.root, domains[0]))
         for domain in domains:
@@ -389,3 +389,19 @@ def make_multi_domain_set(
                         item = path, class_index, domain_index
                         instances.append(item)
     return instances
+
+
+class MultiDomainAdapDataset():
+    def __init__(
+        self,
+        multi_domain_access: MultiDomainImageFolder,
+        domain_weight_type="balanced",
+        config_weight_type="natural",
+        config_size_type=DatasetSizeType.Max,
+        target_label=0,
+        target=None,
+        val_split_ratio=0.1,
+        random_state=None,
+    ):
+        weight_type = WeightingType(config_weight_type)
+        size_type = DatasetSizeType(config_size_type)

@@ -145,6 +145,31 @@ class BalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
         return self._n_batches
 
 
+class BalancedDomainSampler(torch.utils.data.sampler.BatchSampler):
+    def __init__(self, dataset, batch_size):
+        domain_labels = np.array(dataset.domain_labels)
+        self.n_samples = domain_labels.shape[0]
+        n_domains = len(dataset.domains)
+        self.domain_idx = dict()
+        for domain in dataset.domains:
+            self.domain_idx[domain] = np.where(domain_labels == dataset.domain_to_idx[domain])
+        self._n_samples_per_batch = batch_size // n_domains
+        if self._n_samples_per_batch == 0:
+            raise ValueError(f"batch_size should be bigger than the number of domains, got {batch_size}")
+
+        batch_size = self._n_samples_per_batch * n_domains
+        self._n_batches = self.n_samples // batch_size
+        if self._n_batches == 0:
+            raise ValueError(f"Dataset is not big enough to generate batches with size {batch_size}")
+        logging.debug("K=", n_domains, "nk=", self._n_samples_per_batch)
+        logging.debug("Batch size = ", batch_size)
+
+    def __iter__(self):
+        for _ in range(self._n_batches):
+            indices = []
+            for c
+
+
 class ReweightedBatchSampler(torch.utils.data.sampler.BatchSampler):
     """
     BatchSampler - from a MNIST-like dataset, samples batch_size according to given input distribution
@@ -213,11 +238,12 @@ def get_labels(dataset):
     """
     Get class labels for dataset
     """
+    from .multi_domain import MultiDomainImageFolder
     dataset_type = type(dataset)
     if dataset_type is torchvision.datasets.SVHN:
         return dataset.labels
-    if dataset_type is torchvision.datasets.ImageFolder:
-        return dataset.imgs[:][1]
+    if dataset_type is torchvision.datasets.ImageFolder or MultiDomainImageFolder:
+        return np.array(dataset.targets)
 
     # Handle subset, recurses into non-subset version
     if dataset_type is torch.utils.data.Subset:
