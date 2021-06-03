@@ -96,7 +96,7 @@ def save_results_to_json(
     y_t_hat_noun=None,
     verb=True,
     noun=False,
-    file_name="test-bert-m.json",
+    file_name="test.json",
 ):
     """Save the output for each class to a json file.
 

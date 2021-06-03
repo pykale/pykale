@@ -230,9 +230,9 @@ class BoringNetVideo(nn.Module):
         # (B, F, D) -> (B, 1+F, D)
         # x = torch.cat([classification_vector, x], dim=1)
         # seq_len = x.size(1)
-        for layer in self.transformer:
-            # x = x + self.pos_encoding[:, :seq_len, :]
-            x = layer(x)
+        # for layer in self.transformer:
+        #     # x = x + self.pos_encoding[:, :seq_len, :]
+        #     x = layer(x)
         x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
         x = self.selayer1(x)
         return x
