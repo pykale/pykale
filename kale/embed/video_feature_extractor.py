@@ -132,8 +132,8 @@ class BoringNetVideo(nn.Module):
 
     def __init__(self, input_size=512, n_channel=512, n_out=256, dropout_keep_prob=0.5):
         super(BoringNetVideo, self).__init__()
-        # self.hidden_sizes = 512
-        # self.num_layers = 4
+        self.hidden_sizes = 512
+        self.num_layers = 4
 
         # self.conv3d = nn.Conv3d(in_channels=input_size, out_channels=512, kernel_size=(1, 1, 1))
         # self.fc1 = nn.Linear(input_size, n_channel)
