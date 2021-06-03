@@ -88,7 +88,15 @@ def create_single_result_dict(pred_cpu, pred_id, name="verb"):
 
 
 def save_results_to_json(
-    y_hat, y_t_hat, y_ids, y_t_ids, y_hat_noun=None, y_t_hat_noun=None, verb=True, noun=False, file_name="test-bert-m.json"
+    y_hat,
+    y_t_hat,
+    y_ids,
+    y_t_ids,
+    y_hat_noun=None,
+    y_t_hat_noun=None,
+    verb=True,
+    noun=False,
+    file_name="test-bert-m.json",
 ):
     """Save the output for each class to a json file.
 

@@ -8,16 +8,15 @@ Define the feature extractor for video including I3D, R3D_18, MC3_18 and R2PLUS1
 
 import logging
 
-import torch
 from torch import nn
 
 from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
 from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
-from kale.loaddata.video_access import get_image_modality
 from kale.embed.video_selayer import SELayer4feat
 from kale.embed.video_transformer import TransformerBlock
+from kale.loaddata.video_access import get_image_modality
 
 
 def get_feat_extractor4video(model_name, image_modality, attention, dict_num_classes):
@@ -134,7 +133,7 @@ class BoringNetVideo(nn.Module):
     def __init__(self, input_size=512, n_channel=512, n_out=256, dropout_keep_prob=0.5):
         super(BoringNetVideo, self).__init__()
         self.hidden_sizes = 512
-        self.num_layers = 8
+        self.num_layers = 4
 
         # self.conv3d = nn.Conv3d(in_channels=input_size, out_channels=512, kernel_size=(1, 1, 1))
         # self.fc1 = nn.Linear(input_size, n_channel)
