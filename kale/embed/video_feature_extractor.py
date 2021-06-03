@@ -144,21 +144,21 @@ class BoringNetVideo(nn.Module):
         # self.relu2 = nn.ReLU()
         # self.dp2 = nn.Dropout(dropout_keep_prob)
         # self.fc3 = nn.Linear(n_channel, n_out)
-        # self.transformer = nn.ModuleList(
-        #     [
-        #         TransformerBlock(
-        #             emb_dim=input_size,
-        #             num_heads=8,
-        #             att_dropout=0.1,
-        #             att_resid_dropout=0.1,
-        #             final_dropout=0.1,
-        #             max_seq_len=9,
-        #             ff_dim=self.hidden_sizes,
-        #             causal=False,
-        #         )
-        #         for _ in range(self.num_layers)
-        #     ]
-        # )
+        self.transformer = nn.ModuleList(
+            [
+                TransformerBlock(
+                    emb_dim=input_size,
+                    num_heads=8,
+                    att_dropout=0.1,
+                    att_resid_dropout=0.1,
+                    final_dropout=0.1,
+                    max_seq_len=9,
+                    ff_dim=self.hidden_sizes,
+                    causal=False,
+                )
+                for _ in range(self.num_layers)
+            ]
+        )
 
         # self.transformer1 = TransformerBlock(
         #     emb_dim=input_size,
@@ -187,15 +187,15 @@ class BoringNetVideo(nn.Module):
         #     max_seq_len=9,
         #     ff_dim=input_size,
         # )
-        self.transformer = TransformerBlock(
-            emb_dim=input_size,
-            num_heads=8,
-            att_dropout=0.1,
-            att_resid_dropout=0.1,
-            final_dropout=0.1,
-            max_seq_len=9,
-            ff_dim=input_size,
-        )
+        # self.transformer = TransformerBlock(
+        #     emb_dim=input_size,
+        #     num_heads=8,
+        #     att_dropout=0.1,
+        #     att_resid_dropout=0.1,
+        #     final_dropout=0.1,
+        #     max_seq_len=9,
+        #     ff_dim=input_size,
+        # )
         self.fc1 = nn.Linear(input_size, n_channel)
         self.relu1 = nn.ReLU()
         self.dp1 = nn.Dropout(dropout_keep_prob)
