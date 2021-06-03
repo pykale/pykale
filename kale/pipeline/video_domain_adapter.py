@@ -23,7 +23,8 @@ from kale.pipeline.domain_adapter import (
     set_requires_grad,
     WDGRLtrainer,
 )
-from kale.utils.logger import save_results_to_json
+
+# from kale.utils.logger import save_results_to_json
 
 
 def create_mmd_based_4video(
@@ -564,9 +565,10 @@ class DANNtrainer4Video(DANNtrainer):
                 "Te_domain_acc",
             )
 
-        save_results_to_json(
-            self.y_hat, self.y_t_hat, self.s_id, self.tu_id, self.y_hat_noun, self.y_t_hat_noun, self.verb, self.noun
-        )
+        # Uncomment to save output to json file
+        # save_results_to_json(
+        #     self.y_hat, self.y_t_hat, self.s_id, self.tu_id, self.y_hat_noun, self.y_t_hat_noun, self.verb, self.noun
+        # )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
         for key in log_dict:

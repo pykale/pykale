@@ -519,7 +519,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     def get_train(self):
         return TSNDataSet(
             data_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
-            ### Uncomment to run on train subset for EPIC 2021 challenge
+            # Uncomment to run on train subset for EPIC 2021 challenge
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
             list_file=self._train_list,
             num_dataload=self._num_train_dataload,
@@ -536,7 +536,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     def get_test(self):
         return TSNDataSet(
             data_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
-            ### Uncomment to run on test subset for EPIC 2021 challenge
+            # Uncomment to run on test subset for EPIC 2021 challenge
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
             list_file=self._test_list,
             num_dataload=self._num_test_dataload,
