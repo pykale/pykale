@@ -40,7 +40,7 @@ class DatasetAccess:
             sub_indices = [i for i in range(0, len(train_dataset)) if train_dataset[i][1] in class_ids]
             return torch.utils.data.Subset(train_dataset, sub_indices)
 
-    def get_train_val(self, val_ratio):
+    def get_train_val(self, val_ratio, sub_class_ids=None):
         """
         Randomly split a dataset into non-overlapping training and validation datasets.
 
@@ -50,7 +50,7 @@ class DatasetAccess:
         Returns:
             Dataset: a torch.utils.data.Dataset
         """
-        train_dataset = self.get_train()
+        train_dataset = self.get_class_subsampled_train(sub_class_ids)
         ntotal = len(train_dataset)
         ntrain = int((1 - val_ratio) * ntotal)
 
