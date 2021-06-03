@@ -132,8 +132,8 @@ class BoringNetVideo(nn.Module):
 
     def __init__(self, input_size=512, n_channel=512, n_out=256, dropout_keep_prob=0.5):
         super(BoringNetVideo, self).__init__()
-        self.hidden_sizes = 512
-        self.num_layers = 4
+        # self.hidden_sizes = 512
+        # self.num_layers = 4
 
         # self.conv3d = nn.Conv3d(in_channels=input_size, out_channels=512, kernel_size=(1, 1, 1))
         # self.fc1 = nn.Linear(input_size, n_channel)
@@ -144,21 +144,21 @@ class BoringNetVideo(nn.Module):
         # self.relu2 = nn.ReLU()
         # self.dp2 = nn.Dropout(dropout_keep_prob)
         # self.fc3 = nn.Linear(n_channel, n_out)
-        self.transformer = nn.ModuleList(
-            [
-                TransformerBlock(
-                    emb_dim=input_size,
-                    num_heads=8,
-                    att_dropout=0.1,
-                    att_resid_dropout=0.1,
-                    final_dropout=0.1,
-                    max_seq_len=9,
-                    ff_dim=self.hidden_sizes,
-                    causal=False,
-                )
-                for _ in range(self.num_layers)
-            ]
-        )
+        # self.transformer = nn.ModuleList(
+        #     [
+        #         TransformerBlock(
+        #             emb_dim=input_size,
+        #             num_heads=8,
+        #             att_dropout=0.1,
+        #             att_resid_dropout=0.1,
+        #             final_dropout=0.1,
+        #             max_seq_len=9,
+        #             ff_dim=self.hidden_sizes,
+        #             causal=False,
+        #         )
+        #         for _ in range(self.num_layers)
+        #     ]
+        # )
 
         # self.transformer1 = TransformerBlock(
         #     emb_dim=input_size,
@@ -200,7 +200,7 @@ class BoringNetVideo(nn.Module):
         self.relu1 = nn.ReLU()
         self.dp1 = nn.Dropout(dropout_keep_prob)
         self.fc2 = nn.Linear(n_channel, n_out)
-        self.selayer1 = SELayer4feat(channel=8, reduction=2)
+        # self.selayer1 = SELayer4feat(channel=8, reduction=2)
 
         # self.dim_reduction_layer = torch.nn.Identity()
         #
