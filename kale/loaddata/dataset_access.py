@@ -28,6 +28,18 @@ class DatasetAccess:
         """
         raise NotImplementedError()
 
+    def get_class_subsampled_train(self, class_ids=None):
+        """
+        Returns: a torch.utils.data.Dataset
+            Dataset: a torch.utils.data.Dataset with only classes in class_ids
+        """
+        train_dataset = self.get_train()
+        if class_ids is None:
+            return train_dataset
+        else:
+            sub_indices = [i for i in range(0, len(train_dataset)) if train_dataset[i][1] in class_ids]
+            return torch.utils.data.Subset(train_dataset, sub_indices)
+
     def get_train_val(self, val_ratio):
         """
         Randomly split a dataset into non-overlapping training and validation datasets.
@@ -46,3 +58,15 @@ class DatasetAccess:
 
     def get_test(self):
         raise NotImplementedError()
+
+    def get_class_subsampled_test(self, class_ids):
+        """
+        Returns: a torch.utils.data.Dataset
+            Dataset: a torch.utils.data.Dataset with only classes in class_ids
+        """
+        test_dataset = self.get_test()
+        if class_ids is None:
+            return test_dataset
+        else:
+            sub_indices = [i for i in range(0, len(test_dataset)) if test_dataset[i][1] in class_ids]
+            return torch.utils.data.Subset(test_dataset, sub_indices)
