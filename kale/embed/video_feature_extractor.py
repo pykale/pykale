@@ -187,7 +187,7 @@ class BoringNetVideo(nn.Module):
         #     max_seq_len=9,
         #     ff_dim=input_size,
         # )
-        self.transformer4 = TransformerBlock(
+        self.transformer = TransformerBlock(
             emb_dim=input_size,
             num_heads=8,
             att_dropout=0.1,
