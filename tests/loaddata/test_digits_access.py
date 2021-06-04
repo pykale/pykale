@@ -55,7 +55,7 @@ def test_get_train_test(dataset_name, download_path):
     assert isinstance(source_test, torch.utils.data.Dataset)
 
 
-@pytest.mark.parametrize("dataset_name", SOURCES + TARGETS)
+@pytest.mark.parametrize("dataset_name", ALL)
 @pytest.mark.parametrize("val_ratio", VAL_RATIO)
 @pytest.mark.parametrize("class_sub_sample", CLASS_SUB_SAMPLES)
 def test_class_subsampling(dataset_name, download_path, val_ratio, class_sub_sample):
