@@ -224,11 +224,11 @@ class VideoDatasetAccess(DatasetAccess):
         self._transform = video_transform.get_transform(transform_kind, self._image_modality)
         self._seed = seed
 
-    def get_train_val(self, val_ratio):
+    def get_train_val(self, val_ratio, sub_class_ids=None):
         """Get the train and validation dataset with the fixed random split. This is used for joint input like RGB and
         optical flow, which will call `get_train_val` twice. Fixing the random seed here can keep the seeds for twice
         the same."""
-        train_dataset = self.get_train()
+        train_dataset = self.get_class_subsampled_train(sub_class_ids)
         ntotal = len(train_dataset)
         ntrain = int((1 - val_ratio) * ntotal)
         return torch.utils.data.random_split(
