@@ -30,6 +30,8 @@ class DatasetAccess:
 
     def get_class_subsampled_train(self, class_ids=None):
         """
+        Args:
+            class_ids (list, optional): List of class ids that are to be subsampled.
         Returns: a torch.utils.data.Dataset
             Dataset: a torch.utils.data.Dataset with only classes in class_ids
         """
@@ -46,7 +48,7 @@ class DatasetAccess:
 
         Args:
             val_ratio (float): the ratio for validation set
-
+            sub_class_ids (list, optional): List of class ids that are to be subsampled.
         Returns:
             Dataset: a torch.utils.data.Dataset
         """
@@ -61,6 +63,8 @@ class DatasetAccess:
 
     def get_class_subsampled_test(self, class_ids):
         """
+        Args:
+            class_ids (list, optional): List of class ids that are to be subsampled.
         Returns: a torch.utils.data.Dataset
             Dataset: a torch.utils.data.Dataset with only classes in class_ids
         """

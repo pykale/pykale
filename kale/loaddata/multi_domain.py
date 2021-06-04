@@ -84,7 +84,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
             n_fewshot (int, optional): Number of target samples for which the label may be used,
                 to define the few-shot, semi-supervised setting. Defaults to None.
             random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label selection. Defaults to None.
-            sub_class_ids (list): List of class ids that are to be subsampled. (default None would keep all classes)
+            sub_class_ids (list, optional): List of class ids that are to be subsampled. Defaults to None (=> All Classes).
         Examples::
             >>> dataset = MultiDomainDatasets(source_access, target_access)
         """
