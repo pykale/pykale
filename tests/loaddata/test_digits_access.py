@@ -15,7 +15,7 @@ WEIGHT_TYPE = ["natural", "balanced", "preset0"]
 DATASIZE_TYPE = ["max", "source"]
 VAL_RATIO = [0.1]
 
-CLASS_SUB_SAMPLES = [list(range(i, j + 1)) for i in range(0, 8) for j in range(6, 10) if i <= j and j < i + 3]
+CLASS_SUB_SAMPLES = [[1, 3, 8]]
 
 
 @pytest.mark.parametrize("source_name", SOURCES)
@@ -56,11 +56,9 @@ def test_get_train_test(dataset_name, download_path):
 
 
 @pytest.mark.parametrize("dataset_name", SOURCES + TARGETS)
-@pytest.mark.parametrize("weight_type", WEIGHT_TYPE)
-@pytest.mark.parametrize("datasize_type", DATASIZE_TYPE)
 @pytest.mark.parametrize("val_ratio", VAL_RATIO)
 @pytest.mark.parametrize("class_sub_sample", CLASS_SUB_SAMPLES)
-def test_class_subsampling(dataset_name, weight_type, datasize_type, download_path, val_ratio, class_sub_sample):
+def test_class_subsampling(dataset_name, download_path, val_ratio, class_sub_sample):
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(dataset_name), DigitDataset(dataset_name), download_path
     )
@@ -70,7 +68,11 @@ def test_class_subsampling(dataset_name, weight_type, datasize_type, download_pa
     source_train_val = source.get_train_val(val_ratio, class_sub_sample)
 
     dataset_subsampled = MultiDomainDatasets(
-        source, target, config_weight_type=weight_type, config_size_type=datasize_type, sub_class_ids=class_sub_sample
+        source,
+        target,
+        config_weight_type=WEIGHT_TYPE[0],
+        config_size_type=DATASIZE_TYPE[1],
+        sub_class_ids=class_sub_sample,
     )
 
     assert isinstance(source_train, torch.utils.data.Dataset)
