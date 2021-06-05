@@ -406,20 +406,20 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
     def __init__(
         self,
         data_access: MultiDomainImageFolder,
-        domain_weight_type="balanced",
-        config_weight_type="natural",
-        config_size_type=DatasetSizeType.Max,
+        # domain_weight_type="balanced",
+        # config_weight_type="natural",
+        # config_size_type=DatasetSizeType.Max,
         target_label=0,
         target=None,
         val_split_ratio=0.1,
         test_split_ratio=0.2,
-        random_state=None,
+        random_state=1,
     ):
-        domain_weight_type = DomainWeightType(domain_weight_type)
-        if domain_weight_type is DomainWeightType.BALANCED:
-            sampling =
-        weight_type = WeightingType(config_weight_type)
-        size_type = DatasetSizeType(config_size_type)
+        # domain_weight_type = DomainWeightType(domain_weight_type)
+        # if domain_weight_type is DomainWeightType.BALANCED:
+        #     sampling =
+        # weight_type = WeightingType(config_weight_type)
+        # size_type = DatasetSizeType(config_size_type)
         if target is None:
             for key in data_access.domain_to_idx:
                 if data_access.domain_to_idx[key] == target_label:
@@ -430,23 +430,45 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
             if target_idx != target_label:
                 raise ValueError("Given target domain label in given dataset is %s but not %s"
                                  % (target_label, target_idx))
-        domain_labels = np.array(data_access.domain_labels)
-        self._source_access = torch.utils.data.Subset(data_access, np.where(domain_labels != target_label)[0])
-        self._target_access = torch.utils.data.Subset(data_access, np.where(domain_labels == target_label)[0])
+        self.domain_labels = np.array(data_access.domain_labels)
+        self.domain_to_idx = data_access.domain_to_idx
+        self.n_domains = len(data_access.domain_to_idx)
+        self.data_access = data_access
+        # self._source_access = torch.utils.data.Subset(data_access, np.where(domain_labels != target_label)[0])
+        # self._target_access = torch.utils.data.Subset(data_access, np.where(domain_labels == target_label)[0])
         self.target_label = target_label
         self.target = target
         self._val_split_ratio = val_split_ratio
         self._test_split_ratio = test_split_ratio
-        self._source_by_split: Dict[str, torch.utils.data.Subset] = {}
-        self._target_by_split: Dict[str, torch.utils.data.Subset] = {}
+        self._sample_by_split: Dict[str, torch.utils.data.Subset] = {}
+        self._sampling_config = SamplingConfig()
         self._random_state = check_random_state(random_state)
 
     def prepare_data_loaders(self):
-        (self._source_by_split["test"], self._source_by_split["valid"], self._source_by_split["train"],) = \
-            split_by_ratios(self._source_access, [self._test_split_ratio, self._val_split_ratio])
+        # (self._source_by_split["test"], self._source_by_split["valid"], self._source_by_split["train"],) = \
+        #     split_by_ratios(self._source_access, [self._test_split_ratio, self._val_split_ratio])
+        #
+        # (self._target_by_split["test"], self._target_by_split["valid"], self._target_by_split["train"]) = \
+        #     split_by_ratios(self._target_access, [self._test_split_ratio, self._val_split_ratio])
+        subset_split = {"train": [], "valid": [], "test": []}
+        for domain in self.domain_to_idx:
+            subset = dict()
+            domain_label_ = self.domain_to_idx[domain]
+            domain_idx = np.where(self.domain_labels == domain_label_)
+            subset["test"], subset["valid"], subset["train"] = split_by_ratios(torch.utils.data.Subset(self.data_access,
+                                                                                                       domain_idx),
+                                                                               [self._test_split_ratio,
+                                                                                self._val_split_ratio])
+            for split in ["train", "valid", "test"]:
+                subset_split[split].append(subset[split])
 
-        (self._target_by_split["test"], self._target_by_split["valid"], self._target_by_split["train"]) = \
-            split_by_ratios(self._target_access, [self._test_split_ratio, self._val_split_ratio])
+        for split in ["train", "valid", "test"]:
+            self._sample_by_split[split] = torch.utils.data.ConcatDataset(subset_split[split])
 
     def get_domain_loaders(self, split="train", batch_size=32):
 
+        return self._sampling_config.create_loader(self._sample_by_split[split], batch_size)
+
+    def __len__(self):
+
+        return len(self.data_access)

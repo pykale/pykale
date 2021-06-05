@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import BatchSampler, RandomSampler
 from torchvision.datasets import ImageFolder
 
-from kale.loaddata.multi_domain import MultiDomainImageFolder
+from kale.loaddata.multi_domain import MultiDomainImageFolder, MultiDomainAdapDataset
 from kale.loaddata.sampler import BalancedBatchSampler
 from torchvision import transforms
 
@@ -17,6 +17,10 @@ transform = transforms.Compose([
 data_path = "/media/shuoz/MyDrive/data/PACS/kfold"
 
 a = MultiDomainImageFolder(data_path, transform=transform)
+
+ds = MultiDomainAdapDataset(a, target_label=1)
+ds.prepare_data_loaders()
+dl = ds.get_domain_loaders(split="train")
 b = Subset(a, [1, 2, 3, 4, 5])
 c = ImageFolder("%s/photo" % data_path, transform=transform)
 sub_sampler_a = RandomSampler(a)

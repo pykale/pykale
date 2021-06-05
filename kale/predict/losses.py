@@ -63,7 +63,8 @@ def gradient_penalty(critic, h_s, h_t):
     interpolates = torch.cat((interpolates, h_s, h_t), dim=0).requires_grad_()
 
     preds = critic(interpolates)
-    gradients = grad(preds, interpolates, grad_outputs=torch.ones_like(preds), retain_graph=True, create_graph=True,)[0]
+    gradients = grad(preds, interpolates, grad_outputs=torch.ones_like(preds), retain_graph=True, create_graph=True, )[
+        0]
     gradient_norm = gradients.norm(2, dim=1)
     gradient_penalty = ((gradient_norm - 1) ** 2).mean()
     # except:
@@ -133,3 +134,7 @@ def hsic(kx, ky):
         raise ValueError("kx and ky are expected to have the same sample sizes.")
     ctr_mat = torch.eye(n) - torch.ones((n, n)) / n
     return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (n ** 2)
+
+
+def euclidean(x1, x2):
+    return ((x1 - x2) ** 2).sum().sqrt()
