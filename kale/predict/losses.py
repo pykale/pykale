@@ -120,7 +120,7 @@ def hsic(kx, ky):
 
     Returns:
         [tensor]: Independent test score >= 0
-    
+
     Reference:
         [1] Gretton, Arthur, Bousquet, Olivier, Smola, Alex, and Schölkopf, Bernhard. Measuring Statistical Dependence
             with Hilbert-Schmidt Norms. In Algorithmic Learning Theory (ALT), pp. 63–77. 2005.
@@ -130,6 +130,6 @@ def hsic(kx, ky):
 
     n = kx.shape[0]
     if ky.shape[0] != n:
-        raise ValueError('kx and ky are expected to have the same sample sizes.')
+        raise ValueError("kx and ky are expected to have the same sample sizes.")
     ctr_mat = torch.eye(n) - torch.ones((n, n)) / n
     return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (n ** 2)

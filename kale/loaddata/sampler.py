@@ -65,6 +65,14 @@ class FixedSeedSamplingConfig(SamplingConfig):
         return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler)
 
 
+class MultiDomainSamplingConfig:
+    def __init__(self, seed=1, balanced_domain=True):
+        self._balanced_domain = balanced_domain
+
+    def create_loader(self, dataset, batch_size):
+        if self._balanced_domain:
+            sampler = BalancedDomainSampler(dataset, batch_size=batch_size)
+
 # TODO: deterministic shuffle?
 class MultiDataLoader:
     """
@@ -148,6 +156,7 @@ class BalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
 class BalancedDomainSampler(torch.utils.data.sampler.BatchSampler):
     def __init__(self, dataset, batch_size):
         domain_labels = np.array(dataset.domain_labels)
+        unique_domains = sorted(set(domain_labels))
         self.n_samples = domain_labels.shape[0]
         n_domains = len(dataset.domains)
         self.domain_idx = dict()
@@ -156,6 +165,9 @@ class BalancedDomainSampler(torch.utils.data.sampler.BatchSampler):
         self._n_samples_per_batch = batch_size // n_domains
         if self._n_samples_per_batch == 0:
             raise ValueError(f"batch_size should be bigger than the number of domains, got {batch_size}")
+
+        self._domain_iters = [InfiniteSliceIterator(np.where(domain_labels == domain_)[0], class_=domain_)
+                              for domain_ in unique_domains]
 
         batch_size = self._n_samples_per_batch * n_domains
         self._n_batches = self.n_samples // batch_size
@@ -167,7 +179,16 @@ class BalancedDomainSampler(torch.utils.data.sampler.BatchSampler):
     def __iter__(self):
         for _ in range(self._n_batches):
             indices = []
-            for c
+            for domian_iter in self._domain_iters:
+                indices.extend(domian_iter.get(self._n_samples_per_batch))
+            np.random.shuffle(indices)
+            yield indices
+
+        for domian_iter in self._domain_iters:
+            domian_iter.reset()
+
+    def __len__(self):
+        return self._n_batches
 
 
 class ReweightedBatchSampler(torch.utils.data.sampler.BatchSampler):

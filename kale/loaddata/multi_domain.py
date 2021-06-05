@@ -14,7 +14,7 @@ from sklearn.utils import check_random_state
 from torchvision.datasets import VisionDataset
 from torchvision.datasets.folder import default_loader, has_file_allowed_extension, IMG_EXTENSIONS
 
-from kale.loaddata.dataset_access import DatasetAccess
+from kale.loaddata.dataset_access import DatasetAccess, split_by_ratios
 from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
 
 
@@ -229,13 +229,15 @@ def _split_dataset_few_shot(dataset, n_fewshot, random_state=None):
 class MultiDomainImageFolder(VisionDataset):
     """A generic data loader where the samples are arranged in this way: ::
 
-            root/class_x/xxx.ext
-            root/class_x/xxy.ext
-            root/class_x/xxz.ext
-
-            root/class_y/123.ext
-            root/class_y/abc3.ext
-            root/class_y/asd932_.ext
+            root/domain_a/class_x/xxx.ext
+            root/domain_a/class_x/xxy.ext
+            ...
+            root/domain_a/class_y/xxz.ext
+            ...
+            root/domain_k/class_x/123.ext
+            root/domain_k/class_x/abc3.ext
+            ...
+            root/domain_k/class_y/asd932_.ext
 
         Args:
             root (string): Root directory path.
@@ -269,6 +271,7 @@ class MultiDomainImageFolder(VisionDataset):
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
         is_valid_file: Optional[Callable[[str], bool]] = None,
+        return_domain_label: Optional[bool] = False
     ) -> None:
         super(MultiDomainImageFolder, self).__init__(root, transform=transform, target_transform=target_transform)
         domains, domain_to_idx = self._find_classes(self.root)
@@ -295,6 +298,7 @@ class MultiDomainImageFolder(VisionDataset):
         self.domains = domains
         self.domain_to_idx = domain_to_idx
         self.domain_labels = [s[2] for s in samples]
+        self.return_domain_label = return_domain_label
 
     @staticmethod
     def _find_classes(directory: str) -> Tuple[List[str], Dict[str, int]]:
@@ -315,7 +319,7 @@ class MultiDomainImageFolder(VisionDataset):
         class_to_idx = {cls_name: i for i, cls_name in enumerate(classes)}
         return classes, class_to_idx
 
-    def __getitem__(self, index: int) -> Tuple[Any, Any, Any]:
+    def __getitem__(self, index: int) -> Tuple[Any, Any, Any] or Tuple[Any, Any]:
         """
             Args:
                 index (int): Index
@@ -329,8 +333,10 @@ class MultiDomainImageFolder(VisionDataset):
             sample = self.transform(sample)
         if self.target_transform is not None:
             target = self.target_transform(target)
-
-        return sample, target, domain
+        if self.return_domain_label:
+            return sample, target, domain
+        else:
+            return sample, target
 
     def __len__(self) -> int:
         return len(self.samples)
@@ -391,17 +397,56 @@ def make_multi_domain_set(
     return instances
 
 
-class MultiDomainAdapDataset():
+class DomainWeightType(Enum):
+    Rand = "random"
+    BALANCED = "balanced"
+
+
+class MultiDomainAdapDataset(DomainsDatasetBase):
     def __init__(
         self,
-        multi_domain_access: MultiDomainImageFolder,
+        data_access: MultiDomainImageFolder,
         domain_weight_type="balanced",
         config_weight_type="natural",
         config_size_type=DatasetSizeType.Max,
         target_label=0,
         target=None,
         val_split_ratio=0.1,
+        test_split_ratio=0.2,
         random_state=None,
     ):
+        domain_weight_type = DomainWeightType(domain_weight_type)
+        if domain_weight_type is DomainWeightType.BALANCED:
+            sampling =
         weight_type = WeightingType(config_weight_type)
         size_type = DatasetSizeType(config_size_type)
+        if target is None:
+            for key in data_access.domain_to_idx:
+                if data_access.domain_to_idx[key] == target_label:
+                    target = key
+                    break
+        else:
+            target_idx = data_access.domain_to_idx[target]
+            if target_idx != target_label:
+                raise ValueError("Given target domain label in given dataset is %s but not %s"
+                                 % (target_label, target_idx))
+        domain_labels = np.array(data_access.domain_labels)
+        self._source_access = torch.utils.data.Subset(data_access, np.where(domain_labels != target_label)[0])
+        self._target_access = torch.utils.data.Subset(data_access, np.where(domain_labels == target_label)[0])
+        self.target_label = target_label
+        self.target = target
+        self._val_split_ratio = val_split_ratio
+        self._test_split_ratio = test_split_ratio
+        self._source_by_split: Dict[str, torch.utils.data.Subset] = {}
+        self._target_by_split: Dict[str, torch.utils.data.Subset] = {}
+        self._random_state = check_random_state(random_state)
+
+    def prepare_data_loaders(self):
+        (self._source_by_split["test"], self._source_by_split["valid"], self._source_by_split["train"],) = \
+            split_by_ratios(self._source_access, [self._test_split_ratio, self._val_split_ratio])
+
+        (self._target_by_split["test"], self._target_by_split["valid"], self._target_by_split["train"]) = \
+            split_by_ratios(self._target_access, [self._test_split_ratio, self._val_split_ratio])
+
+    def get_domain_loaders(self, split="train", batch_size=32):
+
