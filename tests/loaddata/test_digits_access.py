@@ -67,6 +67,8 @@ def test_class_subsampling(dataset_name, download_path, val_ratio, class_sub_sam
     source_test = source.get_class_subsampled_test(class_sub_sample)
     source_train_val = source.get_train_val(val_ratio, class_sub_sample)
 
+    dataset = MultiDomainDatasets(source, target, config_weight_type=WEIGHT_TYPE[0], config_size_type=DATASIZE_TYPE[1])
+    dataset.prepare_data_loaders()
     dataset_subsampled = MultiDomainDatasets(
         source,
         target,
@@ -74,6 +76,11 @@ def test_class_subsampling(dataset_name, download_path, val_ratio, class_sub_sam
         config_size_type=DATASIZE_TYPE[1],
         sub_class_ids=class_sub_sample,
     )
+    dataset_subsampled.prepare_data_loaders()
+
+    assert len(dataset_subsampled) <= len(dataset)
+    assert len(source_train) <= len(source.get_train())
+    assert len(source_test) <= len(source.get_test())
 
     assert isinstance(source_train, torch.utils.data.Dataset)
     assert isinstance(source_test, torch.utils.data.Dataset)
