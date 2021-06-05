@@ -122,25 +122,35 @@ def test_get_source_target(
     assert isinstance(dataset, DomainsDatasetBase)
 
     # test class sub-sampling
-    subsampled_train_val = source["rgb"].get_train_val(val_ratio, class_sub_sample)
-    assert isinstance(subsampled_train_val, list)
-    assert isinstance(subsampled_train_val[0], torch.utils.data.Dataset)
-    assert isinstance(subsampled_train_val[1], torch.utils.data.Dataset)
+    if source_cfg == SOURCES[1] and target_cfg == TARGETS[1]:
+        subsampled_train_val = source["rgb"].get_train_val(val_ratio, class_sub_sample)
+        assert isinstance(subsampled_train_val, list)
+        assert isinstance(subsampled_train_val[0], torch.utils.data.Dataset)
+        assert isinstance(subsampled_train_val[1], torch.utils.data.Dataset)
 
-    assert len(subsampled_train_val[0]) <= len(train_val[0])
-    assert len(subsampled_train_val[1]) <= len(train_val[1])
+        assert len(subsampled_train_val[0]) <= len(train_val[0])
+        assert len(subsampled_train_val[1]) <= len(train_val[1])
 
-    dataset_subsampled = VideoMultiDomainDatasets(
-        source,
-        target,
-        image_modality=cfg.DATASET.IMAGE_MODALITY,
-        seed=seed,
-        config_weight_type=cfg.DATASET.WEIGHT_TYPE,
-        config_size_type=cfg.DATASET.SIZE_TYPE,
-        sub_class_ids=class_sub_sample,
-    )
-    assert isinstance(dataset_subsampled, DomainsDatasetBase)
-
-    dataset.prepare_data_loaders()
-    dataset_subsampled.prepare_data_loaders()
-    assert len(dataset_subsampled) <= len(dataset)
+        dataset_subsampled = VideoMultiDomainDatasets(
+            source,
+            target,
+            image_modality=cfg.DATASET.IMAGE_MODALITY,
+            seed=seed,
+            config_weight_type=cfg.DATASET.WEIGHT_TYPE,
+            config_size_type=cfg.DATASET.SIZE_TYPE,
+            sub_class_ids=class_sub_sample,
+        )
+        assert isinstance(dataset_subsampled, DomainsDatasetBase)
+        if dataset.rgb:
+            dataset._rgb_source_by_split = {"train": train_val[0]}
+            dataset._rgb_target_by_split = {"train": train_val[0]}
+        if dataset.flow:
+            dataset._flow_source_by_split = {"train": train_val[0]}
+            dataset._flow_target_by_split = {"train": train_val[0]}
+        if dataset_subsampled.rgb:
+            dataset_subsampled._rgb_source_by_split = {"train": subsampled_train_val[0]}
+            dataset_subsampled._rgb_target_by_split = {"train": subsampled_train_val[0]}
+        if dataset_subsampled.flow:
+            dataset_subsampled._flow_source_by_split = {"train": subsampled_train_val[0]}
+            dataset_subsampled._flow_target_by_split = {"train": subsampled_train_val[0]}
+        assert len(dataset_subsampled) <= len(dataset)
