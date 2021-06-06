@@ -28,31 +28,26 @@ class DatasetAccess:
         """
         raise NotImplementedError()
 
-    def get_class_subsampled_train(self, class_ids=None):
+    def get_train_class_subset(self, class_ids=None):
         """
         Args:
-            class_ids (list, optional): List of class ids that are to be subsampled.
+            class_ids (list, optional): List of chosen subset of class ids.
         Returns: a torch.utils.data.Dataset
             Dataset: a torch.utils.data.Dataset with only classes in class_ids
         """
-        train_dataset = self.get_train()
-        if class_ids is None:
-            return train_dataset
-        else:
-            sub_indices = [i for i in range(0, len(train_dataset)) if train_dataset[i][1] in class_ids]
-            return torch.utils.data.Subset(train_dataset, sub_indices)
+        return self._get_subset(self.get_train(), class_ids)
 
-    def get_train_val(self, val_ratio, sub_class_ids=None):
+    def get_train_val(self, val_ratio, class_ids=None):
         """
         Randomly split a dataset into non-overlapping training and validation datasets.
 
         Args:
             val_ratio (float): the ratio for validation set
-            sub_class_ids (list, optional): List of class ids that are to be subsampled.
+            class_ids (list, optional): List of chosen subset of class ids.
         Returns:
             Dataset: a torch.utils.data.Dataset
         """
-        train_dataset = self.get_class_subsampled_train(sub_class_ids)
+        train_dataset = self.get_train_class_subset(class_ids)
         ntotal = len(train_dataset)
         ntrain = int((1 - val_ratio) * ntotal)
 
@@ -61,16 +56,25 @@ class DatasetAccess:
     def get_test(self):
         raise NotImplementedError()
 
-    def get_class_subsampled_test(self, class_ids):
+    def get_test_class_subset(self, class_ids):
         """
         Args:
-            class_ids (list, optional): List of class ids that are to be subsampled.
+            class_ids (list, optional): List of chosen subset of class ids.
         Returns: a torch.utils.data.Dataset
             Dataset: a torch.utils.data.Dataset with only classes in class_ids
         """
-        test_dataset = self.get_test()
+        return self._get_subset(self.get_test(), class_ids)
+
+    def _get_subset(self, dataset, class_ids):
+        """
+        Args:
+            dataset: a torch.utils.data.Dataset
+            class_ids (list, optional): List of chosen subset of class ids.
+        Returns: a torch.utils.data.Dataset
+            Dataset: a torch.utils.data.Dataset with only classes in class_ids
+        """
         if class_ids is None:
-            return test_dataset
+            return dataset
         else:
-            sub_indices = [i for i in range(0, len(test_dataset)) if test_dataset[i][1] in class_ids]
-            return torch.utils.data.Subset(test_dataset, sub_indices)
+            sub_indices = [i for i in range(0, len(dataset)) if dataset[i][1] in class_ids]
+            return torch.utils.data.Subset(dataset, sub_indices)

@@ -30,7 +30,7 @@ DATASIZE_TYPE = ["max", "source"]
 VAL_RATIO = [0.1]
 seed = 36
 set_seed(seed)
-CLASS_SUB_SAMPLES = [[1, 3, 8]]
+CLASS_SUBSETS = [[1, 3, 8]]
 
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 url = "https://github.com/pykale/data/raw/main/video_data/video_test_data.zip"
@@ -59,10 +59,8 @@ def test_get_image_modality(image_modality):
 @pytest.mark.parametrize("val_ratio", VAL_RATIO)
 @pytest.mark.parametrize("weight_type", WEIGHT_TYPE)
 @pytest.mark.parametrize("datasize_type", DATASIZE_TYPE)
-@pytest.mark.parametrize("class_sub_sample", CLASS_SUB_SAMPLES)
-def test_get_source_target(
-    source_cfg, target_cfg, val_ratio, weight_type, datasize_type, testing_cfg, class_sub_sample
-):
+@pytest.mark.parametrize("class_subset", CLASS_SUBSETS)
+def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datasize_type, testing_cfg, class_subset):
     source_name, source_n_class, source_trainlist, source_testlist = source_cfg.split(";")
     target_name, target_n_class, target_trainlist, target_testlist = target_cfg.split(";")
     n_class = eval(min(source_n_class, target_n_class))
@@ -123,34 +121,30 @@ def test_get_source_target(
 
     # test class sub-sampling
     if source_cfg == SOURCES[1] and target_cfg == TARGETS[1]:
-        subsampled_train_val = source["rgb"].get_train_val(val_ratio, class_sub_sample)
-        assert isinstance(subsampled_train_val, list)
-        assert isinstance(subsampled_train_val[0], torch.utils.data.Dataset)
-        assert isinstance(subsampled_train_val[1], torch.utils.data.Dataset)
+        train_val_subset = source["rgb"].get_train_val(val_ratio, class_subset)
+        assert isinstance(train_val_subset[0], torch.utils.data.Dataset)
+        assert isinstance(train_val_subset[1], torch.utils.data.Dataset)
 
-        assert len(subsampled_train_val[0]) <= len(train_val[0])
-        assert len(subsampled_train_val[1]) <= len(train_val[1])
-
-        dataset_subsampled = VideoMultiDomainDatasets(
+        dataset_subset = VideoMultiDomainDatasets(
             source,
             target,
             image_modality=cfg.DATASET.IMAGE_MODALITY,
             seed=seed,
             config_weight_type=cfg.DATASET.WEIGHT_TYPE,
             config_size_type=cfg.DATASET.SIZE_TYPE,
-            sub_class_ids=class_sub_sample,
+            class_ids=class_subset,
         )
-        assert isinstance(dataset_subsampled, DomainsDatasetBase)
+        assert isinstance(dataset_subset, DomainsDatasetBase)
         if dataset.rgb:
             dataset._rgb_source_by_split = {"train": train_val[0]}
             dataset._rgb_target_by_split = {"train": train_val[0]}
         if dataset.flow:
             dataset._flow_source_by_split = {"train": train_val[0]}
             dataset._flow_target_by_split = {"train": train_val[0]}
-        if dataset_subsampled.rgb:
-            dataset_subsampled._rgb_source_by_split = {"train": subsampled_train_val[0]}
-            dataset_subsampled._rgb_target_by_split = {"train": subsampled_train_val[0]}
-        if dataset_subsampled.flow:
-            dataset_subsampled._flow_source_by_split = {"train": subsampled_train_val[0]}
-            dataset_subsampled._flow_target_by_split = {"train": subsampled_train_val[0]}
-        assert len(dataset_subsampled) <= len(dataset)
+        if dataset_subset.rgb:
+            dataset_subset._rgb_source_by_split = {"train": train_val_subset[0]}
+            dataset_subset._rgb_target_by_split = {"train": train_val_subset[0]}
+        if dataset_subset.flow:
+            dataset_subset._flow_source_by_split = {"train": train_val_subset[0]}
+            dataset_subset._flow_target_by_split = {"train": train_val_subset[0]}
+        assert len(dataset_subset) <= len(dataset)

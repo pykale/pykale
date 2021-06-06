@@ -68,7 +68,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
         target_sampling_config=None,
         n_fewshot=None,
         random_state=None,
-        sub_class_ids=None,
+        class_ids=None,
     ):
         """The class controlling how the source and target domains are
             iterated over.
@@ -84,7 +84,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
             n_fewshot (int, optional): Number of target samples for which the label may be used,
                 to define the few-shot, semi-supervised setting. Defaults to None.
             random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label selection. Defaults to None.
-            sub_class_ids (list, optional): List of class ids that are to be subsampled. Defaults to None (=> All Classes).
+            class_ids (list, optional): List of chosen subset of class ids. Defaults to None (=> All Classes).
         Examples::
             >>> dataset = MultiDomainDatasets(source_access, target_access)
         """
@@ -125,7 +125,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
         self._source_by_split: Dict[str, torch.utils.data.Subset] = {}
         self._labeled_target_by_split = None
         self._target_by_split: Dict[str, torch.utils.data.Subset] = {}
-        self.sub_class_ids = sub_class_ids
+        self.class_ids = class_ids
 
     def is_semi_supervised(self):
         return self._n_fewshot is not None and self._n_fewshot > 0
@@ -133,18 +133,18 @@ class MultiDomainDatasets(DomainsDatasetBase):
     def prepare_data_loaders(self):
         logging.debug("Load source")
         (self._source_by_split["train"], self._source_by_split["valid"],) = self._source_access.get_train_val(
-            self._val_split_ratio, self.sub_class_ids
+            self._val_split_ratio, self.class_ids
         )
 
         logging.debug("Load target")
         (self._target_by_split["train"], self._target_by_split["valid"],) = self._target_access.get_train_val(
-            self._val_split_ratio, self.sub_class_ids
+            self._val_split_ratio, self.class_ids
         )
 
         logging.debug("Load source Test")
-        self._source_by_split["test"] = self._source_access.get_class_subsampled_test(self.sub_class_ids)
+        self._source_by_split["test"] = self._source_access.get_test_class_subset(self.class_ids)
         logging.debug("Load target Test")
-        self._target_by_split["test"] = self._target_access.get_class_subsampled_test(self.sub_class_ids)
+        self._target_by_split["test"] = self._target_access.get_test_class_subset(self.class_ids)
 
         if self._n_fewshot is not None and self._n_fewshot > 0:
             # semi-supervised target domain
