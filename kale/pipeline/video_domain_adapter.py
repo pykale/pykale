@@ -490,8 +490,8 @@ class DANNtrainer4Video(DANNtrainer):
         if self.verb and not self.noun:
             loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s[0])
             _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
-            prec1_src, prec5_src = losses.topk_accuracy(y_hat[0], y_s[0], (1, 5))
-            prec1_tgt, prec5_tgt = losses.topk_accuracy(y_t_hat[0], y_tu[0], (1, 5))
+            prec1_src, prec5_src = losses.topk_accuracy(y_hat[0], y_s[0], topk=(1, 5))
+            prec1_tgt, prec5_tgt = losses.topk_accuracy(y_t_hat[0], y_tu[0], topk=(1, 5))
             task_loss = loss_cls
 
             log_metrics = {
@@ -512,10 +512,12 @@ class DANNtrainer4Video(DANNtrainer):
             _, ok_tgt_verb = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
             _, ok_tgt_noun = losses.cross_entropy_logits(y_t_hat[1], y_tu[1])
 
-            prec1_src_verb, prec5_src_verb = losses.multitask_topk_accuracy(y_hat[0], y_s[0])
-            prec1_src_noun, prec5_src_noun = losses.multitask_topk_accuracy(y_hat[1], y_s[1])
-            prec1_tgt_verb, prec5_tgt_verb = losses.multitask_topk_accuracy(y_t_hat[0], y_tu[0])
-            prec1_tgt_noun, prec5_tgt_noun = losses.multitask_topk_accuracy(y_t_hat[1], y_tu[1])
+            prec1_src_verb, prec5_src_verb = losses.topk_accuracy(y_hat[0], y_s[0], topk=(1, 5))
+            prec1_src_noun, prec5_src_noun = losses.topk_accuracy(y_hat[1], y_s[1], topk=(1, 5))
+            prec1_src_action, prec5_src_action = losses.multitask_topk_accuracy((y_hat[0], y_hat[1]), (y_s[0], y_s[1]), topk=(1, 5))
+            prec1_tgt_verb, prec5_tgt_verb = losses.topk_accuracy(y_t_hat[0], y_tu[0], topk=(1, 5))
+            prec1_tgt_noun, prec5_tgt_noun = losses.topk_accuracy(y_t_hat[1], y_tu[1], topk=(1, 5))
+            prec1_tgt_action, prec5_tgt_action = losses.multitask_topk_accuracy((y_t_hat[0], y_t_hat[1]), (y_tu[0], y_tu[1]), topk=(1, 5))
 
             task_loss = loss_cls_verb + loss_cls_noun
 
@@ -528,10 +530,14 @@ class DANNtrainer4Video(DANNtrainer):
                 f"{split_name}_verb_source_top5_acc": prec5_src_verb,
                 f"{split_name}_noun_source_top1_acc": prec1_src_noun,
                 f"{split_name}_noun_source_top5_acc": prec5_src_noun,
+                f"{split_name}_action_source_top1_acc": prec1_src_action,
+                f"{split_name}_action_source_top5_acc": prec5_src_action,
                 f"{split_name}_verb_target_top1_acc": prec1_tgt_verb,
                 f"{split_name}_verb_target_top5_acc": prec5_tgt_verb,
                 f"{split_name}_noun_target_top1_acc": prec1_tgt_noun,
                 f"{split_name}_noun_target_top5_acc": prec5_tgt_noun,
+                f"{split_name}_action_target_top1_acc": prec1_tgt_action,
+                f"{split_name}_action_target_top5_acc": prec5_tgt_action,
                 f"{split_name}_domain_acc": dok,
                 f"{split_name}_source_domain_acc": dok_src,
                 f"{split_name}_target_domain_acc": dok_tgt,
@@ -579,7 +585,11 @@ class DANNtrainer4Video(DANNtrainer):
                 "val_task_loss",
                 "val_adv_loss",
                 "V_source_acc",
+                "V_source_top1_acc",
+                "V_source_top5_acc",
                 "V_target_acc",
+                "V_target_top1_acc",
+                "V_target_top5_acc",
                 "V_source_domain_acc",
                 "V_target_domain_acc",
                 "V_domain_acc",
@@ -604,16 +614,28 @@ class DANNtrainer4Video(DANNtrainer):
             metrics_at_test = (
                 "test_loss",
                 "Te_source_acc",
+                "Te_source_top1_acc",
+                "Te_source_top5_acc",
                 "Te_target_acc",
+                "Te_target_top1_acc",
+                "Te_target_top5_acc",
                 "Te_domain_acc",
             )
         elif self.verb and self.noun:
             metrics_at_test = (
                 "test_loss",
                 "Te_verb_source_acc",
+                "Te_verb_source_top1_acc",
+                "Te_verb_source_top5_acc",
                 "Te_noun_source_acc",
+                "Te_noun_source_top1_acc",
+                "Te_noun_source_top5_acc",
                 "Te_verb_target_acc",
+                "Te_verb_target_top1_acc",
+                "Te_verb_target_top5_acc",
                 "Te_noun_target_acc",
+                "Te_noun_target_top1_acc",
+                "Te_noun_target_top5_acc",
                 "Te_domain_acc",
             )
 

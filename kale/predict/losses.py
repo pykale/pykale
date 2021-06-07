@@ -71,7 +71,8 @@ def multitask_topk_accuracy(output, label, topk=(1,)):
     accuracies = []
     for k in topk:
         all_tasks_correct = torch.ge(all_correct[:k].float().sum(0), task_count)
-        accuracy_at_k = float(all_tasks_correct.float().sum(0) * 100.0 / batch_size)
+        # accuracy_at_k = float(all_tasks_correct.float().sum(0) * 100.0 / batch_size)
+        accuracy_at_k = all_tasks_correct.float().sum(0) * 100.0 / batch_size
         accuracies.append(accuracy_at_k)
     return tuple(accuracies)
 
