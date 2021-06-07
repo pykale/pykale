@@ -30,6 +30,10 @@ class VideoRecord(object):
         self._path = os.path.join(root_datapath, row[0])
 
     @property
+    def segment_id(self):
+        return "{}-{}-{}".format(self._data[0], self._data[1], self._data[2])
+
+    @property
     def path(self):
         return self._path
 
@@ -49,7 +53,7 @@ class VideoRecord(object):
     def label(self):
         # just one label_id
         if len(self._data) == 4:
-            return int(self._data[3])
+            return [int(self._data[3])]
         # sample associated with multiple labels
         else:
             return [int(label_id) for label_id in self._data[3:]]
@@ -277,7 +281,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         if self.transform is not None:
             images = self.transform(images)
 
-        return images, record.label
+        return images, record.label, record.segment_id
 
     def __len__(self):
         return len(self.video_list)

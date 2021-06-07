@@ -24,6 +24,10 @@ IMAGE_MODALITY = ["rgb", "flow", "joint"]
 DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "DAN", "JAN", "Source"]
 WEIGHT_TYPE = "natural"
 DATASIZE_TYPE = "max"
+INPUT_TYPE = "image"
+VERB_CLASS = True
+NOUN_CLASS = False
+TRAIN_BATCH_SIZE = 2
 VAL_RATIO = 0.1
 seed = 36
 set_seed(seed)
@@ -37,6 +41,7 @@ def testing_cfg(download_path):
     cfg = CN()
     cfg.DATASET = CN()
     cfg.DAN = CN()
+    cfg.SOLVER = CN()
     cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
     yield cfg
@@ -52,7 +57,7 @@ def testing_training_cfg():
             "nb_adapt_epochs": 2,
             "nb_init_epochs": 1,
             "init_lr": 0.001,
-            "batch_size": 2,
+            "batch_size": TRAIN_BATCH_SIZE,
             "optimizer": {"type": "SGD", "optim_params": {"momentum": 0.9, "weight_decay": 0.0005, "nesterov": True}},
         }
     }
@@ -73,11 +78,15 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
     cfg.DATASET.SRC_TRAINLIST = source_trainlist
     cfg.DATASET.SRC_TESTLIST = source_testlist
     cfg.DATASET.TARGET = target_name
-    cfg.DATASET.TAR_TRAINLIST = target_trainlist
-    cfg.DATASET.TAR_TESTLIST = target_testlist
+    cfg.DATASET.TGT_TRAINLIST = target_trainlist
+    cfg.DATASET.TGT_TESTLIST = target_testlist
     cfg.DATASET.IMAGE_MODALITY = image_modality
     cfg.DATASET.WEIGHT_TYPE = WEIGHT_TYPE
     cfg.DATASET.SIZE_TYPE = DATASIZE_TYPE
+    cfg.DATASET.INPUT_TYPE = INPUT_TYPE
+    cfg.DATASET.VERB_CLASS = VERB_CLASS
+    cfg.DATASET.NOUN_CLASS = NOUN_CLASS
+    cfg.SOLVER.TRAIN_BATCH_SIZE = TRAIN_BATCH_SIZE
     cfg.DAN.USERANDOM = False
 
     # download example data

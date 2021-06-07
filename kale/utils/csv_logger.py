@@ -70,13 +70,16 @@ def record_hashes(hash_file, hash_, value):
     return False
 
 
-def setup_logger(train_params, output_dir, method_name, seed):
+def setup_logger(train_params, output_dir, method_name, seed, class_type="verb"):
     """[summary]
 
     Args:
         train_params (dictionary): training parameters to generate a unique hash for logging
         output_dir (string): the path to log results
         method_name (string): the ML method
+        seed (int): seed value set manually.
+        class_type (string): the type of class. Options=["verb", "verb+noun"]. Default="verb".
+                            Only used in action_dann_lightn example. Keep default value in other examples.
 
     Returns:
         [type]: [description]
@@ -98,16 +101,28 @@ def setup_logger(train_params, output_dir, method_name, seed):
 
     path_method_name = re.sub(r"[^-/\w\.]", "_", method_name)
     full_checkpoint_dir = os.path.join(checkpoint_dir, path_method_name, f"seed_{seed}")
-    checkpoint_callback = ModelCheckpoint(
-        dirpath=full_checkpoint_dir,
-        filename="{epoch}-{step}-{V_target_acc:.4f}",
-        save_last=True,
-        save_top_k=1,
-        monitor="V_target_acc",
-        mode="max",
-    )
+    if class_type == "verb+noun":
+        checkpoint_callback = ModelCheckpoint(
+            dirpath=full_checkpoint_dir,
+            filename="{epoch}-{step}-{V_target_acc:.4f}",
+            save_last=True,
+            save_top_k=1,
+            monitor="V_verb_target_acc",
+            mode="max",
+        )
+        metrics = ["verb source acc", "verb target acc", "noun source acc", "noun target acc", "domain acc"]
+    else:
+        checkpoint_callback = ModelCheckpoint(
+            dirpath=full_checkpoint_dir,
+            filename="{epoch}-{step}-{V_target_acc:.4f}",
+            save_last=True,
+            save_top_k=1,
+            monitor="V_target_acc",
+            mode="max",
+        )
+        metrics = ["source acc", "target acc", "domain acc"]
 
-    results = XpResults.from_file(["source acc", "target acc", "domain acc"], test_csv_file)
+    results = XpResults.from_file(metrics, test_csv_file)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     logger = logging.getLogger()

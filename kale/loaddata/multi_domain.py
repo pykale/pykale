@@ -23,13 +23,19 @@ class WeightingType(Enum):
 class DatasetSizeType(Enum):
     Max = "max"  # size of the biggest dataset
     Source = "source"  # size of the source dataset
+    Adaptive = "adaptive"  # adaptive batch size between source and target dataset
 
     @staticmethod
-    def get_size(size_type, source_dataset, *other_datasets):
+    def get_size(size_type, batch_size, source_dataset, *other_datasets):
         if size_type is DatasetSizeType.Max:
-            return max(list(map(len, other_datasets)) + [len(source_dataset)])
+            return max(list(map(len, other_datasets)) + [len(source_dataset)]), batch_size
         elif size_type is DatasetSizeType.Source:
-            return len(source_dataset)
+            return len(source_dataset), batch_size
+        elif size_type is DatasetSizeType.Adaptive:
+            if len(other_datasets) > 1:
+                raise ValueError("Invalid SIZE_TYPE. Not support {} for semi-supervised".format(size_type))
+            target_batch_size = int(batch_size * len(other_datasets[0]) / len(source_dataset))
+            return len(source_dataset), target_batch_size
         else:
             raise ValueError(f"Size type size must be 'max' or 'source', had '{size_type}'")
 
@@ -158,8 +164,8 @@ class MultiDomainDatasets(DomainsDatasetBase):
 
         if self._labeled_target_by_split is None:
             # unsupervised target domain
-            target_loader = self._target_sampling_config.create_loader(target_ds, batch_size)
-            n_dataset = DatasetSizeType.get_size(self._size_type, source_ds, target_ds)
+            n_dataset, target_batch_size = DatasetSizeType.get_size(self._size_type, batch_size, source_ds, target_ds)
+            target_loader = self._target_sampling_config.create_loader(target_ds, target_batch_size)
             return MultiDataLoader(
                 dataloaders=[source_loader, target_loader], n_batches=max(n_dataset // batch_size, 1),
             )
@@ -172,7 +178,9 @@ class MultiDomainDatasets(DomainsDatasetBase):
                 target_labeled_ds, batch_size=min(len(target_labeled_ds), batch_size)
             )
             target_unlabeled_loader = self._target_sampling_config.create_loader(target_unlabeled_ds, batch_size)
-            n_dataset = DatasetSizeType.get_size(self._size_type, source_ds, target_labeled_ds, target_unlabeled_ds)
+            n_dataset, _ = DatasetSizeType.get_size(
+                self._size_type, batch_size, source_ds, target_labeled_ds, target_unlabeled_ds
+            )
             return MultiDataLoader(
                 dataloaders=[source_loader, target_labeled_loader, target_unlabeled_loader],
                 n_batches=max(n_dataset // batch_size, 1),

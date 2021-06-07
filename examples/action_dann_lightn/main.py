@@ -25,7 +25,7 @@ def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Action Datasets")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    parser.add_argument("--gpus", default="0", help="gpu id(s) to use", type=str)
+    parser.add_argument("--gpus", default="0", help="gpu id(s) to use. None for cpu. str(-1)/int(-1) for ", type=str)
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
@@ -45,9 +45,10 @@ def main():
     os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
+
     # ---- setup dataset ----
     seed = cfg.SOLVER.SEED
-    source, target, num_classes = VideoDataset.get_source_target(
+    source, target, dict_num_classes = VideoDataset.get_source_target(
         VideoDataset(cfg.DATASET.SOURCE.upper()), VideoDataset(cfg.DATASET.TARGET.upper()), seed, cfg
     )
     dataset = VideoMultiDomainDatasets(
@@ -66,9 +67,9 @@ def main():
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
-        model, train_params = get_model(cfg, dataset, num_classes)
+        model, train_params = get_model(cfg, dataset, dict_num_classes)
         logger, results, checkpoint_callback, test_csv_file = setup_logger(
-            train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD, seed
+            train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD, seed, cfg.DATASET.CLASS_TYPE
         )
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR)
 
@@ -84,17 +85,16 @@ def main():
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
-            checkpoint_callback=checkpoint_callback,
             # resume_from_checkpoint=last_checkpoint_file,
             gpus=args.gpus,
             logger=tb_logger,  # logger,
             # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
-            callbacks=[lr_monitor],
+            callbacks=[lr_monitor, checkpoint_callback],
             # callbacks=[early_stop_callback, lr_monitor],
-            # limit_train_batches=0.005,
-            # limit_val_batches=0.06,
-            # limit_test_batches=0.06,
+            # limit_train_batches=0.03,
+            # limit_val_batches=0.4,
+            # limit_test_batches=0.03,
         )
 
         ### Find learning_rate

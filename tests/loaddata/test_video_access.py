@@ -47,7 +47,7 @@ def testing_cfg(download_path):
 
 @pytest.mark.parametrize("image_modality", IMAGE_MODALITY)
 def test_get_image_modality(image_modality):
-    rgb, flow = get_image_modality(image_modality)
+    rgb, flow, audio = get_image_modality(image_modality)
 
     assert isinstance(rgb, bool)
     assert isinstance(flow, bool)
@@ -69,8 +69,8 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
     cfg.DATASET.SRC_TRAINLIST = source_trainlist
     cfg.DATASET.SRC_TESTLIST = source_testlist
     cfg.DATASET.TARGET = target_name
-    cfg.DATASET.TAR_TRAINLIST = target_trainlist
-    cfg.DATASET.TAR_TESTLIST = target_testlist
+    cfg.DATASET.TGT_TRAINLIST = target_trainlist
+    cfg.DATASET.TGT_TESTLIST = target_testlist
     cfg.DATASET.WEIGHT_TYPE = weight_type
     cfg.DATASET.SIZE_TYPE = datasize_type
 

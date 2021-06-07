@@ -57,6 +57,29 @@ class SELayer(nn.Module):
         return NotImplementedError()
 
 
+class SELayer4feat(SELayer):
+    """Construct channel-wise SELayer for feature input."""
+
+    def __init__(self, channel, reduction=2):
+        super(SELayer4feat, self).__init__(channel, reduction)
+        self.avg_pool = nn.AdaptiveAvgPool1d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(self.channel // self.reduction, self.channel, bias=False),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, x):
+        b, t, f = x.size()
+        y = self.avg_pool(x).view(b, t)
+        y = self.fc(y).view(b, t, 1)
+        # out = x * y.expand_as(x)
+        y = y - 0.5
+        out = x + x * y.expand_as(x)
+        return out
+
+
 class SELayerC(SELayer):
     """Construct channel-wise SELayer."""
 

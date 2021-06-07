@@ -21,14 +21,16 @@ _C.DATASET.SOURCE = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
 _C.DATASET.SRC_TRAINLIST = "epic_D1_train.pkl"
 _C.DATASET.SRC_TESTLIST = "epic_D1_test.pkl"
 _C.DATASET.TARGET = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
-_C.DATASET.TAR_TRAINLIST = "epic_D2_train.pkl"
-_C.DATASET.TAR_TESTLIST = "epic_D2_test.pkl"
-_C.DATASET.IMAGE_MODALITY = "rgb"  # mode options=["rgb", "flow", "joint"]
-# _C.DATASET.NUM_CLASSES = 8
+_C.DATASET.TGT_TRAINLIST = "epic_D2_train.pkl"
+_C.DATASET.TGT_TESTLIST = "epic_D2_test.pkl"
+_C.DATASET.IMAGE_MODALITY = "rgb"  # mode options=["rgb", "flow", "audio", "joint", "all"]
+_C.DATASET.INPUT_TYPE = "image"  # type options=["image", "feature"]
 _C.DATASET.FRAMES_PER_SEGMENT = 16
 _C.DATASET.NUM_REPEAT = 5  # 10
 _C.DATASET.WEIGHT_TYPE = "natural"
-_C.DATASET.SIZE_TYPE = "max"  # options=["source", "max"]
+_C.DATASET.SIZE_TYPE = "adaptive"  # options=["source", "max", "adaptive"]
+_C.DATASET.CLASS_TYPE = "verb"  # options=["verb", "verb+noun"]
+
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
@@ -44,7 +46,7 @@ _C.SOLVER.MAX_EPOCHS = 30  # "nb_adapt_epochs": 100,
 # _C.SOLVER.WARMUP = True
 _C.SOLVER.MIN_EPOCHS = 5  # "nb_init_epochs": 20,
 _C.SOLVER.TRAIN_BATCH_SIZE = 16  # 150
-# _C.SOLVER.TEST_BATCH_SIZE = 32  # No difference in ADA
+# _C.SOLVER.TEST_BATCH_SIZE = 16  # No difference in ADA
 
 # Adaptation-specific solver config
 _C.SOLVER.AD_LAMBDA = True
