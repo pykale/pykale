@@ -24,11 +24,13 @@ from kale.pipeline.domain_adapter import (
     WDGRLtrainer,
 )
 
+
 # from kale.utils.logger import save_results_to_json
 
 
 def create_mmd_based_4video(
-    method: Method, dataset, image_modality, feature_extractor, task_classifier, input_type, class_type, **train_params
+        method: Method, dataset, image_modality, feature_extractor, task_classifier, input_type, class_type,
+        **train_params
 ):
     """MMD-based deep learning methods for domain adaptation on video data: DAN and JAN"""
     if not method.is_mmd_method():
@@ -60,15 +62,15 @@ def create_mmd_based_4video(
 
 
 def create_dann_like_4video(
-    method: Method,
-    dataset,
-    image_modality,
-    feature_extractor,
-    task_classifier,
-    critic,
-    input_type,
-    class_type,
-    **train_params,
+        method: Method,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        critic,
+        input_type,
+        class_type,
+        **train_params,
 ):
     """DANN-based deep learning methods for domain adaptation on video data: DANN, CDAN, CDAN+E"""
 
@@ -138,7 +140,8 @@ def create_dann_like_4video(
 
 class BaseMMDLike4Video(BaseMMDLike):
     def __init__(
-        self, dataset, image_modality, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5, **base_params,
+            self, dataset, image_modality, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5,
+            **base_params,
     ):
         """Common API for MME-based domain adaptation on video data: DAN, JAN"""
 
@@ -208,7 +211,7 @@ class DANtrainer4Video(BaseMMDLike4Video):
 
     def _compute_mmd(self, phi_s, phi_t, y_hat, y_t_hat):
         batch_size = int(phi_s.size()[0])
-        kernels = losses.gaussian_kernel(phi_s, phi_t, kernel_mul=self._kernel_mul, kernel_num=self._kernel_num,)
+        kernels = losses.gaussian_kernel(phi_s, phi_t, kernel_mul=self._kernel_mul, kernel_num=self._kernel_num, )
         return losses.compute_mmd_loss(kernels, batch_size)
 
 
@@ -216,14 +219,14 @@ class JANtrainer4Video(BaseMMDLike4Video):
     """This is an implementation of JAN for video data."""
 
     def __init__(
-        self,
-        dataset,
-        image_modality,
-        feature_extractor,
-        task_classifier,
-        kernel_mul=(2.0, 2.0),
-        kernel_num=(5, 1),
-        **base_params,
+            self,
+            dataset,
+            image_modality,
+            feature_extractor,
+            task_classifier,
+            kernel_mul=(2.0, 2.0),
+            kernel_num=(5, 1),
+            **base_params,
     ):
         super().__init__(
             dataset,
@@ -243,7 +246,7 @@ class JANtrainer4Video(BaseMMDLike4Video):
 
         joint_kernels = None
         for source, target, k_mul, k_num, sigma in zip(
-            source_list, target_list, self._kernel_mul, self._kernel_num, [None, 1.68]
+                source_list, target_list, self._kernel_mul, self._kernel_num, [None, 1.68]
         ):
             kernels = losses.gaussian_kernel(source, target, kernel_mul=k_mul, kernel_num=k_num, fix_sigma=sigma)
             if joint_kernels is not None:
@@ -258,16 +261,16 @@ class DANNtrainer4Video(DANNtrainer):
     """This is an implementation of DANN for video data."""
 
     def __init__(
-        self,
-        dataset,
-        image_modality,
-        feature_extractor,
-        task_classifier,
-        critic,
-        method,
-        input_type,
-        class_type,
-        **base_params,
+            self,
+            dataset,
+            image_modality,
+            feature_extractor,
+            task_classifier,
+            critic,
+            method,
+            input_type,
+            class_type,
+            **base_params,
     ):
         super(DANNtrainer4Video, self).__init__(
             dataset, feature_extractor, task_classifier, critic, method, **base_params
@@ -455,23 +458,65 @@ class DANNtrainer4Video(DANNtrainer):
                 dok_src = dok_src_audio
                 dok_tgt = dok_tgt_audio
 
+        # if self.verb and not self.noun:
+        #     loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s[0])
+        #     _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
+        #     task_loss = loss_cls
+        #
+        #     log_metrics = {
+        #         f"{split_name}_source_acc": ok_src,
+        #         f"{split_name}_target_acc": ok_tgt,
+        #         f"{split_name}_domain_acc": dok,
+        #         f"{split_name}_source_domain_acc": dok_src,
+        #         f"{split_name}_target_domain_acc": dok_tgt,
+        #     }
+        # elif self.verb and self.noun:
+        #     loss_cls_verb, ok_src_verb = losses.cross_entropy_logits(y_hat[0], y_s[0])
+        #     loss_cls_noun, ok_src_noun = losses.cross_entropy_logits(y_hat[1], y_s[1])
+        #     _, ok_tgt_verb = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
+        #     _, ok_tgt_noun = losses.cross_entropy_logits(y_t_hat[1], y_tu[1])
+        #     task_loss = loss_cls_verb + loss_cls_noun
+        #
+        #     log_metrics = {
+        #         f"{split_name}_verb_source_acc": ok_src_verb,
+        #         f"{split_name}_noun_source_acc": ok_src_noun,
+        #         f"{split_name}_verb_target_acc": ok_tgt_verb,
+        #         f"{split_name}_noun_target_acc": ok_tgt_noun,
+        #         f"{split_name}_domain_acc": dok,
+        #         f"{split_name}_source_domain_acc": dok_src,
+        #         f"{split_name}_target_domain_acc": dok_tgt,
+        #     }
+
         if self.verb and not self.noun:
             loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s[0])
             _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
+            prec1_src, prec5_src = losses.topk_accuracy(y_hat[0], y_s[0], (1, 5))
+            prec1_tgt, prec5_tgt = losses.topk_accuracy(y_t_hat[0], y_tu[0], (1, 5))
             task_loss = loss_cls
 
             log_metrics = {
                 f"{split_name}_source_acc": ok_src,
                 f"{split_name}_target_acc": ok_tgt,
+                f"{split_name}_source_top1_acc": prec1_src,
+                f"{split_name}_source_top5_acc": prec5_src,
+                f"{split_name}_target_top1_acc": prec1_tgt,
+                f"{split_name}_target_top5_acc": prec5_tgt,
                 f"{split_name}_domain_acc": dok,
                 f"{split_name}_source_domain_acc": dok_src,
                 f"{split_name}_target_domain_acc": dok_tgt,
             }
+
         elif self.verb and self.noun:
             loss_cls_verb, ok_src_verb = losses.cross_entropy_logits(y_hat[0], y_s[0])
             loss_cls_noun, ok_src_noun = losses.cross_entropy_logits(y_hat[1], y_s[1])
             _, ok_tgt_verb = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
             _, ok_tgt_noun = losses.cross_entropy_logits(y_t_hat[1], y_tu[1])
+
+            prec1_src_verb, prec5_src_verb = losses.multitask_topk_accuracy(y_hat[0], y_s[0])
+            prec1_src_noun, prec5_src_noun = losses.multitask_topk_accuracy(y_hat[1], y_s[1])
+            prec1_tgt_verb, prec5_tgt_verb = losses.multitask_topk_accuracy(y_t_hat[0], y_tu[0])
+            prec1_tgt_noun, prec5_tgt_noun = losses.multitask_topk_accuracy(y_t_hat[1], y_tu[1])
+
             task_loss = loss_cls_verb + loss_cls_noun
 
             log_metrics = {
@@ -479,6 +524,14 @@ class DANNtrainer4Video(DANNtrainer):
                 f"{split_name}_noun_source_acc": ok_src_noun,
                 f"{split_name}_verb_target_acc": ok_tgt_verb,
                 f"{split_name}_noun_target_acc": ok_tgt_noun,
+                f"{split_name}_verb_source_top1_acc": prec1_src_verb,
+                f"{split_name}_verb_source_top5_acc": prec5_src_verb,
+                f"{split_name}_noun_source_top1_acc": prec1_src_noun,
+                f"{split_name}_noun_source_top5_acc": prec5_src_noun,
+                f"{split_name}_verb_target_top1_acc": prec1_tgt_verb,
+                f"{split_name}_verb_target_top5_acc": prec5_tgt_verb,
+                f"{split_name}_noun_target_top1_acc": prec1_tgt_noun,
+                f"{split_name}_noun_target_top5_acc": prec5_tgt_noun,
                 f"{split_name}_domain_acc": dok,
                 f"{split_name}_source_domain_acc": dok_src,
                 f"{split_name}_target_domain_acc": dok_tgt,
@@ -579,16 +632,16 @@ class CDANtrainer4Video(CDANtrainer):
     """This is an implementation of CDAN for video data."""
 
     def __init__(
-        self,
-        dataset,
-        image_modality,
-        feature_extractor,
-        task_classifier,
-        critic,
-        use_entropy=False,
-        use_random=False,
-        random_dim=1024,
-        **base_params,
+            self,
+            dataset,
+            image_modality,
+            feature_extractor,
+            task_classifier,
+            critic,
+            use_entropy=False,
+            use_random=False,
+            random_dim=1024,
+            **base_params,
     ):
         super(CDANtrainer4Video, self).__init__(
             dataset, feature_extractor, task_classifier, critic, use_entropy, use_random, random_dim, **base_params
@@ -721,16 +774,16 @@ class WDGRLtrainer4Video(WDGRLtrainer):
     """This is an implementation of WDGRL for video data."""
 
     def __init__(
-        self,
-        dataset,
-        image_modality,
-        feature_extractor,
-        task_classifier,
-        critic,
-        k_critic=5,
-        gamma=10,
-        beta_ratio=0,
-        **base_params,
+            self,
+            dataset,
+            image_modality,
+            feature_extractor,
+            task_classifier,
+            critic,
+            k_critic=5,
+            gamma=10,
+            beta_ratio=0,
+            **base_params,
     ):
         super(WDGRLtrainer4Video, self).__init__(
             dataset, feature_extractor, task_classifier, critic, k_critic, gamma, beta_ratio, **base_params
@@ -919,11 +972,11 @@ class WDGRLtrainer4Video(WDGRLtrainer):
                 wasserstein_distance_flow = critic_s_flow.mean() - (1 + self._beta_ratio) * critic_t_flow.mean()
 
                 critic_cost = (
-                    -wasserstein_distance_rgb
-                    + -wasserstein_distance_flow
-                    + self._gamma * gp_rgb
-                    + self._gamma * gp_flow
-                ) * 0.5
+                                      -wasserstein_distance_rgb
+                                      + -wasserstein_distance_flow
+                                      + self._gamma * gp_rgb
+                                      + self._gamma * gp_flow
+                              ) * 0.5
 
                 self.critic_opt.zero_grad()
                 critic_cost.backward()
