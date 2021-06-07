@@ -8,6 +8,7 @@ from yacs.config import CfgNode as CN
 from kale.loaddata.multi_domain import DomainsDatasetBase
 from kale.loaddata.video_access import get_image_modality, VideoDataset, VideoDatasetAccess
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
+from kale.utils.class_subset import get_class_subset
 from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
 
@@ -121,7 +122,9 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
 
     # test class sub-sampling
     if source_cfg == SOURCES[1] and target_cfg == TARGETS[1]:
-        train_val_subset = source["rgb"].get_train_val(val_ratio, class_subset)
+        train_val_subset = source["rgb"].get_train_val(val_ratio)
+        train_val_subset[0] = get_class_subset(train_val_subset[0], class_subset)
+        train_val_subset[1] = get_class_subset(train_val_subset[1], class_subset)
 
         dataset_subset = VideoMultiDomainDatasets(
             source,

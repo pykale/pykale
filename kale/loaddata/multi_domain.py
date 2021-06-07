@@ -12,6 +12,7 @@ from sklearn.utils import check_random_state
 
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
+from kale.utils.class_subset import get_class_subset
 
 
 class WeightingType(Enum):
@@ -133,18 +134,28 @@ class MultiDomainDatasets(DomainsDatasetBase):
     def prepare_data_loaders(self):
         logging.debug("Load source")
         (self._source_by_split["train"], self._source_by_split["valid"],) = self._source_access.get_train_val(
-            self._val_split_ratio, self.class_ids
+            self._val_split_ratio
         )
+        if self.class_ids is not None:
+            self._source_by_split["train"] = get_class_subset(self._source_by_split["train"], self.class_ids)
+            self._source_by_split["valid"] = get_class_subset(self._source_by_split["valid"], self.class_ids)
 
         logging.debug("Load target")
         (self._target_by_split["train"], self._target_by_split["valid"],) = self._target_access.get_train_val(
-            self._val_split_ratio, self.class_ids
+            self._val_split_ratio
         )
+        if self.class_ids is not None:
+            self._target_by_split["train"] = get_class_subset(self._target_by_split["train"], self.class_ids)
+            self._target_by_split["valid"] = get_class_subset(self._target_by_split["valid"], self.class_ids)
 
         logging.debug("Load source Test")
-        self._source_by_split["test"] = self._source_access.get_test(self.class_ids)
+        self._source_by_split["test"] = self._source_access.get_test()
+        if self.class_ids is not None:
+            self._source_by_split["test"] = get_class_subset(self._source_by_split["test"], self.class_ids)
         logging.debug("Load target Test")
-        self._target_by_split["test"] = self._target_access.get_test(self.class_ids)
+        self._target_by_split["test"] = self._target_access.get_test()
+        if self.class_ids is not None:
+            self._target_by_split["test"] = get_class_subset(self._target_by_split["test"], self.class_ids)
 
         if self._n_fewshot is not None and self._n_fewshot > 0:
             # semi-supervised target domain
