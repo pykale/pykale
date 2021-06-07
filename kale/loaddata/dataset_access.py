@@ -59,7 +59,7 @@ class DatasetAccess:
     def _get_test(self):
         raise NotImplementedError()
 
-    def get_test(self, class_ids):
+    def get_test(self, class_ids=None):
         """
         Args:
             class_ids (list, optional): List of chosen subset of class ids.
