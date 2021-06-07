@@ -537,15 +537,14 @@ class DANNtrainer4Video(DANNtrainer):
                 f"{split_name}_target_domain_acc": dok_tgt,
             }
 
-        # save to json for EPIC challenge
-        if split_name == "Te":
-            self.y_hat.extend(y_hat[0].tolist())
-            self.y_hat_noun.extend(y_hat[1].tolist())
-            self.y_t_hat.extend(y_t_hat[0].tolist())
-            self.y_t_hat_noun.extend(y_t_hat[1].tolist())
-            self.s_id.extend(s_id)
-            self.tu_id.extend(tu_id)
-            # save_results_to_json(y_hat, y_t_hat, s_id, tu_id, self.verb, self.noun)
+        # Uncomment to store output for EPIC UDA 2021 challenge.
+        #     if split_name == "Te":
+        #         self.y_hat.extend(y_hat[0].tolist())
+        #         self.y_hat_noun.extend(y_hat[1].tolist())
+        #         self.y_t_hat.extend(y_t_hat[0].tolist())
+        #         self.y_t_hat_noun.extend(y_t_hat[1].tolist())
+        #         self.s_id.extend(s_id)
+        #         self.tu_id.extend(tu_id)
 
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
 
@@ -618,7 +617,7 @@ class DANNtrainer4Video(DANNtrainer):
                 "Te_domain_acc",
             )
 
-        # Uncomment to save output to json file
+        # Uncomment to save output to json file for EPIC UDA 2021 challenge
         # save_results_to_json(
         #     self.y_hat, self.y_t_hat, self.s_id, self.tu_id, self.y_hat_noun, self.y_t_hat_noun, self.verb, self.noun
         # )
