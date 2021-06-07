@@ -63,10 +63,6 @@ def test_class_subsampling(dataset_name, download_path, val_ratio, class_subset)
         DigitDataset(dataset_name), DigitDataset(dataset_name), download_path
     )
 
-    source_train = source.get_train_class_subset(class_subset)
-    source_test = source.get_test_class_subset(class_subset)
-    source_train_val = source.get_train_val(val_ratio, class_subset)
-
     dataset = MultiDomainDatasets(source, target, config_weight_type=WEIGHT_TYPE[0], config_size_type=DATASIZE_TYPE[1])
     dataset.prepare_data_loaders()
     dataset_subset = MultiDomainDatasets(
@@ -75,9 +71,3 @@ def test_class_subsampling(dataset_name, download_path, val_ratio, class_subset)
     dataset_subset.prepare_data_loaders()
 
     assert len(dataset_subset) <= len(dataset)
-
-    assert isinstance(source_train, torch.utils.data.Dataset)
-    assert isinstance(source_test, torch.utils.data.Dataset)
-    assert isinstance(source_train_val[0], torch.utils.data.Dataset)
-    assert isinstance(source_train_val[1], torch.utils.data.Dataset)
-    assert isinstance(dataset_subset, DomainsDatasetBase)

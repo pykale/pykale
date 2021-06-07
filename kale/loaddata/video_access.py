@@ -228,7 +228,7 @@ class VideoDatasetAccess(DatasetAccess):
         """Get the train and validation dataset with the fixed random split. This is used for joint input like RGB and
         optical flow, which will call `get_train_val` twice. Fixing the random seed here can keep the seeds for twice
         the same."""
-        train_dataset = self.get_train_class_subset(class_ids)
+        train_dataset = self.get_train(class_ids)
         ntotal = len(train_dataset)
         ntrain = int((1 - val_ratio) * ntotal)
         return torch.utils.data.random_split(
@@ -239,7 +239,7 @@ class VideoDatasetAccess(DatasetAccess):
 class EPICDatasetAccess(VideoDatasetAccess):
     """EPIC data loader"""
 
-    def get_train(self):
+    def _get_train(self):
         return EPIC(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
@@ -254,7 +254,7 @@ class EPICDatasetAccess(VideoDatasetAccess):
             n_classes=self._n_classes,
         )
 
-    def get_test(self):
+    def _get_test(self):
         return EPIC(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
@@ -273,7 +273,7 @@ class EPICDatasetAccess(VideoDatasetAccess):
 class GTEADatasetAccess(VideoDatasetAccess):
     """GTEA data loader"""
 
-    def get_train(self):
+    def _get_train(self):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
@@ -288,7 +288,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
             n_classes=self._n_classes,
         )
 
-    def get_test(self):
+    def _get_test(self):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
@@ -307,7 +307,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
 class ADLDatasetAccess(VideoDatasetAccess):
     """ADL data loader"""
 
-    def get_train(self):
+    def _get_train(self):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
@@ -322,7 +322,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
             n_classes=self._n_classes,
         )
 
-    def get_test(self):
+    def _get_test(self):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
@@ -341,7 +341,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
 class KITCHENDatasetAccess(VideoDatasetAccess):
     """KITCHEN data loader"""
 
-    def get_train(self):
+    def _get_train(self):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
@@ -356,7 +356,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
             n_classes=self._n_classes,
         )
 
-    def get_test(self):
+    def _get_test(self):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._test_list,

@@ -98,8 +98,8 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             ].get_train_val(self._val_split_ratio, self.class_ids)
 
             logging.debug("Load RGB Test")
-            self._rgb_source_by_split["test"] = self._source_access_dict["rgb"].get_test_class_subset(self.class_ids)
-            self._rgb_target_by_split["test"] = self._target_access_dict["rgb"].get_test_class_subset(self.class_ids)
+            self._rgb_source_by_split["test"] = self._source_access_dict["rgb"].get_test(self.class_ids)
+            self._rgb_target_by_split["test"] = self._target_access_dict["rgb"].get_test(self.class_ids)
 
         if self.flow:
             logging.debug("Load flow train and val")
@@ -112,8 +112,8 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             ].get_train_val(self._val_split_ratio, self.class_ids)
 
             logging.debug("Load flow Test")
-            self._flow_source_by_split["test"] = self._source_access_dict["flow"].get_test_class_subset(self.class_ids)
-            self._flow_target_by_split["test"] = self._target_access_dict["flow"].get_test_class_subset(self.class_ids)
+            self._flow_source_by_split["test"] = self._source_access_dict["flow"].get_test(self.class_ids)
+            self._flow_target_by_split["test"] = self._target_access_dict["flow"].get_test(self.class_ids)
 
     def get_domain_loaders(self, split="train", batch_size=32):
         rgb_source_ds = rgb_target_ds = flow_source_ds = flow_target_ds = None

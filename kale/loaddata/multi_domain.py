@@ -142,9 +142,9 @@ class MultiDomainDatasets(DomainsDatasetBase):
         )
 
         logging.debug("Load source Test")
-        self._source_by_split["test"] = self._source_access.get_test_class_subset(self.class_ids)
+        self._source_by_split["test"] = self._source_access.get_test(self.class_ids)
         logging.debug("Load target Test")
-        self._target_by_split["test"] = self._target_access.get_test_class_subset(self.class_ids)
+        self._target_by_split["test"] = self._target_access.get_test(self.class_ids)
 
         if self._n_fewshot is not None and self._n_fewshot > 0:
             # semi-supervised target domain

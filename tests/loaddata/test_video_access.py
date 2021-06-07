@@ -122,8 +122,6 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
     # test class sub-sampling
     if source_cfg == SOURCES[1] and target_cfg == TARGETS[1]:
         train_val_subset = source["rgb"].get_train_val(val_ratio, class_subset)
-        assert isinstance(train_val_subset[0], torch.utils.data.Dataset)
-        assert isinstance(train_val_subset[1], torch.utils.data.Dataset)
 
         dataset_subset = VideoMultiDomainDatasets(
             source,
@@ -134,7 +132,6 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
             config_size_type=cfg.DATASET.SIZE_TYPE,
             class_ids=class_subset,
         )
-        assert isinstance(dataset_subset, DomainsDatasetBase)
         if dataset.rgb:
             dataset._rgb_source_by_split = {"train": train_val[0]}
             dataset._rgb_target_by_split = {"train": train_val[0]}
@@ -147,4 +144,5 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
         if dataset_subset.flow:
             dataset_subset._flow_source_by_split = {"train": train_val_subset[0]}
             dataset_subset._flow_target_by_split = {"train": train_val_subset[0]}
+
         assert len(dataset_subset) <= len(dataset)

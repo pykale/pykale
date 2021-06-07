@@ -21,21 +21,24 @@ class DatasetAccess:
     def n_classes(self):
         return self._n_classes
 
-    def get_train(self):
+    def _get_train(self):
         """
         Returns: a torch.utils.data.Dataset
             Dataset: a torch.utils.data.Dataset
         """
         raise NotImplementedError()
 
-    def get_train_class_subset(self, class_ids=None):
+    def get_train(self, class_ids=None):
         """
         Args:
             class_ids (list, optional): List of chosen subset of class ids.
         Returns: a torch.utils.data.Dataset
             Dataset: a torch.utils.data.Dataset with only classes in class_ids
         """
-        return self._get_subset(self.get_train(), class_ids)
+        if class_ids is None:
+            return self._get_train()
+        else:
+            return self._get_subset(self._get_train(), class_ids)
 
     def get_train_val(self, val_ratio, class_ids=None):
         """
@@ -47,23 +50,26 @@ class DatasetAccess:
         Returns:
             Dataset: a torch.utils.data.Dataset
         """
-        train_dataset = self.get_train_class_subset(class_ids)
+        train_dataset = self.get_train(class_ids)
         ntotal = len(train_dataset)
         ntrain = int((1 - val_ratio) * ntotal)
 
         return torch.utils.data.random_split(train_dataset, [ntrain, ntotal - ntrain])
 
-    def get_test(self):
+    def _get_test(self):
         raise NotImplementedError()
 
-    def get_test_class_subset(self, class_ids):
+    def get_test(self, class_ids):
         """
         Args:
             class_ids (list, optional): List of chosen subset of class ids.
         Returns: a torch.utils.data.Dataset
             Dataset: a torch.utils.data.Dataset with only classes in class_ids
         """
-        return self._get_subset(self.get_test(), class_ids)
+        if class_ids is None:
+            return self._get_test()
+        else:
+            return self._get_subset(self._get_test(), class_ids)
 
     def _get_subset(self, dataset, class_ids):
         """
@@ -73,8 +79,5 @@ class DatasetAccess:
         Returns: a torch.utils.data.Dataset
             Dataset: a torch.utils.data.Dataset with only classes in class_ids
         """
-        if class_ids is None:
-            return dataset
-        else:
-            sub_indices = [i for i in range(0, len(dataset)) if dataset[i][1] in class_ids]
-            return torch.utils.data.Subset(dataset, sub_indices)
+        sub_indices = [i for i in range(0, len(dataset)) if dataset[i][1] in class_ids]
+        return torch.utils.data.Subset(dataset, sub_indices)
