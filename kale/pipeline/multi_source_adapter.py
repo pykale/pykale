@@ -46,12 +46,21 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
         target_label: int,
         **base_params,
     ):
-        super().__init__(dataset, feature_extractor, **base_params)
-        if target_label not in dataset.domain_to_idx.values:
+        super().__init__(dataset, feature_extractor, task_classifier, **base_params)
+        if target_label not in dataset.domain_to_idx.values():
             raise ValueError("The given target label %s not in the given dataset! The available domain labels are %s"
-                             % dataset.domain_to_idx.values)
-        self._task_classifier = task_classifier
-        
+                             % dataset.domain_to_idx.values())
+        self.target_label = target_label
+
+    def forward(self, x):
+        if self.feat is not None:
+            x = self.feat(x)
+        x = x.view(x.size(0), -1)
+        return x
+
+    def compute_loss(self, batch, split_name="V"):
+        raise NotImplementedError("Loss needs to be defined.")
+
     def _compute_domain_dist(self, x, domain_label):
         raise NotImplementedError("You need to implement a domain distance measure.")
     
@@ -90,31 +99,20 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         k_moment: int = 1,
         **base_params,
     ):
-        super().__init__(dataset, feature_extractor, **base_params)
+        super().__init__(dataset, feature_extractor, task_classifier, target_label, **base_params)
 
-        self.classifier: Dict[int, Any] = {}
-        self._task_classifier = task_classifier
-        if target_label not in dataset.domain_to_idx.values:
-            raise ValueError("The given target label %s not in the given dataset! The available domain labels are %s"
-                             % dataset.domain_to_idx.values)
-        self.target_label = target_label
+        self.classifiers: dict = {}
         self.k_moment = k_moment
-
-    def forward(self, x):
-        if self.feat is not None:
-            x = self.feat(x)
-        x = x.view(x.size(0), -1)
-        return x
 
     def compute_loss(self, batch, split_name="V"):
         x, y, domain_labels = batch
         x = self.forward(x)
-        moment_loss = self._compute_k_moment(x, domain_labels)
+        moment_loss = self._compute_domain_dist(x, domain_labels)
         # unique_domain_ = torch.unique(domain_labels)
         src_idx = torch.where(domain_labels != self.target_label)
         tar_idx = torch.where(domain_labels == self.target_label)
         cls_loss, ok_src = self._compute_cls_loss(x[src_idx], y[src_idx], domain_labels[src_idx])
-        y_tar_hat = average_cls_output(x[tar_idx], self.classifier)
+        y_tar_hat = average_cls_output(x[tar_idx], self.classifiers)
         _, ok_tgt = losses.cross_entropy_logits(y_tar_hat, y[tar_idx])
 
         task_loss = cls_loss
@@ -138,9 +136,9 @@ class M3SDATrainer(BaseMultiSourceTrainer):
                 if domain_label_ == self.target_label:
                     continue
                 domain_idx = torch.where(domain_labels == domain_label_)
-                if domain_label_ not in self.classifier:
-                    self.classifier[domain_label_] = self._task_classifier
-                cls_output = self.classifier[domain_label_](x[domain_idx])
+                if domain_label_ not in self.classifiers:
+                    self.classifiers[domain_label_] = self.classifier
+                cls_output = self.classifiers[domain_label_](x[domain_idx])
                 loss_cls_, ok_src_ = losses.cross_entropy_logits(cls_output, y)
                 cls_loss += loss_cls_
                 ok_src += ok_src_
@@ -149,7 +147,6 @@ class M3SDATrainer(BaseMultiSourceTrainer):
             return cls_loss, ok_src
 
     def _compute_domain_dist(self, x, domain_label):
-        # print('s1:{}, s2:{}, s3:{}, s4:{}'.format(output_s1.shape, output_s2.shape, output_s3.shape, output_t.shape))
 
         moment_loss = _moment_k(x, domain_label, 1)
 
