@@ -135,15 +135,6 @@ class BoringNetVideo(nn.Module):
         self.hidden_sizes = 512
         self.num_layers = 4
 
-        # self.conv3d = nn.Conv3d(in_channels=input_size, out_channels=512, kernel_size=(1, 1, 1))
-        # self.fc1 = nn.Linear(input_size, n_channel)
-        # self.bn1 = nn.BatchNorm1d(n_channel)
-        # self.relu1 = nn.ReLU()
-        # self.dp1 = nn.Dropout(dropout_keep_prob)
-        # self.fc2 = nn.Linear(n_channel, n_channel)
-        # self.relu2 = nn.ReLU()
-        # self.dp2 = nn.Dropout(dropout_keep_prob)
-        # self.fc3 = nn.Linear(n_channel, n_out)
         self.transformer = nn.ModuleList(
             [
                 TransformerBlock(
@@ -160,42 +151,6 @@ class BoringNetVideo(nn.Module):
             ]
         )
 
-        # self.transformer1 = TransformerBlock(
-        #     emb_dim=input_size,
-        #     num_heads=8,
-        #     att_dropout=0.1,
-        #     att_resid_dropout=0.1,
-        #     final_dropout=0.1,
-        #     max_seq_len=9,
-        #     ff_dim=input_size,
-        # )
-        # self.transformer2 = TransformerBlock(
-        #     emb_dim=input_size,
-        #     num_heads=8,
-        #     att_dropout=0.1,
-        #     att_resid_dropout=0.1,
-        #     final_dropout=0.1,
-        #     max_seq_len=9,
-        #     ff_dim=input_size,
-        # )
-        # self.transformer3 = TransformerBlock(
-        #     emb_dim=input_size,
-        #     num_heads=8,
-        #     att_dropout=0.1,
-        #     att_resid_dropout=0.1,
-        #     final_dropout=0.1,
-        #     max_seq_len=9,
-        #     ff_dim=input_size,
-        # )
-        # self.transformer = TransformerBlock(
-        #     emb_dim=input_size,
-        #     num_heads=8,
-        #     att_dropout=0.1,
-        #     att_resid_dropout=0.1,
-        #     final_dropout=0.1,
-        #     max_seq_len=9,
-        #     ff_dim=input_size,
-        # )
         self.fc1 = nn.Linear(input_size, n_channel)
         self.relu1 = nn.ReLU()
         self.dp1 = nn.Dropout(dropout_keep_prob)
@@ -210,17 +165,6 @@ class BoringNetVideo(nn.Module):
         # )
 
     def forward(self, x):
-        # x = x.squeeze()
-        # x = self.fc1(x)
-        # x = self.dp1(self.relu1(self.bn1(self.fc1(x))))
-        # x = self.dp1(self.relu1(self.fc1(x)))
-        # x = self.dp2(self.relu2(self.fc2(x)))
-        # x = self.fc3(x)
-        # x = self.transformer1(x)
-        # x = self.transformer2(x)
-        # x = self.transformer3(x)
-        # x = self.transformer4(x)
-
         # (B, F, INPUT_DIM) -> (B, F, D)
 
         # x = self.dim_reduction_layer(x)
@@ -230,9 +174,9 @@ class BoringNetVideo(nn.Module):
         # (B, F, D) -> (B, 1+F, D)
         # x = torch.cat([classification_vector, x], dim=1)
         # seq_len = x.size(1)
-        for layer in self.transformer:
-            # x = x + self.pos_encoding[:, :seq_len, :]
-            x = layer(x)
+        # for layer in self.transformer:
+        #     x = x + self.pos_encoding[:, :seq_len, :]
+        #     x = layer(x)
         x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
         x = self.selayer1(x)
         return x
