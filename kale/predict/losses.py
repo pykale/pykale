@@ -39,7 +39,7 @@ def topk_accuracy(output, label, topk=(1,)):
     res = []
     for k in topk:
         correct_k = correct[:k].contiguous().view(-1).float().sum(0)
-        res.append(correct_k.mul_(100.0 / batch_size))
+        res.append(correct_k.mul_(1.0 / batch_size))
     return res
 
 
@@ -53,7 +53,7 @@ def multitask_topk_accuracy(output, label, topk=(1,)):
         topk: tuple(int), compute accuracy at top-k for the values of k specified
             in this parameter.
     Returns:
-        tuple(float), same length at topk with the corresponding accuracy@k in.
+        tuple(tensor), same length at topk with the corresponding accuracy@k in.
     """
     max_k = int(np.max(topk))
     task_count = len(output)
@@ -72,7 +72,7 @@ def multitask_topk_accuracy(output, label, topk=(1,)):
     for k in topk:
         all_tasks_correct = torch.ge(all_correct[:k].float().sum(0), task_count)
         # accuracy_at_k = float(all_tasks_correct.float().sum(0) * 100.0 / batch_size)
-        accuracy_at_k = all_tasks_correct.float().sum(0) * 100.0 / batch_size
+        accuracy_at_k = all_tasks_correct.float().sum(0) * 1.0 / batch_size
         accuracies.append(accuracy_at_k)
     return tuple(accuracies)
 
