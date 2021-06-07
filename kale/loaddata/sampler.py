@@ -65,13 +65,14 @@ class FixedSeedSamplingConfig(SamplingConfig):
         return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler)
 
 
-class MultiDomainSamplingConfig:
-    def __init__(self, seed=1, balanced_domain=True):
-        self._balanced_domain = balanced_domain
+# class MultiDomainSamplingConfig:
+#     def __init__(self, seed=1, balanced_domain=True):
+#         self._balanced_domain = balanced_domain
+#
+#     def create_loader(self, dataset, batch_size):
+#         if self._balanced_domain:
+#             sampler = BalancedDomainSampler(dataset, batch_size=batch_size)
 
-    def create_loader(self, dataset, batch_size):
-        if self._balanced_domain:
-            sampler = BalancedDomainSampler(dataset, batch_size=batch_size)
 
 # TODO: deterministic shuffle?
 class MultiDataLoader:
@@ -166,8 +167,9 @@ class BalancedDomainSampler(torch.utils.data.sampler.BatchSampler):
         if self._n_samples_per_batch == 0:
             raise ValueError(f"batch_size should be bigger than the number of domains, got {batch_size}")
 
-        self._domain_iters = [InfiniteSliceIterator(np.where(domain_labels == domain_)[0], class_=domain_)
-                              for domain_ in unique_domains]
+        self._domain_iters = [
+            InfiniteSliceIterator(np.where(domain_labels == domain_)[0], class_=domain_) for domain_ in unique_domains
+        ]
 
         batch_size = self._n_samples_per_batch * n_domains
         self._n_batches = self.n_samples // batch_size
@@ -260,6 +262,7 @@ def get_labels(dataset):
     Get class labels for dataset
     """
     from .multi_domain import MultiDomainImageFolder
+
     dataset_type = type(dataset)
     if dataset_type is torchvision.datasets.SVHN:
         return dataset.labels

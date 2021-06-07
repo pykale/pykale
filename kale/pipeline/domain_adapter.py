@@ -203,15 +203,15 @@ class BaseAdaptTrainer(pl.LightningModule):
         dataset,
         feature_extractor,
         task_classifier,
-        method=None,
-        lambda_init=1.0,
-        adapt_lambda=True,
-        adapt_lr=True,
-        nb_init_epochs=10,
-        nb_adapt_epochs=50,
-        batch_size=32,
-        init_lr=1e-3,
-        optimizer=None,
+        method: str = None,
+        lambda_init: float = 1.0,
+        adapt_lambda: bool = True,
+        adapt_lr: bool = True,
+        nb_init_epochs: int = 10,
+        nb_adapt_epochs: int = 50,
+        batch_size: int = 32,
+        init_lr: float = 1e-3,
+        optimizer: dict = None,
     ):
         r"""Base class for all domain adaptation architectures.
 
@@ -1043,7 +1043,7 @@ class BaseMMDLike(BaseAdaptTrainer):
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": mmd,
+            f"{split_name}_domain_dist": mmd,
         }
         return task_loss, mmd, log_metrics
 
@@ -1052,7 +1052,7 @@ class BaseMMDLike(BaseAdaptTrainer):
             "val_loss",
             "V_source_acc",
             "V_target_acc",
-            "V_domain_acc",
+            "V_domain_dist",
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 
@@ -1061,7 +1061,7 @@ class BaseMMDLike(BaseAdaptTrainer):
             "test_loss",
             "Te_source_acc",
             "Te_target_acc",
-            "Te_domain_acc",
+            "Te_domain_dist",
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 

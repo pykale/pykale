@@ -1,22 +1,24 @@
 import pytest
 import torch
-from torch.utils.data import Subset
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from torch.utils.data.sampler import BatchSampler, RandomSampler
+from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
-from kale.loaddata.multi_domain import MultiDomainImageFolder, MultiDomainAdapDataset
+from kale.loaddata.multi_domain import MultiDomainAdapDataset, MultiDomainImageFolder
 from kale.loaddata.sampler import BalancedBatchSampler
-from torchvision import transforms
 
-transform = transforms.Compose([
-    # you can add other transformations in this list
-    transforms.ToTensor()
-])
+transform = transforms.Compose(
+    [
+        # you can add other transformations in this list
+        transforms.ToTensor()
+    ]
+)
 
-data_path = "/media/shuoz/MyDrive/data/PACS/kfold"
+# data_path = "/media/shuoz/MyDrive/data/PACS/kfold"
+data_path = "D:/ML_data/PACS/kfold"
 
-a = MultiDomainImageFolder(data_path, transform=transform)
+a = MultiDomainImageFolder(data_path, transform=transform, return_domain_label=True)
 
 ds = MultiDomainAdapDataset(a, target_label=1)
 ds.prepare_data_loaders()

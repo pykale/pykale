@@ -271,7 +271,7 @@ class MultiDomainImageFolder(VisionDataset):
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
         is_valid_file: Optional[Callable[[str], bool]] = None,
-        return_domain_label: Optional[bool] = False
+        return_domain_label: Optional[bool] = False,
     ) -> None:
         super(MultiDomainImageFolder, self).__init__(root, transform=transform, target_transform=target_transform)
         domains, domain_to_idx = self._find_classes(self.root)
@@ -319,7 +319,7 @@ class MultiDomainImageFolder(VisionDataset):
         class_to_idx = {cls_name: i for i, cls_name in enumerate(classes)}
         return classes, class_to_idx
 
-    def __getitem__(self, index: int) -> Tuple[Any, Any, Any] or Tuple[Any, Any]:
+    def __getitem__(self, index: int) -> Tuple:
         """
             Args:
                 index (int): Index
@@ -409,8 +409,8 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
         # domain_weight_type="balanced",
         # config_weight_type="natural",
         # config_size_type=DatasetSizeType.Max,
-        target_label=0,
-        target=None,
+        # target_label=0,
+        # target=None,
         val_split_ratio=0.1,
         test_split_ratio=0.2,
         random_state=1,
@@ -420,24 +420,25 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
         #     sampling =
         # weight_type = WeightingType(config_weight_type)
         # size_type = DatasetSizeType(config_size_type)
-        if target is None:
-            for key in data_access.domain_to_idx:
-                if data_access.domain_to_idx[key] == target_label:
-                    target = key
-                    break
-        else:
-            target_idx = data_access.domain_to_idx[target]
-            if target_idx != target_label:
-                raise ValueError("Given target domain label in given dataset is %s but not %s"
-                                 % (target_label, target_idx))
+        # if target is None:
+        #     for key in data_access.domain_to_idx:
+        #         if data_access.domain_to_idx[key] == target_label:
+        #             target = key
+        #             break
+        # else:
+        #     target_idx = data_access.domain_to_idx[target]
+        #     if target_idx != target_label:
+        #         raise ValueError(
+        #             "Given target domain label in given dataset is %s but not %s" % (target_label, target_idx)
+        #         )
         self.domain_labels = np.array(data_access.domain_labels)
         self.domain_to_idx = data_access.domain_to_idx
         self.n_domains = len(data_access.domain_to_idx)
         self.data_access = data_access
         # self._source_access = torch.utils.data.Subset(data_access, np.where(domain_labels != target_label)[0])
         # self._target_access = torch.utils.data.Subset(data_access, np.where(domain_labels == target_label)[0])
-        self.target_label = target_label
-        self.target = target
+        # self.target_label = target_label
+        # self.target = target
         self._val_split_ratio = val_split_ratio
         self._test_split_ratio = test_split_ratio
         self._sample_by_split: Dict[str, torch.utils.data.Subset] = {}
@@ -454,11 +455,10 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
         for domain in self.domain_to_idx:
             subset = dict()
             domain_label_ = self.domain_to_idx[domain]
-            domain_idx = np.where(self.domain_labels == domain_label_)
-            subset["test"], subset["valid"], subset["train"] = split_by_ratios(torch.utils.data.Subset(self.data_access,
-                                                                                                       domain_idx),
-                                                                               [self._test_split_ratio,
-                                                                                self._val_split_ratio])
+            domain_idx = np.where(self.domain_labels == domain_label_)[0]
+            subset["test"], subset["valid"], subset["train"] = split_by_ratios(
+                torch.utils.data.Subset(self.data_access, domain_idx), [self._test_split_ratio, self._val_split_ratio]
+            )
             for split in ["train", "valid", "test"]:
                 subset_split[split].append(subset[split])
 
