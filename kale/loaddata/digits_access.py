@@ -83,10 +83,10 @@ class MNISTDatasetAccess(DigitDatasetAccess):
     MNIST data loader
     """
 
-    def _get_train(self):
+    def get_train(self):
         return MNIST(self._data_path, train=True, transform=self._transform, download=True)
 
-    def _get_test(self):
+    def get_test(self):
         return MNIST(self._data_path, train=False, transform=self._transform, download=True)
 
 
@@ -95,10 +95,10 @@ class MNISTMDatasetAccess(DigitDatasetAccess):
     Modified MNIST (MNISTM) data loader
     """
 
-    def _get_train(self):
+    def get_train(self):
         return MNISTM(self._data_path, train=True, transform=self._transform, download=True)
 
-    def _get_test(self):
+    def get_test(self):
         return MNISTM(self._data_path, train=False, transform=self._transform, download=True)
 
 
@@ -107,10 +107,10 @@ class USPSDatasetAccess(DigitDatasetAccess):
     USPS data loader
     """
 
-    def _get_train(self):
+    def get_train(self):
         return USPS(self._data_path, train=True, transform=self._transform, download=True)
 
-    def _get_test(self):
+    def get_test(self):
         return USPS(self._data_path, train=False, transform=self._transform, download=True)
 
 
@@ -119,8 +119,8 @@ class SVHNDatasetAccess(DigitDatasetAccess):
     SVHN data loader
     """
 
-    def _get_train(self):
+    def get_train(self):
         return SVHN(self._data_path, split="train", transform=self._transform, download=True)
 
-    def _get_test(self):
+    def get_test(self):
         return SVHN(self._data_path, split="test", transform=self._transform, download=True)
