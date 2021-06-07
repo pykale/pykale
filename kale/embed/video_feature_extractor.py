@@ -20,9 +20,9 @@ from kale.loaddata.video_access import get_image_modality
 
 
 def get_feat_extractor4video(model_name, image_modality, attention, dict_num_classes):
-    """
-    Get the feature extractor w/o the pre-trained model and SELayers. The pre-trained models are saved in the path
-    ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
+    """Get the feature extractor w/o the pre-trained model and SELayers for original image input.
+    The pre-trained models are saved in the path ``$XDG_CACHE_HOME/torch/hub/checkpoints/``.
+    For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
     For Windows, default path is ``C:/Users/$USER_NAME/.cache/torch/hub/checkpoints/``.
     Provide four pre-trained models: "rgb_imagenet", "flow_imagenet", "rgb_charades", "flow_charades".
 
@@ -183,6 +183,8 @@ class BoringNetVideo(nn.Module):
 
 
 def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=512):
+    """Get the feature extractor w/o SELayers for feature input.
+    """
     feature_network_rgb = feature_network_flow = feature_network_audio = None
     rgb, flow, audio = get_image_modality(image_modality)
     if rgb:
