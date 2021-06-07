@@ -5,10 +5,10 @@ import pytest
 import torch
 from yacs.config import CfgNode as CN
 
+from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.multi_domain import DomainsDatasetBase
 from kale.loaddata.video_access import get_image_modality, VideoDataset, VideoDatasetAccess
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
-from kale.utils.class_subset import get_class_subset
 from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
 
@@ -135,12 +135,7 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
             config_size_type=cfg.DATASET.SIZE_TYPE,
             class_ids=class_subset,
         )
-        if dataset.rgb:
-            dataset._rgb_source_by_split = {"train": train_val[0]}
-            dataset._rgb_target_by_split = {"train": train_val[0]}
-        if dataset.flow:
-            dataset._flow_source_by_split = {"train": train_val[0]}
-            dataset._flow_target_by_split = {"train": train_val[0]}
+
         if dataset_subset.rgb:
             dataset_subset._rgb_source_by_split = {"train": train_val_subset[0]}
             dataset_subset._rgb_target_by_split = {"train": train_val_subset[0]}
@@ -148,4 +143,6 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
             dataset_subset._flow_source_by_split = {"train": train_val_subset[0]}
             dataset_subset._flow_target_by_split = {"train": train_val_subset[0]}
 
-        assert len(dataset_subset) <= len(dataset)
+        # Ground truth length of the subset dataset
+        dataset_subset_length = len([1 for data in train_val[0] if data[1] in class_subset])
+        assert len(dataset_subset) == dataset_subset_length

@@ -10,10 +10,10 @@ import logging
 import numpy as np
 from sklearn.utils import check_random_state
 
+from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.multi_domain import DatasetSizeType, MultiDomainDatasets, WeightingType
 from kale.loaddata.sampler import FixedSeedSamplingConfig, MultiDataLoader
 from kale.loaddata.video_access import get_image_modality
-from kale.utils.class_subset import get_class_subset
 
 
 class VideoMultiDomainDatasets(MultiDomainDatasets):

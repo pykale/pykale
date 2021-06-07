@@ -55,19 +55,18 @@ def test_get_train_test(dataset_name, download_path):
     assert isinstance(source_test, torch.utils.data.Dataset)
 
 
-@pytest.mark.parametrize("dataset_name", ALL)
-@pytest.mark.parametrize("val_ratio", VAL_RATIO)
 @pytest.mark.parametrize("class_subset", CLASS_SUBSETS)
-def test_class_subsampling(dataset_name, download_path, val_ratio, class_subset):
+def test_class_subsampling(class_subset, download_path):
+    dataset_name = ALL[0]
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(dataset_name), DigitDataset(dataset_name), download_path
     )
 
-    dataset = MultiDomainDatasets(source, target, config_weight_type=WEIGHT_TYPE[0], config_size_type=DATASIZE_TYPE[1])
-    dataset.prepare_data_loaders()
     dataset_subset = MultiDomainDatasets(
         source, target, config_weight_type=WEIGHT_TYPE[0], config_size_type=DATASIZE_TYPE[1], class_ids=class_subset,
     )
     dataset_subset.prepare_data_loaders()
 
-    assert len(dataset_subset) <= len(dataset)
+    # Ground truth length of the subset dataset
+    dataset_subset_length = len([1 for data in source.get_train() if data[1] in class_subset])
+    assert len(dataset_subset) == dataset_subset_length
