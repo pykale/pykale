@@ -36,12 +36,13 @@ def testing_cfg(download_path):
     yield config_params
 
 
-DATA_PATH = ["/media/shuoz/MyDrive/data/office/office_caltech_10"]
+# DATA_PATH = ["/media/shuoz/MyDrive/data/office/office_caltech_10"]
+DATA_PATH = ["D:\ML_data\office\office_caltech_10"]
 NUM_CLASSES = 10
 
 
 @pytest.mark.parametrize("data_path", DATA_PATH)
-def test_mult_source(data_path, testing_cfg):
+def test_multi_source(data_path, testing_cfg):
     transform = get_transform("office")
     data_access = MultiDomainImageFolder(data_path, transform=transform, return_domain_label=True)
     dataset = MultiDomainAdapDataset(data_access)

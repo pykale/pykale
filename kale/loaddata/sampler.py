@@ -11,10 +11,11 @@ from torch.utils.data.sampler import BatchSampler, RandomSampler
 
 
 class SamplingConfig:
-    def __init__(self, balance=False, class_weights=None):
-        if balance and class_weights is not None:
+    def __init__(self, balance_class=False, class_weights=None, balance_domain=False):
+        if balance_class and class_weights is not None:
             raise ValueError("Params 'balance' and 'weights' are incompatible")
-        self._balance = balance
+        self._balance_class = balance_class
+        self._balance_domain = balance_domain
         self._class_weights = class_weights
 
     def create_loader(self, dataset, batch_size):
@@ -26,10 +27,12 @@ class SamplingConfig:
             dataset (Dataset): dataset from which to load the data.
             batch_size (int): how many samples per batch to load
         """
-        if self._balance:
+        if self._balance_class:
             sampler = BalancedBatchSampler(dataset, batch_size=batch_size)
         elif self._class_weights is not None:
             sampler = ReweightedBatchSampler(dataset, batch_size=batch_size, class_weights=self._class_weights)
+        elif self._balance_domain:
+            sampler = BalancedDomainSampler(dataset, batch_size=batch_size)
         else:
             if len(dataset) < batch_size:
                 sub_sampler = RandomSampler(dataset, replacement=True, num_samples=batch_size)
@@ -155,39 +158,39 @@ class BalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
 
 
 class BalancedDomainSampler(torch.utils.data.sampler.BatchSampler):
-    def __init__(self, dataset, batch_size):
+    def __init__(self, dataset: torch.utils.data.dataset.ConcatDataset, batch_size: int):
         domain_labels = np.array(dataset.domain_labels)
         unique_domains = sorted(set(domain_labels))
         self.n_samples = domain_labels.shape[0]
-        n_domains = len(dataset.domains)
+        n_domains = len(dataset.datasets)
         self.domain_idx = dict()
         for domain in dataset.domains:
             self.domain_idx[domain] = np.where(domain_labels == dataset.domain_to_idx[domain])
-        self._n_samples_per_batch = batch_size // n_domains
-        if self._n_samples_per_batch == 0:
+        self._n_samples_per_domain = batch_size // n_domains
+        if self._n_samples_per_domain == 0:
             raise ValueError(f"batch_size should be bigger than the number of domains, got {batch_size}")
 
         self._domain_iters = [
             InfiniteSliceIterator(np.where(domain_labels == domain_)[0], class_=domain_) for domain_ in unique_domains
         ]
 
-        batch_size = self._n_samples_per_batch * n_domains
+        batch_size = self._n_samples_per_domain * n_domains
         self._n_batches = self.n_samples // batch_size
         if self._n_batches == 0:
             raise ValueError(f"Dataset is not big enough to generate batches with size {batch_size}")
-        logging.debug("K=", n_domains, "nk=", self._n_samples_per_batch)
+        logging.debug("K=", n_domains, "nk=", self._n_samples_per_domain)
         logging.debug("Batch size = ", batch_size)
 
     def __iter__(self):
         for _ in range(self._n_batches):
             indices = []
-            for domian_iter in self._domain_iters:
-                indices.extend(domian_iter.get(self._n_samples_per_batch))
+            for domain_iter in self._domain_iters:
+                indices.extend(domain_iter.get(self._n_samples_per_domain))
             np.random.shuffle(indices)
             yield indices
 
-        for domian_iter in self._domain_iters:
-            domian_iter.reset()
+        for domain_iter in self._domain_iters:
+            domain_iter.reset()
 
     def __len__(self):
         return self._n_batches
