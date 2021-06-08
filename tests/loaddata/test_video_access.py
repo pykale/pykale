@@ -125,7 +125,7 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
         dataset_subset = VideoMultiDomainDatasets(
             source,
             target,
-            image_modality=cfg.DATASET.IMAGE_MODALITY,
+            image_modality="rgb",
             seed=seed,
             config_weight_type=cfg.DATASET.WEIGHT_TYPE,
             config_size_type=cfg.DATASET.SIZE_TYPE,
@@ -134,19 +134,18 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
 
         train, val = source["rgb"].get_train_val(val_ratio)
         test = source["rgb"].get_test()
-
-        if dataset_subset.rgb:
-            dataset_subset._rgb_source_by_split = {"train": train}
-            dataset_subset._rgb_target_by_split = {"train": train}
-        if dataset_subset.flow:
-            dataset_subset._flow_source_by_split = {"train": train}
-            dataset_subset._flow_target_by_split = {"train": train}
+        dataset_subset._rgb_source_by_split = {}
+        dataset_subset._rgb_target_by_split = {}
+        dataset_subset._rgb_source_by_split["train"] = get_class_subset(train, class_subset)
+        dataset_subset._rgb_target_by_split["train"] = dataset_subset._rgb_source_by_split["train"]
+        dataset_subset._rgb_source_by_split["val"] = get_class_subset(val, class_subset)
+        dataset_subset._rgb_source_by_split["test"] = get_class_subset(test, class_subset)
 
         # Ground truth length of the subset dataset
         train_dataset_subset_length = len([1 for data in train if data[1] in class_subset])
         val_dataset_subset_length = len([1 for data in val if data[1] in class_subset])
         test_dataset_subset_length = len([1 for data in test if data[1] in class_subset])
-        assert len(get_class_subset(train, class_subset)) == train_dataset_subset_length
-        assert len(get_class_subset(val, class_subset)) == val_dataset_subset_length
-        assert len(get_class_subset(test, class_subset)) == test_dataset_subset_length
+        assert len(dataset_subset._rgb_source_by_split["train"]) == train_dataset_subset_length
+        assert len(dataset_subset._rgb_source_by_split["val"]) == val_dataset_subset_length
+        assert len(dataset_subset._rgb_source_by_split["test"]) == test_dataset_subset_length
         assert len(dataset_subset) == train_dataset_subset_length
