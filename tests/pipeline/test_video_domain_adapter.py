@@ -132,7 +132,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
 
     # setup DA method
     if method.is_mmd_method():
-        model = video_domain_adapter.create_mmd_based_4video(
+        model = video_domain_adapter.create_mmd_based_video(
             method=method,
             dataset=dataset,
             image_modality=cfg.DATASET.IMAGE_MODALITY,
@@ -154,7 +154,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
         if da_method == "CDAN":
             method_params["use_random"] = cfg.DAN.USERANDOM
 
-        model = video_domain_adapter.create_dann_like_4video(
+        model = video_domain_adapter.create_dann_like_video(
             method=method,
             dataset=dataset,
             image_modality=cfg.DATASET.IMAGE_MODALITY,
