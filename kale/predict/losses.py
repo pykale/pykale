@@ -30,7 +30,7 @@ def cross_entropy_logits(linear_output, label, weights=None):
 def topk_accuracy(output, label, topk=(1,)):
     """Computes the precision@k for the specified values of k"""
     maxk = max(topk)
-    batch_size = label.size(0)
+    # batch_size = label.size(0)
 
     _, y_hat = output.topk(maxk, 1, True, True)
     y_hat = y_hat.t()
@@ -38,8 +38,10 @@ def topk_accuracy(output, label, topk=(1,)):
 
     res = []
     for k in topk:
-        correct_k = correct[:k].contiguous().view(-1).float().sum(0)
-        res.append(correct_k.mul_(1.0 / batch_size))
+        # correct_k = correct[:k].contiguous().view(-1).float().sum(0)
+        # res.append(correct_k.mul_(1.0 / batch_size))
+        correct_k = correct[:k].contiguous().view(-1)
+        res.append(correct_k)
     return res
 
 
@@ -71,9 +73,9 @@ def multitask_topk_accuracy(output, label, topk=(1,)):
     accuracies = []
     for k in topk:
         all_tasks_correct = torch.ge(all_correct[:k].float().sum(0), task_count)
-        # accuracy_at_k = float(all_tasks_correct.float().sum(0) * 100.0 / batch_size)
-        accuracy_at_k = all_tasks_correct.float().sum(0) * 1.0 / batch_size
-        accuracies.append(accuracy_at_k)
+        # accuracy_at_k = all_tasks_correct.float().sum(0) * 1.0 / batch_size
+        # accuracies.append(accuracy_at_k)
+        accuracies.append(all_tasks_correct)
     return tuple(accuracies)
 
 
