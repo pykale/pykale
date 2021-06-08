@@ -71,6 +71,7 @@ def test_class_subsampling(class_subset, val_ratio, download_path):
     train, val = source.get_train_val(val_ratio)
     test = source.get_test()
     dataset_subset._source_by_split["train"] = get_class_subset(train, class_subset)
+    dataset_subset._target_by_split["train"] = dataset_subset._source_by_split["train"]
     dataset_subset._source_by_split["val"] = get_class_subset(val, class_subset)
     dataset_subset._source_by_split["test"] = get_class_subset(test, class_subset)
 
