@@ -136,4 +136,8 @@ def hsic(kx, ky):
 
 
 def euclidean(x1, x2):
+    # n_features = x1.shape[0]
+    # if x2.shape[0] != n_features:
+    #     raise ValueError("x1, x2 are expected to have the same dimensions.")
+    # return ((x1 - x2) ** 2).sum().sqrt() / n_features
     return ((x1 - x2) ** 2).sum().sqrt()
