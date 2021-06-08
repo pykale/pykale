@@ -120,7 +120,7 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
     )
     assert isinstance(dataset, DomainsDatasetBase)
 
-    # test class sub-sampling
+    # test class subsets
     if source_cfg == SOURCES[1] and target_cfg == TARGETS[1]:
         dataset_subset = VideoMultiDomainDatasets(
             source,

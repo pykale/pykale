@@ -58,7 +58,7 @@ def test_get_train_test(dataset_name, download_path):
 
 @pytest.mark.parametrize("class_subset", CLASS_SUBSETS)
 @pytest.mark.parametrize("val_ratio", VAL_RATIO)
-def test_class_subsampling(class_subset, val_ratio, download_path):
+def test_class_subsets(class_subset, val_ratio, download_path):
     dataset_name = ALL[1]
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(dataset_name), DigitDataset(dataset_name), download_path
