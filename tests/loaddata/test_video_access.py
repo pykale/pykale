@@ -122,10 +122,6 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
 
     # test class sub-sampling
     if source_cfg == SOURCES[1] and target_cfg == TARGETS[1]:
-        train_val_subset = source["rgb"].get_train_val(val_ratio)
-        train_val_subset[0] = get_class_subset(train_val_subset[0], class_subset)
-        train_val_subset[1] = get_class_subset(train_val_subset[1], class_subset)
-
         dataset_subset = VideoMultiDomainDatasets(
             source,
             target,
@@ -136,13 +132,21 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
             class_ids=class_subset,
         )
 
+        train, val = source["rgb"].get_train_val(val_ratio)
+        test = source["rgb"].get_test()
+
         if dataset_subset.rgb:
-            dataset_subset._rgb_source_by_split = {"train": train_val_subset[0]}
-            dataset_subset._rgb_target_by_split = {"train": train_val_subset[0]}
+            dataset_subset._rgb_source_by_split = {"train": train}
+            dataset_subset._rgb_target_by_split = {"train": train}
         if dataset_subset.flow:
-            dataset_subset._flow_source_by_split = {"train": train_val_subset[0]}
-            dataset_subset._flow_target_by_split = {"train": train_val_subset[0]}
+            dataset_subset._flow_source_by_split = {"train": train}
+            dataset_subset._flow_target_by_split = {"train": train}
 
         # Ground truth length of the subset dataset
-        dataset_subset_length = len([1 for data in train_val[0] if data[1] in class_subset])
-        assert len(dataset_subset) == dataset_subset_length
+        train_dataset_subset_length = len([1 for data in train if data[1] in class_subset])
+        val_dataset_subset_length = len([1 for data in val if data[1] in class_subset])
+        test_dataset_subset_length = len([1 for data in test if data[1] in class_subset])
+        assert len(get_class_subset(train, class_subset)) == train_dataset_subset_length
+        assert len(get_class_subset(val, class_subset)) == val_dataset_subset_length
+        assert len(get_class_subset(test, class_subset)) == test_dataset_subset_length
+        assert len(dataset_subset) == train_dataset_subset_length

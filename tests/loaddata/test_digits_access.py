@@ -1,6 +1,7 @@
 import pytest
 import torch
 
+from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.digits_access import DigitDataset, DigitDatasetAccess
 from kale.loaddata.multi_domain import DomainsDatasetBase, MultiDomainDatasets
 
@@ -56,7 +57,8 @@ def test_get_train_test(dataset_name, download_path):
 
 
 @pytest.mark.parametrize("class_subset", CLASS_SUBSETS)
-def test_class_subsampling(class_subset, download_path):
+@pytest.mark.parametrize("val_ratio", VAL_RATIO)
+def test_class_subsampling(class_subset, val_ratio, download_path):
     dataset_name = ALL[0]
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(dataset_name), DigitDataset(dataset_name), download_path
@@ -65,8 +67,19 @@ def test_class_subsampling(class_subset, download_path):
     dataset_subset = MultiDomainDatasets(
         source, target, config_weight_type=WEIGHT_TYPE[0], config_size_type=DATASIZE_TYPE[1], class_ids=class_subset,
     )
-    dataset_subset.prepare_data_loaders()
 
-    # Ground truth length of the subset dataset
-    dataset_subset_length = len([1 for data in source.get_train() if data[1] in class_subset])
-    assert len(dataset_subset) == dataset_subset_length
+    train, val = source.get_train_val(val_ratio)
+    test = source.get_test()
+    dataset_subset._source_by_split["train"] = get_class_subset(train, class_subset)
+    dataset_subset._source_by_split["val"] = get_class_subset(val, class_subset)
+    dataset_subset._source_by_split["test"] = get_class_subset(test, class_subset)
+
+    # Ground truth lengths
+    train_dataset_subset_length = len([1 for data in train if data[1] in class_subset])
+    val_dataset_subset_length = len([1 for data in val if data[1] in class_subset])
+    test_dataset_subset_length = len([1 for data in test if data[1] in class_subset])
+
+    assert len(dataset_subset._source_by_split["train"]) == train_dataset_subset_length
+    assert len(dataset_subset._source_by_split["val"]) == val_dataset_subset_length
+    assert len(dataset_subset._source_by_split["test"]) == test_dataset_subset_length
+    assert len(dataset_subset) == train_dataset_subset_length
