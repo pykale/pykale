@@ -188,7 +188,7 @@ def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=5
     feature_network_rgb = feature_network_flow = feature_network_audio = None
     rgb, flow, audio = get_image_modality(image_modality)
     if rgb:
-        feature_network_rgb = BoringNetVideo(input_size=3072, n_out=num_out)
+        feature_network_rgb = BoringNetVideo(input_size=1024, n_out=num_out)
     if flow:
         feature_network_flow = BoringNetVideo(input_size=1024, n_out=num_out)
     if audio:

@@ -525,8 +525,8 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             num_dataload=self._num_train_dataload,
             num_segments=8,
             new_length=1,
-            # modality=self._image_modality,
-            modality="ALL",
+            modality=self._image_modality,
+            # modality="ALL",
             image_tmpl="img_{:05d}.t7"
             if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
@@ -543,8 +543,8 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             num_dataload=self._num_test_dataload,
             num_segments=8,
             new_length=1,
-            # modality=self._image_modality,
-            modality="ALL",
+            modality=self._image_modality,
+            # modality="ALL",
             image_tmpl="img_{:05d}.t7"
             if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
