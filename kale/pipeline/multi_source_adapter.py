@@ -14,6 +14,16 @@ from kale.pipeline.domain_adapter import BaseAdaptTrainer, get_aggregated_metric
 
 
 def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
+    """Compute k-th moment distance
+
+    Args:
+        x (torch.Tensor): input data, shape (n_samples, n_features)
+        domain_labels (torch.Tensor): labels indicate the instance from which domain, shape (n_samples,)
+        k_order (int, optional): moment order. Defaults to 2.
+
+    Returns:
+        torch.Tensor: k-th moment distance
+    """
     unique_domain_ = torch.unique(domain_labels)
     n_unique_domain_ = len(unique_domain_)
     x_order_k = []
@@ -61,9 +71,6 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
 
     def _compute_domain_dist(self, x, domain_label):
         raise NotImplementedError("You need to implement a domain distance measure.")
-    
-    def _compute_cls_loss(self, x, y, domain_labels):
-        raise NotImplementedError("You need to implement a classification loss.")
         
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
@@ -97,6 +104,13 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         k_moment: int = 5,
         **base_params,
     ):
+        """Moment matching for multi-source domain adaptation. 
+
+        Reference:    
+            Peng, X., Bai, Q., Xia, X., Huang, Z., Saenko, K., & Wang, B. (2019).
+            Moment matching for multi-source domain adaptation. In Proceedings of the
+            IEEE/CVF International Conference on Computer Vision (pp. 1406-1415).
+        """
         super().__init__(dataset, feature_extractor, task_classifier, target_label, **base_params)
 
         self.classifiers = dict()
@@ -148,12 +162,62 @@ class M3SDATrainer(BaseMultiSourceTrainer):
             ok_src = torch.cat(ok_src)
             return cls_loss, ok_src
 
-    def _compute_domain_dist(self, x, domain_label):
+    def _compute_domain_dist(self, x, domain_labels):
+        """Compute k-th order moment divergence
+
+        Args:
+            x (torch.Tensor): input data, shape (n_samples, n_features)
+            domain_labels (torch.Tensor): labels indicate the instance from which domain, shape (n_samples,)
+
+        Returns:
+            torch.Tensor: divergence
+        """
 
         # moment_loss = _moment_k(x, domain_label, 1)
         moment_loss = 0
         # print(reg_info)
         for i in range(self.k_moment - 1):
-            moment_loss += _moment_k(x, domain_label, i + 2)
+            moment_loss += _moment_k(x, domain_labels, i + 2)
 
         return moment_loss
+
+
+class DINTrainer(BaseMultiSourceTrainer):
+    def __init__(
+        self, dataset, feature_extractor, task_classifier, target_label: int, kernel: str = "linear",
+        kernel_mul: float = 2.0, kernel_num: int = 5, **base_params,
+    ):
+        """Domain independent network. 
+
+        """
+        super().__init__(dataset, feature_extractor, task_classifier, target_label, **base_params)
+        self.kernel = kernel
+        self._kernel_mul = kernel_mul
+        self._kernel_num = kernel_num
+
+    def compute_loss(self, batch, split_name="V"):
+        x, y, domain_labels = batch
+        x = self.forward(x)
+        loss_dist = self._compute_domain_dist(x, domain_labels)
+        src_idx = torch.where(domain_labels != self.target_label)
+        tar_idx = torch.where(domain_labels == self.target_label)
+        cls_output = self.classifier(x)
+        loss_cls, ok_src = losses.cross_entropy_logits(cls_output[src_idx], y[src_idx])
+        _, ok_tgt = losses.cross_entropy_logits(cls_output[tar_idx], y[tar_idx])
+
+        task_loss = loss_cls
+        log_metrics = {
+            f"{split_name}_source_acc": ok_src,
+            f"{split_name}_target_acc": ok_tgt,
+            f"{split_name}_domain_dist": loss_dist,
+        }
+
+        return task_loss, loss_dist, log_metrics
+
+    def _compute_domain_dist(self, x, domain_labels):
+        if self.kernel == "linear":
+            kx = torch.mm(x, x)
+        else:
+            raise ValueError("Other kernels have not been implemented yet!")
+        ky = torch.mm(domain_labels, domain_labels)
+        return losses.hsic(kx, ky)

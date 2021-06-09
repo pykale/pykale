@@ -136,6 +136,15 @@ def hsic(kx, ky):
 
 
 def euclidean(x1, x2):
+    """Compute Eucliean distance
+
+    Args:
+        x1 (torch.Tensor): variables set 1
+        x2 (torch.Tensor): variables set 2
+
+    Returns:
+        torch.Tensor: Eucliean distance
+    """
     # n_features = x1.shape[0]
     # if x2.shape[0] != n_features:
     #     raise ValueError("x1, x2 are expected to have the same dimensions.")

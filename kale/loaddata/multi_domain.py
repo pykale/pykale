@@ -395,9 +395,9 @@ def make_multi_domain_set(
     return instances
 
 
-class DomainWeightType(Enum):
-    Rand = "random"
-    BALANCED = "balanced"
+# class DomainWeightType(Enum):
+#     Rand = "random"
+#     BALANCED = "balanced"
 
 
 class MultiDomainAdapDataset(DomainsDatasetBase):
