@@ -6,7 +6,7 @@ PyKale is a **py**thon library for **k**nowledge-**a**ware machine **le**arning 
 
 Our objectives are to build *green* machine learning systems.
 
-- *Reduce repetition and redundancy*:  refactor code to standardize workflow and enforce styles, and by identify and remove duplicated functionalities
+- *Reduce repetition and redundancy*:  refactor code to standardize workflow and enforce styles, and identify and remove duplicated functionalities
 - *Reuse existing resources*: reuse the same machine learning pipeline for different data, and reuse existing libraries for available functionalities
 - *Recycle learning models across areas*: identify commonalities between applications, and recycle models for one application to another
 
