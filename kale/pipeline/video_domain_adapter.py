@@ -25,13 +25,11 @@ from kale.pipeline.domain_adapter import (
     WDGRLtrainer,
 )
 
-
 # from kale.utils.logger import save_results_to_json
 
 
 def create_mmd_based_video(
-        method: Method, dataset, image_modality, feature_extractor, task_classifier, input_type, class_type,
-        **train_params
+    method: Method, dataset, image_modality, feature_extractor, task_classifier, input_type, class_type, **train_params
 ):
     """MMD-based deep learning methods for domain adaptation on video data: DAN and JAN"""
     if not method.is_mmd_method():
@@ -63,21 +61,20 @@ def create_mmd_based_video(
 
 
 def create_dann_like_video(
-        method: Method,
-        dataset,
-        image_modality,
-        feature_extractor,
-        task_classifier,
-        critic,
-        input_type,
-        class_type,
-        **train_params,
+    method: Method,
+    dataset,
+    image_modality,
+    feature_extractor,
+    task_classifier,
+    critic,
+    input_type,
+    class_type,
+    **train_params,
 ):
     """DANN-based deep learning methods for domain adaptation on video data: DANN, CDAN, CDAN+E"""
 
-    # Uncomment for later work.
-    # Set up a new create_fewshot_trainer for video data based on original one in `domain_adapter.py`
-
+    # # Uncomment for later work.
+    # # Set up a new create_fewshot_trainer for video data based on original one in `domain_adapter.py`
     # if dataset.is_semi_supervised():
     #     return create_fewshot_trainer_4video(
     #         method, dataset, feature_extractor, task_classifier, critic, **train_params
@@ -137,6 +134,7 @@ def create_dann_like_video(
 # def remove_dummy(data, batch_size):
 #     data = data[:batch_size]
 #     return data
+
 
 class BaseAdaptTrainerVideo(BaseAdaptTrainer):
     def training_step(self, batch, batch_nb):
@@ -340,12 +338,14 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
 
             prec1_src_verb, prec5_src_verb = losses.topk_accuracy(y_hat[0], y_s[0], topk=(1, 5))
             prec1_src_noun, prec5_src_noun = losses.topk_accuracy(y_hat[1], y_s[1], topk=(1, 5))
-            prec1_src_action, prec5_src_action = losses.multitask_topk_accuracy((y_hat[0], y_hat[1]), (y_s[0], y_s[1]),
-                                                                                topk=(1, 5))
+            prec1_src_action, prec5_src_action = losses.multitask_topk_accuracy(
+                (y_hat[0], y_hat[1]), (y_s[0], y_s[1]), topk=(1, 5)
+            )
             prec1_tgt_verb, prec5_tgt_verb = losses.topk_accuracy(y_t_hat[0], y_tu[0], topk=(1, 5))
             prec1_tgt_noun, prec5_tgt_noun = losses.topk_accuracy(y_t_hat[1], y_tu[1], topk=(1, 5))
-            prec1_tgt_action, prec5_tgt_action = losses.multitask_topk_accuracy((y_t_hat[0], y_t_hat[1]),
-                                                                                (y_tu[0], y_tu[1]), topk=(1, 5))
+            prec1_tgt_action, prec5_tgt_action = losses.multitask_topk_accuracy(
+                (y_t_hat[0], y_t_hat[1]), (y_tu[0], y_tu[1]), topk=(1, 5)
+            )
 
             task_loss = loss_cls_verb + loss_cls_noun
 
@@ -374,8 +374,17 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
 
 
 class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
-    def __init__(self, dataset, image_modality, feature_extractor, task_classifier, class_type, input_type, kernel_mul=2.0,
-            kernel_num=5, **base_params,
+    def __init__(
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        class_type,
+        input_type,
+        kernel_mul=2.0,
+        kernel_num=5,
+        **base_params,
     ):
         """Common API for MME-based domain adaptation on video data: DAN, JAN"""
 
@@ -392,7 +401,6 @@ class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
     def forward(self, x):
         if self.feat is not None:
             x_rgb = x_flow = x_audio = None
-            adversarial_output_rgb = adversarial_output_flow = adversarial_output_audio = None
 
             # For joint input, both two ifs are used
             if self.rgb:
@@ -411,10 +419,25 @@ class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
 
     def compute_loss(self, batch, split_name="V"):
         # _s refers to source, _tu refers to unlabeled target
-        x_s_rgb, x_tu_rgb, x_s_flow, x_tu_flow, x_s_audio, x_tu_audio, y_s, y_tu, s_id, tu_id = self.get_inputs_from_batch(batch)
+        (
+            x_s_rgb,
+            x_tu_rgb,
+            x_s_flow,
+            x_tu_flow,
+            x_s_audio,
+            x_tu_audio,
+            y_s,
+            y_tu,
+            s_id,
+            tu_id,
+        ) = self.get_inputs_from_batch(batch)
 
-        [phi_s_rgb, phi_s_flow, phi_s_audio], y_hat = self.forward({"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio})
-        [phi_t_rgb, phi_t_flow, phi_t_audio], y_t_hat = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow, "audio": x_tu_audio})
+        [phi_s_rgb, phi_s_flow, phi_s_audio], y_hat = self.forward(
+            {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
+        )
+        [phi_t_rgb, phi_t_flow, phi_t_audio], y_t_hat = self.forward(
+            {"rgb": x_tu_rgb, "flow": x_tu_flow, "audio": x_tu_audio}
+        )
 
         if self.rgb:
             if self.verb and not self.noun:
@@ -458,7 +481,6 @@ class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
             else:  # For audio input
                 mmd = mmd_audio
 
-
         # Uncomment when checking whether rgb & flow labels are equal.
         # print('rgb_s:{}, flow_s:{}, rgb_f:{}, flow_f:{}'.format(y_s, y_s_flow, y_tu, y_tu_flow))
         # print('equal: {}/{}'.format(torch.all(torch.eq(y_s, y_s_flow)), torch.all(torch.eq(y_tu, y_tu_flow))))
@@ -484,14 +506,14 @@ class JANTrainerVideo(BaseMMDLikeVideo):
     """This is an implementation of JAN for video data."""
 
     def __init__(
-            self,
-            dataset,
-            image_modality,
-            feature_extractor,
-            task_classifier,
-            kernel_mul=(2.0, 2.0),
-            kernel_num=(5, 1),
-            **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        kernel_mul=(2.0, 2.0),
+        kernel_num=(5, 1),
+        **base_params,
     ):
         super().__init__(
             dataset,
@@ -511,7 +533,7 @@ class JANTrainerVideo(BaseMMDLikeVideo):
 
         joint_kernels = None
         for source, target, k_mul, k_num, sigma in zip(
-                source_list, target_list, self._kernel_mul, self._kernel_num, [None, 1.68]
+            source_list, target_list, self._kernel_mul, self._kernel_num, [None, 1.68]
         ):
             kernels = losses.gaussian_kernel(source, target, kernel_mul=k_mul, kernel_num=k_num, fix_sigma=sigma)
             if joint_kernels is not None:
@@ -526,16 +548,16 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
     """This is an implementation of DANN for video data."""
 
     def __init__(
-            self,
-            dataset,
-            image_modality,
-            feature_extractor,
-            task_classifier,
-            critic,
-            method,
-            input_type,
-            class_type,
-            **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        critic,
+        method,
+        input_type,
+        class_type,
+        **base_params,
     ):
         super(DANNtrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, method, **base_params
@@ -591,7 +613,18 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
 
     def compute_loss(self, batch, split_name="V"):
         # _s refers to source, _tu refers to unlabeled target
-        x_s_rgb, x_tu_rgb, x_s_flow, x_tu_flow, x_s_audio, x_tu_audio, y_s, y_tu, s_id, tu_id = self.get_inputs_from_batch(batch)
+        (
+            x_s_rgb,
+            x_tu_rgb,
+            x_s_flow,
+            x_tu_flow,
+            x_s_audio,
+            x_tu_audio,
+            y_s,
+            y_tu,
+            s_id,
+            tu_id,
+        ) = self.get_inputs_from_batch(batch)
 
         _, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio] = self.forward(
             {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
@@ -667,10 +700,7 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
 
         task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-        log_metrics.update({
-                f"{split_name}_source_domain_acc": dok_src,
-                f"{split_name}_target_domain_acc": dok_tgt,
-        })
+        log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
         # # Uncomment to store output for EPIC UDA 2021 challenge.(2/3)
         # if split_name == "Te":
@@ -688,18 +718,18 @@ class CDANtrainerVideo(BaseAdaptTrainerVideo, CDANtrainer):
     """This is an implementation of CDAN for video data."""
 
     def __init__(
-            self,
-            dataset,
-            image_modality,
-            feature_extractor,
-            task_classifier,
-            critic,
-            input_type,
-            class_type,
-            use_entropy=False,
-            use_random=False,
-            random_dim=1024,
-            **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        critic,
+        input_type,
+        class_type,
+        use_entropy=False,
+        use_random=False,
+        random_dim=1024,
+        **base_params,
     ):
         super(CDANtrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, use_entropy, use_random, random_dim, **base_params
@@ -735,6 +765,7 @@ class CDANtrainerVideo(BaseAdaptTrainerVideo, CDANtrainer):
             x = self.concatenate_feature(x_rgb, x_flow, x_audio)
 
             class_output = self.classifier(x)
+            # # Only use verb class to get softmax_output
             softmax_output = torch.nn.Softmax(dim=1)(class_output[0])
             reverse_out = ReverseLayerF.apply(softmax_output, self.alpha)
 
@@ -761,7 +792,9 @@ class CDANtrainerVideo(BaseAdaptTrainerVideo, CDANtrainer):
                 feature_audio = feature_audio.view(-1, reverse_out.size(1) * reverse_feature_audio.size(1))
                 if self.random_layer:
                     random_out_audio = self.random_layer.forward(feature_audio)
-                    adversarial_output_audio = self.domain_classifier(random_out_audio.view(-1, random_out_audio.size(1)))
+                    adversarial_output_audio = self.domain_classifier(
+                        random_out_audio.view(-1, random_out_audio.size(1))
+                    )
                 else:
                     adversarial_output_audio = self.domain_classifier(feature_audio)
 
@@ -773,7 +806,18 @@ class CDANtrainerVideo(BaseAdaptTrainerVideo, CDANtrainer):
 
     def compute_loss(self, batch, split_name="V"):
         # _s refers to source, _tu refers to unlabeled target
-        x_s_rgb, x_tu_rgb, x_s_flow, x_tu_flow, x_s_audio, x_tu_audio, y_s, y_tu, s_id, tu_id = self.get_inputs_from_batch(batch)
+        (
+            x_s_rgb,
+            x_tu_rgb,
+            x_s_flow,
+            x_tu_flow,
+            x_s_audio,
+            x_tu_audio,
+            y_s,
+            y_tu,
+            s_id,
+            tu_id,
+        ) = self.get_inputs_from_batch(batch)
 
         _, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio] = self.forward(
             {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
@@ -784,9 +828,10 @@ class CDANtrainerVideo(BaseAdaptTrainerVideo, CDANtrainer):
         source_batch_size = len(y_s[0])
         target_batch_size = len(y_tu[0])
 
+        # # Only use verb class to get entropy weights
         if self.entropy:
-            e_s = self._compute_entropy_weights(y_hat)
-            e_t = self._compute_entropy_weights(y_t_hat)
+            e_s = self._compute_entropy_weights(y_hat[0])
+            e_t = self._compute_entropy_weights(y_t_hat[0])
             source_weight = e_s / torch.sum(e_s)
             target_weight = e_t / torch.sum(e_t)
         else:
@@ -824,7 +869,7 @@ class CDANtrainerVideo(BaseAdaptTrainerVideo, CDANtrainer):
                     loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow + loss_dmn_src_audio
                     loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow + loss_dmn_tgt_audio
                     dok = torch.cat(
-                            (dok_src_rgb, dok_src_flow, dok_src_audio, dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio)
+                        (dok_src_rgb, dok_src_flow, dok_src_audio, dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio)
                     )
                     dok_src = torch.cat((dok_src_rgb, dok_src_flow, dok_src_audio))
                     dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio))
@@ -870,10 +915,7 @@ class CDANtrainerVideo(BaseAdaptTrainerVideo, CDANtrainer):
 
         task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-        log_metrics.update({
-                f"{split_name}_source_domain_acc": dok_src,
-                f"{split_name}_target_domain_acc": dok_tgt,
-        })
+        log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
         return task_loss, adv_loss, log_metrics
 
@@ -882,16 +924,16 @@ class WDGRLtrainerVideo(WDGRLtrainer):
     """This is an implementation of WDGRL for video data."""
 
     def __init__(
-            self,
-            dataset,
-            image_modality,
-            feature_extractor,
-            task_classifier,
-            critic,
-            k_critic=5,
-            gamma=10,
-            beta_ratio=0,
-            **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        critic,
+        k_critic=5,
+        gamma=10,
+        beta_ratio=0,
+        **base_params,
     ):
         super(WDGRLtrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, k_critic, gamma, beta_ratio, **base_params
@@ -1080,11 +1122,11 @@ class WDGRLtrainerVideo(WDGRLtrainer):
                 wasserstein_distance_flow = critic_s_flow.mean() - (1 + self._beta_ratio) * critic_t_flow.mean()
 
                 critic_cost = (
-                                      -wasserstein_distance_rgb
-                                      + -wasserstein_distance_flow
-                                      + self._gamma * gp_rgb
-                                      + self._gamma * gp_flow
-                              ) * 0.5
+                    -wasserstein_distance_rgb
+                    + -wasserstein_distance_flow
+                    + self._gamma * gp_rgb
+                    + self._gamma * gp_flow
+                ) * 0.5
 
                 self.critic_opt.zero_grad()
                 critic_cost.backward()

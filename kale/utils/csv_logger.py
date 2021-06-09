@@ -104,14 +104,24 @@ def setup_logger(train_params, output_dir, method_name, seed, class_type="object
     full_checkpoint_dir = os.path.join(checkpoint_dir, path_method_name, f"seed_{seed}")
     if class_type == "verb+noun":
         monitor = "V_verb_target_top1_acc"
-        metrics = ["verb source top1 acc", "verb source top5 acc", "verb target top1 acc", "verb target top5 acc",
-                   "noun source top1 acc", "noun source top5 acc", "noun target top1 acc", "noun target top5 acc",
-                   "action source top1 acc", "action source top5 acc",
-                   "action target top1 acc", "action target top5 acc", "domain acc"]
+        metrics = [
+            "verb source top1 acc",
+            "verb source top5 acc",
+            "verb target top1 acc",
+            "verb target top5 acc",
+            "noun source top1 acc",
+            "noun source top5 acc",
+            "noun target top1 acc",
+            "noun target top5 acc",
+            "action source top1 acc",
+            "action source top5 acc",
+            "action target top1 acc",
+            "action target top5 acc",
+            "domain acc",
+        ]
     elif class_type == "verb":
         monitor = "V_target_top1_acc"
-        metrics = ["source top1 acc", "source top5 acc",
-                   "target top1 acc", "target top5 acc", "domain acc"]
+        metrics = ["source top1 acc", "source top5 acc", "target top1 acc", "target top5 acc", "domain acc"]
     else:
         monitor = "V_target_acc"
         metrics = ["source acc", "target acc", "domain acc"]
