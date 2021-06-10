@@ -46,7 +46,7 @@ PyKale currently supports graphs, images, texts, and videos, using PyTorch Datal
 
 PyKale supports modules from the following areas of machine learning
 
-- Deep learning: convolutional neural networks (CNNs), graph neural networks (GNNs) GNN including graph convolutional networks(GCNs), transformers
+- Deep learning: convolutional neural networks (CNNs), graph neural networks (GNNs) GNN including graph convolutional networks (GCNs), transformers
 - Transfer learning: domain adaptation
 - Multimodal learning: integration of heterogeneous data
 - Dimensionality reduction: multilinear subspace learning, such as multilinear principal component analysis (MPCA)

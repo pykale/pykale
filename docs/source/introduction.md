@@ -1,6 +1,6 @@
 # Introduction
 
-PyKale is a **py**thon library for **k**nowledge-**a**ware machine **le**arning from multiple sources, particularly from multiple modalities for [multimodal learning](https://en.wikipedia.org/wiki/Multimodal_learning) and from multiple domains for [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning). This library was motivated by needs in healthcare applications (hence we choose the acronym *kale*, a healthy vegetable) and aims to accelerate interdisciplinary research.
+PyKale is a **Py**thon library for **k**nowledge-**a**ware machine **le**arning from multiple sources, particularly from multiple modalities for [multimodal learning](https://en.wikipedia.org/wiki/Multimodal_learning) and from multiple domains for [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning). This library was motivated by needs in healthcare applications (hence we choose the acronym *kale*, a healthy vegetable) and aims to enable and accelerate interdisciplinary research.
 
 ## Objectives
 
