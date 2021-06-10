@@ -61,8 +61,8 @@ Indices and Tables
 * :ref:`search`
 
 .. |digits_mybinder| image:: https://mybinder.org/badge_logo.svg
-    :target: https://mybinder.org/v2/gh/pykale/pykale/HEAD?filepath=examples%2Fdigits_dann_lightn%2Fmain.ipynb
+    :target: https://mybinder.org/v2/gh/pykale/pykale/HEAD?filepath=examples%2Fdigits_dann_lightn%2Ftutorial.ipynb
 
 
 .. |digits_colab| image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn/main.ipynb
+    :target: https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn/tutorial.ipynb
