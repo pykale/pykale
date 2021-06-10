@@ -72,7 +72,11 @@ def get_aggregated_metrics_from_dict(input_metric_dict):
         if metric_dim == 0:
             metric_dict[metric_name] = metric_value
         else:
-            metric_dict[metric_name] = metric_value.double().mean()
+            # # get the correct top5 accuracy
+            if "top5" in metric_name and "action" not in metric_name:
+                metric_dict[metric_name] = torch.mul(metric_value.double().mean(), 5)
+            else:
+                metric_dict[metric_name] = metric_value.double().mean()
     return metric_dict
 
 
