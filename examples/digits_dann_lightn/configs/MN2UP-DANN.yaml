@@ -1,2 +1,5 @@
 DAN:
-  METHOD: 'DANN'
+  METHOD: "DANN"
+
+DATASET:
+  SOURCE: "svhn"

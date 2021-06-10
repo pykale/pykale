@@ -40,3 +40,6 @@ tests/test_data
 
 # Lightning
 lightning_logs
+
+# Jupyter Notebook Checkpoints
+*-checkpoint.ipynb
