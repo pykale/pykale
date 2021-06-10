@@ -31,7 +31,7 @@ Kale APIs above are ordered following the machine learning pipeline, i.e., funct
 
 .. toctree::
     :maxdepth: 1
-    :caption: Tutorials
+    :caption: Notebook Tutorials
 
     Digits - Domain Adaptation Notebook <https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb>
 
