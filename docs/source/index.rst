@@ -29,17 +29,18 @@ PyKale Documentation
 
 Kale APIs above are ordered following the machine learning pipeline, i.e., functionalities, rather than alphabetically.
 
-Example Projects
-################
+.. toctree::
+    :maxdepth: 1
+    :caption: Example Projects
 
-* `Action - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/action_dann_lightn>`_
-* `BindingDB - DeepDTA <https://github.com/pykale/pykale/tree/main/examples/bindingdb_deepdta>`_
-* `CardiacMRI - MPCA <https://github.com/pykale/pykale/tree/main/examples/cmri_mpca>`_
-* `CIFAR - CNN Transformer <https://github.com/pykale/pykale/tree/main/examples/cifar_cnntransformer>`_
-* `CIFAR - ISONet <https://github.com/pykale/pykale/tree/main/examples/cifar_isonet>`_
-* `Digits - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn>`_ |digits_mybinder| |digits_colab|
-* `Drug - GripNet <https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn>`_
-* `VIDEOS - Data Loading <https://github.com/pykale/pykale/tree/main/examples/video_loading>`_
+    `Action - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/action_dann_lightn>`_
+    `BindingDB - DeepDTA <https://github.com/pykale/pykale/tree/main/examples/bindingdb_deepdta>`_
+    `CardiacMRI - MPCA <https://github.com/pykale/pykale/tree/main/examples/cmri_mpca>`_
+    `CIFAR - CNN Transformer <https://github.com/pykale/pykale/tree/main/examples/cifar_cnntransformer>`_
+    `CIFAR - ISONet <https://github.com/pykale/pykale/tree/main/examples/cifar_isonet>`_
+    `Digits - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn>`_ |digits_mybinder| |digits_colab|
+    `Drug - GripNet <https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn>`_
+    `VIDEOS - Data Loading <https://github.com/pykale/pykale/tree/main/examples/video_loading>`_
 
 .. To study later the best way to document examples
 .. examples/examples.cifar_cnntransformer
