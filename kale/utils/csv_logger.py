@@ -98,8 +98,6 @@ def setup_logger(train_params, output_dir, method_name, seed, class_type="object
     test_csv_file = f"{output_file_prefix}.csv"
     checkpoint_dir = os.path.join(output_dir, "checkpoints", params_hash)
 
-    # To simplify
-
     path_method_name = re.sub(r"[^-/\w\.]", "_", method_name)
     full_checkpoint_dir = os.path.join(checkpoint_dir, path_method_name, f"seed_{seed}")
     if class_type == "verb+noun":
@@ -107,10 +105,10 @@ def setup_logger(train_params, output_dir, method_name, seed, class_type="object
         metrics = [
             "verb source top1 acc",
             "verb source top5 acc",
-            "verb target top1 acc",
-            "verb target top5 acc",
             "noun source top1 acc",
             "noun source top5 acc",
+            "verb target top1 acc",
+            "verb target top5 acc",
             "noun target top1 acc",
             "noun target top5 acc",
             "action source top1 acc",
