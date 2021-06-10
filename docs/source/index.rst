@@ -65,4 +65,4 @@ Indices and Tables
 
 
 .. |digits_colab| image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn/tutorial.ipynb
+    :target: https://colab.research.google.com/github/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb
