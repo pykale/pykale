@@ -31,6 +31,12 @@ Kale APIs above are ordered following the machine learning pipeline, i.e., funct
 
 .. toctree::
     :maxdepth: 1
+    :caption: Tutorials
+
+    Digits - Domain Adaptation Notebook <https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb>
+
+.. toctree::
+    :maxdepth: 1
     :caption: Example Projects
 
     Action - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/action_dann_lightn>
@@ -41,12 +47,6 @@ Kale APIs above are ordered following the machine learning pipeline, i.e., funct
     Digits - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn>
     Drug - GripNet <https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn>
     VIDEOS - Data Loading <https://github.com/pykale/pykale/tree/main/examples/video_loading>
-
-.. toctree::
-    :maxdepth: 1
-    :caption: Tutorials
-
-    Digits - Domain Adaptation Notebook <https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb>
 
 .. To study later the best way to document examples
 .. examples/examples.cifar_cnntransformer
