@@ -17,6 +17,12 @@ PyKale Documentation
 
 .. toctree::
     :maxdepth: 1
+    :caption: Notebook Tutorials
+
+    Digits - Domain Adaptation Notebook <https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb>
+
+.. toctree::
+    :maxdepth: 1
     :caption: Kale API
 
     kale.loaddata
@@ -28,12 +34,6 @@ PyKale Documentation
     kale.utils
 
 Kale APIs above are ordered following the machine learning pipeline, i.e., functionalities, rather than alphabetically.
-
-.. toctree::
-    :maxdepth: 1
-    :caption: Notebook Tutorials
-
-    Digits - Domain Adaptation Notebook <https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb>
 
 .. toctree::
     :maxdepth: 1
