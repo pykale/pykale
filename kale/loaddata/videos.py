@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
+from numpy.random import randint
 from PIL import Image
 
 
@@ -255,31 +256,59 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         Returns:
             List of indices of segment start frames.
         """
+        if self.input_type == "image":
+            if record.num_frames > self.num_segments * self.frames_per_segment - 1:
+                segment_duration = (record.num_frames - self.frames_per_segment + 1) // self.num_segments
+                offsets = np.multiply(list(range(self.num_segments)), segment_duration) + np.random.randint(
+                    segment_duration, size=self.num_segments
+                )
+            else:
+                offsets = np.sort(random.sample(range(record.num_frames - self.frames_per_segment), self.num_segments))
+            return offsets
+        elif self.input_type == "feature":
+            average_duration = (record.num_frames - self.frames_per_segment + 1) // self.num_segments
+            if average_duration > 0:
+                offsets = np.multiply(list(range(self.num_segments)), average_duration) + randint(
+                    average_duration, size=self.num_segments
+                )
+            elif record.num_frames > self.num_segments:
+                offsets = np.sort(randint(record.num_frames - self.frames_per_segment + 1, size=self.num_segments))
+            else:
+                offsets = np.zeros((self.num_segments,))
+            return offsets + 1
 
-        if record.num_frames > self.num_segments * self.frames_per_segment - 1:
-            segment_duration = (record.num_frames - self.frames_per_segment + 1) // self.num_segments
-            offsets = np.multiply(list(range(self.num_segments)), segment_duration) + np.random.randint(
-                segment_duration, size=self.num_segments
-            )
-        else:
-            offsets = np.sort(random.sample(range(record.num_frames - self.frames_per_segment), self.num_segments))
-        return offsets
-
-    def _get_symmetric_indices(self, record):
+    def _get_symmetric_indices(self, record, to_expand=False):
         """
         For each segment, finds the start frame indexes which are symmetrical.
 
         Args:
             record: VideoRecord denoting a video sample
+            to_expand: whether to expand to the length of self.num_segments with the last element
         Returns:
             List of indices of segment start frames.
         """
+        if self.input_type == "image":
+            tick = (record.num_frames - self.frames_per_segment + 1) / float(self.num_segments)
 
-        tick = (record.num_frames - self.frames_per_segment + 1) / float(self.num_segments)
+            offsets = np.array([int(tick / 2.0 + tick * x) for x in range(self.num_segments)])
 
-        offsets = np.array([int(tick / 2.0 + tick * x) for x in range(self.num_segments)])
+            return offsets
+        elif self.input_type == "feature":
+            num_min = self.num_segments + self.frames_per_segment - 1
+            num_select = record.num_frames - self.frames_per_segment + 1
 
-        return offsets
+            if record.num_frames >= num_min:
+                tick = float(num_select) / float(self.num_segments)
+                offsets = np.array([int(tick / 2.0 + tick * float(x)) for x in range(self.num_segments)])
+            else:
+                if to_expand:
+                    id_select = np.array([x for x in range(num_select)])
+                    # expand to the length of self.num_segments with the last element
+                    id_expand = np.ones(self.num_segments - num_select, dtype=int) * id_select[id_select[0] - 1]
+                    offsets = np.append(id_select, id_expand)
+                else:
+                    offsets = np.zeros((self.num_segments,))
+            return offsets + 1
 
     def __getitem__(self, index):
         """
@@ -330,7 +359,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
                 self._get_random_indices(record) if self.random_shift else self._get_symmetric_indices(record)
             )
         else:
-            segment_indices = self._get_symmetric_indices(record)
+            segment_indices = self._get_symmetric_indices(record, to_expand=True)
 
         return self._get(record, segment_indices)
 
