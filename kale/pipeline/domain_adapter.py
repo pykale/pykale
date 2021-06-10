@@ -55,6 +55,7 @@ def get_aggregated_metrics(metric_name_list, metric_outputs):
         if metric_dim == 0:
             metric_value = torch.stack([x[metric_name] for x in metric_outputs]).mean()
         else:
+            # # get the correct top5 accuracy
             if "top5" in metric_name and "action" not in metric_name:
                 metric_value = torch.mul(torch.cat([x[metric_name] for x in metric_outputs]).double().mean(), 5)
             else:
