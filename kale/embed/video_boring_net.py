@@ -73,6 +73,7 @@ class BoringNetVideo(nn.Module):
 
 
 def boring_net(name, pretrained=False, input_size=1024, n_out=256, progress=True):
+    """Get BoringNetVideo module with pretrained model."""
     model = BoringNetVideo(input_size=input_size, n_out=n_out)
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[name], progress=progress)
@@ -83,6 +84,20 @@ def boring_net(name, pretrained=False, input_size=1024, n_out=256, progress=True
 def boring_net_joint(
     rgb_name=None, flow_name=None, audio_name=None, pretrained=False, input_size=1024, n_out=256, progress=True
 ):
+    """Get BoringNetVideo model for different inputs.
+
+    Args:
+        rgb_name (string, optional): the name of pre-trained model for rgb input.
+        flow_name (string, optional): the name of pre-trained model for flow input.
+        audio_name (string, optional): the name of pre-trained model for audio input.
+        pretrained (bool, optional): choose if pretrained parameters are used. (Default: False),
+        input_size (int, optional): dimension of the final feature vector. Defaults to 1024.
+        n_out (int, optional): dimension of the output feature vector. Defaults to 256.
+        progress (bool, optional): whether or not to display a progress bar to stderr. (Default: True)
+
+    Returns:
+        models (dictionary): A dictionary contains rgb, flow and audio models.
+    """
     model_rgb = model_flow = model_audio = None
     if rgb_name is not None:
         model_rgb = boring_net(rgb_name, pretrained, input_size, n_out, progress)
