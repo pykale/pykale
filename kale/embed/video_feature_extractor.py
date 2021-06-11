@@ -9,6 +9,7 @@ Define the feature extractor for video including I3D, R3D_18, MC3_18 and R2PLUS1
 import logging
 
 from torch import nn
+from torchvision.models.utils import load_state_dict_from_url
 
 from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
@@ -182,17 +183,48 @@ class BoringNetVideo(nn.Module):
         return x
 
 
+model_urls = {
+    "rgb_boring": None,
+    "flow_boring": None,
+    "audio_boring": None,
+}
+
+
+def boring_net(name, pretrained=False, input_size=1024, n_out=256, progress=True):
+    model = BoringNetVideo(input_size=input_size, n_out=n_out)
+    if pretrained:
+        state_dict = load_state_dict_from_url(model_urls[name], progress=progress)
+        model.load_state_dict(state_dict)
+    return model
+
+
+def boring_net_joint(
+    rgb_name=None, flow_name=None, audio_name=None, pretrained=True, input_size=1024, n_out=256, progress=True
+):
+    model_rgb = model_flow = model_audio = None
+    if rgb_name is not None:
+        model_rgb = boring_net(rgb_name, pretrained, input_size, n_out, progress)
+    if flow_name is not None:
+        model_flow = boring_net(flow_name, pretrained, input_size, n_out, progress)
+    if audio_name is not None:
+        model_audio = boring_net(audio_name, pretrained, input_size, n_out, progress)
+    return {"rgb": model_rgb, "flow": model_flow, "audio": model_audio}
+
+
 def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=512):
     """Get the feature extractor w/o SELayers for feature input.
     """
-    feature_network_rgb = feature_network_flow = feature_network_audio = None
     rgb, flow, audio = get_image_modality(image_modality)
+    rgb_pretrained = flow_pretrained = audio_pretrained = None
     if rgb:
-        feature_network_rgb = BoringNetVideo(input_size=1024, n_out=num_out)
+        rgb_pretrained = "rgb_boring"
     if flow:
-        feature_network_flow = BoringNetVideo(input_size=1024, n_out=num_out)
+        flow_pretrained = "flow_boring"
     if audio:
-        feature_network_audio = BoringNetVideo(input_size=1024, n_out=num_out)
+        audio_pretrained = "audio_boring"
+    feature_network = boring_net_joint(
+        rgb_pretrained, flow_pretrained, audio_pretrained, input_size=1024, n_out=num_out
+    )
 
     domain_feature_dim = int(num_out * 8)
     if rgb:
@@ -214,9 +246,7 @@ def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=5
                 class_feature_dim = domain_feature_dim
         else:  # For audio input
             class_feature_dim = domain_feature_dim
+    class_feature_dim = int(class_feature_dim)
+    domain_feature_dim = int(domain_feature_dim)
 
-    return (
-        {"rgb": feature_network_rgb, "flow": feature_network_flow, "audio": feature_network_audio},
-        int(class_feature_dim),
-        int(domain_feature_dim),
-    )
+    return feature_network, class_feature_dim, domain_feature_dim
