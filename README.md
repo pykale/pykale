@@ -29,7 +29,7 @@
 - `embed` embeds data in a new space to learn a new representation (feature extraction/selection)
 - `predict` predicts a desired output
 - `evaluate` evaluates the performance using some metrics
-- `interpret` interprets the features and outputs via post-prediction analysis mainly via visualisation
+- `interpret` interprets the features and outputs via post-prediction analysis mainly via visualization
 - `pipeline` specifies a machine learning workflow by combining several other modules
 
 #### Example usage

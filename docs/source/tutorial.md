@@ -19,7 +19,7 @@ Next, we explain the usage of the pipeline-based API in the modules above, mainl
 - The `kale.embed` module provides *embedding* functions (the *encoder*) to *learn* suitable representations from the (pre-processed) input data, such as `from kale.embed.image_cnn import SmallCNNFeature` in [`digits_dann_lightn`'s `model` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/model.py). This is a machine learning module.
 - The `kale.predict` module provides prediction functions (the *decoder*) to *learn* a mapping from the input representation to a target prediction, such as `from kale.predict.class_domain_nets import ClassNetSmallImage` in [`digits_dann_lightn`'s `model` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/model.py). This is also a machine learning module.
 - The `kale.evaluate` module implements evaluation metrics not yet available, such as the Concordance Index (CI) for measuring the proportion of [concordant pairs](https://en.wikipedia.org/wiki/Concordant_pair).
-- The `kale.interpret` module aims to provide functions for interpretation of the learned model or the prediction results, such as visualisation. This module has no implementation yet.
+- The `kale.interpret` module aims to provide functions for interpretation of the learned model or the prediction results, such as visualization. This module has no implementation yet.
 
 ## Building New Modules or Projects
 
