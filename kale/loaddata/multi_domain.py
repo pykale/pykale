@@ -15,7 +15,7 @@ from torchvision.datasets import VisionDataset
 from torchvision.datasets.folder import default_loader, has_file_allowed_extension, IMG_EXTENSIONS
 
 from kale.loaddata.dataset_access import DatasetAccess, split_by_ratios
-from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
+from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig, FixedSeedSamplingConfig
 
 
 class WeightingType(Enum):
@@ -411,7 +411,7 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
         # target=None,
         val_split_ratio=0.1,
         test_split_ratio=0.2,
-        random_state=1,
+        random_state: int = 1,
     ):
         # domain_weight_type = DomainWeightType(domain_weight_type)
         # if domain_weight_type is DomainWeightType.BALANCED:
@@ -440,8 +440,8 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
         self._val_split_ratio = val_split_ratio
         self._test_split_ratio = test_split_ratio
         self._sample_by_split: Dict[str, torch.utils.data.Subset] = {}
-        self._sampling_config = SamplingConfig()
-        self._random_state = check_random_state(random_state)
+        self._sampling_config = FixedSeedSamplingConfig(seed=random_state)
+        self._random_state = random_state
 
     def prepare_data_loaders(self):
         # (self._source_by_split["test"], self._source_by_split["valid"], self._source_by_split["train"],) = \
@@ -455,7 +455,8 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
             domain_label_ = self.domain_to_idx[domain]
             domain_idx = np.where(self.domain_labels == domain_label_)[0]
             subset["test"], subset["valid"], subset["train"] = split_by_ratios(
-                torch.utils.data.Subset(self.data_access, domain_idx), [self._test_split_ratio, self._val_split_ratio]
+                torch.utils.data.Subset(self.data_access, domain_idx), [self._test_split_ratio, self._val_split_ratio],
+                random_state=self._random_state
             )
             for split in ["train", "valid", "test"]:
                 subset_split[split].append(subset[split])
