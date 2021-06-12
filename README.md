@@ -24,7 +24,7 @@
 
 #### Pipeline-based API (generic and reusable)
 
-- `loaddata` loads data from disk or online resources as in input
+- `loaddata` loads data from disk or online resources as input
 - `prepdata` preprocesses data to fit machine learning modules below (transforms)
 - `embed` embeds data in a new space to learn a new representation (feature extraction/selection)
 - `predict` predicts a desired output
