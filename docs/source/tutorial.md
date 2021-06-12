@@ -1,5 +1,7 @@
 # Tutorial
 
+For Jupyter Notebook tutorials, see **Notebook Tutorials** below this in TOC.
+
 ## Usage of Pipeline-based API in Examples
 
 The `kale` API has a unique pipeline-based API design. Each example typically has three essential modules (`main.py`, `config.py`, `model.py`), one optional directory (`configs`), and possibly other modules (`trainer.py`):
