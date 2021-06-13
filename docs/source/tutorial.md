@@ -7,14 +7,14 @@ For Jupyter Notebook tutorials, see **Notebook Tutorials** below this in TOC.
 The `kale` API has a unique pipeline-based API design. Each example typically has three essential modules (`main.py`, `config.py`, `model.py`), one optional directory (`configs`), and possibly other modules (`trainer.py`):
 
 - `main.py` is the main module to be run, showing the main workflow.
-- `config.py` is the configuration module setting the data, prediction problem, and hyper-parameters, etc. The settings in this module is the default configuration.
-  - `configs` is the directory to place the *customized* configuration for each individual run. We use `.yaml` files for this purpose.
+- `config.py` is the configuration module that sets up the data, prediction problem, and hyper-parameters, etc. The settings in this module is the default configuration.
+  - `configs` is the directory to place *customized* configurations for individual runs. We use `.yaml` files for this purpose.
 - `model.py` is the model module to define the machine learning model and configure its training parameters.
-  - `trainer.py` is the trainer module to define the trainer/workflow. This module is *only needed when NOT using `pytorch lightning`*.
+  - `trainer.py` is the trainer module to define the training and testing workflow. This module is *only needed when NOT using `PyTorch Lightning`*.
 
 Next, we explain the usage of the pipeline-based API in the modules above, mainly using the [domain adaptation for digits classification example](https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn).
 
-- The `kale.pipeline` module provides existing (off-the-shelf) machine learning pipelines for plug-in usage, e.g. `import kale.pipeline.domain_adapter as domain_adapter` in [`digits_dann_lightn`'s `model` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/model.py).
+- The `kale.pipeline` module provides mature, off-the-shelf machine learning pipelines for plug-in usage, e.g. `import kale.pipeline.domain_adapter as domain_adapter` in [`digits_dann_lightn`'s `model` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/model.py).
 - The `kale.utils` module provides common utility functions, such as `from kale.utils.seed import set_seed` in [`digits_dann_lightn`'s `main` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/main.py).
 - The `kale.loaddata` module provides the input to the machine learning system, such as`from kale.loaddata.digits_access import DigitDatase` in  [`digits_dann_lightn`'s `main` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/main.py).
 - The `kale.prepdata` module provides pre-processing functions to transform the raw input data into a suitable form for machine learning, such as `import kale.prepdata.image_transform as image_transform` in `kale.loaddata.digits_access` used in  [`digits_dann_lightn`'s `main` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/main.py) for image data augmentation.
@@ -30,12 +30,12 @@ New modules/projects can be built following the steps below.
 - Step 1 - Examples: Choose one of the [examples](https://github.com/pykale/pykale/tree/main/examples) of your interest (e.g., most relevant to your project) to
   - browse through the configuration, main, and model modules
   - download the data if needed
-  - run the example following instructions in README
-- Step 2a - New model: To develop new machine learning models under pykale,
+  - run the example following instructions in the example's README
+- Step 2a - New model: To develop new machine learning models under PyKale,
   - define the blocks in your pipeline to figure out what are the methods for data loading, pre-processing data, embedding (encoder/representation), prediction (decoder), evaluation, and interpretation (if needed)
-  - modify existing pipelines with your customized blocks or build a new pipeline with pykale blocks and blocks from other libraries
-- Step 2b - New applications: To develop new applications using pykale,
-  - clarify the input data and the prediction target to find matching functionalities in pykale (request if not found)
+  - modify existing pipelines with your customized blocks or build a new pipeline with PyKale blocks and blocks from other libraries
+- Step 2b - New applications: To develop new applications using PyKale,
+  - clarify the input data and the prediction target to find matching functionalities in PyKale (request if not found)
   - tailor data loading, pre-processing, and evaluation (and interpretation if needed) to your application
 
 ## The Scope of Support

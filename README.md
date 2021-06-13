@@ -50,9 +50,9 @@ pip install pykale
 
 For more details and other options, please refer to [the installation guide](https://pykale.readthedocs.io/en/latest/installation.html).
 
-### Step 1: Tutorial and Examples
+### Step 1: Tutorials and Examples
 
-Start with a brief [tutorial](https://pykale.readthedocs.io/en/latest/tutorial.html#usage-of-pipeline-based-api-in-examples) walking through API usage in examples.
+Start with a brief [tutorial](https://pykale.readthedocs.io/en/latest/tutorial.html#usage-of-pipeline-based-api-in-examples) walking through API usage in examples or a [Jupyter notebook tutorial](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb) at [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pykale/pykale/HEAD?filepath=examples%2Fdigits_dann_lightn%2Ftutorial.ipynb) or [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb).
 
 Browse through the [**examples**](https://github.com/pykale/pykale/tree/main/examples) to see the usage of PyKale in performing various prediction tasks in a wide range of applications, using a variety of settings, e.g. with or without [PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning).
 
