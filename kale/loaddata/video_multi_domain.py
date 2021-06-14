@@ -23,7 +23,6 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         source_access_dict,
         target_access_dict,
         image_modality,
-        seed,
         config_weight_type="natural",
         config_size_type=DatasetSizeType.Max,
         val_split_ratio=0.1,
@@ -39,13 +38,11 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             source_access_dict (dictionary): dictionary of source RGB and flow dataset accessors
             target_access_dict (dictionary): dictionary of target RGB and flow dataset accessors
             image_modality (string): image type (RGB or Optical Flow)
-            seed (int): seed value set manually.
             class_ids (list, optional): List of chosen subset of class ids. Defaults to None (=> All Classes).
         """
 
         self._image_modality = image_modality
         self.rgb, self.flow, self.audio = get_image_modality(self._image_modality)
-        self._seed = seed
 
         if self.rgb:
             source_access = source_access_dict["rgb"]
@@ -73,8 +70,8 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         elif weight_type not in WeightingType:
             raise ValueError(f"Unknown weighting method {weight_type}.")
         else:
-            self._source_sampling_config = FixedSeedSamplingConfig(seed=self._seed)
-            self._target_sampling_config = FixedSeedSamplingConfig(seed=self._seed)
+            self._source_sampling_config = FixedSeedSamplingConfig(seed=random_state)
+            self._target_sampling_config = FixedSeedSamplingConfig(seed=random_state)
 
         self._source_access_dict = source_access_dict
         self._target_access_dict = target_access_dict

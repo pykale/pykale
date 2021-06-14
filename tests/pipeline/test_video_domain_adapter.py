@@ -106,7 +106,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
         source,
         target,
         image_modality=cfg.DATASET.IMAGE_MODALITY,
-        seed=seed,
+        random_state=seed,
         config_weight_type=cfg.DATASET.WEIGHT_TYPE,
         config_size_type=cfg.DATASET.SIZE_TYPE,
     )
