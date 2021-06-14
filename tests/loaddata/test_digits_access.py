@@ -10,7 +10,7 @@ from kale.loaddata.multi_domain import DomainsDatasetBase, MultiDomainDatasets
 
 SOURCES = ["MNIST", "USPS"]
 TARGETS = ["MNISTM", "SVHN"]
-ALL = SOURCES + TARGETS  # ["SVHN", "USPS"]
+ALL = ["SVHN", "USPS"]  # SOURCES + TARGETS
 
 WEIGHT_TYPE = ["natural", "balanced", "preset0"]
 DATASIZE_TYPE = ["max", "source"]
