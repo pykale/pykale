@@ -165,10 +165,10 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
                 "val_loss",
                 "val_task_loss",
                 "val_adv_loss",
-                # "V_source_acc",
+                "V_source_acc",
                 "V_source_top1_acc",
                 "V_source_top5_acc",
-                # "V_target_acc",
+                "V_target_acc",
                 "V_target_top1_acc",
                 "V_target_top5_acc",
                 "V_source_domain_acc",
@@ -180,16 +180,16 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
                 "val_loss",
                 "val_task_loss",
                 "val_adv_loss",
-                # "V_verb_source_acc",
+                "V_verb_source_acc",
                 "V_verb_source_top1_acc",
                 "V_verb_source_top5_acc",
-                # "V_noun_source_acc",
+                "V_noun_source_acc",
                 "V_noun_source_top1_acc",
                 "V_noun_source_top5_acc",
-                # "V_verb_target_acc",
+                "V_verb_target_acc",
                 "V_verb_target_top1_acc",
                 "V_verb_target_top5_acc",
-                # "V_noun_target_acc",
+                "V_noun_target_acc",
                 "V_noun_target_top1_acc",
                 "V_noun_target_top5_acc",
                 "V_action_source_top1_acc",
@@ -204,10 +204,10 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
         if self.verb and not self.noun:
             metrics_at_test = (
                 "test_loss",
-                # "Te_source_acc",
+                "Te_source_acc",
                 "Te_source_top1_acc",
                 "Te_source_top5_acc",
-                # "Te_target_acc",
+                "Te_target_acc",
                 "Te_target_top1_acc",
                 "Te_target_top5_acc",
                 "Te_domain_acc",
@@ -215,16 +215,16 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
         elif self.verb and self.noun:
             metrics_at_test = (
                 "test_loss",
-                # "Te_verb_source_acc",
+                "Te_verb_source_acc",
                 "Te_verb_source_top1_acc",
                 "Te_verb_source_top5_acc",
-                # "Te_noun_source_acc",
+                "Te_noun_source_acc",
                 "Te_noun_source_top1_acc",
                 "Te_noun_source_top5_acc",
-                # "Te_verb_target_acc",
+                "Te_verb_target_acc",
                 "Te_verb_target_top1_acc",
                 "Te_verb_target_top5_acc",
-                # "Te_noun_target_acc",
+                "Te_noun_target_acc",
                 "Te_noun_target_top1_acc",
                 "Te_noun_target_top5_acc",
                 "Te_action_source_top1_acc",
@@ -315,15 +315,15 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
 
     def get_loss_log_metrics(self, split_name, y_hat, y_t_hat, y_s, y_tu, dok):
         if self.verb and not self.noun:
-            loss_cls, _ = losses.cross_entropy_logits(y_hat[0], y_s[0])
-            # _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
+            loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s[0])
+            _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
             prec1_src, prec5_src = losses.topk_accuracy(y_hat[0], y_s[0], topk=(1, 5))
             prec1_tgt, prec5_tgt = losses.topk_accuracy(y_t_hat[0], y_tu[0], topk=(1, 5))
             task_loss = loss_cls
 
             log_metrics = {
-                # f"{split_name}_source_acc": ok_src,
-                # f"{split_name}_target_acc": ok_tgt,
+                f"{split_name}_source_acc": ok_src,
+                f"{split_name}_target_acc": ok_tgt,
                 f"{split_name}_source_top1_acc": prec1_src,
                 f"{split_name}_source_top5_acc": prec5_src,
                 f"{split_name}_target_top1_acc": prec1_tgt,
@@ -332,10 +332,10 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             }
 
         elif self.verb and self.noun:
-            loss_cls_verb, _ = losses.cross_entropy_logits(y_hat[0], y_s[0])
-            loss_cls_noun, _ = losses.cross_entropy_logits(y_hat[1], y_s[1])
-            # _, ok_tgt_verb = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
-            # _, ok_tgt_noun = losses.cross_entropy_logits(y_t_hat[1], y_tu[1])
+            loss_cls_verb, ok_src_verb = losses.cross_entropy_logits(y_hat[0], y_s[0])
+            loss_cls_noun, ok_src_noun = losses.cross_entropy_logits(y_hat[1], y_s[1])
+            _, ok_tgt_verb = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
+            _, ok_tgt_noun = losses.cross_entropy_logits(y_t_hat[1], y_tu[1])
 
             prec1_src_verb, prec5_src_verb = losses.topk_accuracy(y_hat[0], y_s[0], topk=(1, 5))
             prec1_src_noun, prec5_src_noun = losses.topk_accuracy(y_hat[1], y_s[1], topk=(1, 5))
@@ -351,10 +351,10 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             task_loss = loss_cls_verb + loss_cls_noun
 
             log_metrics = {
-                # f"{split_name}_verb_source_acc": ok_src_verb,
-                # f"{split_name}_noun_source_acc": ok_src_noun,
-                # f"{split_name}_verb_target_acc": ok_tgt_verb,
-                # f"{split_name}_noun_target_acc": ok_tgt_noun,
+                f"{split_name}_verb_source_acc": ok_src_verb,
+                f"{split_name}_noun_source_acc": ok_src_noun,
+                f"{split_name}_verb_target_acc": ok_tgt_verb,
+                f"{split_name}_noun_target_acc": ok_tgt_noun,
                 f"{split_name}_verb_source_top1_acc": prec1_src_verb,
                 f"{split_name}_verb_source_top5_acc": prec5_src_verb,
                 f"{split_name}_noun_source_top1_acc": prec1_src_noun,
