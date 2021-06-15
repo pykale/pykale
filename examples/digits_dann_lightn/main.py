@@ -21,7 +21,7 @@ def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Digits Datasets")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    parser.add_argument("--gpus", default="0", help="gpu id(s) to use", type=str)
+    parser.add_argument("--gpus", help="gpu id(s) to use", type=str)
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
@@ -46,7 +46,11 @@ def main():
         DigitDataset(cfg.DATASET.SOURCE.upper()), DigitDataset(cfg.DATASET.TARGET.upper()), cfg.DATASET.ROOT
     )
     dataset = MultiDomainDatasets(
-        source, target, config_weight_type=cfg.DATASET.WEIGHT_TYPE, config_size_type=cfg.DATASET.SIZE_TYPE
+        source,
+        target,
+        config_weight_type=cfg.DATASET.WEIGHT_TYPE,
+        config_size_type=cfg.DATASET.SIZE_TYPE,
+        val_split_ratio=cfg.DATASET.VAL_SPLIT_RATIO,
     )
 
     # Repeat multiple times to get std
@@ -60,19 +64,24 @@ def main():
         logger, results, checkpoint_callback, test_csv_file = setup_logger(
             train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD, seed
         )
-        trainer = pl.Trainer(
-            progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
-            min_epochs=cfg.SOLVER.MIN_EPOCHS,
-            max_epochs=cfg.SOLVER.MAX_EPOCHS,
-            checkpoint_callback=checkpoint_callback,
-            # resume_from_checkpoint=last_checkpoint_file,
-            gpus=args.gpus,
-            logger=False,  # logger,
-            # weights_summary='full',
-            # limit_train_batches=0.005,
-            # limit_val_batches=0.06,
-            # limit_test_batches=0.06,
-        )
+
+        if args.gpus is None:
+            trainer = pl.Trainer(
+                progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
+                min_epochs=cfg.SOLVER.MIN_EPOCHS,
+                max_epochs=cfg.SOLVER.MAX_EPOCHS,
+                callbacks=[checkpoint_callback],
+                logger=False,
+            )
+        else:
+            trainer = pl.Trainer(
+                progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
+                min_epochs=cfg.SOLVER.MIN_EPOCHS,
+                max_epochs=cfg.SOLVER.MAX_EPOCHS,
+                callbacks=[checkpoint_callback],
+                logger=False,
+                gpus=args.gpus,
+            )
 
         trainer.fit(model)
         results.update(

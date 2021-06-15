@@ -11,6 +11,7 @@ import math
 import numpy as np
 from sklearn.utils import check_random_state
 
+from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.multi_domain import DatasetSizeType, MultiDomainDatasets, WeightingType
 from kale.loaddata.sampler import FixedSeedSamplingConfig, MultiDataLoader
 from kale.loaddata.video_access import get_image_modality
@@ -30,6 +31,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         target_sampling_config=None,
         n_fewshot=None,
         random_state=None,
+        class_ids=None,
     ):
         """The class controlling how the source and target domains are iterated over when the input is joint.
             Inherited from MultiDomainDatasets.
@@ -38,6 +40,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             target_access_dict (dictionary): dictionary of target RGB and flow dataset accessors
             image_modality (string): image type (RGB or Optical Flow)
             seed (int): seed value set manually.
+            class_ids (list, optional): List of chosen subset of class ids. Defaults to None (=> All Classes).
         """
 
         self._image_modality = image_modality
@@ -88,6 +91,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         self._source_by_split = {}
         self._labeled_target_by_split = None
         self._target_by_split = {}
+        self.class_ids = class_ids
 
     def prepare_data_loaders(self):
         if self.rgb:
@@ -95,28 +99,66 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             (self._rgb_source_by_split["train"], self._rgb_source_by_split["valid"]) = self._source_access_dict[
                 "rgb"
             ].get_train_val(self._val_split_ratio)
+            if self.class_ids is not None:
+                self._rgb_source_by_split["train"] = get_class_subset(
+                    self._rgb_source_by_split["train"], self.class_ids
+                )
+                self._rgb_source_by_split["valid"] = get_class_subset(
+                    self._rgb_source_by_split["valid"], self.class_ids
+                )
 
             (self._rgb_target_by_split["train"], self._rgb_target_by_split["valid"]) = self._target_access_dict[
                 "rgb"
             ].get_train_val(self._val_split_ratio)
+            if self.class_ids is not None:
+                self._rgb_target_by_split["train"] = get_class_subset(
+                    self._rgb_target_by_split["train"], self.class_ids
+                )
+                self._rgb_target_by_split["valid"] = get_class_subset(
+                    self._rgb_target_by_split["valid"], self.class_ids
+                )
 
             logging.debug("Load RGB Test")
             self._rgb_source_by_split["test"] = self._source_access_dict["rgb"].get_test()
             self._rgb_target_by_split["test"] = self._target_access_dict["rgb"].get_test()
+            if self.class_ids is not None:
+                self._rgb_source_by_split["test"] = get_class_subset(self._rgb_source_by_split["test"], self.class_ids)
+                self._rgb_target_by_split["test"] = get_class_subset(self._rgb_target_by_split["test"], self.class_ids)
 
         if self.flow:
             logging.debug("Load flow train and val")
             (self._flow_source_by_split["train"], self._flow_source_by_split["valid"]) = self._source_access_dict[
                 "flow"
             ].get_train_val(self._val_split_ratio)
+            if self.class_ids is not None:
+                self._flow_source_by_split["train"] = get_class_subset(
+                    self._flow_source_by_split["train"], self.class_ids
+                )
+                self._flow_source_by_split["valid"] = get_class_subset(
+                    self._flow_source_by_split["valid"], self.class_ids
+                )
 
             (self._flow_target_by_split["train"], self._flow_target_by_split["valid"]) = self._target_access_dict[
                 "flow"
             ].get_train_val(self._val_split_ratio)
+            if self.class_ids is not None:
+                self._flow_target_by_split["train"] = get_class_subset(
+                    self._flow_target_by_split["train"], self.class_ids
+                )
+                self._flow_target_by_split["valid"] = get_class_subset(
+                    self._flow_target_by_split["valid"], self.class_ids
+                )
 
             logging.debug("Load flow Test")
             self._flow_source_by_split["test"] = self._source_access_dict["flow"].get_test()
             self._flow_target_by_split["test"] = self._target_access_dict["flow"].get_test()
+            if self.class_ids is not None:
+                self._flow_source_by_split["test"] = get_class_subset(
+                    self._flow_source_by_split["test"], self.class_ids
+                )
+                self._flow_target_by_split["test"] = get_class_subset(
+                    self._flow_target_by_split["test"], self.class_ids
+                )
 
         if self.audio:
             logging.debug("Load audio train and val")
