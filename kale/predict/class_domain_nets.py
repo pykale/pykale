@@ -10,10 +10,12 @@ adversarial discrimination of source vs target domains, from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
 """
 
+import torch
 import torch.nn as nn
 
 from kale.embed.video_i3d import Unit3D
 from kale.loaddata.video_access import get_class_type
+from kale.pipeline.video_domain_adapter import ReverseLayerF
 
 
 # Previously FFSoftmaxClassifier
@@ -221,3 +223,50 @@ class DomainNetVideo(nn.Module):
         x = self.relu1(self.bn1(self.fc1(input)))
         x = self.fc2(x)
         return x
+
+
+class DomainNetTA3N(nn.Module):
+    """Regular domain classifier network for TA3N. Has three baseline_types: video, frame and relation
+
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        n_channel (int, optional): the number of channel for Linear and BN layers.
+    """
+
+    def __init__(self, input_size=128, n_channel=100, class_type="verb", train_segments=5):
+        super(DomainNetVideo, self).__init__()
+        self.fc_feature_domain = nn.Linear(input_size, n_channel)
+        self.fc_classifier_domain = nn.Linear(n_channel, 2)
+        self.relu = nn.ReLU(inplace=True)
+        self.relation_domain_classifier_all = nn.ModuleList()
+        self.train_segments = train_segments
+        for i in range(self.train_segments - 1):
+            relation_domain_classifier = nn.Sequential(
+                nn.Linear(input_size, n_channel), nn.ReLU(), nn.Linear(n_channel, 2)
+            )
+            self.relation_domain_classifier_all += [relation_domain_classifier]
+
+    def forward(self, input, beta=0, isRelation=False):
+        if not isRelation:
+            x = ReverseLayerF.apply(input, beta)
+            x = self.fc_feature_domain(x)
+            x = self.relu(x)
+            prediction = self.fc_classifier_domain(x)
+            return prediction
+        else:
+            # 128x4x256 --> (128x4)x2
+            prediction_video = None
+            for i in range(len(self.relation_domain_classifier_all)):
+                x_relation = input[:, i, :].squeeze(1)  # 128x1x256 --> 128x256
+                x_relation = ReverseLayerF.apply(x_relation, beta)
+
+                prediction_single = self.relation_domain_classifier_all[i](x_relation)
+
+                if prediction_video is None:
+                    prediction_video = prediction_single.view(-1, 1, 2)
+                else:
+                    prediction_video = torch.cat((prediction_video, prediction_single.view(-1, 1, 2)), 1)
+
+            prediction_video = prediction_video.view(-1, 2)
+
+            return prediction_video

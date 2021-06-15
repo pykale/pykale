@@ -126,7 +126,17 @@ def create_dann_like_4video(
             **train_params,
         )
     elif method is Method.TA3N:
-        return TA3NTrainer()
+        return TA3NTrainer(
+            dataset=dataset,
+            image_modality=image_modality,
+            feature_extractor=feature_extractor,
+            task_classifier=task_classifier,
+            critic=critic,
+            method=method,
+            input_type=input_type,
+            class_type=class_type,
+            **train_params,
+        )
     else:
         raise ValueError(f"Unsupported method: {method}")
 
@@ -1061,25 +1071,17 @@ class TCL(pl.LightningModule):
         return x
 
 
-class TA3NTrainer(BaseMMDLike4Video):
+class TA3NTrainer(DANNtrainer4Video):
     def __init__(
         self,
-        num_class=[97, 300],
-        baseline_type="video",
-        image_modality="rgb",
-        frame_aggregation="rnn",
-        train_segments=5,
-        val_segments=25,
-        base_model="resnet101",
-        new_length=None,
-        before_softmax=True,
-        dropout_i=0.5,
-        dropout_v=0.5,
-        use_bn=None,
-        ens_DA=None,
-        crop_num=1,
-        partial_bn=True,
-        verbose=True,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        critic,
+        method,
+        input_type,
+        class_type,
         add_fc=1,
         fc_dim=1024,
         n_rnn=1,
@@ -1089,27 +1091,42 @@ class TA3NTrainer(BaseMMDLike4Video):
         use_attn="TransAttn",
         n_attn=1,
         use_attn_frame=None,
-        share_params="Y",
     ):
         super().__init__()
         super(TA3NTrainer, self).__init__()
-        self.num_class = num_class
         self.image_modality = image_modality
-        self.train_segments = train_segments
-        self.val_segments = val_segments
-        self.baseline_type = baseline_type
-        self.frame_aggregation = frame_aggregation
-        self.reshape = True
-        self.before_softmax = before_softmax
-        self.dropout_rate_i = dropout_i
-        self.dropout_rate_v = dropout_v
-        self.use_bn = use_bn
-        self.ens_DA = ens_DA
-        self.crop_num = crop_num
+        self.dataset = dataset
+        self.feature_extractor = feature_extractor
+        self.task_classifier = task_classifier
+        self.domain_classifier = critic
+        self.method = method
+        self.input_type = input_type
+        self.class_type = class_type
+
+        self.num_class = [97, 300]
+        self.baseline_type = "video"
+        self.frame_aggregation = "rnn"
+        self.train_segments = 5
+        self.val_segments = 25
+        self.base_model = "resnet101"
+        self.new_length = 1 if image_modality == "RGB" else 5
+        self.before_softmax = True
+        if not self.before_softmax:
+            self.softmax = nn.Softmax()
+        self.dropout_rate_i = 0.5
+        self.dropout_rate_v = 0.5
+        self.use_bn = None
+        self.ens_DA = None
+        self.crop_num = 1
+
+        self.partialBN(True)
+        self.no_partialbn = False
+        self._enable_pbn = True
+
         self.add_fc = add_fc
         self.fc_dim = fc_dim
-        self.share_params = share_params
-        self.verbose = verbose
+        self.share_params = "Y"
+        self.reshape = True
 
         # RNN
         self.n_layers = n_rnn
@@ -1122,28 +1139,9 @@ class TA3NTrainer(BaseMMDLike4Video):
         self.n_attn = n_attn
         self.use_attn_frame = use_attn_frame
 
-        if new_length is None:
-            self.new_length = 1 if image_modality == "RGB" else 5
-        else:
-            self.new_length = new_length
+        self._prepare_model(self.num_class, self.base_model, self.image_modality)
 
-        self._prepare_DA(num_class, base_model, image_modality)
-
-        if not self.before_softmax:
-            self.softmax = nn.Softmax()
-
-        self._enable_pbn = partial_bn
-        if partial_bn:
-            self.partialBN(True)
-        self.no_partialbn = not partial_bn
-
-        self.best_prec1 = 0
-
-        self.loss_c_current = 0
-        self.loss_c_previous = 0
-        self.save_attention = -1
-
-    def _prepare_DA(self, num_class, base_model, image_modality):  # convert the model to DA framework
+    def _prepare_model(self, num_class, base_model, image_modality):  # convert the model to DA framework
         if base_model == "TBN" and image_modality == "ALL":
             self.feature_dim = 3072
         elif base_model == "TBN":
@@ -1186,11 +1184,6 @@ class TA3NTrainer(BaseMMDLike4Video):
         normal_(self.fc_feature_source.weight, 0, std)
         constant_(self.fc_feature_source.bias, 0)
 
-        # 3. domain feature layers (frame-level)
-        self.fc_feature_domain = nn.Linear(feat_shared_dim, feat_frame_dim)
-        normal_(self.fc_feature_domain.weight, 0, std)
-        constant_(self.fc_feature_domain.bias, 0)
-
         # 4. classifiers (frame-level)
         self.fc_classifier_source_verb = nn.Linear(feat_frame_dim, num_class[0])
         self.fc_classifier_source_noun = nn.Linear(feat_frame_dim, num_class[1])
@@ -1198,10 +1191,6 @@ class TA3NTrainer(BaseMMDLike4Video):
         constant_(self.fc_classifier_source_verb.bias, 0)
         normal_(self.fc_classifier_source_noun.weight, 0, std)
         constant_(self.fc_classifier_source_noun.bias, 0)
-
-        self.fc_classifier_domain = nn.Linear(feat_frame_dim, 2)
-        normal_(self.fc_classifier_domain.weight, 0, std)
-        constant_(self.fc_classifier_domain.bias, 0)
 
         if self.share_params == "N":
             self.fc_feature_shared_target = nn.Linear(self.feature_dim, feat_shared_dim)
@@ -1310,11 +1299,6 @@ class TA3NTrainer(BaseMMDLike4Video):
         normal_(self.fc_feature_video_source_2.weight, 0, std)
         constant_(self.fc_feature_video_source_2.bias, 0)
 
-        # 2. domain feature layers (video-level)
-        self.fc_feature_domain_video = nn.Linear(feat_aggregated_dim, feat_video_dim)
-        normal_(self.fc_feature_domain_video.weight, 0, std)
-        constant_(self.fc_feature_domain_video.bias, 0)
-
         # 3. classifiers (video-level)
         self.fc_classifier_video_verb_source = nn.Linear(feat_video_dim, num_class[0])
         normal_(self.fc_classifier_video_verb_source.weight, 0, std)
@@ -1330,19 +1314,6 @@ class TA3NTrainer(BaseMMDLike4Video):
             )  # second classifier for self-ensembling
             normal_(self.fc_classifier_video_source_2.weight, 0, std)
             constant_(self.fc_classifier_video_source_2.bias, 0)
-
-        self.fc_classifier_domain_video = nn.Linear(feat_video_dim, 2)
-        normal_(self.fc_classifier_domain_video.weight, 0, std)
-        constant_(self.fc_classifier_domain_video.bias, 0)
-
-        # domain classifier for TRN-M
-        if self.frame_aggregation == "trn-m":
-            self.relation_domain_classifier_all = nn.ModuleList()
-            for i in range(self.train_segments - 1):
-                relation_domain_classifier = nn.Sequential(
-                    nn.Linear(feat_aggregated_dim, feat_video_dim), nn.ReLU(), nn.Linear(feat_video_dim, 2)
-                )
-                self.relation_domain_classifier_all += [relation_domain_classifier]
 
         if self.share_params == "N":
             self.fc_feature_video_target = nn.Linear(feat_aggregated_dim, feat_video_dim)
@@ -1505,44 +1476,6 @@ class TA3NTrainer(BaseMMDLike4Video):
 
         return output
 
-    def domain_classifier_frame(self, feat, beta):
-        feat_fc_domain_frame = ReverseLayerF.apply(feat, beta[2])
-        feat_fc_domain_frame = self.fc_feature_domain(feat_fc_domain_frame)
-        feat_fc_domain_frame = self.relu(feat_fc_domain_frame)
-        pred_fc_domain_frame = self.fc_classifier_domain(feat_fc_domain_frame)
-
-        return pred_fc_domain_frame
-
-    def domain_classifier_video(self, feat_video, beta):
-        feat_fc_domain_video = ReverseLayerF.apply(feat_video, beta[1])
-        feat_fc_domain_video = self.fc_feature_domain_video(feat_fc_domain_video)
-        feat_fc_domain_video = self.relu(feat_fc_domain_video)
-        pred_fc_domain_video = self.fc_classifier_domain_video(feat_fc_domain_video)
-
-        return pred_fc_domain_video
-
-    def domain_classifier_relation(self, feat_relation, beta):
-        # 128x4x256 --> (128x4)x2
-        pred_fc_domain_relation_video = None
-        for i in range(len(self.relation_domain_classifier_all)):
-            feat_relation_single = feat_relation[:, i, :].squeeze(1)  # 128x1x256 --> 128x256
-            feat_fc_domain_relation_single = ReverseLayerF.apply(
-                feat_relation_single, beta[0]
-            )  # the same beta for all relations (for now)
-
-            pred_fc_domain_relation_single = self.relation_domain_classifier_all[i](feat_fc_domain_relation_single)
-
-            if pred_fc_domain_relation_video is None:
-                pred_fc_domain_relation_video = pred_fc_domain_relation_single.view(-1, 1, 2)
-            else:
-                pred_fc_domain_relation_video = torch.cat(
-                    (pred_fc_domain_relation_video, pred_fc_domain_relation_single.view(-1, 1, 2)), 1
-                )
-
-        pred_fc_domain_relation_video = pred_fc_domain_relation_video.view(-1, 2)
-
-        return pred_fc_domain_relation_video
-
     def domainAlign(self, input_S, input_T, is_train, name_layer, alpha, num_segments, dim):
         input_S = input_S.view(
             (-1, dim, num_segments) + input_S.size()[-1:]
@@ -1612,85 +1545,77 @@ class TA3NTrainer(BaseMMDLike4Video):
         batch_source = input_source.size()[0]
         batch_target = input_target.size()[0]
         num_segments = self.train_segments if is_train else self.val_segments
-        # sample_len = (3 if self.image_modality == "RGB" else 2) * self.new_length
-        # sample_len = self.new_length
-        feat_all_source = []
-        feat_all_target = []
-        pred_domain_all_source = []
-        pred_domain_all_target = []
+
+        feat_all_source = feat_all_target = pred_domain_all_source = pred_domain_all_target = []
 
         # input_data is a list of tensors --> need to do pre-processing
-        feat_base_source = input_source.view(-1, input_source.size()[-1])  # e.g. 256 x 25 x 2048 --> 6400 x 2048
-        feat_base_target = input_target.view(-1, input_target.size()[-1])  # e.g. 256 x 25 x 2048 --> 6400 x 2048
+        x_s = input_source.view(-1, input_source.size()[-1])  # e.g. 256 x 25 x 2048 --> 6400 x 2048
+        x_tu = input_target.view(-1, input_target.size()[-1])  # e.g. 256 x 25 x 2048 --> 6400 x 2048
 
         # === shared layers ===#
         # need to separate BN for source & target ==> otherwise easy to overfit to source data
         if self.add_fc < 1:
             raise ValueError("not enough fc layer")
 
-        feat_fc_source = self.fc_feature_shared_source(feat_base_source)
-        feat_fc_target = (
-            self.fc_feature_shared_target(feat_base_target)
-            if self.share_params == "N"
-            else self.fc_feature_shared_source(feat_base_target)
+        x_s_fc = self.fc_feature_shared_source(x_s)
+        x_tu_fc = (
+            self.fc_feature_shared_target(x_tu) if self.share_params == "N" else self.fc_feature_shared_source(x_tu)
         )
 
         # adaptive BN
         if self.use_bn is not None:
-            feat_fc_source, feat_fc_target = self.domainAlign(
-                feat_fc_source, feat_fc_target, is_train, "shared", self.alpha, num_segments, 1
-            )
+            x_s_fc, x_tu_fc = self.domainAlign(x_s_fc, x_tu_fc, is_train, "shared", self.alpha, num_segments, 1)
 
-        feat_fc_source = self.relu(feat_fc_source)
-        feat_fc_target = self.relu(feat_fc_target)
-        feat_fc_source = self.dropout_i(feat_fc_source)
-        feat_fc_target = self.dropout_i(feat_fc_target)
+        x_s_fc = self.relu(x_s_fc)
+        x_tu_fc = self.relu(x_tu_fc)
+        x_s_fc = self.dropout_i(x_s_fc)
+        x_tu_fc = self.dropout_i(x_tu_fc)
 
         # feat_fc = self.dropout_i(feat_fc)
         feat_all_source.append(
-            feat_fc_source.view((batch_source, num_segments) + feat_fc_source.size()[-1:])
+            x_s_fc.view((batch_source, num_segments) + x_s_fc.size()[-1:])
         )  # reshape ==> 1st dim is the batch size
-        feat_all_target.append(feat_fc_target.view((batch_target, num_segments) + feat_fc_target.size()[-1:]))
+        feat_all_target.append(x_tu_fc.view((batch_target, num_segments) + x_tu_fc.size()[-1:]))
 
         if self.add_fc > 1:
-            feat_fc_source = self.fc_feature_shared_2_source(feat_fc_source)
-            feat_fc_target = (
-                self.fc_feature_shared_2_target(feat_fc_target)
+            x_s_fc = self.fc_feature_shared_2_source(x_s_fc)
+            x_tu_fc = (
+                self.fc_feature_shared_2_target(x_tu_fc)
                 if self.share_params == "N"
-                else self.fc_feature_shared_2_source(feat_fc_target)
+                else self.fc_feature_shared_2_source(x_tu_fc)
             )
 
-            feat_fc_source = self.relu(feat_fc_source)
-            feat_fc_target = self.relu(feat_fc_target)
-            feat_fc_source = self.dropout_i(feat_fc_source)
-            feat_fc_target = self.dropout_i(feat_fc_target)
+            x_s_fc = self.relu(x_s_fc)
+            x_tu_fc = self.relu(x_tu_fc)
+            x_s_fc = self.dropout_i(x_s_fc)
+            x_tu_fc = self.dropout_i(x_tu_fc)
 
             feat_all_source.append(
-                feat_fc_source.view((batch_source, num_segments) + feat_fc_source.size()[-1:])
+                x_s_fc.view((batch_source, num_segments) + x_s_fc.size()[-1:])
             )  # reshape ==> 1st dim is the batch size
-            feat_all_target.append(feat_fc_target.view((batch_target, num_segments) + feat_fc_target.size()[-1:]))
+            feat_all_target.append(x_tu_fc.view((batch_target, num_segments) + x_tu_fc.size()[-1:]))
 
         if self.add_fc > 2:
-            feat_fc_source = self.fc_feature_shared_3_source(feat_fc_source)
-            feat_fc_target = (
-                self.fc_feature_shared_3_target(feat_fc_target)
+            x_s_fc = self.fc_feature_shared_3_source(x_s_fc)
+            x_tu_fc = (
+                self.fc_feature_shared_3_target(x_tu_fc)
                 if self.share_params == "N"
-                else self.fc_feature_shared_3_source(feat_fc_target)
+                else self.fc_feature_shared_3_source(x_tu_fc)
             )
 
-            feat_fc_source = self.relu(feat_fc_source)
-            feat_fc_target = self.relu(feat_fc_target)
-            feat_fc_source = self.dropout_i(feat_fc_source)
-            feat_fc_target = self.dropout_i(feat_fc_target)
+            x_s_fc = self.relu(x_s_fc)
+            x_tu_fc = self.relu(x_tu_fc)
+            x_s_fc = self.dropout_i(x_s_fc)
+            x_tu_fc = self.dropout_i(x_tu_fc)
 
             feat_all_source.append(
-                feat_fc_source.view((batch_source, num_segments) + feat_fc_source.size()[-1:])
+                x_s_fc.view((batch_source, num_segments) + x_s_fc.size()[-1:])
             )  # reshape ==> 1st dim is the batch size
-            feat_all_target.append(feat_fc_target.view((batch_target, num_segments) + feat_fc_target.size()[-1:]))
+            feat_all_target.append(x_tu_fc.view((batch_target, num_segments) + x_tu_fc.size()[-1:]))
 
         # === adversarial branch (frame-level) ===#
-        pred_fc_domain_frame_source = self.domain_classifier_frame(feat_fc_source, self.beta)
-        pred_fc_domain_frame_target = self.domain_classifier_frame(feat_fc_target, self.beta)
+        pred_fc_domain_frame_source = self.domain_classifier(x_s_fc, self.beta[2])
+        pred_fc_domain_frame_target = self.domain_classifier(x_tu_fc, self.beta[2])
 
         pred_domain_all_source.append(
             pred_fc_domain_frame_source.view((batch_source, num_segments) + pred_fc_domain_frame_source.size()[-1:])
@@ -1700,22 +1625,22 @@ class TA3NTrainer(BaseMMDLike4Video):
         )
 
         if self.use_attn_frame is not None:  # attend the frame-level features only
-            feat_fc_source = self.get_attn_feat_frame(feat_fc_source, pred_fc_domain_frame_source)
-            feat_fc_target = self.get_attn_feat_frame(feat_fc_target, pred_fc_domain_frame_target)
+            x_s_fc = self.get_attn_feat_frame(x_s_fc, pred_fc_domain_frame_source)
+            x_tu_fc = self.get_attn_feat_frame(x_tu_fc, pred_fc_domain_frame_target)
 
         # === source layers (frame-level) ===#
 
         pred_fc_source = (
-            self.fc_classifier_source_verb(feat_fc_source),
-            self.fc_classifier_source_noun(feat_fc_source),
+            self.fc_classifier_source_verb(x_s_fc),
+            self.fc_classifier_source_noun(x_s_fc),
         )
         pred_fc_target = (
-            self.fc_classifier_target_verb(feat_fc_target)
+            self.fc_classifier_target_verb(x_tu_fc)
             if self.share_params == "N"
-            else self.fc_classifier_source_verb(feat_fc_target),
-            self.fc_classifier_target_noun(feat_fc_target)
+            else self.fc_classifier_source_verb(x_tu_fc),
+            self.fc_classifier_target_noun(x_tu_fc)
             if self.share_params == "N"
-            else self.fc_classifier_source_noun(feat_fc_target),
+            else self.fc_classifier_source_noun(x_tu_fc),
         )
         if self.baseline_type == "frame":
             feat_all_source.append(
@@ -1725,8 +1650,8 @@ class TA3NTrainer(BaseMMDLike4Video):
 
         # aggregate the frame-based features to video-based features ###
         if self.frame_aggregation == "avgpool" or self.frame_aggregation == "rnn":
-            feat_fc_video_source = self.aggregate_frames(feat_fc_source, num_segments, pred_fc_domain_frame_source)
-            feat_fc_video_target = self.aggregate_frames(feat_fc_target, num_segments, pred_fc_domain_frame_target)
+            feat_fc_video_source = self.aggregate_frames(x_s_fc, num_segments, pred_fc_domain_frame_source)
+            feat_fc_video_target = self.aggregate_frames(x_tu_fc, num_segments, pred_fc_domain_frame_target)
 
             attn_relation_source = feat_fc_video_source[
                 :, 0
@@ -1736,11 +1661,11 @@ class TA3NTrainer(BaseMMDLike4Video):
             ]  # assign random tensors to attention values to avoid runtime error
 
         elif "trn" in self.frame_aggregation:
-            feat_fc_video_source = feat_fc_source.view(
-                (-1, num_segments) + feat_fc_source.size()[-1:]
+            feat_fc_video_source = x_s_fc.view(
+                (-1, num_segments) + x_s_fc.size()[-1:]
             )  # reshape based on the segments (e.g. 640x512 --> 128x5x512)
-            feat_fc_video_target = feat_fc_target.view(
-                (-1, num_segments) + feat_fc_target.size()[-1:]
+            feat_fc_video_target = x_tu_fc.view(
+                (-1, num_segments) + x_tu_fc.size()[-1:]
             )  # reshape based on the segments (e.g. 640x512 --> 128x5x512)
 
             feat_fc_video_relation_source = self.TRN(
@@ -1749,11 +1674,11 @@ class TA3NTrainer(BaseMMDLike4Video):
             feat_fc_video_relation_target = self.TRN(feat_fc_video_target)
 
             # adversarial branch
-            pred_fc_domain_video_relation_source = self.domain_classifier_relation(
-                feat_fc_video_relation_source, self.beta
+            pred_fc_domain_video_relation_source = self.domain_classifier(
+                feat_fc_video_relation_source, self.beta[0], isRelation=True
             )
-            pred_fc_domain_video_relation_target = self.domain_classifier_relation(
-                feat_fc_video_relation_target, self.beta
+            pred_fc_domain_video_relation_target = self.domain_classifier(
+                feat_fc_video_relation_target, self.beta[0], isRelation=True
             )
 
             # transferable attention
@@ -1777,11 +1702,11 @@ class TA3NTrainer(BaseMMDLike4Video):
             feat_fc_video_target = torch.sum(feat_fc_video_relation_target, 1)
 
         elif self.frame_aggregation == "temconv":  # DA operation inside temconv
-            feat_fc_video_source = feat_fc_source.view(
-                (-1, 1, num_segments) + feat_fc_source.size()[-1:]
+            feat_fc_video_source = x_s_fc.view(
+                (-1, 1, num_segments) + x_s_fc.size()[-1:]
             )  # reshape based on the segments
-            feat_fc_video_target = feat_fc_target.view(
-                (-1, 1, num_segments) + feat_fc_target.size()[-1:]
+            feat_fc_video_target = x_tu_fc.view(
+                (-1, 1, num_segments) + x_tu_fc.size()[-1:]
             )  # reshape based on the segments
 
             # 1st TCL
@@ -1840,8 +1765,8 @@ class TA3NTrainer(BaseMMDLike4Video):
             feat_all_target.append(pred_fc_video_target[1].view((batch_target,) + pred_fc_video_target[1].size()[-1:]))
 
         # === adversarial branch (video-level) ===#
-        pred_fc_domain_video_source = self.domain_classifier_video(feat_fc_video_source, self.beta)
-        pred_fc_domain_video_target = self.domain_classifier_video(feat_fc_video_target, self.beta)
+        pred_fc_domain_video_source = self.domain_classifier(feat_fc_video_source, self.beta[1])
+        pred_fc_domain_video_target = self.domain_classifier(feat_fc_video_target, self.beta[1])
 
         pred_domain_all_source.append(
             pred_fc_domain_video_source.view((batch_source,) + pred_fc_domain_video_source.size()[-1:])

@@ -12,7 +12,7 @@ from copy import deepcopy
 
 from kale.embed.video_feature_extractor import get_feat_extractor4feature, get_feat_extractor4video
 from kale.pipeline import domain_adapter, video_domain_adapter
-from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
+from kale.predict.class_domain_nets import ClassNetVideo, DomainNetTA3N, DomainNetVideo
 
 
 def get_config(cfg):
@@ -114,6 +114,7 @@ def get_model(cfg, dataset, dict_num_classes):
             else:
                 critic_input_size = domain_feature_dim * dict_num_classes["verb"]
         critic_network = DomainNetVideo(input_size=critic_input_size)
+        # critic_network = DomainNetTA3N(input_size=critic_input_size)
 
         if cfg.DAN.METHOD == "CDAN":
             method_params["use_random"] = cfg.DAN.USERANDOM
