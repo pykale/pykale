@@ -94,6 +94,7 @@ class Method(Enum):
     WDGRLMod = "WDGRLMod"
     DAN = "DAN"  # Deep Adaptation Networks
     JAN = "JAN"  # Joint Adaptation Networks
+    TA3N = "TA3N"  # Temporal Attentive Adversarial Adaptation Network
 
     def is_mmd_method(self):
         return self in (Method.DAN, Method.JAN)
