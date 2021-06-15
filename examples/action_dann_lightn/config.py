@@ -64,7 +64,7 @@ _C.MODEL.ATTENTION = "None"  # options=["None", "SELayer"]
 # Domain Adaptation Net (DAN) configs
 # ---------------------------------------------------------------------------- #
 _C.DAN = CN()
-_C.DAN.METHOD = "CDAN"  # options=["CDAN", "CDAN-E", "DANN", "DAN"]
+_C.DAN.METHOD = "TA3N"  # options=["CDAN", "CDAN-E", "DANN", "DAN", "TA3N"]
 _C.DAN.USERANDOM = False
 _C.DAN.RANDOM_DIM = 1024
 # ---------------------------------------------------------------------------- #

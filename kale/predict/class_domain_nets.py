@@ -225,8 +225,34 @@ class DomainNetVideo(nn.Module):
         return x
 
 
+class ClassNetTA3N(nn.Module):
+    """Regular Classifier network for TA3N.
+
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        n_channel (int, optional): the number of channel for Linear and BN layers.
+    """
+
+    def __init__(self, input_size=128, n_channel=100, class_type="verb", train_segments=5):
+        super(DomainNetVideo, self).__init__()
+        self.fc_feature_domain = nn.Linear(input_size, n_channel)
+        self.fc_classifier_domain = nn.Linear(n_channel, 2)
+        self.relu = nn.ReLU(inplace=True)
+        self.relation_domain_classifier_all = nn.ModuleList()
+        self.train_segments = train_segments
+        for i in range(self.train_segments - 1):
+            relation_domain_classifier = nn.Sequential(
+                nn.Linear(input_size, n_channel), nn.ReLU(), nn.Linear(n_channel, 2)
+            )
+            self.relation_domain_classifier_all += [relation_domain_classifier]
+
+    def forward(self, input, beta=0, isRelation=False):
+        prediction_video = 0
+        return prediction_video
+
+
 class DomainNetTA3N(nn.Module):
-    """Regular domain classifier network for TA3N. Has three baseline_types: video, frame and relation
+    """Regular domain classifier network for TA3N.
 
     Args:
         input_size (int, optional): the dimension of the final feature vector. Defaults to 512.

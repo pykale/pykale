@@ -1141,7 +1141,7 @@ class TA3NTrainer(DANNtrainer4Video):
 
         self._prepare_model(self.num_class, self.base_model, self.image_modality)
 
-    def _prepare_model(self, num_class, base_model, image_modality):  # convert the model to DA framework
+    def _prepare_model(self, num_class, base_model, image_modality):
         if base_model == "TBN" and image_modality == "ALL":
             self.feature_dim = 3072
         elif base_model == "TBN":

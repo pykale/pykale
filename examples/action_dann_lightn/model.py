@@ -113,8 +113,10 @@ def get_model(cfg, dataset, dict_num_classes):
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
                 critic_input_size = domain_feature_dim * dict_num_classes["verb"]
-        critic_network = DomainNetVideo(input_size=critic_input_size)
-        # critic_network = DomainNetTA3N(input_size=critic_input_size)
+        if cfg.DAN.METHOD == "TA3N":
+            critic_network = DomainNetTA3N(input_size=critic_input_size)
+        else:
+            critic_network = DomainNetVideo(input_size=critic_input_size)
 
         if cfg.DAN.METHOD == "CDAN":
             method_params["use_random"] = cfg.DAN.USERANDOM
