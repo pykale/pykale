@@ -8,14 +8,11 @@ Define the feature extractor for video including I3D, R3D_18, MC3_18 and R2PLUS1
 
 import logging
 
-from torch import nn
-
+from kale.embed.video_boring_net import boring_net_joint
 from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
 from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
-from kale.embed.video_selayer import SELayer4feat
-from kale.embed.video_transformer import TransformerBlock
 from kale.loaddata.video_access import get_image_modality
 
 
@@ -121,78 +118,20 @@ def get_feat_extractor4video(model_name, image_modality, attention, dict_num_cla
     return feature_network, int(class_feature_dim), int(domain_feature_dim)
 
 
-class BoringNetVideo(nn.Module):
-    """Regular simple network for video input.
-
-    Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
-        n_channel (int, optional): the number of channel for Linear and BN layers.
-        dropout_keep_prob (int, optional): the dropout probability for keeping the parameters.
-    """
-
-    def __init__(self, input_size=512, n_channel=512, n_out=256, dropout_keep_prob=0.5):
-        super(BoringNetVideo, self).__init__()
-        self.hidden_sizes = 512
-        self.num_layers = 4
-
-        self.transformer = nn.ModuleList(
-            [
-                TransformerBlock(
-                    emb_dim=input_size,
-                    num_heads=8,
-                    att_dropout=0.1,
-                    att_resid_dropout=0.1,
-                    final_dropout=0.1,
-                    max_seq_len=9,
-                    ff_dim=self.hidden_sizes,
-                    causal=False,
-                )
-                for _ in range(self.num_layers)
-            ]
-        )
-
-        self.fc1 = nn.Linear(input_size, n_channel)
-        self.relu1 = nn.ReLU()
-        self.dp1 = nn.Dropout(dropout_keep_prob)
-        self.fc2 = nn.Linear(n_channel, n_out)
-        self.selayer1 = SELayer4feat(channel=8, reduction=2)
-
-        # self.dim_reduction_layer = torch.nn.Identity()
-        #
-        # self.classification_vector = nn.Parameter(torch.randn(1, 1, input_size))
-        # self.pos_encoding = nn.Parameter(
-        #     torch.randn(1, 9, input_size)
-        # )
-
-    def forward(self, x):
-        # (B, F, INPUT_DIM) -> (B, F, D)
-
-        # x = self.dim_reduction_layer(x)
-        # B, F, D = x.size()
-
-        # classification_vector = self.classification_vector.repeat((B, 1, 1))
-        # (B, F, D) -> (B, 1+F, D)
-        # x = torch.cat([classification_vector, x], dim=1)
-        # seq_len = x.size(1)
-        for layer in self.transformer:
-            #     x = x + self.pos_encoding[:, :seq_len, :]
-            x = layer(x)
-        x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
-        x = self.selayer1(x)
-        return x
-
-
 def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=512):
     """Get the feature extractor w/o SELayers for feature input.
     """
-    feature_network_rgb = feature_network_flow = feature_network_audio = None
     rgb, flow, audio = get_image_modality(image_modality)
+    rgb_pretrained = flow_pretrained = audio_pretrained = None
     if rgb:
-        feature_network_rgb = BoringNetVideo(input_size=1024, n_out=num_out)
+        rgb_pretrained = "rgb_boring"
     if flow:
-        feature_network_flow = BoringNetVideo(input_size=1024, n_out=num_out)
+        flow_pretrained = "flow_boring"
     if audio:
-        feature_network_audio = BoringNetVideo(input_size=1024, n_out=num_out)
+        audio_pretrained = "audio_boring"
+    feature_network = boring_net_joint(
+        rgb_pretrained, flow_pretrained, audio_pretrained, input_size=1024, n_out=num_out
+    )
 
     domain_feature_dim = int(num_out * 8)
     if rgb:
@@ -214,9 +153,7 @@ def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=5
                 class_feature_dim = domain_feature_dim
         else:  # For audio input
             class_feature_dim = domain_feature_dim
+    class_feature_dim = int(class_feature_dim)
+    domain_feature_dim = int(domain_feature_dim)
 
-    return (
-        {"rgb": feature_network_rgb, "flow": feature_network_flow, "audio": feature_network_audio},
-        int(class_feature_dim),
-        int(domain_feature_dim),
-    )
+    return feature_network, class_feature_dim, domain_feature_dim

@@ -18,7 +18,7 @@ import torch
 import kale.prepdata.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.video_datasets import BasicVideoDataset, EPIC
-from kale.loaddata.videos_feature import TSNDataSet
+from kale.loaddata.videos import VideoFrameDataset
 
 
 def get_image_modality(image_modality):
@@ -506,50 +506,41 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
         self._domain = domain
         self._num_train_dataload = len(pd.read_pickle(self._train_list).index)
         self._num_test_dataload = len(pd.read_pickle(self._test_list).index)
-        self._update_format()
-
-    def _update_format(self):
-        if self._image_modality == "rgb":
-            self._image_modality = "RGB"
-        elif self._image_modality == "flow":
-            self._image_modality = "Flow"
-        else:
-            self._image_modality = "Audio"
 
     def get_train(self):
-        return TSNDataSet(
-            # data_path=Path.joinpath(self._data_path, self._input_type, "source_val.pkl".format(self._domain)),
-            data_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
-            # Uncomment to run on train subset for EPIC 2021 challenge
-            # data_path=Path.joinpath(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
-            list_file=self._train_list,
-            num_dataload=self._num_train_dataload,
+        return VideoFrameDataset(
+            root_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
+            # Uncomment to run on test subset for EPIC 2021 challenge
+            # data_path=Path.joinpath(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
+            annotationfile_path=self._test_list,
             num_segments=8,
-            new_length=1,
-            modality=self._image_modality,
+            frames_per_segment=1,
+            image_modality=self._image_modality,
             # modality="ALL",
-            image_tmpl="img_{:05d}.t7"
+            imagefile_template="img_{:05d}.t7"
             if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
             random_shift=False,
-            test_mode=True,
+            test_mode=False,
+            input_type="feature",
+            num_data_load=self._num_train_dataload,
         )
 
     def get_test(self):
-        return TSNDataSet(
-            # data_path=Path.joinpath(self._data_path, self._input_type, "source_val.pkl".format(self._domain)),
-            data_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
+        return VideoFrameDataset(
+            root_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
             # Uncomment to run on test subset for EPIC 2021 challenge
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
-            list_file=self._test_list,
-            num_dataload=self._num_test_dataload,
+            annotationfile_path=self._test_list,
             num_segments=8,
-            new_length=1,
-            modality=self._image_modality,
+            frames_per_segment=1,
+            image_modality=self._image_modality,
             # modality="ALL",
-            image_tmpl="img_{:05d}.t7"
+            imagefile_template="img_{:05d}.t7"
             if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
             random_shift=False,
             test_mode=True,
+            input_type="feature",
+            num_data_load=self._num_test_dataload,
         )
