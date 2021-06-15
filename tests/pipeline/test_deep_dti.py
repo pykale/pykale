@@ -21,7 +21,7 @@ def test_deep_data(download_path):
     decoder = MLPDecoder(in_dim=192, hidden_dim=16, out_dim=16)
     # test deep_dta trainer
     save_parameters = {"seed": 2020, "batch_size": 256}
-    model = DeepDTATrainer(drug_encoder, target_encoder, decoder, lr=0.001, **save_parameters).eval()
+    model = DeepDTATrainer(drug_encoder, target_encoder, decoder, lr=0.001, ci_metric=True, **save_parameters).eval()
     assert isinstance(model.drug_encoder, CNNEncoder)
     assert isinstance(model.target_encoder, CNNEncoder)
     assert isinstance(model.decoder, MLPDecoder)
@@ -33,7 +33,7 @@ def test_deep_data(download_path):
         assert "log_metrics" in str(excinfo.value)
 
     # test base_dta trainer
-    model = BaseDTATrainer(drug_encoder, target_encoder, decoder, lr=0.001, **save_parameters).eval()
+    model = BaseDTATrainer(drug_encoder, target_encoder, decoder, lr=0.001, ci_metric=True, **save_parameters).eval()
     with pytest.raises(NotImplementedError) as excinfo:
         model.training_step(test_batch, 0)
         assert "Forward pass needs to be defined" in str(excinfo.value)
