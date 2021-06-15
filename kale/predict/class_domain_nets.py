@@ -234,7 +234,7 @@ class ClassNetTA3N(nn.Module):
     """
 
     def __init__(self, input_size=128, n_channel=100, class_type="verb", train_segments=5):
-        super(DomainNetVideo, self).__init__()
+        super(ClassNetTA3N, self).__init__()
         self.fc_feature_domain = nn.Linear(input_size, n_channel)
         self.fc_classifier_domain = nn.Linear(n_channel, 2)
         self.relu = nn.ReLU(inplace=True)
@@ -260,7 +260,7 @@ class DomainNetTA3N(nn.Module):
     """
 
     def __init__(self, input_size=128, n_channel=100, class_type="verb", train_segments=5):
-        super(DomainNetVideo, self).__init__()
+        super(DomainNetTA3N, self).__init__()
         self.fc_feature_domain = nn.Linear(input_size, n_channel)
         self.fc_classifier_domain = nn.Linear(n_channel, 2)
         self.relu = nn.ReLU(inplace=True)

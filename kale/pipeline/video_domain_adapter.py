@@ -1092,16 +1092,9 @@ class TA3NTrainer(DANNtrainer4Video):
         n_attn=1,
         use_attn_frame=None,
     ):
-        super().__init__()
-        super(TA3NTrainer, self).__init__()
-        self.image_modality = image_modality
-        self.dataset = dataset
-        self.feature_extractor = feature_extractor
-        self.task_classifier = task_classifier
-        self.domain_classifier = critic
-        self.method = method
-        self.input_type = input_type
-        self.class_type = class_type
+        super(TA3NTrainer, self).__init__(
+            dataset, image_modality, feature_extractor, task_classifier, critic, method, input_type, class_type
+        )
 
         self.num_class = [97, 300]
         self.baseline_type = "video"

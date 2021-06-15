@@ -100,7 +100,7 @@ class Method(Enum):
         return self in (Method.DAN, Method.JAN)
 
     def is_dann_method(self):
-        return self in (Method.DANN, Method.Source)
+        return self in (Method.DANN, Method.Source, Method.TA3N)
 
     def is_cdan_method(self):
         return self in (Method.CDAN, Method.CDAN_E)

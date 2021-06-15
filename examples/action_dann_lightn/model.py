@@ -115,6 +115,8 @@ def get_model(cfg, dataset, dict_num_classes):
                 critic_input_size = domain_feature_dim * dict_num_classes["verb"]
         if cfg.DAN.METHOD == "TA3N":
             critic_network = DomainNetTA3N(input_size=critic_input_size)
+            train_params_local = {}
+            method_params = {}
         else:
             critic_network = DomainNetVideo(input_size=critic_input_size)
 
