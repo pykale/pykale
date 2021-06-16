@@ -1,4 +1,4 @@
-def c_index(y, y_pred):
+def concord_index(y, y_pred):
     """
     Calculate the Concordance Index (CI), which is a metric to measure the proportion of `concordant pairs
     <https://en.wikipedia.org/wiki/Concordant_pair>`_ between real and
