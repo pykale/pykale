@@ -70,7 +70,7 @@ def record_hashes(hash_file, hash_, value):
     return False
 
 
-def setup_logger(train_params, output_dir, method_name, seed, class_type="verb"):
+def setup_logger(train_params, output_dir, method_name, seed, class_type="object"):
     """[summary]
 
     Args:
@@ -78,7 +78,8 @@ def setup_logger(train_params, output_dir, method_name, seed, class_type="verb")
         output_dir (string): the path to log results
         method_name (string): the ML method
         seed (int): seed value set manually.
-        class_type (string): the type of class. Options=["verb", "verb+noun"]. Default="verb".
+        class_type (string): the type of class. Options=["object", "verb", "verb+noun"]. Default="object".
+                            Choose ["verb", "verb+noun"], it will save top1 and top5 accuracy.
                             Only used in action_dann_lightn example. Keep default value in other examples.
 
     Returns:
@@ -97,30 +98,40 @@ def setup_logger(train_params, output_dir, method_name, seed, class_type="verb")
     test_csv_file = f"{output_file_prefix}.csv"
     checkpoint_dir = os.path.join(output_dir, "checkpoints", params_hash)
 
-    # To simplify
-
     path_method_name = re.sub(r"[^-/\w\.]", "_", method_name)
     full_checkpoint_dir = os.path.join(checkpoint_dir, path_method_name, f"seed_{seed}")
     if class_type == "verb+noun":
-        checkpoint_callback = ModelCheckpoint(
-            dirpath=full_checkpoint_dir,
-            filename="{epoch}-{step}-{V_target_acc:.4f}",
-            save_last=True,
-            save_top_k=1,
-            monitor="V_verb_target_acc",
-            mode="max",
-        )
-        metrics = ["verb source acc", "verb target acc", "noun source acc", "noun target acc", "domain acc"]
+        monitor = "V_verb_target_top1_acc"
+        metrics = [
+            "verb source top1 acc",
+            "verb source top5 acc",
+            "noun source top1 acc",
+            "noun source top5 acc",
+            "verb target top1 acc",
+            "verb target top5 acc",
+            "noun target top1 acc",
+            "noun target top5 acc",
+            "action source top1 acc",
+            "action source top5 acc",
+            "action target top1 acc",
+            "action target top5 acc",
+            "domain acc",
+        ]
+    elif class_type == "verb":
+        monitor = "V_target_top1_acc"
+        metrics = ["source top1 acc", "source top5 acc", "target top1 acc", "target top5 acc", "domain acc"]
     else:
-        checkpoint_callback = ModelCheckpoint(
-            dirpath=full_checkpoint_dir,
-            filename="{epoch}-{step}-{V_target_acc:.4f}",
-            save_last=True,
-            save_top_k=1,
-            monitor="V_target_acc",
-            mode="max",
-        )
+        monitor = "V_target_acc"
         metrics = ["source acc", "target acc", "domain acc"]
+
+    checkpoint_callback = ModelCheckpoint(
+        dirpath=full_checkpoint_dir,
+        filename="{epoch}-{step}-{V_target_acc:.4f}",
+        save_last=True,
+        save_top_k=1,
+        monitor=monitor,
+        mode="max",
+    )
 
     results = XpResults.from_file(metrics, test_csv_file)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"

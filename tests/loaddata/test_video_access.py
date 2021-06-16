@@ -114,7 +114,7 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
         source,
         target,
         image_modality=cfg.DATASET.IMAGE_MODALITY,
-        seed=seed,
+        random_state=seed,
         config_weight_type=cfg.DATASET.WEIGHT_TYPE,
         config_size_type=cfg.DATASET.SIZE_TYPE,
     )
@@ -126,7 +126,7 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
             source,
             target,
             image_modality="rgb",
-            seed=seed,
+            random_state=seed,
             config_weight_type=cfg.DATASET.WEIGHT_TYPE,
             config_size_type=cfg.DATASET.SIZE_TYPE,
             class_ids=class_subset,
