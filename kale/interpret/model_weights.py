@@ -35,13 +35,13 @@ def select_top_weight(weights, select_ratio: float = 0.05):
 
 
 def plot_weights(weight_img, background_img=None, color_marker_pos="r.", color_marker_neg="b.", marker_size=5):
-    """Visualising model weights
+    """Visualize model weights
 
     Args:
         weight_img (array-like): model weight/coefficients in 2D, could be a 2D slice of a 3D or higher order tensor.
         background_img (array-like, optional): 2D background image. Defaults to None.
-        color_marker_pos (str, optional): Color and marker for weights in positive values. Defaults to "r.".
-        color_marker_neg (str, optional): Color and marker for weights in negative values. Defaults to "b.".
+        color_marker_pos (str, optional): Color and marker for weights in positive values. Defaults to red "r.".
+        color_marker_neg (str, optional): Color and marker for weights in negative values. Defaults to blue "b.".
         marker_size (int, optional): Marker size. Defaults to 5.
     """
     if type(weight_img) != np.ndarray:
