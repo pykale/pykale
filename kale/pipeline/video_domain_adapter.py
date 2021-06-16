@@ -1275,7 +1275,7 @@ class TCL(pl.LightningModule):
         return x
 
 
-class TA3NTrainer(DANNtrainer4Video):
+class TA3NTrainer(DANNtrainerVideo):
     def __init__(
         self,
         dataset,
