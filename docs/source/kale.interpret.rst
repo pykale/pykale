@@ -1,6 +1,6 @@
 .. kale.interpret package
 
-Interpret Model
+Interpret
 =====================
 
 Submodules
