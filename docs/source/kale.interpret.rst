@@ -6,10 +6,10 @@ Interpret
 Submodules
 ----------
 
-kale.loaddata.model\_weights module
----------------------------
+kale.interpret.model\_weights module
+----------------------------------------
 
-.. automodule:: kale.loaddata.model_weights
+.. automodule:: kale.interpret.model_weights
    :members:
    :undoc-members:
    :show-inheritance:
