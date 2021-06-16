@@ -3,7 +3,7 @@
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
-import matplotlib.pylab as plt
+import matplotlib.pyplot as plt
 import numpy as np
 from tensorly.base import fold, unfold
 
@@ -61,4 +61,4 @@ def plot_weights(weight_img, background_img=None, color_marker_pos="r.", color_m
     ax.plot(weight_pos_coords[1], weight_pos_coords[0], color_marker_pos, markersize=marker_size)
     ax.plot(weight_neg_coords[1], weight_neg_coords[0], color_marker_neg, markersize=marker_size)
 
-    plt.show()
+    return fig

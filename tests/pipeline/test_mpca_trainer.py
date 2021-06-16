@@ -1,3 +1,4 @@
+import matplotlib.figure
 import numpy as np
 import pytest
 from numpy import testing
@@ -50,7 +51,8 @@ def test_mpca_trainer(classifier, params, gait):
     else:
         weights = trainer.mpca.inverse_transform(trainer.clf.coef_) - trainer.mpca.mean_
         top_weights = model_weights.select_top_weight(weights, select_ratio=0.1)
-        model_weights.plot_weights(top_weights[0][0], background_img=x[0][0])
+        fig = model_weights.plot_weights(top_weights[0][0], background_img=x[0][0])
+        assert type(fig) == matplotlib.figure.Figure
 
 
 def test_invalid_init():
