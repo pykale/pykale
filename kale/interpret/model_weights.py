@@ -8,12 +8,12 @@ import numpy as np
 from tensorly.base import fold, unfold
 
 
-def select_top_weight(weights, select_rate: float = 0.05):
+def select_top_weight(weights, select_ratio: float = 0.05):
     """Select top weights in magnitude, and the rest of weights will be zeros
 
     Args:
         weights (array-like): model weights, can be a vector or a higher order tensor
-        select_rate (float, optional): ratio of top weights to be selected. Defaults to 0.05.
+        select_ratio (float, optional): ratio of top weights to be selected. Defaults to 0.05.
 
     Returns:
         array-like: top weights in the same shape with the input model weights
@@ -24,7 +24,7 @@ def select_top_weight(weights, select_rate: float = 0.05):
 
     if len(orig_shape) > 1:
         weights = unfold(weights, mode=0)[0]
-    n_top_weights = int(weights.size * select_rate)
+    n_top_weights = int(weights.size * select_ratio)
     top_weight_idx = (-1 * abs(weights)).argsort()[:n_top_weights]
     top_weights = np.zeros(weights.size)
     top_weights[top_weight_idx] = weights[top_weight_idx]

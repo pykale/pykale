@@ -49,7 +49,7 @@ def test_mpca_trainer(classifier, params, gait):
             trainer.mpca.inverse_transform(trainer.clf.coef_)
     else:
         weights = trainer.mpca.inverse_transform(trainer.clf.coef_) - trainer.mpca.mean_
-        top_weights = model_weights.select_top_weight(weights, select_rate=0.1)
+        top_weights = model_weights.select_top_weight(weights, select_ratio=0.1)
         model_weights.plot_weights(top_weights[0][0], background_img=x[0][0])
 
 
