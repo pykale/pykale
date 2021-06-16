@@ -225,32 +225,6 @@ class DomainNetVideo(nn.Module):
         return x
 
 
-class ClassNetTA3N(nn.Module):
-    """Regular Classifier network for TA3N.
-
-    Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
-        n_channel (int, optional): the number of channel for Linear and BN layers.
-    """
-
-    def __init__(self, input_size=128, n_channel=100, class_type="verb", train_segments=5):
-        super(ClassNetTA3N, self).__init__()
-        self.fc_feature_domain = nn.Linear(input_size, n_channel)
-        self.fc_classifier_domain = nn.Linear(n_channel, 2)
-        self.relu = nn.ReLU(inplace=True)
-        self.relation_domain_classifier_all = nn.ModuleList()
-        self.train_segments = train_segments
-        for i in range(self.train_segments - 1):
-            relation_domain_classifier = nn.Sequential(
-                nn.Linear(input_size, n_channel), nn.ReLU(), nn.Linear(n_channel, 2)
-            )
-            self.relation_domain_classifier_all += [relation_domain_classifier]
-
-    def forward(self, input, beta=0, isRelation=False):
-        prediction_video = 0
-        return prediction_video
-
-
 class DomainNetTA3N(nn.Module):
     """Regular domain classifier network for TA3N.
 
@@ -267,15 +241,12 @@ class DomainNetTA3N(nn.Module):
         self.relation_domain_classifier_all = nn.ModuleList()
         self.train_segments = train_segments
         for i in range(self.train_segments - 1):
-            relation_domain_classifier = nn.Sequential(
-                nn.Linear(input_size, n_channel), nn.ReLU(), nn.Linear(n_channel, 2)
-            )
+            relation_domain_classifier = nn.Sequential(nn.Linear(128, n_channel), nn.ReLU(), nn.Linear(n_channel, 2))
             self.relation_domain_classifier_all += [relation_domain_classifier]
 
     def forward(self, input, beta=0, isRelation=False):
         if not isRelation:
-            x = ReverseLayerF.apply(input, beta)
-            x = self.fc_feature_domain(x)
+            x = self.fc_feature_domain(input)
             x = self.relu(x)
             prediction = self.fc_classifier_domain(x)
             return prediction
@@ -283,9 +254,8 @@ class DomainNetTA3N(nn.Module):
             # 128x4x256 --> (128x4)x2
             prediction_video = None
             for i in range(len(self.relation_domain_classifier_all)):
-                x_relation = input[:, i, :].squeeze(1)  # 128x1x256 --> 128x256
+                x_relation = input[:, i]  # 128x1x256 --> 128x256
                 x_relation = ReverseLayerF.apply(x_relation, beta)
-
                 prediction_single = self.relation_domain_classifier_all[i](x_relation)
 
                 if prediction_video is None:
