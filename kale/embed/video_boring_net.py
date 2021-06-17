@@ -32,10 +32,24 @@ class TA3N(nn.Module):
         self.fc3 = nn.Linear(input_size, input_size)
         self.bn_shared = nn.BatchNorm1d(input_size)
         self.bn_trn = nn.BatchNorm1d(trn_bottle_neck)
+        self.bn_1 = nn.BatchNorm1d(input_size)
+        self.bn_2 = nn.BatchNorm1d(input_size)
 
     def forward(self, input):
         x = input.view(-1, input.size()[-1])
         x = self.fc1(input)
+
+        if self.bn_layer == "shared":
+            x = self.bn_shared(x)
+        elif "trn" in self.bn_layer:
+            try:
+                x = self.bn_trn(x)
+            except (RuntimeError):
+                pass
+        elif self.bn_layer == "temconv_1":
+            x = self.bn_1_s(x)
+        elif self.bn_layer == "temconv_2":
+            x = self.bn_2(x)
 
         x = self.relu(x)
         x = self.dropout_i(x)

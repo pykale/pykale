@@ -588,11 +588,13 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             self.domain_align_rgb = self.domain_align_flow = self.domain_align_audio = None
             if self.rgb:
                 self.domain_align_rgb = DomainAlign()
+                self.rgb_agg = FrameAggregation(critic)
             if self.flow:
                 self.domain_align_flow = DomainAlign()
+                self.flow_agg = FrameAggregation(critic)
             if self.audio:
                 self.domain_align_audio = DomainAlign()
-            self.agg = FrameAggregation(critic)
+                self.audio_agg = FrameAggregation(critic)
 
     def forward(self, x):
         if self.feat is not None:
@@ -605,16 +607,24 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
                 reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.alpha)
                 adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
+                if self.method is Method.TA3N:
+                    x_rgb, _ = self.rgb_agg(x_rgb, adversarial_output_rgb)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
                 reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
                 adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
+                if self.method is Method.TA3N:
+                    # print("before agg: ", x_flow.size())
+                    x_flow, _ = self.flow_agg(x_flow, adversarial_output_flow)
+                    # print("after agg: ", x_flow.size())
             if self.audio:
                 x_audio = self.audio_feat(x["audio"])
                 x_audio = x_audio.view(x_audio.size(0), -1)
                 reverse_feature_audio = ReverseLayerF.apply(x_audio, self.alpha)
                 adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
+                if self.method is Method.TA3N:
+                    x_audio, _ = self.audio_agg(x_audio, adversarial_output_audio)
 
             x = self.concatenate_feature(x_rgb, x_flow, x_audio)
 
@@ -725,6 +735,7 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
                 dok_tgt = dok_tgt_audio
 
         task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
+
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
         log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
@@ -1185,10 +1196,7 @@ class TRNRelationModule(pl.LightningModule):
         return classifier
 
     def forward(self, input):
-        input = input.view(
-            (input.size()[0] * input.size()[1] * input.size()[2]) // (self.num_frames * self.img_feature_dim),
-            self.num_frames * self.img_feature_dim,
-        )
+        input = input.view(input.size(0), self.num_frames * self.img_feature_dim)
         input = self.classifier(input)
         return input
 
@@ -1199,7 +1207,7 @@ class TRNRelationModuleMultiScale(pl.LightningModule):
     def __init__(self, img_feature_dim, num_bottleneck, num_frames):
         super(TRNRelationModuleMultiScale, self).__init__()
         self.subsample_num = 3  # how many relations selected to sum up
-        self.img_feature_dim = img_feature_dim
+        self.img_feature_dim = 16 * img_feature_dim
         self.scales = [i for i in range(num_frames, 1, -1)]  # generate the multiple frame relations
 
         self.relations_scales = []
@@ -1220,7 +1228,7 @@ class TRNRelationModuleMultiScale(pl.LightningModule):
 
             self.fc_fusion_scales += [fc_fusion]
 
-        self.log("Multi-Scale Temporal Relation Network Module in use", ["%d-frame relation" % i for i in self.scales])
+        # print("Multi-Scale Temporal Relation Network Module in use", ["%d-frame relation" % i for i in self.scales])
 
     def forward(self, input):
         # the first one is the largest scale
@@ -1273,7 +1281,7 @@ class TCL(pl.LightningModule):
 
 
 class DomainAlign(nn.Module):
-    def __init__(self, input_size=1024, layer_name="shared", alpha=0.5, num_segments=4):
+    def __init__(self, input_size=1024, layer_name="shared", alpha=0, num_segments=4):
         super(DomainAlign, self).__init__()
         self.layer_name = layer_name
         self.alpha = alpha
@@ -1389,7 +1397,7 @@ class FrameAggregation(pl.LightningModule):
         self.n_layers = n_rnn
 
         if self.frame_aggregation == "trn":
-            self.TRN = self.TRN = TRNRelationModule(input_size, trn_bottleneck, self.num_segments)
+            self.TRN = TRNRelationModule(input_size, trn_bottleneck, self.num_segments)
         elif self.frame_aggregation == "trn-m":
             self.TRN = TRNRelationModuleMultiScale(input_size, trn_bottleneck, self.num_segments)
 
@@ -1416,6 +1424,13 @@ class FrameAggregation(pl.LightningModule):
         self.bn_1 = nn.BatchNorm1d(input_size)
         self.bn_2 = nn.BatchNorm1d(input_size)
 
+        self.relation_domain_classifier_all = nn.ModuleList()
+        for i in range(num_segments - 1):
+            relation_domain_classifier = nn.Sequential(
+                nn.Linear(512, 128), nn.ReLU(), nn.Linear(128, 32), nn.ReLU(), nn.Linear(32, 2)
+            )
+            self.relation_domain_classifier_all += [relation_domain_classifier]
+
     def get_trans_attn(self, pred_domain):
         softmax = nn.Softmax(dim=1)
         logsoftmax = nn.LogSoftmax(dim=1)
@@ -1433,6 +1448,22 @@ class FrameAggregation(pl.LightningModule):
 
         return weights
 
+    def domain_classify_relation(self, input, beta=0):
+        prediction_video = None
+        for i in range(len(self.relation_domain_classifier_all)):
+            x = input[:, i]  # 128x1x256 --> 128x256
+            x = ReverseLayerF.apply(x, beta)
+            prediction_single = self.relation_domain_classifier_all[i](x)
+
+            if prediction_video is None:
+                prediction_video = prediction_single.view(-1, 1, 2)
+            else:
+                prediction_video = torch.cat((prediction_video, prediction_single.view(-1, 1, 2)), 1)
+
+        prediction_video = prediction_video.view(-1, 2)
+
+        return prediction_video
+
     def forward(self, input, domain_pred):
         if self.frame_aggregation == "rnn":
             # 2. RNN
@@ -1442,17 +1473,14 @@ class FrameAggregation(pl.LightningModule):
             len_ts = round(self.num_segments / self.n_ts)
             num_extra_f = len_ts * self.n_ts - self.num_segments
             if num_extra_f < 0:  # can remove last frame-level features
-                x = x[
-                    :, : len_ts * self.n_ts, :
-                ]  # make the temporal length can be divided by n_ts (16 x 25 x 512 --> 16 x 24 x 512)
+                # make the temporal length can be divided by n_ts (16 x 25 x 512 --> 16 x 24 x 512)
+                x = x[:, : len_ts * self.n_ts, :]
             elif num_extra_f > 0:  # need to repeat last frame-level features
-                x = torch.cat(
-                    (x, x[:, -1:, :].repeat(1, num_extra_f, 1)), 1
-                )  # make the temporal length can be divided by n_ts (16 x 5 x 512 --> 16 x 6 x 512)
+                # make the temporal length can be divided by n_ts (16 x 5 x 512 --> 16 x 6 x 512)
+                x = torch.cat((x, x[:, -1:, :].repeat(1, num_extra_f, 1)), 1)
 
-            x = x.view(
-                (input.size()[0] // self.num_segments, self.n_ts, len_ts) + x.size()[2:]
-            )  # 16 x 6 x 512 --> 16 x 3 x 2 x 512
+            # 16 x 6 x 512 --> 16 x 3 x 2 x 512
+            x = x.view((-1, self.n_ts, len_ts) + x.size()[2:])
             x = nn.MaxPool2d(kernel_size=(len_ts, 1))(x)  # 16 x 3 x 2 x 512 --> 16 x 3 x 1 x 512
             x = x.squeeze(2)  # 16 x 3 x 1 x 512 --> 16 x 3 x 512
 
@@ -1496,17 +1524,21 @@ class FrameAggregation(pl.LightningModule):
         elif "trn" in self.frame_aggregation:
             if input.size()[0] % self.num_segments == 0:
                 n = self.num_segments
-            else:
+            elif input.size()[0] % (self.num_segments + 1) == 0:
                 n = self.num_segments + 1
-            x = input.view(
-                (input.size()[0] // n, n) + input.size()[-1:]
-            )  # reshape based on the segments (e.g. 640x512 --> 128x5x512)
+            elif input.size()[0] % (self.num_segments - 1) == 0:
+                n = self.num_segments - 1
+            else:
+                return input[:: self.num_segments, ::16], 0
+
+            # reshape based on the segments (e.g. 640x512 --> 128x5x512)
+            x = input.view((-1, n) + input.size()[-1:])
 
             x = self.TRN(x)
             # 128x5x512 --> 128x5x256 (256-dim. relation feature vectors x 5)
 
             # adversarial branch
-            domain_pred = self.domain_classifier(x, self.beta, isRelation=True)
+            domain_pred = self.domain_classify_relation(x, self.beta)
 
             # transferable attention
             if self.use_attn is not None:  # get the attention weighting
@@ -1515,9 +1547,14 @@ class FrameAggregation(pl.LightningModule):
                 elif self.use_attn == "general":
                     weights_attn = self.get_general_attn(x)
                 # print(weights_attn.size(), x.size())
-                weights_attn = weights_attn.view(self.num_segments, 1).repeat(1, x.size()[0])
+                # weights_attn = weights_attn.view(-1, self.num_segments, 1)
+                # weights_attn = weights_attn.repeat(1, x.size()[0])
+
+                weights_attn = weights_attn.view(-1, self.num_segments - 1, 1)
+                weights_attn = weights_attn.repeat(1, 1, x.size()[-1])  # reshape & repeat weights (e.g. 16 x 4 x 256)
+                x = (weights_attn + 1) * x
                 # print(weights_attn.size(), x.size())
-                x = torch.mm(weights_attn, x)
+                # x = weights_attn * x
                 weights_attn = weights_attn.unsqueeze(0)
                 attn_relation = weights_attn[:, :, 0]
             else:
@@ -1526,6 +1563,12 @@ class FrameAggregation(pl.LightningModule):
 
             # sum up relation features (ignore 1-relation)
             x = torch.sum(x, 1)
+
+            # print(input.size(), x.size())
+            x = x.unsqueeze(1)
+            repeats = [input.size()[i] // x.size()[i] + 1 for i in range(0, len(list(x.size())))]
+            x = x.repeat(repeats)
+            x = x[: input.size()[0], : input.size()[1], : input.size()[2]]
 
         elif self.frame_aggregation == "temconv":  # DA operation inside temconv
             x = input.view(
