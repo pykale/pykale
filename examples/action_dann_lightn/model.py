@@ -35,9 +35,9 @@ def get_config(cfg):
             "optimizer": {
                 "type": cfg.SOLVER.TYPE,
                 "optim_params": {
-                    "momentum": cfg.SOLVER.MOMENTUM,
+                    # "momentum": cfg.SOLVER.MOMENTUM,
                     "weight_decay": cfg.SOLVER.WEIGHT_DECAY,
-                    "nesterov": cfg.SOLVER.NESTEROV,
+                    # "nesterov": cfg.SOLVER.NESTEROV,
                 },
             },
         },
@@ -52,6 +52,9 @@ def get_config(cfg):
             "class_type": cfg.DATASET.CLASS_TYPE,
         },
     }
+    if config_params["train_params"]["optimizer"]["type"] == "SGD":
+        config_params["train_params"]["optimizer"]["optim_params"]["momentum"] = cfg.SOLVER.MOMENTUM
+        config_params["train_params"]["optimizer"]["optim_params"]["nesterov"] = cfg.SOLVER.NESTEROV
     return config_params
 
 
