@@ -585,6 +585,13 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         # self.tu_id = []
 
         if method is Method.TA3N:
+            self.domain_align_rgb = self.domain_align_flow = self.domain_align_audio = None
+            if self.rgb:
+                self.domain_align_rgb = DomainAlign()
+            if self.flow:
+                self.domain_align_flow = DomainAlign()
+            if self.audio:
+                self.domain_align_audio = DomainAlign()
             self.agg = FrameAggregation(critic)
 
     def forward(self, x):
@@ -611,7 +618,6 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
 
             x = self.concatenate_feature(x_rgb, x_flow, x_audio)
 
-
             class_output = self.classifier(x)
 
             return (
@@ -634,6 +640,17 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             s_id,
             tu_id,
         ) = self.get_inputs_from_batch(batch)
+
+        if self.method is Method.TA3N:
+            try:
+                if self.rgb:
+                    x_s_rgb, x_tu_rgb = self.domain_align_rgb(x_s_rgb, x_tu_rgb)
+                if self.flow:
+                    x_s_flow, x_tu_flow = self.domain_align_flow(x_s_flow, x_tu_flow)
+                if self.audio:
+                    x_s_audio, x_tu_audio = self.domain_align_audio(x_s_audio, x_tu_audio)
+            except (RuntimeError):
+                pass
 
         _, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio] = self.forward(
             {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
@@ -1255,8 +1272,97 @@ class TCL(pl.LightningModule):
         return x
 
 
-class TA3NTrainer(DANNtrainerVideo):
+class DomainAlign(nn.Module):
+    def __init__(self, input_size=1024, layer_name="shared", alpha=0.5, num_segments=4):
+        super(DomainAlign, self).__init__()
+        self.layer_name = layer_name
+        self.alpha = alpha
+        self.num_segments = num_segments
 
+        output_size = input_size
+        self.shared_fc = nn.Linear(input_size, output_size)
+        self.bn_shared_s = nn.BatchNorm1d(output_size)
+        self.bn_shared_tu = nn.BatchNorm1d(output_size)
+        num_bottleneck = output_size
+        self.bn_trn_s = nn.BatchNorm1d(num_bottleneck)
+        self.bn_trn_tu = nn.BatchNorm1d(num_bottleneck)
+
+        self.bn_1_s = nn.BatchNorm1d(output_size)
+        self.bn_1_tu = nn.BatchNorm1d(output_size)
+        self.bn_2_s = nn.BatchNorm1d(output_size)
+        self.bn_2_tu = nn.BatchNorm1d(output_size)
+
+    def forward(self, x_s, x_tu, dim=1):
+        input_size_s = x_s.size()
+        input_size_tu = x_tu.size()
+        # e.g. 256 x 25 x 2048 --> 6400 x 2048
+        x_s = x_s.view(-1, x_s.size()[-1])
+        x_tu = x_tu.view(-1, x_tu.size()[-1])
+
+        x_s = self.shared_fc(x_s)
+        x_tu = self.shared_fc(x_tu)
+
+        # reshape based on the segments (e.g. 80 x 512 --> 16 x 1 x 5 x 512)
+        x_s = x_s.view((-1, dim, self.num_segments) + x_s.size()[-1:])
+        x_tu = x_tu.view((-1, dim, self.num_segments) + x_tu.size()[-1:])
+
+        # split in the ratio of alpha
+        self.alpha = max(self.alpha, 0.5)
+        num_S_1 = int(round(x_s.size(0) * self.alpha))
+        num_S_2 = x_s.size(0) - num_S_1
+        num_T_1 = int(round(x_tu.size(0) * self.alpha))
+        num_T_2 = x_tu.size(0) - num_T_1
+
+        if num_S_2 > 0 and num_T_2 > 0:
+            x_s = torch.cat((x_s[:num_S_1], x_tu[-num_T_2:]), 0)
+            x_tu = torch.cat((x_tu[:num_T_1], x_s[-num_S_2:]), 0)
+        else:
+            x_s = x_s
+            x_tu = x_tu
+
+        # adaptive BN
+
+        # reshape to feed BN (e.g. 16 x 1 x 5 x 512 --> 80 x 512)
+        x_s = x_s.view((-1,) + x_s.size()[-1:])
+        x_tu = x_tu.view((-1,) + x_tu.size()[-1:])
+
+        if self.layer_name == "shared":
+            x_s_bn = self.bn_shared_s(x_s)
+            x_tu_bn = self.bn_shared_tu(x_tu)
+        elif "trn" in self.layer_name:
+            x_s_bn = self.bn_trn_s(x_s)
+            x_tu_bn = self.bn_trn_tu(x_tu)
+        elif self.layer_name == "temconv_1":
+            x_s_bn = self.bn_1_s(x_s)
+            x_tu_bn = self.bn_1_tu(x_tu)
+        elif self.layer_name == "temconv_2":
+            x_s_bn = self.bn_2_s(x_s)
+            x_tu_bn = self.bn_2_tu(x_tu)
+
+        # reshape back (e.g. 80 x 512 --> 16 x 1 x 5 x 512)
+        x_s_bn = x_s_bn.view((-1, dim, self.num_segments) + x_s_bn.size()[-1:])
+        x_tu_bn = x_tu_bn.view((-1, dim, self.num_segments) + x_tu_bn.size()[-1:])
+
+        # rearange back to the original order of source and target data (since target may be unlabeled)
+        if num_S_2 > 0 and num_T_2 > 0:
+            x_s_bn = torch.cat((x_s_bn[:num_S_1], x_tu_bn[-num_S_2:]), 0)
+            x_tu_bn = torch.cat((x_tu_bn[:num_T_1], x_s_bn[-num_T_2:]), 0)
+
+        # reshape for frame-level features
+        if self.layer_name == "shared" or self.layer_name == "trn_sum":
+            x_s_bn = x_s_bn.view((-1,) + x_s_bn.size()[-1:])  # (e.g. 16 x 1 x 5 x 512 --> 80 x 512)
+            x_tu_bn = x_tu_bn.view((-1,) + x_tu_bn.size()[-1:])
+        elif self.layer_name == "trn":
+            x_s_bn = x_s_bn.view((-1, self.num_segments) + x_s_bn.size()[-1:])  # (e.g. 16 x 1 x 5 x 512 --> 80 x 512)
+            x_tu_bn = x_tu_bn.view((-1, self.num_segments) + x_tu_bn.size()[-1:])
+
+        x_s_bn = x_s_bn.view(input_size_s)
+        x_tu_bn = x_tu_bn.view(input_size_tu)
+
+        return x_s_bn, x_tu_bn
+
+
+class FrameAggregation(pl.LightningModule):
     def __init__(
         self,
         critic,

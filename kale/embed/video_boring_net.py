@@ -34,15 +34,8 @@ class TA3N(nn.Module):
         self.bn_trn = nn.BatchNorm1d(trn_bottle_neck)
 
     def forward(self, input):
+        x = input.view(-1, input.size()[-1])
         x = self.fc1(input)
-
-        # # Domain alignment
-        # x = x.view((-1,) + x.size()[-1:])
-        # if self.bn_layer == "shared":
-        #     x = self.bn_shared(x)
-        # elif "trn" in self.bn_layer:
-        #     x = self.bn_trn(x)
-        # x = x.view((-1, 1, input.size()[-1]) + x.size()[-1:])
 
         x = self.relu(x)
         x = self.dropout_i(x)
