@@ -21,35 +21,38 @@ def ta3n(name, pretrained=False, input_size=1024, n_out=256, progress=True):
 
 
 class TA3N(nn.Module):
-    def __init__(self, input_size=512, dropout_rate=0.5, add_fc=2, bn_layer="trn", trn_bottle_neck=1024):
+    def __init__(
+        self, input_size=512, output_size=512, dropout_rate=0.5, add_fc=2, bn_layer="trn", trn_bottle_neck=512
+    ):
         super(TA3N, self).__init__()
         self.bn_layer = bn_layer
         self.add_fc = add_fc
         self.relu = nn.ReLU(inplace=True)
         self.dropout_i = nn.Dropout(p=dropout_rate)
-        self.fc1 = nn.Linear(input_size, input_size)
-        self.fc2 = nn.Linear(input_size, input_size)
-        self.fc3 = nn.Linear(input_size, input_size)
-        self.bn_shared = nn.BatchNorm1d(input_size)
+        output_size = input_size
+        self.fc1 = nn.Linear(input_size, output_size)
+        self.fc2 = nn.Linear(output_size, output_size)
+        self.fc3 = nn.Linear(output_size, output_size)
+        self.bn_shared = nn.BatchNorm1d(output_size)
         self.bn_trn = nn.BatchNorm1d(trn_bottle_neck)
-        self.bn_1 = nn.BatchNorm1d(input_size)
-        self.bn_2 = nn.BatchNorm1d(input_size)
+        self.bn_1 = nn.BatchNorm1d(output_size)
+        self.bn_2 = nn.BatchNorm1d(output_size)
 
     def forward(self, input):
         x = input.view(-1, input.size()[-1])
         x = self.fc1(input)
 
-        if self.bn_layer == "shared":
-            x = self.bn_shared(x)
-        elif "trn" in self.bn_layer:
-            try:
-                x = self.bn_trn(x)
-            except (RuntimeError):
-                pass
-        elif self.bn_layer == "temconv_1":
-            x = self.bn_1_s(x)
-        elif self.bn_layer == "temconv_2":
-            x = self.bn_2(x)
+        # if self.bn_layer == "shared":
+        #     x = self.bn_shared(x)
+        # elif "trn" in self.bn_layer:
+        #     try:
+        #         x = self.bn_trn(x)
+        #     except (RuntimeError):
+        #         pass
+        # elif self.bn_layer == "temconv_1":
+        #     x = self.bn_1_s(x)
+        # elif self.bn_layer == "temconv_2":
+        #     x = self.bn_2(x)
 
         x = self.relu(x)
         x = self.dropout_i(x)
