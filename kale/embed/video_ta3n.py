@@ -87,11 +87,11 @@ def ta3n_joint(
     """
     model_rgb = model_flow = model_audio = None
     if rgb_name is not None:
-        model_rgb = boring_net(rgb_name, pretrained, input_size, n_out, progress)
+        model_rgb = ta3n(rgb_name, pretrained, input_size, n_out, progress)
     if flow_name is not None:
-        model_flow = boring_net(flow_name, pretrained, input_size, n_out, progress)
+        model_flow = ta3n(flow_name, pretrained, input_size, n_out, progress)
     if audio_name is not None:
-        model_audio = boring_net(audio_name, pretrained, input_size, n_out, progress)
+        model_audio = ta3n(audio_name, pretrained, input_size, n_out, progress)
     return {"rgb": model_rgb, "flow": model_flow, "audio": model_audio}
 
 
