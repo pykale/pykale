@@ -4,20 +4,11 @@ from torchvision.models.utils import load_state_dict_from_url
 from kale.embed.video_selayer import SELayer4feat
 from kale.embed.video_transformer import TransformerBlock
 
-model_urls = {
-    "rgb_boring": None,
-    "flow_boring": None,
-    "audio_boring": None,
+model_urls_ta3n = {
+    "rgb_ta3n": None,
+    "flow_ta3n": None,
+    "audio_ta3n": None,
 }
-
-
-def ta3n(name, pretrained=False, input_size=1024, n_out=256, progress=True):
-    """Get TA3N module with pretrained model."""
-    model = TA3N(input_size=input_size)
-    if pretrained:
-        state_dict = load_state_dict_from_url(model_urls[name], progress=progress)
-        model.load_state_dict(state_dict)
-    return model
 
 
 class TA3N(nn.Module):
@@ -42,17 +33,17 @@ class TA3N(nn.Module):
         x = input.view(-1, input.size()[-1])
         x = self.fc1(input)
 
-        # if self.bn_layer == "shared":
-        #     x = self.bn_shared(x)
-        # elif "trn" in self.bn_layer:
-        #     try:
-        #         x = self.bn_trn(x)
-        #     except (RuntimeError):
-        #         pass
-        # elif self.bn_layer == "temconv_1":
-        #     x = self.bn_1_s(x)
-        # elif self.bn_layer == "temconv_2":
-        #     x = self.bn_2(x)
+        if self.bn_layer == "shared":
+            x = self.bn_shared(x)
+        elif "trn" in self.bn_layer:
+            try:
+                x = self.bn_trn(x)
+            except (RuntimeError):
+                pass
+        elif self.bn_layer == "temconv_1":
+            x = self.bn_1_s(x)
+        elif self.bn_layer == "temconv_2":
+            x = self.bn_2(x)
 
         x = self.relu(x)
         x = self.dropout_i(x)
@@ -66,6 +57,49 @@ class TA3N(nn.Module):
             x = self.dropout_i(x)
 
         return x
+
+
+def ta3n(name, pretrained=False, input_size=1024, n_out=256, progress=True):
+    """Get TA3N module with pretrained model."""
+    model = TA3N(input_size=input_size)
+    if pretrained:
+        state_dict = load_state_dict_from_url(model_urls_ta3n[name], progress=progress)
+        model.load_state_dict(state_dict)
+    return model
+
+
+def ta3n_joint(
+    rgb_name=None, flow_name=None, audio_name=None, pretrained=False, input_size=1024, n_out=256, progress=True
+):
+    """Get TA3N model for different inputs.
+
+    Args:
+        rgb_name (string, optional): the name of pre-trained model for rgb input.
+        flow_name (string, optional): the name of pre-trained model for flow input.
+        audio_name (string, optional): the name of pre-trained model for audio input.
+        pretrained (bool, optional): choose if pretrained parameters are used. (Default: False),
+        input_size (int, optional): dimension of the final feature vector. Defaults to 1024.
+        n_out (int, optional): dimension of the output feature vector. Defaults to 256.
+        progress (bool, optional): whether or not to display a progress bar to stderr. (Default: True)
+
+    Returns:
+        models (dictionary): A dictionary contains rgb, flow and audio models.
+    """
+    model_rgb = model_flow = model_audio = None
+    if rgb_name is not None:
+        model_rgb = boring_net(rgb_name, pretrained, input_size, n_out, progress)
+    if flow_name is not None:
+        model_flow = boring_net(flow_name, pretrained, input_size, n_out, progress)
+    if audio_name is not None:
+        model_audio = boring_net(audio_name, pretrained, input_size, n_out, progress)
+    return {"rgb": model_rgb, "flow": model_flow, "audio": model_audio}
+
+
+model_urls = {
+    "rgb_boring": None,
+    "flow_boring": None,
+    "audio_boring": None,
+}
 
 
 class BoringNetVideo(nn.Module):
@@ -157,9 +191,9 @@ def boring_net_joint(
     """
     model_rgb = model_flow = model_audio = None
     if rgb_name is not None:
-        model_rgb = ta3n(rgb_name, pretrained, input_size, n_out, progress)
+        model_rgb = boring_net(rgb_name, pretrained, input_size, n_out, progress)
     if flow_name is not None:
-        model_flow = ta3n(flow_name, pretrained, input_size, n_out, progress)
+        model_flow = boring_net(flow_name, pretrained, input_size, n_out, progress)
     if audio_name is not None:
-        model_audio = ta3n(audio_name, pretrained, input_size, n_out, progress)
+        model_audio = boring_net(audio_name, pretrained, input_size, n_out, progress)
     return {"rgb": model_rgb, "flow": model_flow, "audio": model_audio}

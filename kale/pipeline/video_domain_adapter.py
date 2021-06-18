@@ -650,6 +650,7 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             tu_id,
         ) = self.get_inputs_from_batch(batch)
 
+        # Domain Align | giving worse results
         # if self.method is Method.TA3N:
         #     try:
         #         if self.rgb:
@@ -1510,11 +1511,11 @@ class TemporalAttention(pl.LightningModule):
             # temporal segments and pooling
             len_ts = round(self.num_segments / self.n_ts)
             num_extra_f = len_ts * self.n_ts - self.num_segments
-            if num_extra_f < 0:  # can remove last frame-level features
-                # make the temporal length can be divided by n_ts (16 x 25 x 512 --> 16 x 24 x 512)
+            if num_extra_f < 0:
+                # can remove last frame-level features
                 x = x[:, : len_ts * self.n_ts, :]
-            elif num_extra_f > 0:  # need to repeat last frame-level features
-                # make the temporal length can be divided by n_ts (16 x 5 x 512 --> 16 x 6 x 512)
+            elif num_extra_f > 0:
+                # need to repeat last frame-level features
                 x = torch.cat((x, x[:, -1:, :].repeat(1, num_extra_f, 1)), 1)
 
             # 16 x 6 x 512 --> 16 x 3 x 2 x 512
@@ -1535,11 +1536,11 @@ class TemporalAttention(pl.LightningModule):
             self.rnn.flatten_parameters()
             x, hidden_final = self.rnn(x, hidden_init)  # e.g. 16 x 25 x 512
 
-            # get the last feature vector
-            x = x[:, -1, :]
-
-            attn_relation = x[:, 0]
-            # assign random tensors to attention values to avoid runtime error
+            # transferable attention
+            if self.use_attn is not None:  # get the attention weighting
+                x, attn_relation = self.add_attention(input, domain_pred)
+            else:
+                attn_relation = x[:, :, 0]
         elif self.frame_aggregation == "avgpool":
             x = input.view(
                 (input.size()[0] // self.num_segments, 1, self.num_segments) + input.size()[-1:]
@@ -1556,9 +1557,12 @@ class TemporalAttention(pl.LightningModule):
                 attn_relation = weights_attn[:, :, 0]
 
             x = nn.AvgPool2d([self.num_segments, 1])(x)  # e.g. 16 x 1 x 1 x 512
-            x = x.squeeze(1).squeeze(1)  # e.g. 16 x 512
 
-            # assign random tensors to attention values to avoid runtime error
+            if self.use_attn is not None:  # get the attention weighting
+                x, attn_relation = self.add_attention(input, domain_pred)
+            else:
+                attn_relation = x[:, :, 0]
+
         elif "trn" in self.frame_aggregation:
             if input.size()[0] % self.num_segments == 0:
                 n = self.num_segments
@@ -1580,8 +1584,8 @@ class TemporalAttention(pl.LightningModule):
                 x, attn_relation = self.add_attention(input, domain_pred_relation)
             else:
                 attn_relation = x[:, :, 0]
-                # assign random tensors to attention values to avoid runtime error
-            return x, domain_pred, attn_relation
+
+            domain_pred = domain_pred_relation
 
         elif self.frame_aggregation == "temconv":  # DA operation inside temconv
             x = input.view(
@@ -1600,8 +1604,10 @@ class TemporalAttention(pl.LightningModule):
 
             x = nn.AvgPool2d(kernel_size=(self.num_segments, 1))(x)  # 16 x 4 x 1 x 512
 
-            x = x.squeeze(1).squeeze(1)  # e.g. 16 x 512
-            attn_relation = x[:, :, 0]
+            if self.use_attn is not None:  # get the attention weighting
+                x, attn_relation = self.add_attention(input, domain_pred)
+            else:
+                attn_relation = x[:, :, 0]
 
         x = self.dropout_v(x)
 

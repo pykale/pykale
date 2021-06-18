@@ -8,11 +8,11 @@ Define the feature extractor for video including I3D, R3D_18, MC3_18 and R2PLUS1
 
 import logging
 
-from kale.embed.video_boring_net import boring_net_joint
 from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
 from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
+from kale.embed.video_ta3n import ta3n_joint
 from kale.loaddata.video_access import get_image_modality
 
 
@@ -124,14 +124,12 @@ def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=5
     rgb, flow, audio = get_image_modality(image_modality)
     rgb_pretrained = flow_pretrained = audio_pretrained = None
     if rgb:
-        rgb_pretrained = "rgb_boring"
+        rgb_pretrained = "rgb_ta3n"
     if flow:
-        flow_pretrained = "flow_boring"
+        flow_pretrained = "flow_ta3n"
     if audio:
-        audio_pretrained = "audio_boring"
-    feature_network = boring_net_joint(
-        rgb_pretrained, flow_pretrained, audio_pretrained, input_size=1024, n_out=num_out
-    )
+        audio_pretrained = "audio_ta3n"
+    feature_network = ta3n_joint(rgb_pretrained, flow_pretrained, audio_pretrained, input_size=1024, n_out=num_out)
 
     domain_feature_dim = int(num_out * 8)
     if rgb:
