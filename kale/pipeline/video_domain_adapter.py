@@ -587,13 +587,13 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         if method is Method.TA3N:
             self.domain_align_rgb = self.domain_align_flow = self.domain_align_audio = None
             if self.rgb:
-                self.domain_align_rgb = DomainAlign()
+                # self.domain_align_rgb = DomainAlign()
                 self.rgb_attention = TemporalAttention(critic)
             if self.flow:
-                self.domain_align_flow = DomainAlign()
+                # self.domain_align_flow = DomainAlign()
                 self.flow_attention = TemporalAttention(critic)
             if self.audio:
-                self.domain_align_audio = DomainAlign()
+                # self.domain_align_audio = DomainAlign()
                 self.audio_attention = TemporalAttention(critic)
 
     def forward(self, x):
@@ -1370,7 +1370,7 @@ class DomainAlign(nn.Module):
         return x_s_bn, x_tu_bn
 
 
-class TemporalAttention(pl.LightningModule):
+class TemporalAttention(nn.Module):
     def __init__(
         self,
         critic,
@@ -1380,10 +1380,6 @@ class TemporalAttention(pl.LightningModule):
         beta=0.5,
         trn_bottleneck=512,
         use_attn="TransAttn",
-        n_ts=5,
-        rnn_cell="LSTM",
-        n_directions=1,
-        n_rnn=1,
     ):
         super(TemporalAttention, self).__init__()
         self.domain_classifier = critic
@@ -1391,40 +1387,12 @@ class TemporalAttention(pl.LightningModule):
         self.num_segments = num_segments
         self.beta = beta
         self.use_attn = use_attn
-        self.n_ts = n_ts
-        self.rnn_cell = rnn_cell
-        self.n_directions = n_directions
-        self.n_layers = n_rnn
 
         self.fc_feature_domain = nn.Linear(1024, input_size)
         self.fc_classifier_domain = nn.Linear(input_size, 2)
         self.relu = nn.ReLU(inplace=True)
 
-        if self.frame_aggregation == "trn":
-            self.TRN = TRNRelationModule(input_size, trn_bottleneck, self.num_segments)
-        elif self.frame_aggregation == "trn-m":
-            self.TRN = TRNRelationModuleMultiScale(input_size, trn_bottleneck, self.num_segments)
-
-        self.hidden_dim = input_size
-        self.input_size = input_size
-        if self.rnn_cell == "LSTM":
-            self.rnn = nn.LSTM(
-                input_size,
-                self.hidden_dim // self.n_directions,
-                self.n_layers,
-                batch_first=True,
-                bidirectional=bool(int(self.n_directions / 2)),
-            )
-        elif self.rnn_cell == "GRU":
-            self.rnn = nn.GRU(
-                input_size,
-                self.hidden_dim // self.n_directions,
-                self.n_layers,
-                batch_first=True,
-                bidirectional=bool(int(self.n_directions / 2)),
-            )
-        else:
-            self.rnn = None
+        self.TRN = TRNRelationModuleMultiScale(input_size, trn_bottleneck, self.num_segments)
 
         self.bn_1 = nn.BatchNorm1d(input_size)
         self.bn_2 = nn.BatchNorm1d(input_size)
@@ -1504,110 +1472,28 @@ class TemporalAttention(pl.LightningModule):
         domain_pred = self.domain_classify_frame(input)
         input, _ = self.add_attention(input, domain_pred)
 
-        if self.frame_aggregation == "rnn":
-            # 2. RNN
-            x = input.view((-1, self.num_segments) + input.size()[-1:])  # reshape for RNN
+        if input.size()[0] % self.num_segments == 0:
+            n = self.num_segments
+        elif input.size()[0] % (self.num_segments + 1) == 0:
+            n = self.num_segments + 1
+        else:
+            return input, 0.5 * torch.ones((192, 2)), 0
 
-            # temporal segments and pooling
-            len_ts = round(self.num_segments / self.n_ts)
-            num_extra_f = len_ts * self.n_ts - self.num_segments
-            if num_extra_f < 0:
-                # can remove last frame-level features
-                x = x[:, : len_ts * self.n_ts, :]
-            elif num_extra_f > 0:
-                # need to repeat last frame-level features
-                x = torch.cat((x, x[:, -1:, :].repeat(1, num_extra_f, 1)), 1)
+        # reshape based on the segments (e.g. 640x512 --> 128x5x512)
+        x = input.view((-1, n) + input.size()[-1:])
 
-            # 16 x 6 x 512 --> 16 x 3 x 2 x 512
-            x = x.view((-1, self.n_ts, len_ts) + x.size()[2:])
-            x = nn.MaxPool2d(kernel_size=(len_ts, 1))(x)  # 16 x 3 x 2 x 512 --> 16 x 3 x 1 x 512
-            x = x.squeeze(2)  # 16 x 3 x 1 x 512 --> 16 x 3 x 512
+        x = self.TRN(x)
 
-            hidden_temp = torch.zeros(
-                self.n_layers * self.n_directions, x.size(0), self.hidden_dim // self.n_directions
-            )
-            hidden_temp = hidden_temp.type_as(input)
+        # adversarial branch
+        domain_pred_relation = self.domain_classify_relation(x, self.beta)
 
-            if self.rnn_cell == "LSTM":
-                hidden_init = (hidden_temp, hidden_temp)
-            elif self.rnn_cell == "GRU":
-                hidden_init = hidden_temp
+        # adding attention
+        if self.use_attn is not None:  # get the attention weighting
+            x, attn_relation = self.add_attention(input, domain_pred_relation)
+        else:
+            attn_relation = x[:, :, 0]
 
-            self.rnn.flatten_parameters()
-            x, hidden_final = self.rnn(x, hidden_init)  # e.g. 16 x 25 x 512
-
-            # transferable attention
-            if self.use_attn is not None:  # get the attention weighting
-                x, attn_relation = self.add_attention(input, domain_pred)
-            else:
-                attn_relation = x[:, :, 0]
-        elif self.frame_aggregation == "avgpool":
-            x = input.view(
-                (input.size()[0] // self.num_segments, 1, self.num_segments) + input.size()[-1:]
-            )  # reshape based on the segments (e.g. 16 x 1 x 5 x 512)
-
-            attn_relation = x[:, 0]
-
-            if self.use_attn == "TransAttn":  # get the attention weighting
-                weights_attn = self.get_trans_attn(domain_pred)
-                weights_attn = weights_attn.view(x.size()[-1] // self.num_segments, 1, self.num_segments, 1).repeat(
-                    1, 1, 1, input.size()[-1]
-                )  # reshape & repeat weights (e.g. 16 x 1 x 5 x 512)
-                x = (weights_attn + 1) * x
-                attn_relation = weights_attn[:, :, 0]
-
-            x = nn.AvgPool2d([self.num_segments, 1])(x)  # e.g. 16 x 1 x 1 x 512
-
-            if self.use_attn is not None:  # get the attention weighting
-                x, attn_relation = self.add_attention(input, domain_pred)
-            else:
-                attn_relation = x[:, :, 0]
-
-        elif "trn" in self.frame_aggregation:
-            if input.size()[0] % self.num_segments == 0:
-                n = self.num_segments
-            elif input.size()[0] % (self.num_segments + 1) == 0:
-                n = self.num_segments + 1
-            else:
-                return input, 0, 0
-
-            # reshape based on the segments (e.g. 640x512 --> 128x5x512)
-            x = input.view((-1, n) + input.size()[-1:])
-
-            x = self.TRN(x)
-
-            # adversarial branch
-            domain_pred_relation = self.domain_classify_relation(x, self.beta)
-
-            # transferable attention
-            if self.use_attn is not None:  # get the attention weighting
-                x, attn_relation = self.add_attention(input, domain_pred_relation)
-            else:
-                attn_relation = x[:, :, 0]
-
-            domain_pred = domain_pred_relation
-
-        elif self.frame_aggregation == "temconv":  # DA operation inside temconv
-            x = input.view(
-                (input.size()[0] // self.num_segments, 1, self.num_segments) + input.size()[-1:]
-            )  # reshape based on the segments
-
-            # 1st TCL
-            x = self.tcl_3_1(x)
-
-            if self.use_bn is not None:
-                x = self.bn_1(x)
-                x = self.bn_2(x)
-                x = x.view((-1, 1, input.size()[-1]) + x.size()[-1:])
-
-            x = self.relu(x)  # 16 x 1 x 5 x 512
-
-            x = nn.AvgPool2d(kernel_size=(self.num_segments, 1))(x)  # 16 x 4 x 1 x 512
-
-            if self.use_attn is not None:  # get the attention weighting
-                x, attn_relation = self.add_attention(input, domain_pred)
-            else:
-                attn_relation = x[:, :, 0]
+        domain_pred = domain_pred_relation
 
         x = self.dropout_v(x)
 
