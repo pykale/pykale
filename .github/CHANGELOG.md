@@ -1,3 +1,35 @@
+# Version  0.1.0rc2
+
+#### New Features
+
+* [#149](https://github.com/pykale/pykale/pull/149): Add digits notebook with Binder and Colab
+* [#151](https://github.com/pykale/pykale/pull/151): Add class subset selection
+* [#159](https://github.com/pykale/pykale/pull/159): Add interpret module
+
+#### Code Improvements
+
+* [#132](https://github.com/pykale/pykale/pull/132): Create file download module
+* [#138](https://github.com/pykale/pykale/pull/138): Change action_domain_adapter.py to video_domain_adapter.py
+* [#144](https://github.com/pykale/pykale/pull/144): Move gait data to pykale/data
+* [#157](https://github.com/pykale/pykale/pull/157): Add concord_index calculation into DeepDTA
+
+#### Tests
+
+* [#127](https://github.com/pykale/pykale/pull/127): Add video_access tests
+* [#134](https://github.com/pykale/pykale/pull/134): Add tests for image and video CNNs
+* [#136](https://github.com/pykale/pykale/pull/136): Add tests for domain adapter
+* [#137](https://github.com/pykale/pykale/pull/137): Add tests for csv logger
+* [#139](https://github.com/pykale/pykale/pull/139): Add tests for isonet
+* [#145](https://github.com/pykale/pykale/pull/145): Add tests for video domain adapter
+* [#150](https://github.com/pykale/pykale/pull/150): Add tests for gripnet
+* [#156](https://github.com/pykale/pykale/pull/156): Remove empty tests and MNIST test
+
+#### Documentation Updates
+
+* [#133](https://github.com/pykale/pykale/pull/133): Add quote from Kevin@facebook
+* [#143](https://github.com/pykale/pykale/pull/143): Add "new feature" group
+* [#160](https://github.com/pykale/pykale/pull/160): Update docs w.r.t. CIKM submission
+
 # Version  0.1.0rc1
 
 **Important**: Rename `master` to `main`.
