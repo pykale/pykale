@@ -1,3 +1,57 @@
+# Version  0.1.0rc2
+
+
+#### New Features
+
+
+* [#151](https://github.com/pykale/pykale/pull/151): Add Class subsampling
+* [#159](https://github.com/pykale/pykale/pull/159): Add interpret module
+
+#### Bug Fixes
+
+
+* [#154](https://github.com/pykale/pykale/pull/154): fix links for colab
+
+#### Code Improvements
+
+
+* [#132](https://github.com/pykale/pykale/pull/132): Create download.py
+* [#135](https://github.com/pykale/pykale/pull/135): Update docs, docs CI, and example readmes
+* [#138](https://github.com/pykale/pykale/pull/138): Change action_domain_adapter.py to video_domain_adapter.py
+* [#144](https://github.com/pykale/pykale/pull/144): move gait data to pykale/data
+* [#157](https://github.com/pykale/pykale/pull/157): Add concord_index calculation into DeepDTA
+
+#### Tests
+
+
+* [#127](https://github.com/pykale/pykale/pull/127): Add video_access test
+* [#139](https://github.com/pykale/pykale/pull/139): Add codecov badge and add tests for isonet
+* [#134](https://github.com/pykale/pykale/pull/134): Add test for image and video CNNs
+* [#137](https://github.com/pykale/pykale/pull/137): Add tests for csv logger
+* [#145](https://github.com/pykale/pykale/pull/145): Test video domain adapter
+* [#150](https://github.com/pykale/pykale/pull/150): Test gripnet
+* [#156](https://github.com/pykale/pykale/pull/156): Empty tests and remove MNIST test
+
+#### Documentation Updates
+
+
+* [#152](https://github.com/pykale/pykale/pull/152): link to mybinder / colab
+* [#133](https://github.com/pykale/pykale/pull/133): Add quote from Kevin@facebook
+* [#143](https://github.com/pykale/pykale/pull/143): Add "new feature" group
+* [#160](https://github.com/pykale/pykale/pull/160): Update docs w.r.t. CIKM submission
+
+#### Other Changes
+
+* [#153](https://github.com/pykale/pykale/pull/153): Create ta3n branch
+* [#149](https://github.com/pykale/pykale/pull/149): Digits notebook
+* [#129](https://github.com/pykale/pykale/pull/129): Release 0.1.0rc1
+* [#141](https://github.com/pykale/pykale/pull/141): Remove unused actions / use CodeCov action
+* [#136](https://github.com/pykale/pykale/pull/136): Test domain adapter
+* [#155](https://github.com/pykale/pykale/pull/155): Update docs for next release & restore MNIST
+* [#142](https://github.com/pykale/pykale/pull/142): Add bug fix --> new test
+* [#158](https://github.com/pykale/pykale/pull/158): Add top1/top5 accuracy & action metrics to branch ta3n
+
+
 # Version  0.1.0rc1
 
 **Important**: Rename `master` to `main`.
