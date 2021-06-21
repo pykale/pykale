@@ -32,7 +32,7 @@ New modules/projects can be built following the steps below.
   - download the data if needed
   - run the example following instructions in the example's README
 - Step 2a - New model: To develop new machine learning models under PyKale,
-  - define the blocks in your pipeline to figure out what are the methods for data loading, pre-processing data, embedding (encoder/representation), prediction (decoder), evaluation, and interpretation (if needed)
+  - define the blocks in your pipeline to figure out what the methods are for data loading, pre-processing data, embedding (encoder/representation), prediction (decoder), evaluation, and interpretation (if needed)
   - modify existing pipelines with your customized blocks or build a new pipeline with PyKale blocks and blocks from other libraries
 - Step 2b - New applications: To develop new applications using PyKale,
   - clarify the input data and the prediction target to find matching functionalities in PyKale (request if not found)
