@@ -29,8 +29,9 @@ PyKale Documentation
     kale.prepdata
     kale.embed
     kale.predict
-    kale.pipeline
     kale.evaluate
+    kale.interpret
+    kale.pipeline
     kale.utils
 
 Kale APIs above are ordered following the machine learning pipeline, i.e., functionalities, rather than alphabetically.

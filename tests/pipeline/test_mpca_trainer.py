@@ -1,8 +1,10 @@
+import matplotlib.figure
 import numpy as np
 import pytest
 from numpy import testing
 from sklearn.metrics import accuracy_score, roc_auc_score
 
+from kale.interpret import model_weights
 from kale.pipeline.mpca_trainer import MPCATrainer
 
 CLASSIFIERS = ["svc", "linear_svc", "lr"]
@@ -42,6 +44,15 @@ def test_mpca_trainer(classifier, params, gait):
 
     y_dec_score = trainer.decision_function(x)
     assert roc_auc_score(y, y_dec_score) >= 0.8
+
+    if classifier == "svc" and trainer.clf.kernel == "rbf":
+        with pytest.raises(Exception):
+            trainer.mpca.inverse_transform(trainer.clf.coef_)
+    else:
+        weights = trainer.mpca.inverse_transform(trainer.clf.coef_) - trainer.mpca.mean_
+        top_weights = model_weights.select_top_weight(weights, select_ratio=0.1)
+        fig = model_weights.plot_weights(top_weights[0][0], background_img=x[0][0])
+        assert type(fig) == matplotlib.figure.Figure
 
 
 def test_invalid_init():
