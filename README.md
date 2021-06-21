@@ -82,10 +82,10 @@ We would like to thank our other contributors including (but not limited to) Cam
 
 ```lang-latex
     @article{pykale,
-      title = {PyKale: Knowledge-Aware Machine Learning from Multiple Sources in Python},
-      author = {Haiping Lu and Xianyuan Liu and Robert Turner and Peizhen Bai and Raivo Koot and Shuo Zhou and Mustafa Chasmai and Lawrence Schobs},
-      journal = {arXiv preprint arXiv:2106.09756},
-      year = {2021}
+      title   = {PyKale: Knowledge-Aware Machine Learning from Multiple Sources in Python},
+      author  = {Haiping Lu and Xianyuan Liu and Robert Turner and Peizhen Bai and Raivo Koot and Shuo Zhou and Mustafa Chasmai and Lawrence Schobs},
+      journal = {arXiv:2106.09756 [cs.LG]},
+      year    = {2021}
     }
 ```
 
