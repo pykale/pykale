@@ -127,19 +127,6 @@ def create_dann_like_video(
         raise ValueError(f"Unsupported method: {method}")
 
 
-# def dummy_data(batch_size, current_size, data):
-#     # add dummy tensors to keep the same batch size for each epoch (for the last epoch)
-#     if current_size[0] < batch_size:
-#         data_dummy = torch.zeros(batch_size - current_size[0], current_size[1], current_size[2])
-#         data = torch.cat((data, data_dummy))
-#     return data
-#
-#
-# def remove_dummy(data, batch_size):
-#     data = data[:batch_size]
-#     return data
-
-
 class BaseAdaptTrainerVideo(BaseAdaptTrainer):
     def training_step(self, batch, batch_nb):
         # print("tr src{} tgt{}".format(len(batch[0][2]), len(batch[1][2])))
@@ -151,6 +138,8 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             loss = task_loss
         else:
             loss = task_loss
+        if self.method is Method.TA3N:
+            loss += adv_loss
             # loss = task_loss + self.lamb_da * adv_loss * 100
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
@@ -575,6 +564,8 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
         self.input_type = input_type
+        self.correct_batch_size_source = None
+        self.correct_batch_size_target = None
 
         # Uncomment to store output for EPIC UDA 2021 challenge.(1/3)
         # self.y_hat = []
@@ -635,6 +626,35 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
                 [adversarial_output_rgb, adversarial_output_flow, adversarial_output_audio],
             )
 
+    def add_dummy_data(self, x_rgb, x_flow, x_audio, batch_size):
+        if self.rgb:
+            current_size = x_rgb.size()
+            data_dummy = torch.zeros(batch_size - current_size[0], current_size[1], current_size[2])
+            data_dummy = data_dummy.type_as(x_rgb)
+            x_rgb = torch.cat((x_rgb, data_dummy))
+        if self.flow:
+            current_size = x_flow.size()
+            data_dummy = torch.zeros(batch_size - current_size[0], current_size[1], current_size[2])
+            data_dummy = data_dummy.type_as(x_flow)
+            x_flow = torch.cat((x_flow, data_dummy))
+        if self.audio:
+            current_size = x_audio.size()
+            data_dummy = torch.zeros(batch_size - current_size[0], current_size[1], current_size[2])
+            data_dummy = data_dummy.type_as(x_audio)
+            x_audio = torch.cat((x_audio, data_dummy))
+        return x_rgb, x_flow, x_audio
+
+    def remove_dummy(self, y_hat, d_hat_rgb, d_hat_flow, d_hat_audio, batch_size):
+        y_hat[0] = y_hat[0][:batch_size]
+        y_hat[1] = y_hat[1][:batch_size]
+        if self.rgb:
+            d_hat_rgb = d_hat_rgb[:batch_size]
+        if self.flow:
+            d_hat_flow = d_hat_flow[:batch_size]
+        if self.audio:
+            d_hat_audio = d_hat_audio[:batch_size]
+        return y_hat, d_hat_rgb, d_hat_flow, d_hat_audio
+
     def compute_loss(self, batch, split_name="V"):
         # _s refers to source, _tu refers to unlabeled target
         (
@@ -649,6 +669,22 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             s_id,
             tu_id,
         ) = self.get_inputs_from_batch(batch)
+
+        source_batch_size = len(y_s[0])
+        target_batch_size = len(y_tu[0])
+
+        if self.correct_batch_size_source is None or self.correct_batch_size_target is None:
+            self.correct_batch_size_source = source_batch_size
+            self.correct_batch_size_target = target_batch_size
+        else:
+            if source_batch_size != self.correct_batch_size_source:
+                x_s_rgb, x_s_flow, x_s_audio = self.add_dummy_data(
+                    x_s_rgb, x_s_flow, x_s_audio, self.correct_batch_size_source
+                )
+            if target_batch_size != self.correct_batch_size_target:
+                x_tu_rgb, x_tu_flow, x_tu_audio = self.add_dummy_data(
+                    x_tu_rgb, x_tu_flow, x_tu_audio, self.correct_batch_size_target
+                )
 
         # Domain Align | giving worse results
         # if self.method is Method.TA3N:
@@ -668,8 +704,15 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio] = self.forward(
             {"rgb": x_tu_rgb, "flow": x_tu_flow, "audio": x_tu_audio}
         )
-        source_batch_size = len(y_s[0])
-        target_batch_size = len(y_tu[0])
+
+        if source_batch_size != self.correct_batch_size_source:
+            y_hat, d_hat_rgb, d_hat_flow, d_hat_audio = self.remove_dummy(
+                y_hat, d_hat_rgb, d_hat_flow, d_hat_audio, source_batch_size
+            )
+        if target_batch_size != self.correct_batch_size_target:
+            y_t_hat, d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio = self.remove_dummy(
+                y_t_hat, d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio, target_batch_size
+            )
 
         if self.rgb:
             loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(source_batch_size))
@@ -682,7 +725,6 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             loss_dmn_tgt_audio, dok_tgt_audio = losses.cross_entropy_logits(
                 d_t_hat_audio, torch.ones(target_batch_size)
             )
-
         # ok is abbreviation for (all) correct, dok refers to domain correct
         if self.rgb:
             if self.flow:
@@ -735,9 +777,21 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
                 dok_tgt = dok_tgt_audio
 
         task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
-
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
         log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
+
+        if self.method is Method.TA3N:
+            domain_loss = 0
+            if self.rgb:
+                losses_mmd = [losses.mmd_rbf(x_s_rgb[t], x_tu_rgb[t]) for t in range(x_s_rgb.size(0))]
+                domain_loss += sum(losses_mmd) / len(losses_mmd)
+            if self.flow:
+                losses_mmd = [losses.mmd_rbf(x_s_flow[t], x_tu_flow[t]) for t in range(x_s_flow.size(0))]
+                domain_loss += sum(losses_mmd) / len(losses_mmd)
+            if self.audio:
+                losses_mmd = [losses.mmd_rbf(x_s_audio[t], x_tu_audio[t]) for t in range(x_s_audio.size(0))]
+                domain_loss += sum(losses_mmd) / len(losses_mmd)
+            task_loss += domain_loss
 
         # # Uncomment to store output for EPIC UDA 2021 challenge.(2/3)
         # if split_name == "Te":
@@ -1472,15 +1526,8 @@ class TemporalAttention(nn.Module):
         domain_pred = self.domain_classify_frame(input)
         input, _ = self.add_attention(input, domain_pred)
 
-        if input.size()[0] % self.num_segments == 0:
-            n = self.num_segments
-        elif input.size()[0] % (self.num_segments + 1) == 0:
-            n = self.num_segments + 1
-        else:
-            return input, 0.5 * torch.ones((192, 2)), 0
-
         # reshape based on the segments (e.g. 640x512 --> 128x5x512)
-        x = input.view((-1, n) + input.size()[-1:])
+        x = input.view((-1, self.num_segments) + input.size()[-1:])
 
         x = self.TRN(x)
 
