@@ -20,7 +20,6 @@ class TA3N(nn.Module):
         self.add_fc = add_fc
         self.relu = nn.ReLU(inplace=True)
         self.dropout_i = nn.Dropout(p=dropout_rate)
-        output_size = input_size
         self.fc1 = nn.Linear(input_size, output_size)
         self.fc2 = nn.Linear(output_size, output_size)
         self.fc3 = nn.Linear(output_size, output_size)

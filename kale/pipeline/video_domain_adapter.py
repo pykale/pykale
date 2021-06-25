@@ -8,7 +8,6 @@ Most are inherited from kale.pipeline.domain_adapter.
 """
 
 import numpy as np
-import pytorch_lightning as pl
 import torch
 from torch import nn
 from torch.nn.init import kaiming_normal_
@@ -139,8 +138,8 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
         else:
             loss = task_loss
         if self.method is Method.TA3N:
-            loss += adv_loss
-            # loss = task_loss + self.lamb_da * adv_loss * 100
+            # loss += adv_loss
+            loss = task_loss + self.lamb_da * adv_loss * 100
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
@@ -604,7 +603,8 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
                 x_flow = self.flow_feat(x["flow"])
                 if self.method is Method.TA3N:
                     x_flow, adv_out_temporal, _ = self.flow_attention(x_flow)
-                x_flow = x_flow.view(x_flow.size(0), -1)
+                # x_flow = x_flow.view(x_flow.size(0), -1)
+                # x_flow = torch.sum(x_flow, 1)
                 reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
                 adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
                 # adversarial_output_flow = torch.cat((adversarial_output_flow, adv_out_temporal))
@@ -791,7 +791,7 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             if self.audio:
                 losses_mmd = [losses.mmd_rbf(x_s_audio[t], x_tu_audio[t]) for t in range(x_s_audio.size(0))]
                 domain_loss += sum(losses_mmd) / len(losses_mmd)
-            task_loss += domain_loss
+            adv_loss += domain_loss
 
         # # Uncomment to store output for EPIC UDA 2021 challenge.(2/3)
         # if split_name == "Te":
@@ -1233,7 +1233,7 @@ class WDGRLtrainerVideo(WDGRLtrainer):
 # For TA3N model
 
 
-class TRNRelationModule(pl.LightningModule):
+class TRNRelationModule(nn.Module):
     # this is the naive implementation of the n-frame relation module, as num_frames == num_frames_relation
     def __init__(self, img_feature_dim, num_bottleneck, num_frames):
         super(TRNRelationModule, self).__init__()
@@ -1255,13 +1255,13 @@ class TRNRelationModule(pl.LightningModule):
         return input
 
 
-class TRNRelationModuleMultiScale(pl.LightningModule):
+class TRNRelationModuleMultiScale(nn.Module):
     # Temporal Relation module in multiply scale, suming over [2-frame relation, 3-frame relation, ..., n-frame relation]
 
     def __init__(self, img_feature_dim, num_bottleneck, num_frames):
         super(TRNRelationModuleMultiScale, self).__init__()
         self.subsample_num = 3  # how many relations selected to sum up
-        self.img_feature_dim = 2 * img_feature_dim
+        self.img_feature_dim = img_feature_dim
         self.scales = [i for i in range(num_frames, 1, -1)]  # generate the multiple frame relations
 
         self.relations_scales = []
@@ -1319,7 +1319,7 @@ class TRNRelationModuleMultiScale(pl.LightningModule):
 
 
 # definition of Temporal-ConvNet Layer
-class TCL(pl.LightningModule):
+class TCL(nn.Module):
     def __init__(self, conv_size, dim):
         super(TCL, self).__init__()
 
@@ -1335,7 +1335,7 @@ class TCL(pl.LightningModule):
 
 
 class DomainAlign(nn.Module):
-    def __init__(self, input_size=1024, layer_name="shared", alpha=0, num_segments=4):
+    def __init__(self, input_size=1024, layer_name="shared", alpha=0, num_segments=5):
         super(DomainAlign, self).__init__()
         self.layer_name = layer_name
         self.alpha = alpha
@@ -1430,9 +1430,9 @@ class TemporalAttention(nn.Module):
         critic,
         input_size=512,
         frame_aggregation="trn-m",
-        num_segments=4,
+        num_segments=5,
         beta=0.5,
-        trn_bottleneck=512,
+        trn_bottleneck=256,
         use_attn="TransAttn",
     ):
         super(TemporalAttention, self).__init__()
@@ -1442,7 +1442,7 @@ class TemporalAttention(nn.Module):
         self.beta = beta
         self.use_attn = use_attn
 
-        self.fc_feature_domain = nn.Linear(1024, input_size)
+        self.fc_feature_domain = nn.Linear(input_size, input_size)
         self.fc_classifier_domain = nn.Linear(input_size, 2)
         self.relu = nn.ReLU(inplace=True)
 
@@ -1477,7 +1477,8 @@ class TemporalAttention(nn.Module):
 
         return weights
 
-    def domain_classify_frame(self, input, beta=0.75):
+    def domain_classify_frame(self, input_orig, beta=0.75):
+        input = input_orig.detach().clone()
         x = ReverseLayerF.apply(input, beta)
         x = self.fc_feature_domain(x)
         x = self.relu(x)
@@ -1501,47 +1502,42 @@ class TemporalAttention(nn.Module):
 
         return prediction_video
 
-    def add_attention(self, input, pred):
+    def get_attention(self, input, pred):
         """Adds attention / excites the input features based on temporal pooling
         """
         if self.use_attn == "TransAttn":
-            weights_attn = self.get_trans_attn(pred)
+            weights = self.get_trans_attn(pred)
         elif self.use_attn == "general":
-            weights_attn = self.get_general_attn(input)
-        while len(list(weights_attn.size())) < len(list(input.size())):
-            weights_attn = weights_attn.unsqueeze(-1)
-        if weights_attn.size()[0] < input.size()[0]:
-            weights_attn = weights_attn.view(input.size()[0], 2, -1)
-        repeats = [input.size()[i] // weights_attn.size()[i] + 1 for i in range(0, len(list(input.size())))]
-        weights_attn = weights_attn.repeat(repeats)  # reshape & repeat weights (e.g. 16 x 4 x 256)
-        weights_attn = weights_attn[: input.size()[0], : input.size()[1], : input.size()[2]]
-        x = (weights_attn + 1) * input
-
-        weights_attn = weights_attn.unsqueeze(0)
-        attn_relation = weights_attn[:, :, 0]
-
-        return x, attn_relation
+            weights = self.get_general_attn(input)
+        while len(list(weights.size())) < len(list(input.size())):
+            weights = weights.unsqueeze(-1)
+        if weights.size()[0] < input.size()[0]:
+            weights = weights.view(input.size()[0], 2, -1)
+        repeats = [input.size()[i] // weights.size()[i] + 1 for i in range(0, len(list(input.size())))]
+        weights = weights.repeat(repeats)  # reshape & repeat weights (e.g. 16 x 4 x 256)
+        weights = weights[: input.size()[0], : input.size()[1], : input.size()[2]]
+        weights_attn = weights.detach().clone()
+        return weights_attn
 
     def forward(self, input):
         domain_pred = self.domain_classify_frame(input)
-        input, _ = self.add_attention(input, domain_pred)
+        frame_weights_attn = self.get_attention(input, domain_pred)
+        x = (frame_weights_attn + 1) * input
 
         # reshape based on the segments (e.g. 640x512 --> 128x5x512)
-        x = input.view((-1, self.num_segments) + input.size()[-1:])
-
-        x = self.TRN(x)
+        x_temp = x.detach().clone()
+        weight_feature = x_temp.view((-1, self.num_segments) + x.size()[-1:])
+        weight_feature = self.TRN(weight_feature)
 
         # adversarial branch
-        domain_pred_relation = self.domain_classify_relation(x, self.beta)
+        domain_pred_relation = self.domain_classify_relation(weight_feature, self.beta)
 
         # adding attention
-        if self.use_attn is not None:  # get the attention weighting
-            x, attn_relation = self.add_attention(input, domain_pred_relation)
-        else:
-            attn_relation = x[:, :, 0]
-
+        weights_attn = self.get_attention(x_temp, domain_pred_relation)
+        x = (weights_attn + 1) * x
         domain_pred = domain_pred_relation
 
+        x = torch.sum(x, 1)
         x = self.dropout_v(x)
 
-        return x, domain_pred, attn_relation
+        return x, domain_pred, 0

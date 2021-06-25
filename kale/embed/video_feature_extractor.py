@@ -131,7 +131,7 @@ def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=5
         audio_pretrained = "audio_ta3n"
     feature_network = ta3n_joint(rgb_pretrained, flow_pretrained, audio_pretrained, input_size=1024, n_out=num_out)
 
-    domain_feature_dim = int(num_out * 8)
+    domain_feature_dim = int(num_out)
     if rgb:
         if flow:
             if audio:  # For all inputs
@@ -151,7 +151,7 @@ def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=5
                 class_feature_dim = domain_feature_dim
         else:  # For audio input
             class_feature_dim = domain_feature_dim
-    class_feature_dim = 2 * int(class_feature_dim)
-    domain_feature_dim = 2 * int(domain_feature_dim)
+    class_feature_dim = int(class_feature_dim)
+    domain_feature_dim = int(domain_feature_dim)
 
     return feature_network, class_feature_dim, domain_feature_dim

@@ -513,7 +513,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             # Uncomment to run on test subset for EPIC 2021 challenge
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
             annotationfile_path=self._test_list,
-            num_segments=8,
+            num_segments=5,
             frames_per_segment=1,
             image_modality=self._image_modality,
             # modality="ALL",
@@ -532,7 +532,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             # Uncomment to run on test subset for EPIC 2021 challenge
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
             annotationfile_path=self._test_list,
-            num_segments=8,
+            num_segments=5,
             frames_per_segment=1,
             image_modality=self._image_modality,
             # modality="ALL",
