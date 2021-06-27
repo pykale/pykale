@@ -19,7 +19,7 @@ class TA3N(nn.Module):
         output_size=512,
         input_type="feature",
         dropout_rate=0.5,
-        add_fc=2,
+        add_fc=1,
         bn_layer="trn",
         trn_bottle_neck=512,
         num_classes=10,
