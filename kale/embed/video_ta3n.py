@@ -3,6 +3,7 @@ from torchvision.models.utils import load_state_dict_from_url
 
 from kale.embed.video_selayer import SELayer4feat
 from kale.embed.video_transformer import TransformerBlock
+from kale.embed.video_i3d import InceptionI3d
 
 model_urls_ta3n = {
     "rgb_ta3n": None,
@@ -13,23 +14,42 @@ model_urls_ta3n = {
 
 class TA3N(nn.Module):
     def __init__(
-        self, input_size=512, output_size=512, dropout_rate=0.5, add_fc=2, bn_layer="trn", trn_bottle_neck=512
+        self,
+        input_size=512,
+        output_size=512,
+        input_type="feature",
+        dropout_rate=0.5,
+        add_fc=2,
+        bn_layer="trn",
+        trn_bottle_neck=512,
+        num_classes=10,
     ):
         super(TA3N, self).__init__()
+        self.input_type = input_type
         self.bn_layer = bn_layer
         self.add_fc = add_fc
         self.relu = nn.ReLU(inplace=True)
         self.dropout_i = nn.Dropout(p=dropout_rate)
         self.fc1 = nn.Linear(input_size, output_size)
-        self.fc2 = nn.Linear(output_size, output_size)
-        self.fc3 = nn.Linear(output_size, output_size)
+        if self.add_fc > 1:
+            self.fc2 = nn.Linear(output_size, output_size)
+        if self.add_fc > 2:
+            self.fc3 = nn.Linear(output_size, output_size)
         self.bn_shared = nn.BatchNorm1d(output_size)
         self.bn_trn = nn.BatchNorm1d(trn_bottle_neck)
         self.bn_1 = nn.BatchNorm1d(output_size)
         self.bn_2 = nn.BatchNorm1d(output_size)
+        if self.input_type == "image":
+            self.feature_net = InceptionI3d(in_channels=3, num_classes=num_classes)
 
     def forward(self, input):
-        x = input.view(-1, input.size()[-1])
+        if self.input_type == "feature":
+            x = input.view(-1, input.size()[-1])
+        elif self.input_type == "image":
+            x = input.view(-1, input.size()[-1])
+            x = self.feature_net(x)
+        else:
+            raise ValueError("Input type is not in [feature, image]. Current is {}".format(self.input_type))
         x = self.fc1(input)
 
         if self.bn_layer == "shared":
@@ -58,9 +78,9 @@ class TA3N(nn.Module):
         return x
 
 
-def ta3n(name, pretrained=False, input_size=1024, n_out=256, progress=True):
+def ta3n(name, pretrained=False, input_size=1024, n_out=256, progress=True, input_type="feature", num_classes=10):
     """Get TA3N module with pretrained model."""
-    model = TA3N(input_size=input_size)
+    model = TA3N(input_size=input_size, input_type=input_type)
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls_ta3n[name], progress=progress)
         model.load_state_dict(state_dict)
@@ -68,7 +88,15 @@ def ta3n(name, pretrained=False, input_size=1024, n_out=256, progress=True):
 
 
 def ta3n_joint(
-    rgb_name=None, flow_name=None, audio_name=None, pretrained=False, input_size=1024, n_out=256, progress=True
+    rgb_name=None,
+    flow_name=None,
+    audio_name=None,
+    pretrained=False,
+    input_size=1024,
+    n_out=256,
+    progress=True,
+    input_type="feature",
+    num_classes=10,
 ):
     """Get TA3N model for different inputs.
 
@@ -86,11 +114,17 @@ def ta3n_joint(
     """
     model_rgb = model_flow = model_audio = None
     if rgb_name is not None:
-        model_rgb = ta3n(rgb_name, pretrained, input_size, n_out, progress)
+        model_rgb = ta3n(
+            rgb_name, pretrained, input_size, n_out, progress, input_type=input_type, num_classes=num_classes
+        )
     if flow_name is not None:
-        model_flow = ta3n(flow_name, pretrained, input_size, n_out, progress)
+        model_flow = ta3n(
+            flow_name, pretrained, input_size, n_out, progress, input_type=input_type, num_classes=num_classes
+        )
     if audio_name is not None:
-        model_audio = ta3n(audio_name, pretrained, input_size, n_out, progress)
+        model_audio = ta3n(
+            audio_name, pretrained, input_size, n_out, progress, input_type=input_type, num_classes=num_classes
+        )
     return {"rgb": model_rgb, "flow": model_flow, "audio": model_audio}
 
 

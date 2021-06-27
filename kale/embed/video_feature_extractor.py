@@ -52,6 +52,30 @@ def get_feat_extractor4video(model_name, image_modality, attention, dict_num_cla
     if model_name not in model_list:
         raise ValueError("Wrong MODEL.METHOD. Current:{}".format(model_name))
 
+    if "TA3N" in model_name:
+        rgb_pretrained = flow_pretrained = audio_pretrained = None
+        class_feature_dim = 0
+        domain_feature_dim = 1024
+        if rgb:
+            rgb_pretrained = "rgb_ta3n"
+            class_feature_dim += domain_feature_dim
+        if flow:
+            flow_pretrained = "flow_ta3n"
+            class_feature_dim += domain_feature_dim
+        if audio:
+            audio_pretrained = "audio_ta3n"
+            class_feature_dim += domain_feature_dim
+        feature_network = ta3n_joint(
+            rgb_pretrained,
+            flow_pretrained,
+            audio_pretrained,
+            input_size=1024,
+            n_out=512,
+            input_type="image",
+            num_classes=num_classes,
+        )
+        return feature_network, int(class_feature_dim), int(domain_feature_dim)
+
     # Get I3D w/o SELayers for RGB, Flow or joint input
     if model_name == "I3D":
         rgb_pretrained_model = flow_pretrained_model = None
