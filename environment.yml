@@ -1,0 +1,10 @@
+name: PyKale_tutorials
+channels:
+- defaults
+- conda-forge
+dependencies:
+- python==3.8
+- pip
+- rdkit
+- pip:
+  - .[extras]
