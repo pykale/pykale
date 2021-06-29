@@ -169,6 +169,43 @@ class ClassNetVideo(nn.Module):
         return [x_verb, x_noun]
 
 
+class ClassNetVideo4TA3N(nn.Module):
+    """Regular classifier network for video input for TA3N.
+
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        n_channel (int, optional): the number of channel for Linear and BN layers.
+        dropout_keep_prob (int, optional): the dropout probability for keeping the parameters.
+        dict_n_class (dict, optional): the dictionary of class number for specific dataset.
+    """
+
+    def __init__(
+        self,
+        input_size=512,
+        n_verb_channel=256,
+        n_noun_channel=512,
+        dropout_keep_prob=0.5,
+        dict_n_class=8,
+        class_type="verb",
+    ):
+        super(ClassNetVideo, self).__init__()
+        self.verb, self.noun = get_class_type(class_type)
+        if self.verb:
+            self.n_verb_class = dict_n_class["verb"]
+            self.fc1 = nn.Linear(input_size, self.n_verb_class)
+        if self.noun:
+            self.n_noun_class = dict_n_class["noun"]
+            self.fc2 = nn.Linear(input_size, self.n_noun_class)
+
+    def forward(self, input):
+        x_verb = self.fc1(input)
+        if self.verb and not self.noun:
+            x_noun = None
+        if self.verb and self.noun:
+            x_noun = self.fc2(input)
+        return [x_verb, x_noun]
+
+
 class ClassNetVideoConv(nn.Module):
     """Classifier network for video input refer to MMSADA.
 
@@ -218,5 +255,26 @@ class DomainNetVideo(nn.Module):
 
     def forward(self, input):
         x = self.relu1(self.bn1(self.fc1(input)))
+        x = self.fc2(x)
+        return x
+
+
+class DomainNetVideo4TA3N(nn.Module):
+    """Smaller domain classifier network for TA3N.
+
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        n_channel (int, optional): the number of channel for Linear and BN layers.
+    """
+
+    def __init__(self, input_size=128, n_channel=100, class_type="verb"):
+        super(DomainNetVideo, self).__init__()
+
+        self.fc1 = nn.Linear(input_size, input_size)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(input_size, 2)
+
+    def forward(self, input):
+        x = self.relu1(self.fc1(input))
         x = self.fc2(x)
         return x

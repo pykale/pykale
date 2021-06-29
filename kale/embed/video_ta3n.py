@@ -14,19 +14,10 @@ model_urls_ta3n = {
 
 class TA3N(nn.Module):
     def __init__(
-        self,
-        input_size=512,
-        output_size=512,
-        input_type="feature",
-        dropout_rate=0.5,
-        add_fc=1,
-        bn_layer="trn",
-        trn_bottle_neck=512,
-        num_classes=10,
+        self, input_size=512, output_size=512, input_type="feature", dropout_rate=0.5, add_fc=1, num_classes=10,
     ):
         super(TA3N, self).__init__()
         self.input_type = input_type
-        self.bn_layer = bn_layer
         self.add_fc = add_fc
         self.relu = nn.ReLU(inplace=True)
         self.dropout_i = nn.Dropout(p=dropout_rate)
@@ -35,35 +26,20 @@ class TA3N(nn.Module):
             self.fc2 = nn.Linear(output_size, output_size)
         if self.add_fc > 2:
             self.fc3 = nn.Linear(output_size, output_size)
-        self.bn_shared = nn.BatchNorm1d(output_size)
-        self.bn_trn = nn.BatchNorm1d(trn_bottle_neck)
-        self.bn_1 = nn.BatchNorm1d(output_size)
-        self.bn_2 = nn.BatchNorm1d(output_size)
         if self.input_type == "image":
             self.feature_net = InceptionI3d(in_channels=3, num_classes=num_classes)
+        self.bn_trn = nn.BatchNorm1d(output_size)
 
     def forward(self, input):
         if self.input_type == "feature":
-            x = input.view(-1, input.size()[-1])
+            pass
         elif self.input_type == "image":
-            x = input.view(-1, input.size()[-1])
-            x = self.feature_net(x)
+            input = self.feature_net(input)
         else:
             raise ValueError("Input type is not in [feature, image]. Current is {}".format(self.input_type))
-        x = self.fc1(input)
-
-        if self.bn_layer == "shared":
-            x = self.bn_shared(x)
-        elif "trn" in self.bn_layer:
-            try:
-                x = self.bn_trn(x)
-            except (RuntimeError):
-                pass
-        elif self.bn_layer == "temconv_1":
-            x = self.bn_1_s(x)
-        elif self.bn_layer == "temconv_2":
-            x = self.bn_2(x)
-
+        x = input.view(-1, input.size()[-1])
+        x = self.fc1(x)
+        x = self.bn_trn(x)
         x = self.relu(x)
         x = self.dropout_i(x)
         if self.add_fc > 1:

@@ -137,8 +137,8 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             loss = task_loss
         else:
             loss = task_loss
-        # if self.method is Method.TA3N:
-        #     loss += adv_loss
+        if self.method is Method.TA3N:
+            loss += adv_loss
         # loss = task_loss + self.lamb_da * adv_loss * 100
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
@@ -578,13 +578,23 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             self.domain_align_rgb = self.domain_align_flow = self.domain_align_audio = None
             if self.rgb:
                 # self.domain_align_rgb = DomainAlign()
-                self.rgb_attention = TemporalAttention(critic)
+                self.rgb_attention = TemporalAttention()
             if self.flow:
                 # self.domain_align_flow = DomainAlign()
-                self.flow_attention = TemporalAttention(critic)
+                self.flow_attention = TemporalAttention()
             if self.audio:
                 # self.domain_align_audio = DomainAlign()
-                self.audio_attention = TemporalAttention(critic)
+                self.audio_attention = TemporalAttention()
+            f = open("modules_list.txt", "w")
+            f.write("Pykale version!\n")
+            module_list = []
+            for module in self.named_children():
+                for m in module[1].named_children():
+                    module_list.append(str(m[1]) + "\t" + str(m[0]) + " | inside " + str(module[0]))
+
+            for m in sorted(module_list):
+                f.write(str(m) + "\n")
+            f.close()
 
     def forward(self, x):
         if self.feat is not None:
@@ -1483,7 +1493,6 @@ class DomainAlign(nn.Module):
 class TemporalAttention(nn.Module):
     def __init__(
         self,
-        critic,
         input_size=512,
         frame_aggregation="trn-m",
         num_segments=5,
@@ -1492,7 +1501,6 @@ class TemporalAttention(nn.Module):
         use_attn="TransAttn",
     ):
         super(TemporalAttention, self).__init__()
-        self.domain_classifier = critic
         self.frame_aggregation = frame_aggregation
         self.num_segments = num_segments
         self.beta = beta
@@ -1502,16 +1510,10 @@ class TemporalAttention(nn.Module):
 
         self.TRN = TRNRelationModuleMultiScale(input_size, trn_bottleneck, self.num_segments)
 
-        self.bn_1 = nn.BatchNorm1d(input_size)
-        self.bn_2 = nn.BatchNorm1d(input_size)
-
         self.relation_domain_classifier_all = nn.ModuleList()
         for i in range(num_segments - 1):
-            relation_domain_classifier = nn.Sequential(
-                nn.Linear(512, 128), nn.ReLU(), nn.Linear(128, 32), nn.ReLU(), nn.Linear(32, 2)
-            )
+            relation_domain_classifier = nn.Sequential(nn.Linear(256, 256), nn.ReLU(), nn.Linear(256, 2))
             self.relation_domain_classifier_all += [relation_domain_classifier]
-
         self.dropout_v = nn.Dropout(p=0.5)
 
     def get_trans_attn(self, pred_domain):

@@ -12,7 +12,7 @@ from copy import deepcopy
 
 from kale.embed.video_feature_extractor import get_feat_extractor4feature, get_feat_extractor4video
 from kale.pipeline import domain_adapter, video_domain_adapter
-from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
+from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo, ClassNetVideo4TA3N, DomainNetVideo4TA3N
 
 
 def get_config(cfg):
@@ -85,9 +85,15 @@ def get_model(cfg, dataset, dict_num_classes):
         )
 
     # setup classifier
-    classifier_network = ClassNetVideo(
-        input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower()
-    )
+    if cfg.DAN.METHOD == "TA3N":
+        ClassNetVideo4TA3N
+        classifier_network = ClassNetVideo4TA3N(
+            input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower()
+        )
+    else:
+        classifier_network = ClassNetVideo(
+            input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower()
+        )
 
     method_params = {}
 
@@ -116,7 +122,9 @@ def get_model(cfg, dataset, dict_num_classes):
         if cfg.DAN.METHOD == "TA3N":
             train_params_local = {}
             method_params = {}
-        critic_network = DomainNetVideo(input_size=critic_input_size)
+            critic_network = DomainNetVideo4TA3N(input_size=critic_input_size)
+        else:
+            critic_network = DomainNetVideo(input_size=critic_input_size)
 
         if cfg.DAN.METHOD == "CDAN":
             method_params["use_random"] = cfg.DAN.USERANDOM
