@@ -142,7 +142,7 @@ def get_feat_extractor4video(model_name, image_modality, attention, dict_num_cla
     return feature_network, int(class_feature_dim), int(domain_feature_dim)
 
 
-def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=512):
+def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=256):
     """Get the feature extractor w/o SELayers for feature input.
     """
     rgb, flow, audio = get_image_modality(image_modality)

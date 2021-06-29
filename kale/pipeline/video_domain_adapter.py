@@ -137,9 +137,9 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             loss = task_loss
         else:
             loss = task_loss
-        if self.method is Method.TA3N:
-            # loss += adv_loss
-            loss = task_loss + self.lamb_da * adv_loss * 100
+        # if self.method is Method.TA3N:
+        #     loss += adv_loss
+        # loss = task_loss + self.lamb_da * adv_loss * 100
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
@@ -590,28 +590,26 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         if self.feat is not None:
             x_rgb = x_flow = x_audio = None
             adversarial_output_rgb = adversarial_output_flow = adversarial_output_audio = None
+            attn_adv_output_rgb = attn_adv_output_flow = attn_adv_output_audio = None
 
             # For joint input, both two ifs are used
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
                 if self.method is Method.TA3N:
-                    x_rgb, adv_out_temporal, _ = self.rgb_attention(x_rgb, adversarial_output_rgb)
+                    x_rgb, attn_adv_output_rgb, _ = self.rgb_attention(x_rgb, adversarial_output_rgb)
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
                 reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.alpha)
                 adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
                 if self.method is Method.TA3N:
-                    x_flow, adv_out_temporal, _ = self.flow_attention(x_flow)
-                # x_flow = x_flow.view(x_flow.size(0), -1)
-                # x_flow = torch.sum(x_flow, 1)
+                    x_flow, attn_adv_output_flow, _ = self.flow_attention(x_flow)
                 reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
                 adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
-                # adversarial_output_flow = torch.cat((adversarial_output_flow, adv_out_temporal))
             if self.audio:
                 x_audio = self.audio_feat(x["audio"])
                 if self.method is Method.TA3N:
-                    x_audio, adv_out_temporal, _ = self.audio_attention(x_audio, adversarial_output_audio)
+                    x_audio, attn_adv_output_audio, _ = self.audio_attention(x_audio, adversarial_output_audio)
                 x_audio = x_audio.view(x_audio.size(0), -1)
                 reverse_feature_audio = ReverseLayerF.apply(x_audio, self.alpha)
                 adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
@@ -624,6 +622,7 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
                 [x_rgb, x_flow, x_audio],
                 class_output,
                 [adversarial_output_rgb, adversarial_output_flow, adversarial_output_audio],
+                [attn_adv_output_rgb, attn_adv_output_flow, attn_adv_output_audio],
             )
 
     def add_dummy_data(self, x_rgb, x_flow, x_audio, batch_size):
@@ -644,7 +643,7 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             x_audio = torch.cat((x_audio, data_dummy))
         return x_rgb, x_flow, x_audio
 
-    def remove_dummy(self, y_hat, d_hat_rgb, d_hat_flow, d_hat_audio, batch_size):
+    def remove_dummy(self, y_hat, d_hat_rgb, d_hat_flow, d_hat_audio, d_adv_hat, batch_size):
         y_hat[0] = y_hat[0][:batch_size]
         y_hat[1] = y_hat[1][:batch_size]
         if self.rgb:
@@ -653,7 +652,8 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             d_hat_flow = d_hat_flow[:batch_size]
         if self.audio:
             d_hat_audio = d_hat_audio[:batch_size]
-        return y_hat, d_hat_rgb, d_hat_flow, d_hat_audio
+        d_adv_hat = [d[:batch_size] if d is not None else None for d in d_adv_hat]
+        return y_hat, d_hat_rgb, d_hat_flow, d_hat_audio, d_adv_hat
 
     def compute_loss(self, batch, split_name="V"):
         # _s refers to source, _tu refers to unlabeled target
@@ -698,33 +698,40 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         #     except (RuntimeError):
         #         pass
 
-        _, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio] = self.forward(
+        _, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio], d_attn_hat = self.forward(
             {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
         )
-        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio] = self.forward(
+        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio], d_t_attn_hat = self.forward(
             {"rgb": x_tu_rgb, "flow": x_tu_flow, "audio": x_tu_audio}
         )
 
         if source_batch_size != self.correct_batch_size_source:
-            y_hat, d_hat_rgb, d_hat_flow, d_hat_audio = self.remove_dummy(
-                y_hat, d_hat_rgb, d_hat_flow, d_hat_audio, source_batch_size
+            y_hat, d_hat_rgb, d_hat_flow, d_hat_audio, d_attn_hat = self.remove_dummy(
+                y_hat, d_hat_rgb, d_hat_flow, d_hat_audio, d_attn_hat, source_batch_size
             )
         if target_batch_size != self.correct_batch_size_target:
-            y_t_hat, d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio = self.remove_dummy(
-                y_t_hat, d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio, target_batch_size
+            y_t_hat, d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio, d_t_attn_hat = self.remove_dummy(
+                y_t_hat, d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio, d_t_attn_hat, target_batch_size
             )
 
+        loss_attn = 0
         if self.rgb:
             loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(source_batch_size))
             loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(target_batch_size))
+            loss_attn += losses.cross_entropy_logits(d_attn_hat[0], torch.zeros(d_attn_hat[0].size(0)))[0]
+            loss_attn += losses.cross_entropy_logits(d_t_attn_hat[0], torch.ones(d_t_attn_hat[0].size(0)))[0]
         if self.flow:
             loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(source_batch_size))
             loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(target_batch_size))
+            loss_attn += losses.cross_entropy_logits(d_attn_hat[1], torch.zeros(d_attn_hat[1].size(0)))[0]
+            loss_attn += losses.cross_entropy_logits(d_t_attn_hat[1], torch.ones(d_t_attn_hat[1].size(0)))[0]
         if self.audio:
             loss_dmn_src_audio, dok_src_audio = losses.cross_entropy_logits(d_hat_audio, torch.zeros(source_batch_size))
             loss_dmn_tgt_audio, dok_tgt_audio = losses.cross_entropy_logits(
                 d_t_hat_audio, torch.ones(target_batch_size)
             )
+            loss_attn += losses.cross_entropy_logits(d_attn_hat[2], torch.zeros(d_attn_hat[2].size(0)))[0]
+            loss_attn += losses.cross_entropy_logits(d_t_attn_hat[2], torch.ones(d_t_attn_hat[2].size(0)))[0]
         # ok is abbreviation for (all) correct, dok refers to domain correct
         if self.rgb:
             if self.flow:
@@ -781,17 +788,66 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
         if self.method is Method.TA3N:
-            domain_loss = 0
+            mmd_loss = 0
             if self.rgb:
                 losses_mmd = [losses.mmd_rbf(x_s_rgb[t], x_tu_rgb[t]) for t in range(x_s_rgb.size(0))]
-                domain_loss += sum(losses_mmd) / len(losses_mmd)
+                mmd_loss += sum(losses_mmd) / len(losses_mmd)
             if self.flow:
                 losses_mmd = [losses.mmd_rbf(x_s_flow[t], x_tu_flow[t]) for t in range(x_s_flow.size(0))]
-                domain_loss += sum(losses_mmd) / len(losses_mmd)
+                mmd_loss += sum(losses_mmd) / len(losses_mmd)
             if self.audio:
                 losses_mmd = [losses.mmd_rbf(x_s_audio[t], x_tu_audio[t]) for t in range(x_s_audio.size(0))]
-                domain_loss += sum(losses_mmd) / len(losses_mmd)
-            adv_loss += domain_loss
+                mmd_loss += sum(losses_mmd) / len(losses_mmd)
+            self.alpha_mmd = 0
+            task_loss += self.alpha_mmd * mmd_loss
+            task_loss += loss_attn
+        # entropy loss for target data
+        if self.method is Method.TA3N:
+            self.gamma = 0.003
+            if self.verb:
+                loss_entropy_verb = losses.cross_entropy_soft(y_t_hat[0])
+            if self.noun:
+                loss_entropy_noun = losses.cross_entropy_soft(y_t_hat[1])
+            if self.verb and not self.noun:
+                task_loss += self.gamma * loss_entropy_verb
+            elif self.verb and self.noun:
+                task_loss += self.gamma * 0.5 * (loss_entropy_verb + loss_entropy_noun)
+
+        # attentive entropy loss
+        if self.method is Method.TA3N:
+            if self.verb:
+                loss_entropy_verb = 0
+                if self.rgb:
+                    loss_entropy_verb += losses.attentive_entropy(
+                        torch.cat((y_hat[0], y_t_hat[0]), 0), torch.cat((d_hat_rgb, d_t_hat_rgb), 0)
+                    )
+                if self.flow:
+                    loss_entropy_verb += losses.attentive_entropy(
+                        torch.cat((y_hat[0], y_t_hat[0]), 0), torch.cat((d_hat_flow, d_t_hat_flow), 0)
+                    )
+                if self.audio:
+                    loss_entropy_verb += losses.attentive_entropy(
+                        torch.cat((y_hat[0], y_t_hat[0]), 0), torch.cat((d_hat_audio, d_t_hat_audio), 0)
+                    )
+            if self.noun:
+                loss_entropy_noun = 0
+                if self.rgb:
+                    loss_entropy_noun += losses.attentive_entropy(
+                        torch.cat((y_hat[1], y_t_hat[1]), 0), torch.cat((d_hat_rgb, d_t_hat_rgb), 0)
+                    )
+                if self.flow:
+                    loss_entropy_noun += losses.attentive_entropy(
+                        torch.cat((y_hat[1], y_t_hat[1]), 0), torch.cat((d_hat_flow, d_t_hat_flow), 0)
+                    )
+                if self.audio:
+                    loss_entropy_noun += losses.attentive_entropy(
+                        torch.cat((y_hat[1], y_t_hat[1]), 0), torch.cat((d_hat_audio, d_t_hat_audio), 0)
+                    )
+
+            if self.verb and not self.noun:
+                task_loss += self.gamma * loss_entropy_verb
+            elif self.verb and self.noun:
+                task_loss += self.gamma * 0.5 * (loss_entropy_verb + loss_entropy_noun)
 
         # # Uncomment to store output for EPIC UDA 2021 challenge.(2/3)
         # if split_name == "Te":
@@ -1442,8 +1498,6 @@ class TemporalAttention(nn.Module):
         self.beta = beta
         self.use_attn = use_attn
 
-        self.fc_feature_domain = nn.Linear(input_size, input_size)
-        self.fc_classifier_domain = nn.Linear(input_size, 2)
         self.relu = nn.ReLU(inplace=True)
 
         self.TRN = TRNRelationModuleMultiScale(input_size, trn_bottleneck, self.num_segments)
@@ -1477,19 +1531,10 @@ class TemporalAttention(nn.Module):
 
         return weights
 
-    def domain_classify_frame(self, input_orig, beta=0.75):
-        input = input_orig.detach().clone()
-        x = ReverseLayerF.apply(input, beta)
-        x = self.fc_feature_domain(x)
-        x = self.relu(x)
-        pred = self.fc_classifier_domain(x)
-
-        return pred
-
     def domain_classify_relation(self, input, beta=0.5):
         prediction_video = None
         for i in range(len(self.relation_domain_classifier_all)):
-            x = input[:, i]  # 128x1x256 --> 128x256
+            x = input[:, i, :].squeeze(1)  # 128x1x256 --> 128x256
             x = ReverseLayerF.apply(x, beta)
             prediction_single = self.relation_domain_classifier_all[i](x)
 
@@ -1499,6 +1544,7 @@ class TemporalAttention(nn.Module):
                 prediction_video = torch.cat((prediction_video, prediction_single.view(-1, 1, 2)), 1)
 
         prediction_video = prediction_video.view(-1, 2)
+        prediction_video = prediction_video.detach().clone()
 
         return prediction_video
 
@@ -1516,24 +1562,17 @@ class TemporalAttention(nn.Module):
         repeats = [input.size()[i] // weights.size()[i] + 1 for i in range(0, len(list(input.size())))]
         weights = weights.repeat(repeats)  # reshape & repeat weights (e.g. 16 x 4 x 256)
         weights = weights[: input.size()[0], : input.size()[1], : input.size()[2]]
-        weights_attn = weights.detach().clone()
-        return weights_attn
+        return weights
 
     def forward(self, input):
-        domain_pred = self.domain_classify_frame(input)
-        frame_weights_attn = self.get_attention(input, domain_pred)
-        x = (frame_weights_attn + 1) * input
-
         # reshape based on the segments (e.g. 640x512 --> 128x5x512)
-        x_temp = x.detach().clone()
-        weight_feature = x_temp.view((-1, self.num_segments) + x.size()[-1:])
-        weight_feature = self.TRN(weight_feature)
-
+        x = input.view((-1, self.num_segments) + input.size()[-1:])
+        x = self.TRN(x)
         # adversarial branch
-        domain_pred_relation = self.domain_classify_relation(weight_feature, self.beta)
+        domain_pred_relation = self.domain_classify_relation(x, self.beta)
 
         # adding attention
-        weights_attn = self.get_attention(x_temp, domain_pred_relation)
+        weights_attn = self.get_attention(x, domain_pred_relation)
         x = (weights_attn + 1) * x
         domain_pred = domain_pred_relation
 
