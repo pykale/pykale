@@ -188,7 +188,7 @@ class ClassNetVideo4TA3N(nn.Module):
         dict_n_class=8,
         class_type="verb",
     ):
-        super(ClassNetVideo, self).__init__()
+        super(ClassNetVideo4TA3N, self).__init__()
         self.verb, self.noun = get_class_type(class_type)
         if self.verb:
             self.n_verb_class = dict_n_class["verb"]
@@ -268,7 +268,7 @@ class DomainNetVideo4TA3N(nn.Module):
     """
 
     def __init__(self, input_size=128, n_channel=100, class_type="verb"):
-        super(DomainNetVideo, self).__init__()
+        super(DomainNetVideo4TA3N, self).__init__()
 
         self.fc1 = nn.Linear(input_size, input_size)
         self.relu1 = nn.ReLU()

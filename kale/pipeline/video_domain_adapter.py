@@ -10,7 +10,6 @@ Most are inherited from kale.pipeline.domain_adapter.
 import numpy as np
 import torch
 from torch import nn
-from torch.nn.init import kaiming_normal_
 
 import kale.predict.losses as losses
 from kale.loaddata.video_access import get_class_type, get_image_modality
@@ -137,8 +136,8 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             loss = task_loss
         else:
             loss = task_loss
-        if self.method is Method.TA3N:
-            loss += adv_loss
+            if self.method is Method.TA3N:
+                loss += adv_loss
         # loss = task_loss + self.lamb_da * adv_loss * 100
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
@@ -577,14 +576,13 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         if method is Method.TA3N:
             self.domain_align_rgb = self.domain_align_flow = self.domain_align_audio = None
             if self.rgb:
-                # self.domain_align_rgb = DomainAlign()
                 self.rgb_attention = TemporalAttention()
             if self.flow:
-                # self.domain_align_flow = DomainAlign()
                 self.flow_attention = TemporalAttention()
             if self.audio:
-                # self.domain_align_audio = DomainAlign()
                 self.audio_attention = TemporalAttention()
+
+            # for saving the details of the individual layers
             f = open("modules_list.txt", "w")
             f.write("Pykale version!\n")
             module_list = []
@@ -695,18 +693,6 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
                 x_tu_rgb, x_tu_flow, x_tu_audio = self.add_dummy_data(
                     x_tu_rgb, x_tu_flow, x_tu_audio, self.correct_batch_size_target
                 )
-
-        # Domain Align | giving worse results
-        # if self.method is Method.TA3N:
-        #     try:
-        #         if self.rgb:
-        #             x_s_rgb, x_tu_rgb = self.domain_align_rgb(x_s_rgb, x_tu_rgb)
-        #         if self.flow:
-        #             x_s_flow, x_tu_flow = self.domain_align_flow(x_s_flow, x_tu_flow)
-        #         if self.audio:
-        #             x_s_audio, x_tu_audio = self.domain_align_audio(x_s_audio, x_tu_audio)
-        #     except (RuntimeError):
-        #         pass
 
         _, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio], d_attn_hat = self.forward(
             {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
@@ -1297,8 +1283,6 @@ class WDGRLtrainerVideo(WDGRLtrainer):
 
 
 # For TA3N model
-
-
 class TRNRelationModule(nn.Module):
     # this is the naive implementation of the n-frame relation module, as num_frames == num_frames_relation
     def __init__(self, img_feature_dim, num_bottleneck, num_frames):
@@ -1384,124 +1368,16 @@ class TRNRelationModuleMultiScale(nn.Module):
         return list(itertools.combinations([i for i in range(num_frames)], num_frames_relation))
 
 
-# definition of Temporal-ConvNet Layer
-class TCL(nn.Module):
-    def __init__(self, conv_size, dim):
-        super(TCL, self).__init__()
-
-        self.conv2d = nn.Conv2d(dim, dim, kernel_size=(conv_size, 1), padding=(conv_size // 2, 0))
-
-        # initialization
-        kaiming_normal_(self.conv2d.weight)
-
-    def forward(self, x):
-        x = self.conv2d(x)
-
-        return x
-
-
-class DomainAlign(nn.Module):
-    def __init__(self, input_size=1024, layer_name="shared", alpha=0, num_segments=5):
-        super(DomainAlign, self).__init__()
-        self.layer_name = layer_name
-        self.alpha = alpha
-        self.num_segments = num_segments
-
-        output_size = input_size
-        self.shared_fc = nn.Linear(input_size, output_size)
-        self.bn_shared_s = nn.BatchNorm1d(output_size)
-        self.bn_shared_tu = nn.BatchNorm1d(output_size)
-        num_bottleneck = output_size
-        self.bn_trn_s = nn.BatchNorm1d(num_bottleneck)
-        self.bn_trn_tu = nn.BatchNorm1d(num_bottleneck)
-
-        self.bn_1_s = nn.BatchNorm1d(output_size)
-        self.bn_1_tu = nn.BatchNorm1d(output_size)
-        self.bn_2_s = nn.BatchNorm1d(output_size)
-        self.bn_2_tu = nn.BatchNorm1d(output_size)
-
-    def forward(self, x_s, x_tu, dim=1):
-        input_size_s = x_s.size()
-        input_size_tu = x_tu.size()
-        # e.g. 256 x 25 x 2048 --> 6400 x 2048
-        x_s = x_s.view(-1, x_s.size()[-1])
-        x_tu = x_tu.view(-1, x_tu.size()[-1])
-
-        x_s = self.shared_fc(x_s)
-        x_tu = self.shared_fc(x_tu)
-
-        # reshape based on the segments (e.g. 80 x 512 --> 16 x 1 x 5 x 512)
-        x_s = x_s.view((-1, dim, self.num_segments) + x_s.size()[-1:])
-        x_tu = x_tu.view((-1, dim, self.num_segments) + x_tu.size()[-1:])
-
-        # split in the ratio of alpha
-        self.alpha = max(self.alpha, 0.5)
-        num_S_1 = int(round(x_s.size(0) * self.alpha))
-        num_S_2 = x_s.size(0) - num_S_1
-        num_T_1 = int(round(x_tu.size(0) * self.alpha))
-        num_T_2 = x_tu.size(0) - num_T_1
-
-        if num_S_2 > 0 and num_T_2 > 0:
-            x_s = torch.cat((x_s[:num_S_1], x_tu[-num_T_2:]), 0)
-            x_tu = torch.cat((x_tu[:num_T_1], x_s[-num_S_2:]), 0)
-        else:
-            x_s = x_s
-            x_tu = x_tu
-
-        # adaptive BN
-
-        # reshape to feed BN (e.g. 16 x 1 x 5 x 512 --> 80 x 512)
-        x_s = x_s.view((-1,) + x_s.size()[-1:])
-        x_tu = x_tu.view((-1,) + x_tu.size()[-1:])
-
-        if self.layer_name == "shared":
-            x_s_bn = self.bn_shared_s(x_s)
-            x_tu_bn = self.bn_shared_tu(x_tu)
-        elif "trn" in self.layer_name:
-            x_s_bn = self.bn_trn_s(x_s)
-            x_tu_bn = self.bn_trn_tu(x_tu)
-        elif self.layer_name == "temconv_1":
-            x_s_bn = self.bn_1_s(x_s)
-            x_tu_bn = self.bn_1_tu(x_tu)
-        elif self.layer_name == "temconv_2":
-            x_s_bn = self.bn_2_s(x_s)
-            x_tu_bn = self.bn_2_tu(x_tu)
-
-        # reshape back (e.g. 80 x 512 --> 16 x 1 x 5 x 512)
-        x_s_bn = x_s_bn.view((-1, dim, self.num_segments) + x_s_bn.size()[-1:])
-        x_tu_bn = x_tu_bn.view((-1, dim, self.num_segments) + x_tu_bn.size()[-1:])
-
-        # rearange back to the original order of source and target data (since target may be unlabeled)
-        if num_S_2 > 0 and num_T_2 > 0:
-            x_s_bn = torch.cat((x_s_bn[:num_S_1], x_tu_bn[-num_S_2:]), 0)
-            x_tu_bn = torch.cat((x_tu_bn[:num_T_1], x_s_bn[-num_T_2:]), 0)
-
-        # reshape for frame-level features
-        if self.layer_name == "shared" or self.layer_name == "trn_sum":
-            x_s_bn = x_s_bn.view((-1,) + x_s_bn.size()[-1:])  # (e.g. 16 x 1 x 5 x 512 --> 80 x 512)
-            x_tu_bn = x_tu_bn.view((-1,) + x_tu_bn.size()[-1:])
-        elif self.layer_name == "trn":
-            x_s_bn = x_s_bn.view((-1, self.num_segments) + x_s_bn.size()[-1:])  # (e.g. 16 x 1 x 5 x 512 --> 80 x 512)
-            x_tu_bn = x_tu_bn.view((-1, self.num_segments) + x_tu_bn.size()[-1:])
-
-        x_s_bn = x_s_bn.view(input_size_s)
-        x_tu_bn = x_tu_bn.view(input_size_tu)
-
-        return x_s_bn, x_tu_bn
-
-
 class TemporalAttention(nn.Module):
+    """This is the novel temporal attention module of TA3N.
+    It TRN to effectively capture temporal information.
+    Uses extra domain classifiers to add temporal attention.
+    """
+
     def __init__(
-        self,
-        input_size=512,
-        frame_aggregation="trn-m",
-        num_segments=5,
-        beta=0.5,
-        trn_bottleneck=256,
-        use_attn="TransAttn",
+        self, input_size=512, num_segments=5, beta=0.5, trn_bottleneck=256, use_attn="TransAttn",
     ):
         super(TemporalAttention, self).__init__()
-        self.frame_aggregation = frame_aggregation
         self.num_segments = num_segments
         self.beta = beta
         self.use_attn = use_attn
