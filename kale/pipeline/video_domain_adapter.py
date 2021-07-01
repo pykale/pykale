@@ -604,7 +604,7 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
                 if self.method is Method.TA3N:
-                    x_rgb, attn_adv_output_rgb, _ = self.rgb_attention(x_rgb, adversarial_output_rgb)
+                    x_rgb, attn_adv_output_rgb, _ = self.rgb_attention(x_rgb)
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
                 reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.alpha)
                 adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
@@ -617,7 +617,7 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             if self.audio:
                 x_audio = self.audio_feat(x["audio"])
                 if self.method is Method.TA3N:
-                    x_audio, attn_adv_output_audio, _ = self.audio_attention(x_audio, adversarial_output_audio)
+                    x_audio, attn_adv_output_audio, _ = self.audio_attention(x_audio)
                 x_audio = x_audio.view(x_audio.size(0), -1)
                 reverse_feature_audio = ReverseLayerF.apply(x_audio, self.alpha)
                 adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
