@@ -20,16 +20,16 @@
 [Discussions](https://github.com/pykale/pykale/discussions) |
 [Changelog](https://github.com/pykale/pykale/tree/main/.github/CHANGELOG.md)
 
- PyKale is a [PyTorch](https://pytorch.org/) library for [multimodal learning](https://en.wikipedia.org/wiki/Multimodal_learning) and [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning) as well as [deep learning](https://en.wikipedia.org/wiki/Deep_learning) and [dimensionality reduction](https://en.wikipedia.org/wiki/Dimensionality_reduction) on graphs, images, texts, and videos. By adopting a unified *pipeline-based* API design, PyKale enforces *standardization* and *minimalism*, via *reusing* existing resources, *reducing* repetitions and redundancy, and *recycling* learning models across areas. PyKale aims to facilitate *interdisciplinary*, *knowledge-aware* machine learning research for graphs, images, texts, and videos in applications including bioinformatics, graph analysis, image/video recognition, and medical imaging. It focuses on leveraging knowledge from multiple sources for accurate and *interpretable* prediction. See a [12-minute introduction video on YouTube](https://youtu.be/i5BYdMfbpMQ).
+ PyKale is a [PyTorch](https://pytorch.org/) library for [multimodal learning](https://en.wikipedia.org/wiki/Multimodal_learning) and [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning) with [deep learning](https://en.wikipedia.org/wiki/Deep_learning) and [dimensionality reduction](https://en.wikipedia.org/wiki/Dimensionality_reduction) on graphs, images, texts, and videos. By adopting a unified *pipeline-based* API design, PyKale enforces *standardization* and *minimalism*, via green machine learning concepts of *reducing* repetitions and redundancy, *reusing* existing resources, and *recycling* learning models across areas. PyKale aims to facilitate *interdisciplinary*, *knowledge-aware* machine learning research for graphs, images, texts, and videos in applications including bioinformatics, graph analysis, image/video recognition, and medical imaging. It focuses on leveraging knowledge from multiple sources for accurate and *interpretable* prediction. See our [arXiv preprint](https://arxiv.org/abs/2106.09756) and a [12-minute introduction video on YouTube](https://youtu.be/i5BYdMfbpMQ).
 
 #### Pipeline-based API (generic and reusable)
 
-- `loaddata` loads data from disk or online resources as in input
+- `loaddata` loads data from disk or online resources as input
 - `prepdata` preprocesses data to fit machine learning modules below (transforms)
 - `embed` embeds data in a new space to learn a new representation (feature extraction/selection)
 - `predict` predicts a desired output
 - `evaluate` evaluates the performance using some metrics
-- `interpret` interprets the features and outputs via post-prediction analysis mainly via visualisation
+- `interpret` interprets the features and outputs via post-prediction analysis mainly via visualization
 - `pipeline` specifies a machine learning workflow by combining several other modules
 
 #### Example usage
@@ -50,9 +50,9 @@ pip install pykale
 
 For more details and other options, please refer to [the installation guide](https://pykale.readthedocs.io/en/latest/installation.html).
 
-### Step 1: Tutorial and Examples
+### Step 1: Tutorials and Examples
 
-Start with a brief [tutorial](https://pykale.readthedocs.io/en/latest/tutorial.html#usage-of-pipeline-based-api-in-examples) walking through API usage in examples.
+Start with a brief [tutorial](https://pykale.readthedocs.io/en/latest/tutorial.html#usage-of-pipeline-based-api-in-examples) walking through API usage in examples or a [Jupyter notebook tutorial](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb) at [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pykale/pykale/HEAD?filepath=examples%2Fdigits_dann_lightn%2Ftutorial.ipynb) or [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb).
 
 Browse through the [**examples**](https://github.com/pykale/pykale/tree/main/examples) to see the usage of PyKale in performing various prediction tasks in a wide range of applications, using a variety of settings, e.g. with or without [PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning).
 
@@ -81,11 +81,11 @@ We would like to thank our other contributors including (but not limited to) Cam
 ### Citation
 
 ```lang-latex
-    @Misc{pykale2021,
-      author =   {Haiping Lu and Raivo Koot and Xianyuan Liu and Shuo Zhou and Peizhen Bai and Robert Turner},
-      title =    {{PyKale}: Knowledge-aware machine learning from multiple sources in Python},
-      howpublished = {\url{https://github.com/pykale/pykale}},
-      year = {2021}
+    @article{pykale,
+      title   = {PyKale: Knowledge-Aware Machine Learning from Multiple Sources in Python},
+      author  = {Haiping Lu and Xianyuan Liu and Robert Turner and Peizhen Bai and Raivo Koot and Shuo Zhou and Mustafa Chasmai and Lawrence Schobs},
+      journal = {arXiv:2106.09756 [cs.LG]},
+      year    = {2021}
     }
 ```
 

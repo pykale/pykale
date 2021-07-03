@@ -28,6 +28,7 @@ extra_requirements = [
     "matplotlib",
     "Pillow",
     "PyTDC",
+    "pytorch-lightning>=1.3.0",
     "pytorch-memlab",
     "torchsummary>=1.5.0",
     "yacs>=0.1.7",

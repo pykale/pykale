@@ -25,6 +25,7 @@ _C.DATASET.NUM_REPEAT = 10  # 10
 _C.DATASET.DIMENSION = 784
 _C.DATASET.WEIGHT_TYPE = "natural"
 _C.DATASET.SIZE_TYPE = "source"
+_C.DATASET.VAL_SPLIT_RATIO = 0.1
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #

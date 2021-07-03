@@ -2,6 +2,8 @@ import pytorch_lightning as pl
 import torch
 from torch.nn import functional as F
 
+from kale.evaluate.metrics import concord_index
+
 
 class BaseDTATrainer(pl.LightningModule):
     """
@@ -13,15 +15,18 @@ class BaseDTATrainer(pl.LightningModule):
         drug_encoder: drug information encoder.
         target_encoder: target information encoder.
         decoder: drug-target representations decoder.
-        lr: learning rate.
+        lr: learning rate. (default: 0.001)
+        ci_metric: calculate the Concordance Index (CI) metric, and the operation is time-consuming for large-scale
+        dataset. (default: :obj:`False`)
     """
 
-    def __init__(self, drug_encoder, target_encoder, decoder, lr, **kwargs):
+    def __init__(self, drug_encoder, target_encoder, decoder, lr=0.001, ci_metric=False, **kwargs):
         super(BaseDTATrainer, self).__init__()
         self.drug_encoder = drug_encoder
         self.target_encoder = target_encoder
         self.decoder = decoder
         self.lr = lr
+        self.ci_metric = ci_metric
         if kwargs:
             self.save_hyperparameters(kwargs)
 
@@ -45,6 +50,9 @@ class BaseDTATrainer(pl.LightningModule):
         x_drug, x_target, y = train_batch
         y_pred = self(x_drug, x_target)
         loss = F.mse_loss(y_pred, y.view(-1, 1))
+        if self.ci_metric:
+            ci = concord_index(y, y_pred)
+            self.logger.log_metrics({"train_step_ci": ci}, self.global_step)
         self.logger.log_metrics({"train_step_loss": loss}, self.global_step)
         return loss
 
@@ -64,6 +72,9 @@ class BaseDTATrainer(pl.LightningModule):
         x_drug, x_target, y = test_batch
         y_pred = self(x_drug, x_target)
         loss = F.mse_loss(y_pred, y.view(-1, 1))
+        if self.ci_metric:
+            ci = concord_index(y, y_pred)
+            self.log("test_ci", ci, on_epoch=True, on_step=False)
         self.log("test_loss", loss, on_epoch=True, on_step=False)
         return loss
 
@@ -78,8 +89,8 @@ class DeepDTATrainer(BaseDTATrainer):
         lr: learning rate.
     """
 
-    def __init__(self, drug_encoder, target_encoder, decoder, lr, **kwargs):
-        super().__init__(drug_encoder, target_encoder, decoder, lr, **kwargs)
+    def __init__(self, drug_encoder, target_encoder, decoder, lr=0.001, ci_metric=False, **kwargs):
+        super().__init__(drug_encoder, target_encoder, decoder, lr, ci_metric, **kwargs)
 
     def forward(self, x_drug, x_target):
         """
@@ -99,5 +110,8 @@ class DeepDTATrainer(BaseDTATrainer):
         x_drug, x_target, y = val_batch
         y_pred = self(x_drug, x_target)
         loss = F.mse_loss(y_pred, y.view(-1, 1))
+        if self.ci_metric:
+            ci = concord_index(y, y_pred)
+            self.log("val_ci", ci, on_epoch=True, on_step=False)
         self.log("val_loss", loss, on_epoch=True, on_step=False)
         return loss
