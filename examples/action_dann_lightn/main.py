@@ -25,7 +25,9 @@ def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Action Datasets")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    parser.add_argument("--gpus", default="0", help="gpu id(s) to use. None for cpu. str(-1)/int(-1) for ", type=str)
+    parser.add_argument("--gpus", default=[0],
+                        help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU. str(x) for the first "
+                             "x GPUs. str(-1)/int(-1) for all available GPUs", type=str)
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
@@ -97,7 +99,7 @@ def main():
             # limit_test_batches=0.03,
         )
 
-        ### Find learning_rate
+        # ## Find learning_rate
         # lr_finder = trainer.tuner.lr_find(model, max_lr=0.1, min_lr=1e-6)
         # fig = lr_finder.plot(suggest=True)
         # fig.show()
