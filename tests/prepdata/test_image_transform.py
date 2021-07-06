@@ -9,11 +9,11 @@ SCALES = [4, 8]
 
 @pytest.fixture(scope="module")
 def images(gait):
-    return gait["fea3D"][..., :10]
+    return gait["fea3D"].transpose((3, 2, 0, 1))[:10, ...]
 
 
 def test_reg(images):
-    n_samples = images.shape[-1]
+    n_samples = images.shape[0]
     # generate synthetic coordinates
     coords = np.ones((n_samples, 4))
     coords[:, 2:] += 20
@@ -32,21 +32,22 @@ def test_reg(images):
 def test_rescale(scale, images):
     img_rescaled = rescale_img_stack(images, scale)
     # dim1 and dim2 have been rescaled
-    testing.assert_equal(img_rescaled.shape[0], round(images.shape[0] / scale))
-    testing.assert_equal(img_rescaled.shape[1], round(images.shape[1] / scale))
+    testing.assert_equal(img_rescaled.shape[-1], round(images.shape[-1] / scale))
+    testing.assert_equal(img_rescaled.shape[-2], round(images.shape[-2] / scale))
     # n_phases and n_samples are unchanged
-    testing.assert_equal(img_rescaled.shape[-2:], images.shape[-2:])
+    testing.assert_equal(img_rescaled.shape[:2], images.shape[:2])
 
 
 def test_masking(images):
     # generate synthetic mask randomly
-    mask = np.random.randint(0, 2, size=(images.shape[0], images.shape[1]))
+    mask = np.random.randint(0, 2, size=(images.shape[-2], images.shape[-1]))
     idx_zeros = np.where(mask == 0)
     idx_ones = np.where(mask == 1)
     img_masked = mask_img_stack(images, mask)
-    n_phases, n_samples = images.shape[-2:]
-    for i in range(n_phases):
+    n_samples, n_phases = images.shape[:2]
+    for i in range(n_samples):
         for j in range(n_phases):
-            img = img_masked[..., j, i]
+            img = img_masked[i, j, ...]
             testing.assert_equal(np.sum(img[idx_zeros]), 0)
-            testing.assert_equal(img_masked[idx_ones], images[idx_ones])
+            img_orig = images[i, j, ...]
+            testing.assert_equal(img[idx_ones], img_orig[idx_ones])

@@ -96,15 +96,15 @@ def reg_img_stack(images, coords, dst_id=0):
     """Registration for stacked images
 
     Args:
-        images (array-like tensor): Input data, shape (dim1, dim2, n_phases, n_samples).
+        images (array-like tensor): Input data, shape (n_samples, n_phases, dim1, dim2).
         coords (array-like): Coordinates for registration, shape (n_samples, n_landmarks * 2).
         dst_id (int, optional): Sample index of destination image stack. Defaults to 0.
 
     Returns:
-        array-like: Registered images, shape (dim1, dim2, n_phases, n_samples).
+        array-like: Registered images, shape (n_samples, n_phases, dim1, dim2).
         array-like: Maximum distance of transformed source coordinates to destination coordinates, shape (n_samples,)
     """
-    n_phases, n_samples = images.shape[-2:]
+    n_samples, n_phases = images.shape[:2]
     if n_samples != coords.shape[0]:
         error_msg = "The sample size of images and coordinates does not match."
         logging.error(error_msg)
@@ -126,9 +126,9 @@ def reg_img_stack(images, coords, dst_id=0):
             dists = np.linalg.norm(src_tform - dst_coord[~idx_valid, :], axis=1)
             max_dist[i] = np.max(dists)
             for j in range(n_phases):
-                src_img = images[..., j, i].copy()
+                src_img = images[i, j, ...].copy()
                 warped = warp(src_img, inverse_map=tform.inverse, preserve_range=True)
-                images[..., j, i] = warped
+                images[i, j, ...] = warped
 
     return images, max_dist
 
@@ -137,25 +137,25 @@ def rescale_img_stack(images, scale=16):
     """Rescale stacked images by a given factor
 
     Args:
-        images (array-like tensor): Input data, shape (dim1, dim2, n_phases, n_samples).
+        images (array-like tensor): Input data, shape (n_samples, n_phases, dim1, dim2).
         scale (int, optional): Scale factor. Defaults to 16.
 
     Returns:
-        array-like tensor: Rescaled images, shape (dim1, dim2, n_phases, n_samples).
+        array-like tensor: Rescaled images, shape (n_samples, n_phases, dim1 / scale, dim2 / scale).
     """
-    n_phases, n_samples = images.shape[-2:]
+    n_samples, n_phases = images.shape[:2]
     scale_ = 1 / scale
     images_rescale = []
     for i in range(n_samples):
         stack_i = []
         for j in range(n_phases):
-            img = images[:, :, j, i]
+            img = images[i, j, ...]
             img_rescale = rescale(img, scale_, preserve_range=True)
             # preserve_range should be true otherwise the output will be normalised values
-            stack_i.append(img_rescale.reshape(img_rescale.shape + (1,)))
-        stack_i = np.concatenate(stack_i, axis=-1)
-        images_rescale.append(stack_i.reshape(stack_i.shape + (1,)))
-    images_rescale = np.concatenate(images_rescale, axis=-1)
+            stack_i.append(img_rescale.reshape((1,) + img_rescale.shape))
+        stack_i = np.concatenate(stack_i, axis=0)
+        images_rescale.append(stack_i.reshape((1,) + stack_i.shape))
+    images_rescale = np.concatenate(images_rescale, axis=0)
 
     return images_rescale
 
@@ -164,14 +164,14 @@ def mask_img_stack(images, mask):
     """Masking stacked images by a given mask
 
     Args:
-        images (array-like): input image data, shape (dim1, dim2, n_phases, n_subject)
+        images (array-like): input image data, shape (n_samples, n_phases, dim1, dim2)
         mask (array-like): mask, shape (dim1, dim2)
     Returns:
-        array-like tensor: masked images, shape (dim1, dim2, n_phases, n_subject)
+        array-like tensor: masked images, shape (n_samples, n_phases, dim1, dim2)
     """
-    n_phases, n_samples = images.shape[-2:]
+    n_samples, n_phases = images.shape[:2]
     for i in range(n_samples):
         for j in range(n_phases):
-            images[:, :, j, i] = np.multiply(images[:, :, j, i], mask)
+            images[i, j, ...] = np.multiply(images[i, j, ...], mask)
 
     return images
