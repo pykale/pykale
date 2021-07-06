@@ -1,9 +1,9 @@
 import logging
 import math
 import os
-import pickle
 from pathlib import Path
 
+import pandas as pd
 from PIL import Image
 
 from kale.loaddata.videos import VideoFrameDataset, VideoRecord
@@ -74,12 +74,11 @@ class BasicVideoDataset(VideoFrameDataset):
 
         data = []
         i = 0
-        with open(self.annotationfile_path, "rb") as input_file:
-            input_file = pickle.load(input_file)
-            for line in input_file.values:
-                if 0 <= eval(line[5]) < self.n_classes:
-                    data.append((line[0], eval(line[1]), eval(line[2]), eval(line[5])))
-                    i = i + 1
+        input_file = pd.read_pickle(self.annotationfile_path)
+        for line in input_file.values:
+            if 0 <= eval(line[5]) < self.n_classes:
+                data.append((line[0], eval(line[1]), eval(line[2]), eval(line[5])))
+                i = i + 1
         logging.info("Number of {:5} action segments: {}".format(self.dataset, i))
         return data
 
@@ -142,14 +141,13 @@ class EPIC(VideoFrameDataset):
 
         data = []
         i = 0
-        with open(self.annotationfile_path, "rb") as input_file:
-            input_file = pickle.load(input_file)
-            for line in input_file.values:
-                if line[1] in ["P01", "P08", "P22"]:
-                    if 0 <= line[9] < self.n_classes:
-                        if line[7] - line[6] + 1 >= self.frames_per_segment:
-                            label = line[9]
-                            data.append((os.path.join(line[1], line[2]), line[6], line[7], label))
-                            i = i + 1
+        input_file = pd.read_pickle(self.annotationfile_path)
+        for line in input_file.values:
+            if line[1] in ["P01", "P08", "P22"]:
+                if 0 <= line[9] < self.n_classes:
+                    if line[7] - line[6] + 1 >= self.frames_per_segment:
+                        label = line[9]
+                        data.append((os.path.join(line[1], line[2]), line[6], line[7], label))
+                        i = i + 1
         logging.info("Number of {:5} action segments: {}".format(self.dataset, i))
         return data
