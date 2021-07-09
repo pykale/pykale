@@ -1,6 +1,6 @@
 .. kale.prepdata package
 
-Preprocess data
+Preprocess Data
 =====================
 
 Submodules

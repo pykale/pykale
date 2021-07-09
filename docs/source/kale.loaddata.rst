@@ -1,6 +1,6 @@
 .. kale.loaddata package
 
-Load data
+Load Data
 =====================
 
 Submodules
