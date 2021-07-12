@@ -12,7 +12,7 @@ from copy import deepcopy
 
 from kale.embed.video_feature_extractor import get_feat_extractor4feature, get_feat_extractor4video
 from kale.pipeline import domain_adapter, video_domain_adapter
-from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo, ClassNetVideo4TA3N, DomainNetVideo4TA3N
+from kale.predict.class_domain_nets import ClassNetVideo, ClassNetVideo4TA3N, DomainNetVideo, DomainNetVideo4TA3N
 
 
 def get_config(cfg):

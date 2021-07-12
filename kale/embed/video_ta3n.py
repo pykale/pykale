@@ -1,9 +1,9 @@
 from torch import nn
 from torchvision.models.utils import load_state_dict_from_url
 
+from kale.embed.video_i3d import InceptionI3d
 from kale.embed.video_selayer import SELayer4feat
 from kale.embed.video_transformer import TransformerBlock
-from kale.embed.video_i3d import InceptionI3d
 
 model_urls_ta3n = {
     "rgb_ta3n": None,
