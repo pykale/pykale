@@ -565,6 +565,11 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         self.correct_batch_size_source = None
         self.correct_batch_size_target = None
 
+        self._init_epochs = 0
+        self.batch_size = [128, 128, 128]
+        self.dann_warmup = True
+        self.beta = [0.75, 0.75, 0.5]
+
         # Uncomment to store output for EPIC UDA 2021 challenge.(1/3)
         # self.y_hat = []
         # self.y_hat_noun = []
@@ -606,24 +611,23 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
                 if self.method is Method.TA3N:
-                    x_rgb, adv_output_rgb_0, adv_output_rgb_1 = self.rgb_attention(x_rgb)
+                    x_rgb, adv_output_rgb_0, adv_output_rgb_1 = self.rgb_attention(x_rgb, self.beta)
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.alpha)
+                reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.beta[1])
                 adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
                 if self.method is Method.TA3N:
-                    x_flow, adv_output_flow_0, adv_output_flow_1 = self.flow_attention(x_flow)
+                    x_flow, adv_output_flow_0, adv_output_flow_1 = self.flow_attention(x_flow, self.beta)
                 x_flow = x_flow.view(x_flow.size(0), -1)
-                reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
+                reverse_feature_flow = ReverseLayerF.apply(x_flow, self.beta[1])
                 adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
-
             if self.audio:
                 x_audio = self.audio_feat(x["audio"])
                 if self.method is Method.TA3N:
-                    x_audio, adv_output_audio_0, adv_output_audio_1 = self.audio_attention(x_audio)
+                    x_audio, adv_output_audio_0, adv_output_audio_1 = self.audio_attention(x_audio, self.beta)
                 x_audio = x_audio.view(x_audio.size(0), -1)
-                reverse_feature_audio = ReverseLayerF.apply(x_audio, self.alpha)
+                reverse_feature_audio = ReverseLayerF.apply(x_audio, self.beta[1])
                 adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
 
             x = self.concatenate_feature(x_rgb, x_flow, x_audio)
@@ -873,8 +877,6 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             elif self.verb and self.noun:
                 task_loss += self.gamma * 0.5 * (loss_entropy_verb + loss_entropy_noun)
 
-            task_loss += adv_loss
-
         # # Uncomment to store output for EPIC UDA 2021 challenge.(2/3)
         # if split_name == "Te":
         #     self.y_hat.extend(y_hat[0].tolist())
@@ -885,6 +887,26 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         #     self.tu_id.extend(tu_id)
 
         return task_loss, adv_loss, log_metrics
+
+    def _update_batch_epoch_factors(self, batch_id):
+        if self.current_epoch >= self._init_epochs:
+            delta_epoch = self.current_epoch - self._init_epochs
+            p = (batch_id + delta_epoch * self.batch_size[0]) / (self._non_init_epochs * self.batch_size[0])
+            beta_dann = 2.0 / (1.0 + np.exp(-1.0 * p)) - 1
+            self._grow_fact = 2.0 / (1.0 + np.exp(-10 * p)) - 1
+
+            self.beta = [
+                beta_dann if self.beta[i] < 0 else self.beta[i] for i in range(len(self.beta))
+            ]  # replace the default beta if value < 0
+            if self.dann_warmup:
+                beta_new = [beta_dann * self.beta[i] for i in range(len(self.beta))]
+            else:
+                beta_new = self.beta
+            self.beta = beta_new
+
+        self._adapt_lambda = True
+        if self._adapt_lambda:
+            self.lamb_da = self._init_lambda * self._grow_fact
 
 
 class CDANtrainerVideo(BaseAdaptTrainerVideo, CDANtrainer):
@@ -1483,14 +1505,14 @@ class TemporalAttention(nn.Module):
         weights = weights[: input.size()[0], : input.size()[1], : input.size()[2]]
         return weights
 
-    def forward(self, input):
-        domain_pred_0 = self.domain_classifier_frame(input, 0.5)
+    def forward(self, input, beta):
+        domain_pred_0 = self.domain_classifier_frame(input, beta[2])
         domain_pred_0 = domain_pred_0.view((-1,) + domain_pred_0.size()[-1:])
         # reshape based on the segments (e.g. 640x512 --> 128x5x512)
         x = input.view((-1, self.num_segments) + input.size()[-1:])
         x = self.TRN(x)
         # adversarial branch
-        domain_pred_relation = self.domain_classify_relation(x, self.beta)
+        domain_pred_relation = self.domain_classify_relation(x, beta[0])
         domain_pred_1 = domain_pred_relation.view((-1, x.size()[1]) + domain_pred_relation.size()[-1:])
         # adding attention
         weights_attn = self.get_attention(x, domain_pred_relation)
