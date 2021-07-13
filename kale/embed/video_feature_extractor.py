@@ -175,7 +175,7 @@ def get_feat_extractor4feature(attention, image_modality, num_classes, num_out=2
                 class_feature_dim = domain_feature_dim
         else:  # For audio input
             class_feature_dim = domain_feature_dim
-    class_feature_dim = int(class_feature_dim)
+    class_feature_dim = int(domain_feature_dim)
     domain_feature_dim = int(domain_feature_dim)
 
     return feature_network, class_feature_dim, domain_feature_dim

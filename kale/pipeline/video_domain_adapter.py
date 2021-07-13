@@ -238,18 +238,18 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
         if self.rgb:
             if self.flow:
                 if self.audio:  # For all inputs
-                    x = torch.cat((x_rgb, x_flow, x_audio), dim=1)
+                    x = torch.cat((x_rgb, x_flow, x_audio), dim=-1)
                 else:  # For joint(rgb+flow) input
-                    x = torch.cat((x_rgb, x_flow), dim=1)
+                    x = torch.cat((x_rgb, x_flow), dim=-1)
             else:
                 if self.audio:  # For rgb+audio input
-                    x = torch.cat((x_rgb, x_audio), dim=1)
+                    x = torch.cat((x_rgb, x_audio), dim=-1)
                 else:  # For rgb input
                     x = x_rgb
         else:
             if self.flow:
                 if self.audio:  # For flow+audio input
-                    x = torch.cat((x_flow, x_audio), dim=1)
+                    x = torch.cat((x_flow, x_audio), dim=-1)
                 else:  # For flow input
                     x = x_flow
             else:  # For audio input
@@ -558,9 +558,12 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         self.rgb, self.flow, self.audio = get_image_modality(self.image_modality)
         self.class_type = class_type
         self.verb, self.noun = get_class_type(self.class_type)
-        self.rgb_feat = self.feat["rgb"]
-        self.flow_feat = self.feat["flow"]
-        self.audio_feat = self.feat["audio"]
+        if self.method is not Method.TA3N:
+            self.rgb_feat = self.feat["rgb"]
+            self.flow_feat = self.feat["flow"]
+            self.audio_feat = self.feat["audio"]
+        else:
+            self.feat = self.feat["all"]
         self.input_type = input_type
         self.correct_batch_size_source = None
         self.correct_batch_size_target = None
@@ -579,13 +582,7 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         # self.tu_id = []
 
         if method is Method.TA3N:
-            self.domain_align_rgb = self.domain_align_flow = self.domain_align_audio = None
-            if self.rgb:
-                self.rgb_attention = TemporalAttention()
-            if self.flow:
-                self.flow_attention = TemporalAttention()
-            if self.audio:
-                self.audio_attention = TemporalAttention()
+            self.attention = TemporalAttention()
 
             # for saving the details of the individual layers
             f = open("modules_list.txt", "w")
@@ -605,32 +602,44 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             adversarial_output_rgb = adversarial_output_flow = adversarial_output_audio = None
             adv_output_rgb_1 = adv_output_flow_1 = adv_output_audio_1 = None
             adv_output_rgb_0 = adv_output_flow_0 = adv_output_audio_0 = None
-            if self.method is Method.TA3N:
-                self.alpha = 0.75
             # For joint input, both two ifs are used
-            if self.rgb:
-                x_rgb = self.rgb_feat(x["rgb"])
-                if self.method is Method.TA3N:
-                    x_rgb, adv_output_rgb_0, adv_output_rgb_1 = self.rgb_attention(x_rgb, self.beta)
-                x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.beta[1])
-                adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
-            if self.flow:
-                x_flow = self.flow_feat(x["flow"])
-                if self.method is Method.TA3N:
-                    x_flow, adv_output_flow_0, adv_output_flow_1 = self.flow_attention(x_flow, self.beta)
-                x_flow = x_flow.view(x_flow.size(0), -1)
-                reverse_feature_flow = ReverseLayerF.apply(x_flow, self.beta[1])
-                adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
-            if self.audio:
-                x_audio = self.audio_feat(x["audio"])
-                if self.method is Method.TA3N:
-                    x_audio, adv_output_audio_0, adv_output_audio_1 = self.audio_attention(x_audio, self.beta)
-                x_audio = x_audio.view(x_audio.size(0), -1)
-                reverse_feature_audio = ReverseLayerF.apply(x_audio, self.beta[1])
-                adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
+            if self.method is not Method.TA3N:
 
-            x = self.concatenate_feature(x_rgb, x_flow, x_audio)
+                if self.rgb:
+                    x_rgb = self.rgb_feat(x["rgb"])
+                    if self.method is Method.TA3N:
+                        x_rgb, adv_output_rgb_0, adv_output_rgb_1 = self.rgb_attention(x_rgb, self.beta)
+                    x_rgb = x_rgb.view(x_rgb.size(0), -1)
+                    reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.beta[1])
+                    adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
+                if self.flow:
+                    x_flow = self.flow_feat(x["flow"])
+                    if self.method is Method.TA3N:
+                        x_flow, adv_output_flow_0, adv_output_flow_1 = self.flow_attention(x_flow, self.beta)
+                    x_flow = x_flow.view(x_flow.size(0), -1)
+                    reverse_feature_flow = ReverseLayerF.apply(x_flow, self.beta[1])
+                    adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
+                if self.audio:
+                    x_audio = self.audio_feat(x["audio"])
+                    if self.method is Method.TA3N:
+                        x_audio, adv_output_audio_0, adv_output_audio_1 = self.audio_attention(x_audio, self.beta)
+                    x_audio = x_audio.view(x_audio.size(0), -1)
+                    reverse_feature_audio = ReverseLayerF.apply(x_audio, self.beta[1])
+                    adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
+
+                x = self.concatenate_feature(x_rgb, x_flow, x_audio)
+
+            else:
+                x = self.concatenate_feature(x["rgb"], x["flow"], x["audio"])
+                x = self.feat(x)
+                x, adv_output_0, adv_output_1 = self.attention(x, self.beta)
+                x = x.view(x.size(0), -1)
+                reverse_feature = ReverseLayerF.apply(x, self.beta[1])
+                adversarial_output = self.domain_classifier(reverse_feature)
+                adversarial_output_rgb = adversarial_output_flow = adversarial_output_audio = adversarial_output
+                x_rgb = x_flow = x_audio = x
+                adv_output_rgb_0 = adv_output_flow_0 = adv_output_audio_0 = adv_output_0
+                adv_output_rgb_1 = adv_output_flow_1 = adv_output_audio_1 = adv_output_1
 
             class_output = self.classifier(x)
 
@@ -639,9 +648,9 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
                 class_output,
                 [adversarial_output_rgb, adversarial_output_flow, adversarial_output_audio],
                 [
-                    [adv_output_rgb_1, adv_output_rgb_0],
-                    [adv_output_flow_1, adv_output_flow_0],
-                    [adv_output_audio_1, adv_output_audio_0],
+                    [adv_output_rgb_0, adv_output_rgb_1],
+                    [adv_output_flow_0, adv_output_flow_1],
+                    [adv_output_audio_0, adv_output_audio_1],
                 ],
             )
 
@@ -725,24 +734,18 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
                 y_t_hat, d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio, d_t_hat_0_1, target_batch_size
             )
 
-        # loss_attn = 0
         if self.rgb:
             loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(source_batch_size))
             loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(target_batch_size))
-            # loss_attn += losses.cross_entropy_logits(d_attn_hat[0], torch.zeros(d_attn_hat[0].size(0)))[0]
-            # loss_attn += losses.cross_entropy_logits(d_t_attn_hat[0], torch.ones(d_t_attn_hat[0].size(0)))[0]
         if self.flow:
             loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(source_batch_size))
             loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(target_batch_size))
-            # loss_attn += losses.cross_entropy_logits(d_attn_hat[1], torch.zeros(d_attn_hat[1].size(0)))[0]
-            # loss_attn += losses.cross_entropy_logits(d_t_attn_hat[1], torch.ones(d_t_attn_hat[1].size(0)))[0]
         if self.audio:
             loss_dmn_src_audio, dok_src_audio = losses.cross_entropy_logits(d_hat_audio, torch.zeros(source_batch_size))
             loss_dmn_tgt_audio, dok_tgt_audio = losses.cross_entropy_logits(
                 d_t_hat_audio, torch.ones(target_batch_size)
             )
-            # loss_attn += losses.cross_entropy_logits(d_attn_hat[2], torch.zeros(d_attn_hat[2].size(0)))[0]
-            # loss_attn += losses.cross_entropy_logits(d_t_attn_hat[2], torch.ones(d_t_attn_hat[2].size(0)))[0]
+
         # ok is abbreviation for (all) correct, dok refers to domain correct
         if self.rgb:
             if self.flow:

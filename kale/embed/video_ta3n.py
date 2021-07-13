@@ -28,7 +28,7 @@ class TA3N(nn.Module):
             self.fc3 = nn.Linear(output_size, output_size)
         if self.input_type == "image":
             self.feature_net = InceptionI3d(in_channels=3, num_classes=num_classes)
-        self.bn_trn = nn.BatchNorm1d(output_size)
+        # self.bn_trn = nn.BatchNorm1d(output_size)
 
     def forward(self, input):
         if self.input_type == "feature":
@@ -39,7 +39,7 @@ class TA3N(nn.Module):
             raise ValueError("Input type is not in [feature, image]. Current is {}".format(self.input_type))
         x = input.view(-1, input.size()[-1])
         x = self.fc1(x)
-        x = self.bn_trn(x)
+        # x = self.bn_trn(x)
         x = self.relu(x)
         x = self.dropout_i(x)
         if self.add_fc > 1:
@@ -93,15 +93,22 @@ def ta3n_joint(
         model_rgb = ta3n(
             rgb_name, pretrained, input_size, n_out, progress, input_type=input_type, num_classes=num_classes
         )
+        model_all = model_rgb
     if flow_name is not None:
         model_flow = ta3n(
             flow_name, pretrained, input_size, n_out, progress, input_type=input_type, num_classes=num_classes
         )
+        model_all = model_flow
     if audio_name is not None:
         model_audio = ta3n(
             audio_name, pretrained, input_size, n_out, progress, input_type=input_type, num_classes=num_classes
         )
-    return {"rgb": model_rgb, "flow": model_flow, "audio": model_audio}
+        model_all = model_audio
+    if rgb_name is not None and flow_name is not None and audio_name is not None:
+        model_all = ta3n(
+            rgb_name, pretrained, 3 * input_size, n_out, progress, input_type=input_type, num_classes=num_classes
+        )
+    return {"rgb": model_rgb, "flow": model_flow, "audio": model_audio, "all": model_all}
 
 
 model_urls = {
