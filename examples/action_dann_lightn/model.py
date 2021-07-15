@@ -1,5 +1,5 @@
 # =============================================================================
-# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk or xianyuan.liu@outlook.com
+# Author: Xianyuan Liu, xianyuan.liu@outlook.com
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
@@ -86,7 +86,6 @@ def get_model(cfg, dataset, dict_num_classes):
 
     # setup classifier
     if cfg.DAN.METHOD == "TA3N":
-        ClassNetVideo4TA3N
         classifier_network = ClassNetVideo4TA3N(
             input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower()
         )

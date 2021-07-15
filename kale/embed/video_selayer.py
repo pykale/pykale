@@ -1,5 +1,5 @@
 # =============================================================================
-# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk or xianyuan.liu@outlook.com
+# Author: Xianyuan Liu, xianyuan.liu@outlook.com
 # =============================================================================
 
 """Python implementation of Squeeze-and-Excitation Layers (SELayer)

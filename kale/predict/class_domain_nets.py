@@ -1,5 +1,5 @@
 # =============================================================================
-# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk or xianyuan.liu@outlook.com
+# Author: Xianyuan Liu, xianyuan.liu@outlook.com
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
@@ -241,7 +241,7 @@ class DomainNetVideo(nn.Module):
     """Regular domain classifier network for video input.
 
     Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
         n_channel (int, optional): the number of channel for Linear and BN layers.
     """
 
@@ -263,7 +263,7 @@ class DomainNetVideo4TA3N(nn.Module):
     """Smaller domain classifier network for TA3N.
 
     Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
         n_channel (int, optional): the number of channel for Linear and BN layers.
     """
 

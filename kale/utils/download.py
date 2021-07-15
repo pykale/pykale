@@ -1,5 +1,5 @@
 # ===============================================================================
-# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk or xianyuan.liu@outlook.com
+# Author: Xianyuan Liu, xianyuan.liu@outlook.com
 #         Raivo Koot, rekoot1@sheffield.ac.uk
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # ===============================================================================
