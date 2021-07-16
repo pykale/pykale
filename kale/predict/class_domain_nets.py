@@ -169,7 +169,7 @@ class ClassNetVideo(nn.Module):
         return [x_verb, x_noun]
 
 
-class ClassNetVideo4TA3N(nn.Module):
+class ClassNetVideoTA3N(nn.Module):
     """Regular classifier network for video input for TA3N.
 
     Args:
@@ -188,7 +188,7 @@ class ClassNetVideo4TA3N(nn.Module):
         dict_n_class=8,
         class_type="verb",
     ):
-        super(ClassNetVideo4TA3N, self).__init__()
+        super(ClassNetVideoTA3N, self).__init__()
         self.verb, self.noun = get_class_type(class_type)
         if self.verb:
             self.n_verb_class = dict_n_class["verb"]
@@ -259,7 +259,7 @@ class DomainNetVideo(nn.Module):
         return x
 
 
-class DomainNetVideo4TA3N(nn.Module):
+class DomainNetVideoTA3N(nn.Module):
     """Smaller domain classifier network for TA3N.
 
     Args:
@@ -268,7 +268,7 @@ class DomainNetVideo4TA3N(nn.Module):
     """
 
     def __init__(self, input_size=128, n_channel=100, class_type="verb"):
-        super(DomainNetVideo4TA3N, self).__init__()
+        super(DomainNetVideoTA3N, self).__init__()
 
         self.fc1 = nn.Linear(input_size, input_size)
         self.relu1 = nn.ReLU()
