@@ -12,7 +12,7 @@ from copy import deepcopy
 
 from kale.embed.video_feature_extractor import get_feat_extractor4feature, get_feat_extractor4video
 from kale.pipeline import domain_adapter, video_domain_adapter
-from kale.predict.class_domain_nets import ClassNetVideo, ClassNetVideo4TA3N, DomainNetVideo, DomainNetVideo4TA3N
+from kale.predict.class_domain_nets import ClassNetVideo, ClassNetVideoTA3N, DomainNetVideo, DomainNetVideoTA3N
 
 
 def get_config(cfg):
@@ -81,12 +81,12 @@ def get_model(cfg, dataset, dict_num_classes):
         )
     else:
         feature_network, class_feature_dim, domain_feature_dim = get_feat_extractor4feature(
-            cfg.MODEL.ATTENTION, cfg.DATASET.IMAGE_MODALITY, dict_num_classes
+            cfg.DATASET.IMAGE_MODALITY, num_out=256
         )
 
     # setup classifier
     if cfg.DAN.METHOD == "TA3N":
-        classifier_network = ClassNetVideo4TA3N(
+        classifier_network = ClassNetVideoTA3N(
             input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower()
         )
     else:
@@ -118,14 +118,15 @@ def get_model(cfg, dataset, dict_num_classes):
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
                 critic_input_size = domain_feature_dim * dict_num_classes["verb"]
+
         if cfg.DAN.METHOD == "TA3N":
-            train_params_local = {
-                "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
-                "nb_adapt_epochs": cfg.SOLVER.MAX_EPOCHS,
-                "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
-            }
-            method_params = {}
-            critic_network = DomainNetVideo4TA3N(input_size=critic_input_size)
+            # train_params_local = {
+            #     "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
+            #     "nb_adapt_epochs": cfg.SOLVER.MAX_EPOCHS,
+            #     "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
+            # }
+            # method_params = {}
+            critic_network = DomainNetVideoTA3N(input_size=critic_input_size)
         else:
             critic_network = DomainNetVideo(input_size=critic_input_size)
 
