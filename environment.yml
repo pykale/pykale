@@ -7,6 +7,12 @@ dependencies:
 - python==3.7
 - pip
 - rdkit
-- pytorch-geometric
 - pip:
+  - torch==1.7.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+  - torchvision==0.8.2+cpu -f https://download.pytorch.org/whl/torch_stable.html
+  - torch-scatter -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html
+  - torch-sparse -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html
+  - torch-cluster -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html
+  - torch-spline-conv -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html
+  - torch-geometric
   - .[extras]
