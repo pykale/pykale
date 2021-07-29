@@ -1,4 +1,5 @@
 import pytest
+import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader
 
@@ -12,7 +13,12 @@ DATASET = "BindingDB_Kd"
 
 def test_deep_data(download_path):
     test_dataset = BindingDBDataset(name=DATASET, split="test", path=download_path)
-    test_batch = next(iter(DataLoader(dataset=test_dataset, shuffle=True, batch_size=32)))
+    subset_indices = list(range(0, 32, 2))
+    test_subset = torch.utils.data.Subset(test_dataset, subset_indices)
+    test_dataloader = DataLoader(dataset=test_subset, shuffle=False, batch_size=8)
+    val_dataloader = DataLoader(dataset=test_subset, shuffle=True, batch_size=8)
+    train_dataloader = DataLoader(dataset=test_subset, shuffle=True, batch_size=4)
+    test_batch = next(iter(test_dataloader))
 
     drug_encoder = CNNEncoder(num_embeddings=64, embedding_dim=128, sequence_length=85, num_kernels=32, kernel_length=8)
     target_encoder = CNNEncoder(
@@ -22,15 +28,13 @@ def test_deep_data(download_path):
     # test deep_dta trainer
     save_parameters = {"seed": 2020, "batch_size": 256}
     model = DeepDTATrainer(drug_encoder, target_encoder, decoder, lr=0.001, ci_metric=True, **save_parameters).eval()
+    trainer = pl.Trainer(max_epochs=1, gpus=0)
+    trainer.fit(model, train_dataloader=train_dataloader, val_dataloaders=val_dataloader)
+    trainer.test(test_dataloaders=test_dataloader)
     assert isinstance(model.drug_encoder, CNNEncoder)
     assert isinstance(model.target_encoder, CNNEncoder)
     assert isinstance(model.decoder, MLPDecoder)
-    model.configure_optimizers()
-    assert torch.is_tensor(model.validation_step(test_batch, 0))
-    assert torch.is_tensor(model.test_step(test_batch, 0))
-    with pytest.raises(AttributeError) as excinfo:
-        model.training_step(test_batch, 0)
-        assert "log_metrics" in str(excinfo.value)
+    # model.configure_optimizers()
 
     # test base_dta trainer
     model = BaseDTATrainer(drug_encoder, target_encoder, decoder, lr=0.001, ci_metric=True, **save_parameters).eval()
