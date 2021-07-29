@@ -2,9 +2,11 @@ name: PyKale_tutorials
 channels:
 - defaults
 - conda-forge
+- rusty1s
 dependencies:
 - python==3.7
 - pip
 - rdkit
+- pytorch-geometric
 - pip:
   - .[extras]
