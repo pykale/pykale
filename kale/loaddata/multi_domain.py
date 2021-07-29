@@ -250,14 +250,13 @@ class MultiDomainImageFolder(VisionDataset):
             loader (callable): A function to load a sample given its path.
             extensions (tuple[string]): A list of allowed extensions.
                 both extensions and is_valid_file should not be passed.
-            transform (callable, optional): A function/transform that takes in
-                a sample and returns a transformed version.
-                E.g, ``transforms.RandomCrop`` for images.
-            target_transform (callable, optional): A function/transform that takes
-                in the target and transforms it.
-            is_valid_file (callable, optional): A function that takes path of a file
-                and check if the file is a valid file (used to check of corrupt files)
-                both extensions and is_valid_file should not be passed.
+            transform (callable, optional): A function/transform that takes in a sample and returns a transformed
+                version.  E.g, ``transforms.RandomCrop`` for images.
+            target_transform (callable, optional): A function/transform that takes in the target and transforms it.
+            sub_domain_set (list): A list of domain names, which should be a subset of domains in image folders.
+            sub_class_set (list): A list of class names, which should be a subset of classes in image folders
+            is_valid_file (callable, optional): A function that takes path of a file and check if the file is a valid
+                file (used to check of corrupt files) both extensions and is_valid_file should not be passed.
          Attributes:
             classes (list): List of the class names sorted alphabetically.
             class_to_idx (dict): Dict with items (class_name, class_index).
@@ -275,27 +274,32 @@ class MultiDomainImageFolder(VisionDataset):
         extensions: Optional[Tuple[str, ...]] = IMG_EXTENSIONS,
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
-        domains: Optional[List] = None,
+        sub_domain_set: Optional[List] = None,
+        sub_class_set: Optional[List] = None,
         is_valid_file: Optional[Callable[[str], bool]] = None,
         return_domain_label: Optional[bool] = False,
     ) -> None:
         super(MultiDomainImageFolder, self).__init__(root, transform=transform, target_transform=target_transform)
-        domains_, domain_to_idx = self._find_classes(self.root)
-        if type(domains) == list:
-            for domain_name in domains:
-                if domain_name not in domains_:
+        domains, domain_to_idx = self._find_classes(self.root)
+        if type(sub_domain_set) == list:
+            for domain_name in sub_domain_set:
+                if domain_name not in domains:
                     raise ValueError("Domain %s not in the image directory" % domain_name)
-            domain_to_idx = {domain_name: i for i, domain_name in enumerate(domains)}
-        elif domains is None:
-            domains = domains_
-        else:
-            raise ValueError("Unsupported type for variable domains")
+            domains = sub_domain_set
+            domain_to_idx = {domain_name: i for i, domain_name in enumerate(sub_domain_set)}
+
         classes, class_to_idx = self._find_classes(os.path.join(self.root, domains[0]))
-        for domain in domains:
-            domain_path = os.path.join(self.root, domain)
-            classes_, class_to_idx_ = self._find_classes(domain_path)
-            if not classes == classes_:
-                raise ValueError("Classes for different domains are expected to be the same.")
+        if type(sub_class_set) == list:
+            for class_name in sub_class_set:
+                if class_name not in classes:
+                    raise ValueError("Class %s not in the image directory" % class_name)
+            classes = sub_class_set
+            class_to_idx = {class_name: i for i, class_name in enumerate(sub_class_set)}
+        # for domain in domains:
+        #     domain_path = os.path.join(self.root, domain)
+        #     classes_, class_to_idx_ = self._find_classes(domain_path)
+        #     if not classes == classes_:
+        #         raise ValueError("Classes for different domains are expected to be the same.")
         samples = make_multi_domain_set(self.root, class_to_idx, domain_to_idx, extensions, is_valid_file)
         if len(samples) == 0:
             msg = "Found 0 files in sub-folders of: {}\n".format(self.root)
