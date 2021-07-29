@@ -39,10 +39,8 @@ class DatasetAccess:
             Dataset: a torch.utils.data.Dataset
         """
         train_dataset = self.get_train()
-        ntotal = len(train_dataset)
-        ntrain = int((1 - val_ratio) * ntotal)
 
-        return torch.utils.data.random_split(train_dataset, [ntrain, ntotal - ntrain])
+        return split_by_ratios(train_dataset, [val_ratio])
 
     def get_test(self):
         raise NotImplementedError()
@@ -58,3 +56,18 @@ def get_class_subset(dataset, class_ids):
     """
     sub_indices = [i for i in range(0, len(dataset)) if dataset[i][1] in class_ids]
     return torch.utils.data.Subset(dataset, sub_indices)
+
+
+def split_by_ratios(dataset, split_ratios):
+    n_total = len(dataset)
+    ratio_sum = sum(split_ratios)
+    if ratio_sum > 1 or ratio_sum <= 0:
+        raise ValueError("The sum of ratios should be in range(0, 1]")
+    elif ratio_sum == 1:
+        split_ratios_ = split_ratios[:-1]
+    else:
+        split_ratios_ = split_ratios.copy()
+    split_sizes = [int(n_total * ratio_) for ratio_ in split_ratios_]
+    split_sizes.append(n_total - sum(split_sizes))
+
+    return torch.utils.data.random_split(dataset, split_sizes)
