@@ -1,5 +1,0 @@
-# This file is present for the repo2docker functionality of myBinder
-# (used for online interactive notebooks).
-# It is not required for normal installation of PyKale.
-.[extras]
-rdkit-pypi
