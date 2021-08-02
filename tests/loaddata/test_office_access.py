@@ -1,12 +1,19 @@
 import torch
+import os
+import pytest
 from numpy import testing
 
 from kale.loaddata.multi_domain import MultiDomainAdapDataset, MultiDomainDatasets
 from kale.loaddata.office_access import Office31, OfficeAccess, OfficeCaltech
 
 
-def test_office31(download_path):
-    office_access = Office31(root=download_path, download=True, return_domain_label=True)
+@pytest.fixture(scope="module")
+def office_path(download_path):
+    return os.path.join(download_path, "office")
+
+
+def test_office31(office_path):
+    office_access = Office31(root=office_path, download=True, return_domain_label=True)
     testing.assert_equal(len(office_access.class_to_idx), 31)
     testing.assert_equal(len(office_access.domain_to_idx), 3)
     dataset = MultiDomainAdapDataset(office_access)
@@ -19,15 +26,15 @@ def test_office31(download_path):
             testing.assert_equal(torch.where(z == domain_label_)[0].shape[0], 10)
 
 
-def test_office_caltech(download_path):
-    office_access = OfficeCaltech(root=download_path, download=True)
+def test_office_caltech(office_path):
+    office_access = OfficeCaltech(root=office_path, download=True)
     testing.assert_equal(len(office_access.class_to_idx), 10)
     testing.assert_equal(len(office_access.domain_to_idx), 4)
 
 
-def test_custom_office(download_path):
-    source = OfficeAccess(root=download_path, download=True, sub_domain_set=["dslr"], split_train_test=True)
-    target = OfficeAccess(root=download_path, download=True, sub_domain_set=["webcam"], split_train_test=True)
+def test_custom_office(office_path):
+    source = OfficeAccess(root=office_path, download=True, sub_domain_set=["dslr"], split_train_test=True)
+    target = OfficeAccess(root=office_path, download=True, sub_domain_set=["webcam"], split_train_test=True)
     dataset = MultiDomainDatasets(source_access=source, target_access=target)
     dataset.prepare_data_loaders()
     dataloader = dataset.get_domain_loaders()
