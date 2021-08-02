@@ -17,7 +17,7 @@ from torch.hub import download_url_to_file
 from torchvision.datasets.utils import download_and_extract_archive, download_file_from_google_drive, extract_archive
 
 
-def download_file_by_url(url, output_directory, output_file_name, file_format):
+def download_file_by_url(url, output_directory, output_file_name, file_format=None):
     """Download file/compressed file by url.
 
     Args:
@@ -66,7 +66,11 @@ def download_file_gdrive(id, output_directory, output_file_name, file_format=Non
         file_format (string, optional): File format
                                 For compressed file, support ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]
 
+    Example:
+        >>> gdrive_id = "1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga"
+        >>> download_file_gdrive(gdrive_id, "data", "demo_datasets.zip", "zip")
     """
+
     output_directory = Path(output_directory).absolute()
     file = Path(output_directory).joinpath(output_file_name)
     if os.path.exists(file):
@@ -74,12 +78,12 @@ def download_file_gdrive(id, output_directory, output_file_name, file_format=Non
         return
     os.makedirs(output_directory, exist_ok=True)
 
+    logging.info("Downloading {}.".format(output_file_name))
+    download_file_from_google_drive(id, output_directory, output_file_name)
+
     if file_format is not None and file_format in ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]:
         logging.info("Downloading and extracting {}.".format(output_file_name))
-        download_file_from_google_drive(id, output_directory, output_file_name)
         extract_archive(file.as_posix())
         logging.info("Datasets downloaded and extracted in {}".format(file))
     else:
-        logging.info("Downloading {}.".format(output_file_name))
-        download_file_from_google_drive(id, output_directory, output_file_name)
         logging.info("Datasets downloaded in {}".format(file))
