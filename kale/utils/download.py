@@ -28,7 +28,7 @@ def download_file_by_url(url, output_directory, output_file_name, file_format):
         file_format (string, optional): File format
                                 For compressed file, support ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]
 
-    Example:
+    Example: (Grab the raw link from GitHub. Notice that using "raw" in the URL.)
         >>> url = "https://github.com/pykale/data/raw/main/video_data/video_test_data/ADL/annotations/labels_train_test/adl_P_04_train.pkl"
         >>> download_file_by_url(url, "data", "a.pkl", "pkl")
 
