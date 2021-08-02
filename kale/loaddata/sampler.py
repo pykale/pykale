@@ -40,10 +40,11 @@ class SamplingConfig:
 
 
 class FixedSeedSamplingConfig(SamplingConfig):
-    def __init__(self, seed=1, balance=False, class_weights=None):
+    def __init__(self, seed=1, balance=False, class_weights=None, balance_domain=False):
         """Sampling with fixed seed."""
         super(FixedSeedSamplingConfig, self).__init__(balance, class_weights)
         self._seed = seed
+        self.balance_domain = balance_domain
 
     def create_loader(self, dataset, batch_size):
         """Create the data loader with fixed seed."""
@@ -51,6 +52,8 @@ class FixedSeedSamplingConfig(SamplingConfig):
             sampler = BalancedBatchSampler(dataset, batch_size=batch_size)
         elif self._class_weights is not None:
             sampler = ReweightedBatchSampler(dataset, batch_size=batch_size, class_weights=self._class_weights)
+        elif self.balance_domain:
+            sampler = BalancedDomainBatchSampler(dataset, batch_size=batch_size)
         else:
             if len(dataset) < batch_size:
                 sub_sampler = RandomSampler(
@@ -217,7 +220,7 @@ def get_labels(dataset):
     if dataset_type is torchvision.datasets.SVHN:
         return dataset.labels
     if dataset_type is torchvision.datasets.ImageFolder:
-        return dataset.imgs[:][1]
+        return np.array(dataset.targets)
 
     # Handle subset, recurses into non-subset version
     if dataset_type is torch.utils.data.Subset:
@@ -268,3 +271,57 @@ class InfiniteSliceIterator:
         i = self.i
         self.i += n
         return self.array[i : self.i]
+
+
+class BalancedDomainBatchSampler(torch.utils.data.sampler.BatchSampler):
+    """
+    BatchSampler - samples n_samples for each of the n_domain.
+    Returns batches of size n_domains * (batch_size // n_domains)
+    adapted from https://github.com/adambielski/siamese-triplet/blob/master/datasets.py
+    """
+
+    def __init__(self, dataset, batch_size):
+        from .multi_domain import MultiDomainImageFolder
+
+        dataset_type = type(dataset)
+        if dataset_type is torch.utils.data.Subset:
+            domain_labels = np.asarray(dataset.dataset.domain_labels)[dataset.indices]
+            domains = list(dataset.dataset.domain_to_idx.values())
+        elif dataset_type is MultiDomainImageFolder:
+            domain_labels = np.asarray(dataset.domain_labels)
+            domains = list(dataset.domain_to_idx.values())
+        else:
+            raise ValueError("Invalid dataset type %s." % dataset_type)
+        n_domains = len(domains)
+
+        self._n_samples = batch_size // n_domains
+        if self._n_samples == 0:
+            raise ValueError(f"batch_size should be bigger than the number of classes, got {batch_size}")
+
+        self._domain_iters = [
+            # InfiniteSliceIterator(dataset.indices[np.where(domain_labels == domain_)[0]], class_=domain_)
+            InfiniteSliceIterator(np.where(domain_labels == domain_)[0], class_=domain_)
+            for domain_ in domains
+        ]
+
+        batch_size = self._n_samples * n_domains
+
+        self._n_batches = len(domain_labels) // batch_size
+        if self._n_batches == 0:
+            raise ValueError(f"Dataset is not big enough to generate batches with size {batch_size}")
+        logging.debug("K=", n_domains, "nk=", self._n_samples)
+        logging.debug("Batch size = ", batch_size)
+
+    def __iter__(self):
+        for _ in range(self._n_batches):
+            indices = []
+            for domain_iter in self._domain_iters:
+                indices.extend(domain_iter.get(self._n_samples))
+            np.random.shuffle(indices)
+            yield indices
+
+        for domain_iter in self._domain_iters:
+            domain_iter.reset()
+
+    def __len__(self):
+        return self._n_batches

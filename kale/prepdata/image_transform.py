@@ -79,7 +79,7 @@ def get_transform(kind, augment=False):
                 [transforms.Resize(256), transforms.RandomResizedCrop(224), transforms.RandomHorizontalFlip()]
             )
         else:
-            transform_aug = transforms.Compose([transforms.Resize(256)])
+            transform_aug = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(256)])
         transform = transforms.Compose(
             [
                 transform_aug,

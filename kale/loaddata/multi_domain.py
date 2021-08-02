@@ -13,8 +13,8 @@ from sklearn.utils import check_random_state
 from torchvision.datasets import VisionDataset
 from torchvision.datasets.folder import default_loader, has_file_allowed_extension, IMG_EXTENSIONS
 
-from kale.loaddata.dataset_access import DatasetAccess, get_class_subset
-from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig
+from kale.loaddata.dataset_access import DatasetAccess, get_class_subset, split_by_ratios
+from kale.loaddata.sampler import FixedSeedSamplingConfig, get_labels, MultiDataLoader, SamplingConfig
 
 
 class WeightingType(Enum):
@@ -234,6 +234,21 @@ def _split_dataset_few_shot(dataset, n_fewshot, random_state=None):
     return labeled_dataset, unlabeled_dataset
 
 
+def split_by_domains(domain_labels, n_partitions, split_ratios):
+    domains = np.unique(domain_labels)
+    subset_idx = [[] for i in range(n_partitions)]
+    for domain_label_ in domains:
+        domain_idx = np.where(domain_labels == domain_label_)[0]
+        subsets = split_by_ratios(torch.from_numpy(domain_idx), split_ratios)
+        for i in range(n_partitions):
+            subset_idx[i].append(domain_idx[subsets[i].indices])
+
+    for i in range(n_partitions):
+        subset_idx[i] = np.concatenate(subset_idx[i])
+
+    return subset_idx
+
+
 class MultiDomainImageFolder(VisionDataset):
     """A generic data loader where the samples are arranged in this way: ::
             root/domain_a/class_x/xxx.ext
@@ -254,7 +269,9 @@ class MultiDomainImageFolder(VisionDataset):
                 version.  E.g, ``transforms.RandomCrop`` for images.
             target_transform (callable, optional): A function/transform that takes in the target and transforms it.
             sub_domain_set (list): A list of domain names, which should be a subset of domains in image folders.
-            sub_class_set (list): A list of class names, which should be a subset of classes in image folders
+                Defaults to None.
+            sub_class_set (list): A list of class names, which should be a subset of classes in image folders.
+                Defaults to None.
             is_valid_file (callable, optional): A function that takes path of a file and check if the file is a valid
                 file (used to check of corrupt files) both extensions and is_valid_file should not be passed.
          Attributes:
@@ -274,10 +291,12 @@ class MultiDomainImageFolder(VisionDataset):
         extensions: Optional[Tuple[str, ...]] = IMG_EXTENSIONS,
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
-        sub_domain_set: Optional[List] = None,
-        sub_class_set: Optional[List] = None,
+        sub_domain_set=None,
+        sub_class_set=None,
         is_valid_file: Optional[Callable[[str], bool]] = None,
         return_domain_label: Optional[bool] = False,
+        split_train_test: Optional[bool] = False,
+        split_ratio: Optional[float] = 0.8,
     ) -> None:
         super(MultiDomainImageFolder, self).__init__(root, transform=transform, target_transform=target_transform)
         domains, domain_to_idx = self._find_classes(self.root)
@@ -318,6 +337,13 @@ class MultiDomainImageFolder(VisionDataset):
         self.domain_to_idx = domain_to_idx
         self.domain_labels = [s[2] for s in samples]
         self.return_domain_label = return_domain_label
+        self.split_train_test = split_train_test
+        self.split_ratio = split_ratio
+        if split_train_test:
+            self.train_idx, self.test_idx = split_by_domains(self.domain_labels, 2, [split_ratio])
+        else:
+            self.train_idx = None
+            self.test_idx = None
 
     @staticmethod
     def _find_classes(directory: str) -> Tuple[List[str], Dict[str, int]]:
@@ -355,6 +381,18 @@ class MultiDomainImageFolder(VisionDataset):
 
     def __len__(self) -> int:
         return len(self.samples)
+
+    def get_train(self):
+        if self.split_train_test:
+            return torch.utils.data.Subset(self, self.train_idx)
+        else:
+            raise ValueError("The dataset has no train split yet.")
+
+    def get_test(self):
+        if self.split_train_test:
+            return torch.utils.data.Subset(self, self.test_idx)
+        else:
+            raise ValueError("The dataset has no test split yet.")
 
 
 def make_multi_domain_set(
@@ -407,3 +445,36 @@ def make_multi_domain_set(
                         item = path, class_index, domain_index
                         instances.append(item)
     return instances
+
+
+class MultiDomainAdapDataset(DomainsDatasetBase):
+    def __init__(
+        self, data_access: MultiDomainImageFolder, val_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1,
+    ):
+        self.domain_labels = np.array(data_access.domain_labels)
+        self.domain_to_idx = data_access.domain_to_idx
+        self.n_domains = len(data_access.domain_to_idx)
+        self.data_access = data_access
+        self._val_split_ratio = val_split_ratio
+        self._test_split_ratio = test_split_ratio
+        # self._sample_by_split = dict()
+        self._sample_by_split: Dict[str, torch.utils.data.Subset] = {}
+        self._sampling_config = FixedSeedSamplingConfig(seed=random_state, balance_domain=True)
+        self._loader = MultiDataLoader
+        self._random_state = random_state
+
+    def prepare_data_loaders(self):
+        splits = ["test", "valid", "train"]
+        subset_idx = split_by_domains(self.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio])
+        for i in range(len(splits)):
+            self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
+
+    def get_domain_loaders(self, split="train", batch_size=32):
+        # dataloaders = [self._sampling_config.create_loader(self._sample_by_split[domain_][split], batch_size)
+        # for domain_ in self._sample_by_split]
+        # return self._loader(dataloaders)
+        return self._sampling_config.create_loader(self._sample_by_split[split], batch_size)
+
+    def __len__(self):
+
+        return len(self.data_access)
