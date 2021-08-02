@@ -77,7 +77,7 @@ def download_file_gdrive(id, output_directory, output_file_name, file_format=Non
     if file_format is not None and file_format in ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]:
         logging.info("Downloading and extracting {}.".format(output_file_name))
         download_file_from_google_drive(id, output_directory, output_file_name)
-        extract_archive(file)
+        extract_archive(file.as_posix())
         logging.info("Datasets downloaded and extracted in {}".format(file))
     else:
         logging.info("Downloading {}.".format(output_file_name))
