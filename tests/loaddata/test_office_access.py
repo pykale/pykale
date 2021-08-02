@@ -1,6 +1,7 @@
-import torch
 import os
+
 import pytest
+import torch
 from numpy import testing
 
 from kale.loaddata.multi_domain import MultiDomainAdapDataset, MultiDomainDatasets
