@@ -510,8 +510,8 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     def get_train(self):
         return VideoFrameDataset(
             root_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
-            # Uncomment to run on test subset for EPIC 2021 challenge
-            # data_path=Path.joinpath(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
+            # Uncomment to run on train subset for EPIC 2021 challenge
+            # data_path=Path.joinpath(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
             annotationfile_path=self._test_list,
             num_segments=5,
             frames_per_segment=1,
