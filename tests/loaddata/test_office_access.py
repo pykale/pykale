@@ -1,7 +1,8 @@
 import torch
 from numpy import testing
-from kale.loaddata.office_access import OfficeAccess, Office31, OfficeCaltech
-from kale.loaddata.multi_domain import MultiDomainDatasets, MultiDomainAdapDataset
+
+from kale.loaddata.multi_domain import MultiDomainAdapDataset, MultiDomainDatasets
+from kale.loaddata.office_access import Office31, OfficeAccess, OfficeCaltech
 
 
 def test_office31(download_path):
@@ -25,12 +26,9 @@ def test_office_caltech(download_path):
 
 
 def test_custom_office(download_path):
-    source = OfficeAccess(root=download_path, download=True, sub_domain_set=['dslr', ], split_train_test=True)
-    target = OfficeAccess(root=download_path, download=True, sub_domain_set=['webcam'], split_train_test=True)
+    source = OfficeAccess(root=download_path, download=True, sub_domain_set=["dslr"], split_train_test=True)
+    target = OfficeAccess(root=download_path, download=True, sub_domain_set=["webcam"], split_train_test=True)
     dataset = MultiDomainDatasets(source_access=source, target_access=target)
     dataset.prepare_data_loaders()
     dataloader = dataset.get_domain_loaders()
     testing.assert_equal(len(next(iter(dataloader))), 2)
-
-
-

@@ -1,10 +1,10 @@
-import os
 import logging
-from kale.loaddata.multi_domain import MultiDomainImageFolder
-from kale.utils.download import download_file_by_url
-from kale.prepdata.image_transform import get_transform
-from kale.loaddata.dataset_access import DatasetAccess
+import os
 
+from kale.loaddata.dataset_access import DatasetAccess
+from kale.loaddata.multi_domain import MultiDomainImageFolder
+from kale.prepdata.image_transform import get_transform
+from kale.utils.download import download_file_by_url
 
 url = "https://github.com/sz144/data/raw/main/image_data/office/"
 DOMAINS = ["amazon", "caltech", "dslr", "webcam"]
@@ -43,14 +43,26 @@ class OfficeAccess(MultiDomainImageFolder, DatasetAccess):
 
 class Office31(OfficeAccess):
     def __init__(self, root, transform=office_transform, download=False, **kwargs):
-        sub_domain_set = ['amazon', 'dslr', 'webcam']
-        super(Office31, self).__init__(root, transform=transform, download=download, sub_domain_set=sub_domain_set,
-                                       **kwargs)
+        sub_domain_set = ["amazon", "dslr", "webcam"]
+        super(Office31, self).__init__(
+            root, transform=transform, download=download, sub_domain_set=sub_domain_set, **kwargs
+        )
 
 
 class OfficeCaltech(OfficeAccess):
     def __init__(self, root, transform=office_transform, download=False, **kwargs):
-        sub_class_set = ["mouse", "calculator", "back_pack", "keyboard", "monitor", "projector", "headphones", "bike",
-                         "laptop_computer", "mug"]
-        super(OfficeCaltech, self).__init__(root, transform=transform, download=download, sub_class_set=sub_class_set,
-                                            **kwargs)
+        sub_class_set = [
+            "mouse",
+            "calculator",
+            "back_pack",
+            "keyboard",
+            "monitor",
+            "projector",
+            "headphones",
+            "bike",
+            "laptop_computer",
+            "mug",
+        ]
+        super(OfficeCaltech, self).__init__(
+            root, transform=transform, download=download, sub_class_set=sub_class_set, **kwargs
+        )
