@@ -69,6 +69,9 @@ def download_file_gdrive(id, output_directory, output_file_name, file_format=Non
     Example:
         >>> gdrive_id = "1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga"
         >>> download_file_gdrive(gdrive_id, "data", "demo_datasets.zip", "zip")
+
+        >>> gdrive_id = "1SV7fmAnWj-6AU9X5BGOrvGMoh2Gu9Nih"
+        >>> download_file_gdrive(gdrive_id, "data", "dummy_data.csv", "csv")
     """
 
     output_directory = Path(output_directory).absolute()
