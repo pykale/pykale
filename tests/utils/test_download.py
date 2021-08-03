@@ -13,6 +13,7 @@ PARAM = [
 
 GDRIVE_PARAM = [
     "1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga;demo_datasets.zip;zip",
+    "1SV7fmAnWj-6AU9X5BGOrvGMoh2Gu9Nih;dummy_data.csv;csv",
 ]
 
 
