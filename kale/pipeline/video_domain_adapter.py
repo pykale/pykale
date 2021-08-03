@@ -22,7 +22,7 @@ from kale.pipeline.domain_adapter import (
     get_aggregated_metrics_from_dict,
     get_metrics_from_parameter_dict,
     Method,
-    ReverseLayerF,
+    GradReverse,
     set_requires_grad,
     WDGRLtrainer,
 )
@@ -592,17 +592,17 @@ class DANNtrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.alpha)
+                reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
                 adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
-                reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
+                reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
                 adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
             if self.audio:
                 x_audio = self.audio_feat(x["audio"])
                 x_audio = x_audio.view(x_audio.size(0), -1)
-                reverse_feature_audio = ReverseLayerF.apply(x_audio, self.alpha)
+                reverse_feature_audio = GradReverse.apply(x_audio, self.alpha)
                 adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
 
             x = self.concatenate_feature(x_rgb, x_flow, x_audio)
@@ -756,22 +756,22 @@ class CDANtrainerVideo(BaseAdaptTrainerVideo, CDANtrainer):
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.alpha)
+                reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
-                reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
+                reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
             if self.audio:
                 x_audio = self.audio_feat(x["audio"])
                 x_audio = x_audio.view(x_audio.size(0), -1)
-                reverse_feature_audio = ReverseLayerF.apply(x_audio, self.alpha)
+                reverse_feature_audio = GradReverse.apply(x_audio, self.alpha)
 
             x = self.concatenate_feature(x_rgb, x_flow, x_audio)
 
             class_output = self.classifier(x)
             # # Only use verb class to get softmax_output
             softmax_output = torch.nn.Softmax(dim=1)(class_output[0])
-            reverse_out = ReverseLayerF.apply(softmax_output, self.alpha)
+            reverse_out = GradReverse.apply(softmax_output, self.alpha)
 
             if self.rgb:
                 feature_rgb = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_rgb.unsqueeze(1))
@@ -1219,21 +1219,21 @@ class TA3NtrainerVideo(DANNtrainerVideo):
                     if self.method is Method.TA3N:
                         x_rgb, adv_output_rgb_0, adv_output_rgb_1 = self.rgb_attention(x_rgb, self.beta)
                     x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                    reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.beta[1])
+                    reverse_feature_rgb = GradReverse.apply(x_rgb, self.beta[1])
                     adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
                 if self.flow:
                     x_flow = self.flow_feat(x["flow"])
                     if self.method is Method.TA3N:
                         x_flow, adv_output_flow_0, adv_output_flow_1 = self.flow_attention(x_flow, self.beta)
                     x_flow = x_flow.view(x_flow.size(0), -1)
-                    reverse_feature_flow = ReverseLayerF.apply(x_flow, self.beta[1])
+                    reverse_feature_flow = GradReverse.apply(x_flow, self.beta[1])
                     adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
                 if self.audio:
                     x_audio = self.audio_feat(x["audio"])
                     if self.method is Method.TA3N:
                         x_audio, adv_output_audio_0, adv_output_audio_1 = self.audio_attention(x_audio, self.beta)
                     x_audio = x_audio.view(x_audio.size(0), -1)
-                    reverse_feature_audio = ReverseLayerF.apply(x_audio, self.beta[1])
+                    reverse_feature_audio = GradReverse.apply(x_audio, self.beta[1])
                     adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
 
                 x = self.concatenate_feature(x_rgb, x_flow, x_audio)
@@ -1243,7 +1243,7 @@ class TA3NtrainerVideo(DANNtrainerVideo):
                 x = self.feat(x)
                 x, adv_output_0, adv_output_1 = self.attention(x, self.beta)
                 x = x.view(x.size(0), -1)
-                reverse_feature = ReverseLayerF.apply(x, self.beta[1])
+                reverse_feature = GradReverse.apply(x, self.beta[1])
                 adversarial_output = self.domain_classifier(reverse_feature)
                 adversarial_output_rgb = adversarial_output_flow = adversarial_output_audio = adversarial_output
                 x_rgb = x_flow = x_audio = x

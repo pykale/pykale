@@ -16,7 +16,7 @@ from torch.autograd import Function
 import kale.predict.losses as losses
 
 
-class ReverseLayerF(Function):
+class GradReverse(Function):
     """The gradient reversal layer (GRL)
 
     This is defined in the DANN paper http://jmlr.org/papers/volume17/15-239/15-239.pdf
@@ -30,7 +30,6 @@ class ReverseLayerF(Function):
     @staticmethod
     def forward(ctx, x, alpha):
         ctx.alpha = alpha
-
         return x.view_as(x)
 
     @staticmethod
@@ -39,10 +38,21 @@ class ReverseLayerF(Function):
         return output, None
 
 
+class GradScale(Function):
+    """The gradient scaling layer"""
+    @staticmethod
+    def forward(ctx, x, beta):
+        ctx.beta = beta
+        return x.view_as(x)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        grad_input = grad_output * ctx.beta
+        return grad_input, None
+
+
 def set_requires_grad(model, requires_grad=True):
-    """
-    Configure whether gradients are required for a model
-    """
+    """Configure whether gradients are required for a model"""
     for param in model.parameters():
         param.requires_grad = requires_grad
 
@@ -108,13 +118,16 @@ class Method(Enum):
         return self in (Method.DAN, Method.JAN)
 
     def is_dann_method(self):
-        return self in (Method.DANN, Method.Source, Method.TA3N)
+        return self in (Method.DANN, Method.Source)
 
     def is_cdan_method(self):
         return self in (Method.CDAN, Method.CDAN_E)
 
     def is_fewshot_method(self):
         return self in (Method.FSDANN, Method.MME, Method.Source)
+
+    def is_ta3n_method(self):
+        return self in Method.TA3N
 
     def allow_supervised(self):
         return self.is_fewshot_method()
@@ -588,7 +601,7 @@ class DANNtrainer(BaseDANNLike):
             x = self.feat(x)
         feature = x.view(x.size(0), -1)
 
-        reverse_feature = ReverseLayerF.apply(feature, self.alpha)
+        reverse_feature = GradReverse.apply(feature, self.alpha)
         class_output = self.classifier(feature)
         adversarial_output = self.domain_classifier(reverse_feature)
         return feature, class_output, adversarial_output
@@ -631,10 +644,10 @@ class CDANtrainer(BaseDANNLike):
         class_output = self.classifier(x)
 
         # The GRL hook is applied to all inputs to the adversary
-        reverse_feature = ReverseLayerF.apply(x, self.alpha)
+        reverse_feature = GradReverse.apply(x, self.alpha)
 
         softmax_output = torch.nn.Softmax(dim=1)(class_output)
-        reverse_out = ReverseLayerF.apply(softmax_output, self.alpha)
+        reverse_out = GradReverse.apply(softmax_output, self.alpha)
 
         feature = torch.bmm(reverse_out.unsqueeze(2), reverse_feature.unsqueeze(1))
         feature = feature.view(-1, reverse_out.size(1) * reverse_feature.size(1))
@@ -648,7 +661,7 @@ class CDANtrainer(BaseDANNLike):
 
     def _compute_entropy_weights(self, logits):
         entropy = losses.entropy_logits(logits)
-        entropy = ReverseLayerF.apply(entropy, self.alpha)
+        entropy = GradReverse.apply(entropy, self.alpha)
         entropy_w = 1.0 + torch.exp(-entropy)
         return entropy_w
 
@@ -971,7 +984,7 @@ class FewShotDANNtrainer(BaseDANNLike):
             x = self.feat(x)
         x = x.view(x.size(0), -1)
 
-        reverse_feature = ReverseLayerF.apply(x, self.alpha)
+        reverse_feature = GradReverse.apply(x, self.alpha)
         class_output = self.classifier(x)
         adversarial_output = self.domain_classifier(reverse_feature)
         return x, class_output, adversarial_output

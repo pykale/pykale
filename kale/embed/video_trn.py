@@ -9,7 +9,7 @@ import torch
 import numpy as np
 
 from torch import nn
-from kale.pipeline.domain_adapter import ReverseLayerF
+from kale.pipeline.domain_adapter import GradReverse
 
 
 class TRNRelationModule(nn.Module):
@@ -146,7 +146,7 @@ class TemporalAttention(nn.Module):
         prediction_video = None
         for i in range(len(self.relation_domain_classifier_all)):
             x = input[:, i, :].squeeze(1)  # 128x1x256 --> 128x256
-            x = ReverseLayerF.apply(x, beta)
+            x = GradReverse.apply(x, beta)
             prediction_single = self.relation_domain_classifier_all[i](x)
 
             if prediction_video is None:
@@ -160,7 +160,7 @@ class TemporalAttention(nn.Module):
         return prediction_video
 
     def domain_classifier_frame(self, input, beta):
-        x = ReverseLayerF.apply(input, beta)
+        x = GradReverse.apply(input, beta)
         x = self.fc_1_domain_frame(x)
         x = self.relu(x)
         x = self.fc_2_domain_frame(x)
