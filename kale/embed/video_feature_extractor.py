@@ -16,7 +16,7 @@ from kale.embed.video_ta3n import ta3n_joint
 from kale.loaddata.video_access import get_image_modality
 
 
-def get_feat_extractor4video(model_name, image_modality, attention, dict_num_classes):
+def get_extractor_video(model_name, image_modality, attention, dict_num_classes):
     """Get the feature extractor w/o the pre-trained model and SELayers for original image input.
     The pre-trained models are saved in the path ``$XDG_CACHE_HOME/torch/hub/checkpoints/``.
     For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
@@ -142,18 +142,15 @@ def get_feat_extractor4video(model_name, image_modality, attention, dict_num_cla
     return feature_network, int(class_feature_dim), int(domain_feature_dim)
 
 
-def get_feat_extractor4feature(image_modality, num_out=256):
+def get_extractor_feat(model_name, image_modality, num_out=256):
     """Get the feature extractor w/o SELayers for feature input.
     """
     rgb, flow, audio = get_image_modality(image_modality)
-    rgb_pretrained = flow_pretrained = audio_pretrained = None
-    if rgb:
-        rgb_pretrained = "rgb_ta3n"
-    if flow:
-        flow_pretrained = "flow_ta3n"
-    if audio:
-        audio_pretrained = "audio_ta3n"
-    feature_network = ta3n_joint(rgb_pretrained, flow_pretrained, audio_pretrained, input_size=1024, n_out=num_out)
+
+    if "TA3N" in model_name:
+        rgb_pretrained = flow_pretrained = audio_pretrained = None
+        logging.info("{}".format(model_name))
+        feature_network = ta3n_joint(rgb_pretrained, flow_pretrained, audio_pretrained, input_size=1024, n_out=num_out)
 
     domain_feature_dim = int(num_out)
     if rgb:

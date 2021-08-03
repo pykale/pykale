@@ -10,7 +10,7 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 
 from copy import deepcopy
 
-from kale.embed.video_feature_extractor import get_feat_extractor4feature, get_feat_extractor4video
+from kale.embed.video_feature_extractor import get_extractor_feat, get_extractor_video
 from kale.pipeline import domain_adapter, video_domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, ClassNetVideoTA3N, DomainNetVideo, DomainNetVideoTA3N
 
@@ -79,12 +79,12 @@ def get_model(cfg, dataset, dict_num_classes):
 
     # setup feature extractor
     if input_type == "image":
-        feature_network, class_feature_dim, domain_feature_dim = get_feat_extractor4video(
+        feature_network, class_feature_dim, domain_feature_dim = get_extractor_video(
             cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, dict_num_classes
         )
     else:
-        feature_network, class_feature_dim, domain_feature_dim = get_feat_extractor4feature(
-            cfg.DATASET.IMAGE_MODALITY, num_out=256
+        feature_network, class_feature_dim, domain_feature_dim = get_extractor_feat(
+            cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, num_out=256
         )
 
     # setup classifier
