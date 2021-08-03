@@ -26,8 +26,8 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Action Datasets")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument("--gpus", default=[0],
-                        help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU. str(x) for the first "
-                             "x GPUs. str(-1)/int(-1) for all available GPUs", type=str)
+                        help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
+                             "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs")
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
@@ -60,6 +60,7 @@ def main():
         random_state=seed,
         config_weight_type=cfg.DATASET.WEIGHT_TYPE,
         config_size_type=cfg.DATASET.SIZE_TYPE,
+        num_workers=cfg.SOLVER.WORKERS,
     )
 
     # ---- training/test process ----

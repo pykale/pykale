@@ -19,18 +19,19 @@ from kale.loaddata.video_access import get_image_modality
 
 class VideoMultiDomainDatasets(MultiDomainDatasets):
     def __init__(
-        self,
-        source_access_dict,
-        target_access_dict,
-        image_modality,
-        config_weight_type="natural",
-        config_size_type=DatasetSizeType.Max,
-        val_split_ratio=0.1,
-        source_sampling_config=None,
-        target_sampling_config=None,
-        n_fewshot=None,
-        random_state=None,
-        class_ids=None,
+            self,
+            source_access_dict,
+            target_access_dict,
+            image_modality,
+            config_weight_type="natural",
+            config_size_type=DatasetSizeType.Max,
+            val_split_ratio=0.1,
+            num_workers=1,
+            source_sampling_config=None,
+            target_sampling_config=None,
+            n_fewshot=None,
+            random_state=None,
+            class_ids=None,
     ):
         """The class controlling how the source and target domains are iterated over when the input is joint.
             Inherited from MultiDomainDatasets.
@@ -70,8 +71,8 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         elif weight_type not in WeightingType:
             raise ValueError(f"Unknown weighting method {weight_type}.")
         else:
-            self._source_sampling_config = FixedSeedSamplingConfig(seed=random_state)
-            self._target_sampling_config = FixedSeedSamplingConfig(seed=random_state)
+            self._source_sampling_config = FixedSeedSamplingConfig(seed=random_state, num_workers=num_workers)
+            self._target_sampling_config = FixedSeedSamplingConfig(seed=random_state, num_workers=num_workers)
 
         self._source_access_dict = source_access_dict
         self._target_access_dict = target_access_dict

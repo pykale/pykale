@@ -40,10 +40,11 @@ class SamplingConfig:
 
 
 class FixedSeedSamplingConfig(SamplingConfig):
-    def __init__(self, seed=1, balance=False, class_weights=None):
+    def __init__(self, seed=1, num_workers=1, balance=False, class_weights=None):
         """Sampling with fixed seed."""
         super(FixedSeedSamplingConfig, self).__init__(balance, class_weights)
         self._seed = seed
+        self._num_workers = num_workers
 
     def create_loader(self, dataset, batch_size):
         """Create the data loader with fixed seed."""
@@ -63,7 +64,7 @@ class FixedSeedSamplingConfig(SamplingConfig):
                 sub_sampler = RandomSampler(dataset, generator=torch.Generator().manual_seed(self._seed))
             # sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=True)
             sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=False)
-        return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler)
+        return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler, num_workers=self._num_workers, pin_memory=True)
 
 
 # TODO: deterministic shuffle?
