@@ -7,16 +7,15 @@ These guidelines will help you to write tests to address sufficiently compact pi
 ## Quick start
 
 - [Compact pytest tutorial](https://www.tutorialspoint.com/pytest/pytest_tutorial.pdf), [pytest fixtures](https://docs.pytest.org/en/stable/fixture.html), [pytest exceptions](https://docs.pytest.org/en/stable/assert.html#assertions-about-expected-exceptions)
-- Example [unit tests for deep learning code of Variational Autoencoder (VAE) in PyTorch](https://github.com/tilman151/unittest_dl) and the associated post [How to Trust Your Deep Learning Code](https://krokotsch.eu/cleancode/2020/08/11/Unit-Tests-for-Deep-Learning.html). *Note: it uses `unittest` but we use `pytest`*. However, to help convert a `unittest` to `pytest`, using [unittest2pytest](https://github.com/pytest-dev/unittest2pytest) is a good starting point
+- Example [unit tests for deep learning code of Variational Autoencoder (VAE) in PyTorch](https://github.com/tilman151/unittest_dl) and the associated post [How to Trust Your Deep Learning Code](https://krokotsch.eu/cleancode/2020/08/11/Unit-Tests-for-Deep-Learning.html). *Note: it uses `unittest` but we use `pytest`. To convert a `unittest` to a `pytest`, we can use [unittest2pytest](https://github.com/pytest-dev/unittest2pytest) as a starting point.*
 - Learn from [existing pykale tests](https://github.com/pykale/pykale/tree/main/tests), [pytorch tests](https://github.com/pytorch/pytorch/tree/master/test), [torchvision tests](https://github.com/pytorch/vision/tree/master/test), and pytest+pytorch examples [fastai1 tests](https://github.com/fastai/fastai1/tree/master/tests) and [Kornia tests](https://github.com/kornia/kornia/tree/master/test)
 - Use GitHub code links to find out definitions and references
-- Consider to use [pytest in vscode](https://code.visualstudio.com/docs/python/testing) or [pytest in pycharm](https://www.jetbrains.com/help/pycharm/pytest.html)
+- Consider to use [Python Test Explorer for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=LittleFoxTeam.vscode-python-test-adapter) or [pytest in pycharm](https://www.jetbrains.com/help/pycharm/pytest.html) to run tests conveniently.
 - [fastai testing](https://fastai1.fast.ai/dev/test.html) is a good high-level reference. We adapt its recommendations on [writing tests](https://fastai1.fast.ai/dev/test.html#writing-tests) below:
   - Think about how to create a test of the real functionality that runs quickly, e.g. based on our [`examples`](https://github.com/pykale/pykale/tree/main/examples).
   - Use module scope fixtures to run initial code that can be shared amongst tests. When using fixtures, make sure the test doesn’t modify the global object it received. If there's a risk of modifying a broadly scoped fixture, you could clone it with a more tightly scoped fixture or create a fresh fixture/object instead.
   - Avoid pretrained models, since they have to be downloaded from the internet to run the test.
   - Create some minimal data for your test, or use data already in repo’s data/ directory.
-  - Consider downloading the [python test explorer extension](https://marketplace.visualstudio.com/items?itemName=LittleFoxTeam.vscode-python-test-adapter&ssr=false) to increase the ease of running unit tests. The steps for setting it up was also provided
 
 See more details below, particularly [test data](#test-data), [common parameters](#common-parameters), and [running tests locally](#running-tests-locally).
 
