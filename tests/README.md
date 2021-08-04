@@ -7,7 +7,7 @@ These guidelines will help you to write tests to address sufficiently compact pi
 ## Quick start
 
 - [Compact pytest tutorial](https://www.tutorialspoint.com/pytest/pytest_tutorial.pdf), [pytest fixtures](https://docs.pytest.org/en/stable/fixture.html), [pytest exceptions](https://docs.pytest.org/en/stable/assert.html#assertions-about-expected-exceptions)
-- Example [unit tests for deep learning code of Variational Autoencoder (VAE) in PyTorch](https://github.com/tilman151/unittest_dl) and the associated post [How to Trust Your Deep Learning Code](https://krokotsch.eu/cleancode/2020/08/11/Unit-Tests-for-Deep-Learning.html). *Note: it uses `unittest` but we use `pytest`*.
+- Example [unit tests for deep learning code of Variational Autoencoder (VAE) in PyTorch](https://github.com/tilman151/unittest_dl) and the associated post [How to Trust Your Deep Learning Code](https://krokotsch.eu/cleancode/2020/08/11/Unit-Tests-for-Deep-Learning.html). *Note: it uses `unittest` but we use `pytest`*. However, to help convert a `unittest` to `pytest`, using [unittest2pytest](https://github.com/pytest-dev/unittest2pytest) is a good starting point
 - Learn from [existing pykale tests](https://github.com/pykale/pykale/tree/main/tests), [pytorch tests](https://github.com/pytorch/pytorch/tree/master/test), [torchvision tests](https://github.com/pytorch/vision/tree/master/test), and pytest+pytorch examples [fastai1 tests](https://github.com/fastai/fastai1/tree/master/tests) and [Kornia tests](https://github.com/kornia/kornia/tree/master/test)
 - Use GitHub code links to find out definitions and references
 - Consider to use [pytest in vscode](https://code.visualstudio.com/docs/python/testing) or [pytest in pycharm](https://www.jetbrains.com/help/pycharm/pytest.html)
