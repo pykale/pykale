@@ -1,8 +1,11 @@
+"""
+Test for sampler.py API adapted from https://github.com/criteo-research/pytorch-ada/blob/master/tests/datasets/test_sampler.py
+"""
+
 import itertools
 from collections import Counter
 
 import numpy as np
-import pytest
 
 from kale.loaddata.sampler import BalancedBatchSampler, ReweightedBatchSampler
 
@@ -12,7 +15,6 @@ class MyDataset:
         self.targets = np.tile(["1", "2", "3", "3", "3", "4"], 10)
 
 
-@pytest.fixture(scope="module")
 def idx_to_class(idx):
     idx = idx % 6
     if idx < 2:
@@ -23,7 +25,7 @@ def idx_to_class(idx):
         return "4"
 
 
-def test_balanced_small_batches(idx_to_class):
+def test_balanced_small_batches():
     sampler = BalancedBatchSampler(MyDataset(), batch_size=4 * 4)
     assert len(sampler) == 3
     batches = list(itertools.islice(sampler, 8))
@@ -44,7 +46,7 @@ def test_balanced_small_batches(idx_to_class):
     assert {idx_to_class(idx) for idx, nb in counts.items() if nb > 1} == {"1", "2", "4"}
 
 
-def test_balanced_bigger_batches(idx_to_class):
+def test_balanced_bigger_batches():
     sampler = BalancedBatchSampler(MyDataset(), batch_size=12 * 4)
     assert len(sampler) == 1
     batches = list(itertools.islice(sampler, 3))
