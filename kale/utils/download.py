@@ -56,7 +56,7 @@ def download_file_by_url(url, output_directory, output_file_name, file_format=No
 
 
 def download_file_gdrive(id, output_directory, output_file_name, file_format=None):
-    """Download file/compressed file by google drive id.
+    """Download file/compressed file by Google Drive id.
 
     Args:
         id (string): Google Drive file id of the object to download
