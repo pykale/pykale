@@ -16,7 +16,8 @@ These guidelines will help you to write tests to address sufficiently compact pi
   - Use module scope fixtures to run initial code that can be shared amongst tests. When using fixtures, make sure the test doesn’t modify the global object it received. If there's a risk of modifying a broadly scoped fixture, you could clone it with a more tightly scoped fixture or create a fresh fixture/object instead.
   - Avoid pretrained models, since they have to be downloaded from the internet to run the test.
   - Create some minimal data for your test, or use data already in repo’s data/ directory.
-
+  - Consider downloading the [python test explorer extension](https://marketplace.visualstudio.com/items?itemName=LittleFoxTeam.vscode-python-test-adapter&ssr=false) to increase the ease of running unit tests. The steps for setting it up was also provided 
+  
 See more details below, particularly [test data](#test-data), [common parameters](#common-parameters), and [running tests locally](#running-tests-locally).
 
 ## Test data
