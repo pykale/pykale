@@ -513,6 +513,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             # Uncomment to run on train subset for EPIC 2021 challenge
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
             annotationfile_path=self._test_list,
+            total_segments=25,
             num_segments=5,
             frames_per_segment=1,
             image_modality=self._image_modality,
@@ -521,7 +522,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
             random_shift=False,
-            test_mode=False,
+            test_mode=True,
             input_type="feature",
             num_data_load=self._num_train_dataload,
         )
@@ -532,6 +533,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             # Uncomment to run on test subset for EPIC 2021 challenge
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
             annotationfile_path=self._test_list,
+            total_segments=25,
             num_segments=5,
             frames_per_segment=1,
             image_modality=self._image_modality,
@@ -539,7 +541,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             imagefile_template="img_{:05d}.t7"
             if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
-            random_shift=False,
+            random_shift=True,
             test_mode=True,
             input_type="feature",
             num_data_load=self._num_test_dataload,

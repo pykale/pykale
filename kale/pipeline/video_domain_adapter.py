@@ -84,21 +84,7 @@ def create_dann_like_video(
 
     if method.is_dann_method():
         alpha = 0 if method is Method.Source else 1
-        if method is Method.TA3N:
-            return TA3NtrainerVideo(
-                alpha=alpha,
-                image_modality=image_modality,
-                dataset=dataset,
-                feature_extractor=feature_extractor,
-                task_classifier=task_classifier,
-                critic=critic,
-                method=method,
-                input_type=input_type,
-                class_type=class_type,
-                **train_params,
-            )
-        else:
-            return DANNtrainerVideo(
+        return DANNtrainerVideo(
                 alpha=alpha,
                 image_modality=image_modality,
                 dataset=dataset,
@@ -123,6 +109,18 @@ def create_dann_like_video(
             use_entropy=method is Method.CDAN_E,
             **train_params,
         )
+    elif method is Method.TA3N:
+        return TA3NtrainerVideo(
+                image_modality=image_modality,
+                dataset=dataset,
+                feature_extractor=feature_extractor,
+                task_classifier=task_classifier,
+                critic=critic,
+                method=method,
+                input_type=input_type,
+                class_type=class_type,
+                **train_params,
+            )
     elif method is Method.WDGRL:
         return WDGRLtrainerVideo(
             dataset=dataset,
@@ -1143,7 +1141,7 @@ class WDGRLtrainerVideo(WDGRLtrainer):
             set_requires_grad(self.domain_classifier, requires_grad=False)
 
 
-class TA3NtrainerVideo(DANNtrainerVideo):
+class TA3NtrainerVideo(BaseAdaptTrainerVideo):
     """This is an implementation of TA3N for video data."""
 
     def __init__(

@@ -29,9 +29,9 @@ class TRNRelationModule(nn.Module):
         return classifier
 
     def forward(self, input):
-        input = input.view(input.size(0), self.num_frames * self.img_feature_dim)
-        input = self.classifier(input)
-        return input
+        x = input.view(input.size(0), self.num_frames * self.img_feature_dim)
+        x = self.classifier(x)
+        return x
 
 
 class TRNRelationModuleMultiScale(nn.Module):
@@ -58,7 +58,7 @@ class TRNRelationModuleMultiScale(nn.Module):
         self.fc_fusion_scales = nn.ModuleList()  # high-tech modulelist
         for i in range(len(self.scales)):
             scale = self.scales[i]
-            fc_fusion = nn.Sequential(nn.ReLU(), nn.Linear(scale * self.img_feature_dim, num_bottleneck), nn.ReLU(),)
+            fc_fusion = nn.Sequential(nn.ReLU(), nn.Linear(scale * self.img_feature_dim, num_bottleneck), nn.ReLU(), )
 
             self.fc_fusion_scales += [fc_fusion]
 
@@ -105,7 +105,7 @@ class TemporalAttention(nn.Module):
     """
 
     def __init__(
-        self, input_size=512, num_segments=5, beta=0.75, trn_bottleneck=256, use_attn="TransAttn",
+            self, input_size=512, num_segments=5, beta=0.75, trn_bottleneck=256, use_attn="TransAttn",
     ):
         super(TemporalAttention, self).__init__()
         self.num_segments = num_segments

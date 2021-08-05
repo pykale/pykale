@@ -127,7 +127,7 @@ class Method(Enum):
         return self in (Method.FSDANN, Method.MME, Method.Source)
 
     def is_ta3n_method(self):
-        return self in Method.TA3N
+        return self in (Method.TA3N,)
 
     def allow_supervised(self):
         return self.is_fewshot_method()
