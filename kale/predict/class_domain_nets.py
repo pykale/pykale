@@ -10,6 +10,7 @@ adversarial discrimination of source vs target domains, from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
 """
 import torch.nn as nn
+from torch.nn.init import normal_, constant_
 
 from kale.embed.video_i3d import Unit3D
 from kale.loaddata.video_access import get_class_type
@@ -169,6 +170,36 @@ class ClassNetVideo(nn.Module):
         return [x_verb, x_noun]
 
 
+class ClassNetVideoConv(nn.Module):
+    """Classifier network for video input refer to MMSADA.
+
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 1024.
+        n_class (int, optional): the number of classes. Defaults to 8.
+
+    References:
+        Munro Jonathan, and Dima Damen. "Multi-modal domain adaptation for fine-grained action recognition."
+        In CVPR, pp. 122-132. 2020.
+    """
+
+    def __init__(self, input_size=1024, n_class=8):
+        super(ClassNetVideoConv, self).__init__()
+        self.dp = nn.Dropout()
+        self.logits = Unit3D(
+            in_channels=input_size,
+            output_channels=n_class,
+            kernel_shape=[1, 1, 1],
+            padding=0,
+            activation_fn=None,
+            use_batch_norm=False,
+            use_bias=True,
+        )
+
+    def forward(self, input):
+        x = self.logits(self.dp(input))
+        return x
+
+
 class ClassNetVideoTA3N(nn.Module):
     """Regular classifier network for video input for TA3N.
 
@@ -205,37 +236,6 @@ class ClassNetVideoTA3N(nn.Module):
             x_noun = self.fc2(input)
         return [x_verb, x_noun]
 
-
-class ClassNetVideoConv(nn.Module):
-    """Classifier network for video input refer to MMSADA.
-
-    Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 1024.
-        n_class (int, optional): the number of classes. Defaults to 8.
-
-    References:
-        Munro Jonathan, and Dima Damen. "Multi-modal domain adaptation for fine-grained action recognition."
-        In CVPR, pp. 122-132. 2020.
-    """
-
-    def __init__(self, input_size=1024, n_class=8):
-        super(ClassNetVideoConv, self).__init__()
-        self.dp = nn.Dropout()
-        self.logits = Unit3D(
-            in_channels=input_size,
-            output_channels=n_class,
-            kernel_shape=[1, 1, 1],
-            padding=0,
-            activation_fn=None,
-            use_batch_norm=False,
-            use_bias=True,
-        )
-
-    def forward(self, input):
-        x = self.logits(self.dp(input))
-        return x
-
-
 # For Video/Action Recognition, DomainClassifier.
 class DomainNetVideo(nn.Module):
     """Regular domain classifier network for video input.
@@ -259,22 +259,116 @@ class DomainNetVideo(nn.Module):
         return x
 
 
-class DomainNetVideoTA3N(nn.Module):
-    """Smaller domain classifier network for TA3N.
+# class DomainNetVideoTA3N(nn.Module):
+#     """Smaller domain classifier network for TA3N.
+#
+#     Args:
+#         input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
+#         n_channel (int, optional): the number of channel for Linear and BN layers.
+#     """
+#
+#     def __init__(self, input_size=128, n_channel=100, class_type="verb"):
+#         super(DomainNetVideoTA3N, self).__init__()
+#
+#         self.fc1 = nn.Linear(input_size, input_size)
+#         self.relu1 = nn.ReLU()
+#         self.fc2 = nn.Linear(input_size, 2)
+#
+#     def forward(self, input):
+#         x = self.relu1(self.fc1(input))
+#         x = self.fc2(x)
+#         return x
 
-    Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
-        n_channel (int, optional): the number of channel for Linear and BN layers.
-    """
 
-    def __init__(self, input_size=128, n_channel=100, class_type="verb"):
-        super(DomainNetVideoTA3N, self).__init__()
+class DomainNetTA3N(nn.Module):
+    def __init__(self, input_size=512, output_size=512):
+        super(DomainNetTA3N, self).__init__()
+        self.std = 0.001
 
-        self.fc1 = nn.Linear(input_size, input_size)
-        self.relu1 = nn.ReLU()
-        self.fc2 = nn.Linear(input_size, 2)
+        self.fc1 = nn.Linear(input_size, output_size)
+        normal_(self.fc1.weight, 0, self.std)
+        constant_(self.fc1.bias, 0)
+        self.relu = nn.ReLU(inplace=True)
+        self.fc2 = nn.Linear(output_size, 2)
+        normal_(self.fc2.weight, 0, self.std)
+        constant_(self.fc2.bias, 0)
 
     def forward(self, input):
-        x = self.relu1(self.fc1(input))
+        x = self.fc1(input)
+        x = self.relu(x)
         x = self.fc2(x)
         return x
+
+
+# class DomainNetTA3NVideo(nn.Module):
+#     def __init__(self, input_size=256, output_size=256):
+#         super(TA3NVideoDomainNet, self).__init__()
+#         self.std = 0.001
+#
+#         self.fc1 = nn.Linear(input_size, output_size)
+#         normal_(self.fc1.weight, 0, self.std)
+#         constant_(self.fc1.bias, 0)
+#         self.relu = nn.ReLU(inplace=True)
+#         self.fc2 = nn.Linear(output_size, 2)
+#         normal_(self.fc2.weight, 0, self.std)
+#         constant_(self.fc2.bias, 0)
+#
+#     def forward(self, input):
+#         x = self.fc1(input)
+#         x = self.relu(x)
+#         x = self.fc2(x)
+#         return x
+
+
+class ClassNetTA3NFrame(nn.Module):
+    def __init__(self, input_size=512, output_size=97):
+        super(ClassNetTA3NFrame, self).__init__()
+        self.std = 0.001
+        self.fc = nn.Linear(input_size, output_size)
+        normal_(self.fc.weight, 0, self.std)
+        constant_(self.fc.bias, 0)
+
+    def forward(self, input):
+        x = self.fc(input)
+        return x
+
+
+# class ClassNetTA3NFrameNoun(nn.Module):
+#     def __init__(self, input_size=512, output_size=300):
+#         super(TA3NSpatialNounClassifier, self).__init__()
+#         self.std = 0.001
+#         self.fc = nn.Linear(input_size, output_size)
+#         normal_(self.fc.weight, 0, self.std)
+#         constant_(self.fc.bias, 0)
+#
+#     def forward(self, input):
+#         x = self.fc(input)
+#         return x
+
+
+class ClassNetTA3NVideo(nn.Module):
+    def __init__(self, input_size=512, output_size=97, dropout_rate=0.5):
+        super(ClassNetTA3NVideo, self).__init__()
+        self.std = 0.001
+        self.dp = nn.Dropout(p=dropout_rate)
+        self.fc = nn.Linear(input_size, output_size)
+        normal_(self.fc.weight, 0, self.std)
+        constant_(self.fc.bias, 0)
+
+    def forward(self, input):
+        x = self.fc(self.dp(input))
+        return x
+
+
+# class ClassNetTA3NVideoNoun(nn.Module):
+#     def __init__(self, input_size=512, output_size=300, dropout_rate=0.5):
+#         super(TA3NSpatialVerbClassifier, self).__init__()
+#         self.std = 0.001
+#         self.dp = nn.Dropout(p=dropout_rate)
+#         self.fc = nn.Linear(input_size, output_size)
+#         normal_(self.fc.weight, 0, self.std)
+#         constant_(self.fc.bias, 0)
+#
+#     def forward(self, input):
+#         x = self.fc(self.dp(input))
+#         return x
