@@ -11,8 +11,9 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 from copy import deepcopy
 
 from kale.embed.video_feature_extractor import get_extractor_feat, get_extractor_video
+from kale.embed.video_ta3n import get_domainnet_ta3n, get_classnet_ta3n
 from kale.pipeline import domain_adapter, video_domain_adapter
-from kale.predict.class_domain_nets import ClassNetVideo, ClassNetVideoTA3N, DomainNetVideo, DomainNetVideoTA3N
+from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 
 
 def get_config(cfg):
@@ -35,9 +36,7 @@ def get_config(cfg):
             "optimizer": {
                 "type": cfg.SOLVER.TYPE,
                 "optim_params": {
-                    # "momentum": cfg.SOLVER.MOMENTUM,
                     "weight_decay": cfg.SOLVER.WEIGHT_DECAY,
-                    # "nesterov": cfg.SOLVER.NESTEROV,
                 },
             },
         },
@@ -84,13 +83,14 @@ def get_model(cfg, dataset, dict_num_classes):
         )
     else:
         feature_network, class_feature_dim, domain_feature_dim = get_extractor_feat(
-            cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, num_out=256
+            cfg.DAN.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, dict_num_classes,
+            cfg.TA3N.DATASET.FRAME_AGGREGATION, cfg.TA3N.DATASET.NUM_SEGMENTS, input_size=1024, output_size=256,
         )
 
     # setup classifier
     if cfg.DAN.METHOD == "TA3N":
-        classifier_network = ClassNetVideoTA3N(
-            input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower()
+        classifier_network = get_classnet_ta3n(
+            input_size_frame=class_feature_dim, input_size_video=class_feature_dim, dict_n_class=dict_num_classes, dropout_rate=0.5
         )
     else:
         classifier_network = ClassNetVideo(
@@ -113,6 +113,21 @@ def get_model(cfg, dataset, dict_num_classes):
             **method_params,
             **train_params_local,
         )
+    elif method.is_ta3n_method():
+        # TODO: add domain nets
+        critic_network = get_domainnet_ta3n(input_size_frame=512, input_size_video=256)
+        model = video_domain_adapter.create_dann_like_video(
+            method=method,
+            dataset=dataset,
+            image_modality=cfg.DATASET.IMAGE_MODALITY,
+            feature_extractor=feature_network,
+            task_classifier=classifier_network,
+            critic=critic_network,
+            input_type=input_type,
+            class_type=class_type,
+            **method_params,
+            **train_params_local,
+        )
     else:
         critic_input_size = domain_feature_dim
         # setup critic network
@@ -121,17 +136,7 @@ def get_model(cfg, dataset, dict_num_classes):
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
                 critic_input_size = domain_feature_dim * dict_num_classes["verb"]
-
-        if cfg.DAN.METHOD == "TA3N":
-            # train_params_local = {
-            #     "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
-            #     "nb_adapt_epochs": cfg.SOLVER.MAX_EPOCHS,
-            #     "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
-            # }
-            # method_params = {}
-            critic_network = DomainNetVideoTA3N(input_size=critic_input_size)
-        else:
-            critic_network = DomainNetVideo(input_size=critic_input_size)
+        critic_network = DomainNetVideo(input_size=critic_input_size)
 
         if cfg.DAN.METHOD == "CDAN":
             method_params["use_random"] = cfg.DAN.USERANDOM
