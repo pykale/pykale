@@ -1,7 +1,6 @@
 import os
 
 import pytest
-import torch
 from numpy import testing
 
 from kale.loaddata.multi_domain import MultiDomainAdapDataset, MultiDomainDatasets
@@ -24,7 +23,7 @@ def test_office31(office_path):
         dataloader = dataset.get_domain_loaders(split=split)
         x, y, z = next(iter(dataloader))
         for domain_label_ in domain_labels:
-            testing.assert_equal(torch.where(z == domain_label_)[0].shape[0], 10)
+            testing.assert_equal(y[z == domain_label_].shape[0], 10)
 
 
 def test_office_caltech(office_path):
