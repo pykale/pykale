@@ -175,3 +175,21 @@ def mask_img_stack(images, mask):
             images[i, j, ...] = np.multiply(images[i, j, ...], mask)
 
     return images
+
+
+def normalize_img_stack(images):
+    """Normalization for stacked images
+
+    Args:
+        images (array-like tensor): Input data, shape (n_samples, n_phases, dim1, dim2).
+
+    Returns:
+        array-like: Normalized images, shape (n_samples, n_phases, dim1, dim2).
+    """
+    n_samples, n_phases = images.shape[:2]
+    for i in range(n_samples):
+        for j in range(n_phases):
+            img = images[i, j, ...]
+            images[i, j, ...] = (img - np.min(img)) / (np.max(img) - np.min(img))
+
+    return images

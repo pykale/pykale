@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from numpy import testing
 
-from kale.prepdata.image_transform import mask_img_stack, reg_img_stack, rescale_img_stack
+from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, reg_img_stack, rescale_img_stack
 
 SCALES = [4, 8]
 
@@ -51,3 +51,9 @@ def test_masking(images):
             testing.assert_equal(np.sum(img[idx_zeros]), 0)
             img_orig = images[i, j, ...]
             testing.assert_equal(img[idx_ones], img_orig[idx_ones])
+
+
+def test_normalize(images):
+    norm_image = normalize_img_stack(images)
+    assert np.min(norm_image) >= 0
+    assert np.max(norm_image) <= 1

@@ -1,0 +1,4 @@
+DATASET:
+  ROOT: "D:/ML_data/PAH/PAH_SA_64x64"
+  LANDMARK_FILE: "landmarks_64x64.csv"
+  MASK_FILE: "Mask"

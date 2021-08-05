@@ -34,7 +34,7 @@ def select_top_weight(weights, select_ratio: float = 0.05):
     return top_weights
 
 
-def plot_weights(weight_img, background_img=None, color_marker_pos="r.", color_marker_neg="b.", marker_size=5):
+def plot_weights(weight_img, background_img=None, color_marker_pos="rs", color_marker_neg="bs", marker_size=5):
     """Visualize model weights
 
     Args:
