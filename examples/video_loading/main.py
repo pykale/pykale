@@ -4,39 +4,13 @@ import matplotlib.pyplot as plt
 import torch
 from mpl_toolkits.axes_grid1 import ImageGrid
 from torchvision import transforms
-from torchvision.datasets.utils import download_file_from_google_drive, extract_archive
 
 from kale.loaddata.videos import VideoFrameDataset
 from kale.prepdata.video_transform import ImglistToTensor
+from kale.utils.download import download_file_gdrive
 
 """
 Ignore this function and look at "main" below.
-"""
-
-
-def download_dummy_dataset():
-    # Full File URL: https://drive.google.com/file/d/1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga/view?usp=sharing
-    gdrive_file_id = "1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga"
-    output_directory = os.path.join(os.getcwd())
-    output_file_name = "demo_datasets.zip"
-
-    print("Downloading Dummy Datasets")
-    download_file_from_google_drive(gdrive_file_id, output_directory, output_file_name)
-
-    if os.path.exists(os.path.join(os.getcwd(), "demo_dataset")):
-        print("Skipping Download and Extraction")
-        return
-
-    print("Extracting Dummy Dataset")
-    zip_file = os.path.join(os.getcwd(), output_file_name)
-    extract_archive(zip_file)
-
-    print("Datasets downloaded and extracted. Run this program again to run the demo.")
-    exit()
-
-
-"""
-Ignore this function too
 """
 
 
@@ -69,7 +43,12 @@ if __name__ == "__main__":
     5. Demo of using a dataset where samples have multiple separate class labels
 
     """
-    download_dummy_dataset()
+    download_file_gdrive(
+        id="1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga",
+        output_directory=os.path.join(os.getcwd()),
+        output_file_name="demo_datasets.zip",
+        file_format=".zip",
+    )
 
     videos_root = os.path.join(os.getcwd(), "demo_dataset")
     annotation_file = os.path.join(videos_root, "annotations.txt")
