@@ -18,8 +18,11 @@ _C = CN()
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.DATASET.ROOT = "./"  # '/shared/tale2/Shared'
+_C.DATASET.SOURCE = "https://github.com/pykale/data/raw/main/image_data/ShefPAH-179/SA_64x64.zip"
+_C.DATASET.ROOT = "../data"  # '/shared/tale2/Shared'
 _C.DATASET.IMG_DIR = "DICOM"
+_C.DATASET.FILENAME = "PAH_SA_64x64"
+_C.DATASET.FILE_FORAMT = "zip"
 _C.DATASET.LANDMARK_FILE = "landmarks.csv"
 _C.DATASET.MASK_FILE = "Mask/phase1.dcm"
 # ---------------------------------------------------------------------------- #
