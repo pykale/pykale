@@ -12,7 +12,7 @@ PyKale requires a Python version 3.6 or above. Before installing pykale, you sho
 Install PyKale using `pip` for the stable version:
 
 ```bash
-pip install pykale  # for the core kale API only
+pip install pykale  # for the core API and examples
 ```
 
 ## Install from source
@@ -22,7 +22,7 @@ Install from source for the latest version and/or development:
 ```sh
 git clone https://github.com/pykale/pykale
 cd pykale
-pip install .  # for core API and examples only
+pip install .  # for the core API and examples
 pip install -e .[dev]  # editable install for developers including all dependencies
 ```
 
