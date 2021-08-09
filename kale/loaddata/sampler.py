@@ -127,6 +127,7 @@ class BalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
     Returns batches of size n_classes * (batch_size // n_classes)
     adapted from https://github.com/adambielski/siamese-triplet/blob/master/datasets.py
     """
+
     def __init__(self, dataset, batch_size):
         labels = get_labels(dataset)
         classes = sorted(set(labels))
@@ -286,7 +287,7 @@ class InfiniteSliceIterator:
 
 
 class DomainBalancedBatchSampler(BalancedBatchSampler):
-    """ BatchSampler - samples n_samples for each of the n_domain. 
+    """ BatchSampler - samples n_samples for each of the n_domain.
         Returns batches of size n_domains * (batch_size / n_domains)
 
     Args:
@@ -294,6 +295,7 @@ class DomainBalancedBatchSampler(BalancedBatchSampler):
         batch_size (int): Batch size
 
     """
+
     def __init__(self, dataset, batch_size):
         # call to __init__ of super class will generate class balanced sampler, do not do it here
         dataset_type = type(dataset)
