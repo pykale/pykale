@@ -5,7 +5,7 @@ from os import path
 
 from setuptools import find_packages, setup
 
-# Core kale API dependencies. If updating this, you may need to update docs/requirements.txt too.
+# Dependencies for core API and examples. If updating this, you may need to update docs/requirements.txt too.
 # Not all have a min-version specified, which is not uncommon. Specify when known or necessary (e.g. errors).
 # Install PyTorch from the official website to match the hardware.
 # To work on graphs, install torch-geometric following the official instructions (e.g. below):
@@ -17,7 +17,6 @@ requirements = [
     "numpy>=1.18.0",
     "Pillow",
     "PyTDC",
-    "pytorch-lightning",
     "pytorch-lightning>=1.3.0",
     "pytorch-memlab",
     "scikit-image>=0.16.2",
