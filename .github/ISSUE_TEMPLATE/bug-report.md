@@ -51,7 +51,7 @@ python collect_env.py
 
  - PyTorch Version (e.g., 1.0):
  - OS (e.g., Linux):
- - How you installed PyTorch (`conda`, `pip`, source):
+ - How you installed PyTorch (`pip`, source):
  - Build command you used (if compiling from source):
  - Python version:
  - CUDA/cuDNN version:
