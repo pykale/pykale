@@ -9,13 +9,26 @@ import torch.utils.data
 import torchvision
 from torch.utils.data.sampler import BatchSampler, RandomSampler
 
+from kale.loaddata.multi_domain import MultiDomainImageFolder
+
 
 class SamplingConfig:
-    def __init__(self, balance=False, class_weights=None):
+    def __init__(self, balance=False, class_weights=None, balance_domain=False):
+        """Sampler configuration
+
+        Args:
+            balance (bool, optional): Whether sampling equal number of samples for each class per batch.
+                Defaults to False.
+            class_weights (list, optional): Weights of classes if the classes are not equally weighted.
+                Defaults to None.
+            balance_domain (bool, optional): Whether sampling equal number of samples for each domain per batch.
+                Defaults to False.
+        """
         if balance and class_weights is not None:
             raise ValueError("Params 'balance' and 'weights' are incompatible")
         self._balance = balance
         self._class_weights = class_weights
+        self._balance_domain = balance_domain
 
     def create_loader(self, dataset, batch_size):
         """Create the data loader
@@ -30,6 +43,8 @@ class SamplingConfig:
             sampler = BalancedBatchSampler(dataset, batch_size=batch_size)
         elif self._class_weights is not None:
             sampler = ReweightedBatchSampler(dataset, batch_size=batch_size, class_weights=self._class_weights)
+        elif self._balance_domain:
+            sampler = DomainBalancedBatchSampler(dataset, batch_size=batch_size)
         else:
             if len(dataset) < batch_size:
                 sub_sampler = RandomSampler(dataset, replacement=True, num_samples=batch_size)
@@ -42,9 +57,8 @@ class SamplingConfig:
 class FixedSeedSamplingConfig(SamplingConfig):
     def __init__(self, seed=1, balance=False, class_weights=None, balance_domain=False):
         """Sampling with fixed seed."""
-        super(FixedSeedSamplingConfig, self).__init__(balance, class_weights)
+        super(FixedSeedSamplingConfig, self).__init__(balance, class_weights, balance_domain)
         self._seed = seed
-        self.balance_domain = balance_domain
 
     def create_loader(self, dataset, batch_size):
         """Create the data loader with fixed seed."""
@@ -52,8 +66,8 @@ class FixedSeedSamplingConfig(SamplingConfig):
             sampler = BalancedBatchSampler(dataset, batch_size=batch_size)
         elif self._class_weights is not None:
             sampler = ReweightedBatchSampler(dataset, batch_size=batch_size, class_weights=self._class_weights)
-        elif self.balance_domain:
-            sampler = BalancedDomainBatchSampler(dataset, batch_size=batch_size)
+        elif self._balance_domain:
+            sampler = DomainBalancedBatchSampler(dataset, batch_size=batch_size)
         else:
             if len(dataset) < batch_size:
                 sub_sampler = RandomSampler(
@@ -273,16 +287,14 @@ class InfiniteSliceIterator:
         return self.array[i : self.i]
 
 
-class BalancedDomainBatchSampler(torch.utils.data.sampler.BatchSampler):
+class DomainBalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
     """
     BatchSampler - samples n_samples for each of the n_domain.
-    Returns batches of size n_domains * (batch_size // n_domains)
+    Returns batches of size n_domains * (batch_size / n_domains)
     adapted from https://github.com/adambielski/siamese-triplet/blob/master/datasets.py
     """
 
     def __init__(self, dataset, batch_size):
-        from .multi_domain import MultiDomainImageFolder
-
         dataset_type = type(dataset)
         if dataset_type is torch.utils.data.Subset:
             domain_labels = np.asarray(dataset.dataset.domain_labels)[dataset.indices]
@@ -299,9 +311,7 @@ class BalancedDomainBatchSampler(torch.utils.data.sampler.BatchSampler):
             raise ValueError(f"batch_size should be bigger than the number of classes, got {batch_size}")
 
         self._domain_iters = [
-            # InfiniteSliceIterator(dataset.indices[np.where(domain_labels == domain_)[0]], class_=domain_)
-            InfiniteSliceIterator(np.where(domain_labels == domain_)[0], class_=domain_)
-            for domain_ in domains
+            InfiniteSliceIterator(np.where(domain_labels == domain_)[0], class_=domain_) for domain_ in domains
         ]
 
         batch_size = self._n_samples * n_domains

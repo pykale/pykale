@@ -6,7 +6,6 @@ from kale.loaddata.multi_domain import MultiDomainImageFolder
 from kale.prepdata.image_transform import get_transform
 from kale.utils.download import download_file_by_url
 
-url = "https://github.com/sz144/data/raw/main/image_data/office/"
 DOMAINS = ["amazon", "caltech", "dslr", "webcam"]
 office_transform = get_transform("office")
 
@@ -14,22 +13,36 @@ office_transform = get_transform("office")
 class OfficeAccess(MultiDomainImageFolder, DatasetAccess):
     """Common API for office dataset access
 
-        Args:
-            root (string): root directory of dataset
-            transform (callable, optional): A function/transform that takes in an PIL image and returns a transformed
-                version. Defaults to office_transform.
-            download (bool, optional): Whether to allow downloading the data if not found on disk. Defaults to False.
-        """
+    Args:
+        root (string): root directory of dataset
+        transform (callable, optional): A function/transform that takes in an PIL image and returns a transformed
+            version. Defaults to office_transform.
+        download (bool, optional): Whether to allow downloading the data if not found on disk. Defaults to False.
+
+    Reference:
+        [1] Saenko, K., Kulis, B., Fritz, M. and Darrell, T., 2010, September. Adapting visual category models to
+        new domains. In European Conference on Computer Vision (pp. 213-226). Springer, Berlin, Heidelberg.
+        [2] Griffin, Gregory and Holub, Alex and Perona, Pietro, 2007. Caltech-256 Object Category Dataset.
+        California Institute of Technology. (Unpublished).
+        https://resolver.caltech.edu/CaltechAUTHORS:CNS-TR-2007-001.
+        [3] Gong, B., Shi, Y., Sha, F. and Grauman, K., 2012, June. Geodesic flow kernel for unsupervised
+        domain adaptation. In IEEE Conference on Computer Vision and Pattern Recognition (pp. 2066-2073).
+    """
 
     def __init__(self, root, transform=office_transform, download=False, **kwargs):
-        # init params
         if download:
             self.download(root)
         super(OfficeAccess, self).__init__(root, transform=transform, **kwargs)
 
     @staticmethod
     def download(path):
-        """Download dataset."""
+        """Download dataset.
+            Office-31 source: https://www.cc.gatech.edu/~judy/domainadapt/#datasets_code
+            Caltech-256 source: http://www.vision.caltech.edu/Image_Datasets/Caltech256/
+            Data with this library is adapted from: http://www.stat.ucla.edu/~jxie/iFRAME/code/imageClassification.rar
+        """
+        url = "https://github.com/sz144/data/raw/main/image_data/office/"
+
         if not os.path.exists(path):
             os.makedirs(path)
         for domain_ in DOMAINS:
@@ -41,8 +54,6 @@ class OfficeAccess(MultiDomainImageFolder, DatasetAccess):
             else:
                 data_url = "%s/%s" % (url, filename)
                 download_file_by_url(data_url, path, filename, "zip")
-                # zip_file = zipfile.ZipFile(data_path, "r")
-                # zip_file.extractall(path)
                 logging.info(f"Download {data_url} to {data_path}")
 
         logging.info("[DONE]")
@@ -55,6 +66,10 @@ class Office31(OfficeAccess):
 
         Args:
             root (string): path to directory where the office folder will be created (or exists).
+
+        Reference:
+            Saenko, K., Kulis, B., Fritz, M. and Darrell, T., 2010, September. Adapting visual category models to new
+            domains. In European Conference on Computer Vision (pp. 213-226). Springer, Berlin, Heidelberg.
         """
         sub_domain_set = ["amazon", "dslr", "webcam"]
         super(Office31, self).__init__(root, sub_domain_set=sub_domain_set, **kwargs)
@@ -62,11 +77,20 @@ class Office31(OfficeAccess):
 
 class OfficeCaltech(OfficeAccess):
     def __init__(self, root, **kwargs):
-        """Office Caltech 10 Dataset. Consists of four domains: 'amazon', 'caltech', 'dslr', and 'webcam',
-            with 10 overlapped classes.
+        """Office-Caltech-10 Dataset. This dataset consists of four domains: 'amazon', 'caltech', 'dslr', and 'webcam',
+            which are samples with overlapped 10 classes between Office-31 and Caltech-256.
 
         Args:
             root (string): path to directory where the office folder will be created (or exists).
+
+        Reference:
+            [1] Saenko, K., Kulis, B., Fritz, M. and Darrell, T., 2010, September. Adapting visual category models to
+            new domains. In European Conference on Computer Vision (pp. 213-226). Springer, Berlin, Heidelberg.
+            [2] Griffin, Gregory and Holub, Alex and Perona, Pietro, 2007. Caltech-256 Object Category Dataset.
+            California Institute of Technology. (Unpublished).
+            https://resolver.caltech.edu/CaltechAUTHORS:CNS-TR-2007-001.
+            [3] Gong, B., Shi, Y., Sha, F. and Grauman, K., 2012, June. Geodesic flow kernel for unsupervised
+            domain adaptation. In IEEE Conference on Computer Vision and Pattern Recognition (pp. 2066-2073).
         """
         sub_class_set = [
             "mouse",
