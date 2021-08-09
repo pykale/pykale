@@ -9,7 +9,7 @@ import torch.utils.data
 import torchvision
 from torch.utils.data.sampler import BatchSampler, RandomSampler
 
-from kale.loaddata.multi_domain import MultiDomainImageFolder
+# from kale.loaddata.multi_domain import MultiDomainImageFolder
 
 
 class SamplingConfig:
@@ -17,12 +17,12 @@ class SamplingConfig:
         """Sampler configuration
 
         Args:
-            balance (bool, optional): Whether sampling equal number of samples for each class per batch.
+            balance (bool, optional): If True, samples equal number of training samples for each class per batch.
                 Defaults to False.
             class_weights (list, optional): Weights of classes if the classes are not equally weighted.
                 Defaults to None.
-            balance_domain (bool, optional): Whether sampling equal number of samples for each domain per batch.
-                Defaults to False.
+            balance_domain (bool, optional): If True, samples equal number of training samples for each domain per
+                batch. Defaults to False.
         """
         if balance and class_weights is not None:
             raise ValueError("Params 'balance' and 'weights' are incompatible")
@@ -127,7 +127,6 @@ class BalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
     Returns batches of size n_classes * (batch_size // n_classes)
     adapted from https://github.com/adambielski/siamese-triplet/blob/master/datasets.py
     """
-
     def __init__(self, dataset, batch_size):
         labels = get_labels(dataset)
         classes = sorted(set(labels))
@@ -140,8 +139,7 @@ class BalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
         self._class_iters = [InfiniteSliceIterator(np.where(labels == class_)[0], class_=class_) for class_ in classes]
 
         batch_size = self._n_samples * n_classes
-        self.n_dataset = len(labels)
-        self._n_batches = self.n_dataset // batch_size
+        self._n_batches = len(labels) // batch_size
         if self._n_batches == 0:
             raise ValueError(f"Dataset is not big enough to generate batches with size {batch_size}")
         logging.debug("K=", n_classes, "nk=", self._n_samples)
@@ -287,33 +285,34 @@ class InfiniteSliceIterator:
         return self.array[i : self.i]
 
 
-class DomainBalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
-    """
-    BatchSampler - samples n_samples for each of the n_domain.
-    Returns batches of size n_domains * (batch_size / n_domains)
-    adapted from https://github.com/adambielski/siamese-triplet/blob/master/datasets.py
-    """
+class DomainBalancedBatchSampler(BalancedBatchSampler):
+    """ BatchSampler - samples n_samples for each of the n_domain. 
+        Returns batches of size n_domains * (batch_size / n_domains)
 
+    Args:
+        dataset (.multi_domain.MultiDomainImageFolder or torch.utils.data.Subset): Multi-domain data access.
+        batch_size (int): Batch size
+
+    """
     def __init__(self, dataset, batch_size):
+        # call to __init__ of super class will generate class balanced sampler, do not do it here
         dataset_type = type(dataset)
         if dataset_type is torch.utils.data.Subset:
             domain_labels = np.asarray(dataset.dataset.domain_labels)[dataset.indices]
             domains = list(dataset.dataset.domain_to_idx.values())
-        elif dataset_type is MultiDomainImageFolder:
+        else:
             domain_labels = np.asarray(dataset.domain_labels)
             domains = list(dataset.domain_to_idx.values())
-        else:
-            raise ValueError("Invalid dataset type %s." % dataset_type)
+
         n_domains = len(domains)
 
         self._n_samples = batch_size // n_domains
         if self._n_samples == 0:
             raise ValueError(f"batch_size should be bigger than the number of classes, got {batch_size}")
 
-        self._domain_iters = [
+        self._class_iters = [
             InfiniteSliceIterator(np.where(domain_labels == domain_)[0], class_=domain_) for domain_ in domains
         ]
-
         batch_size = self._n_samples * n_domains
 
         self._n_batches = len(domain_labels) // batch_size
@@ -321,17 +320,3 @@ class DomainBalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
             raise ValueError(f"Dataset is not big enough to generate batches with size {batch_size}")
         logging.debug("K=", n_domains, "nk=", self._n_samples)
         logging.debug("Batch size = ", batch_size)
-
-    def __iter__(self):
-        for _ in range(self._n_batches):
-            indices = []
-            for domain_iter in self._domain_iters:
-                indices.extend(domain_iter.get(self._n_samples))
-            np.random.shuffle(indices)
-            yield indices
-
-        for domain_iter in self._domain_iters:
-            domain_iter.reset()
-
-    def __len__(self):
-        return self._n_batches
