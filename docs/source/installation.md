@@ -13,7 +13,6 @@ Install PyKale using `pip` for the stable version:
 
 ```bash
 pip install pykale  # for the core kale API only
-pip install pykale[extras]  # for Examples/Tutorials (including core API)
 ```
 
 ## Install from source
@@ -23,8 +22,7 @@ Install from source for the latest version and/or development:
 ```sh
 git clone https://github.com/pykale/pykale
 cd pykale
-pip install .  # for core API only
-pip install .[extras]  # with extras for examples/tutorials
+pip install .  # for core API and examples only
 pip install -e .[dev]  # editable install for developers including all dependencies
 ```
 
