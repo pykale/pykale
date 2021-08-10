@@ -5,32 +5,27 @@ from os import path
 
 from setuptools import find_packages, setup
 
-# Core kale API dependencies. If updating this, you may need to update docs/requirements.txt too.
+# Dependencies for core API and examples. If updating this, you may need to update docs/requirements.txt too.
 # Not all have a min-version specified, which is not uncommon. Specify when known or necessary (e.g. errors).
 # Install PyTorch from the official website to match the hardware.
 # To work on graphs, install torch-geometric following the official instructions (e.g. below):
 # python -m pip install torch-cluster torch-scatter torch-sparse torch-spline
 requirements = [
-    "numpy>=1.18.0",
-    "pytorch-lightning",
-    "scikit-image>=0.16.2",
-    "scikit-learn>=0.23.2",
-    "tensorly>=0.5.1",
-    "torch>=1.7.0",
-    "torchvision",  # >=0.8.1
-    "scipy>=1.5.4",
-]
-
-# Additional dependencies for examples/tutorials
-extra_requirements = [
     "ipykernel",
     "ipython",
     "matplotlib",
+    "numpy>=1.18.0",
     "Pillow",
     "PyTDC",
     "pytorch-lightning>=1.3.0",
     "pytorch-memlab",
+    "scikit-image>=0.16.2",
+    "scikit-learn>=0.23.2",
+    "scipy>=1.5.4",
+    "tensorly>=0.5.1",
+    "torch>=1.7.0",
     "torchsummary>=1.5.0",
+    "torchvision",  # >=0.8.1
     "yacs>=0.1.7",
 ]
 
@@ -91,7 +86,7 @@ setup(
     packages=find_packages(exclude=("docs", "examples", "tests")),
     python_requires=">=3.6",
     install_requires=requirements,
-    extras_require={"extras": extra_requirements, "dev": extra_requirements + dev_requirements},
+    extras_require={"dev": dev_requirements},
     setup_requires=["setuptools>=38.6.0"],
     license="MIT",
     keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
