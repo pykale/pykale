@@ -1,5 +1,6 @@
 """
-Construct a dataset with (multiple) source and target domains, from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py
+Construct a dataset with (multiple) source and target domains, adapted from
+https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py
 """
 
 import logging
@@ -80,13 +81,17 @@ class MultiDomainDatasets(DomainsDatasetBase):
             source_access (DatasetAccess): accessor for the source dataset
             target_access (DatasetAccess): accessor for the target dataset
             config_weight_type (WeightingType, optional): The weight type for sampling. Defaults to 'natural'.
-            config_size_type (DatasetSizeType, optional): Which dataset size to use to define the number of epochs vs batch_size. Defaults to DatasetSizeType.Max.
+            config_size_type (DatasetSizeType, optional): Which dataset size to use to define the number of epochs vs
+                batch_size. Defaults to DatasetSizeType.Max.
             val_split_ratio (float, optional): ratio for the validation part of the train dataset. Defaults to 0.1.
-            source_sampling_config (SamplingConfig, optional): How to sample from the source. Defaults to None (=> RandomSampler).
-            target_sampling_config (SamplingConfig, optional): How to sample from the target. Defaults to None (=> RandomSampler).
+            source_sampling_config (SamplingConfig, optional): How to sample from the source. Defaults to None
+                (=> RandomSampler).
+            target_sampling_config (SamplingConfig, optional): How to sample from the target. Defaults to None
+                (=> RandomSampler).
             n_fewshot (int, optional): Number of target samples for which the label may be used,
                 to define the few-shot, semi-supervised setting. Defaults to None.
-            random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label selection. Defaults to None.
+            random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label
+                selection. Defaults to None.
             class_ids (list, optional): List of chosen subset of class ids. Defaults to None (=> All Classes).
         Examples::
             >>> dataset = MultiDomainDatasets(source_access, target_access)
@@ -234,12 +239,12 @@ def _split_dataset_few_shot(dataset, n_fewshot, random_state=None):
     return labeled_dataset, unlabeled_dataset
 
 
-def domain_balanced_split(domain_labels, n_partitions, split_ratios):
-    """Get indices of random split. Samples with the same domain label will be split based on the given ratios.
-        Then the indices of different domains within the same split will be concatenated.
+def domain_stratified_split(domain_labels, n_partitions, split_ratios):
+    """Get domain stratified indices of random split. Samples with the same domain label will be split based on the
+        given ratios. Then the indices of different domains within the same split will be concatenated.
 
     Args:
-        domain_labels (array-like): Labels to indicate the sample from which domain.
+        domain_labels (array-like): Labels to indicate which domains are the samples from.
         n_partitions (int): Number of partitions to split, 2 <= n_partitions <= len(split_ratios) + 1.
         split_ratios (list): Ratios of splits to be produced, where 0 < sum(split_ratios) <= 1.
 
@@ -254,10 +259,11 @@ def domain_balanced_split(domain_labels, n_partitions, split_ratios):
         for i in range(n_partitions):
             subset_idx[i].append(domain_idx[subsets[i].indices])
 
+    stratified_idx = []
     for i in range(n_partitions):
-        subset_idx[i] = np.concatenate(subset_idx[i])
+        stratified_idx.append(np.concatenate(subset_idx[i]))
 
-    return subset_idx
+    return stratified_idx
 
 
 class MultiDomainImageFolder(VisionDataset):
@@ -284,7 +290,7 @@ class MultiDomainImageFolder(VisionDataset):
             sub_class_set (list): A list of class names, which should be a subset of classes in image folders.
                 Defaults to None.
             is_valid_file (callable, optional): A function that takes path of a file and check if the file is a valid
-                file (used to check of corrupt files). Either extensions or is_valid_file should be passed.
+                file (to check corrupt files). Either extensions or is_valid_file should be passed.
          Attributes:
             classes (list): List of the class names sorted alphabetically.
             class_to_idx (dict): Dict with items (class_name, class_index).
@@ -346,7 +352,7 @@ class MultiDomainImageFolder(VisionDataset):
         self.split_train_test = split_train_test
         self.split_ratio = split_ratio
         if split_train_test:
-            self.train_idx, self.test_idx = domain_balanced_split(self.domain_labels, 2, [split_ratio])
+            self.train_idx, self.test_idx = domain_stratified_split(self.domain_labels, 2, [split_ratio])
         else:
             self.train_idx = None
             self.test_idx = None
@@ -416,7 +422,7 @@ def make_multi_domain_set(
         extensions (optional): A list of allowed extensions. Either extensions or is_valid_file should be passed.
             Defaults to None.
         is_valid_file (optional): A function that takes path of a file and checks if the file is a valid file
-            (used to check of corrupt files) both extensions and is_valid_file should not be passed. Defaults to None.
+            (to check corrupt files) both extensions and is_valid_file should not be passed. Defaults to None.
     Raises:
         ValueError: In case ``extensions`` and ``is_valid_file`` are None or both are not None.
     Returns:
@@ -477,7 +483,7 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
 
     def prepare_data_loaders(self):
         splits = ["test", "valid", "train"]
-        subset_idx = domain_balanced_split(self.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio])
+        subset_idx = domain_stratified_split(self.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio])
         for i in range(len(splits)):
             self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
 

@@ -19,7 +19,7 @@ class OfficeAccess(MultiDomainImageFolder, DatasetAccess):
             version. Defaults to office_transform.
         download (bool, optional): Whether to allow downloading the data if not found on disk. Defaults to False.
 
-    Reference:
+    References:
         [1] Saenko, K., Kulis, B., Fritz, M. and Darrell, T., 2010, September. Adapting visual category models to
         new domains. In European Conference on Computer Vision (pp. 213-226). Springer, Berlin, Heidelberg.
         [2] Griffin, Gregory and Holub, Alex and Perona, Pietro, 2007. Caltech-256 Object Category Dataset.
@@ -41,7 +41,7 @@ class OfficeAccess(MultiDomainImageFolder, DatasetAccess):
             Caltech-256 source: http://www.vision.caltech.edu/Image_Datasets/Caltech256/
             Data with this library is adapted from: http://www.stat.ucla.edu/~jxie/iFRAME/code/imageClassification.rar
         """
-        url = "https://github.com/sz144/data/raw/main/image_data/office/"
+        url = "https://github.com/pykale/data/raw/main/image_data/office/"
 
         if not os.path.exists(path):
             os.makedirs(path)
@@ -83,7 +83,7 @@ class OfficeCaltech(OfficeAccess):
         Args:
             root (string): path to directory where the office folder will be created (or exists).
 
-        Reference:
+        References:
             [1] Saenko, K., Kulis, B., Fritz, M. and Darrell, T., 2010, September. Adapting visual category models to
             new domains. In European Conference on Computer Vision (pp. 213-226). Springer, Berlin, Heidelberg.
             [2] Griffin, Gregory and Holub, Alex and Perona, Pietro, 2007. Caltech-256 Object Category Dataset.
