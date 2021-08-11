@@ -133,12 +133,12 @@ def reg_img_stack(images, coords, dst_id=0):
     return images, max_dist
 
 
-def rescale_img_stack(images, scale=16):
+def rescale_img_stack(images, scale=2):
     """Rescale stacked images by a given factor
 
     Args:
         images (array-like tensor): Input data, shape (n_samples, n_phases, dim1, dim2).
-        scale (int, optional): Scale factor. Defaults to 16.
+        scale (int, optional): Scale factor. Defaults to 2.
 
     Returns:
         array-like tensor: Rescaled images, shape (n_samples, n_phases, dim1 / scale, dim2 / scale).
