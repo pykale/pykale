@@ -244,7 +244,7 @@ def domain_stratified_split(domain_labels, n_partitions, split_ratios):
         given ratios. Then the indices of different domains within the same split will be concatenated.
 
     Args:
-        domain_labels (array-like): Labels to indicate which domains are the samples from.
+        domain_labels (array-like): Labels to indicate which domains the samples are from.
         n_partitions (int): Number of partitions to split, 2 <= n_partitions <= len(split_ratios) + 1.
         split_ratios (list): Ratios of splits to be produced, where 0 < sum(split_ratios) <= 1.
 
