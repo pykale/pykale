@@ -93,7 +93,7 @@ def main():
 
     # ---- evaluating machine learning pipeline ----
     x = img_norm.copy()
-    trainer = MPCATrainer(n_features=200)
+    trainer = MPCATrainer(classifier=cfg.PIPELINE.CLF, n_features=200)
     cv_results = cross_validate(trainer, x, y, cv=10, scoring=["accuracy", "roc_auc"], n_jobs=1)
 
     print("Accuracy: ", np.mean(cv_results["test_accuracy"]))

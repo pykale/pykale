@@ -32,10 +32,10 @@ _C.PROC = CN()
 _C.PROC.SCALE = 2
 
 # ---------------------------------------------------------------------------- #
-# MPCA Pipeline
+# Machine learning pipeline
 # ---------------------------------------------------------------------------- #
-_C.MPCA = CN()
-_C.MPCA.CLF = "linear_svc"  # ["svc", "linear_svc", "lr"]
+_C.PIPELINE = CN()
+_C.PIPELINE.CLF = "linear_svc"  # ["svc", "linear_svc", "lr"]
 
 # ---------------------------------------------------------------------------- #
 # Misc options
