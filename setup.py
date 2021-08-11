@@ -18,6 +18,7 @@ requirements = [
     "Pillow",
     "PyTDC",
     "pydicom",
+    "pandas",
     "pytorch-lightning>=1.3.0",
     "pytorch-memlab",
     "scikit-image>=0.16.2",
