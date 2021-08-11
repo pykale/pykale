@@ -281,7 +281,7 @@ class InfiniteSliceIterator:
             np.random.shuffle(self.array)
         i = self.i
         self.i += n
-        return self.array[i: self.i]
+        return self.array[i : self.i]
 
 
 class DomainBalancedBatchSampler(BalancedBatchSampler):
