@@ -102,6 +102,14 @@ kale.loaddata.video\_multi\_domain module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.office\_access
+------------------------------------------
+
+.. automodule:: kale.loaddata.office_access
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
