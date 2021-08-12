@@ -7,8 +7,8 @@ from kale.utils.download import download_file_by_url, download_file_gdrive
 
 output_directory = Path().absolute().parent.joinpath("test_data/download")
 PARAM = [
-    " https://github.com/pykale/data/raw/main/video_data/video_test_data/ADL/annotations/labels_train_test/adl_P_11_train.pkl;a.pkl;pkl",
-    " https://github.com/pykale/data/raw/main/video_data/video_test_data.zip;video_test_data.zip;zip",
+    "https://github.com/pykale/data/raw/main/videos/video_test_data/ADL/annotations/labels_train_test/adl_P_11_train.pkl;a.pkl;pkl",
+    "https://github.com/pykale/data/raw/main/videos/video_test_data.zip;video_test_data.zip;zip",
 ]
 
 GDRIVE_PARAM = [

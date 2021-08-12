@@ -68,7 +68,7 @@ class DigitDatasetAccess(DatasetAccess):
     """Common API for digit dataset access
 
     Args:
-        data_path (string): root directory of dataset
+        data_path (string): Whether sort images
         transform_kind (string): types of image transforms
     """
 

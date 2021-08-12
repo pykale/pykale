@@ -1,0 +1,2 @@
+PIPELINE:
+  CLASSIFIER: "lr"
