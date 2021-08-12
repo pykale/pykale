@@ -1,3 +1,5 @@
+# This file enables examples to be run using myBinder.
+# It is not part of normal installation.
 name: PyKale_tutorials
 channels:
 - rusty1s
