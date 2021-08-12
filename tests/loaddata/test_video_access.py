@@ -35,7 +35,7 @@ set_seed(seed)
 CLASS_SUBSETS = [[1, 3, 8]]
 
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-url = "https://github.com/pykale/data/raw/main/video_data/video_test_data.zip"
+url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 
 
 @pytest.fixture(scope="module")
