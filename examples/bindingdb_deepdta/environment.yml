@@ -14,4 +14,4 @@ dependencies:
 - torchaudio
 - torchvision
 - pip:
-  - .[extras]
+  - .
