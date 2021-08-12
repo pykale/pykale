@@ -12,7 +12,7 @@ from kale.utils.download import download_file_by_url
 N_COMPS = [1, 50, 100]
 VAR_RATIOS = [0.7, 0.95]
 relative_tol = 0.00001
-baseline_url = "https://github.com/pykale/data/raw/main/video_data/gait/mpca_baseline.mat"
+baseline_url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baseline.mat"
 
 
 @pytest.fixture(scope="module")

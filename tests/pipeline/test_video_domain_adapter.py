@@ -29,7 +29,7 @@ seed = 36
 set_seed(seed)
 
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-url = "https://github.com/pykale/data/raw/main/video_data/video_test_data.zip"
+url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 
 
 @pytest.fixture(scope="module")
