@@ -21,7 +21,7 @@ PyKale Documentation
 
     Digits - Domain Adaptation Notebook <https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb>
 
-    BindingDB (Drug-Target Interaction: DeepDTA) Notebook <https://github.com/pykale/pykale/blob/main/examples/bindingdb_deepdta/tutorial.ipynb>
+    BindingDB - Drug-Target Interaction Prediction Notebook <https://github.com/pykale/pykale/blob/main/examples/bindingdb_deepdta/tutorial.ipynb>
 
 
 .. toctree::
