@@ -26,13 +26,14 @@ def plot_weights(weight_img, background_img=None, color_marker_pos="rs", color_m
         raise ValueError(
             "weight_img is expected to be a 2D matrix, but got an array in shape %s" % str(weight_img.shape)
         )
-    weight_pos_coords = np.where(weight_img > 0)
-    weight_neg_coords = np.where(weight_img < 0)
-
     fig = plt.figure()
     ax = fig.add_subplot()
     if background_img is not None:
         ax.imshow(background_img)
+        weight_img[np.where(background_img == 0)] = 0
+
+    weight_pos_coords = np.where(weight_img > 0)
+    weight_neg_coords = np.where(weight_img < 0)
 
     ax.plot(weight_pos_coords[1], weight_pos_coords[0], color_marker_pos, markersize=marker_size)
     ax.plot(weight_neg_coords[1], weight_neg_coords[0], color_marker_neg, markersize=marker_size)
