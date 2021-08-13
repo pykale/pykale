@@ -1,4 +1,4 @@
-# PAH Diagnosis from Cardiac MRI via a Multilinear PCA-based Pipeline
+# PAH Diagnosis from Cardiac MRI via Multilinear PCA
 
 ## 1. Description
 
