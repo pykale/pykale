@@ -1,5 +1,5 @@
 """
-Default configurations for Cardiac MRI data (ShefPAH) processing and classification
+Default configurations for cardiac MRI data (ShefPAH) processing and classification
 """
 
 from yacs.config import CfgNode as CN

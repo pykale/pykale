@@ -1,8 +1,8 @@
 """
-PyKale Tutorial: A Machine Learning Pipeline for PAH Diagnosis
+PAH Diagnosis from Cardiac MRI via a Multilinear PCA-based Pipeline
 
 Reference:
-Swift, A. J., Lu, H., Uthoff, J., Garg, P., Cogliano, M., Taylor, J., ... & Kiely, D. G. (2020). A machine learning
+Swift, A. J., Lu, H., Uthoff, J., Garg, P., Cogliano, M., Taylor, J., ... & Kiely, D. G. (2021). A machine learning
 cardiac magnetic resonance approach to extract disease features and automate pulmonary arterial hypertension diagnosis.
 European Heart Journal-Cardiovascular Imaging. https://academic.oup.com/ehjcimaging/article/22/2/236/5717931
 """
