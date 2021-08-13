@@ -1,12 +1,12 @@
 from torch import nn
-from torch.nn.init import normal_, constant_
+from torch.nn.init import constant_, normal_
 from torchvision.models.utils import load_state_dict_from_url
 
-from kale.predict.class_domain_nets import ClassNetTA3NFrame, ClassNetTA3NVideo, DomainNetTA3N
 from kale.embed.video_i3d import InceptionI3d
 from kale.embed.video_selayer import SELayer4feat
 from kale.embed.video_transformer import TransformerBlock
-from kale.embed.video_trn import TRNRelationModuleMultiScale, TRNRelationModule
+from kale.embed.video_trn import TRNRelationModule, TRNRelationModuleMultiScale
+from kale.predict.class_domain_nets import ClassNetTA3NFrame, ClassNetTA3NVideo, DomainNetTA3N
 
 model_urls_ta3n = {
     "rgb_ta3n": None,
@@ -16,8 +16,9 @@ model_urls_ta3n = {
 
 
 class TA3NSpatialBlock(nn.Module):
-    def __init__(self, input_size=1024, output_size=512, input_type="feature", add_fc=1, dropout_rate=0.5,
-                 num_classes=[10]):
+    def __init__(
+        self, input_size=1024, output_size=512, input_type="feature", add_fc=1, dropout_rate=0.5, num_classes=[10]
+    ):
         super(TA3NSpatialBlock, self).__init__()
         self.add_fc = add_fc
         self.input_type = input_type
@@ -136,8 +137,7 @@ class TA3NSpatialBlock(nn.Module):
 #         return x
 
 
-def ta3n(name, input_size=1024, output_size=256,
-         input_type="feature", frame_aggregation="tsn-m", segments=5):
+def ta3n(name, input_size=1024, output_size=256, input_type="feature", frame_aggregation="tsn-m", segments=5):
     """Get TA3N module with pretrained model."""
     spatial_model = TA3NSpatialBlock(input_size=input_size, input_type=input_type)
     if frame_aggregation == "trn":
@@ -151,15 +151,15 @@ def ta3n(name, input_size=1024, output_size=256,
 
 
 def ta3n_joint(
-        rgb=False,
-        flow=False,
-        audio=False,
-        input_size=1024,
-        output_size=256,
-        input_type="feature",
-        frame_aggregation="tsn-m",
-        segments=5,
-        dict_n_class={},
+    rgb=False,
+    flow=False,
+    audio=False,
+    input_size=1024,
+    output_size=256,
+    input_type="feature",
+    frame_aggregation="tsn-m",
+    segments=5,
+    dict_n_class={},
 ):
     """Get TA3N model for different inputs.
 
@@ -179,9 +179,7 @@ def ta3n_joint(
     """
     model_rgb = model_flow = model_audio = None
     if rgb:
-        model_rgb = ta3n(
-            "rgb_ta3n", input_size, output_size, input_type, frame_aggregation, segments
-        )
+        model_rgb = ta3n("rgb_ta3n", input_size, output_size, input_type, frame_aggregation, segments)
         model_all = model_rgb
     if flow:
         model_flow = ta3n(
@@ -197,8 +195,13 @@ def ta3n_joint(
     # For debugging
     if rgb and flow and audio:
         model_all = ta3n(
-            "rgb_ta3n", pretrained, 3 * input_size, output_size, progress, input_type=input_type,
-            num_classes=dict_n_class
+            "rgb_ta3n",
+            pretrained,
+            3 * input_size,
+            output_size,
+            progress,
+            input_type=input_type,
+            num_classes=dict_n_class,
         )
     return {"rgb": model_rgb, "flow": model_flow, "audio": model_audio, "all": model_all}
 
@@ -209,10 +212,12 @@ def get_classnet_ta3n(input_size_frame, input_size_video, dict_n_class, dropout_
         "noun": ClassNetTA3NFrame(input_size=input_size_frame, output_size=dict_n_class["noun"]),
     }
     video_model = {
-        "verb": ClassNetTA3NVideo(input_size=input_size_frame, output_size=dict_n_class["verb"],
-                                  dropout_rate=dropout_rate),
-        "noun": ClassNetTA3NVideo(input_size=input_size_frame, output_size=dict_n_class["noun"],
-                                  dropout_rate=dropout_rate),
+        "verb": ClassNetTA3NVideo(
+            input_size=input_size_frame, output_size=dict_n_class["verb"], dropout_rate=dropout_rate
+        ),
+        "noun": ClassNetTA3NVideo(
+            input_size=input_size_frame, output_size=dict_n_class["noun"], dropout_rate=dropout_rate
+        ),
     }
     return {"frame-level": frame_model, "video-level": video_model}
 
@@ -221,6 +226,7 @@ def get_domainnet_ta3n(input_size_frame, input_size_video):
     frame_model = DomainNetTA3N(input_size=input_size_frame)
     video_model = DomainNetTA3N(input_size=input_size_frame)
     return {"frame-level": frame_model, "video-level": video_model}
+
 
 #
 # model_urls = {

@@ -48,15 +48,17 @@ _C.OUTPUT.TB_DIR = os.path.join("lightning_logs", _C.DATASET.SOURCE + "2" + _C.D
 _C.SOLVER = CN()
 _C.SOLVER.SEED = 2020
 _C.SOLVER.BASE_LR = 0.01  # Initial learning rate
-_C.SOLVER.MOMENTUM = 0.9
-_C.SOLVER.WEIGHT_DECAY = 0.0005  # 1e-4
-_C.SOLVER.NESTEROV = True
+_C.SOLVER.WORKERS = 0
 
 _C.SOLVER.TYPE = "SGD"
+_C.SOLVER.MOMENTUM = 0.9
+_C.SOLVER.WEIGHT_DECAY = 0.0001  # 1e-4
+_C.SOLVER.NESTEROV = True
+
 _C.SOLVER.MAX_EPOCHS = 30  # "nb_adapt_epochs": 100,
 # _C.SOLVER.WARMUP = True
 _C.SOLVER.MIN_EPOCHS = 5  # "nb_init_epochs": 20,
-_C.SOLVER.TRAIN_BATCH_SIZE = 16  # 150
+_C.SOLVER.TRAIN_BATCH_SIZE = 128  # 150
 # _C.SOLVER.TEST_BATCH_SIZE = 16  # No difference in ADA
 
 # Adaptation-specific solver config
@@ -79,7 +81,6 @@ _C.DAN.METHOD = "DANN"  # options=["CDAN", "CDAN-E", "DANN", "DAN", "TA3N"]
 _C.DAN.USERANDOM = False
 _C.DAN.RANDOM_DIM = 1024
 
-
 # ---------------------------------------------------------------------------- #
 # TA3N configs
 # ---------------------------------------------------------------------------- #
@@ -89,13 +90,15 @@ _C.TA3N = CN()
 # TA3N Dataset
 # -----------------------------------------------------------------------------
 _C.TA3N.DATASET = CN()
-_C.TA3N.DATASET.NUM_SOURCE = 5002  # number of training data (source)
-_C.TA3N.DATASET.NUM_TARGET = 7906  # number of training data (target)
+# _C.TA3N.DATASET.NUM_SOURCE = 5002  # number of training data (source)
+# _C.TA3N.DATASET.NUM_TARGET = 7906  # number of training data (target)
 
 _C.TA3N.DATASET.NUM_SEGMENTS = 5  # sample frame # of each video for training
 # _C.TA3N.DATASET.VAL_SEGMENTS = 5  # sample frame # of each video for training
 _C.TA3N.DATASET.BASELINE_TYPE = "video"  # choices = ['frame', 'tsn']
-_C.TA3N.DATASET.FRAME_AGGREGATION = "trn-m"  # method to integrate the frame-level features. choices = [avgpool, trn, trn-m, rnn, temconv]
+_C.TA3N.DATASET.FRAME_AGGREGATION = (
+    "trn-m"  # method to integrate the frame-level features. choices = [avgpool, trn, trn-m, rnn, temconv]
+)
 
 # ---------------------------------------------------------------------------- #
 # TA3N Model
@@ -165,14 +168,17 @@ _C.TA3N.TRAINER.VERBOSE = True
 _C.TA3N.TRAINER.DANN_WARMUP = True
 
 # Learning configs
-_C.TA3N.TRAINER.LOSS_TYPE = 'nll'
+_C.TA3N.TRAINER.LOSS_TYPE = "nll"
 # _C.TA3N.TRAINER.LR = 0.003
-# _C.TA3N.TRAINER.LR_DECAY = 10
+_C.TA3N.TRAINER.LR_DECAY = 10
 _C.TA3N.TRAINER.LR_ADAPTIVE = None  # choices = [None, loss, dann]
 _C.TA3N.TRAINER.LR_STEPS = [10, 20]
 # _C.TA3N.TRAINER.MOMENTUM = 0.9
-_C.TA3N.TRAINER.WEIGHT_DECAY = 0.0001
-_C.TA3N.TRAINER.BATCH_SIZE = [_C.SOLVER.TRAIN_BATCH_SIZE, int(_C.SOLVER.TRAIN_BATCH_SIZE * _C.DATASET.NUM_TARGET / _C.DATASET.NUM_SOURCE), _C.SOLVER.TRAIN_BATCH_SIZE]
+# _C.TA3N.TRAINER.BATCH_SIZE = [
+#     _C.SOLVER.TRAIN_BATCH_SIZE,
+#     int(_C.SOLVER.TRAIN_BATCH_SIZE * _C.TA3N.DATASET.NUM_TARGET / _C.TA3N.DATASET.NUM_SOURCE),
+#     _C.SOLVER.TRAIN_BATCH_SIZE,
+# ]
 # _C.TA3N.TRAINER.OPTIMIZER_NAME = "SGD"  # choices = [SGD, Adam]
 _C.TA3N.TRAINER.CLIP_GRADIENT = 20
 
@@ -219,6 +225,7 @@ _C.TA3N.TESTER.RESULT_JSON = "test.json"
 # _C.TA3N.TESTER.SAVE_CONFUSION = os.path.join(_C.PATHS.EXP_PATH, "confusion_matrix")
 
 _C.TA3N.TESTER.VERBOSE = True
+
 
 def get_cfg_defaults():
     return _C.clone()

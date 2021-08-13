@@ -5,12 +5,27 @@
 """Python implementation of Temporal Relation Network (TRN) for TA3N model.
 """
 
-import torch
 import numpy as np
-
+import torch
 from torch import nn
+from torch.nn.init import kaiming_normal_
+
 from kale.pipeline.domain_adapter import GradReverse
 
+
+class TCL(nn.Module):
+    def __init__(self, conv_size, dim):
+        super(TCL, self).__init__()
+
+        self.conv2d = nn.Conv2d(dim, dim, kernel_size=(conv_size, 1), padding=(conv_size // 2, 0))
+
+        # initialization
+        kaiming_normal_(self.conv2d.weight)
+
+    def forward(self, x):
+        x = self.conv2d(x)
+
+        return x
 
 class TRNRelationModule(nn.Module):
     # this is the naive implementation of the n-frame relation module, as num_frames == num_frames_relation
@@ -58,7 +73,7 @@ class TRNRelationModuleMultiScale(nn.Module):
         self.fc_fusion_scales = nn.ModuleList()  # high-tech modulelist
         for i in range(len(self.scales)):
             scale = self.scales[i]
-            fc_fusion = nn.Sequential(nn.ReLU(), nn.Linear(scale * self.img_feature_dim, num_bottleneck), nn.ReLU(), )
+            fc_fusion = nn.Sequential(nn.ReLU(), nn.Linear(scale * self.img_feature_dim, num_bottleneck), nn.ReLU(),)
 
             self.fc_fusion_scales += [fc_fusion]
 
@@ -105,7 +120,7 @@ class TemporalAttention(nn.Module):
     """
 
     def __init__(
-            self, input_size=512, num_segments=5, beta=0.75, trn_bottleneck=256, use_attn="TransAttn",
+        self, input_size=512, num_segments=5, beta=0.75, trn_bottleneck=256, use_attn="TransAttn",
     ):
         super(TemporalAttention, self).__init__()
         self.num_segments = num_segments

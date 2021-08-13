@@ -65,8 +65,14 @@ def get_extractor_video(model_name, image_modality, attention, dict_num_classes)
         if audio:
             audio_pretrained = "audio_ta3n"
             class_feature_dim += domain_feature_dim
-        feature_network = ta3n_joint(rgb_pretrained, flow_pretrained, audio_pretrained, input_size=1024,
-                                     input_type="image", dict_n_class=num_classes)
+        feature_network = ta3n_joint(
+            rgb_pretrained,
+            flow_pretrained,
+            audio_pretrained,
+            input_size=1024,
+            input_type="image",
+            dict_n_class=num_classes,
+        )
         return feature_network, int(class_feature_dim), int(domain_feature_dim)
 
     # Get I3D w/o SELayers for RGB, Flow or joint input
@@ -135,16 +141,26 @@ def get_extractor_video(model_name, image_modality, attention, dict_num_classes)
     return feature_network, int(class_feature_dim), int(domain_feature_dim)
 
 
-def get_extractor_feat(model_name, image_modality, dict_num_classes, frame_aggregation, segments, input_size=1024, output_size=256):
+def get_extractor_feat(
+    model_name, image_modality, dict_num_classes, frame_aggregation, segments, input_size=1024, output_size=256
+):
     """Get the feature extractor w/o SELayers for feature input.
     """
     rgb, flow, audio = get_image_modality(image_modality)
 
     if model_name == "TA3N":
         logging.info("{}".format(model_name))
-        feature_network = ta3n_joint(rgb, flow, audio, input_size, output_size, input_type="feature",
-                                     frame_aggregation=frame_aggregation, segments=segments,
-                                     dict_n_class=dict_num_classes)
+        feature_network = ta3n_joint(
+            rgb,
+            flow,
+            audio,
+            input_size,
+            output_size,
+            input_type="feature",
+            frame_aggregation=frame_aggregation,
+            segments=segments,
+            dict_n_class=dict_num_classes,
+        )
 
     domain_feature_dim = int(output_size)
     if rgb:
