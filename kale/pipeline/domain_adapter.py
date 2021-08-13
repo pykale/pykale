@@ -40,6 +40,7 @@ class GradReverse(Function):
 
 class GradScale(Function):
     """The gradient scaling layer"""
+
     @staticmethod
     def forward(ctx, x, beta):
         ctx.beta = beta
@@ -289,6 +290,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._non_init_epochs = nb_adapt_epochs - self._init_epochs
         assert self._non_init_epochs > 0
         self._batch_size = batch_size
+        self._target_batch_size = None  # to be set by method train/val/test_dataloader
         self._init_lr = init_lr
         self._lr_fact = 1.0
         self._grow_fact = 0.0
@@ -406,12 +408,6 @@ class BaseAdaptTrainer(pl.LightningModule):
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
 
-        # return {
-        #     "val_loss": avg_loss,  # for callbacks (eg early stopping)
-        #     "progress_bar": {"val_loss": avg_loss},
-        #     "log": log_dict,
-        # }
-
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
             "val_loss",
@@ -438,12 +434,6 @@ class BaseAdaptTrainer(pl.LightningModule):
 
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
-
-        # return {
-        #     "avg_test_loss": log_dict["test_loss"],
-        #     "progress_bar": log_dict,
-        #     "log": log_dict,
-        # }
 
     def _configure_optimizer(self, parameters):
         if self._optimizer_params is None:

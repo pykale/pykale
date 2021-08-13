@@ -19,19 +19,19 @@ from kale.loaddata.video_access import get_image_modality
 
 class VideoMultiDomainDatasets(MultiDomainDatasets):
     def __init__(
-            self,
-            source_access_dict,
-            target_access_dict,
-            image_modality,
-            config_weight_type="natural",
-            config_size_type=DatasetSizeType.Max,
-            val_split_ratio=0.1,
-            num_workers=1,
-            source_sampling_config=None,
-            target_sampling_config=None,
-            n_fewshot=None,
-            random_state=None,
-            class_ids=None,
+        self,
+        source_access_dict,
+        target_access_dict,
+        image_modality,
+        config_weight_type="natural",
+        config_size_type=DatasetSizeType.Max,
+        val_split_ratio=0.1,
+        num_workers=1,
+        source_sampling_config=None,
+        target_sampling_config=None,
+        n_fewshot=None,
+        random_state=None,
+        class_ids=None,
     ):
         """The class controlling how the source and target domains are iterated over when the input is joint.
             Inherited from MultiDomainDatasets.
@@ -225,7 +225,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             # print("n_dataset {}; n_batches {}; src_bs {}; tgt_bs {}".format(n_dataset, int(math.ceil(n_dataset / batch_size)), batch_size, target_batch_size))
 
             # return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1),)
-            return MultiDataLoader(dataloaders=dataloaders, n_batches=max(int(math.ceil(n_dataset / batch_size)), 1))
+            return MultiDataLoader(dataloaders=dataloaders, n_batches=max(int(math.ceil(n_dataset / batch_size)), 1)), target_batch_size
         else:
             # semi-supervised target domain
             if self.rgb:
@@ -285,7 +285,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             ]
             dataloaders = [x for x in dataloaders if x is not None]
 
-            return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1))
+            return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1)), target_batch_size
             # return MultiDataLoader(dataloaders=dataloaders, n_batches=max(int(math.ceil(n_dataset / batch_size)), 1))
 
     def __len__(self):
