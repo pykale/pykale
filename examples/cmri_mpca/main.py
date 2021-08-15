@@ -45,24 +45,27 @@ def main():
     y = df["Group"].values
     y[np.where(y != 0)] = 1  # convert to binary classification problem, i.e. no PH vs PAH
 
-    visualize.plot_multi_images(images[:, 0, ...], marker_locs=landmarks).show()  # plot the first phase of images
+    # plot the first phase of images
+    visualize.plot_multi_images(
+        images[:, 0, ...], marker_locs=landmarks, im_kwargs=dict(cfg.IM_KWARGS), marker_kwargs=dict(cfg.MARKER_KWARGS)
+    ).show()
 
     # ---- data pre-processing ----
     # ----- image registration -----
-    img_reg, max_dist = reg_img_stack(images, landmarks)
-    visualize.plot_multi_images(img_reg[:, 0, ...]).show()
+    img_reg, max_dist = reg_img_stack(images.copy(), landmarks)
+    visualize.plot_multi_images(img_reg[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).show()
 
     # ----- masking -----
-    img_masked = mask_img_stack(img_reg, mask[0, 0, ...])
-    visualize.plot_multi_images(img_masked[:, 0, ...]).show()
+    img_masked = mask_img_stack(img_reg.copy(), mask[0, 0, ...])
+    visualize.plot_multi_images(img_masked[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).show()
 
     # ----- resize -----
-    img_rescaled = rescale_img_stack(img_masked, scale=2)
-    visualize.plot_multi_images(img_rescaled[:, 0, ...]).show()
+    img_rescaled = rescale_img_stack(img_masked.copy(), scale=1 / cfg.PROC.SCALE)
+    visualize.plot_multi_images(img_rescaled[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).show()
 
     # ----- normalization -----
-    img_norm = normalize_img_stack(img_rescaled)
-    visualize.plot_multi_images(img_norm[:, 0, ...]).show()
+    img_norm = normalize_img_stack(img_rescaled.copy())
+    visualize.plot_multi_images(img_norm[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).show()
 
     # ---- evaluating machine learning pipeline ----
     x = img_norm.copy()
@@ -78,8 +81,15 @@ def main():
     trainer.fit(x, y)
 
     weights = trainer.mpca.inverse_transform(trainer.clf.coef_) - trainer.mpca.mean_
-    top_weights = model_weights.select_top_weight(weights, select_ratio=0.1)
-    visualize.plot_weights(top_weights[0][0], background_img=x[0][0]).show()
+    weights = rescale_img_stack(weights, cfg.PROC.SCALE)  # rescale weights to original shape
+    weights = mask_img_stack(weights, mask[0, 0, ...])  # masking weights
+    top_weights = model_weights.select_top_weight(weights, select_ratio=0.05)  # select top 5% weights
+    visualize.plot_weights(
+        top_weights[0][0],
+        background_img=images[0][0],
+        im_kwargs=dict(cfg.IM_KWARGS),
+        marker_kwargs=dict(cfg.WEIGHT_KWARGS),
+    ).show()
 
 
 if __name__ == "__main__":

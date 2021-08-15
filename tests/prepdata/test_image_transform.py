@@ -52,7 +52,7 @@ def test_reg(images, coords):
 
 @pytest.mark.parametrize("scale", SCALES)
 def test_rescale(scale, images):
-    img_rescaled = rescale_img_stack(images, scale)
+    img_rescaled = rescale_img_stack(images, 1 / scale)
     # dim1 and dim2 have been rescaled
     testing.assert_equal(img_rescaled.shape[-1], round(images.shape[-1] / scale))
     testing.assert_equal(img_rescaled.shape[-2], round(images.shape[-2] / scale))

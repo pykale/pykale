@@ -133,24 +133,23 @@ def reg_img_stack(images, coords, dst_id=0):
     return images, max_dist
 
 
-def rescale_img_stack(images, scale=2):
+def rescale_img_stack(images, scale=0.5):
     """Rescale stacked images by a given factor
 
     Args:
         images (array-like tensor): Input data, shape (n_samples, n_phases, dim1, dim2).
-        scale (int, optional): Scale factor. Defaults to 2.
+        scale (float, optional): Scale factor. Defaults to 0.5.
 
     Returns:
         array-like tensor: Rescaled images, shape (n_samples, n_phases, dim1 / scale, dim2 / scale).
     """
     n_samples, n_phases = images.shape[:2]
-    scale_ = 1 / scale
     images_rescale = []
     for i in range(n_samples):
         stack_i = []
         for j in range(n_phases):
             img = images[i, j, ...]
-            img_rescale = rescale(img, scale_, preserve_range=True)
+            img_rescale = rescale(img, scale, preserve_range=True)
             # preserve_range should be true otherwise the output will be normalised values
             stack_i.append(img_rescale.reshape((1,) + img_rescale.shape))
         stack_i = np.concatenate(stack_i, axis=0)
@@ -178,7 +177,7 @@ def mask_img_stack(images, mask):
 
 
 def normalize_img_stack(images):
-    """Normalization for stacked images
+    """Normalize pixel values to (0, 1) for stacked images.
 
     Args:
         images (array-like tensor): Input data, shape (n_samples, n_phases, dim1, dim2).

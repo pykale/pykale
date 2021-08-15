@@ -17,7 +17,7 @@ kale.interpret.model\_weights module
 Module contents
 ---------------
 
-.. automodule:: kale.interpret
+.. automodule:: kale.interpret.visualize
    :members:
    :undoc-members:
    :show-inheritance:
