@@ -18,10 +18,6 @@ PyKale Documentation
 
 .. toctree::
     :maxdepth: 1
-    :caption: Notebook Tutorials
-
-.. toctree::
-    :maxdepth: 1
     :caption: Kale API
 
     kale.loaddata
