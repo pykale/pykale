@@ -1,13 +1,7 @@
 # Jupyter Notebook Tutorials
 
-## Image classification tutorial
+- **Image classification**: [Digits domain adaptation](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb)
 
-Digits - Domain Adaptation Notebook <https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb>
+- **Drug discovery**: [BindingDB drug-target interaction prediction](https://github.com/pykale/pykale/blob/main/examples/bindingdb_deepdta/tutorial.ipynb)
 
-## Drug discovery tutorial
-
-BindingDB - Drug-Target Interaction Prediction Notebook <https://github.com/pykale/pykale/blob/main/examples/bindingdb_deepdta/tutorial.ipynb>
-
-## Medical image analysis tutorial
-
-Cardiac MRI - MPCA-based Diagnosis Notebook <https://github.com/pykale/pykale/blob/main/examples/cmri_mpca/tutorial.ipynb>
+- **Medical image analysis**: [Cardiac MRI for MPCA-based diagnosis](https://github.com/pykale/pykale/blob/main/examples/cmri_mpca/tutorial.ipynb)
