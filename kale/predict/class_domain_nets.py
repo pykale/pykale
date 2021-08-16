@@ -10,7 +10,7 @@ adversarial discrimination of source vs target domains, from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
 """
 import torch.nn as nn
-from torch.nn.init import normal_, constant_
+from torch.nn.init import constant_, normal_
 
 from kale.embed.video_i3d import Unit3D
 from kale.loaddata.video_access import get_class_type
@@ -235,6 +235,7 @@ class ClassNetVideoTA3N(nn.Module):
         if self.verb and self.noun:
             x_noun = self.fc2(input)
         return [x_verb, x_noun]
+
 
 # For Video/Action Recognition, DomainClassifier.
 class DomainNetVideo(nn.Module):
