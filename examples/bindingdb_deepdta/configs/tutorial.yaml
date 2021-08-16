@@ -1,0 +1,5 @@
+DATASET:
+  NAME: 'BindingDB_Kd'
+SOLVER:
+  MAX_EPOCHS: 3
+  MIN_EPOCHS: 0

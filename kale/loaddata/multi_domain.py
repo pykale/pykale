@@ -1,6 +1,6 @@
 """
-Construct a dataset with (multiple) source and target domains,
-from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py
+Construct a dataset with (multiple) source and target domains, adapted from
+https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/multisource.py
 """
 
 import logging
@@ -14,8 +14,8 @@ from sklearn.utils import check_random_state
 from torchvision.datasets import VisionDataset
 from torchvision.datasets.folder import default_loader, has_file_allowed_extension, IMG_EXTENSIONS
 
-from kale.loaddata.dataset_access import DatasetAccess, split_by_ratios
-from kale.loaddata.sampler import get_labels, MultiDataLoader, SamplingConfig, FixedSeedSamplingConfig
+from kale.loaddata.dataset_access import DatasetAccess, get_class_subset, split_by_ratios
+from kale.loaddata.sampler import FixedSeedSamplingConfig, get_labels, MultiDataLoader, SamplingConfig
 
 
 class WeightingType(Enum):
@@ -90,7 +90,8 @@ class MultiDomainDatasets(DomainsDatasetBase):
                 (=> RandomSampler).
             n_fewshot (int, optional): Number of target samples for which the label may be used,
                 to define the few-shot, semi-supervised setting. Defaults to None.
-            random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label selection. Defaults to None.
+            random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label
+                selection. Defaults to None.
             class_ids (list, optional): List of chosen subset of class ids. Defaults to None (=> All Classes).
         Examples::
             >>> dataset = MultiDomainDatasets(source_access, target_access)
@@ -236,9 +237,35 @@ def _split_dataset_few_shot(dataset, n_fewshot, random_state=None):
     return labeled_dataset, unlabeled_dataset
 
 
+def domain_stratified_split(domain_labels, n_partitions, split_ratios):
+    """Get domain stratified indices of random split. Samples with the same domain label will be split based on the
+        given ratios. Then the indices of different domains within the same split will be concatenated.
+
+    Args:
+        domain_labels (array-like): Labels to indicate which domains the samples are from.
+        n_partitions (int): Number of partitions to split, 2 <= n_partitions <= len(split_ratios) + 1.
+        split_ratios (list): Ratios of splits to be produced, where 0 < sum(split_ratios) <= 1.
+
+    Returns:
+        [list]: Indices for different splits.
+    """
+    domains = np.unique(domain_labels)
+    subset_idx = [[] for i in range(n_partitions)]
+    for domain_label_ in domains:
+        domain_idx = np.where(domain_labels == domain_label_)[0]
+        subsets = split_by_ratios(torch.from_numpy(domain_idx), split_ratios)
+        for i in range(n_partitions):
+            subset_idx[i].append(domain_idx[subsets[i].indices])
+
+    stratified_idx = []
+    for i in range(n_partitions):
+        stratified_idx.append(np.concatenate(subset_idx[i]))
+
+    return stratified_idx
+
+
 class MultiDomainImageFolder(VisionDataset):
     """A generic data loader where the samples are arranged in this way: ::
-
             root/domain_a/class_x/xxx.ext
             root/domain_a/class_x/xxy.ext
             ...
@@ -247,22 +274,21 @@ class MultiDomainImageFolder(VisionDataset):
             root/domain_k/class_x/123.ext
             root/domain_k/class_x/abc3.ext
             ...
-            root/domain_k/class_y/asd932_.ext
-
+            root/domain_k/class_y/asd932_.exts
         Args:
             root (string): Root directory path.
             loader (callable): A function to load a sample given its path.
-            extensions (tuple[string]): A list of allowed extensions.
-                both extensions and is_valid_file should not be passed.
-            transform (callable, optional): A function/transform that takes in
-                a sample and returns a transformed version.
-                E.g, ``transforms.RandomCrop`` for images.
-            target_transform (callable, optional): A function/transform that takes
-                in the target and transforms it.
-            is_valid_file (callable, optional): A function that takes path of a file
-                and check if the file is a valid file (used to check of corrupt files)
-                both extensions and is_valid_file should not be passed.
-
+            extensions (tuple[string]): A list of allowed extensions. Either extensions or is_valid_file should be
+                passed.
+            transform (callable, optional): A function/transform that takes in a sample and returns a transformed
+                version.  E.g, ``transforms.RandomCrop`` for images.
+            target_transform (callable, optional): A function/transform that takes in the target and transforms it.
+            sub_domain_set (list): A list of domain names, which should be a subset of domains in image folders.
+                Defaults to None.
+            sub_class_set (list): A list of class names, which should be a subset of classes in image folders.
+                Defaults to None.
+            is_valid_file (callable, optional): A function that takes path of a file and check if the file is a valid
+                file (to check corrupt files). Either extensions or is_valid_file should be passed.
          Attributes:
             classes (list): List of the class names sorted alphabetically.
             class_to_idx (dict): Dict with items (class_name, class_index).
@@ -280,17 +306,29 @@ class MultiDomainImageFolder(VisionDataset):
         extensions: Optional[Tuple[str, ...]] = IMG_EXTENSIONS,
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
+        sub_domain_set=None,
+        sub_class_set=None,
         is_valid_file: Optional[Callable[[str], bool]] = None,
         return_domain_label: Optional[bool] = False,
+        split_train_test: Optional[bool] = False,
+        split_ratio: Optional[float] = 0.8,
     ) -> None:
         super(MultiDomainImageFolder, self).__init__(root, transform=transform, target_transform=target_transform)
         domains, domain_to_idx = self._find_classes(self.root)
+        if type(sub_domain_set) == list:
+            for domain_name in sub_domain_set:
+                if domain_name not in domains:
+                    raise ValueError("Domain %s not in the image directory" % domain_name)
+            domains = sub_domain_set
+            domain_to_idx = {domain_name: i for i, domain_name in enumerate(sub_domain_set)}
+
         classes, class_to_idx = self._find_classes(os.path.join(self.root, domains[0]))
-        for domain in domains:
-            domain_path = os.path.join(self.root, domain)
-            classes_, class_to_idx_ = self._find_classes(domain_path)
-            if not classes == classes_:
-                raise ValueError("Classes for different domains are expected to be the same.")
+        if type(sub_class_set) == list:
+            for class_name in sub_class_set:
+                if class_name not in classes:
+                    raise ValueError("Class %s not in the image directory" % class_name)
+            classes = sub_class_set
+            class_to_idx = {class_name: i for i, class_name in enumerate(sub_class_set)}
         samples = make_multi_domain_set(self.root, class_to_idx, domain_to_idx, extensions, is_valid_file)
         if len(samples) == 0:
             msg = "Found 0 files in sub-folders of: {}\n".format(self.root)
@@ -309,18 +347,22 @@ class MultiDomainImageFolder(VisionDataset):
         self.domain_to_idx = domain_to_idx
         self.domain_labels = [s[2] for s in samples]
         self.return_domain_label = return_domain_label
+        self.split_train_test = split_train_test
+        self.split_ratio = split_ratio
+        if split_train_test:
+            self.train_idx, self.test_idx = domain_stratified_split(self.domain_labels, 2, [split_ratio])
+        else:
+            self.train_idx = None
+            self.test_idx = None
 
     @staticmethod
     def _find_classes(directory: str) -> Tuple[List[str], Dict[str, int]]:
         """
             Finds the class folders in a dataset.
-
             Args:
                 directory (string): Directory path.
-
             Returns:
                 tuple: (classes, class_to_idx) where classes are relative to (dir), and class_to_idx is a dictionary.
-
             Ensures:
                 No class is a subdirectory of another.
             """
@@ -333,7 +375,6 @@ class MultiDomainImageFolder(VisionDataset):
         """
             Args:
                 index (int): Index
-
             Returns:
                 tuple: (sample, target, domain) where target is class_index of the target class.
             """
@@ -351,6 +392,18 @@ class MultiDomainImageFolder(VisionDataset):
     def __len__(self) -> int:
         return len(self.samples)
 
+    def get_train(self):
+        if self.split_train_test:
+            return torch.utils.data.Subset(self, self.train_idx)
+        else:
+            raise ValueError("The dataset has no train split yet.")
+
+    def get_test(self):
+        if self.split_train_test:
+            return torch.utils.data.Subset(self, self.test_idx)
+        else:
+            raise ValueError("The dataset has no test split yet.")
+
 
 def make_multi_domain_set(
     directory: str,
@@ -360,21 +413,16 @@ def make_multi_domain_set(
     is_valid_file: Optional[Callable[[str], bool]] = None,
 ) -> List[Tuple[str, int, int]]:
     """Generates a list of samples of a form (path_to_sample, class, domain).
-
     Args:
         directory (str): root dataset directory
         class_to_idx (Dict[str, int]): dictionary mapping class name to class index
         domain_to_idx (Dict[str, int]): dictionary mapping d name to class index
-        extensions (optional): A list of allowed extensions.
-            Either extensions or is_valid_file should be passed. Defaults to None.
-        is_valid_file (optional): A function that takes path of a file
-            and checks if the file is a valid file
-            (used to check of corrupt files) both extensions and
-            is_valid_file should not be passed. Defaults to None.
-
+        extensions (optional): A list of allowed extensions. Either extensions or is_valid_file should be passed.
+            Defaults to None.
+        is_valid_file (optional): A function that takes path of a file and checks if the file is a valid file
+            (to check corrupt files) both extensions and is_valid_file should not be passed. Defaults to None.
     Raises:
         ValueError: In case ``extensions`` and ``is_valid_file`` are None or both are not None.
-
     Returns:
         List[Tuple[str, int, int]]: samples of a form (path_to_sample, class, domain)
     """
@@ -407,79 +455,38 @@ def make_multi_domain_set(
     return instances
 
 
-# class DomainWeightType(Enum):
-#     Rand = "random"
-#     BALANCED = "balanced"
-
-
 class MultiDomainAdapDataset(DomainsDatasetBase):
+    """The class controlling how the multiple domains are iterated over.
+
+    Args:
+        data_access (MultiDomainImageFolder): Multi-domain data access.
+        val_split_ratio (float, optional): Split ratio for validation set. Defaults to 0.1.
+        test_split_ratio (float, optional): Split ratio for test set. Defaults to 0.2.
+        random_state (int, optional): Random state for generator. Defaults to 1.
+    """
+
     def __init__(
-        self,
-        data_access: MultiDomainImageFolder,
-        # domain_weight_type="balanced",
-        # config_weight_type="natural",
-        # config_size_type=DatasetSizeType.Max,
-        # target_label=0,
-        # target=None,
-        val_split_ratio=0.1,
-        test_split_ratio=0.2,
-        random_state: int = 1,
+        self, data_access: MultiDomainImageFolder, val_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1,
     ):
-        # domain_weight_type = DomainWeightType(domain_weight_type)
-        # if domain_weight_type is DomainWeightType.BALANCED:
-        #     sampling =
-        # weight_type = WeightingType(config_weight_type)
-        # size_type = DatasetSizeType(config_size_type)
-        # if target is None:
-        #     for key in data_access.domain_to_idx:
-        #         if data_access.domain_to_idx[key] == target_label:
-        #             target = key
-        #             break
-        # else:
-        #     target_idx = data_access.domain_to_idx[target]
-        #     if target_idx != target_label:
-        #         raise ValueError(
-        #             "Given target domain label in given dataset is %s but not %s" % (target_label, target_idx)
-        #         )
         self.domain_labels = np.array(data_access.domain_labels)
         self.domain_to_idx = data_access.domain_to_idx
         self.n_domains = len(data_access.domain_to_idx)
         self.data_access = data_access
-        # self._source_access = torch.utils.data.Subset(data_access, np.where(domain_labels != target_label)[0])
-        # self._target_access = torch.utils.data.Subset(data_access, np.where(domain_labels == target_label)[0])
-        # self.target_label = target_label
-        # self.target = target
         self._val_split_ratio = val_split_ratio
         self._test_split_ratio = test_split_ratio
         self._sample_by_split: Dict[str, torch.utils.data.Subset] = {}
-        self._sampling_config = FixedSeedSamplingConfig(seed=random_state)
+        self._sampling_config = FixedSeedSamplingConfig(seed=random_state, balance_domain=True)
+        self._loader = MultiDataLoader
         self._random_state = random_state
 
     def prepare_data_loaders(self):
-        # (self._source_by_split["test"], self._source_by_split["valid"], self._source_by_split["train"],) = \
-        #     split_by_ratios(self._source_access, [self._test_split_ratio, self._val_split_ratio])
-        #
-        # (self._target_by_split["test"], self._target_by_split["valid"], self._target_by_split["train"]) = \
-        #     split_by_ratios(self._target_access, [self._test_split_ratio, self._val_split_ratio])
-        subset_split = {"train": [], "valid": [], "test": []}
-        for domain in self.domain_to_idx:
-            subset = dict()
-            domain_label_ = self.domain_to_idx[domain]
-            domain_idx = np.where(self.domain_labels == domain_label_)[0]
-            subset["test"], subset["valid"], subset["train"] = split_by_ratios(
-                torch.utils.data.Subset(self.data_access, domain_idx), [self._test_split_ratio, self._val_split_ratio],
-                random_state=self._random_state
-            )
-            for split in ["train", "valid", "test"]:
-                subset_split[split].append(subset[split])
-
-        for split in ["train", "valid", "test"]:
-            self._sample_by_split[split] = torch.utils.data.ConcatDataset(subset_split[split])
+        splits = ["test", "valid", "train"]
+        subset_idx = domain_stratified_split(self.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio])
+        for i in range(len(splits)):
+            self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
 
     def get_domain_loaders(self, split="train", batch_size=32):
-
         return self._sampling_config.create_loader(self._sample_by_split[split], batch_size)
 
     def __len__(self):
-
         return len(self.data_access)

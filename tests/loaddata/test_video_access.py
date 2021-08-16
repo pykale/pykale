@@ -20,21 +20,22 @@ SOURCES = [
 ]
 TARGETS = [
     "EPIC;8;epic_D1_train.pkl;epic_D1_test.pkl",
-    "ADL;7;adl_P_04_train.pkl;adl_P_04_test.pkl",
-    "GTEA;6;gtea_train.pkl;gtea_test.pkl",
-    "KITCHEN;6;kitchen_train.pkl;kitchen_test.pkl",
+    # "ADL;7;adl_P_04_train.pkl;adl_P_04_test.pkl",
+    # "GTEA;6;gtea_train.pkl;gtea_test.pkl",
+    # "KITCHEN;6;kitchen_train.pkl;kitchen_test.pkl",
 ]
 ALL = SOURCES + TARGETS
 IMAGE_MODALITY = ["rgb", "flow", "joint"]
 WEIGHT_TYPE = ["natural", "balanced", "preset0"]
-DATASIZE_TYPE = ["max", "source"]
+# DATASIZE_TYPE = ["max", "source"]
+DATASIZE_TYPE = ["max"]
 VAL_RATIO = [0.1]
 seed = 36
 set_seed(seed)
 CLASS_SUBSETS = [[1, 3, 8]]
 
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-url = "https://github.com/pykale/data/raw/main/video_data/video_test_data.zip"
+url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 
 
 @pytest.fixture(scope="module")
@@ -121,7 +122,7 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
     assert isinstance(dataset, DomainsDatasetBase)
 
     # test class subsets
-    if source_cfg == SOURCES[1] and target_cfg == TARGETS[1]:
+    if source_cfg == SOURCES[1] and target_cfg == TARGETS[0]:
         dataset_subset = VideoMultiDomainDatasets(
             source,
             target,

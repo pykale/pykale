@@ -95,6 +95,8 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
             logging.error(error_msg)
             raise ValueError(error_msg)
 
+        self.classifier_params = classifier_params
+
     def fit(self, x, y):
         """Fit a pipeline with the given data x and labels y
 

@@ -1,9 +1,7 @@
-# Drug-Target Interaction: DeepDTA
+# Drug-Target Interaction Prediction using DeepDTA
 
 ### 1. Description
-Drug-target interaction is a substantial research area in the field of drug discovery. It refers to predicting the binding
-affinity between the given chemical compounds and protein targets. In this example we train a standard DeepDTA model as
-baseline in open BindingDB datasets. BindingDB is a public, web-accessible database of measured binding affinities.
+Drug-target interaction prediction is an important research area in the field of drug discovery. It refers to predicting the binding affinity between the given chemical compounds and protein targets. In this example we train a standard DeepDTA model as a baseline in BindingDB, a public, web-accessible dataset of measured binding affinities.
 
 ### 2. DeepDTA
 [DeepDTA](https://academic.oup.com/bioinformatics/article/34/17/i821/5093245) is the modeling of protein sequences and compound 1D
