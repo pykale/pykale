@@ -12,7 +12,7 @@ C = CfgNode()
 C.DATASET = CfgNode()
 C.DATASET.ROOT = "./data"
 C.DATASET.NAME = "PoSE"
-C.DATASET.URL = "https://github.com/pykale/data/raw/main/graph_data/pose.pt"
+C.DATASET.URL = "https://github.com/pykale/data/raw/main/graphs/pose.pt"
 
 # ---------------------------------------------------------------------------- #
 # Solver
