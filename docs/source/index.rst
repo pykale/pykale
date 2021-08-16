@@ -14,15 +14,11 @@ PyKale Documentation
     introduction
     installation
     tutorial
+    notebooks
 
 .. toctree::
     :maxdepth: 1
     :caption: Notebook Tutorials
-
-    Digits - Domain Adaptation Notebook <https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb>
-
-    BindingDB - Drug-Target Interaction Prediction Notebook <https://github.com/pykale/pykale/blob/main/examples/bindingdb_deepdta/tutorial.ipynb>
-
 
 .. toctree::
     :maxdepth: 1
