@@ -93,7 +93,7 @@ def main():
     weights = trainer.mpca.inverse_transform(trainer.clf.coef_) - trainer.mpca.mean_
     weights = rescale_img_stack(weights, cfg.PROC.SCALE)  # rescale weights to original shape
     weights = mask_img_stack(weights, mask[0, 0, ...])  # masking weights
-    top_weights = model_weights.select_top_weight(weights, select_ratio=0.05)  # select top 5% weights
+    top_weights = model_weights.select_top_weight(weights, select_ratio=0.02)  # select top 2% weights
     visualize.plot_weights(
         top_weights[0][0],
         background_img=images[0][0],
