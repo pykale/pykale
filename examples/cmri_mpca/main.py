@@ -6,6 +6,7 @@ Swift, A. J., Lu, H., Uthoff, J., Garg, P., Cogliano, M., Taylor, J., ... & Kiel
 cardiac magnetic resonance approach to extract disease features and automate pulmonary arterial hypertension diagnosis.
 European Heart Journal-Cardiovascular Imaging. https://academic.oup.com/ehjcimaging/article/22/2/236/5717931
 """
+import argparse
 import os
 
 import numpy as np
@@ -20,11 +21,20 @@ from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, r
 from kale.utils.download import download_file_by_url
 
 
+def arg_parse():
+    """Parsing arguments"""
+    parser = argparse.ArgumentParser(description="Machine learning pipeline for PAH diagnosis")
+    parser.add_argument("--cfg", required=True, help="path to config file", type=str)
+    args = parser.parse_args()
+    return args
+
+
 def main():
+    args = arg_parse()
+
     # ---- setup configs ----
-    cfg_path = "configs/tutorial_svc.yaml"  # Path to `.yaml` config file
     cfg = get_cfg_defaults()
-    cfg.merge_from_file(cfg_path)
+    cfg.merge_from_file(args.cfg)
     cfg.freeze()
     print(cfg)
 
