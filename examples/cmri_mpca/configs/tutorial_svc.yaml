@@ -1,5 +1,4 @@
 DATASET:
   LANDMARK_FILE: "landmarks_64x64.csv"
-  MASK_DIR: "Mask"
 PIPELINE:
   CLASSIFIER: "svc"

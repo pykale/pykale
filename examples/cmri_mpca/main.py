@@ -49,10 +49,10 @@ def main():
     mask_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.MASK_DIR)
     mask = read_dicom_images(mask_path, sort_instance=True)
 
-    df_file = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.LANDMARK_FILE)
-    df = pd.read_csv(df_file, index_col="Subject")
-    landmarks = df.iloc[:, :6].values
-    y = df["Group"].values
+    landmark_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.LANDMARK_FILE)
+    landmark_df = pd.read_csv(landmark_path, index_col="Subject")  # read .csv file as dataframe
+    landmarks = landmark_df.iloc[:, :6].values
+    y = landmark_df["Group"].values
     y[np.where(y != 0)] = 1  # convert to binary classification problem, i.e. no PH vs PAH
 
     # plot the first phase of images

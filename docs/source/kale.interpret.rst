@@ -14,10 +14,18 @@ kale.interpret.model\_weights module
    :undoc-members:
    :show-inheritance:
 
+kale.interpret.visualize module
+----------------------------------------
+
+.. automodule:: kale.interpret.visualize
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
-.. automodule:: kale.interpret.visualize
+.. automodule:: kale.interpret
    :members:
    :undoc-members:
    :show-inheritance:
