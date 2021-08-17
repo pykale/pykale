@@ -3,14 +3,11 @@
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
-from typing import Any, Dict
-
 import torch
 import torch.nn as nn
 from torch.nn.functional import one_hot
-import kale.predict.losses as losses
 
-# from kale.loaddata.multi_domain import MultiDomainAdapDataset
+import kale.predict.losses as losses
 from kale.pipeline.domain_adapter import BaseAdaptTrainer, get_aggregated_metrics
 
 
@@ -52,26 +49,23 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
     return moment_sum / n_pair
 
 
-def average_cls_output(x, classifiers: Dict[int, Any]):
+def average_cls_output(x, classifiers: dict):
     cls_output = [classifiers[key](x) for key in classifiers]
-    cls_output = torch.stack(cls_output)
-    return cls_output.mean(0)
+
+    return torch.stack(cls_output).mean(0)
 
 
 class BaseMultiSourceTrainer(BaseAdaptTrainer):
     def __init__(
-        self,
-        dataset,
-        feature_extractor,
-        task_classifier,
-        target_label: int,
-        **base_params,
+        self, dataset, feature_extractor, task_classifier, target_label: int, **base_params,
     ):
         super().__init__(dataset, feature_extractor, task_classifier, **base_params)
         self.domain_to_idx = dataset.domain_to_idx
         if target_label not in self.domain_to_idx.values():
-            raise ValueError("The given target label %s not in the given dataset! The available domain labels are %s"
-                             % self.domain_to_idx.values())
+            raise ValueError(
+                "The given target label %s not in the given dataset! The available domain labels are %s"
+                % self.domain_to_idx.values()
+            )
         self.target_label = target_label
 
     def forward(self, x):
@@ -107,17 +101,11 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
 
 class M3SDATrainer(BaseMultiSourceTrainer):
     def __init__(
-        self,
-        dataset,
-        feature_extractor,
-        task_classifier,
-        target_label: int,
-        k_moment: int = 5,
-        **base_params,
+        self, dataset, feature_extractor, task_classifier, target_label: int, k_moment: int = 5, **base_params,
     ):
-        """Moment matching for multi-source domain adaptation. 
+        """Moment matching for multi-source domain adaptation.
 
-        Reference:    
+        Reference:
             Peng, X., Bai, Q., Xia, X., Huang, Z., Saenko, K., & Wang, B. (2019).
             Moment matching for multi-source domain adaptation. In Proceedings of the
             IEEE/CVF International Conference on Computer Vision (pp. 1406-1415).
@@ -194,10 +182,17 @@ class M3SDATrainer(BaseMultiSourceTrainer):
 
 class DINTrainer(BaseMultiSourceTrainer):
     def __init__(
-        self, dataset, feature_extractor, task_classifier, target_label: int, kernel: str = "linear",
-        kernel_mul: float = 2.0, kernel_num: int = 5, **base_params,
+        self,
+        dataset,
+        feature_extractor,
+        task_classifier,
+        target_label: int,
+        kernel: str = "linear",
+        kernel_mul: float = 2.0,
+        kernel_num: int = 5,
+        **base_params,
     ):
-        """Domain independent network. 
+        """Domain independent network.
 
         """
         super().__init__(dataset, feature_extractor, task_classifier, target_label, **base_params)
@@ -237,8 +232,16 @@ class DINTrainer(BaseMultiSourceTrainer):
 
 class MFSANTrainer(BaseMultiSourceTrainer):
     def __init__(
-        self, dataset, feature_extractor, task_classifier, target_label: int, n_classes: int,
-        domain_feat_dim: int = 100, kernel_mul: float = 2.0, kernel_num: int = 5, **base_params,
+        self,
+        dataset,
+        feature_extractor,
+        task_classifier,
+        target_label: int,
+        n_classes: int,
+        domain_feat_dim: int = 100,
+        kernel_mul: float = 2.0,
+        kernel_num: int = 5,
+        **base_params,
     ):
         """
 
@@ -271,8 +274,9 @@ class MFSANTrainer(BaseMultiSourceTrainer):
             src_domain_idx = torch.where(domain_labels == src_domain)
             phi_src = self.sonnet[src_domain].forward(phi_x[src_domain_idx])
             phi_tgt = self.sonnet[src_domain].forward(phi_x[tgt_idx])
-            kernels = losses.gaussian_kernel(phi_src, phi_tgt, kernel_mul=self._kernel_mul,
-                                             kernel_num=self._kernel_num, )
+            kernels = losses.gaussian_kernel(
+                phi_src, phi_tgt, kernel_mul=self._kernel_mul, kernel_num=self._kernel_num,
+            )
             mmd_dist += losses.compute_mmd_loss(kernels, len(phi_src))
             y_src_hat = self.classifiers[src_domain](phi_src)
             loss_cls_, ok_src_ = losses.cross_entropy_logits(y_src_hat, y[src_domain_idx])
@@ -296,7 +300,6 @@ class MFSANTrainer(BaseMultiSourceTrainer):
 
 
 class ADDneck(nn.Module):
-
     def __init__(self, inplanes, planes, stride=1, downsample=None):
         super(ADDneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)

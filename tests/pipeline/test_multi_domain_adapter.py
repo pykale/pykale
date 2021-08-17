@@ -1,15 +1,17 @@
 import pytest
+
 # import torch
 # from torch.utils.data import DataLoader, Subset
 # from torch.utils.data.sampler import BatchSampler, RandomSampler
 # from torchvision import transforms
 # from torchvision.datasets import ImageFolder
 import pytorch_lightning as pl
+
 from kale.embed.image_cnn import ResNet18Feature
 from kale.loaddata.multi_domain import MultiDomainAdapDataset, MultiDomainImageFolder
-from kale.prepdata.image_transform import get_transform
-from kale.pipeline.multi_source_adapter import M3SDATrainer
+from kale.pipeline.multi_domain_adapter import M3SDATrainer
 from kale.predict.class_domain_nets import ClassNetSmallImage
+from kale.prepdata.image_transform import get_transform
 
 # transform = transforms.Compose(
 #     [
@@ -52,11 +54,19 @@ def test_multi_source(data_path, testing_cfg):
     feature_dim = feature_network.output_size()
     classifier_network = ClassNetSmallImage(feature_dim, NUM_CLASSES)
     train_params = testing_cfg["train_params"]
-    model = M3SDATrainer(dataset=dataset, feature_extractor=feature_network, task_classifier=classifier_network,
-                         target_label=1, k_moment=3, **train_params)
-    trainer = pl.Trainer(min_epochs=train_params["nb_init_epochs"], max_epochs=train_params["nb_adapt_epochs"],
-                         gpus=None)
+    model = M3SDATrainer(
+        dataset=dataset,
+        feature_extractor=feature_network,
+        task_classifier=classifier_network,
+        target_label=1,
+        k_moment=3,
+        **train_params,
+    )
+    trainer = pl.Trainer(
+        min_epochs=train_params["nb_init_epochs"], max_epochs=train_params["nb_adapt_epochs"], gpus=None
+    )
     trainer.fit(model)
+
 
 # data_path = "/media/shuoz/MyDrive/data/PACS/kfold"
 # data_path = "D:/ML_data/PACS/kfold"
