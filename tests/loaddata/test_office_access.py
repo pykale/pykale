@@ -1,15 +1,7 @@
-import os
-
-import pytest
 from numpy import testing
 
 from kale.loaddata.multi_domain import MultiDomainAdapDataset, MultiDomainDatasets
 from kale.loaddata.office_access import Office31, OfficeAccess, OfficeCaltech
-
-
-@pytest.fixture(scope="module")
-def office_path(download_path):
-    return os.path.join(download_path, "office")
 
 
 def test_office31(office_path):

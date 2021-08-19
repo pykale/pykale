@@ -1043,7 +1043,7 @@ class BaseMMDLike(BaseAdaptTrainer):
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_dist": mmd,
+            f"{split_name}_domain_acc": mmd,
         }
         return task_loss, mmd, log_metrics
 
@@ -1052,7 +1052,7 @@ class BaseMMDLike(BaseAdaptTrainer):
             "val_loss",
             "V_source_acc",
             "V_target_acc",
-            "V_domain_dist",
+            "V_domain_acc",
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 
@@ -1061,7 +1061,7 @@ class BaseMMDLike(BaseAdaptTrainer):
             "test_loss",
             "Te_source_acc",
             "Te_target_acc",
-            "Te_domain_dist",
+            "Te_domain_acc",
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 

@@ -1,11 +1,11 @@
 import pytest
-import pytorch_lightning as pl
 
 import kale.pipeline.domain_adapter as domain_adapter
 from kale.embed.image_cnn import SmallCNNFeature
 from kale.loaddata.digits_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
+from tests.pipeline.pipe_utils import test_model
 
 # from kale.utils.seed import set_seed
 
@@ -95,10 +95,4 @@ def test_domain_adaptor(DA_method, n_fewshot, download_path, testing_cfg):
             **train_params,
         )
 
-    assert isinstance(model, domain_adapter.BaseAdaptTrainer)
-
-    trainer = pl.Trainer(min_epochs=train_params["nb_init_epochs"], max_epochs=train_params["nb_adapt_epochs"], gpus=0)
-    trainer.fit(model)
-    trainer.test()
-    metric_values = trainer.callback_metrics
-    assert isinstance(metric_values, dict)
+    test_model(model, train_params)

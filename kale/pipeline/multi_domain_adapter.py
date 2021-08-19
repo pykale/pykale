@@ -49,7 +49,7 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
     return moment_sum / n_pair
 
 
-def average_cls_output(x, classifiers: dict):
+def _average_cls_output(x, classifiers: dict):
     cls_output = [classifiers[key](x) for key in classifiers]
 
     return torch.stack(cls_output).mean(0)
@@ -82,7 +82,7 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
             "val_loss",
             "V_source_acc",
             "V_target_acc",
-            "V_domain_dist",
+            "V_domain_acc",
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 
@@ -91,7 +91,7 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
             "test_loss",
             "Te_source_acc",
             "Te_target_acc",
-            "Te_domain_dist",
+            "Te_domain_acc",
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
@@ -106,9 +106,9 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         """Moment matching for multi-source domain adaptation.
 
         Reference:
-            Peng, X., Bai, Q., Xia, X., Huang, Z., Saenko, K., & Wang, B. (2019).
-            Moment matching for multi-source domain adaptation. In Proceedings of the
-            IEEE/CVF International Conference on Computer Vision (pp. 1406-1415).
+            Peng, X., Bai, Q., Xia, X., Huang, Z., Saenko, K., & Wang, B. (2019). Moment matching for multi-source
+            domain adaptation. In Proceedings of the IEEE/CVF International Conference on Computer Vision
+            (pp. 1406-1415).
         """
         super().__init__(dataset, feature_extractor, task_classifier, target_label, **base_params)
 
@@ -121,12 +121,12 @@ class M3SDATrainer(BaseMultiSourceTrainer):
     def compute_loss(self, batch, split_name="V"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
-        moment_loss = self._compute_domain_dist(phi_x, domain_labels)
+        moment_loss = self._compute_domain_acc(phi_x, domain_labels)
         src_idx = torch.where(domain_labels != self.target_label)
         tgt_idx = torch.where(domain_labels == self.target_label)
         cls_loss, ok_src = self._compute_cls_loss(phi_x[src_idx], y[src_idx], domain_labels[src_idx])
         if len(tgt_idx) > 0:
-            y_tgt_hat = average_cls_output(phi_x[tgt_idx], self.classifiers)
+            y_tgt_hat = _average_cls_output(phi_x[tgt_idx], self.classifiers)
             _, ok_tgt = losses.cross_entropy_logits(y_tgt_hat, y[tgt_idx])
         else:
             ok_tgt = 0.0
@@ -135,7 +135,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_dist": moment_loss,
+            f"{split_name}_domain_acc": moment_loss,
         }
 
         return task_loss, moment_loss, log_metrics
@@ -160,7 +160,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
             ok_src = torch.cat(ok_src)
             return cls_loss, ok_src
 
-    def _compute_domain_dist(self, x, domain_labels):
+    def _compute_domain_acc(self, x, domain_labels):
         """Compute k-th order moment divergence
 
         Args:
@@ -173,7 +173,6 @@ class M3SDATrainer(BaseMultiSourceTrainer):
 
         # moment_loss = _moment_k(x, domain_label, 1)
         moment_loss = 0
-        # print(reg_info)
         for i in range(self.k_moment):
             moment_loss += _moment_k(x, domain_labels, i + 1)
 
@@ -204,7 +203,7 @@ class DINTrainer(BaseMultiSourceTrainer):
     def compute_loss(self, batch, split_name="V"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
-        loss_dist = self._compute_domain_dist(phi_x, domain_labels)
+        loss_dist = self._compute_domain_acc(phi_x, domain_labels)
         src_idx = torch.where(domain_labels != self.target_label)
         tgt_idx = torch.where(domain_labels == self.target_label)
         cls_output = self.classifier(phi_x)
@@ -215,12 +214,12 @@ class DINTrainer(BaseMultiSourceTrainer):
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_dist": loss_dist,
+            f"{split_name}_domain_acc": loss_dist,
         }
 
         return task_loss, loss_dist, log_metrics
 
-    def _compute_domain_dist(self, x, domain_labels):
+    def _compute_domain_acc(self, x, domain_labels):
         if self.kernel == "linear":
             kx = torch.mm(x, x.T)
         else:
@@ -244,8 +243,9 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         **base_params,
     ):
         """
-
-        Reference:
+        Reference: Zhu, Y., Zhuang, F. and Wang, D., 2019, July. Aligning domain-specific distribution and classifier
+            for cross-domain classification from multiple sources. In Proceedings of the AAAI Conference on Artificial
+            Intelligence (Vol. 33, No. 01, pp. 5989-5996).
 
         """
         super().__init__(dataset, feature_extractor, task_classifier, target_label, **base_params)
@@ -286,14 +286,14 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         loss_cls = loss_cls / n_src
         ok_src = torch.cat(ok_src)
 
-        y_tgt_hat = average_cls_output(phi_x[tgt_idx], self.classifiers)
+        y_tgt_hat = _average_cls_output(phi_x[tgt_idx], self.classifiers)
         _, ok_tgt = losses.cross_entropy_logits(y_tgt_hat, y[tgt_idx])
 
         task_loss = loss_cls
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_dist": mmd_dist,
+            f"{split_name}_domain_acc": mmd_dist,
         }
 
         return task_loss, mmd_dist, log_metrics
