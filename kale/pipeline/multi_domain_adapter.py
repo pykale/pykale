@@ -12,7 +12,7 @@ from kale.pipeline.domain_adapter import BaseAdaptTrainer, get_aggregated_metric
 
 
 def create_ms_adapt_trainer(method: str, dataset, feature_extractor, task_classifier, **train_params):
-    method_dict = {"M3SDA": M3SDATrainer, "DIN": DINTrainer, "M": MFSANTrainer}
+    method_dict = {"M3SDA": M3SDATrainer, "DIN": DINTrainer, "MFSAN": MFSANTrainer}
     method = method.upper()
     if method not in method_dict.keys():
         raise ValueError("Unsupported multi-source domain adaptation methods %s" % method)
@@ -57,9 +57,11 @@ def _average_cls_output(x, classifiers: dict):
 
 class BaseMultiSourceTrainer(BaseAdaptTrainer):
     def __init__(
-        self, dataset, feature_extractor, task_classifier, target_label: int, **base_params,
+        self, dataset, feature_extractor, task_classifier, n_classes: int, target_label: int = 0, **base_params,
     ):
         super().__init__(dataset, feature_extractor, task_classifier, **base_params)
+        self.n_classes = n_classes
+        self.feature_dim = feature_extractor.output_size()
         self.domain_to_idx = dataset.domain_to_idx
         if target_label not in self.domain_to_idx.values():
             raise ValueError(
@@ -101,7 +103,14 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
 
 class M3SDATrainer(BaseMultiSourceTrainer):
     def __init__(
-        self, dataset, feature_extractor, task_classifier, target_label: int, k_moment: int = 5, **base_params,
+        self,
+        dataset,
+        feature_extractor,
+        task_classifier,
+        n_classes: int,
+        target_label: int = 0,
+        k_moment: int = 3,
+        **base_params,
     ):
         """Moment matching for multi-source domain adaptation.
 
@@ -110,12 +119,12 @@ class M3SDATrainer(BaseMultiSourceTrainer):
             domain adaptation. In Proceedings of the IEEE/CVF International Conference on Computer Vision
             (pp. 1406-1415).
         """
-        super().__init__(dataset, feature_extractor, task_classifier, target_label, **base_params)
+        super().__init__(dataset, feature_extractor, task_classifier, n_classes, target_label, **base_params)
 
         self.classifiers = dict()
         for domain_label_ in self.domain_to_idx.values():
             if domain_label_ != target_label:
-                self.classifiers[domain_label_] = task_classifier
+                self.classifiers[domain_label_] = task_classifier(feature_extractor.output_size(), n_classes)
         self.k_moment = k_moment
 
     def compute_loss(self, batch, split_name="V"):
@@ -185,7 +194,7 @@ class DINTrainer(BaseMultiSourceTrainer):
         dataset,
         feature_extractor,
         task_classifier,
-        target_label: int,
+        target_label: int = 0,
         kernel: str = "linear",
         kernel_mul: float = 2.0,
         kernel_num: int = 5,
@@ -235,8 +244,8 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         dataset,
         feature_extractor,
         task_classifier,
-        target_label: int,
         n_classes: int,
+        target_label: int = 0,
         domain_feat_dim: int = 100,
         kernel_mul: float = 2.0,
         kernel_num: int = 5,
@@ -253,10 +262,12 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         self.classifiers = dict()
         self.sonnet = dict()
         n_input_feat = self.feat.output_size()
+        self.src_domains = []
         for domain_label_ in dataset.domain_to_idx.values():
             if domain_label_ != target_label:
                 self.classifiers[domain_label_] = task_classifier(domain_feat_dim, n_classes)
                 self.sonnet[domain_label_] = ADDneck(n_input_feat, domain_feat_dim)
+                self.src_domains.append(domain_label_)
         self.kernel_mul = kernel_mul
         self.kernel_num = kernel_num
 
@@ -265,12 +276,11 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         phi_x = self.forward(x)
         src_idx = torch.where(domain_labels != self.target_label)
         tgt_idx = torch.where(domain_labels == self.target_label)
-        unique_src_domains = torch.unique(domain_labels[src_idx]).squeeze().tolist()
-        n_src = len(unique_src_domains)
+        n_src = len(self.src_domains)
         mmd_dist = 0
         loss_cls = 0
         ok_src = []
-        for src_domain in unique_src_domains:
+        for src_domain in self.src_domains:
             src_domain_idx = torch.where(domain_labels == src_domain)
             phi_src = self.sonnet[src_domain].forward(phi_x[src_domain_idx])
             phi_tgt = self.sonnet[src_domain].forward(phi_x[tgt_idx])

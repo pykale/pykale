@@ -3,7 +3,7 @@ import pytest
 from kale.embed.image_cnn import ResNet18Feature
 from kale.loaddata.multi_domain import MultiDomainAdapDataset
 from kale.loaddata.office_access import OfficeCaltech
-from kale.pipeline.multi_domain_adapter import M3SDATrainer
+from kale.pipeline.multi_domain_adapter import create_ms_adapt_trainer
 from kale.predict.class_domain_nets import ClassNetSmallImage
 from tests.pipeline.pipe_utils import test_model
 
@@ -30,20 +30,27 @@ def office_caltech_access(office_path):
     return OfficeCaltech(root=office_path, download=True, return_domain_label=True)
 
 
-def test_multi_source(office_caltech_access, testing_cfg):
+# MSDA_METHODS = ["MFSAN", "M3SDA"]
+MSDA_METHODS = ["M3SDA"]
+
+
+@pytest.mark.parametrize("method", MSDA_METHODS)
+def test_multi_source(method, office_caltech_access, testing_cfg):
     dataset = MultiDomainAdapDataset(office_caltech_access)
     # num_channels = 3
     feature_network = ResNet18Feature()
     # setup classifier
-    feature_dim = feature_network.output_size()
-    classifier_network = ClassNetSmallImage(feature_dim, 10)
+    # feature_dim = feature_network.output_size()
+    classifier_network = ClassNetSmallImage
     train_params = testing_cfg["train_params"]
-    model = M3SDATrainer(
+    model = create_ms_adapt_trainer(
+        method=method,
         dataset=dataset,
         feature_extractor=feature_network,
         task_classifier=classifier_network,
+        n_classes=10,
         target_label=1,
-        k_moment=3,
         **train_params,
     )
-    test_model(model, train_params)
+    kwargs = {"limit_train_batches": 0.1, "limit_val_batches": 0.5, "limit_test_batches": 0.2}
+    test_model(model, train_params, **kwargs)
