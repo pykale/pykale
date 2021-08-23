@@ -49,7 +49,7 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
     return moment_sum / n_pair
 
 
-def _average_cls_output(x, classifiers: dict):
+def _average_cls_output(x, classifiers: nn.ModuleDict):
     cls_output = [classifiers[key](x) for key in classifiers]
 
     return torch.stack(cls_output).mean(0)
@@ -57,23 +57,25 @@ def _average_cls_output(x, classifiers: dict):
 
 class BaseMultiSourceTrainer(BaseAdaptTrainer):
     def __init__(
-        self, dataset, feature_extractor, task_classifier, n_classes: int, target_label: int = 0, **base_params,
+        self, dataset, feature_extractor, task_classifier, n_classes: int, target_domain: str, **base_params,
     ):
         super().__init__(dataset, feature_extractor, task_classifier, **base_params)
         self.n_classes = n_classes
         self.feature_dim = feature_extractor.output_size()
         self.domain_to_idx = dataset.domain_to_idx
-        if target_label not in self.domain_to_idx.values():
+        if target_domain not in self.domain_to_idx.keys():
             raise ValueError(
-                "The given target label %s not in the given dataset! The available domain labels are %s"
-                % self.domain_to_idx.values()
+                "The given target domain %s not in the dataset! The available domain names are %s"
+                % self.domain_to_idx.keys()
             )
-        self.target_label = target_label
+        self.target_domain = target_domain
+        self.target_label = self.domain_to_idx[target_domain]
+        self.base_params = base_params
 
     def forward(self, x):
         if self.feat is not None:
             x = self.feat(x)
-        x = x.view(x.size(0), -1)
+        # x = x.view(x.size(0), -1)
         return x
 
     def compute_loss(self, batch, split_name="V"):
@@ -108,7 +110,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         feature_extractor,
         task_classifier,
         n_classes: int,
-        target_label: int = 0,
+        target_domain: str,
         k_moment: int = 3,
         **base_params,
     ):
@@ -119,12 +121,12 @@ class M3SDATrainer(BaseMultiSourceTrainer):
             domain adaptation. In Proceedings of the IEEE/CVF International Conference on Computer Vision
             (pp. 1406-1415).
         """
-        super().__init__(dataset, feature_extractor, task_classifier, n_classes, target_label, **base_params)
-
+        super().__init__(dataset, feature_extractor, task_classifier, n_classes, target_domain, **base_params)
         self.classifiers = dict()
-        for domain_label_ in self.domain_to_idx.values():
-            if domain_label_ != target_label:
-                self.classifiers[domain_label_] = task_classifier(feature_extractor.output_size(), n_classes)
+        for domain_ in self.domain_to_idx.keys():
+            if domain_ != target_domain:
+                self.classifiers[domain_] = task_classifier(feature_extractor.output_size(), n_classes)
+        self.classifiers = nn.ModuleDict(self.classifiers)
         self.k_moment = k_moment
 
     def compute_loss(self, batch, split_name="V"):
@@ -157,11 +159,11 @@ class M3SDATrainer(BaseMultiSourceTrainer):
             cls_loss = 0.0
             ok_src = []
             n_src = len(unique_domain_)
-            for domain_label_ in unique_domain_:
-                if domain_label_ == self.target_label:
+            for domain_ in self.domain_to_idx.keys():
+                if domain_ == self.target_domain:
                     continue
-                domain_idx = torch.where(domain_labels == domain_label_)
-                cls_output = self.classifiers[domain_label_](x[domain_idx])
+                domain_idx = torch.where(domain_labels == self.domain_to_idx[domain_])
+                cls_output = self.classifiers[domain_](x[domain_idx])
                 loss_cls_, ok_src_ = losses.cross_entropy_logits(cls_output, y[domain_idx])
                 cls_loss += loss_cls_
                 ok_src.append(ok_src_)
@@ -245,7 +247,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         feature_extractor,
         task_classifier,
         n_classes: int,
-        target_label: int = 0,
+        target_domain: str,
         domain_feat_dim: int = 100,
         kernel_mul: float = 2.0,
         kernel_num: int = 5,
@@ -256,32 +258,37 @@ class MFSANTrainer(BaseMultiSourceTrainer):
             for cross-domain classification from multiple sources. In Proceedings of the AAAI Conference on Artificial
             Intelligence (Vol. 33, No. 01, pp. 5989-5996).
 
+        Original implementation: https://github.com/easezyc/deep-transfer-learning/tree/master/MUDA/MFSAN
         """
-        super().__init__(dataset, feature_extractor, task_classifier, target_label, **base_params)
+        super().__init__(dataset, feature_extractor, task_classifier, n_classes, target_domain, **base_params)
 
         self.classifiers = dict()
         self.sonnet = dict()
         n_input_feat = self.feat.output_size()
         self.src_domains = []
-        for domain_label_ in dataset.domain_to_idx.values():
-            if domain_label_ != target_label:
-                self.classifiers[domain_label_] = task_classifier(domain_feat_dim, n_classes)
-                self.sonnet[domain_label_] = ADDneck(n_input_feat, domain_feat_dim)
-                self.src_domains.append(domain_label_)
-        self.kernel_mul = kernel_mul
-        self.kernel_num = kernel_num
+        self.feat = torch.nn.Sequential(*(list(self.feat.children())[:-1]))
+        for domain_ in dataset.domain_to_idx.keys():
+            if domain_ != self.target_domain:
+                self.sonnet[domain_] = ADDneck(n_input_feat, domain_feat_dim)
+                # domain_out_dim = self.sonnet[domain_label_].output_size
+                self.classifiers[domain_] = task_classifier(domain_feat_dim, n_classes)
+                self.src_domains.append(domain_)
+        self.classifiers = nn.ModuleDict(self.classifiers)
+        self.sonnet = nn.ModuleDict(self.sonnet)
+        self._kernel_mul = kernel_mul
+        self._kernel_num = kernel_num
 
     def compute_loss(self, batch, split_name="V"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
-        src_idx = torch.where(domain_labels != self.target_label)
+        # src_idx = torch.where(domain_labels != self.target_label)
         tgt_idx = torch.where(domain_labels == self.target_label)
         n_src = len(self.src_domains)
         mmd_dist = 0
         loss_cls = 0
         ok_src = []
         for src_domain in self.src_domains:
-            src_domain_idx = torch.where(domain_labels == src_domain)
+            src_domain_idx = torch.where(domain_labels == self.domain_to_idx[src_domain])
             phi_src = self.sonnet[src_domain].forward(phi_x[src_domain_idx])
             phi_tgt = self.sonnet[src_domain].forward(phi_x[tgt_idx])
             kernels = losses.gaussian_kernel(
@@ -296,7 +303,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         loss_cls = loss_cls / n_src
         ok_src = torch.cat(ok_src)
 
-        y_tgt_hat = _average_cls_output(phi_x[tgt_idx], self.classifiers)
+        y_tgt_hat = self._get_avg_cls_output(phi_x[tgt_idx])
         _, ok_tgt = losses.cross_entropy_logits(y_tgt_hat, y[tgt_idx])
 
         task_loss = loss_cls
@@ -307,6 +314,11 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         }
 
         return task_loss, mmd_dist, log_metrics
+
+    def _get_avg_cls_output(self, x):
+        cls_output = [self.classifiers[key](self.sonnet[key](x)) for key in self.classifiers]
+
+        return torch.stack(cls_output).mean(0)
 
 
 class ADDneck(nn.Module):
@@ -320,6 +332,7 @@ class ADDneck(nn.Module):
         self.bn3 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
         self.stride = stride
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
 
     def forward(self, x):
 
@@ -334,5 +347,8 @@ class ADDneck(nn.Module):
         out = self.conv3(out)
         out = self.bn3(out)
         out = self.relu(out)
+
+        out = self.avgpool(out)
+        out = out.view(out.size(0), -1)
 
         return out

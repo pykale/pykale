@@ -18,7 +18,7 @@ def testing_cfg(download_path):
             "nb_adapt_epochs": 2,
             "nb_init_epochs": 1,
             "init_lr": 0.001,
-            "batch_size": 100,
+            "batch_size": 60,
             "optimizer": {"type": "SGD", "optim_params": {"momentum": 0.9, "weight_decay": 0.0005, "nesterov": True}},
         }
     }
@@ -30,8 +30,7 @@ def office_caltech_access(office_path):
     return OfficeCaltech(root=office_path, download=True, return_domain_label=True)
 
 
-# MSDA_METHODS = ["MFSAN", "M3SDA"]
-MSDA_METHODS = ["M3SDA"]
+MSDA_METHODS = ["MFSAN", "M3SDA"]
 
 
 @pytest.mark.parametrize("method", MSDA_METHODS)
@@ -49,8 +48,8 @@ def test_multi_source(method, office_caltech_access, testing_cfg):
         feature_extractor=feature_network,
         task_classifier=classifier_network,
         n_classes=10,
-        target_label=1,
+        target_domain="amazon",
         **train_params,
     )
-    kwargs = {"limit_train_batches": 0.1, "limit_val_batches": 0.5, "limit_test_batches": 0.2}
+    kwargs = {"limit_train_batches": 0.1, "limit_val_batches": 0.3, "limit_test_batches": 0.2}
     test_model(model, train_params, **kwargs)
