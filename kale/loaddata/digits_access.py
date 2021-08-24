@@ -33,6 +33,14 @@ class DigitDataset(Enum):
         Examples::
             >>> source, target, num_channel = get_source_target(sourcename, targetname, data_path)
         """
+        src_access, src_n_channels = DigitDataset.get_access(source, data_path)
+        tgt_access, tgt_n_channels = DigitDataset.get_access(target, data_path)
+        num_channels = max(src_n_channels, tgt_n_channels)
+
+        return src_access, tgt_access, num_channels
+
+    @staticmethod
+    def get_access(data: "DigitDataset", data_path):
         channel_numbers = {
             DigitDataset.MNIST: 1,
             DigitDataset.MNISTM: 3,
@@ -56,12 +64,12 @@ class DigitDataset(Enum):
             DigitDataset.SVHN: SVHNDatasetAccess,
         }
 
-        # handle color/nb channels
-        num_channels = max(channel_numbers[source], channel_numbers[target])
-        source_tf = transform_names[(source, num_channels)]
-        target_tf = transform_names[(target, num_channels)]
+        num_channels = channel_numbers[data]
+        tf = transform_names[(data, num_channels)]
 
-        return (factories[source](data_path, source_tf), factories[target](data_path, target_tf), num_channels)
+        factories[data](data_path, tf)
+
+        return factories[data](data_path, tf), num_channels
 
 
 class DigitDatasetAccess(DatasetAccess):

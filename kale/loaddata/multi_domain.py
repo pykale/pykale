@@ -460,15 +460,17 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
     """The class controlling how the multiple domains are iterated over.
 
     Args:
-        data_access (MultiDomainImageFolder): Multi-domain data access.
+        data_access (MultiDomainImageFolder, or dict): Multi-domain data access.
         val_split_ratio (float, optional): Split ratio for validation set. Defaults to 0.1.
         test_split_ratio (float, optional): Split ratio for test set. Defaults to 0.2.
         random_state (int, optional): Random state for generator. Defaults to 1.
     """
 
     def __init__(
-        self, data_access: MultiDomainImageFolder, val_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1,
+        self, data_access, val_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1,
     ):
+        if type(data_access) is dict:
+            self.domain_to_idx = {list(data_access.keys())[i]: i for i in range(len(data_access))}
         self.domain_labels = np.array(data_access.domain_labels)
         self.domain_to_idx = data_access.domain_to_idx
         self.n_domains = len(data_access.domain_to_idx)
@@ -491,3 +493,7 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
 
     def __len__(self):
         return len(self.data_access)
+
+
+def concat_data_access(data_accesses: dict):
+    domain_to_idx = {list(data_accesses.keys())[i]: i for i in range(len(data_accesses))}
