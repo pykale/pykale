@@ -111,7 +111,7 @@ def compute_mmd_loss(kernel_values, batch_size):
     return loss / float(batch_size)
 
 
-def hsic(kx, ky):
+def hsic(kx, ky, device):
     """Perform independent test (HSIC) between two set of variables x and y.
 
     Args:
@@ -131,12 +131,12 @@ def hsic(kx, ky):
     n = kx.shape[0]
     if ky.shape[0] != n:
         raise ValueError("kx and ky are expected to have the same sample sizes.")
-    ctr_mat = torch.eye(n) - torch.ones((n, n)) / n
+    ctr_mat = torch.eye(n, device=device) - torch.ones((n, n), device=device) / n
     return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (n ** 2)
 
 
 def euclidean(x1, x2):
-    """Compute Eucliean distance
+    """Compute Euclidean distance
 
     Args:
         x1 (torch.Tensor): variables set 1
@@ -145,8 +145,4 @@ def euclidean(x1, x2):
     Returns:
         torch.Tensor: Eucliean distance
     """
-    # n_features = x1.shape[0]
-    # if x2.shape[0] != n_features:
-    #     raise ValueError("x1, x2 are expected to have the same dimensions.")
-    # return ((x1 - x2) ** 2).sum().sqrt() / n_features
     return ((x1 - x2) ** 2).sum().sqrt()

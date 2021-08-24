@@ -1,3 +1,4 @@
+import torch
 import pytest
 
 from kale.embed.image_cnn import ResNet18Feature
@@ -30,16 +31,16 @@ def office_caltech_access(office_path):
     return OfficeCaltech(root=office_path, download=True, return_domain_label=True)
 
 
-MSDA_METHODS = ["MFSAN", "M3SDA"]
+MSDA_METHODS = ["MFSAN", "M3SDA", "DIN"]
 
 
 @pytest.mark.parametrize("method", MSDA_METHODS)
 def test_multi_source(method, office_caltech_access, testing_cfg):
     dataset = MultiDomainAdapDataset(office_caltech_access)
-    # num_channels = 3
     feature_network = ResNet18Feature()
+    if method == "MFSAN":
+        feature_network = torch.nn.Sequential(*(list(feature_network.children())[:-1]))
     # setup classifier
-    # feature_dim = feature_network.output_size()
     classifier_network = ClassNetSmallImage
     train_params = testing_cfg["train_params"]
     model = create_ms_adapt_trainer(
