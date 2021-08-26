@@ -20,27 +20,17 @@ class DigitDataset(Enum):
     USPS = "USPS"
     SVHN = "SVHN"
 
-    # Originally get_access
     @staticmethod
-    def get_source_target(source: "DigitDataset", target: "DigitDataset", data_path):
-        """Gets data loaders for source and target datasets
+    def get_access(dataset: "DigitDataset", data_path):
+        """Gets data loaders for digit datasets
 
         Args:
-            source (DigitDataset): source dataset name
-            target (DigitDataset): target dataset name
+            dataset (DigitDataset): dataset name
             data_path (string): root directory of dataset
 
         Examples::
-            >>> source, target, num_channel = get_source_target(sourcename, targetname, data_path)
+            >>> data_access, num_channel = DigitDataset.get_access(dataset, data_path)
         """
-        src_access, src_n_channels = DigitDataset.get_access(source, data_path)
-        tgt_access, tgt_n_channels = DigitDataset.get_access(target, data_path)
-        num_channels = max(src_n_channels, tgt_n_channels)
-
-        return src_access, tgt_access, num_channels
-
-    @staticmethod
-    def get_access(data: "DigitDataset", data_path):
         channel_numbers = {
             DigitDataset.MNIST: 1,
             DigitDataset.MNISTM: 3,
@@ -64,12 +54,31 @@ class DigitDataset(Enum):
             DigitDataset.SVHN: SVHNDatasetAccess,
         }
 
-        num_channels = channel_numbers[data]
-        tf = transform_names[(data, num_channels)]
+        num_channels = channel_numbers[dataset]
+        tf = transform_names[(dataset, num_channels)]
 
-        factories[data](data_path, tf)
+        factories[dataset](data_path, tf)
 
-        return factories[data](data_path, tf), num_channels
+        return factories[dataset](data_path, tf), num_channels
+
+    # Originally get_access
+    @staticmethod
+    def get_source_target(source: "DigitDataset", target: "DigitDataset", data_path):
+        """Gets data loaders for source and target datasets
+
+        Args:
+            source (DigitDataset): source dataset name
+            target (DigitDataset): target dataset name
+            data_path (string): root directory of dataset
+
+        Examples::
+            >>> source_access, target_access, num_channel = DigitDataset.get_source_target(source, target, data_path)
+        """
+        src_access, src_n_channels = DigitDataset.get_access(source, data_path)
+        tgt_access, tgt_n_channels = DigitDataset.get_access(target, data_path)
+        num_channels = max(src_n_channels, tgt_n_channels)
+
+        return src_access, tgt_access, num_channels
 
 
 class DigitDatasetAccess(DatasetAccess):
