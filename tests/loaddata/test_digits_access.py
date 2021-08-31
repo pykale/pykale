@@ -93,11 +93,11 @@ def test_class_subsets(class_subset, val_ratio, download_path):
 
 def test_multi_domain(download_path):
     data_dict = dict()
-    for domain in ALL:
+    for domain in ["SVHN", "USPS_RGB"]:
         data_dict[domain] = DigitDataset.get_access(DigitDataset(domain), download_path)[0]
 
     data_access = MultiDomainAccess(data_dict, 10, return_domain_label=True)
     dataset = MultiDomainAdapDataset(data_access)
     dataset.prepare_data_loaders()
-    dataloader = dataset.get_domain_loaders()
+    dataloader = dataset.get_domain_loaders(split="test", batch_size=10)
     assert len(next(iter(dataloader))) == 3

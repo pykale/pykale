@@ -146,3 +146,32 @@ def euclidean(x1, x2):
         torch.Tensor: Eucliean distance
     """
     return ((x1 - x2) ** 2).sum().sqrt()
+
+
+def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
+    """Compute k-th moment distance
+
+    Args:
+        x (torch.Tensor): input data, shape (n_samples, n_features)
+        domain_labels (torch.Tensor): labels indicate the instance from which domain, shape (n_samples,)
+        k_order (int, optional): moment order. Defaults to 2.
+
+    Returns:
+        torch.Tensor: k-th moment distance
+    """
+    unique_domain_ = torch.unique(domain_labels)
+    n_unique_domain_ = len(unique_domain_)
+    x_k_order = []
+    for domain_label_ in unique_domain_:
+        domain_idx = torch.where(domain_labels == domain_label_)
+        if k_order == 1:
+            x_k_order.append(x[domain_idx].mean(0))
+        else:
+            x_k_order.append(((x[domain_idx] - x[domain_idx].mean(0)) ** k_order).mean(0))
+    moment_sum = 0
+    n_pair = 0
+    for i in range(n_unique_domain_):
+        for j in range(i + 1, n_unique_domain_):
+            moment_sum += euclidean(x_k_order[i], x_k_order[j])
+            n_pair += 1
+    return moment_sum / n_pair

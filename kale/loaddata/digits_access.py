@@ -16,8 +16,10 @@ from kale.loaddata.usps import USPS
 
 class DigitDataset(Enum):
     MNIST = "MNIST"
+    MNIST_RGB = "MNIST_RGB"
     MNISTM = "MNISTM"
     USPS = "USPS"
+    USPS_RGB = "USPS_RGB"
     SVHN = "SVHN"
 
     @staticmethod
@@ -33,24 +35,28 @@ class DigitDataset(Enum):
         """
         channel_numbers = {
             DigitDataset.MNIST: 1,
+            DigitDataset.MNIST_RGB: 3,
             DigitDataset.MNISTM: 3,
             DigitDataset.USPS: 1,
+            DigitDataset.USPS_RGB: 3,
             DigitDataset.SVHN: 3,
         }
 
         transform_names = {
             (DigitDataset.MNIST, 1): "mnist32",
-            (DigitDataset.MNIST, 3): "mnist32rgb",
+            (DigitDataset.MNIST_RGB, 3): "mnist32rgb",
             (DigitDataset.MNISTM, 3): "mnistm",
             (DigitDataset.USPS, 1): "usps32",
-            (DigitDataset.USPS, 3): "usps32rgb",
+            (DigitDataset.USPS_RGB, 3): "usps32rgb",
             (DigitDataset.SVHN, 3): "svhn",
         }
 
         factories = {
             DigitDataset.MNIST: MNISTDatasetAccess,
+            DigitDataset.MNIST_RGB: MNISTDatasetAccess,
             DigitDataset.MNISTM: MNISTMDatasetAccess,
             DigitDataset.USPS: USPSDatasetAccess,
+            DigitDataset.USPS_RGB: USPSDatasetAccess,
             DigitDataset.SVHN: SVHNDatasetAccess,
         }
 

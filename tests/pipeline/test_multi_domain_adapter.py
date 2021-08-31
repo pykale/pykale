@@ -6,7 +6,7 @@ from kale.loaddata.multi_domain import MultiDomainAdapDataset
 from kale.loaddata.office_access import OfficeCaltech
 from kale.pipeline.multi_domain_adapter import create_ms_adapt_trainer
 from kale.predict.class_domain_nets import ClassNetSmallImage
-from tests.pipeline.pipe_utils import test_model
+from tests.pipeline.pipe_test_utils import test_model
 
 
 @pytest.fixture(scope="module")

@@ -48,6 +48,45 @@ class SmallCNNFeature(nn.Module):
         return self._out_features
 
 
+class _ADDneck(nn.Module):
+    """Simple network for domain specific embedding
+    Original implementation see:
+     https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_2src/resnet.py or
+     https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_3src/resnet.py
+    """
+
+    def __init__(self, inplanes, planes, stride=1, downsample=None):
+        super(_ADDneck, self).__init__()
+        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv3 = nn.Conv2d(planes, planes, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(planes)
+        self.relu = nn.ReLU(inplace=True)
+        self.stride = stride
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
+
+    def forward(self, x):
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.relu(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
+        out = self.relu(out)
+
+        out = self.avgpool(out)
+        out = out.view(out.size(0), -1)
+
+        return out
+
+
 class ResNet18Feature(nn.Module):
     """
     Modified ResNet18 (without the last layer) feature extractor for regular 224x224 images.

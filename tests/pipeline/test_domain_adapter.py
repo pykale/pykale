@@ -5,7 +5,7 @@ from kale.embed.image_cnn import SmallCNNFeature
 from kale.loaddata.digits_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
-from tests.pipeline.pipe_utils import test_model
+from tests.pipeline.pipe_test_utils import test_model
 
 # from kale.utils.seed import set_seed
 

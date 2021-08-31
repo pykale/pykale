@@ -480,7 +480,7 @@ class ConcatMultiDomainAccess(torch.utils.data.Dataset):
             #     raise AttributeError("Dataset %s object does not have labels." % domain_)
             # self.domain_labels.append(np.ones(self.labels[-1].shape) * domain_to_idx[domain_])
         self.data = torch.stack(self.data)
-        self.labels = torch.cat(self.labels)
+        self.labels = torch.tensor(self.labels)
         self.domain_labels = torch.tensor(self.domain_labels)
         self.return_domain_label = return_domain_label
 
@@ -539,19 +539,17 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
 
     def prepare_data_loaders(self):
         splits = ["test", "valid", "train"]
-        train_split = self.data_access.get_train()
-        test_split = self.data_access.get_test()
-        if train_split is not None and test_split is not None:
-            self._sample_by_split["test"] = test_split
-            self._sample_by_split["valid"], self._sample_by_split["train"] = self.data_access.get_train_val(
-                self._val_split_ratio
-            )
-        else:
+        self._sample_by_split["test"] = self.data_access.get_test()
+        if self._sample_by_split["test"] is None:
             subset_idx = _domain_stratified_split(
                 self.data_access.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio]
             )
             for i in range(len(splits)):
                 self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
+        else:
+            self._sample_by_split["valid"], self._sample_by_split["train"] = self.data_access.get_train_val(
+                self._val_split_ratio
+            )
 
     def get_domain_loaders(self, split="train", batch_size=32):
         return self._sampling_config.create_loader(self._sample_by_split[split], batch_size)

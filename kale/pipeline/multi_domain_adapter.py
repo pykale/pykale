@@ -8,45 +8,29 @@ import torch.nn as nn
 from torch.nn.functional import one_hot
 
 import kale.predict.losses as losses
+from kale.embed.image_cnn import _ADDneck
 from kale.pipeline.domain_adapter import BaseAdaptTrainer, get_aggregated_metrics
 
 
 def create_ms_adapt_trainer(method: str, dataset, feature_extractor, task_classifier, **train_params):
+    """Methods for multi-source domain adaptation
+
+    Args:
+        method (str): Multi-source domain adaptation method, M3SDA or MFSAN
+        dataset (kale.loaddata.multi_domain.MultiDomainAdapDataset): the multi-domain datasets to be used for train,
+            validation, and tests.
+        feature_extractor (torch.nn.Module): feature extractor network
+        task_classifier (torch.nn.Module): task classifier network
+
+    Returns:
+        [pl.LightningModule]: Multi-source domain adaptation trainer.
+    """
     method_dict = {"M3SDA": M3SDATrainer, "DIN": _DINTrainer, "MFSAN": MFSANTrainer}
     method = method.upper()
     if method not in method_dict.keys():
         raise ValueError("Unsupported multi-source domain adaptation methods %s" % method)
     else:
         return method_dict[method](dataset, feature_extractor, task_classifier, **train_params)
-
-
-def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
-    """Compute k-th moment distance
-
-    Args:
-        x (torch.Tensor): input data, shape (n_samples, n_features)
-        domain_labels (torch.Tensor): labels indicate the instance from which domain, shape (n_samples,)
-        k_order (int, optional): moment order. Defaults to 2.
-
-    Returns:
-        torch.Tensor: k-th moment distance
-    """
-    unique_domain_ = torch.unique(domain_labels)
-    n_unique_domain_ = len(unique_domain_)
-    x_k_order = []
-    for domain_label_ in unique_domain_:
-        domain_idx = torch.where(domain_labels == domain_label_)
-        if k_order == 1:
-            x_k_order.append(x[domain_idx].mean(0))
-        else:
-            x_k_order.append(((x[domain_idx] - x[domain_idx].mean(0)) ** k_order).mean(0))
-    moment_sum = 0
-    n_pair = 0
-    for i in range(n_unique_domain_):
-        for j in range(i + 1, n_unique_domain_):
-            moment_sum += losses.euclidean(x_k_order[i], x_k_order[j])
-            n_pair += 1
-    return moment_sum / n_pair
 
 
 def _average_cls_output(x, classifiers: nn.ModuleDict):
@@ -194,7 +178,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
 
         moment_loss = 0
         for i in range(self.k_moment):
-            moment_loss += _moment_k(x, domain_labels, i + 1)
+            moment_loss += losses._moment_k(x, domain_labels, i + 1)
 
         return moment_loss
 
@@ -327,42 +311,3 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         cls_output = [self.classifiers[key](self.sonnet[key](x)) for key in self.classifiers]
 
         return torch.stack(cls_output).mean(0)
-
-
-class _ADDneck(nn.Module):
-    """Simple network for domain specific embedding
-    Original implementation see:
-     https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_2src/resnet.py or
-     https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_3src/resnet.py
-    """
-
-    def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(_ADDneck, self).__init__()
-        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(planes)
-        self.conv3 = nn.Conv2d(planes, planes, kernel_size=1, bias=False)
-        self.bn3 = nn.BatchNorm2d(planes)
-        self.relu = nn.ReLU(inplace=True)
-        self.stride = stride
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
-
-    def forward(self, x):
-
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
-
-        out = self.conv2(out)
-        out = self.bn2(out)
-        out = self.relu(out)
-
-        out = self.conv3(out)
-        out = self.bn3(out)
-        out = self.relu(out)
-
-        out = self.avgpool(out)
-        out = out.view(out.size(0), -1)
-
-        return out
