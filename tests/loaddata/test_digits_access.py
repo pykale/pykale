@@ -3,7 +3,12 @@ import torch
 
 from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.digits_access import DigitDataset, DigitDatasetAccess
-from kale.loaddata.multi_domain import DomainsDatasetBase, MultiDomainDatasets
+from kale.loaddata.multi_domain import (
+    DomainsDatasetBase,
+    MultiDomainAccess,
+    MultiDomainAdapDataset,
+    MultiDomainDatasets,
+)
 
 # from typing import Dict
 
@@ -84,3 +89,15 @@ def test_class_subsets(class_subset, val_ratio, download_path):
     assert len(dataset_subset._source_by_split["val"]) == val_dataset_subset_length
     assert len(dataset_subset._source_by_split["test"]) == test_dataset_subset_length
     assert len(dataset_subset) == train_dataset_subset_length
+
+
+def test_multi_domain(download_path):
+    data_dict = dict()
+    for domain in ALL:
+        data_dict[domain] = DigitDataset.get_access(DigitDataset(domain), download_path)[0]
+
+    data_access = MultiDomainAccess(data_dict, 10, return_domain_label=True)
+    dataset = MultiDomainAdapDataset(data_access)
+    dataset.prepare_data_loaders()
+    dataloader = dataset.get_domain_loaders()
+    assert len(next(iter(dataloader))) == 3

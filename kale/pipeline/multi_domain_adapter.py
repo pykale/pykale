@@ -12,7 +12,7 @@ from kale.pipeline.domain_adapter import BaseAdaptTrainer, get_aggregated_metric
 
 
 def create_ms_adapt_trainer(method: str, dataset, feature_extractor, task_classifier, **train_params):
-    method_dict = {"M3SDA": M3SDATrainer, "DIN": DINTrainer, "MFSAN": MFSANTrainer}
+    method_dict = {"M3SDA": M3SDATrainer, "DIN": _DINTrainer, "MFSAN": MFSANTrainer}
     method = method.upper()
     if method not in method_dict.keys():
         raise ValueError("Unsupported multi-source domain adaptation methods %s" % method)
@@ -199,7 +199,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         return moment_loss
 
 
-class DINTrainer(BaseMultiSourceTrainer):
+class _DINTrainer(BaseMultiSourceTrainer):
     def __init__(
         self,
         dataset,
@@ -335,7 +335,7 @@ class _ADDneck(nn.Module):
      https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_2src/resnet.py or
      https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_3src/resnet.py
     """
-    
+
     def __init__(self, inplanes, planes, stride=1, downsample=None):
         super(_ADDneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)

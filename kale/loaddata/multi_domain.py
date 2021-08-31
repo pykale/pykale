@@ -238,7 +238,7 @@ def _split_dataset_few_shot(dataset, n_fewshot, random_state=None):
     return labeled_dataset, unlabeled_dataset
 
 
-def domain_stratified_split(domain_labels, n_partitions, split_ratios):
+def _domain_stratified_split(domain_labels, n_partitions, split_ratios):
     """Get domain stratified indices of random split. Samples with the same domain label will be split based on the
         given ratios. Then the indices of different domains within the same split will be concatenated.
 
@@ -351,7 +351,7 @@ class MultiDomainImageFolder(VisionDataset):
         self.split_train_test = split_train_test
         self.split_ratio = split_ratio
         if split_train_test:
-            self.train_idx, self.test_idx = domain_stratified_split(self.domain_labels, 2, [split_ratio])
+            self.train_idx, self.test_idx = _domain_stratified_split(self.domain_labels, 2, [split_ratio])
         else:
             self.train_idx = None
             self.test_idx = None
@@ -397,13 +397,13 @@ class MultiDomainImageFolder(VisionDataset):
         if self.split_train_test:
             return torch.utils.data.Subset(self, self.train_idx)
         else:
-            raise ValueError("The dataset has no train split yet.")
+            return None
 
     def get_test(self):
         if self.split_train_test:
             return torch.utils.data.Subset(self, self.test_idx)
         else:
-            raise ValueError("The dataset has no test split yet.")
+            return None
 
 
 def make_multi_domain_set(
@@ -456,11 +456,68 @@ def make_multi_domain_set(
     return instances
 
 
+class ConcatMultiDomainAccess(torch.utils.data.Dataset):
+    def __init__(
+        self, data_access: dict, domain_to_idx: dict, return_domain_label: Optional[bool] = False,
+    ):
+        self.domain_to_idx = domain_to_idx
+        self.data = []
+        self.labels = []
+        self.domain_labels = []
+        for domain_ in domain_to_idx:
+            n_samples = data_access[domain_].data.shape[0]
+            for idx in range(n_samples):
+                x, y = data_access[domain_][idx]
+                self.data.append(x)
+                self.labels.append(y)
+                self.domain_labels.append(domain_to_idx[domain_])
+            # self.data.append(data_access[domain_].data)
+            # if hasattr(data_access[domain_], "labels"):
+            #     self.labels.append(data_access[domain_].labels)
+            # elif hasattr(data_access[domain_], "targets"):
+            #     self.labels.append(data_access[domain_].targets)
+            # else:
+            #     raise AttributeError("Dataset %s object does not have labels." % domain_)
+            # self.domain_labels.append(np.ones(self.labels[-1].shape) * domain_to_idx[domain_])
+        self.data = torch.stack(self.data)
+        self.labels = torch.cat(self.labels)
+        self.domain_labels = torch.tensor(self.domain_labels)
+        self.return_domain_label = return_domain_label
+
+    def __getitem__(self, index: int) -> Tuple:
+        if self.return_domain_label:
+            return self.data[index], self.labels[index], self.domain_labels[index]
+        else:
+            return self.data[index], self.labels[index]
+
+    def __len__(self):
+        return len(self.labels)
+
+
+class MultiDomainAccess(DatasetAccess):
+    def __init__(self, data_access: dict, n_classes, return_domain_label: Optional[bool] = False):
+        super().__init__(n_classes)
+        self.data_access = data_access
+        self.domain_to_idx = {list(data_access.keys())[i]: i for i in range(len(data_access))}
+        self.return_domain_label = return_domain_label
+
+    def get_train(self):
+        train_access = {domain_: self.data_access[domain_].get_train() for domain_ in self.domain_to_idx}
+        return ConcatMultiDomainAccess(train_access, self.domain_to_idx, self.return_domain_label)
+
+    def get_test(self):
+        test_access = {domain_: self.data_access[domain_].get_test() for domain_ in self.domain_to_idx}
+        return ConcatMultiDomainAccess(test_access, self.domain_to_idx, self.return_domain_label)
+
+    def __len__(self):
+        return len(self.get_train()) + len(self.get_test())
+
+
 class MultiDomainAdapDataset(DomainsDatasetBase):
     """The class controlling how the multiple domains are iterated over.
 
     Args:
-        data_access (MultiDomainImageFolder, or dict): Multi-domain data access.
+        data_access (MultiDomainImageFolder, or MultiDomainAccess): Multi-domain data access.
         val_split_ratio (float, optional): Split ratio for validation set. Defaults to 0.1.
         test_split_ratio (float, optional): Split ratio for test set. Defaults to 0.2.
         random_state (int, optional): Random state for generator. Defaults to 1.
@@ -469,9 +526,7 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
     def __init__(
         self, data_access, val_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1,
     ):
-        if type(data_access) is dict:
-            self.domain_to_idx = {list(data_access.keys())[i]: i for i in range(len(data_access))}
-        self.domain_labels = np.array(data_access.domain_labels)
+        # self.domain_labels = np.array(data_access.domain_labels)
         self.domain_to_idx = data_access.domain_to_idx
         self.n_domains = len(data_access.domain_to_idx)
         self.data_access = data_access
@@ -484,16 +539,22 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
 
     def prepare_data_loaders(self):
         splits = ["test", "valid", "train"]
-        subset_idx = domain_stratified_split(self.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio])
-        for i in range(len(splits)):
-            self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
+        train_split = self.data_access.get_train()
+        test_split = self.data_access.get_test()
+        if train_split is not None and test_split is not None:
+            self._sample_by_split["test"] = test_split
+            self._sample_by_split["valid"], self._sample_by_split["train"] = self.data_access.get_train_val(
+                self._val_split_ratio
+            )
+        else:
+            subset_idx = _domain_stratified_split(
+                self.data_access.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio]
+            )
+            for i in range(len(splits)):
+                self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
 
     def get_domain_loaders(self, split="train", batch_size=32):
         return self._sampling_config.create_loader(self._sample_by_split[split], batch_size)
 
     def __len__(self):
         return len(self.data_access)
-
-
-def concat_data_access(data_accesses: dict):
-    domain_to_idx = {list(data_accesses.keys())[i]: i for i in range(len(data_accesses))}

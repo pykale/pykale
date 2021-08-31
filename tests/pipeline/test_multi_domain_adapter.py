@@ -1,5 +1,5 @@
-import torch
 import pytest
+import torch
 
 from kale.embed.image_cnn import ResNet18Feature
 from kale.loaddata.multi_domain import MultiDomainAdapDataset
