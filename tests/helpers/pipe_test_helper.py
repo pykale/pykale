@@ -1,4 +1,3 @@
-import pytest
 import pytorch_lightning as pl
 
 from kale.pipeline import domain_adapter
