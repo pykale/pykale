@@ -6,7 +6,7 @@ from kale.loaddata.multi_domain import MultiDomainAdapDataset
 from kale.loaddata.office_access import OfficeCaltech
 from kale.pipeline.multi_domain_adapter import create_ms_adapt_trainer
 from kale.predict.class_domain_nets import ClassNetSmallImage
-from tests.pipeline.pipe_test_utils import test_model
+from tests.helpers.pipe_test_helper import ModelTestHelper
 
 
 @pytest.fixture(scope="module")
@@ -53,4 +53,4 @@ def test_multi_source(method, office_caltech_access, testing_cfg):
         **train_params,
     )
     kwargs = {"limit_train_batches": 0.1, "limit_val_batches": 0.3, "limit_test_batches": 0.2}
-    test_model(model, train_params, **kwargs)
+    ModelTestHelper.test_model(model, train_params, **kwargs)

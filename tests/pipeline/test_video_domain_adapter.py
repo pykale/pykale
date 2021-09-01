@@ -11,7 +11,7 @@ from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
 from tests.helpers.boring_model import VideoBoringModel
-from tests.pipeline.pipe_test_utils import test_model
+from tests.helpers.pipe_test_helper import ModelTestHelper
 
 SOURCES = [
     "ADL;7;adl_P_11_train.pkl;adl_P_11_test.pkl",
@@ -156,4 +156,4 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
             **train_params,
         )
 
-    test_model(model, train_params)
+    ModelTestHelper.test_model(model, train_params)
