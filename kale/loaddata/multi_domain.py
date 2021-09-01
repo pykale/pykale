@@ -105,8 +105,8 @@ class MultiDomainDatasets(DomainsDatasetBase):
                 class_weights=np.random.randint(1, 4, size=target_access.n_classes())
             )
         elif weight_type is WeightingType.BALANCED:
-            self._source_sampling_config = SamplingConfig(balance_class=True)
-            self._target_sampling_config = SamplingConfig(balance_class=True)
+            self._source_sampling_config = SamplingConfig(balance=True)
+            self._target_sampling_config = SamplingConfig(balance=True)
         elif weight_type not in WeightingType:
             raise ValueError(f"Unknown weighting method {weight_type}.")
         else:
@@ -188,7 +188,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
             target_labeled_ds = self._labeled_target_by_split[split]
             target_unlabeled_ds = target_ds
             # label domain: always balanced
-            target_labeled_loader = SamplingConfig(balance_class=True, class_weights=None).create_loader(
+            target_labeled_loader = SamplingConfig(balance=True, class_weights=None).create_loader(
                 target_labeled_ds, batch_size=min(len(target_labeled_ds), batch_size)
             )
             target_unlabeled_loader = self._target_sampling_config.create_loader(target_unlabeled_ds, batch_size)
