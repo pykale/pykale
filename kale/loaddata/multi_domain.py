@@ -471,14 +471,7 @@ class ConcatMultiDomainAccess(torch.utils.data.Dataset):
                 self.data.append(x)
                 self.labels.append(y)
                 self.domain_labels.append(domain_to_idx[domain_])
-            # self.data.append(data_access[domain_].data)
-            # if hasattr(data_access[domain_], "labels"):
-            #     self.labels.append(data_access[domain_].labels)
-            # elif hasattr(data_access[domain_], "targets"):
-            #     self.labels.append(data_access[domain_].targets)
-            # else:
-            #     raise AttributeError("Dataset %s object does not have labels." % domain_)
-            # self.domain_labels.append(np.ones(self.labels[-1].shape) * domain_to_idx[domain_])
+
         self.data = torch.stack(self.data)
         self.labels = torch.tensor(self.labels)
         self.domain_labels = torch.tensor(self.domain_labels)
