@@ -267,15 +267,19 @@ def _domain_stratified_split(domain_labels, n_partitions, split_ratios):
 
 class MultiDomainImageFolder(VisionDataset):
     """A generic data loader where the samples are arranged in this way: ::
-            root/domain_a/class_x/xxx.ext
-            root/domain_a/class_x/xxy.ext
-            ...
-            root/domain_a/class_y/xxz.ext
-            ...
-            root/domain_k/class_x/123.ext
-            root/domain_k/class_x/abc3.ext
-            ...
-            root/domain_k/class_y/asd932_.exts
+
+            root/domain_a/class_1/xxx.ext
+            root/domain_a/class_1/xxy.ext
+            root/domain_a/class_2/xxz.ext
+
+            root/domain_b/class_1/efg.ext
+            root/domain_b/class_2/pqr.ext
+            root/domain_b/class_2/lmn.ext
+
+            root/domain_k/class_2/123.ext
+            root/domain_k/class_1/abc3.ext
+            root/domain_k/class_1/asd932_.ext
+
         Args:
             root (string): Root directory path.
             loader (callable): A function to load a sample given its path.
@@ -457,6 +461,15 @@ def make_multi_domain_set(
 
 
 class ConcatMultiDomainAccess(torch.utils.data.Dataset):
+    """Concatenate multiple datasets as a single dataset with domain labels
+
+    Args:
+        data_access (dict): Dictionary of domain datasets, e.g. {"Domain1_name": domain1_set,
+            "Domain2_name": domain2_set}
+        domain_to_idx (dict): Dictionary of domain name to domain labels, e.g. {"Domain1_name": 0, "Domain2_name": 1}
+        return_domain_label (Optional[bool], optional): Whether return domain labels in each batch. Defaults to False.
+    """
+
     def __init__(
         self, data_access: dict, domain_to_idx: dict, return_domain_label: Optional[bool] = False,
     ):
@@ -488,7 +501,16 @@ class ConcatMultiDomainAccess(torch.utils.data.Dataset):
 
 
 class MultiDomainAccess(DatasetAccess):
-    def __init__(self, data_access: dict, n_classes, return_domain_label: Optional[bool] = False):
+    def __init__(self, data_access: dict, n_classes: int, return_domain_label: Optional[bool] = False):
+        """Convert multiple digits-like data accesses to a single data access.
+
+        Args:
+            data_access (dict): Dictionary of data accesses, e.g. {"Domain1_name": domain1_access,
+                "Domain2_name": domain2_access}
+            n_classes (int): number of classes.
+            return_domain_label (Optional[bool], optional): Whether return domain labels in each batch.
+                Defaults to False.
+        """
         super().__init__(n_classes)
         self.data_access = data_access
         self.domain_to_idx = {list(data_access.keys())[i]: i for i in range(len(data_access))}
@@ -519,7 +541,6 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
     def __init__(
         self, data_access, val_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1,
     ):
-        # self.domain_labels = np.array(data_access.domain_labels)
         self.domain_to_idx = data_access.domain_to_idx
         self.n_domains = len(data_access.domain_to_idx)
         self.data_access = data_access
@@ -534,12 +555,14 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
         splits = ["test", "valid", "train"]
         self._sample_by_split["test"] = self.data_access.get_test()
         if self._sample_by_split["test"] is None:
+            # split test, valid, and train set if the data access no train test splits
             subset_idx = _domain_stratified_split(
                 self.data_access.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio]
             )
             for i in range(len(splits)):
                 self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
         else:
+            # use original data split if get_test() is not none
             self._sample_by_split["valid"], self._sample_by_split["train"] = self.data_access.get_train_val(
                 self._val_split_ratio
             )

@@ -1,7 +1,8 @@
 # =============================================================================
 # Author: Shuo Zhou, szhou20@sheffield.ac.uk/sz144@outlook.com
-#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
+"""Multi-source domain adaptation pipelines
+"""
 
 import torch
 import torch.nn as nn
@@ -68,7 +69,7 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
     def forward(self, x):
         if self.feat is not None:
             x = self.feat(x)
-        # x = x.view(x.size(0), -1)
+
         return x
 
     def compute_loss(self, batch, split_name="V"):

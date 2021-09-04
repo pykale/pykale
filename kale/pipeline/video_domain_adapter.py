@@ -390,7 +390,7 @@ class CDANtrainer4Video(CDANtrainer):
                 feature_rgb = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_rgb.unsqueeze(1))
                 feature_rgb = feature_rgb.view(-1, reverse_out.size(1) * reverse_feature_rgb.size(1))
                 if self.random_layer:
-                    random_out_rgb = self.random_layer.forward(feature_rgb,)
+                    random_out_rgb = self.random_layer.forward(feature_rgb)
                     adversarial_output_rgb = self.domain_classifier(random_out_rgb.view(-1, random_out_rgb.size(1)))
                 else:
                     adversarial_output_rgb = self.domain_classifier(feature_rgb)
@@ -399,7 +399,7 @@ class CDANtrainer4Video(CDANtrainer):
                 feature_flow = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_flow.unsqueeze(1))
                 feature_flow = feature_flow.view(-1, reverse_out.size(1) * reverse_feature_flow.size(1))
                 if self.random_layer:
-                    random_out_flow = self.random_layer.forward(feature_flow,)
+                    random_out_flow = self.random_layer.forward(feature_flow)
                     adversarial_output_flow = self.domain_classifier(random_out_flow.view(-1, random_out_flow.size(1)))
                 else:
                     adversarial_output_flow = self.domain_classifier(feature_flow)
