@@ -14,7 +14,7 @@ def download_path():
     return path
 
 
-gait_url = "https://github.com/pykale/data/raw/main/video_data/gait/gait_gallery_data.mat"
+gait_url = "https://github.com/pykale/data/raw/main/videos/gait/gait_gallery_data.mat"
 
 
 @pytest.fixture(scope="session")

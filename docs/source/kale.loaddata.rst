@@ -6,20 +6,20 @@ Load Data
 Submodules
 ----------
 
-kale.loaddata.videos module
----------------------------
-
-.. automodule:: kale.loaddata.videos
-   :members:
-   :exclude-members: VideoRecord
-   :show-inheritance:
-
 kale.loaddata.dataset\_access module
 ------------------------------------
 
 .. automodule:: kale.loaddata.dataset_access
    :members:
    :undoc-members:
+   :show-inheritance:
+
+kale.loaddata.videos module
+---------------------------
+
+.. automodule:: kale.loaddata.videos
+   :members:
+   :exclude-members: VideoRecord
    :show-inheritance:
 
 kale.loaddata.cifar\_access module
@@ -38,6 +38,14 @@ kale.loaddata.digits\_access module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.get\_dicom module
+-----------------------------------
+
+.. automodule:: kale.loaddata.get_dicom
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.mnistm module
 -----------------------------------
 
@@ -50,6 +58,14 @@ kale.loaddata.multi\_domain module
 -----------------------------------
 
 .. automodule:: kale.loaddata.multi_domain
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.loaddata.office\_access
+------------------------------------------
+
+.. automodule:: kale.loaddata.office_access
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,6 +1,6 @@
 # Tutorial
 
-For Jupyter Notebook tutorials, see **Notebook Tutorials** below this in TOC.
+For *interactive* tutorials, see [Jupyter Notebook tutorials](notebooks.md).
 
 ## Usage of Pipeline-based API in Examples
 
