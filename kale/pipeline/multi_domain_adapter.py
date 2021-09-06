@@ -9,7 +9,7 @@ import torch.nn as nn
 from torch.nn.functional import one_hot
 
 import kale.predict.losses as losses
-from kale.embed.image_cnn import _ADDneck
+from kale.embed.image_cnn import _Bottleneck
 from kale.pipeline.domain_adapter import BaseAdaptTrainer, get_aggregated_metrics
 
 
@@ -260,15 +260,15 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         super().__init__(dataset, feature_extractor, task_classifier, n_classes, target_domain, **base_params)
 
         self.classifiers = dict()
-        self.sonnet = dict()
+        self.domain_net = dict()
         self.src_domains = []
         for domain_ in dataset.domain_to_idx.keys():
             if domain_ != self.target_domain:
-                self.sonnet[domain_] = _ADDneck(self.feature_dim, domain_feat_dim)
+                self.domain_net[domain_] = _Bottleneck(self.feature_dim, domain_feat_dim)
                 self.classifiers[domain_] = task_classifier(domain_feat_dim, n_classes)
                 self.src_domains.append(domain_)
         self.classifiers = nn.ModuleDict(self.classifiers)
-        self.sonnet = nn.ModuleDict(self.sonnet)
+        self.domain_net = nn.ModuleDict(self.domain_net)
         self._kernel_mul = kernel_mul
         self._kernel_num = kernel_num
 
@@ -282,8 +282,8 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         ok_src = []
         for src_domain in self.src_domains:
             src_domain_idx = torch.where(domain_labels == self.domain_to_idx[src_domain])
-            phi_src = self.sonnet[src_domain].forward(phi_x[src_domain_idx])
-            phi_tgt = self.sonnet[src_domain].forward(phi_x[tgt_idx])
+            phi_src = self.domain_net[src_domain].forward(phi_x[src_domain_idx])
+            phi_tgt = self.domain_net[src_domain].forward(phi_x[tgt_idx])
             kernels = losses.gaussian_kernel(
                 phi_src, phi_tgt, kernel_mul=self._kernel_mul, kernel_num=self._kernel_num,
             )
@@ -309,6 +309,6 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         return task_loss, mmd_dist, log_metrics
 
     def _get_avg_cls_output(self, x):
-        cls_output = [self.classifiers[key](self.sonnet[key](x)) for key in self.classifiers]
+        cls_output = [self.classifiers[key](self.domain_net[key](x)) for key in self.classifiers]
 
         return torch.stack(cls_output).mean(0)
