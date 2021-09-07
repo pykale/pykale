@@ -1,6 +1,7 @@
 """
-CNNs for extracting features from small images of size 32x32 (e.g. MNIST) and regular images of size 224x224 (e.g. ImageNet). The code is based on
-https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py, which is for domain adaptation.
+CNNs for extracting features from small images of size 32x32 (e.g. MNIST) and regular images of size 224x224 (e.g.
+ImageNet). The code is based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py,
+ which is for domain adaptation.
 """
 
 import torch.nn as nn
@@ -35,8 +36,8 @@ class SmallCNNFeature(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self._out_features = 128
 
-    def forward(self, input):
-        x = self.bn1(self.conv1(input))
+    def forward(self, input_):
+        x = self.bn1(self.conv1(input_))
         x = self.relu1(self.pool1(x))
         x = self.bn2(self.conv2(x))
         x = self.relu2(self.pool2(x))
@@ -46,6 +47,49 @@ class SmallCNNFeature(nn.Module):
 
     def output_size(self):
         return self._out_features
+
+
+class _Bottleneck(nn.Module):
+    """Simple bottleneck as domain specific feature extractor, used in multi-source domain adaptation method MFSAN only.
+        Compared to the torchvision implementation, the value of expansion is flexible and an average pooling layer is added.
+
+        The code is based on:
+            https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py#L86,
+            https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_2src/resnet.py#L94, and
+            https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_3src/resnet.py#L93
+    """
+
+    def __init__(self, inplanes, planes, stride: int = 1, expansion: int = 1):
+        super(_Bottleneck, self).__init__()
+        self.expansion = expansion
+        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv3 = nn.Conv2d(planes, planes * self.expansion, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(planes * self.expansion)
+        self.relu = nn.ReLU(inplace=True)
+        self.stride = stride
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
+
+    def forward(self, x):
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.relu(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
+        out = self.relu(out)
+
+        out = self.avgpool(out)
+        out = out.view(out.size(0), -1)
+
+        return out
 
 
 class ResNet18Feature(nn.Module):

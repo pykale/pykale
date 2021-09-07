@@ -25,6 +25,7 @@ class SamplingConfig:
         if balance and class_weights is not None:
             raise ValueError("Params 'balance' and 'weights' are incompatible")
         self._balance = balance
+        self._balance_domain = balance_domain
         self._class_weights = class_weights
         self._balance_domain = balance_domain
 
@@ -227,6 +228,7 @@ def get_labels(dataset):
     """
     Get class labels for dataset
     """
+
     dataset_type = type(dataset)
     if dataset_type is torchvision.datasets.SVHN:
         return dataset.labels
