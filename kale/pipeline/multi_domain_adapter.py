@@ -108,7 +108,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         k_moment: int = 3,
         **base_params,
     ):
-        """Moment matching for multi-source domain adaptation.
+        """Moment matching for multi-source domain adaptation (M3SDA).
 
         Reference:
             Peng, X., Bai, Q., Xia, X., Huang, Z., Saenko, K., & Wang, B. (2019). Moment matching for multi-source
@@ -197,7 +197,7 @@ class _DINTrainer(BaseMultiSourceTrainer):
         kernel_num: int = 5,
         **base_params,
     ):
-        """Domain independent network. It is under development and will be updated with references later.
+        """Domain independent network (DIN). It is under development and will be updated with references later.
 
         """
         super().__init__(dataset, feature_extractor, task_classifier, n_classes, target_domain, **base_params)
