@@ -40,7 +40,10 @@ class DatasetAccess:
         """
         train_dataset = self.get_train()
 
-        return split_by_ratios(train_dataset, [val_ratio])
+        if val_ratio == 0:
+            return train_dataset, train_dataset
+        else:
+            return split_by_ratios(train_dataset, [val_ratio])
 
     def get_test(self):
         raise NotImplementedError()

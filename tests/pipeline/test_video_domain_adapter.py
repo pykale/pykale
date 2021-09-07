@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 import pytest
-import pytorch_lightning as pl
 from yacs.config import CfgNode as CN
 
 from kale.loaddata.video_access import VideoDataset
@@ -12,6 +11,7 @@ from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
 from tests.helpers.boring_model import VideoBoringModel
+from tests.helpers.pipe_test_helper import ModelTestHelper
 
 SOURCES = [
     "ADL;7;adl_P_11_train.pkl;adl_P_11_test.pkl",
@@ -156,11 +156,4 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
             **train_params,
         )
 
-    assert isinstance(model, domain_adapter.BaseAdaptTrainer)
-
-    # training process
-    trainer = pl.Trainer(min_epochs=train_params["nb_init_epochs"], max_epochs=train_params["nb_adapt_epochs"], gpus=0)
-    trainer.fit(model)
-    trainer.test()
-    metric_values = trainer.callback_metrics
-    assert isinstance(metric_values, dict)
+    ModelTestHelper.test_model(model, train_params)

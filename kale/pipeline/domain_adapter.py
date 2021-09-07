@@ -203,15 +203,15 @@ class BaseAdaptTrainer(pl.LightningModule):
         dataset,
         feature_extractor,
         task_classifier,
-        method=None,
-        lambda_init=1.0,
-        adapt_lambda=True,
-        adapt_lr=True,
-        nb_init_epochs=10,
-        nb_adapt_epochs=50,
-        batch_size=32,
-        init_lr=1e-3,
-        optimizer=None,
+        method: str = None,
+        lambda_init: float = 1.0,
+        adapt_lambda: bool = True,
+        adapt_lr: bool = True,
+        nb_init_epochs: int = 10,
+        nb_adapt_epochs: int = 50,
+        batch_size: int = 32,
+        init_lr: float = 1e-3,
+        optimizer: dict = None,
     ):
         r"""Base class for all domain adaptation architectures.
 
@@ -219,8 +219,9 @@ class BaseAdaptTrainer(pl.LightningModule):
         for domain adaptation.
         If you inherit from this class, you will have to implement only:
          - a forward pass
-         - a `compute_loss` function that returns the task loss :math:`\mathcal{L}_c` and adaptation loss :math:`\mathcal{L}_a`, as well as
-           a dictionary for summary statistics and other metrics you may want to have access to.
+         - a `compute_loss` function that returns the task loss :math:`\mathcal{L}_c` and adaptation loss
+           :math:`\mathcal{L}_a`, as well as a dictionary for summary statistics and other metrics you may want to have
+           access to.
 
         The default training step uses only the task loss :math:`\mathcal{L}_c` during warmup,
         then uses the loss defined as:
@@ -233,10 +234,9 @@ class BaseAdaptTrainer(pl.LightningModule):
         changes linearly from 0 to 1.
 
         Args:
-            dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used
-                for train, validation, and tests.
-            feature_extractor (torch.nn.Module): the feature extractor network (mapping inputs :math:`x\in\mathcal{X}` to
-                a latent space :math:`\mathcal{Z}`,)
+            dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used for train, validation, and tests.
+            feature_extractor (torch.nn.Module): the feature extractor network (mapping inputs :math:`x\in\mathcal{X}`
+                to a latent space :math:`\mathcal{Z}`,)
             task_classifier (torch.nn.Module): the task classifier network that learns to predict labels
                 :math:`y \in \mathcal{Y}` from latent vectors,
             method (Method, optional): the method implemented by the class. Defaults to None.
