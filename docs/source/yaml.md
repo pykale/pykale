@@ -21,7 +21,7 @@ OUTPUT:
   PB_FRESH: None
 ```
 
-Related configuration settings are grouped together. The group headings and allowed values are stored in a [separate Python file](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/config.py) which many users will not need to refer to. The headings and parameters are exaplined below:
+Related configuration settings are grouped together. The group headings and allowed values are stored in a [separate Python file](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/config.py) which many users will not need to refer to. The headings and parameters in this example are explained below:
 
 | Heading / Parameter | Meaning | Default |
 | --- | --- | --- |
@@ -37,4 +37,4 @@ Related configuration settings are grouped together. The group headings and allo
 | **OUTPUT** | Output configuration | *None* |
 | PB_FRESH | Progress bar refresh option | `0` (disabled) |
 
-The YAML file overrides certain defaults to make the process faster and clearer for demonstration purposes. Application of an example to user data will often be as simple as amending the YAML file to reference different data location, model type and number of iterations.
+The YAML file overrides certain defaults to make the machine learning process faster and clearer for demonstration purposes. Application of an example to user data will often be as simple as amending the YAML file to reference different data location, model type and number of iterations.
