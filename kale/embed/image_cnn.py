@@ -51,8 +51,7 @@ class SmallCNNFeature(nn.Module):
 
 class _Bottleneck(nn.Module):
     """Simple bottleneck as domain specific feature extractor, used in multi-source domain adaptation method MFSAN only.
-        Compare to the torchvision implementation, the value of expansion is flexible and an additional average pooling
-        layer.
+        Compared to the torchvision implementation, the value of expansion is flexible and an average pooling layer is added.
 
         The code is based on:
             https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py#L86,

@@ -136,7 +136,7 @@ def hsic(kx, ky, device):
 
 
 def euclidean(x1, x2):
-    """Compute Euclidean distance
+    """Compute the Euclidean distance
 
     Args:
         x1 (torch.Tensor): variables set 1
@@ -149,15 +149,15 @@ def euclidean(x1, x2):
 
 
 def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
-    """Compute k-th moment distance
+    """Compute the k-th moment distance
 
     Args:
         x (torch.Tensor): input data, shape (n_samples, n_features)
-        domain_labels (torch.Tensor): labels indicate the instance from which domain, shape (n_samples,)
+        domain_labels (torch.Tensor): labels indicating which domain the instance is from, shape (n_samples,)
         k_order (int, optional): moment order. Defaults to 2.
 
     Returns:
-        torch.Tensor: k-th moment distance
+        torch.Tensor: the k-th moment distance
     """
     unique_domain_ = torch.unique(domain_labels)
     n_unique_domain_ = len(unique_domain_)

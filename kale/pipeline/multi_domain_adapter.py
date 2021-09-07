@@ -167,11 +167,11 @@ class M3SDATrainer(BaseMultiSourceTrainer):
             return cls_loss, ok_src
 
     def _compute_domain_dist(self, x, domain_labels):
-        """Compute k-th order moment divergence
+        """Compute the k-th order moment divergence
 
         Args:
             x (torch.Tensor): input data, shape (n_samples, n_features)
-            domain_labels (torch.Tensor): labels indicate the instance from which domain, shape (n_samples,)
+            domain_labels (torch.Tensor): labels indicating which domain the instance is from, shape (n_samples,)
 
         Returns:
             torch.Tensor: divergence
