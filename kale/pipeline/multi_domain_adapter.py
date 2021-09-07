@@ -197,7 +197,7 @@ class _DINTrainer(BaseMultiSourceTrainer):
         kernel_num: int = 5,
         **base_params,
     ):
-        """Domain independent network.
+        """Domain independent network. It is under development and will be updated with references later.
 
         """
         super().__init__(dataset, feature_extractor, task_classifier, n_classes, target_domain, **base_params)
@@ -250,10 +250,10 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         kernel_num: int = 5,
         **base_params,
     ):
-        """
+        """Multiple Feature Spaces Adaptation Network (MFSAN)
+
         Reference: Zhu, Y., Zhuang, F. and Wang, D., 2019, July. Aligning domain-specific distribution and classifier
-            for cross-domain classification from multiple sources. In Proceedings of the AAAI Conference on Artificial
-            Intelligence (Vol. 33, No. 01, pp. 5989-5996).
+            for cross-domain classification from multiple sources. In AAAI.
 
         Original implementation: https://github.com/easezyc/deep-transfer-learning/tree/master/MUDA/MFSAN
         """
@@ -277,7 +277,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         phi_x = self.forward(x)
         tgt_idx = torch.where(domain_labels == self.target_label)
         n_src = len(self.src_domains)
-        mmd_dist = 0
+        domain_dist = 0
         loss_cls = 0
         ok_src = []
         for src_domain in self.src_domains:
@@ -287,12 +287,13 @@ class MFSANTrainer(BaseMultiSourceTrainer):
             kernels = losses.gaussian_kernel(
                 phi_src, phi_tgt, kernel_mul=self._kernel_mul, kernel_num=self._kernel_num,
             )
-            mmd_dist += losses.compute_mmd_loss(kernels, len(phi_src))
+            domain_dist += losses.compute_mmd_loss(kernels, len(phi_src))
             y_src_hat = self.classifiers[src_domain](phi_src)
             loss_cls_, ok_src_ = losses.cross_entropy_logits(y_src_hat, y[src_domain_idx])
             loss_cls += loss_cls_
             ok_src.append(ok_src_)
 
+        domain_dist += self.cls_discrepancy(phi_x[tgt_idx])
         loss_cls = loss_cls / n_src
         ok_src = torch.cat(ok_src)
 
@@ -303,12 +304,28 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": mmd_dist,
+            f"{split_name}_domain_acc": domain_dist,
         }
 
-        return task_loss, mmd_dist, log_metrics
+        return task_loss, domain_dist, log_metrics
+
+    def _get_cls_output(self, x):
+        return [self.classifiers[key](self.domain_net[key](x)) for key in self.classifiers]
 
     def _get_avg_cls_output(self, x):
-        cls_output = [self.classifiers[key](self.domain_net[key](x)) for key in self.classifiers]
+        cls_output = self._get_cls_output(x)
 
         return torch.stack(cls_output).mean(0)
+
+    def cls_discrepancy(self, x):
+        """Compute discrepancy between all classifiers' probabilistic outputs
+        """
+        cls_output = self._get_cls_output(x)
+        n_domains = len(cls_output)
+        cls_disc = 0
+        for i in range(n_domains - 1):
+            for j in range(i + 1, n_domains):
+                cls_disc_ = nn.functional.softmax(cls_output[i], dim=1) - nn.functional.softmax(cls_output[j], dim=1)
+                cls_disc += torch.mean(torch.abs(cls_disc_))
+
+        return cls_disc * 2 / (n_domains * (n_domains - 1))

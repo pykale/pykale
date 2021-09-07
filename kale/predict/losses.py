@@ -74,8 +74,7 @@ def gradient_penalty(critic, h_s, h_t):
 
 def gaussian_kernel(source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None):
     """
-    Code from XLearn: computes the full kernel matrix,
-    which is less than optimal since we don't use all of it
+    Code from XLearn: computes the full kernel matrix, which is less than optimal since we don't use all of it
     with the linear MMD estimate.
 
     Examples:
@@ -112,11 +111,13 @@ def compute_mmd_loss(kernel_values, batch_size):
 
 
 def hsic(kx, ky, device):
-    """Perform independent test (HSIC) between two set of variables x and y.
+    """
+    Perform independent test with Hilbert-Schmidt Independence Criterion (HSIC) between two sets of variables x and y.
 
     Args:
         kx (2-D tensor): kernel matrix of x, shape (n_samples, n_samples)
         ky (2-D tensor): kernel matrix of y, shape (n_samples, n_samples)
+        device (torch.device): the desired device of returned tensor
 
     Returns:
         [tensor]: Independent test score >= 0
