@@ -108,7 +108,6 @@ class MultiDomainDatasets(DomainsDatasetBase):
         if weight_type is WeightingType.PRESET0:
             self._source_sampling_config = SamplingConfig(class_weights=np.arange(source_access.n_classes(), 0, -1))
             self._target_sampling_config = SamplingConfig(
-                # class_weights=random_state.randint(1, 4, size=target_access.n_classes())
                 class_weights=np.random.randint(1, 4, size=target_access.n_classes())
             )
         elif weight_type is WeightingType.BALANCED:
@@ -247,7 +246,7 @@ def _split_dataset_few_shot(dataset, n_fewshot, random_state=None):
     return labeled_dataset, unlabeled_dataset
 
 
-def domain_stratified_split(domain_labels, n_partitions, split_ratios):
+def _domain_stratified_split(domain_labels, n_partitions, split_ratios):
     """Get domain stratified indices of random split. Samples with the same domain label will be split based on the
         given ratios. Then the indices of different domains within the same split will be concatenated.
 
@@ -276,15 +275,19 @@ def domain_stratified_split(domain_labels, n_partitions, split_ratios):
 
 class MultiDomainImageFolder(VisionDataset):
     """A generic data loader where the samples are arranged in this way: ::
-            root/domain_a/class_x/xxx.ext
-            root/domain_a/class_x/xxy.ext
-            ...
-            root/domain_a/class_y/xxz.ext
-            ...
-            root/domain_k/class_x/123.ext
-            root/domain_k/class_x/abc3.ext
-            ...
-            root/domain_k/class_y/asd932_.ext
+
+            root/domain_a/class_1/xxx.ext
+            root/domain_a/class_1/xxy.ext
+            root/domain_a/class_2/xxz.ext
+
+            root/domain_b/class_1/efg.ext
+            root/domain_b/class_2/pqr.ext
+            root/domain_b/class_2/lmn.ext
+
+            root/domain_k/class_2/123.ext
+            root/domain_k/class_1/abc3.ext
+            root/domain_k/class_1/asd932_.ext
+
         Args:
             root (string): Root directory path.
             loader (callable): A function to load a sample given its path.
@@ -360,7 +363,7 @@ class MultiDomainImageFolder(VisionDataset):
         self.split_train_test = split_train_test
         self.split_ratio = split_ratio
         if split_train_test:
-            self.train_idx, self.test_idx = domain_stratified_split(self.domain_labels, 2, [split_ratio])
+            self.train_idx, self.test_idx = _domain_stratified_split(self.domain_labels, 2, [split_ratio])
         else:
             self.train_idx = None
             self.test_idx = None
@@ -406,13 +409,13 @@ class MultiDomainImageFolder(VisionDataset):
         if self.split_train_test:
             return torch.utils.data.Subset(self, self.train_idx)
         else:
-            raise ValueError("The dataset has no train split yet.")
+            return None
 
     def get_test(self):
         if self.split_train_test:
             return torch.utils.data.Subset(self, self.test_idx)
         else:
-            raise ValueError("The dataset has no test split yet.")
+            return None
 
 
 def make_multi_domain_set(
@@ -465,20 +468,87 @@ def make_multi_domain_set(
     return instances
 
 
+class ConcatMultiDomainAccess(torch.utils.data.Dataset):
+    """Concatenate multiple datasets as a single dataset with domain labels
+
+    Args:
+        data_access (dict): Dictionary of domain datasets, e.g. {"Domain1_name": domain1_set,
+            "Domain2_name": domain2_set}
+        domain_to_idx (dict): Dictionary of domain name to domain labels, e.g. {"Domain1_name": 0, "Domain2_name": 1}
+        return_domain_label (Optional[bool], optional): Whether return domain labels in each batch. Defaults to False.
+    """
+
+    def __init__(
+        self, data_access: dict, domain_to_idx: dict, return_domain_label: Optional[bool] = False,
+    ):
+        self.domain_to_idx = domain_to_idx
+        self.data = []
+        self.labels = []
+        self.domain_labels = []
+        for domain_ in domain_to_idx:
+            n_samples = data_access[domain_].data.shape[0]
+            for idx in range(n_samples):
+                x, y = data_access[domain_][idx]
+                self.data.append(x)
+                self.labels.append(y)
+                self.domain_labels.append(domain_to_idx[domain_])
+
+        self.data = torch.stack(self.data)
+        self.labels = torch.tensor(self.labels)
+        self.domain_labels = torch.tensor(self.domain_labels)
+        self.return_domain_label = return_domain_label
+
+    def __getitem__(self, index: int) -> Tuple:
+        if self.return_domain_label:
+            return self.data[index], self.labels[index], self.domain_labels[index]
+        else:
+            return self.data[index], self.labels[index]
+
+    def __len__(self):
+        return len(self.labels)
+
+
+class MultiDomainAccess(DatasetAccess):
+    def __init__(self, data_access: dict, n_classes: int, return_domain_label: Optional[bool] = False):
+        """Convert multiple digits-like data accesses to a single data access.
+
+        Args:
+            data_access (dict): Dictionary of data accesses, e.g. {"Domain1_name": domain1_access,
+                "Domain2_name": domain2_access}
+            n_classes (int): number of classes.
+            return_domain_label (Optional[bool], optional): Whether return domain labels in each batch.
+                Defaults to False.
+        """
+        super().__init__(n_classes)
+        self.data_access = data_access
+        self.domain_to_idx = {list(data_access.keys())[i]: i for i in range(len(data_access))}
+        self.return_domain_label = return_domain_label
+
+    def get_train(self):
+        train_access = {domain_: self.data_access[domain_].get_train() for domain_ in self.domain_to_idx}
+        return ConcatMultiDomainAccess(train_access, self.domain_to_idx, self.return_domain_label)
+
+    def get_test(self):
+        test_access = {domain_: self.data_access[domain_].get_test() for domain_ in self.domain_to_idx}
+        return ConcatMultiDomainAccess(test_access, self.domain_to_idx, self.return_domain_label)
+
+    def __len__(self):
+        return len(self.get_train()) + len(self.get_test())
+
+
 class MultiDomainAdapDataset(DomainsDatasetBase):
     """The class controlling how the multiple domains are iterated over.
 
     Args:
-        data_access (MultiDomainImageFolder): Multi-domain data access.
+        data_access (MultiDomainImageFolder, or MultiDomainAccess): Multi-domain data access.
         val_split_ratio (float, optional): Split ratio for validation set. Defaults to 0.1.
         test_split_ratio (float, optional): Split ratio for test set. Defaults to 0.2.
         random_state (int, optional): Random state for generator. Defaults to 1.
     """
 
     def __init__(
-        self, data_access: MultiDomainImageFolder, val_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1,
+        self, data_access, val_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1,
     ):
-        self.domain_labels = np.array(data_access.domain_labels)
         self.domain_to_idx = data_access.domain_to_idx
         self.n_domains = len(data_access.domain_to_idx)
         self.data_access = data_access
@@ -491,9 +561,19 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
 
     def prepare_data_loaders(self):
         splits = ["test", "valid", "train"]
-        subset_idx = domain_stratified_split(self.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio])
-        for i in range(len(splits)):
-            self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
+        self._sample_by_split["test"] = self.data_access.get_test()
+        if self._sample_by_split["test"] is None:
+            # split test, valid, and train set if the data access no train test splits
+            subset_idx = _domain_stratified_split(
+                self.data_access.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio]
+            )
+            for i in range(len(splits)):
+                self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
+        else:
+            # use original data split if get_test() is not none
+            self._sample_by_split["valid"], self._sample_by_split["train"] = self.data_access.get_train_val(
+                self._val_split_ratio
+            )
 
     def get_domain_loaders(self, split="train", batch_size=32):
         return self._sampling_config.create_loader(self._sample_by_split[split], batch_size)

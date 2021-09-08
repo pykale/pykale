@@ -126,8 +126,7 @@ def gradient_penalty(critic, h_s, h_t):
 
 def gaussian_kernel(source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None):
     """
-    Code from XLearn: computes the full kernel matrix,
-    which is less than optimal since we don't use all of it
+    Code from XLearn: computes the full kernel matrix, which is less than optimal since we don't use all of it
     with the linear MMD estimate.
 
     Examples:
@@ -292,3 +291,69 @@ def JAN(source_list, target_list, kernel_muls=[2.0, 2.0], kernel_nums=[2, 5], fi
         raise ValueError("ver == 1 or 2")
 
     return loss
+def hsic(kx, ky, device):
+    """
+    Perform independent test with Hilbert-Schmidt Independence Criterion (HSIC) between two sets of variables x and y.
+
+    Args:
+        kx (2-D tensor): kernel matrix of x, shape (n_samples, n_samples)
+        ky (2-D tensor): kernel matrix of y, shape (n_samples, n_samples)
+        device (torch.device): the desired device of returned tensor
+
+    Returns:
+        [tensor]: Independent test score >= 0
+
+    Reference:
+        [1] Gretton, Arthur, Bousquet, Olivier, Smola, Alex, and Schölkopf, Bernhard. Measuring Statistical Dependence
+            with Hilbert-Schmidt Norms. In Algorithmic Learning Theory (ALT), pp. 63–77. 2005.
+        [2] Gretton, Arthur, Fukumizu, Kenji, Teo, Choon H., Song, Le, Schölkopf, Bernhard, and Smola, Alex J. A Kernel
+            Statistical Test of Independence. In Advances in Neural Information Processing Systems, pp. 585–592. 2008.
+    """
+
+    n = kx.shape[0]
+    if ky.shape[0] != n:
+        raise ValueError("kx and ky are expected to have the same sample sizes.")
+    ctr_mat = torch.eye(n, device=device) - torch.ones((n, n), device=device) / n
+    return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (n ** 2)
+
+
+def euclidean(x1, x2):
+    """Compute the Euclidean distance
+
+    Args:
+        x1 (torch.Tensor): variables set 1
+        x2 (torch.Tensor): variables set 2
+
+    Returns:
+        torch.Tensor: Eucliean distance
+    """
+    return ((x1 - x2) ** 2).sum().sqrt()
+
+
+def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
+    """Compute the k-th moment distance
+
+    Args:
+        x (torch.Tensor): input data, shape (n_samples, n_features)
+        domain_labels (torch.Tensor): labels indicating which domain the instance is from, shape (n_samples,)
+        k_order (int, optional): moment order. Defaults to 2.
+
+    Returns:
+        torch.Tensor: the k-th moment distance
+    """
+    unique_domain_ = torch.unique(domain_labels)
+    n_unique_domain_ = len(unique_domain_)
+    x_k_order = []
+    for domain_label_ in unique_domain_:
+        domain_idx = torch.where(domain_labels == domain_label_)
+        if k_order == 1:
+            x_k_order.append(x[domain_idx].mean(0))
+        else:
+            x_k_order.append(((x[domain_idx] - x[domain_idx].mean(0)) ** k_order).mean(0))
+    moment_sum = 0
+    n_pair = 0
+    for i in range(n_unique_domain_):
+        for j in range(i + 1, n_unique_domain_):
+            moment_sum += euclidean(x_k_order[i], x_k_order[j])
+            n_pair += 1
+    return moment_sum / n_pair

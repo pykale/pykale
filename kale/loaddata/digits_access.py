@@ -16,9 +16,56 @@ from kale.loaddata.usps import USPS
 
 class DigitDataset(Enum):
     MNIST = "MNIST"
+    MNIST_RGB = "MNIST_RGB"
     MNISTM = "MNISTM"
     USPS = "USPS"
+    USPS_RGB = "USPS_RGB"
     SVHN = "SVHN"
+
+    @staticmethod
+    def get_access(dataset: "DigitDataset", data_path):
+        """Gets data loaders for digit datasets
+
+        Args:
+            dataset (DigitDataset): dataset name
+            data_path (string): root directory of dataset
+
+        Examples::
+            >>> data_access, num_channel = DigitDataset.get_access(dataset, data_path)
+        """
+        channel_numbers = {
+            DigitDataset.MNIST: 1,
+            DigitDataset.MNIST_RGB: 3,
+            DigitDataset.MNISTM: 3,
+            DigitDataset.USPS: 1,
+            DigitDataset.USPS_RGB: 3,
+            DigitDataset.SVHN: 3,
+        }
+
+        transform_names = {
+            (DigitDataset.MNIST, 1): "mnist32",
+            (DigitDataset.MNIST_RGB, 3): "mnist32rgb",
+            (DigitDataset.MNISTM, 3): "mnistm",
+            (DigitDataset.USPS, 1): "usps32",
+            (DigitDataset.USPS_RGB, 3): "usps32rgb",
+            (DigitDataset.SVHN, 3): "svhn",
+        }
+
+        factories = {
+            DigitDataset.MNIST: MNISTDatasetAccess,
+            DigitDataset.MNIST_RGB: MNISTDatasetAccess,
+            DigitDataset.MNISTM: MNISTMDatasetAccess,
+            DigitDataset.USPS: USPSDatasetAccess,
+            DigitDataset.USPS_RGB: USPSDatasetAccess,
+            DigitDataset.SVHN: SVHNDatasetAccess,
+        }
+
+        num_channels = channel_numbers[dataset]
+        tf = transform_names[(dataset, num_channels)]
+
+        factories[dataset](data_path, tf)
+
+        return factories[dataset](data_path, tf), num_channels
 
     # Originally get_access
     @staticmethod
@@ -31,37 +78,13 @@ class DigitDataset(Enum):
             data_path (string): root directory of dataset
 
         Examples::
-            >>> source, target, num_channel = get_source_target(sourcename, targetname, data_path)
+            >>> source_access, target_access, num_channel = DigitDataset.get_source_target(source, target, data_path)
         """
-        channel_numbers = {
-            DigitDataset.MNIST: 1,
-            DigitDataset.MNISTM: 3,
-            DigitDataset.USPS: 1,
-            DigitDataset.SVHN: 3,
-        }
+        src_access, src_n_channels = DigitDataset.get_access(source, data_path)
+        tgt_access, tgt_n_channels = DigitDataset.get_access(target, data_path)
+        num_channels = max(src_n_channels, tgt_n_channels)
 
-        transform_names = {
-            (DigitDataset.MNIST, 1): "mnist32",
-            (DigitDataset.MNIST, 3): "mnist32rgb",
-            (DigitDataset.MNISTM, 3): "mnistm",
-            (DigitDataset.USPS, 1): "usps32",
-            (DigitDataset.USPS, 3): "usps32rgb",
-            (DigitDataset.SVHN, 3): "svhn",
-        }
-
-        factories = {
-            DigitDataset.MNIST: MNISTDatasetAccess,
-            DigitDataset.MNISTM: MNISTMDatasetAccess,
-            DigitDataset.USPS: USPSDatasetAccess,
-            DigitDataset.SVHN: SVHNDatasetAccess,
-        }
-
-        # handle color/nb channels
-        num_channels = max(channel_numbers[source], channel_numbers[target])
-        source_tf = transform_names[(source, num_channels)]
-        target_tf = transform_names[(target, num_channels)]
-
-        return (factories[source](data_path, source_tf), factories[target](data_path, target_tf), num_channels)
+        return src_access, tgt_access, num_channels
 
 
 class DigitDatasetAccess(DatasetAccess):
