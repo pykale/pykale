@@ -2,7 +2,9 @@
 
 ## Why YAML?
 
-PyKale has been designed such that users can configure machine learning models without writing any new Python code. This is achieved using a human and machine readable language called [YAML](https://en.wikipedia.org/wiki/YAML), combined with well thought out default configuration values stored using the [YACS](https://github.com/rbgirshick/yacs) Python module. This also enables more advanced users to establish their own default and add new configuration parameters with minimal coding. By separating code and configuration, this approach will lead to better [Reproducibility](https://en.wikipedia.org/wiki/Reproducibility).
+PyKale has been designed such that users can configure machine learning models and experiments without writing any new Python code. This is achieved via a human and machine readable language called [YAML](https://en.wikipedia.org/wiki/YAML). Well thought out default configuration values are first stored using the [YACS](https://github.com/rbgirshick/yacs) Python module in a `config.py` file. Several customized configurations can then be created in respective `.yaml` files.
+
+This also enables more advanced users to establish their own default and add new configuration parameters with minimal coding. By separating code and configuration, this approach can lead to better [reproducibility](https://en.wikipedia.org/wiki/Reproducibility).
 
 ## A simple example
 
