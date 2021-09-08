@@ -4,7 +4,7 @@
 
 PyKale has been designed such that users can configure machine learning models without writing any new Python code. This is achieved using a human and machine readable language called [YAML](https://en.wikipedia.org/wiki/YAML), combined with well thought out default configuration values stored using the [YACS](https://github.com/rbgirshick/yacs) Python module. This also enables more advanced users to establish their own default and add new configuration parameters with minimal coding. By separating code and configuration, this approach will lead to better [Reproducibility](https://en.wikipedia.org/wiki/Reproducibility).
 
-## A simple example YAML file
+## A simple example
 
 The following example is a simple [YAML file `tutorial.yaml`](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/configs/tutorial.yaml) used by the [digits tutorial notebook](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb):
 
@@ -43,6 +43,6 @@ Related configuration settings are grouped together. The group headings and allo
 
 The tutorial YAML file `tutorial.yaml` above overrides certain defaults in `config.py` to make the machine learning process faster and clearer for demonstration purposes.
 
-## Customization of YAML in customized applications
+## Customization for your applications
 
 Application of an example to your data can be as simple as creating a new YAML file to (change the defaults to) specify your data location, and other preferred configuration customization, e.g., in the choice of models and/or the number of iterations.
