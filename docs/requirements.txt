@@ -19,6 +19,7 @@ pytorch-lightning
 rdkit-pypi
 recommonmark
 scikit-learn
+sphinx-markdown-tables
 sphinx-rtd-theme
 tensorly
 # torch>=1.7.0
