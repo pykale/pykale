@@ -1,0 +1,11 @@
+DAN:
+  METHOD: 'MFSAN'
+DATASET:
+  NAME: 'office_caltech'
+  NUM_CLASSES: 10
+  ROOT: '../data'
+  TARGET: 'amazon'
+  NUM_REPEAT: 5
+SOLVER:
+  TRAIN_BATCH_SIZE: 200
+  TEST_BATCH_SIZE: 200

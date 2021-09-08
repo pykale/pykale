@@ -159,16 +159,21 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
 
     Returns:
         torch.Tensor: the k-th moment distance
+
+    The code is based on:
+        https://github.com/KaiyangZhou/Dassl.pytorch/blob/master/dassl/engine/da/m3sda.py#L153
+        https://github.com/VisionLearningGroup/VisionLearningGroup.github.io/blob/master/M3SDA/code_MSDA_digit/metric/msda.py#L6
     """
     unique_domain_ = torch.unique(domain_labels)
     n_unique_domain_ = len(unique_domain_)
     x_k_order = []
     for domain_label_ in unique_domain_:
         domain_idx = torch.where(domain_labels == domain_label_)
+        x_mean = x[domain_idx].mean(0)
         if k_order == 1:
-            x_k_order.append(x[domain_idx].mean(0))
+            x_k_order.append(x_mean)
         else:
-            x_k_order.append(((x[domain_idx] - x[domain_idx].mean(0)) ** k_order).mean(0))
+            x_k_order.append(((x[domain_idx] - x_mean) ** k_order).mean(0))
     moment_sum = 0
     n_pair = 0
     for i in range(n_unique_domain_):
