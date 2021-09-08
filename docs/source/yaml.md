@@ -1,8 +1,12 @@
 # Configuration using YAML
 
-PyKale has been designed such that users can configure machine learning models without writing any new Python code. This is achieved using a human and machine readable language called [YAML](https://en.wikipedia.org/wiki/YAML), combined with well thought out default configuration values stored using the [YACS](https://github.com/rbgirshick/yacs) Python module. This also enables more advanced users to establish their own default and add new configuration parameters with minimal coding.
+## Why YAML?
 
-This simple example of a YAML file is used by the [digits tutorial notebook](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb):
+PyKale has been designed such that users can configure machine learning models without writing any new Python code. This is achieved using a human and machine readable language called [YAML](https://en.wikipedia.org/wiki/YAML), combined with well thought out default configuration values stored using the [YACS](https://github.com/rbgirshick/yacs) Python module. This also enables more advanced users to establish their own default and add new configuration parameters with minimal coding. By separating code and configuration, this approach will lead to better [Reproducibility](https://en.wikipedia.org/wiki/Reproducibility).
+
+## A simple example YAML file
+
+The following example is a simple [YAML file `tutorial.yaml`](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/configs/tutorial.yaml) used by the [digits tutorial notebook](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb):
 
 ```{YAML}
 DAN:
@@ -21,7 +25,7 @@ OUTPUT:
   PB_FRESH: None
 ```
 
-Related configuration settings are grouped together. The group headings and allowed values are stored in a [separate Python file](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/config.py) which many users will not need to refer to. The headings and parameters in this example are explained below:
+Related configuration settings are grouped together. The group headings and allowed values are stored in a [separate Python file `config.py`](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/config.py) which many users will not need to refer to. The headings and parameters in this example are explained below:
 
 | Heading / Parameter | Meaning | Default |
 | --- | --- | --- |
@@ -29,12 +33,16 @@ Related configuration settings are grouped together. The group headings and allo
 | METHOD | Type of DAN: `CDAN`, `CDAN-E`, or `DANN` | `CDAN` |
 |**DATASET** | Dataset (for training, testing and validation ) | *None* |
 | NUM_REPEAT | Number of times the training and validation cycle will be run | `10` |
-| SOURCE | The source dataset path list | `mnist` |
-| VAL_SPLIT_RATIO | The proportion of data to include in the training set | `0.1` |
+| SOURCE | The source dataset name | `mnist` |
+| VAL_SPLIT_RATIO | The proportion of training data used for validation | `0.1` |
 | **SOLVER** | Model training parameters | *None* |
 | MIN_EPOCHS | The minimum number of training epochs | `20` |
 | MAX_EPOCHS | The maximum number of training epochs | `120` |
 | **OUTPUT** | Output configuration | *None* |
 | PB_FRESH | Progress bar refresh option | `0` (disabled) |
 
-The YAML file overrides certain defaults to make the machine learning process faster and clearer for demonstration purposes. Application of an example to user data will often be as simple as amending the YAML file to reference different data location, model type and number of iterations.
+The tutorial YAML file `tutorial.yaml` above overrides certain defaults in `config.py` to make the machine learning process faster and clearer for demonstration purposes.
+
+## Customization of YAML in customized applications
+
+Application of an example to your data can be as simple as creating a new YAML file to (change the defaults to) specify your data location, and other preferred configuration customization, e.g., in the choice of models and/or the number of iterations.
