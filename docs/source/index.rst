@@ -15,6 +15,7 @@ PyKale Documentation
     installation
     tutorial
     notebooks
+    yaml
 
 .. toctree::
     :maxdepth: 1
