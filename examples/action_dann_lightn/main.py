@@ -63,6 +63,7 @@ def main():
         random_state=seed,
         config_weight_type=cfg.DATASET.WEIGHT_TYPE,
         config_size_type=cfg.DATASET.SIZE_TYPE,
+        # val_split_ratio=0.00001,
         num_workers=cfg.SOLVER.WORKERS,
     )
 

@@ -158,6 +158,7 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
 
     def test_dataloader(self):
         dataloader, target_batch_size = self._dataset.get_domain_loaders(split="test", batch_size=self._batch_size)
+        # dataloader, target_batch_size = self._dataset.get_domain_loaders(split="test", batch_size=500)
         self._target_batch_size = target_batch_size
         return dataloader
 
@@ -1597,6 +1598,7 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
             optimizer,
             baseline_type,
             frame_aggregation,
+            alpha,
             beta,
             gamma,
             mu,
@@ -1699,6 +1701,7 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
 
         self.base_model = arch
         self.verbose = verbose
+        self.alpha = alpha
         self.beta = beta
         self.mu = mu
         self.gamma = gamma
@@ -1986,7 +1989,7 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
             self.bn_source_video_2_S = nn.BatchNorm1d(feat_video_dim)
             self.bn_source_video_2_T = nn.BatchNorm1d(feat_video_dim)
 
-        self.alpha = torch.ones(1)
+        # self.alpha = torch.ones(1)
         if self.use_bn == "AutoDIAL":
             self.alpha = nn.Parameter(self.alpha)
 
@@ -2608,7 +2611,7 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
 
         # add dummy tensors to keep the same batch size for each epoch (for the last epoch)
 
-        print("batch_source_ori: {}".format(batch_source_ori))
+        # print("batch_source_ori: {}".format(batch_source_ori))
 
         if batch_source_ori < self._batch_size:
             source_data_dummy = torch.zeros(
@@ -2672,7 +2675,7 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         # ====== calculate the loss function ======#
         # 1. calculate the classification loss
 
-        print(split_name)
+        # print(split_name)
 
         # out_verb = out_source[0]
         # out_noun = out_source[1]
@@ -2910,6 +2913,7 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         else:
             self.beta_new = self.beta
 
+        # print("nb_adapt_epochs: {}, len: {}".format(self.nb_adapt_epochs, len(self.trainer.train_dataloader)))
         # print("i+start_steps: {}, total_steps: {}, p :{}, beta_new: {}".format(float(self.global_step + start_steps), total_steps, p, self.beta_new))
         # print("lr: {}, alpha: {}, mu: {}".format(self.optimizers().param_groups[0]['lr'], self.alpha, self.mu))
 
@@ -3192,7 +3196,7 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
             batch: an item of the dataloader(s) passed with the trainer
             batch_idx: the batch index (which batch is currently being evaulated)
         Returns:
-            The loss(es) caluclated
+            The loss(es) calculated
         """
 
         # return self.validation_step(batch, batch_idx)

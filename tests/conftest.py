@@ -14,10 +14,15 @@ def download_path():
     return path
 
 
-gait_url = "https://github.com/pykale/data/raw/main/video_data/gait/gait_gallery_data.mat"
+gait_url = "https://github.com/pykale/data/raw/main/videos/gait/gait_gallery_data.mat"
 
 
 @pytest.fixture(scope="session")
 def gait(download_path):
     download_file_by_url(gait_url, download_path, "gait.mat", "mat")
     return loadmat(os.path.join(download_path, "gait.mat"))
+
+
+@pytest.fixture(scope="session")
+def office_path(download_path):
+    return os.path.join(download_path, "office")

@@ -6,14 +6,6 @@ Pipeline
 Submodules
 ----------
 
-kale.pipeline.mpca_trainer module
-------------------------------------
-
-.. automodule:: kale.pipeline.mpca_trainer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.pipeline.deep_dti module
 ------------------------------------
 
@@ -26,6 +18,22 @@ kale.pipeline.domain\_adapter module
 ------------------------------------
 
 .. automodule:: kale.pipeline.domain_adapter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.pipeline.mpca_trainer module
+------------------------------------
+
+.. automodule:: kale.pipeline.mpca_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.pipeline.multi\_domain\_adapter module
+------------------------------------
+
+.. automodule:: kale.pipeline.multi_domain_adapter
    :members:
    :undoc-members:
    :show-inheritance:

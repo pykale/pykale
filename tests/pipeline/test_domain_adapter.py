@@ -1,11 +1,11 @@
 import pytest
-import pytorch_lightning as pl
 
 import kale.pipeline.domain_adapter as domain_adapter
 from kale.embed.image_cnn import SmallCNNFeature
 from kale.loaddata.digits_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
+from tests.helpers.pipe_test_helper import ModelTestHelper
 
 # from kale.utils.seed import set_seed
 
@@ -40,14 +40,14 @@ def testing_cfg(download_path):
     yield config_params
 
 
-@pytest.mark.parametrize("DA_method", DA_METHODS)
+@pytest.mark.parametrize("da_method", DA_METHODS)
 @pytest.mark.parametrize("n_fewshot", FEW_SHOT)
-def test_domain_adaptor(DA_method, n_fewshot, download_path, testing_cfg):
+def test_domain_adaptor(da_method, n_fewshot, download_path, testing_cfg):
     if n_fewshot is None:
-        if DA_method in ["FSDANN", "MME", "Source"]:
+        if da_method in ["FSDANN", "MME", "Source"]:
             return
     else:
-        if DA_method in ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN"]:
+        if da_method in ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN"]:
             return
 
     source, target, num_channels = DigitDataset.get_source_target(
@@ -64,11 +64,11 @@ def test_domain_adaptor(DA_method, n_fewshot, download_path, testing_cfg):
     classifier_network = ClassNetSmallImage(feature_dim, NUM_CLASSES)
     train_params = testing_cfg["train_params"]
     method_params = {}
-    method = domain_adapter.Method(DA_method)
+    da_method = domain_adapter.Method(da_method)
 
-    if method.is_mmd_method():
+    if da_method.is_mmd_method():
         model = domain_adapter.create_mmd_based(
-            method=method,
+            method=da_method,
             dataset=dataset,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
@@ -78,7 +78,7 @@ def test_domain_adaptor(DA_method, n_fewshot, download_path, testing_cfg):
     else:  # All other non-mmd DA methods are dann like with critic
         critic_input_size = feature_dim
         # setup critic network
-        if method.is_cdan_method():
+        if da_method.is_cdan_method():
             critic_input_size = 1024
             method_params["use_random"] = True
 
@@ -86,7 +86,7 @@ def test_domain_adaptor(DA_method, n_fewshot, download_path, testing_cfg):
 
         # The following calls kale.loaddata.dataset_access for the first time
         model = domain_adapter.create_dann_like(
-            method=method,
+            method=da_method,
             dataset=dataset,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
@@ -95,10 +95,4 @@ def test_domain_adaptor(DA_method, n_fewshot, download_path, testing_cfg):
             **train_params,
         )
 
-    assert isinstance(model, domain_adapter.BaseAdaptTrainer)
-
-    trainer = pl.Trainer(min_epochs=train_params["nb_init_epochs"], max_epochs=train_params["nb_adapt_epochs"], gpus=0)
-    trainer.fit(model)
-    trainer.test()
-    metric_values = trainer.callback_metrics
-    assert isinstance(metric_values, dict)
+    ModelTestHelper.test_model(model, train_params)

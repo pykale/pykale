@@ -101,7 +101,7 @@ def setup_logger(train_params, output_dir, method_name, seed, class_type="object
     path_method_name = re.sub(r"[^-/\w\.]", "_", method_name)
     full_checkpoint_dir = os.path.join(checkpoint_dir, path_method_name, f"seed_{seed}")
     if class_type == "verb+noun":
-        monitor = "V_verb_target_top1_acc"
+        monitor = "V_action_target_top1_acc"
         metrics = [
             "verb source top1 acc",
             "verb source top5 acc",
@@ -126,11 +126,12 @@ def setup_logger(train_params, output_dir, method_name, seed, class_type="object
 
     checkpoint_callback = ModelCheckpoint(
         dirpath=full_checkpoint_dir,
-        filename="{epoch}-{step}-{V_target_acc:.4f}",
-        save_last=True,
-        save_top_k=1,
-        monitor=monitor,
-        mode="max",
+        # filename="{epoch}-{step}-{V_target_acc:.4f}",
+        filename="{epoch}-{step}-{" + monitor + ":.4f}",
+        # save_last=True,
+        # save_top_k=1,
+        # monitor=monitor,
+        # mode="max",
     )
 
     results = XpResults.from_file(metrics, test_csv_file)
@@ -246,7 +247,8 @@ class XpResults:
         self._df.to_csv(filepath)
 
     def print_scores(
-        self, method_name, split="Validation", stdout=True, fdout=None, print_func=logging.info, file_format="markdown",
+            self, method_name, split="Validation", stdout=True, fdout=None, print_func=logging.info,
+            file_format="markdown",
     ):
         """Print out the performance scores (over multiple runs)"""
         mres = self._df.query(f"method == '{method_name}' and split == '{split}'")
