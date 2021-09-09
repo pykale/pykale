@@ -164,7 +164,7 @@ _C.TA3N.TRAINER = CN()
 # _C.TA3N.TRAINER.USE_TARGET = "uSv"  # choices  = [uSv, Sv, none]
 # _C.TA3N.TRAINER.SHARE_PARAMS = "Y"  # choices  = [Y, N]
 _C.TA3N.TRAINER.PRETRAIN_SOURCE = False
-_C.TA3N.TRAINER.VERBOSE = True
+# _C.TA3N.TRAINER.VERBOSE = True
 _C.TA3N.TRAINER.DANN_WARMUP = True
 
 # Learning configs
@@ -224,7 +224,7 @@ _C.TA3N.TESTER.RESULT_JSON = "test.json"
 # _C.TA3N.TESTER.SAVE_SCORES = os.path.join(_C.PATHS.EXP_PATH, "scores")
 # _C.TA3N.TESTER.SAVE_CONFUSION = os.path.join(_C.PATHS.EXP_PATH, "confusion_matrix")
 
-_C.TA3N.TESTER.VERBOSE = True
+# _C.TA3N.TESTER.VERBOSE = True
 
 
 def get_cfg_defaults():
