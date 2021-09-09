@@ -73,12 +73,12 @@ def get_config(cfg):
                 "n_directions": cfg.TA3N.MODEL.N_DIRECTIONS,
                 "n_ts": cfg.TA3N.MODEL.N_TS,
                 # "flow_prefix": cfg.TA3N.MODEL.FLOW_PREFIX,
-                # "alpha": cfg.TA3N.HYPERPARAMETERS.ALPHA,
+                "alpha": cfg.TA3N.HYPERPARAMETERS.ALPHA,
                 "beta": cfg.TA3N.HYPERPARAMETERS.BETA,
                 "gamma": cfg.TA3N.HYPERPARAMETERS.GAMMA,
                 "mu": cfg.TA3N.HYPERPARAMETERS.MU,
                 # "pretrain_source": cfg.TA3N.TRAINER.PRETRAIN_SOURCE,
-                "verbose": cfg.TA3N.TRAINER.VERBOSE,
+                "verbose": cfg.OUTPUT.VERBOSE,
                 "dann_warmup": cfg.TA3N.TRAINER.DANN_WARMUP,
                 # Learning configs
                 # "loss_type": cfg.TA3N.TRAINER.LOSS_TYPE,
@@ -97,15 +97,15 @@ def get_config(cfg):
                 # "copy_list": cfg.TA3N.TRAINER.COPY_LIST,
                 # "save_model": cfg.TA3N.TRAINER.SAVE_MODEL,
             },
-            "test_params": {
-                "noun_weights": cfg.TA3N.TESTER.NOUN_WEIGHTS,
-                "batch_size": cfg.TA3N.TESTER.BATCH_SIZE,
-                "dropout_i": cfg.TA3N.TESTER.DROPOUT_I,
-                "dropout_v": cfg.TA3N.TESTER.DROPOUT_V,
-                "noun_target_data": cfg.TA3N.TESTER.NOUN_TARGET_DATA,
-                "result_json": cfg.TA3N.TESTER.RESULT_JSON,
-                "verbose": cfg.TA3N.TESTER.VERBOSE,
-            },
+            # "test_params": {
+            #     "noun_weights": cfg.TA3N.TESTER.NOUN_WEIGHTS,
+            #     "batch_size": cfg.TA3N.TESTER.BATCH_SIZE,
+            #     "dropout_i": cfg.TA3N.TESTER.DROPOUT_I,
+            #     "dropout_v": cfg.TA3N.TESTER.DROPOUT_V,
+            #     "noun_target_data": cfg.TA3N.TESTER.NOUN_TARGET_DATA,
+            #     "result_json": cfg.TA3N.TESTER.RESULT_JSON,
+            #     "verbose": cfg.OUTPUT.VERBOSE,
+            # },
         }
     else:
         config_params = {
@@ -153,8 +153,8 @@ def get_model(cfg, dataset, dict_num_classes):
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
-    test_params = config_params["test_params"]
-    test_params_local = deepcopy(test_params)
+    # test_params = config_params["test_params"]
+    # test_params_local = deepcopy(test_params)
     data_params = config_params["data_params"]
     data_params_local = deepcopy(data_params)
     input_type = data_params_local["input_type"]
