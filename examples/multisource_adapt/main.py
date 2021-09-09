@@ -8,19 +8,19 @@ import logging
 import os
 import sys
 
-from torchvision import transforms
 import pytorch_lightning as pl
 
 # from config import get_cfg_defaults
 from config import get_cfg_defaults
 from model import get_model
+from torchvision import transforms
 
 # import torch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 # from kale.loaddata.digits_access import DigitDataset
 from kale.loaddata.img_da_access import MultiAccess
-from kale.loaddata.multi_domain import MultiDomainImageFolder, MultiDomainAdapDataset
+from kale.loaddata.multi_domain import MultiDomainAdapDataset, MultiDomainImageFolder
 from kale.prepdata.image_transform import get_transform
 from kale.utils.csv_logger import setup_logger  # np error if move this to later, not sure why
 from kale.utils.seed import set_seed
@@ -63,12 +63,13 @@ def main():
         transform = get_transform("office")
     else:
         transform = TF_DEFAULT
-    
+
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = cfg.SOLVER.SEED + i * 10
-        dataset = MultiDomainAdapDataset(MultiDomainImageFolder(cfg.DATASET.ROOT, transform=transform,
-                                                                return_domain_label=True), random_state=seed)
+        dataset = MultiDomainAdapDataset(
+            MultiDomainImageFolder(cfg.DATASET.ROOT, transform=transform, return_domain_label=True), random_state=seed
+        )
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----

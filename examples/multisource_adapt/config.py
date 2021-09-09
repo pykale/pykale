@@ -16,7 +16,7 @@ _C = CN()
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.DATASET.ROOT = "../data" 
+_C.DATASET.ROOT = "../data"
 _C.DATASET.NAME = "digits"  # dset choices=['office', 'image-clef', 'office-home']
 _C.DATASET.SOURCE = ["cartoon", "art_painting", "photo"]
 _C.DATASET.TARGET = ["sketch"]
