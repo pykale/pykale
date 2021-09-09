@@ -23,16 +23,7 @@ class DigitDataset(Enum):
     SVHN = "SVHN"
 
     @staticmethod
-    def get_access(dataset: "DigitDataset", data_path):
-        """Gets data loaders for digit datasets
-
-        Args:
-            dataset (DigitDataset): dataset name
-            data_path (string): root directory of dataset
-
-        Examples::
-            >>> data_access, num_channel = DigitDataset.get_access(dataset, data_path)
-        """
+    def get_channel_numbers(dataset: "DigitDataset"):
         channel_numbers = {
             DigitDataset.MNIST: 1,
             DigitDataset.MNIST_RGB: 3,
@@ -41,7 +32,10 @@ class DigitDataset(Enum):
             DigitDataset.USPS_RGB: 3,
             DigitDataset.SVHN: 3,
         }
+        return channel_numbers[dataset]
 
+    @staticmethod
+    def get_digit_transform(dataset: "DigitDataset", n_channels):
         transform_names = {
             (DigitDataset.MNIST, 1): "mnist32",
             (DigitDataset.MNIST_RGB, 3): "mnist32rgb",
@@ -51,6 +45,21 @@ class DigitDataset(Enum):
             (DigitDataset.SVHN, 3): "svhn",
         }
 
+        return transform_names[(dataset, n_channels)]
+
+    @staticmethod
+    def get_access(dataset: "DigitDataset", data_path, num_channels=None):
+        """Gets data loaders for digit datasets
+
+        Args:
+            dataset (DigitDataset): dataset name
+            data_path (string): root directory of dataset
+            num_channels (int): number of channels, defaults to None
+
+        Examples::
+            >>> data_access, num_channel = DigitDataset.get_access(dataset, data_path)
+        """
+
         factories = {
             DigitDataset.MNIST: MNISTDatasetAccess,
             DigitDataset.MNIST_RGB: MNISTDatasetAccess,
@@ -59,11 +68,9 @@ class DigitDataset(Enum):
             DigitDataset.USPS_RGB: USPSDatasetAccess,
             DigitDataset.SVHN: SVHNDatasetAccess,
         }
-
-        num_channels = channel_numbers[dataset]
-        tf = transform_names[(dataset, num_channels)]
-
-        factories[dataset](data_path, tf)
+        if num_channels is None:
+            num_channels = DigitDataset.get_channel_numbers(dataset)
+        tf = DigitDataset.get_digit_transform(dataset, num_channels)
 
         return factories[dataset](data_path, tf), num_channels
 
@@ -80,9 +87,11 @@ class DigitDataset(Enum):
         Examples::
             >>> source_access, target_access, num_channel = DigitDataset.get_source_target(source, target, data_path)
         """
-        src_access, src_n_channels = DigitDataset.get_access(source, data_path)
-        tgt_access, tgt_n_channels = DigitDataset.get_access(target, data_path)
+        src_n_channels = DigitDataset.get_channel_numbers(source)
+        tgt_n_channels = DigitDataset.get_channel_numbers(target)
         num_channels = max(src_n_channels, tgt_n_channels)
+        src_access, src_n_channels = DigitDataset.get_access(source, data_path, num_channels)
+        tgt_access, tgt_n_channels = DigitDataset.get_access(target, data_path, num_channels)
 
         return src_access, tgt_access, num_channels
 
