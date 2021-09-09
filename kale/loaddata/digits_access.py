@@ -38,9 +38,11 @@ class DigitDataset(Enum):
     def get_digit_transform(dataset: "DigitDataset", n_channels):
         transform_names = {
             (DigitDataset.MNIST, 1): "mnist32",
+            (DigitDataset.MNIST, 3): "mnist32rgb",
             (DigitDataset.MNIST_RGB, 3): "mnist32rgb",
             (DigitDataset.MNISTM, 3): "mnistm",
             (DigitDataset.USPS, 1): "usps32",
+            (DigitDataset.USPS, 3): "usps32rgb",
             (DigitDataset.USPS_RGB, 3): "usps32rgb",
             (DigitDataset.SVHN, 3): "svhn",
         }
