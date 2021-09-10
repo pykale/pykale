@@ -291,6 +291,8 @@ def JAN(source_list, target_list, kernel_muls=[2.0, 2.0], kernel_nums=[2, 5], fi
         raise ValueError("ver == 1 or 2")
 
     return loss
+
+
 def hsic(kx, ky, device):
     """
     Perform independent test with Hilbert-Schmidt Independence Criterion (HSIC) between two sets of variables x and y.

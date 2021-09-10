@@ -128,10 +128,10 @@ def setup_logger(train_params, output_dir, method_name, seed, class_type="object
         dirpath=full_checkpoint_dir,
         # filename="{epoch}-{step}-{V_target_acc:.4f}",
         filename="{epoch}-{step}-{" + monitor + ":.4f}",
-        # save_last=True,
-        # save_top_k=1,
-        # monitor=monitor,
-        # mode="max",
+        save_last=True,
+        save_top_k=1,
+        monitor=monitor,
+        mode="max",
     )
 
     results = XpResults.from_file(metrics, test_csv_file)
@@ -247,8 +247,7 @@ class XpResults:
         self._df.to_csv(filepath)
 
     def print_scores(
-            self, method_name, split="Validation", stdout=True, fdout=None, print_func=logging.info,
-            file_format="markdown",
+        self, method_name, split="Validation", stdout=True, fdout=None, print_func=logging.info, file_format="markdown",
     ):
         """Print out the performance scores (over multiple runs)"""
         mres = self._df.query(f"method == '{method_name}' and split == '{split}'")

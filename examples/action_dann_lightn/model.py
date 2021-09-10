@@ -34,12 +34,7 @@ def get_config(cfg):
                 # "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
                 "init_lr": cfg.SOLVER.BASE_LR,
                 "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
-                "optimizer": {
-                    "type": cfg.SOLVER.TYPE,
-                    "optim_params": {
-                        "weight_decay": cfg.SOLVER.WEIGHT_DECAY},
-                },
-
+                "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY},},
                 # "num_source": cfg.TA3N.DATASET.NUM_SOURCE,
                 # "num_target": cfg.TA3N.DATASET.NUM_TARGET,
                 "num_segments": cfg.TA3N.DATASET.NUM_SEGMENTS,
@@ -120,17 +115,18 @@ def get_config(cfg):
                 "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY,},},
             }
         }
-    data_params = {"data_params": {
-                # "dataset_group": cfg.DATASET.NAME,
-                "dataset_name": cfg.DATASET.SOURCE + "2" + cfg.DATASET.TARGET,
-                "source": cfg.DATASET.SOURCE,
-                "target": cfg.DATASET.TARGET,
-                "size_type": cfg.DATASET.SIZE_TYPE,
-                "weight_type": cfg.DATASET.WEIGHT_TYPE,
-                "input_type": cfg.DATASET.INPUT_TYPE,
-                "class_type": cfg.DATASET.CLASS_TYPE,
+    data_params = {
+        "data_params": {
+            # "dataset_group": cfg.DATASET.NAME,
+            "dataset_name": cfg.DATASET.SOURCE + "2" + cfg.DATASET.TARGET,
+            "source": cfg.DATASET.SOURCE,
+            "target": cfg.DATASET.TARGET,
+            "size_type": cfg.DATASET.SIZE_TYPE,
+            "weight_type": cfg.DATASET.WEIGHT_TYPE,
+            "input_type": cfg.DATASET.INPUT_TYPE,
+            "class_type": cfg.DATASET.CLASS_TYPE,
         }
-        }
+    }
     config_params.update(data_params)
     if config_params["train_params"]["optimizer"]["type"] == "SGD":
         config_params["train_params"]["optimizer"]["optim_params"]["momentum"] = cfg.SOLVER.MOMENTUM
