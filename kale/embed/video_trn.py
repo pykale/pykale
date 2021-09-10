@@ -27,6 +27,7 @@ class TCL(nn.Module):
 
         return x
 
+
 class TRNRelationModule(nn.Module):
     # this is the naive implementation of the n-frame relation module, as num_frames == num_frames_relation
     def __init__(self, img_feature_dim, num_bottleneck, num_frames):

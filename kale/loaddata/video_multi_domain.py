@@ -225,7 +225,10 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             # print("n_dataset {}; n_batches {}; src_bs {}; tgt_bs {}".format(n_dataset, int(math.ceil(n_dataset / batch_size)), batch_size, target_batch_size))
 
             # return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1),)
-            return MultiDataLoader(dataloaders=dataloaders, n_batches=max(int(math.ceil(n_dataset / batch_size)), 1)), target_batch_size
+            return (
+                MultiDataLoader(dataloaders=dataloaders, n_batches=max(int(math.ceil(n_dataset / batch_size)), 1)),
+                target_batch_size,
+            )
         else:
             # semi-supervised target domain
             if self.rgb:
@@ -285,7 +288,10 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             ]
             dataloaders = [x for x in dataloaders if x is not None]
 
-            return MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1)), target_batch_size
+            return (
+                MultiDataLoader(dataloaders=dataloaders, n_batches=max(n_dataset // batch_size, 1)),
+                target_batch_size,
+            )
             # return MultiDataLoader(dataloaders=dataloaders, n_batches=max(int(math.ceil(n_dataset / batch_size)), 1))
 
     def __len__(self):

@@ -11,7 +11,6 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 
-# import pandas as pd
 import pandas as pd
 import torch
 
@@ -150,6 +149,7 @@ class VideoDataset(Enum):
             VideoDataset.GTEA: "gtea",
             VideoDataset.ADL: "adl",
             VideoDataset.KITCHEN: "kitchen",
+            VideoDataset.EPIC100: None,
         }
 
         verb_class_numbers = {
@@ -174,7 +174,7 @@ class VideoDataset(Enum):
 
         rgb_source = rgb_target = flow_source = flow_target = audio_source = audio_target = None
         num_verb_classes = num_noun_classes = None
-        # handle color/nb classes
+
         if verb:
             num_verb_classes = min(verb_class_numbers[source], verb_class_numbers[target])
         if noun:
@@ -182,10 +182,10 @@ class VideoDataset(Enum):
         if not verb and not noun:
             raise ValueError("Invalid class option: verb class {}, noun class {}".format(verb, noun))
 
+        source_tf = transform_names[source]
+        target_tf = transform_names[target]
+
         if input_type == "image":
-            # handle color/nb classes
-            source_tf = transform_names[source]
-            target_tf = transform_names[target]
 
             if rgb:
                 rgb_source = factories[source](
@@ -234,6 +234,7 @@ class VideoDataset(Enum):
                 raise ValueError("Not support {} for {} input_type".format(image_modality, input_type))
 
         elif input_type == "feature":
+            # Input is feature, no need to use transform.
             if rgb:
                 rgb_source = factories[source](
                     domain="source",
@@ -243,6 +244,8 @@ class VideoDataset(Enum):
                     image_modality="rgb",
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
+                    transform=source_tf,
+                    seed=seed,
                     input_type=input_type,
                 )
 
@@ -254,6 +257,8 @@ class VideoDataset(Enum):
                     image_modality="rgb",
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
+                    transform=target_tf,
+                    seed=seed,
                     input_type=input_type,
                 )
             if flow:
@@ -265,6 +270,8 @@ class VideoDataset(Enum):
                     image_modality="flow",
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
+                    transform=source_tf,
+                    seed=seed,
                     input_type=input_type,
                 )
 
@@ -276,6 +283,8 @@ class VideoDataset(Enum):
                     image_modality="flow",
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
+                    transform=target_tf,
+                    seed=seed,
                     input_type=input_type,
                 )
             if audio:
@@ -287,6 +296,8 @@ class VideoDataset(Enum):
                     image_modality="audio",
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
+                    transform=source_tf,
+                    seed=seed,
                     input_type=input_type,
                 )
 
@@ -298,6 +309,8 @@ class VideoDataset(Enum):
                     image_modality="audio",
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
+                    transform=target_tf,
+                    seed=seed,
                     input_type=input_type,
                 )
         else:
@@ -334,7 +347,7 @@ class VideoDatasetAccess(DatasetAccess):
         frames_per_segment,
         n_classes,
         transform_kind=None,
-        seed=36,
+        seed=1,
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -497,10 +510,20 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     """EPIC-100 video feature data loader"""
 
     def __init__(
-        self, domain, data_path, train_list, test_list, image_modality, frames_per_segment, n_classes, input_type
+        self,
+        domain,
+        data_path,
+        train_list,
+        test_list,
+        image_modality,
+        frames_per_segment,
+        n_classes,
+        transform,
+        seed,
+        input_type,
     ):
         super(EPIC100DatasetAccess, self).__init__(
-            data_path, train_list, test_list, image_modality, frames_per_segment, n_classes
+            data_path, train_list, test_list, image_modality, frames_per_segment, n_classes, transform, seed
         )
         self._input_type = input_type
         self._domain = domain
@@ -512,7 +535,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             root_path=Path.joinpath(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
             # Uncomment to run on train subset for EPIC 2021 challenge
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
-            annotationfile_path=self._test_list,
+            annotationfile_path=self._train_list,
             total_segments=25,
             num_segments=5,
             frames_per_segment=1,

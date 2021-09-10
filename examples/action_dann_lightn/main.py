@@ -16,7 +16,6 @@ from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
 from kale.utils.seed import set_seed
 
-
 # from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 
@@ -28,7 +27,7 @@ def arg_parse():
         "--gpus",
         default=[0],
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
-             "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+        "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
@@ -77,7 +76,7 @@ def main():
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
             # dirpath=full_checkpoint_dir,
-            filename="{epoch}-{step}-{val_loss:.6f}",
+            filename="{epoch}-{step}-{val_loss:.4f}",
             # save_last=True,
             # save_top_k=1,
             monitor="val_loss",
@@ -119,6 +118,7 @@ def main():
 
         ### Test process
         trainer.test()
+
 
 if __name__ == "__main__":
     main()

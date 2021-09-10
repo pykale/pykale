@@ -1,12 +1,15 @@
 from torch import nn
 from torch.nn.init import constant_, normal_
-from torchvision.models.utils import load_state_dict_from_url
 
 from kale.embed.video_i3d import InceptionI3d
-from kale.embed.video_selayer import SELayer4feat
-from kale.embed.video_transformer import TransformerBlock
+
+# from kale.embed.video_selayer import SELayer4feat
+# from kale.embed.video_transformer import TransformerBlock
 from kale.embed.video_trn import TRNRelationModule, TRNRelationModuleMultiScale
 from kale.predict.class_domain_nets import ClassNetTA3NFrame, ClassNetTA3NVideo, DomainNetTA3N
+
+# from torchvision.models.utils import load_state_dict_from_url
+
 
 model_urls_ta3n = {
     "rgb_ta3n": None,
@@ -182,27 +185,15 @@ def ta3n_joint(
         model_rgb = ta3n("rgb_ta3n", input_size, output_size, input_type, frame_aggregation, segments)
         model_all = model_rgb
     if flow:
-        model_flow = ta3n(
-            "flow_ta3n", input_size, output_size, progress, input_type=input_type, num_classes=dict_n_class
-        )
+        model_flow = ta3n("flow_ta3n", input_size, output_size, input_type, frame_aggregation, segments)
         model_all = model_flow
     if audio:
-        model_audio = ta3n(
-            "audio_ta3n", input_size, output_size, progress, input_type=input_type, num_classes=dict_n_class
-        )
+        model_audio = ta3n("audio_ta3n", input_size, output_size, input_type, frame_aggregation, segments)
         model_all = model_audio
 
     # For debugging
     if rgb and flow and audio:
-        model_all = ta3n(
-            "rgb_ta3n",
-            pretrained,
-            3 * input_size,
-            output_size,
-            progress,
-            input_type=input_type,
-            num_classes=dict_n_class,
-        )
+        model_all = ta3n("rgb_ta3n", 3 * input_size, output_size, input_type, frame_aggregation, segments,)
     return {"rgb": model_rgb, "flow": model_flow, "audio": model_audio, "all": model_all}
 
 
