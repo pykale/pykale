@@ -3,7 +3,7 @@ DAN:
 DATASET:
   NAME: 'digits'
   NUM_CLASSES: 10
-  ROOT: '../data'
+  ROOT: '../data/Office'
   TARGET: 'amazon'
   NUM_REPEAT: 5
 SOLVER:

@@ -3,7 +3,7 @@ DAN:
 DATASET:
   NAME: 'office_caltech'
   NUM_CLASSES: 10
-  ROOT: '../data'
+  ROOT: '../data/office'
   TARGET: 'amazon'
   NUM_REPEAT: 5
 SOLVER:

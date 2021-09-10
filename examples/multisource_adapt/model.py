@@ -4,16 +4,18 @@ Define the learning model and configure training parameters.
 # Author: Shuo Zhou
 # Initial Date: 09.09.2021
 
-import os
-import sys
 from copy import deepcopy
 
+import os
+import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-import kale.pipeline.domain_adapter as domain_adapter
+from kale.pipeline.domain_adapter import Method
+from kale.pipeline.multi_domain_adapter import create_ms_adapt_trainer
 
 # from kale.embed.image_cnn import SmallCNNFeature
 from kale.embed.image_cnn import ResNet50Feature
-from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
+from kale.predict.class_domain_nets import ClassNetSmallImage
 
 
 def get_config(cfg):
@@ -44,8 +46,8 @@ def get_config(cfg):
         "data_params": {
             "dataset_group": cfg.DATASET.NAME,
             # "dataset_name": cfg.DATASET.SOURCE + '2' + cfg.DATASET.TARGET,
-            "dataset_name": "rest2" + cfg.DATASET.TARGET[0],
-            "source": cfg.DATASET.SOURCE,
+            "dataset_name": "rest2" + cfg.DATASET.TARGET,
+            # "source": cfg.DATASET.SOURCE,
             "target": cfg.DATASET.TARGET,
             "size_type": cfg.DATASET.SIZE_TYPE,
             "weight_type": cfg.DATASET.WEIGHT_TYPE,
@@ -68,46 +70,26 @@ def get_model(cfg, dataset, num_channels):
     # setup feature extractor
     feature_network = ResNet50Feature(num_channels)
     # setup classifier
-    feature_dim = feature_network.output_size()
-    classifier_network = ClassNetSmallImage(feature_dim, cfg.DATASET.NUM_CLASSES)
+    # feature_dim = feature_network.output_size()
+    # target_label = dataset.domain_to_idx[cfg.DATASET.TARGET]
+    # classifier_networks = dict()
+    # for domain_label_ in dataset.domain_to_idx.values():
+    #     if domain_label_ != target_label:
+    #         classifier_networks[domain_label_] = ClassNetSmallImage(feature_dim, cfg.DATASET.NUM_CLASSES)
 
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
-    method_params = {}
+    # target_label = dataset.domain_to_idx[cfg.DATASET.TARGET]
+    method_params = {"n_classes": cfg.DATASET.NUM_CLASSES, "target_domain": cfg.DATASET.TARGET}
 
-    method = domain_adapter.Method(cfg.DAN.METHOD)
+    model = create_ms_adapt_trainer(
+        method=cfg.DAN.METHOD,
+        dataset=dataset,
+        feature_extractor=feature_network,
+        task_classifier=ClassNetSmallImage,
+        **method_params,
+        **train_params_local,
+    )
 
-    if method.is_mmd_method():
-        model = domain_adapter.create_mmd_based(
-            method=method,
-            dataset=dataset,
-            feature_extractor=feature_network,
-            task_classifier=classifier_network,
-            **method_params,
-            **train_params_local,
-        )
-    else:
-        critic_input_size = feature_dim
-        # setup critic network
-        if method.is_cdan_method():
-            if cfg.DAN.USERANDOM:
-                critic_input_size = cfg.DAN.RANDOM_DIM
-            else:
-                critic_input_size = feature_dim * cfg.DATASET.NUM_CLASSES
-        critic_network = DomainNetSmallImage(critic_input_size)
-
-        if cfg.DAN.METHOD == "CDAN":
-            method_params["use_random"] = cfg.DAN.USERANDOM
-
-        # The following calls kale.loaddata.dataset_access for the first time
-        model = domain_adapter.create_dann_like(
-            method=method,
-            dataset=dataset,
-            feature_extractor=feature_network,
-            task_classifier=classifier_network,
-            critic=critic_network,
-            **method_params,
-            **train_params_local,
-        )
     return model, train_params

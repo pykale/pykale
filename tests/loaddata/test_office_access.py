@@ -1,7 +1,7 @@
 from numpy import testing
 
+from kale.loaddata.image_access import Office31, OfficeAccess, OfficeCaltech
 from kale.loaddata.multi_domain import MultiDomainAdapDataset, MultiDomainDatasets
-from kale.loaddata.office_access import Office31, OfficeAccess, OfficeCaltech
 
 
 def test_office31(office_path):

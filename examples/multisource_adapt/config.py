@@ -18,9 +18,10 @@ _C = CN()
 _C.DATASET = CN()
 _C.DATASET.ROOT = "../data"
 _C.DATASET.NAME = "digits"  # dset choices=['office', 'image-clef', 'office-home']
-_C.DATASET.SOURCE = ["cartoon", "art_painting", "photo"]
-_C.DATASET.TARGET = ["sketch"]
-_C.DATASET.NUM_CLASSES = 7
+# _C.DATASET.SOURCE = ["cartoon", "art_painting", "photo"]
+# _C.DATASET.TARGET = ["sketch"]
+_C.DATASET.TARGET = "MNIST"
+_C.DATASET.NUM_CLASSES = 10
 _C.DATASET.NUM_REPEAT = 10  # 10
 _C.DATASET.DIMENSION = 784
 _C.DATASET.WEIGHT_TYPE = "natural"
@@ -58,7 +59,7 @@ _C.DAN.RANDOM_DIM = 1024
 # Misc options
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CN()
-_C.OUTPUT.ROOT = "/shared/tale2/Shared/szhou/results/pykale/outputs"  # './outputs'  # output_dir
+_C.OUTPUT.ROOT = "./outputs"  # output_dir
 _C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
 _C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
 # _C.OUTPUT.DIR = os.path.join(_C.OUTPUT.ROOT, _C.DATASET.NAME + '_rest2' + _C.DATASET.TARGET[0])

@@ -18,12 +18,12 @@ from torchvision import transforms
 # import torch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-# from kale.loaddata.digits_access import DigitDataset
-from kale.loaddata.img_da_access import MultiAccess
+from kale.evaluate.eval_pipeline import eval_pipeline
 from kale.loaddata.multi_domain import MultiDomainAdapDataset, MultiDomainImageFolder
 from kale.prepdata.image_transform import get_transform
-from kale.utils.csv_logger import setup_logger  # np error if move this to later, not sure why
+from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
+from kale.loaddata.image_access import MultiDomainImageAccess
 
 
 def arg_parse():
@@ -53,23 +53,18 @@ def main():
 
     # ---- setup output ----
     outdir = os.path.join(cfg.OUTPUT.ROOT, cfg.DATASET.NAME + "_rest2" + cfg.DATASET.TARGET)
-    # os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
+
     os.makedirs(outdir, exist_ok=True)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
     num_channels = 3
-    if cfg.DATASET.NAME.lower() in ["officehome", "office_caltech"]:
-        transform = get_transform("office")
-    else:
-        transform = TF_DEFAULT
-
+    data_access = MultiDomainImageAccess.get_image_access(cfg.DATASET.NAME.upper(), cfg.DATASET.ROOT,
+                                                          download=True, return_domain_label=True)
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = cfg.SOLVER.SEED + i * 10
-        dataset = MultiDomainAdapDataset(
-            MultiDomainImageFolder(cfg.DATASET.ROOT, transform=transform, return_domain_label=True), random_state=seed
-        )
+        dataset = MultiDomainAdapDataset(data_access, random_state=seed)
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
@@ -86,8 +81,6 @@ def main():
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
             callbacks=[checkpoint_callback],
-            # checkpoint_callback=checkpoint_callback,
-            # resume_from_checkpoint=last_checkpoint_file,
             gpus=args.gpus,
             # gpus=None,
             auto_select_gpus=True,
@@ -96,17 +89,7 @@ def main():
             fast_dev_run=False,  # True,
         )
 
-        trainer.fit(model)
-        results.update(
-            is_validation=True, method_name=cfg.DAN.METHOD, seed=seed, metric_values=trainer.callback_metrics,
-        )
-        # test scores
-        trainer.test()
-        results.update(
-            is_validation=False, method_name=cfg.DAN.METHOD, seed=seed, metric_values=trainer.callback_metrics,
-        )
-        results.to_csv(test_csv_file)
-        results.print_scores(cfg.DAN.METHOD)
+        eval_pipeline(trainer, model, cfg.DAN.METHOD, results, test_csv_file, seed)
 
 
 if __name__ == "__main__":

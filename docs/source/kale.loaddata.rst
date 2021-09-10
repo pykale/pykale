@@ -46,6 +46,14 @@ kale.loaddata.get\_dicom module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.image\_access
+------------------------------------------
+
+.. automodule:: kale.loaddata.image_access
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.mnistm module
 -----------------------------------
 
@@ -58,14 +66,6 @@ kale.loaddata.multi\_domain module
 -----------------------------------
 
 .. automodule:: kale.loaddata.multi_domain
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kale.loaddata.office\_access
-------------------------------------------
-
-.. automodule:: kale.loaddata.office_access
    :members:
    :undoc-members:
    :show-inheritance:

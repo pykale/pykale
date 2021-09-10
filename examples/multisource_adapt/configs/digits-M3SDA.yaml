@@ -3,8 +3,8 @@ DAN:
 DATASET:
   NAME: 'digits'
   NUM_CLASSES: 10
-  ROOT: '../data'
-  TARGET: 'amazon'
+  ROOT: '../data/digits'
+  TARGET: 'MNIST'
   NUM_REPEAT: 5
 SOLVER:
   TRAIN_BATCH_SIZE: 200
