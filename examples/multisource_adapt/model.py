@@ -4,23 +4,19 @@ Define the learning model and configure training parameters.
 # Author: Shuo Zhou
 # Initial Date: 09.09.2021
 
-from copy import deepcopy
-
 import os
 import sys
+from copy import deepcopy
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-from kale.pipeline.domain_adapter import Method
+from kale.embed.image_cnn import ResNet50Feature, SmallCNNFeature
 from kale.pipeline.multi_domain_adapter import create_ms_adapt_trainer
-
-# from kale.embed.image_cnn import SmallCNNFeature
-from kale.embed.image_cnn import ResNet50Feature
 from kale.predict.class_domain_nets import ClassNetSmallImage
 
 
 def get_config(cfg):
     """
-    Sets the hypermeters for the optimizer and experiment using the config file
+    Sets the hyper-parameters for the optimizer and experiment using the config file
 
     Args:
         cfg: A YACS config object.
@@ -59,28 +55,23 @@ def get_config(cfg):
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 def get_model(cfg, dataset, num_channels):
     """
-    Builds and returns a model and associated hyperparameters according to the config object passed.
+    Builds and returns a model and associated hyper-parameters according to the config object passed.
 
     Args:
         cfg: A YACS config object.
         dataset: A multidomain dataset consisting of source and target datasets.
         num_channels: The number of image channels.
     """
-
-    # setup feature extractor
-    feature_network = ResNet50Feature(num_channels)
-    # setup classifier
-    # feature_dim = feature_network.output_size()
-    # target_label = dataset.domain_to_idx[cfg.DATASET.TARGET]
-    # classifier_networks = dict()
-    # for domain_label_ in dataset.domain_to_idx.values():
-    #     if domain_label_ != target_label:
-    #         classifier_networks[domain_label_] = ClassNetSmallImage(feature_dim, cfg.DATASET.NUM_CLASSES)
-
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
-    # target_label = dataset.domain_to_idx[cfg.DATASET.TARGET]
+
+    # setup feature extractor
+    if cfg.DATASET.NAME.upper() == "DIGITS":
+        feature_network = SmallCNNFeature(num_channels)
+    else:
+        feature_network = ResNet50Feature(num_channels)
+        # target_label = dataset.domain_to_idx[cfg.DATASET.TARGET]
     method_params = {"n_classes": cfg.DATASET.NUM_CLASSES, "target_domain": cfg.DATASET.TARGET}
 
     model = create_ms_adapt_trainer(

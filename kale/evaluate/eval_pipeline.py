@@ -1,4 +1,3 @@
-
 def eval_pipeline(trainer, model, method, results, test_csv_file, seed):
     trainer.fit(model)
     results.update(

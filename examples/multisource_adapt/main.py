@@ -1,4 +1,4 @@
-"""This example is about domain adapation for digit image datasets, using PyTorch Lightning.
+"""This example is about domain adaptation for digit image datasets, using PyTorch Lightning.
 
 Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 """
@@ -19,11 +19,10 @@ from torchvision import transforms
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from kale.evaluate.eval_pipeline import eval_pipeline
-from kale.loaddata.multi_domain import MultiDomainAdapDataset, MultiDomainImageFolder
-from kale.prepdata.image_transform import get_transform
+from kale.loaddata.image_access import MultiDomainImageAccess
+from kale.loaddata.multi_domain import MultiDomainAdapDataset
 from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
-from kale.loaddata.image_access import MultiDomainImageAccess
 
 
 def arg_parse():
@@ -42,7 +41,7 @@ TF_DEFAULT = transforms.Compose(
 
 
 def main():
-    """The main for this domain adapation example, showing the workflow"""
+    """The main for this domain adaptation example, showing the workflow"""
     args = arg_parse()
 
     # ---- setup configs ----
@@ -59,8 +58,9 @@ def main():
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
     num_channels = 3
-    data_access = MultiDomainImageAccess.get_image_access(cfg.DATASET.NAME.upper(), cfg.DATASET.ROOT,
-                                                          download=True, return_domain_label=True)
+    data_access = MultiDomainImageAccess.get_image_access(
+        cfg.DATASET.NAME.upper(), cfg.DATASET.ROOT, download=True, return_domain_label=True
+    )
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = cfg.SOLVER.SEED + i * 10
