@@ -13,6 +13,7 @@ from kale.embed.video_res3d import mc3, r2plus1d, r3d
 from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
 from kale.embed.video_ta3n import ta3n_joint
+from kale.embed.video_transformer import TransformerSENet
 from kale.loaddata.video_access import get_image_modality
 
 
@@ -141,28 +142,33 @@ def get_extractor_video(model_name, image_modality, attention, dict_num_classes)
     return feature_network, int(class_feature_dim), int(domain_feature_dim)
 
 
-def get_extractor_feat(
-    model_name, image_modality, dict_num_classes, frame_aggregation, segments, input_size=1024, output_size=256
-):
-    """Get the feature extractor w/o SELayers for feature input.
+def get_extractor_feat(model_name, image_modality, dict_num_classes, input_size=1024, output_size=256):
+    """Get the extractor for feature input.
     """
     rgb, flow, audio = get_image_modality(image_modality)
+    feature_network_rgb = feature_network_flow = feature_network_audio = None
+    if rgb:
+        feature_network_rgb = TransformerSENet(input_size=input_size, output_size=output_size)
+    if flow:
+        feature_network_flow = TransformerSENet(input_size=input_size, output_size=output_size)
+    if audio:
+        feature_network_audio = TransformerSENet(input_size=input_size, output_size=output_size)
 
-    if model_name == "TA3N":
-        logging.info("{}".format(model_name))
-        feature_network = ta3n_joint(
-            rgb,
-            flow,
-            audio,
-            input_size,
-            output_size,
-            input_type="feature",
-            frame_aggregation=frame_aggregation,
-            segments=segments,
-            dict_n_class=dict_num_classes,
-        )
+    # if model_name == "TA3N":
+    #     logging.info("{}".format(model_name))
+    #     feature_network = ta3n_joint(
+    #         rgb,
+    #         flow,
+    #         audio,
+    #         input_size,
+    #         output_size,
+    #         input_type="feature",
+    #         frame_aggregation=frame_aggregation,
+    #         segments=segments,
+    #         dict_n_class=dict_num_classes,
+    #     )
 
-    domain_feature_dim = int(output_size)
+    domain_feature_dim = int(output_size * 8)
     if rgb:
         if flow:
             if audio:  # For all inputs
@@ -182,7 +188,11 @@ def get_extractor_feat(
                 class_feature_dim = domain_feature_dim
         else:  # For audio input
             class_feature_dim = domain_feature_dim
-    class_feature_dim = int(domain_feature_dim)
-    domain_feature_dim = int(domain_feature_dim)
+    # class_feature_dim = int(domain_feature_dim)
+    # domain_feature_dim = int(domain_feature_dim)
 
-    return feature_network, class_feature_dim, domain_feature_dim
+    return (
+        {"rgb": feature_network_rgb, "flow": feature_network_flow, "audio": feature_network_audio},
+        int(class_feature_dim),
+        int(domain_feature_dim),
+    )

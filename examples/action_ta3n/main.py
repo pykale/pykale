@@ -1,6 +1,6 @@
-"""This example is about domain adaptation for action recognition, using PyTorch Lightning.
+"""This example is ta3n for action recognition, using PyTorch Lightning.
 
-Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
+Reference:
 """
 
 import argparse

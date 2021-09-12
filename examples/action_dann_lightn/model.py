@@ -166,24 +166,16 @@ def get_model(cfg, dataset, dict_num_classes):
             cfg.DAN.METHOD.upper(),
             cfg.DATASET.IMAGE_MODALITY,
             dict_num_classes,
-            cfg.TA3N.DATASET.FRAME_AGGREGATION,
-            cfg.TA3N.DATASET.NUM_SEGMENTS,
+            # cfg.TA3N.DATASET.FRAME_AGGREGATION,
+            # cfg.TA3N.DATASET.NUM_SEGMENTS,
             input_size=1024,
             output_size=256,
         )
 
     # setup classifier
-    if cfg.DAN.METHOD == "TA3N":
-        classifier_network = get_classnet_ta3n(
-            input_size_frame=class_feature_dim,
-            input_size_video=class_feature_dim,
-            dict_n_class=dict_num_classes,
-            dropout_rate=0.5,
-        )
-    else:
-        classifier_network = ClassNetVideo(
-            input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower()
-        )
+    classifier_network = ClassNetVideo(
+        input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower()
+    )
 
     method_params = {}
 
@@ -201,22 +193,22 @@ def get_model(cfg, dataset, dict_num_classes):
             **method_params,
             **train_params_local,
         )
-    elif method.is_ta3n_method():
-        # TODO: add domain nets
-        critic_network = get_domainnet_ta3n(input_size_frame=512, input_size_video=256)
-        model = video_domain_adapter.create_dann_like_video(
-            method=method,
-            dataset=dataset,
-            image_modality=cfg.DATASET.IMAGE_MODALITY,
-            feature_extractor=feature_network,
-            task_classifier=classifier_network,
-            critic=critic_network,
-            input_type=input_type,
-            class_type=class_type,
-            dict_n_class=dict_num_classes,
-            **method_params,
-            **train_params_local,
-        )
+    # elif method.is_ta3n_method():
+    #     # TODO: add domain nets
+    #     critic_network = get_domainnet_ta3n(input_size_frame=512, input_size_video=256)
+    #     model = video_domain_adapter.create_dann_like_video(
+    #         method=method,
+    #         dataset=dataset,
+    #         image_modality=cfg.DATASET.IMAGE_MODALITY,
+    #         feature_extractor=feature_network,
+    #         task_classifier=classifier_network,
+    #         critic=critic_network,
+    #         input_type=input_type,
+    #         class_type=class_type,
+    #         dict_n_class=dict_num_classes,
+    #         **method_params,
+    #         **train_params_local,
+    #     )
     else:
         critic_input_size = domain_feature_dim
         # setup critic network
