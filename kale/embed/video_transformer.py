@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # from performer_pytorch import FastAttention
+from kale.embed.video_selayer import SELayerFeat
 
 
 class SelfAttention(nn.Module):
@@ -85,4 +86,48 @@ class TransformerBlock(nn.Module):
         # BATCH, TIME, CHANNELS = x.size()
         x = x + self.attn(self.ln1(x))
         x = x + self.mlp(self.ln2(x))
+        return x
+
+
+class TransformerSENet(nn.Module):
+    """Regular simple network for video input.
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        n_channel (int, optional): the number of channel for Linear and BN layers.
+        output_size (int, optional): the dimension of output.
+        dropout_keep_prob (int, optional): the dropout probability for keeping the parameters.
+    """
+
+    def __init__(self, input_size=512, n_channel=512, output_size=256, dropout_keep_prob=0.5):
+        super(TransformerSENet, self).__init__()
+        self.hidden_sizes = 512
+        self.num_layers = 4
+
+        self.transformer = nn.ModuleList(
+            [
+                TransformerBlock(
+                    emb_dim=input_size,
+                    num_heads=8,
+                    att_dropout=0.1,
+                    att_resid_dropout=0.1,
+                    final_dropout=0.1,
+                    max_seq_len=9,
+                    ff_dim=self.hidden_sizes,
+                    causal=False,
+                )
+                for _ in range(self.num_layers)
+            ]
+        )
+
+        self.fc1 = nn.Linear(input_size, n_channel)
+        self.relu1 = nn.ReLU()
+        self.dp1 = nn.Dropout(dropout_keep_prob)
+        self.fc2 = nn.Linear(n_channel, output_size)
+        self.selayer = SELayerFeat(channel=8, reduction=2)
+
+    def forward(self, x):
+        for layer in self.transformer:
+            x = layer(x)
+        x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
+        x = self.selayer(x)
         return x
