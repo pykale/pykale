@@ -1,0 +1,31 @@
+DATASET:
+#  ROOT: "."
+  SOURCE: 'EPIC-100'
+  SRC_TRAINLIST: 'val/EPIC_100_uda_source_train.pkl'
+  SRC_TESTLIST: 'val/EPIC_100_uda_source_test_timestamps.pkl'
+  TARGET: 'EPIC-100'
+  TGT_TRAINLIST: 'val/EPIC_100_uda_target_train_timestamps.pkl'
+  TGT_TESTLIST: 'val/EPIC_100_uda_target_test_timestamps.pkl'
+#  IMAGE_MODALITY: 'all'
+  IMAGE_MODALITY: 'rgb'
+#  IMAGE_MODALITY: 'flow'
+#  IMAGE_MODALITY: 'audio'
+  INPUT_TYPE: 'feature'
+  FRAMES_PER_SEGMENT: 1
+  NUM_REPEAT: 1
+  SIZE_TYPE: "adaptive"
+  CLASS_TYPE: "verb+noun"
+SOLVER:
+  TRAIN_BATCH_SIZE: 128
+  MAX_EPOCHS: 30
+#  MIN_EPOCHS: 2
+  BASE_LR: 3e-3
+  WEIGHT_DECAY: 1e-4
+  NESTEROV: False
+DAN:
+  METHOD: 'TA3N'
+MODEL:
+  METHOD: ''
+OUTPUT:
+#  DIR: 'outputs/EPIC100-ta3n/'
+  TB_DIR: 'lightning_logs/EPIC100-ta3n/'
