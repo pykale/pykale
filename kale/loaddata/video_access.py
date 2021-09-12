@@ -38,7 +38,8 @@ def get_image_modality(image_modality):
 
 
 def get_class_type(class_type):
-    """Change class_type (string) to verb (bool) and noun (bool) for efficiency"""
+    """Change class_type (string) to verb (bool) and noun (bool) for efficiency. Only noun is NA because we
+    work on action recognition. """
 
     verb = True
     if class_type.lower() == "verb":
@@ -64,7 +65,7 @@ def get_videodata_config(cfg):
             "dataset_tgt_testlist": cfg.DATASET.TGT_TESTLIST,
             "dataset_input_type": cfg.DATASET.INPUT_TYPE,
             "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
-            "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT,
+            "dataset_frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT,
             "dataset_class_type": cfg.DATASET.CLASS_TYPE,
             "train_batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
         }
@@ -136,10 +137,9 @@ class VideoDataset(Enum):
         data_tgt_name = data_params_local["dataset_tgt_name"].upper()
         tgt_data_path, tgt_tr_listpath, tgt_te_listpath = generate_list(data_tgt_name, data_params_local, domain="tgt")
         image_modality = data_params_local["dataset_image_modality"]
-        frames_per_segment = data_params_local["frames_per_segment"]
+        frames_per_segment = data_params_local["dataset_frames_per_segment"]
         input_type = data_params_local["dataset_input_type"]
         class_type = data_params_local["dataset_class_type"]
-        # train_batch_size = data_params_local["train_batch_size"]
 
         rgb, flow, audio = get_image_modality(image_modality)
         verb, noun = get_class_type(class_type)
