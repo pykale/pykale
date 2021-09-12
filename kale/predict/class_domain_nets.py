@@ -130,9 +130,11 @@ class ClassNetVideo(nn.Module):
 
     Args:
         input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
-        n_channel (int, optional): the number of channel for Linear and BN layers.
+        n_verb_channel (int, optional): the number of channel for Linear and BN layers for verb class.
+        n_noun_channel (int, optional): the number of channel for Linear and BN layers for noun class.
         dropout_keep_prob (int, optional): the dropout probability for keeping the parameters.
         dict_n_class (dict, optional): the dictionary of class number for specific dataset.
+        class_type (string): the type of class. Option=["verb", "verb+noun"]
     """
 
     def __init__(
@@ -205,19 +207,13 @@ class ClassNetVideoTA3N(nn.Module):
 
     Args:
         input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
-        n_channel (int, optional): the number of channel for Linear and BN layers.
-        dropout_keep_prob (int, optional): the dropout probability for keeping the parameters.
         dict_n_class (dict, optional): the dictionary of class number for specific dataset.
+        class_type (string): the type of class. Option=["verb", "noun", "all"]
+
     """
 
     def __init__(
-        self,
-        input_size=512,
-        n_verb_channel=256,
-        n_noun_channel=512,
-        dropout_keep_prob=0.5,
-        dict_n_class=8,
-        class_type="verb",
+        self, input_size=512, dict_n_class=8, class_type="verb",
     ):
         super(ClassNetVideoTA3N, self).__init__()
         self.verb, self.noun = get_class_type(class_type)
@@ -246,7 +242,7 @@ class DomainNetVideo(nn.Module):
         n_channel (int, optional): the number of channel for Linear and BN layers.
     """
 
-    def __init__(self, input_size=128, n_channel=100, class_type="verb"):
+    def __init__(self, input_size=128, n_channel=100):
         super(DomainNetVideo, self).__init__()
 
         self.fc1 = nn.Linear(input_size, n_channel)
