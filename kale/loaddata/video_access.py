@@ -65,6 +65,7 @@ def get_videodata_config(cfg):
             "dataset_tgt_testlist": cfg.DATASET.TGT_TESTLIST,
             "dataset_input_type": cfg.DATASET.INPUT_TYPE,
             "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
+            "dataset_num_segments": cfg.DATASET.NUM_SEGMENTS,
             "dataset_frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT,
             "dataset_class_type": cfg.DATASET.CLASS_TYPE,
             "train_batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
@@ -137,6 +138,7 @@ class VideoDataset(Enum):
         data_tgt_name = data_params_local["dataset_tgt_name"].upper()
         tgt_data_path, tgt_tr_listpath, tgt_te_listpath = generate_list(data_tgt_name, data_params_local, domain="tgt")
         image_modality = data_params_local["dataset_image_modality"]
+        num_segments = data_params_local["dataset_num_segments"]
         frames_per_segment = data_params_local["dataset_frames_per_segment"]
         input_type = data_params_local["dataset_input_type"]
         class_type = data_params_local["dataset_class_type"]
@@ -193,6 +195,7 @@ class VideoDataset(Enum):
                     src_tr_listpath,
                     src_te_listpath,
                     "rgb",
+                    num_segments,
                     frames_per_segment,
                     num_verb_classes,
                     source_tf,
@@ -203,6 +206,7 @@ class VideoDataset(Enum):
                     tgt_tr_listpath,
                     tgt_te_listpath,
                     "rgb",
+                    num_segments,
                     frames_per_segment,
                     num_verb_classes,
                     target_tf,
@@ -215,6 +219,7 @@ class VideoDataset(Enum):
                     src_tr_listpath,
                     src_te_listpath,
                     "flow",
+                    num_segments,
                     frames_per_segment,
                     num_verb_classes,
                     source_tf,
@@ -225,6 +230,7 @@ class VideoDataset(Enum):
                     tgt_tr_listpath,
                     tgt_te_listpath,
                     "flow",
+                    num_segments,
                     frames_per_segment,
                     num_verb_classes,
                     target_tf,
@@ -242,6 +248,7 @@ class VideoDataset(Enum):
                     train_list=src_tr_listpath,
                     test_list=src_te_listpath,
                     image_modality="rgb",
+                    num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
                     transform=source_tf,
@@ -255,6 +262,7 @@ class VideoDataset(Enum):
                     train_list=tgt_tr_listpath,
                     test_list=tgt_te_listpath,
                     image_modality="rgb",
+                    num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
                     transform=target_tf,
@@ -268,6 +276,7 @@ class VideoDataset(Enum):
                     train_list=src_tr_listpath,
                     test_list=src_te_listpath,
                     image_modality="flow",
+                    num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
                     transform=source_tf,
@@ -281,6 +290,7 @@ class VideoDataset(Enum):
                     train_list=tgt_tr_listpath,
                     test_list=tgt_te_listpath,
                     image_modality="flow",
+                    num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
                     transform=target_tf,
@@ -294,6 +304,7 @@ class VideoDataset(Enum):
                     train_list=src_tr_listpath,
                     test_list=src_te_listpath,
                     image_modality="audio",
+                    num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
                     transform=source_tf,
@@ -307,6 +318,7 @@ class VideoDataset(Enum):
                     train_list=tgt_tr_listpath,
                     test_list=tgt_te_listpath,
                     image_modality="audio",
+                    num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
                     transform=target_tf,
@@ -344,6 +356,7 @@ class VideoDatasetAccess(DatasetAccess):
         train_list,
         test_list,
         image_modality,
+        num_segments,
         frames_per_segment,
         n_classes,
         transform_kind=None,
@@ -354,6 +367,7 @@ class VideoDatasetAccess(DatasetAccess):
         self._train_list = train_list
         self._test_list = test_list
         self._image_modality = image_modality
+        self._num_segments = num_segments
         self._frames_per_segment = frames_per_segment
         self._transform = video_transform.get_transform(transform_kind, self._image_modality)
         self._seed = seed
@@ -377,7 +391,7 @@ class EPICDatasetAccess(VideoDatasetAccess):
         return EPIC(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
-            num_segments=1,
+            num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg",
             transform=self._transform["train"],
@@ -392,7 +406,7 @@ class EPICDatasetAccess(VideoDatasetAccess):
         return EPIC(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
-            num_segments=1,
+            num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg",
             transform=self._transform["test"],
@@ -411,7 +425,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
-            num_segments=1,
+            num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
             transform=self._transform["train"],
@@ -426,7 +440,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
-            num_segments=1,
+            num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
             transform=self._transform["test"],
@@ -445,7 +459,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
-            num_segments=1,
+            num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
             transform=self._transform["train"],
@@ -460,7 +474,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
-            num_segments=1,
+            num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
             transform=self._transform["test"],
@@ -479,7 +493,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
-            num_segments=1,
+            num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
             transform=self._transform["train"],
@@ -494,7 +508,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
-            num_segments=1,
+            num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
             transform=self._transform["test"],
@@ -516,6 +530,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
         train_list,
         test_list,
         image_modality,
+        num_segments,
         frames_per_segment,
         n_classes,
         transform,
@@ -523,7 +538,15 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
         input_type,
     ):
         super(EPIC100DatasetAccess, self).__init__(
-            data_path, train_list, test_list, image_modality, frames_per_segment, n_classes, transform, seed
+            data_path,
+            train_list,
+            test_list,
+            image_modality,
+            num_segments,
+            frames_per_segment,
+            n_classes,
+            transform,
+            seed,
         )
         self._input_type = input_type
         self._domain = domain
@@ -537,10 +560,10 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
             annotationfile_path=self._train_list,
             total_segments=25,
-            num_segments=5,
+            # TODO: pass the parameter to num_segments
+            num_segments=self._num_segments,
             frames_per_segment=1,
             image_modality=self._image_modality,
-            # modality="ALL",
             imagefile_template="img_{:05d}.t7"
             if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
@@ -557,10 +580,9 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
             annotationfile_path=self._test_list,
             total_segments=25,
-            num_segments=5,
+            num_segments=self._num_segments,
             frames_per_segment=1,
             image_modality=self._image_modality,
-            # modality="ALL",
             imagefile_template="img_{:05d}.t7"
             if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
