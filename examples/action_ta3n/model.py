@@ -10,7 +10,7 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 
 from copy import deepcopy
 
-from kale.embed.video_feature_extractor import get_extractor_feat, get_extractor_video
+from kale.embed.video_feature_extractor import get_extractor_feat, get_extractor_ta3n, get_extractor_video
 from kale.embed.video_ta3n import get_classnet_ta3n, get_domainnet_ta3n
 from kale.pipeline import domain_adapter, video_domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
@@ -24,97 +24,84 @@ def get_config(cfg):
         cfg: A YACS config object.
     """
 
-    if cfg.DAN.METHOD == "TA3N":
-        config_params = {
-            "train_params": {
-                # "adapt_lambda": cfg.SOLVER.AD_LAMBDA,
-                # "adapt_lr": cfg.SOLVER.AD_LR,
-                # "lambda_init": cfg.SOLVER.INIT_LAMBDA,
-                "nb_adapt_epochs": cfg.SOLVER.MAX_EPOCHS,
-                # "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
-                "init_lr": cfg.SOLVER.BASE_LR,
-                "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
-                "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY},},
-                # "num_source": cfg.TA3N.DATASET.NUM_SOURCE,
-                # "num_target": cfg.TA3N.DATASET.NUM_TARGET,
-                "num_segments": cfg.TA3N.DATASET.NUM_SEGMENTS,
-                "baseline_type": cfg.TA3N.DATASET.BASELINE_TYPE,
-                "frame_aggregation": cfg.TA3N.DATASET.FRAME_AGGREGATION,
-                "add_fc": cfg.TA3N.MODEL.ADD_FC,
-                "fc_dim": cfg.TA3N.MODEL.FC_DIM,
-                "arch": cfg.TA3N.MODEL.ARCH,
-                "use_target": cfg.TA3N.MODEL.USE_TARGET,
-                "share_params": cfg.TA3N.MODEL.SHARE_PARAMS,
-                "pred_normalize": cfg.TA3N.MODEL.PRED_NORMALIZE,
-                # "weighted_class_loss_da": cfg.TA3N.MODEL.WEIGHTED_CLASS_LOSS_DA,
-                # "weighted_class_loss": cfg.TA3N.MODEL.WEIGHTED_CLASS_LOSS,
-                "dropout_i": cfg.TA3N.MODEL.DROPOUT_I,
-                "dropout_v": cfg.TA3N.MODEL.DROPOUT_V,
-                # "no_partialbn": cfg.TA3N.MODEL.NO_PARTIALBN,
-                # "exp_da_name": cfg.TA3N.MODEL.EXP_DA_NAME,
-                # "dis_da": cfg.TA3N.MODEL.DIS_DA,
-                # "adv_pos_0": cfg.TA3N.MODEL.ADV_POS_0,
-                "adv_da": cfg.TA3N.MODEL.ADV_DA,
-                "add_loss_da": cfg.TA3N.MODEL.ADD_LOSS_DA,
-                # "ens_da": cfg.TA3N.MODEL.ENS_DA,
-                "use_attn": cfg.TA3N.MODEL.USE_ATTN,
-                "use_attn_frame": cfg.TA3N.MODEL.USE_ATTN_FRAME,
-                "use_bn": cfg.TA3N.MODEL.USE_BN,
-                "n_attn": cfg.TA3N.MODEL.N_ATTN,
-                # "place_dis": cfg.TA3N.MODEL.PLACE_DIS,
-                "place_adv": cfg.TA3N.MODEL.PLACE_ADV,
-                "n_rnn": cfg.TA3N.MODEL.N_RNN,
-                "rnn_cell": cfg.TA3N.MODEL.RNN_CELL,
-                "n_directions": cfg.TA3N.MODEL.N_DIRECTIONS,
-                "n_ts": cfg.TA3N.MODEL.N_TS,
-                # "flow_prefix": cfg.TA3N.MODEL.FLOW_PREFIX,
-                "alpha": cfg.TA3N.HYPERPARAMETERS.ALPHA,
-                "beta": cfg.TA3N.HYPERPARAMETERS.BETA,
-                "gamma": cfg.TA3N.HYPERPARAMETERS.GAMMA,
-                "mu": cfg.TA3N.HYPERPARAMETERS.MU,
-                # "pretrain_source": cfg.TA3N.TRAINER.PRETRAIN_SOURCE,
-                "verbose": cfg.OUTPUT.VERBOSE,
-                "dann_warmup": cfg.TA3N.TRAINER.DANN_WARMUP,
-                # Learning configs
-                # "loss_type": cfg.TA3N.TRAINER.LOSS_TYPE,
-                "lr_adaptive": cfg.TA3N.TRAINER.LR_ADAPTIVE,
-                "lr_steps": cfg.TA3N.TRAINER.LR_STEPS,
-                "lr_decay": cfg.TA3N.TRAINER.LR_DECAY,
-                # "clip_gradient": cfg.TA3N.TRAINER.CLIP_GRADIENT,
-                # "pretrained": cfg.TA3N.TRAINER.PRETRAINED,
-                # "resume": cfg.TA3N.TRAINER.RESUME,
-                # "resume_hp": cfg.TA3N.TRAINER.RESUME_HP,
-                # "accelerator": cfg.TA3N.TRAINER.ACCELERATOR,
-                # "workers": cfg.TA3N.TRAINER.WORKERS,
-                # "ef": cfg.TA3N.TRAINER.EF,
-                # "pf": cfg.TA3N.TRAINER.PF,
-                # "sf": cfg.TA3N.TRAINER.SF,
-                # "copy_list": cfg.TA3N.TRAINER.COPY_LIST,
-                # "save_model": cfg.TA3N.TRAINER.SAVE_MODEL,
-            },
-            # "test_params": {
-            #     "noun_weights": cfg.TA3N.TESTER.NOUN_WEIGHTS,
-            #     "batch_size": cfg.TA3N.TESTER.BATCH_SIZE,
-            #     "dropout_i": cfg.TA3N.TESTER.DROPOUT_I,
-            #     "dropout_v": cfg.TA3N.TESTER.DROPOUT_V,
-            #     "noun_target_data": cfg.TA3N.TESTER.NOUN_TARGET_DATA,
-            #     "result_json": cfg.TA3N.TESTER.RESULT_JSON,
-            #     "verbose": cfg.OUTPUT.VERBOSE,
-            # },
-        }
-    else:
-        config_params = {
-            "train_params": {
-                "adapt_lambda": cfg.SOLVER.AD_LAMBDA,
-                "adapt_lr": cfg.SOLVER.AD_LR,
-                "lambda_init": cfg.SOLVER.INIT_LAMBDA,
-                "nb_adapt_epochs": cfg.SOLVER.MAX_EPOCHS,
-                "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
-                "init_lr": cfg.SOLVER.BASE_LR,
-                "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
-                "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY,},},
-            }
-        }
+    # if cfg.DAN.METHOD == "TA3N":
+    config_params = {
+        "train_params": {
+            # "adapt_lambda": cfg.SOLVER.AD_LAMBDA,
+            # "adapt_lr": cfg.SOLVER.AD_LR,
+            # "lambda_init": cfg.SOLVER.INIT_LAMBDA,
+            "nb_adapt_epochs": cfg.SOLVER.MAX_EPOCHS,
+            # "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
+            "init_lr": cfg.SOLVER.BASE_LR,
+            "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
+            "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY},},
+            # "num_source": cfg.DATASET.NUM_SOURCE,
+            # "num_target": cfg.DATASET.NUM_TARGET,
+            "num_segments": cfg.DATASET.NUM_SEGMENTS,
+            "baseline_type": cfg.DATASET.BASELINE_TYPE,
+            "frame_aggregation": cfg.DATASET.FRAME_AGGREGATION,
+            "add_fc": cfg.MODEL.ADD_FC,
+            "fc_dim": cfg.MODEL.FC_DIM,
+            "arch": cfg.MODEL.ARCH,
+            "use_target": cfg.MODEL.USE_TARGET,
+            "share_params": cfg.MODEL.SHARE_PARAMS,
+            "pred_normalize": cfg.MODEL.PRED_NORMALIZE,
+            # "weighted_class_loss_da": cfg.MODEL.WEIGHTED_CLASS_LOSS_DA,
+            # "weighted_class_loss": cfg.MODEL.WEIGHTED_CLASS_LOSS,
+            "dropout_i": cfg.MODEL.DROPOUT_I,
+            "dropout_v": cfg.MODEL.DROPOUT_V,
+            # "no_partialbn": cfg.MODEL.NO_PARTIALBN,
+            # "exp_da_name": cfg.MODEL.EXP_DA_NAME,
+            # "dis_da": cfg.MODEL.DIS_DA,
+            # "adv_pos_0": cfg.MODEL.ADV_POS_0,
+            "adv_da": cfg.MODEL.ADV_DA,
+            "add_loss_da": cfg.MODEL.ADD_LOSS_DA,
+            # "ens_da": cfg.MODEL.ENS_DA,
+            "use_attn": cfg.MODEL.USE_ATTN,
+            "use_attn_frame": cfg.MODEL.USE_ATTN_FRAME,
+            "use_bn": cfg.MODEL.USE_BN,
+            "n_attn": cfg.MODEL.N_ATTN,
+            # "place_dis": cfg.MODEL.PLACE_DIS,
+            "place_adv": cfg.MODEL.PLACE_ADV,
+            "n_rnn": cfg.MODEL.N_RNN,
+            "rnn_cell": cfg.MODEL.RNN_CELL,
+            "n_directions": cfg.MODEL.N_DIRECTIONS,
+            "n_ts": cfg.MODEL.N_TS,
+            # "flow_prefix": cfg.MODEL.FLOW_PREFIX,
+            "alpha": cfg.HYPERPARAMETERS.ALPHA,
+            "beta": cfg.HYPERPARAMETERS.BETA,
+            "gamma": cfg.HYPERPARAMETERS.GAMMA,
+            "mu": cfg.HYPERPARAMETERS.MU,
+            # "pretrain_source": cfg.SOLVER.PRETRAIN_SOURCE,
+            "verbose": cfg.OUTPUT.VERBOSE,
+            "dann_warmup": cfg.SOLVER.DANN_WARMUP,
+            # Learning configs
+            # "loss_type": cfg.SOLVER.LOSS_TYPE,
+            "lr_adaptive": cfg.SOLVER.LR_ADAPTIVE,
+            "lr_steps": cfg.SOLVER.LR_STEPS,
+            "lr_decay": cfg.SOLVER.LR_DECAY,
+            # "clip_gradient": cfg.SOLVER.CLIP_GRADIENT,
+            # "pretrained": cfg.SOLVER.PRETRAINED,
+            # "resume": cfg.SOLVER.RESUME,
+            # "resume_hp": cfg.SOLVER.RESUME_HP,
+            # "accelerator": cfg.SOLVER.ACCELERATOR,
+            # "workers": cfg.SOLVER.WORKERS,
+            # "ef": cfg.SOLVER.EF,
+            # "pf": cfg.SOLVER.PF,
+            # "sf": cfg.SOLVER.SF,
+            # "copy_list": cfg.SOLVER.COPY_LIST,
+            # "save_model": cfg.SOLVER.SAVE_MODEL,
+        },
+        # "test_params": {
+        #     "noun_weights": cfg.TESTER.NOUN_WEIGHTS,
+        #     "batch_size": cfg.TESTER.BATCH_SIZE,
+        #     "dropout_i": cfg.TESTER.DROPOUT_I,
+        #     "dropout_v": cfg.TESTER.DROPOUT_V,
+        #     "noun_target_data": cfg.TESTER.NOUN_TARGET_DATA,
+        #     "result_json": cfg.TESTER.RESULT_JSON,
+        #     "verbose": cfg.OUTPUT.VERBOSE,
+        # },
+    }
     data_params = {
         "data_params": {
             # "dataset_group": cfg.DATASET.NAME,
@@ -157,91 +144,108 @@ def get_model(cfg, dataset, dict_num_classes):
     class_type = data_params_local["class_type"]
 
     # setup feature extractor
-    if input_type == "image":
-        feature_network, class_feature_dim, domain_feature_dim = get_extractor_video(
-            cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, dict_num_classes
-        )
-    else:
-        feature_network, class_feature_dim, domain_feature_dim = get_extractor_feat(
-            cfg.DAN.METHOD.upper(),
-            cfg.DATASET.IMAGE_MODALITY,
-            dict_num_classes,
-            cfg.TA3N.DATASET.FRAME_AGGREGATION,
-            cfg.TA3N.DATASET.NUM_SEGMENTS,
-            input_size=1024,
-            output_size=256,
-        )
+    feature_network, class_feature_dim, domain_feature_dim = get_extractor_ta3n(
+        cfg.DAN.METHOD.upper(),
+        cfg.DATASET.IMAGE_MODALITY,
+        dict_num_classes,
+        cfg.DATASET.FRAME_AGGREGATION,
+        cfg.DATASET.NUM_SEGMENTS,
+        input_size=1024,
+        output_size=256,
+    )
+
+    classifier_network = get_classnet_ta3n(
+        input_size_frame=class_feature_dim,
+        input_size_video=class_feature_dim,
+        dict_n_class=dict_num_classes,
+        dropout_rate=0.5,
+    )
+
+    # if input_type == "image":
+    #     feature_network, class_feature_dim, domain_feature_dim = get_extractor_video(
+    #         cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, dict_num_classes
+    #     )
+    # else:
+    #     feature_network, class_feature_dim, domain_feature_dim = get_extractor_feat(
+    #         cfg.DAN.METHOD.upper(),
+    #         cfg.DATASET.IMAGE_MODALITY,
+    #         dict_num_classes,
+    #         cfg.DATASET.FRAME_AGGREGATION,
+    #         cfg.DATASET.NUM_SEGMENTS,
+    #         input_size=1024,
+    #         output_size=256,
+    #     )
 
     # setup classifier
-    if cfg.DAN.METHOD == "TA3N":
-        classifier_network = get_classnet_ta3n(
-            input_size_frame=class_feature_dim,
-            input_size_video=class_feature_dim,
-            dict_n_class=dict_num_classes,
-            dropout_rate=0.5,
-        )
-    else:
-        classifier_network = ClassNetVideo(
-            input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower()
-        )
+    # if cfg.DAN.METHOD == "TA3N":
+    #     classifier_network = get_classnet_ta3n(
+    #         input_size_frame=class_feature_dim,
+    #         input_size_video=class_feature_dim,
+    #         dict_n_class=dict_num_classes,
+    #         dropout_rate=0.5,
+    #     )
+    # else:
+    #     classifier_network = ClassNetVideo(
+    #         input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower()
+    #     )
 
     method_params = {}
 
     method = domain_adapter.Method(cfg.DAN.METHOD)
 
-    if method.is_mmd_method():
-        model = video_domain_adapter.create_mmd_based_video(
-            method=method,
-            dataset=dataset,
-            image_modality=cfg.DATASET.IMAGE_MODALITY,
-            feature_extractor=feature_network,
-            task_classifier=classifier_network,
-            input_type=input_type,
-            class_type=class_type,
-            **method_params,
-            **train_params_local,
-        )
-    elif method.is_ta3n_method():
-        # TODO: add domain nets
-        critic_network = get_domainnet_ta3n(input_size_frame=512, input_size_video=256)
-        model = video_domain_adapter.create_dann_like_video(
-            method=method,
-            dataset=dataset,
-            image_modality=cfg.DATASET.IMAGE_MODALITY,
-            feature_extractor=feature_network,
-            task_classifier=classifier_network,
-            critic=critic_network,
-            input_type=input_type,
-            class_type=class_type,
-            dict_n_class=dict_num_classes,
-            **method_params,
-            **train_params_local,
-        )
-    else:
-        critic_input_size = domain_feature_dim
-        # setup critic network
-        if method.is_cdan_method():
-            if cfg.DAN.USERANDOM:
-                critic_input_size = cfg.DAN.RANDOM_DIM
-            else:
-                critic_input_size = domain_feature_dim * dict_num_classes["verb"]
-        critic_network = DomainNetVideo(input_size=critic_input_size)
-
-        if cfg.DAN.METHOD == "CDAN":
-            method_params["use_random"] = cfg.DAN.USERANDOM
-
-        # The following calls kale.loaddata.dataset_access for the first time
-        model = video_domain_adapter.create_dann_like_video(
-            method=method,
-            dataset=dataset,
-            image_modality=cfg.DATASET.IMAGE_MODALITY,
-            feature_extractor=feature_network,
-            task_classifier=classifier_network,
-            critic=critic_network,
-            input_type=input_type,
-            class_type=class_type,
-            **method_params,
-            **train_params_local,
-        )
+    # if method.is_mmd_method():
+    #     model = video_domain_adapter.create_mmd_based_video(
+    #         method=method,
+    #         dataset=dataset,
+    #         image_modality=cfg.DATASET.IMAGE_MODALITY,
+    #         feature_extractor=feature_network,
+    #         task_classifier=classifier_network,
+    #         input_type=input_type,
+    #         class_type=class_type,
+    #         **method_params,
+    #         **train_params_local,
+    #     )
+    # elif method.is_ta3n_method():
+    # TODO: add domain nets
+    critic_network = get_domainnet_ta3n(input_size_frame=512, input_size_video=256)
+    model = video_domain_adapter.create_dann_like_video(
+        method=method,
+        dataset=dataset,
+        image_modality=cfg.DATASET.IMAGE_MODALITY,
+        feature_extractor=feature_network,
+        task_classifier=classifier_network,
+        critic=critic_network,
+        input_type=input_type,
+        class_type=class_type,
+        dict_n_class=dict_num_classes,
+        **method_params,
+        **train_params_local,
+    )
+    # else:
+    #     critic_input_size = domain_feature_dim
+    #     # setup critic network
+    #     if method.is_cdan_method():
+    #         if cfg.DAN.USERANDOM:
+    #             critic_input_size = cfg.DAN.RANDOM_DIM
+    #         else:
+    #             critic_input_size = domain_feature_dim * dict_num_classes["verb"]
+    #     critic_network = DomainNetVideo(input_size=critic_input_size)
+    #
+    #     if cfg.DAN.METHOD == "CDAN":
+    #         method_params["use_random"] = cfg.DAN.USERANDOM
+    #
+    #     # The following calls kale.loaddata.dataset_access for the first time
+    #     model = video_domain_adapter.create_dann_like_video(
+    #         method=method,
+    #         dataset=dataset,
+    #         image_modality=cfg.DATASET.IMAGE_MODALITY,
+    #         feature_extractor=feature_network,
+    #         task_classifier=classifier_network,
+    #         critic=critic_network,
+    #         input_type=input_type,
+    #         class_type=class_type,
+    #         **method_params,
+    #         **train_params_local,
+    #     )
 
     return model, train_params
