@@ -183,80 +183,61 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             self.log(key, log_metrics[key])
         return {"loss": loss}
 
-    def validation_epoch_end(self, outputs):
+    def create_metrics_log(self, split_name):
         if self.verb and not self.noun:
             metrics_to_log = (
-                "val_loss",
-                "val_task_loss",
-                "val_adv_loss",
-                "V_source_acc",
-                "V_source_top1_acc",
-                "V_source_top5_acc",
-                "V_target_acc",
-                "V_target_top1_acc",
-                "V_target_top5_acc",
-                "V_source_domain_acc",
-                "V_target_domain_acc",
-                "V_domain_acc",
+                "{}_loss".format(split_name),
+                "{}_task_loss".format(split_name),
+                "{}_adv_loss".format(split_name),
+                "{}_source_acc".format(split_name),
+                "{}_source_top1_acc".format(split_name),
+                "{}_source_top5_acc".format(split_name),
+                "{}_target_acc".format(split_name),
+                "{}_target_top1_acc".format(split_name),
+                "{}_target_top5_acc".format(split_name),
+                "{}_source_domain_acc".format(split_name),
+                "{}_target_domain_acc".format(split_name),
+                "{}_domain_acc".format(split_name),
             )
+            if self.method.is_mmd_method():
+                metrics_to_log = metrics_to_log[:-3] + ("{}_mmd".format(split_name),)
+            if split_name == "Te":
+                metrics_to_log = metrics_to_log[:1] + metrics_to_log[4:]
         elif self.verb and self.noun:
             metrics_to_log = (
-                "val_loss",
-                "val_task_loss",
-                "val_adv_loss",
-                "V_verb_source_acc",
-                "V_verb_source_top1_acc",
-                "V_verb_source_top5_acc",
-                "V_noun_source_acc",
-                "V_noun_source_top1_acc",
-                "V_noun_source_top5_acc",
-                "V_verb_target_acc",
-                "V_verb_target_top1_acc",
-                "V_verb_target_top5_acc",
-                "V_noun_target_acc",
-                "V_noun_target_top1_acc",
-                "V_noun_target_top5_acc",
-                "V_action_source_top1_acc",
-                "V_action_source_top5_acc",
-                "V_action_target_top1_acc",
-                "V_action_target_top5_acc",
-                "V_domain_acc",
+                "{}_loss".format(split_name),
+                "{}_task_loss".format(split_name),
+                "{}_adv_loss".format(split_name),
+                "{}_verb_source_acc".format(split_name),
+                "{}_verb_source_top1_acc".format(split_name),
+                "{}_verb_source_top5_acc".format(split_name),
+                "{}_noun_source_acc".format(split_name),
+                "{}_noun_source_top1_acc".format(split_name),
+                "{}_noun_source_top5_acc".format(split_name),
+                "{}_verb_target_acc".format(split_name),
+                "{}_verb_target_top1_acc".format(split_name),
+                "{}_verb_target_top5_acc".format(split_name),
+                "{}_noun_target_acc".format(split_name),
+                "{}_noun_target_top1_acc".format(split_name),
+                "{}_noun_target_top5_acc".format(split_name),
+                "{}_action_source_top1_acc".format(split_name),
+                "{}_action_source_top5_acc".format(split_name),
+                "{}_action_target_top1_acc".format(split_name),
+                "{}_action_target_top5_acc".format(split_name),
+                "{}_domain_acc".format(split_name),
             )
+            if self.method.is_mmd_method():
+                metrics_to_log = metrics_to_log[:-1] + ("{}_mmd".format(split_name),)
+            if split_name == "Te":
+                metrics_to_log = metrics_to_log[:1] + metrics_to_log[4:]
+        return metrics_to_log
+
+    def validation_epoch_end(self, outputs):
+        metrics_to_log = self.create_metrics_log("V")
         return self._validation_epoch_end(outputs, metrics_to_log)
 
     def test_epoch_end(self, outputs):
-        if self.verb and not self.noun:
-            metrics_at_test = (
-                "test_loss",
-                "Te_source_acc",
-                "Te_source_top1_acc",
-                "Te_source_top5_acc",
-                "Te_target_acc",
-                "Te_target_top1_acc",
-                "Te_target_top5_acc",
-                "Te_domain_acc",
-            )
-        elif self.verb and self.noun:
-            metrics_at_test = (
-                "test_loss",
-                "Te_verb_source_acc",
-                "Te_verb_source_top1_acc",
-                "Te_verb_source_top5_acc",
-                "Te_noun_source_acc",
-                "Te_noun_source_top1_acc",
-                "Te_noun_source_top5_acc",
-                "Te_verb_target_acc",
-                "Te_verb_target_top1_acc",
-                "Te_verb_target_top5_acc",
-                "Te_noun_target_acc",
-                "Te_noun_target_top1_acc",
-                "Te_noun_target_top5_acc",
-                "Te_action_source_top1_acc",
-                "Te_action_source_top5_acc",
-                "Te_action_target_top1_acc",
-                "Te_action_target_top5_acc",
-                "Te_domain_acc",
-            )
+        metrics_at_test = self.create_metrics_log("Te")
 
         # Uncomment to save output to json file for EPIC UDA 2021 challenge.(3/3)
         # save_results_to_json(
@@ -352,8 +333,11 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
                 f"{split_name}_source_top5_acc": prec5_src,
                 f"{split_name}_target_top1_acc": prec1_tgt,
                 f"{split_name}_target_top5_acc": prec5_tgt,
-                f"{split_name}_domain_acc": dok,
             }
+            if self.method.is_mmd_method():
+                log_metrics.update({f"{split_name}_mmd": dok})
+            else:
+                log_metrics.update({f"{split_name}_domain_acc": dok})
 
         elif self.verb and self.noun:
             loss_cls_verb, ok_src_verb = losses.cross_entropy_logits(y_hat[0], y_s[0])
@@ -391,8 +375,11 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
                 f"{split_name}_noun_target_top5_acc": prec5_tgt_noun,
                 f"{split_name}_action_target_top1_acc": prec1_tgt_action,
                 f"{split_name}_action_target_top5_acc": prec5_tgt_action,
-                f"{split_name}_domain_acc": dok,
             }
+            if self.method.is_mmd_method():
+                log_metrics.update({f"{split_name}_mmd": dok})
+            else:
+                log_metrics.update({f"{split_name}_domain_acc": dok})
         else:
             raise ValueError("Invalid class type option")
         return task_loss, log_metrics
@@ -511,7 +498,7 @@ class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
         # print('equal: {}/{}'.format(torch.all(torch.eq(y_s, y_s_flow)), torch.all(torch.eq(y_tu, y_tu_flow))))
 
         task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, mmd)
-
+        # log_metrics.update({f"{split_name}_source_domain_acc": mmd, f"{split_name}_target_domain_acc": mmd})
         return task_loss, mmd, log_metrics
 
 
@@ -594,7 +581,7 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
-        self.input_type = input_type
+        # self.input_type = input_type
 
         # Uncomment to store output for EPIC UDA 2021 challenge.(1/3)
         # self.y_hat = []
@@ -945,7 +932,7 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANtrainer):
         return task_loss, adv_loss, log_metrics
 
 
-class WDGRLTrainerVideo(WDGRLtrainer):
+class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLtrainer):
     """This is an implementation of WDGRL for video data."""
 
     def __init__(
@@ -955,6 +942,9 @@ class WDGRLTrainerVideo(WDGRLtrainer):
         feature_extractor,
         task_classifier,
         critic,
+        method,
+        input_type,
+        class_type,
         k_critic=5,
         gamma=10,
         beta_ratio=0,
@@ -965,12 +955,18 @@ class WDGRLTrainerVideo(WDGRLtrainer):
         )
         self.image_modality = image_modality
         self.rgb, self.flow, self.audio = get_image_modality(self.image_modality)
+        self.class_type = class_type
+        self.verb, self.noun = get_class_type(self.class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
+        self.audio_feat = self.feat["audio"]
+        self.input_type = input_type
+        self._method = method
 
     def forward(self, x):
         if self.feat is not None:
-            x_rgb = x_flow = adversarial_output_rgb = adversarial_output_flow = None
+            x_rgb = x_flow = x_audio = None
+            adversarial_output_rgb = adversarial_output_flow = adversarial_output_audio = None
 
             # For joint input, both two ifs are used
             if self.rgb:
@@ -981,86 +977,132 @@ class WDGRLTrainerVideo(WDGRLtrainer):
                 x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
                 adversarial_output_flow = self.domain_classifier(x_flow)
+            if self.audio:
+                x_audio = self.audio_feat(x["audio"])
+                x_audio = x_audio.view(x_audio.size(0), -1)
+                adversarial_output_audio = self.domain_classifier(x_audio)
 
-            if self.rgb:
-                if self.flow:  # For joint input
-                    x = torch.cat((x_rgb, x_flow), dim=1)
-                else:  # For rgb input
-                    x = x_rgb
-            else:  # For flow input
-                x = x_flow
+            x = self.concatenate_feature(x_rgb, x_flow, x_audio)
+
             class_output = self.classifier(x)
 
-            return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
+            return (
+                [x_rgb, x_flow, x_audio],
+                class_output,
+                [adversarial_output_rgb, adversarial_output_flow, adversarial_output_audio],
+            )
 
     def compute_loss(self, batch, split_name="V"):
         # _s refers to source, _tu refers to unlabeled target
-        x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
-        if self.rgb:
-            if self.flow:  # For joint input
-                (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-            else:  # For rgb input
-                (x_s_rgb, y_s), (x_tu_rgb, y_tu) = batch
-        else:  # For flow input
-            (x_s_flow, y_s), (x_tu_flow, y_tu) = batch
+        (
+            x_s_rgb,
+            x_tu_rgb,
+            x_s_flow,
+            x_tu_flow,
+            x_s_audio,
+            x_tu_audio,
+            y_s,
+            y_tu,
+            s_id,
+            tu_id,
+        ) = self.get_inputs_from_batch(batch)
 
-        _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
-        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
-        batch_size = len(y_s)
+        _, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio] = self.forward(
+            {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
+        )
+        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio] = self.forward(
+            {"rgb": x_tu_rgb, "flow": x_tu_flow, "audio": x_tu_audio}
+        )
+        source_batch_size = len(y_s[0])
+        target_batch_size = len(y_tu[0])
 
-        # ok is abbreviation for (all) correct, dok refers to domain correct
         if self.rgb:
-            _, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(batch_size))
-            _, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(batch_size))
+            loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(source_batch_size))
+            loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(target_batch_size))
         if self.flow:
-            _, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(batch_size))
-            _, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(batch_size))
+            loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(source_batch_size))
+            loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(target_batch_size))
+        if self.audio:
+            loss_dmn_src_audio, dok_src_audio = losses.cross_entropy_logits(d_hat_audio, torch.zeros(source_batch_size))
+            loss_dmn_tgt_audio, dok_tgt_audio = losses.cross_entropy_logits(
+                d_t_hat_audio, torch.ones(target_batch_size)
+            )
 
-        if self.rgb and self.flow:  # For joint input
-            dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
-            dok_src = torch.cat((dok_src_rgb, dok_src_flow))
-            dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
-            wasserstein_distance_rgb = d_hat_rgb.mean() - (1 + self._beta_ratio) * d_t_hat_rgb.mean()
-            wasserstein_distance_flow = d_hat_flow.mean() - (1 + self._beta_ratio) * d_t_hat_flow.mean()
-            wasserstein_distance = (wasserstein_distance_rgb + wasserstein_distance_flow) / 2
+        if self.rgb:
+            if self.flow:
+                if self.audio:  # For all inputs
+                    dok = torch.cat(
+                        (dok_src_rgb, dok_src_flow, dok_src_audio, dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio)
+                    )
+                    dok_src = torch.cat((dok_src_rgb, dok_src_flow, dok_src_audio))
+                    dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio))
+                    wasserstein_distance_rgb = d_hat_rgb.mean() - (1 + self._beta_ratio) * d_t_hat_rgb.mean()
+                    wasserstein_distance_flow = d_hat_flow.mean() - (1 + self._beta_ratio) * d_t_hat_flow.mean()
+                    wasserstein_distance_audio = d_hat_audio.mean() - (1 + self._beta_ratio) * d_t_hat_audio.mean()
+                    wasserstein_distance = (
+                        wasserstein_distance_rgb + wasserstein_distance_flow + wasserstein_distance_audio
+                    ) / 3
+                else:  # For joint(rgb+flow) input
+                    dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
+                    dok_src = torch.cat((dok_src_rgb, dok_src_flow))
+                    dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
+                    wasserstein_distance_rgb = d_hat_rgb.mean() - (1 + self._beta_ratio) * d_t_hat_rgb.mean()
+                    wasserstein_distance_flow = d_hat_flow.mean() - (1 + self._beta_ratio) * d_t_hat_flow.mean()
+                    wasserstein_distance = (wasserstein_distance_rgb + wasserstein_distance_flow) / 2
+            else:
+                if self.audio:  # For rgb+audio input
+                    dok = torch.cat((dok_src_rgb, dok_src_audio, dok_tgt_rgb, dok_tgt_audio))
+                    dok_src = torch.cat((dok_src_rgb, dok_src_audio))
+                    dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_audio))
+                    wasserstein_distance_rgb = d_hat_rgb.mean() - (1 + self._beta_ratio) * d_t_hat_rgb.mean()
+                    wasserstein_distance_audio = d_hat_audio.mean() - (1 + self._beta_ratio) * d_t_hat_audio.mean()
+                    wasserstein_distance = (wasserstein_distance_rgb + wasserstein_distance_audio) / 2
+                else:  # For rgb input
+                    d_hat = d_hat_rgb
+                    d_t_hat = d_t_hat_rgb
+                    dok_src = dok_src_rgb
+                    dok_tgt = dok_tgt_rgb
+                    wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
+                    dok = torch.cat((dok_src, dok_tgt))
         else:
-            if self.rgb:  # For rgb input
-                d_hat = d_hat_rgb
-                d_t_hat = d_t_hat_rgb
-                dok_src = dok_src_rgb
-                dok_tgt = dok_tgt_rgb
-            else:  # For flow input
-                d_hat = d_hat_flow
-                d_t_hat = d_t_hat_flow
-                dok_src = dok_src_flow
-                dok_tgt = dok_tgt_flow
+            if self.flow:
+                if self.audio:  # For flow+audio input
+                    dok = torch.cat((dok_src_audio, dok_src_flow, dok_tgt_audio, dok_tgt_flow))
+                    dok_src = torch.cat((dok_src_audio, dok_src_flow))
+                    dok_tgt = torch.cat((dok_tgt_audio, dok_tgt_flow))
+                    wasserstein_distance_audio = d_hat_audio.mean() - (1 + self._beta_ratio) * d_t_hat_audio.mean()
+                    wasserstein_distance_flow = d_hat_flow.mean() - (1 + self._beta_ratio) * d_t_hat_flow.mean()
+                    wasserstein_distance = (wasserstein_distance_audio + wasserstein_distance_flow) / 2
+                else:  # For flow input
+                    d_hat = d_hat_flow
+                    d_t_hat = d_t_hat_flow
+                    dok_src = dok_src_flow
+                    dok_tgt = dok_tgt_flow
+                    wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
+                    dok = torch.cat((dok_src, dok_tgt))
+            else:  # For audio input
+                d_hat = d_hat_audio
+                d_t_hat = d_t_hat_audio
+                dok_src = dok_src_audio
+                dok_tgt = dok_tgt_audio
+                wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
+                dok = torch.cat((dok_src, dok_tgt))
 
-            wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
-            dok = torch.cat((dok_src, dok_tgt))
-
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
         adv_loss = wasserstein_distance
-        task_loss = loss_cls
+        log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-            f"{split_name}_wasserstein_dist": wasserstein_distance,
-        }
         return task_loss, adv_loss, log_metrics
 
     def configure_optimizers(self):
-        if self.image_modality in ["rgb", "flow"]:
-            if self.rgb_feat is not None:
-                nets = [self.rgb_feat, self.classifier]
-            else:
-                nets = [self.flow_feat, self.classifier]
-        elif self.image_modality == "joint":
-            nets = [self.rgb_feat, self.flow_feat, self.classifier]
+        nets = [self.classifier]
+        if self.rgb:
+            nets.append(self.rgb_feat)
+        if self.flow:
+            nets.append(self.flow_feat)
+        if self.audio:
+            nets.append(self.audio_feat)
+
         parameters = set()
 
         for net in nets:
@@ -1085,19 +1127,25 @@ class WDGRLTrainerVideo(WDGRLtrainer):
 
         set_requires_grad(self.domain_classifier, requires_grad=True)
 
-        if self.image_modality in ["rgb", "flow"]:
-            if self.rgb_feat is not None:
+        if self.image_modality in ["rgb", "flow", "audio"]:
+            if self.rgb:
                 set_requires_grad(self.rgb_feat, requires_grad=False)
                 (x_s, y_s), (x_tu, _) = batch
                 with torch.no_grad():
                     h_s = self.rgb_feat(x_s).data.view(x_s.shape[0], -1)
                     h_t = self.rgb_feat(x_tu).data.view(x_tu.shape[0], -1)
-            else:
+            if self.flow:
                 set_requires_grad(self.flow_feat, requires_grad=False)
                 (x_s, y_s), (x_tu, _) = batch
                 with torch.no_grad():
                     h_s = self.flow_feat(x_s).data.view(x_s.shape[0], -1)
                     h_t = self.flow_feat(x_tu).data.view(x_tu.shape[0], -1)
+            if self.audio:
+                set_requires_grad(self.audio_feat, requires_grad=False)
+                (x_s, y_s), (x_tu, _) = batch
+                with torch.no_grad():
+                    h_s = self.audio_feat(x_s).data.view(x_s.shape[0], -1)
+                    h_t = self.audio_feat(x_tu).data.view(x_tu.shape[0], -1)
 
             for _ in range(self._k_critic):
                 # gp refers to gradient penelty in Wasserstein distance.
@@ -1115,10 +1163,12 @@ class WDGRLTrainerVideo(WDGRLtrainer):
                 if self.critic_sched:
                     self.critic_sched.step()
 
-            if self.rgb_feat is not None:
+            if self.rgb:
                 set_requires_grad(self.rgb_feat, requires_grad=True)
-            else:
+            if self.flow:
                 set_requires_grad(self.flow_feat, requires_grad=True)
+            if self.audio:
+                set_requires_grad(self.audio_feat, requires_grad=True)
             set_requires_grad(self.domain_classifier, requires_grad=False)
 
         elif self.image_modality == "joint":
@@ -1130,8 +1180,8 @@ class WDGRLTrainerVideo(WDGRLtrainer):
                 h_t_rgb = self.rgb_feat(x_tu_rgb).data.view(x_tu_rgb.shape[0], -1)
                 h_s_flow = self.flow_feat(x_s_flow).data.view(x_s_flow.shape[0], -1)
                 h_t_flow = self.flow_feat(x_tu_flow).data.view(x_tu_flow.shape[0], -1)
-                h_s = torch.cat((h_s_rgb, h_s_flow), dim=1)
-                h_t = torch.cat((h_t_rgb, h_t_flow), dim=1)
+                # h_s = torch.cat((h_s_rgb, h_s_flow), dim=1)
+                # h_t = torch.cat((h_t_rgb, h_t_flow), dim=1)
 
             # Need to improve to process rgb and flow separately in the future.
             for _ in range(self._k_critic):
@@ -1161,6 +1211,58 @@ class WDGRLTrainerVideo(WDGRLtrainer):
 
             set_requires_grad(self.rgb_feat, requires_grad=True)
             set_requires_grad(self.flow_feat, requires_grad=True)
+            set_requires_grad(self.domain_classifier, requires_grad=False)
+
+        elif self.image_modality == "all":
+            set_requires_grad(self.rgb_feat, requires_grad=False)
+            set_requires_grad(self.flow_feat, requires_grad=False)
+            set_requires_grad(self.audio_feat, requires_grad=False)
+            (x_s_rgb, y_s), (x_s_flow, _), (x_s_audio, _), (x_tu_rgb, _), (x_tu_flow, _), (x_tu_audio, _) = batch
+            with torch.no_grad():
+                h_s_rgb = self.rgb_feat(x_s_rgb).data.view(x_s_rgb.shape[0], -1)
+                h_t_rgb = self.rgb_feat(x_tu_rgb).data.view(x_tu_rgb.shape[0], -1)
+                h_s_flow = self.flow_feat(x_s_flow).data.view(x_s_flow.shape[0], -1)
+                h_t_flow = self.flow_feat(x_tu_flow).data.view(x_tu_flow.shape[0], -1)
+                h_s_audio = self.audio_feat(x_s_audio).data.view(x_s_audio.shape[0], -1)
+                h_t_audio = self.audio_feat(x_tu_audio).data.view(x_tu_audio.shape[0], -1)
+                # h_s = torch.cat((h_s_rgb, h_s_flow), dim=1)
+                # h_t = torch.cat((h_t_rgb, h_t_flow), dim=1)
+
+            # Need to improve to process rgb and flow separately in the future.
+            for _ in range(self._k_critic):
+                # gp_x refers to gradient penelty for the input with the image_modality x.
+                gp_rgb = losses.gradient_penalty(self.domain_classifier, h_s_rgb, h_t_rgb)
+                gp_flow = losses.gradient_penalty(self.domain_classifier, h_s_flow, h_t_flow)
+                gp_audio = losses.gradient_penalty(self.domain_classifier, h_s_audio, h_t_audio)
+
+                critic_s_rgb = self.domain_classifier(h_s_rgb)
+                critic_s_flow = self.domain_classifier(h_s_flow)
+                critic_s_audio = self.domain_classifier(h_s_audio)
+                critic_t_rgb = self.domain_classifier(h_t_rgb)
+                critic_t_flow = self.domain_classifier(h_t_flow)
+                critic_t_audio = self.domain_classifier(h_t_audio)
+                wasserstein_distance_rgb = critic_s_rgb.mean() - (1 + self._beta_ratio) * critic_t_rgb.mean()
+                wasserstein_distance_flow = critic_s_flow.mean() - (1 + self._beta_ratio) * critic_t_flow.mean()
+                wasserstein_distance_audio = critic_s_audio.mean() - (1 + self._beta_ratio) * critic_t_audio.mean()
+
+                critic_cost = (
+                    -wasserstein_distance_rgb
+                    + -wasserstein_distance_flow
+                    + -wasserstein_distance_audio
+                    + self._gamma * gp_rgb
+                    + self._gamma * gp_flow
+                    + self._gamma * gp_audio
+                ) * 0.5
+
+                self.critic_opt.zero_grad()
+                critic_cost.backward()
+                self.critic_opt.step()
+                if self.critic_sched:
+                    self.critic_sched.step()
+
+            set_requires_grad(self.rgb_feat, requires_grad=True)
+            set_requires_grad(self.flow_feat, requires_grad=True)
+            set_requires_grad(self.audio_feat, requires_grad=True)
             set_requires_grad(self.domain_classifier, requires_grad=False)
 
 
@@ -3126,9 +3228,9 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["val_loss"] = loss
-        log_metrics["val_adv_loss"] = adv_loss
-        log_metrics["val_task_loss"] = task_loss
+        log_metrics["V_loss"] = loss
+        log_metrics["V_adv_loss"] = adv_loss
+        log_metrics["V_task_loss"] = task_loss
 
         for key in log_metrics:
             self.log(key, log_metrics[key])
