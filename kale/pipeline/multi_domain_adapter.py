@@ -77,7 +77,7 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
 
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
-            "val_loss",
+            "V_loss",
             "V_source_acc",
             "V_target_acc",
             "V_domain_acc",
@@ -86,7 +86,7 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
 
     def test_epoch_end(self, outputs):
         metrics_at_test = (
-            "test_loss",
+            "Te_loss",
             "Te_source_acc",
             "Te_target_acc",
             "Te_domain_acc",
