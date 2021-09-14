@@ -139,11 +139,11 @@ class ClassNetVideo(nn.Module):
 
     def __init__(
         self,
+        dict_n_class,
         input_size=512,
         n_verb_channel=256,
         n_noun_channel=512,
         dropout_keep_prob=0.5,
-        dict_n_class=8,
         class_type="verb",
     ):
         super(ClassNetVideo, self).__init__()
