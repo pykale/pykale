@@ -8,16 +8,15 @@ IMAGE_MODALITY = ["rgb", "flow", "joint"]
 # ATTENTION = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC", "None"]
 ATTENTION = ["SELayerC", "SELayerT", "SELayerCT", "SELayerTC", "None"]
 # NUM_CLASSES = [6, 7, 8]
-NUM_CLASSES = [6]
+dict_num_classes = {"verb": 6, "noun": 4}
 
 
 @pytest.mark.parametrize("model_name", MODEL_NAME)
 @pytest.mark.parametrize("image_modality", IMAGE_MODALITY)
 @pytest.mark.parametrize("attention", ATTENTION)
-@pytest.mark.parametrize("num_classes", NUM_CLASSES)
-def test_get_video_feat_extractor(model_name, image_modality, attention, num_classes):
+def test_get_video_feat_extractor(model_name, image_modality, attention):
     feature_network, class_feature_dim, domain_feature_dim = get_extractor_video(
-        model_name, image_modality, attention, num_classes
+        model_name, image_modality, attention, dict_num_classes
     )
 
     assert isinstance(feature_network, dict)
