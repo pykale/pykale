@@ -395,14 +395,14 @@ class BaseAdaptTrainer(pl.LightningModule):
 
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="V")
         loss = task_loss + self.lamb_da * adv_loss
-        log_metrics["val_loss"] = loss
-        log_metrics["val_task_loss"] = task_loss
-        log_metrics["val_adv_loss"] = adv_loss
+        log_metrics["V_loss"] = loss
+        log_metrics["V_task_loss"] = task_loss
+        log_metrics["V_adv_loss"] = adv_loss
         return log_metrics
 
     def _validation_epoch_end(self, outputs, metrics_at_valid):
         log_dict = get_aggregated_metrics(metrics_at_valid, outputs)
-        device = outputs[0].get("val_loss").device
+        device = outputs[0].get("V_loss").device
         log_dict.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), device))
 
         for key in log_dict:
@@ -410,7 +410,7 @@ class BaseAdaptTrainer(pl.LightningModule):
 
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
-            "val_loss",
+            "V_loss",
             "V_source_acc",
             "V_target_acc",
         )
@@ -421,12 +421,12 @@ class BaseAdaptTrainer(pl.LightningModule):
 
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="Te")
         loss = task_loss + self.lamb_da * adv_loss
-        log_metrics["test_loss"] = loss
+        log_metrics["Te_loss"] = loss
         return log_metrics
 
     def test_epoch_end(self, outputs):
         metrics_at_test = (
-            "test_loss",
+            "Te_loss",
             "Te_source_acc",
             "Te_target_acc",
         )
@@ -535,9 +535,9 @@ class BaseDANNLike(BaseAdaptTrainer):
 
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
-            "val_loss",
-            "val_task_loss",
-            "val_adv_loss",
+            "V_loss",
+            "V_task_loss",
+            "V_adv_loss",
             "V_source_acc",
             "V_target_acc",
             "V_source_domain_acc",
@@ -548,7 +548,7 @@ class BaseDANNLike(BaseAdaptTrainer):
 
     def test_epoch_end(self, outputs):
         metrics_at_test = (
-            "test_loss",
+            "Te_loss",
             "Te_source_acc",
             "Te_target_acc",
             "Te_domain_acc",
@@ -559,7 +559,7 @@ class BaseDANNLike(BaseAdaptTrainer):
             self.log(key, log_dict[key], prog_bar=True)
 
         # return {
-        #     "avg_test_loss": log_dict["test_loss"],
+        #     "avg_test_loss": log_dict["Te_loss"],
         #     "progress_bar": log_dict,
         #     "log": log_dict,
         # }
@@ -1065,7 +1065,7 @@ class BaseMMDLike(BaseAdaptTrainer):
 
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
-            "val_loss",
+            "V_loss",
             "V_source_acc",
             "V_target_acc",
             "V_domain_acc",
@@ -1074,7 +1074,7 @@ class BaseMMDLike(BaseAdaptTrainer):
 
     def test_epoch_end(self, outputs):
         metrics_at_test = (
-            "test_loss",
+            "Te_loss",
             "Te_source_acc",
             "Te_target_acc",
             "Te_domain_acc",
@@ -1085,7 +1085,7 @@ class BaseMMDLike(BaseAdaptTrainer):
             self.log(key, log_dict[key], prog_bar=True)
 
         # return {
-        #     "avg_test_loss": log_dict["test_loss"],
+        #     "avg_test_loss": log_dict["Te_loss"],
         #     "progress_bar": log_dict,
         #     "log": log_dict,
         # }
