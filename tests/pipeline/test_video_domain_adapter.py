@@ -75,7 +75,9 @@ def testing_training_cfg():
 @pytest.mark.parametrize("da_method", DA_METHODS)
 @pytest.mark.parametrize("input_type", INPUT_TYPE)
 @pytest.mark.parametrize("class_type", CLASS_TYPE_IMAGE)
-def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method, testing_cfg, testing_training_cfg, input_type, class_type):
+def test_video_domain_adapter(
+    source_cfg, target_cfg, image_modality, da_method, testing_cfg, testing_training_cfg, input_type, class_type
+):
     source_name, source_n_class, source_trainlist, source_testlist = source_cfg.split(";")
     target_name, target_n_class, target_trainlist, target_testlist = target_cfg.split(";")
 

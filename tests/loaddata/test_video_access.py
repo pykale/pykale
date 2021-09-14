@@ -72,7 +72,9 @@ def test_get_image_modality(image_modality):
 @pytest.mark.parametrize("class_subset", CLASS_SUBSETS)
 @pytest.mark.parametrize("input_type", INPUT_TYPE)
 @pytest.mark.parametrize("class_type", CLASS_TYPE_IMAGE)
-def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datasize_type, testing_cfg, class_subset, input_type, class_type):
+def test_get_source_target(
+    source_cfg, target_cfg, val_ratio, weight_type, datasize_type, testing_cfg, class_subset, input_type, class_type
+):
     source_name, source_n_class, source_trainlist, source_testlist = source_cfg.split(";")
     target_name, target_n_class, target_trainlist, target_testlist = target_cfg.split(";")
     n_class = eval(min(source_n_class, target_n_class))
