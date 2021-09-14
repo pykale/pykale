@@ -1,6 +1,6 @@
-"""This example is ta3n for action recognition, using PyTorch Lightning.
+"""This example is ta3n, a SOTA on action recognition via domain adaptation, using PyTorch Lightning.
 
-Reference:
+Reference: https://github.com/cmhungsteve/TA3N and https://github.com/jonmun/EPIC-KITCHENS-100_UDA_TA3N
 """
 
 import argparse
@@ -76,10 +76,10 @@ def main():
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
             # dirpath=full_checkpoint_dir,
-            filename="{epoch}-{step}-{val_loss:.4f}",
+            filename="{epoch}-{step}-{V:.4f}",
             # save_last=True,
             # save_top_k=1,
-            monitor="val_loss",
+            monitor="V_loss",
             mode="min",
         )
 
