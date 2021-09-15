@@ -3310,7 +3310,7 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["test_loss"] = loss
+        log_metrics["Te_loss"] = loss
         return log_metrics
 
     def add_dummy_data(self, x_rgb, x_flow, x_audio, batch_size):
