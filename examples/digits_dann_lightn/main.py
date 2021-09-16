@@ -68,23 +68,14 @@ def main():
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(filename="{epoch}-{step}-{val_loss:.4f}", monitor="val_loss", mode="min",)
 
-        if args.gpus is None:
-            trainer = pl.Trainer(
-                progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
-                min_epochs=cfg.SOLVER.MIN_EPOCHS,
-                max_epochs=cfg.SOLVER.MAX_EPOCHS,
-                callbacks=[checkpoint_callback],
-                logger=tb_logger,
-            )
-        else:
-            trainer = pl.Trainer(
-                progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
-                min_epochs=cfg.SOLVER.MIN_EPOCHS,
-                max_epochs=cfg.SOLVER.MAX_EPOCHS,
-                callbacks=[checkpoint_callback],
-                logger=tb_logger,
-                gpus=args.gpus,
-            )
+        trainer = pl.Trainer(
+            progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
+            min_epochs=cfg.SOLVER.MIN_EPOCHS,
+            max_epochs=cfg.SOLVER.MAX_EPOCHS,
+            callbacks=[checkpoint_callback],
+            logger=tb_logger,
+            gpus=args.gpus,
+        )
 
         trainer.fit(model)
         trainer.test()
