@@ -5,17 +5,15 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 
 import argparse
 import logging
-import os
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
 from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks import LearningRateMonitor
+from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 
 from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
-from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
 
 # from pytorch_lightning.callbacks.early_stopping import EarlyStopping
@@ -25,7 +23,12 @@ def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Action Datasets")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    parser.add_argument("--gpus", default="0", help="gpu id(s) to use", type=str)
+    parser.add_argument(
+        "--gpus",
+        default=[0],
+        help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
+        "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+    )
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
@@ -42,7 +45,6 @@ def main():
     print(cfg)
 
     # ---- setup output ----
-    os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
@@ -67,10 +69,15 @@ def main():
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, num_classes)
-        logger, results, checkpoint_callback, test_csv_file = setup_logger(
-            train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD, seed
+        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
+        checkpoint_callback = ModelCheckpoint(
+            # dirpath=full_checkpoint_dir,
+            filename="{epoch}-{step}-{val_loss:.4f}",
+            # save_last=True,
+            # save_top_k=1,
+            monitor="val_loss",
+            mode="min",
         )
-        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR)
 
         ### Set early stopping
         # early_stop_callback = EarlyStopping(monitor="V_target_acc", min_delta=0.0000, patience=100, mode="max")
@@ -84,13 +91,12 @@ def main():
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
-            checkpoint_callback=checkpoint_callback,
             # resume_from_checkpoint=last_checkpoint_file,
             gpus=args.gpus,
             logger=tb_logger,  # logger,
             # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
-            callbacks=[lr_monitor],
+            callbacks=[lr_monitor, checkpoint_callback],
             # callbacks=[early_stop_callback, lr_monitor],
             # limit_train_batches=0.005,
             # limit_val_batches=0.06,
@@ -105,17 +111,9 @@ def main():
 
         ### Training/validation process
         trainer.fit(model)
-        results.update(
-            is_validation=True, method_name=cfg.DAN.METHOD, seed=seed, metric_values=trainer.callback_metrics,
-        )
 
         ### Test process
         trainer.test()
-        results.update(
-            is_validation=False, method_name=cfg.DAN.METHOD, seed=seed, metric_values=trainer.callback_metrics,
-        )
-        results.to_csv(test_csv_file)
-        results.print_scores(method_name=cfg.DAN.METHOD, split="Test")
 
 
 if __name__ == "__main__":

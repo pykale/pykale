@@ -5,15 +5,15 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 
 import argparse
 import logging
-import os
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
+from pytorch_lightning import loggers as pl_loggers
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 from kale.loaddata.digits_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
-from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
 
 
@@ -21,7 +21,12 @@ def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Digits Datasets")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    parser.add_argument("--gpus", help="gpu id(s) to use", type=str)
+    parser.add_argument(
+        "--gpus",
+        default=[0],
+        help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
+        "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+    )
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
@@ -38,7 +43,6 @@ def main():
     print(cfg)
 
     # ---- setup output ----
-    os.makedirs(cfg.OUTPUT.DIR, exist_ok=True)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
@@ -61,39 +65,20 @@ def main():
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, num_channels)
-        logger, results, checkpoint_callback, test_csv_file = setup_logger(
-            train_params, cfg.OUTPUT.DIR, cfg.DAN.METHOD, seed
-        )
+        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
+        checkpoint_callback = ModelCheckpoint(filename="{epoch}-{step}-{val_loss:.4f}", monitor="val_loss", mode="min",)
 
-        if args.gpus is None:
-            trainer = pl.Trainer(
-                progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
-                min_epochs=cfg.SOLVER.MIN_EPOCHS,
-                max_epochs=cfg.SOLVER.MAX_EPOCHS,
-                callbacks=[checkpoint_callback],
-                logger=False,
-            )
-        else:
-            trainer = pl.Trainer(
-                progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
-                min_epochs=cfg.SOLVER.MIN_EPOCHS,
-                max_epochs=cfg.SOLVER.MAX_EPOCHS,
-                callbacks=[checkpoint_callback],
-                logger=False,
-                gpus=args.gpus,
-            )
+        trainer = pl.Trainer(
+            progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
+            min_epochs=cfg.SOLVER.MIN_EPOCHS,
+            max_epochs=cfg.SOLVER.MAX_EPOCHS,
+            callbacks=[checkpoint_callback],
+            logger=tb_logger,
+            gpus=args.gpus,
+        )
 
         trainer.fit(model)
-        results.update(
-            is_validation=True, method_name=cfg.DAN.METHOD, seed=seed, metric_values=trainer.callback_metrics,
-        )
-        # test scores
         trainer.test()
-        results.update(
-            is_validation=False, method_name=cfg.DAN.METHOD, seed=seed, metric_values=trainer.callback_metrics,
-        )
-        results.to_csv(test_csv_file)
-        results.print_scores(cfg.DAN.METHOD)
 
 
 if __name__ == "__main__":

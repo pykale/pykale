@@ -1,3 +1,34 @@
+# Version  0.1.0rc3
+
+#### New Features
+
+* [#196](https://github.com/pykale/pykale/pull/196): Add Google Drive Download API
+* [#197](https://github.com/pykale/pykale/pull/197): Multi domain loader and office data access
+* [#210](https://github.com/pykale/pykale/pull/210): Multi-source domain adaptation SOTA
+
+#### Code Improvements
+
+* [#201](https://github.com/pykale/pykale/pull/201): No "extras", only "normal" or "dev" installs
+
+#### Tests
+
+* [#178](https://github.com/pykale/pykale/pull/178): Reduce tests for video
+* [#188](https://github.com/pykale/pykale/pull/188): Create download_path directory in conftest.py
+* [#189](https://github.com/pykale/pykale/pull/189): Create test_sampler.py and update doc for tests
+* [#200](https://github.com/pykale/pykale/pull/200): Nightly test run
+
+#### Documentation Updates
+
+* [#165](https://github.com/pykale/pykale/pull/165): Notebook tutorial for the bindingdb_deepdta example
+* [#199](https://github.com/pykale/pykale/pull/199): CMR PAH notebook example
+* [#207](https://github.com/pykale/pykale/pull/207): Restructure notebook tutorial docs
+* [#212](https://github.com/pykale/pykale/pull/212): Describe use of YAML
+
+#### Other Changes
+
+* [#187](https://github.com/pykale/pykale/pull/187): Add dependabot
+* [#205](https://github.com/pykale/pykale/pull/205): Update data dirs
+
 # Version  0.1.0rc2
 
 #### New Features
