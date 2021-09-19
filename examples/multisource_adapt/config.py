@@ -1,6 +1,7 @@
 """
 Default configurations for multi-source domain adapation
 """
+import os
 
 from yacs.config import CfgNode as CN
 
@@ -23,6 +24,7 @@ _C.DATASET.NAME = "digits"  # dset choices=['office', 'image-clef', 'office-home
 _C.DATASET.TARGET = "MNIST"
 _C.DATASET.NUM_CLASSES = 10
 _C.DATASET.NUM_REPEAT = 10  # 10
+_C.DATASET.NUM_CHANNELS = 3
 _C.DATASET.DIMENSION = 784
 _C.DATASET.WEIGHT_TYPE = "natural"
 _C.DATASET.SIZE_TYPE = "source"
@@ -52,7 +54,7 @@ _C.SOLVER.INIT_LAMBDA = 1
 # Domain Adaptation Net (DAN) configs
 # ---------------------------------------------------------------------------- #
 _C.DAN = CN()
-_C.DAN.METHOD = "CDAN"  # choices=['CDAN', 'CDAN-E', 'DANN']
+_C.DAN.METHOD = "M3SDA"  # choices=['CDAN', 'CDAN-E', 'DANN']
 _C.DAN.USERANDOM = False
 _C.DAN.RANDOM_DIM = 1024
 # ---------------------------------------------------------------------------- #
@@ -62,6 +64,7 @@ _C.OUTPUT = CN()
 _C.OUTPUT.ROOT = "./outputs"  # output_dir
 _C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
 _C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
+_C.OUTPUT.TB_DIR = os.path.join("lightning_logs", "Tgt" + _C.DATASET.TARGET)
 # _C.OUTPUT.DIR = os.path.join(_C.OUTPUT.ROOT, _C.DATASET.NAME + '_rest2' + _C.DATASET.TARGET[0])
 
 

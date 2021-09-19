@@ -13,21 +13,22 @@ import pytorch_lightning as pl
 # from config import get_cfg_defaults
 from config import get_cfg_defaults
 from model import get_model
+from pytorch_lightning import loggers as pl_loggers
+from pytorch_lightning.callbacks import ModelCheckpoint
 from torchvision import transforms
 
 # import torch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-from kale.evaluate.eval_pipeline import eval_pipeline
+# from kale.evaluate.eval_pipeline import eval_pipeline
 from kale.loaddata.image_access import MultiDomainImageAccess
 from kale.loaddata.multi_domain import MultiDomainAdapDataset
-from kale.utils.csv_logger import setup_logger
 from kale.utils.seed import set_seed
 
 
 def arg_parse():
     """Parsing arguments"""
-    parser = argparse.ArgumentParser(description="Multi-source domain adapation")
+    parser = argparse.ArgumentParser(description="Multi-source domain adaptation")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument("--gpus", default=None, help="gpu id(s) to use", type=str)
     parser.add_argument("--resume", default="", type=str)
@@ -51,13 +52,13 @@ def main():
     print(cfg)
 
     # ---- setup output ----
-    outdir = os.path.join(cfg.OUTPUT.ROOT, cfg.DATASET.NAME + "_rest2" + cfg.DATASET.TARGET)
+    # outdir = os.path.join(cfg.OUTPUT.ROOT, cfg.DATASET.NAME + "_rest2" + cfg.DATASET.TARGET)
 
-    os.makedirs(outdir, exist_ok=True)
+    # os.makedirs(outdir, exist_ok=True)
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
-    num_channels = 3
+    num_channels = cfg.DATASET.NUM_CHANNELS
     data_access = MultiDomainImageAccess.get_image_access(
         cfg.DATASET.NAME.upper(), cfg.DATASET.ROOT, download=True, return_domain_label=True
     )
@@ -69,13 +70,16 @@ def main():
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, num_channels)
-        logger, results, checkpoint_callback, test_csv_file = setup_logger(
-            train_params,
-            # cfg.OUTPUT.DIR,
-            outdir,
-            cfg.DAN.METHOD,
-            seed,
-        )
+        # logger, results, checkpoint_callback, test_csv_file = setup_logger(
+        #     train_params,
+        #     # cfg.OUTPUT.DIR,
+        #     outdir,
+        #     cfg.DAN.METHOD,
+        #     seed,
+        # )
+        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
+        checkpoint_callback = ModelCheckpoint(filename="{epoch}-{step}-{val_loss:.4f}", monitor="val_loss", mode="min",)
+
         trainer = pl.Trainer(
             progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
@@ -84,12 +88,14 @@ def main():
             gpus=args.gpus,
             # gpus=None,
             auto_select_gpus=True,
-            logger=False,  # logger,
+            logger=tb_logger,  # logger,
             # weights_summary='full',
             fast_dev_run=False,  # True,
         )
 
-        eval_pipeline(trainer, model, cfg.DAN.METHOD, results, test_csv_file, seed)
+        trainer.fit(model)
+        trainer.test()
+        # eval_pipeline(trainer, model, cfg.DAN.METHOD, results, test_csv_file, seed)
 
 
 if __name__ == "__main__":
