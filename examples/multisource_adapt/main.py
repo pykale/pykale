@@ -13,8 +13,8 @@ import pytorch_lightning as pl
 # from config import get_cfg_defaults
 from config import get_cfg_defaults
 from model import get_model
-from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.loggers import TensorBoardLogger
 from torchvision import transforms
 
 # import torch
@@ -77,7 +77,7 @@ def main():
         #     cfg.DAN.METHOD,
         #     seed,
         # )
-        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
+        tb_logger = TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(filename="{epoch}-{step}-{val_loss:.4f}", monitor="val_loss", mode="min",)
 
         trainer = pl.Trainer(

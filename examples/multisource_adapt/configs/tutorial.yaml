@@ -1,10 +1,10 @@
 DAN:
-  METHOD: 'M3SDA'
+  METHOD: "M3SDA"
 DATASET:
-  NAME: 'digits'
+  NAME: "OFFICE_CALTECH"
   NUM_CLASSES: 10
-  ROOT: '../data/Office'
-  TARGET: 'amazon'
+  ROOT: "../data/Office"
+  TARGET: "amazon"
   NUM_REPEAT: 5
 SOLVER:
   TRAIN_BATCH_SIZE: 100

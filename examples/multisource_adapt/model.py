@@ -9,7 +9,7 @@ import sys
 from copy import deepcopy
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-from kale.embed.image_cnn import ResNet50Feature, SmallCNNFeature
+from kale.embed.image_cnn import ResNet18Feature, SmallCNNFeature
 from kale.pipeline.multi_domain_adapter import create_ms_adapt_trainer
 from kale.predict.class_domain_nets import ClassNetSmallImage
 
@@ -70,7 +70,7 @@ def get_model(cfg, dataset, num_channels):
     if cfg.DATASET.NAME.upper() == "DIGITS":
         feature_network = SmallCNNFeature(num_channels)
     else:
-        feature_network = ResNet50Feature(num_channels)
+        feature_network = ResNet18Feature(num_channels)
         # target_label = dataset.domain_to_idx[cfg.DATASET.TARGET]
     method_params = {"n_classes": cfg.DATASET.NUM_CLASSES, "target_domain": cfg.DATASET.TARGET}
 
