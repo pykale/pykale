@@ -8,6 +8,8 @@ import os
 import sys
 from copy import deepcopy
 
+import torch
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from kale.embed.image_cnn import ResNet18Feature, SmallCNNFeature
 from kale.pipeline.multi_domain_adapter import create_ms_adapt_trainer
@@ -71,7 +73,10 @@ def get_model(cfg, dataset, num_channels):
         feature_network = SmallCNNFeature(num_channels)
     else:
         feature_network = ResNet18Feature(num_channels)
-        # target_label = dataset.domain_to_idx[cfg.DATASET.TARGET]
+
+    if cfg.DAN.METHOD == "MFSAN":
+        feature_network = torch.nn.Sequential(*(list(feature_network.children())[:-1]))
+
     method_params = {"n_classes": cfg.DATASET.NUM_CLASSES, "target_domain": cfg.DATASET.TARGET}
 
     model = create_ms_adapt_trainer(

@@ -60,7 +60,7 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
         if target_domain not in self.domain_to_idx.keys():
             raise ValueError(
                 "The given target domain %s not in the dataset! The available domain names are %s"
-                % self.domain_to_idx.keys()
+                % (target_domain, self.domain_to_idx.keys())
             )
         self.target_domain = target_domain
         self.target_label = self.domain_to_idx[target_domain]
