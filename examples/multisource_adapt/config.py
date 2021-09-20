@@ -42,8 +42,8 @@ _C.SOLVER.TYPE = "SGD"
 _C.SOLVER.MAX_EPOCHS = 120  # "nb_adapt_epochs": 100,
 # _C.SOLVER.WARMUP = True
 _C.SOLVER.MIN_EPOCHS = 20  # "nb_init_epochs": 20,
-_C.SOLVER.TRAIN_BATCH_SIZE = 150  # 150
-_C.SOLVER.TEST_BATCH_SIZE = 200  # No difference in ADA
+_C.SOLVER.TRAIN_BATCH_SIZE = 100  # 150
+_C.SOLVER.TEST_BATCH_SIZE = 100  # No difference in ADA
 
 # Adaptation-specific solver config
 _C.SOLVER.AD_LAMBDA = True
