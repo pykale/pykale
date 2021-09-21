@@ -46,7 +46,7 @@ jobs:
         shell: bash -l {0}
       - name: Run unit tests
         run: |
-          pytest --cov=kale
+          pytest --nbmake --cov=kale
         shell: bash -l {0}
       - name: Determine coverage
         run: |

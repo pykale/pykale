@@ -40,6 +40,7 @@ dev_requirements = [
     "isort",
     "m2r",
     "mypy",
+    "nbmake>=0.8",
     "nbsphinx",
     "nbsphinx-link",
     "nbval",
