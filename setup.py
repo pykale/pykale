@@ -37,6 +37,7 @@ dev_requirements = [
     "coverage",
     "flake8",
     "flake8-print",
+    "ipywidgets",
     "isort",
     "m2r",
     "mypy",
