@@ -5,8 +5,6 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 
 import argparse
 import logging
-import os
-import sys
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
@@ -14,7 +12,6 @@ from model import get_model
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from kale.loaddata.image_access import MultiDomainImageAccess
 from kale.loaddata.multi_domain import MultiDomainAdapDataset
 from kale.utils.seed import set_seed
@@ -44,12 +41,20 @@ def main():
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
+    if type(cfg.DATASET.SOURCE) == list:
+        sub_domain_set = cfg.DATASET.SOURCE + [cfg.DATASET.TARGET]
+    else:
+        sub_domain_set = None
     num_channels = cfg.DATASET.NUM_CHANNELS
     if cfg.DATASET.NAME.upper() == "DIGITS":
         kwargs = {"return_domain_label": True}
     else:
         kwargs = {"download": True, "return_domain_label": True}
-    data_access = MultiDomainImageAccess.get_image_access(cfg.DATASET.NAME.upper(), cfg.DATASET.ROOT, **kwargs)
+
+    data_access = MultiDomainImageAccess.get_image_access(
+        cfg.DATASET.NAME.upper(), cfg.DATASET.ROOT, sub_domain_set=sub_domain_set, **kwargs
+    )
+
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = cfg.SOLVER.SEED + i * 10

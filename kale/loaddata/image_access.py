@@ -112,16 +112,19 @@ class OfficeCaltech(OfficeAccess):
 
 class MultiDomainImageAccess:
     @staticmethod
-    def get_image_access(image_access: str, data_path, domain_names=None, **kwargs):
+    def get_image_access(image_access: str, data_path, sub_domain_set=None, **kwargs):
         if image_access == "OFFICE_CALTECH":
             return OfficeCaltech(data_path, **kwargs)
         elif image_access == "OFFICE31":
             return Office31(data_path, **kwargs)
+        elif image_access == "OFFICE":
+            # kwargs["sub_domain_set"] = sub_domain_set
+            return OfficeAccess(data_path, sub_domain_set=sub_domain_set, **kwargs)
         elif image_access == "DIGITS":
             data_dict = dict()
-            if domain_names is None:
-                domain_names = ["SVHN", "USPS_RGB", "MNIST_RGB", "MNISTM"]
-            for domain in domain_names:
+            if sub_domain_set is None:
+                sub_domain_set = ["SVHN", "USPS_RGB", "MNIST_RGB", "MNISTM"]
+            for domain in sub_domain_set:
                 data_dict[domain] = DigitDataset.get_access(DigitDataset(domain), data_path)[0]
             return MultiDomainAccess(data_dict, 10, **kwargs)
         else:
@@ -129,4 +132,4 @@ class MultiDomainImageAccess:
             transform = transforms.Compose(
                 [transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])]
             )
-            return MultiDomainImageFolder(data_path, transform=transform, sub_domain_set=domain_names, **kwargs)
+            return MultiDomainImageFolder(data_path, transform=transform, sub_domain_set=sub_domain_set, **kwargs)

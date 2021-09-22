@@ -11,7 +11,7 @@ This example demonstrates multi-source domain adaptation methods with applicatio
   * Office-31 (31 classes), 3 domains: Amazon (A), DSLR (D), Webcam (W)
   * Office-Caltech (10 classes), 4 domains: Amazon (A), DSLR (D), Webcam (W), Caltech (C)
 * Algorithms: M3SDA, MFSAN
-* Example: Caltech, DSLR, and Webcam (source) to Amazon (target) using M3SDA and MFSAN
+* Example: Caltech, DSLR, and Webcam (three sources) to Amazon (target) using M3SDA and MFSAN
 
 `python main.py --cfg configs/Office2A-M3SDA.yaml --gpus 0`
 
@@ -23,7 +23,7 @@ This example demonstrates multi-source domain adaptation methods with applicatio
 
 `kale.loaddata.digits_access`: Data loaders for digits datasets.
 
-`kale.loaddata.image_access`: Data loaders for general APIs for image datasets.
+`kale.loaddata.image_access`: General APIs for data loaders of image datasets.
 
 `kale.loaddata.mnistm`: Data loader for the [modified MNIST data](https://github.com/zumpchke/keras_mnistm).
 
@@ -31,7 +31,7 @@ This example demonstrates multi-source domain adaptation methods with applicatio
 
 `kale.loaddata.usps`: Data loader for the [USPS data](https://git-disl.github.io/GTDLBench/datasets/usps_dataset/).
 
-`kale.pipeline.multi_domain_adapter`: Multi-source Domain adaptation pipelines for image classification.
+`kale.pipeline.multi_domain_adapter`: Multi-source domain adaptation pipelines for image classification.
 
 `kale.predict.class_domain_nets`: Classifiers for data or domain.
 

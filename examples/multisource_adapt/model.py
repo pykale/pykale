@@ -4,13 +4,10 @@ Define the learning model and configure training parameters.
 # Author: Shuo Zhou
 # Initial Date: 09.09.2021
 
-import os
-import sys
 from copy import deepcopy
 
 import torch
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from kale.embed.image_cnn import ResNet18Feature, SmallCNNFeature
 from kale.pipeline.multi_domain_adapter import create_ms_adapt_trainer
 from kale.predict.class_domain_nets import ClassNetSmallImage
@@ -43,9 +40,8 @@ def get_config(cfg):
         },
         "data_params": {
             "dataset_group": cfg.DATASET.NAME,
-            # "dataset_name": cfg.DATASET.SOURCE + '2' + cfg.DATASET.TARGET,
-            "dataset_name": "rest2" + cfg.DATASET.TARGET,
-            # "source": cfg.DATASET.SOURCE,
+            "dataset_name": cfg.DATASET.NAME + "_Target_" + cfg.DATASET.TARGET,
+            "source": "_".join(cfg.DATASET.SOURCE) if cfg.DATASET.SOURCE is not None else None,
             "target": cfg.DATASET.TARGET,
             "size_type": cfg.DATASET.SIZE_TYPE,
             "weight_type": cfg.DATASET.WEIGHT_TYPE,
