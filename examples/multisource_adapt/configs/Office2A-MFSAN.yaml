@@ -9,3 +9,5 @@ DATASET:
 SOLVER:
   TRAIN_BATCH_SIZE: 100
   TEST_BATCH_SIZE: 100
+OUTPUT:
+  TB_DIR: "lightning_logs/office_caltech/MFSAN/Tgt_amazon"
