@@ -17,8 +17,12 @@ _C = CN()
 _C.DATASET = CN()
 _C.DATASET.ROOT = "../data"
 _C.DATASET.NAME = "digits"  # choices=['office', 'digits', 'office_caltech', 'office31']
-_C.DATASET.SOURCE = None
 _C.DATASET.TARGET = "MNIST"
+# -----------------------------------------------------------------------------
+_C.DATASET.SOURCE = None
+# a list of source domain names (e.g. ["SVHN", "USPS_RGB"]) or None. If None, all domains (excluding the target)
+# will be used as sources
+# -----------------------------------------------------------------------------
 _C.DATASET.NUM_CLASSES = 10
 _C.DATASET.NUM_REPEAT = 10  # 10
 _C.DATASET.NUM_CHANNELS = 3

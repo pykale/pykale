@@ -12,7 +12,7 @@ from model import get_model
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from kale.loaddata.image_access import MultiDomainImageAccess
+from kale.loaddata.image_access import ImageAccess
 from kale.loaddata.multi_domain import MultiDomainAdapDataset
 from kale.utils.seed import set_seed
 
@@ -51,7 +51,7 @@ def main():
     else:
         kwargs = {"download": True, "return_domain_label": True}
 
-    data_access = MultiDomainImageAccess.get_image_access(
+    data_access = ImageAccess.get_multi_domain_images(
         cfg.DATASET.NAME.upper(), cfg.DATASET.ROOT, sub_domain_set=sub_domain_set, **kwargs
     )
 
