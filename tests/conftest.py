@@ -25,4 +25,6 @@ def gait(download_path):
 
 @pytest.fixture(scope="session")
 def office_path(download_path):
-    return os.path.join(download_path, "office")
+    path_ = os.path.join(download_path, "office")
+    os.makedirs(path_, exist_ok=True)
+    return path_

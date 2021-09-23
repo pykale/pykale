@@ -1,8 +1,11 @@
 import logging
 import os
 
+from torchvision import transforms
+
 from kale.loaddata.dataset_access import DatasetAccess
-from kale.loaddata.multi_domain import MultiDomainImageFolder
+from kale.loaddata.digits_access import DigitDataset
+from kale.loaddata.multi_domain import MultiDomainAccess, MultiDomainImageFolder
 from kale.prepdata.image_transform import get_transform
 from kale.utils.download import download_file_by_url
 
@@ -105,3 +108,39 @@ class OfficeCaltech(OfficeAccess):
             "mug",
         ]
         super(OfficeCaltech, self).__init__(root, sub_class_set=sub_class_set, **kwargs)
+
+
+class ImageAccess:
+    @staticmethod
+    def get_multi_domain_images(image_set_name: str, data_path: str, sub_domain_set=None, **kwargs):
+        """Get multi-domain images as a dataset from the given data path.
+
+        Args:
+            image_set_name (str): name of image dataset
+            data_path (str): path to the image dataset
+            sub_domain_set (list, optional): A list of domain names, which should be a subset of domains under the
+                directory of data path. If None, all available domains will be used. Defaults to None.
+
+        Returns:
+            [MultiDomainImageFolder, or MultiDomainAccess]: Multi-domain image dataset
+        """
+        image_set_name = image_set_name.upper()
+        if image_set_name == "OFFICE_CALTECH":
+            return OfficeCaltech(data_path, **kwargs)
+        elif image_set_name == "OFFICE31":
+            return Office31(data_path, **kwargs)
+        elif image_set_name == "OFFICE":
+            return OfficeAccess(data_path, sub_domain_set=sub_domain_set, **kwargs)
+        elif image_set_name == "DIGITS":
+            data_dict = dict()
+            if sub_domain_set is None:
+                sub_domain_set = ["SVHN", "USPS_RGB", "MNIST_RGB", "MNISTM"]
+            for domain in sub_domain_set:
+                data_dict[domain] = DigitDataset.get_access(DigitDataset(domain), data_path)[0]
+            return MultiDomainAccess(data_dict, 10, **kwargs)
+        else:
+            # default image transform
+            transform = transforms.Compose(
+                [transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])]
+            )
+            return MultiDomainImageFolder(data_path, transform=transform, sub_domain_set=sub_domain_set, **kwargs)
