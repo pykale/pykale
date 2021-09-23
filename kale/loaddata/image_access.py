@@ -118,8 +118,8 @@ class ImageAccess:
         Args:
             image_set_name (str): name of image dataset
             data_path (str): path to the image dataset
-            sub_domain_set (list, optional): A list of domain names, which should be a subset of domains in image folders.
-                Defaults to None.
+            sub_domain_set (list, optional): A list of domain names, which should be a subset of domains under the
+                directory of data path. If None, all available domains will be used. Defaults to None.
 
         Returns:
             [MultiDomainImageFolder, or MultiDomainAccess]: Multi-domain image dataset
@@ -130,7 +130,6 @@ class ImageAccess:
         elif image_set_name == "OFFICE31":
             return Office31(data_path, **kwargs)
         elif image_set_name == "OFFICE":
-            # kwargs["sub_domain_set"] = sub_domain_set
             return OfficeAccess(data_path, sub_domain_set=sub_domain_set, **kwargs)
         elif image_set_name == "DIGITS":
             data_dict = dict()
