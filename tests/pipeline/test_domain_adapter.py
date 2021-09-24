@@ -2,7 +2,7 @@ import pytest
 
 import kale.pipeline.domain_adapter as domain_adapter
 from kale.embed.image_cnn import SmallCNNFeature
-from kale.loaddata.digits_access import DigitDataset
+from kale.loaddata.image_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
 from tests.helpers.pipe_test_helper import ModelTestHelper

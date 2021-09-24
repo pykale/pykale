@@ -15,7 +15,7 @@ from trainer import Trainer
 
 import kale.utils.logger as logging
 import kale.utils.seed as seed
-from kale.loaddata.cifar_access import get_cifar
+from kale.loaddata.image_access import get_cifar
 
 
 def arg_parse():

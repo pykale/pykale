@@ -12,7 +12,7 @@ from model import get_model
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import ModelCheckpoint
 
-from kale.loaddata.digits_access import DigitDataset
+from kale.loaddata.image_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
 from kale.utils.seed import set_seed
 
