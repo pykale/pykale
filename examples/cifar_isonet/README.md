@@ -16,7 +16,7 @@ This example is constructed by refactoring the [Deep Isometric Learning for Visu
 
 `kale.embed.image_cnn`: Extract features from small-size (32x32) images using CNN.
 
-`kale.loaddata.cifar_access`: Data loaders for CIFAR datasets.
+`kale.loaddata.image_access`: Data loaders for CIFAR datasets.
 
 `kale.predict.isonet`: ISONet classifier.
 
