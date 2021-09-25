@@ -22,30 +22,6 @@ kale.loaddata.videos module
    :exclude-members: VideoRecord
    :show-inheritance:
 
-kale.loaddata.cifar\_access module
------------------------------------
-
-.. automodule:: kale.loaddata.cifar_access
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kale.loaddata.digits\_access module
------------------------------------
-
-.. automodule:: kale.loaddata.digits_access
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kale.loaddata.get\_dicom module
------------------------------------
-
-.. automodule:: kale.loaddata.get_dicom
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.loaddata.image\_access
 ------------------------------------------
 
