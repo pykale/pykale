@@ -22,7 +22,7 @@ This example demonstrates the multilinear PCA-based machine learning pipeline fo
 
 `kale.interpret.visualize`: Plot model weights or images.
 
-`kale.loaddata.get_dicom`: Load DICOM images as ndarray data.
+`kale.loaddata.image_access`: Load DICOM images as ndarray data.
 
 `kale.pipeline.mpca_trainer`: Pipeline of MPCA + feature selection + classification.
 

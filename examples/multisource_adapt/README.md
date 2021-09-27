@@ -21,7 +21,7 @@ This example demonstrates multi-source domain adaptation methods with applicatio
 
 `kale.embed.image_cnn`: Extract features from small-size (32x32) images using CNN.
 
-`kale.loaddata.digits_access`: Data loaders for digits datasets.
+`kale.loaddata.image_access`: Data loaders for digits datasets.
 
 `kale.loaddata.image_access`: General APIs for data loaders of image datasets.
 

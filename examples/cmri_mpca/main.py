@@ -15,7 +15,7 @@ from config import get_cfg_defaults
 from sklearn.model_selection import cross_validate
 
 from kale.interpret import model_weights, visualize
-from kale.loaddata.get_dicom import read_dicom_images
+from kale.loaddata.image_access import read_dicom_images
 from kale.pipeline.mpca_trainer import MPCATrainer
 from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, reg_img_stack, rescale_img_stack
 from kale.utils.download import download_file_by_url

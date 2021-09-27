@@ -6,7 +6,7 @@ import pytest
 from numpy import testing
 
 from kale.interpret.visualize import plot_multi_images
-from kale.loaddata.get_dicom import read_dicom_images
+from kale.loaddata.image_access import read_dicom_images
 from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, reg_img_stack, rescale_img_stack
 from kale.utils.download import download_file_by_url
 
