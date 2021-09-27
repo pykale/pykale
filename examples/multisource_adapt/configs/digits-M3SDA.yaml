@@ -1,0 +1,13 @@
+DAN:
+  METHOD: "M3SDA"
+DATASET:
+  NAME: "digits"
+  NUM_CLASSES: 10
+  ROOT: "../data/digits"
+  TARGET: "MNIST_RGB"
+  NUM_REPEAT: 1
+SOLVER:
+  TRAIN_BATCH_SIZE: 100
+  TEST_BATCH_SIZE: 100
+OUTPUT:
+  TB_DIR: "lightning_logs/digits/M3SDASAN/Tgt_MNIST_RGB"

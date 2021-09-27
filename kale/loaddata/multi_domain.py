@@ -288,10 +288,10 @@ class MultiDomainImageFolder(VisionDataset):
             transform (callable, optional): A function/transform that takes in a sample and returns a transformed
                 version.  E.g, ``transforms.RandomCrop`` for images.
             target_transform (callable, optional): A function/transform that takes in the target and transforms it.
-            sub_domain_set (list): A list of domain names, which should be a subset of domains in image folders.
-                Defaults to None.
-            sub_class_set (list): A list of class names, which should be a subset of classes in image folders.
-                Defaults to None.
+            sub_domain_set (list): A list of domain names, which should be a subset of domains (folders) under the root
+                directory. If None, all available domains will be used. Defaults to None.
+            sub_class_set (list): A list of class names, which should be a subset of classes (folders) under each
+                domain's directory. If None, all available classes will be used. Defaults to None.
             is_valid_file (callable, optional): A function that takes path of a file and check if the file is a valid
                 file (to check corrupt files). Either extensions or is_valid_file should be passed.
          Attributes:

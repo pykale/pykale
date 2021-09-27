@@ -2,8 +2,8 @@ import pytest
 import torch
 
 from kale.embed.image_cnn import ResNet18Feature
+from kale.loaddata.image_access import ImageAccess
 from kale.loaddata.multi_domain import MultiDomainAdapDataset
-from kale.loaddata.office_access import OfficeCaltech
 from kale.pipeline.multi_domain_adapter import create_ms_adapt_trainer
 from kale.predict.class_domain_nets import ClassNetSmallImage
 from tests.helpers.pipe_test_helper import ModelTestHelper
@@ -28,7 +28,7 @@ def testing_cfg(download_path):
 
 @pytest.fixture(scope="module")
 def office_caltech_access(office_path):
-    return OfficeCaltech(root=office_path, download=True, return_domain_label=True)
+    return ImageAccess.get_multi_domain_images("OFFICE_CALTECH", office_path, download=True, return_domain_label=True)
 
 
 MSDA_METHODS = ["MFSAN", "M3SDA", "DIN"]
