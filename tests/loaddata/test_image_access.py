@@ -1,16 +1,45 @@
 import pytest
 import torch
+from numpy import testing
+from yacs.config import CfgNode as CN
 
 from kale.loaddata.dataset_access import get_class_subset
-from kale.loaddata.digits_access import DigitDataset, DigitDatasetAccess
-from kale.loaddata.multi_domain import (
-    DomainsDatasetBase,
-    MultiDomainAccess,
-    MultiDomainAdapDataset,
-    MultiDomainDatasets,
-)
+from kale.loaddata.image_access import DigitDataset, DigitDatasetAccess, get_cifar, ImageAccess
+from kale.loaddata.multi_domain import DomainsDatasetBase, MultiDomainAdapDataset, MultiDomainDatasets
 
-# from typing import Dict
+
+def test_office31(office_path):
+    office_access = ImageAccess.get_multi_domain_images(
+        "OFFICE31", office_path, download=True, return_domain_label=True
+    )
+    testing.assert_equal(len(office_access.class_to_idx), 31)
+    testing.assert_equal(len(office_access.domain_to_idx), 3)
+    dataset = MultiDomainAdapDataset(office_access)
+    dataset.prepare_data_loaders()
+    domain_labels = list(dataset.domain_to_idx.values())
+    for split in ["train", "valid", "test"]:
+        dataloader = dataset.get_domain_loaders(split=split)
+        x, y, z = next(iter(dataloader))
+        for domain_label_ in domain_labels:
+            testing.assert_equal(y[z == domain_label_].shape[0], 10)
+
+
+def test_office_caltech(office_path):
+    office_access = ImageAccess.get_multi_domain_images(
+        "OFFICE_CALTECH", office_path, download=True, return_domain_label=True
+    )
+    testing.assert_equal(len(office_access.class_to_idx), 10)
+    testing.assert_equal(len(office_access.domain_to_idx), 4)
+
+
+def test_custom_office(office_path):
+    kwargs = {"download": True, "split_train_test": True}
+    source = ImageAccess.get_multi_domain_images("office", office_path, sub_domain_set=["dslr"], **kwargs)
+    target = ImageAccess.get_multi_domain_images("office", office_path, sub_domain_set=["webcam"], **kwargs)
+    dataset = MultiDomainDatasets(source_access=source, target_access=target)
+    dataset.prepare_data_loaders()
+    dataloader = dataset.get_domain_loaders()
+    testing.assert_equal(len(next(iter(dataloader))), 2)
 
 
 SOURCES = ["MNIST", "USPS"]
@@ -91,13 +120,41 @@ def test_class_subsets(class_subset, val_ratio, download_path):
     # assert len(dataset_subset) == train_dataset_subset_length
 
 
-def test_multi_domain(download_path):
-    data_dict = dict()
-    for domain in ["SVHN", "USPS_RGB"]:
-        data_dict[domain] = DigitDataset.get_access(DigitDataset(domain), download_path)[0]
-
-    data_access = MultiDomainAccess(data_dict, 10, return_domain_label=True)
+def test_multi_domain_digits(download_path):
+    data_access = ImageAccess.get_multi_domain_images(
+        "DIGITS", download_path, sub_domain_set=["SVHN", "USPS_RGB"], return_domain_label=True
+    )
     dataset = MultiDomainAdapDataset(data_access)
     dataset.prepare_data_loaders()
     dataloader = dataset.get_domain_loaders(split="test", batch_size=10)
     assert len(next(iter(dataloader))) == 3
+
+
+DATASET_NAMES = ["CIFAR10", "CIFAR100"]
+
+
+@pytest.fixture(scope="module")
+def testing_cfg(download_path):
+    cfg = CN()
+    cfg.DATASET = CN()
+    cfg.SOLVER = CN()
+    cfg.DATASET.ROOT = download_path
+    # cfg.DATASET.DOWNLOAD = True
+    cfg.SOLVER.TRAIN_BATCH_SIZE = 16
+    cfg.SOLVER.TEST_BATCH_SIZE = 20
+    cfg.DATASET.NUM_WORKERS = 1
+    yield cfg
+
+    # Teardown: remove data files, or not?
+    # files = glob.glob(cfg.DATASET.ROOT)
+    # for f in files:
+    #     os.remove(f)
+
+
+@pytest.mark.parametrize("dataset", DATASET_NAMES)
+def test_get_cifar(dataset, testing_cfg):
+    cfg = testing_cfg
+    cfg.DATASET.NAME = dataset
+    train_loader, val_loader = get_cifar(cfg)
+    assert isinstance(train_loader, torch.utils.data.DataLoader)
+    assert isinstance(val_loader, torch.utils.data.DataLoader)

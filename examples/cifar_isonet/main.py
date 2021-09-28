@@ -11,7 +11,7 @@ from config import get_cfg_defaults
 from model import get_model
 from trainer import Trainer
 
-from kale.loaddata.cifar_access import get_cifar
+from kale.loaddata.image_access import get_cifar
 from kale.utils.logger import construct_logger
 from kale.utils.seed import set_seed
 

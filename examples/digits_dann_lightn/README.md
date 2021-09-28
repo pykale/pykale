@@ -18,7 +18,7 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 
 `kale.embed.image_cnn`: Extract features from small-size (32x32) images using CNN.
 
-`kale.loaddata.digits_access`: Data loaders for digits datasets.
+`kale.loaddata.image_access`: Data loaders for digits datasets.
 
 `kale.loaddata.mnistm`: Data loader for the [modified MNIST] data](https://github.com/zumpchke/keras_mnistm).
 

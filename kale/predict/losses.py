@@ -91,7 +91,7 @@ def entropy_logits(linear_output):
 
 
 def entropy_logits_loss(linear_output):
-    """Computes entropy logits loss in semi-supervised or few-shot domain adapatation
+    """Computes entropy logits loss in semi-supervised or few-shot domain adaptation
 
     Examples:
         See FewShotDANNtrainer in kale.pipeline.domain_adapter
@@ -100,7 +100,7 @@ def entropy_logits_loss(linear_output):
 
 
 def gradient_penalty(critic, h_s, h_t):
-    """Computes gradient penelty in Wasserstein distance guided representation learning
+    """Computes gradient penalty in Wasserstein distance guided representation learning
 
     Examples:
         See WDGRLtrainer and WDGRLtrainerMod in kale.pipeline.domain_adapter
@@ -136,14 +136,14 @@ def gaussian_kernel(source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None
     total = torch.cat([source, target], dim=0)
     total0 = total.unsqueeze(0).expand(int(total.size(0)), int(total.size(0)), int(total.size(1)))
     total1 = total.unsqueeze(1).expand(int(total.size(0)), int(total.size(0)), int(total.size(1)))
-    L2_distance = ((total0 - total1) ** 2).sum(2)
+    l2_distance = ((total0 - total1) ** 2).sum(2)
     if fix_sigma:
         bandwidth = fix_sigma
     else:
-        bandwidth = torch.sum(L2_distance.data) / (n_samples ** 2 - n_samples)
+        bandwidth = torch.sum(l2_distance.data) / (n_samples ** 2 - n_samples)
     bandwidth /= kernel_mul ** (kernel_num // 2)
     bandwidth_list = [bandwidth * (kernel_mul ** i) for i in range(kernel_num)]
-    kernel_val = [torch.exp(-L2_distance / bandwidth_temp) for bandwidth_temp in bandwidth_list]
+    kernel_val = [torch.exp(-l2_distance / bandwidth_temp) for bandwidth_temp in bandwidth_list]
     return sum(kernel_val)  # /len(kernel_val)
 
 
@@ -327,7 +327,7 @@ def euclidean(x1, x2):
         x2 (torch.Tensor): variables set 2
 
     Returns:
-        torch.Tensor: Eucliean distance
+        torch.Tensor: Euclidean distance
     """
     return ((x1 - x2) ** 2).sum().sqrt()
 
@@ -342,16 +342,21 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
 
     Returns:
         torch.Tensor: the k-th moment distance
+
+    The code is based on:
+        https://github.com/KaiyangZhou/Dassl.pytorch/blob/master/dassl/engine/da/m3sda.py#L153
+        https://github.com/VisionLearningGroup/VisionLearningGroup.github.io/blob/master/M3SDA/code_MSDA_digit/metric/msda.py#L6
     """
     unique_domain_ = torch.unique(domain_labels)
     n_unique_domain_ = len(unique_domain_)
     x_k_order = []
     for domain_label_ in unique_domain_:
         domain_idx = torch.where(domain_labels == domain_label_)
+        x_mean = x[domain_idx].mean(0)
         if k_order == 1:
-            x_k_order.append(x[domain_idx].mean(0))
+            x_k_order.append(x_mean)
         else:
-            x_k_order.append(((x[domain_idx] - x[domain_idx].mean(0)) ** k_order).mean(0))
+            x_k_order.append(((x[domain_idx] - x_mean) ** k_order).mean(0))
     moment_sum = 0
     n_pair = 0
     for i in range(n_unique_domain_):
