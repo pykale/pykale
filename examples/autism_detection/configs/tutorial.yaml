@@ -1,0 +1,4 @@
+DATASET:
+  ATLAS: "aal"
+MODEL:
+  KERNEL: "linear"
