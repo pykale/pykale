@@ -48,7 +48,7 @@ pytest
 
 A **unit test** checks that a small "unit" of software (e.g. a function) performs correctly. It might, for example, check that the function `add` returns the number `2` when a list `[1, 1]` is the input.
 
-Within the `tests/` folder is a folder structure that mimics that of the `kale` python module. Unit tests for code in a given file in `kale/` should be placed in their equivalent file in `tests/` e.g. unit tests for a function in `pykale/kale/loaddata/cifar_access.py` should be located in `pykale/tests/loaddata/test_cifar_access.py`.
+Within the `tests/` folder is a folder structure that mimics that of the `kale` python module. Unit tests for code in a given file in `kale/` should be placed in their equivalent file in `tests/` e.g. unit tests for a function in `pykale/kale/loaddata/image_access.py` should be located in `pykale/tests/loaddata/test_image_access.py`.
 
 Philosophically, the author of a "unit" of code knows exactly what it should do and can write the test criteria accordingly.
 
