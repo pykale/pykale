@@ -1,0 +1,34 @@
+{
+    "creators": [
+        {
+            "orcid": "?",
+            "affiliation": "University of Sheffield",
+            "name": "Haiping Lu"
+        },
+        {
+            "orcid": "?",
+            "affiliation": "University of Sheffield",
+            "name": "Xianyuan Liu"
+        }
+    ],
+
+    "license": "MIT",
+
+    "title": "PyKale: Knowledge-Aware Machine Learning from Multiple Sources in Python",
+
+    "related_identifiers": [
+        {
+            "scheme": "arxiv",
+            "identifier": "arXiv:2106.09756",
+            "relation": "isDocumentedBy",
+            "resource_type": {
+                "type": "publication",
+                "subtype": "article"
+            }
+        }
+    ],
+
+    "keywords": ["machine learning", "pytorch", "deep learning", "multimodal learning", "transfer learning"],
+
+    "grants": [{"id":"Wellcome Trust Innovator Awards: Digital Technologies Ref 215799/Z/19/Z 'Developing a Machine Learning Tool to Improve Prognostic and Treatment Response Assessment on Cardiac MRI Data'."}]
+}
