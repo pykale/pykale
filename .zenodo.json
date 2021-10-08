@@ -1,4 +1,5 @@
 {
+    "$schema": "https://zenodo.org/schemas/deposits/records/legacyrecord.json",
     "creators": [
         {
             "orcid": "?",
