@@ -13,6 +13,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
 [![codecov](https://codecov.io/gh/pykale/pykale/branch/main/graph/badge.svg?token=jmIYPbA2le)](https://codecov.io/gh/pykale/pykale)
 [![PyPI downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5557245.svg)](https://doi.org/10.5281/zenodo.5557245)
 
 [Getting Started](https://github.com/pykale/pykale#how-to-use) |
 [Documentation](https://pykale.readthedocs.io/) |
