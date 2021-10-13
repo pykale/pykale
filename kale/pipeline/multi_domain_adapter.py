@@ -496,12 +496,15 @@ class _CoDeRLS(BaseEstimator, ClassifierMixin):
 
     def decision_function(self, x):
         x = torch.as_tensor(x)
-        # krnl_x = pairwise_kernels(x, self.x, metric=self.kernel, filter_params=True,
-        #                           **self.kernel_kwargs)
-        # krnl_x = torch.tensor(self.kernel_transform.transform(krnl_x), dtype=torch.float)
         krnl_x = torch.as_tensor(
-            pairwise_kernels(x.detach().numpy(), self.x.detach().numpy(), metric=self.kernel, filter_params=True,
-                             **self.kernel_kwargs), dtype=torch.float
+            pairwise_kernels(
+                x.detach().numpy(),
+                self.x.detach().numpy(),
+                metric=self.kernel,
+                filter_params=True,
+                **self.kernel_kwargs,
+            ),
+            dtype=torch.float,
         )
 
         # return self.model(krnl_x)
