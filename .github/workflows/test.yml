@@ -42,7 +42,7 @@ jobs:
           pip install torch-cluster -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html
           pip install torch-spline-conv -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html
           pip install torch-geometric
-          pip install -e .[dev] --ignore-installed certifi
+          pip install -e .[dev] --ignore-installed
         shell: bash -l {0}
       - name: Run unit tests
         run: |
