@@ -9,11 +9,15 @@ import torch.nn as nn
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.preprocessing import LabelBinarizer
+from torch.linalg import multi_dot
 from torch.nn.functional import one_hot
 
 import kale.predict.losses as losses
 from kale.embed.image_cnn import _Bottleneck
 from kale.pipeline.domain_adapter import BaseAdaptTrainer, get_aggregated_metrics
+
+# from torch.optim.lr_scheduler import ReduceLROnPlateau
+# from torch.utils.data import DataLoader, TensorDataset
 
 
 def create_ms_adapt_trainer(method: str, dataset, feature_extractor, task_classifier, **train_params):
@@ -334,14 +338,14 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         return cls_disc * 2 / (n_domains * (n_domains - 1))
 
 
-class _CoDeR(BaseEstimator, ClassifierMixin):
+class _CoDeRLS(BaseEstimator, ClassifierMixin):
     def __init__(
         self,
         loss="mse",
         kernel="linear",
         kernel_kwargs=None,
         alpha=1.0,
-        labmda_=1.0,
+        lambda_=1.0,
         l2_ratio=1.0,
         max_iter=1000,
         lr=0.001,
@@ -349,7 +353,7 @@ class _CoDeR(BaseEstimator, ClassifierMixin):
         super().__init__()
         loss_fns = {
             "mse": nn.MSELoss(),
-            "hinge": [nn.SoftMarginLoss(), nn.MultiLabelSoftMarginLoss()],
+            "hinge": [nn.HingeEmbeddingLoss(), nn.MultiLabelMarginLoss()],
             "logits": [nn.BCEWithLogitsLoss(), nn.CrossEntropyLoss()],
         }
         self.loss = loss
@@ -357,7 +361,7 @@ class _CoDeR(BaseEstimator, ClassifierMixin):
         self.pred_loss_fn = loss_fns[loss]
         self.model = None
         self.alpha = alpha
-        self.lambda_ = labmda_
+        self.lambda_ = lambda_
         if l2_ratio > 1 or l2_ratio < 0:
             raise ValueError("l2_ratio should be in  range [0, 1]")
         self.l2_ratio = l2_ratio
@@ -374,58 +378,110 @@ class _CoDeR(BaseEstimator, ClassifierMixin):
         self.x = None
         self.binary_cls = False
         if loss == "logits":
-            self._lb = LabelBinarizer(pos_label=1, neg_label=-1)
-        else:
             self._lb = LabelBinarizer(pos_label=1, neg_label=0)
+        else:
+            self._lb = LabelBinarizer(pos_label=1, neg_label=-1)
+        self.coef = None
+        # self.kernel_transform = KernelCenterer()
 
     def fit(self, x, y, covariates):
         self._lb.fit(y)
-        x = torch.tensor(x)
-        krnl_x = torch.tensor(pairwise_kernels(x, metric=self.kernel, filter_params=True, **self.kernel_kwargs))
+        x = torch.as_tensor(x)
+        y = torch.as_tensor(y)
+        # krnl_x = pairwise_kernels(x, metric=self.kernel, filter_params=True, **self.kernel_kwargs)
+        # krnl_x = torch.tensor(self.kernel_transform.fit_transform(krnl_x) , dtype=torch.float)
+        krnl_x = torch.as_tensor(
+            pairwise_kernels(x.detach().numpy(), metric=self.kernel, filter_params=True, **self.kernel_kwargs),
+            dtype=torch.float,
+        )
         n_samples = x.shape[0]
-        n_features = krnl_x.shape[1]
+        # n_features = krnl_x.shape[1]
+        n_classes = torch.unique(y).shape[0]
         n_labeled = y.shape[0]
-        if self._lb.y_type_ == "binary":
-            n_classes = 1
-            if self.loss in ["logits", "hinge"]:
-                self.pred_loss_fn = self.pred_loss_fn[0]
-        else:
-            n_classes = self._lb.classes_.shape[0]
-            if self.loss in ["logits", "hinge"]:
-                self.pred_loss_fn = self.pred_loss_fn[1]
-        if self.loss == "logits":
-            y = torch.tensor(y, dtype=torch.long)
-        else:
-            y = self._lb.transform(y)
-            y = torch.tensor(y, dtype=torch.float)
+        unit_mat = torch.eye(n_samples)
+        ctr_mat = unit_mat - 1.0 / n_samples * torch.ones((n_samples, n_samples))
+        mat_j = torch.zeros((n_samples, n_samples))
+        mat_j[:n_labeled, :n_labeled] = torch.eye(n_labeled)
 
-        self.model = nn.Linear(n_features, n_classes)
-
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
-
-        covariates = torch.tensor(covariates).float()
+        covariates = torch.as_tensor(covariates, dtype=torch.float)
         krnl_cov = torch.mm(covariates, covariates.T)
 
-        for i in range(self.max_iter):
-            out = self.model(krnl_x)
-            pred_loss = self.pred_loss_fn(out[:n_labeled], y)
-            out_mat = out.view(n_samples, n_classes)
-            krnl_out = torch.mm(out_mat, out_mat.T)
-            code_loss = losses.hsic(krnl_out, krnl_cov, self.device)
-            reg_loss = self.l2_ratio * torch.norm(self.model.weight, 2) + self.l1_ratio * torch.norm(
-                self.model.weight, 1
-            )
-            ovr_loss = pred_loss + self.lambda_ * code_loss + self.alpha * reg_loss
+        if n_classes == 2:
+            mat_y = torch.zeros((n_samples, 1))
+        else:
+            mat_y = torch.zeros((n_samples, n_classes))
+        mat_y[:n_labeled, :] = torch.as_tensor(self._lb.fit_transform(y))
+        mat_y = torch.as_tensor(mat_y)
 
-            self.optimizer.zero_grad()
-            ovr_loss.backward()
-            self.optimizer.step()
+        mat_q = torch.mm(mat_j, krnl_x) + self.alpha * n_labeled * unit_mat
+        mat_q += self.lambda_ * n_labeled * multi_dot((ctr_mat, krnl_cov, ctr_mat, krnl_x)) / (n_samples ** 2)
+        self.coef = torch.mm(torch.linalg.inv(mat_q), mat_y)
 
-            if (i + 1) % 10 == 0:
-                self.losses["ovr"].append(ovr_loss.item())
-                self.losses["pred"].append(pred_loss.item())
-                self.losses["code"].append(code_loss.item())
-                self.losses["reg"].append(reg_loss.item())
+        # if self._lb.y_type_ == "binary":
+        #     n_classes = 1
+        #     if self.loss in ["logits", "hinge"]:
+        #         self.pred_loss_fn = self.pred_loss_fn[0]
+        # else:
+        #     n_classes = self._lb.classes_.shape[0]
+        #     if self.loss in ["logits", "hinge"]:
+        #         self.pred_loss_fn = self.pred_loss_fn[1]
+        # if self.loss == "logits" and self._lb.y_type_ == "multiclass":
+        #     y = torch.as_tensor(y, dtype=torch.long)
+        # else:
+        #     y = self._lb.transform(y)
+        #     y = torch.as_tensor(y, dtype=torch.float)
+
+        # self.model = nn.Linear(n_features, n_classes)
+
+        # # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+        # self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.lr, momentum=0.9, nesterov=True)
+        # # scheduler = StepLR(self.optimizer, step_size=100, gamma=0.5)
+        # scheduler = ReduceLROnPlateau(self.optimizer, 'min', factor=0.5, min_lr=self.lr * 0.001)
+
+        # covariates = torch.as_tensor(covariates, dtype=torch.float)
+        # # krnl_cov = torch.mm(covariates, covariates.T)
+
+        # # dataset = TensorDataset((krnl_x, y, krnl_cov))
+        # dataset = TensorDataset(krnl_x, y, covariates)
+        # loader = DataLoader(dataset, batch_size=100)
+
+        # for epoch in range(self.max_iter):
+        #     for i, data in enumerate(loader, 0):
+        #         kx_, y_, z_ = data
+        #         # out = self.model(krnl_x)
+        #         # pred_loss = self.pred_loss_fn(out[:n_labeled], y)
+        #         # out_mat = out.view(n_samples, n_classes)
+        #         # krnl_out = torch.mm(out_mat, out_mat.T)
+        #         # code_loss = losses.hsic(krnl_out, krnl_cov, self.device)
+        #         # reg_loss = self.l2_ratio * torch.norm(self.model.weight, 2) + self.l1_ratio * torch.norm(
+        #         #     self.model.weight, 1
+        #         # )
+        #         # ovr_loss = pred_loss + self.lambda_ * code_loss + self.alpha * reg_loss
+        #         # # ovr_loss = pred_loss + self.lambda_ * code_loss
+        #         # self.optimizer.zero_grad()
+        #         # ovr_loss.backward()
+        #         # self.optimizer.step()
+        #         # scheduler.step(ovr_loss)
+        #         out = self.model(kx_)
+        #         pred_loss = self.pred_loss_fn(out, y_)
+        #         out_mat = out.view(kx_.shape[0], n_classes)
+        #         krnl_out = torch.mm(out_mat, out_mat.T)
+        #         code_loss = losses.hsic(krnl_out, torch.mm(z_, z_.T), self.device)
+        #         reg_loss = self.l2_ratio * torch.norm(self.model.weight, 2) + self.l1_ratio * torch.norm(
+        #             self.model.weight, 1
+        #         )
+        #         ovr_loss = pred_loss + self.lambda_ * code_loss + self.alpha * reg_loss
+        #         # ovr_loss = pred_loss + self.lambda_ * code_loss
+        #         self.optimizer.zero_grad(set_to_none=True)
+        #         ovr_loss.backward()
+        #         self.optimizer.step()
+        #     scheduler.step(ovr_loss)
+
+        #     if (epoch + 1) % 10 == 0:
+        #         self.losses["ovr"].append(ovr_loss.item())
+        #         self.losses["pred"].append(pred_loss.item())
+        #         self.losses["code"].append(code_loss.item())
+        #         self.losses["reg"].append(reg_loss.item())
 
         self.x = x
 
@@ -439,7 +495,14 @@ class _CoDeR(BaseEstimator, ClassifierMixin):
         return pred
 
     def decision_function(self, x):
-        x = torch.tensor(x)
-        krnl_x = torch.tensor(pairwise_kernels(x, self.x, metric=self.kernel, filter_params=True, **self.kernel_kwargs))
+        x = torch.as_tensor(x)
+        # krnl_x = pairwise_kernels(x, self.x, metric=self.kernel, filter_params=True,
+        #                           **self.kernel_kwargs)
+        # krnl_x = torch.tensor(self.kernel_transform.transform(krnl_x), dtype=torch.float)
+        krnl_x = torch.as_tensor(
+            pairwise_kernels(x.detach().numpy(), self.x.detach().numpy(), metric=self.kernel, filter_params=True,
+                             **self.kernel_kwargs), dtype=torch.float
+        )
 
-        return self.model(krnl_x)
+        # return self.model(krnl_x)
+        return torch.mm(krnl_x, self.coef)

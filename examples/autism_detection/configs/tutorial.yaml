@@ -1,4 +1,9 @@
-DATASET:
-  ATLAS: "aal"
 MODEL:
+  LOSS: "logits"
   KERNEL: "linear"
+  ALPHA: 1.0
+  LAMBDA_: 100.0
+  LR: 1e-05
+DATASET:
+  ATLAS: "rois_cc200"
+  SITE_IDS: ['NYU', "UM_1", "UCLA_1", "USM"]
