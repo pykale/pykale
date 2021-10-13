@@ -14,7 +14,7 @@ requirements = [
     "ipykernel",
     "ipython",
     "matplotlib",
-    "nilearn"
+    "nilearn",
     "numpy>=1.18.0",
     "Pillow",
     "PyTDC",
