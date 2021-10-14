@@ -72,8 +72,8 @@ def main():
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
-        # model, train_params = get_model(cfg, dataset, dict_num_classes)
-        model = get_model(cfg, dataset, dict_num_classes)
+        model, train_params = get_model(cfg, dataset, dict_num_classes)
+        # model = get_model(cfg, dataset, dict_num_classes)
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
             # dirpath=full_checkpoint_dir,
