@@ -14,7 +14,7 @@ This example demonstrates the multilinear PCA-based machine learning pipeline fo
 * Algorithms: MPCA + Linear SVM / Kernel SVM / Logistic Regression,...
 * Example: Classification using SVM
 
-`python main.py --cfg configs/turorial_svc.yaml`
+`python main.py --cfg configs/tutorial_svc.yaml`
 
 ## 3. Related `kale` API
 
