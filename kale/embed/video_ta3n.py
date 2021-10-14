@@ -28,7 +28,7 @@ class TA3NSpatialBlock(nn.Module):
         self.std = 0.001
         self.relu = nn.ReLU(inplace=True)
         # TODO: remove _i later
-        self.dp_i = nn.Dropout(p=dropout_rate)
+        self.dp = nn.Dropout(p=dropout_rate)
         # self.dropout_i = nn.Dropout(p=self.dropout_rate_i)
         # self.dropout_v = nn.Dropout(p=self.dropout_rate_v)
 
@@ -61,16 +61,16 @@ class TA3NSpatialBlock(nn.Module):
         x = input.view(-1, input.size()[-1])
         x = self.fc1(x)
         x = self.relu(x)
-        x = self.dropout_i(x)
+        x = self.dp(x)
 
         if self.add_fc > 1:
             x = self.fc2(x)
             x = self.relu(x)
-            x = self.dropout_i(x)
+            x = self.dp(x)
         if self.add_fc > 2:
             x = self.fc3(x)
             x = self.relu(x)
-            x = self.dropout_i(x)
+            x = self.dp(x)
         return x
 
 
