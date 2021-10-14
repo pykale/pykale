@@ -46,3 +46,7 @@ tb_logs/*
 
 # Jupyter Notebook Checkpoints
 *-checkpoint.ipynb
+
+# Examples
+# cmri_mpca - the saved images
+examples/cmri_mpca/Runtime_Images
