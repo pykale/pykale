@@ -8,6 +8,7 @@ European Heart Journal-Cardiovascular Imaging. https://academic.oup.com/ehjcimag
 """
 import argparse
 import os
+from PIL.Image import SAVE
 
 import numpy as np
 import pandas as pd
@@ -21,10 +22,14 @@ from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, r
 from kale.utils.download import download_file_by_url
 
 
+
 def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="Machine learning pipeline for PAH diagnosis")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
+    parser.add_argument('--save_im', required=True, help="save images", default=False,
+                                type=lambda x: (str(x).lower() in ['true','1', 'yes']))
+
     args = parser.parse_args()
     return args
 
@@ -38,6 +43,9 @@ def main():
     cfg.freeze()
     print(cfg)
 
+    SAVE_IMAGES = args.save_im
+    print(f"Save Images: {SAVE_IMAGES}")
+    
     # ---- setup dataset ----
     base_dir = cfg.DATASET.BASE_DIR
     file_format = cfg.DATASET.FILE_FORAMT
@@ -56,26 +64,31 @@ def main():
     y[np.where(y != 0)] = 1  # convert to binary classification problem, i.e. no PH vs PAH
 
     # plot the first phase of images
-    visualize.plot_multi_images(
-        images[:, 0, ...], marker_locs=landmarks, im_kwargs=dict(cfg.IM_KWARGS), marker_kwargs=dict(cfg.MARKER_KWARGS)
-    ).show()
+    if SAVE_IMAGES:
+        visualize.plot_multi_images(
+            images[:, 0, ...], marker_locs=landmarks, im_kwargs=dict(cfg.IM_KWARGS), marker_kwargs=dict(cfg.MARKER_KWARGS)
+        ).savefig("0)first_phase.png")
 
     # ---- data pre-processing ----
     # ----- image registration -----
     img_reg, max_dist = reg_img_stack(images.copy(), landmarks)
-    visualize.plot_multi_images(img_reg[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).show()
+    if SAVE_IMAGES:
+        visualize.plot_multi_images(img_reg[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig("1)image_registration")
 
     # ----- masking -----
     img_masked = mask_img_stack(img_reg.copy(), mask[0, 0, ...])
-    visualize.plot_multi_images(img_masked[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).show()
+    if SAVE_IMAGES:
+        visualize.plot_multi_images(img_masked[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig("2)masking")
 
     # ----- resize -----
     img_rescaled = rescale_img_stack(img_masked.copy(), scale=1 / cfg.PROC.SCALE)
-    visualize.plot_multi_images(img_rescaled[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).show()
+    if SAVE_IMAGES:
+        visualize.plot_multi_images(img_rescaled[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig("3)resize")
 
     # ----- normalization -----
     img_norm = normalize_img_stack(img_rescaled.copy())
-    visualize.plot_multi_images(img_norm[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).show()
+    if SAVE_IMAGES:
+        visualize.plot_multi_images(img_norm[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig("4)normalize")
 
     # ---- evaluating machine learning pipeline ----
     x = img_norm.copy()
@@ -94,12 +107,13 @@ def main():
     weights = rescale_img_stack(weights, cfg.PROC.SCALE)  # rescale weights to original shape
     weights = mask_img_stack(weights, mask[0, 0, ...])  # masking weights
     top_weights = model_weights.select_top_weight(weights, select_ratio=0.02)  # select top 2% weights
-    visualize.plot_weights(
-        top_weights[0][0],
-        background_img=images[0][0],
-        im_kwargs=dict(cfg.IM_KWARGS),
-        marker_kwargs=dict(cfg.WEIGHT_KWARGS),
-    ).show()
+    if SAVE_IMAGES:
+        visualize.plot_weights(
+            top_weights[0][0],
+            background_img=images[0][0],
+            im_kwargs=dict(cfg.IM_KWARGS),
+            marker_kwargs=dict(cfg.WEIGHT_KWARGS),
+        ).savefig("5)weights")
 
 
 if __name__ == "__main__":
