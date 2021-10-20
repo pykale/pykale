@@ -6,7 +6,7 @@ from kale.embed.video_i3d import InceptionI3d
 # from kale.embed.video_selayer import SELayer4feat
 # from kale.embed.video_transformer import TransformerBlock
 from kale.embed.video_trn import TRNRelationModule, TRNRelationModuleMultiScale
-from kale.predict.class_domain_nets import ClassNetTA3NFrame, ClassNetTA3NVideo, DomainNetTA3N
+from kale.predict.class_domain_nets import ClassNetTA3NFrame, ClassNetTA3NVideo, DomainNetTA3NFrame, DomainNetTA3NVideo
 
 # from torchvision.models.utils import load_state_dict_from_url
 
@@ -214,8 +214,8 @@ def get_classnet_ta3n(input_size_frame, input_size_video, dict_n_class, dropout_
 
 
 def get_domainnet_ta3n(input_size_frame, input_size_video):
-    frame_model = DomainNetTA3N(input_size=input_size_frame)
-    video_model = DomainNetTA3N(input_size=input_size_frame)
+    frame_model = DomainNetTA3NFrame(input_size=input_size_frame)
+    video_model = DomainNetTA3NVideo(input_size=input_size_video)
     return {"frame-level": frame_model, "video-level": video_model}
 
 

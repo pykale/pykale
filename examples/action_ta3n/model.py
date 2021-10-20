@@ -151,7 +151,7 @@ def get_model(cfg, dataset, dict_num_classes):
         cfg.DATASET.FRAME_AGGREGATION,
         cfg.DATASET.NUM_SEGMENTS,
         input_size=1024,
-        output_size=256,
+        output_size=512,
     )
 
     classifier_network = get_classnet_ta3n(

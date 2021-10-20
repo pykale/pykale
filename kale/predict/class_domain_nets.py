@@ -277,9 +277,9 @@ class DomainNetVideo(nn.Module):
 #         return x
 
 
-class DomainNetTA3N(nn.Module):
+class DomainNetTA3NFrame(nn.Module):
     def __init__(self, input_size=512, output_size=512):
-        super(DomainNetTA3N, self).__init__()
+        super(DomainNetTA3NFrame, self).__init__()
         self.std = 0.001
 
         self.fc1 = nn.Linear(input_size, output_size)
@@ -297,24 +297,24 @@ class DomainNetTA3N(nn.Module):
         return x
 
 
-# class DomainNetTA3NVideo(nn.Module):
-#     def __init__(self, input_size=256, output_size=256):
-#         super(TA3NVideoDomainNet, self).__init__()
-#         self.std = 0.001
-#
-#         self.fc1 = nn.Linear(input_size, output_size)
-#         normal_(self.fc1.weight, 0, self.std)
-#         constant_(self.fc1.bias, 0)
-#         self.relu = nn.ReLU(inplace=True)
-#         self.fc2 = nn.Linear(output_size, 2)
-#         normal_(self.fc2.weight, 0, self.std)
-#         constant_(self.fc2.bias, 0)
-#
-#     def forward(self, input):
-#         x = self.fc1(input)
-#         x = self.relu(x)
-#         x = self.fc2(x)
-#         return x
+class DomainNetTA3NVideo(nn.Module):
+    def __init__(self, input_size=256, output_size=256):
+        super(DomainNetTA3NVideo, self).__init__()
+        self.std = 0.001
+
+        self.fc1 = nn.Linear(input_size, output_size)
+        normal_(self.fc1.weight, 0, self.std)
+        constant_(self.fc1.bias, 0)
+        self.relu = nn.ReLU(inplace=True)
+        self.fc2 = nn.Linear(output_size, 2)
+        normal_(self.fc2.weight, 0, self.std)
+        constant_(self.fc2.bias, 0)
+
+    def forward(self, input):
+        x = self.fc1(input)
+        x = self.relu(x)
+        x = self.fc2(x)
+        return x
 
 
 class ClassNetTA3NFrame(nn.Module):
