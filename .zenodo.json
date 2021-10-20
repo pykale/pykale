@@ -2,20 +2,60 @@
     "$schema": "https://zenodo.org/schemas/records/record-v1.0.0.json",
     "creators": [
         {
-            "orcid": "?",
             "affiliation": "University of Sheffield",
             "name": "Haiping Lu"
         },
         {
-            "orcid": "?",
             "affiliation": "University of Sheffield",
             "name": "Xianyuan Liu"
+        },
+        {
+            "orcid": "0000-0002-1353-1404",
+            "affiliation": "University of Sheffield",
+            "name": "Robert Turner"
+        },
+        {
+            "affiliation": "University of Sheffield",
+            "name": "Peizhen Bai"
+        },
+        {
+            "affiliation": "University of Sheffield",
+            "name": "Raivo Koot"
+        },
+        {
+            "affiliation": "University of Sheffield",
+            "name": "Shuo Zhou"
+        },
+        {
+            "affiliation": "Indian Institute of Technology, Delhi",
+            "name": "Mustafa Chasmai"
+        },
+        {
+            "affiliation": "Indian Institute of Technology, Delhi",
+            "name": "Lawrence Schobs"
+        },
+        {
+            "name": "Kennedy"
+        },
+        {
+            "affiliation": "University of Sheffield",
+            "name": "Jakamar"
+        },
+        {
+            "name": "David Jones"
         }
+
     ],
 
-    "license": "MIT",
+    "license": "https://opensource.org/licenses/MIT",
 
     "title": "PyKale: Knowledge-Aware Machine Learning from Multiple Sources in Python",
+
+    "description": "PyKale is a library in the PyTorch ecosystem aiming to make machine learning more accessible to interdisciplinary research by bridging gaps between data, software, and end users. Both machine learning experts and end users can do better research with our accessible, scalable, and sustainable design, guided by green machine learning principles. PyKale has a unified pipeline-based API and focuses on multimodal learning and transfer learning for graphs, images, texts, and videos at the moment, with supporting models on deep learning and dimensionality reduction. <br/> PyKale enforces standardization and minimalism, via green machine learning concepts of reducing repetitions and redundancy, reusing existing resources, and recycling learning models across areas. PyKale will enable and accelerate interdisciplinary, knowledge-aware machine learning research for graphs, images, texts, and videos in applications including bioinformatics, graph analysis, image/video recognition, and medical imaging, with an overarching theme of leveraging knowledge from multiple sources for accurate and interpretable prediction.",
+
+    "resource_type": {
+        "type": "software"
+    },
 
     "related_identifiers": [
         {
