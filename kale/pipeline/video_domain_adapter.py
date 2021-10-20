@@ -1756,6 +1756,14 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         # self.all_feat_spatial = self.feat["all"]["spatial"]
         # self.all_feat_temporal = self.feat["all"]["temporal"]
 
+        self.domain_classifier_frame = critic["frame-level"]
+        self.domain_classifier_video = critic["video-level"]
+
+        self.classifier_frame_verb = task_classifier["frame-level"]["verb"]
+        self.classifier_frame_noun = task_classifier["frame-level"]["noun"]
+        self.classifier_video_verb = task_classifier["video-level"]["verb"]
+        self.classifier_video_noun = task_classifier["video-level"]["noun"]
+
         self.criterion = torch.nn.CrossEntropyLoss()
         self.criterion_domain = torch.nn.CrossEntropyLoss()
 
@@ -1924,12 +1932,12 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         constant_(self.fc_feature_domain.bias, 0)
 
         # 4. classifiers (frame-level)
-        self.fc_classifier_source_verb = nn.Linear(feat_frame_dim, num_class["verb"])
-        self.fc_classifier_source_noun = nn.Linear(feat_frame_dim, num_class["noun"])
-        normal_(self.fc_classifier_source_verb.weight, 0, std)
-        constant_(self.fc_classifier_source_verb.bias, 0)
-        normal_(self.fc_classifier_source_noun.weight, 0, std)
-        constant_(self.fc_classifier_source_noun.bias, 0)
+        # self.fc_classifier_source_verb = nn.Linear(feat_frame_dim, num_class["verb"])
+        # self.fc_classifier_source_noun = nn.Linear(feat_frame_dim, num_class["noun"])
+        # normal_(self.fc_classifier_source_verb.weight, 0, std)
+        # constant_(self.fc_classifier_source_verb.bias, 0)
+        # normal_(self.fc_classifier_source_noun.weight, 0, std)
+        # constant_(self.fc_classifier_source_noun.bias, 0)
 
         self.fc_classifier_domain = nn.Linear(feat_frame_dim, 2)
         normal_(self.fc_classifier_domain.weight, 0, std)
@@ -2750,6 +2758,7 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         if self.add_fc < 1:
             raise ValueError("add at least one fc layer")
 
+        # TODO: only rgb now add audio & flow later
         feat_fc_source = self.rgb_feat_spatial(feat_base_source)
         feat_fc_target = self.rgb_feat_spatial(feat_base_target)
 
@@ -2759,26 +2768,26 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         #     if self.share_params == "N"
         #     else self.fc_feature_shared_source(feat_base_target)
         # )
-        # log_output("feat_fc_source: ", feat_fc_source)
-        # log_output("feat_fc_target: ", feat_fc_target)
-        # adaptive BN
+        # # log_output("feat_fc_source: ", feat_fc_source)
+        # # log_output("feat_fc_target: ", feat_fc_target)
+        # # adaptive BN
         # if self.use_bn is not None:
         #     feat_fc_source, feat_fc_target = self.domainAlign(feat_fc_source, feat_fc_target, is_train, 'shared',
         #                                                       self.alpha.item(), num_segments, 1)
-
+        #
         # feat_fc_source = self.relu(feat_fc_source)
         # feat_fc_target = self.relu(feat_fc_target)
         # feat_fc_source = self.dropout_i(feat_fc_source)
         # feat_fc_target = self.dropout_i(feat_fc_target)
-        # log_output("feat_fc_source: ", feat_fc_source)
-        # log_output("feat_fc_target: ", feat_fc_target)
-
-        # feat_fc = self.dropout_i(feat_fc)
+        # # log_output("feat_fc_source: ", feat_fc_source)
+        # # log_output("feat_fc_target: ", feat_fc_target)
+        #
+        # # feat_fc = self.dropout_i(feat_fc)
         # feat_all_source.append(
         #     feat_fc_source.view((batch_source, num_segments) + feat_fc_source.size()[-1:])
         # )  # reshape ==> 1st dim is the batch size
         # feat_all_target.append(feat_fc_target.view((batch_target, num_segments) + feat_fc_target.size()[-1:]))
-
+        #
         # if self.add_fc > 1:
         #     feat_fc_source = self.fc_feature_shared_2_source(feat_fc_source)
         #     feat_fc_target = self.fc_feature_shared_2_target(
@@ -2808,8 +2817,13 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         #     feat_all_target.append(feat_fc_target.view((batch_target, num_segments) + feat_fc_target.size()[-1:]))
 
         # === adversarial branch (frame-level) ===#
+
+        # TODO: only rgb now add audio & flow later
         pred_fc_domain_frame_source = self.domain_classifier_frame(feat_fc_source, beta)
         pred_fc_domain_frame_target = self.domain_classifier_frame(feat_fc_target, beta)
+
+        # pred_fc_domain_frame_source = self.domain_classifier_frame(feat_fc_source, beta)
+        # pred_fc_domain_frame_target = self.domain_classifier_frame(feat_fc_target, beta)
         # log_output("pred_fc_domain_frame_source: ", pred_fc_domain_frame_source)
         # log_output("pred_fc_domain_frame_target: ", pred_fc_domain_frame_target)
 
@@ -2829,17 +2843,26 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         # === source layers (frame-level) ===#
 
         pred_fc_source = (
-            self.fc_classifier_source_verb(feat_fc_source),
-            self.fc_classifier_source_noun(feat_fc_source),
+            self.classifier_frame_verb(feat_fc_source),
+            self.classifier_frame_noun(feat_fc_source),
         )
         pred_fc_target = (
-            self.fc_classifier_target_verb(feat_fc_target)
-            if self.share_params == "N"
-            else self.fc_classifier_source_verb(feat_fc_target),
-            self.fc_classifier_target_noun(feat_fc_target)
-            if self.share_params == "N"
-            else self.fc_classifier_source_noun(feat_fc_target),
+            self.classifier_frame_verb(feat_fc_target),
+            self.classifier_frame_noun(feat_fc_target),
         )
+
+        # pred_fc_source = (
+        #     self.fc_classifier_source_verb(feat_fc_source),
+        #     self.fc_classifier_source_noun(feat_fc_source),
+        # )
+        # pred_fc_target = (
+        #     self.fc_classifier_target_verb(feat_fc_target)
+        #     if self.share_params == "N"
+        #     else self.fc_classifier_source_verb(feat_fc_target),
+        #     self.fc_classifier_target_noun(feat_fc_target)
+        #     if self.share_params == "N"
+        #     else self.fc_classifier_source_noun(feat_fc_target),
+        # )
 
         # log_output("pred_fc_source: ", pred_fc_source)
         # log_output("pred_fc_target: ", pred_fc_target)
