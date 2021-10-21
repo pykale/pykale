@@ -79,7 +79,7 @@ See [contributing guidelines](https://github.com/pykale/pykale/blob/main/.github
 
 ### The Team
 
-PyKale is primarily maintained by [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/), [Robert Turner](https://github.com/bobturneruk), [Shuo Zhou](https://sz144.github.io/), [Xianyuan Liu](https://github.com/XianyuanLiu), and [Peizhen Bai](https://github.com/pz-white), with contributions from many other [contributors](https://github.com/pykale/pykale/graphs/contributors).
+PyKale is maintained by [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/), [Robert Turner](https://github.com/bobturneruk), [Shuo Zhou](https://sz144.github.io/), [Xianyuan Liu](https://github.com/XianyuanLiu), and [Peizhen Bai](https://github.com/pz-white), with contributions from many other [contributors](https://github.com/pykale/pykale/graphs/contributors).
 
 ### Citation
 
