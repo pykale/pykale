@@ -536,7 +536,7 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
         val_split_ratio (float, optional): Split ratio for validation set. Defaults to 0.1.
         test_split_ratio (float, optional): Split ratio for test set. Defaults to 0.2.
         random_state (int, optional): Random state for generator. Defaults to 1.
-        test_on_all (bool optional): Whether test model on all target. Defaults to False.
+        test_on_all (bool, optional): Whether test model on all target. Defaults to False.
     """
 
     def __init__(
