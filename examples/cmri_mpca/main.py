@@ -33,10 +33,6 @@ def arg_parse():
 def main():
     args = arg_parse()
 
-    # initialise folder to store images
-    if not os.path.exists("Runtime_Images"):
-        os.makedirs("Runtime_Images")
-
     # ---- setup configs ----
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
@@ -45,6 +41,13 @@ def main():
 
     SAVE_IMAGES = cfg.OUTPUT.SAVE_IMAGES
     print(f"Save Images: {SAVE_IMAGES}")
+
+    # ---- initialise folder to store images ----
+    SAVE_IMAGES_LOCATION = cfg.OUTPUT.ROOT
+    print(f"Save Images: {SAVE_IMAGES_LOCATION}")
+
+    if not os.path.exists(SAVE_IMAGES_LOCATION):
+        os.makedirs(SAVE_IMAGES_LOCATION)
 
     # ---- setup dataset ----
     base_dir = cfg.DATASET.BASE_DIR
@@ -70,35 +73,35 @@ def main():
             marker_locs=landmarks,
             im_kwargs=dict(cfg.IM_KWARGS),
             marker_kwargs=dict(cfg.MARKER_KWARGS),
-        ).savefig("Runtime_Images/0)first_phase.png")
+        ).savefig(str(SAVE_IMAGES_LOCATION) + "/0)first_phase.png")
 
     # ---- data pre-processing ----
     # ----- image registration -----
     img_reg, max_dist = reg_img_stack(images.copy(), landmarks)
     if SAVE_IMAGES:
         visualize.plot_multi_images(img_reg[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
-            "Runtime_Images/1)image_registration"
+            str(SAVE_IMAGES_LOCATION) + "/1)image_registration"
         )
 
     # ----- masking -----
     img_masked = mask_img_stack(img_reg.copy(), mask[0, 0, ...])
     if SAVE_IMAGES:
         visualize.plot_multi_images(img_masked[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
-            "Runtime_Images/2)masking"
+            str(SAVE_IMAGES_LOCATION) + "/2)masking"
         )
 
     # ----- resize -----
     img_rescaled = rescale_img_stack(img_masked.copy(), scale=1 / cfg.PROC.SCALE)
     if SAVE_IMAGES:
         visualize.plot_multi_images(img_rescaled[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
-            "Runtime_Images/3)resize"
+            str(SAVE_IMAGES_LOCATION) + "/3)resize"
         )
 
     # ----- normalization -----
     img_norm = normalize_img_stack(img_rescaled.copy())
     if SAVE_IMAGES:
         visualize.plot_multi_images(img_norm[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
-            "Runtime_Images/4)normalize"
+            str(SAVE_IMAGES_LOCATION) + "/4)normalize"
         )
 
     # ---- evaluating machine learning pipeline ----
@@ -124,7 +127,7 @@ def main():
             background_img=images[0][0],
             im_kwargs=dict(cfg.IM_KWARGS),
             marker_kwargs=dict(cfg.WEIGHT_KWARGS),
-        ).savefig("Runtime_Images/5)weights")
+        ).savefig(str(SAVE_IMAGES_LOCATION) + "/5)weights")
 
 
 if __name__ == "__main__":

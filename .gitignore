@@ -49,4 +49,4 @@ tb_logs/*
 
 # Examples
 # cmri_mpca - the saved images
-examples/cmri_mpca/Runtime_Images
+examples/cmri_mpca/outputs
