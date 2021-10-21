@@ -1,3 +1,22 @@
+# Version  0.1.0rc4
+
+#### Code Improvements
+
+* [#218](https://github.com/pykale/pykale/pull/218): Change logger in digits and action examples
+* [#219](https://github.com/pykale/pykale/pull/219): Update three notebooks
+* [#222](https://github.com/pykale/pykale/pull/222): Add multi source example
+* [#224](https://github.com/pykale/pykale/pull/224): Merge all image accesses to a unique API
+
+#### Tests
+
+* [#221](https://github.com/pykale/pykale/pull/221): Add notebook "smoke tests" to CI
+
+#### Documentation Updates
+
+* [#225](https://github.com/pykale/pykale/pull/225): Update readme & fix colab imgaug
+* [#229](https://github.com/pykale/pykale/pull/229): Add DOI to readme
+* [#235](https://github.com/pykale/pykale/pull/235): Fix typo and hyperlink
+
 # Version  0.1.0rc3
 
 #### New Features

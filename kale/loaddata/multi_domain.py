@@ -536,10 +536,11 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
         val_split_ratio (float, optional): Split ratio for validation set. Defaults to 0.1.
         test_split_ratio (float, optional): Split ratio for test set. Defaults to 0.2.
         random_state (int, optional): Random state for generator. Defaults to 1.
+        test_on_all (bool, optional): Whether test model on all target. Defaults to False.
     """
 
     def __init__(
-        self, data_access, val_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1,
+        self, data_access, val_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1, test_on_all=False
     ):
         self.domain_to_idx = data_access.domain_to_idx
         self.n_domains = len(data_access.domain_to_idx)
@@ -550,17 +551,24 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
         self._sampling_config = FixedSeedSamplingConfig(seed=random_state, balance_domain=True)
         self._loader = MultiDataLoader
         self._random_state = random_state
+        self.test_on_all = test_on_all
 
     def prepare_data_loaders(self):
         splits = ["test", "valid", "train"]
         self._sample_by_split["test"] = self.data_access.get_test()
         if self._sample_by_split["test"] is None:
             # split test, valid, and train set if the data access no train test splits
-            subset_idx = _domain_stratified_split(
-                self.data_access.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio]
-            )
-            for i in range(len(splits)):
-                self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
+            if self.test_on_all:
+                subset_idx = _domain_stratified_split(self.data_access.domain_labels, 2, [self._val_split_ratio])
+                self._sample_by_split["valid"] = torch.utils.data.Subset(self.data_access, subset_idx[0])
+                self._sample_by_split["train"] = torch.utils.data.Subset(self.data_access, subset_idx[1])
+                self._sample_by_split["test"] = torch.utils.data.Subset(self.data_access, np.concatenate(subset_idx))
+            else:
+                subset_idx = _domain_stratified_split(
+                    self.data_access.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio]
+                )
+                for i in range(len(splits)):
+                    self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
         else:
             # use original data split if get_test() is not none
             self._sample_by_split["valid"], self._sample_by_split["train"] = self.data_access.get_train_val(

@@ -1,0 +1,84 @@
+{
+    "$schema": "https://zenodo.org/schemas/records/record-v1.0.0.json",
+
+    "title": "PyKale: Knowledge-Aware Machine Learning from Multiple Sources in Python",
+
+    "description": "PyKale is a library in the PyTorch ecosystem aiming to make machine learning more accessible to interdisciplinary research by bridging gaps between data, software, and end users. Both machine learning experts and end users can do better research with our accessible, scalable, and sustainable design, guided by green machine learning principles. PyKale has a unified pipeline-based API and focuses on multimodal learning and transfer learning for graphs, images, texts, and videos at the moment, with supporting models on deep learning and dimensionality reduction. <br/> PyKale enforces standardization and minimalism, via green machine learning concepts of reducing repetitions and redundancy, reusing existing resources, and recycling learning models across areas. PyKale will enable and accelerate interdisciplinary, knowledge-aware machine learning research for graphs, images, texts, and videos in applications including bioinformatics, graph analysis, image/video recognition, and medical imaging, with an overarching theme of leveraging knowledge from multiple sources for accurate and interpretable prediction.",
+
+    "creators": [
+        {
+            "orcid": "0000-0002-0349-2181",
+            "affiliation": "University of Sheffield",
+            "name": "Haiping Lu"
+        },
+        {
+            "affiliation": "University of Chinese Academy of Sciences",
+            "name": "Xianyuan Liu"
+        },
+        {
+            "orcid": "0000-0002-1353-1404",
+            "affiliation": "University of Sheffield",
+            "name": "Robert Turner"
+        },
+        {
+            "orcid": "0000-0003-3027-5518",
+            "affiliation": "University of Sheffield",
+            "name": "Peizhen Bai"
+        },
+        {
+            "affiliation": "University of Sheffield",
+            "name": "Raivo Koot"
+        },
+        {
+            "orcid": "0000-0002-8069-2814",
+            "affiliation": "University of Sheffield",
+            "name": "Shuo Zhou"
+        },
+        {
+            "orcid": "0000-0001-8694-3453",
+            "affiliation": "Indian Institute of Technology, Delhi",
+            "name": "Mustafa Chasmai"
+        },
+        {
+            "affiliation": "University of Sheffield",
+            "name": "Lawrence Schobs"
+        },
+        {
+            "affiliation": "University College London",
+            "name": "Kennedy Dike"
+        },
+        {
+            "affiliation": "University of Sheffield",
+            "name": "Valentin Craciun"
+        },
+        {
+            "affiliation": "University of Sheffield",
+            "name": "David Jones"
+        }
+
+    ],
+
+    "license": "MIT",
+
+    "resource_type": {
+        "type": "software"
+    },
+
+    "access_right": "open",
+
+    "related_identifiers": [
+        {
+            "scheme": "arxiv",
+            "identifier": "arXiv:2106.09756",
+            "relation": "isDocumentedBy",
+            "resource_type": {
+                "type": "publication",
+                "subtype": "article"
+            }
+        }
+    ],
+
+    "keywords": ["machine learning", "pytorch", "deep learning", "multimodal learning", "transfer learning"],
+
+    "grants": [{"id":"Wellcome Trust Innovator Awards: Digital Technologies Ref 215799/Z/19/Z 'Developing a Machine Learning Tool to Improve Prognostic and Treatment Response Assessment on Cardiac MRI Data'."}]
+}
