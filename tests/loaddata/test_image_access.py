@@ -8,13 +8,14 @@ from kale.loaddata.image_access import DigitDataset, DigitDatasetAccess, get_cif
 from kale.loaddata.multi_domain import DomainsDatasetBase, MultiDomainAdapDataset, MultiDomainDatasets
 
 
-def test_office31(office_path):
+@pytest.mark.parametrize("test_on_all", [True, False])
+def test_office31(office_path, test_on_all):
     office_access = ImageAccess.get_multi_domain_images(
         "OFFICE31", office_path, download=True, return_domain_label=True
     )
     testing.assert_equal(len(office_access.class_to_idx), 31)
     testing.assert_equal(len(office_access.domain_to_idx), 3)
-    dataset = MultiDomainAdapDataset(office_access)
+    dataset = MultiDomainAdapDataset(office_access, test_on_all=test_on_all)
     dataset.prepare_data_loaders()
     domain_labels = list(dataset.domain_to_idx.values())
     for split in ["train", "valid", "test"]:
