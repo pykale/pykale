@@ -7,11 +7,12 @@
 
     "creators": [
         {
+            "orcid": "0000-0002-0349-2181",
             "affiliation": "University of Sheffield",
             "name": "Haiping Lu"
         },
         {
-            "affiliation": "University of Sheffield",
+            "affiliation": "University of Chinese Academy of Sciences",
             "name": "Xianyuan Liu"
         },
         {
@@ -28,6 +29,7 @@
             "name": "Raivo Koot"
         },
         {
+            "orcid": "0000-0002-8069-2814",
             "affiliation": "University of Sheffield",
             "name": "Shuo Zhou"
         },
@@ -36,10 +38,11 @@
             "name": "Mustafa Chasmai"
         },
         {
-            "affiliation": "Indian Institute of Technology, Delhi",
+            "affiliation": "University of Sheffield",
             "name": "Lawrence Schobs"
         },
         {
+            "affiliation": "University College London",
             "name": "Kennedy Dike"
         },
         {
@@ -47,6 +50,7 @@
             "name": "Valentin Craciun"
         },
         {
+            "affiliation": "University of Sheffield",
             "name": "David Jones"
         }
 
