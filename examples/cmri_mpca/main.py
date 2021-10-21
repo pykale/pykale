@@ -8,11 +8,11 @@ European Heart Journal-Cardiovascular Imaging. https://academic.oup.com/ehjcimag
 """
 import argparse
 import os
-from PIL.Image import SAVE
 
 import numpy as np
 import pandas as pd
 from config import get_cfg_defaults
+from PIL.Image import SAVE
 from sklearn.model_selection import cross_validate
 
 from kale.interpret import model_weights, visualize
@@ -22,13 +22,10 @@ from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, r
 from kale.utils.download import download_file_by_url
 
 
-
 def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="Machine learning pipeline for PAH diagnosis")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    parser.add_argument('--save_im', required=True, help="save images", default=False,
-                                type=lambda x: (str(x).lower() in ['true','1', 'yes']))
 
     args = parser.parse_args()
     return args
@@ -37,9 +34,9 @@ def arg_parse():
 def main():
     args = arg_parse()
 
-    #initialise folder to store images
-    if not os.path.exists('Runtime_Images'):
-        os.makedirs('Runtime_Images')
+    # initialise folder to store images
+    if not os.path.exists("Runtime_Images"):
+        os.makedirs("Runtime_Images")
 
     # ---- setup configs ----
     cfg = get_cfg_defaults()
@@ -47,9 +44,9 @@ def main():
     cfg.freeze()
     print(cfg)
 
-    SAVE_IMAGES = args.save_im
+    SAVE_IMAGES = cfg.OUTPUT.SAVE_IMAGES
     print(f"Save Images: {SAVE_IMAGES}")
-    
+
     # ---- setup dataset ----
     base_dir = cfg.DATASET.BASE_DIR
     file_format = cfg.DATASET.FILE_FORAMT
@@ -70,29 +67,40 @@ def main():
     # plot the first phase of images
     if SAVE_IMAGES:
         visualize.plot_multi_images(
-            images[:, 0, ...], marker_locs=landmarks, im_kwargs=dict(cfg.IM_KWARGS), marker_kwargs=dict(cfg.MARKER_KWARGS)
+            images[:, 0, ...],
+            marker_locs=landmarks,
+            im_kwargs=dict(cfg.IM_KWARGS),
+            marker_kwargs=dict(cfg.MARKER_KWARGS),
         ).savefig("Runtime_Images/0)first_phase.png")
 
     # ---- data pre-processing ----
     # ----- image registration -----
     img_reg, max_dist = reg_img_stack(images.copy(), landmarks)
     if SAVE_IMAGES:
-        visualize.plot_multi_images(img_reg[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig("Runtime_Images/1)image_registration")
+        visualize.plot_multi_images(img_reg[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
+            "Runtime_Images/1)image_registration"
+        )
 
     # ----- masking -----
     img_masked = mask_img_stack(img_reg.copy(), mask[0, 0, ...])
     if SAVE_IMAGES:
-        visualize.plot_multi_images(img_masked[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig("Runtime_Images/2)masking")
+        visualize.plot_multi_images(img_masked[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
+            "Runtime_Images/2)masking"
+        )
 
     # ----- resize -----
     img_rescaled = rescale_img_stack(img_masked.copy(), scale=1 / cfg.PROC.SCALE)
     if SAVE_IMAGES:
-        visualize.plot_multi_images(img_rescaled[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig("Runtime_Images/3)resize")
+        visualize.plot_multi_images(img_rescaled[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
+            "Runtime_Images/3)resize"
+        )
 
     # ----- normalization -----
     img_norm = normalize_img_stack(img_rescaled.copy())
     if SAVE_IMAGES:
-        visualize.plot_multi_images(img_norm[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig("Runtime_Images/4)normalize")
+        visualize.plot_multi_images(img_norm[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
+            "Runtime_Images/4)normalize"
+        )
 
     # ---- evaluating machine learning pipeline ----
     x = img_norm.copy()

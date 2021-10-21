@@ -54,6 +54,7 @@ _C.PIPELINE.CLASSIFIER = "linear_svc"  # ["svc", "linear_svc", "lr"]
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CN()
 _C.OUTPUT.ROOT = "./outputs"  # output_dir
+_C.OUTPUT.SAVE_IMAGES = True
 
 
 def get_cfg_defaults():
