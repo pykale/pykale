@@ -79,9 +79,7 @@ See [contributing guidelines](https://github.com/pykale/pykale/blob/main/.github
 
 ### The Team
 
-PyKale is primarily maintained by a group of researchers at the University of Sheffield: [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/), [Raivo Koot](https://github.com/RaivoKoot), [Xianyuan Liu](https://github.com/XianyuanLiu), [Shuo Zhou](https://sz144.github.io/), [Peizhen Bai](https://github.com/pz-white), and [Robert Turner](https://github.com/bobturneruk).
-
-We would like to thank our other contributors including (but not limited to) Cameron McWilliam, David Jones, and Will Furnass.
+PyKale is primarily maintained by a group of researchers at the University of Sheffield: [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/), [Robert Turner](https://github.com/bobturneruk), [Shuo Zhou](https://sz144.github.io/), [Xianyuan Liu](https://github.com/XianyuanLiu), and [Peizhen Bai](https://github.com/pz-white), with contributions from many other [contributors](https://github.com/pykale/pykale/graphs/contributors).
 
 ### Citation
 
@@ -94,7 +92,7 @@ We would like to thank our other contributors including (but not limited to) Cam
     }
 ```
 
-Cite the preprint above or visit [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5557244.svg)](https://doi.org/10.5281/zenodo.5557244) to select your desired citation format (e.g. Bibtex, CSL, journal specific formats). This link resolves to the latest release.
+Please cite the preprint above (preferred) or visit [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5557244.svg)](https://doi.org/10.5281/zenodo.5557244) to select your desired citation format (e.g. BibTeX, CSL). This link resolves to the latest release.
 
 ### Acknowledgements
 
