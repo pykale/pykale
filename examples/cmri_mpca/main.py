@@ -12,7 +12,6 @@ import os
 import numpy as np
 import pandas as pd
 from config import get_cfg_defaults
-from PIL.Image import SAVE
 from sklearn.model_selection import cross_validate
 
 from kale.interpret import model_weights, visualize
