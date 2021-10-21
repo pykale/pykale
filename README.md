@@ -85,7 +85,16 @@ We would like to thank our other contributors including (but not limited to) Cam
 
 ### Citation
 
-Visit [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5557244.svg)](https://doi.org/10.5281/zenodo.5557244) to select your desired citation format (e.g. Bibtex, CSL, journal specific formats). This link resolves to the latest release.
+```lang-latex
+    @article{pykale,
+      title   = {PyKale: Knowledge-Aware Machine Learning from Multiple Sources in Python},
+      author  = {Haiping Lu and Xianyuan Liu and Robert Turner and Peizhen Bai and Raivo Koot and Shuo Zhou and Mustafa Chasmai and Lawrence Schobs},
+      journal = {arXiv:2106.09756 [cs.LG]},
+      year    = {2021}
+    }
+```
+
+Cite the preprint above or visit [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5557244.svg)](https://doi.org/10.5281/zenodo.5557244) to select your desired citation format (e.g. Bibtex, CSL, journal specific formats). This link resolves to the latest release.
 
 ### Acknowledgements
 
