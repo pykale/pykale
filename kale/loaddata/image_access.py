@@ -196,7 +196,7 @@ class OfficeAccess(MultiDomainImageFolder, DatasetAccess):
             Caltech-256 source: http://www.vision.caltech.edu/Image_Datasets/Caltech256/
             Data with this library is adapted from: http://www.stat.ucla.edu/~jxie/iFRAME/code/imageClassification.rar
         """
-        url = "https://github.com/pykale/data/raw/main/images/office/"
+        url = "https://github.com/pykale/data/raw/main/images/office"
 
         if not os.path.exists(path):
             os.makedirs(path)
