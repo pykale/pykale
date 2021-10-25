@@ -33,8 +33,9 @@ def test_office_caltech(office_path):
     testing.assert_equal(len(office_access.domain_to_idx), 4)
 
 
-def test_custom_office(office_path):
-    kwargs = {"download": True, "split_train_test": True}
+@pytest.mark.parametrize("split_ratio", [0.9, 1])
+def test_custom_office(office_path, split_ratio):
+    kwargs = {"download": True, "split_train_test": True, "split_ratio": split_ratio}
     source = ImageAccess.get_multi_domain_images("office", office_path, sub_domain_set=["dslr"], **kwargs)
     target = ImageAccess.get_multi_domain_images("office", office_path, sub_domain_set=["webcam"], **kwargs)
     dataset = MultiDomainDatasets(source_access=source, target_access=target)
