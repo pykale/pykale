@@ -38,7 +38,7 @@ class MNISTM(data.Dataset):
             Whether to allow downloading the data if not found on disk.
     """
 
-    url = "https://github.com/VanushVaswani/keras_mnistm/releases/download/1.0/keras_mnistm.pkl.gz"
+    url = "https://zenodo.org/record/5590638/files/keras_mnistm.pkl.gz"
 
     raw_folder = "raw"
     processed_folder = "processed"

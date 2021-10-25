@@ -351,7 +351,7 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
     n_unique_domain_ = len(unique_domain_)
     x_k_order = []
     for domain_label_ in unique_domain_:
-        domain_idx = torch.where(domain_labels == domain_label_)
+        domain_idx = torch.where(domain_labels == domain_label_)[0]
         x_mean = x[domain_idx].mean(0)
         if k_order == 1:
             x_k_order.append(x_mean)

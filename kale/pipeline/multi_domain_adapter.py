@@ -128,8 +128,8 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
         moment_loss = self._compute_domain_dist(phi_x, domain_labels)
-        src_idx = torch.where(domain_labels != self.target_label)
-        tgt_idx = torch.where(domain_labels == self.target_label)
+        src_idx = torch.where(domain_labels != self.target_label)[0]
+        tgt_idx = torch.where(domain_labels == self.target_label)[0]
         cls_loss, ok_src = self._compute_cls_loss(phi_x[src_idx], y[src_idx], domain_labels[src_idx])
         if len(tgt_idx) > 0:
             y_tgt_hat = _average_cls_output(phi_x[tgt_idx], self.classifiers)
@@ -156,7 +156,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
             for domain_ in self.domain_to_idx.keys():
                 if domain_ == self.target_domain:
                     continue
-                domain_idx = torch.where(domain_labels == self.domain_to_idx[domain_])
+                domain_idx = torch.where(domain_labels == self.domain_to_idx[domain_])[0]
                 cls_output = self.classifiers[domain_](x[domain_idx])
                 loss_cls_, ok_src_ = losses.cross_entropy_logits(cls_output, y[domain_idx])
                 cls_loss += loss_cls_
@@ -211,8 +211,8 @@ class _DINTrainer(BaseMultiSourceTrainer):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
         loss_dist = self._compute_domain_dist(phi_x, domain_labels)
-        src_idx = torch.where(domain_labels != self.target_label)
-        tgt_idx = torch.where(domain_labels == self.target_label)
+        src_idx = torch.where(domain_labels != self.target_label)[0]
+        tgt_idx = torch.where(domain_labels == self.target_label)[0]
         cls_output = self.classifier(phi_x)
         loss_cls, ok_src = losses.cross_entropy_logits(cls_output[src_idx], y[src_idx])
         _, ok_tgt = losses.cross_entropy_logits(cls_output[tgt_idx], y[tgt_idx])
@@ -275,13 +275,13 @@ class MFSANTrainer(BaseMultiSourceTrainer):
     def compute_loss(self, batch, split_name="V"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
-        tgt_idx = torch.where(domain_labels == self.target_label)
+        tgt_idx = torch.where(domain_labels == self.target_label)[0]
         n_src = len(self.src_domains)
         domain_dist = 0
         loss_cls = 0
         ok_src = []
         for src_domain in self.src_domains:
-            src_domain_idx = torch.where(domain_labels == self.domain_to_idx[src_domain])
+            src_domain_idx = torch.where(domain_labels == self.domain_to_idx[src_domain])[0]
             phi_src = self.domain_net[src_domain].forward(phi_x[src_domain_idx])
             phi_tgt = self.domain_net[src_domain].forward(phi_x[tgt_idx])
             kernels = losses.gaussian_kernel(
