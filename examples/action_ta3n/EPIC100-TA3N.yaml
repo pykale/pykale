@@ -22,9 +22,5 @@ SOLVER:
   BASE_LR: 3e-3
   WEIGHT_DECAY: 1e-4
   NESTEROV: False
-#DAN:
-#  METHOD: 'TA3N'
-#MODEL:
-#  METHOD: ''
 OUTPUT:
   TB_DIR: 'lightning_logs/EPIC100-ta3n/'

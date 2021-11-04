@@ -99,6 +99,7 @@ def main():
             # resume_from_checkpoint=last_checkpoint_file,
             gpus=args.gpus,
             logger=tb_logger,
+            log_every_n_steps=5,
             # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
             callbacks=[lr_monitor, checkpoint_callback],

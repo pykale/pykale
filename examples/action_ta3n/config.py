@@ -26,15 +26,15 @@ _C.DATASET.TGT_TESTLIST = "epic_D2_test.pkl"
 _C.DATASET.IMAGE_MODALITY = "rgb"  # mode options=["rgb", "flow", "audio", "joint", "all"]
 _C.DATASET.INPUT_TYPE = "image"  # type options=["image", "feature"]
 _C.DATASET.FRAMES_PER_SEGMENT = 16
-_C.DATASET.NUM_REPEAT = 5  # 10
+_C.DATASET.NUM_REPEAT = 1  # 10
 _C.DATASET.NUM_SEGMENTS = 5
 _C.DATASET.WEIGHT_TYPE = "natural"
 _C.DATASET.SIZE_TYPE = "adaptive"  # options=["source", "max", "adaptive"]
 _C.DATASET.CLASS_TYPE = "verb"  # options=["verb", "verb+noun"]
 _C.DATASET.BASELINE_TYPE = "video"  # choices = ['frame', 'tsn']
-_C.DATASET.FRAME_AGGREGATION = (
-    "trn-m"  # method to integrate the frame-level features. choices = [avgpool, trn, trn-m, rnn, temconv]
-)
+_C.DATASET.FRAME_AGGREGATION = "trn-m"
+# _C.DATASET.FRAME_AGGREGATION = "avgpool"
+# method to integrate the frame-level features. choices = [avgpool, trn, trn-m, rnn, temconv]
 
 
 # ---------------------------------------------------------------------------- #
@@ -173,6 +173,8 @@ _C.MODEL.N_DIRECTIONS = 1
 _C.MODEL.N_TS = 5
 # _C.MODEL.TENSORBOARD = True
 _C.MODEL.FLOW_PREFIX = ""
+
+
 # _C.MODEL = CN()
 # _C.MODEL.METHOD = "i3d"  # options=["r3d_18", "r2plus1d_18", "mc3_18", "i3d"]
 # _C.MODEL.ATTENTION = "None"  # options=["None", "SELayer"]
