@@ -8,7 +8,7 @@ Created by Xianyuan Liu from modifying https://github.com/pytorch/vision/blob/ma
 """
 
 import torch.nn as nn
-from torchvision.models.utils import load_state_dict_from_url
+from torch.hub import load_state_dict_from_url
 
 model_urls = {
     "r3d_18": "https://download.pytorch.org/models/r3d_18-b3b3357e.pth",
