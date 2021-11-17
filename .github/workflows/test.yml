@@ -60,8 +60,21 @@ jobs:
         shell: bash -l {0}
       - name: Report coverage
         uses: codecov/codecov-action@v1
-      - name: Report failure
-        run: |
-          echo "Test run failed."
+      - name: Report failure via email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          # Required mail server address:
+          server_address: smtp.gmail.com
+          # Required mail server port:
+          server_port: 465
+          # Optional (recommended): mail server username:
+          username: ${{secrets.MAIL_USERNAME}}
+          # Optional (recommended) mail server password:
+          password: ${{secrets.MAIL_PASSWORD}}
+          # Required mail subject:
+          subject: Github Actions - pykale tests failed
+          # Required recipients' addresses:
+          to: r.d.turner@sheffield.ac.uk
+          # Required sender full name (address can be skipped):
+          from: RSE Sheffield GitHub Notifications # <user@example.com>
         if: ${{ always() && steps.xfail.outcome == 'failure' }}
-        shell: bash -l {0}
