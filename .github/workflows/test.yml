@@ -31,7 +31,7 @@ jobs:
         id: xfail
         run: |
           echo "Deliberate fail."
-          echo "${{ github.event.action }}"
+          echo "${{ github.event_name }}"
           exit 1
       - name: Set up Python using Miniconda
         uses: conda-incubator/setup-miniconda@v2
