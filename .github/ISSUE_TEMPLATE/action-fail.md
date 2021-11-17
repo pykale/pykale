@@ -1,7 +1,7 @@
 ---
 name: "Action failed"
 about: Raised when a GitHub action fails
-title: [Test action failed] {{ date | date('dddd, MMMM Do') }}
+title: '[Test action failed]' {{ date | date('dddd, MMMM Do') }}
 labels: action failed
 assignees: ''
 
