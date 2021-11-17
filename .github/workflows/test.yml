@@ -35,6 +35,7 @@ jobs:
       - name: Install dependencies
         run: |
           conda install -c conda-forge rdkit
+          pip install pyparsing==2.4.7
           pip install torch==1.7.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torchvision==0.8.2+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torch-scatter==2.0.7 -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html

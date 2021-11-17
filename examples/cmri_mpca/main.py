@@ -25,6 +25,7 @@ def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="Machine learning pipeline for PAH diagnosis")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
+
     args = parser.parse_args()
     return args
 
@@ -37,6 +38,16 @@ def main():
     cfg.merge_from_file(args.cfg)
     cfg.freeze()
     print(cfg)
+
+    save_images = cfg.OUTPUT.SAVE_IMAGES
+    print(f"Save Images: {save_images}")
+
+    # ---- initialize folder to store images ----
+    save_images_location = cfg.OUTPUT.ROOT
+    print(f"Save Images: {save_images_location}")
+
+    if not os.path.exists(save_images_location):
+        os.makedirs(save_images_location)
 
     # ---- setup dataset ----
     base_dir = cfg.DATASET.BASE_DIR
@@ -56,26 +67,42 @@ def main():
     y[np.where(y != 0)] = 1  # convert to binary classification problem, i.e. no PH vs PAH
 
     # plot the first phase of images
-    visualize.plot_multi_images(
-        images[:, 0, ...], marker_locs=landmarks, im_kwargs=dict(cfg.IM_KWARGS), marker_kwargs=dict(cfg.MARKER_KWARGS)
-    ).show()
+    if save_images:
+        visualize.plot_multi_images(
+            images[:, 0, ...],
+            marker_locs=landmarks,
+            im_kwargs=dict(cfg.IM_KWARGS),
+            marker_kwargs=dict(cfg.MARKER_KWARGS),
+        ).savefig(str(save_images_location) + "/0)first_phase.png")
 
     # ---- data pre-processing ----
     # ----- image registration -----
     img_reg, max_dist = reg_img_stack(images.copy(), landmarks)
-    visualize.plot_multi_images(img_reg[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).show()
+    if save_images:
+        visualize.plot_multi_images(img_reg[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
+            str(save_images_location) + "/1)image_registration"
+        )
 
     # ----- masking -----
     img_masked = mask_img_stack(img_reg.copy(), mask[0, 0, ...])
-    visualize.plot_multi_images(img_masked[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).show()
+    if save_images:
+        visualize.plot_multi_images(img_masked[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
+            str(save_images_location) + "/2)masking"
+        )
 
     # ----- resize -----
     img_rescaled = rescale_img_stack(img_masked.copy(), scale=1 / cfg.PROC.SCALE)
-    visualize.plot_multi_images(img_rescaled[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).show()
+    if save_images:
+        visualize.plot_multi_images(img_rescaled[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
+            str(save_images_location) + "/3)resize"
+        )
 
     # ----- normalization -----
     img_norm = normalize_img_stack(img_rescaled.copy())
-    visualize.plot_multi_images(img_norm[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).show()
+    if save_images:
+        visualize.plot_multi_images(img_norm[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
+            str(save_images_location) + "/4)normalize"
+        )
 
     # ---- evaluating machine learning pipeline ----
     x = img_norm.copy()
@@ -94,12 +121,13 @@ def main():
     weights = rescale_img_stack(weights, cfg.PROC.SCALE)  # rescale weights to original shape
     weights = mask_img_stack(weights, mask[0, 0, ...])  # masking weights
     top_weights = model_weights.select_top_weight(weights, select_ratio=0.02)  # select top 2% weights
-    visualize.plot_weights(
-        top_weights[0][0],
-        background_img=images[0][0],
-        im_kwargs=dict(cfg.IM_KWARGS),
-        marker_kwargs=dict(cfg.WEIGHT_KWARGS),
-    ).show()
+    if save_images:
+        visualize.plot_weights(
+            top_weights[0][0],
+            background_img=images[0][0],
+            im_kwargs=dict(cfg.IM_KWARGS),
+            marker_kwargs=dict(cfg.WEIGHT_KWARGS),
+        ).savefig(str(save_images_location) + "/5)weights")
 
 
 if __name__ == "__main__":
