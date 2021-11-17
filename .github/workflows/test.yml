@@ -61,20 +61,9 @@ jobs:
       - name: Report coverage
         uses: codecov/codecov-action@v1
       - name: Report failure via email
-        uses: dawidd6/action-send-mail@v3
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # Required mail server address:
-          server_address: smtp.gmail.com
-          # Required mail server port:
-          server_port: 465
-          # Optional (recommended): mail server username:
-          username: ${{secrets.MAIL_USERNAME}}
-          # Optional (recommended) mail server password:
-          password: ${{secrets.MAIL_PASSWORD}}
-          # Required mail subject:
-          subject: Github Actions - pykale tests failed
-          # Required recipients' addresses:
-          to: r.d.turner@sheffield.ac.uk
-          # Required sender full name (address can be skipped):
-          from: RSE Sheffield GitHub Notifications # <user@example.com>
+          filename: .github/ISSUE_TEMPLATE/action-fail.md
         if: ${{ always() && steps.xfail.outcome == 'failure' }}
