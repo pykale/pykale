@@ -27,12 +27,6 @@ jobs:
             python-version: "3.7"
     steps:
       - uses: actions/checkout@v2
-      - name: Test fail
-        id: xfail
-        run: |
-          echo "Deliberate fail."
-          echo "${{ github.event_name }}"
-          exit 1
       - name: Set up Python using Miniconda
         uses: conda-incubator/setup-miniconda@v2
         with:
@@ -61,10 +55,10 @@ jobs:
         shell: bash -l {0}
       - name: Report coverage
         uses: codecov/codecov-action@v1
-      - name: Report failure via email
+      - name: Report failure via issue
         uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           filename: .github/ISSUE_TEMPLATE/action-fail.md
-        if: ${{ always() && steps.xfail.outcome == 'failure' }}
+        if: ${{ always() && steps.run_tests.outcome == 'failure' && github.event_name == 'schedule'}}
