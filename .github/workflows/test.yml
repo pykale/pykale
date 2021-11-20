@@ -45,7 +45,8 @@ jobs:
           pip install torch-geometric==1.7.0 --ignore-installed certifi
           pip install -e .[dev]
         shell: bash -l {0}
-      - name: Run unit tests
+      - name: Run tests
+        id: run_tests
         run: |
           pytest --nbmake --cov=kale
         shell: bash -l {0}
@@ -55,3 +56,10 @@ jobs:
         shell: bash -l {0}
       - name: Report coverage
         uses: codecov/codecov-action@v1
+      - name: Report failure via issue
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/action-fail.md
+        if: ${{ always() && steps.run_tests.outcome == 'failure' && github.event_name == 'schedule'}}
