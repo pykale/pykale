@@ -51,7 +51,8 @@ class SmallCNNFeature(nn.Module):
 
 class _Bottleneck(nn.Module):
     """Simple bottleneck as domain specific feature extractor, used in multi-source domain adaptation method MFSAN only.
-        Compared to the torchvision implementation, the value of expansion is flexible and an average pooling layer is added.
+        Compared to the torchvision implementation, it accepts both 1D and 2D input, and the value of expansion is
+        flexible and an average pooling layer is added.
 
         The code is based on:
             https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py#L86,
@@ -59,21 +60,31 @@ class _Bottleneck(nn.Module):
             https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_3src/resnet.py#L93
     """
 
-    def __init__(self, inplanes, planes, stride: int = 1, expansion: int = 1):
+    def __init__(self, inplanes: int, planes: int, stride: int = 1, expansion: int = 1, input_dimension=2):
         super(_Bottleneck, self).__init__()
+        self.input_dimension = input_dimension
+        if input_dimension == 2:
+            conv = nn.Conv2d
+            bn = nn.BatchNorm2d
+            avgpool = nn.AdaptiveAvgPool2d(1)
+        else:
+            conv = nn.Conv1d
+            bn = nn.BatchNorm1d
+            avgpool = nn.AdaptiveAvgPool1d(1)
         self.expansion = expansion
-        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(planes)
-        self.conv3 = nn.Conv2d(planes, planes * self.expansion, kernel_size=1, bias=False)
-        self.bn3 = nn.BatchNorm2d(planes * self.expansion)
+        self.conv1 = conv(inplanes, planes, kernel_size=1, bias=False)
+        self.bn1 = bn(planes)
+        self.conv2 = conv(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn2 = bn(planes)
+        self.conv3 = conv(planes, planes * self.expansion, kernel_size=1, bias=False)
+        self.bn3 = bn(planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
         self.stride = stride
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
+        self.avgpool = avgpool
 
     def forward(self, x):
-
+        if self.input_dimension == 1 and len(x.shape) == 2:
+            x = x.view(x.shape + (1,))
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)

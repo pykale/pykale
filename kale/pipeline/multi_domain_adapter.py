@@ -255,6 +255,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         domain_feat_dim: int = 100,
         kernel_mul: float = 2.0,
         kernel_num: int = 5,
+        input_dimension: int = 2,
         **base_params,
     ):
         """Multiple Feature Spaces Adaptation Network (MFSAN)
@@ -271,7 +272,9 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         self.src_domains = []
         for domain_ in dataset.domain_to_idx.keys():
             if domain_ != self.target_domain:
-                self.domain_net[domain_] = _Bottleneck(self.feature_dim, domain_feat_dim)
+                self.domain_net[domain_] = _Bottleneck(
+                    self.feature_dim, domain_feat_dim, input_dimension=input_dimension
+                )
                 self.classifiers[domain_] = task_classifier(domain_feat_dim, n_classes)
                 self.src_domains.append(domain_)
         self.classifiers = nn.ModuleDict(self.classifiers)

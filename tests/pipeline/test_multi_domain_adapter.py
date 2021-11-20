@@ -37,14 +37,20 @@ MSDA_METHODS = ["MFSAN", "M3SDA", "DIN"]
 
 
 @pytest.mark.parametrize("method", MSDA_METHODS)
-def test_multi_source(method, office_caltech_access, testing_cfg):
+@pytest.mark.parametrize("input_dimension", [1, 2])
+def test_multi_source(method, input_dimension, office_caltech_access, testing_cfg):
+    if method != "MFSAN" and input_dimension == 2:
+        pytest.skip()
     dataset = MultiDomainAdapDataset(office_caltech_access)
     feature_network = ResNet18Feature()
-    if method == "MFSAN":
-        feature_network = torch.nn.Sequential(*(list(feature_network.children())[:-1]))
     # setup classifier
     classifier_network = ClassNetSmallImage
-    train_params = testing_cfg["train_params"]
+    train_params = testing_cfg["train_params"].copy()
+    if method == "MFSAN":
+        train_params["input_dimension"] = input_dimension
+        if input_dimension == 2:
+            feature_network = torch.nn.Sequential(*(list(feature_network.children())[:-1]))
+
     model = create_ms_adapt_trainer(
         method=method,
         dataset=dataset,

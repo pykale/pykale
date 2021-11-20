@@ -316,7 +316,7 @@ class MultiDomainImageFolder(VisionDataset):
         is_valid_file: Optional[Callable[[str], bool]] = None,
         return_domain_label: Optional[bool] = False,
         split_train_test: Optional[bool] = False,
-        split_ratio: Optional[float] = 0.8,
+        split_ratio: float = 0.8,
     ) -> None:
         super(MultiDomainImageFolder, self).__init__(root, transform=transform, target_transform=target_transform)
         domains, domain_to_idx = self._find_classes(self.root)
@@ -354,7 +354,7 @@ class MultiDomainImageFolder(VisionDataset):
         self.return_domain_label = return_domain_label
         self.split_train_test = split_train_test
         self.split_ratio = split_ratio
-        if split_train_test:
+        if split_train_test and 0 < split_ratio < 1:
             self.train_idx, self.test_idx = _domain_stratified_split(self.domain_labels, 2, [split_ratio])
         else:
             self.train_idx = None
@@ -399,13 +399,19 @@ class MultiDomainImageFolder(VisionDataset):
 
     def get_train(self):
         if self.split_train_test:
-            return torch.utils.data.Subset(self, self.train_idx)
+            if 0 < self.split_ratio < 1:
+                return torch.utils.data.Subset(self, self.train_idx)
+            else:
+                return self
         else:
             return None
 
     def get_test(self):
         if self.split_train_test:
-            return torch.utils.data.Subset(self, self.test_idx)
+            if 0 < self.split_ratio < 1:
+                return torch.utils.data.Subset(self, self.test_idx)
+            else:
+                return self
         else:
             return None
 
