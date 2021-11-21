@@ -76,12 +76,12 @@ def test_coder(kernel, office_caltech_access):
     src_idx = torch.where(z != 0)
 
     x_feat = feature_network(x)
-    z_ont_hot = one_hot(z)
+    z_one_hot = one_hot(z)
     clf = _CoDeRLS(kernel=kernel, alpha=0.01)
 
     x_train = torch.cat((x_feat[src_idx], x_feat[tgt_idx]))
     y_train = y[src_idx]
-    z_train = torch.cat((z_ont_hot[src_idx], z_ont_hot[tgt_idx]))
+    z_train = torch.cat((z_one_hot[src_idx], z_one_hot[tgt_idx]))
     clf.fit(x_train, y_train, z_train)
     y_pred = clf.predict(x_feat[tgt_idx])
 
