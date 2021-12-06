@@ -41,24 +41,29 @@ default_mpca_params = {"var_ratio": 0.97, "return_vector": True}
 
 
 class MPCATrainer(BaseEstimator, ClassifierMixin):
+    """Trainer of pipeline: MPCA->Feature selection->Classifier
+
+    Args:
+        classifier (str, optional): Available classifier options: {"svc", "linear_svc", "lr"}, where "svc" trains a
+            support vector classifier, supports both linear and non-linear kernels, optimizes with library "libsvm";
+            "linear_svc" trains a support vector classifier with linear kernel only, and optimizes with library
+            "liblinear", which suppose to be faster and better in handling large number of samples; and "lr" trains
+            a classifier with logistic regression. Defaults to "svc".
+        classifier_params (dict, optional): Parameters of classifier. Defaults to 'auto'.
+        mpca_params (dict, optional): Parameters of MPCA, e.g., {"var_ratio": 0.8}. Defaults to None, i.e., using the
+            default parameters (https://pykale.readthedocs.io/en/latest/kale.embed.html#module-kale.embed.mpca).
+        n_features (int, optional): Number of features for feature selection. Defaults to None, i.e., all features
+            after dimension reduction will be used.
+        search_params (dict, optional): Parameters of grid search, for more detail please see
+            https://scikit-learn.org/stable/modules/grid_search.html#grid-search . Defaults to None, i.e., using the
+            default params: {"cv": 5}.
+
+    """
+
     def __init__(
         self, classifier="svc", classifier_params="auto", mpca_params=None, n_features=None, search_params=None
     ):
-        """Trainer of pipeline: MPCA->Feature selection->Classifier
 
-        Args:
-            classifier (str, optional): Available classifier options: {"svc", "linear_svc", "lr"}, where "svc" trains a
-                support vector classifier, supports both linear and non-linear kernels, optimizes with library "libsvm";
-                "linear_svc" trains a support vector classifier with linear kernel only, and optimizes with library
-                "liblinear", which suppose to be faster and better in handling large number of samples; and "lr" trains
-                a classifier with logistic regression. Defaults to "svc".
-            classifier_params (dict, optional): Parameters of classifier. Defaults to 'auto'.
-            mpca_params (dict, optional): Parameters of MPCA. Defaults to None.
-            n_features (int, optional): Number of features for feature selection. Defaults to None, i.e. all features
-                after dimension reduction will be used.
-            search_params (dict, optional): Parameters of grid search. Defaults to None.
-
-        """
         if classifier not in ["svc", "linear_svc", "lr"]:
             error_msg = "Valid classifier should be 'svc', 'linear_svc', or 'lr', but given %s" % classifier
             logging.error(error_msg)
