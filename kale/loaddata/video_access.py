@@ -112,7 +112,7 @@ class VideoDataset(Enum):
         data_src_name = data_params_local["dataset_src_name"].upper()
         src_data_path, src_tr_listpath, src_te_listpath = generate_list(data_src_name, data_params_local, domain="src")
         data_tgt_name = data_params_local["dataset_tgt_name"].upper()
-        tgt_data_path, tgt_tr_listpath, tgt_te_listpath = generate_list(data_tgt_name, data_params_local, domain="tar")
+        tgt_data_path, tgt_tr_listpath, tgt_te_listpath = generate_list(data_tgt_name, data_params_local, domain="tgt")
         image_modality = data_params_local["dataset_image_modality"]
         frames_per_segment = data_params_local["frames_per_segment"]
 
