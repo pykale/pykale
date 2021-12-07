@@ -30,7 +30,7 @@ from ..embed.mpca import MPCA
 
 param_c_grids = list(np.logspace(-4, 2, 7))
 classifiers = {
-    "svc": [SVC, {"kernel": ["linear"], "C": param_c_grids}],
+    "svc": [SVC, {"kernel": ["linear"], "C": param_c_grids, "max_iter": [50000]}],
     "linear_svc": [LinearSVC, {"C": param_c_grids}],
     "lr": [LogisticRegression, {"C": param_c_grids}],
 }
@@ -50,6 +50,11 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
             "liblinear", which suppose to be faster and better in handling large number of samples; and "lr" trains
             a classifier with logistic regression. Defaults to "svc".
         classifier_params (dict, optional): Parameters of classifier. Defaults to 'auto'.
+        classifier_param_grid (dict, optional): Grids for searching the optimal hyper-parameters. Works only when
+            classifier_params == "auto". Defaults to None by searching from the following hyper-parameter values:
+            1. svc, {"kernel": ["linear"], "C": [0.0001, 0.001, 0.01, 0.1, 1, 10, 100], "max_iter": [50000]},
+            2. linear_svc, {"C": [0.0001, 0.001, 0.01, 0.1, 1, 10, 100]},
+            3. lr, {"C": [0.0001, 0.001, 0.01, 0.1, 1, 10, 100]}
         mpca_params (dict, optional): Parameters of MPCA, e.g., {"var_ratio": 0.8}. Defaults to None, i.e., using the
             default parameters (https://pykale.readthedocs.io/en/latest/kale.embed.html#module-kale.embed.mpca).
         n_features (int, optional): Number of features for feature selection. Defaults to None, i.e., all features
@@ -61,7 +66,13 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
     """
 
     def __init__(
-        self, classifier="svc", classifier_params="auto", mpca_params=None, n_features=None, search_params=None
+        self,
+        classifier="svc",
+        classifier_params="auto",
+        classifier_param_grid=None,
+        mpca_params=None,
+        n_features=None,
+        search_params=None,
     ):
 
         if classifier not in ["svc", "linear_svc", "lr"]:
@@ -84,13 +95,15 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
             self.search_params = default_search_params
         else:
             self.search_params = search_params
+        self.classifier_param_grid = classifier_param_grid
 
         self.auto_classifier_param = False
         if classifier_params == "auto":
             self.auto_classifier_param = True
-            clf_param_grid = classifiers[classifier][1]
+            if self.classifier_param_grid is None:
+                self.classifier_param_grid = classifiers[classifier][1]
             self.grid_search = GridSearchCV(
-                classifiers[classifier][0](), param_grid=clf_param_grid, **self.search_params
+                classifiers[classifier][0](), param_grid=self.classifier_param_grid, **self.search_params
             )
             self.clf = None
         elif isinstance(classifier_params, dict):
