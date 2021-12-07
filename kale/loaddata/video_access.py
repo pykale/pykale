@@ -41,9 +41,9 @@ def get_videodata_config(cfg):
             "dataset_src_name": cfg.DATASET.SOURCE,
             "dataset_src_trainlist": cfg.DATASET.SRC_TRAINLIST,
             "dataset_src_testlist": cfg.DATASET.SRC_TESTLIST,
-            "dataset_tar_name": cfg.DATASET.TARGET,
-            "dataset_tar_trainlist": cfg.DATASET.TAR_TRAINLIST,
-            "dataset_tar_testlist": cfg.DATASET.TAR_TESTLIST,
+            "dataset_tgt_name": cfg.DATASET.TARGET,
+            "dataset_tgt_trainlist": cfg.DATASET.TGT_TRAINLIST,
+            "dataset_tgt_testlist": cfg.DATASET.TGT_TESTLIST,
             "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
             "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT,
         }
@@ -111,8 +111,8 @@ class VideoDataset(Enum):
         data_params_local = deepcopy(data_params)
         data_src_name = data_params_local["dataset_src_name"].upper()
         src_data_path, src_tr_listpath, src_te_listpath = generate_list(data_src_name, data_params_local, domain="src")
-        data_tar_name = data_params_local["dataset_tar_name"].upper()
-        tar_data_path, tar_tr_listpath, tar_te_listpath = generate_list(data_tar_name, data_params_local, domain="tar")
+        data_tgt_name = data_params_local["dataset_tgt_name"].upper()
+        tgt_data_path, tgt_tr_listpath, tgt_te_listpath = generate_list(data_tgt_name, data_params_local, domain="tar")
         image_modality = data_params_local["dataset_image_modality"]
         frames_per_segment = data_params_local["frames_per_segment"]
 
@@ -158,9 +158,9 @@ class VideoDataset(Enum):
                 seed,
             )
             rgb_target = factories[target](
-                tar_data_path,
-                tar_tr_listpath,
-                tar_te_listpath,
+                tgt_data_path,
+                tgt_tr_listpath,
+                tgt_te_listpath,
                 "rgb",
                 frames_per_segment,
                 num_classes,
@@ -180,9 +180,9 @@ class VideoDataset(Enum):
                 seed,
             )
             flow_target = factories[target](
-                tar_data_path,
-                tar_tr_listpath,
-                tar_te_listpath,
+                tgt_data_path,
+                tgt_tr_listpath,
+                tgt_te_listpath,
                 "flow",
                 frames_per_segment,
                 num_classes,

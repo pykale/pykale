@@ -73,8 +73,8 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
     cfg.DATASET.SRC_TRAINLIST = source_trainlist
     cfg.DATASET.SRC_TESTLIST = source_testlist
     cfg.DATASET.TARGET = target_name
-    cfg.DATASET.TAR_TRAINLIST = target_trainlist
-    cfg.DATASET.TAR_TESTLIST = target_testlist
+    cfg.DATASET.TGT_TRAINLIST = target_trainlist
+    cfg.DATASET.TGT_TESTLIST = target_testlist
     cfg.DATASET.IMAGE_MODALITY = image_modality
     cfg.DATASET.WEIGHT_TYPE = WEIGHT_TYPE
     cfg.DATASET.SIZE_TYPE = DATASIZE_TYPE
