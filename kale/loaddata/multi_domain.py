@@ -507,16 +507,16 @@ class ConcatMultiDomainAccess(torch.utils.data.Dataset):
 
 
 class MultiDomainAccess(DatasetAccess):
-    def __init__(self, data_access: dict, n_classes: int, return_domain_label: Optional[bool] = False):
-        """Convert multiple digits-like data accesses to a single data access.
+    """Convert multiple digits-like data accesses to a single data access.
+    Args:
+        data_access (dict): Dictionary of data accesses, e.g. {"Domain1_name": domain1_access,
+            "Domain2_name": domain2_access}
+        n_classes (int): number of classes.
+        return_domain_label (Optional[bool], optional): Whether return domain labels in each batch.
+            Defaults to False.
+    """
 
-        Args:
-            data_access (dict): Dictionary of data accesses, e.g. {"Domain1_name": domain1_access,
-                "Domain2_name": domain2_access}
-            n_classes (int): number of classes.
-            return_domain_label (Optional[bool], optional): Whether return domain labels in each batch.
-                Defaults to False.
-        """
+    def __init__(self, data_access: dict, n_classes: int, return_domain_label: Optional[bool] = False):
         super().__init__(n_classes)
         self.data_access = data_access
         self.domain_to_idx = {list(data_access.keys())[i]: i for i in range(len(data_access))}

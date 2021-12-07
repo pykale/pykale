@@ -74,7 +74,6 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         n_features=None,
         search_params=None,
     ):
-
         if classifier not in ["svc", "linear_svc", "lr"]:
             error_msg = "Valid classifier should be 'svc', 'linear_svc', or 'lr', but given %s" % classifier
             logging.error(error_msg)
