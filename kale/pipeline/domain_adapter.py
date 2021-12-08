@@ -135,7 +135,7 @@ def create_dann_like(method: Method, dataset, feature_extractor, task_classifier
         return create_fewshot_trainer(method, dataset, feature_extractor, task_classifier, critic, **train_params)
 
     if method.is_dann_method():
-        alpha = 0 if method is Method.Source else 1
+        alpha = 0.0 if method is Method.Source else 1.0
         return DANNtrainer(
             alpha=alpha,
             dataset=dataset,
