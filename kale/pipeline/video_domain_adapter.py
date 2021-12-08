@@ -66,7 +66,7 @@ def create_dann_like_4video(
     #     )
 
     if method.is_dann_method():
-        alpha = 0 if method is Method.Source else 1
+        alpha = 0 if method is Method.Source else 1.0
         return DANNtrainer4Video(
             alpha=alpha,
             image_modality=image_modality,
