@@ -12,5 +12,4 @@ DAN:
 MODEL:
   METHOD: 'r3d_18'
 OUTPUT:
-  DIR: 'outputs/EPIC-d12d2-dann/'
   TB_DIR: 'lightning_logs/EPIC-d12d2-dann/'
