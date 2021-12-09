@@ -80,7 +80,7 @@ def main():
         )
 
         ### Set early stopping
-        # early_stop_callback = EarlyStopping(monitor="V_target_acc", min_delta=0.0000, patience=100, mode="max")
+        # early_stop_callback = EarlyStopping(monitor="val_target_acc", min_delta=0.0000, patience=100, mode="max")
 
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
         progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
