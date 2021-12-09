@@ -13,20 +13,18 @@ import kale.predict.losses as losses
 from kale.loaddata.video_access import get_image_modality
 from kale.pipeline.domain_adapter import (
     BaseMMDLike,
-    CDANtrainer,
-    DANNtrainer,
+    CDANTrainer,
+    DANNTrainer,
     get_aggregated_metrics_from_dict,
     get_metrics_from_parameter_dict,
-    Method,
     GradReverse,
+    Method,
     set_requires_grad,
-    WDGRLtrainer,
+    WDGRLTrainer,
 )
 
 
-def create_mmd_based_video(
-    method: Method, dataset, image_modality, feature_extractor, task_classifier, **train_params
-):
+def create_mmd_based_video(method: Method, dataset, image_modality, feature_extractor, task_classifier, **train_params):
     """MMD-based deep learning methods for domain adaptation on video data: DAN and JAN"""
     if not method.is_mmd_method():
         raise ValueError(f"Unsupported MMD method: {method}")
@@ -220,7 +218,7 @@ class JANTrainerVideo(BaseMMDLikeVideo):
         return losses.compute_mmd_loss(joint_kernels, batch_size)
 
 
-class DANNTrainerVideo(DANNtrainer):
+class DANNTrainerVideo(DANNTrainer):
     """This is an implementation of DANN for video data."""
 
     def __init__(
@@ -338,7 +336,7 @@ class DANNTrainerVideo(DANNtrainer):
         return {"loss": loss}
 
 
-class CDANTrainerVideo(CDANtrainer):
+class CDANTrainerVideo(CDANTrainer):
     """This is an implementation of CDAN for video data."""
 
     def __init__(
@@ -480,7 +478,7 @@ class CDANTrainerVideo(CDANtrainer):
         return task_loss, adv_loss, log_metrics
 
 
-class WDGRLTrainerVideo(WDGRLtrainer):
+class WDGRLTrainerVideo(WDGRLTrainer):
     """This is an implementation of WDGRL for video data."""
 
     def __init__(

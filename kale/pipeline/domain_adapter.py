@@ -116,9 +116,9 @@ def create_mmd_based(method: Method, dataset, feature_extractor, task_classifier
     if not method.is_mmd_method():
         raise ValueError(f"Unsupported MMD method: {method}")
     if method is Method.DAN:
-        return DANtrainer(dataset, feature_extractor, task_classifier, method=method, **train_params)
+        return DANTrainer(dataset, feature_extractor, task_classifier, method=method, **train_params)
     if method is Method.JAN:
-        return JANtrainer(
+        return JANTrainer(
             dataset,
             feature_extractor,
             task_classifier,
@@ -136,7 +136,7 @@ def create_dann_like(method: Method, dataset, feature_extractor, task_classifier
 
     if method.is_dann_method():
         alpha = 0.0 if method is Method.Source else 1.0
-        return DANNtrainer(
+        return DANNTrainer(
             alpha=alpha,
             dataset=dataset,
             feature_extractor=feature_extractor,
@@ -146,7 +146,7 @@ def create_dann_like(method: Method, dataset, feature_extractor, task_classifier
             **train_params,
         )
     elif method.is_cdan_method():
-        return CDANtrainer(
+        return CDANTrainer(
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
@@ -156,7 +156,7 @@ def create_dann_like(method: Method, dataset, feature_extractor, task_classifier
             **train_params,
         )
     elif method is Method.WDGRL:
-        return WDGRLtrainer(
+        return WDGRLTrainer(
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
@@ -165,7 +165,7 @@ def create_dann_like(method: Method, dataset, feature_extractor, task_classifier
             **train_params,
         )
     elif method is Method.WDGRLMod:
-        return WDGRLtrainerMod(
+        return WDGRLTrainerMod(
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
@@ -184,7 +184,7 @@ def create_fewshot_trainer(method: Method, dataset, feature_extractor, task_clas
 
     if method.is_fewshot_method():
         alpha = 0 if method is Method.Source else 1
-        return FewShotDANNtrainer(
+        return FewShotDANNTrainer(
             alpha=alpha,
             dataset=dataset,
             feature_extractor=feature_extractor,
@@ -549,7 +549,7 @@ class BaseDANNLike(BaseAdaptTrainer):
         # }
 
 
-class DANNtrainer(BaseDANNLike):
+class DANNTrainer(BaseDANNLike):
     """
     This class implements the DANN architecture from
     Ganin, Yaroslav, et al.
@@ -581,7 +581,7 @@ class DANNtrainer(BaseDANNLike):
         return feature, class_output, adversarial_output
 
 
-class CDANtrainer(BaseDANNLike):
+class CDANTrainer(BaseDANNLike):
     """
     Implements CDAN: Long, Mingsheng, et al. "Conditional adversarial domain adaptation."
     Advances in Neural Information Processing Systems. 2018.
@@ -676,7 +676,7 @@ class CDANtrainer(BaseDANNLike):
         return task_loss, adv_loss, log_metrics
 
 
-class WDGRLtrainer(BaseDANNLike):
+class WDGRLTrainer(BaseDANNLike):
     """
     Implements WDGRL as described in
     Shen, Jian, et al.
@@ -817,7 +817,7 @@ class WDGRLtrainer(BaseDANNLike):
         return task_feat_optimizer
 
 
-class WDGRLtrainerMod(WDGRLtrainer):
+class WDGRLTrainerMod(WDGRLTrainer):
     """
     Implements a modified version WDGRL as described in
     Shen, Jian, et al.
@@ -940,7 +940,7 @@ class WDGRLtrainerMod(WDGRLtrainer):
         return [critic_opt, optimizer], []
 
 
-class FewShotDANNtrainer(BaseDANNLike):
+class FewShotDANNTrainer(BaseDANNLike):
     """Implements adaptations of DANN to the semi-supervised setting
 
     naive: task classifier is trained on labeled target data, in addition to source
@@ -1078,7 +1078,7 @@ class BaseMMDLike(BaseAdaptTrainer):
         # }
 
 
-class DANtrainer(BaseMMDLike):
+class DANTrainer(BaseMMDLike):
     """
     This is an implementation of DAN
     Long, Mingsheng, et al.
@@ -1097,7 +1097,7 @@ class DANtrainer(BaseMMDLike):
         return losses.compute_mmd_loss(kernels, batch_size)
 
 
-class JANtrainer(BaseMMDLike):
+class JANTrainer(BaseMMDLike):
     """
     This is an implementation of JAN
     Long, Mingsheng, et al.
