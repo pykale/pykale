@@ -18,7 +18,7 @@ from kale.pipeline.domain_adapter import (
     get_aggregated_metrics_from_dict,
     get_metrics_from_parameter_dict,
     Method,
-    ReverseLayerF,
+    GradReverse,
     set_requires_grad,
     WDGRLtrainer,
 )
@@ -242,12 +242,12 @@ class DANNtrainer4Video(DANNtrainer):
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.alpha)
+                reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
                 adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
-                reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
+                reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
                 adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
 
             if self.rgb:
@@ -369,11 +369,11 @@ class CDANtrainer4Video(CDANtrainer):
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.alpha)
+                reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
-                reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
+                reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
 
             if self.rgb:
                 if self.flow:  # For joint input
@@ -384,7 +384,7 @@ class CDANtrainer4Video(CDANtrainer):
                 x = x_flow
             class_output = self.classifier(x)
             softmax_output = torch.nn.Softmax(dim=1)(class_output)
-            reverse_out = ReverseLayerF.apply(softmax_output, self.alpha)
+            reverse_out = GradReverse.apply(softmax_output, self.alpha)
 
             if self.rgb:
                 feature_rgb = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_rgb.unsqueeze(1))
