@@ -24,14 +24,14 @@ from kale.pipeline.domain_adapter import (
 )
 
 
-def create_mmd_based_4video(
+def create_mmd_based_video(
     method: Method, dataset, image_modality, feature_extractor, task_classifier, **train_params
 ):
     """MMD-based deep learning methods for domain adaptation on video data: DAN and JAN"""
     if not method.is_mmd_method():
         raise ValueError(f"Unsupported MMD method: {method}")
     if method is Method.DAN:
-        return DANtrainer4Video(
+        return DANTrainerVideo(
             dataset=dataset,
             image_modality=image_modality,
             feature_extractor=feature_extractor,
@@ -40,7 +40,7 @@ def create_mmd_based_4video(
             **train_params,
         )
     if method is Method.JAN:
-        return JANtrainer4Video(
+        return JANTrainerVideo(
             dataset=dataset,
             image_modality=image_modality,
             feature_extractor=feature_extractor,
@@ -52,7 +52,7 @@ def create_mmd_based_4video(
         )
 
 
-def create_dann_like_4video(
+def create_dann_like_video(
     method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, **train_params
 ):
     """DANN-based deep learning methods for domain adaptation on video data: DANN, CDAN, CDAN+E"""
@@ -61,13 +61,13 @@ def create_dann_like_4video(
     # Set up a new create_fewshot_trainer for video data based on original one in `domain_adapter.py`
 
     # if dataset.is_semi_supervised():
-    #     return create_fewshot_trainer_4video(
+    #     return create_fewshot_trainer_video(
     #         method, dataset, feature_extractor, task_classifier, critic, **train_params
     #     )
 
     if method.is_dann_method():
         alpha = 0.0 if method is Method.Source else 1.0
-        return DANNtrainer4Video(
+        return DANNTrainerVideo(
             alpha=alpha,
             image_modality=image_modality,
             dataset=dataset,
@@ -78,7 +78,7 @@ def create_dann_like_4video(
             **train_params,
         )
     elif method.is_cdan_method():
-        return CDANtrainer4Video(
+        return CDANTrainerVideo(
             dataset=dataset,
             image_modality=image_modality,
             feature_extractor=feature_extractor,
@@ -89,7 +89,7 @@ def create_dann_like_4video(
             **train_params,
         )
     elif method is Method.WDGRL:
-        return WDGRLtrainer4Video(
+        return WDGRLTrainerVideo(
             dataset=dataset,
             image_modality=image_modality,
             feature_extractor=feature_extractor,
@@ -102,7 +102,7 @@ def create_dann_like_4video(
         raise ValueError(f"Unsupported method: {method}")
 
 
-class BaseMMDLike4Video(BaseMMDLike):
+class BaseMMDLikeVideo(BaseMMDLike):
     def __init__(
         self, dataset, image_modality, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5, **base_params,
     ):
@@ -166,7 +166,7 @@ class BaseMMDLike4Video(BaseMMDLike):
         return task_loss, mmd, log_metrics
 
 
-class DANtrainer4Video(BaseMMDLike4Video):
+class DANTrainerVideo(BaseMMDLikeVideo):
     """This is an implementation of DAN for video data."""
 
     def __init__(self, dataset, image_modality, feature_extractor, task_classifier, **base_params):
@@ -178,7 +178,7 @@ class DANtrainer4Video(BaseMMDLike4Video):
         return losses.compute_mmd_loss(kernels, batch_size)
 
 
-class JANtrainer4Video(BaseMMDLike4Video):
+class JANTrainerVideo(BaseMMDLikeVideo):
     """This is an implementation of JAN for video data."""
 
     def __init__(
@@ -220,13 +220,13 @@ class JANtrainer4Video(BaseMMDLike4Video):
         return losses.compute_mmd_loss(joint_kernels, batch_size)
 
 
-class DANNtrainer4Video(DANNtrainer):
+class DANNTrainerVideo(DANNtrainer):
     """This is an implementation of DANN for video data."""
 
     def __init__(
         self, dataset, image_modality, feature_extractor, task_classifier, critic, method, **base_params,
     ):
-        super(DANNtrainer4Video, self).__init__(
+        super(DANNTrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, method, **base_params
         )
         self.image_modality = image_modality
@@ -338,7 +338,7 @@ class DANNtrainer4Video(DANNtrainer):
         return {"loss": loss}
 
 
-class CDANtrainer4Video(CDANtrainer):
+class CDANTrainerVideo(CDANtrainer):
     """This is an implementation of CDAN for video data."""
 
     def __init__(
@@ -353,7 +353,7 @@ class CDANtrainer4Video(CDANtrainer):
         random_dim=1024,
         **base_params,
     ):
-        super(CDANtrainer4Video, self).__init__(
+        super(CDANTrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, use_entropy, use_random, random_dim, **base_params
         )
         self.image_modality = image_modality
@@ -480,7 +480,7 @@ class CDANtrainer4Video(CDANtrainer):
         return task_loss, adv_loss, log_metrics
 
 
-class WDGRLtrainer4Video(WDGRLtrainer):
+class WDGRLTrainerVideo(WDGRLtrainer):
     """This is an implementation of WDGRL for video data."""
 
     def __init__(
@@ -495,7 +495,7 @@ class WDGRLtrainer4Video(WDGRLtrainer):
         beta_ratio=0,
         **base_params,
     ):
-        super(WDGRLtrainer4Video, self).__init__(
+        super(WDGRLTrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, k_critic, gamma, beta_ratio, **base_params
         )
         self.image_modality = image_modality

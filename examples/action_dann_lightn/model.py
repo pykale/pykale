@@ -79,7 +79,7 @@ def get_model(cfg, dataset, num_classes):
     method = domain_adapter.Method(cfg.DAN.METHOD)
 
     if method.is_mmd_method():
-        model = video_domain_adapter.create_mmd_based_4video(
+        model = video_domain_adapter.create_mmd_based_video(
             method=method,
             dataset=dataset,
             image_modality=cfg.DATASET.IMAGE_MODALITY,
@@ -102,7 +102,7 @@ def get_model(cfg, dataset, num_classes):
             method_params["use_random"] = cfg.DAN.USERANDOM
 
         # The following calls kale.loaddata.dataset_access for the first time
-        model = video_domain_adapter.create_dann_like_4video(
+        model = video_domain_adapter.create_dann_like_video(
             method=method,
             dataset=dataset,
             image_modality=cfg.DATASET.IMAGE_MODALITY,
