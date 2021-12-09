@@ -9,7 +9,7 @@ import logging
 import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from kale.loaddata.image_access import ImageAccess
@@ -71,12 +71,12 @@ def main():
 
         tb_logger = TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(filename="{epoch}-{step}-{val_loss:.4f}", monitor="val_loss", mode="min",)
+        progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
 
         trainer = pl.Trainer(
-            progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
-            callbacks=[checkpoint_callback],
+            callbacks=[checkpoint_callback, progress_bar],
             gpus=args.gpus,
             auto_select_gpus=True,
             logger=tb_logger,  # logger,
