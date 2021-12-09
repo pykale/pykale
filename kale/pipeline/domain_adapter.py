@@ -313,7 +313,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         Args:
             batch (tuple): batches returned by the MultiDomainLoader.
             split_name (str, optional): learning stage (one of ["train", "val", "test"]).
-                Defaults to "val" for validation. "train" is for training and "test" for test.
+                Defaults to "val" for validation. "train" is for training and "test" for testing.
                 This is currently used only for naming the metrics used for logging.
 
         Returns:
@@ -524,7 +524,7 @@ class BaseDANNLike(BaseAdaptTrainer):
             "val_adv_loss",
             "val_source_acc",
             "val_target_acc",
-            "val_l_source_domain_acc",
+            "val_source_domain_acc",
             "val_target_domain_acc",
             "val_domain_acc",
         )
