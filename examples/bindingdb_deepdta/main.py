@@ -15,7 +15,11 @@ def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="DeepDTA on BindingDB dataset")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    parser.add_argument("--gpus", default="0", help="gpu id(s) to use", type=str)
+    parser.add_argument(
+        "--gpus",
+        default="0",
+        help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU. str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+    )
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
