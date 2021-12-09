@@ -326,9 +326,9 @@ class DANNTrainerVideo(DANNTrainer):
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["T_total_loss"] = loss
-        log_metrics["T_adv_loss"] = adv_loss
-        log_metrics["T_task_loss"] = task_loss
+        log_metrics["train_total_loss"] = loss
+        log_metrics["train_adv_loss"] = adv_loss
+        log_metrics["train_task_loss"] = task_loss
 
         for key in log_metrics:
             self.log(key, log_metrics[key])

@@ -353,9 +353,9 @@ class BaseAdaptTrainer(pl.LightningModule):
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["T_total_loss"] = loss
-        log_metrics["T_adv_loss"] = adv_loss
-        log_metrics["T_task_loss"] = task_loss
+        log_metrics["train_total_loss"] = loss
+        log_metrics["train_adv_loss"] = adv_loss
+        log_metrics["train_task_loss"] = task_loss
 
         for key in log_metrics:
             self.log(key, log_metrics[key])
@@ -405,8 +405,8 @@ class BaseAdaptTrainer(pl.LightningModule):
     def test_epoch_end(self, outputs):
         metrics_at_test = (
             "test_loss",
-            "Te_source_acc",
-            "Te_target_acc",
+            "test_source_acc",
+            "test_target_acc",
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
@@ -533,9 +533,9 @@ class BaseDANNLike(BaseAdaptTrainer):
     def test_epoch_end(self, outputs):
         metrics_at_test = (
             "test_loss",
-            "Te_source_acc",
-            "Te_target_acc",
-            "Te_domain_acc",
+            "test_source_acc",
+            "test_target_acc",
+            "test_domain_acc",
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
@@ -785,8 +785,8 @@ class WDGRLTrainer(BaseDANNLike):
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["T_total_loss"] = loss
-        log_metrics["T_task_loss"] = task_loss
+        log_metrics["train_total_loss"] = loss
+        log_metrics["train_task_loss"] = task_loss
 
         for key in log_metrics:
             self.log(key, log_metrics[key])
@@ -859,7 +859,7 @@ class WDGRLTrainerMod(WDGRLTrainer):
 
         critic_cost = -wasserstein_distance + self._gamma * gp
 
-        log_metrics = {"T_critic_loss": critic_cost}
+        log_metrics = {"train_critic_loss": critic_cost}
 
         return {
             "loss": critic_cost,  # required, for backward pass
@@ -883,8 +883,8 @@ class WDGRLTrainerMod(WDGRLTrainer):
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["T_total_loss"] = loss
-        log_metrics["T_task_loss"] = task_loss
+        log_metrics["train_total_loss"] = loss
+        log_metrics["train_task_loss"] = task_loss
 
         for key in log_metrics:
             self.log(key, log_metrics[key])
@@ -1062,9 +1062,9 @@ class BaseMMDLike(BaseAdaptTrainer):
     def test_epoch_end(self, outputs):
         metrics_at_test = (
             "test_loss",
-            "Te_source_acc",
-            "Te_target_acc",
-            "Te_domain_acc",
+            "test_source_acc",
+            "test_target_acc",
+            "test_domain_acc",
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 

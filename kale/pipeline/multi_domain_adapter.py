@@ -87,9 +87,9 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
     def test_epoch_end(self, outputs):
         metrics_at_test = (
             "test_loss",
-            "Te_source_acc",
-            "Te_target_acc",
-            "Te_domain_acc",
+            "test_source_acc",
+            "test_target_acc",
+            "test_domain_acc",
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
