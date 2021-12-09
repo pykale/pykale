@@ -65,7 +65,6 @@ def main():
     # ---- setup model and logger ----
     model, train_params = get_model(cfg, dataset, num_classes)
     trainer = pl.Trainer(
-        # progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
         logger=False,
         resume_from_checkpoint=args.ckpt,
         gpus=args.gpus,
