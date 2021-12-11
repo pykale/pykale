@@ -35,7 +35,7 @@ def topk_accuracy(output, target, topk=(1,)):
         target (Tensor): Ground truth. Shape: [batch_size]
         topk (tuple(int)): Compute accuracy at top-k for the values of k specified in this parameter.
     Returns:
-        list(Tensor): A list of tensors of the same length as topk with bool in.
+        list(Tensor): A list of tensors of the same length as topk with boolean in.
 
     Examples:
         output = torch.tensor([0.3, 0.2, 0.1], [0.3, 0.2, 0.1])
@@ -63,11 +63,12 @@ def multitask_topk_accuracy(output, target, topk=(1,)):
     """Computes the precision@k for the specified values of k for multitask input.
 
     Args:
-        output (tuple(Tensor)): A tuple of generated predictions. Each tensor should be of shape [batch_size, class_count], class_count can vary on per task basis, i.e. outputs[i].shape[1] can be different to outputs[j].shape[1].
+        output (tuple(Tensor)): A tuple of generated predictions. Each tensor is of shape [batch_size, class_count],
+            class_count can vary per task basis, i.e. outputs[i].shape[1] can differ from outputs[j].shape[1].
         target (tuple(Tensor)): A tuple of ground truth. Each tensor should be of shape [batch_size]
         topk (tuple(int)): Compute accuracy at top-k for the values of k specified in this parameter.
     Returns:
-        list(Tensor): A list of tensors of the same length as topk with bool in.
+        list(Tensor): A list of tensors of the same length as topk with boolean in.
     """
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
