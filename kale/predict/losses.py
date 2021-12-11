@@ -27,6 +27,71 @@ def cross_entropy_logits(linear_output, label, weights=None):
     return loss, correct
 
 
+def topk_accuracy(output, target, topk=(1,)):
+    """Computes the precision@k for the specified values of k
+
+    Args:
+        output (Tensor): Generated predictions. Shape: [batch_size, class_count].
+        target (Tensor): Ground truth. Shape: [batch_size]
+        topk (tuple(int)): Compute accuracy at top-k for the values of k specified in this parameter.
+    Returns:
+        list(Tensor): A list of tensors of the same length as topk with bool in.
+
+    Examples:
+        output = torch.tensor([0.3, 0.2, 0.1], [0.3, 0.2, 0.1])
+        target = torch.tensor((0, 2))
+        top1, top2 = topk_accuracy(output, target, topk=(1, 2))
+    """
+
+    maxk = max(topk)
+    # batch_size = target.size(0)
+
+    _, pred = output.topk(maxk, 1, True, True)
+    pred = pred.t()
+    correct = pred.eq(target.view(1, -1).expand_as(pred))
+
+    res = []
+    for k in topk:
+        # correct_k = correct[:k].contiguous().view(-1).float().sum(0)
+        # res.append(correct_k.mul_(1.0 / batch_size))
+        correct_k = torch.ge(correct[:k].float().sum(0), 1)
+        res.append(correct_k)
+    return res
+
+
+def multitask_topk_accuracy(output, target, topk=(1,)):
+    """Computes the precision@k for the specified values of k for multitask input.
+
+    Args:
+        output (tuple(Tensor)): A tuple of generated predictions. Each tensor should be of shape [batch_size, class_count], class_count can vary on per task basis, i.e. outputs[i].shape[1] can be different to outputs[j].shape[1].
+        target (tuple(Tensor)): A tuple of ground truth. Each tensor should be of shape [batch_size]
+        topk (tuple(int)): Compute accuracy at top-k for the values of k specified in this parameter.
+    Returns:
+        list(Tensor): A list of tensors of the same length as topk with bool in.
+    """
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    maxk = max(topk)
+    batch_size = target[0].size(0)
+    task_count = len(output)
+    all_correct = torch.zeros(maxk, batch_size).type(torch.ByteTensor).to(device)
+
+    for output, target in zip(output, target):
+        _, pred = output.topk(maxk, 1, True, True)
+        pred = pred.t()
+        correct = pred.eq(target.view(1, -1).expand_as(pred))
+        all_correct.add_(correct)
+
+    res = []
+    for k in topk:
+        # all_correct_k = all_correct.float().sum(0) * 1.0 / batch_size
+        # res.append(all_correct_k)
+        all_correct_k = torch.ge(all_correct[:k].float().sum(0), task_count)
+        res.append(all_correct_k)
+    return res
+
+
 def entropy_logits(linear_output):
     """Computes entropy logits in CDAN with entropy conditioning (CDAN+E)
 
