@@ -1,5 +1,5 @@
 # =============================================================================
-# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk or xianyuan.liu@outlook.com
+# Author: Xianyuan Liu, xianyuan.liu@outlook.com
 # =============================================================================
 
 """Add SELayers to MC3_18, R3D_18, R2plus1D_18"""
