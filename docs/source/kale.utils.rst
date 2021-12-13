@@ -6,14 +6,6 @@ Utilities
 Submodules
 ----------
 
-kale.utils.csv\_logger module
------------------------------
-
-.. automodule:: kale.utils.csv_logger
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.utils.download module
 --------------------------
 
