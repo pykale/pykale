@@ -41,18 +41,19 @@ def _average_cls_output(x, classifiers: nn.ModuleDict):
 
 
 class BaseMultiSourceTrainer(BaseAdaptTrainer):
+    """Base class for all domain adaptation architectures
+
+    Args:
+        dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used for train, validation, and tests.
+        feature_extractor (torch.nn.Module): the feature extractor network
+        task_classifier (torch.nn.Module): the task classifier network
+        n_classes (int): number of classes
+        target_domain (str): target domain name
+    """
+
     def __init__(
         self, dataset, feature_extractor, task_classifier, n_classes: int, target_domain: str, **base_params,
     ):
-        """Base class for all domain adaptation architectures
-
-        Args:
-            dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used for train, validation, and tests.
-            feature_extractor (torch.nn.Module): the feature extractor network
-            task_classifier (torch.nn.Module): the task classifier network
-            n_classes (int): number of classes
-            target_domain (str): target domain name
-        """
         super().__init__(dataset, feature_extractor, task_classifier, **base_params)
         self.n_classes = n_classes
         self.feature_dim = feature_extractor.state_dict()[list(feature_extractor.state_dict().keys())[-2]].shape[0]
@@ -186,8 +187,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
 
 
 class _DINTrainer(BaseMultiSourceTrainer):
-    """Domain independent network (DIN). It is under development and will be updated with references later.
-    """
+    """Domain independent network (DIN). It is under development and will be updated with references later."""
 
     def __init__(
         self,

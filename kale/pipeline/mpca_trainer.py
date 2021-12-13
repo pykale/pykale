@@ -62,7 +62,6 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         search_params (dict, optional): Parameters of grid search, for more detail please see
             https://scikit-learn.org/stable/modules/grid_search.html#grid-search . Defaults to None, i.e., using the
             default params: {"cv": 5}.
-
     """
 
     def __init__(
