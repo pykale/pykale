@@ -101,11 +101,11 @@ def create_dann_like_video(
 
 
 class BaseMMDLikeVideo(BaseMMDLike):
+    """Common API for MME-based domain adaptation on video data: DAN, JAN"""
+
     def __init__(
         self, dataset, image_modality, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5, **base_params,
     ):
-        """Common API for MME-based domain adaptation on video data: DAN, JAN"""
-
         super().__init__(dataset, feature_extractor, task_classifier, kernel_mul, kernel_num, **base_params)
         self.image_modality = image_modality
         self.rgb_feat = self.feat["rgb"]
