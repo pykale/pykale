@@ -25,6 +25,7 @@ We call `kale` and `examples` the **root**-level modules, `kale.xxx` and `exampl
 4. Other standardization
 
 * Put a docstring at the top of each `.py` to summarize the module
+* Docstring for a class should be at the top of the class definition, above `__init__`
 * See `examples/digits_dann_lightn` and related modules for reference.
 
 If you are aware of a better way to auto-generate documentations, create an issue or push your suggested changes.
