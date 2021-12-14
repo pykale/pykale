@@ -73,24 +73,24 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
 
         return x
 
-    def compute_loss(self, batch, split_name="V"):
+    def compute_loss(self, batch, split_name="val"):
         raise NotImplementedError("Loss needs to be defined.")
 
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
             "val_loss",
-            "V_source_acc",
-            "V_target_acc",
-            "V_domain_acc",
+            "val_source_acc",
+            "val_target_acc",
+            "val_domain_acc",
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 
     def test_epoch_end(self, outputs):
         metrics_at_test = (
             "test_loss",
-            "Te_source_acc",
-            "Te_target_acc",
-            "Te_domain_acc",
+            "test_source_acc",
+            "test_target_acc",
+            "test_domain_acc",
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
@@ -126,7 +126,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         self.classifiers = nn.ModuleDict(self.classifiers)
         self.k_moment = k_moment
 
-    def compute_loss(self, batch, split_name="V"):
+    def compute_loss(self, batch, split_name="val"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
         moment_loss = self._compute_domain_dist(phi_x, domain_labels)
@@ -208,7 +208,7 @@ class _DINTrainer(BaseMultiSourceTrainer):
         self._kernel_mul = kernel_mul
         self._kernel_num = kernel_num
 
-    def compute_loss(self, batch, split_name="V"):
+    def compute_loss(self, batch, split_name="val"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
         loss_dist = self._compute_domain_dist(phi_x, domain_labels)
@@ -276,7 +276,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         self._kernel_mul = kernel_mul
         self._kernel_num = kernel_num
 
-    def compute_loss(self, batch, split_name="V"):
+    def compute_loss(self, batch, split_name="val"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
         tgt_idx = torch.where(domain_labels == self.target_label)[0]

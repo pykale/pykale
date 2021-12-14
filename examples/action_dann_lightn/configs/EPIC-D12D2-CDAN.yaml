@@ -4,13 +4,12 @@ DATASET:
   SRC_TRAINLIST: 'epic_D1_train.pkl'
   SRC_TESTLIST: 'epic_D1_test.pkl'
   TARGET: 'EPIC'
-  TAR_TRAINLIST: 'epic_D2_train.pkl'
-  TAR_TESTLIST: 'epic_D2_test.pkl'
+  TGT_TRAINLIST: 'epic_D2_train.pkl'
+  TGT_TESTLIST: 'epic_D2_test.pkl'
   IMAGE_MODALITY: 'rgb'
 DAN:
   METHOD: 'CDAN'
 MODEL:
   METHOD: 'r3d_18'
 OUTPUT:
-  DIR: 'outputs/EPIC-d12d2-cdan/'
   TB_DIR: 'lightning_logs/EPIC-d12d2-cdan/'

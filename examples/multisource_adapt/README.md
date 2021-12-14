@@ -13,9 +13,9 @@ This example demonstrates multi-source domain adaptation methods with applicatio
 * Algorithms: M3SDA, MFSAN
 * Example: Caltech, DSLR, and Webcam (three sources) to Amazon (target) using M3SDA and MFSAN
 
-`python main.py --cfg configs/Office2A-M3SDA.yaml --gpus 0`
+`python main.py --cfg configs/Office2A-M3SDA.yaml --gpus 1`
 
-`python main.py --cfg configs/Office2A-MFSAN.yaml --gpus 0`
+`python main.py --cfg configs/Office2A-MFSAN.yaml --gpus 1`
 
 ### 3. Related `kale` API
 
