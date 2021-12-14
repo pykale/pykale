@@ -10,7 +10,7 @@ import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
 from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar
 
 from kale.loaddata.image_access import DigitDataset
 from kale.loaddata.multi_domain import MultiDomainDatasets
@@ -23,7 +23,7 @@ def arg_parse():
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument(
         "--gpus",
-        default=[0],
+        default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
@@ -67,12 +67,12 @@ def main():
         model, train_params = get_model(cfg, dataset, num_channels)
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(filename="{epoch}-{step}-{val_loss:.4f}", monitor="val_loss", mode="min",)
+        progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
 
         trainer = pl.Trainer(
-            progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
-            callbacks=[checkpoint_callback],
+            callbacks=[checkpoint_callback, progress_bar],
             logger=tb_logger,
             gpus=args.gpus,
         )

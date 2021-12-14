@@ -97,7 +97,7 @@ def entropy_logits(linear_output):
     """Computes entropy logits in CDAN with entropy conditioning (CDAN+E)
 
     Examples:
-        See CDANtrainer in kale.pipeline.domain_adapter
+        See CDANTrainer in kale.pipeline.domain_adapter
     """
     p = F.softmax(linear_output, dim=1)
     loss_ent = -torch.sum(p * (torch.log(p + 1e-5)), dim=1)
@@ -108,7 +108,7 @@ def entropy_logits_loss(linear_output):
     """Computes entropy logits loss in semi-supervised or few-shot domain adaptation
 
     Examples:
-        See FewShotDANNtrainer in kale.pipeline.domain_adapter
+        See FewShotDANNTrainer in kale.pipeline.domain_adapter
     """
     return torch.mean(entropy_logits(linear_output))
 
@@ -117,7 +117,7 @@ def gradient_penalty(critic, h_s, h_t):
     """Computes gradient penalty in Wasserstein distance guided representation learning
 
     Examples:
-        See WDGRLtrainer and WDGRLtrainerMod in kale.pipeline.domain_adapter
+        See WDGRLTrainer and WDGRLTrainerMod in kale.pipeline.domain_adapter
     """
 
     alpha = torch.rand(h_s.size(0), 1)
@@ -144,7 +144,7 @@ def gaussian_kernel(source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None
     with the linear MMD estimate.
 
     Examples:
-        See DANtrainer and JANtrainer in kale.pipeline.domain_adapter
+        See DANTrainer and JANTrainer in kale.pipeline.domain_adapter
     """
     n_samples = int(source.size()[0]) + int(target.size()[0])
     total = torch.cat([source, target], dim=0)
@@ -165,7 +165,7 @@ def compute_mmd_loss(kernel_values, batch_size):
     """Computes the Maximum Mean Discrepancy (MMD) between domains.
 
     Examples:
-        See DANtrainer and JANtrainer in kale.pipeline.domain_adapter
+        See DANTrainer and JANTrainer in kale.pipeline.domain_adapter
     """
     loss = 0
     for i in range(batch_size):
