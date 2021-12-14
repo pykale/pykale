@@ -215,7 +215,7 @@ class BaseAdaptTrainer(pl.LightningModule):
 
     where :math:`\lambda` will follow the schedule defined by the DANN paper:
 
-    :math:`\lambda_p = \frac{2}{1 + \exp{(-\gamma \cdot p)}} - 1` where $p$ the learning progress
+    :math:`\lambda_p = \frac{2}{1 + \exp{(-\gamma \cdot p)}} - 1` where :math:`p` the learning progress
     changes linearly from 0 to 1.
 
     Args:
