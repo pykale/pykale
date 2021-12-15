@@ -28,47 +28,65 @@ def cross_entropy_logits(linear_output, label, weights=None):
 
 
 def topk_accuracy(output, target, topk=(1,)):
-    """Computes the precision@k for the specified values of k
+    """Computes the top-k accuracy for the specified values of k.
 
     Args:
         output (Tensor): Generated predictions. Shape: [batch_size, class_count].
         target (Tensor): Ground truth. Shape: [batch_size]
         topk (tuple(int)): Compute accuracy at top-k for the values of k specified in this parameter.
     Returns:
-        list(Tensor): A list of tensors of the same length as topk with boolean in.
+        list(Tensor): A list of tensors of the same length as topk.
+        Each tensor consists of boolean variables to show if this prediction ranks top k with each value of k.
+        True means the prediction ranks top k and False means not.
+        The shape of tensor is batch_size, i.e. the number of predictions.
 
     Examples:
-        output = torch.tensor([0.3, 0.2, 0.1], [0.3, 0.2, 0.1])
-        target = torch.tensor((0, 2))
-        top1, top2 = topk_accuracy(output, target, topk=(1, 2))
+        >>> output = torch.tensor([0.3, 0.2, 0.1], [0.3, 0.2, 0.1])
+        >>> target = torch.tensor((0, 2))
+        >>> top1, top2 = topk_accuracy(output, target, topk=(1, 2)) # get the boolean value
+        >>> top1_value = top1.double().mean() # get the top 1 accuracy score
+        >>> top2_value = top2.double().mean() # get the top 2 accuracy score
     """
 
     maxk = max(topk)
-    # batch_size = target.size(0)
 
+    # returns the k largest elements and their indexes of inputs along a given dimension.
     _, pred = output.topk(maxk, 1, True, True)
+
     pred = pred.t()
     correct = pred.eq(target.view(1, -1).expand_as(pred))
 
-    res = []
+    result = []
     for k in topk:
-        # correct_k = correct[:k].contiguous().view(-1).float().sum(0)
-        # res.append(correct_k.mul_(1.0 / batch_size))
         correct_k = torch.ge(correct[:k].float().sum(0), 1)
-        res.append(correct_k)
-    return res
+        result.append(correct_k)
+    return result
 
 
 def multitask_topk_accuracy(output, target, topk=(1,)):
-    """Computes the precision@k for the specified values of k for multitask input.
+    """Computes the top-k accuracy for the specified values of k for multitask input.
 
     Args:
         output (tuple(Tensor)): A tuple of generated predictions. Each tensor is of shape [batch_size, class_count],
             class_count can vary per task basis, i.e. outputs[i].shape[1] can differ from outputs[j].shape[1].
-        target (tuple(Tensor)): A tuple of ground truth. Each tensor should be of shape [batch_size]
+        target (tuple(Tensor)): A tuple of ground truth. Each tensor is of shape [batch_size]
         topk (tuple(int)): Compute accuracy at top-k for the values of k specified in this parameter.
     Returns:
-        list(Tensor): A list of tensors of the same length as topk with boolean in.
+        list(Tensor): A list of tensors of the same length as topk.
+        Each tensor consists of boolean variables to show if predictions of multitask ranks top k with each value of k.
+        True means predictions of this output for all tasks ranks top k and False means not.
+        The shape of tensor is batch_size, i.e. the number of predictions.
+
+        Examples:
+            >>> first_output = torch.tensor([0.3, 0.2, 0.1], [0.3, 0.2, 0.1])
+            >>> first_target = torch.tensor((0, 2))
+            >>> second_output = torch.tensor([0.2, 0.1], [0.2, 0.1])
+            >>> second_target = torch.tensor((0, 1))
+            >>> output = (first_output, second_output)
+            >>> target = (first_target, second_target)
+            >>> top1, top2 = multitask_topk_accuracy(output, target, topk=(1, 2)) # get the boolean value
+            >>> top1_value = top1.double().mean() # get the top 1 accuracy score
+            >>> top2_value = top2.double().mean() # get the top 2 accuracy score
     """
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -79,18 +97,18 @@ def multitask_topk_accuracy(output, target, topk=(1,)):
     all_correct = torch.zeros(maxk, batch_size).type(torch.ByteTensor).to(device)
 
     for output, target in zip(output, target):
+        # returns the k largest elements and their indexes of inputs along a given dimension.
         _, pred = output.topk(maxk, 1, True, True)
+
         pred = pred.t()
         correct = pred.eq(target.view(1, -1).expand_as(pred))
         all_correct.add_(correct)
 
-    res = []
+    result = []
     for k in topk:
-        # all_correct_k = all_correct.float().sum(0) * 1.0 / batch_size
-        # res.append(all_correct_k)
         all_correct_k = torch.ge(all_correct[:k].float().sum(0), task_count)
-        res.append(all_correct_k)
-    return res
+        result.append(all_correct_k)
+    return result
 
 
 def entropy_logits(linear_output):

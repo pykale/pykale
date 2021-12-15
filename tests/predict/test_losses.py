@@ -6,6 +6,7 @@ from kale.predict.losses import multitask_topk_accuracy, topk_accuracy
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Dummy data: [batch_size, num_classes]
+# Dummy ground truth: batch_size
 FIRST_PREDS = torch.tensor(
     (
         [0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1],
@@ -33,7 +34,7 @@ MULTI_LABELS = (FIRST_LABELS, SECOND_LABELS)
 
 
 def test_topk_accuracy():
-    # Test topk_accuracy with single-label input
+    # Test topk_accuracy with single-task input
     preds = FIRST_PREDS
     labels = FIRST_LABELS
     k = (1, 3, 5)
@@ -48,7 +49,7 @@ def test_topk_accuracy():
 
 
 def test_multitask_topk_accuracy():
-    # Test multitask_topk_accuracy with two-label input
+    # Test multitask_topk_accuracy with input for two tasks
     preds = MULTI_PREDS
     labels = MULTI_LABELS
     k = (1, 3, 5)
