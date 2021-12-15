@@ -13,23 +13,27 @@ _C = CN()
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
-_C.DATASET = CN() 
+_C.DATASET = CN()
 _C.DATASET.SOURCE = ""
-_C.DATASET.ROOT = "C:\\Users\\Lawrence Schobs\\Documents\\PhD\\uncertainty journal\\nov desktop copy\\results\\calibration_results\\"
-_C.DATASET.UNCERTAINTY_ERROR_PAIRS = [["S-MHA", 'S-MHA Error', 'S-MHA Uncertainty'], ["E-MHA",'E-MHA Error', 'E-MHA Uncertainty'], ["E-CPV", 'E-CPV Error', 'E-CPV Uncertainty']]
-_C.DATASET.CONFIDENCE_INVERT = [["S-MHA",True], ["E-MHA",True], ["E-CPV", False]]
+_C.DATASET.ROOT = (
+    "C:\\Users\\Lawrence Schobs\\Documents\\PhD\\uncertainty journal\\nov desktop copy\\results\\calibration_results\\"
+)
+_C.DATASET.UNCERTAINTY_ERROR_PAIRS = [
+    ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"],
+    ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"],
+    ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"],
+]
+_C.DATASET.CONFIDENCE_INVERT = [["S-MHA", True], ["E-MHA", True], ["E-CPV", False]]
 
-_C.DATASET.MODELS = ['U-NET', "PHD-NET"]
+_C.DATASET.MODELS = ["U-NET", "PHD-NET"]
 _C.DATASET.DATA = "4CH"
-_C.DATASET.LANDMARKS = [0,1,2]
+_C.DATASET.LANDMARKS = [0, 1, 2]
 _C.DATASET.NUM_FOLDS = 8
-
 
 
 _C.DATASET.BASE_DIR = "../../../example_files/"
 _C.DATASET.FOLD_FILE_BASE = "8std"
 _C.DATASET.LANDMARK_FILE_BASE = "checkpointuncertainty_pairs_B5_EEB_pairs_wFolds"
-
 
 
 # ---------------------------------------------------------------------------- #
@@ -65,7 +69,6 @@ _C.OUTPUT = CN()
 
 _C.OUTPUT.SAVE_FOLDER = "../../../outputs"
 # _C.OUTPUT.SAVE_FILE_EVALUATION= "../../../outputs"
-
 
 
 def get_cfg_defaults():
