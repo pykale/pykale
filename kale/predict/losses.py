@@ -31,8 +31,8 @@ def topk_accuracy(output, target, topk=(1,)):
     """Computes the top-k accuracy for the specified values of k.
 
     Args:
-        output (Tensor): Generated predictions. Shape: [batch_size, class_count].
-        target (Tensor): Ground truth. Shape: [batch_size]
+        output (Tensor): Generated predictions. Shape: (batch_size, class_count).
+        target (Tensor): Ground truth. Shape: (batch_size)
         topk (tuple(int)): Compute accuracy at top-k for the values of k specified in this parameter.
     Returns:
         list(Tensor): A list of tensors of the same length as topk.
@@ -41,8 +41,8 @@ def topk_accuracy(output, target, topk=(1,)):
         The shape of tensor is batch_size, i.e. the number of predictions.
 
     Examples:
-        >>> output = torch.tensor([0.3, 0.2, 0.1], [0.3, 0.2, 0.1])
-        >>> target = torch.tensor((0, 2))
+        >>> output = torch.tensor(([0.3, 0.2, 0.1], [0.3, 0.2, 0.1]))
+        >>> target = torch.tensor((0, 1))
         >>> top1, top2 = topk_accuracy(output, target, topk=(1, 2)) # get the boolean value
         >>> top1_value = top1.double().mean() # get the top 1 accuracy score
         >>> top2_value = top2.double().mean() # get the top 2 accuracy score
@@ -78,9 +78,9 @@ def multitask_topk_accuracy(output, target, topk=(1,)):
         The shape of tensor is batch_size, i.e. the number of predictions.
 
         Examples:
-            >>> first_output = torch.tensor([0.3, 0.2, 0.1], [0.3, 0.2, 0.1])
+            >>> first_output = torch.tensor(([0.3, 0.2, 0.1], [0.3, 0.2, 0.1]))
             >>> first_target = torch.tensor((0, 2))
-            >>> second_output = torch.tensor([0.2, 0.1], [0.2, 0.1])
+            >>> second_output = torch.tensor(([0.2, 0.1], [0.2, 0.1]))
             >>> second_target = torch.tensor((0, 1))
             >>> output = (first_output, second_output)
             >>> target = (first_target, second_target)
@@ -89,12 +89,10 @@ def multitask_topk_accuracy(output, target, topk=(1,)):
             >>> top2_value = top2.double().mean() # get the top 2 accuracy score
     """
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
     maxk = max(topk)
     batch_size = target[0].size(0)
     task_count = len(output)
-    all_correct = torch.zeros(maxk, batch_size).type(torch.ByteTensor).to(device)
+    all_correct = torch.zeros(maxk, batch_size).type(torch.ByteTensor).to(output[0].device)
 
     for output, target in zip(output, target):
         # returns the k largest elements and their indexes of inputs along a given dimension.
