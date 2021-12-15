@@ -147,7 +147,6 @@ def bin_wise_bound_eval(
 
             pred_bins_errors.append(inner_list_errors)
             pred_bins_keys.append(inner_list_bin)
-
         bins_acc = []
         bins_sizes = []
         # key_groups = []
