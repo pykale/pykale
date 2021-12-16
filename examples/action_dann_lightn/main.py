@@ -10,7 +10,7 @@ import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
 from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
+from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, TQDMProgressBar
 
 from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
@@ -25,7 +25,7 @@ def arg_parse():
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument(
         "--gpus",
-        default=[0],
+        default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
@@ -80,15 +80,15 @@ def main():
         )
 
         ### Set early stopping
-        # early_stop_callback = EarlyStopping(monitor="V_target_acc", min_delta=0.0000, patience=100, mode="max")
+        # early_stop_callback = EarlyStopping(monitor="val_target_acc", min_delta=0.0000, patience=100, mode="max")
 
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
+        progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
 
         ### Set the lightning trainer. Comment `limit_train_batches`, `limit_val_batches`, `limit_test_batches` when
         # training. Uncomment and change the ratio to test the code on the smallest sub-dataset for efficiency in
         # debugging. Uncomment early_stop_callback to activate early stopping.
         trainer = pl.Trainer(
-            progress_bar_refresh_rate=cfg.OUTPUT.PB_FRESH,  # in steps
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
             # resume_from_checkpoint=last_checkpoint_file,
@@ -96,7 +96,7 @@ def main():
             logger=tb_logger,  # logger,
             # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
-            callbacks=[lr_monitor, checkpoint_callback],
+            callbacks=[lr_monitor, checkpoint_callback, progress_bar],
             # callbacks=[early_stop_callback, lr_monitor],
             # limit_train_batches=0.005,
             # limit_val_batches=0.06,

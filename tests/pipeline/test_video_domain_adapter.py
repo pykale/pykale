@@ -73,8 +73,8 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
     cfg.DATASET.SRC_TRAINLIST = source_trainlist
     cfg.DATASET.SRC_TESTLIST = source_testlist
     cfg.DATASET.TARGET = target_name
-    cfg.DATASET.TAR_TRAINLIST = target_trainlist
-    cfg.DATASET.TAR_TESTLIST = target_testlist
+    cfg.DATASET.TGT_TRAINLIST = target_trainlist
+    cfg.DATASET.TGT_TESTLIST = target_testlist
     cfg.DATASET.IMAGE_MODALITY = image_modality
     cfg.DATASET.WEIGHT_TYPE = WEIGHT_TYPE
     cfg.DATASET.SIZE_TYPE = DATASIZE_TYPE
@@ -123,7 +123,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
 
     # setup DA method
     if method.is_mmd_method():
-        model = video_domain_adapter.create_mmd_based_4video(
+        model = video_domain_adapter.create_mmd_based_video(
             method=method,
             dataset=dataset,
             image_modality=cfg.DATASET.IMAGE_MODALITY,
@@ -145,7 +145,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
         if da_method == "CDAN":
             method_params["use_random"] = cfg.DAN.USERANDOM
 
-        model = video_domain_adapter.create_dann_like_4video(
+        model = video_domain_adapter.create_dann_like_video(
             method=method,
             dataset=dataset,
             image_modality=cfg.DATASET.IMAGE_MODALITY,

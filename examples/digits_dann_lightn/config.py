@@ -46,7 +46,7 @@ _C.SOLVER.TEST_BATCH_SIZE = 200  # No difference in ADA
 # Adaptation-specific solver config
 _C.SOLVER.AD_LAMBDA = True
 _C.SOLVER.AD_LR = True
-_C.SOLVER.INIT_LAMBDA = 1
+_C.SOLVER.INIT_LAMBDA = 1.0
 
 # ---------------------------------------------------------------------------- #
 # Domain Adaptation Net (DAN) configs

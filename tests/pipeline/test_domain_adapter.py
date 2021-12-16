@@ -29,7 +29,7 @@ def testing_cfg(download_path):
         "train_params": {
             "adapt_lambda": True,
             "adapt_lr": True,
-            "lambda_init": 1,
+            "lambda_init": 1.0,
             "nb_adapt_epochs": 2,
             "nb_init_epochs": 1,
             "init_lr": 0.001,

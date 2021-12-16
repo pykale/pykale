@@ -1,5 +1,5 @@
 # =============================================================================
-# Author: Xianyuan Liu, xianyuan.liu@sheffield.ac.uk or xianyuan.liu@outlook.com
+# Author: Xianyuan Liu, xianyuan.liu@outlook.com
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
@@ -13,25 +13,23 @@ import kale.predict.losses as losses
 from kale.loaddata.video_access import get_image_modality
 from kale.pipeline.domain_adapter import (
     BaseMMDLike,
-    CDANtrainer,
-    DANNtrainer,
+    CDANTrainer,
+    DANNTrainer,
     get_aggregated_metrics_from_dict,
     get_metrics_from_parameter_dict,
+    GradReverse,
     Method,
-    ReverseLayerF,
     set_requires_grad,
-    WDGRLtrainer,
+    WDGRLTrainer,
 )
 
 
-def create_mmd_based_4video(
-    method: Method, dataset, image_modality, feature_extractor, task_classifier, **train_params
-):
+def create_mmd_based_video(method: Method, dataset, image_modality, feature_extractor, task_classifier, **train_params):
     """MMD-based deep learning methods for domain adaptation on video data: DAN and JAN"""
     if not method.is_mmd_method():
         raise ValueError(f"Unsupported MMD method: {method}")
     if method is Method.DAN:
-        return DANtrainer4Video(
+        return DANTrainerVideo(
             dataset=dataset,
             image_modality=image_modality,
             feature_extractor=feature_extractor,
@@ -40,7 +38,7 @@ def create_mmd_based_4video(
             **train_params,
         )
     if method is Method.JAN:
-        return JANtrainer4Video(
+        return JANTrainerVideo(
             dataset=dataset,
             image_modality=image_modality,
             feature_extractor=feature_extractor,
@@ -52,7 +50,7 @@ def create_mmd_based_4video(
         )
 
 
-def create_dann_like_4video(
+def create_dann_like_video(
     method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, **train_params
 ):
     """DANN-based deep learning methods for domain adaptation on video data: DANN, CDAN, CDAN+E"""
@@ -61,13 +59,13 @@ def create_dann_like_4video(
     # Set up a new create_fewshot_trainer for video data based on original one in `domain_adapter.py`
 
     # if dataset.is_semi_supervised():
-    #     return create_fewshot_trainer_4video(
+    #     return create_fewshot_trainer_video(
     #         method, dataset, feature_extractor, task_classifier, critic, **train_params
     #     )
 
     if method.is_dann_method():
-        alpha = 0 if method is Method.Source else 1
-        return DANNtrainer4Video(
+        alpha = 0.0 if method is Method.Source else 1.0
+        return DANNTrainerVideo(
             alpha=alpha,
             image_modality=image_modality,
             dataset=dataset,
@@ -78,7 +76,7 @@ def create_dann_like_4video(
             **train_params,
         )
     elif method.is_cdan_method():
-        return CDANtrainer4Video(
+        return CDANTrainerVideo(
             dataset=dataset,
             image_modality=image_modality,
             feature_extractor=feature_extractor,
@@ -89,7 +87,7 @@ def create_dann_like_4video(
             **train_params,
         )
     elif method is Method.WDGRL:
-        return WDGRLtrainer4Video(
+        return WDGRLTrainerVideo(
             dataset=dataset,
             image_modality=image_modality,
             feature_extractor=feature_extractor,
@@ -102,12 +100,12 @@ def create_dann_like_4video(
         raise ValueError(f"Unsupported method: {method}")
 
 
-class BaseMMDLike4Video(BaseMMDLike):
+class BaseMMDLikeVideo(BaseMMDLike):
+    """Common API for MME-based domain adaptation on video data: DAN, JAN"""
+
     def __init__(
         self, dataset, image_modality, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5, **base_params,
     ):
-        """Common API for MME-based domain adaptation on video data: DAN, JAN"""
-
         super().__init__(dataset, feature_extractor, task_classifier, kernel_mul, kernel_num, **base_params)
         self.image_modality = image_modality
         self.rgb_feat = self.feat["rgb"]
@@ -133,7 +131,7 @@ class BaseMMDLike4Video(BaseMMDLike):
                 class_output = self.classifier(x)
                 return [x_rgb, x_flow], class_output
 
-    def compute_loss(self, batch, split_name="V"):
+    def compute_loss(self, batch, split_name="val"):
         # _s refers to source, _tu refers to unlabeled target
         if self.image_modality == "joint" and len(batch) == 4:
             (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
@@ -166,7 +164,7 @@ class BaseMMDLike4Video(BaseMMDLike):
         return task_loss, mmd, log_metrics
 
 
-class DANtrainer4Video(BaseMMDLike4Video):
+class DANTrainerVideo(BaseMMDLikeVideo):
     """This is an implementation of DAN for video data."""
 
     def __init__(self, dataset, image_modality, feature_extractor, task_classifier, **base_params):
@@ -178,7 +176,7 @@ class DANtrainer4Video(BaseMMDLike4Video):
         return losses.compute_mmd_loss(kernels, batch_size)
 
 
-class JANtrainer4Video(BaseMMDLike4Video):
+class JANTrainerVideo(BaseMMDLikeVideo):
     """This is an implementation of JAN for video data."""
 
     def __init__(
@@ -220,13 +218,13 @@ class JANtrainer4Video(BaseMMDLike4Video):
         return losses.compute_mmd_loss(joint_kernels, batch_size)
 
 
-class DANNtrainer4Video(DANNtrainer):
+class DANNTrainerVideo(DANNTrainer):
     """This is an implementation of DANN for video data."""
 
     def __init__(
         self, dataset, image_modality, feature_extractor, task_classifier, critic, method, **base_params,
     ):
-        super(DANNtrainer4Video, self).__init__(
+        super(DANNTrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, method, **base_params
         )
         self.image_modality = image_modality
@@ -242,12 +240,12 @@ class DANNtrainer4Video(DANNtrainer):
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.alpha)
+                reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
                 adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
-                reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
+                reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
                 adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
 
             if self.rgb:
@@ -261,7 +259,7 @@ class DANNtrainer4Video(DANNtrainer):
 
             return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
-    def compute_loss(self, batch, split_name="V"):
+    def compute_loss(self, batch, split_name="val"):
         # _s refers to source, _tu refers to unlabeled target
         x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
         if self.rgb:
@@ -320,7 +318,7 @@ class DANNtrainer4Video(DANNtrainer):
     def training_step(self, batch, batch_nb):
         self._update_batch_epoch_factors(batch_nb)
 
-        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="T")
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
         if self.current_epoch < self._init_epochs:
             loss = task_loss
         else:
@@ -328,9 +326,9 @@ class DANNtrainer4Video(DANNtrainer):
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["T_total_loss"] = loss
-        log_metrics["T_adv_loss"] = adv_loss
-        log_metrics["T_task_loss"] = task_loss
+        log_metrics["train_total_loss"] = loss
+        log_metrics["train_adv_loss"] = adv_loss
+        log_metrics["train_task_loss"] = task_loss
 
         for key in log_metrics:
             self.log(key, log_metrics[key])
@@ -338,7 +336,7 @@ class DANNtrainer4Video(DANNtrainer):
         return {"loss": loss}
 
 
-class CDANtrainer4Video(CDANtrainer):
+class CDANTrainerVideo(CDANTrainer):
     """This is an implementation of CDAN for video data."""
 
     def __init__(
@@ -353,7 +351,7 @@ class CDANtrainer4Video(CDANtrainer):
         random_dim=1024,
         **base_params,
     ):
-        super(CDANtrainer4Video, self).__init__(
+        super(CDANTrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, use_entropy, use_random, random_dim, **base_params
         )
         self.image_modality = image_modality
@@ -369,11 +367,11 @@ class CDANtrainer4Video(CDANtrainer):
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                reverse_feature_rgb = ReverseLayerF.apply(x_rgb, self.alpha)
+                reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
-                reverse_feature_flow = ReverseLayerF.apply(x_flow, self.alpha)
+                reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
 
             if self.rgb:
                 if self.flow:  # For joint input
@@ -384,7 +382,7 @@ class CDANtrainer4Video(CDANtrainer):
                 x = x_flow
             class_output = self.classifier(x)
             softmax_output = torch.nn.Softmax(dim=1)(class_output)
-            reverse_out = ReverseLayerF.apply(softmax_output, self.alpha)
+            reverse_out = GradReverse.apply(softmax_output, self.alpha)
 
             if self.rgb:
                 feature_rgb = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_rgb.unsqueeze(1))
@@ -405,7 +403,7 @@ class CDANtrainer4Video(CDANtrainer):
                     adversarial_output_flow = self.domain_classifier(feature_flow)
             return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
-    def compute_loss(self, batch, split_name="V"):
+    def compute_loss(self, batch, split_name="val"):
         # _s refers to source, _tu refers to unlabeled target
         x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
         if self.rgb:
@@ -480,7 +478,7 @@ class CDANtrainer4Video(CDANtrainer):
         return task_loss, adv_loss, log_metrics
 
 
-class WDGRLtrainer4Video(WDGRLtrainer):
+class WDGRLTrainerVideo(WDGRLTrainer):
     """This is an implementation of WDGRL for video data."""
 
     def __init__(
@@ -495,7 +493,7 @@ class WDGRLtrainer4Video(WDGRLtrainer):
         beta_ratio=0,
         **base_params,
     ):
-        super(WDGRLtrainer4Video, self).__init__(
+        super(WDGRLTrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, k_critic, gamma, beta_ratio, **base_params
         )
         self.image_modality = image_modality
@@ -528,7 +526,7 @@ class WDGRLtrainer4Video(WDGRLtrainer):
 
             return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
-    def compute_loss(self, batch, split_name="V"):
+    def compute_loss(self, batch, split_name="val"):
         # _s refers to source, _tu refers to unlabeled target
         x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
         if self.rgb:

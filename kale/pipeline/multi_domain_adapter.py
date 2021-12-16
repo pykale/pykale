@@ -48,18 +48,19 @@ def _average_cls_output(x, classifiers: nn.ModuleDict):
 
 
 class BaseMultiSourceTrainer(BaseAdaptTrainer):
+    """Base class for all domain adaptation architectures
+
+    Args:
+        dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used for train, validation, and tests.
+        feature_extractor (torch.nn.Module): the feature extractor network
+        task_classifier (torch.nn.Module): the task classifier network
+        n_classes (int): number of classes
+        target_domain (str): target domain name
+    """
+
     def __init__(
         self, dataset, feature_extractor, task_classifier, n_classes: int, target_domain: str, **base_params,
     ):
-        """Base class for all domain adaptation architectures
-
-        Args:
-            dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used for train, validation, and tests.
-            feature_extractor (torch.nn.Module): the feature extractor network
-            task_classifier (torch.nn.Module): the task classifier network
-            n_classes (int): number of classes
-            target_domain (str): target domain name
-        """
         super().__init__(dataset, feature_extractor, task_classifier, **base_params)
         self.n_classes = n_classes
         self.feature_dim = feature_extractor.state_dict()[list(feature_extractor.state_dict().keys())[-2]].shape[0]
@@ -79,24 +80,24 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
 
         return x
 
-    def compute_loss(self, batch, split_name="V"):
+    def compute_loss(self, batch, split_name="val"):
         raise NotImplementedError("Loss needs to be defined.")
 
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
             "val_loss",
-            "V_source_acc",
-            "V_target_acc",
-            "V_domain_acc",
+            "val_source_acc",
+            "val_target_acc",
+            "val_domain_acc",
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 
     def test_epoch_end(self, outputs):
         metrics_at_test = (
             "test_loss",
-            "Te_source_acc",
-            "Te_target_acc",
-            "Te_domain_acc",
+            "test_source_acc",
+            "test_target_acc",
+            "test_domain_acc",
         )
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
@@ -105,6 +106,14 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
 
 
 class M3SDATrainer(BaseMultiSourceTrainer):
+    """Moment matching for multi-source domain adaptation (M3SDA).
+
+    Reference:
+        Peng, X., Bai, Q., Xia, X., Huang, Z., Saenko, K., & Wang, B. (2019). Moment matching for multi-source
+        domain adaptation. In Proceedings of the IEEE/CVF International Conference on Computer Vision
+        (pp. 1406-1415).
+    """
+
     def __init__(
         self,
         dataset,
@@ -115,13 +124,6 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         k_moment: int = 3,
         **base_params,
     ):
-        """Moment matching for multi-source domain adaptation (M3SDA).
-
-        Reference:
-            Peng, X., Bai, Q., Xia, X., Huang, Z., Saenko, K., & Wang, B. (2019). Moment matching for multi-source
-            domain adaptation. In Proceedings of the IEEE/CVF International Conference on Computer Vision
-            (pp. 1406-1415).
-        """
         super().__init__(dataset, feature_extractor, task_classifier, n_classes, target_domain, **base_params)
         self.classifiers = dict()
         for domain_ in self.domain_to_idx.keys():
@@ -131,7 +133,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         self.classifiers = nn.ModuleDict(self.classifiers)
         self.k_moment = k_moment
 
-    def compute_loss(self, batch, split_name="V"):
+    def compute_loss(self, batch, split_name="val"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
         moment_loss = self._compute_domain_dist(phi_x, domain_labels)
@@ -192,6 +194,8 @@ class M3SDATrainer(BaseMultiSourceTrainer):
 
 
 class _DINTrainer(BaseMultiSourceTrainer):
+    """Domain independent network (DIN). It is under development and will be updated with references later."""
+
     def __init__(
         self,
         dataset,
@@ -204,9 +208,6 @@ class _DINTrainer(BaseMultiSourceTrainer):
         kernel_num: int = 5,
         **base_params,
     ):
-        """Domain independent network (DIN). It is under development and will be updated with references later.
-
-        """
         super().__init__(dataset, feature_extractor, task_classifier, n_classes, target_domain, **base_params)
         self.kernel = kernel
         self.n_domains = len(self.domain_to_idx.values())
@@ -214,7 +215,7 @@ class _DINTrainer(BaseMultiSourceTrainer):
         self._kernel_mul = kernel_mul
         self._kernel_num = kernel_num
 
-    def compute_loss(self, batch, split_name="V"):
+    def compute_loss(self, batch, split_name="val"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
         loss_dist = self._compute_domain_dist(phi_x, domain_labels)
@@ -245,6 +246,14 @@ class _DINTrainer(BaseMultiSourceTrainer):
 
 
 class MFSANTrainer(BaseMultiSourceTrainer):
+    """Multiple Feature Spaces Adaptation Network (MFSAN)
+
+    Reference: Zhu, Y., Zhuang, F. and Wang, D., 2019, July. Aligning domain-specific distribution and classifier
+        for cross-domain classification from multiple sources. In AAAI.
+
+    Original implementation: https://github.com/easezyc/deep-transfer-learning/tree/master/MUDA/MFSAN
+    """
+
     def __init__(
         self,
         dataset,
@@ -258,15 +267,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         input_dimension: int = 2,
         **base_params,
     ):
-        """Multiple Feature Spaces Adaptation Network (MFSAN)
-
-        Reference: Zhu, Y., Zhuang, F. and Wang, D., 2019, July. Aligning domain-specific distribution and classifier
-            for cross-domain classification from multiple sources. In AAAI.
-
-        Original implementation: https://github.com/easezyc/deep-transfer-learning/tree/master/MUDA/MFSAN
-        """
         super().__init__(dataset, feature_extractor, task_classifier, n_classes, target_domain, **base_params)
-
         self.classifiers = dict()
         self.domain_net = dict()
         self.src_domains = []
@@ -282,7 +283,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         self._kernel_mul = kernel_mul
         self._kernel_num = kernel_num
 
-    def compute_loss(self, batch, split_name="V"):
+    def compute_loss(self, batch, split_name="val"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
         tgt_idx = torch.where(domain_labels == self.target_label)[0]

@@ -10,9 +10,9 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 * Algorithms: DANN, CDAN, CDAN+E, ...
 * Example: MNIST (source) to UPSP (target) using CDAN and DANN
 
-`python main.py --cfg configs/MN2UP-CDAN.yaml --gpus 0`
+`python main.py --cfg configs/MN2UP-CDAN.yaml --gpus 1`
 
-`python main.py --cfg configs/MN2UP-DANN.yaml --gpus 0`
+`python main.py --cfg configs/MN2UP-DANN.yaml --gpus 1`
 
 ### 3. Related `kale` API
 
