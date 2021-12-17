@@ -203,6 +203,7 @@ def plot_cumulative(cmaps, data_struct, models, uncertainty_types, bins, save_pa
     # make sure bins is a list and not a single value
     bins = [bins] if not isinstance(bins, (list, np.ndarray)) else bins
 
+
     plt.style.use("ggplot")
 
     _ = plt.figure()

@@ -24,7 +24,7 @@ from sklearn.model_selection import cross_validate
 
 from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard
 from kale.interpret.uncertainty_quantiles import box_plot, plot_cumulative, quantile_binning_and_est_errors
-from kale.loaddata.tabular_access import apply_confidence_inversion, get_data_struct, load_uncertainty_pairs_csv
+from kale.loaddata.tabular_access import apply_confidence_inversion, get_data_struct, load_uncertainty_pairs_csv, update_csvs_with_folds
 from kale.predict.uncertainty_binning import quantile_binning_predictions
 
 
@@ -42,8 +42,8 @@ def main():
 
     # ---- setup configs ----
     cfg = get_cfg_defaults()
-    # if args.cfg:
-    #     cfg.merge_from_file(args.cfg)
+    if args.cfg:
+        cfg.merge_from_file(args.cfg)
     cfg.freeze()
     print(cfg)
 
@@ -68,21 +68,23 @@ def main():
     # Define parameters for visualisation
     cmaps = sns.color_palette("deep", 10).as_hex()
 
-    # Load, learn thresholds, predict, and save for each model/uncertainty/landmark
 
     fit = False
     evaluate = True
     interpret = True
-    ################# This is the Fitting Phase ########################
+
+   
+    #---- This is the Fitting Phase ----
     if fit:
         for model in models_to_compare:
             for landmark in landmarks:
+                
                 # Define Paths for this loop
                 landmark_results_path = os.path.join(
                     base_dir, "Results", model, dataset, landmark_base_filename + "_l" + str(landmark)
                 )
                 uncert_boundaries, estimated_errors, predicted_bins = fit_and_predict(
-                    model, landmark, uncertainty_error_pairs, landmark_results_path, cfg, save_folder
+                    model, landmark, uncertainty_error_pairs, landmark_results_path, cfg, update_csv_w_fold, save_folder
                 )
 
     ############ Evaluation Phase ##########################
@@ -101,8 +103,14 @@ def main():
         )
 
         if interpret:
+
+            #Plot cumulative error figure for all predictions
             plot_cumulative(
                 cmaps, bins_all_lms, models_to_compare, uncertainty_error_pairs, np.arange(num_bins), save_path=None,
+            )
+            #Plot cumulative error figure for B5 only predictions
+            plot_cumulative(
+                cmaps, bins_all_lms, models_to_compare, uncertainty_error_pairs, 0, save_path=None,
             )
 
             x_axis_labels = [r"$B_{}$".format(num_bins + 1 - (i + 1)) for i in range(num_bins + 1)]
@@ -132,7 +140,22 @@ def main():
             )
 
 
-def fit_and_predict(model, landmark, uncertainty_error_pairs, landmark_results_path, config, save_folder=None):
+def fit_and_predict(model, landmark, uncertainty_error_pairs, landmark_results_path, config, update_csv_w_fold=False, save_folder=None):
+
+    """ Loads (validation, testing data) pairs of (uncertainty, error) pairs and for each fold: used the validation
+        set to generate quantile thresholds, estimate error bounds and bin the test data accordingly. Saves 
+        predicted bins and error bounds to a csv.
+
+    Args:
+        model (str): name of the model to perform uncertainty estimation on,
+        landmark (int): Which landmark to perform uncertainty estimation on,
+        uncertainty_error_pairs ([list]): list of lists describing the different uncert combinations to test,
+        landmark_results_path (str): path to where the (error, uncertainty) pairs are saved,
+        config (CfgNode): Config of hyperparameters.
+        update_csv_w_fold (bool, optional): Whether to combine JSON and CSV files. Reccomended false (default=False),
+        save_folder (str):path to folder to save results to *default=None).
+
+    """
 
     num_bins = config.PIPELINE.NUM_QUANTILE_BINS
     invert_confidences = config.DATASET.CONFIDENCE_INVERT
@@ -149,14 +172,13 @@ def fit_and_predict(model, landmark, uncertainty_error_pairs, landmark_results_p
     for idx, uncertainty_pairing in enumerate(uncertainty_error_pairs):
 
         uncertainty_category = uncertainty_pairing[0]
-        # print("uc", uncertainty_category)
         invert_uncert_bool = [x[1] for x in invert_confidences if x[0] == uncertainty_category]
         uncertainty_localisation_er = uncertainty_pairing[1]
         uncertainty_measure = uncertainty_pairing[2]
 
-        # if update_csv_w_fold:
-        #     all_jsons = [os.path.join(base_dir, "Data", dataset, 'fold_information', fold_file_base+"_fold"+str(fold)+'.json') for fold in range(num_folds)]
-        #     update_csvs_with_folds(landmark_results_path, uncertainty_localisation_er, uncertainty_measure, all_jsons)
+        if update_csv_w_fold:
+            all_jsons = [os.path.join(config.DATASET.BASE_DIR, "Data", dataset, 'fold_information', config.DATASET.FOLD_FILE_BASE+"_fold"+str(fold)+'.json') for fold in range(num_folds)]
+            update_csvs_with_folds(landmark_results_path, uncertainty_localisation_er, uncertainty_measure, all_jsons)
 
         running_results = []
         running_error_bounds = []
@@ -209,79 +231,6 @@ def fit_and_predict(model, landmark, uncertainty_error_pairs, landmark_results_p
         )
 
     return uncert_boundaries, estimated_errors, all_testing_results
-
-    # exit()
-
-    # Predict on testing data
-    # file structures:
-    # Data
-    # dataset
-    # Fold information
-    # Results
-    # dataset
-    # Model
-    # Landmark csvs
-    # So dataset/model/landmark0.csv, dataset/model2/landmark0.csv etc
-
-    # Ask to specify:
-    # MODEL_NAME
-    # LANDMARKS e.g. [0,1,2] or [0,2]
-    # DATASET
-    # COMMON FILE PATH FOR LANDMARK CSV: which is MODEL/?????_landmark_x where ??? is their own input. csv file need to end with _landmark_x
-    # csv should be in format: u_id, then pairs of uncertianty, errors they want to compare
-    # COLUMN PAIRINGS with name for each: {"S-MHA": ['S-MHA Error, 'S-MHA Uncertainty'], "E-MHA": ['E-MHA Error, 'E-MHA Uncertainty']}
-    # Invert uncertainty measure boolean for each uncertainty pairing: {"S-MHA": True, "E-CPV": False}. False by default
-
-    # NUM_FOLDS
-    # Common file path for fold info files which is data/?????_fold_x where ??? is their own input. csv file need to end with _fold_x
-
-    # NUM_BINS for how many quantile bins they want
-
-    # SAVE_NAME for a file name to save predicted bins to
-
-    # LOAD DATA
-    #####Load csv for (error, uncertainty) pairs depending on config files. Also need to specify validation/test split for fitting... ####
-
-    # ********** PREDICT STAGE
-    # Do a loop for each model
-    # for each landmark,
-    # *Make a datastruct to save the predicted bins by using the LANDMARK_CSV to extract u_ids and COLUMNPAIRINGS to make predicted bin spaces
-    # For each fold:
-    # For each uncertainty pairing:
-    # IN MAIN:
-    # * select user arguments and load csv file
-    # (LOAD DATA) --> make a function that takes in column (pair_names, spreadsheet, fold_json, split_category_name, inverse_bool)
-    #  and returns 2D array of [errors, uncertainties] using the ids in the json from the category name (e.g. validation, test).
-    # if inverse_boolean is true apply x = (1/x+e) *!DONE!*
-    # use load data function to load VALIDATION and TEST pairings  *!DONE!*
-
-    # * get thresholds and predict error bounds for the validation set
-    # (PREDICT) --> port in generate_thresholds function to take in (validation_pairings, num_bins) and return quantile thresholds and error bounds.
-    # aside: is this really predict? this is more learn? but doesn't fit into EMBED
-
-    # * Make predictions for each of the test set
-    # (PREDICT) --> port quantile_calibration_ecpv_bounded but take in (thresholds, error_bounds, test_pairs) and return predicted bin
-    # Update the outer loop in the MAIN with save the predicted bins, error bound bool, error and uncertainty and FOLD by their u_id
-    # Save datastruct of predicted bins as a csv at model/save_name_landmarkX.csv
-
-    # ********** EVALUATE STAGE
-    # * LOAD DATA :
-    # each function takes in (models to compare, landmarks to compare, uncertainty_types_to_compare) and returns:
-    # --> returns the useful datastructs for each model as defined in my code.
-    # --> error by bins data : For each model give back a list of errors per bin: Model All, Model L1, MOdel L2, model L3
-    # --> all errors:  For each model give back all errors: Model All, Model L1, MOdel L2, model L3
-    # --> all errors:  For each model give back all errors: Model All, Model L1, MOdel L2, model L3
-
-    # Offer landmark specific or all landmarks together, offer all models together or individual models.
-    # The actual jaccard index/bound accuracy will work per sample, the figures will try to be generic as possible but its hard (first code in my version).
-
-    # * Jaccard index for predicted bins and GT error quantiles
-    # (EVALUATE) --> function that takes in (u_id_predicted bins, u_id_prediciton_errors num_folds) and returns the average JI and fold-wise bin-wise JI.
-    # (INTERPRET) --> make the box plot for this
-
-    # * Error bound acc for predicted error bounds
-    # (EVALUATE) --> function that takes in (u_id_predicted_bins, u_id_error_bounds, num_folds) and returns the average EBA and fold-wise bin-wise EBA.
-    # (INTERPRET) --> make the box plot for this
 
 
 if __name__ == "__main__":
