@@ -49,7 +49,8 @@ def main():
 
     # ---- setup dataset ----
     base_dir = cfg.DATASET.BASE_DIR
-    landmark_base_filename = cfg.DATASET.LANDMARK_FILE_BASE
+    uncertainty_pairs_val = cfg.DATASET.UE_PAIRS_VAL
+    uncertainty_pairs_test = cfg.DATASET.UE_PAIRS_TEST
 
     uncertainty_error_pairs = cfg.DATASET.UNCERTAINTY_ERROR_PAIRS
     models_to_compare = cfg.DATASET.MODELS
@@ -69,7 +70,7 @@ def main():
     cmaps = sns.color_palette("deep", 10).as_hex()
 
 
-    fit = False
+    fit = True
     evaluate = True
     interpret = True
 
@@ -79,12 +80,23 @@ def main():
         for model in models_to_compare:
             for landmark in landmarks:
                 
+
+                    
                 # Define Paths for this loop
-                landmark_results_path = os.path.join(
-                    base_dir, "Results", model, dataset, landmark_base_filename + "_l" + str(landmark)
+                landmark_results_path_val = os.path.join(
+                    base_dir, "Results", model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
                 )
+                landmark_results_path_test = os.path.join(
+                    base_dir, "Results", model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
+                )
+
+                if update_csv_w_fold:
+                    all_jsons = [os.path.join(cfg.DATASET.BASE_DIR, "Data", dataset, 'fold_information', cfg.DATASET.FOLD_FILE_BASE+"_fold"+str(fold)+'.json') for fold in range(num_folds)]
+                    update_csvs_with_folds(landmark_results_path_val, all_jsons)
+                    update_csvs_with_folds(landmark_results_path_test, all_jsons)
+                    
                 uncert_boundaries, estimated_errors, predicted_bins = fit_and_predict(
-                    model, landmark, uncertainty_error_pairs, landmark_results_path, cfg, update_csv_w_fold, save_folder
+                    model, landmark, uncertainty_error_pairs, landmark_results_path_val, landmark_results_path_test, cfg, save_folder
                 )
 
     ############ Evaluation Phase ##########################
@@ -140,7 +152,7 @@ def main():
             )
 
 
-def fit_and_predict(model, landmark, uncertainty_error_pairs, landmark_results_path, config, update_csv_w_fold=False, save_folder=None):
+def fit_and_predict(model, landmark, uncertainty_error_pairs, ue_pairs_val, ue_pairs_test, config, save_folder=None):
 
     """ Loads (validation, testing data) pairs of (uncertainty, error) pairs and for each fold: used the validation
         set to generate quantile thresholds, estimate error bounds and bin the test data accordingly. Saves 
@@ -165,34 +177,33 @@ def fit_and_predict(model, landmark, uncertainty_error_pairs, landmark_results_p
 
     # Save results across uncertainty pairings for each landmark.
     all_testing_results = pd.DataFrame(
-        load_uncertainty_pairs_csv(landmark_results_path, "Testing Fold", np.arange(num_folds))
+        load_uncertainty_pairs_csv(ue_pairs_test, "Testing Fold", np.arange(num_folds))
     )
     error_bound_estimates = pd.DataFrame({"fold": np.arange(num_folds)})
 
     for idx, uncertainty_pairing in enumerate(uncertainty_error_pairs):
 
         uncertainty_category = uncertainty_pairing[0]
-        invert_uncert_bool = [x[1] for x in invert_confidences if x[0] == uncertainty_category]
+        invert_uncert_bool = [x[1] for x in invert_confidences if x[0] == uncertainty_category][0]
         uncertainty_localisation_er = uncertainty_pairing[1]
         uncertainty_measure = uncertainty_pairing[2]
 
-        if update_csv_w_fold:
-            all_jsons = [os.path.join(config.DATASET.BASE_DIR, "Data", dataset, 'fold_information', config.DATASET.FOLD_FILE_BASE+"_fold"+str(fold)+'.json') for fold in range(num_folds)]
-            update_csvs_with_folds(landmark_results_path, uncertainty_localisation_er, uncertainty_measure, all_jsons)
+      
 
         running_results = []
         running_error_bounds = []
 
+        
         for fold in range(num_folds):
 
             validation_pairs = load_uncertainty_pairs_csv(
-                landmark_results_path,
+                ue_pairs_val,
                 "Validation Fold",
                 fold,
                 ["uid", uncertainty_localisation_er, uncertainty_measure],
             )
             testing_pairs = load_uncertainty_pairs_csv(
-                landmark_results_path, "Testing Fold", fold, ["uid", uncertainty_localisation_er, uncertainty_measure]
+                ue_pairs_test, "Testing Fold", fold, ["uid", uncertainty_localisation_er, uncertainty_measure]
             )
 
             if invert_uncert_bool:
