@@ -36,14 +36,12 @@ def load_uncertainty_pairs_csv(datapath, split, fold, cols_to_return="All"):
     return return_data
 
 
-def update_csvs_with_folds(datapath, er_col, uncert_col, all_fold_info_paths):
+def update_csvs_with_folds(datapath, all_fold_info_paths):
 
     """Read csv file of data, json file of val/test splits and save a CSV file with both data and splits.
 
     Args:
         datapath (str): Path to csv file of uncertainty results.
-        er_col (str): column name of error column in uncertainty results
-        uncert_col (str): column name of uncertainty measure column in uncertainty results
         fold_info_path (str): Path to fold information.
 
 
@@ -67,27 +65,10 @@ def update_csvs_with_folds(datapath, er_col, uncert_col, all_fold_info_paths):
         testing_ids = [d["id"] for d in val_test_splits["testing"]]
 
         # Update Rows for validation  and test fold info
-        if "PHD-NET" in datapath:
-            for v_id in validation_ids:
-                uncert_er_datafame.loc[
-                    uncert_er_datafame["uid"].isin(
-                        [v_id + "EHJ_220", v_id + "ASPIRE SSC_246", v_id + "EHJ_220", v_id + "ASPIRE SSC_120"]
-                    ),
-                    "Validation Fold",
-                ] = i
-            for te_id in testing_ids:
-                uncert_er_datafame.loc[
-                    uncert_er_datafame["uid"].isin(
-                        [te_id + "EHJ_220", te_id + "ASPIRE SSC_246", te_id + "EHJ_220", te_id + "ASPIRE SSC_120"]
-                    ),
-                    "Testing Fold",
-                ] = i
-
-        else:
-            for v_id in validation_ids:
-                uncert_er_datafame.loc[uncert_er_datafame["uid"] == v_id, "Validation Fold"] = i
-            for te_id in testing_ids:
-                uncert_er_datafame.loc[uncert_er_datafame["uid"] == te_id, "Testing Fold"] = i
+        for v_id in validation_ids:
+            uncert_er_datafame.loc[uncert_er_datafame["uid"] == v_id, "Validation Fold"] = i
+        for te_id in testing_ids:
+            uncert_er_datafame.loc[uncert_er_datafame["uid"] == te_id, "Testing Fold"] = i
 
     # Rename the u_ids to shorter version for phdnet
     if "PHD-NET" in datapath:
@@ -104,11 +85,11 @@ def update_csvs_with_folds(datapath, er_col, uncert_col, all_fold_info_paths):
             ] = a_id
 
     # Save CSV with the append "_wFolds"
-    which_lm = datapath.split("_")[-1]
-    base_before = "_".join(datapath.split("_")[:-1])
+    # which_lm = datapath.split("_")[-1]
+    # base_before = "_".join(datapath.split("_")[:-1])
 
     uncert_er_datafame.to_csv(
-        base_before + "_wFolds_" + which_lm + ".csv", index=False,
+        datapath + ".csv", index=False,
     )
 
 

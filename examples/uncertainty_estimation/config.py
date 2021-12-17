@@ -33,7 +33,8 @@ _C.DATASET.NUM_FOLDS = 8
 
 _C.DATASET.BASE_DIR = "../../../example_files/"
 _C.DATASET.FOLD_FILE_BASE = "8std"
-_C.DATASET.LANDMARK_FILE_BASE = "checkpointuncertainty_pairs_B5_EEB_pairs_wFolds"
+_C.DATASET.UE_PAIRS_VAL = "checkpointuncertainty_pairs_B5_EEB_pairs_val"
+_C.DATASET.UE_PAIRS_TEST = "checkpointuncertainty_pairs_B5_EEB_pairs_test"
 
 
 # ---------------------------------------------------------------------------- #
