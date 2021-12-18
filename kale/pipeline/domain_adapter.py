@@ -444,7 +444,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._nb_training_batches = len(dataloader)
         return dataloader
 
-    def valid_dataloader(self):
+    def val_dataloader(self):
         return self._dataset.get_domain_loaders(split="valid", batch_size=self._batch_size)
 
     def test_dataloader(self):
