@@ -37,10 +37,10 @@ def main():
 
     # ---- set dataset ----
     train_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="train", path=cfg.DATASET.PATH)
-    val_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="valid", path=cfg.DATASET.PATH)
+    valid_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="valid", path=cfg.DATASET.PATH)
     test_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="test", path=cfg.DATASET.PATH)
     train_loader = DataLoader(dataset=train_dataset, shuffle=True, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE)
-    val_loader = DataLoader(dataset=val_dataset, shuffle=True, batch_size=cfg.SOLVER.TEST_BATCH_SIZE)
+    valid_loader = DataLoader(dataset=valid_dataset, shuffle=True, batch_size=cfg.SOLVER.TEST_BATCH_SIZE)
     test_loader = DataLoader(dataset=test_dataset, shuffle=True, batch_size=cfg.SOLVER.TEST_BATCH_SIZE)
 
     # ---- set model ----
@@ -48,9 +48,9 @@ def main():
 
     # ---- training and evaluation ----
     gpus = 1 if device == "cuda" else 0
-    checkpoint_callback = ModelCheckpoint(monitor="val_loss", mode="min")
+    checkpoint_callback = ModelCheckpoint(monitor="valid_loss", mode="min")
     trainer = pl.Trainer(max_epochs=cfg.SOLVER.MAX_EPOCHS, gpus=gpus, logger=tb_logger, callbacks=[checkpoint_callback])
-    trainer.fit(model, train_dataloader=train_loader, val_dataloaders=val_loader)
+    trainer.fit(model, train_dataloader=train_loader, valid_dataloaders=valid_loader)
     trainer.test(test_dataloaders=test_loader)
 
 

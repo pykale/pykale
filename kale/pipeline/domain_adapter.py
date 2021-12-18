@@ -308,13 +308,13 @@ class BaseAdaptTrainer(pl.LightningModule):
     def forward(self, x):
         raise NotImplementedError("Forward pass needs to be defined.")
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         """Define the loss of the model
 
         Args:
             batch (tuple): batches returned by the MultiDomainLoader.
-            split_name (str, optional): learning stage (one of ["train", "val", "test"]).
-                Defaults to "val" for validation. "train" is for training and "test" for testing.
+            split_name (str, optional): learning stage (one of ["train", "valid", "test"]).
+                Defaults to "valid" for validation. "train" is for training and "test" for testing.
                 This is currently used only for naming the metrics used for logging.
 
         Returns:
@@ -368,32 +368,32 @@ class BaseAdaptTrainer(pl.LightningModule):
         }
 
     def validation_step(self, batch, batch_nb):
-        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="val")
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="valid")
         loss = task_loss + self.lamb_da * adv_loss
-        log_metrics["val_loss"] = loss
-        log_metrics["val_task_loss"] = task_loss
-        log_metrics["val_adv_loss"] = adv_loss
+        log_metrics["valid_loss"] = loss
+        log_metrics["valid_task_loss"] = task_loss
+        log_metrics["valid_adv_loss"] = adv_loss
         return log_metrics
 
     def _validation_epoch_end(self, outputs, metrics_at_valid):
         log_dict = get_aggregated_metrics(metrics_at_valid, outputs)
-        device = outputs[0].get("val_loss").device
+        device = outputs[0].get("valid_loss").device
         log_dict.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), device))
 
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
 
         # return {
-        #     "val_loss": avg_loss,  # for callbacks (eg early stopping)
-        #     "progress_bar": {"val_loss": avg_loss},
+        #     "valid_loss": avg_loss,  # for callbacks (eg early stopping)
+        #     "progress_bar": {"valid_loss": avg_loss},
         #     "log": log_dict,
         # }
 
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
-            "val_loss",
-            "val_source_acc",
-            "val_target_acc",
+            "valid_loss",
+            "valid_source_acc",
+            "valid_target_acc",
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 
@@ -444,7 +444,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._nb_training_batches = len(dataloader)
         return dataloader
 
-    def val_dataloader(self):
+    def valid_dataloader(self):
         return self._dataset.get_domain_loaders(split="valid", batch_size=self._batch_size)
 
     def test_dataloader(self):
@@ -492,7 +492,7 @@ class BaseDANNLike(BaseAdaptTrainer):
         if self._adapt_reg:
             self._entropy_reg = self._entropy_reg_init * self._grow_fact
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         if len(batch) == 3:
             raise NotImplementedError("DANN does not support semi-supervised setting.")
         (x_s, y_s), (x_tu, y_tu) = batch
@@ -520,14 +520,14 @@ class BaseDANNLike(BaseAdaptTrainer):
 
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
-            "val_loss",
-            "val_task_loss",
-            "val_adv_loss",
-            "val_source_acc",
-            "val_target_acc",
-            "val_source_domain_acc",
-            "val_target_domain_acc",
-            "val_domain_acc",
+            "valid_loss",
+            "valid_task_loss",
+            "valid_adv_loss",
+            "valid_source_acc",
+            "valid_target_acc",
+            "valid_source_domain_acc",
+            "valid_target_domain_acc",
+            "valid_domain_acc",
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 
@@ -640,7 +640,7 @@ class CDANTrainer(BaseDANNLike):
         entropy_w = 1.0 + torch.exp(-entropy)
         return entropy_w
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         if len(batch) == 3:
             raise NotImplementedError("CDAN does not support semi-supervised setting.")
         (x_s, y_s), (x_tu, y_tu) = batch
@@ -714,7 +714,7 @@ class WDGRLTrainer(BaseDANNLike):
         adversarial_output = self.domain_classifier(x)
         return x, class_output, adversarial_output
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         if len(batch) == 3:
             raise NotImplementedError("WDGRL does not support semi-supervised setting.")
         (x_s, y_s), (x_tu, y_tu) = batch
@@ -967,7 +967,7 @@ class FewShotDANNTrainer(BaseDANNLike):
         adversarial_output = self.domain_classifier(reverse_feature)
         return x, class_output, adversarial_output
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         assert len(batch) == 3
         (x_s, y_s), (x_tl, y_tl), (x_tu, y_tu) = batch
         batch_size = len(y_s)
@@ -1030,7 +1030,7 @@ class BaseMMDLike(BaseAdaptTrainer):
     def _compute_mmd(self, phi_s, phi_t, y_hat, y_t_hat):
         raise NotImplementedError("You need to implement a MMD-loss")
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         if len(batch) == 3:
             raise NotImplementedError("MMD does not support semi-supervised setting.")
         (x_s, y_s), (x_tu, y_tu) = batch
@@ -1053,10 +1053,10 @@ class BaseMMDLike(BaseAdaptTrainer):
 
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
-            "val_loss",
-            "val_source_acc",
-            "val_target_acc",
-            "val_domain_acc",
+            "valid_loss",
+            "valid_source_acc",
+            "valid_target_acc",
+            "valid_domain_acc",
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 

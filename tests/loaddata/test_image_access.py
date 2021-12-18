@@ -50,7 +50,7 @@ ALL = SOURCES + TARGETS  # ["SVHN", "USPS", "MNISTM"]  # SOURCES + TARGETS
 
 WEIGHT_TYPE = ["natural", "balanced", "preset0"]
 DATASIZE_TYPE = ["max", "source"]
-VAL_RATIO = [0.1]
+VALID_RATIO = [0.1]
 
 CLASS_SUBSETS = [[1, 3, 8]]
 
@@ -93,8 +93,8 @@ def test_get_train_test(dataset_name, download_path):
 
 
 @pytest.mark.parametrize("class_subset", CLASS_SUBSETS)
-@pytest.mark.parametrize("val_ratio", VAL_RATIO)
-def test_class_subsets(class_subset, val_ratio, download_path):
+@pytest.mark.parametrize("valid_ratio", VALID_RATIO)
+def test_class_subsets(class_subset, valid_ratio, download_path):
     dataset_name = ALL[1]
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(dataset_name), DigitDataset(dataset_name), download_path
@@ -104,20 +104,20 @@ def test_class_subsets(class_subset, val_ratio, download_path):
         source, target, config_weight_type=WEIGHT_TYPE[0], config_size_type=DATASIZE_TYPE[1], class_ids=class_subset,
     )
 
-    train, val = source.get_train_val(val_ratio)
+    train, valid = source.get_train_valid(valid_ratio)
     test = source.get_test()
     dataset_subset._source_by_split["train"] = get_class_subset(train, class_subset)
     dataset_subset._target_by_split["train"] = dataset_subset._source_by_split["train"]
-    dataset_subset._source_by_split["val"] = get_class_subset(val, class_subset)
+    dataset_subset._source_by_split["valid"] = get_class_subset(valid, class_subset)
     dataset_subset._source_by_split["test"] = get_class_subset(test, class_subset)
 
     # Ground truth lengths
     train_dataset_subset_length = len([1 for data in train if data[1] in class_subset])
-    val_dataset_subset_length = len([1 for data in val if data[1] in class_subset])
+    valid_dataset_subset_length = len([1 for data in valid if data[1] in class_subset])
     test_dataset_subset_length = len([1 for data in test if data[1] in class_subset])
 
     assert len(dataset_subset._source_by_split["train"]) == train_dataset_subset_length
-    assert len(dataset_subset._source_by_split["val"]) == val_dataset_subset_length
+    assert len(dataset_subset._source_by_split["valid"]) == valid_dataset_subset_length
     assert len(dataset_subset._source_by_split["test"]) == test_dataset_subset_length
     assert len(dataset_subset) == train_dataset_subset_length
 
@@ -157,6 +157,6 @@ def testing_cfg(download_path):
 def test_get_cifar(dataset, testing_cfg):
     cfg = testing_cfg
     cfg.DATASET.NAME = dataset
-    train_loader, val_loader = get_cifar(cfg)
+    train_loader, valid_loader = get_cifar(cfg)
     assert isinstance(train_loader, torch.utils.data.DataLoader)
-    assert isinstance(val_loader, torch.utils.data.DataLoader)
+    assert isinstance(valid_loader, torch.utils.data.DataLoader)
