@@ -8,8 +8,8 @@ A few sentences describing the changes proposed in this pull request.
 
 If you've been given access to pykale with role Triage or above, on the right (delete these after selection):
 
-- Select a reviewer if ready for review. Use the suggested one if unsure.
-- Select at least one appropriate label.
+- Select **one most appropriate** label.
+- **When** your pull request is **ready** for review, select a reviewer. Use the suggested one if unsure.
 
 If you cannot see an option to select a reviewer/label, that means one maintainer will get notified upon your pull request and then select for you.
 
