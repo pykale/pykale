@@ -360,7 +360,7 @@ def read_dicom_images(dicom_path, sort_instance=True, sort_patient=False):
             sub_ds.append(dataset)
         if sort_instance:
             sub_ds.sort(key=lambda x: x.InstanceNumber, reverse=False)
-        sub_ids.append(int(sub_ds[0].PatientID))
+        sub_ids.append(sub_ds[0].PatientID)
         all_ds.append(sub_ds)
 
     if sort_patient:
