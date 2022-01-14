@@ -93,7 +93,7 @@ def box_plot(
     fig = plt.figure()
     ax = plt.gca()
 
-    fig.set_size_inches(24, 10)
+    # fig.set_size_inches(24, 10)
 
     ax.xaxis.grid(False)
 
@@ -155,7 +155,7 @@ def box_plot(
                     median.set(color="crimson", linewidth=3)
 
                 for mean in rect["means"]:
-                    mean.set(markerfacecolor="crimson", markeredgecolor="black", markersize=15)
+                    mean.set(markerfacecolor="crimson", markeredgecolor="black", markersize=10)
 
                 for whisker in rect["whiskers"]:
                     max_error = max(max(whisker.get_ydata()), max_error)
@@ -167,11 +167,13 @@ def box_plot(
             middle_min_x_loc += 0.02
         outer_min_x_loc += 0.12
 
-    ax.set_xlabel(x_label, fontsize=35)
-    ax.set_ylabel(y_label, fontsize=35)
+    ax.set_xlabel(x_label, fontsize=30)
+    ax.set_ylabel(y_label, fontsize=30)
     ax.set_xticks(bin_label_locs)
 
     plt.subplots_adjust(bottom=0.15)
+    plt.subplots_adjust(left=0.15)
+
     plt.xticks(fontsize=27)
     plt.yticks(fontsize=25)
 
@@ -179,7 +181,7 @@ def box_plot(
 
     ax.set_ylim((-2, y_lim))
 
-    ax.legend(handles=circ_patches, loc=9, fontsize=25, ncol=3, columnspacing=6)
+    ax.legend(handles=circ_patches, loc=9, fontsize=15, ncol=3, columnspacing=6)
 
     if save_path is not None:
         plt.savefig(save_path, dpi=100, bbox_inches="tight", pad_inches=0.2)
@@ -189,7 +191,7 @@ def box_plot(
         plt.close()
 
 
-def plot_cumulative(cmaps, data_struct, models, uncertainty_types, bins, save_path=None):
+def plot_cumulative(cmaps, data_struct, models, uncertainty_types, bins, title, compare_to_all=False, save_path=None):
     """Plots cumulative errors,
 
     Args:
@@ -197,7 +199,8 @@ def plot_cumulative(cmaps, data_struct, models, uncertainty_types, bins, save_pa
         data_struct (Dict): Dict of pandas dataframe for the data to display,
         models (list): the models we want to compare, keys in landmark_uncert_dicts,
         uncertainty_types ([list]): list of lists describing the different uncert combinations to test,
-        bins (list): List of bins to show error form
+        bins (list): List of bins to show error form,
+        compare_to_all (bool): Whether to compare the given subset of bins to all the data (default=False)
         save_path (str):path to save plot to. If None, displays on screen (default=None),
     """
 
@@ -206,25 +209,27 @@ def plot_cumulative(cmaps, data_struct, models, uncertainty_types, bins, save_pa
 
 
     plt.style.use("ggplot")
-
+    
     _ = plt.figure()
+
     ax = plt.gca()
     plt.xticks(fontsize=10)
     plt.yticks(fontsize=10)
 
     ax.set_xlabel("Error (mm)", fontsize=10)
     ax.set_ylabel("Number of images in %", fontsize=10)
+    plt.title(title)
 
     ax.set_xscale("log")
-    ax.set_xlim(0, 30)
-    line_styles = ["-", ":", "dotted", "-."]
+    # ax.set_xlim(0, 30)
+    line_styles = [":", "-", "dotted", "-."]
     for i, (up) in enumerate(uncertainty_types):
         uncertainty = up[0]
         colour = cmaps[i]
         for hash_idx, model_type in enumerate(models):
             line = line_styles[hash_idx]
 
-            # Filter inly the bins selected
+            # Filter only the bins selected
             dataframe = data_struct[model_type]
             model_un_errors = dataframe[dataframe[uncertainty + " Uncertainty bins"].isin(bins)][
                 uncertainty + " Error"
@@ -242,6 +247,23 @@ def plot_cumulative(cmaps, data_struct, models, uncertainty_types, bins, save_pa
                 linestyle=line,
                 dash_capstyle="round",
             )
+
+            if compare_to_all:
+                dataframe = data_struct[model_type]
+                model_un_errors = dataframe[uncertainty + " Error"].values
+
+                p = 100 * np.arange(len(model_un_errors)) / (len(model_un_errors) - 1)
+
+                sorted_errors = np.sort(model_un_errors)
+                line = line_styles[len(models) + hash_idx]
+                ax.plot(
+                    sorted_errors,
+                    p,
+                    label=model_type + " " + uncertainty,
+                    color=colour,
+                    linestyle=line,
+                    dash_capstyle="round",
+                )  
 
     handles, labels = ax.get_legend_handles_labels()
     # ax2.legend(loc=2})
