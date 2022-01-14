@@ -62,7 +62,7 @@ def main():
 
     num_bins = cfg.PIPELINE.NUM_QUANTILE_BINS
 
-    update_csv_w_fold = False  # Only True if results and split info are in diff files, only relevent for author
+    update_csv_w_fold = True  # Only True if results and split info are in diff files, only relevent for author
 
     save_folder = cfg.OUTPUT.SAVE_FOLDER
 
@@ -74,7 +74,23 @@ def main():
     evaluate = True
     interpret = True
 
-   
+    #---- Preprocessing Stage -----
+    if update_csv_w_fold:
+        for model in models_to_compare:
+            for landmark in landmarks:
+                # Define Paths for this loop
+                landmark_results_path_val = os.path.join(
+                    base_dir, "Results", model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
+                )
+                landmark_results_path_test = os.path.join(
+                    base_dir, "Results", model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
+                )
+
+                all_jsons = [os.path.join(cfg.DATASET.BASE_DIR, "Data", dataset, 'fold_information', cfg.DATASET.FOLD_FILE_BASE+"_fold"+str(fold)+'.json') for fold in range(num_folds)]
+                update_csvs_with_folds(landmark_results_path_val, all_jsons)
+                update_csvs_with_folds(landmark_results_path_test, all_jsons)
+                
+
     #---- This is the Fitting Phase ----
     if fit:
         for model in models_to_compare:
@@ -90,11 +106,7 @@ def main():
                     base_dir, "Results", model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
                 )
 
-                if update_csv_w_fold:
-                    all_jsons = [os.path.join(cfg.DATASET.BASE_DIR, "Data", dataset, 'fold_information', cfg.DATASET.FOLD_FILE_BASE+"_fold"+str(fold)+'.json') for fold in range(num_folds)]
-                    update_csvs_with_folds(landmark_results_path_val, all_jsons)
-                    update_csvs_with_folds(landmark_results_path_test, all_jsons)
-                    
+              
                 uncert_boundaries, estimated_errors, predicted_bins = fit_and_predict(
                     model, landmark, uncertainty_error_pairs, landmark_results_path_val, landmark_results_path_test, cfg, save_folder
                 )
@@ -118,12 +130,18 @@ def main():
 
             #Plot cumulative error figure for all predictions
             plot_cumulative(
-                cmaps, bins_all_lms, models_to_compare, uncertainty_error_pairs, np.arange(num_bins), save_path=None,
+                cmaps, bins_all_lms, models_to_compare, uncertainty_error_pairs, np.arange(num_bins), "Cumulative error for ALL predictions, dataset " + dataset, save_path=None,
             )
-            #Plot cumulative error figure for B5 only predictions
+            #Plot cumulative error figure for B1 only predictions
             plot_cumulative(
-                cmaps, bins_all_lms, models_to_compare, uncertainty_error_pairs, 0, save_path=None,
+                cmaps, bins_all_lms, models_to_compare, uncertainty_error_pairs, 0,  "Cumulative error for B1 predictions, dataset " + dataset, save_path=None,
             )
+
+            #Plot cumulative error figure comparing B1 and ALL, for both models
+            for model_type in models_to_compare:
+                plot_cumulative(
+                    cmaps, bins_all_lms, [model_type], uncertainty_error_pairs, 0,  model_type + ". Cumulative error comparing ALL and B1, dataset " + dataset, compare_to_all=True, save_path=None,
+                )
 
             x_axis_labels = [r"$B_{}$".format(num_bins + 1 - (i + 1)) for i in range(num_bins + 1)]
 
@@ -137,6 +155,7 @@ def main():
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Jaccard Index (%)",
                 num_bins=num_bins,
+                y_lim=70,
             )
 
             # PLot Error Bound Accuracy
