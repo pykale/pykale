@@ -15,13 +15,13 @@ This Figure depicts the features exemplified in this example. Note that **a)** a
 We provide two datasets containing landmark localization error and uncertainty estimation values across 6 landmarks using 3 uncertainty estimation measures. The data is derived from a Cardiac Magnetic Resonance Imaging (CMR) landmark localization task, using data from the [ASPIRE Registry](https://erj.ersjournals.com/content/39/4/945). We have 303 Short Axis View (CMR) scans with 3 landmarks each, and 422 Four Chamber View CMR scans with 3 landmarks each. For each uncertainty measure we provide tuples of (*Continuous Uncertainty Measure*, *Continuous Localization Error*) for each sample in the validation and test set in tabular form. We have split the data into 8 folds and used cross validation to gather validation and test set uncertainty tuples for every sample in the datasets. 
 
 In this example, we compare the uncertainty measures:
-    - Single Maximum Heatmap Activation (S-MHA),
-    -  Ensemble Maximum Heatmap Activation (E-MHA)
-    -  Ensemble Coordinate Prediction Variance (E-CPV).
+- Single Maximum Heatmap Activation (S-MHA),
+-  Ensemble Maximum Heatmap Activation (E-MHA)
+-  Ensemble Coordinate Prediction Variance (E-CPV).
 
 We compare these measures on landmark predictions from:
-    - A [U-Net model](https://link.springer.com/content/pdf/10.1007/978-3-319-24574-4_28.pdf) 
-    - A [PHD-Net model](https://ieeexplore.ieee.org/document/9433895/).
+ - A [U-Net model](https://link.springer.com/content/pdf/10.1007/978-3-319-24574-4_28.pdf) 
+ - A [PHD-Net model](https://ieeexplore.ieee.org/document/9433895/).
 
 
 
