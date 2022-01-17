@@ -6,7 +6,7 @@ In this example we implement the methods from [Uncertainty Estimation for Heatma
 
 We evaluate how well an uncertainty measure predicts localization error by measuring the [Jaccard Index](https://en.wikipedia.org/wiki/Jaccard_index) (a similarity measure) between the predicted bins and the ground truth error quantiles. We also evaluate the accuracy of the estimated error bounds. This framework is applicable to any dataset consisting of (*Continuous Uncertainty Measure*, *Continuous Evaluation Metric*) tuples.
 
-This Figure depicts the features exemplified in this example. Note that **a)** and **b)** are precomputed and provided in tabular form for this example.
+Fig. 1 depicts the features exemplified in this example. Note that **a)** and **b)** are precomputed and provided in tabular form for this example.
 
 |![Quantile Binning Framework](figures/quantile_binning.png)|
 |:--:|
