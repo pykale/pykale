@@ -28,7 +28,6 @@ def quantile_binning_and_est_errors(errors, uncertainties, num_bins, type="quant
     valid_types = {"quantile", "error-wise"}
     if type not in valid_types:
         raise ValueError("results: type must be one of %r. " % valid_types)
-    
 
     # Isotonically regress line
     ir = IsotonicRegression(out_of_bounds="clip", increasing=True)
@@ -90,7 +89,6 @@ def box_plot(
     plt.style.use("fivethirtyeight")
 
     orders = []
-    fig = plt.figure()
     ax = plt.gca()
 
     # fig.set_size_inches(24, 10)
@@ -207,9 +205,8 @@ def plot_cumulative(cmaps, data_struct, models, uncertainty_types, bins, title, 
     # make sure bins is a list and not a single value
     bins = [bins] if not isinstance(bins, (list, np.ndarray)) else bins
 
-
     plt.style.use("ggplot")
-    
+
     _ = plt.figure()
 
     ax = plt.gca()
@@ -263,7 +260,7 @@ def plot_cumulative(cmaps, data_struct, models, uncertainty_types, bins, title, 
                     color=colour,
                     linestyle=line,
                     dash_capstyle="round",
-                )  
+                )
 
     handles, labels = ax.get_legend_handles_labels()
     # ax2.legend(loc=2})

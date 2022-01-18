@@ -252,7 +252,7 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
     # Loop over models (model) and uncertainty methods (up)
     for i, (model, data_structs) in enumerate(bin_predictions.items()):
 
-        for up in uncertainty_pairs: # up = [pair name, error name , uncertainty name]
+        for up in uncertainty_pairs:  # up = [pair name, error name , uncertainty name]
             uncertainty_type = up[0]
 
             fold_mean_landmarks = []
@@ -275,8 +275,6 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
                 for idx_bin in range(len(return_dict["mean all bins"])):
                     fold_mean_bins[idx_bin].append(return_dict["mean all bins"][idx_bin])
                     fold_all_bins[idx_bin] = fold_all_bins[idx_bin] + return_dict["all bins"][idx_bin]
-
-        
 
             all_jaccard_data[model + " " + uncertainty_type] = fold_mean_bins
             all_jaccard_bins_lms_sep[model + " " + uncertainty_type] = fold_all_bins
@@ -361,8 +359,8 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, landmarks, uncertainty_ke
 
             errors_groups.append(inner_list_e)
             key_groups.append(inner_list_id)
-            
-        #flip them so they go from B5 to B1
+
+        # flip them so they go from B5 to B1
         pred_bins_keys = pred_bins_keys[::-1]
         errors_groups = errors_groups[::-1]
         key_groups = key_groups[::-1]

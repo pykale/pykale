@@ -24,7 +24,12 @@ from sklearn.model_selection import cross_validate
 
 from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard
 from kale.interpret.uncertainty_quantiles import box_plot, plot_cumulative, quantile_binning_and_est_errors
-from kale.loaddata.tabular_access import apply_confidence_inversion, get_data_struct, load_uncertainty_pairs_csv, update_csvs_with_folds
+from kale.loaddata.tabular_access import (
+    apply_confidence_inversion,
+    get_data_struct,
+    load_uncertainty_pairs_csv,
+    update_csvs_with_folds,
+)
 from kale.predict.uncertainty_binning import quantile_binning_predictions
 
 
@@ -69,12 +74,11 @@ def main():
     # Define parameters for visualisation
     cmaps = sns.color_palette("deep", 10).as_hex()
 
-
     fit = True
     evaluate = True
     interpret = True
 
-    #---- Preprocessing Stage -----
+    # ---- Preprocessing Stage -----
     if update_csv_w_fold:
         for model in models_to_compare:
             for landmark in landmarks:
@@ -86,18 +90,24 @@ def main():
                     base_dir, "Results", model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
                 )
 
-                all_jsons = [os.path.join(cfg.DATASET.BASE_DIR, "Data", dataset, 'fold_information', cfg.DATASET.FOLD_FILE_BASE+"_fold"+str(fold)+'.json') for fold in range(num_folds)]
+                all_jsons = [
+                    os.path.join(
+                        cfg.DATASET.BASE_DIR,
+                        "Data",
+                        dataset,
+                        "fold_information",
+                        cfg.DATASET.FOLD_FILE_BASE + "_fold" + str(fold) + ".json",
+                    )
+                    for fold in range(num_folds)
+                ]
                 update_csvs_with_folds(landmark_results_path_val, all_jsons)
                 update_csvs_with_folds(landmark_results_path_test, all_jsons)
-                
 
-    #---- This is the Fitting Phase ----
+    # ---- This is the Fitting Phase ----
     if fit:
         for model in models_to_compare:
             for landmark in landmarks:
-                
 
-                    
                 # Define Paths for this loop
                 landmark_results_path_val = os.path.join(
                     base_dir, "Results", model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
@@ -106,9 +116,14 @@ def main():
                     base_dir, "Results", model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
                 )
 
-              
                 uncert_boundaries, estimated_errors, predicted_bins = fit_and_predict(
-                    model, landmark, uncertainty_error_pairs, landmark_results_path_val, landmark_results_path_test, cfg, save_folder
+                    model,
+                    landmark,
+                    uncertainty_error_pairs,
+                    landmark_results_path_val,
+                    landmark_results_path_test,
+                    cfg,
+                    save_folder,
                 )
 
     ############ Evaluation Phase ##########################
@@ -128,19 +143,38 @@ def main():
 
         if interpret:
 
-            #Plot cumulative error figure for all predictions
+            # Plot cumulative error figure for all predictions
             plot_cumulative(
-                cmaps, bins_all_lms, models_to_compare, uncertainty_error_pairs, np.arange(num_bins), "Cumulative error for ALL predictions, dataset " + dataset, save_path=None,
+                cmaps,
+                bins_all_lms,
+                models_to_compare,
+                uncertainty_error_pairs,
+                np.arange(num_bins),
+                "Cumulative error for ALL predictions, dataset " + dataset,
+                save_path=None,
             )
-            #Plot cumulative error figure for B1 only predictions
+            # Plot cumulative error figure for B1 only predictions
             plot_cumulative(
-                cmaps, bins_all_lms, models_to_compare, uncertainty_error_pairs, 0,  "Cumulative error for B1 predictions, dataset " + dataset, save_path=None,
+                cmaps,
+                bins_all_lms,
+                models_to_compare,
+                uncertainty_error_pairs,
+                0,
+                "Cumulative error for B1 predictions, dataset " + dataset,
+                save_path=None,
             )
 
-            #Plot cumulative error figure comparing B1 and ALL, for both models
+            # Plot cumulative error figure comparing B1 and ALL, for both models
             for model_type in models_to_compare:
                 plot_cumulative(
-                    cmaps, bins_all_lms, [model_type], uncertainty_error_pairs, 0,  model_type + ". Cumulative error comparing ALL and B1, dataset " + dataset, compare_to_all=True, save_path=None,
+                    cmaps,
+                    bins_all_lms,
+                    [model_type],
+                    uncertainty_error_pairs,
+                    0,
+                    model_type + ". Cumulative error comparing ALL and B1, dataset " + dataset,
+                    compare_to_all=True,
+                    save_path=None,
                 )
 
             x_axis_labels = [r"$B_{}$".format(num_bins + 1 - (i + 1)) for i in range(num_bins + 1)]
@@ -174,7 +208,7 @@ def main():
 def fit_and_predict(model, landmark, uncertainty_error_pairs, ue_pairs_val, ue_pairs_test, config, save_folder=None):
 
     """ Loads (validation, testing data) pairs of (uncertainty, error) pairs and for each fold: used the validation
-        set to generate quantile thresholds, estimate error bounds and bin the test data accordingly. Saves 
+        set to generate quantile thresholds, estimate error bounds and bin the test data accordingly. Saves
         predicted bins and error bounds to a csv.
 
     Args:
@@ -195,9 +229,7 @@ def fit_and_predict(model, landmark, uncertainty_error_pairs, ue_pairs_val, ue_p
     num_folds = config.DATASET.NUM_FOLDS
 
     # Save results across uncertainty pairings for each landmark.
-    all_testing_results = pd.DataFrame(
-        load_uncertainty_pairs_csv(ue_pairs_test, "Testing Fold", np.arange(num_folds))
-    )
+    all_testing_results = pd.DataFrame(load_uncertainty_pairs_csv(ue_pairs_test, "Testing Fold", np.arange(num_folds)))
     error_bound_estimates = pd.DataFrame({"fold": np.arange(num_folds)})
 
     for idx, uncertainty_pairing in enumerate(uncertainty_error_pairs):
@@ -207,19 +239,13 @@ def fit_and_predict(model, landmark, uncertainty_error_pairs, ue_pairs_val, ue_p
         uncertainty_localisation_er = uncertainty_pairing[1]
         uncertainty_measure = uncertainty_pairing[2]
 
-      
-
         running_results = []
         running_error_bounds = []
 
-        
         for fold in range(num_folds):
 
             validation_pairs = load_uncertainty_pairs_csv(
-                ue_pairs_val,
-                "Validation Fold",
-                fold,
-                ["uid", uncertainty_localisation_er, uncertainty_measure],
+                ue_pairs_val, "Validation Fold", fold, ["uid", uncertainty_localisation_er, uncertainty_measure],
             )
             testing_pairs = load_uncertainty_pairs_csv(
                 ue_pairs_test, "Testing Fold", fold, ["uid", uncertainty_localisation_er, uncertainty_measure]
