@@ -1,17 +1,10 @@
 """
 Uncertainty Estimation for Landmark Localisaition
 
- change below
 
 Reference:
-Swift, A. J., Lu, H., Uthoff, J., Garg, P., Cogliano, M., Taylor, J., ... & Kiely, D. G. (2021). A machine learning
-cardiac magnetic resonance approach to extract disease features and automate pulmonary arterial hypertension diagnosis.
-European Heart Journal-Cardiovascular Imaging. https://academic.oup.com/ehjcimaging/article/22/2/236/5717931
+Placeholder.html
 """
-
-
-# There is a VERY important reason why these results don't match my paper. In the paper we use the validation set on the trained model
-# to get the thresholds, in this example we are using the test results. therefore they are not calibrated to a particular model.
 
 import argparse
 import os
@@ -20,17 +13,13 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from config import get_cfg_defaults
-from sklearn.model_selection import cross_validate
 
 from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard
 from kale.interpret.uncertainty_quantiles import box_plot, plot_cumulative, quantile_binning_and_est_errors
-from kale.loaddata.tabular_access import (
-    apply_confidence_inversion,
-    get_data_struct,
-    load_uncertainty_pairs_csv,
-    update_csvs_with_folds,
-)
+from kale.loaddata.tabular_access import load_uncertainty_pairs_csv
 from kale.predict.uncertainty_binning import quantile_binning_predictions
+from kale.prepdata.tabular_transform import apply_confidence_inversion, get_data_struct
+from kale.utils.download import download_file_by_url
 
 
 def arg_parse():
@@ -54,6 +43,13 @@ def main():
 
     # ---- setup dataset ----
     base_dir = cfg.DATASET.BASE_DIR
+    download_file_by_url(
+        cfg.DATASET.SOURCE,
+        cfg.DATASET.ROOT,
+        "%s.%s" % (base_dir, cfg.DATASET.FILE_FORMAT),
+        file_format=cfg.DATASET.FILE_FORMAT,
+    )
+
     uncertainty_pairs_val = cfg.DATASET.UE_PAIRS_VAL
     uncertainty_pairs_test = cfg.DATASET.UE_PAIRS_TEST
 
@@ -62,12 +58,8 @@ def main():
     dataset = cfg.DATASET.DATA
     landmarks = cfg.DATASET.LANDMARKS
     num_folds = cfg.DATASET.NUM_FOLDS
-    fold_file_base = cfg.DATASET.FOLD_FILE_BASE
-    invert_confidences = cfg.DATASET.CONFIDENCE_INVERT
 
     num_bins = cfg.PIPELINE.NUM_QUANTILE_BINS
-
-    update_csv_w_fold = True  # Only True if results and split info are in diff files, only relevent for author
 
     save_folder = cfg.OUTPUT.SAVE_FOLDER
 
@@ -78,31 +70,6 @@ def main():
     evaluate = True
     interpret = True
 
-    # ---- Preprocessing Stage -----
-    if update_csv_w_fold:
-        for model in models_to_compare:
-            for landmark in landmarks:
-                # Define Paths for this loop
-                landmark_results_path_val = os.path.join(
-                    base_dir, "Results", model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
-                )
-                landmark_results_path_test = os.path.join(
-                    base_dir, "Results", model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
-                )
-
-                all_jsons = [
-                    os.path.join(
-                        cfg.DATASET.BASE_DIR,
-                        "Data",
-                        dataset,
-                        "fold_information",
-                        cfg.DATASET.FOLD_FILE_BASE + "_fold" + str(fold) + ".json",
-                    )
-                    for fold in range(num_folds)
-                ]
-                update_csvs_with_folds(landmark_results_path_val, all_jsons)
-                update_csvs_with_folds(landmark_results_path_test, all_jsons)
-
     # ---- This is the Fitting Phase ----
     if fit:
         for model in models_to_compare:
@@ -110,10 +77,10 @@ def main():
 
                 # Define Paths for this loop
                 landmark_results_path_val = os.path.join(
-                    base_dir, "Results", model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
+                    cfg.DATASET.ROOT, model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
                 )
                 landmark_results_path_test = os.path.join(
-                    base_dir, "Results", model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
+                    cfg.DATASET.ROOT, model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
                 )
 
                 uncert_boundaries, estimated_errors, predicted_bins = fit_and_predict(
