@@ -23,6 +23,8 @@ def load_csv_columns(datapath, split, fold, cols_to_return="All"):
 
     if cols_to_return == "All":
         cols_to_return = datafame.columns
+    elif not isinstance(cols_to_return, (list, pd.core.series.Series, np.ndarray)):
+        cols_to_return = [cols_to_return]
 
     # Test if a single fold or list of folds
     if isinstance(fold, (list, pd.core.series.Series, np.ndarray)):
