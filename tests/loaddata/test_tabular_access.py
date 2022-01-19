@@ -2,11 +2,14 @@ import os
 
 import numpy as np
 import pytest
-from numpy import testing
 
 from kale.loaddata.tabular_access import load_csv_columns
 from kale.utils.seed import set_seed
-from tests.conftest import landmark_uncertainty_dl
+
+# from numpy import testing
+
+
+# from tests.conftest import landmark_uncertainty_dl
 
 # TODO: change the url when data is merged to main
 
@@ -25,31 +28,30 @@ root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 url = "https://github.com/pykale/data/blob/landmark-data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
 
 # Download Landmark Uncertainty data
-test_data_path = landmark_uncertainty_dl
+# test_data_path = landmark_uncertainty_dl("Uncertainty_tuples")
 
 
-@pytest.mark.parametrize("source_test_file", "PHD-Net/4CH/uncertainty_pairs_test_l0.csv")
-@pytest.mark.parametrize(
-    "target_all_cols",
-    [
-        "uid",
-        "E-CPV Error",
-        "E-CPV Uncertainty",
-        "E-MHA Error",
-        "E-MHA Uncertainty",
-        "S-MHA Error",
-        "S-MHA Uncertainty",
-        "Validation Fold",
-        "Testing Fold",
-    ],
-)
-def test_load_csv_columns(source_test_file, target_all_cols):
+EXPECTED_COLS = [
+    "uid",
+    "E-CPV Error",
+    "E-CPV Uncertainty",
+    "E-MHA Error",
+    "E-MHA Uncertainty",
+    "S-MHA Error",
+    "S-MHA Uncertainty",
+    "Validation Fold",
+    "Testing Fold",
+]
+
+
+@pytest.mark.parametrize("source_test_file", ["PHD-Net/4CH/uncertainty_pairs_test_l0"])
+def test_load_csv_columns(landmark_uncertainty_dl, source_test_file):
 
     # ensure if setting is "All" that all columns are returned
     returned_cols = load_csv_columns(
-        os.path.join(test_data_path, source_test_file), "Testing Fold", np.arange(8), cols_to_return="All"
+        os.path.join(landmark_uncertainty_dl, source_test_file), "Testing Fold", np.arange(8), cols_to_return="All"
     )
-    testing.assert_equal(returned_cols.columns, target_all_cols)
+    assert list(returned_cols.columns) == EXPECTED_COLS
 
 
 # @pytest.fixture(scope="module")

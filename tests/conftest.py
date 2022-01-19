@@ -30,10 +30,14 @@ def office_path(download_path):
     return path_
 
 
-landmark_uncertainty_url = "https://github.com/pykale/data/blob/landmark-data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
+landmark_uncertainty_url = (
+    "https://github.com/pykale/data/blob/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
+)
 
 
 @pytest.fixture(scope="session")
 def landmark_uncertainty_dl(download_path):
-    download_file_by_url(landmark_uncertainty_url, download_path, "Uncertainty_tuples.zip", "zip")
+    download_file_by_url(
+        landmark_uncertainty_url, os.path.join(download_path, "Uncertainty_tuples"), "Uncertainty_tuples.zip", "zip"
+    )
     return os.path.join(download_path, "Uncertainty_tuples")
