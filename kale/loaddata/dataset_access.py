@@ -28,22 +28,22 @@ class DatasetAccess:
         """
         raise NotImplementedError()
 
-    def get_train_val(self, val_ratio):
+    def get_train_valid(self, valid_ratio):
         """
         Randomly split a dataset into non-overlapping training and validation datasets.
 
         Args:
-            val_ratio (float): the ratio for validation set
+            valid_ratio (float): the ratio for validation set
 
         Returns:
             Dataset: a torch.utils.data.Dataset
         """
         train_dataset = self.get_train()
 
-        if val_ratio == 0:
+        if valid_ratio == 0:
             return train_dataset, train_dataset
         else:
-            return split_by_ratios(train_dataset, [val_ratio])
+            return split_by_ratios(train_dataset, [valid_ratio])
 
     def get_test(self):
         raise NotImplementedError()

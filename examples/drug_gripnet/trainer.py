@@ -20,7 +20,7 @@ class Trainer(object):
         # ---- loss settings ----
         self.loss = 0
         self.train_auprc, self.train_auroc, self.train_ap = [], [], []
-        self.val_auprc, self.val_auroc, self.val_ap = [], [], []
+        self.valid_auprc, self.valid_auroc, self.valid_ap = [], [], []
         self.best_ap = 0
         # ---- others ----
         self.epochs = 1
@@ -30,7 +30,7 @@ class Trainer(object):
         while self.epochs <= self.cfg.SOLVER.MAX_EPOCHS:
             self.adjust_learning_rate()
             self.train_epoch()
-            self.val()
+            self.valid()
             self.epochs += 1
 
     def train_epoch(self):
@@ -81,7 +81,7 @@ class Trainer(object):
         self.train_auroc.append(auroc)
         self.train_ap.append(ap)
 
-    def val(self):
+    def valid(self):
         self.model.eval()
         self.loss = 0
         epoch_t = time.time()
@@ -153,11 +153,11 @@ class Trainer(object):
             "optim": self.optim.state_dict(),
             "epoch": self.epochs,
             "train_auprc": self.train_auprc,
-            "val_auprc": self.val_auprc,
+            "valid_auprc": self.valid_auprc,
             "train_auroc": self.train_auroc,
-            "val_auroc": self.val_auroc,
+            "valid_auroc": self.valid_auroc,
             "train_ap@50": self.train_ap,
-            "val_ap@50": self.val_ap,
+            "valid_ap@50": self.valid_ap,
         }
 
         if name is None:

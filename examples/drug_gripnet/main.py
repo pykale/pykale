@@ -61,11 +61,11 @@ def main():
         trainer.optim.load_state_dict(cp["optim"])
         trainer.epochs = cp["epoch"]
         trainer.train_auprc = cp["train_auprc"]
-        trainer.val_auprc = cp["val_auprc"]
+        trainer.valid_auprc = cp["valid_auprc"]
         trainer.train_auroc = cp["train_auroc"]
-        trainer.val_auroc = cp["val_auroc"]
+        trainer.valid_auroc = cp["valid_auroc"]
         trainer.train_ap = cp["train_ap"]
-        trainer.val_ap = cp["val_ap"]
+        trainer.valid_ap = cp["valid_ap"]
 
     trainer.train()
 

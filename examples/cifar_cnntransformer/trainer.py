@@ -9,11 +9,11 @@ from kale.utils.print import pprint_without_newline, tprint
 
 
 class Trainer(object):
-    def __init__(self, device, train_loader, val_loader, model, optim, logger, cfg):
+    def __init__(self, device, train_loader, valid_loader, model, optim, logger, cfg):
         self.device = device
 
         self.train_loader = train_loader
-        self.val_loader = val_loader
+        self.valid_loader = valid_loader
         self.model = model
         self.optim = optim
         self.logger = logger
@@ -22,8 +22,8 @@ class Trainer(object):
         # ---- loss settings ----
         self.criterion = nn.NLLLoss()
         self.loss = 0
-        self.train_acc, self.val_acc = [], []
-        self.best_val_acc = 0
+        self.train_acc, self.valid_acc = [], []
+        self.best_valid_acc = 0
 
         # ---- others ----
         self.ave_time = 0
@@ -33,7 +33,7 @@ class Trainer(object):
         while self.epochs <= self.cfg.SOLVER.MAX_EPOCHS:
             self.adjust_learning_rate()
             self.train_epoch()
-            self.val()
+            self.valid()
             self.epochs += 1
 
     def train_epoch(self):
@@ -78,14 +78,14 @@ class Trainer(object):
         pprint_without_newline(info_str)
         self.train_acc.append(100.0 * correct / total)
 
-    def val(self):
+    def valid(self):
         self.model.eval()
         self.loss = 0
         correct = 0
         total = 0
 
         with torch.no_grad():
-            for batch_idx, (inputs, targets) in enumerate(self.val_loader):
+            for batch_idx, (inputs, targets) in enumerate(self.valid_loader):
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)
 
@@ -96,20 +96,20 @@ class Trainer(object):
                 total += targets.size(0)
                 correct += predicted.eq(targets).sum().item()
 
-        if 100.0 * correct / total > self.best_val_acc:
+        if 100.0 * correct / total > self.best_valid_acc:
             self.snapshot("best")
         self.snapshot("latest")
 
-        self.best_val_acc = max(self.best_val_acc, 100.0 * correct / total)
+        self.best_valid_acc = max(self.best_valid_acc, 100.0 * correct / total)
         info_str = (
             f"valid | Acc: {100. * correct / total:.3f} | "
-            f"Loss: {self.loss / len(self.val_loader):.3f} | "
-            f"best: {self.best_val_acc:.3f} | "
+            f"Loss: {self.loss / len(self.valid_loader):.3f} | "
+            f"best: {self.best_valid_acc:.3f} | "
         )
 
         print(info_str)
         self.logger.info(info_str)
-        self.val_acc.append(100.0 * correct / total)
+        self.valid_acc.append(100.0 * correct / total)
 
     def adjust_learning_rate(self):
         c = self.cfg
@@ -135,7 +135,7 @@ class Trainer(object):
             "optim": self.optim.state_dict(),
             "epoch": self.epochs,
             "train_accuracy": self.train_acc,
-            "test_accuracy": self.val_acc,
+            "test_accuracy": self.valid_acc,
         }
 
         if name is None:

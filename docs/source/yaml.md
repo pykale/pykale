@@ -17,7 +17,7 @@ DAN:
 DATASET:
   NUM_REPEAT: 1
   SOURCE: "svhn"
-  VAL_SPLIT_RATIO: 0.5
+  VALID_SPLIT_RATIO: 0.5
 
 SOLVER:
   MIN_EPOCHS: 0
@@ -36,7 +36,7 @@ Related configuration settings are grouped together. The group headings and allo
 |**DATASET** | Dataset (for training, testing and validation ) | *None* |
 | NUM_REPEAT | Number of times the training and validation cycle will be run | `10` |
 | SOURCE | The source dataset name | `mnist` |
-| VAL_SPLIT_RATIO | The proportion of training data used for validation | `0.1` |
+| VALID_SPLIT_RATIO | The proportion of training data used for validation | `0.1` |
 | **SOLVER** | Model training parameters | *None* |
 | MIN_EPOCHS | The minimum number of training epochs | `20` |
 | MAX_EPOCHS | The maximum number of training epochs | `120` |

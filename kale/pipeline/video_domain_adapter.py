@@ -131,7 +131,7 @@ class BaseMMDLikeVideo(BaseMMDLike):
                 class_output = self.classifier(x)
                 return [x_rgb, x_flow], class_output
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         # _s refers to source, _tu refers to unlabeled target
         if self.image_modality == "joint" and len(batch) == 4:
             (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
@@ -259,7 +259,7 @@ class DANNTrainerVideo(DANNTrainer):
 
             return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         # _s refers to source, _tu refers to unlabeled target
         x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
         if self.rgb:
@@ -403,7 +403,7 @@ class CDANTrainerVideo(CDANTrainer):
                     adversarial_output_flow = self.domain_classifier(feature_flow)
             return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         # _s refers to source, _tu refers to unlabeled target
         x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
         if self.rgb:
@@ -526,7 +526,7 @@ class WDGRLTrainerVideo(WDGRLTrainer):
 
             return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         # _s refers to source, _tu refers to unlabeled target
         x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
         if self.rgb:
