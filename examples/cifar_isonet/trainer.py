@@ -17,7 +17,7 @@ class Trainer(object):
     Args:
         device: gpu or cpu
         train_loader: the training data loader
-        val_loader: the validation data loader
+        valid_loader: the validation data loader
         model: the (network) model
         optim: the optimizer
         logger:: the logger to log info
@@ -25,13 +25,13 @@ class Trainer(object):
         cfg: a YACS config object.
     """
 
-    def __init__(self, device, train_loader, val_loader, model, optim, logger, output_dir, cfg):
+    def __init__(self, device, train_loader, valid_loader, model, optim, logger, output_dir, cfg):
         # misc
         self.device = device
         self.output_dir = output_dir
         # data loader
         self.train_loader = train_loader
-        self.val_loader = val_loader
+        self.valid_loader = valid_loader
         # nn setting
         self.model = model
         self.optim = optim
@@ -40,7 +40,7 @@ class Trainer(object):
         # training loop settings
         self.epochs = 1
         # loss settings
-        self.train_acc, self.val_acc = [], []
+        self.train_acc, self.valid_acc = [], []
         self.best_valid_acc = 0
         self.ce_loss, self.ortho_loss = 0, 0
         # others
@@ -53,7 +53,7 @@ class Trainer(object):
         while self.epochs <= self.cfg.SOLVER.MAX_EPOCHS:
             self.adjust_learning_rate()
             self.train_epoch()
-            self.val()
+            self.valid()
             self.epochs += 1
 
     def train_epoch(self):
@@ -97,7 +97,7 @@ class Trainer(object):
         pprint_without_newline(info_str)
         self.train_acc.append(100.0 * correct / total)
 
-    def val(self):
+    def valid(self):
         """The validation step"""
         self.model.eval()
         self.ce_loss = 0
@@ -105,7 +105,7 @@ class Trainer(object):
         correct = 0
         total = 0
         with torch.no_grad():
-            for batch_idx, (inputs, targets) in enumerate(self.val_loader):
+            for batch_idx, (inputs, targets) in enumerate(self.valid_loader):
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)
                 # loss = self.loss(outputs, targets)
@@ -120,13 +120,13 @@ class Trainer(object):
         self.best_valid_acc = max(self.best_valid_acc, 100.0 * correct / total)
         info_str = (
             f"valid | Acc: {100. * correct / total:.3f} | "
-            f"CE: {self.ce_loss / len(self.val_loader):.3f} | "
-            f"O: {self.ortho_loss / len(self.val_loader):.3f} | "
+            f"CE: {self.ce_loss / len(self.valid_loader):.3f} | "
+            f"O: {self.ortho_loss / len(self.valid_loader):.3f} | "
             f"best: {self.best_valid_acc:.3f} | "
         )
         print(info_str)
         self.logger.info(info_str)
-        self.val_acc.append(100.0 * correct / total)
+        self.valid_acc.append(100.0 * correct / total)
 
     def loss(self, outputs, targets):
         """Computes the loss between learning outputs and the targets (ground truth)"""
@@ -163,7 +163,7 @@ class Trainer(object):
             "optim": self.optim.state_dict(),
             "epoch": self.epochs,
             "train_accuracy": self.train_acc,
-            "test_accuracy": self.val_acc,
+            "test_accuracy": self.valid_acc,
         }
         if name is None:
             torch.save(state, f"{self.output_dir}/{self.epochs}.pt")
