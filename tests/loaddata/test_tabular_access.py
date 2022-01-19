@@ -27,57 +27,54 @@ EXPECTED_COLS = [
 
 
 @pytest.mark.parametrize("source_test_file", ["PHD-Net/4CH/uncertainty_pairs_test_l0"])
-def test_load_csv_columns(landmark_uncertainty_dl, source_test_file):
+@pytest.mark.parametrize(
+    "return_columns",
+    [
+        ("All", EXPECTED_COLS),
+        ([], []),
+        ("S-MHA Error", ["S-MHA Error"]),
+        (["S-MHA Error", "E-MHA Error"], ["S-MHA Error", "E-MHA Error"]),
+    ],
+)
+def test_load_csv_columns_cols_return(landmark_uncertainty_dl, source_test_file, return_columns):
 
     # ensure if cols_to_return is "All" that all columns are returned
     returned_cols = load_csv_columns(
-        os.path.join(landmark_uncertainty_dl, source_test_file), "Testing Fold", np.arange(8), cols_to_return="All"
-    )
-    assert list(returned_cols.columns) == EXPECTED_COLS
-
-    # ensure if cols_to_return is an empty dataframe
-    returned_empty_cols = load_csv_columns(
-        os.path.join(landmark_uncertainty_dl, source_test_file), "Testing Fold", np.arange(8), cols_to_return=[]
-    )
-    assert returned_empty_cols.empty
-
-    # ensure if cols_to_return is a single value, not in list it works
-    returned_smha = load_csv_columns(
         os.path.join(landmark_uncertainty_dl, source_test_file),
         "Testing Fold",
         np.arange(8),
-        cols_to_return="S-MHA Error",
+        cols_to_return=return_columns[0],
     )
+    assert list(returned_cols.columns) == return_columns[1]
 
-    assert list(returned_smha.columns) == ["S-MHA Error"]
 
-    # ensure a list of columns work
-    returned_multiple = load_csv_columns(
-        os.path.join(landmark_uncertainty_dl, source_test_file),
-        "Testing Fold",
-        np.arange(8),
-        cols_to_return=["S-MHA Error", "E-MHA Error"],
-    )
+# Ensure getting a single fold works
+@pytest.mark.parametrize("source_test_file", ["PHD-Net/4CH/uncertainty_pairs_test_l0"])
+@pytest.mark.parametrize("folds", [0])
+def test_load_csv_columns_single_fold(landmark_uncertainty_dl, source_test_file, folds):
 
-    assert list(returned_multiple.columns) == ["S-MHA Error", "E-MHA Error"]
-
-    # Ensure getting a single fold works
     returned_single_fold = load_csv_columns(
         os.path.join(landmark_uncertainty_dl, source_test_file),
-        "Testing Fold",
-        0,
-        cols_to_return=["S-MHA Error", "E-MHA Error", "Testing Fold"],
+        "Validation Fold",
+        folds,
+        cols_to_return=["S-MHA Error", "E-MHA Error", "Validation Fold"],
     )
-    assert list(returned_single_fold["Testing Fold"]).count(0) == len(list(returned_single_fold["Testing Fold"]))
+    assert list(returned_single_fold["Validation Fold"]).count(folds) == len(
+        list(returned_single_fold["Validation Fold"])
+    )
 
-    # Ensure getting a list of folds only return those folds and
+
+# Ensure getting a list of folds only return those folds and
+# Ensure all samples are being returned
+@pytest.mark.parametrize("source_test_file", ["PHD-Net/4CH/uncertainty_pairs_test_l0"])
+@pytest.mark.parametrize("folds", [[0, 1, 2]])
+def test_load_csv_columns_multiple_folds(landmark_uncertainty_dl, source_test_file, folds):
     returned_list_of_folds = load_csv_columns(
         os.path.join(landmark_uncertainty_dl, source_test_file),
         "Validation Fold",
-        [0, 1, 2],
+        folds,
         cols_to_return=["S-MHA Error", "E-MHA Error", "Validation Fold"],
     )
-    assert all(elem in [0, 1, 2] for elem in list(returned_list_of_folds["Validation Fold"]))
+    assert all(elem in folds for elem in list(returned_list_of_folds["Validation Fold"]))
 
-    # Ensure all samples are being returned
     assert len(returned_list_of_folds.index) == 159
