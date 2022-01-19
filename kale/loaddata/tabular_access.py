@@ -2,14 +2,15 @@ import numpy as np
 import pandas as pd
 
 
-def load_uncertainty_pairs_csv(datapath, split, fold, cols_to_return="All"):
+def load_csv_columns(datapath, split, fold, cols_to_return="All"):
 
-    """Read csv file of data, return by split, fold and columns to return.
+    """Read csv file of data, returns samples where the value of the "split" column
+       is contained in the "fold" variable. The columns cols_to_return are returned.
 
     Args:
         datapath (str): Path to csv file of uncertainty results,
         split (str): column name for split e.g. Validation, testing,
-        split (str): column name for split e.g. Validation, testing,
+        fold (int or [int]]): fold/s contained in the split column to return,
         cols_to_return ([str]): Which columns to return (default="All").
 
 

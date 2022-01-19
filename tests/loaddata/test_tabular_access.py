@@ -1,53 +1,74 @@
-# import os
-# from pathlib import Path
+import os
 
-# import pytest
-# import torch
-# from numpy import testing
-# from yacs.config import CfgNode as CN
+import numpy as np
+import pytest
+from numpy import testing
 
-# from kale.loaddata.tabular_access import load_uncertainty_pairs_csv
-# from kale.utils.download import download_file_by_url
-# from kale.utils.seed import set_seed
+from kale.loaddata.tabular_access import load_csv_columns
+from kale.utils.seed import set_seed
+from tests.conftest import landmark_uncertainty_dl
 
-# # TODO: Do these tests when data is accepted and merged.
+# TODO: change the url when data is merged to main
 
-# SOURCES = [
-#     "EPIC;8;epic_D1_train.pkl;epic_D1_test.pkl",
-#     "ADL;7;adl_P_11_train.pkl;adl_P_11_test.pkl",
-#     "GTEA;6;gtea_train.pkl;gtea_test.pkl",
-#     "KITCHEN;6;kitchen_train.pkl;kitchen_test.pkl",
-# ]
-# TARGETS = [
-#     "EPIC;8;epic_D1_train.pkl;epic_D1_test.pkl",
-#     # "ADL;7;adl_P_04_train.pkl;adl_P_04_test.pkl",
-#     # "GTEA;6;gtea_train.pkl;gtea_test.pkl",
-#     # "KITCHEN;6;kitchen_train.pkl;kitchen_test.pkl",
-# ]
-# ALL = SOURCES + TARGETS
-# IMAGE_MODALITY = ["rgb", "flow", "joint"]
-# WEIGHT_TYPE = ["natural", "balanced", "preset0"]
-# # DATASIZE_TYPE = ["max", "source"]
-# DATASIZE_TYPE = ["max"]
-# VAL_RATIO = [0.1]
-# seed = 36
-# set_seed(seed)
-# CLASS_SUBSETS = [[1, 3, 8]]
+# What tests
+# 1)
+# 2) ensure if setting is something else than "All", the correct columns are returned
+# 3) ensure the correct split is returned
+# 4) ensure that a single fold can be returned
+# 5) ensure that a list of folds can be returned
 
-# root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-# url = "https://github.com/pykale/data/tree/main/tabular/cardiac_landmark_uncertainty"
+
+seed = 36
+set_seed(seed)
+
+root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+url = "https://github.com/pykale/data/blob/landmark-data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
+
+# Download Landmark Uncertainty data
+test_data_path = landmark_uncertainty_dl
+
+
+@pytest.mark.parametrize("source_test_file", "PHD-Net/4CH/uncertainty_pairs_test_l0.csv")
+@pytest.mark.parametrize(
+    "target_all_cols",
+    [
+        "uid",
+        "E-CPV Error",
+        "E-CPV Uncertainty",
+        "E-MHA Error",
+        "E-MHA Uncertainty",
+        "S-MHA Error",
+        "S-MHA Uncertainty",
+        "Validation Fold",
+        "Testing Fold",
+    ],
+)
+def test_load_csv_columns(source_test_file, target_all_cols):
+
+    # ensure if setting is "All" that all columns are returned
+    returned_cols = load_csv_columns(
+        os.path.join(test_data_path, source_test_file), "Testing Fold", np.arange(8), cols_to_return="All"
+    )
+    testing.assert_equal(returned_cols.columns, target_all_cols)
 
 
 # @pytest.fixture(scope="module")
-# @pytest.mark.parametrize("download_path", url)
+# @pytest.mark.parametrize("download_path", "../../../landmark_data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples")
 # def testing_cfg(download_path):
 #     cfg = CN()
 #     cfg.DATASET = CN()
-#     cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
+#     cfg.DATASET.ROOT = root_dir + "/" + download_path
 #     yield cfg
 
 
-# @pytest.mark.parametrize("image_modality", IMAGE_MODALITY)
+# @pytest.mark.parametrize("data_modalities", TARGET_MODALITIES)
+# @pytest.mark.parametrize("models", TARGET_MODELS)
+# @pytest.mark.parametrize("num_landmarks", TARGET_LANDMARKS)
+
+# @pytest.mark.parametrize("target_lengths", TARGET_DATA_LENGTH)
+# @pytest.mark.parametrize("num_folds", TARGET_FOLDS)
+
+
 # def test_get_image_modality(image_modality):
 #     rgb, flow = get_image_modality(image_modality)
 

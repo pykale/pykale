@@ -16,7 +16,7 @@ from config import get_cfg_defaults
 
 from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard
 from kale.interpret.uncertainty_quantiles import box_plot, plot_cumulative, quantile_binning_and_est_errors
-from kale.loaddata.tabular_access import load_uncertainty_pairs_csv
+from kale.loaddata.tabular_access import load_csv_columns
 from kale.predict.uncertainty_binning import quantile_binning_predictions
 from kale.prepdata.tabular_transform import apply_confidence_inversion, get_data_struct
 from kale.utils.download import download_file_by_url
@@ -196,7 +196,7 @@ def fit_and_predict(model, landmark, uncertainty_error_pairs, ue_pairs_val, ue_p
     num_folds = config.DATASET.NUM_FOLDS
 
     # Save results across uncertainty pairings for each landmark.
-    all_testing_results = pd.DataFrame(load_uncertainty_pairs_csv(ue_pairs_test, "Testing Fold", np.arange(num_folds)))
+    all_testing_results = pd.DataFrame(load_csv_columns(ue_pairs_test, "Testing Fold", np.arange(num_folds)))
     error_bound_estimates = pd.DataFrame({"fold": np.arange(num_folds)})
 
     for idx, uncertainty_pairing in enumerate(uncertainty_error_pairs):
@@ -211,10 +211,10 @@ def fit_and_predict(model, landmark, uncertainty_error_pairs, ue_pairs_val, ue_p
 
         for fold in range(num_folds):
 
-            validation_pairs = load_uncertainty_pairs_csv(
+            validation_pairs = load_csv_columns(
                 ue_pairs_val, "Validation Fold", fold, ["uid", uncertainty_localisation_er, uncertainty_measure],
             )
-            testing_pairs = load_uncertainty_pairs_csv(
+            testing_pairs = load_csv_columns(
                 ue_pairs_test, "Testing Fold", fold, ["uid", uncertainty_localisation_er, uncertainty_measure]
             )
 
