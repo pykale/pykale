@@ -1,5 +1,7 @@
 # Uncertainty Estimation in Landmark Localization
 
+**IMPORTANT:** This is the clean branch of Pykale. Fully functional and reproducable code can be found on [this branch](https://github.com/pykale/pykale/tree/landmark_uncertainty/examples/landmark_uncertainty). It is not merged yet due to low test coverage.
+
 ## 1. Description
 
 In this example we implement the methods from [Uncertainty Estimation for Heatmap-based Landmark Localization](placeholder_link). The method is Quantile Binning, which bins landmark predictions by any continuous uncertainty estimation measure. We assign each bin estimated localization error bounds. We can use these bins to filter out the worst predictions, or identify the likely best predictions.
