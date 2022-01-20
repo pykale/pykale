@@ -22,6 +22,7 @@ examples/data/
 examples/*/data/
 examples/*/outputs/
 examples/*/lightning_logs/
+examples/*/tb_logs/
 examples/*/demo*/
 examples/*/configs_xianyuan/
 
