@@ -24,7 +24,7 @@ IMAGE_MODALITY = ["rgb", "flow", "joint"]
 DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "DAN", "JAN", "Source"]
 WEIGHT_TYPE = "natural"
 DATASIZE_TYPE = "max"
-VAL_RATIO = 0.1
+VALID_RATIO = 0.1
 seed = 36
 set_seed(seed)
 

@@ -310,10 +310,10 @@ def get_cifar(cfg):
 
     if cfg.DATASET.NAME == "CIFAR10":
         train_set = datasets.CIFAR10(cfg.DATASET.ROOT, train=True, download=True, transform=cifar_train_transform)
-        val_set = datasets.CIFAR10(cfg.DATASET.ROOT, train=False, download=True, transform=cifar_test_transform)
+        valid_set = datasets.CIFAR10(cfg.DATASET.ROOT, train=False, download=True, transform=cifar_test_transform)
     elif cfg.DATASET.NAME == "CIFAR100":
         train_set = datasets.CIFAR100(cfg.DATASET.ROOT, train=True, download=True, transform=cifar_train_transform)
-        val_set = datasets.CIFAR100(cfg.DATASET.ROOT, train=False, download=True, transform=cifar_test_transform)
+        valid_set = datasets.CIFAR100(cfg.DATASET.ROOT, train=False, download=True, transform=cifar_test_transform)
     else:
         raise NotImplementedError
 
@@ -325,15 +325,15 @@ def get_cifar(cfg):
         pin_memory=True,
         drop_last=True,
     )
-    val_loader = torch.utils.data.DataLoader(
-        val_set,
+    valid_loader = torch.utils.data.DataLoader(
+        valid_set,
         batch_size=cfg.SOLVER.TEST_BATCH_SIZE,
         shuffle=False,
         num_workers=cfg.DATASET.NUM_WORKERS,
         pin_memory=True,
     )
 
-    return train_loader, val_loader
+    return train_loader, valid_loader
 
 
 def read_dicom_images(dicom_path, sort_instance=True, sort_patient=False):

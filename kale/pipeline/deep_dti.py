@@ -56,11 +56,11 @@ class BaseDTATrainer(pl.LightningModule):
         self.logger.log_metrics({"train_step_loss": loss}, self.global_step)
         return loss
 
-    def validation_step(self, val_batch, batch_idx):
+    def validation_step(self, valid_batch, batch_idx):
         """
         Compute and return the validation loss on one step
         """
-        x_drug, x_target, y = val_batch
+        x_drug, x_target, y = valid_batch
         y_pred = self(x_drug, x_target)
         loss = F.mse_loss(y_pred, y.view(-1, 1))
         return loss
@@ -106,12 +106,12 @@ class DeepDTATrainer(BaseDTATrainer):
         output = self.decoder(comb_emb)
         return output
 
-    def validation_step(self, val_batch, batch_idx):
-        x_drug, x_target, y = val_batch
+    def validation_step(self, valid_batch, batch_idx):
+        x_drug, x_target, y = valid_batch
         y_pred = self(x_drug, x_target)
         loss = F.mse_loss(y_pred, y.view(-1, 1))
         if self.ci_metric:
             ci = concord_index(y, y_pred)
-            self.log("val_ci", ci, on_epoch=True, on_step=False)
-        self.log("val_loss", loss, on_epoch=True, on_step=False)
+            self.log("valid_ci", ci, on_epoch=True, on_step=False)
+        self.log("valid_loss", loss, on_epoch=True, on_step=False)
         return loss

@@ -29,7 +29,7 @@ IMAGE_MODALITY = ["rgb", "flow", "joint"]
 WEIGHT_TYPE = ["natural", "balanced", "preset0"]
 # DATASIZE_TYPE = ["max", "source"]
 DATASIZE_TYPE = ["max"]
-VAL_RATIO = [0.1]
+VALID_RATIO = [0.1]
 seed = 36
 set_seed(seed)
 CLASS_SUBSETS = [[1, 3, 8]]
@@ -58,11 +58,11 @@ def test_get_image_modality(image_modality):
 
 @pytest.mark.parametrize("source_cfg", SOURCES)
 @pytest.mark.parametrize("target_cfg", TARGETS)
-@pytest.mark.parametrize("val_ratio", VAL_RATIO)
+@pytest.mark.parametrize("valid_ratio", VALID_RATIO)
 @pytest.mark.parametrize("weight_type", WEIGHT_TYPE)
 @pytest.mark.parametrize("datasize_type", DATASIZE_TYPE)
 @pytest.mark.parametrize("class_subset", CLASS_SUBSETS)
-def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datasize_type, testing_cfg, class_subset):
+def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, datasize_type, testing_cfg, class_subset):
     source_name, source_n_class, source_trainlist, source_testlist = source_cfg.split(";")
     target_name, target_n_class, target_trainlist, target_testlist = target_cfg.split(";")
     n_class = eval(min(source_n_class, target_n_class))
@@ -104,11 +104,11 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
     assert isinstance(source["flow"].get_train(), torch.utils.data.Dataset)
     assert isinstance(source["flow"].get_test(), torch.utils.data.Dataset)
 
-    # test get_train_val
-    train_val = source["rgb"].get_train_val(val_ratio)
-    assert isinstance(train_val, list)
-    assert isinstance(train_val[0], torch.utils.data.Dataset)
-    assert isinstance(train_val[1], torch.utils.data.Dataset)
+    # test get_train_valid
+    train_valid = source["rgb"].get_train_valid(valid_ratio)
+    assert isinstance(train_valid, list)
+    assert isinstance(train_valid[0], torch.utils.data.Dataset)
+    assert isinstance(train_valid[1], torch.utils.data.Dataset)
 
     # test action_multi_domain_datasets
     dataset = VideoMultiDomainDatasets(
@@ -133,20 +133,20 @@ def test_get_source_target(source_cfg, target_cfg, val_ratio, weight_type, datas
             class_ids=class_subset,
         )
 
-        train, val = source["rgb"].get_train_val(val_ratio)
+        train, valid = source["rgb"].get_train_valid(valid_ratio)
         test = source["rgb"].get_test()
         dataset_subset._rgb_source_by_split = {}
         dataset_subset._rgb_target_by_split = {}
         dataset_subset._rgb_source_by_split["train"] = get_class_subset(train, class_subset)
         dataset_subset._rgb_target_by_split["train"] = dataset_subset._rgb_source_by_split["train"]
-        dataset_subset._rgb_source_by_split["val"] = get_class_subset(val, class_subset)
+        dataset_subset._rgb_source_by_split["valid"] = get_class_subset(valid, class_subset)
         dataset_subset._rgb_source_by_split["test"] = get_class_subset(test, class_subset)
 
         # Ground truth length of the subset dataset
         train_dataset_subset_length = len([1 for data in train if data[1] in class_subset])
-        val_dataset_subset_length = len([1 for data in val if data[1] in class_subset])
+        valid_dataset_subset_length = len([1 for data in valid if data[1] in class_subset])
         test_dataset_subset_length = len([1 for data in test if data[1] in class_subset])
         assert len(dataset_subset._rgb_source_by_split["train"]) == train_dataset_subset_length
-        assert len(dataset_subset._rgb_source_by_split["val"]) == val_dataset_subset_length
+        assert len(dataset_subset._rgb_source_by_split["valid"]) == valid_dataset_subset_length
         assert len(dataset_subset._rgb_source_by_split["test"]) == test_dataset_subset_length
         assert len(dataset_subset) == train_dataset_subset_length

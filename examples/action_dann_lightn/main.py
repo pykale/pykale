@@ -72,15 +72,15 @@ def main():
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
             # dirpath=full_checkpoint_dir,
-            filename="{epoch}-{step}-{val_loss:.4f}",
+            filename="{epoch}-{step}-{valid_loss:.4f}",
             # save_last=True,
             # save_top_k=1,
-            monitor="val_loss",
+            monitor="valid_loss",
             mode="min",
         )
 
         ### Set early stopping
-        # early_stop_callback = EarlyStopping(monitor="val_target_acc", min_delta=0.0000, patience=100, mode="max")
+        # early_stop_callback = EarlyStopping(monitor="valid_target_acc", min_delta=0.0000, patience=100, mode="max")
 
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
         progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
