@@ -23,7 +23,7 @@ examples/*/data/
 examples/*/outputs/
 examples/*/lightning_logs/
 examples/*/demo*/
-examples/action_dann_lightn/configs_xianyuan/
+examples/*/configs_xianyuan/
 
 # Logs
 log-*.txt
