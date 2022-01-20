@@ -1,6 +1,6 @@
 # Uncertainty Estimation in Landmark Localization
 
-**IMPORTANT:** This is the clean branch of Pykale. Fully functional and reproducable code can be found on branch: https://github.com/pykale/pykale/tree/landmark_uncertainty/examples/landmark_uncertainty. It is not merged yet due to low test coverage.
+**IMPORTANT:** This is the clean branch of Pykale. Fully functional and reproducable code can be found on [this branch](https://github.com/pykale/pykale/tree/landmark_uncertainty/examples/landmark_uncertainty). It is not merged yet due to low test coverage.
 
 ## 1. Description
 
