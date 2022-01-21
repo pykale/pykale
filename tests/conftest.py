@@ -41,4 +41,5 @@ def landmark_uncertainty_dl(tmp_path_factory):
     download_file_by_url(
         landmark_uncertainty_url, os.path.join(p, "Uncertainty_tuples"), "Uncertainty_tuples.zip", "zip"
     )
+
     return os.path.join(p, "Uncertainty_tuples")
