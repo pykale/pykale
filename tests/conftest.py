@@ -1,5 +1,6 @@
 # Global settings for tests. Run before any test
 import os
+from pathlib import Path
 
 import pytest
 from scipy.io import loadmat
@@ -40,4 +41,4 @@ def landmark_uncertainty_dl(download_path):
     download_file_by_url(
         landmark_uncertainty_url, os.path.join(download_path, "Uncertainty_tuples"), "Uncertainty_tuples.zip", "zip"
     )
-    return os.path.join(os.sep, download_path, "Uncertainty_tuples")
+    return Path(os.path.join(download_path, "Uncertainty_tuples")).resolve()
