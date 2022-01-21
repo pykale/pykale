@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -24,7 +23,6 @@ EXPECTED_COLS = [
 ]
 
 
-@pytest.mark.usefixtures("landmark_uncertainty_dl")
 @pytest.mark.parametrize("source_test_file", ["PHD-Net/4CH/uncertainty_pairs_test_l0"])
 @pytest.mark.parametrize(
     "return_columns",
@@ -39,7 +37,7 @@ def test_load_csv_columns_cols_return(landmark_uncertainty_dl, source_test_file,
 
     # ensure if cols_to_return is "All" that all columns are returned
     returned_cols = load_csv_columns(
-        Path(os.path.join(landmark_uncertainty_dl, source_test_file)).resolve(),
+        (os.path.join(landmark_uncertainty_dl, source_test_file)),
         "Testing Fold",
         np.arange(8),
         cols_to_return=return_columns[0],
@@ -53,7 +51,7 @@ def test_load_csv_columns_cols_return(landmark_uncertainty_dl, source_test_file,
 def test_load_csv_columns_single_fold(landmark_uncertainty_dl, source_test_file, folds):
 
     returned_single_fold = load_csv_columns(
-        Path(os.path.join(landmark_uncertainty_dl, source_test_file)).resolve(),
+        os.path.join(landmark_uncertainty_dl, source_test_file),
         "Validation Fold",
         folds,
         cols_to_return=["S-MHA Error", "E-MHA Error", "Validation Fold"],
@@ -69,7 +67,7 @@ def test_load_csv_columns_single_fold(landmark_uncertainty_dl, source_test_file,
 @pytest.mark.parametrize("folds", [[0, 1, 2]])
 def test_load_csv_columns_multiple_folds(landmark_uncertainty_dl, source_test_file, folds):
     returned_list_of_folds = load_csv_columns(
-        Path(os.path.join(landmark_uncertainty_dl, source_test_file)).resolve(),
+        os.path.join(landmark_uncertainty_dl, source_test_file),
         "Validation Fold",
         folds,
         cols_to_return=["S-MHA Error", "E-MHA Error", "Validation Fold"],
