@@ -53,6 +53,16 @@ def test_load_csv_columns_cols_return_path_right(download_path, source_test_file
     assert list(returned_cols.columns) == return_columns[1]
 
 
+@pytest.mark.parametrize("source_test_file", ["PHD-Net/4CH/uncertainty_pairs_test_l0"])
+@pytest.mark.parametrize(
+    "return_columns",
+    [
+        ("All", EXPECTED_COLS),
+        ([], []),
+        ("S-MHA Error", ["S-MHA Error"]),
+        (["S-MHA Error", "E-MHA Error"], ["S-MHA Error", "E-MHA Error"]),
+    ],
+)
 def test_load_csv_columns_cols_return(landmark_uncertainty_dl, source_test_file, return_columns):
 
     # ensure if cols_to_return is "All" that all columns are returned
