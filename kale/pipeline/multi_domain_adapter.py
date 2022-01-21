@@ -73,15 +73,15 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
 
         return x
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         raise NotImplementedError("Loss needs to be defined.")
 
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
-            "val_loss",
-            "val_source_acc",
-            "val_target_acc",
-            "val_domain_acc",
+            "valid_loss",
+            "valid_source_acc",
+            "valid_target_acc",
+            "valid_domain_acc",
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 
@@ -126,7 +126,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         self.classifiers = nn.ModuleDict(self.classifiers)
         self.k_moment = k_moment
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
         moment_loss = self._compute_domain_dist(phi_x, domain_labels)
@@ -208,7 +208,7 @@ class _DINTrainer(BaseMultiSourceTrainer):
         self._kernel_mul = kernel_mul
         self._kernel_num = kernel_num
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
         loss_dist = self._compute_domain_dist(phi_x, domain_labels)
@@ -276,7 +276,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         self._kernel_mul = kernel_mul
         self._kernel_num = kernel_num
 
-    def compute_loss(self, batch, split_name="val"):
+    def compute_loss(self, batch, split_name="valid"):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
         tgt_idx = torch.where(domain_labels == self.target_label)[0]

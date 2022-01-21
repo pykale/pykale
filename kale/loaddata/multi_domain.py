@@ -67,7 +67,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
         target_access: DatasetAccess,
         config_weight_type="natural",
         config_size_type=DatasetSizeType.Max,
-        val_split_ratio=0.1,
+        valid_split_ratio=0.1,
         source_sampling_config=None,
         target_sampling_config=None,
         n_fewshot=None,
@@ -83,7 +83,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
             config_weight_type (WeightingType, optional): The weight type for sampling. Defaults to 'natural'.
             config_size_type (DatasetSizeType, optional): Which dataset size to use to define the number of epochs vs
                 batch_size. Defaults to DatasetSizeType.Max.
-            val_split_ratio (float, optional): ratio for the validation part of the train dataset. Defaults to 0.1.
+            valid_split_ratio (float, optional): ratio for the validation part of the train dataset. Defaults to 0.1.
             source_sampling_config (SamplingConfig, optional): How to sample from the source. Defaults to None
                 (=> RandomSampler).
             target_sampling_config (SamplingConfig, optional): How to sample from the target. Defaults to None
@@ -115,7 +115,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
 
         self._source_access = source_access
         self._target_access = target_access
-        self._val_split_ratio = val_split_ratio
+        self._valid_split_ratio = valid_split_ratio
         # self._source_sampling_config = (
         #     source_sampling_config
         #     if source_sampling_config is not None
@@ -139,16 +139,16 @@ class MultiDomainDatasets(DomainsDatasetBase):
 
     def prepare_data_loaders(self):
         logging.debug("Load source")
-        (self._source_by_split["train"], self._source_by_split["valid"],) = self._source_access.get_train_val(
-            self._val_split_ratio
+        (self._source_by_split["train"], self._source_by_split["valid"],) = self._source_access.get_train_valid(
+            self._valid_split_ratio
         )
         if self.class_ids is not None:
             self._source_by_split["train"] = get_class_subset(self._source_by_split["train"], self.class_ids)
             self._source_by_split["valid"] = get_class_subset(self._source_by_split["valid"], self.class_ids)
 
         logging.debug("Load target")
-        (self._target_by_split["train"], self._target_by_split["valid"],) = self._target_access.get_train_val(
-            self._val_split_ratio
+        (self._target_by_split["train"], self._target_by_split["valid"],) = self._target_access.get_train_valid(
+            self._valid_split_ratio
         )
         if self.class_ids is not None:
             self._target_by_split["train"] = get_class_subset(self._target_by_split["train"], self.class_ids)
@@ -539,19 +539,19 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
 
     Args:
         data_access (MultiDomainImageFolder, or MultiDomainAccess): Multi-domain data access.
-        val_split_ratio (float, optional): Split ratio for validation set. Defaults to 0.1.
+        valid_split_ratio (float, optional): Split ratio for validation set. Defaults to 0.1.
         test_split_ratio (float, optional): Split ratio for test set. Defaults to 0.2.
         random_state (int, optional): Random state for generator. Defaults to 1.
         test_on_all (bool, optional): Whether test model on all target. Defaults to False.
     """
 
     def __init__(
-        self, data_access, val_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1, test_on_all=False
+        self, data_access, valid_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1, test_on_all=False
     ):
         self.domain_to_idx = data_access.domain_to_idx
         self.n_domains = len(data_access.domain_to_idx)
         self.data_access = data_access
-        self._val_split_ratio = val_split_ratio
+        self._valid_split_ratio = valid_split_ratio
         self._test_split_ratio = test_split_ratio
         self._sample_by_split: Dict[str, torch.utils.data.Subset] = {}
         self._sampling_config = FixedSeedSamplingConfig(seed=random_state, balance_domain=True)
@@ -565,20 +565,20 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
         if self._sample_by_split["test"] is None:
             # split test, valid, and train set if the data access no train test splits
             if self.test_on_all:
-                subset_idx = _domain_stratified_split(self.data_access.domain_labels, 2, [self._val_split_ratio])
+                subset_idx = _domain_stratified_split(self.data_access.domain_labels, 2, [self._valid_split_ratio])
                 self._sample_by_split["valid"] = torch.utils.data.Subset(self.data_access, subset_idx[0])
                 self._sample_by_split["train"] = torch.utils.data.Subset(self.data_access, subset_idx[1])
                 self._sample_by_split["test"] = torch.utils.data.Subset(self.data_access, np.concatenate(subset_idx))
             else:
                 subset_idx = _domain_stratified_split(
-                    self.data_access.domain_labels, 3, [self._test_split_ratio, self._val_split_ratio]
+                    self.data_access.domain_labels, 3, [self._test_split_ratio, self._valid_split_ratio]
                 )
                 for i in range(len(splits)):
                     self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
         else:
             # use original data split if get_test() is not none
-            self._sample_by_split["valid"], self._sample_by_split["train"] = self.data_access.get_train_val(
-                self._val_split_ratio
+            self._sample_by_split["valid"], self._sample_by_split["train"] = self.data_access.get_train_valid(
+                self._valid_split_ratio
             )
 
     def get_domain_loaders(self, split="train", batch_size=32):

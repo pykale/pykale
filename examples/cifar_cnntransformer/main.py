@@ -47,7 +47,7 @@ def main():
     logger.info("\n" + cfg.dump())
 
     # ---- setup dataset ----
-    train_loader, val_loader = get_cifar(cfg)
+    train_loader, valid_loader = get_cifar(cfg)
 
     # ---- setup model ----
     print("==> Building model..")
@@ -65,7 +65,7 @@ def main():
         net.parameters(), lr=cfg.SOLVER.BASE_LR, momentum=cfg.SOLVER.MOMENTUM, weight_decay=cfg.SOLVER.WEIGHT_DECAY
     )
 
-    trainer = Trainer(device, train_loader, val_loader, net, optim, logger, cfg)
+    trainer = Trainer(device, train_loader, valid_loader, net, optim, logger, cfg)
 
     if args.resume:
         # Load checkpoint
@@ -75,7 +75,7 @@ def main():
         trainer.optim.load_state_dict(cp["optim"])
         trainer.epochs = cp["epoch"]
         trainer.train_acc = cp["train_accuracy"]
-        trainer.val_acc = cp["test_accuracy"]
+        trainer.valid_acc = cp["test_accuracy"]
 
     trainer.train()
 

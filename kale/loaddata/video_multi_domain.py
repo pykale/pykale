@@ -25,7 +25,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         seed,
         config_weight_type="natural",
         config_size_type=DatasetSizeType.Max,
-        val_split_ratio=0.1,
+        valid_split_ratio=0.1,
         source_sampling_config=None,
         target_sampling_config=None,
         n_fewshot=None,
@@ -74,7 +74,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
 
         self._source_access_dict = source_access_dict
         self._target_access_dict = target_access_dict
-        self._val_split_ratio = val_split_ratio
+        self._valid_split_ratio = valid_split_ratio
         self._rgb_source_by_split = {}
         self._flow_source_by_split = {}
         self._rgb_target_by_split = {}
@@ -89,10 +89,10 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
 
     def prepare_data_loaders(self):
         if self.rgb:
-            logging.debug("Load RGB train and val")
+            logging.debug("Load RGB train and valid")
             (self._rgb_source_by_split["train"], self._rgb_source_by_split["valid"]) = self._source_access_dict[
                 "rgb"
-            ].get_train_val(self._val_split_ratio)
+            ].get_train_valid(self._valid_split_ratio)
             if self.class_ids is not None:
                 self._rgb_source_by_split["train"] = get_class_subset(
                     self._rgb_source_by_split["train"], self.class_ids
@@ -103,7 +103,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
 
             (self._rgb_target_by_split["train"], self._rgb_target_by_split["valid"]) = self._target_access_dict[
                 "rgb"
-            ].get_train_val(self._val_split_ratio)
+            ].get_train_valid(self._valid_split_ratio)
             if self.class_ids is not None:
                 self._rgb_target_by_split["train"] = get_class_subset(
                     self._rgb_target_by_split["train"], self.class_ids
@@ -120,10 +120,10 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                 self._rgb_target_by_split["test"] = get_class_subset(self._rgb_target_by_split["test"], self.class_ids)
 
         if self.flow:
-            logging.debug("Load flow train and val")
+            logging.debug("Load flow train and valid")
             (self._flow_source_by_split["train"], self._flow_source_by_split["valid"]) = self._source_access_dict[
                 "flow"
-            ].get_train_val(self._val_split_ratio)
+            ].get_train_valid(self._valid_split_ratio)
             if self.class_ids is not None:
                 self._flow_source_by_split["train"] = get_class_subset(
                     self._flow_source_by_split["train"], self.class_ids
@@ -134,7 +134,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
 
             (self._flow_target_by_split["train"], self._flow_target_by_split["valid"]) = self._target_access_dict[
                 "flow"
-            ].get_train_val(self._val_split_ratio)
+            ].get_train_valid(self._valid_split_ratio)
             if self.class_ids is not None:
                 self._flow_target_by_split["train"] = get_class_subset(
                     self._flow_target_by_split["train"], self.class_ids
