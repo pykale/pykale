@@ -31,7 +31,7 @@ def office_path(download_path):
 
 
 landmark_uncertainty_url = (
-    "https://github.com/pykale/data/blob/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
+    "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
 )
 
 
