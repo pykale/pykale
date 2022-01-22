@@ -24,7 +24,7 @@ _C.DATASET.TARGET = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
 _C.DATASET.TGT_TRAINLIST = "epic_D2_train.pkl"
 _C.DATASET.TGT_TESTLIST = "epic_D2_test.pkl"
 _C.DATASET.IMAGE_MODALITY = "rgb"  # mode options=["rgb", "flow", "joint"]
-# _C.DATASET.NUM_CLASSES = 8
+_C.DATASET.NUM_SEGMENTS = 1  # = 1, if image input; = 8, if feature input.
 _C.DATASET.FRAMES_PER_SEGMENT = 16
 _C.DATASET.NUM_REPEAT = 5  # 10
 _C.DATASET.WEIGHT_TYPE = "natural"

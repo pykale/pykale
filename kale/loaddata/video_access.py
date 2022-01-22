@@ -48,6 +48,7 @@ def get_videodata_config(cfg):
             "dataset_tgt_trainlist": cfg.DATASET.TGT_TRAINLIST,
             "dataset_tgt_testlist": cfg.DATASET.TGT_TESTLIST,
             "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
+            "dataset_num_segments": cfg.DATASET.NUM_SEGMENTS,
             "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT,
         }
     }
@@ -117,6 +118,7 @@ class VideoDataset(Enum):
         data_tgt_name = data_params_local["dataset_tgt_name"].upper()
         tgt_data_path, tgt_tr_listpath, tgt_te_listpath = generate_list(data_tgt_name, data_params_local, domain="tgt")
         image_modality = data_params_local["dataset_image_modality"]
+        num_segments = data_params_local["dataset_num_segments"]
         frames_per_segment = data_params_local["frames_per_segment"]
 
         rgb, flow = get_image_modality(image_modality)
@@ -155,6 +157,7 @@ class VideoDataset(Enum):
                 src_tr_listpath,
                 src_te_listpath,
                 "rgb",
+                num_segments,
                 frames_per_segment,
                 num_classes,
                 source_tf,
@@ -165,6 +168,7 @@ class VideoDataset(Enum):
                 tgt_tr_listpath,
                 tgt_te_listpath,
                 "rgb",
+                num_segments,
                 frames_per_segment,
                 num_classes,
                 target_tf,
@@ -177,6 +181,7 @@ class VideoDataset(Enum):
                 src_tr_listpath,
                 src_te_listpath,
                 "flow",
+                num_segments,
                 frames_per_segment,
                 num_classes,
                 source_tf,
@@ -187,6 +192,7 @@ class VideoDataset(Enum):
                 tgt_tr_listpath,
                 tgt_te_listpath,
                 "flow",
+                num_segments,
                 frames_per_segment,
                 num_classes,
                 target_tf,
@@ -216,7 +222,16 @@ class VideoDatasetAccess(DatasetAccess):
     """
 
     def __init__(
-            self, data_path, train_list, test_list, image_modality, num_segments, frames_per_segment, n_classes, transform, seed
+        self,
+        data_path,
+        train_list,
+        test_list,
+        image_modality,
+        num_segments,
+        frames_per_segment,
+        n_classes,
+        transform,
+        seed,
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -380,18 +395,18 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     """EPIC-100 video feature data loader"""
 
     def __init__(
-            self,
-            domain,
-            data_path,
-            train_list,
-            test_list,
-            image_modality,
-            num_segments,
-            frames_per_segment,
-            n_classes,
-            transform,
-            seed,
-            input_type,
+        self,
+        domain,
+        data_path,
+        train_list,
+        test_list,
+        image_modality,
+        num_segments,
+        frames_per_segment,
+        n_classes,
+        transform,
+        seed,
+        input_type,
     ):
         super(EPIC100DatasetAccess, self).__init__(
             data_path,
