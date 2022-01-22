@@ -14,8 +14,10 @@ import torch.nn as nn
 
 from kale.embed.video_i3d import Unit3D
 
-
 # Previously FFSoftmaxClassifier
+from kale.loaddata.video_access import get_class_type
+
+
 class SoftmaxNet(nn.Module):
     """Regular and domain classifier network for regular-size images
 
@@ -126,30 +128,48 @@ class DomainNetSmallImage(nn.Module):
 # For Video/Action Recognition, DataClassifier.
 class ClassNetVideo(nn.Module):
     """Regular classifier network for video input.
-
     Args:
+        dict_n_class (dict, optional): the dictionary of class number for specific dataset.
         input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
-        n_channel (int, optional): the number of channel for Linear and BN layers.
+        n_verb_channel (int, optional): the number of channel for Linear and BN layers for verb class.
+        n_noun_channel (int, optional): the number of channel for Linear and BN layers for noun class.
         dropout_keep_prob (int, optional): the dropout probability for keeping the parameters.
-        n_class (int, optional): the number of classes. Defaults to 8.
+        class_type (string): the type of class. Option=["verb", "verb+noun"]
     """
 
-    def __init__(self, input_size=512, n_channel=100, dropout_keep_prob=0.5, n_class=8):
+    def __init__(
+        self,
+        dict_n_class,
+        input_size=512,
+        n_verb_channel=256,
+        n_noun_channel=512,
+        dropout_keep_prob=0.5,
+        class_type="verb",
+    ):
         super(ClassNetVideo, self).__init__()
-        self._n_classes = n_class
-        self.fc1 = nn.Linear(input_size, n_channel)
-        self.bn1 = nn.BatchNorm1d(n_channel)
-        self.relu1 = nn.ReLU()
-        self.dp1 = nn.Dropout(dropout_keep_prob)
-        self.fc2 = nn.Linear(n_channel, n_class)
-
-    def n_classes(self):
-        return self._n_classes
+        self.verb, self.noun = get_class_type(class_type)
+        if self.verb:
+            self.n_verb_class = dict_n_class["verb"]
+            self.fc1 = nn.Linear(input_size, n_verb_channel)
+            self.bn1 = nn.BatchNorm1d(n_verb_channel)
+            self.relu1 = nn.ReLU()
+            self.dp1 = nn.Dropout(dropout_keep_prob)
+            self.fc11 = nn.Linear(n_verb_channel, self.n_verb_class)
+        if self.noun:
+            self.n_noun_class = dict_n_class["noun"]
+            self.fc2 = nn.Linear(input_size, n_noun_channel)
+            self.bn2 = nn.BatchNorm1d(n_noun_channel)
+            self.relu2 = nn.ReLU()
+            self.dp2 = nn.Dropout(dropout_keep_prob)
+            self.fc21 = nn.Linear(n_noun_channel, self.n_noun_class)
 
     def forward(self, input):
-        x = self.dp1(self.relu1(self.bn1(self.fc1(input))))
-        x = self.fc2(x)
-        return x
+        x_verb = self.fc11(self.dp1(self.relu1(self.bn1(self.fc1(input)))))
+        if self.verb and not self.noun:
+            x_noun = None
+        if self.verb and self.noun:
+            x_noun = self.fc21(self.dp2(self.relu2(self.bn2(self.fc2(input)))))
+        return [x_verb, x_noun]
 
 
 class ClassNetVideoConv(nn.Module):
