@@ -63,6 +63,7 @@ def get_videodata_config(cfg):
             "dataset_tgt_testlist": cfg.DATASET.TGT_TESTLIST,
             "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
             "dataset_input_type": cfg.DATASET.INPUT_TYPE,
+            "dataset_class_type": cfg.DATASET.CLASS_TYPE,
             "dataset_num_segments": cfg.DATASET.NUM_SEGMENTS,
             "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT,
         }
@@ -135,10 +136,12 @@ class VideoDataset(Enum):
         tgt_data_path, tgt_tr_listpath, tgt_te_listpath = generate_list(data_tgt_name, data_params_local, domain="tgt")
         image_modality = data_params_local["dataset_image_modality"]
         input_type = data_params_local["dataset_input_type"]
+        class_type = data_params_local["dataset_class_type"]
         num_segments = data_params_local["dataset_num_segments"]
         frames_per_segment = data_params_local["frames_per_segment"]
 
         rgb, flow = get_image_modality(image_modality)
+        verb, noun = get_class_type(class_type)
 
         transform_names = {
             VideoDataset.EPIC: "epic",
@@ -148,12 +151,16 @@ class VideoDataset(Enum):
             VideoDataset.EPIC100: None,
         }
 
-        class_numbers = {
+        verb_class_numbers = {
             VideoDataset.EPIC: 8,
             VideoDataset.GTEA: 6,
             VideoDataset.ADL: 7,
             VideoDataset.KITCHEN: 6,
             VideoDataset.EPIC100: 97,
+        }
+
+        noun_class_numbers = {
+            VideoDataset.EPIC100: 300,
         }
 
         factories = {
@@ -164,12 +171,16 @@ class VideoDataset(Enum):
             VideoDataset.EPIC100: EPIC100DatasetAccess,
         }
 
-        # handle color/nb classes
-        num_classes = min(class_numbers[source], class_numbers[target])
+        rgb_source, rgb_target, flow_source, flow_target = [None] * 4
+        num_verb_classes = num_noun_classes = None
+
+        if verb:
+            num_verb_classes = min(verb_class_numbers[source], verb_class_numbers[target])
+        if noun:
+            num_noun_classes = min(noun_class_numbers[source], noun_class_numbers[target])
+
         source_tf = transform_names[source]
         target_tf = transform_names[target]
-
-        rgb_source, rgb_target, flow_source, flow_target = [None] * 4
 
         if input_type == "image":
 
@@ -181,7 +192,7 @@ class VideoDataset(Enum):
                     image_modality="rgb",
                     num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
-                    n_classes=num_classes,
+                    n_classes=num_verb_classes,
                     transform=source_tf,
                     seed=seed,
                 )
@@ -192,7 +203,7 @@ class VideoDataset(Enum):
                     image_modality="rgb",
                     num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
-                    n_classes=num_classes,
+                    n_classes=num_verb_classes,
                     transform=target_tf,
                     seed=seed,
                 )
@@ -205,7 +216,7 @@ class VideoDataset(Enum):
                     image_modality="flow",
                     num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
-                    n_classes=num_classes,
+                    n_classes=num_verb_classes,
                     transform=source_tf,
                     seed=seed,
                 )
@@ -216,7 +227,7 @@ class VideoDataset(Enum):
                     image_modality="flow",
                     num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
-                    n_classes=num_classes,
+                    n_classes=num_verb_classes,
                     transform=target_tf,
                     seed=seed,
                 )
@@ -272,7 +283,7 @@ class VideoDataset(Enum):
         return (
             {"rgb": rgb_source, "flow": flow_source},
             {"rgb": rgb_target, "flow": flow_target},
-            num_classes,
+            {"verb": num_verb_classes, "noun": num_noun_classes},
         )
 
 
@@ -293,16 +304,16 @@ class VideoDatasetAccess(DatasetAccess):
     """
 
     def __init__(
-            self,
-            data_path,
-            train_list,
-            test_list,
-            image_modality,
-            num_segments,
-            frames_per_segment,
-            n_classes,
-            transform,
-            seed,
+        self,
+        data_path,
+        train_list,
+        test_list,
+        image_modality,
+        num_segments,
+        frames_per_segment,
+        n_classes,
+        transform,
+        seed,
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -466,18 +477,18 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     """EPIC-100 video feature data loader"""
 
     def __init__(
-            self,
-            domain,
-            data_path,
-            train_list,
-            test_list,
-            image_modality,
-            num_segments,
-            frames_per_segment,
-            n_classes,
-            transform,
-            seed,
-            input_type,
+        self,
+        domain,
+        data_path,
+        train_list,
+        test_list,
+        image_modality,
+        num_segments,
+        frames_per_segment,
+        n_classes,
+        transform,
+        seed,
+        input_type,
     ):
         super(EPIC100DatasetAccess, self).__init__(
             data_path,
