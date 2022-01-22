@@ -50,6 +50,19 @@ def testing_cfg(download_path):
     yield cfg
 
 
+#
+#
+# @pytest.fixture(scope="module")
+# def testing_cfg_epic100(download_path):
+#     cfg = CN()
+#     cfg.DATASET = CN()
+#     # cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
+#     cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
+#     cfg.DATASET.IMAGE_MODALITY = "rgb"
+#     cfg.DATASET.FRAMES_PER_SEGMENT = 16
+#     yield cfg
+
+
 @pytest.mark.parametrize("image_modality", IMAGE_MODALITY)
 def test_get_image_modality(image_modality):
     rgb, flow = get_image_modality(image_modality)
@@ -182,3 +195,46 @@ def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, dat
         assert len(dataset_subset._rgb_source_by_split["test"]) == test_dataset_subset_length
         assert len(dataset_subset) == train_dataset_subset_length
 
+
+#
+#
+# @pytest.mark.parametrize("domain", DOMAIN)
+# @pytest.mark.parametrize("target_cfg", TARGETS)
+# @pytest.mark.parametrize("valid_ratio", VALID_RATIO)
+# def test_get_source_target_feature_vector(source_cfg, target_cfg, valid_ratio, weight_type, datasize_type, testing_cfg):
+#     # get cfg parameters
+#     cfg = testing_cfg
+#     cfg.DATASET.SOURCE = source_name
+#     cfg.DATASET.SRC_TRAINLIST = source_trainlist
+#     cfg.DATASET.SRC_TESTLIST = source_testlist
+#     cfg.DATASET.TARGET = target_name
+#     cfg.DATASET.TGT_TRAINLIST = target_trainlist
+#     cfg.DATASET.TGT_TESTLIST = target_testlist
+#     cfg.DATASET.WEIGHT_TYPE = weight_type
+#     cfg.DATASET.SIZE_TYPE = datasize_type
+#
+#     download_file_by_url(
+#         url=url,
+#         output_directory=str(Path(cfg.DATASET.ROOT).parent.absolute()),
+#         output_file_name="video_test_data.zip",
+#         file_format="zip",
+#     )
+#
+#     # test get_source_target
+#     source, target, num_classes = VideoDataset.get_source_target(
+#         VideoDataset(source_name), VideoDataset(target_name), seed, cfg
+#     )
+#
+#     assert num_classes == n_class
+#     assert isinstance(source, dict)
+#     assert isinstance(target, dict)
+#     assert isinstance(source["rgb"], VideoDatasetAccess)
+#     assert isinstance(target["rgb"], VideoDatasetAccess)
+#     assert isinstance(source["flow"], VideoDatasetAccess)
+#     assert isinstance(target["flow"], VideoDatasetAccess)
+#
+#     # test get_train & get_test
+#     assert isinstance(source["rgb"].get_train(), torch.utils.data.Dataset)
+#     assert isinstance(source["rgb"].get_test(), torch.utils.data.Dataset)
+#     assert isinstance(source["flow"].get_train(), torch.utils.data.Dataset)
+#     assert isinstance(source["flow"].get_test(), torch.utils.data.Dataset)

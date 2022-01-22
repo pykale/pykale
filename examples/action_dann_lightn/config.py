@@ -23,8 +23,8 @@ _C.DATASET.SRC_TESTLIST = "epic_D1_test.pkl"
 _C.DATASET.TARGET = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
 _C.DATASET.TGT_TRAINLIST = "epic_D2_train.pkl"
 _C.DATASET.TGT_TESTLIST = "epic_D2_test.pkl"
-_C.DATASET.IMAGE_MODALITY = "rgb"  # mode options=["rgb", "flow", "joint"]
-_C.DATASET.INPUT_TYPE = "image"  # input type options=["image", "feature"]
+_C.DATASET.IMAGE_MODALITY = "rgb"  # options=["rgb", "flow", "joint"]
+_C.DATASET.INPUT_TYPE = "image"  # options=["image", "feature"]
 _C.DATASET.CLASS_TYPE = "verb"  # options=["verb", "verb+noun"]
 _C.DATASET.NUM_SEGMENTS = 1  # = 1, if image input; = 8, if feature input.
 _C.DATASET.FRAMES_PER_SEGMENT = 16
