@@ -35,6 +35,20 @@ def get_image_modality(image_modality):
     return rgb, flow
 
 
+def get_class_type(class_type):
+    """Change class_type (string) to verb (bool) and noun (bool) for efficiency. Only noun is NA because we
+    work on action recognition."""
+
+    verb = True
+    if class_type.lower() == "verb":
+        noun = False
+    elif class_type.lower() == "verb+noun":
+        noun = True
+    else:
+        raise ValueError("Invalid class type option: {}".format(class_type))
+    return verb, noun
+
+
 def get_videodata_config(cfg):
     """Get the configure parameters for video data from the cfg files"""
 
@@ -271,6 +285,7 @@ class VideoDatasetAccess(DatasetAccess):
         train_list (string): training list file directory of dataset
         test_list (string): test list file directory of dataset
         image_modality (string): image type (RGB or Optical Flow)
+        num_segments (int): number of segments the video should be divided into to sample frames from.
         frames_per_segment (int): length of each action sample (the unit is number of frame)
         n_classes (int): number of class
         transform (string): types of video transforms
@@ -278,16 +293,16 @@ class VideoDatasetAccess(DatasetAccess):
     """
 
     def __init__(
-        self,
-        data_path,
-        train_list,
-        test_list,
-        image_modality,
-        num_segments,
-        frames_per_segment,
-        n_classes,
-        transform,
-        seed,
+            self,
+            data_path,
+            train_list,
+            test_list,
+            image_modality,
+            num_segments,
+            frames_per_segment,
+            n_classes,
+            transform,
+            seed,
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -451,18 +466,18 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     """EPIC-100 video feature data loader"""
 
     def __init__(
-        self,
-        domain,
-        data_path,
-        train_list,
-        test_list,
-        image_modality,
-        num_segments,
-        frames_per_segment,
-        n_classes,
-        transform,
-        seed,
-        input_type,
+            self,
+            domain,
+            data_path,
+            train_list,
+            test_list,
+            image_modality,
+            num_segments,
+            frames_per_segment,
+            n_classes,
+            transform,
+            seed,
+            input_type,
     ):
         super(EPIC100DatasetAccess, self).__init__(
             data_path,
