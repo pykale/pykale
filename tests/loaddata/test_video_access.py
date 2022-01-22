@@ -7,7 +7,7 @@ from yacs.config import CfgNode as CN
 
 from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.multi_domain import DomainsDatasetBase
-from kale.loaddata.video_access import get_image_modality, VideoDataset, VideoDatasetAccess, get_class_type
+from kale.loaddata.video_access import get_class_type, get_image_modality, VideoDataset, VideoDatasetAccess
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
 from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
@@ -34,6 +34,7 @@ VALID_RATIO = [0.1]
 seed = 36
 set_seed(seed)
 CLASS_SUBSETS = [[1, 3, 8]]
+DOMAIN = ["source", "target"]
 
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
@@ -104,6 +105,9 @@ def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, dat
     cfg.DATASET.TGT_TESTLIST = target_testlist
     cfg.DATASET.WEIGHT_TYPE = weight_type
     cfg.DATASET.SIZE_TYPE = datasize_type
+    cfg.DATASET.INPUT_TYPE = "image"
+    cfg.DATASET.CLASS_TYPE = "verb"
+    cfg.DATASET.NUM_SEGMENTS = 1
 
     download_file_by_url(
         url=url,
@@ -117,7 +121,7 @@ def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, dat
         VideoDataset(source_name), VideoDataset(target_name), seed, cfg
     )
 
-    assert num_classes == n_class
+    assert num_classes["verb"] == n_class
     assert isinstance(source, dict)
     assert isinstance(target, dict)
     assert isinstance(source["rgb"], VideoDatasetAccess)
@@ -177,3 +181,4 @@ def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, dat
         assert len(dataset_subset._rgb_source_by_split["valid"]) == valid_dataset_subset_length
         assert len(dataset_subset._rgb_source_by_split["test"]) == test_dataset_subset_length
         assert len(dataset_subset) == train_dataset_subset_length
+

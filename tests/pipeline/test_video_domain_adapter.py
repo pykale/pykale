@@ -78,7 +78,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
     cfg.DATASET.IMAGE_MODALITY = image_modality
     cfg.DATASET.INPUT_TYPE = "image"
     cfg.DATASET.CLASS_TYPE = "verb"
-    cfg.DATASET.NUM_SEGMENTS = 1  # = 1, if image input; = 8, if feature input.
+    cfg.DATASET.NUM_SEGMENTS = 1
     cfg.DATASET.WEIGHT_TYPE = WEIGHT_TYPE
     cfg.DATASET.SIZE_TYPE = DATASIZE_TYPE
     cfg.DAN.USERANDOM = False
