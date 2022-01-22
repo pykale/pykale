@@ -76,6 +76,9 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
     cfg.DATASET.TGT_TRAINLIST = target_trainlist
     cfg.DATASET.TGT_TESTLIST = target_testlist
     cfg.DATASET.IMAGE_MODALITY = image_modality
+    cfg.DATASET.INPUT_TYPE = "image"
+    cfg.DATASET.CLASS_TYPE = "verb"
+    cfg.DATASET.NUM_SEGMENTS = 1  # = 1, if image input; = 8, if feature input.
     cfg.DATASET.WEIGHT_TYPE = WEIGHT_TYPE
     cfg.DATASET.SIZE_TYPE = DATASIZE_TYPE
     cfg.DAN.USERANDOM = False
@@ -89,8 +92,8 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
     )
 
     # build dataset
-    source, target, num_classes = VideoDataset.get_source_target(
-        VideoDataset(source_name), VideoDataset(target_name), seed, cfg
+    source, target, dict_num_classes = VideoDataset.get_source_target(
+        VideoDataset(cfg.DATASET.SOURCE.upper()), VideoDataset(cfg.DATASET.TARGET.upper()), seed, cfg
     )
 
     dataset = VideoMultiDomainDatasets(
@@ -116,7 +119,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
         feature_network = {"rgb": VideoBoringModel(3), "flow": VideoBoringModel(2)}
 
     # setup classifier
-    classifier_network = ClassNetVideo(input_size=class_feature_dim, n_class=num_classes)
+    classifier_network = ClassNetVideo(input_size=class_feature_dim, dict_n_class=dict_num_classes)
     train_params = testing_training_cfg["train_params"]
     method_params = {}
     method = domain_adapter.Method(da_method)
@@ -139,7 +142,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
             if cfg.DAN.USERANDOM:
                 critic_input_size = 1024
             else:
-                critic_input_size = domain_feature_dim * num_classes
+                critic_input_size = domain_feature_dim * dict_num_classes["verb"]
         critic_network = DomainNetVideo(input_size=critic_input_size)
 
         if da_method == "CDAN":
