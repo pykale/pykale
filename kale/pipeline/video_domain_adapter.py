@@ -153,8 +153,8 @@ class BaseMMDLikeVideo(BaseMMDLike):
         # print('equal: {}/{}'.format(torch.all(torch.eq(y_s, y_s_flow)), torch.all(torch.eq(y_tu, y_tu_flow))))
 
         # ok is abbreviation for (all) correct
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s)
+        _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu)
         task_loss = loss_cls
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
@@ -201,8 +201,8 @@ class JANTrainerVideo(BaseMMDLikeVideo):
 
     def _compute_mmd(self, phi_s, phi_t, y_hat, y_t_hat):
         softmax_layer = torch.nn.Softmax(dim=-1)
-        source_list = [phi_s, softmax_layer(y_hat)]
-        target_list = [phi_t, softmax_layer(y_t_hat)]
+        source_list = [phi_s, softmax_layer(y_hat[0])]
+        target_list = [phi_t, softmax_layer(y_t_hat[0])]
         batch_size = int(phi_s.size()[0])
 
         joint_kernels = None
@@ -300,8 +300,8 @@ class DANNTrainerVideo(DANNTrainer):
             loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
             dok = torch.cat((dok_src, dok_tgt))
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s)
+        _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu)
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
         task_loss = loss_cls
 
@@ -381,7 +381,8 @@ class CDANTrainerVideo(CDANTrainer):
             else:  # For flow input
                 x = x_flow
             class_output = self.classifier(x)
-            softmax_output = torch.nn.Softmax(dim=1)(class_output)
+            # Only use verb class to get softmax_output
+            softmax_output = torch.nn.Softmax(dim=1)(class_output[0])
             reverse_out = GradReverse.apply(softmax_output, self.alpha)
 
             if self.rgb:
@@ -419,8 +420,8 @@ class CDANTrainerVideo(CDANTrainer):
         batch_size = len(y_s)
 
         if self.entropy:
-            e_s = self._compute_entropy_weights(y_hat)
-            e_t = self._compute_entropy_weights(y_t_hat)
+            e_s = self._compute_entropy_weights(y_hat[0])
+            e_t = self._compute_entropy_weights(y_t_hat[0])
             source_weight = e_s / torch.sum(e_s)
             target_weight = e_t / torch.sum(e_t)
         else:
@@ -462,8 +463,8 @@ class CDANTrainerVideo(CDANTrainer):
             loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
             dok = torch.cat((dok_src, dok_tgt))
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s)
+        _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu)
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
         task_loss = loss_cls
 
@@ -571,8 +572,8 @@ class WDGRLTrainerVideo(WDGRLTrainer):
             wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
             dok = torch.cat((dok_src, dok_tgt))
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s)
+        _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu)
         adv_loss = wasserstein_distance
         task_loss = loss_cls
 

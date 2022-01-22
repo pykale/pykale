@@ -15,7 +15,7 @@ from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
 from kale.loaddata.video_access import get_image_modality
 
 
-def get_video_feat_extractor(model_name, image_modality, attention, num_classes):
+def get_video_feat_extractor(model_name, image_modality, attention, dict_num_classes):
     """
     Get the feature extractor w/o the pre-trained model and SELayers. The pre-trained models are saved in the path
     ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
@@ -26,7 +26,7 @@ def get_video_feat_extractor(model_name, image_modality, attention, num_classes)
         model_name (string): The name of the feature extractor. (Choices=["I3D", "R3D_18", "R2PLUS1D_18", "MC3_18"])
         image_modality (string): Image type. (Choices=["rgb", "flow", "joint"])
         attention (string): The attention type. (Choices=["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"])
-        num_classes (int): The class number of specific dataset. (Default: No use)
+        dict_num_classes (int): The class number of specific dataset. (Default: No use)
 
     Returns:
         feature_network (dictionary): The network to extract features.
@@ -34,7 +34,10 @@ def get_video_feat_extractor(model_name, image_modality, attention, num_classes)
                             It is a convention when the input dimension and the network is fixed.
         domain_feature_dim (int): The dimension of the feature network output for DomainNet.
     """
+
     rgb, flow = get_image_modality(image_modality)
+    # only use verb class when input is image.
+    num_classes = dict_num_classes["verb"]
 
     attention_list = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"]
     model_list = ["I3D", "R3D_18", "MC3_18", "R2PLUS1D_18"]
