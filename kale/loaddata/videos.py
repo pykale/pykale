@@ -1,6 +1,7 @@
 import math
 import os
 import os.path
+import pickle
 import random
 from pathlib import Path
 
@@ -131,6 +132,9 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         transform=None,
         random_shift: bool = True,
         test_mode: bool = False,
+        input_type: str = "image",
+        num_data_load: int = None,
+        total_segments: int = 25,
     ):
         super(VideoFrameDataset, self).__init__()
 
@@ -145,6 +149,9 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         self.test_mode = test_mode
         if self.image_modality == "flow" and self.frames_per_segment > 1:
             self.frames_per_segment //= 2
+        self.input_type = input_type
+        self.num_data_load = num_data_load
+        self.total_segments = total_segments
 
         self._parse_list()
 
@@ -158,6 +165,35 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             return [x_img, y_img]
         else:
             raise ValueError("Input modality is not in [rgb, flow, joint]. Current is {}".format(self.image_modality))
+
+    def _load_feature_vector(self, idx, segment):
+        if self._data is None:
+            self._read_feature_vector()
+        if (
+            self.image_modality == "rgb"
+            or self.image_modality == "flow"
+            or self.image_modality == "audio"
+            or self.image_modality == "all"
+        ):
+            return torch.from_numpy(np.expand_dims(self._data[segment][idx - 1], axis=0)).float()
+        else:
+            raise ValueError(
+                "Input modality is not in [rgb, flow, audio, all]. Current is {}".format(self.image_modality)
+            )
+
+    def _read_feature_vector(self):
+        with open(self.root_path, "rb") as f:
+            data = pickle.load(f)
+            if self.image_modality == "all":
+                data_features = np.concatenate(list(data["features"].values()), -1)
+            elif self.image_modality == "rgb":
+                data_features = data["features"]["RGB"]
+            elif self.image_modality == "flow":
+                data_features = data["features"]["Flow"]
+            elif self.image_modality == "audio":
+                data_features = data["features"]["Audio"]
+            data_narrations = data["narration_ids"]
+            self._data = dict(zip(data_narrations, data_features))
 
     def _parse_list(self):
         self.video_list = [VideoRecord(x.strip().split(" "), self.root_path) for x in open(self.annotationfile_path)]
@@ -261,20 +297,24 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             1) A list of PIL images or the result of applying self.transform on this list if self.transform is not None.
             2) An integer denoting the video label.
         """
+        if self.input_type == "image":
+            indices = indices + record.start_frame
 
-        indices = indices + record.start_frame
         images = list()
         image_indices = list()
         for seg_ind in indices:
             frame_index = int(seg_ind)
             for i in range(self.frames_per_segment):
-                seg_img = self._load_image(record.path, frame_index)
+                if self.input_type == "image":
+                    seg_img = self._load_image(record.path, frame_index)
+                else:
+                    seg_img = self._load_feature_vector(frame_index, record.segment_id)
                 images.extend(seg_img)
                 image_indices.append(frame_index)
                 if frame_index < record.end_frame:
                     frame_index += 1
 
-        if self.transform is not None:
+        if self.input_type == "image" and self.transform is not None:
             images = self.transform(images)
 
         return images, record.label
