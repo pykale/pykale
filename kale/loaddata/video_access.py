@@ -11,12 +11,15 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/d
 import os
 from copy import deepcopy
 from enum import Enum
+from pathlib import Path
 
+import pandas as pd
 import torch
 
 import kale.prepdata.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.video_datasets import BasicVideoDataset, EPIC
+from kale.loaddata.videos import VideoFrameDataset
 
 
 def get_image_modality(image_modality):
@@ -213,13 +216,14 @@ class VideoDatasetAccess(DatasetAccess):
     """
 
     def __init__(
-        self, data_path, train_list, test_list, image_modality, frames_per_segment, n_classes, transform_kind, seed
+            self, data_path, train_list, test_list, image_modality, num_segments, frames_per_segment, n_classes, transform_kind, seed
     ):
         super().__init__(n_classes)
         self._data_path = data_path
         self._train_list = train_list
         self._test_list = test_list
         self._image_modality = image_modality
+        self._num_segments = num_segments
         self._frames_per_segment = frames_per_segment
         self._transform = video_transform.get_transform(transform_kind, self._image_modality)
         self._seed = seed
@@ -369,4 +373,76 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
             image_modality=self._image_modality,
             dataset_split="test",
             n_classes=self._n_classes,
+        )
+
+
+class EPIC100DatasetAccess(VideoDatasetAccess):
+    """EPIC-100 video feature data loader"""
+
+    def __init__(
+            self,
+            domain,
+            data_path,
+            train_list,
+            test_list,
+            image_modality,
+            num_segments,
+            frames_per_segment,
+            n_classes,
+            transform,
+            seed,
+            input_type,
+    ):
+        super(EPIC100DatasetAccess, self).__init__(
+            data_path,
+            train_list,
+            test_list,
+            image_modality,
+            num_segments,
+            frames_per_segment,
+            n_classes,
+            transform,
+            seed,
+        )
+        self._input_type = input_type
+        self._domain = domain
+        self._num_train_dataload = len(pd.read_pickle(self._train_list).index)
+        self._num_test_dataload = len(pd.read_pickle(self._test_list).index)
+
+    def get_train(self):
+        return VideoFrameDataset(
+            root_path=Path(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
+            # Uncomment to run on train subset for EPIC 2021 challenge
+            # data_path=Path(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
+            annotationfile_path=self._train_list,
+            total_segments=25,
+            num_segments=self._num_segments,  # 1
+            frames_per_segment=self._frames_per_segment,  # 1
+            image_modality=self._image_modality,
+            imagefile_template="img_{:05d}.t7"
+            if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
+            else self._input_type + "{}_{:05d}.t7",
+            random_shift=False,
+            test_mode=True,
+            input_type="feature",
+            num_data_load=self._num_train_dataload,
+        )
+
+    def get_test(self):
+        return VideoFrameDataset(
+            root_path=Path(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
+            # Uncomment to run on test subset for EPIC 2021 challenge
+            # data_path=Path(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
+            annotationfile_path=self._test_list,
+            total_segments=25,
+            num_segments=self._num_segments,
+            frames_per_segment=self._frames_per_segment,
+            image_modality=self._image_modality,
+            imagefile_template="img_{:05d}.t7"
+            if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
+            else self._input_type + "{}_{:05d}.t7",
+            random_shift=True,
+            test_mode=True,
+            input_type="feature",
+            num_data_load=self._num_test_dataload,
         )
