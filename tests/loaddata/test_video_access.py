@@ -7,7 +7,7 @@ from yacs.config import CfgNode as CN
 
 from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.multi_domain import DomainsDatasetBase
-from kale.loaddata.video_access import get_image_modality, VideoDataset, VideoDatasetAccess
+from kale.loaddata.video_access import get_image_modality, VideoDataset, VideoDatasetAccess, get_class_type
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
 from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
@@ -26,6 +26,7 @@ TARGETS = [
 ]
 ALL = SOURCES + TARGETS
 IMAGE_MODALITY = ["rgb", "flow", "joint"]
+CLASS_TYPE = ["verb", "verb+noun"]
 WEIGHT_TYPE = ["natural", "balanced", "preset0"]
 # DATASIZE_TYPE = ["max", "source"]
 DATASIZE_TYPE = ["max"]
@@ -54,6 +55,32 @@ def test_get_image_modality(image_modality):
 
     assert isinstance(rgb, bool)
     assert isinstance(flow, bool)
+
+    if image_modality == "rgb":
+        assert rgb
+        assert not flow
+    elif image_modality == "flow":
+        assert not rgb
+        assert flow
+    elif image_modality == "joint":
+        assert rgb
+        assert flow
+
+
+@pytest.mark.parametrize("class_type", CLASS_TYPE)
+def test_get_class_type(class_type):
+    verb, noun = get_class_type(class_type)
+
+    assert isinstance(verb, bool)
+    assert isinstance(noun, bool)
+
+    if class_type == "verb":
+        assert verb
+        assert not noun
+
+    elif class_type == "verb+noun":
+        assert verb
+        assert noun
 
 
 @pytest.mark.parametrize("source_cfg", SOURCES)
