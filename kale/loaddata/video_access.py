@@ -211,12 +211,12 @@ class VideoDatasetAccess(DatasetAccess):
         image_modality (string): image type (RGB or Optical Flow)
         frames_per_segment (int): length of each action sample (the unit is number of frame)
         n_classes (int): number of class
-        transform_kind (string): types of video transforms
+        transform (string): types of video transforms
         seed: (int): seed value set manually.
     """
 
     def __init__(
-            self, data_path, train_list, test_list, image_modality, num_segments, frames_per_segment, n_classes, transform_kind, seed
+            self, data_path, train_list, test_list, image_modality, num_segments, frames_per_segment, n_classes, transform, seed
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -225,7 +225,7 @@ class VideoDatasetAccess(DatasetAccess):
         self._image_modality = image_modality
         self._num_segments = num_segments
         self._frames_per_segment = frames_per_segment
-        self._transform = video_transform.get_transform(transform_kind, self._image_modality)
+        self._transform = video_transform.get_transform(transform, self._image_modality)
         self._seed = seed
 
     def get_train_valid(self, valid_ratio):
