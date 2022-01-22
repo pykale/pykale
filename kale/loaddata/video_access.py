@@ -48,6 +48,7 @@ def get_videodata_config(cfg):
             "dataset_tgt_trainlist": cfg.DATASET.TGT_TRAINLIST,
             "dataset_tgt_testlist": cfg.DATASET.TGT_TESTLIST,
             "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
+            "dataset_input_type": cfg.DATASET.INPUT_TYPE,
             "dataset_num_segments": cfg.DATASET.NUM_SEGMENTS,
             "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT,
         }
@@ -93,6 +94,7 @@ class VideoDataset(Enum):
     ADL = "ADL"
     GTEA = "GTEA"
     KITCHEN = "KITCHEN"
+    EPIC100 = "EPIC100"
 
     @staticmethod
     def get_source_target(source: "VideoDataset", target: "VideoDataset", seed, params):
@@ -118,6 +120,7 @@ class VideoDataset(Enum):
         data_tgt_name = data_params_local["dataset_tgt_name"].upper()
         tgt_data_path, tgt_tr_listpath, tgt_te_listpath = generate_list(data_tgt_name, data_params_local, domain="tgt")
         image_modality = data_params_local["dataset_image_modality"]
+        input_type = data_params_local["dataset_input_type"]
         num_segments = data_params_local["dataset_num_segments"]
         frames_per_segment = data_params_local["frames_per_segment"]
 
@@ -128,6 +131,7 @@ class VideoDataset(Enum):
             VideoDataset.GTEA: "gtea",
             VideoDataset.ADL: "adl",
             VideoDataset.KITCHEN: "kitchen",
+            VideoDataset.EPIC100: None,
         }
 
         class_numbers = {
@@ -135,6 +139,7 @@ class VideoDataset(Enum):
             VideoDataset.GTEA: 6,
             VideoDataset.ADL: 7,
             VideoDataset.KITCHEN: 6,
+            VideoDataset.EPIC100: 97,
         }
 
         factories = {
@@ -142,6 +147,7 @@ class VideoDataset(Enum):
             VideoDataset.GTEA: GTEADatasetAccess,
             VideoDataset.ADL: ADLDatasetAccess,
             VideoDataset.KITCHEN: KITCHENDatasetAccess,
+            VideoDataset.EPIC100: EPIC100DatasetAccess,
         }
 
         # handle color/nb classes
@@ -151,53 +157,103 @@ class VideoDataset(Enum):
 
         rgb_source, rgb_target, flow_source, flow_target = [None] * 4
 
-        if rgb:
-            rgb_source = factories[source](
-                src_data_path,
-                src_tr_listpath,
-                src_te_listpath,
-                "rgb",
-                num_segments,
-                frames_per_segment,
-                num_classes,
-                source_tf,
-                seed,
-            )
-            rgb_target = factories[target](
-                tgt_data_path,
-                tgt_tr_listpath,
-                tgt_te_listpath,
-                "rgb",
-                num_segments,
-                frames_per_segment,
-                num_classes,
-                target_tf,
-                seed,
-            )
+        if input_type == "image":
 
-        if flow:
-            flow_source = factories[source](
-                src_data_path,
-                src_tr_listpath,
-                src_te_listpath,
-                "flow",
-                num_segments,
-                frames_per_segment,
-                num_classes,
-                source_tf,
-                seed,
-            )
-            flow_target = factories[target](
-                tgt_data_path,
-                tgt_tr_listpath,
-                tgt_te_listpath,
-                "flow",
-                num_segments,
-                frames_per_segment,
-                num_classes,
-                target_tf,
-                seed,
-            )
+            if rgb:
+                rgb_source = factories[source](
+                    data_path=src_data_path,
+                    train_list=src_tr_listpath,
+                    test_list=src_te_listpath,
+                    image_modality="rgb",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_classes,
+                    transform=source_tf,
+                    seed=seed,
+                )
+                rgb_target = factories[target](
+                    data_path=tgt_data_path,
+                    train_list=tgt_tr_listpath,
+                    test_list=tgt_te_listpath,
+                    image_modality="rgb",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_classes,
+                    transform=target_tf,
+                    seed=seed,
+                )
+
+            if flow:
+                flow_source = factories[source](
+                    data_path=src_data_path,
+                    train_list=src_tr_listpath,
+                    test_list=src_te_listpath,
+                    image_modality="flow",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_classes,
+                    transform=source_tf,
+                    seed=seed,
+                )
+                flow_target = factories[target](
+                    data_path=tgt_data_path,
+                    train_list=tgt_tr_listpath,
+                    test_list=tgt_te_listpath,
+                    image_modality="flow",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_classes,
+                    transform=target_tf,
+                    seed=seed,
+                )
+
+        elif input_type == "feature":
+            # Input is feature vector, no need to use transform.
+            if rgb:
+                rgb_source = factories[source](
+                    domain="source",
+                    data_path=src_data_path,
+                    train_list=src_tr_listpath,
+                    test_list=src_te_listpath,
+                    image_modality="rgb",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    transform=source_tf,
+                    seed=seed,
+                    input_type=input_type,
+                )
+
+                rgb_target = factories[source](
+                    domain="target",
+                    data_path=tgt_data_path,
+                    train_list=tgt_tr_listpath,
+                    test_list=tgt_te_listpath,
+                    image_modality="rgb",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    transform=target_tf,
+                    seed=seed,
+                    input_type=input_type,
+                )
+            if flow:
+                flow_source = factories[source](
+                    domain="source",
+                    data_path=src_data_path,
+                    train_list=src_tr_listpath,
+                    test_list=src_te_listpath,
+                    image_modality="flow",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    transform=source_tf,
+                    seed=seed,
+                    input_type=input_type,
+                )
+
+        else:
+            raise Exception("Invalid input type option: {}".format(input_type))
 
         return (
             {"rgb": rgb_source, "flow": flow_source},
