@@ -24,7 +24,7 @@ _C.DATASET.TARGET = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
 _C.DATASET.TGT_TRAINLIST = "epic_D2_train.pkl"
 _C.DATASET.TGT_TESTLIST = "epic_D2_test.pkl"
 _C.DATASET.IMAGE_MODALITY = "rgb"  # mode options=["rgb", "flow", "joint"]
-_C.DATASET.INPUT_TYPE = "image"
+_C.DATASET.INPUT_TYPE = "image"  # input type options=["image", "feature"]
 _C.DATASET.CLASS_TYPE = "verb"  # options=["verb", "verb+noun"]
 _C.DATASET.NUM_SEGMENTS = 1  # = 1, if image input; = 8, if feature input.
 _C.DATASET.FRAMES_PER_SEGMENT = 16
@@ -74,7 +74,7 @@ _C.OUTPUT = CN()
 _C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
 _C.OUTPUT.FAST_DEV_RUN = False  # True for debug
 _C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
-_C.OUTPUT.TB_DIR = os.path.join("lightning_logs", _C.DATASET.SOURCE + "2" + _C.DATASET.TARGET)
+_C.OUTPUT.TB_DIR = os.path.join("tb_logs", _C.DATASET.SOURCE + "2" + _C.DATASET.TARGET)
 
 
 def get_cfg_defaults():
