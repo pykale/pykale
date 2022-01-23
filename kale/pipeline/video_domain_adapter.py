@@ -10,7 +10,7 @@ Most are inherited from kale.pipeline.domain_adapter.
 import torch
 
 import kale.predict.losses as losses
-from kale.loaddata.video_access import get_image_modality
+from kale.loaddata.video_access import get_class_type, get_image_modality
 from kale.pipeline.domain_adapter import (
     BaseAdaptTrainer,
     BaseMMDLike,
@@ -26,7 +26,9 @@ from kale.pipeline.domain_adapter import (
 )
 
 
-def create_mmd_based_video(method: Method, dataset, image_modality, feature_extractor, task_classifier, **train_params):
+def create_mmd_based_video(
+    method: Method, dataset, image_modality, feature_extractor, task_classifier, class_type, **train_params
+):
     """MMD-based deep learning methods for domain adaptation on video data: DAN and JAN"""
     if not method.is_mmd_method():
         raise ValueError(f"Unsupported MMD method: {method}")
@@ -37,6 +39,7 @@ def create_mmd_based_video(method: Method, dataset, image_modality, feature_extr
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
             method=method,
+            class_type=class_type,
             **train_params,
         )
     if method is Method.JAN:
@@ -46,6 +49,7 @@ def create_mmd_based_video(method: Method, dataset, image_modality, feature_extr
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
             method=method,
+            class_type=class_type,
             kernel_mul=[2.0, 2.0],
             kernel_num=[5, 1],
             **train_params,
@@ -53,7 +57,7 @@ def create_mmd_based_video(method: Method, dataset, image_modality, feature_extr
 
 
 def create_dann_like_video(
-    method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, **train_params
+    method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, class_type, **train_params
 ):
     """DANN-based deep learning methods for domain adaptation on video data: DANN, CDAN, CDAN+E"""
 
@@ -75,6 +79,7 @@ def create_dann_like_video(
             task_classifier=task_classifier,
             critic=critic,
             method=method,
+            class_type=class_type,
             **train_params,
         )
     elif method.is_cdan_method():
@@ -85,6 +90,7 @@ def create_dann_like_video(
             task_classifier=task_classifier,
             critic=critic,
             method=method,
+            class_type=class_type,
             use_entropy=method is Method.CDAN_E,
             **train_params,
         )
@@ -96,6 +102,7 @@ def create_dann_like_video(
             task_classifier=task_classifier,
             critic=critic,
             method=method,
+            class_type=class_type,
             **train_params,
         )
     else:
@@ -116,12 +123,9 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
 
     def test_dataloader(self):
         dataloader = self._dataset.get_domain_loaders(split="test", batch_size=self._batch_size)
-        # dataloader, target_batch_size = self._dataset.get_domain_loaders(split="test", batch_size=500)
         return dataloader
 
     def training_step(self, batch, batch_nb):
-        # print("tr src{} tgt{}".format(len(batch[0][2]), len(batch[1][2])))
-
         self._update_batch_epoch_factors(batch_nb)
 
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
@@ -159,43 +163,108 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             self.log(key, log_dict[key], prog_bar=True)
 
     def create_metrics_log(self, split_name):
-        metrics_to_log = (
-            "{}_loss".format(split_name),
-            "{}_task_loss".format(split_name),
-            "{}_adv_loss".format(split_name),
-            "{}_source_acc".format(split_name),
-            "{}_source_top1_acc".format(split_name),
-            "{}_source_top3_acc".format(split_name),
-            "{}_target_acc".format(split_name),
-            "{}_target_top1_acc".format(split_name),
-            "{}_target_top3_acc".format(split_name),
-            "{}_source_domain_acc".format(split_name),
-            "{}_target_domain_acc".format(split_name),
-            "{}_domain_acc".format(split_name),
-        )
-        if self.method.is_mmd_method():
-            metrics_to_log = metrics_to_log[:-3] + ("{}_mmd".format(split_name),)
+        if self.verb and not self.noun:
+            metrics_to_log = (
+                "{}_loss".format(split_name),
+                "{}_task_loss".format(split_name),
+                "{}_adv_loss".format(split_name),
+                # "{}_source_acc".format(split_name),
+                "{}_source_top1_acc".format(split_name),
+                "{}_source_top5_acc".format(split_name),
+                # "{}_target_acc".format(split_name),
+                "{}_target_top1_acc".format(split_name),
+                "{}_target_top5_acc".format(split_name),
+                "{}_source_domain_acc".format(split_name),
+                "{}_target_domain_acc".format(split_name),
+                "{}_domain_acc".format(split_name),
+            )
+            if self.method.is_mmd_method():
+                metrics_to_log = metrics_to_log[:-3] + ("{}_mmd".format(split_name),)
+        elif self.verb and self.noun:
+            metrics_to_log = (
+                "{}_loss".format(split_name),
+                "{}_task_loss".format(split_name),
+                "{}_adv_loss".format(split_name),
+                # "{}_verb_source_acc".format(split_name),
+                "{}_verb_source_top1_acc".format(split_name),
+                "{}_verb_source_top5_acc".format(split_name),
+                # "{}_noun_source_acc".format(split_name),
+                "{}_noun_source_top1_acc".format(split_name),
+                "{}_noun_source_top5_acc".format(split_name),
+                # "{}_verb_target_acc".format(split_name),
+                "{}_verb_target_top1_acc".format(split_name),
+                "{}_verb_target_top5_acc".format(split_name),
+                # "{}_noun_target_acc".format(split_name),
+                "{}_noun_target_top1_acc".format(split_name),
+                "{}_noun_target_top5_acc".format(split_name),
+                "{}_action_source_top1_acc".format(split_name),
+                "{}_action_source_top5_acc".format(split_name),
+                "{}_action_target_top1_acc".format(split_name),
+                "{}_action_target_top5_acc".format(split_name),
+                "{}_domain_acc".format(split_name),
+            )
+            if self.method.is_mmd_method():
+                metrics_to_log = metrics_to_log[:-1] + ("{}_mmd".format(split_name),)
         if split_name == "test":
-            metrics_to_log = metrics_to_log[:1] + metrics_to_log[4:]
+            metrics_to_log = metrics_to_log[:1] + metrics_to_log[3:]
         return metrics_to_log
 
     def get_loss_log_metrics(self, split_name, y_hat, y_t_hat, y_s, y_tu, dok):
         """Get the loss, top-k accuracy and metrics for a given split."""
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu)
-        prec1_src, prec3_src = losses.topk_accuracy(y_hat[0], y_s, topk=(1, 3))
-        prec1_tgt, prec3_tgt = losses.topk_accuracy(y_t_hat[0], y_tu, topk=(1, 3))
-        task_loss = loss_cls
+        if self.verb and not self.noun:
+            loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s)
+            _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu)
+            prec1_src, prec5_src = losses.topk_accuracy(y_hat[0], y_s, topk=(1, 5))
+            prec1_tgt, prec5_tgt = losses.topk_accuracy(y_t_hat[0], y_tu, topk=(1, 5))
+            task_loss = loss_cls
 
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_source_top1_acc": prec1_src,
-            f"{split_name}_source_top3_acc": prec3_src,
-            f"{split_name}_target_top1_acc": prec1_tgt,
-            f"{split_name}_target_top3_acc": prec3_tgt,
-        }
+            log_metrics = {
+                # f"{split_name}_source_acc": ok_src,
+                # f"{split_name}_target_acc": ok_tgt,
+                f"{split_name}_source_top1_acc": prec1_src,
+                f"{split_name}_source_top5_acc": prec5_src,
+                f"{split_name}_target_top1_acc": prec1_tgt,
+                f"{split_name}_target_top5_acc": prec5_tgt,
+            }
+        elif self.verb and self.noun:
+            loss_cls_verb, ok_src_verb = losses.cross_entropy_logits(y_hat[0], y_s[0])
+            loss_cls_noun, ok_src_noun = losses.cross_entropy_logits(y_hat[1], y_s[1])
+            _, ok_tgt_verb = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
+            _, ok_tgt_noun = losses.cross_entropy_logits(y_t_hat[1], y_tu[1])
+
+            prec1_src_verb, prec5_src_verb = losses.topk_accuracy(y_hat[0], y_s[0], topk=(1, 5))
+            prec1_src_noun, prec5_src_noun = losses.topk_accuracy(y_hat[1], y_s[1], topk=(1, 5))
+            prec1_src_action, prec5_src_action = losses.multitask_topk_accuracy(
+                (y_hat[0], y_hat[1]), (y_s[0], y_s[1]), topk=(1, 5)
+            )
+            prec1_tgt_verb, prec5_tgt_verb = losses.topk_accuracy(y_t_hat[0], y_tu[0], topk=(1, 5))
+            prec1_tgt_noun, prec5_tgt_noun = losses.topk_accuracy(y_t_hat[1], y_tu[1], topk=(1, 5))
+            prec1_tgt_action, prec5_tgt_action = losses.multitask_topk_accuracy(
+                (y_t_hat[0], y_t_hat[1]), (y_tu[0], y_tu[1]), topk=(1, 5)
+            )
+
+            task_loss = loss_cls_verb + loss_cls_noun
+
+            log_metrics = {
+                f"{split_name}_verb_source_acc": ok_src_verb,
+                f"{split_name}_noun_source_acc": ok_src_noun,
+                f"{split_name}_verb_target_acc": ok_tgt_verb,
+                f"{split_name}_noun_target_acc": ok_tgt_noun,
+                f"{split_name}_verb_source_top1_acc": prec1_src_verb,
+                f"{split_name}_verb_source_top5_acc": prec5_src_verb,
+                f"{split_name}_noun_source_top1_acc": prec1_src_noun,
+                f"{split_name}_noun_source_top5_acc": prec5_src_noun,
+                f"{split_name}_action_source_top1_acc": prec1_src_action,
+                f"{split_name}_action_source_top5_acc": prec5_src_action,
+                f"{split_name}_verb_target_top1_acc": prec1_tgt_verb,
+                f"{split_name}_verb_target_top5_acc": prec5_tgt_verb,
+                f"{split_name}_noun_target_top1_acc": prec1_tgt_noun,
+                f"{split_name}_noun_target_top5_acc": prec5_tgt_noun,
+                f"{split_name}_action_target_top1_acc": prec1_tgt_action,
+                f"{split_name}_action_target_top5_acc": prec5_tgt_action,
+            }
+
         if self.method.is_mmd_method():
             log_metrics.update({f"{split_name}_mmd": dok})
         else:
@@ -207,10 +276,19 @@ class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
     """Common API for MME-based domain adaptation on video data: DAN, JAN"""
 
     def __init__(
-        self, dataset, image_modality, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5, **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        class_type,
+        kernel_mul=2.0,
+        kernel_num=5,
+        **base_params,
     ):
         super().__init__(dataset, feature_extractor, task_classifier, kernel_mul, kernel_num, **base_params)
         self.image_modality = image_modality
+        self.verb, self.noun = get_class_type(class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
 
@@ -318,13 +396,14 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
     """This is an implementation of DANN for video data."""
 
     def __init__(
-        self, dataset, image_modality, feature_extractor, task_classifier, critic, method, **base_params,
+        self, dataset, image_modality, feature_extractor, task_classifier, critic, method, class_type, **base_params,
     ):
         super(DANNTrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, method, **base_params
         )
         self.image_modality = image_modality
         self.rgb, self.flow = get_image_modality(self.image_modality)
+        self.verb, self.noun = get_class_type(class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
 
@@ -426,6 +505,7 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         feature_extractor,
         task_classifier,
         critic,
+        class_type,
         use_entropy=False,
         use_random=False,
         random_dim=1024,
@@ -436,6 +516,7 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         )
         self.image_modality = image_modality
         self.rgb, self.flow = get_image_modality(image_modality)
+        self.verb, self.noun = get_class_type(class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
 
@@ -572,6 +653,7 @@ class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
         feature_extractor,
         task_classifier,
         critic,
+        class_type,
         k_critic=5,
         gamma=10,
         beta_ratio=0,
@@ -582,6 +664,7 @@ class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
         )
         self.image_modality = image_modality
         self.rgb, self.flow = get_image_modality(self.image_modality)
+        self.verb, self.noun = get_class_type(class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
 
