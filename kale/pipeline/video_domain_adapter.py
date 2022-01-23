@@ -142,7 +142,7 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
         return {"loss": loss}
 
     def validation_epoch_end(self, outputs):
-        metrics_to_log = self.create_metrics_log("val")
+        metrics_to_log = self.create_metrics_log("valid")
         return self._validation_epoch_end(outputs, metrics_to_log)
 
     def test_epoch_end(self, outputs):
@@ -182,10 +182,10 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
     def get_loss_log_metrics(self, split_name, y_hat, y_t_hat, y_s, y_tu, dok):
         """Get the loss, top-k accuracy and metrics for a given split."""
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-        prec1_src, prec3_src = losses.topk_accuracy(y_hat, y_s, topk=(1, 3))
-        prec1_tgt, prec3_tgt = losses.topk_accuracy(y_t_hat, y_tu, topk=(1, 3))
+        loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s)
+        _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu)
+        prec1_src, prec3_src = losses.topk_accuracy(y_hat[0], y_s, topk=(1, 3))
+        prec1_tgt, prec3_tgt = losses.topk_accuracy(y_t_hat[0], y_tu, topk=(1, 3))
         task_loss = loss_cls
 
         log_metrics = {
