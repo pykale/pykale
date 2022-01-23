@@ -123,6 +123,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
     train_params = testing_training_cfg["train_params"]
     method_params = {}
     method = domain_adapter.Method(da_method)
+    class_type = cfg.DATASET.CLASS_TYPE
 
     # setup DA method
     if method.is_mmd_method():
@@ -132,6 +133,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
             image_modality=cfg.DATASET.IMAGE_MODALITY,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
+            class_type=class_type,
             **method_params,
             **train_params,
         )
@@ -155,6 +157,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             critic=critic_network,
+            class_type=class_type,
             **method_params,
             **train_params,
         )

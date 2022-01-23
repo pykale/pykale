@@ -48,6 +48,7 @@ def get_config(cfg):
             "target": cfg.DATASET.TARGET,
             "size_type": cfg.DATASET.SIZE_TYPE,
             "weight_type": cfg.DATASET.WEIGHT_TYPE,
+            "class_type": cfg.DATASET.CLASS_TYPE,
         },
     }
     return config_params
@@ -74,6 +75,9 @@ def get_model(cfg, dataset, dict_num_classes):
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
+    data_params = config_params["data_params"]
+    data_params_local = deepcopy(data_params)
+    class_type = data_params_local["class_type"]
     method_params = {}
 
     method = domain_adapter.Method(cfg.DAN.METHOD)
@@ -85,6 +89,7 @@ def get_model(cfg, dataset, dict_num_classes):
             image_modality=cfg.DATASET.IMAGE_MODALITY,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
+            class_type=class_type,
             **method_params,
             **train_params_local,
         )
@@ -109,6 +114,7 @@ def get_model(cfg, dataset, dict_num_classes):
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             critic=critic_network,
+            class_type=class_type,
             **method_params,
             **train_params_local,
         )
