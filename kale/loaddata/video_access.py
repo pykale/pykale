@@ -8,7 +8,6 @@ Action video dataset loading for EPIC-Kitchen, ADL, GTEA, KITCHEN. The code is b
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datasets/digits_dataset_access.py
 """
 
-import os
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
@@ -86,18 +85,18 @@ def generate_list(data_name, data_params_local, domain):
     """
 
     if data_name == "EPIC":
-        dataset_path = os.path.join(data_params_local["dataset_root"], data_name, "EPIC_KITCHENS_2018")
-        data_path = os.path.join(dataset_path, "frames_rgb_flow")
-    elif data_name in ["ADL", "GTEA", "KITCHEN"]:
-        dataset_path = os.path.join(data_params_local["dataset_root"], data_name)
-        data_path = os.path.join(dataset_path, "frames_rgb_flow")
+        dataset_path = Path(data_params_local["dataset_root"]).joinpath(data_name, "EPIC_KITCHENS_2018")
+    elif data_name in ["ADL", "GTEA", "KITCHEN", "EPIC100"]:
+        dataset_path = Path(data_params_local["dataset_root"]).joinpath(data_name)
     else:
-        raise ValueError("Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN]")
+        raise ValueError("Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN, EPIC100]")
 
-    train_listpath = os.path.join(
+    data_path = Path.joinpath(dataset_path, "frames_rgb_flow")
+
+    train_listpath = Path.joinpath(
         dataset_path, "annotations", "labels_train_test", data_params_local["dataset_{}_trainlist".format(domain)]
     )
-    test_listpath = os.path.join(
+    test_listpath = Path.joinpath(
         dataset_path, "annotations", "labels_train_test", data_params_local["dataset_{}_testlist".format(domain)]
     )
 
@@ -273,6 +272,20 @@ class VideoDataset(Enum):
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
                     transform=source_tf,
+                    seed=seed,
+                    input_type=input_type,
+                )
+
+                flow_target = factories[source](
+                    domain="target",
+                    data_path=tgt_data_path,
+                    train_list=tgt_tr_listpath,
+                    test_list=tgt_te_listpath,
+                    image_modality="flow",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    transform=target_tf,
                     seed=seed,
                     input_type=input_type,
                 )
