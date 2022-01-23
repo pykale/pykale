@@ -54,13 +54,13 @@ def testing_cfg_epic100(download_path):
     cfg = CN()
     cfg.DATASET = CN()
     # cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
-    cfg.DATASET.ROOT = "J:/Datasets/EgoAction/"
+    cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
     cfg.DATASET.SOURCE = "EPIC100"
-    cfg.DATASET.SRC_TRAINLIST = "val/EPIC_100_uda_source_train.pkl"
-    cfg.DATASET.SRC_TESTLIST = "val/EPIC_100_uda_source_test_timestamps.pkl"
+    cfg.DATASET.SRC_TRAINLIST = "EPIC_100_uda_source_train.pkl"
+    cfg.DATASET.SRC_TESTLIST = "EPIC_100_uda_source_test_timestamps.pkl"
     cfg.DATASET.TARGET = "EPIC100"
-    cfg.DATASET.TGT_TRAINLIST = "val/EPIC_100_uda_target_train_timestamps.pkl"
-    cfg.DATASET.TGT_TESTLIST = "val/EPIC_100_uda_target_test_timestamps.pkl"
+    cfg.DATASET.TGT_TRAINLIST = "EPIC_100_uda_target_train_timestamps.pkl"
+    cfg.DATASET.TGT_TESTLIST = "EPIC_100_uda_target_test_timestamps.pkl"
     cfg.DATASET.IMAGE_MODALITY = "joint"
     cfg.DATASET.INPUT_TYPE = "feature"
     cfg.DATASET.NUM_SEGMENTS = 8
@@ -209,12 +209,12 @@ def test_get_source_target_epic100(testing_cfg_epic100):
     # get cfg parameters
     cfg = testing_cfg_epic100
 
-    # download_file_by_url(
-    #     url=url,
-    #     output_directory=str(Path(cfg.DATASET.ROOT).parent.absolute()),
-    #     output_file_name="video_test_data.zip",
-    #     file_format="zip",
-    # )
+    download_file_by_url(
+        url=url,
+        output_directory=str(Path(cfg.DATASET.ROOT).parent.absolute()),
+        output_file_name="video_test_data.zip",
+        file_format="zip",
+    )
 
     # test get_source_target
     source, target, num_classes = VideoDataset.get_source_target(
