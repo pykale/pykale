@@ -26,7 +26,7 @@ def get_video_feat_extractor(model_name, image_modality, attention, dict_num_cla
         model_name (string): The name of the feature extractor. (Choices=["I3D", "R3D_18", "R2PLUS1D_18", "MC3_18"])
         image_modality (string): Image type. (Choices=["rgb", "flow", "joint"])
         attention (string): The attention type. (Choices=["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"])
-        dict_num_classes (int): The class number of specific dataset. (Default: No use)
+        dict_num_classes (dict): The class number of specific dataset. (Default: No use)
 
     Returns:
         feature_network (dictionary): The network to extract features.
