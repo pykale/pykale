@@ -36,7 +36,7 @@ def get_extractor_video(model_name, image_modality, attention, dict_num_classes)
         domain_feature_dim (int): The dimension of the feature network output for DomainNet.
     """
 
-    rgb, flow = get_image_modality(image_modality)
+    rgb, flow, audio = get_image_modality(image_modality)
     # only use verb class when input is image.
     num_classes = dict_num_classes["verb"]
 
