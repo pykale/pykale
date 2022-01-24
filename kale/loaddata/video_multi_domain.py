@@ -175,7 +175,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             logging.debug("Load audio train and val")
             (self._audio_source_by_split["train"], self._audio_source_by_split["valid"]) = self._source_access_dict[
                 "audio"
-            ].get_train_val(self._valid_split_ratio)
+            ].get_train_valid(self._valid_split_ratio)
             if self.class_ids is not None:
                 self._audio_source_by_split["train"] = get_class_subset(
                     self._audio_source_by_split["train"], self.class_ids
@@ -186,7 +186,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
 
             (self._audio_target_by_split["train"], self._audio_target_by_split["valid"]) = self._target_access_dict[
                 "audio"
-            ].get_train_val(self._valid_split_ratio)
+            ].get_train_valid(self._valid_split_ratio)
             if self.class_ids is not None:
                 self._audio_target_by_split["train"] = get_class_subset(
                     self._audio_target_by_split["train"], self.class_ids

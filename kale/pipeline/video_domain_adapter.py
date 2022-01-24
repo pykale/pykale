@@ -113,16 +113,19 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
     """Base class for all domain adaptation architectures on videos. Inherited from BaseAdaptTrainer."""
 
     def train_dataloader(self):
-        dataloader = self._dataset.get_domain_loaders(split="train", batch_size=self._batch_size)
+        dataloader, target_batch_size = self._dataset.get_domain_loaders(split="train", batch_size=self._batch_size)
         self._nb_training_batches = len(dataloader)
+        self._target_batch_size = target_batch_size
         return dataloader
 
     def val_dataloader(self):
-        dataloader = self._dataset.get_domain_loaders(split="valid", batch_size=self._batch_size)
+        dataloader, target_batch_size = self._dataset.get_domain_loaders(split="valid", batch_size=self._batch_size)
+        self._target_batch_size = target_batch_size
         return dataloader
 
     def test_dataloader(self):
-        dataloader = self._dataset.get_domain_loaders(split="test", batch_size=self._batch_size)
+        dataloader, target_batch_size = self._dataset.get_domain_loaders(split="test", batch_size=self._batch_size)
+        self._target_batch_size = target_batch_size
         return dataloader
 
     def training_step(self, batch, batch_nb):
@@ -402,7 +405,7 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
             dataset, feature_extractor, task_classifier, critic, method, **base_params
         )
         self.image_modality = image_modality
-        self.rgb, self.flow = get_image_modality(self.image_modality)
+        self.rgb, self.flow, self.audio = get_image_modality(self.image_modality)
         self.verb, self.noun = get_class_type(class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
@@ -515,7 +518,7 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
             dataset, feature_extractor, task_classifier, critic, use_entropy, use_random, random_dim, **base_params
         )
         self.image_modality = image_modality
-        self.rgb, self.flow = get_image_modality(image_modality)
+        self.rgb, self.flow, self.audio = get_image_modality(image_modality)
         self.verb, self.noun = get_class_type(class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
@@ -663,7 +666,7 @@ class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
             dataset, feature_extractor, task_classifier, critic, k_critic, gamma, beta_ratio, **base_params
         )
         self.image_modality = image_modality
-        self.rgb, self.flow = get_image_modality(self.image_modality)
+        self.rgb, self.flow, self.audio = get_image_modality(self.image_modality)
         self.verb, self.noun = get_class_type(class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]

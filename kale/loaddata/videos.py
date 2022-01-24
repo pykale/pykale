@@ -72,6 +72,10 @@ class VideoFeatureRecord(object):
         self._n_seg = num_segments
 
     @property
+    def segment_id(self):
+        return self._data.narration_id
+
+    @property
     def num_frames(self):
         return int(self._n_seg)
 
@@ -184,6 +188,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         self.input_type = input_type
         self.num_data_load = num_data_load
         self.total_segments = total_segments
+        self._data = None
         if self.input_type == "feature":
             if self.total_segments != 25 or self.frames_per_segment != 1:
                 raise ValueError("total_segments and frames_per_segment must be 25 and 1 in feature vector mode")
