@@ -111,6 +111,12 @@ class SELayerFeat(SELayer):
     def __init__(self, channel, reduction=2):
         super(SELayerFeat, self).__init__(channel, reduction)
         self.avg_pool = nn.AdaptiveAvgPool1d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(self.channel // self.reduction, self.channel, bias=False),
+            nn.Sigmoid(),
+        )
 
     def forward(self, x):
         b, t, _ = x.size()

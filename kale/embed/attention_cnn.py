@@ -151,9 +151,7 @@ class CNNTransformer(ContextCNNGeneric):
 
 
 class SelfAttention(nn.Module):
-    """
-    A vanilla multi-head attention layer with a projection at the end. Can be set to causal or not causal.
-    """
+    """A vanilla multi-head attention layer with a projection at the end. Can be set to causal or not causal."""
 
     def __init__(
         self, emb_dim, num_heads, att_dropout, final_dropout, causal=False, max_seq_len=10000, use_performer_att=False

@@ -375,6 +375,8 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
         if self.input_type == "image" and self.transform is not None:
             images = self.transform(images)
+        if self.input_type == "feature":
+            images = torch.stack(images)
 
         return images, record.label, record.segment_id
 
