@@ -10,7 +10,7 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 
 from copy import deepcopy
 
-from kale.embed.video_feature_extractor import get_video_feat_extractor
+from kale.embed.video_feature_extractor import get_extractor_video, get_extractor_feat
 from kale.pipeline import domain_adapter, video_domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 
@@ -76,12 +76,12 @@ def get_model(cfg, dataset, dict_num_classes):
 
     # setup feature extractor
     if input_type == "image":
-        feature_network, class_feature_dim, domain_feature_dim = get_video_feat_extractor(
+        feature_network, class_feature_dim, domain_feature_dim = get_extractor_video(
             cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, dict_num_classes
         )
     else:
         feature_network, class_feature_dim, domain_feature_dim = get_extractor_feat(
-            cfg.DAN.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, dict_num_classes, input_size=1024, output_size=256,
+            cfg.DAN.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, input_size=1024, output_size=256,
         )
 
     # setup task classifier
@@ -98,7 +98,6 @@ def get_model(cfg, dataset, dict_num_classes):
             image_modality=cfg.DATASET.IMAGE_MODALITY,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
-            input_type=input_type,
             class_type=class_type,
             **method_params,
             **train_params_local,
@@ -124,7 +123,6 @@ def get_model(cfg, dataset, dict_num_classes):
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             critic=critic_network,
-            input_type=input_type,
             class_type=class_type,
             **method_params,
             **train_params_local,

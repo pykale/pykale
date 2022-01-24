@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from kale.embed.video_feature_extractor import get_video_feat_extractor
+from kale.embed.video_feature_extractor import get_extractor_video
 
 MODEL_NAME = ["I3D", "R3D_18", "R2PLUS1D_18", "MC3_18"]
 IMAGE_MODALITY = ["rgb", "flow", "joint"]
@@ -15,7 +15,7 @@ NUM_CLASSES = {"verb": 6, "noun": 7}
 @pytest.mark.parametrize("image_modality", IMAGE_MODALITY)
 @pytest.mark.parametrize("attention", ATTENTION)
 def test_get_video_feat_extractor(model_name, image_modality, attention):
-    feature_network, class_feature_dim, domain_feature_dim = get_video_feat_extractor(
+    feature_network, class_feature_dim, domain_feature_dim = get_extractor_video(
         model_name, image_modality, attention, NUM_CLASSES
     )
 
