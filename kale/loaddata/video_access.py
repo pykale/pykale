@@ -22,16 +22,20 @@ from kale.loaddata.videos import VideoFrameDataset
 
 
 def get_image_modality(image_modality):
-    """Change image_modality (string) to rgb (bool) and flow (bool) for efficiency"""
+    """Change image_modality (string) to rgb (bool), flow (bool) and audio (bool) for efficiency"""
 
-    if image_modality == "joint":
+    if image_modality.lower() == "all":
+        rgb = flow = audio = True
+    elif image_modality.lower() == "joint":
         rgb = flow = True
-    elif image_modality == "rgb" or image_modality == "flow":
+        audio = False
+    elif image_modality.lower() in ["rgb", "flow", "audio"]:
         rgb = image_modality == "rgb"
         flow = image_modality == "flow"
+        audio = image_modality == "audio"
     else:
         raise Exception("Invalid modality option: {}".format(image_modality))
-    return rgb, flow
+    return rgb, flow, audio
 
 
 def get_class_type(class_type):
@@ -139,7 +143,7 @@ class VideoDataset(Enum):
         num_segments = data_params_local["dataset_num_segments"]
         frames_per_segment = data_params_local["frames_per_segment"]
 
-        rgb, flow = get_image_modality(image_modality)
+        rgb, flow, audio = get_image_modality(image_modality)
         verb, noun = get_class_type(class_type)
 
         transform_names = {
@@ -170,7 +174,7 @@ class VideoDataset(Enum):
             VideoDataset.EPIC100: EPIC100DatasetAccess,
         }
 
-        rgb_source, rgb_target, flow_source, flow_target = [None] * 4
+        rgb_source = rgb_target = flow_source = flow_target = audio_source = audio_target = None
         num_verb_classes = num_noun_classes = None
 
         if verb:
@@ -230,6 +234,8 @@ class VideoDataset(Enum):
                     transform=target_tf,
                     seed=seed,
                 )
+            if audio:
+                raise ValueError("Not support {} for input_type {}.".format(image_modality, input_type))
 
         elif input_type == "feature":
             # Input is feature vector, no need to use transform.
@@ -289,13 +295,41 @@ class VideoDataset(Enum):
                     seed=seed,
                     input_type=input_type,
                 )
+            if audio:
+                audio_source = factories[source](
+                    domain="source",
+                    data_path=src_data_path,
+                    train_list=src_tr_listpath,
+                    test_list=src_te_listpath,
+                    image_modality="audio",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    transform=source_tf,
+                    seed=seed,
+                    input_type=input_type,
+                )
+
+                audio_target = factories[source](
+                    domain="target",
+                    data_path=tgt_data_path,
+                    train_list=tgt_tr_listpath,
+                    test_list=tgt_te_listpath,
+                    image_modality="audio",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    transform=target_tf,
+                    seed=seed,
+                    input_type=input_type,
+                )
 
         else:
             raise Exception("Invalid input type option: {}".format(input_type))
 
         return (
-            {"rgb": rgb_source, "flow": flow_source},
-            {"rgb": rgb_target, "flow": flow_target},
+            {"rgb": rgb_source, "flow": flow_source, "audio": audio_source},
+            {"rgb": rgb_target, "flow": flow_target, "audio": audio_target},
             {"verb": num_verb_classes, "noun": num_noun_classes},
         )
 
