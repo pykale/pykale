@@ -32,15 +32,10 @@ def get_config(cfg):
             "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
             "init_lr": cfg.SOLVER.BASE_LR,
             "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
-            "optimizer": {
-                "type": cfg.SOLVER.TYPE,
-                "optim_params": {
-                    "momentum": cfg.SOLVER.MOMENTUM,
-                    "weight_decay": cfg.SOLVER.WEIGHT_DECAY,
-                    "nesterov": cfg.SOLVER.NESTEROV,
-                },
-            },
-        },
+            "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY, }, },
+        }
+    }
+    data_params = {
         "data_params": {
             # "dataset_group": cfg.DATASET.NAME,
             "dataset_name": cfg.DATASET.SOURCE + "2" + cfg.DATASET.TARGET,
@@ -50,8 +45,13 @@ def get_config(cfg):
             "weight_type": cfg.DATASET.WEIGHT_TYPE,
             "input_type": cfg.DATASET.INPUT_TYPE,
             "class_type": cfg.DATASET.CLASS_TYPE,
-        },
+        }
     }
+    config_params.update(data_params)
+    if config_params["train_params"]["optimizer"]["type"] == "SGD":
+        config_params["train_params"]["optimizer"]["optim_params"]["momentum"] = cfg.SOLVER.MOMENTUM
+        config_params["train_params"]["optimizer"]["optim_params"]["nesterov"] = cfg.SOLVER.NESTEROV
+
     return config_params
 
 
