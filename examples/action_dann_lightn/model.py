@@ -10,7 +10,7 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 
 from copy import deepcopy
 
-from kale.embed.video_feature_extractor import get_extractor_video, get_extractor_feat
+from kale.embed.video_feature_extractor import get_extractor_feat, get_extractor_video
 from kale.pipeline import domain_adapter, video_domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 
@@ -32,7 +32,7 @@ def get_config(cfg):
             "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
             "init_lr": cfg.SOLVER.BASE_LR,
             "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
-            "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY, }, },
+            "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY,},},
         }
     }
     data_params = {
@@ -85,7 +85,9 @@ def get_model(cfg, dataset, dict_num_classes):
         )
 
     # setup task classifier
-    classifier_network = ClassNetVideo(input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower())
+    classifier_network = ClassNetVideo(
+        input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower()
+    )
 
     # setup domain classifier
     method_params = {}

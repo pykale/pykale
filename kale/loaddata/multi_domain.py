@@ -27,13 +27,19 @@ class WeightingType(Enum):
 class DatasetSizeType(Enum):
     Max = "max"  # size of the biggest dataset
     Source = "source"  # size of the source dataset
+    Adaptive = "adaptive"  # adaptive batch size between source and target dataset, based on the ratio of the sizes
 
     @staticmethod
-    def get_size(size_type, source_dataset, *other_datasets):
+    def get_size(size_type, batch_size, source_dataset, *other_datasets):
         if size_type is DatasetSizeType.Max:
-            return max(list(map(len, other_datasets)) + [len(source_dataset)])
+            return max(list(map(len, other_datasets)) + [len(source_dataset)]), batch_size
         elif size_type is DatasetSizeType.Source:
-            return len(source_dataset)
+            return len(source_dataset), batch_size
+        elif size_type is DatasetSizeType.Adaptive:
+            if len(other_datasets) > 1:
+                raise ValueError("Invalid SIZE_TYPE. Not support {} for semi-supervised".format(size_type))
+            target_batch_size = int(batch_size * len(other_datasets[0]) / len(source_dataset))
+            return len(source_dataset), target_batch_size
         else:
             raise ValueError(f"Size type size must be 'max' or 'source', had '{size_type}'")
 

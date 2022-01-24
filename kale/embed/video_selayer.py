@@ -201,6 +201,3 @@ class SELayerMAC(SELayer):
         y = y - 0.5
         out = x + x * y.expand_as(x)
         return out
-
-
-

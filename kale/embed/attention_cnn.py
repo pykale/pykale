@@ -1,7 +1,9 @@
+import math
 from typing import Tuple
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from kale.embed.positional_encoding import PositionalEncoding
 from kale.embed.video_selayer import SELayerFeat
@@ -146,6 +148,7 @@ class CNNTransformer(ContextCNNGeneric):
         for p in encoder.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
+
 
 class SelfAttention(nn.Module):
     """
