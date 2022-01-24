@@ -27,7 +27,7 @@ _C.DATASET.IMAGE_MODALITY = "rgb"  # options=["rgb", "flow", "joint"]
 _C.DATASET.INPUT_TYPE = "image"  # options=["image", "feature"]
 _C.DATASET.CLASS_TYPE = "verb"  # options=["verb", "verb+noun"]
 _C.DATASET.NUM_SEGMENTS = 1  # = 1, if image input; = 8, if feature input.
-_C.DATASET.FRAMES_PER_SEGMENT = 16
+_C.DATASET.FRAMES_PER_SEGMENT = 16  # = 16, if image input; = 1, if feature input.
 _C.DATASET.NUM_REPEAT = 5  # 10
 _C.DATASET.WEIGHT_TYPE = "natural"
 _C.DATASET.SIZE_TYPE = "max"  # options=["source", "max"]

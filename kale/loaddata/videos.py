@@ -132,12 +132,12 @@ class VideoFrameDataset(torch.utils.data.Dataset):
                              one row per video sample as described above.
         image_modality (str): image modality (RGB or Optical Flow).
         num_segments (int): number of segments the video should be divided into to sample frames from.
-                            Default is 1 in image mode and 5 in feature vector mode.
+                            (Default is 1 in image mode and 5 in feature mode)
         frames_per_segment (int): number of frames that should
                             be loaded per segment. For each segment's
                             frame-range, a random start index or the
                             center is chosen, from which frames_per_segment
-                            consecutive frames are loaded.
+                            consecutive frames are loaded. (set as 1 in feature vector mode)
         imagefile_template (str): image filename template that video frame files
                             have inside of their video folders as described above.
         transform (Compose, optional): transform pipeline that receives a list of PIL images/frames.
@@ -149,7 +149,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
                    frames from segments with random_shift=False.
         input_type (str): type of input. (options: 'image' or 'feature')
         num_data_load (int): number of the data to load. (only used in feature vector mode)
-        total_segments (int): total number of segments a video is divided into. (only used in feature vector mode)
+        total_segments (int): total number of segments a video is divided into. (only used in feature mode)
 
     """
 
@@ -158,7 +158,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         root_path,
         annotationfile_path,
         image_modality="rgb",
-        num_segments=1,
+        num_segments=5,
         frames_per_segment=1,
         imagefile_template="img_{:05d}.jpg",
         transform=None,
@@ -184,6 +184,9 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         self.input_type = input_type
         self.num_data_load = num_data_load
         self.total_segments = total_segments
+        if self.input_type == "feature":
+            if self.total_segments != 25 or self.frames_per_segment != 1:
+                raise ValueError("total_segments and frames_per_segment must be 25 and 1 in feature vector mode")
 
         self._parse_list()
 

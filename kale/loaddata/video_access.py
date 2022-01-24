@@ -391,7 +391,7 @@ class EPICDatasetAccess(VideoDatasetAccess):
         return EPIC(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
-            num_segments=1,
+            num_segments=self._num_segments,  # 1
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg",
             transform=self._transform["train"],
@@ -406,7 +406,7 @@ class EPICDatasetAccess(VideoDatasetAccess):
         return EPIC(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
-            num_segments=1,
+            num_segments=self._num_segments,  # 1
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg",
             transform=self._transform["test"],
@@ -425,7 +425,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
-            num_segments=1,
+            num_segments=self._num_segments,  # 1
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
             transform=self._transform["train"],
@@ -440,7 +440,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
-            num_segments=1,
+            num_segments=self._num_segments,  # 1
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
             transform=self._transform["test"],
@@ -459,7 +459,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
-            num_segments=1,
+            num_segments=self._num_segments,  # 1
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
             transform=self._transform["train"],
@@ -474,7 +474,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
-            num_segments=1,
+            num_segments=self._num_segments,  # 1
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
             transform=self._transform["test"],
@@ -493,7 +493,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
-            num_segments=1,
+            num_segments=self._num_segments,  # 1
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
             transform=self._transform["train"],
@@ -508,7 +508,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
-            num_segments=1,
+            num_segments=self._num_segments,  # 1
             frames_per_segment=self._frames_per_segment,
             imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
             transform=self._transform["test"],
@@ -559,8 +559,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             # Uncomment to run on train subset for EPIC 2021 challenge
             # data_path=Path(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
             annotationfile_path=self._train_list,
-            total_segments=25,
-            num_segments=self._num_segments,  # 1
+            num_segments=self._num_segments,  # 5
             frames_per_segment=self._frames_per_segment,  # 1
             image_modality=self._image_modality,
             imagefile_template="img_{:05d}.t7"
@@ -578,9 +577,8 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             # Uncomment to run on test subset for EPIC 2021 challenge
             # data_path=Path(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
             annotationfile_path=self._test_list,
-            total_segments=25,
-            num_segments=self._num_segments,
-            frames_per_segment=self._frames_per_segment,
+            num_segments=self._num_segments,  # 5
+            frames_per_segment=self._frames_per_segment,  # 1
             image_modality=self._image_modality,
             imagefile_template="img_{:05d}.t7"
             if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
