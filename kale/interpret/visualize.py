@@ -53,7 +53,8 @@ def plot_weights(
     return fig
 
 
-def plot_multi_images(images, n_cols=10, n_rows=None, marker_locs=None, im_kwargs=None, marker_kwargs=None):
+def plot_multi_images(images, n_cols=10, n_rows=None, marker_locs=None, image_names=None, marker_names=None,
+                      marker_cmap=None, im_kwargs=None, marker_kwargs=None):
     """Plot multiple images with markers in one figure.
 
     Args:
@@ -61,6 +62,9 @@ def plot_multi_images(images, n_cols=10, n_rows=None, marker_locs=None, im_kwarg
         n_cols (int, optional): Number of columns for plotting multiple images. Defaults to 10.
         n_rows (int, optional): Number of rows for plotting multiple images. If None, n_rows = n_samples / n_cols.
         marker_locs (array-like, optional): Locations of markers, shape (n_samples, 2 * n_markers). Defaults to None.
+        marker_names (list, optional): Names of the markers, where len(marker_names) == n_markers. Defaults to None.
+        marker_cmap (str): Name of the color map used for plotting markers. Default to None.
+        image_names (list, optional): Names of each image, where len(image_names) == n_samples. Defaults to None.
         im_kwargs (dict, optional): Key word arguments for plotting images. Defaults to None.
         marker_kwargs (dict, optional): Key word arguments for background images. Defaults to None.
 
@@ -72,18 +76,34 @@ def plot_multi_images(images, n_cols=10, n_rows=None, marker_locs=None, im_kwarg
     im_kwargs = _none2dict(im_kwargs)
     marker_kwargs = _none2dict(marker_kwargs)
     fig = plt.figure(figsize=(20, 36))
+    n_samples = images.shape[0]
+    if image_names is None:
+        image_names = np.arange(n_samples) + 1
+    elif type(image_names) != list or len(image_names) != n_samples:
+        raise ValueError("Invalid type or length of 'image_names'!")
+    if marker_cmap is None:
+        marker_colors = None
+    elif type(marker_cmap) == str:
+        marker_colors = plt.get_cmap(marker_cmap).colors
+    else:
+        raise ValueError("Unsupported type %s for argument 'marker_cmap" % type(marker_cmap))
 
-    for i in range(images.shape[0]):
+    for i in range(n_samples):
         fig.add_subplot(n_rows, n_cols, i + 1)
         plt.axis("off")
         plt.imshow(images[i, ...], **im_kwargs)
         if marker_locs is not None:
             coords = marker_locs[i, :].reshape((-1, 2))
-            n_landmark = coords.shape[0]
-            for j in range(n_landmark):
+            n_marker = coords.shape[0]
+            for j in range(n_marker):
                 ix = coords[j, 0]
                 iy = coords[j, 1]
-                plt.plot(ix, iy, **marker_kwargs)
-        plt.title(i + 1)
+                if marker_colors is None:
+                    plt.plot(ix, iy, **marker_kwargs)
+                else:
+                    plt.plot(ix, iy, color=marker_colors[j], **marker_kwargs)
+                if marker_names is not None and len(marker_names) == n_marker * 2:
+                    plt.annotate(str(marker_names[j]), xy=(ix, iy + 1))
+        plt.title(image_names[i])
 
     return fig
