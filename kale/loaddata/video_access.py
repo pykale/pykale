@@ -566,7 +566,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
             random_shift=False,
-            test_mode=True,
+            test_mode=False,
             input_type="feature",
             num_data_load=self._num_train_dataload,
         )
@@ -583,7 +583,7 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             imagefile_template="img_{:05d}.t7"
             if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
             else self._input_type + "{}_{:05d}.t7",
-            random_shift=True,
+            random_shift=False,
             test_mode=True,
             input_type="feature",
             num_data_load=self._num_test_dataload,
