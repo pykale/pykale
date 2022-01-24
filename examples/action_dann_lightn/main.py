@@ -57,9 +57,10 @@ def main():
         source,
         target,
         image_modality=cfg.DATASET.IMAGE_MODALITY,
-        seed=seed,
+        random_state=seed,
         config_weight_type=cfg.DATASET.WEIGHT_TYPE,
         config_size_type=cfg.DATASET.SIZE_TYPE,
+        num_workers=cfg.SOLVER.NUM_WORKERS,
     )
 
     # ---- training/test process ----
