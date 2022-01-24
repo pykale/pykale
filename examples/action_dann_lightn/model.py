@@ -48,6 +48,7 @@ def get_config(cfg):
             "target": cfg.DATASET.TARGET,
             "size_type": cfg.DATASET.SIZE_TYPE,
             "weight_type": cfg.DATASET.WEIGHT_TYPE,
+            "input_type": cfg.DATASET.INPUT_TYPE,
             "class_type": cfg.DATASET.CLASS_TYPE,
         },
     }
@@ -65,21 +66,29 @@ def get_model(cfg, dataset, dict_num_classes):
         dict_num_classes (dict): The dictionary of class number for specific dataset.
     """
 
-    # setup feature extractor
-    feature_network, class_feature_dim, domain_feature_dim = get_video_feat_extractor(
-        cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, dict_num_classes
-    )
-    # setup classifier
-    classifier_network = ClassNetVideo(input_size=class_feature_dim, dict_n_class=dict_num_classes)
-
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
     data_params = config_params["data_params"]
     data_params_local = deepcopy(data_params)
+    input_type = data_params_local["input_type"]
     class_type = data_params_local["class_type"]
-    method_params = {}
 
+    # setup feature extractor
+    if input_type == "image":
+        feature_network, class_feature_dim, domain_feature_dim = get_video_feat_extractor(
+            cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, dict_num_classes
+        )
+    else:
+        feature_network, class_feature_dim, domain_feature_dim = get_extractor_feat(
+            cfg.DAN.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, dict_num_classes, input_size=1024, output_size=256,
+        )
+
+    # setup task classifier
+    classifier_network = ClassNetVideo(input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower())
+
+    # setup domain classifier
+    method_params = {}
     method = domain_adapter.Method(cfg.DAN.METHOD)
 
     if method.is_mmd_method():
@@ -89,6 +98,7 @@ def get_model(cfg, dataset, dict_num_classes):
             image_modality=cfg.DATASET.IMAGE_MODALITY,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
+            input_type=input_type,
             class_type=class_type,
             **method_params,
             **train_params_local,
@@ -114,6 +124,7 @@ def get_model(cfg, dataset, dict_num_classes):
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             critic=critic_network,
+            input_type=input_type,
             class_type=class_type,
             **method_params,
             **train_params_local,
