@@ -13,7 +13,7 @@ def quantile_binning_predictions(uncertainties_test, uncert_thresh, save_pred_pa
 
 
     Returns:
-        Dict: dictionary of predicted quantile bins.
+        Dict: Dictionary of predicted quantile bins.
     """
 
     all_binned_errors = {}

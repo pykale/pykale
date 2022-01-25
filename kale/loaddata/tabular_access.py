@@ -4,8 +4,9 @@ import pandas as pd
 
 def load_csv_columns(datapath, split, fold, cols_to_return="All"):
 
-    """Read csv file of data, returns samples where the value of the "split" column
-       is contained in the "fold" variable. The columns cols_to_return are returned.
+    """
+        Read csv file of data, returns samples where the value of the "split" column
+        is contained in the "fold" variable. The columns cols_to_return are returned.
 
     Args:
         datapath (str): Path to csv file of uncertainty results,

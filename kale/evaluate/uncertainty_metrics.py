@@ -4,7 +4,8 @@ import numpy as np
 def evaluate_bounds(
     estimated_bounds, bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8, show_fig=False,
 ):
-    """Evaluate uncertainty estimation's ability to predict error bounds for its quantile bins.
+    """
+        Evaluate uncertainty estimation's ability to predict error bounds for its quantile bins.
         For each bin, we calculate the accuracy as the % of predictions in the bin which are between the estimated error bounds.
         We calculate the accuracy for each dictionary in the bin_predictions dict. For each bin, we calculate: a) the mean and
         std over all folds and all landmarks b) the mean and std for each landmark over all folds.
@@ -77,7 +78,9 @@ def evaluate_bounds(
 def bin_wise_bound_eval(
     fold_bounds_all_lms, fold_errors, fold_bins, landmarks, uncertainty_type, num_bins=5, show_fig=False
 ):
-    """ Helper function for evaluate_bounds.
+    """
+    Helper function for evaluate_bounds.
+
     Args:
         fold_bounds_all_lms ([list]):List of lists for estimated error bounds for each landmark.
         fold_errors (Pandas Dataframe): Pandas Dataframe of errors for this fold.
@@ -213,9 +216,11 @@ def bin_wise_bound_eval(
 
 
 def strip_for_bound(string_):
-    """ Strip string into list of floats
+    """
+    Strip string into list of floats
+
     Args:
-        string_ (string):string of floats, seperated by commas.
+        string_ (string): A string of floats, seperated by commas.
     Returns:
         list: list of floats
     """
@@ -228,7 +233,8 @@ def strip_for_bound(string_):
 
 
 def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8):
-    """Evaluate uncertainty estimation's ability to predict true error quantiles.
+    """
+        Evaluate uncertainty estimation's ability to predict true error quantiles.
         For each bin, we calculate the jaccard index (JI) between the pred bins and GT error quantiles.
         We calculate the JI for each dictionary in the bin_predictions dict. For each bin, we calculate: a) the mean and
         std over all folds and all landmarks b) the mean and std for each landmark over all folds.
@@ -283,7 +289,9 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
 
 
 def bin_wise_jaccard(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key):
-    """ Helper function for evaluate_jaccard.
+    """
+        Helper function for evaluate_jaccard.
+
         Args:
             fold_errors (Pandas Dataframe): Pandas Dataframe of errors for this fold.
             fold_bins (Pandas Dataframe): Pandas Dataframe of predicted quantile bins for this fold.
@@ -385,7 +393,9 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, landmarks, uncertainty_ke
 
 
 def jaccard_similarity(list1, list2):
-    """ Calculates the jaccard index between two lists.
+    """
+        Calculates the Jaccard Index (JI) between two lists.
+
         Args:
             list1 (list): list of set A,
             list2 (list): list of set B.

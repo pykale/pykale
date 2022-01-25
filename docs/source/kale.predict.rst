@@ -14,6 +14,15 @@ kale.predict.class\_domain\_nets module
    :undoc-members:
    :show-inheritance:
 
+kale.predict.decode module
+--------------------------
+
+.. automodule:: kale.predict.decode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 kale.predict.isonet module
 --------------------------
 
@@ -30,14 +39,14 @@ kale.predict.losses module
    :undoc-members:
    :show-inheritance:
 
-kale.predict.decode module
---------------------------
 
-.. automodule:: kale.predict.decode
+kale.predict.uncertainty\_binning
+----------------------------------
+
+.. automodule:: kale.predict.uncertainty_binning
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------
