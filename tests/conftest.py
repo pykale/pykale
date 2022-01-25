@@ -36,7 +36,7 @@ landmark_uncertainty_url = (
 
 
 @pytest.fixture(scope="session")
-def landmark_uncertainty_dl(tmp_path_factory):
+def landmark_uncertainty_dl(download_path):
     # p = tmp_path_factory.getbasetemp()
     path_ = os.path.join(download_path, "Uncertainty_tuples")
     os.makedirs(path_, exist_ok=True)
