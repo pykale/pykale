@@ -38,7 +38,20 @@ def coords():
 
 
 def test_reg(images, coords):
+    marker_kwargs = {"marker": "o", "markerfacecolor": (1, 1, 1, 0.1), "markeredgewidth": 1.5, "markeredgecolor": "r"}
+    im_kwargs = {"cmap": "gray"}
+    marker_names = ["inf insertion point", "sup insertion point", "RV inf"]
+
     n_samples = images.shape[0]
+    fig = plot_multi_images(
+        images[:, 0, ...],
+        n_cols=5,
+        marker_cmap="Set1",
+        marker_locs=coords,
+        marker_names=marker_names,
+        marker_kwargs=marker_kwargs,
+        im_kwargs=im_kwargs,
+    )
     with pytest.raises(Exception):
         reg_img_stack(images, coords[1:, :])
     images_reg, max_dist = reg_img_stack(images, coords)
@@ -46,7 +59,7 @@ def test_reg(images, coords):
     testing.assert_allclose(images_reg, images)
     # add one for avoiding inf relative difference
     testing.assert_allclose(max_dist + 1, np.ones(n_samples), rtol=2, atol=2)
-    fig = plot_multi_images(images_reg[:, 0, ...], marker_locs=coords)
+    fig = plot_multi_images(images_reg[:, 0, ...], n_cols=5)
     assert type(fig) == matplotlib.figure.Figure
 
 

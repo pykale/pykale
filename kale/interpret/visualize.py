@@ -53,13 +53,22 @@ def plot_weights(
     return fig
 
 
-def plot_multi_images(images, n_cols=10, n_rows=None, marker_locs=None, image_names=None, marker_names=None,
-                      marker_cmap=None, im_kwargs=None, marker_kwargs=None):
+def plot_multi_images(
+    images,
+    n_cols=1,
+    n_rows=None,
+    marker_locs=None,
+    image_names=None,
+    marker_names=None,
+    marker_cmap=None,
+    im_kwargs=None,
+    marker_kwargs=None,
+):
     """Plot multiple images with markers in one figure.
 
     Args:
         images (array-like): Images to plot, shape(n_samples, dim1, dim2)
-        n_cols (int, optional): Number of columns for plotting multiple images. Defaults to 10.
+        n_cols (int, optional): Number of columns for plotting multiple images. Defaults to 1.
         n_rows (int, optional): Number of rows for plotting multiple images. If None, n_rows = n_samples / n_cols.
         marker_locs (array-like, optional): Locations of markers, shape (n_samples, 2 * n_markers). Defaults to None.
         marker_names (list, optional): Names of the markers, where len(marker_names) == n_markers. Defaults to None.
@@ -87,7 +96,7 @@ def plot_multi_images(images, n_cols=10, n_rows=None, marker_locs=None, image_na
         marker_colors = plt.get_cmap(marker_cmap).colors
     else:
         raise ValueError("Unsupported type %s for argument 'marker_cmap" % type(marker_cmap))
-
+    annotate_color = "r"
     for i in range(n_samples):
         fig.add_subplot(n_rows, n_cols, i + 1)
         plt.axis("off")
@@ -98,12 +107,12 @@ def plot_multi_images(images, n_cols=10, n_rows=None, marker_locs=None, image_na
             for j in range(n_marker):
                 ix = coords[j, 0]
                 iy = coords[j, 1]
-                if marker_colors is None:
-                    plt.plot(ix, iy, **marker_kwargs)
-                else:
-                    plt.plot(ix, iy, color=marker_colors[j], **marker_kwargs)
-                if marker_names is not None and len(marker_names) == n_marker * 2:
-                    plt.annotate(str(marker_names[j]), xy=(ix, iy + 1))
+                if marker_colors is not None:
+                    marker_kwargs["markeredgecolor"] = marker_colors[j]
+                    annotate_color = marker_colors[j]
+                plt.plot(ix, iy, **marker_kwargs)
+                if marker_names is not None and len(marker_names) == n_marker:
+                    plt.annotate(str(marker_names[j]), xy=(ix, iy + 5), color=annotate_color)
         plt.title(image_names[i])
 
     return fig
