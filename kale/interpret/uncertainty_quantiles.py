@@ -11,7 +11,8 @@ from sklearn.isotonic import IsotonicRegression
 
 
 def quantile_binning_and_est_errors(errors, uncertainties, num_bins, type="quantile", acceptable_thresh=5 * 0.9375):
-    """Calculate quantile thresholds, and isotonically regress errors and uncertainties and get estimated error bounds.
+    """
+    Calculate quantile thresholds, and isotonically regress errors and uncertainties and get estimated error bounds.
 
     Args:
         errors (list): list of errors,
@@ -67,7 +68,8 @@ def box_plot(
     save_path=None,
     y_lim=120,
 ):
-    """Creates a box plot of data.
+    """
+    Creates a box plot of data.
 
     Args:
         cmaps (list): list of colours for matplotlib,
@@ -190,7 +192,8 @@ def box_plot(
 
 
 def plot_cumulative(cmaps, data_struct, models, uncertainty_types, bins, title, compare_to_all=False, save_path=None):
-    """Plots cumulative errors,
+    """
+    Plots cumulative errors.
 
     Args:
         cmaps (list): list of colours for matplotlib,
