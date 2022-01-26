@@ -288,10 +288,10 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
         """Get the loss, top-k accuracy and metrics for a given split."""
 
         if self.verb and not self.noun:
-            loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s)
-            _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu)
-            prec1_src, prec5_src = losses.topk_accuracy(y_hat[0], y_s, topk=(1, 5))
-            prec1_tgt, prec5_tgt = losses.topk_accuracy(y_t_hat[0], y_tu, topk=(1, 5))
+            loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s[0])
+            _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
+            prec1_src, prec5_src = losses.topk_accuracy(y_hat[0], y_s[0], topk=(1, 5))
+            prec1_tgt, prec5_tgt = losses.topk_accuracy(y_t_hat[0], y_tu[0], topk=(1, 5))
             task_loss = loss_cls
 
             log_metrics = {

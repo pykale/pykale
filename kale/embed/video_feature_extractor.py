@@ -115,7 +115,7 @@ def get_extractor_video(model_name, image_modality, attention, dict_num_classes)
             else:
                 logging.info("{} with {}.".format(model_name, attention))
                 feature_network = se_mc3(rgb=rgb, flow=flow, pretrained=True, attention=attention)
-
+    feature_network.update({"audio": None})
     return feature_network, int(class_feature_dim), int(domain_feature_dim)
 
 
