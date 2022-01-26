@@ -76,7 +76,7 @@ def test_load_csv_columns_cols_return(landmark_uncertainty_dl, source_test_file,
 
     # download_file_by_url(landmark_uncertainty_url, landmark_uncertainty_dl, "Uncertainty_tuples.zip", "zip")
     returned_cols = load_csv_columns(
-        (os.path.join(landmark_uncertainty_dl, source_test_file)),
+        (os.path.join("/home/runner/work/pykale/pykale/", landmark_uncertainty_dl, source_test_file)),
         "Testing Fold",
         np.arange(8),
         cols_to_return=return_columns[0],
