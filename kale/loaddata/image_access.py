@@ -1,3 +1,4 @@
+import glob
 import logging
 import os
 from enum import Enum
@@ -336,7 +337,25 @@ def get_cifar(cfg):
     return train_loader, valid_loader
 
 
-def read_dicom_images(dicom_path, sort_instance=True, sort_patient=False):
+def read_dicom_phases(dicom_path, sort_instance=True):
+    """Read dicom images of multiple instances/phases for one patient.
+
+    Args:
+        dicom_path (str): Path to DICOM images.
+        sort_instance (bool, optional): Whether sort images by InstanceNumber (i.e. phase number). Defaults to True.
+    """
+    ds = []
+    phase_files = glob.glob(dicom_path + "/**/*.dcm", recursive=True)
+    for phase_file in phase_files:
+        dataset = pydicom.dcmread(phase_file)
+        ds.append(dataset)
+    if sort_instance:
+        ds.sort(key=lambda x: x.InstanceNumber, reverse=False)
+
+    return ds
+
+
+def read_dicom_images(dicom_path, sort_instance=True, sort_patient=False, return_ids=False):
     """Read dicom images for multiple patients and multiple instances/phases.
 
     Args:
@@ -344,23 +363,17 @@ def read_dicom_images(dicom_path, sort_instance=True, sort_patient=False):
         sort_instance (bool, optional): Whether sort images by InstanceNumber (i.e. phase number) for each subject.
             Defaults to True.
         sort_patient (bool, optional): Whether sort subjects' images by PatientID. Defaults to False.
+        return_ids (bool, optional): Whether return PatientID. Defaults to False.
 
     Returns:
         [array-like]: [description]
     """
     sub_dirs = os.listdir(dicom_path)
     all_ds = []
-    sub_ids = []
+
     for sub_dir in sub_dirs:
-        sub_ds = []
         sub_path = os.path.join(dicom_path, sub_dir)
-        phase_files = os.listdir(sub_path)
-        for phase_file in phase_files:
-            dataset = pydicom.dcmread(os.path.join(sub_path, phase_file))
-            sub_ds.append(dataset)
-        if sort_instance:
-            sub_ds.sort(key=lambda x: x.InstanceNumber, reverse=False)
-        sub_ids.append(sub_ds[0].PatientID)
+        sub_ds = read_dicom_phases(sub_path, sort_instance)
         all_ds.append(sub_ds)
 
     if sort_patient:
@@ -370,8 +383,13 @@ def read_dicom_images(dicom_path, sort_instance=True, sort_patient=False):
     n_phase = len(all_ds[0])
     img_shape = all_ds[0][0].pixel_array.shape
     images = np.zeros((n_sub, n_phase,) + img_shape)
+    sub_ids = []
     for i in range(n_sub):
+        sub_ids.append(all_ds[i][0].PatientID)
         for j in range(n_phase):
             images[i, j, ...] = all_ds[i][j].pixel_array
 
-    return images
+    if return_ids:
+        return images, sub_ids
+    else:
+        return images

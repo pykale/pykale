@@ -52,6 +52,7 @@ def test_reg(images, coords):
         marker_kwargs=marker_kwargs,
         im_kwargs=im_kwargs,
     )
+    assert type(fig) == matplotlib.figure.Figure
     with pytest.raises(Exception):
         reg_img_stack(images, coords[1:, :])
     images_reg, max_dist = reg_img_stack(images, coords)
