@@ -1,3 +1,4 @@
+import logging
 import os
 
 import numpy as np
@@ -10,6 +11,7 @@ from kale.utils.seed import set_seed
 seed = 36
 set_seed(seed)
 
+LOGGER = logging.getLogger(__name__)
 
 EXPECTED_COLS = [
     "uid",
@@ -74,9 +76,24 @@ def test_load_csv_columns_cols_return(landmark_uncertainty_dl, source_test_file,
     if not os.path.exists(data_path):
         download_file_by_url(landmark_uncertainty_url, landmark_uncertainty_dl, filename, "zip")
 
+        LOGGER.info("The file is downloaded and dl to downloaded to:  %s " % str(data_path))
+        # LOGGER.info('The files inside that path:  %s ' % [os.path.join(path, name) for path, subdirs, files in os.walk(data_path) for name in files])
+        LOGGER.info(
+            "one step up files:  %s "
+            % [os.path.join(path, name) for path, subdirs, files in os.walk(landmark_uncertainty_dl) for name in files]
+        )
+
+    else:
+        LOGGER.info("The file already exists: %s " % str(data_path))
+        # LOGGER.info('The files inside that path: %s ' % [os.path.join(path, name) for path, subdirs, files in os.walk(data_path) for name in files])
+        LOGGER.info(
+            "one step up files:  %s "
+            % [os.path.join(path, name) for path, subdirs, files in os.walk(landmark_uncertainty_dl) for name in files]
+        )
+
     # download_file_by_url(landmark_uncertainty_url, landmark_uncertainty_dl, "Uncertainty_tuples.zip", "zip")
     returned_cols = load_csv_columns(
-        (os.path.join("/home/runner/work/pykale/pykale/", landmark_uncertainty_dl, source_test_file)),
+        (os.path.join(landmark_uncertainty_dl, source_test_file)),
         "Testing Fold",
         np.arange(8),
         cols_to_return=return_columns[0],
