@@ -41,6 +41,6 @@ def landmark_uncertainty_dl(download_path):
     path_ = os.path.join(download_path, "Uncertainty_tuples")
     os.makedirs(path_, exist_ok=True)
 
-    download_file_by_url(landmark_uncertainty_url, path_, "Uncertainty_tuples.zip", "zip")
+    # download_file_by_url(landmark_uncertainty_url, path_, "Uncertainty_tuples.zip", "zip")
 
     return path_
