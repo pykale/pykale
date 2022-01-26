@@ -17,10 +17,10 @@ _C = CN()
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
 _C.DATASET.ROOT = "J:/Datasets/EgoAction/"  # "/shared/tale2/Shared"
-_C.DATASET.SOURCE = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
+_C.DATASET.SOURCE = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN", "EPIC100"]
 _C.DATASET.SRC_TRAINLIST = "epic_D1_train.pkl"
 _C.DATASET.SRC_TESTLIST = "epic_D1_test.pkl"
-_C.DATASET.TARGET = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
+_C.DATASET.TARGET = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN", "EPIC100"]
 _C.DATASET.TGT_TRAINLIST = "epic_D2_train.pkl"
 _C.DATASET.TGT_TESTLIST = "epic_D2_test.pkl"
 _C.DATASET.IMAGE_MODALITY = "rgb"  # options=["rgb", "flow", "joint"]
@@ -28,9 +28,9 @@ _C.DATASET.INPUT_TYPE = "image"  # options=["image", "feature"]
 _C.DATASET.CLASS_TYPE = "verb"  # options=["verb", "verb+noun"]
 _C.DATASET.NUM_SEGMENTS = 1  # = 1, if image input; = 8, if feature input.
 _C.DATASET.FRAMES_PER_SEGMENT = 16  # = 16, if image input; = 1, if feature input.
-_C.DATASET.NUM_REPEAT = 5  # 10
+_C.DATASET.NUM_REPEAT = 5
 _C.DATASET.WEIGHT_TYPE = "natural"
-_C.DATASET.SIZE_TYPE = "max"  # options=["source", "max"]
+_C.DATASET.SIZE_TYPE = "max"  # options=["source", "max", "adaptive]
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
@@ -65,7 +65,7 @@ _C.MODEL.ATTENTION = "None"  # options=["None", "SELayer"]
 # Domain Adaptation Net (DAN) configs
 # ---------------------------------------------------------------------------- #
 _C.DAN = CN()
-_C.DAN.METHOD = "CDAN"  # options=["CDAN", "CDAN-E", "DANN", "DAN"]
+_C.DAN.METHOD = "CDAN"  # options=["CDAN", "CDAN-E", "DANN", "DAN", "JAN"]
 _C.DAN.USERANDOM = False
 _C.DAN.RANDOM_DIM = 1024
 # ---------------------------------------------------------------------------- #
