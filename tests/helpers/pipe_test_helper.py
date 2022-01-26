@@ -20,8 +20,17 @@ class ModelTestHelper:
 
 class DASetupHelper:
     @staticmethod
-    def setup_da(da_method, dataset, feature_network, classifier_network, class_type, train_params, domain_feature_dim,
-                 dict_num_classes, cfg):
+    def setup_da(
+        da_method,
+        dataset,
+        feature_network,
+        classifier_network,
+        class_type,
+        train_params,
+        domain_feature_dim,
+        dict_num_classes,
+        cfg,
+    ):
         method_params = {}
         method = domain_adapter.Method(da_method)
 
