@@ -26,7 +26,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         config_weight_type="natural",
         config_size_type=DatasetSizeType.Max,
         valid_split_ratio=0.1,
-        num_workers=1,
+        num_workers=0,
         source_sampling_config=None,
         target_sampling_config=None,
         n_fewshot=None,
