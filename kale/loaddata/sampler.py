@@ -54,7 +54,7 @@ class SamplingConfig:
 
 
 class FixedSeedSamplingConfig(SamplingConfig):
-    def __init__(self, seed=1, num_workers=1, balance=False, class_weights=None, balance_domain=False):
+    def __init__(self, seed=1, num_workers=0, balance=False, class_weights=None, balance_domain=False):
         """Sampling with fixed seed."""
         super(FixedSeedSamplingConfig, self).__init__(balance, class_weights, balance_domain)
         self._seed = seed
