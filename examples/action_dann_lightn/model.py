@@ -81,7 +81,7 @@ def get_model(cfg, dataset, dict_num_classes):
         )
     else:
         feature_network, class_feature_dim, domain_feature_dim = get_extractor_feat(
-            cfg.DAN.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, input_size=1024, output_size=256,
+            cfg.DAN.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, input_size=1024, output_size=256, num_segments=cfg.DATASET.NUM_SEGMENTS
         )
 
     # setup task classifier

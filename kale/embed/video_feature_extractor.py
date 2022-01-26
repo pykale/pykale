@@ -119,7 +119,7 @@ def get_extractor_video(model_name, image_modality, attention, dict_num_classes)
     return feature_network, int(class_feature_dim), int(domain_feature_dim)
 
 
-def get_extractor_feat(model_name, image_modality, input_size=1024, output_size=256):
+def get_extractor_feat(model_name, image_modality, input_size=1024, output_size=256, num_segments=8):
     """Get the extractor for feature input.
     """
     logging.info("{}".format(model_name))
@@ -132,7 +132,7 @@ def get_extractor_feat(model_name, image_modality, input_size=1024, output_size=
     if audio:
         feature_network_audio = TransformerSENet(input_size=input_size, output_size=output_size)
 
-    domain_feature_dim = int(output_size * 8)
+    domain_feature_dim = int(output_size * num_segments)
     if rgb:
         if flow:
             if audio:  # For all inputs
