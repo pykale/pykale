@@ -499,8 +499,8 @@ class JANTrainerVideo(BaseMMDLikeVideo):
 
     def _compute_mmd(self, phi_s, phi_t, y_hat, y_t_hat):
         softmax_layer = torch.nn.Softmax(dim=-1)
-        source_list = [phi_s, softmax_layer(y_hat[0])]
-        target_list = [phi_t, softmax_layer(y_t_hat[0])]
+        source_list = [phi_s, softmax_layer(y_hat)]
+        target_list = [phi_t, softmax_layer(y_t_hat)]
         batch_size = int(phi_s.size()[0])
 
         joint_kernels = None
