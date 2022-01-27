@@ -55,3 +55,34 @@ def test_log_file_exists(log_file_name):
 
 def test_gitdiff_file_exists(gitdiff_file_name):
     assert os.path.isfile(gitdiff_file_name)
+
+
+def test_create_single_result_dict():
+    result_dict = logger.create_single_result_dict([[0.1, 0.1, 0.1], [0.2, 0.2, 0.2]], ("a", "b"))
+    assert isinstance(result_dict, dict)
+
+
+def test_create_multi_results_dict():
+    result_dict = logger.create_multi_results_dict(
+        [[0.1, 0.1, 0.1], [0.2, 0.2, 0.2]], [[0.3, 0.3, 0.3], [0.4, 0.4, 0.4]], ("a", "b")
+    )
+    assert isinstance(result_dict, dict)
+
+
+@pytest.mark.parametrize("noun", [True, False])
+def test_save_results_to_json(noun):
+    y_hat = [[0.1, 0.1, 0.1], [0.2, 0.2, 0.2]]
+    y_t_hat = [[0.3, 0.3, 0.3], [0.4, 0.4, 0.4]]
+    y_ids = ("a", "b")
+    y_t_ids = ("c", "d")
+    file_name = "test.json"
+    if noun:
+        y_hat_noun = [[0.1, 0.1, 0.1], [0.2, 0.2, 0.2]]
+        y_t_hat_noun = [[0.3, 0.3, 0.3], [0.4, 0.4, 0.4]]
+    else:
+        y_hat_noun = None
+        y_t_hat_noun = None
+    logger.save_results_to_json(
+        y_hat, y_t_hat, y_ids, y_t_ids, y_hat_noun, y_t_hat_noun, verb=True, noun=noun, file_name=file_name
+    )
+    assert os.path.isfile(file_name)

@@ -42,19 +42,19 @@ def construct_logger(name, save_dir):
     return logger
 
 
-def create_multi_results_dict(pred_verb_cpu, pred_noun_cpu, pred_id, name1="verb", name2="noun"):
+def create_multi_results_dict(pred_verb, pred_noun, pred_id, name1="verb", name2="noun"):
     """Construct a dictionary to save multi class results (verb and noun).
     Args:
-        pred_verb_cpu (list): results for verb class.
-        pred_noun_cpu (list): results for noun class.
-        pred_id (tuple): corresponding segment ids to results.
+        pred_verb (list): results for verb class.
+        pred_noun (list): results for noun class.
+        pred_id (tuple, optional): corresponding segment ids to results.
         name1 (string): the name of the first class.
         name2 (string): the name of the second class.
     Returns:
         results_dict (dict): the dictionary covering class names and results.
     """
     results_dict = {}
-    for p_verb, p_noun, p_id in zip(pred_verb_cpu, pred_noun_cpu, pred_id):
+    for p_verb, p_noun, p_id in zip(pred_verb, pred_noun, pred_id):
         verb_dict = {}
         noun_dict = {}
         for i, prob in enumerate(p_verb):
@@ -65,17 +65,17 @@ def create_multi_results_dict(pred_verb_cpu, pred_noun_cpu, pred_id, name1="verb
     return results_dict
 
 
-def create_single_result_dict(pred_cpu, pred_id, name="verb"):
+def create_single_result_dict(pred, pred_id, name="verb"):
     """Construct a dictionary to save single class results.
     Args:
-        pred_cpu (list): results for the class.
-        pred_id (tuple): corresponding segment ids to results.
+        pred (list): results for the class.
+        pred_id (tuple, optional): corresponding segment ids to results.
         name (string): the name of the class.
     Returns:
         results_dict (dict): the dictionary covering class name and results.
     """
     results_dict = {}
-    for p, p_id in zip(pred_cpu, pred_id):
+    for p, p_id in zip(pred, pred_id):
         d = {}
         for i, prob in enumerate(p):
             d[str(i)] = prob
@@ -90,8 +90,8 @@ def save_results_to_json(
     Args:
         y_hat (list): results for verb classes from the source data.
         y_t_hat (list): results for verb classes from the target data.
-        y_ids (list): corresponding segment ids to source data results.
-        y_t_ids (list): corresponding segment ids to target data results.
+        y_ids (tuple, optional): corresponding segment ids to source data results.
+        y_t_ids (tuple, optional): corresponding segment ids to target data results.
         y_hat_noun (list): results for noun classes from the source data.
         y_t_hat_noun (list): results for noun classes from the target data.
         verb (bool): check if results covers verb class.
