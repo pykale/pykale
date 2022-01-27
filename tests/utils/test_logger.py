@@ -75,7 +75,7 @@ def test_save_results_to_json(noun):
     y_t_hat = [[0.3, 0.3, 0.3], [0.4, 0.4, 0.4]]
     y_ids = ("a", "b")
     y_t_ids = ("c", "d")
-    file_name = "test.json"
+    file_name = "../test_data/test_logger.json"
     if noun:
         y_hat_noun = [[0.1, 0.1, 0.1], [0.2, 0.2, 0.2]]
         y_t_hat_noun = [[0.3, 0.3, 0.3], [0.4, 0.4, 0.4]]

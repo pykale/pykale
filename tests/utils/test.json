@@ -1,1 +1,0 @@
-{"results_source": {"a": {"verb": {"0": 0.1, "1": 0.1, "2": 0.1}}, "b": {"verb": {"0": 0.2, "1": 0.2, "2": 0.2}}}, "results_target": {"c": {"verb": {"0": 0.3, "1": 0.3, "2": 0.3}}, "d": {"verb": {"0": 0.4, "1": 0.4, "2": 0.4}}}, "version": "0.2", "challenge": "domain_adaptation", "sls_pt": 2, "sls_tl": 3, "sls_td": 3}
