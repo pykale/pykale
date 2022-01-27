@@ -198,7 +198,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
                 target_labeled_ds, batch_size=min(len(target_labeled_ds), batch_size)
             )
             target_unlabeled_loader = self._target_sampling_config.create_loader(target_unlabeled_ds, batch_size)
-            n_dataset = DatasetSizeType.get_size(self._size_type, source_ds, target_labeled_ds, target_unlabeled_ds)
+            n_dataset, _ = DatasetSizeType.get_size(self._size_type, source_ds, target_labeled_ds, target_unlabeled_ds)
             return MultiDataLoader(
                 dataloaders=[source_loader, target_labeled_loader, target_unlabeled_loader],
                 n_batches=max(n_dataset // batch_size, 1),
@@ -208,10 +208,10 @@ class MultiDomainDatasets(DomainsDatasetBase):
         source_ds = self._source_by_split["train"]
         target_ds = self._target_by_split["train"]
         if self._labeled_target_by_split is None:
-            return DatasetSizeType.get_size(self._size_type, source_ds, target_ds)
+            return DatasetSizeType.get_size(self._size_type, source_ds, target_ds)[0]
         else:
             labeled_target_ds = self._labeled_target_by_split["train"]
-            return DatasetSizeType.get_size(self._size_type, source_ds, labeled_target_ds, target_ds)
+            return DatasetSizeType.get_size(self._size_type, source_ds, labeled_target_ds, target_ds)[0]
 
 
 def _split_dataset_few_shot(dataset, n_fewshot, random_state=None):

@@ -210,6 +210,7 @@ def test_get_source_target(source_cfg, target_cfg, weight_type, datasize_type, t
         assert len(dataset_subset._rgb_source_by_split["train"]) == train_dataset_subset_length
         assert len(dataset_subset._rgb_source_by_split["valid"]) == valid_dataset_subset_length
         assert len(dataset_subset._rgb_source_by_split["test"]) == test_dataset_subset_length
+        assert len(dataset_subset) == train_dataset_subset_length
 
 
 def test_get_source_target_epic100(testing_cfg_epic100):

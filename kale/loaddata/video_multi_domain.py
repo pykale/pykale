@@ -337,7 +337,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             target_ds = self._audio_target_by_split["train"]
 
         if self._labeled_target_by_split is None:
-            return DatasetSizeType.get_size(self._size_type, source_ds, target_ds)
+            return DatasetSizeType.get_size(self._size_type, source_ds, target_ds)[0]
         else:
             labeled_target_ds = self._labeled_target_by_split["train"]
-            return DatasetSizeType.get_size(self._size_type, source_ds, labeled_target_ds, target_ds)
+            return DatasetSizeType.get_size(self._size_type, source_ds, labeled_target_ds, target_ds)[0]

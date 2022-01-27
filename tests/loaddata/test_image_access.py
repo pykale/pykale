@@ -50,9 +50,8 @@ ALL = SOURCES + TARGETS  # ["SVHN", "USPS", "MNISTM"]  # SOURCES + TARGETS
 
 WEIGHT_TYPE = ["natural", "balanced", "preset0"]
 DATASIZE_TYPE = ["max", "source"]
-VALID_RATIO = [0.1]
-
-CLASS_SUBSETS = [[1, 3, 8]]
+VALID_RATIO = 0.1
+CLASS_SUBSETS = [1, 3, 8]
 
 
 @pytest.mark.parametrize("source_name", SOURCES)
@@ -92,29 +91,27 @@ def test_get_train_test(dataset_name, download_path):
     assert isinstance(source_test, torch.utils.data.Dataset)
 
 
-@pytest.mark.parametrize("class_subset", CLASS_SUBSETS)
-@pytest.mark.parametrize("valid_ratio", VALID_RATIO)
-def test_class_subsets(class_subset, valid_ratio, download_path):
+def test_class_subsets(download_path):
     dataset_name = ALL[1]
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(dataset_name), DigitDataset(dataset_name), download_path
     )
 
     dataset_subset = MultiDomainDatasets(
-        source, target, config_weight_type=WEIGHT_TYPE[0], config_size_type=DATASIZE_TYPE[1], class_ids=class_subset,
+        source, target, config_weight_type=WEIGHT_TYPE[0], config_size_type=DATASIZE_TYPE[1], class_ids=CLASS_SUBSETS,
     )
 
-    train, valid = source.get_train_valid(valid_ratio)
+    train, valid = source.get_train_valid(VALID_RATIO)
     test = source.get_test()
-    dataset_subset._source_by_split["train"] = get_class_subset(train, class_subset)
+    dataset_subset._source_by_split["train"] = get_class_subset(train, CLASS_SUBSETS)
     dataset_subset._target_by_split["train"] = dataset_subset._source_by_split["train"]
-    dataset_subset._source_by_split["valid"] = get_class_subset(valid, class_subset)
-    dataset_subset._source_by_split["test"] = get_class_subset(test, class_subset)
+    dataset_subset._source_by_split["valid"] = get_class_subset(valid, CLASS_SUBSETS)
+    dataset_subset._source_by_split["test"] = get_class_subset(test, CLASS_SUBSETS)
 
     # Ground truth lengths
-    train_dataset_subset_length = len([1 for data in train if data[1] in class_subset])
-    valid_dataset_subset_length = len([1 for data in valid if data[1] in class_subset])
-    test_dataset_subset_length = len([1 for data in test if data[1] in class_subset])
+    train_dataset_subset_length = len([1 for data in train if data[1] in CLASS_SUBSETS])
+    valid_dataset_subset_length = len([1 for data in valid if data[1] in CLASS_SUBSETS])
+    test_dataset_subset_length = len([1 for data in test if data[1] in CLASS_SUBSETS])
 
     assert len(dataset_subset._source_by_split["train"]) == train_dataset_subset_length
     assert len(dataset_subset._source_by_split["valid"]) == valid_dataset_subset_length
