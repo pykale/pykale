@@ -21,12 +21,9 @@ TARGETS = [
     "EPIC100;EPIC_100_uda_source_test_timestamps.pkl;EPIC_100_uda_source_train.pkl",
 ]
 IMAGE_MODALITY = ["rgb", "flow", "joint"]
-# IMAGE_MODALITY = ["rgb"]
 IMAGE_MODALITY_FEAT = ["rgb", "flow", "audio", "all"]
-# CLASS_TYPE = ["verb", "verb+noun"]
-CLASS_TYPE = ["verb+noun"]
+CLASS_TYPE = ["verb", "verb+noun"]
 DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "DAN", "JAN", "Source"]
-# DA_METHODS = ["JAN"]
 WEIGHT_TYPE = "natural"
 DATASIZE_TYPE = "max"
 VALID_RATIO = 0.1
@@ -193,11 +190,11 @@ def test_video_domain_adapter_feature_vector(
     # setup feature extractor
     feat_rgb = feat_flow = feat_audio = None
     if cfg.DATASET.IMAGE_MODALITY in ["rgb", "all"]:
-        feat_rgb = VideoVectorBoringModel(1024, 10)
+        feat_rgb = VideoVectorBoringModel(10, 10)
     if cfg.DATASET.IMAGE_MODALITY in ["flow", "all"]:
-        feat_flow = VideoVectorBoringModel(1024, 10)
+        feat_flow = VideoVectorBoringModel(10, 10)
     if cfg.DATASET.IMAGE_MODALITY in ["audio", "all"]:
-        feat_audio = VideoVectorBoringModel(1024, 10)
+        feat_audio = VideoVectorBoringModel(10, 10)
 
     domain_feature_dim = int(10 * cfg.DATASET.NUM_SEGMENTS)
     if cfg.DATASET.IMAGE_MODALITY in ["rgb", "flow", "audio"]:
