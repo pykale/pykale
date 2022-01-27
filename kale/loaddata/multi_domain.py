@@ -185,7 +185,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
         if self._labeled_target_by_split is None:
             # unsupervised target domain
             target_loader = self._target_sampling_config.create_loader(target_ds, batch_size)
-            n_dataset = DatasetSizeType.get_size(self._size_type, source_ds, target_ds)
+            n_dataset, _ = DatasetSizeType.get_size(self._size_type, source_ds, target_ds)
             return MultiDataLoader(
                 dataloaders=[source_loader, target_loader], n_batches=max(n_dataset // batch_size, 1),
             )
