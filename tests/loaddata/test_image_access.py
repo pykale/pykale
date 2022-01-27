@@ -49,7 +49,7 @@ TARGETS = ["MNISTM", "SVHN"]
 ALL = SOURCES + TARGETS  # ["SVHN", "USPS", "MNISTM"]  # SOURCES + TARGETS
 
 WEIGHT_TYPE = ["natural", "balanced", "preset0"]
-DATASIZE_TYPE = ["max", "source"]
+DATASIZE_TYPE = ["max", "source", "adaptive"]
 VALID_RATIO = 0.1
 CLASS_SUBSETS = [1, 3, 8]
 
