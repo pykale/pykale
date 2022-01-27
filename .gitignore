@@ -4,6 +4,7 @@
 *.pth
 *.zip
 *.ckpt
+*.json
 
 # Distribution / packaging
 build/
