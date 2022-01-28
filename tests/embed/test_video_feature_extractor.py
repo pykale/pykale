@@ -13,7 +13,7 @@ NUM_CLASSES = {"verb": 6, "noun": 7}
 @pytest.mark.parametrize("attention", ["SELayerC", "SELayerT", "SELayerCT", "SELayerTC", "None"])
 def test_get_video_feat_extractor(model_name, image_modality, attention):
     feature_network, class_feature_dim, domain_feature_dim = get_extractor_video(
-        model_name, image_modality, attention, NUM_CLASSES
+        model_name, image_modality, attention, NUM_CLASSES["verb"]
     )
 
     assert isinstance(feature_network, dict)

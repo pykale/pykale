@@ -77,7 +77,7 @@ def get_model(cfg, dataset, dict_num_classes):
     # setup feature extractor
     if input_type == "image":
         feature_network, class_feature_dim, domain_feature_dim = get_extractor_video(
-            cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, dict_num_classes
+            cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, dict_num_classes["verb"]
         )
     else:
         feature_network, class_feature_dim, domain_feature_dim = get_extractor_feat(
