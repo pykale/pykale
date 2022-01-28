@@ -1038,6 +1038,27 @@ class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
 
         return task_loss, adv_loss, log_metrics
 
+    def training_step(self, batch, batch_id):
+        self._update_batch_epoch_factors(batch_id)
+        self.critic_update_steps(batch)
+
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
+        if self.current_epoch < self._init_epochs:
+            loss = task_loss
+        else:
+            loss = task_loss + self.lamb_da * adv_loss
+
+        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
+        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
+        log_metrics["train_total_loss"] = loss
+        log_metrics["train_adv_loss"] = adv_loss
+        log_metrics["train_task_loss"] = task_loss
+
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
+
+        return {"loss": loss}
+
     def configure_optimizers(self):
         nets = [self.classifier]
         if self.rgb:
@@ -1071,124 +1092,54 @@ class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
 
         set_requires_grad(self.domain_classifier, requires_grad=True)
 
-        if self.image_modality in ["rgb", "flow", "audio"]:
-            if self.rgb:
-                set_requires_grad(self.rgb_feat, requires_grad=False)
-                (x_s, y_s), (x_tu, _) = batch
-                with torch.no_grad():
-                    h_s = self.rgb_feat(x_s).data.view(x_s.shape[0], -1)
-                    h_t = self.rgb_feat(x_tu).data.view(x_tu.shape[0], -1)
-            if self.flow:
-                set_requires_grad(self.flow_feat, requires_grad=False)
-                (x_s, y_s), (x_tu, _) = batch
-                with torch.no_grad():
-                    h_s = self.flow_feat(x_s).data.view(x_s.shape[0], -1)
-                    h_t = self.flow_feat(x_tu).data.view(x_tu.shape[0], -1)
-            if self.audio:
-                set_requires_grad(self.audio_feat, requires_grad=False)
-                (x_s, y_s), (x_tu, _) = batch
-                with torch.no_grad():
-                    h_s = self.audio_feat(x_s).data.view(x_s.shape[0], -1)
-                    h_t = self.audio_feat(x_tu).data.view(x_tu.shape[0], -1)
+        (
+            x_s_rgb,
+            x_tu_rgb,
+            x_s_flow,
+            x_tu_flow,
+            x_s_audio,
+            x_tu_audio,
+            y_s,
+            y_tu,
+            s_id,
+            tu_id,
+        ) = self.get_inputs_from_batch(batch)
 
-            for _ in range(self._k_critic):
-                # gp refers to gradient penelty in Wasserstein distance.
-                gp = losses.gradient_penalty(self.domain_classifier, h_s, h_t)
-
-                critic_s = self.domain_classifier(h_s)
-                critic_t = self.domain_classifier(h_t)
-                wasserstein_distance = critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean()
-
-                critic_cost = -wasserstein_distance + self._gamma * gp
-
-                self.critic_opt.zero_grad()
-                critic_cost.backward()
-                self.critic_opt.step()
-                if self.critic_sched:
-                    self.critic_sched.step()
-
-            if self.rgb:
-                set_requires_grad(self.rgb_feat, requires_grad=True)
-            if self.flow:
-                set_requires_grad(self.flow_feat, requires_grad=True)
-            if self.audio:
-                set_requires_grad(self.audio_feat, requires_grad=True)
-            set_requires_grad(self.domain_classifier, requires_grad=False)
-
-        elif self.image_modality == "joint":
+        if self.rgb:
             set_requires_grad(self.rgb_feat, requires_grad=False)
-            set_requires_grad(self.flow_feat, requires_grad=False)
-            (x_s_rgb, y_s), (x_s_flow, _), (x_tu_rgb, _), (x_tu_flow, _) = batch
             with torch.no_grad():
                 h_s_rgb = self.rgb_feat(x_s_rgb).data.view(x_s_rgb.shape[0], -1)
                 h_t_rgb = self.rgb_feat(x_tu_rgb).data.view(x_tu_rgb.shape[0], -1)
+        if self.flow:
+            set_requires_grad(self.flow_feat, requires_grad=False)
+            with torch.no_grad():
                 h_s_flow = self.flow_feat(x_s_flow).data.view(x_s_flow.shape[0], -1)
                 h_t_flow = self.flow_feat(x_tu_flow).data.view(x_tu_flow.shape[0], -1)
-                # h_s = torch.cat((h_s_rgb, h_s_flow), dim=1)
-                # h_t = torch.cat((h_t_rgb, h_t_flow), dim=1)
-
-            # Need to improve to process rgb and flow separately in the future.
-            for _ in range(self._k_critic):
-                # gp_x refers to gradient penelty for the input with the image_modality x.
-                gp_rgb = losses.gradient_penalty(self.domain_classifier, h_s_rgb, h_t_rgb)
-                gp_flow = losses.gradient_penalty(self.domain_classifier, h_s_flow, h_t_flow)
-
-                critic_s_rgb = self.domain_classifier(h_s_rgb)
-                critic_s_flow = self.domain_classifier(h_s_flow)
-                critic_t_rgb = self.domain_classifier(h_t_rgb)
-                critic_t_flow = self.domain_classifier(h_t_flow)
-                wasserstein_distance_rgb = critic_s_rgb.mean() - (1 + self._beta_ratio) * critic_t_rgb.mean()
-                wasserstein_distance_flow = critic_s_flow.mean() - (1 + self._beta_ratio) * critic_t_flow.mean()
-
-                critic_cost = (
-                    -wasserstein_distance_rgb
-                    + -wasserstein_distance_flow
-                    + self._gamma * gp_rgb
-                    + self._gamma * gp_flow
-                ) * 0.5
-
-                self.critic_opt.zero_grad()
-                critic_cost.backward()
-                self.critic_opt.step()
-                if self.critic_sched:
-                    self.critic_sched.step()
-
-            set_requires_grad(self.rgb_feat, requires_grad=True)
-            set_requires_grad(self.flow_feat, requires_grad=True)
-            set_requires_grad(self.domain_classifier, requires_grad=False)
-
-        elif self.image_modality == "all":
-            set_requires_grad(self.rgb_feat, requires_grad=False)
-            set_requires_grad(self.flow_feat, requires_grad=False)
+        if self.audio:
             set_requires_grad(self.audio_feat, requires_grad=False)
-            (x_s_rgb, y_s), (x_s_flow, _), (x_s_audio, _), (x_tu_rgb, _), (x_tu_flow, _), (x_tu_audio, _) = batch
             with torch.no_grad():
-                h_s_rgb = self.rgb_feat(x_s_rgb).data.view(x_s_rgb.shape[0], -1)
-                h_t_rgb = self.rgb_feat(x_tu_rgb).data.view(x_tu_rgb.shape[0], -1)
-                h_s_flow = self.flow_feat(x_s_flow).data.view(x_s_flow.shape[0], -1)
-                h_t_flow = self.flow_feat(x_tu_flow).data.view(x_tu_flow.shape[0], -1)
                 h_s_audio = self.audio_feat(x_s_audio).data.view(x_s_audio.shape[0], -1)
                 h_t_audio = self.audio_feat(x_tu_audio).data.view(x_tu_audio.shape[0], -1)
-                # h_s = torch.cat((h_s_rgb, h_s_flow), dim=1)
-                # h_t = torch.cat((h_t_rgb, h_t_flow), dim=1)
 
-            # Need to improve to process rgb and flow separately in the future.
-            for _ in range(self._k_critic):
-                # gp_x refers to gradient penelty for the input with the image_modality x.
+        for _ in range(self._k_critic):
+            # gp refers to gradient penelty in Wasserstein distance.
+            if self.rgb:
                 gp_rgb = losses.gradient_penalty(self.domain_classifier, h_s_rgb, h_t_rgb)
-                gp_flow = losses.gradient_penalty(self.domain_classifier, h_s_flow, h_t_flow)
-                gp_audio = losses.gradient_penalty(self.domain_classifier, h_s_audio, h_t_audio)
-
                 critic_s_rgb = self.domain_classifier(h_s_rgb)
-                critic_s_flow = self.domain_classifier(h_s_flow)
-                critic_s_audio = self.domain_classifier(h_s_audio)
                 critic_t_rgb = self.domain_classifier(h_t_rgb)
-                critic_t_flow = self.domain_classifier(h_t_flow)
-                critic_t_audio = self.domain_classifier(h_t_audio)
                 wasserstein_distance_rgb = critic_s_rgb.mean() - (1 + self._beta_ratio) * critic_t_rgb.mean()
+            if self.flow:
+                gp_flow = losses.gradient_penalty(self.domain_classifier, h_s_flow, h_t_flow)
+                critic_s_flow = self.domain_classifier(h_s_flow)
+                critic_t_flow = self.domain_classifier(h_t_flow)
                 wasserstein_distance_flow = critic_s_flow.mean() - (1 + self._beta_ratio) * critic_t_flow.mean()
+            if self.audio:
+                gp_audio = losses.gradient_penalty(self.domain_classifier, h_s_audio, h_t_audio)
+                critic_s_audio = self.domain_classifier(h_s_audio)
+                critic_t_audio = self.domain_classifier(h_t_audio)
                 wasserstein_distance_audio = critic_s_audio.mean() - (1 + self._beta_ratio) * critic_t_audio.mean()
 
+            if self.rgb and self.flow and self.audio:
                 critic_cost = (
                     -wasserstein_distance_rgb
                     + -wasserstein_distance_flow
@@ -1197,14 +1148,33 @@ class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
                     + self._gamma * gp_flow
                     + self._gamma * gp_audio
                 ) * 0.5
+            elif self.rgb and self.flow and not self.audio:
+                critic_cost = (
+                    -wasserstein_distance_rgb
+                    + -wasserstein_distance_flow
+                    + self._gamma * gp_rgb
+                    + self._gamma * gp_flow
+                ) * 0.5
 
-                self.critic_opt.zero_grad()
-                critic_cost.backward()
-                self.critic_opt.step()
-                if self.critic_sched:
-                    self.critic_sched.step()
+            elif self.rgb and not self.flow and not self.audio:
+                critic_cost = -wasserstein_distance_rgb + self._gamma * gp_rgb
 
-            set_requires_grad(self.rgb_feat, requires_grad=True)
-            set_requires_grad(self.flow_feat, requires_grad=True)
-            set_requires_grad(self.audio_feat, requires_grad=True)
+            elif self.flow and not self.rgb and not self.audio:
+                critic_cost = -wasserstein_distance_flow + self._gamma * gp_flow
+
+            elif self.audio and not self.rgb and not self.flow:
+                critic_cost = -wasserstein_distance_audio + self._gamma * gp_audio
+
+            self.critic_opt.zero_grad()
+            critic_cost.backward()
+            self.critic_opt.step()
+            if self.critic_sched:
+                self.critic_sched.step()
+
+            if self.rgb:
+                set_requires_grad(self.rgb_feat, requires_grad=True)
+            if self.flow:
+                set_requires_grad(self.flow_feat, requires_grad=True)
+            if self.audio:
+                set_requires_grad(self.audio_feat, requires_grad=True)
             set_requires_grad(self.domain_classifier, requires_grad=False)
