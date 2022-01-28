@@ -11,6 +11,7 @@ from setuptools import find_packages, setup
 # To work on graphs, install torch-geometric following the official instructions (e.g. below):
 # python -m pip install torch-cluster torch-scatter torch-sparse torch-spline
 requirements = [
+    "glob2",
     "ipykernel",
     "ipython",
     "matplotlib",

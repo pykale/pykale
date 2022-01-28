@@ -343,6 +343,9 @@ def read_dicom_phases(dicom_path, sort_instance=True):
     Args:
         dicom_path (str): Path to DICOM images.
         sort_instance (bool, optional): Whether sort images by InstanceNumber (i.e. phase number). Defaults to True.
+
+    Returns:
+        [list]: List of dicom phases
     """
     ds = []
     phase_files = glob.glob(dicom_path + "/**/*.dcm", recursive=True)
@@ -355,7 +358,7 @@ def read_dicom_phases(dicom_path, sort_instance=True):
     return ds
 
 
-def read_dicom_images(dicom_path, sort_instance=True, sort_patient=False, return_ids=False):
+def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
     """Read dicom images for multiple patients and multiple instances/phases.
 
     Args:
@@ -363,10 +366,9 @@ def read_dicom_images(dicom_path, sort_instance=True, sort_patient=False, return
         sort_instance (bool, optional): Whether sort images by InstanceNumber (i.e. phase number) for each subject.
             Defaults to True.
         sort_patient (bool, optional): Whether sort subjects' images by PatientID. Defaults to False.
-        return_ids (bool, optional): Whether return PatientID. Defaults to False.
 
     Returns:
-        [array-like]: [description]
+        [list[list]]: [a list of dicom phase lists]
     """
     sub_dirs = os.listdir(dicom_path)
     all_ds = []
@@ -377,18 +379,33 @@ def read_dicom_images(dicom_path, sort_instance=True, sort_patient=False, return
         all_ds.append(sub_ds)
 
     if sort_patient:
-        all_ds.sort(key=lambda x: int(x[0].PatientID), reverse=False)
+        all_ds.sort(key=lambda x: x[0].PatientID, reverse=False)
 
-    n_sub = len(all_ds)
-    n_phase = len(all_ds[0])
-    img_shape = all_ds[0][0].pixel_array.shape
-    images = np.zeros((n_sub, n_phase,) + img_shape)
+    return all_ds
+
+
+def dicom2array(dicom_ds, return_ids=False, n_phase=None, image_size=None):
+    """Convert dicom datasets to ndarrays
+
+    Args:
+        dicom_ds (list): List of dicom datasets.
+        return_ids (bool, optional): Whether return PatientID. Defaults to False.
+        n_phase (int, optional): Number of phases to load. Defaults to None.
+        image_size (tuple, optional): Size of image size expected. Defaults to None.
+    """
+    if image_size is None:
+        image_size = dicom_ds[0][0].pixel_array.shape
+    if n_phase is None:
+        n_phase = len(dicom_ds[0])
+    n_sub = len(dicom_ds)
+    images = np.zeros((n_sub, n_phase,) + image_size)
     sub_ids = []
     for i in range(n_sub):
-        sub_ids.append(all_ds[i][0].PatientID)
+        if dicom_ds[i][0].pixel_array.shape != image_size:
+            continue
+        sub_ids.append(dicom_ds[i][0].PatientID)
         for j in range(n_phase):
-            images[i, j, ...] = all_ds[i][j].pixel_array
-
+            images[i, j, ...] = dicom_ds[i][j].pixel_array
     if return_ids:
         return images, sub_ids
     else:
