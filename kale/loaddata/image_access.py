@@ -359,7 +359,7 @@ def read_dicom_phases(dicom_path, sort_instance=True):
 
 
 def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
-    """Read dicom images for multiple patients and multiple instances/phases.
+    """Read dicom files for multiple patients and multiple instances/phases from a given directory.
 
     Args:
         dicom_path (str): Path to DICOM images.
