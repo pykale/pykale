@@ -1,4 +1,5 @@
 # Global settings for tests. Run before any test
+import csv
 import os
 
 import pytest
@@ -37,9 +38,26 @@ landmark_uncertainty_url = (
 
 @pytest.fixture(scope="session")
 def landmark_uncertainty_dl(download_path):
-    # p = tmp_path_factory.getbasetemp()
-    path_ = os.path.join(download_path, "Uncertainty_tuples")
+    path_ = os.path.join(download_path, "Uncertainty_tuples/dummy_data")
     os.makedirs(path_, exist_ok=True)
+
+    dummy_tabular_data = {
+        "uid": ["PHD_2154", "PHD_2158", "PHD_217", "PHD_2194"],
+        "E-CPV Error": [1.4142135, 3.1622777, 5.0990195, 61.846584],
+        "E-CPV Uncertainty": [4.25442667, 4.449976897, 1.912124681, 35.76085777],
+        "E-MHA Error": [3.1622777, 3.1622777, 4, 77.00649],
+        "E-MHA Uncertainty": [0.331125357, 0.351173535, 1.4142135, 0.142362904],
+        "S-MHA Error": [3.1622777, 1.4142135, 5.0990195, 56.32051],
+        "S-MHA Uncertainty": [0.500086973, 0.235296882, 1.466040241, 0.123874651],
+        "Validation Fold": [1, 1, 1, 1],
+        "Testing Fold": [0, 0, 0, 0],
+    }
+
+    # save dummy data
+    with open(path_ + ".csv", "w") as f:
+        w = csv.DictWriter(f, dummy_tabular_data.keys())
+        w.writeheader()
+        w.writerow(dummy_tabular_data)
 
     # download_file_by_url(landmark_uncertainty_url, path_, "Uncertainty_tuples.zip", "zip")
 

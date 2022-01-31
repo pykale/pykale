@@ -1,12 +1,15 @@
 import logging
-import os
 
 import numpy as np
 import pytest
 
 from kale.loaddata.tabular_access import load_csv_columns
-from kale.utils.download import download_file_by_url
+
+# from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
+
+# import os
+
 
 seed = 36
 set_seed(seed)
@@ -24,9 +27,6 @@ EXPECTED_COLS = [
     "Validation Fold",
     "Testing Fold",
 ]
-landmark_uncertainty_url = (
-    "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
-)
 
 
 # @pytest.mark.parametrize("source_test_file", ["PHD-Net/4CH/uncertainty_pairs_test_l0"])
@@ -55,7 +55,52 @@ landmark_uncertainty_url = (
 #     assert list(returned_cols.columns) == return_columns[1]
 
 
-@pytest.mark.parametrize("source_test_file", ["PHD-Net/4CH/uncertainty_pairs_test_l0"])
+# @pytest.mark.parametrize("source_test_file", ["PHD-Net/4CH/uncertainty_pairs_test_l0"])
+# @pytest.mark.parametrize(
+#     "return_columns",
+#     [
+#         ("All", EXPECTED_COLS),
+#         ([], []),
+#         ("S-MHA Error", ["S-MHA Error"]),
+#         (["S-MHA Error", "E-MHA Error"], ["S-MHA Error", "E-MHA Error"]),
+#     ],
+# )
+# def test_load_csv_columns_cols_return(landmark_uncertainty_dl, source_test_file, return_columns):
+
+#     # ensure if cols_to_return is "All" that all columns are returned
+#     # print("LISTING DIR: ", os.listdir(landmark_uncertainty_dl))
+#     if not os.path.exists(landmark_uncertainty_dl):
+#         os.makedirs(landmark_uncertainty_dl)
+#     filename = "Uncertainty_tuples.zip"
+#     data_path = os.path.join(landmark_uncertainty_dl, filename)
+#     if not os.path.exists(data_path):
+#         download_file_by_url(landmark_uncertainty_url, landmark_uncertainty_dl, filename, "zip")
+
+#         LOGGER.info("The file is downloaded and dl to downloaded to:  %s " % str(data_path))
+#         # LOGGER.info('The files inside that path:  %s ' % [os.path.join(path, name) for path, subdirs, files in os.walk(data_path) for name in files])
+#         LOGGER.info(
+#             "one step up files:  %s "
+#             % [os.path.join(path, name) for path, subdirs, files in os.walk(landmark_uncertainty_dl) for name in files]
+#         )
+
+#     else:
+#         LOGGER.info("The file already exists: %s " % str(data_path))
+#         # LOGGER.info('The files inside that path: %s ' % [os.path.join(path, name) for path, subdirs, files in os.walk(data_path) for name in files])
+#         LOGGER.info(
+#             "one step up files:  %s "
+#             % [os.path.join(path, name) for path, subdirs, files in os.walk(landmark_uncertainty_dl) for name in files]
+#         )
+
+#     # download_file_by_url(landmark_uncertainty_url, landmark_uncertainty_dl, "Uncertainty_tuples.zip", "zip")
+#     returned_cols = load_csv_columns(
+#         (os.path.join("/home/runner/work/pykale/pykale", landmark_uncertainty_dl, source_test_file)),
+#         "Testing Fold",
+#         np.arange(8),
+#         cols_to_return=return_columns[0],
+#     )
+#     assert list(returned_cols.columns) == return_columns[1]
+
+
 @pytest.mark.parametrize(
     "return_columns",
     [
@@ -65,62 +110,11 @@ landmark_uncertainty_url = (
         (["S-MHA Error", "E-MHA Error"], ["S-MHA Error", "E-MHA Error"]),
     ],
 )
-def test_load_csv_columns_cols_return(landmark_uncertainty_dl, source_test_file, return_columns):
-
-    # ensure if cols_to_return is "All" that all columns are returned
-    # print("LISTING DIR: ", os.listdir(landmark_uncertainty_dl))
-    if not os.path.exists(landmark_uncertainty_dl):
-        os.makedirs(landmark_uncertainty_dl)
-    filename = "Uncertainty_tuples.zip"
-    data_path = os.path.join(landmark_uncertainty_dl, filename)
-    if not os.path.exists(data_path):
-        download_file_by_url(landmark_uncertainty_url, landmark_uncertainty_dl, filename, "zip")
-
-        LOGGER.info("The file is downloaded and dl to downloaded to:  %s " % str(data_path))
-        # LOGGER.info('The files inside that path:  %s ' % [os.path.join(path, name) for path, subdirs, files in os.walk(data_path) for name in files])
-        LOGGER.info(
-            "one step up files:  %s "
-            % [os.path.join(path, name) for path, subdirs, files in os.walk(landmark_uncertainty_dl) for name in files]
-        )
-
-    else:
-        LOGGER.info("The file already exists: %s " % str(data_path))
-        # LOGGER.info('The files inside that path: %s ' % [os.path.join(path, name) for path, subdirs, files in os.walk(data_path) for name in files])
-        LOGGER.info(
-            "one step up files:  %s "
-            % [os.path.join(path, name) for path, subdirs, files in os.walk(landmark_uncertainty_dl) for name in files]
-        )
+def test_load_csv_columns_cols_return2(landmark_uncertainty_dl, return_columns):
 
     # download_file_by_url(landmark_uncertainty_url, landmark_uncertainty_dl, "Uncertainty_tuples.zip", "zip")
     returned_cols = load_csv_columns(
-        (os.path.join("/home/runner/work/pykale/pykale", landmark_uncertainty_dl, source_test_file)),
-        "Testing Fold",
-        np.arange(8),
-        cols_to_return=return_columns[0],
-    )
-    assert list(returned_cols.columns) == return_columns[1]
-
-
-@pytest.mark.parametrize("source_test_file", ["PHD-Net/4CH/uncertainty_pairs_test_l0"])
-@pytest.mark.parametrize(
-    "return_columns",
-    [
-        ("All", EXPECTED_COLS),
-        ([], []),
-        ("S-MHA Error", ["S-MHA Error"]),
-        (["S-MHA Error", "E-MHA Error"], ["S-MHA Error", "E-MHA Error"]),
-    ],
-)
-def test_load_csv_columns_cols_return2(landmark_uncertainty_dl, source_test_file, return_columns):
-
-    download_file_by_url(landmark_uncertainty_url, landmark_uncertainty_dl, "Uncertainty_tuples.zip", "zip")
-
-    # download_file_by_url(landmark_uncertainty_url, landmark_uncertainty_dl, "Uncertainty_tuples.zip", "zip")
-    returned_cols = load_csv_columns(
-        (os.path.join(landmark_uncertainty_dl, source_test_file)),
-        "Testing Fold",
-        np.arange(8),
-        cols_to_return=return_columns[0],
+        landmark_uncertainty_dl, "Testing Fold", np.arange(8), cols_to_return=return_columns[0],
     )
     assert list(returned_cols.columns) == return_columns[1]
 
