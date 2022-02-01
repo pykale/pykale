@@ -7,7 +7,7 @@ def quantile_binning_predictions(uncertainties_test, uncert_thresh, save_pred_pa
     """Bin predictions based on quantile thresholds.
 
     Args:
-        uncertainties_test (list): list of uncertainties,
+        uncertainties_test (Dict): Dict of uncertainties like {id: x, id: x}
         uncert_thresh (list): quantile thresholds to determine binning,
         save_pred_path (str): path preamble to save predicted bins to,
 

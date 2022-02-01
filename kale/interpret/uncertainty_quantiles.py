@@ -272,13 +272,14 @@ def plot_cumulative(cmaps, data_struct, models, uncertainty_types, bins, title, 
 
     for axis in [ax.xaxis, ax.yaxis]:
         axis.set_major_formatter(ScalarFormatter())
+
     plt.xticks([1, 2, 3, 4, 5, 10, 20, 30])
 
-    ax.xaxis.label.set_color("black")  # setting up X-axis label color to yellow
-    ax.yaxis.label.set_color("black")  # setting up Y-axis label color to blue
+    ax.xaxis.label.set_color("black")
+    ax.yaxis.label.set_color("black")
 
-    ax.tick_params(axis="x", colors="black")  # setting up X-axis tick color to red
-    ax.tick_params(axis="y", colors="black")  # setting up Y-axis tick color to black
+    ax.tick_params(axis="x", colors="black")
+    ax.tick_params(axis="y", colors="black")
 
     if save_path is not None:
         plt.savefig(save_path, dpi=100, bbox_inches="tight", pad_inches=0.2)

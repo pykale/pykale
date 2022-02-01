@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from config import get_cfg_defaults
+from pandas import *
 
 from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard
 from kale.interpret.uncertainty_quantiles import box_plot, plot_cumulative, quantile_binning_and_est_errors
@@ -82,6 +83,13 @@ def main():
                 landmark_results_path_test = os.path.join(
                     cfg.DATASET.ROOT, model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
                 )
+
+                validation_pairs = load_csv_columns(landmark_results_path_val, "Validation Fold", np.arange(8), "All")
+
+                test_pairs = load_csv_columns(landmark_results_path_test, "Testing Fold", np.arange(8), "All")
+
+                print(test_pairs.reset_index().to_dict(orient="list"))
+                exit()
 
                 uncert_boundaries, estimated_errors, predicted_bins = fit_and_predict(
                     model,
