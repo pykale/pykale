@@ -17,8 +17,10 @@ def apply_confidence_inversion(data, uncertainty_measure):
         Dict: dict with inverted data.
 
     """
-    data[uncertainty_measure] = 1 / data[uncertainty_measure] + 0.0000000000001
 
+    if uncertainty_measure not in data:
+        raise KeyError("The key %s not in the dictionary provided" % uncertainty_measure)
+    data[uncertainty_measure] = 1 / data[uncertainty_measure] + 0.0000000000001
     return data
 
 

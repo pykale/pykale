@@ -61,3 +61,19 @@ def test_load_csv_columns_single_fold(landmark_uncertainty_dl, source_test_file,
     assert list(returned_single_fold["Validation Fold"]).count(folds) == len(
         list(returned_single_fold["Validation Fold"])
     )
+
+
+# Ensure getting a list of folds only return those folds and
+# Ensure all samples are being returned
+@pytest.mark.parametrize("folds", [[3, 1, 2]])
+def test_load_csv_columns_multiple_folds(landmark_uncertainty_dl, folds):
+    returned_list_of_folds = load_csv_columns(
+        landmark_uncertainty_dl[0],
+        "Validation Fold",
+        folds,
+        cols_to_return=["S-MHA Error", "E-MHA Error", "Validation Fold"],
+    )
+
+    assert all(elem in folds for elem in list(returned_list_of_folds["Validation Fold"]))
+
+    assert len(returned_list_of_folds.index) == 114

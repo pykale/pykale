@@ -84,13 +84,6 @@ def main():
                     cfg.DATASET.ROOT, model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
                 )
 
-                validation_pairs = load_csv_columns(landmark_results_path_val, "Validation Fold", np.arange(8), "All")
-
-                test_pairs = load_csv_columns(landmark_results_path_test, "Testing Fold", np.arange(8), "All")
-
-                print(test_pairs.reset_index().to_dict(orient="list"))
-                exit()
-
                 uncert_boundaries, estimated_errors, predicted_bins = fit_and_predict(
                     model,
                     landmark,
