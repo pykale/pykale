@@ -48,9 +48,8 @@ def test_load_csv_columns_cols_return2(landmark_uncertainty_dl, return_columns):
 
 
 # Ensure getting a single fold works
-@pytest.mark.parametrize("source_test_file", ["PHD-Net/4CH/uncertainty_pairs_test_l0"])
 @pytest.mark.parametrize("folds", [0])
-def test_load_csv_columns_single_fold(landmark_uncertainty_dl, source_test_file, folds):
+def test_load_csv_columns_single_fold(landmark_uncertainty_dl, folds):
 
     returned_single_fold = load_csv_columns(
         landmark_uncertainty_dl[0],

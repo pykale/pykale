@@ -45,8 +45,6 @@ class TestQuantileBinningAndEstErrors:
     # same logic with expected errors
     def test_dummy_1(self):
         est_bounds, est_errors = quantile_binning_and_est_errors(ERRORS, UNCERTAINTIES, num_bins=10)
-        LOGGER.info(est_errors)
-        LOGGER.info(ERRORS)
 
         assert pytest.approx(np.squeeze(est_bounds)) == UNCERTAINTIES[1:-1]
         assert pytest.approx(np.squeeze(est_errors)) == ERRORS[1:-1]
