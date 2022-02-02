@@ -26,6 +26,13 @@ def quantile_binning_and_est_errors(errors, uncertainties, num_bins, type="quant
     Returns:
         [list,list]: list of quantile thresholds and estimated error bounds.
     """
+
+    if len(errors) != len(uncertainties):
+        raise ValueError(
+            "Length of errors and uncertainties must be the same. errors is length %s and uncertainties is length %s"
+            % (len(errors), len(uncertainties))
+        )
+
     valid_types = {"quantile", "error-wise"}
     if type not in valid_types:
         raise ValueError("results: type must be one of %r. " % valid_types)
@@ -39,7 +46,6 @@ def quantile_binning_and_est_errors(errors, uncertainties, num_bins, type="quant
 
     if type == "quantile":
         quantiles = np.arange(1 / num_bins, 1, 1 / num_bins)
-
         for q in range(len(quantiles)):
             q_conf_higher = [np.quantile(uncertainties, quantiles[q])]
             q_error_higher = ir.predict(q_conf_higher)
