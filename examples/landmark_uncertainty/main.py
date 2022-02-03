@@ -71,6 +71,19 @@ def main():
     evaluate = True
     interpret = True
 
+    # print
+    # saved_bins_path_pre = os.path.join(save_folder, "Uncertainty_Preds")
+    # bin_pred_path = os.path.join(saved_bins_path_pre, "U-Net", "SA", "res_predicted_bins_l" + str(1))
+    # bin_preds = pd.read_csv(bin_pred_path + ".csv", header=0)
+    # print(bin_preds.reset_index().to_dict(orient='list'))
+
+    # saved_bins_path_pre = os.path.join(save_folder, "Uncertainty_Preds")
+    # error_bounds_path = os.path.join(saved_bins_path_pre, "U-Net", "SA", "estimated_error_bounds_l" + str(1))
+    # error_bounds_pred = pd.read_csv(error_bounds_path + ".csv", header=0)
+    # print(error_bounds_pred.reset_index().to_dict(orient='list'))
+
+    # exit()
+
     # ---- This is the Fitting Phase ----
     if fit:
         for model in models_to_compare:

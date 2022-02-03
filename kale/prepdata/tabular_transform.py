@@ -25,7 +25,7 @@ def apply_confidence_inversion(data, uncertainty_measure):
 
 
 def get_data_struct(models_to_compare, landmarks, saved_bins_path_pre, dataset):
-    """ Makes a dict of pandas dataframe used to evalauate uncertainty measures
+    """ Makes a dict of pandas dataframe used to evaluate uncertainty measures
         Args:
             models_to_compare (list): list of set models to add to datastruct,
             landmarks (list): list of landmarks to add to datastruct.

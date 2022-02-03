@@ -1,12 +1,22 @@
 # Global settings for tests. Run before any test
 import csv
+import logging
 import os
 
 import pytest
 from scipy.io import loadmat
 
 from kale.utils.download import download_file_by_url
-from tests.data.landmark_uncertainty_data import return_dummy_test_data, return_dummy_valid_data
+from tests.data.landmark_uncertainty_data import (
+    return_dummy_bin_predictions_l0,
+    return_dummy_bin_predictions_l1,
+    return_dummy_error_bounds_l0,
+    return_dummy_error_bounds_l1,
+    return_dummy_test_data,
+    return_dummy_valid_data,
+)
+
+LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
@@ -39,6 +49,7 @@ landmark_uncertainty_url = (
 
 @pytest.fixture(scope="session")
 def landmark_uncertainty_dl(download_path):
+
     valid_path_ = os.path.join(download_path, "Uncertainty_tuples/dummy_valid_data")
     os.makedirs(valid_path_, exist_ok=True)
 
@@ -63,4 +74,43 @@ def landmark_uncertainty_dl(download_path):
         writer.writerow(dummy_test_data.keys())
         writer.writerows(zipped_test)
 
-    return valid_path_, test_path_
+    # return and save dummy test prediction data
+    dum_path_pre = os.path.join(download_path, "Uncertainty_tuples/U-NET/SA/")
+    os.makedirs(dum_path_pre, exist_ok=True)
+    dum_er_path_l0 = os.path.join(dum_path_pre, "estimated_error_bounds_l0")
+    dum_er_path_l1 = os.path.join(dum_path_pre, "estimated_error_bounds_l1")
+    dum_pred_bin_path_l0 = os.path.join(dum_path_pre, "res_predicted_bins_l0")
+    dum_pred_bin_path_l1 = os.path.join(dum_path_pre, "res_predicted_bins_l1")
+
+    dummy_err_bounds_l0 = return_dummy_error_bounds_l0()
+    dummy_err_bounds_l1 = return_dummy_error_bounds_l1()
+    dummy_pred_bins_l0 = return_dummy_bin_predictions_l0()
+    dummy_pred_bins_l1 = return_dummy_bin_predictions_l1()
+
+    # save dummy data
+    zip_dummy_err_bounds_l0 = zip(*dummy_err_bounds_l0.values())
+    zip_dummy_err_bounds_l1 = zip(*dummy_err_bounds_l1.values())
+    zip_dummy_pred_bins_l0 = zip(*dummy_pred_bins_l0.values())
+    zip_dummy_pred_bins_l1 = zip(*dummy_pred_bins_l1.values())
+
+    with open(dum_er_path_l0 + ".csv", "w", newline="") as f:
+        writer = csv.writer(f, delimiter=",")
+        writer.writerow(dummy_err_bounds_l0.keys())
+        writer.writerows(zip_dummy_err_bounds_l0)
+
+    with open(dum_er_path_l1 + ".csv", "w", newline="") as f:
+        writer = csv.writer(f, delimiter=",")
+        writer.writerow(dummy_err_bounds_l1.keys())
+        writer.writerows(zip_dummy_err_bounds_l1)
+
+    with open(dum_pred_bin_path_l0 + ".csv", "w", newline="") as f:
+        writer = csv.writer(f, delimiter=",")
+        writer.writerow(dummy_pred_bins_l0.keys())
+        writer.writerows(zip_dummy_pred_bins_l0)
+
+    with open(dum_pred_bin_path_l1 + ".csv", "w", newline="") as f:
+        writer = csv.writer(f, delimiter=",")
+        writer.writerow(dummy_pred_bins_l1.keys())
+        writer.writerows(zip_dummy_pred_bins_l1)
+
+    return valid_path_, test_path_, os.path.join(download_path, "Uncertainty_tuples")
