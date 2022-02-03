@@ -18,7 +18,6 @@ set_seed(seed)
 
 ERRORS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 UNCERTAINTIES = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-# UNCERTAINTIES = [0, 0.1,0.2,0.]
 
 
 @pytest.fixture(scope="module")
@@ -48,35 +47,3 @@ class TestQuantileBinningAndEstErrors:
 
         assert pytest.approx(np.squeeze(est_bounds)) == UNCERTAINTIES[1:-1]
         assert pytest.approx(np.squeeze(est_errors)) == ERRORS[1:-1]
-
-
-# # Ensure getting a single fold works
-# @pytest.mark.parametrize("source_test_file", ["PHD-Net/4CH/uncertainty_pairs_test_l0"])
-# @pytest.mark.parametrize("folds", [0])
-# def test_load_csv_columns_single_fold(landmark_uncertainty_dl, source_test_file, folds):
-
-#     returned_single_fold = load_csv_columns(
-#         landmark_uncertainty_dl[0],
-#         "Validation Fold",
-#         folds,
-#         cols_to_return=["S-MHA Error", "E-MHA Error", "Validation Fold"],
-#     )
-#     assert list(returned_single_fold["Validation Fold"]).count(folds) == len(
-#         list(returned_single_fold["Validation Fold"])
-#     )
-
-
-# # Ensure getting a list of folds only return those folds and
-# # Ensure all samples are being returned
-# @pytest.mark.parametrize("folds", [[3, 1, 2]])
-# def test_load_csv_columns_multiple_folds(landmark_uncertainty_dl, folds):
-#     returned_list_of_folds = load_csv_columns(
-#         landmark_uncertainty_dl[0],
-#         "Validation Fold",
-#         folds,
-#         cols_to_return=["S-MHA Error", "E-MHA Error", "Validation Fold"],
-#     )
-
-#     assert all(elem in folds for elem in list(returned_list_of_folds["Validation Fold"]))
-
-#     assert len(returned_list_of_folds.index) == 114

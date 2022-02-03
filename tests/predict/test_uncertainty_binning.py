@@ -37,7 +37,7 @@ class TestQuantileBinningPredictions:
         test_dict = dict(zip(DUMMY_TABULAR_DATA["uid"], DUMMY_TABULAR_DATA["E-CPV Uncertainty"]))
         assert quantile_binning_predictions(test_dict, uncertainty_thresh_list) == expected
 
-    # test wrog dict format
+    # test wrong dict format
     def test_dict_format(self):
         with pytest.raises(ValueError, match="uncertainties_test must be of type dict"):
             quantile_binning_predictions([1, 2, 3], [[1], [1.5], [1.6], [2]])
