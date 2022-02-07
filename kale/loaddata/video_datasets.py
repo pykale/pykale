@@ -21,7 +21,7 @@ class BasicVideoDataset(VideoFrameDataset):
         num_segments (int): The number of segments the video should be divided into to sample frames from.
         frames_per_segment (int): The number of frames that should be loaded per segment.
         imagefile_template (string): The image filename template.
-        transform (Compose): Video transform.
+        transform (torchvision.transforms.Compose, optional): Video transform.
         random_shift (bool): Whether the frames from each segment should be taken consecutively starting from
                         the center(False) of the segment, or consecutively starting from
                         a random(True) location inside the segment range.

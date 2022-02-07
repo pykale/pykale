@@ -17,7 +17,7 @@ class VideoRecord(object):
     represents a video sample's metadata.
 
     Args:
-        root_datapath (Path, optional): the system path to the root folder of the videos.
+        root_datapath (pathlib.Path, optional): the system path to the root folder of the videos.
         row (tuple, optional): A list with four or more elements where
             1) The first element is the path to the video sample's frames excluding the root_datapath prefix.
             2) The second element is the starting frame id of the video.
@@ -126,27 +126,19 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         might be ``jumping\0052\`` or ``sample1\`` or ``00053\``.
 
     Args:
-        root_path (str, Path): root path in which video folders lie.
-                   this is ROOT_DATA from the description above.
-        annotationfile_path (str, Path): .txt annotation file containing
-                             one row per video sample as described above.
+        root_path (str, pathlib.Path): root path in which video folders lie. This is ROOT_DATA from the above.
+        annotationfile_path (str, pathlib.Path): .txt annotation file containing one row per video sample as described above.
         image_modality (str): image modality (RGB or Optical Flow).
         num_segments (int): number of segments the video should be divided into to sample frames from.
                             Default is 1 in image mode and 5 in feature vector mode.
-        frames_per_segment (int): number of frames that should
-                            be loaded per segment. For each segment's
-                            frame-range, a random start index or the
-                            center is chosen, from which frames_per_segment
-                            consecutive frames are loaded.
-        imagefile_template (str): image filename template that video frame files
-                            have inside of their video folders as described above.
-        transform (Compose, optional): transform pipeline that receives a list of PIL images/frames.
-        random_shift (bool): whether the frames from each segment should be taken
-                      consecutively starting from the center of the segment, or
-                      consecutively starting from a random location inside the
-                      segment range.
-        test_mode (bool): whether this is a test dataset. If so, chooses
-                   frames from segments with random_shift=False.
+        frames_per_segment (int): number of frames that should be loaded per segment. For each segment's frame-range,
+                                  a random start index or the center is chosen,
+                                  from which frames_per_segment consecutive frames are loaded.
+        imagefile_template (str): image filename template that video frame files have inside the video folders as described above.
+        transform (torchvision.transforms.Compose, optional): transform pipeline that receives a list of PIL images/frames.
+        random_shift (bool): whether the frames from each segment should be taken consecutively starting from the center
+                            of the segment, or consecutively starting from a random location inside the segment range.
+        test_mode (bool): whether this is a test dataset. If so, chooses frames from segments with random_shift=False.
         input_type (str): type of input. (options: 'image' or 'feature')
         num_data_load (int): number of the data to load. (only used in feature vector mode)
         total_segments (int): total number of segments a video is divided into. (only used in feature vector mode)
