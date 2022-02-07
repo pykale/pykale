@@ -55,22 +55,22 @@ def get_config(cfg):
 
 
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
-def get_model(cfg, dataset, dict_num_classes):
+def get_model(cfg, dataset, num_classes):
     """
     Builds and returns a model and associated hyper parameters according to the config object passed.
 
     Args:
         cfg: A YACS config object.
         dataset: A multi domain dataset consisting of source and target datasets.
-        dict_num_classes (dict): The dictionary of class number for specific dataset.
+        num_classes (dict): The dictionary of class number for specific dataset.
     """
 
     # setup feature extractor
     feature_network, class_feature_dim, domain_feature_dim = get_video_feat_extractor(
-        cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, dict_num_classes
+        cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, num_classes
     )
     # setup classifier
-    classifier_network = ClassNetVideo(input_size=class_feature_dim, dict_n_class=dict_num_classes)
+    classifier_network = ClassNetVideo(input_size=class_feature_dim, dict_n_class=num_classes)
 
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
@@ -100,7 +100,7 @@ def get_model(cfg, dataset, dict_num_classes):
             if cfg.DAN.USERANDOM:
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
-                critic_input_size = domain_feature_dim * dict_num_classes["verb"]
+                critic_input_size = domain_feature_dim * num_classes["verb"]
         critic_network = DomainNetVideo(input_size=critic_input_size)
 
         if cfg.DAN.METHOD == "CDAN":
