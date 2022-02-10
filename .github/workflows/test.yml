@@ -45,9 +45,14 @@ jobs:
         shell: bash -l {0}
       - name: Run tests
         id: run_tests
-        run: |
-          pytest --nbmake --cov=kale
-        shell: bash -l {0}
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 180 # Very long
+          max_attempts: 3
+          retry_wait_seconds: 10800 # Wait 180 minutes before trying again (fail likely because server down)
+          command: |
+            pytest --nbmake --cov=kale
+          shell: bash -l {0}
       - name: Determine coverage
         run: |
           coverage xml
