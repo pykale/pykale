@@ -42,7 +42,7 @@ jobs:
           pip install torch-spline-conv==1.2.1 -f https://pytorch-geometric.com/whl/torch-1.7.0+cpu.html
           pip install torch-geometric==1.7.0 --ignore-installed certifi
           pip install -e .[dev]
-        shell: bash -l {0}
+        shell: bash
       - name: Run tests
         id: run_tests
         uses: nick-invision/retry@v2
@@ -52,11 +52,11 @@ jobs:
           retry_wait_seconds: 10800 # Wait 180 minutes before trying again (fail likely because server down)
           command: |
             pytest --nbmake --cov=kale
-          shell: bash -l {0}
+          shell: bash
       - name: Determine coverage
         run: |
           coverage xml
-        shell: bash -l {0}
+        shell: bash
       - name: Report coverage
         uses: codecov/codecov-action@v1
       - name: Report failure via issue
