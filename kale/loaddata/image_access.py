@@ -359,8 +359,8 @@ def read_dicom_phases(dicom_path, sort_instance=True):
 
 
 def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
-    """Read dicom files for multiple patients and multiple instances / phases from a given directory arranged in this
-        way: ::
+    """Read dicom files for multiple patients and multiple instances / phases from a given directory arranged in the
+        following structure: ::
 
             root/patient_a/.../phase_1.dcm
             root/patient_a/.../phase_2.dcm
@@ -383,12 +383,12 @@ def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
     Returns:
         [list[list]]: [a list of dicom phase lists]
     """
-    sub_dirs = os.listdir(dicom_path)
+    sub_dirs = [os.path.join(dicom_path, sub_dir) for sub_dir in os.listdir(dicom_path)]
+    sub_dirs = filter(os.path.isdir, sub_dirs)
     ds = []
 
     for sub_dir in sub_dirs:
-        sub_path = os.path.join(dicom_path, sub_dir)
-        sub_ds = read_dicom_phases(sub_path, sort_instance)
+        sub_ds = read_dicom_phases(sub_dir, sort_instance)
         ds.append(sub_ds)
 
     if sort_patient:
