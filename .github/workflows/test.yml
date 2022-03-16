@@ -64,4 +64,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           filename: .github/ISSUE_TEMPLATE/action-fail.md
-        if: ${{ always() && steps.run_tests.outcome == 'failure' && github.event_name == 'schedule'}}
+        if: ${{ always() && contains('failure', steps.*.outcome)  && github.event_name == 'schedule'}}
