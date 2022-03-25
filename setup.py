@@ -88,7 +88,7 @@ setup(
         "Source": "https://github.com/pykale/pykale",
     },
     packages=find_packages(exclude=("docs", "examples", "tests")),
-    python_requires=">=3.7, <=3.9",
+    python_requires=">=3.7, <=3.8",
     install_requires=requirements,
     extras_require={"dev": dev_requirements},
     setup_requires=["setuptools>=38.6.0"],
