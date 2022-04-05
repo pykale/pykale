@@ -258,3 +258,38 @@ class MPCA(BaseEstimator, TransformerMixin):
         x_rec = x_rec + self.mean_
 
         return x_rec
+
+
+class MIDA(BaseEstimator, TransformerMixin):
+    """MIDA (Maximum Independence Domain Adaptation)
+
+    Args:
+        n_components (int or None): Number of components to keep. If n_components is None, all features
+            will be kept.
+        kernel (str): Kernel to be used in the transformation.
+        gamma (float): Kernel coefficient for "rbf", "poly" and "sigmoid" kernels.
+        degree (int): Degree for "poly" and "sigmoid" kernels.
+        coef0 (float): Independent term in kernel function.
+        kernel_params (dict or None): Parameters for kernel function.
+        random_state (int or None): Random seed for reproducibility.
+        n_jobs (int): Number of parallel jobs to run.
+        verbose (bool): Whether to print progress messages to stdout.
+    """
+    def __init__(self, n_components=None, kernel="linear", gamma=None, degree=3, coef0=1,
+              kernel_params=None, random_state=None, n_jobs=1, verbose=False):
+        self.n_components = n_components
+        self.kernel = kernel
+        self.gamma = gamma
+        self.degree = degree
+        self.coef0 = coef0
+        self.kernel_params = kernel_params
+        self.random_state = random_state
+        self.n_jobs = n_jobs
+        self.verbose = verbose
+
+        self.n_dims = None
+        self.shape_in = None
+        self.shape_out = None
+        self.mean_ = None
+        self.proj_mats = None
+        self.idx_order = None

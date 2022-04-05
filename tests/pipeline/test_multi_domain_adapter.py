@@ -6,7 +6,7 @@ from torch.nn.functional import one_hot
 from kale.embed.image_cnn import ResNet18Feature
 from kale.loaddata.image_access import ImageAccess
 from kale.loaddata.multi_domain import MultiDomainAdapDataset
-from kale.pipeline.multi_domain_adapter import _CoDeRLS, create_ms_adapt_trainer
+from kale.pipeline.multi_domain_adapter import _CoIRLS, create_ms_adapt_trainer
 from kale.predict.class_domain_nets import ClassNetSmallImage
 from tests.helpers.pipe_test_helper import ModelTestHelper
 
@@ -77,7 +77,7 @@ def test_coder(kernel, office_caltech_access):
 
     x_feat = feature_network(x)
     z_one_hot = one_hot(z)
-    clf = _CoDeRLS(kernel=kernel, alpha=0.01)
+    clf = _CoIRLS(kernel=kernel, alpha=0.01)
 
     x_train = torch.cat((x_feat[src_idx], x_feat[tgt_idx]))
     y_train = y[src_idx]

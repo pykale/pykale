@@ -6,7 +6,7 @@ from numpy import testing
 from scipy.io import loadmat
 from tensorly.tenalg import multi_mode_dot
 
-from kale.embed.mpca import MPCA
+from kale.embed.decomposition import MPCA
 from kale.utils.download import download_file_by_url
 
 N_COMPS = [1, 50, 100]

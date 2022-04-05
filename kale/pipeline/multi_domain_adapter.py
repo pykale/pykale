@@ -342,7 +342,10 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         return cls_disc * 2 / (n_domains * (n_domains - 1))
 
 
-class _CoDeRLS(BaseEstimator, ClassifierMixin):
+class _CoIRLS(BaseEstimator, ClassifierMixin):
+    """Covariate-Independence Regularized Least Squares (CoIRLS)
+
+    """
     def __init__(
         self,
         loss="mse",
@@ -385,7 +388,7 @@ class _CoDeRLS(BaseEstimator, ClassifierMixin):
             self._lb = LabelBinarizer(pos_label=1, neg_label=0)
         else:
             self._lb = LabelBinarizer(pos_label=1, neg_label=-1)
-        self.coef = None
+        self.coef_ = None
         # self.kernel_transform = KernelCenterer()
 
     def fit(self, x, y, covariates):
@@ -419,8 +422,8 @@ class _CoDeRLS(BaseEstimator, ClassifierMixin):
 
         mat_q = torch.mm(mat_j, krnl_x) + self.alpha * n_labeled * unit_mat
         mat_q += self.lambda_ * n_labeled * multi_dot((ctr_mat, krnl_cov, ctr_mat, krnl_x)) / (n_samples ** 2)
-        self.coef = torch.mm(torch.linalg.inv(mat_q), mat_y)
-
+        # self.coef_ = torch.mm(torch.linalg.inv(mat_q), mat_y)
+        self.coef_ = torch.linalg.solve(mat_q, mat_y)
         # if self._lb.y_type_ == "binary":
         #     n_classes = 1
         #     if self.loss in ["logits", "hinge"]:
@@ -512,4 +515,4 @@ class _CoDeRLS(BaseEstimator, ClassifierMixin):
         )
 
         # return self.model(krnl_x)
-        return torch.mm(krnl_x, self.coef)
+        return torch.mm(krnl_x, self.coef_)
