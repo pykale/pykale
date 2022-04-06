@@ -346,6 +346,7 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
     """Covariate-Independence Regularized Least Squares (CoIRLS)
 
     """
+
     def __init__(
         self,
         loss="mse",

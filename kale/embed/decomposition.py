@@ -14,8 +14,12 @@ import logging
 import warnings
 
 import numpy as np
+from numpy.linalg import inv, multi_dot
 from scipy import linalg
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.metrics.pairwise import pairwise_kernels
+from sklearn.preprocessing import KernelCenterer, LabelBinarizer
+from sklearn.utils.validation import check_is_fitted
 
 # import tensorly as tl
 from tensorly.base import fold, unfold
@@ -214,8 +218,9 @@ class MPCA(BaseEstimator, TransformerMixin):
             x_projected = unfold(x_projected, mode=0)
             x_projected = x_projected[:, self.idx_order]
             if isinstance(self.n_components, int):
-                if self.n_components > np.prod(self.shape_out):
-                    self.n_components = np.prod(self.shape_out)
+                n_features = int(np.prod(self.shape_out))
+                if self.n_components > n_features:
+                    self.n_components = n_features
                     warn_msg = "n_components exceeds the maximum number, all features will be returned."
                     logging.warning(warn_msg)
                     warnings.warn(warn_msg)
@@ -261,35 +266,141 @@ class MPCA(BaseEstimator, TransformerMixin):
 
 
 class MIDA(BaseEstimator, TransformerMixin):
-    """MIDA (Maximum Independence Domain Adaptation)
-
+    """Maximum independence domain adaptation
     Args:
-        n_components (int or None): Number of components to keep. If n_components is None, all features
-            will be kept.
-        kernel (str): Kernel to be used in the transformation.
-        gamma (float): Kernel coefficient for "rbf", "poly" and "sigmoid" kernels.
-        degree (int): Degree for "poly" and "sigmoid" kernels.
-        coef0 (float): Independent term in kernel function.
-        kernel_params (dict or None): Parameters for kernel function.
-        random_state (int or None): Random seed for reproducibility.
-        n_jobs (int): Number of parallel jobs to run.
-        verbose (bool): Whether to print progress messages to stdout.
+        n_components (int): Number of components to keep.
+        penalty (str): Penalty to use for the optimization problem.
+        kernel (str): Kernel to use for the optimization problem.
+        lambda_ (float): Regularization parameter for the domain covariate dependence.
+        mu (float): Regularization parameter for the variance penalty.
+        eta (float): Regularization parameter for the label dependence.
+        augmentation (bool): Whether to augment the data with noise.
+        kernel_params (dict): Parameters for the kernel.
+
+    References:
+        Yan, K., Kou, L. and Zhang, D., 2018. Learning domain-invariant subspace using domain features and
+        independence maximization. IEEE transactions on cybernetics, 48(1), pp.288-299.
     """
-    def __init__(self, n_components=None, kernel="linear", gamma=None, degree=3, coef0=1,
-              kernel_params=None, random_state=None, n_jobs=1, verbose=False):
+
+    def __init__(
+        self,
+        n_components,
+        penalty=None,
+        kernel="linear",
+        lambda_=1.0,
+        mu=1.0,
+        eta=1.0,
+        augmentation=True,
+        kernel_params=None,
+    ):
         self.n_components = n_components
         self.kernel = kernel
-        self.gamma = gamma
-        self.degree = degree
-        self.coef0 = coef0
-        self.kernel_params = kernel_params
-        self.random_state = random_state
-        self.n_jobs = n_jobs
-        self.verbose = verbose
+        self.lambda_ = lambda_
+        self.penalty = penalty
+        self.mu = mu
+        self.eta = eta
+        self.augmentation = augmentation
+        if kernel_params is None:
+            self.kernel_params = {}
+        else:
+            self.kernel_params = kernel_params
+        self._lb = LabelBinarizer(pos_label=1, neg_label=0)
+        self._centerer = KernelCenterer()
+        self.x_fit = None
 
-        self.n_dims = None
-        self.shape_in = None
-        self.shape_out = None
-        self.mean_ = None
-        self.proj_mats = None
-        self.idx_order = None
+    def fit(self, x, y=None, covariates=None):
+        """
+        Args:
+            x : array-like. Input data, shape (n_samples, n_features)
+            y : array-like. Labels, shape (nl_samples,)
+            covariates : array-like. Domain co-variates, shape (n_samples, n_co-variates)
+
+        Note:
+            Unsupervised MIDA is performed if y is None.
+            Semi-supervised MIDA is performed is y is not None.
+        """
+        if self.augmentation and type(covariates) == np.ndarray:
+            x = np.concatenate((x, covariates), axis=1)
+
+        n = x.shape[0]
+        # Kernel matrix
+        krnl_x = pairwise_kernels(x, metric=self.kernel, filter_params=True, **self.kernel_params)
+        krnl_x[np.isnan(krnl_x)] = 0
+
+        # Identity matrix
+        unit_mat = np.eye(n)
+        # Centering matrix
+        ctr_mat = unit_mat - 1.0 / n * np.ones((n, n))
+
+        krnl_x = self._centerer.fit_transform(krnl_x)
+        if type(covariates) == np.ndarray:
+            ker_c = np.dot(covariates, covariates.T)
+        else:
+            ker_c = np.zeros((n, n))
+        if y is not None:
+            y_mat = self._lb.fit_transform(y)
+            ker_y = np.dot(y_mat, y_mat.T)
+            obj = multi_dot([krnl_x, ctr_mat, ker_c, ctr_mat, krnl_x.T])
+            st = multi_dot(
+                [krnl_x, ctr_mat, (self.mu * unit_mat + self.eta * ker_y / np.square(n - 1)), ctr_mat, krnl_x.T]
+            )
+        else:
+            obj = multi_dot([krnl_x, ctr_mat, ker_c, ctr_mat, krnl_x.T]) / np.square(n - 1) + self.lambda_ * unit_mat
+            st = multi_dot([krnl_x, ctr_mat, krnl_x.T])
+
+        # Solve the optimization problem
+        self._fit(obj_min=obj, obj_max=st)
+
+        self.x_fit = x
+        return self
+
+    def _fit(self, obj_min, obj_max):
+        """solve eigen-decomposition
+
+        Args:
+            obj_min : array-like, objective matrix to minimise, shape (n_samples, n_features)
+            obj_max : array-like, objective matrix to maximise, shape (n_samples, n_features)
+
+        Returns:
+            self
+        """
+        obj_ovr = np.dot(inv(obj_min), obj_max)
+        n = obj_ovr.shape[0]
+        eig_values, eig_vectors = linalg.eigh(obj_ovr, subset_by_index=[n - self.n_components, n - 1])
+        idx_sorted = eig_values.argsort()[::-1]
+
+        self.U = eig_vectors[:, idx_sorted]
+        self.U = np.asarray(self.U, dtype=np.float)
+
+        return self
+
+    def fit_transform(self, x, y=None, covariates=None):
+        """
+        Args:
+            x : array-like, shape (n_samples, n_features)
+            y : array-like, shape (n_samples,)
+            covariates : array-like, shape (n_samples, n_co-variates)
+
+        Returns:
+            x_transformed : array-like, shape (n_samples, n_components)
+        """
+        self.fit(x, y, covariates)
+
+        return self.transform(x, covariates)
+
+    def transform(self, x, aug_features=None):
+        """
+        Args:
+            x : array-like, shape (n_samples, n_features)
+            aug_features : array-like, augmentation features, shape (n_samples, n_aug_features)
+        Returns:
+            x_transformed : array-like, shape (n_samples, n_components)
+        """
+        check_is_fitted(self, "x_fit")
+        if type(aug_features) == np.ndarray:
+            x = np.concatenate((x, aug_features), axis=1)
+        krnl_x = self._centerer.transform(
+            pairwise_kernels(x, self.x_fit, metric=self.kernel, filter_params=True, **self.kernel_params)
+        )
+
+        return np.dot(krnl_x, self.U)

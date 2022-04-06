@@ -14,6 +14,14 @@ kale.embed.attention\_cnn module
    :undoc-members:
    :show-inheritance:
 
+kale.embed.decomposition module
+----------------------
+
+.. automodule:: kale.embed.decomposition
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.embed.seq\_nn module
 --------------------------------
 
@@ -46,14 +54,6 @@ kale.embed.image\_cnn module
 ----------------------------
 
 .. automodule:: kale.embed.image_cnn
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kale.embed.mpca module
-----------------------
-
-.. automodule:: kale.embed.mpca
    :members:
    :undoc-members:
    :show-inheritance:
