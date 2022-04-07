@@ -395,6 +395,7 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
     def fit(self, x, y, covariates):
         self._lb.fit(y)
         x = torch.as_tensor(x)
+        x = torch.cat([x, torch.ones(x.shape[0], 1)], 1)
         y = torch.as_tensor(y)
         # krnl_x = pairwise_kernels(x, metric=self.kernel, filter_params=True, **self.kernel_kwargs)
         # krnl_x = torch.tensor(self.kernel_transform.fit_transform(krnl_x) , dtype=torch.float)
@@ -421,10 +422,11 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
         mat_y[:n_labeled, :] = torch.as_tensor(self._lb.fit_transform(y))
         mat_y = torch.as_tensor(mat_y)
 
-        mat_q = torch.mm(mat_j, krnl_x) + self.alpha * n_labeled * unit_mat
-        mat_q += self.lambda_ * n_labeled * multi_dot((ctr_mat, krnl_cov, ctr_mat, krnl_x)) / (n_samples ** 2)
+        mat_q = torch.mm(mat_j, krnl_x) + self.alpha * unit_mat
+        mat_q += self.lambda_ * multi_dot((ctr_mat, krnl_cov, ctr_mat, krnl_x))
         # self.coef_ = torch.mm(torch.linalg.inv(mat_q), mat_y)
         self.coef_ = torch.linalg.solve(mat_q, mat_y)
+
         # if self._lb.y_type_ == "binary":
         #     n_classes = 1
         #     if self.loss in ["logits", "hinge"]:
@@ -504,6 +506,7 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
 
     def decision_function(self, x):
         x = torch.as_tensor(x)
+        x = torch.cat([x, torch.ones(x.shape[0], 1)], dim=1)
         krnl_x = torch.as_tensor(
             pairwise_kernels(
                 x.detach().numpy(),

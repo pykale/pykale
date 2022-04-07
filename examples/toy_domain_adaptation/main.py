@@ -9,11 +9,21 @@ from sklearn.preprocessing import OneHotEncoder
 from kale.pipeline.multi_domain_adapter import _CoIRLS
 
 
-def main():
+def plot_scores_dist(ys_score, yt_score, title=None):
+    plt.figure(figsize=(8, 5))
+    sns.histplot(ys_score, color="c", label="Source", kde=True)
+    sns.histplot(yt_score, color="m", label="Target", kde=True)
+    plt.xlabel("Decision Scores")
+    plt.legend()
+    if title is not None:
+        plt.title(title, fontsize=14, fontweight="bold")
+    plt.show()
 
+
+def main():
     np.random.seed(81192)
     # Generate toy data
-    n_samples = 1000
+    n_samples = 200
 
     xs, ys = make_blobs(n_samples, centers=[[0, 0], [0, 2]], cluster_std=[0.3, 0.35])
     xt, yt = make_blobs(n_samples, centers=[[2, -2], [2, 0.2]], cluster_std=[0.35, 0.4])
@@ -23,7 +33,7 @@ def main():
     x_all = [xs, xt]
     y_all = [ys, yt]
     labels = ["source", "Target"]
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(8, 5))
     for i in range(2):
         idx_pos = np.where(y_all[i] == 1)
         idx_neg = np.where(y_all[i] == 0)
@@ -56,16 +66,11 @@ def main():
     # visualize decision scores of non-adaptation classifier
     ys_score = clf.decision_function(xs)
     yt_score = clf.decision_function(xt)
-    plt.figure(figsize=(10, 5))
-    sns.histplot(ys_score, color="c", label="Source", kde=True)
-    sns.histplot(yt_score, color="m", label="Target", kde=True)
-    plt.xlabel("Decision Scores")
-    plt.legend()
-    plt.title("Ridge classifier decision score distribution", fontsize=14, fontweight="bold")
-    plt.show()
+    title = "Ridge classifier decision score distribution"
+    plot_scores_dist(ys_score, yt_score, title)
 
     # domain adaptation
-    clf_ = _CoIRLS()
+    clf_ = _CoIRLS(lambda_=1)
     # encoding one-hot domain covariate matrix
     covariates = np.zeros(n_samples * 2)
     covariates[:n_samples] = 1
@@ -79,13 +84,8 @@ def main():
 
     ys_score_ = clf_.decision_function(xs).detach().numpy().reshape(-1)
     yt_score_ = clf_.decision_function(xt).detach().numpy().reshape(-1)
-    plt.figure(figsize=(10, 5))
-    sns.histplot(ys_score_, color="c", label="Source", kde=True)
-    sns.histplot(yt_score_, color="m", label="Target", kde=True)
-    plt.xlabel("Decision Scores")
-    plt.legend()
-    plt.title("Domain adaptation classifier decision score distribution", fontsize=14, fontweight="bold")
-    plt.show()
+    title = "Domain adaptation classifier decision score distribution"
+    plot_scores_dist(ys_score_, yt_score_, title)
 
 
 if __name__ == "__main__":
