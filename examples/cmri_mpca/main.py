@@ -83,32 +83,28 @@ def main():
     img_reg, max_dist = reg_img_stack(images.copy(), landmarks, landmarks[0])
     if save_images:
         visualize.plot_multi_images(
-            [img_reg[i][0, ...] for i in range(n_samples)],
-            im_kwargs=dict(cfg.IM_KWARGS)
+            [img_reg[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS)
         ).savefig(str(save_images_location) + "/1)image_registration")
 
     # ----- masking -----
     img_masked = mask_img_stack(img_reg.copy(), mask[0][0, ...])
     if save_images:
         visualize.plot_multi_images(
-            [img_masked[i][0, ...] for i in range(n_samples)],
-            im_kwargs=dict(cfg.IM_KWARGS)
+            [img_masked[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS)
         ).savefig(str(save_images_location) + "/2)masking")
 
     # ----- resize -----
     img_rescaled = rescale_img_stack(img_masked.copy(), scale=1 / cfg.PROC.SCALE)
     if save_images:
         visualize.plot_multi_images(
-            [img_rescaled[i][0, ...] for i in range(n_samples)],
-            im_kwargs=dict(cfg.IM_KWARGS)
+            [img_rescaled[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS)
         ).savefig(str(save_images_location) + "/3)resize")
 
     # ----- normalization -----
     img_norm = normalize_img_stack(img_rescaled.copy())
     if save_images:
         visualize.plot_multi_images(
-            [img_norm[i][0, ...] for i in range(n_samples)],
-            im_kwargs=dict(cfg.IM_KWARGS)
+            [img_norm[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS)
         ).savefig(str(save_images_location) + "/4)normalize")
 
     # ---- evaluating machine learning pipeline ----
