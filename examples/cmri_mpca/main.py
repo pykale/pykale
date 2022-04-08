@@ -57,10 +57,11 @@ def main():
     img_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.IMG_DIR)
     ds = read_dicom_dir(img_path, sort_instance=True, sort_patient=True)
     images = dicom2array(ds, return_ids=False)
+    n_samples = len(images)
 
     mask_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.MASK_DIR)
     mask_ds = read_dicom_dir(mask_path, sort_instance=True)
-    mask = dicom2array(mask_ds, return_ids=False)
+    mask = dicom2array(mask_ds, return_ids=False)[0]
 
     landmark_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.LANDMARK_FILE)
     landmark_df = pd.read_csv(landmark_path, index_col="Subject")  # read .csv file as dataframe
@@ -71,7 +72,7 @@ def main():
     # plot the first phase of images
     if save_images:
         visualize.plot_multi_images(
-            images[:, 0, ...],
+            [images[i][0, ...] for i in range(n_samples)],
             marker_locs=landmarks,
             im_kwargs=dict(cfg.IM_KWARGS),
             marker_kwargs=dict(cfg.MARKER_KWARGS),
@@ -81,33 +82,37 @@ def main():
     # ----- image registration -----
     img_reg, max_dist = reg_img_stack(images.copy(), landmarks, landmarks[0])
     if save_images:
-        visualize.plot_multi_images(img_reg[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
-            str(save_images_location) + "/1)image_registration"
-        )
+        visualize.plot_multi_images(
+            [img_reg[i][0, ...] for i in range(n_samples)],
+            im_kwargs=dict(cfg.IM_KWARGS)
+        ).savefig(str(save_images_location) + "/1)image_registration")
 
     # ----- masking -----
     img_masked = mask_img_stack(img_reg.copy(), mask[0][0, ...])
     if save_images:
-        visualize.plot_multi_images(img_masked[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
-            str(save_images_location) + "/2)masking"
-        )
+        visualize.plot_multi_images(
+            [img_masked[i][0, ...] for i in range(n_samples)],
+            im_kwargs=dict(cfg.IM_KWARGS)
+        ).savefig(str(save_images_location) + "/2)masking")
 
     # ----- resize -----
     img_rescaled = rescale_img_stack(img_masked.copy(), scale=1 / cfg.PROC.SCALE)
     if save_images:
-        visualize.plot_multi_images(img_rescaled[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
-            str(save_images_location) + "/3)resize"
-        )
+        visualize.plot_multi_images(
+            [img_rescaled[i][0, ...] for i in range(n_samples)],
+            im_kwargs=dict(cfg.IM_KWARGS)
+        ).savefig(str(save_images_location) + "/3)resize")
 
     # ----- normalization -----
     img_norm = normalize_img_stack(img_rescaled.copy())
     if save_images:
-        visualize.plot_multi_images(img_norm[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
-            str(save_images_location) + "/4)normalize"
-        )
+        visualize.plot_multi_images(
+            [img_norm[i][0, ...] for i in range(n_samples)],
+            im_kwargs=dict(cfg.IM_KWARGS)
+        ).savefig(str(save_images_location) + "/4)normalize")
 
     # ---- evaluating machine learning pipeline ----
-    x = img_norm.copy()
+    x = np.concatenate([img_norm[i].reshape((1,) + img_norm[i].shape) for i in range(n_samples)], axis=0)
     trainer = MPCATrainer(classifier=cfg.PIPELINE.CLASSIFIER, n_features=200)
     cv_results = cross_validate(trainer, x, y, cv=10, scoring=["accuracy", "roc_auc"], n_jobs=1)
 
