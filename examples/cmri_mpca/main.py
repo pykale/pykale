@@ -79,14 +79,14 @@ def main():
 
     # ---- data pre-processing ----
     # ----- image registration -----
-    img_reg, max_dist = reg_img_stack(images.copy(), landmarks)
+    img_reg, max_dist = reg_img_stack(images.copy(), landmarks, landmarks[0])
     if save_images:
         visualize.plot_multi_images(img_reg[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
             str(save_images_location) + "/1)image_registration"
         )
 
     # ----- masking -----
-    img_masked = mask_img_stack(img_reg.copy(), mask[0, 0, ...])
+    img_masked = mask_img_stack(img_reg.copy(), mask[0][0, ...])
     if save_images:
         visualize.plot_multi_images(img_masked[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
             str(save_images_location) + "/2)masking"

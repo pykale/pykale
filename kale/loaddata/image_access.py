@@ -397,30 +397,28 @@ def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
     return ds
 
 
-def dicom2array(dicom_ds, return_ids=False, n_phases=None, image_size=None):
+def dicom2array(dicom_ds, return_ids=False):
     """Convert dicom datasets to arrays
 
     Args:
         dicom_ds (list): List of dicom datasets.
         return_ids (bool, optional): Whether return PatientID. Defaults to False.
-        n_phases (int, optional): Number of phases to load. Defaults to None, and use the number of phases of the first
-            DICOM dataset item in dicom_ds.
-        image_size (tuple, optional): Size of image size expected. Defaults to None, and use the image size of the first
-            DICOM dataset item in dicom_ds.
+
+    Returns:
+        list: list of array-like tensors.
     """
-    if image_size is None:
-        image_size = dicom_ds[0][0].pixel_array.shape
-    if n_phases is None:
-        n_phases = len(dicom_ds[0])
-    n_sub = len(dicom_ds)
-    images = np.zeros((n_sub, n_phases,) + image_size)
+    n_samples = len(dicom_ds)
+    images = []
+    # images = np.zeros((n_samples, n_phases,) + image_size)
     sub_ids = []
-    for i in range(n_sub):
-        if dicom_ds[i][0].pixel_array.shape != image_size:
-            continue
+    for i in range(n_samples):
         sub_ids.append(dicom_ds[i][0].PatientID)
+        n_phases = len(dicom_ds[i])
+        img_size = dicom_ds[i][0].pixel_array.shape
+        img = np.zeros((n_phases,) + img_size)
         for j in range(n_phases):
-            images[i, j, ...] = dicom_ds[i][j].pixel_array
+            img[j, ...] = dicom_ds[i][j].pixel_array
+        images.append(img)
     if return_ids:
         return images, sub_ids
     else:

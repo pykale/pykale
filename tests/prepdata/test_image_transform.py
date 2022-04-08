@@ -21,7 +21,7 @@ def images(download_path):
     cmr_ds = read_dicom_dir(img_path, sort_instance=True, sort_patient=True)
     cmr_images = dicom2array(dicom_ds=cmr_ds, return_ids=False)
 
-    return cmr_images[:5, ...]
+    return cmr_images[:5]
 
 
 @pytest.fixture(scope="module")
@@ -43,9 +43,9 @@ def test_reg(images, coords):
     im_kwargs = {"cmap": "gray"}
     marker_names = ["inf insertion point", "sup insertion point", "RV inf"]
 
-    n_samples = images.shape[0]
+    n_samples = len(images)
     fig = plot_multi_images(
-        images[:, 0, ...],
+        [images[i][0, ...] for i in range(n_samples)],
         n_cols=5,
         marker_locs=coords,
         marker_titles=marker_names,
@@ -55,42 +55,48 @@ def test_reg(images, coords):
     )
     assert type(fig) == matplotlib.figure.Figure
     with pytest.raises(Exception):
-        reg_img_stack(images, coords[1:, :])
-    images_reg, max_dist = reg_img_stack(images, coords)
+        reg_img_stack(images, coords[1:, :], coords[0])
+    images_reg, max_dist = reg_img_stack(images, coords, target_coords=coords[0])
     # images after registration should be close to original images, because values of noise are small
-    testing.assert_allclose(images_reg, images)
+    for i in range(n_samples):
+        testing.assert_allclose(images_reg[i], images[i])
     # add one for avoiding inf relative difference
     testing.assert_allclose(max_dist + 1, np.ones(n_samples), rtol=2, atol=2)
-    fig = plot_multi_images(images_reg[:, 0, ...], n_cols=5)
+    fig = plot_multi_images([images_reg[i][0, ...] for i in range(n_samples)], n_cols=5)
     assert type(fig) == matplotlib.figure.Figure
 
 
 @pytest.mark.parametrize("scale", SCALES)
 def test_rescale(scale, images):
     img_rescaled = rescale_img_stack(images, 1 / scale)
-    # dim1 and dim2 have been rescaled
-    testing.assert_equal(img_rescaled.shape[-1], round(images.shape[-1] / scale))
-    testing.assert_equal(img_rescaled.shape[-2], round(images.shape[-2] / scale))
-    # n_phases and n_samples are unchanged
-    testing.assert_equal(img_rescaled.shape[:2], images.shape[:2])
+    n_samples = len(img_rescaled)
+    testing.assert_equal(n_samples, len(images))
+    for i in range(n_samples):
+        # dim1 and dim2 have been rescaled
+        testing.assert_equal(img_rescaled[i].shape[-1], round(images[i].shape[-1] / scale))
+        testing.assert_equal(img_rescaled[i].shape[-2], round(images[i].shape[-2] / scale))
+        # n_phases are unchanged
+        testing.assert_equal(img_rescaled[i].shape[0], images[i].shape[0])
 
 
 def test_masking(images):
     # generate synthetic mask randomly
-    mask = np.random.randint(0, 2, size=(images.shape[-2], images.shape[-1]))
+    mask = np.random.randint(0, 2, size=(images[0].shape[-2], images[0].shape[-1]))
     idx_zeros = np.where(mask == 0)
     idx_ones = np.where(mask == 1)
     img_masked = mask_img_stack(images, mask)
-    n_samples, n_phases = images.shape[:2]
+    n_samples = len(images)
     for i in range(n_samples):
+        n_phases = images[i].shape[0]
         for j in range(n_phases):
-            img = img_masked[i, j, ...]
+            img = img_masked[i][j, ...]
             testing.assert_equal(np.sum(img[idx_zeros]), 0)
-            img_orig = images[i, j, ...]
+            img_orig = images[i][j, ...]
             testing.assert_equal(img[idx_ones], img_orig[idx_ones])
 
 
 def test_normalize(images):
     norm_image = normalize_img_stack(images)
-    assert np.min(norm_image) >= 0
-    assert np.max(norm_image) <= 1
+    for i in range(len(norm_image)):
+        assert np.min(norm_image[i]) >= 0
+        assert np.max(norm_image[i]) <= 1
