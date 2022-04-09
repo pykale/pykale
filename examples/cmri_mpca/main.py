@@ -55,17 +55,18 @@ def main():
     download_file_by_url(cfg.DATASET.SOURCE, cfg.DATASET.ROOT, "%s.%s" % (base_dir, file_format), file_format)
 
     img_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.IMG_DIR)
-    ds = read_dicom_dir(img_path, sort_instance=True, sort_patient=True)
-    images = dicom2array(ds, return_ids=False)
+    ds = read_dicom_dir(img_path, sort_instance=True)
+    images, ids = dicom2array(ds, return_ids=True)
+    ids = np.array(ids, dtype=int)
     n_samples = len(images)
 
     mask_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.MASK_DIR)
     mask_ds = read_dicom_dir(mask_path, sort_instance=True)
-    mask = dicom2array(mask_ds, return_ids=False)[0]
+    mask = dicom2array(mask_ds, return_ids=False)[0][0, ...]
 
     landmark_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.LANDMARK_FILE)
-    landmark_df = pd.read_csv(landmark_path, index_col="Subject")  # read .csv file as dataframe
-    landmarks = landmark_df.iloc[:, :6].values
+    landmark_df = pd.read_csv(landmark_path, index_col="Subject").loc[ids]  # read .csv file as dataframe
+    landmarks = landmark_df.iloc[:, :-1].values
     y = landmark_df["Group"].values
     y[np.where(y != 0)] = 1  # convert to binary classification problem, i.e. no PH vs PAH
 
@@ -87,7 +88,7 @@ def main():
         ).savefig(str(save_images_location) + "/1)image_registration")
 
     # ----- masking -----
-    img_masked = mask_img_stack(img_reg.copy(), mask[0][0, ...])
+    img_masked = mask_img_stack(img_reg.copy(), mask)
     if save_images:
         visualize.plot_multi_images(
             [img_masked[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS)
@@ -122,7 +123,7 @@ def main():
 
     weights = trainer.mpca.inverse_transform(trainer.clf.coef_) - trainer.mpca.mean_
     weights = rescale_img_stack(weights, cfg.PROC.SCALE)  # rescale weights to original shape
-    weights = mask_img_stack(weights, mask[0, 0, ...])  # masking weights
+    weights = mask_img_stack(weights, mask)  # masking weights
     top_weights = model_weights.select_top_weight(weights, select_ratio=0.02)  # select top 2% weights
     if save_images:
         visualize.plot_weights(
