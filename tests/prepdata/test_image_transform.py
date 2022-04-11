@@ -6,7 +6,7 @@ import pytest
 from numpy import testing
 
 from kale.interpret.visualize import plot_multi_images
-from kale.loaddata.image_access import dicom2array, read_dicom_dir
+from kale.loaddata.image_access import dicom2arraylist, read_dicom_dir
 from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, reg_img_stack, rescale_img_stack
 from kale.utils.download import download_file_by_url
 
@@ -19,7 +19,7 @@ def images(download_path):
     download_file_by_url(cmr_url, download_path, "SA_64x64.zip", "zip")
     img_path = os.path.join(download_path, "SA_64x64", "DICOM")
     cmr_ds = read_dicom_dir(img_path, sort_instance=True, sort_patient=True)
-    cmr_images = dicom2array(dicom_ds=cmr_ds, return_ids=False)
+    cmr_images = dicom2arraylist(dicom_ds=cmr_ds, return_ids=False)
 
     return cmr_images[:5]
 

@@ -15,7 +15,7 @@ from config import get_cfg_defaults
 from sklearn.model_selection import cross_validate
 
 from kale.interpret import model_weights, visualize
-from kale.loaddata.image_access import dicom2array, read_dicom_dir
+from kale.loaddata.image_access import dicom2arraylist, read_dicom_dir
 from kale.pipeline.mpca_trainer import MPCATrainer
 from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, reg_img_stack, rescale_img_stack
 from kale.utils.download import download_file_by_url
@@ -56,13 +56,13 @@ def main():
 
     img_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.IMG_DIR)
     ds = read_dicom_dir(img_path, sort_instance=True)
-    images, ids = dicom2array(ds, return_ids=True)
+    images, ids = dicom2arraylist(ds, return_ids=True)
     ids = np.array(ids, dtype=int)
     n_samples = len(images)
 
     mask_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.MASK_DIR)
     mask_ds = read_dicom_dir(mask_path, sort_instance=True)
-    mask = dicom2array(mask_ds, return_ids=False)[0][0, ...]
+    mask = dicom2arraylist(mask_ds, return_ids=False)[0][0, ...]
 
     landmark_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.LANDMARK_FILE)
     landmark_df = pd.read_csv(landmark_path, index_col="Subject").loc[ids]  # read .csv file as dataframe

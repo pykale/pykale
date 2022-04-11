@@ -345,17 +345,18 @@ def read_dicom_phases(dicom_path, sort_instance=True):
         sort_instance (bool, optional): Whether sort images by InstanceNumber (i.e. phase number). Defaults to True.
 
     Returns:
-        [list]: List of dicom phases
+        [list]: List of dicom dataset objects
     """
-    ds = []
+    ds_list = []  # list of dicom dataset objects
+    # get all dicom files under the directory
     phase_files = glob.glob(dicom_path + "/**/*.dcm", recursive=True)
     for phase_file in phase_files:
         dataset = pydicom.dcmread(phase_file)
-        ds.append(dataset)
+        ds_list.append(dataset)
     if sort_instance:
-        ds.sort(key=lambda x: x.InstanceNumber, reverse=False)
+        ds_list.sort(key=lambda x: x.InstanceNumber, reverse=False)
 
-    return ds
+    return ds_list
 
 
 def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
@@ -381,35 +382,35 @@ def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
         sort_patient (bool, optional): Whether sort subjects' images by PatientID. Defaults to False.
 
     Returns:
-        [list[list]]: [a list of dicom phase lists]
+        [list[list]]: [a list of dicom dataset lists]
     """
     sub_dirs = [os.path.join(dicom_path, sub_dir) for sub_dir in os.listdir(dicom_path)]
     sub_dirs = filter(os.path.isdir, sub_dirs)
-    ds = []
+    ds_lists = []  # list of dicom dataset lists
 
     for sub_dir in sub_dirs:
         sub_ds = read_dicom_phases(sub_dir, sort_instance)
-        ds.append(sub_ds)
+        ds_lists.append(sub_ds)
 
     if sort_patient:
-        ds.sort(key=lambda x: x[0].PatientID, reverse=False)
+        ds_lists.sort(key=lambda x: x[0].PatientID, reverse=False)
 
-    return ds
+    return ds_lists
 
 
-def dicom2array(dicom_ds, return_ids=False):
+def dicom2arraylist(dicom_ds, return_ids=False):
     """Convert dicom datasets to arrays
 
     Args:
-        dicom_ds (list): List of dicom datasets.
+        dicom_ds (list): List of dicom dataset lists.
         return_ids (bool, optional): Whether return PatientID. Defaults to False.
 
     Returns:
         list: list of array-like tensors.
+        list (optional): list of PatientIDs.
     """
     n_samples = len(dicom_ds)
-    images = []
-    # images = np.zeros((n_samples, n_phases,) + image_size)
+    image_list = []  # number of phases can be different across patients, using list to avoid the phase dimension issue
     sub_ids = []
     for i in range(n_samples):
         sub_ids.append(dicom_ds[i][0].PatientID)
@@ -418,8 +419,8 @@ def dicom2array(dicom_ds, return_ids=False):
         img = np.zeros((n_phases,) + img_size)
         for j in range(n_phases):
             img[j, ...] = dicom_ds[i][j].pixel_array
-        images.append(img)
+        image_list.append(img)
     if return_ids:
-        return images, sub_ids
+        return image_list, sub_ids
     else:
-        return images
+        return image_list
