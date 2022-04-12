@@ -14,7 +14,7 @@
 
 #### Code Improvements
 
-* [#240](https://github.com/pykale/pykale/pull/240): Fix #233 - refractor the code to save the images instead of opening them at runtime
+* [#240](https://github.com/pykale/pykale/pull/240): Refractor the code to save the images instead of opening them at runtime
 * [#271](https://github.com/pykale/pykale/pull/271): Fix doc build, improve docstrings and MPCA pipeline fit efficiency
 * [#272](https://github.com/pykale/pykale/pull/272): Update progress_bar for PyTorch Lightning & change 'target' abbreviation
 * [#283](https://github.com/pykale/pykale/pull/283): "val" in variable names to "valid"
