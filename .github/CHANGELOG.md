@@ -1,3 +1,55 @@
+# Version  0.1.0rc5
+
+
+#### New Features
+
+
+* [#273](https://github.com/pykale/pykale/pull/273): add topk & multitask topk accuracies
+* [#285](https://github.com/pykale/pykale/pull/285): Landmark uncertainty readme
+
+#### Bug Fixes
+
+
+* [#250](https://github.com/pykale/pykale/pull/250): Use torch scatter 2.0.7 in test
+* [#244](https://github.com/pykale/pykale/pull/244): update getting indicies with torch.where
+* [#254](https://github.com/pykale/pykale/pull/254): Fix bugs for upgrading PyTroch-lightning to 1.5
+* [#257](https://github.com/pykale/pykale/pull/257): Update all files affected by PyTorch 1.10 and Torchvision 0.11.1
+* [#286](https://github.com/pykale/pykale/pull/286): Update ipython requirement from <8.0 to <9.0
+* [#302](https://github.com/pykale/pykale/pull/302): Torch cluster bug
+
+#### Code Improvements
+
+
+* [#271](https://github.com/pykale/pykale/pull/271): Fix doc build, improve docstrings and MPCA pipeline fit efficiency
+* [#283](https://github.com/pykale/pykale/pull/283): "val" in variable names to "valid"
+
+#### Tests
+
+
+* [#259](https://github.com/pykale/pykale/pull/259): Raise an issue if tests fail.
+
+#### Documentation Updates
+
+
+* [#243](https://github.com/pykale/pykale/pull/243): Clarify PR template
+* [#228](https://github.com/pykale/pykale/pull/228): Zenodo json
+* [#282](https://github.com/pykale/pykale/pull/282): Clarify when to request review and prefer just one label
+
+#### Other Changes
+
+* [#238](https://github.com/pykale/pykale/pull/238): Release 0.1.0rc4
+* [#251](https://github.com/pykale/pykale/pull/251): MFSAN support 1D input
+* [#253](https://github.com/pykale/pykale/pull/253): Use pytorch_geometric 1.7.0 in test
+* [#247](https://github.com/pykale/pykale/pull/247): Add default preprint citation back and fix MNIST-M & office
+* [#258](https://github.com/pykale/pykale/pull/258): Use pyparsing 2.4.7 in test
+* [#256](https://github.com/pykale/pykale/pull/256): Update for PyTorch 1.10 and Torchvision 0.11.1
+* [#240](https://github.com/pykale/pykale/pull/240): Fix #233 - refractor the code to save the images instead of opening them at runtime
+* [#268](https://github.com/pykale/pykale/pull/268): Fix DeepDTA colab example issue
+* [#272](https://github.com/pykale/pykale/pull/272): Update progress_bar for PL 1.5.5 & change 'target' abbreviation
+* [#289](https://github.com/pykale/pykale/pull/289): update readme to say functional code is on another branch,
+* [#315](https://github.com/pykale/pykale/pull/315): Do not raise issue on scheduled test failures
+
+
 # Version  0.1.0rc4
 
 #### Code Improvements
