@@ -347,16 +347,16 @@ def read_dicom_phases(dicom_path, sort_instance=True):
     Returns:
         [list]: List of dicom dataset objects
     """
-    ds_list = []  # list of dicom dataset objects
+    dcm_phases = []  # list of dicom dataset objects (phases)
     # get all dicom files under the directory
     phase_files = glob.glob(dicom_path + "/**/*.dcm", recursive=True)
     for phase_file in phase_files:
         dataset = pydicom.dcmread(phase_file)
-        ds_list.append(dataset)
+        dcm_phases.append(dataset)
     if sort_instance:
-        ds_list.sort(key=lambda x: x.InstanceNumber, reverse=False)
+        dcm_phases.sort(key=lambda x: x.InstanceNumber, reverse=False)
 
-    return ds_list
+    return dcm_phases
 
 
 def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
@@ -386,16 +386,16 @@ def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
     """
     sub_dirs = [os.path.join(dicom_path, sub_dir) for sub_dir in os.listdir(dicom_path)]
     sub_dirs = filter(os.path.isdir, sub_dirs)
-    ds_lists = []  # list of dicom dataset lists
+    dcm_patients = []  # list of dicom dataset patient lists
 
     for sub_dir in sub_dirs:
         sub_ds = read_dicom_phases(sub_dir, sort_instance)
-        ds_lists.append(sub_ds)
+        dcm_patients.append(sub_ds)
 
     if sort_patient:
-        ds_lists.sort(key=lambda x: x[0].PatientID, reverse=False)
+        dcm_patients.sort(key=lambda x: x[0].PatientID, reverse=False)
 
-    return ds_lists
+    return dcm_patients
 
 
 def dicom2arraylist(dicom_ds, return_ids=False):
