@@ -398,12 +398,12 @@ def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
     return dcm_patients
 
 
-def dicom2arraylist(dicom_ds, return_ids=False):
+def dicom2arraylist(dicom_ds, return_patient_id=False):
     """Convert dicom datasets to arrays
 
     Args:
         dicom_ds (list): List of dicom dataset lists.
-        return_ids (bool, optional): Whether return PatientID. Defaults to False.
+        return_patient_id (bool, optional): Whether return PatientID. Defaults to False.
 
     Returns:
         list: list of array-like tensors.
@@ -420,7 +420,7 @@ def dicom2arraylist(dicom_ds, return_ids=False):
         for j in range(n_phases):
             img[j, ...] = dicom_ds[i][j].pixel_array
         image_list.append(img)
-    if return_ids:
+    if return_patient_id:
         return image_list, sub_ids
     else:
         return image_list

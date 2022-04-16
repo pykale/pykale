@@ -19,7 +19,7 @@ def images(download_path):
     download_file_by_url(cmr_url, download_path, "SA_64x64.zip", "zip")
     img_path = os.path.join(download_path, "SA_64x64", "DICOM")
     cmr_ds = read_dicom_dir(img_path, sort_instance=True, sort_patient=True)
-    cmr_images = dicom2arraylist(dicom_ds=cmr_ds, return_ids=False)
+    cmr_images = dicom2arraylist(dicom_ds=cmr_ds, return_patient_id=False)
 
     return cmr_images[:5]
 
