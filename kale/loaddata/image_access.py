@@ -384,13 +384,13 @@ def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
     Returns:
         [list[list]]: [a list of dicom dataset lists]
     """
-    sub_dirs = [os.path.join(dicom_path, sub_dir) for sub_dir in os.listdir(dicom_path)]
-    sub_dirs = filter(os.path.isdir, sub_dirs)
+    patient_dirs = [os.path.join(dicom_path, patient_dir) for patient_dir in os.listdir(dicom_path)]
+    patient_dirs = filter(os.path.isdir, patient_dirs)
     dcm_patients = []  # list of dicom dataset patient lists
 
-    for sub_dir in sub_dirs:
-        sub_ds = read_dicom_phases(sub_dir, sort_instance)
-        dcm_patients.append(sub_ds)
+    for patient_dir in patient_dirs:
+        patient_dcm_list = read_dicom_phases(patient_dir, sort_instance)
+        dcm_patients.append(patient_dcm_list)
 
     if sort_patient:
         dcm_patients.sort(key=lambda x: x[0].PatientID, reverse=False)
@@ -398,29 +398,29 @@ def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
     return dcm_patients
 
 
-def dicom2arraylist(dicom_ds, return_patient_id=False):
+def dicom2arraylist(dicom_patient_list, return_patient_id=False):
     """Convert dicom datasets to arrays
 
     Args:
-        dicom_ds (list): List of dicom dataset lists.
+        dicom_patient_list (list): List of dicom patient lists.
         return_patient_id (bool, optional): Whether return PatientID. Defaults to False.
 
     Returns:
         list: list of array-like tensors.
         list (optional): list of PatientIDs.
     """
-    n_samples = len(dicom_ds)
+    n_samples = len(dicom_patient_list)
     image_list = []  # number of phases can be different across patients, using list to avoid the phase dimension issue
-    sub_ids = []
+    patient_ids = []
     for i in range(n_samples):
-        sub_ids.append(dicom_ds[i][0].PatientID)
-        n_phases = len(dicom_ds[i])
-        img_size = dicom_ds[i][0].pixel_array.shape
+        patient_ids.append(dicom_patient_list[i][0].PatientID)
+        n_phases = len(dicom_patient_list[i])
+        img_size = dicom_patient_list[i][0].pixel_array.shape
         img = np.zeros((n_phases,) + img_size)
         for j in range(n_phases):
-            img[j, ...] = dicom_ds[i][j].pixel_array
+            img[j, ...] = dicom_patient_list[i][j].pixel_array
         image_list.append(img)
     if return_patient_id:
-        return image_list, sub_ids
+        return image_list, patient_ids
     else:
         return image_list

@@ -71,7 +71,7 @@ class MPCA(BaseEstimator, TransformerMixin):
     Args:
         var_ratio (float, optional): Percentage of variance explained (between 0 and 1). Defaults to 0.97.
         max_iter (int, optional): Maximum number of iteration. Defaults to 1.
-        vectorize (bool): Whether ruturn the transformed/projected tensor in vector. Defaults to False.
+        vectorize (bool): Whether return the transformed/projected tensor in vector. Defaults to False.
         n_components (int): Number of components to keep. Applies only when vectorize=True. Defaults to None.
 
     Attributes:

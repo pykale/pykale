@@ -55,14 +55,14 @@ def main():
     download_file_by_url(cfg.DATASET.SOURCE, cfg.DATASET.ROOT, "%s.%s" % (base_dir, file_format), file_format)
 
     img_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.IMG_DIR)
-    ds = read_dicom_dir(img_path, sort_instance=True)
-    images, patient_ids = dicom2arraylist(ds, return_patient_id=True)
+    patient_dcm_list = read_dicom_dir(img_path, sort_instance=True)
+    images, patient_ids = dicom2arraylist(patient_dcm_list, return_patient_id=True)
     patient_ids = np.array(patient_ids, dtype=int)
     n_samples = len(images)
 
     mask_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.MASK_DIR)
-    mask_ds = read_dicom_dir(mask_path, sort_instance=True)
-    mask = dicom2arraylist(mask_ds, return_patient_id=False)[0][0, ...]
+    mask_dcm = read_dicom_dir(mask_path, sort_instance=True)
+    mask = dicom2arraylist(mask_dcm, return_patient_id=False)[0][0, ...]
 
     landmark_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.LANDMARK_FILE)
     landmark_df = pd.read_csv(landmark_path, index_col="Subject").loc[patient_ids]  # read .csv file as dataframe
