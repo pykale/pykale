@@ -71,8 +71,8 @@ class MPCA(BaseEstimator, TransformerMixin):
     Args:
         var_ratio (float, optional): Percentage of variance explained (between 0 and 1). Defaults to 0.97.
         max_iter (int, optional): Maximum number of iteration. Defaults to 1.
-        return_vector (bool): Whether ruturn the transformed/projected tensor in vector. Defaults to False.
-        n_components (int): Number of components to keep. Applies only when return_vector=True. Defaults to None.
+        vectorize (bool): Whether return the transformed/projected tensor in vector. Defaults to False.
+        n_components (int): Number of components to keep. Applies only when vectorize=True. Defaults to None.
 
     Attributes:
         proj_mats (list of arrays): A list of transposed projection matrices, shapes (P_1, I_1), ...,
@@ -87,7 +87,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         >>> x = np.random.random((40, 20, 25, 20))
         >>> x.shape
         (40, 20, 25, 20)
-        >>> mpca = MPCA(variance_explained=0.9)
+        >>> mpca = MPCA()
         >>> x_projected = mpca.fit_transform(x)
         >>> x_projected.shape
         (40, 18, 23, 18)
@@ -102,7 +102,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         (40, 20, 25, 20)
     """
 
-    def __init__(self, var_ratio=0.97, max_iter=1, return_vector=False, n_components=None):
+    def __init__(self, var_ratio=0.97, max_iter=1, vectorize=False, n_components=None):
         self.var_ratio = var_ratio
         if max_iter > 0 and isinstance(max_iter, int):
             self.max_iter = max_iter
@@ -111,7 +111,7 @@ class MPCA(BaseEstimator, TransformerMixin):
             logging.error(msg)
             raise ValueError(msg)
         self.proj_mats = []
-        self.return_vector = return_vector
+        self.vectorize = vectorize
         self.n_components = n_components
 
     def fit(self, x, y=None):
@@ -196,8 +196,8 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         Returns:
             array-like tensor:
-                Projected data in lower dimension, shape (n_samples, P_1, P_2, ..., P_N) if self.return_vector==False.
-                If self.return_vector==True, features will be sorted based on their explained variance ratio, shape
+                Projected data in lower dimension, shape (n_samples, P_1, P_2, ..., P_N) if self.vectorize==False.
+                If self.vectorize==True, features will be sorted based on their explained variance ratio, shape
                 (n_samples, P_1 * P_2 * ... * P_N) if self.n_components is None, and shape (n_samples, n_components)
                 if self.n_component is a valid integer.
         """
@@ -210,7 +210,7 @@ class MPCA(BaseEstimator, TransformerMixin):
         # projected tensor in lower dimensions
         x_projected = multi_mode_dot(x, self.proj_mats, modes=[m for m in range(1, self.n_dims)])
 
-        if self.return_vector:
+        if self.vectorize:
             x_projected = unfold(x_projected, mode=0)
             x_projected = x_projected[:, self.idx_order]
             if isinstance(self.n_components, int):
@@ -228,8 +228,8 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         Args:
             x (array-like tensor): Data to be reconstructed, shape (n_samples, P_1, P_2, ..., P_N), if
-                self.return_vector == False, where P_1, P_2, ..., P_N are the reduced dimensions of of corresponding
-                mode (1, 2, ..., N), respectively. If self.return_vector == True, shape (n_samples, self.n_components)
+                self.vectorize == False, where P_1, P_2, ..., P_N are the reduced dimensions of of corresponding
+                mode (1, 2, ..., N), respectively. If self.vectorize == True, shape (n_samples, self.n_components)
                 or shape (n_samples, P_1 * P_2 * ... * P_N).
 
         Returns:

@@ -12,7 +12,7 @@ PARAMS = [
     {"classifier_params": "auto", "mpca_params": None, "n_features": None, "search_params": None},
     {
         "classifier_params": {"C": 1},
-        "mpca_params": {"var_ratio": 0.9, "return_vector": True},
+        "mpca_params": {"var_ratio": 0.9, "vectorize": True},
         "n_features": 100,
         "search_params": {"cv": 3},
     },
