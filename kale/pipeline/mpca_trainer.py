@@ -37,7 +37,7 @@ classifiers = {
 
 # k-fold cross validation used for grid search, i.e. searching for optimal value of C
 default_search_params = {"cv": 5}
-default_mpca_params = {"var_ratio": 0.97, "return_vector": True}
+default_mpca_params = {"var_ratio": 0.97, "vectorize": True}
 
 
 class MPCATrainer(BaseEstimator, ClassifierMixin):
@@ -125,7 +125,7 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         """
         # fit mpca
         self.mpca.fit(x)
-        self.mpca.set_params(**{"return_vector": True})
+        self.mpca.set_params(**{"vectorize": True})
         x_transformed = self.mpca.transform(x)
 
         # feature selection
