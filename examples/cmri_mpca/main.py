@@ -15,7 +15,7 @@ from config import get_cfg_defaults
 from sklearn.model_selection import cross_validate
 
 from kale.interpret import model_weights, visualize
-from kale.loaddata.image_access import read_dicom_images
+from kale.loaddata.image_access import dicom2arraylist, read_dicom_dir
 from kale.pipeline.mpca_trainer import MPCATrainer
 from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, reg_img_stack, rescale_img_stack
 from kale.utils.download import download_file_by_url
@@ -55,57 +55,62 @@ def main():
     download_file_by_url(cfg.DATASET.SOURCE, cfg.DATASET.ROOT, "%s.%s" % (base_dir, file_format), file_format)
 
     img_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.IMG_DIR)
-    images = read_dicom_images(img_path, sort_instance=True, sort_patient=True)
+    patient_dcm_list = read_dicom_dir(img_path, sort_instance=True)
+    images, patient_ids = dicom2arraylist(patient_dcm_list, return_patient_id=True)
+    patient_ids = np.array(patient_ids, dtype=int)
+    n_samples = len(images)
 
     mask_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.MASK_DIR)
-    mask = read_dicom_images(mask_path, sort_instance=True)
+    mask_dcm = read_dicom_dir(mask_path, sort_instance=True)
+    mask = dicom2arraylist(mask_dcm, return_patient_id=False)[0][0, ...]
 
     landmark_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.LANDMARK_FILE)
-    landmark_df = pd.read_csv(landmark_path, index_col="Subject")  # read .csv file as dataframe
-    landmarks = landmark_df.iloc[:, :6].values
+    landmark_df = pd.read_csv(landmark_path, index_col="Subject").loc[patient_ids]  # read .csv file as dataframe
+    landmarks = landmark_df.iloc[:, :-1].values
     y = landmark_df["Group"].values
     y[np.where(y != 0)] = 1  # convert to binary classification problem, i.e. no PH vs PAH
 
     # plot the first phase of images
     if save_images:
         visualize.plot_multi_images(
-            images[:, 0, ...],
+            [images[i][0, ...] for i in range(n_samples)],
             marker_locs=landmarks,
             im_kwargs=dict(cfg.IM_KWARGS),
             marker_kwargs=dict(cfg.MARKER_KWARGS),
+            n_cols=10,
         ).savefig(str(save_images_location) + "/0)first_phase.png")
 
     # ---- data pre-processing ----
     # ----- image registration -----
-    img_reg, max_dist = reg_img_stack(images.copy(), landmarks)
+    img_reg, max_dist = reg_img_stack(images.copy(), landmarks, landmarks[0])
     if save_images:
-        visualize.plot_multi_images(img_reg[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
-            str(save_images_location) + "/1)image_registration"
-        )
+        visualize.plot_multi_images(
+            [img_reg[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS), n_cols=10
+        ).savefig(str(save_images_location) + "/1)image_registration")
 
     # ----- masking -----
-    img_masked = mask_img_stack(img_reg.copy(), mask[0, 0, ...])
+    img_masked = mask_img_stack(img_reg.copy(), mask)
     if save_images:
-        visualize.plot_multi_images(img_masked[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
-            str(save_images_location) + "/2)masking"
-        )
+        visualize.plot_multi_images(
+            [img_masked[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS), n_cols=10
+        ).savefig(str(save_images_location) + "/2)masking")
 
     # ----- resize -----
     img_rescaled = rescale_img_stack(img_masked.copy(), scale=1 / cfg.PROC.SCALE)
     if save_images:
-        visualize.plot_multi_images(img_rescaled[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
-            str(save_images_location) + "/3)resize"
-        )
+        visualize.plot_multi_images(
+            [img_rescaled[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS), n_cols=10
+        ).savefig(str(save_images_location) + "/3)resize")
 
     # ----- normalization -----
     img_norm = normalize_img_stack(img_rescaled.copy())
     if save_images:
-        visualize.plot_multi_images(img_norm[:, 0, ...], im_kwargs=dict(cfg.IM_KWARGS)).savefig(
-            str(save_images_location) + "/4)normalize"
-        )
+        visualize.plot_multi_images(
+            [img_norm[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS), n_cols=10
+        ).savefig(str(save_images_location) + "/4)normalize")
 
     # ---- evaluating machine learning pipeline ----
-    x = img_norm.copy()
+    x = np.concatenate([img_norm[i].reshape((1,) + img_norm[i].shape) for i in range(n_samples)], axis=0)
     trainer = MPCATrainer(classifier=cfg.PIPELINE.CLASSIFIER, n_features=200)
     cv_results = cross_validate(trainer, x, y, cv=10, scoring=["accuracy", "roc_auc"], n_jobs=1)
 
@@ -119,7 +124,7 @@ def main():
 
     weights = trainer.mpca.inverse_transform(trainer.clf.coef_) - trainer.mpca.mean_
     weights = rescale_img_stack(weights, cfg.PROC.SCALE)  # rescale weights to original shape
-    weights = mask_img_stack(weights, mask[0, 0, ...])  # masking weights
+    weights = mask_img_stack(weights, mask)  # masking weights
     top_weights = model_weights.select_top_weight(weights, select_ratio=0.02)  # select top 2% weights
     if save_images:
         visualize.plot_weights(

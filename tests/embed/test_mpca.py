@@ -26,7 +26,7 @@ def baseline_model(download_path):
 def test_mpca(var_ratio, n_components, gait):
     # basic mpca test, return tensor
     x = gait["fea3D"].transpose((3, 0, 1, 2))
-    mpca = MPCA(var_ratio=var_ratio, return_vector=False)
+    mpca = MPCA(var_ratio=var_ratio, vectorize=False)
     x_proj = mpca.fit(x).transform(x)
 
     testing.assert_equal(x_proj.ndim, x.ndim)
@@ -41,7 +41,7 @@ def test_mpca(var_ratio, n_components, gait):
     testing.assert_equal(x_rec.shape, x.shape)
 
     # test return vector
-    mpca.set_params(**{"return_vector": True, "n_components": n_components})
+    mpca.set_params(**{"vectorize": True, "n_components": n_components})
 
     x_proj = mpca.transform(x)
     testing.assert_equal(x_proj.ndim, 2)
@@ -59,7 +59,7 @@ def test_mpca(var_ratio, n_components, gait):
     testing.assert_equal(x0_rec.shape[1:], x[0].shape)
 
     # test n_components exceeds upper limit
-    mpca.set_params(**{"return_vector": True, "n_components": np.prod(x.shape[1:]) + 1})
+    mpca.set_params(**{"vectorize": True, "n_components": np.prod(x.shape[1:]) + 1})
     x_proj = mpca.transform(x)
     testing.assert_equal(x_proj.shape[1], np.prod(mpca.shape_out))
 
