@@ -38,21 +38,23 @@ EXPECTED_COLS = [
         (["S-MHA Error", "E-MHA Error"], ["S-MHA Error", "E-MHA Error"]),
     ],
 )
-def test_load_csv_columns_cols_return2(landmark_uncertainty_dl, return_columns):
+
+def test_load_csv_columns_cols_return(landmark_uncertainty_tuples_path, return_columns):
 
     # download_file_by_url(landmark_uncertainty_url, landmark_uncertainty_dl, "Uncertainty_tuples.zip", "zip")
     returned_cols = load_csv_columns(
-        landmark_uncertainty_dl[0], "Testing Fold", np.arange(8), cols_to_return=return_columns[0],
+        landmark_uncertainty_tuples_path[0], "Testing Fold", np.arange(8), cols_to_return=return_columns[0],
     )
     assert list(returned_cols.columns) == return_columns[1]
 
 
+
 # Ensure getting a single fold works
 @pytest.mark.parametrize("folds", [0])
-def test_load_csv_columns_single_fold(landmark_uncertainty_dl, folds):
+def test_load_csv_columns_single_fold(landmark_uncertainty_tuples_path, folds):
 
     returned_single_fold = load_csv_columns(
-        landmark_uncertainty_dl[0],
+        landmark_uncertainty_tuples_path[0],
         "Validation Fold",
         folds,
         cols_to_return=["S-MHA Error", "E-MHA Error", "Validation Fold"],
@@ -65,9 +67,9 @@ def test_load_csv_columns_single_fold(landmark_uncertainty_dl, folds):
 # Ensure getting a list of folds only return those folds and
 # Ensure all samples are being returned
 @pytest.mark.parametrize("folds", [[3, 1, 2]])
-def test_load_csv_columns_multiple_folds(landmark_uncertainty_dl, folds):
+def test_load_csv_columns_multiple_folds(landmark_uncertainty_tuples_path, folds):
     returned_list_of_folds = load_csv_columns(
-        landmark_uncertainty_dl[0],
+        landmark_uncertainty_tuples_path[0],
         "Validation Fold",
         folds,
         cols_to_return=["S-MHA Error", "E-MHA Error", "Validation Fold"],
