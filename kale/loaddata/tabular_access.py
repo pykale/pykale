@@ -10,13 +10,14 @@ import pandas as pd
 
 class ImbalancedDesignError(Exception):
     """Data is not balanced across domains, subjects, and categories
-    
+
     Data will be returned as a numpy array where domain, subject, category, example, etc. are conditions of the array.
     This data representation requires symmetry in the dataset (i.e., a 2x4 array has four values in the first row and
     four values in the second row). If the dataset does not have this symmetry, it is imbalanced, and this error will be
     raised.
 
     """
+
     def __init__(self, value_counts_dict: dict):
         info_string = " ".join([f"{k}: {v}" for k, v in value_counts_dict.items()])
         super().__init__(f"Data is not balanced across domains, subjects, and categories.\n{info_string}")
