@@ -42,10 +42,10 @@ def test_apply_confidence_inversion(input, expected):
 
 
 # Test that we can read csvs in the correct structure and return a dict of pandas dataframes in correct structure.
-def test_get_data_struct(landmark_uncertainty_local_dummy):
+def test_get_data_struct(landmark_uncertainty_tuples_path):
 
     bins_all_lms, bins_lms_sep, bounds_all_lms, bounds_lms_sep = get_data_struct(
-        ["U-NET"], [0, 1], landmark_uncertainty_local_dummy[2], "SA"
+        ["U-NET"], [0, 1], landmark_uncertainty_tuples_path[2], "SA"
     )
 
     assert isinstance(bins_all_lms, dict)

@@ -20,9 +20,9 @@ UNCERTAINTIES = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 
 
 @pytest.fixture(scope="module")
-def dummy_test_preds(landmark_uncertainty_local_dummy):
+def dummy_test_preds(landmark_uncertainty_tuples_path):
     bins_all_lms, bins_lms_sep, bounds_all_lms, bounds_lms_sep = get_data_struct(
-        ["U-NET"], [0, 1], landmark_uncertainty_local_dummy[2], "SA"
+        ["U-NET"], [0, 1], landmark_uncertainty_tuples_path[2], "SA"
     )
 
     return bins_all_lms, bounds_all_lms
@@ -88,8 +88,6 @@ class TestEvaluateBounds:
             [0, 1],
             num_folds=8,
         )
-
-        LOGGER.info("all_bound_percents is %s " % all_bound_percents)
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA"]
         assert len(all_bound_percents["U-NET S-MHA"]) == num_bins
