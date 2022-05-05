@@ -20,9 +20,9 @@ UNCERTAINTIES = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 
 
 @pytest.fixture(scope="module")
-def dummy_test_preds(landmark_uncertainty_dl):
+def dummy_test_preds(landmark_uncertainty_local_dummy):
     bins_all_lms, bins_lms_sep, bounds_all_lms, bounds_lms_sep = get_data_struct(
-        ["U-NET"], [0, 1], landmark_uncertainty_dl[2], "SA"
+        ["U-NET"], [0, 1], landmark_uncertainty_local_dummy[2], "SA"
     )
 
     return bins_all_lms, bounds_all_lms
