@@ -28,9 +28,6 @@ def download_path():
 
 gait_url = "https://github.com/pykale/data/raw/main/videos/gait/gait_gallery_data.mat"
 
-landmark_uncertainty_url = (
-    "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
-)
 
 @pytest.fixture(scope="session")
 def gait(download_path):
@@ -45,33 +42,26 @@ def office_path(download_path):
     return path_
 
 
+# Landmark Global fixtures
+landmark_uncertainty_url = (
+    "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
+)
+
+
+# Downloads and unzips remote file
 @pytest.fixture(scope="session")
 def landmark_uncertainty_tuples_path(download_path):
-    path_ = os.path.join(download_path,"Uncertainty_tuples")
+    path_ = os.path.join(download_path, "Uncertainty_tuples")
     os.makedirs(path_, exist_ok=True)
 
     download_file_by_url(landmark_uncertainty_url, path_, "Uncertainty_tuples.zip", "zip")
     valid_path = os.path.join(path_, "U-NET/SA/uncertainty_pairs_valid_l0")
     test_path = os.path.join(path_, "U-NET/SA/uncertainty_pairs_test_l0")
-    
-    # # with open(valid_path, newline='') as csvfile
-    # #     dummy_valid_data = load_csv_columns(
-    # #     landmark_uncertainty_dl[0], "Testing Fold", np.arange(8), cols_to_return=return_columns[0],
-    # # )
 
     return valid_path, test_path, path_
 
 
-
-
-    # Args:
-    #     url (string): URL of the object to download
-    #     output_directory (string, optional): Full path where object will be saved
-    #                                          Abosolute path recommended. Relative path also works.
-    #     output_file_name (string, optional): File name which object will be saved as
-    #     file_format (string, optional): File format
-    #                             For compressed file, support ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]
-
+# Downloads and creates local dummy data
 @pytest.fixture(scope="session")
 def landmark_uncertainty_local_dummy(download_path):
 

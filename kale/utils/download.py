@@ -15,7 +15,7 @@ from pathlib import Path
 
 from torch.hub import download_url_to_file
 from torchvision.datasets.utils import download_and_extract_archive, download_file_from_google_drive, extract_archive
- 
+
 
 def download_file_by_url(url, output_directory, output_file_name, file_format=None):
     """Download file/compressed file by url.
