@@ -23,7 +23,7 @@ class ImbalancedDesignError(Exception):
         super().__init__(f"Data is not balanced across domains, subjects, and categories.\n{info_string}")
 
 
-def read_csv_tabular(csv_path: str, index_col: list) -> np.array:
+def read_csv_tabular(csv_path: str, index_col: list, **kwargs) -> np.array:
     """Read numeric data from comma separated text.
 
     Args:
@@ -34,7 +34,7 @@ def read_csv_tabular(csv_path: str, index_col: list) -> np.array:
     Returns:
         [array-like]: [description]
     """
-    dataframe = pd.read_csv(csv_path, index_col=index_col)
+    dataframe = pd.read_csv(csv_path, index_col=index_col, **kwargs)
     dataframe.sort_index(level=index_col, inplace=True)
     value_counts_by_level = [dataframe.index.get_level_values(level).nunique() for level in index_col]
 

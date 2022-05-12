@@ -7,6 +7,7 @@ from numpy import testing
 
 from kale.interpret.visualize import plot_multi_images
 from kale.loaddata.image_access import dicom2arraylist, read_dicom_dir
+from kale.loaddata.tabular_access import read_csv_tabular
 from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, reg_img_stack, rescale_img_stack
 from kale.utils.download import download_file_by_url
 
@@ -25,17 +26,12 @@ def images(download_path):
 
 
 @pytest.fixture(scope="module")
-def coords():
-    landmarks = np.asarray(
-        [
-            [32.0, 39.75, 29.25, 23.75, 19.0, 41.0],
-            [24.5, 40.0, 28.5, 23.75, 11.0, 37.25],
-            [26.25, 40.5, 27.75, 24.25, 12.25, 40.75],
-            [34.25, 38.0, 34.25, 21.25, 23.0, 41.0],
-            [33.0, 40.25, 31.5, 24.25, 19.5, 40.5],
-        ]
-    )
-    return landmarks
+def coords(download_path):
+    landmark_path = os.path.join(download_path, "SA_64x64", "landmarks_64x64.csv")
+    kwargs = {"usecols": [0, 1, 2, 3, 4, 5, 6]}
+    landmarks = read_csv_tabular(landmark_path, index_col=[0], **kwargs)
+
+    return landmarks.iloc[:5, :].values
 
 
 def test_reg(images, coords):
