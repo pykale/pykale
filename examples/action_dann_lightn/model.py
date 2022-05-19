@@ -48,6 +48,7 @@ def get_config(cfg):
             "target": cfg.DATASET.TARGET,
             "size_type": cfg.DATASET.SIZE_TYPE,
             "weight_type": cfg.DATASET.WEIGHT_TYPE,
+            "class_type": cfg.DATASET.CLASS_TYPE,
         },
     }
     return config_params
@@ -61,7 +62,7 @@ def get_model(cfg, dataset, num_classes):
     Args:
         cfg: A YACS config object.
         dataset: A multi domain dataset consisting of source and target datasets.
-        num_classes: The class number of specific dataset.
+        num_classes (dict): The dictionary of class number for specific dataset.
     """
 
     # setup feature extractor
@@ -69,11 +70,14 @@ def get_model(cfg, dataset, num_classes):
         cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, num_classes
     )
     # setup classifier
-    classifier_network = ClassNetVideo(input_size=class_feature_dim, n_class=num_classes)
+    classifier_network = ClassNetVideo(input_size=class_feature_dim, dict_n_class=num_classes)
 
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
+    data_params = config_params["data_params"]
+    data_params_local = deepcopy(data_params)
+    class_type = data_params_local["class_type"]
     method_params = {}
 
     method = domain_adapter.Method(cfg.DAN.METHOD)
@@ -85,6 +89,7 @@ def get_model(cfg, dataset, num_classes):
             image_modality=cfg.DATASET.IMAGE_MODALITY,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
+            class_type=class_type,
             **method_params,
             **train_params_local,
         )
@@ -95,7 +100,7 @@ def get_model(cfg, dataset, num_classes):
             if cfg.DAN.USERANDOM:
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
-                critic_input_size = domain_feature_dim * num_classes
+                critic_input_size = domain_feature_dim * num_classes["verb"]
         critic_network = DomainNetVideo(input_size=critic_input_size)
 
         if cfg.DAN.METHOD == "CDAN":
@@ -109,6 +114,7 @@ def get_model(cfg, dataset, num_classes):
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             critic=critic_network,
+            class_type=class_type,
             **method_params,
             **train_params_local,
         )

@@ -10,11 +10,13 @@ Most are inherited from kale.pipeline.domain_adapter.
 import torch
 
 import kale.predict.losses as losses
-from kale.loaddata.video_access import get_image_modality
+from kale.loaddata.video_access import get_class_type, get_image_modality
 from kale.pipeline.domain_adapter import (
+    BaseAdaptTrainer,
     BaseMMDLike,
     CDANTrainer,
     DANNTrainer,
+    get_aggregated_metrics,
     get_aggregated_metrics_from_dict,
     get_metrics_from_parameter_dict,
     GradReverse,
@@ -24,7 +26,9 @@ from kale.pipeline.domain_adapter import (
 )
 
 
-def create_mmd_based_video(method: Method, dataset, image_modality, feature_extractor, task_classifier, **train_params):
+def create_mmd_based_video(
+    method: Method, dataset, image_modality, feature_extractor, task_classifier, class_type, **train_params
+):
     """MMD-based deep learning methods for domain adaptation on video data: DAN and JAN"""
     if not method.is_mmd_method():
         raise ValueError(f"Unsupported MMD method: {method}")
@@ -35,6 +39,7 @@ def create_mmd_based_video(method: Method, dataset, image_modality, feature_extr
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
             method=method,
+            class_type=class_type,
             **train_params,
         )
     if method is Method.JAN:
@@ -44,6 +49,7 @@ def create_mmd_based_video(method: Method, dataset, image_modality, feature_extr
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
             method=method,
+            class_type=class_type,
             kernel_mul=[2.0, 2.0],
             kernel_num=[5, 1],
             **train_params,
@@ -51,7 +57,7 @@ def create_mmd_based_video(method: Method, dataset, image_modality, feature_extr
 
 
 def create_dann_like_video(
-    method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, **train_params
+    method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, class_type, **train_params
 ):
     """DANN-based deep learning methods for domain adaptation on video data: DANN, CDAN, CDAN+E"""
 
@@ -73,6 +79,7 @@ def create_dann_like_video(
             task_classifier=task_classifier,
             critic=critic,
             method=method,
+            class_type=class_type,
             **train_params,
         )
     elif method.is_cdan_method():
@@ -83,6 +90,7 @@ def create_dann_like_video(
             task_classifier=task_classifier,
             critic=critic,
             method=method,
+            class_type=class_type,
             use_entropy=method is Method.CDAN_E,
             **train_params,
         )
@@ -94,20 +102,193 @@ def create_dann_like_video(
             task_classifier=task_classifier,
             critic=critic,
             method=method,
+            class_type=class_type,
             **train_params,
         )
     else:
         raise ValueError(f"Unsupported method: {method}")
 
 
-class BaseMMDLikeVideo(BaseMMDLike):
+class BaseAdaptTrainerVideo(BaseAdaptTrainer):
+    """Base class for all domain adaptation architectures on videos. Inherited from BaseAdaptTrainer."""
+
+    def train_dataloader(self):
+        dataloader = self._dataset.get_domain_loaders(split="train", batch_size=self._batch_size)
+        self._nb_training_batches = len(dataloader)
+        return dataloader
+
+    def val_dataloader(self):
+        dataloader = self._dataset.get_domain_loaders(split="valid", batch_size=self._batch_size)
+        return dataloader
+
+    def test_dataloader(self):
+        dataloader = self._dataset.get_domain_loaders(split="test", batch_size=self._batch_size)
+        return dataloader
+
+    def training_step(self, batch, batch_nb):
+        self._update_batch_epoch_factors(batch_nb)
+
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
+        if self.current_epoch < self._init_epochs:
+            loss = task_loss
+        else:
+            loss = task_loss + self.lamb_da * adv_loss
+
+        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
+        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
+        log_metrics["train_total_loss"] = loss
+        log_metrics["train_adv_loss"] = adv_loss
+        log_metrics["train_task_loss"] = task_loss
+
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
+
+        return {"loss": loss}
+
+    def validation_epoch_end(self, outputs):
+        metrics_to_log = self.create_metrics_log("valid")
+        return self._validation_epoch_end(outputs, metrics_to_log)
+
+    def test_epoch_end(self, outputs):
+        metrics_at_test = self.create_metrics_log("test")
+
+        # Uncomment to save output to json file for EPIC UDA 2021 challenge.(3/3)
+        # save_results_to_json(
+        #     self.y_hat, self.y_t_hat, self.s_id, self.tu_id, self.y_hat_noun, self.y_t_hat_noun, self.verb, self.noun
+        # )
+
+        log_dict = get_aggregated_metrics(metrics_at_test, outputs)
+
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+    def create_metrics_log(self, split_name):
+        if self.verb and not self.noun:
+            metrics_to_log = (
+                "{}_loss".format(split_name),
+                "{}_task_loss".format(split_name),
+                "{}_adv_loss".format(split_name),
+                # "{}_source_acc".format(split_name),
+                "{}_source_top1_acc".format(split_name),
+                "{}_source_top5_acc".format(split_name),
+                # "{}_target_acc".format(split_name),
+                "{}_target_top1_acc".format(split_name),
+                "{}_target_top5_acc".format(split_name),
+                "{}_source_domain_acc".format(split_name),
+                "{}_target_domain_acc".format(split_name),
+                "{}_domain_acc".format(split_name),
+            )
+            if self.method.is_mmd_method():
+                metrics_to_log = metrics_to_log[:-3] + ("{}_mmd".format(split_name),)
+        elif self.verb and self.noun:
+            metrics_to_log = (
+                "{}_loss".format(split_name),
+                "{}_task_loss".format(split_name),
+                "{}_adv_loss".format(split_name),
+                # "{}_verb_source_acc".format(split_name),
+                "{}_verb_source_top1_acc".format(split_name),
+                "{}_verb_source_top5_acc".format(split_name),
+                # "{}_noun_source_acc".format(split_name),
+                "{}_noun_source_top1_acc".format(split_name),
+                "{}_noun_source_top5_acc".format(split_name),
+                # "{}_verb_target_acc".format(split_name),
+                "{}_verb_target_top1_acc".format(split_name),
+                "{}_verb_target_top5_acc".format(split_name),
+                # "{}_noun_target_acc".format(split_name),
+                "{}_noun_target_top1_acc".format(split_name),
+                "{}_noun_target_top5_acc".format(split_name),
+                "{}_action_source_top1_acc".format(split_name),
+                "{}_action_source_top5_acc".format(split_name),
+                "{}_action_target_top1_acc".format(split_name),
+                "{}_action_target_top5_acc".format(split_name),
+                "{}_domain_acc".format(split_name),
+            )
+            if self.method.is_mmd_method():
+                metrics_to_log = metrics_to_log[:-1] + ("{}_mmd".format(split_name),)
+        if split_name == "test":
+            metrics_to_log = metrics_to_log[:1] + metrics_to_log[3:]
+        return metrics_to_log
+
+    def get_loss_log_metrics(self, split_name, y_hat, y_t_hat, y_s, y_tu, dok):
+        """Get the loss, top-k accuracy and metrics for a given split."""
+
+        if self.verb and not self.noun:
+            loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s)
+            _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu)
+            prec1_src, prec5_src = losses.topk_accuracy(y_hat[0], y_s, topk=(1, 5))
+            prec1_tgt, prec5_tgt = losses.topk_accuracy(y_t_hat[0], y_tu, topk=(1, 5))
+            task_loss = loss_cls
+
+            log_metrics = {
+                # f"{split_name}_source_acc": ok_src,
+                # f"{split_name}_target_acc": ok_tgt,
+                f"{split_name}_source_top1_acc": prec1_src,
+                f"{split_name}_source_top5_acc": prec5_src,
+                f"{split_name}_target_top1_acc": prec1_tgt,
+                f"{split_name}_target_top5_acc": prec5_tgt,
+            }
+        elif self.verb and self.noun:
+            loss_cls_verb, ok_src_verb = losses.cross_entropy_logits(y_hat[0], y_s[0])
+            loss_cls_noun, ok_src_noun = losses.cross_entropy_logits(y_hat[1], y_s[1])
+            _, ok_tgt_verb = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
+            _, ok_tgt_noun = losses.cross_entropy_logits(y_t_hat[1], y_tu[1])
+
+            prec1_src_verb, prec5_src_verb = losses.topk_accuracy(y_hat[0], y_s[0], topk=(1, 5))
+            prec1_src_noun, prec5_src_noun = losses.topk_accuracy(y_hat[1], y_s[1], topk=(1, 5))
+            prec1_src_action, prec5_src_action = losses.multitask_topk_accuracy(
+                (y_hat[0], y_hat[1]), (y_s[0], y_s[1]), topk=(1, 5)
+            )
+            prec1_tgt_verb, prec5_tgt_verb = losses.topk_accuracy(y_t_hat[0], y_tu[0], topk=(1, 5))
+            prec1_tgt_noun, prec5_tgt_noun = losses.topk_accuracy(y_t_hat[1], y_tu[1], topk=(1, 5))
+            prec1_tgt_action, prec5_tgt_action = losses.multitask_topk_accuracy(
+                (y_t_hat[0], y_t_hat[1]), (y_tu[0], y_tu[1]), topk=(1, 5)
+            )
+
+            task_loss = loss_cls_verb + loss_cls_noun
+
+            log_metrics = {
+                f"{split_name}_verb_source_acc": ok_src_verb,
+                f"{split_name}_noun_source_acc": ok_src_noun,
+                f"{split_name}_verb_target_acc": ok_tgt_verb,
+                f"{split_name}_noun_target_acc": ok_tgt_noun,
+                f"{split_name}_verb_source_top1_acc": prec1_src_verb,
+                f"{split_name}_verb_source_top5_acc": prec5_src_verb,
+                f"{split_name}_noun_source_top1_acc": prec1_src_noun,
+                f"{split_name}_noun_source_top5_acc": prec5_src_noun,
+                f"{split_name}_action_source_top1_acc": prec1_src_action,
+                f"{split_name}_action_source_top5_acc": prec5_src_action,
+                f"{split_name}_verb_target_top1_acc": prec1_tgt_verb,
+                f"{split_name}_verb_target_top5_acc": prec5_tgt_verb,
+                f"{split_name}_noun_target_top1_acc": prec1_tgt_noun,
+                f"{split_name}_noun_target_top5_acc": prec5_tgt_noun,
+                f"{split_name}_action_target_top1_acc": prec1_tgt_action,
+                f"{split_name}_action_target_top5_acc": prec5_tgt_action,
+            }
+
+        if self.method.is_mmd_method():
+            log_metrics.update({f"{split_name}_mmd": dok})
+        else:
+            log_metrics.update({f"{split_name}_domain_acc": dok})
+        return task_loss, log_metrics
+
+
+class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
     """Common API for MME-based domain adaptation on video data: DAN, JAN"""
 
     def __init__(
-        self, dataset, image_modality, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5, **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        class_type,
+        kernel_mul=2.0,
+        kernel_num=5,
+        **base_params,
     ):
         super().__init__(dataset, feature_extractor, task_classifier, kernel_mul, kernel_num, **base_params)
         self.image_modality = image_modality
+        self.verb, self.noun = get_class_type(class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
 
@@ -152,15 +333,8 @@ class BaseMMDLikeVideo(BaseMMDLike):
         # print('rgb_s:{}, flow_s:{}, rgb_f:{}, flow_f:{}'.format(y_s, y_s_flow, y_tu, y_tu_flow))
         # print('equal: {}/{}'.format(torch.all(torch.eq(y_s, y_s_flow)), torch.all(torch.eq(y_tu, y_tu_flow))))
 
-        # ok is abbreviation for (all) correct
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-        task_loss = loss_cls
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": mmd,
-        }
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, mmd)
+
         return task_loss, mmd, log_metrics
 
 
@@ -201,8 +375,8 @@ class JANTrainerVideo(BaseMMDLikeVideo):
 
     def _compute_mmd(self, phi_s, phi_t, y_hat, y_t_hat):
         softmax_layer = torch.nn.Softmax(dim=-1)
-        source_list = [phi_s, softmax_layer(y_hat)]
-        target_list = [phi_t, softmax_layer(y_t_hat)]
+        source_list = [phi_s, softmax_layer(y_hat[0])]
+        target_list = [phi_t, softmax_layer(y_t_hat[0])]
         batch_size = int(phi_s.size()[0])
 
         joint_kernels = None
@@ -218,17 +392,18 @@ class JANTrainerVideo(BaseMMDLikeVideo):
         return losses.compute_mmd_loss(joint_kernels, batch_size)
 
 
-class DANNTrainerVideo(DANNTrainer):
+class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
     """This is an implementation of DANN for video data."""
 
     def __init__(
-        self, dataset, image_modality, feature_extractor, task_classifier, critic, method, **base_params,
+        self, dataset, image_modality, feature_extractor, task_classifier, critic, method, class_type, **base_params,
     ):
         super(DANNTrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, method, **base_params
         )
         self.image_modality = image_modality
         self.rgb, self.flow = get_image_modality(self.image_modality)
+        self.verb, self.noun = get_class_type(class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
 
@@ -300,43 +475,27 @@ class DANNTrainerVideo(DANNTrainer):
             loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
             dok = torch.cat((dok_src, dok_tgt))
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-        adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-        task_loss = loss_cls
+        # loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s)
+        # _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu)
+        # adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
+        # task_loss = loss_cls
+        #
+        # log_metrics = {
+        #     f"{split_name}_source_acc": ok_src,
+        #     f"{split_name}_target_acc": ok_tgt,
+        #     f"{split_name}_domain_acc": dok,
+        #     f"{split_name}_source_domain_acc": dok_src,
+        #     f"{split_name}_target_domain_acc": dok_tgt,
+        # }
 
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-        }
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
+        adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
+        log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
         return task_loss, adv_loss, log_metrics
 
-    def training_step(self, batch, batch_nb):
-        self._update_batch_epoch_factors(batch_nb)
 
-        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
-        if self.current_epoch < self._init_epochs:
-            loss = task_loss
-        else:
-            loss = task_loss + self.lamb_da * adv_loss
-
-        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
-        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["train_total_loss"] = loss
-        log_metrics["train_adv_loss"] = adv_loss
-        log_metrics["train_task_loss"] = task_loss
-
-        for key in log_metrics:
-            self.log(key, log_metrics[key])
-
-        return {"loss": loss}
-
-
-class CDANTrainerVideo(CDANTrainer):
+class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
     """This is an implementation of CDAN for video data."""
 
     def __init__(
@@ -346,6 +505,7 @@ class CDANTrainerVideo(CDANTrainer):
         feature_extractor,
         task_classifier,
         critic,
+        class_type,
         use_entropy=False,
         use_random=False,
         random_dim=1024,
@@ -356,6 +516,7 @@ class CDANTrainerVideo(CDANTrainer):
         )
         self.image_modality = image_modality
         self.rgb, self.flow = get_image_modality(image_modality)
+        self.verb, self.noun = get_class_type(class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
 
@@ -381,7 +542,8 @@ class CDANTrainerVideo(CDANTrainer):
             else:  # For flow input
                 x = x_flow
             class_output = self.classifier(x)
-            softmax_output = torch.nn.Softmax(dim=1)(class_output)
+            # Only use verb class to get softmax_output
+            softmax_output = torch.nn.Softmax(dim=1)(class_output[0])
             reverse_out = GradReverse.apply(softmax_output, self.alpha)
 
             if self.rgb:
@@ -419,8 +581,8 @@ class CDANTrainerVideo(CDANTrainer):
         batch_size = len(y_s)
 
         if self.entropy:
-            e_s = self._compute_entropy_weights(y_hat)
-            e_t = self._compute_entropy_weights(y_t_hat)
+            e_s = self._compute_entropy_weights(y_hat[0])
+            e_t = self._compute_entropy_weights(y_t_hat[0])
             source_weight = e_s / torch.sum(e_s)
             target_weight = e_t / torch.sum(e_t)
         else:
@@ -462,23 +624,26 @@ class CDANTrainerVideo(CDANTrainer):
             loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
             dok = torch.cat((dok_src, dok_tgt))
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        # loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s)
+        # _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu)
+        # adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
+        # task_loss = loss_cls
+        #
+        # log_metrics = {
+        #     f"{split_name}_source_acc": ok_src,
+        #     f"{split_name}_target_acc": ok_tgt,
+        #     f"{split_name}_domain_acc": dok,
+        #     f"{split_name}_source_domain_acc": dok_src,
+        #     f"{split_name}_target_domain_acc": dok_tgt,
+        # }
+
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-        task_loss = loss_cls
-
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-        }
-
+        log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
         return task_loss, adv_loss, log_metrics
 
 
-class WDGRLTrainerVideo(WDGRLTrainer):
+class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
     """This is an implementation of WDGRL for video data."""
 
     def __init__(
@@ -488,6 +653,7 @@ class WDGRLTrainerVideo(WDGRLTrainer):
         feature_extractor,
         task_classifier,
         critic,
+        class_type,
         k_critic=5,
         gamma=10,
         beta_ratio=0,
@@ -498,6 +664,7 @@ class WDGRLTrainerVideo(WDGRLTrainer):
         )
         self.image_modality = image_modality
         self.rgb, self.flow = get_image_modality(self.image_modality)
+        self.verb, self.noun = get_class_type(class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
 
@@ -571,19 +738,23 @@ class WDGRLTrainerVideo(WDGRLTrainer):
             wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
             dok = torch.cat((dok_src, dok_tgt))
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-        adv_loss = wasserstein_distance
-        task_loss = loss_cls
+        # loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s)
+        # _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu)
+        # adv_loss = wasserstein_distance
+        # task_loss = loss_cls
+        #
+        # log_metrics = {
+        #     f"{split_name}_source_acc": ok_src,
+        #     f"{split_name}_target_acc": ok_tgt,
+        #     f"{split_name}_domain_acc": dok,
+        #     f"{split_name}_source_domain_acc": dok_src,
+        #     f"{split_name}_target_domain_acc": dok_tgt,
+        #     f"{split_name}_wasserstein_dist": wasserstein_distance,
+        # }
 
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-            f"{split_name}_wasserstein_dist": wasserstein_distance,
-        }
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
+        adv_loss = wasserstein_distance
+        log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
         return task_loss, adv_loss, log_metrics
 
     def configure_optimizers(self):
