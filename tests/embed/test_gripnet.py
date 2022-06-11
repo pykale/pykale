@@ -6,7 +6,7 @@ import torch
 from kale.embed.gripnet import TypicalGripNetEncoder
 from kale.utils.download import download_file_by_url
 
-pose_url = "https://github.com/pykale/data/raw/main/graphs/pose.pt"
+pose_url = "https://github.com/pykale/data/raw/main/graphs/new_pose.pt"
 
 
 @pytest.fixture(scope="module")
