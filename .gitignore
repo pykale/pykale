@@ -5,6 +5,7 @@
 *.pth
 *.zip
 *.ckpt
+*.json
 
 # Distribution / packaging
 build/
@@ -23,8 +24,10 @@ examples/data/
 examples/*/data/
 examples/*/outputs/
 examples/*/lightning_logs/
+examples/*/tb_logs/
+examples/*/logs/
 examples/*/demo*/
-examples/action_dann_lightn/configs_xianyuan/
+examples/*/configs_experiment/
 
 # Logs
 log-*.txt
