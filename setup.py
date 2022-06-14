@@ -29,9 +29,9 @@ requirements = [
     "scikit-learn>=0.23.2",
     "scipy>=1.5.4",
     "tensorly>=0.5.1",
-    "torch>=1.9.0",
+    "torch>=1.10.0",
     "torchsummary>=1.5.0",
-    "torchvision",  # >=0.8.1
+    "torchvision>=0.10.1",
     "yacs>=0.1.7",
 ]
 
