@@ -31,7 +31,7 @@ requirements = [
     "tensorly>=0.5.1",
     "torch>=1.10.0",
     "torchsummary>=1.5.0",
-    "torchvision>=0.10.1",
+    "torchvision>=0.11.0",
     "yacs>=0.1.7",
 ]
 
