@@ -1,8 +1,9 @@
 import numpy.testing as testing
+import pytest
 import torch
 import torch.nn as nn
 
-from kale.embed.attention_cnn import CNNTransformer
+from kale.embed.attention_cnn import CNNTransformer, SelfAttention, TransformerBlock, TransformerSENet
 from kale.prepdata.tensor_reshape import seq_to_spatial
 from kale.utils.seed import set_seed
 
@@ -45,3 +46,28 @@ def test_shapes():
     out_spatial_2 = seq_to_spatial(out_seq, CNN_OUT_HEIGHT, CNN_OUT_WIDTH)
 
     testing.assert_almost_equal(out_spatial.detach().numpy(), out_spatial_2.detach().numpy())
+
+
+@pytest.mark.parametrize("causal", [True, False])
+def test_SelfAttention(causal):
+    INPUT_BATCH = torch.randn(2, 8, 8)
+    model = SelfAttention(8, 2, 0.1, 0.1, causal, 9)
+    model.eval()
+    output_batch = model(INPUT_BATCH)
+    assert output_batch.size() == (2, 8, 8)
+
+
+def test_TransformerBlock():
+    INPUT_BATCH = torch.randn(2, 8, 8)
+    model = TransformerBlock(8, 8, 0.1, 0.1, 0.1, 9, 10, False)
+    model.eval()
+    output_batch = model(INPUT_BATCH)
+    assert output_batch.size() == (2, 8, 8)
+
+
+def test_TransformerSENet():
+    INPUT_BATCH = torch.randn(2, 8, 32)
+    model = TransformerSENet(input_size=32, n_channel=10, output_size=5)
+    model.eval()
+    output_batch = model(INPUT_BATCH)
+    assert output_batch.size() == (2, 8, 5)

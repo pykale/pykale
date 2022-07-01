@@ -7,32 +7,33 @@ from yacs.config import CfgNode as CN
 
 from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.multi_domain import DomainsDatasetBase
-from kale.loaddata.video_access import get_image_modality, VideoDataset, VideoDatasetAccess
+from kale.loaddata.video_access import get_class_type, get_image_modality, VideoDataset, VideoDatasetAccess
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
 from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
 
 SOURCES = [
-    "EPIC;8;epic_D1_train.pkl;epic_D1_test.pkl",
     "ADL;7;adl_P_11_train.pkl;adl_P_11_test.pkl",
+    "EPIC;8;epic_D1_train.pkl;epic_D1_test.pkl",
     "GTEA;6;gtea_train.pkl;gtea_test.pkl",
     "KITCHEN;6;kitchen_train.pkl;kitchen_test.pkl",
 ]
 TARGETS = [
-    "EPIC;8;epic_D1_train.pkl;epic_D1_test.pkl",
-    # "ADL;7;adl_P_04_train.pkl;adl_P_04_test.pkl",
+    "ADL;7;adl_P_11_train.pkl;adl_P_11_test.pkl",
+    # "EPIC;8;epic_D1_train.pkl;epic_D1_test.pkl",
     # "GTEA;6;gtea_train.pkl;gtea_test.pkl",
     # "KITCHEN;6;kitchen_train.pkl;kitchen_test.pkl",
 ]
 ALL = SOURCES + TARGETS
-IMAGE_MODALITY = ["rgb", "flow", "joint"]
+IMAGE_MODALITY = ["rgb", "flow", "joint", "all"]
+CLASS_TYPE = ["verb", "verb+noun"]
 WEIGHT_TYPE = ["natural", "balanced", "preset0"]
 # DATASIZE_TYPE = ["max", "source"]
 DATASIZE_TYPE = ["max"]
-VALID_RATIO = [0.1]
+VALID_RATIO = 0.1
 seed = 36
 set_seed(seed)
-CLASS_SUBSETS = [[1, 3, 8]]
+CLASS_SUBSETS = [1, 3, 8]
 
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
@@ -48,21 +49,76 @@ def testing_cfg(download_path):
     yield cfg
 
 
+@pytest.fixture(scope="module")
+def testing_cfg_epic100(download_path):
+    cfg = CN()
+    cfg.DATASET = CN()
+    # cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
+    cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
+    cfg.DATASET.SOURCE = "EPIC100"
+    cfg.DATASET.SRC_TRAINLIST = "EPIC_100_uda_source_train.pkl"
+    cfg.DATASET.SRC_TESTLIST = "EPIC_100_uda_source_test_timestamps.pkl"
+    cfg.DATASET.TARGET = "EPIC100"
+    cfg.DATASET.TGT_TRAINLIST = "EPIC_100_uda_target_train_timestamps.pkl"
+    cfg.DATASET.TGT_TESTLIST = "EPIC_100_uda_target_test_timestamps.pkl"
+    cfg.DATASET.IMAGE_MODALITY = "all"
+    cfg.DATASET.INPUT_TYPE = "feature"
+    cfg.DATASET.NUM_SEGMENTS = 8
+    cfg.DATASET.FRAMES_PER_SEGMENT = 1
+    cfg.DATASET.SIZE_TYPE = "adaptive"
+    cfg.DATASET.CLASS_TYPE = "verb+noun"
+    cfg.DATASET.WEIGHT_TYPE = "natural"
+    cfg.DATASET.SIZE_TYPE = "max"
+    yield cfg
+
+
 @pytest.mark.parametrize("image_modality", IMAGE_MODALITY)
 def test_get_image_modality(image_modality):
-    rgb, flow = get_image_modality(image_modality)
+    rgb, flow, audio = get_image_modality(image_modality)
 
     assert isinstance(rgb, bool)
     assert isinstance(flow, bool)
+    assert isinstance(audio, bool)
+
+    if image_modality == "rgb":
+        assert rgb
+        assert not flow
+        assert not audio
+    elif image_modality == "flow":
+        assert not rgb
+        assert flow
+        assert not audio
+    elif image_modality == "joint":
+        assert rgb
+        assert flow
+        assert not audio
+    elif image_modality == "all":
+        assert rgb
+        assert flow
+        assert audio
+
+
+@pytest.mark.parametrize("class_type", CLASS_TYPE)
+def test_get_class_type(class_type):
+    verb, noun = get_class_type(class_type)
+
+    assert isinstance(verb, bool)
+    assert isinstance(noun, bool)
+
+    if class_type == "verb":
+        assert verb
+        assert not noun
+
+    elif class_type == "verb+noun":
+        assert verb
+        assert noun
 
 
 @pytest.mark.parametrize("source_cfg", SOURCES)
 @pytest.mark.parametrize("target_cfg", TARGETS)
-@pytest.mark.parametrize("valid_ratio", VALID_RATIO)
 @pytest.mark.parametrize("weight_type", WEIGHT_TYPE)
 @pytest.mark.parametrize("datasize_type", DATASIZE_TYPE)
-@pytest.mark.parametrize("class_subset", CLASS_SUBSETS)
-def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, datasize_type, testing_cfg, class_subset):
+def test_get_source_target(source_cfg, target_cfg, weight_type, datasize_type, testing_cfg):
     source_name, source_n_class, source_trainlist, source_testlist = source_cfg.split(";")
     target_name, target_n_class, target_trainlist, target_testlist = target_cfg.split(";")
     n_class = eval(min(source_n_class, target_n_class))
@@ -77,6 +133,9 @@ def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, dat
     cfg.DATASET.TGT_TESTLIST = target_testlist
     cfg.DATASET.WEIGHT_TYPE = weight_type
     cfg.DATASET.SIZE_TYPE = datasize_type
+    cfg.DATASET.INPUT_TYPE = "image"
+    cfg.DATASET.CLASS_TYPE = "verb"
+    cfg.DATASET.NUM_SEGMENTS = 1
 
     download_file_by_url(
         url=url,
@@ -90,7 +149,7 @@ def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, dat
         VideoDataset(source_name), VideoDataset(target_name), seed, cfg
     )
 
-    assert num_classes == n_class
+    assert num_classes["verb"] == n_class
     assert isinstance(source, dict)
     assert isinstance(target, dict)
     assert isinstance(source["rgb"], VideoDatasetAccess)
@@ -105,48 +164,86 @@ def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, dat
     assert isinstance(source["flow"].get_test(), torch.utils.data.Dataset)
 
     # test get_train_valid
-    train_valid = source["rgb"].get_train_valid(valid_ratio)
+    train_valid = source["rgb"].get_train_valid(VALID_RATIO)
     assert isinstance(train_valid, list)
     assert isinstance(train_valid[0], torch.utils.data.Dataset)
     assert isinstance(train_valid[1], torch.utils.data.Dataset)
+    assert len(train_valid[0]) + len(train_valid[1]) == len(source["rgb"].get_train())
+    assert len(train_valid[0]) == int(len(source["rgb"].get_train()) * (1 - VALID_RATIO))
 
     # test action_multi_domain_datasets
     dataset = VideoMultiDomainDatasets(
         source,
         target,
         image_modality=cfg.DATASET.IMAGE_MODALITY,
-        seed=seed,
+        random_state=seed,
         config_weight_type=cfg.DATASET.WEIGHT_TYPE,
         config_size_type=cfg.DATASET.SIZE_TYPE,
     )
     assert isinstance(dataset, DomainsDatasetBase)
 
     # test class subsets
-    if source_cfg == SOURCES[1] and target_cfg == TARGETS[0]:
+    if source_cfg == SOURCES[0] and target_cfg == TARGETS[0]:
         dataset_subset = VideoMultiDomainDatasets(
             source,
             target,
             image_modality="rgb",
-            seed=seed,
+            random_state=seed,
             config_weight_type=cfg.DATASET.WEIGHT_TYPE,
             config_size_type=cfg.DATASET.SIZE_TYPE,
-            class_ids=class_subset,
+            class_ids=CLASS_SUBSETS,
         )
 
-        train, valid = source["rgb"].get_train_valid(valid_ratio)
+        train, valid = source["rgb"].get_train_valid(VALID_RATIO)
         test = source["rgb"].get_test()
-        dataset_subset._rgb_source_by_split = {}
-        dataset_subset._rgb_target_by_split = {}
-        dataset_subset._rgb_source_by_split["train"] = get_class_subset(train, class_subset)
-        dataset_subset._rgb_target_by_split["train"] = dataset_subset._rgb_source_by_split["train"]
-        dataset_subset._rgb_source_by_split["valid"] = get_class_subset(valid, class_subset)
-        dataset_subset._rgb_source_by_split["test"] = get_class_subset(test, class_subset)
+        dataset_subset._rgb_source_by_split = {
+            "train": get_class_subset(train, CLASS_SUBSETS),
+            "valid": get_class_subset(valid, CLASS_SUBSETS),
+            "test": get_class_subset(test, CLASS_SUBSETS),
+        }
+        dataset_subset._rgb_target_by_split = dataset_subset._rgb_source_by_split
 
         # Ground truth length of the subset dataset
-        train_dataset_subset_length = len([1 for data in train if data[1] in class_subset])
-        valid_dataset_subset_length = len([1 for data in valid if data[1] in class_subset])
-        test_dataset_subset_length = len([1 for data in test if data[1] in class_subset])
+        train_dataset_subset_length = len([1 for data in train if data[1][0] in CLASS_SUBSETS])
+        valid_dataset_subset_length = len([1 for data in valid if data[1][0] in CLASS_SUBSETS])
+        test_dataset_subset_length = len([1 for data in test if data[1][0] in CLASS_SUBSETS])
         assert len(dataset_subset._rgb_source_by_split["train"]) == train_dataset_subset_length
         assert len(dataset_subset._rgb_source_by_split["valid"]) == valid_dataset_subset_length
         assert len(dataset_subset._rgb_source_by_split["test"]) == test_dataset_subset_length
         assert len(dataset_subset) == train_dataset_subset_length
+
+
+def test_get_source_target_epic100(testing_cfg_epic100):
+    # get cfg parameters
+    cfg = testing_cfg_epic100
+
+    download_file_by_url(
+        url=url,
+        output_directory=str(Path(cfg.DATASET.ROOT).parent.absolute()),
+        output_file_name="video_test_data.zip",
+        file_format="zip",
+    )
+
+    # test get_source_target
+    source, target, num_classes = VideoDataset.get_source_target(
+        VideoDataset(cfg.DATASET.SOURCE.upper()), VideoDataset(cfg.DATASET.TARGET.upper()), seed, cfg
+    )
+
+    assert num_classes["verb"] == 97
+    assert num_classes["noun"] == 300
+    assert isinstance(source, dict)
+    assert isinstance(target, dict)
+    assert isinstance(source["rgb"], VideoDatasetAccess)
+    assert isinstance(target["rgb"], VideoDatasetAccess)
+    assert isinstance(source["flow"], VideoDatasetAccess)
+    assert isinstance(target["flow"], VideoDatasetAccess)
+    assert isinstance(source["audio"], VideoDatasetAccess)
+    assert isinstance(target["audio"], VideoDatasetAccess)
+
+    # test get_train & get_test
+    assert isinstance(source["rgb"].get_train(), torch.utils.data.Dataset)
+    assert isinstance(source["rgb"].get_test(), torch.utils.data.Dataset)
+    assert isinstance(source["flow"].get_train(), torch.utils.data.Dataset)
+    assert isinstance(source["flow"].get_test(), torch.utils.data.Dataset)
+    assert isinstance(source["audio"].get_train(), torch.utils.data.Dataset)
+    assert isinstance(source["audio"].get_test(), torch.utils.data.Dataset)

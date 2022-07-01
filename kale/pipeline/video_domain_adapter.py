@@ -10,11 +10,13 @@ Most are inherited from kale.pipeline.domain_adapter.
 import torch
 
 import kale.predict.losses as losses
-from kale.loaddata.video_access import get_image_modality
+from kale.loaddata.video_access import get_class_type, get_image_modality
 from kale.pipeline.domain_adapter import (
+    BaseAdaptTrainer,
     BaseMMDLike,
     CDANTrainer,
     DANNTrainer,
+    get_aggregated_metrics,
     get_aggregated_metrics_from_dict,
     get_metrics_from_parameter_dict,
     GradReverse,
@@ -23,8 +25,12 @@ from kale.pipeline.domain_adapter import (
     WDGRLTrainer,
 )
 
+# from kale.utils.logger import save_results_to_json
 
-def create_mmd_based_video(method: Method, dataset, image_modality, feature_extractor, task_classifier, **train_params):
+
+def create_mmd_based_video(
+    method: Method, dataset, image_modality, feature_extractor, task_classifier, class_type, **train_params
+):
     """MMD-based deep learning methods for domain adaptation on video data: DAN and JAN"""
     if not method.is_mmd_method():
         raise ValueError(f"Unsupported MMD method: {method}")
@@ -35,6 +41,7 @@ def create_mmd_based_video(method: Method, dataset, image_modality, feature_extr
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
             method=method,
+            class_type=class_type,
             **train_params,
         )
     if method is Method.JAN:
@@ -44,6 +51,7 @@ def create_mmd_based_video(method: Method, dataset, image_modality, feature_extr
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
             method=method,
+            class_type=class_type,
             kernel_mul=[2.0, 2.0],
             kernel_num=[5, 1],
             **train_params,
@@ -51,7 +59,7 @@ def create_mmd_based_video(method: Method, dataset, image_modality, feature_extr
 
 
 def create_dann_like_video(
-    method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, **train_params
+    method: Method, dataset, image_modality, feature_extractor, task_classifier, critic, class_type, **train_params
 ):
     """DANN-based deep learning methods for domain adaptation on video data: DANN, CDAN, CDAN+E"""
 
@@ -73,6 +81,7 @@ def create_dann_like_video(
             task_classifier=task_classifier,
             critic=critic,
             method=method,
+            class_type=class_type,
             **train_params,
         )
     elif method.is_cdan_method():
@@ -83,6 +92,7 @@ def create_dann_like_video(
             task_classifier=task_classifier,
             critic=critic,
             method=method,
+            class_type=class_type,
             use_entropy=method is Method.CDAN_E,
             **train_params,
         )
@@ -94,73 +104,361 @@ def create_dann_like_video(
             task_classifier=task_classifier,
             critic=critic,
             method=method,
+            class_type=class_type,
             **train_params,
         )
     else:
         raise ValueError(f"Unsupported method: {method}")
 
 
-class BaseMMDLikeVideo(BaseMMDLike):
+class BaseAdaptTrainerVideo(BaseAdaptTrainer):
+    """Base class for all domain adaptation architectures on videos. Inherited from BaseAdaptTrainer."""
+
+    def train_dataloader(self):
+        dataloader, target_batch_size = self._dataset.get_domain_loaders(split="train", batch_size=self._batch_size)
+        self._nb_training_batches = len(dataloader)
+        self._target_batch_size = target_batch_size
+        return dataloader
+
+    def val_dataloader(self):
+        dataloader, target_batch_size = self._dataset.get_domain_loaders(split="valid", batch_size=self._batch_size)
+        self._target_batch_size = target_batch_size
+        return dataloader
+
+    def test_dataloader(self):
+        dataloader, target_batch_size = self._dataset.get_domain_loaders(split="test", batch_size=self._batch_size)
+        self._target_batch_size = target_batch_size
+        return dataloader
+
+    def training_step(self, batch, batch_nb):
+        self._update_batch_epoch_factors(batch_nb)
+
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
+        if self.current_epoch < self._init_epochs:
+            loss = task_loss
+        else:
+            loss = task_loss + self.lamb_da * adv_loss
+
+        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
+        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
+        log_metrics["train_total_loss"] = loss
+        log_metrics["train_adv_loss"] = adv_loss
+        log_metrics["train_task_loss"] = task_loss
+
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
+
+        return {"loss": loss}
+
+    def validation_epoch_end(self, outputs):
+        metrics_to_log = self.create_metrics_log("valid")
+        return self._validation_epoch_end(outputs, metrics_to_log)
+
+    def test_epoch_end(self, outputs):
+        metrics_at_test = self.create_metrics_log("test")
+
+        # Uncomment to save output to json file for EPIC UDA 2021 challenge.(3/3)
+        # save_results_to_json(
+        #     self.y_hat, self.y_t_hat, self.s_id, self.tu_id, self.y_hat_noun, self.y_t_hat_noun, self.verb, self.noun
+        # )
+
+        log_dict = get_aggregated_metrics(metrics_at_test, outputs)
+
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+    def concatenate(self, x_rgb, x_flow, x_audio):
+        if self.rgb:
+            if self.flow:
+                if self.audio:  # For all inputs
+                    x = torch.cat((x_rgb, x_flow, x_audio), dim=-1)
+                else:  # For joint(rgb+flow) input
+                    x = torch.cat((x_rgb, x_flow), dim=-1)
+            else:
+                if self.audio:  # For rgb+audio input
+                    x = torch.cat((x_rgb, x_audio), dim=-1)
+                else:  # For rgb input
+                    x = x_rgb
+        else:
+            if self.flow:
+                if self.audio:  # For flow+audio input
+                    x = torch.cat((x_flow, x_audio), dim=-1)
+                else:  # For flow input
+                    x = x_flow
+            else:  # For audio input
+                x = x_audio
+        return x
+
+    def get_inputs_from_batch(self, batch):
+        # _s refers to source, _tu refers to unlabeled target
+        x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = x_s_audio = x_tu_audio = None
+
+        if self.rgb:
+            if self.flow:
+                if self.audio:  # For all inputs
+                    (
+                        (x_s_rgb, y_s, s_id),
+                        (x_s_flow, y_s_flow, _),
+                        (x_s_audio, y_s_audio, _),
+                        (x_tu_rgb, y_tu, tu_id),
+                        (x_tu_flow, y_tu_flow, _),
+                        (x_tu_audio, y_tu_audio, _),
+                    ) = batch
+                else:  # For joint(rgb+flow) input
+                    (
+                        (x_s_rgb, y_s, s_id),
+                        (x_s_flow, y_s_flow, _),
+                        (x_tu_rgb, y_tu, tu_id),
+                        (x_tu_flow, y_tu_flow, _),
+                    ) = batch
+            else:
+                if self.audio:  # For rgb+audio input
+                    (
+                        (x_s_rgb, y_s, s_id),
+                        (x_s_audio, y_s_audio, _),
+                        (x_tu_rgb, y_tu, tu_id),
+                        (x_tu_audio, y_tu_audio, _),
+                    ) = batch
+                else:  # For rgb input
+                    (x_s_rgb, y_s, s_id), (x_tu_rgb, y_tu, tu_id) = batch
+        else:
+            if self.flow:
+                if self.audio:  # For flow+audio input
+                    (
+                        (x_s_flow, y_s, s_id),
+                        (x_s_audio, y_s_audio, _),
+                        (x_tu_flow, y_tu, tu_id),
+                        (x_tu_audio, y_tu_audio, _),
+                    ) = batch
+                else:  # For flow input
+                    (x_s_flow, y_s, s_id), (x_tu_flow, y_tu, tu_id) = batch
+            else:  # For audio input
+                (x_s_audio, y_s, s_id), (x_tu_audio, y_tu, tu_id) = batch
+
+        return x_s_rgb, x_tu_rgb, x_s_flow, x_tu_flow, x_s_audio, x_tu_audio, y_s, y_tu, s_id, tu_id
+
+    def create_metrics_log(self, split_name):
+        if self.verb and not self.noun:
+            metrics_to_log = (
+                "{}_loss".format(split_name),
+                "{}_task_loss".format(split_name),
+                "{}_adv_loss".format(split_name),
+                # "{}_source_acc".format(split_name),
+                "{}_source_top1_acc".format(split_name),
+                "{}_source_top5_acc".format(split_name),
+                # "{}_target_acc".format(split_name),
+                "{}_target_top1_acc".format(split_name),
+                "{}_target_top5_acc".format(split_name),
+                "{}_source_domain_acc".format(split_name),
+                "{}_target_domain_acc".format(split_name),
+                "{}_domain_acc".format(split_name),
+            )
+            if self.method.is_mmd_method():
+                metrics_to_log = metrics_to_log[:-3] + ("{}_mmd".format(split_name),)
+        elif self.verb and self.noun:
+            metrics_to_log = (
+                "{}_loss".format(split_name),
+                "{}_task_loss".format(split_name),
+                "{}_adv_loss".format(split_name),
+                # "{}_verb_source_acc".format(split_name),
+                "{}_verb_source_top1_acc".format(split_name),
+                "{}_verb_source_top5_acc".format(split_name),
+                # "{}_noun_source_acc".format(split_name),
+                "{}_noun_source_top1_acc".format(split_name),
+                "{}_noun_source_top5_acc".format(split_name),
+                # "{}_verb_target_acc".format(split_name),
+                "{}_verb_target_top1_acc".format(split_name),
+                "{}_verb_target_top5_acc".format(split_name),
+                # "{}_noun_target_acc".format(split_name),
+                "{}_noun_target_top1_acc".format(split_name),
+                "{}_noun_target_top5_acc".format(split_name),
+                "{}_action_source_top1_acc".format(split_name),
+                "{}_action_source_top5_acc".format(split_name),
+                "{}_action_target_top1_acc".format(split_name),
+                "{}_action_target_top5_acc".format(split_name),
+                "{}_domain_acc".format(split_name),
+            )
+            if self.method.is_mmd_method():
+                metrics_to_log = metrics_to_log[:-1] + ("{}_mmd".format(split_name),)
+        if split_name == "test":
+            metrics_to_log = metrics_to_log[:1] + metrics_to_log[3:]
+        return metrics_to_log
+
+    def get_loss_log_metrics(self, split_name, y_hat, y_t_hat, y_s, y_tu, dok):
+        """Get the loss, top-k accuracy and metrics for a given split."""
+
+        if self.verb and not self.noun:
+            loss_cls, ok_src = losses.cross_entropy_logits(y_hat[0], y_s[0])
+            _, ok_tgt = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
+            prec1_src, prec5_src = losses.topk_accuracy(y_hat[0], y_s[0], topk=(1, 5))
+            prec1_tgt, prec5_tgt = losses.topk_accuracy(y_t_hat[0], y_tu[0], topk=(1, 5))
+            task_loss = loss_cls
+
+            log_metrics = {
+                # f"{split_name}_source_acc": ok_src,
+                # f"{split_name}_target_acc": ok_tgt,
+                f"{split_name}_source_top1_acc": prec1_src,
+                f"{split_name}_source_top5_acc": prec5_src,
+                f"{split_name}_target_top1_acc": prec1_tgt,
+                f"{split_name}_target_top5_acc": prec5_tgt,
+            }
+        elif self.verb and self.noun:
+            loss_cls_verb, ok_src_verb = losses.cross_entropy_logits(y_hat[0], y_s[0])
+            loss_cls_noun, ok_src_noun = losses.cross_entropy_logits(y_hat[1], y_s[1])
+            _, ok_tgt_verb = losses.cross_entropy_logits(y_t_hat[0], y_tu[0])
+            _, ok_tgt_noun = losses.cross_entropy_logits(y_t_hat[1], y_tu[1])
+
+            prec1_src_verb, prec5_src_verb = losses.topk_accuracy(y_hat[0], y_s[0], topk=(1, 5))
+            prec1_src_noun, prec5_src_noun = losses.topk_accuracy(y_hat[1], y_s[1], topk=(1, 5))
+            prec1_src_action, prec5_src_action = losses.multitask_topk_accuracy(
+                (y_hat[0], y_hat[1]), (y_s[0], y_s[1]), topk=(1, 5)
+            )
+            prec1_tgt_verb, prec5_tgt_verb = losses.topk_accuracy(y_t_hat[0], y_tu[0], topk=(1, 5))
+            prec1_tgt_noun, prec5_tgt_noun = losses.topk_accuracy(y_t_hat[1], y_tu[1], topk=(1, 5))
+            prec1_tgt_action, prec5_tgt_action = losses.multitask_topk_accuracy(
+                (y_t_hat[0], y_t_hat[1]), (y_tu[0], y_tu[1]), topk=(1, 5)
+            )
+
+            task_loss = loss_cls_verb + loss_cls_noun
+
+            log_metrics = {
+                f"{split_name}_verb_source_acc": ok_src_verb,
+                f"{split_name}_noun_source_acc": ok_src_noun,
+                f"{split_name}_verb_target_acc": ok_tgt_verb,
+                f"{split_name}_noun_target_acc": ok_tgt_noun,
+                f"{split_name}_verb_source_top1_acc": prec1_src_verb,
+                f"{split_name}_verb_source_top5_acc": prec5_src_verb,
+                f"{split_name}_noun_source_top1_acc": prec1_src_noun,
+                f"{split_name}_noun_source_top5_acc": prec5_src_noun,
+                f"{split_name}_action_source_top1_acc": prec1_src_action,
+                f"{split_name}_action_source_top5_acc": prec5_src_action,
+                f"{split_name}_verb_target_top1_acc": prec1_tgt_verb,
+                f"{split_name}_verb_target_top5_acc": prec5_tgt_verb,
+                f"{split_name}_noun_target_top1_acc": prec1_tgt_noun,
+                f"{split_name}_noun_target_top5_acc": prec5_tgt_noun,
+                f"{split_name}_action_target_top1_acc": prec1_tgt_action,
+                f"{split_name}_action_target_top5_acc": prec5_tgt_action,
+            }
+
+        if self.method.is_mmd_method():
+            log_metrics.update({f"{split_name}_mmd": dok})
+        else:
+            log_metrics.update({f"{split_name}_domain_acc": dok})
+        return task_loss, log_metrics
+
+
+class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
     """Common API for MME-based domain adaptation on video data: DAN, JAN"""
 
     def __init__(
-        self, dataset, image_modality, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5, **base_params,
+        self,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        class_type,
+        kernel_mul=2.0,
+        kernel_num=5,
+        **base_params,
     ):
         super().__init__(dataset, feature_extractor, task_classifier, kernel_mul, kernel_num, **base_params)
         self.image_modality = image_modality
+        self.rgb, self.flow, self.audio = get_image_modality(self.image_modality)
+        self.class_type = class_type
+        self.verb, self.noun = get_class_type(self.class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
+        self.audio_feat = self.feat["audio"]
 
     def forward(self, x):
         if self.feat is not None:
-            if self.image_modality in ["rgb", "flow"]:
-                if self.rgb_feat is not None:
-                    x = self.rgb_feat(x)
-                else:
-                    x = self.flow_feat(x)
-                x = x.view(x.size(0), -1)
-                class_output = self.classifier(x)
-                return x, class_output
+            x_rgb = x_flow = x_audio = None
 
-            elif self.image_modality == "joint":
+            if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
-                x_flow = self.flow_feat(x["flow"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
+            if self.flow:
+                x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
-                x = torch.cat((x_rgb, x_flow), dim=1)
-                class_output = self.classifier(x)
-                return [x_rgb, x_flow], class_output
+            if self.audio:
+                x_audio = self.audio_feat(x["audio"])
+                x_audio = x_audio.view(x_audio.size(0), -1)
+
+            x = self.concatenate(x_rgb, x_flow, x_audio)
+            class_output = self.classifier(x)
+            return [x_rgb, x_flow, x_audio], class_output
 
     def compute_loss(self, batch, split_name="valid"):
         # _s refers to source, _tu refers to unlabeled target
-        if self.image_modality == "joint" and len(batch) == 4:
-            (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-            [phi_s_rgb, phi_s_flow], y_hat = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
-            [phi_t_rgb, phi_t_flow], y_t_hat = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
-            mmd_rgb = self._compute_mmd(phi_s_rgb, phi_t_rgb, y_hat, y_t_hat)
-            mmd_flow = self._compute_mmd(phi_s_flow, phi_t_flow, y_hat, y_t_hat)
-            mmd = mmd_rgb + mmd_flow
-        elif self.image_modality in ["rgb", "flow"] and len(batch) == 2:
-            (x_s, y_s), (x_tu, y_tu) = batch
-            phi_s, y_hat = self.forward(x_s)
-            phi_t, y_t_hat = self.forward(x_tu)
-            mmd = self._compute_mmd(phi_s, phi_t, y_hat, y_t_hat)
+        (
+            x_s_rgb,
+            x_tu_rgb,
+            x_s_flow,
+            x_tu_flow,
+            x_s_audio,
+            x_tu_audio,
+            y_s,
+            y_tu,
+            s_id,
+            tu_id,
+        ) = self.get_inputs_from_batch(batch)
+
+        # _s refers to source, _tu refers to unlabeled target
+        [phi_s_rgb, phi_s_flow, phi_s_audio], y_hat = self.forward(
+            {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
+        )
+        [phi_t_rgb, phi_t_flow, phi_t_audio], y_t_hat = self.forward(
+            {"rgb": x_tu_rgb, "flow": x_tu_flow, "audio": x_tu_audio}
+        )
+
+        if self.rgb:
+            if self.verb and not self.noun:
+                mmd_rgb = self._compute_mmd(phi_s_rgb, phi_t_rgb, y_hat[0], y_t_hat[0])
+            elif self.verb and self.noun:
+                mmd_rgb_verb = self._compute_mmd(phi_s_rgb, phi_t_rgb, y_hat[0], y_t_hat[0])
+                mmd_rgb_noun = self._compute_mmd(phi_s_rgb, phi_t_rgb, y_hat[1], y_t_hat[1])
+                mmd_rgb = mmd_rgb_verb + mmd_rgb_noun
+        if self.flow:
+            if self.verb and not self.noun:
+                mmd_flow = self._compute_mmd(phi_s_flow, phi_t_flow, y_hat[0], y_t_hat[0])
+            elif self.verb and self.noun:
+                mmd_flow_verb = self._compute_mmd(phi_s_flow, phi_t_flow, y_hat[0], y_t_hat[0])
+                mmd_flow_noun = self._compute_mmd(phi_s_flow, phi_t_flow, y_hat[1], y_t_hat[1])
+                mmd_flow = mmd_flow_verb + mmd_flow_noun
+        if self.audio:
+            if self.verb and not self.noun:
+                mmd_audio = self._compute_mmd(phi_s_audio, phi_t_audio, y_hat[0], y_t_hat[0])
+            elif self.verb and self.noun:
+                mmd_audio_verb = self._compute_mmd(phi_s_audio, phi_t_audio, y_hat[0], y_t_hat[0])
+                mmd_audio_noun = self._compute_mmd(phi_s_audio, phi_t_audio, y_hat[1], y_t_hat[1])
+                mmd_audio = mmd_audio_verb + mmd_audio_noun
+
+        if self.rgb:
+            if self.flow:
+                if self.audio:  # For all inputs
+                    mmd = mmd_rgb + mmd_flow + mmd_audio
+                else:  # For joint(rgb+flow) input
+                    mmd = mmd_rgb + mmd_flow
+            else:
+                if self.audio:  # For rgb+audio input
+                    mmd = mmd_audio
+                else:  # For rgb input
+                    mmd = mmd_rgb
         else:
-            raise NotImplementedError("Batch len is {}. Check the Dataloader.".format(len(batch)))
+            if self.flow:
+                if self.audio:  # For flow+audio input
+                    mmd = mmd_audio
+                else:  # For flow input
+                    mmd = mmd_flow
+            else:  # For audio input
+                mmd = mmd_audio
 
         # Uncomment when checking whether rgb & flow labels are equal.
         # print('rgb_s:{}, flow_s:{}, rgb_f:{}, flow_f:{}'.format(y_s, y_s_flow, y_tu, y_tu_flow))
         # print('equal: {}/{}'.format(torch.all(torch.eq(y_s, y_s_flow)), torch.all(torch.eq(y_tu, y_tu_flow))))
 
-        # ok is abbreviation for (all) correct
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-        task_loss = loss_cls
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": mmd,
-        }
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, mmd)
+        # log_metrics.update({f"{split_name}_source_domain_acc": mmd, f"{split_name}_target_domain_acc": mmd})
         return task_loss, mmd, log_metrics
 
 
@@ -172,7 +470,7 @@ class DANTrainerVideo(BaseMMDLikeVideo):
 
     def _compute_mmd(self, phi_s, phi_t, y_hat, y_t_hat):
         batch_size = int(phi_s.size()[0])
-        kernels = losses.gaussian_kernel(phi_s, phi_t, kernel_mul=self._kernel_mul, kernel_num=self._kernel_num,)
+        kernels = losses.gaussian_kernel(phi_s, phi_t, kernel_mul=self._kernel_mul, kernel_num=self._kernel_num)
         return losses.compute_mmd_loss(kernels, batch_size)
 
 
@@ -218,23 +516,35 @@ class JANTrainerVideo(BaseMMDLikeVideo):
         return losses.compute_mmd_loss(joint_kernels, batch_size)
 
 
-class DANNTrainerVideo(DANNTrainer):
+class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
     """This is an implementation of DANN for video data."""
 
     def __init__(
-        self, dataset, image_modality, feature_extractor, task_classifier, critic, method, **base_params,
+        self, dataset, image_modality, feature_extractor, task_classifier, critic, method, class_type, **base_params,
     ):
         super(DANNTrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, method, **base_params
         )
         self.image_modality = image_modality
-        self.rgb, self.flow = get_image_modality(self.image_modality)
+        self.rgb, self.flow, self.audio = get_image_modality(self.image_modality)
+        self.class_type = class_type
+        self.verb, self.noun = get_class_type(self.class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
+        self.audio_feat = self.feat["audio"]
+
+        # Uncomment to store output for EPIC UDA 2021 challenge.(1/3)
+        # self.y_hat = []
+        # self.y_hat_noun = []
+        # self.y_t_hat = []
+        # self.y_t_hat_noun = []
+        # self.s_id = []
+        # self.tu_id = []
 
     def forward(self, x):
         if self.feat is not None:
-            x_rgb = x_flow = adversarial_output_rgb = adversarial_output_flow = None
+            x_rgb = x_flow = x_audio = None
+            adversarial_output_rgb = adversarial_output_flow = adversarial_output_audio = None
 
             # For joint input, both two ifs are used
             if self.rgb:
@@ -247,96 +557,126 @@ class DANNTrainerVideo(DANNTrainer):
                 x_flow = x_flow.view(x_flow.size(0), -1)
                 reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
                 adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
+            if self.audio:
+                x_audio = self.audio_feat(x["audio"])
+                x_audio = x_audio.view(x_audio.size(0), -1)
+                reverse_feature_audio = GradReverse.apply(x_audio, self.alpha)
+                adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
 
-            if self.rgb:
-                if self.flow:  # For joint input
-                    x = torch.cat((x_rgb, x_flow), dim=1)
-                else:  # For rgb input
-                    x = x_rgb
-            else:  # For flow input
-                x = x_flow
+            x = self.concatenate(x_rgb, x_flow, x_audio)
+
             class_output = self.classifier(x)
 
-            return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
+            return (
+                [x_rgb, x_flow, x_audio],
+                class_output,
+                [adversarial_output_rgb, adversarial_output_flow, adversarial_output_audio],
+            )
 
-    def compute_loss(self, batch, split_name="valid"):
+    def compute_loss(self, batch, split_name="V"):
         # _s refers to source, _tu refers to unlabeled target
-        x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
-        if self.rgb:
-            if self.flow:  # For joint input
-                (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-            else:  # For rgb input
-                (x_s_rgb, y_s), (x_tu_rgb, y_tu) = batch
-        else:  # For flow input
-            (x_s_flow, y_s), (x_tu_flow, y_tu) = batch
+        (
+            x_s_rgb,
+            x_tu_rgb,
+            x_s_flow,
+            x_tu_flow,
+            x_s_audio,
+            x_tu_audio,
+            y_s,
+            y_tu,
+            s_id,
+            tu_id,
+        ) = self.get_inputs_from_batch(batch)
 
-        _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
-        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
-        batch_size = len(y_s)
+        _, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio] = self.forward(
+            {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
+        )
+        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio] = self.forward(
+            {"rgb": x_tu_rgb, "flow": x_tu_flow, "audio": x_tu_audio}
+        )
+        source_batch_size = len(y_s[0])
+        target_batch_size = len(y_tu[0])
 
         if self.rgb:
-            loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(batch_size))
-            loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(batch_size))
+            loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(source_batch_size))
+            loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(target_batch_size))
         if self.flow:
-            loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(batch_size))
-            loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(batch_size))
+            loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(source_batch_size))
+            loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(target_batch_size))
+        if self.audio:
+            loss_dmn_src_audio, dok_src_audio = losses.cross_entropy_logits(d_hat_audio, torch.zeros(source_batch_size))
+            loss_dmn_tgt_audio, dok_tgt_audio = losses.cross_entropy_logits(
+                d_t_hat_audio, torch.ones(target_batch_size)
+            )
 
-        if self.rgb and self.flow:  # For joint input
-            loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
-            loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
-            dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
-            dok_src = torch.cat((dok_src_rgb, dok_src_flow))
-            dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
+        # ok is abbreviation for (all) correct, dok refers to domain correct
+        if self.rgb:
+            if self.flow:
+                if self.audio:  # For all inputs
+                    loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow + loss_dmn_src_audio
+                    loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow + loss_dmn_tgt_audio
+                    dok = torch.cat(
+                        (dok_src_rgb, dok_src_flow, dok_src_audio, dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio)
+                    )
+                    dok_src = torch.cat((dok_src_rgb, dok_src_flow, dok_src_audio))
+                    dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio))
+                else:  # For joint(rgb+flow) input
+                    loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
+                    loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
+                    dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
+                    dok_src = torch.cat((dok_src_rgb, dok_src_flow))
+                    dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
+            else:
+                if self.audio:  # For rgb+audio input
+                    loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_audio
+                    loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_audio
+                    dok = torch.cat((dok_src_rgb, dok_src_audio, dok_tgt_rgb, dok_tgt_audio))
+                    dok_src = torch.cat((dok_src_rgb, dok_src_audio))
+                    dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_audio))
+                else:  # For rgb input
+                    loss_dmn_src = loss_dmn_src_rgb
+                    loss_dmn_tgt = loss_dmn_tgt_rgb
+                    dok = torch.cat((dok_src_rgb, dok_tgt_rgb))
+                    dok_src = dok_src_rgb
+                    dok_tgt = dok_tgt_rgb
         else:
-            if self.rgb:  # For rgb input
-                d_hat = d_hat_rgb
-                d_t_hat = d_t_hat_rgb
-            else:  # For flow input
-                d_hat = d_hat_flow
-                d_t_hat = d_t_hat_flow
+            if self.flow:
+                if self.audio:  # For flow+audio input
+                    loss_dmn_src = loss_dmn_src_flow + loss_dmn_src_audio
+                    loss_dmn_tgt = loss_dmn_tgt_flow + loss_dmn_tgt_audio
+                    dok = torch.cat((dok_src_flow, dok_src_audio, dok_tgt_flow, dok_tgt_audio))
+                    dok_src = torch.cat((dok_src_flow, dok_src_audio))
+                    dok_tgt = torch.cat((dok_tgt_flow, dok_tgt_audio))
+                else:  # For flow input
+                    loss_dmn_src = loss_dmn_src_flow
+                    loss_dmn_tgt = loss_dmn_tgt_flow
+                    dok = torch.cat((dok_src_flow, dok_tgt_flow))
+                    dok_src = dok_src_flow
+                    dok_tgt = dok_tgt_flow
+            else:  # For audio input
+                loss_dmn_src = loss_dmn_src_audio
+                loss_dmn_tgt = loss_dmn_tgt_audio
+                dok = torch.cat((dok_src_audio, dok_tgt_audio))
+                dok_src = dok_src_audio
+                dok_tgt = dok_tgt_audio
 
-            # ok is abbreviation for (all) correct, dok refers to domain correct
-            loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
-            loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
-            dok = torch.cat((dok_src, dok_tgt))
-
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-        task_loss = loss_cls
+        log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-        }
+        # # Uncomment to store output for EPIC UDA 2021 challenge.(2/3)
+        # if split_name == "test":
+        #     self.y_hat.extend(y_hat[0].tolist())
+        #     self.y_hat_noun.extend(y_hat[1].tolist())
+        #     self.y_t_hat.extend(y_t_hat[0].tolist())
+        #     self.y_t_hat_noun.extend(y_t_hat[1].tolist())
+        #     self.s_id.extend(s_id)
+        #     self.tu_id.extend(tu_id)
 
         return task_loss, adv_loss, log_metrics
 
-    def training_step(self, batch, batch_nb):
-        self._update_batch_epoch_factors(batch_nb)
 
-        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
-        if self.current_epoch < self._init_epochs:
-            loss = task_loss
-        else:
-            loss = task_loss + self.lamb_da * adv_loss
-
-        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
-        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["train_total_loss"] = loss
-        log_metrics["train_adv_loss"] = adv_loss
-        log_metrics["train_task_loss"] = task_loss
-
-        for key in log_metrics:
-            self.log(key, log_metrics[key])
-
-        return {"loss": loss}
-
-
-class CDANTrainerVideo(CDANTrainer):
+class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
     """This is an implementation of CDAN for video data."""
 
     def __init__(
@@ -346,6 +686,7 @@ class CDANTrainerVideo(CDANTrainer):
         feature_extractor,
         task_classifier,
         critic,
+        class_type,
         use_entropy=False,
         use_random=False,
         random_dim=1024,
@@ -355,13 +696,17 @@ class CDANTrainerVideo(CDANTrainer):
             dataset, feature_extractor, task_classifier, critic, use_entropy, use_random, random_dim, **base_params
         )
         self.image_modality = image_modality
-        self.rgb, self.flow = get_image_modality(image_modality)
+        self.rgb, self.flow, self.audio = get_image_modality(self.image_modality)
+        self.class_type = class_type
+        self.verb, self.noun = get_class_type(self.class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
+        self.audio_feat = self.feat["audio"]
 
     def forward(self, x):
         if self.feat is not None:
-            x_rgb = x_flow = adversarial_output_rgb = adversarial_output_flow = None
+            x_rgb = x_flow = x_audio = None
+            adversarial_output_rgb = adversarial_output_flow = adversarial_output_audio = None
 
             # For joint input, both two ifs are used
             if self.rgb:
@@ -372,16 +717,16 @@ class CDANTrainerVideo(CDANTrainer):
                 x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
                 reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
+            if self.audio:
+                x_audio = self.audio_feat(x["audio"])
+                x_audio = x_audio.view(x_audio.size(0), -1)
+                reverse_feature_audio = GradReverse.apply(x_audio, self.alpha)
 
-            if self.rgb:
-                if self.flow:  # For joint input
-                    x = torch.cat((x_rgb, x_flow), dim=1)
-                else:  # For rgb input
-                    x = x_rgb
-            else:  # For flow input
-                x = x_flow
+            x = self.concatenate(x_rgb, x_flow, x_audio)
+
             class_output = self.classifier(x)
-            softmax_output = torch.nn.Softmax(dim=1)(class_output)
+            # # Only use verb class to get softmax_output
+            softmax_output = torch.nn.Softmax(dim=1)(class_output[0])
             reverse_out = GradReverse.apply(softmax_output, self.alpha)
 
             if self.rgb:
@@ -401,26 +746,52 @@ class CDANTrainerVideo(CDANTrainer):
                     adversarial_output_flow = self.domain_classifier(random_out_flow.view(-1, random_out_flow.size(1)))
                 else:
                     adversarial_output_flow = self.domain_classifier(feature_flow)
-            return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
 
-    def compute_loss(self, batch, split_name="valid"):
+            if self.audio:
+                feature_audio = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_audio.unsqueeze(1))
+                feature_audio = feature_audio.view(-1, reverse_out.size(1) * reverse_feature_audio.size(1))
+                if self.random_layer:
+                    random_out_audio = self.random_layer.forward(feature_audio)
+                    adversarial_output_audio = self.domain_classifier(
+                        random_out_audio.view(-1, random_out_audio.size(1))
+                    )
+                else:
+                    adversarial_output_audio = self.domain_classifier(feature_audio)
+
+            return (
+                [x_rgb, x_flow, x_audio],
+                class_output,
+                [adversarial_output_rgb, adversarial_output_flow, adversarial_output_audio],
+            )
+
+    def compute_loss(self, batch, split_name="V"):
         # _s refers to source, _tu refers to unlabeled target
-        x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
-        if self.rgb:
-            if self.flow:  # For joint input
-                (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-            else:  # For rgb input
-                (x_s_rgb, y_s), (x_tu_rgb, y_tu) = batch
-        else:  # For flow input
-            (x_s_flow, y_s), (x_tu_flow, y_tu) = batch
+        (
+            x_s_rgb,
+            x_tu_rgb,
+            x_s_flow,
+            x_tu_flow,
+            x_s_audio,
+            x_tu_audio,
+            y_s,
+            y_tu,
+            s_id,
+            tu_id,
+        ) = self.get_inputs_from_batch(batch)
 
-        _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
-        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
-        batch_size = len(y_s)
+        _, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio] = self.forward(
+            {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
+        )
+        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio] = self.forward(
+            {"rgb": x_tu_rgb, "flow": x_tu_flow, "audio": x_tu_audio}
+        )
+        source_batch_size = len(y_s[0])
+        target_batch_size = len(y_tu[0])
 
+        # # Only use verb class to get entropy weights
         if self.entropy:
-            e_s = self._compute_entropy_weights(y_hat)
-            e_t = self._compute_entropy_weights(y_t_hat)
+            e_s = self._compute_entropy_weights(y_hat[0])
+            e_t = self._compute_entropy_weights(y_t_hat[0])
             source_weight = e_s / torch.sum(e_s)
             target_weight = e_t / torch.sum(e_t)
         else:
@@ -429,56 +800,87 @@ class CDANTrainerVideo(CDANTrainer):
 
         if self.rgb:
             loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(
-                d_hat_rgb, torch.zeros(batch_size), source_weight
+                d_hat_rgb, torch.zeros(source_batch_size), source_weight
             )
             loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(
-                d_t_hat_rgb, torch.ones(batch_size), target_weight
+                d_t_hat_rgb, torch.ones(target_batch_size), target_weight
             )
 
         if self.flow:
             loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(
-                d_hat_flow, torch.zeros(batch_size), source_weight
+                d_hat_flow, torch.zeros(source_batch_size), source_weight
             )
             loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(
-                d_t_hat_flow, torch.ones(batch_size), target_weight
+                d_t_hat_flow, torch.ones(target_batch_size), target_weight
+            )
+
+        if self.audio:
+            loss_dmn_src_audio, dok_src_audio = losses.cross_entropy_logits(
+                d_hat_audio, torch.zeros(source_batch_size), source_weight
+            )
+            loss_dmn_tgt_audio, dok_tgt_audio = losses.cross_entropy_logits(
+                d_t_hat_audio, torch.ones(target_batch_size), target_weight
             )
 
         # ok is abbreviation for (all) correct, dok refers to domain correct
-        if self.rgb and self.flow:  # For joint input
-            loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
-            loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
-            dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
-            dok_src = torch.cat((dok_src_rgb, dok_src_flow))
-            dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
+        if self.rgb:
+            if self.flow:
+                if self.audio:  # For all inputs
+                    loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow + loss_dmn_src_audio
+                    loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow + loss_dmn_tgt_audio
+                    dok = torch.cat(
+                        (dok_src_rgb, dok_src_flow, dok_src_audio, dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio)
+                    )
+                    dok_src = torch.cat((dok_src_rgb, dok_src_flow, dok_src_audio))
+                    dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio))
+                else:  # For joint(rgb+flow) input
+                    loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
+                    loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
+                    dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
+                    dok_src = torch.cat((dok_src_rgb, dok_src_flow))
+                    dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
+            else:
+                if self.audio:  # For rgb+audio input
+                    loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_audio
+                    loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_audio
+                    dok = torch.cat((dok_src_rgb, dok_src_audio, dok_tgt_rgb, dok_tgt_audio))
+                    dok_src = torch.cat((dok_src_rgb, dok_src_audio))
+                    dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_audio))
+                else:  # For rgb input
+                    loss_dmn_src = loss_dmn_src_rgb
+                    loss_dmn_tgt = loss_dmn_tgt_rgb
+                    dok = torch.cat((dok_src_rgb, dok_tgt_rgb))
+                    dok_src = dok_src_rgb
+                    dok_tgt = dok_tgt_rgb
         else:
-            if self.rgb:  # For rgb input
-                d_hat = d_hat_rgb
-                d_t_hat = d_t_hat_rgb
-            else:  # For flow input
-                d_hat = d_hat_flow
-                d_t_hat = d_t_hat_flow
+            if self.flow:
+                if self.audio:  # For flow+audio input
+                    loss_dmn_src = loss_dmn_src_flow + loss_dmn_src_audio
+                    loss_dmn_tgt = loss_dmn_tgt_flow + loss_dmn_tgt_audio
+                    dok = torch.cat((dok_src_flow, dok_src_audio, dok_tgt_flow, dok_tgt_audio))
+                    dok_src = torch.cat((dok_src_flow, dok_src_audio))
+                    dok_tgt = torch.cat((dok_tgt_flow, dok_tgt_audio))
+                else:  # For flow input
+                    loss_dmn_src = loss_dmn_src_flow
+                    loss_dmn_tgt = loss_dmn_tgt_flow
+                    dok = torch.cat((dok_src_flow, dok_tgt_flow))
+                    dok_src = dok_src_flow
+                    dok_tgt = dok_tgt_flow
+            else:  # For audio input
+                loss_dmn_src = loss_dmn_src_audio
+                loss_dmn_tgt = loss_dmn_tgt_audio
+                dok = torch.cat((dok_src_audio, dok_tgt_audio))
+                dok_src = dok_src_audio
+                dok_tgt = dok_tgt_audio
 
-            loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
-            loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
-            dok = torch.cat((dok_src, dok_tgt))
-
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-        task_loss = loss_cls
-
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-        }
+        log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
         return task_loss, adv_loss, log_metrics
 
 
-class WDGRLTrainerVideo(WDGRLTrainer):
+class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
     """This is an implementation of WDGRL for video data."""
 
     def __init__(
@@ -488,6 +890,7 @@ class WDGRLTrainerVideo(WDGRLTrainer):
         feature_extractor,
         task_classifier,
         critic,
+        class_type,
         k_critic=5,
         gamma=10,
         beta_ratio=0,
@@ -497,13 +900,17 @@ class WDGRLTrainerVideo(WDGRLTrainer):
             dataset, feature_extractor, task_classifier, critic, k_critic, gamma, beta_ratio, **base_params
         )
         self.image_modality = image_modality
-        self.rgb, self.flow = get_image_modality(self.image_modality)
+        self.rgb, self.flow, self.audio = get_image_modality(self.image_modality)
+        self.class_type = class_type
+        self.verb, self.noun = get_class_type(self.class_type)
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
+        self.audio_feat = self.feat["audio"]
 
     def forward(self, x):
         if self.feat is not None:
-            x_rgb = x_flow = adversarial_output_rgb = adversarial_output_flow = None
+            x_rgb = x_flow = x_audio = None
+            adversarial_output_rgb = adversarial_output_flow = adversarial_output_audio = None
 
             # For joint input, both two ifs are used
             if self.rgb:
@@ -514,86 +921,153 @@ class WDGRLTrainerVideo(WDGRLTrainer):
                 x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
                 adversarial_output_flow = self.domain_classifier(x_flow)
+            if self.audio:
+                x_audio = self.audio_feat(x["audio"])
+                x_audio = x_audio.view(x_audio.size(0), -1)
+                adversarial_output_audio = self.domain_classifier(x_audio)
 
-            if self.rgb:
-                if self.flow:  # For joint input
-                    x = torch.cat((x_rgb, x_flow), dim=1)
-                else:  # For rgb input
-                    x = x_rgb
-            else:  # For flow input
-                x = x_flow
+            x = self.concatenate(x_rgb, x_flow, x_audio)
+
             class_output = self.classifier(x)
 
-            return [x_rgb, x_flow], class_output, [adversarial_output_rgb, adversarial_output_flow]
+            return (
+                [x_rgb, x_flow, x_audio],
+                class_output,
+                [adversarial_output_rgb, adversarial_output_flow, adversarial_output_audio],
+            )
 
-    def compute_loss(self, batch, split_name="valid"):
+    def compute_loss(self, batch, split_name="V"):
         # _s refers to source, _tu refers to unlabeled target
-        x_s_rgb = x_tu_rgb = x_s_flow = x_tu_flow = None
-        if self.rgb:
-            if self.flow:  # For joint input
-                (x_s_rgb, y_s), (x_s_flow, y_s_flow), (x_tu_rgb, y_tu), (x_tu_flow, y_tu_flow) = batch
-            else:  # For rgb input
-                (x_s_rgb, y_s), (x_tu_rgb, y_tu) = batch
-        else:  # For flow input
-            (x_s_flow, y_s), (x_tu_flow, y_tu) = batch
+        (
+            x_s_rgb,
+            x_tu_rgb,
+            x_s_flow,
+            x_tu_flow,
+            x_s_audio,
+            x_tu_audio,
+            y_s,
+            y_tu,
+            s_id,
+            tu_id,
+        ) = self.get_inputs_from_batch(batch)
 
-        _, y_hat, [d_hat_rgb, d_hat_flow] = self.forward({"rgb": x_s_rgb, "flow": x_s_flow})
-        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
-        batch_size = len(y_s)
+        _, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio] = self.forward(
+            {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
+        )
+        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio] = self.forward(
+            {"rgb": x_tu_rgb, "flow": x_tu_flow, "audio": x_tu_audio}
+        )
+        source_batch_size = len(y_s[0])
+        target_batch_size = len(y_tu[0])
 
-        # ok is abbreviation for (all) correct, dok refers to domain correct
         if self.rgb:
-            _, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(batch_size))
-            _, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(batch_size))
+            loss_dmn_src_rgb, dok_src_rgb = losses.cross_entropy_logits(d_hat_rgb, torch.zeros(source_batch_size))
+            loss_dmn_tgt_rgb, dok_tgt_rgb = losses.cross_entropy_logits(d_t_hat_rgb, torch.ones(target_batch_size))
         if self.flow:
-            _, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(batch_size))
-            _, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(batch_size))
+            loss_dmn_src_flow, dok_src_flow = losses.cross_entropy_logits(d_hat_flow, torch.zeros(source_batch_size))
+            loss_dmn_tgt_flow, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(target_batch_size))
+        if self.audio:
+            loss_dmn_src_audio, dok_src_audio = losses.cross_entropy_logits(d_hat_audio, torch.zeros(source_batch_size))
+            loss_dmn_tgt_audio, dok_tgt_audio = losses.cross_entropy_logits(
+                d_t_hat_audio, torch.ones(target_batch_size)
+            )
 
-        if self.rgb and self.flow:  # For joint input
-            dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
-            dok_src = torch.cat((dok_src_rgb, dok_src_flow))
-            dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
-            wasserstein_distance_rgb = d_hat_rgb.mean() - (1 + self._beta_ratio) * d_t_hat_rgb.mean()
-            wasserstein_distance_flow = d_hat_flow.mean() - (1 + self._beta_ratio) * d_t_hat_flow.mean()
-            wasserstein_distance = (wasserstein_distance_rgb + wasserstein_distance_flow) / 2
+        if self.rgb:
+            if self.flow:
+                if self.audio:  # For all inputs
+                    dok = torch.cat(
+                        (dok_src_rgb, dok_src_flow, dok_src_audio, dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio)
+                    )
+                    dok_src = torch.cat((dok_src_rgb, dok_src_flow, dok_src_audio))
+                    dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio))
+                    wasserstein_distance_rgb = d_hat_rgb.mean() - (1 + self._beta_ratio) * d_t_hat_rgb.mean()
+                    wasserstein_distance_flow = d_hat_flow.mean() - (1 + self._beta_ratio) * d_t_hat_flow.mean()
+                    wasserstein_distance_audio = d_hat_audio.mean() - (1 + self._beta_ratio) * d_t_hat_audio.mean()
+                    wasserstein_distance = (
+                        wasserstein_distance_rgb + wasserstein_distance_flow + wasserstein_distance_audio
+                    ) / 3
+                else:  # For joint(rgb+flow) input
+                    dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
+                    dok_src = torch.cat((dok_src_rgb, dok_src_flow))
+                    dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
+                    wasserstein_distance_rgb = d_hat_rgb.mean() - (1 + self._beta_ratio) * d_t_hat_rgb.mean()
+                    wasserstein_distance_flow = d_hat_flow.mean() - (1 + self._beta_ratio) * d_t_hat_flow.mean()
+                    wasserstein_distance = (wasserstein_distance_rgb + wasserstein_distance_flow) / 2
+            else:
+                if self.audio:  # For rgb+audio input
+                    dok = torch.cat((dok_src_rgb, dok_src_audio, dok_tgt_rgb, dok_tgt_audio))
+                    dok_src = torch.cat((dok_src_rgb, dok_src_audio))
+                    dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_audio))
+                    wasserstein_distance_rgb = d_hat_rgb.mean() - (1 + self._beta_ratio) * d_t_hat_rgb.mean()
+                    wasserstein_distance_audio = d_hat_audio.mean() - (1 + self._beta_ratio) * d_t_hat_audio.mean()
+                    wasserstein_distance = (wasserstein_distance_rgb + wasserstein_distance_audio) / 2
+                else:  # For rgb input
+                    d_hat = d_hat_rgb
+                    d_t_hat = d_t_hat_rgb
+                    dok_src = dok_src_rgb
+                    dok_tgt = dok_tgt_rgb
+                    wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
+                    dok = torch.cat((dok_src, dok_tgt))
         else:
-            if self.rgb:  # For rgb input
-                d_hat = d_hat_rgb
-                d_t_hat = d_t_hat_rgb
-                dok_src = dok_src_rgb
-                dok_tgt = dok_tgt_rgb
-            else:  # For flow input
-                d_hat = d_hat_flow
-                d_t_hat = d_t_hat_flow
-                dok_src = dok_src_flow
-                dok_tgt = dok_tgt_flow
+            if self.flow:
+                if self.audio:  # For flow+audio input
+                    dok = torch.cat((dok_src_audio, dok_src_flow, dok_tgt_audio, dok_tgt_flow))
+                    dok_src = torch.cat((dok_src_audio, dok_src_flow))
+                    dok_tgt = torch.cat((dok_tgt_audio, dok_tgt_flow))
+                    wasserstein_distance_audio = d_hat_audio.mean() - (1 + self._beta_ratio) * d_t_hat_audio.mean()
+                    wasserstein_distance_flow = d_hat_flow.mean() - (1 + self._beta_ratio) * d_t_hat_flow.mean()
+                    wasserstein_distance = (wasserstein_distance_audio + wasserstein_distance_flow) / 2
+                else:  # For flow input
+                    d_hat = d_hat_flow
+                    d_t_hat = d_t_hat_flow
+                    dok_src = dok_src_flow
+                    dok_tgt = dok_tgt_flow
+                    wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
+                    dok = torch.cat((dok_src, dok_tgt))
+            else:  # For audio input
+                d_hat = d_hat_audio
+                d_t_hat = d_t_hat_audio
+                dok_src = dok_src_audio
+                dok_tgt = dok_tgt_audio
+                wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
+                dok = torch.cat((dok_src, dok_tgt))
 
-            wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
-            dok = torch.cat((dok_src, dok_tgt))
-
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
         adv_loss = wasserstein_distance
-        task_loss = loss_cls
+        log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-            f"{split_name}_wasserstein_dist": wasserstein_distance,
-        }
         return task_loss, adv_loss, log_metrics
 
+    def training_step(self, batch, batch_id):
+        self._update_batch_epoch_factors(batch_id)
+        self.critic_update_steps(batch)
+
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
+        if self.current_epoch < self._init_epochs:
+            loss = task_loss
+        else:
+            loss = task_loss + self.lamb_da * adv_loss
+
+        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
+        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
+        log_metrics["train_total_loss"] = loss
+        log_metrics["train_adv_loss"] = adv_loss
+        log_metrics["train_task_loss"] = task_loss
+
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
+
+        return {"loss": loss}
+
     def configure_optimizers(self):
-        if self.image_modality in ["rgb", "flow"]:
-            if self.rgb_feat is not None:
-                nets = [self.rgb_feat, self.classifier]
-            else:
-                nets = [self.flow_feat, self.classifier]
-        elif self.image_modality == "joint":
-            nets = [self.rgb_feat, self.flow_feat, self.classifier]
+        nets = [self.classifier]
+        if self.rgb:
+            nets.append(self.rgb_feat)
+        if self.flow:
+            nets.append(self.flow_feat)
+        if self.audio:
+            nets.append(self.audio_feat)
+
         parameters = set()
 
         for net in nets:
@@ -618,67 +1092,63 @@ class WDGRLTrainerVideo(WDGRLTrainer):
 
         set_requires_grad(self.domain_classifier, requires_grad=True)
 
-        if self.image_modality in ["rgb", "flow"]:
-            if self.rgb_feat is not None:
-                set_requires_grad(self.rgb_feat, requires_grad=False)
-                (x_s, y_s), (x_tu, _) = batch
-                with torch.no_grad():
-                    h_s = self.rgb_feat(x_s).data.view(x_s.shape[0], -1)
-                    h_t = self.rgb_feat(x_tu).data.view(x_tu.shape[0], -1)
-            else:
-                set_requires_grad(self.flow_feat, requires_grad=False)
-                (x_s, y_s), (x_tu, _) = batch
-                with torch.no_grad():
-                    h_s = self.flow_feat(x_s).data.view(x_s.shape[0], -1)
-                    h_t = self.flow_feat(x_tu).data.view(x_tu.shape[0], -1)
+        (
+            x_s_rgb,
+            x_tu_rgb,
+            x_s_flow,
+            x_tu_flow,
+            x_s_audio,
+            x_tu_audio,
+            y_s,
+            y_tu,
+            s_id,
+            tu_id,
+        ) = self.get_inputs_from_batch(batch)
 
-            for _ in range(self._k_critic):
-                # gp refers to gradient penelty in Wasserstein distance.
-                gp = losses.gradient_penalty(self.domain_classifier, h_s, h_t)
-
-                critic_s = self.domain_classifier(h_s)
-                critic_t = self.domain_classifier(h_t)
-                wasserstein_distance = critic_s.mean() - (1 + self._beta_ratio) * critic_t.mean()
-
-                critic_cost = -wasserstein_distance + self._gamma * gp
-
-                self.critic_opt.zero_grad()
-                critic_cost.backward()
-                self.critic_opt.step()
-                if self.critic_sched:
-                    self.critic_sched.step()
-
-            if self.rgb_feat is not None:
-                set_requires_grad(self.rgb_feat, requires_grad=True)
-            else:
-                set_requires_grad(self.flow_feat, requires_grad=True)
-            set_requires_grad(self.domain_classifier, requires_grad=False)
-
-        elif self.image_modality == "joint":
+        if self.rgb:
             set_requires_grad(self.rgb_feat, requires_grad=False)
-            set_requires_grad(self.flow_feat, requires_grad=False)
-            (x_s_rgb, y_s), (x_s_flow, _), (x_tu_rgb, _), (x_tu_flow, _) = batch
             with torch.no_grad():
                 h_s_rgb = self.rgb_feat(x_s_rgb).data.view(x_s_rgb.shape[0], -1)
                 h_t_rgb = self.rgb_feat(x_tu_rgb).data.view(x_tu_rgb.shape[0], -1)
+        if self.flow:
+            set_requires_grad(self.flow_feat, requires_grad=False)
+            with torch.no_grad():
                 h_s_flow = self.flow_feat(x_s_flow).data.view(x_s_flow.shape[0], -1)
                 h_t_flow = self.flow_feat(x_tu_flow).data.view(x_tu_flow.shape[0], -1)
-                h_s = torch.cat((h_s_rgb, h_s_flow), dim=1)
-                h_t = torch.cat((h_t_rgb, h_t_flow), dim=1)
+        if self.audio:
+            set_requires_grad(self.audio_feat, requires_grad=False)
+            with torch.no_grad():
+                h_s_audio = self.audio_feat(x_s_audio).data.view(x_s_audio.shape[0], -1)
+                h_t_audio = self.audio_feat(x_tu_audio).data.view(x_tu_audio.shape[0], -1)
 
-            # Need to improve to process rgb and flow separately in the future.
-            for _ in range(self._k_critic):
-                # gp_x refers to gradient penelty for the input with the modality x.
+        for _ in range(self._k_critic):
+            # gp refers to gradient penelty in Wasserstein distance.
+            if self.rgb:
                 gp_rgb = losses.gradient_penalty(self.domain_classifier, h_s_rgb, h_t_rgb)
-                gp_flow = losses.gradient_penalty(self.domain_classifier, h_s_flow, h_t_flow)
-
                 critic_s_rgb = self.domain_classifier(h_s_rgb)
-                critic_s_flow = self.domain_classifier(h_s_flow)
                 critic_t_rgb = self.domain_classifier(h_t_rgb)
-                critic_t_flow = self.domain_classifier(h_t_flow)
                 wasserstein_distance_rgb = critic_s_rgb.mean() - (1 + self._beta_ratio) * critic_t_rgb.mean()
+            if self.flow:
+                gp_flow = losses.gradient_penalty(self.domain_classifier, h_s_flow, h_t_flow)
+                critic_s_flow = self.domain_classifier(h_s_flow)
+                critic_t_flow = self.domain_classifier(h_t_flow)
                 wasserstein_distance_flow = critic_s_flow.mean() - (1 + self._beta_ratio) * critic_t_flow.mean()
+            if self.audio:
+                gp_audio = losses.gradient_penalty(self.domain_classifier, h_s_audio, h_t_audio)
+                critic_s_audio = self.domain_classifier(h_s_audio)
+                critic_t_audio = self.domain_classifier(h_t_audio)
+                wasserstein_distance_audio = critic_s_audio.mean() - (1 + self._beta_ratio) * critic_t_audio.mean()
 
+            if self.rgb and self.flow and self.audio:
+                critic_cost = (
+                    -wasserstein_distance_rgb
+                    + -wasserstein_distance_flow
+                    + -wasserstein_distance_audio
+                    + self._gamma * gp_rgb
+                    + self._gamma * gp_flow
+                    + self._gamma * gp_audio
+                ) * 0.5
+            elif self.rgb and self.flow and not self.audio:
                 critic_cost = (
                     -wasserstein_distance_rgb
                     + -wasserstein_distance_flow
@@ -686,12 +1156,25 @@ class WDGRLTrainerVideo(WDGRLTrainer):
                     + self._gamma * gp_flow
                 ) * 0.5
 
-                self.critic_opt.zero_grad()
-                critic_cost.backward()
-                self.critic_opt.step()
-                if self.critic_sched:
-                    self.critic_sched.step()
+            elif self.rgb and not self.flow and not self.audio:
+                critic_cost = -wasserstein_distance_rgb + self._gamma * gp_rgb
 
-            set_requires_grad(self.rgb_feat, requires_grad=True)
-            set_requires_grad(self.flow_feat, requires_grad=True)
+            elif self.flow and not self.rgb and not self.audio:
+                critic_cost = -wasserstein_distance_flow + self._gamma * gp_flow
+
+            elif self.audio and not self.rgb and not self.flow:
+                critic_cost = -wasserstein_distance_audio + self._gamma * gp_audio
+
+            self.critic_opt.zero_grad()
+            critic_cost.backward()
+            self.critic_opt.step()
+            if self.critic_sched:
+                self.critic_sched.step()
+
+            if self.rgb:
+                set_requires_grad(self.rgb_feat, requires_grad=True)
+            if self.flow:
+                set_requires_grad(self.flow_feat, requires_grad=True)
+            if self.audio:
+                set_requires_grad(self.audio_feat, requires_grad=True)
             set_requires_grad(self.domain_classifier, requires_grad=False)

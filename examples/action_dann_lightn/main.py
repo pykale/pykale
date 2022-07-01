@@ -47,18 +47,20 @@ def main():
     # ---- setup output ----
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
+
     # ---- setup dataset ----
     seed = cfg.SOLVER.SEED
-    source, target, num_classes = VideoDataset.get_source_target(
+    source, target, dict_num_classes = VideoDataset.get_source_target(
         VideoDataset(cfg.DATASET.SOURCE.upper()), VideoDataset(cfg.DATASET.TARGET.upper()), seed, cfg
     )
     dataset = VideoMultiDomainDatasets(
         source,
         target,
         image_modality=cfg.DATASET.IMAGE_MODALITY,
-        seed=seed,
+        random_state=seed,
         config_weight_type=cfg.DATASET.WEIGHT_TYPE,
         config_size_type=cfg.DATASET.SIZE_TYPE,
+        num_workers=cfg.SOLVER.NUM_WORKERS,
     )
 
     # ---- training/test process ----
@@ -68,7 +70,7 @@ def main():
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
-        model, train_params = get_model(cfg, dataset, num_classes)
+        model, train_params = get_model(cfg, dataset, dict_num_classes)
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
             # dirpath=full_checkpoint_dir,

@@ -219,7 +219,8 @@ class BaseAdaptTrainer(pl.LightningModule):
     changes linearly from 0 to 1.
 
     Args:
-        dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used for train, validation, and tests.
+        dataset (kale.loaddata.multi_domain, kale.loaddata.video_multi_domain): the multi-domain datasets to be used
+            for train, validation, and tests.
         feature_extractor (torch.nn.Module): the feature extractor network (mapping inputs :math:`x\in\mathcal{X}`
             to a latent space :math:`\mathcal{Z}`,)
         task_classifier (torch.nn.Module): the task classifier network that learns to predict labels
