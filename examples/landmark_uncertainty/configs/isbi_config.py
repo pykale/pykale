@@ -14,9 +14,9 @@ _C = CN()
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.DATASET.SOURCE = "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
-# _C.DATASET.SOURCE = "https://github.com/pykale/data/blob/landmark-data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
-_C.DATASET.ROOT = "/mnt/tale_shared/schobs/data/tabular/cardiac_landmark_uncertainty/"
+
+_C.DATASET.SOURCE = "https://github.com/pykale/data/blob/landmark-data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
+_C.DATASET.ROOT = "../../../landmark_data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples"
 _C.DATASET.BASE_DIR = "Uncertainty_tuples"
 
 _C.DATASET.UNCERTAINTY_ERROR_PAIRS = [
@@ -28,10 +28,10 @@ _C.DATASET.FILE_FORMAT = "zip"
 
 _C.DATASET.CONFIDENCE_INVERT = [["S-MHA", True], ["E-MHA", True], ["E-CPV", False]]
 
-_C.DATASET.MODELS = ["U-NET", "PHD-NET"]
-_C.DATASET.DATA = "4CH"
-_C.DATASET.LANDMARKS = [0, 1, 2]
-_C.DATASET.NUM_FOLDS = 8
+_C.DATASET.MODELS = ["U-NET"]
+_C.DATASET.DATA = "ISBI"
+_C.DATASET.LANDMARKS = [0, 1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+_C.DATASET.NUM_FOLDS = 4
 
 
 _C.DATASET.UE_PAIRS_VAL = "uncertainty_pairs_valid"
@@ -69,7 +69,7 @@ _C.WEIGHT_KWARGS.alpha = 0.7
 _C.OUTPUT = CN()
 
 
-_C.OUTPUT.SAVE_FOLDER = "/mnt/tale_shared/schobs/rebuttal/results/"
+_C.OUTPUT.SAVE_FOLDER = "../../../outputs"
 # _C.OUTPUT.SAVE_FILE_EVALUATION= "../../../outputs"
 
 

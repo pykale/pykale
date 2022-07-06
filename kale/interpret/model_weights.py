@@ -17,7 +17,7 @@ def select_top_weight(weights, select_ratio: float = 0.05):
     Returns:
         array-like: top weights in the same shape with the input model weights
     """
-    if type(weights) != np.ndarray:
+    if type(weights) != np.ndarray: 
         weights = np.array(weights)
     orig_shape = weights.shape
 

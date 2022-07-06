@@ -15,8 +15,8 @@ import seaborn as sns
 from config import get_cfg_defaults
 from pandas import *
 
-from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard, get_mean_errors
-from kale.interpret.uncertainty_quantiles import box_plot, box_plot_per_model, plot_cumulative, quantile_binning_and_est_errors
+from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard
+from kale.interpret.uncertainty_quantiles import box_plot, plot_cumulative, quantile_binning_and_est_errors
 from kale.loaddata.tabular_access import load_csv_columns
 from kale.predict.uncertainty_binning import quantile_binning_predictions
 from kale.prepdata.tabular_transform import apply_confidence_inversion, get_data_struct
@@ -91,10 +91,10 @@ def main():
 
                 # Define Paths for this loop
                 landmark_results_path_val = os.path.join(
-                    cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
+                    cfg.DATASET.ROOT, model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
                 )
                 landmark_results_path_test = os.path.join(
-                    cfg.DATASET.ROOT,  base_dir, model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
+                    cfg.DATASET.ROOT, model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
                 )
 
                 uncert_boundaries, estimated_errors, predicted_bins = fit_and_predict(
@@ -115,183 +115,50 @@ def main():
             models_to_compare, landmarks, saved_bins_path_pre, dataset
         )
 
-
-        #Get mean errors bin-wise, get all errors concatenated together bin-wise, and seperate by landmark.
-        all_error_data_dict = get_mean_errors(bins_all_lms, uncertainty_error_pairs, num_bins, landmarks)
-        all_error_data =  all_error_data_dict["all mean error bins nosep"]
-        all_error_lm_sep = all_error_data_dict["all mean error bins lms sep"] 
-
-        all_bins_concat_lms_nosep_error = all_error_data_dict["all error concat bins lms nosep"] # shape is [num bins]
-        all_bins_concat_lms_sep_foldwise_error = all_error_data_dict["all error concat bins lms sep foldwise"] # shape is [num lms][num bins]
-        all_bins_concat_lms_sep_all_error = all_error_data_dict["all error concat bins lms sep all"] # same as all_bins_concat_lms_sep_foldwise but folds are flattened to a single list
-
-
-        all_jaccard_data_dict = evaluate_jaccard(
+        all_jaccard_data, all_jaccard_bins_lms_sep = evaluate_jaccard(
             bins_all_lms, uncertainty_error_pairs, num_bins, landmarks
         )
-        all_jaccard_data = all_jaccard_data_dict["Jaccard All"]
-        all_recall_data = all_jaccard_data_dict["Recall All"]
-        all_precision_data = all_jaccard_data_dict["Precision All"]
-        all_bins_concat_lms_sep_foldwise_jacc = all_jaccard_data_dict["all jacc concat bins lms sep foldwise"] # shape is [num lms][num bins]
-        all_bins_concat_lms_sep_all_jacc = all_jaccard_data_dict["all jacc concat bins lms sep all"] # same as all_bins_concat_lms_sep_foldwise but folds are flattened to a single list
-
-
-
-
-        # print("all jacc data: ", all_jaccard_data)
-        # print("all jacc data sep: ", all_jaccard_bins_lms_sep)
-        bound_return_dict= evaluate_bounds(
+        all_bound_data, all_bound_lms_sep = evaluate_bounds(
             bounds_all_lms, bins_all_lms, uncertainty_error_pairs, num_bins, landmarks, num_folds
         )
-
-        all_bound_data = bound_return_dict["Error Bounds All"]
-        all_bins_concat_lms_sep_foldwise_errorbound = bound_return_dict["all errorbound concat bins lms sep foldwise"] # shape is [num lms][num bins]
-        all_bins_concat_lms_sep_all_errorbound = bound_return_dict["all errorbound concat bins lms sep all"] # same as all_bins_concat_lms_sep_foldwise but folds are flattened to a single list
-       
 
         if interpret:
 
             # Plot cumulative error figure for all predictions
-            # plot_cumulative(
-            #     cmaps,
-            #     bins_all_lms,
-            #     models_to_compare,
-            #     uncertainty_error_pairs,
-            #     np.arange(num_bins),
-            #     "Cumulative error for ALL predictions, dataset " + dataset,
-            #     save_path=None,
-            # )
-            # # Plot cumulative error figure for B1 only predictions
-            # plot_cumulative(
-            #     cmaps,
-            #     bins_all_lms,
-            #     models_to_compare,
-            #     uncertainty_error_pairs,
-            #     0,
-            #     "Cumulative error for B1 predictions, dataset " + dataset,
-            #     save_path=None,
-            # )
+            plot_cumulative(
+                cmaps,
+                bins_all_lms,
+                models_to_compare,
+                uncertainty_error_pairs,
+                np.arange(num_bins),
+                "Cumulative error for ALL predictions, dataset " + dataset,
+                save_path=None,
+            )
+            # Plot cumulative error figure for B1 only predictions
+            plot_cumulative(
+                cmaps,
+                bins_all_lms,
+                models_to_compare,
+                uncertainty_error_pairs,
+                0,
+                "Cumulative error for B1 predictions, dataset " + dataset,
+                save_path=None,
+            )
 
-            # # Plot cumulative error figure comparing B1 and ALL, for both models
-            # for model_type in models_to_compare:
-            #     plot_cumulative(
-            #         cmaps,
-            #         bins_all_lms,
-            #         [model_type],
-            #         uncertainty_error_pairs,
-            #         0,
-            #         model_type + ". Cumulative error comparing ALL and B1, dataset " + dataset,
-            #         compare_to_all=True,
-            #         save_path=None,
-            #     )
+            # Plot cumulative error figure comparing B1 and ALL, for both models
+            for model_type in models_to_compare:
+                plot_cumulative(
+                    cmaps,
+                    bins_all_lms,
+                    [model_type],
+                    uncertainty_error_pairs,
+                    0,
+                    model_type + ". Cumulative error comparing ALL and B1, dataset " + dataset,
+                    compare_to_all=True,
+                    save_path=None,
+                )
 
             x_axis_labels = [r"$B_{}$".format(num_bins + 1 - (i + 1)) for i in range(num_bins + 1)]
-            
-
-
-            #get error bounds
-
-          
-
-
-            # mean error concat for each bin
-            print("mean error concat all L")
-
-            box_plot_per_model(
-                cmaps,
-                all_bins_concat_lms_nosep_error,
-                uncertainty_error_pairs,
-                models_to_compare,
-                x_axis_labels=x_axis_labels,
-                x_label="Uncertainty Thresholded Bin",
-                y_label="Mean Error (mm)",
-                num_bins=num_bins,
-                turn_to_percent=False,
-                show_sample_info=True,
-                show_individual_dots = True,
-                y_lim=128,
-                to_log=True
-            )
-
-            #plot the concatentated errors for each landmark seperately
-            for idx_l, lm_data in enumerate(all_bins_concat_lms_sep_all_error):
-                print("individual error for L",idx_l)
-                box_plot_per_model(
-                    cmaps,
-                    lm_data,
-                    uncertainty_error_pairs,
-                    models_to_compare,
-                    x_axis_labels=x_axis_labels,
-                    x_label="Uncertainty Thresholded Bin",
-                    y_label="Error (mm)",
-                    num_bins=num_bins,
-                    turn_to_percent=False,
-                    show_sample_info=True,
-                    show_individual_dots = True,
-                    y_lim=128,
-                    to_log=True
-                )
-
-
-            print("mean error")
-            # mean error for each bin
-            box_plot(
-                cmaps,
-                all_error_data,
-                uncertainty_error_pairs,
-                models_to_compare,
-                x_axis_labels=x_axis_labels,
-                x_label="Uncertainty Thresholded Bin",
-                y_label="Mean Error (mm)",
-                num_bins=num_bins,
-                turn_to_percent=False,
-                y_lim=50,
-                to_log=True
-            )
-
-
-            #plot the concatentated error bounds for each landmark seperately
-            for idx_l, lm_data in enumerate(all_bins_concat_lms_sep_all_errorbound):
-                print("individual errorbound acc for L",idx_l)
-                box_plot(
-                    cmaps,
-                    all_bound_data,
-                    uncertainty_error_pairs,
-                    models_to_compare,
-                    x_axis_labels=x_axis_labels,
-                    x_label="Uncertainty Thresholded Bin",
-                    y_label="Error Bound Accuracy (%)",
-                    num_bins=num_bins,
-                )
-
-            # PLot Error Bound Accuracy
-            print(" errorbound acc for all landmarks.")
-
-            box_plot(
-                cmaps,
-                all_bound_data,
-                uncertainty_error_pairs,
-                models_to_compare,
-                x_axis_labels=x_axis_labels,
-                x_label="Uncertainty Thresholded Bin",
-                y_label="Error Bound Accuracy (%)",
-                num_bins=num_bins,
-            )
-
-            #plot the jaccard index for each landmark seperately
-            for idx_l, lm_data in enumerate(all_bins_concat_lms_sep_all_jacc):
-                print("individual jaccard for L",idx_l)
-                box_plot(
-                    cmaps,
-                    lm_data,
-                    uncertainty_error_pairs,
-                    models_to_compare,
-                    x_axis_labels=x_axis_labels,
-                    x_label="Uncertainty Thresholded Bin",
-                    y_label="Jaccard Index (%)",
-                    num_bins=num_bins,
-                    y_lim=70,
-                )
 
             # PLot Jaccard Index
             box_plot(
@@ -306,37 +173,19 @@ def main():
                 y_lim=70,
             )
 
-            # mean recall for each bin
+            # PLot Error Bound Accuracy
             box_plot(
                 cmaps,
-                all_recall_data,
+                all_bound_data,
                 uncertainty_error_pairs,
                 models_to_compare,
                 x_axis_labels=x_axis_labels,
                 x_label="Uncertainty Thresholded Bin",
-                y_label="Ground Truth Bins Recall",
+                y_label="Error Bound Accuracy (%)",
                 num_bins=num_bins,
-                turn_to_percent=True,
-                y_lim=100,
             )
 
-            # mean precision for each bin
-            box_plot(
-                cmaps,
-                all_precision_data,
-                uncertainty_error_pairs,
-                models_to_compare,
-                x_axis_labels=x_axis_labels,
-                x_label="Uncertainty Thresholded Bin",
-                y_label="Ground Truth Bins Precision",
-                num_bins=num_bins,
-                turn_to_percent=True,
-                y_lim=100,
-            )
 
-            
-
-        
 def fit_and_predict(model, landmark, uncertainty_error_pairs, ue_pairs_val, ue_pairs_test, config, save_folder=None):
 
     """ Loads (validation, testing data) pairs of (uncertainty, error) pairs and for each fold: used the validation

@@ -8,7 +8,7 @@ import matplotlib.ticker as ticker
 import numpy as np
 from matplotlib.ticker import ScalarFormatter
 from sklearn.isotonic import IsotonicRegression
-
+import matplotlib.lines as mlines
 
 def quantile_binning_and_est_errors(errors, uncertainties, num_bins, type="quantile", acceptable_thresh=5 * 0.9375):
     """
@@ -45,13 +45,14 @@ def quantile_binning_and_est_errors(errors, uncertainties, num_bins, type="quant
     estimated_errors = []
 
     if type == "quantile":
-        quantiles = np.arange(1 / num_bins, 1, 1 / num_bins)
+        quantiles = np.arange(1 / num_bins, 1, 1 / num_bins)[:num_bins-1]
         for q in range(len(quantiles)):
             q_conf_higher = [np.quantile(uncertainties, quantiles[q])]
             q_error_higher = ir.predict(q_conf_higher)
 
             estimated_errors.append(q_error_higher[0])
             uncert_boundaries.append(q_conf_higher)
+
 
     elif type == "error_wise":
         quantiles = np.arange(num_bins - 1)
@@ -71,8 +72,11 @@ def box_plot(
     x_label,
     y_label,
     num_bins,
+    show_sample_info =False,
     save_path=None,
     y_lim=120,
+    turn_to_percent=True,
+    to_log= False,
 ):
     """
     Creates a box plot of data.
@@ -111,10 +115,14 @@ def box_plot(
 
     max_error = 0
     circ_patches = []
+    
+
+
 
     for i, (up) in enumerate(uncertainty_types_list):
         uncertainty_type = up[0]
-
+        
+      
         for j in range(num_bins):
 
             inbetween_locs = []
@@ -138,14 +146,31 @@ def box_plot(
                 model_data = landmark_uncert_dicts[dict_key]
                 all_b_data = model_data[j]
 
+                if show_sample_info:
+                    flattened_model_data = [x for xss in model_data for x in xss]
+                    print("len of all data: ", len(flattened_model_data))
+                    print("len of this bin: ", len(all_b_data))
+                    print("\% \size of this bin:  ", len(all_b_data) / len(flattened_model_data)*100)
+
+                # print("Bin %s (len=%s)" % (j, len(all_b_data)))
+
+                # if j == num_bins-1:
+                #     print("model: %s, uncertainty: %s, and mean error: %s" % (model_type, uncertainty_type, np.mean(all_b_data)))
+                #     print("and all data: ", all_b_data)
+
                 orders.append(model_type + uncertainty_type)
 
                 width = 0.08
+
+               
                 x_loc = [(outer_min_x_loc + inner_min_x_loc + middle_min_x_loc)]
                 inbetween_locs.append(x_loc[0])
 
                 # Turn data to percentages
-                percent_data = [(x) * 100 for x in all_b_data]
+                if turn_to_percent:
+                    percent_data = [(x) * 100 for x in all_b_data]
+                else:
+                    percent_data = all_b_data
                 rect = ax.boxplot(
                     percent_data, positions=x_loc, sym="", widths=width, showmeans=True, patch_artist=True
                 )
@@ -163,8 +188,8 @@ def box_plot(
                 for mean in rect["means"]:
                     mean.set(markerfacecolor="crimson", markeredgecolor="black", markersize=10)
 
-                for whisker in rect["whiskers"]:
-                    max_error = max(max(whisker.get_ydata()), max_error)
+                # for whisker in rect["whiskers"]:
+                #     max_error = max(max(whisker.get_ydata()), max_error)
 
                 all_rects.append(rect)
 
@@ -185,7 +210,222 @@ def box_plot(
 
     ax.xaxis.set_major_formatter(ticker.FixedFormatter(x_axis_labels[:-1] * (len(uncertainty_types_list) * 2)))
 
-    ax.set_ylim((-2, y_lim))
+
+    if to_log:
+        # ax.set_yscale("log",base=2)
+        ax.set_yscale('symlog', base=2)
+
+        ax.yaxis.set_major_formatter(ScalarFormatter())
+        ax.set_ylim(-2, y_lim)
+
+    else:
+        ax.set_ylim((-2, y_lim))
+
+
+    ax.legend(handles=circ_patches, loc=9, fontsize=15, ncol=3, columnspacing=6)
+
+    if save_path is not None:
+        plt.savefig(save_path, dpi=100, bbox_inches="tight", pad_inches=0.2)
+        plt.close()
+    else:
+        plt.show()
+        plt.close()
+
+
+
+
+def box_plot_per_model(
+    cmaps,
+    landmark_uncert_dicts,
+    uncertainty_types_list,
+    models,
+    x_axis_labels,
+    x_label,
+    y_label,
+    num_bins,
+    show_sample_info = False,
+    save_path=None,
+    y_lim=120,
+    turn_to_percent=True,
+    to_log= False,
+    show_individual_dots = True,
+
+):
+    """
+    Creates a box plot of data.
+
+    Args:
+        cmaps (list): list of colours for matplotlib,
+        landmark_uncert_dicts (Dict): Dict of pandas dataframe for the data to dsiplay,
+        uncertainty_types_list ([list]): list of lists describing the different uncert combinations to test,
+        models (list): the models we want to compare, keys in landmark_uncert_dicts,
+        x_axis_labels (list): list of strings for the x-axis labels, one for each bin,
+        x_label (str): x axis label,
+        y_label (int): y axis label,
+        num_bins (int): Number of uncertainty bins,
+        save_path (str):path to save plot to. If None, displays on screen (default=None),
+        y_lim (int): y axis limit of graph (default=120),
+
+
+    """
+
+    hatch_type = "o"
+
+    plt.style.use("fivethirtyeight")
+
+    orders = []
+    ax = plt.gca()
+
+    # fig.set_size_inches(24, 10)
+
+    ax.xaxis.grid(False)
+
+    bin_label_locs = []
+    all_rects = []
+    outer_min_x_loc = 0
+    middle_min_x_loc = 0
+    inner_min_x_loc = 0
+
+    max_error = 0
+    circ_patches = []
+    
+
+        
+
+
+    for i, (up) in enumerate(uncertainty_types_list):
+        uncertainty_type = up[0]
+        for hash_idx, model_type in enumerate(models):
+            inbetween_locs = []
+
+            for j in range(num_bins):
+
+
+                if j == 0:
+                    if hash_idx == 1:
+                        circ11 = patches.Patch(
+                            facecolor=cmaps[i],
+                            label=model_type + " " + uncertainty_type,
+                            hatch=hatch_type,
+                            edgecolor="black",
+                        )
+                    else:
+                        circ11 = patches.Patch(facecolor=cmaps[i], label=model_type + " " + uncertainty_type)
+                    circ_patches.append(circ11)
+
+                dict_key = [
+                    x for x in list(landmark_uncert_dicts.keys()) if (model_type in x) and (uncertainty_type in x)
+                ][0]
+                model_data = landmark_uncert_dicts[dict_key]
+                all_b_data = model_data[j]
+
+                # if j == num_bins-1:
+                #     print("Bin %s (len=%s), model: %s, uncertainty: %s, and mean error: %s" % (j,len(all_b_data), model_type, uncertainty_type, np.mean(all_b_data)))
+                #     print("and all data: ", all_b_data)
+
+                orders.append(model_type + uncertainty_type)
+
+                width = 0.08
+
+               
+                x_loc = [(outer_min_x_loc + inner_min_x_loc + middle_min_x_loc)]
+                inbetween_locs.append(x_loc[0])
+
+                # Turn data to percentages
+                if turn_to_percent:
+                    displayed_data = [(x) * 100 for x in all_b_data]
+                else:
+                    displayed_data = all_b_data
+                rect = ax.boxplot(
+                    displayed_data, positions=x_loc, sym="", widths=width, showmeans=True, patch_artist=True
+                )
+
+                if show_individual_dots:
+                    # Add some random "jitter" to the x-axis
+                    x = np.random.normal(x_loc, 0.01, size=len(displayed_data))
+                    ax.plot(x, displayed_data, color='crimson', marker='.', linestyle="None", alpha=0.2)
+
+
+
+
+                # Set colour, pattern, median line and mean marker.
+                for r in rect["boxes"]:
+                    r.set(color="black", linewidth=1)
+                    r.set(facecolor=cmaps[i])
+
+                    if hash_idx == 1:
+                        r.set_hatch(hatch_type)
+                for median in rect["medians"]:
+                    median.set(color="crimson", linewidth=3)
+
+                for mean in rect["means"]:
+                    mean.set(markerfacecolor="crimson", markeredgecolor="black", markersize=10)
+
+                # for whisker in rect["whiskers"]:
+                #     max_error = max(max(whisker.get_ydata()), max_error)
+
+
+                if show_sample_info:
+                    flattened_model_data = [x for xss in model_data for x in xss]
+                    percent_size = np.round(len(all_b_data) / len(flattened_model_data)*100, 1)
+                    print("len of all data: ", len(flattened_model_data))
+                    print("len of this bin: ", len(all_b_data))
+                    print("\% \size of this bin:  ", len(all_b_data) / len(flattened_model_data)*100)
+
+                    """ This adds the number of samples on top of the top whisker"""
+
+                 
+                    (x_l, y),(x_r, _) = rect['caps'][-1].get_xydata()
+                    # Make sure datapoints exist 
+                    # (I've been working with intervals, should not be problem for this case)
+                    if not np.isnan(y): 
+                        x_line_center = x_l + (x_r - x_l)/2
+                        y_line_center = y  # Since it's a line and it's horisontal
+                        # overlay the value:  on the line, from center to right
+                        ax.text(x_line_center, y_line_center, # Position
+                                str(percent_size) + "%", # Value (3f = 3 decimal float)
+                                verticalalignment='center', # Centered vertically with line 
+                                fontsize=16,)
+
+                all_rects.append(rect)
+
+                inner_min_x_loc += 0.02 + width
+            bin_label_locs = bin_label_locs  + inbetween_locs
+            middle_min_x_loc += 0.06
+        outer_min_x_loc += 0.12
+
+    ax.set_xlabel(x_label, fontsize=30)
+    ax.set_ylabel(y_label, fontsize=30)
+    ax.set_xticks(bin_label_locs)
+
+    plt.subplots_adjust(bottom=0.15)
+    plt.subplots_adjust(left=0.15)
+
+    plt.xticks(fontsize=18)
+    plt.yticks(fontsize=25)
+
+    ax.xaxis.set_major_formatter(ticker.FixedFormatter(x_axis_labels[:-1] * (len(uncertainty_types_list) * 2)))
+
+
+    if to_log:
+        # ax.set_yscale("log",base=2)
+        ax.set_yscale('symlog', base=2)
+
+        ax.yaxis.set_major_formatter(ScalarFormatter())
+        ax.set_ylim(-0.1, y_lim) # set the x ticks in aesthitically pleasing place
+
+    else:
+        ax.set_ylim((-2, y_lim)) # set the x ticks in aesthitically pleasing place
+
+    #Add more to legend, add the mean symbol and median symbol.
+    red_triangle_mean = mlines.Line2D([], [], color='crimson', marker='^', markeredgecolor="black", linestyle='None',
+                          markersize=10, label='Mean')
+    circ_patches.append(red_triangle_mean)
+
+    red_line_median = mlines.Line2D([], [], color='crimson', marker='', markeredgecolor="black",
+                          markersize=10, label='Median')
+    circ_patches.append(red_line_median)
+
 
     ax.legend(handles=circ_patches, loc=9, fontsize=15, ncol=3, columnspacing=6)
 
