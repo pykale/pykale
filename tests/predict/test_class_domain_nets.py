@@ -18,7 +18,8 @@ BATCH_SIZE = 2
 # batch_size * num_channel * frame_per_segment * height * weight.
 INPUT_BATCH = torch.randn(BATCH_SIZE, 128)
 INPUT_BATCH_AVERAGE = torch.randn(BATCH_SIZE, 1024, 1, 1, 1)
-CLASSNET_MODEL = [ClassNetSmallImage, ClassNetVideo]
+CLASSNET_MODEL = [ClassNetSmallImage]
+MULTITASK_CLASSNET_MODEL = [ClassNetVideo]
 DOMAINNET_MODEL = [DomainNetSmallImage, DomainNetVideo]
 
 
@@ -35,6 +36,16 @@ def test_classnet_shapes(model):
     model.eval()
     output_batch = model(INPUT_BATCH)
     assert output_batch.size() == (BATCH_SIZE, 8)
+
+
+@pytest.mark.parametrize("model", MULTITASK_CLASSNET_MODEL)
+def test_multitask_classnet_shapes(model):
+    model = model(input_size=128, dict_n_class={"verb": 8, "noun": 6}, class_type="verb+noun")
+    model.eval()
+    output_batch = model(INPUT_BATCH)
+    assert len(output_batch) == 2
+    assert output_batch[0].size() == (BATCH_SIZE, 8)
+    assert output_batch[1].size() == (BATCH_SIZE, 6)
 
 
 def test_classnetvideoconv_shapes():

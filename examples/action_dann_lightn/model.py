@@ -61,7 +61,7 @@ def get_model(cfg, dataset, num_classes):
     Args:
         cfg: A YACS config object.
         dataset: A multi domain dataset consisting of source and target datasets.
-        num_classes: The class number of specific dataset.
+        num_classes (dict): The dictionary of class number for specific dataset.
     """
 
     # setup feature extractor
@@ -69,7 +69,7 @@ def get_model(cfg, dataset, num_classes):
         cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, num_classes
     )
     # setup classifier
-    classifier_network = ClassNetVideo(input_size=class_feature_dim, n_class=num_classes)
+    classifier_network = ClassNetVideo(input_size=class_feature_dim, dict_n_class=num_classes)
 
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
@@ -95,7 +95,7 @@ def get_model(cfg, dataset, num_classes):
             if cfg.DAN.USERANDOM:
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
-                critic_input_size = domain_feature_dim * num_classes
+                critic_input_size = domain_feature_dim * num_classes["verb"]
         critic_network = DomainNetVideo(input_size=critic_input_size)
 
         if cfg.DAN.METHOD == "CDAN":

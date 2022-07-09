@@ -47,6 +47,7 @@ def main():
     # ---- setup output ----
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
+
     # ---- setup dataset ----
     seed = cfg.SOLVER.SEED
     source, target, num_classes = VideoDataset.get_source_target(
