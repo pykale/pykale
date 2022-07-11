@@ -3,12 +3,8 @@
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
-"""Python implementation of Multilinear Principal Component Analysis (MPCA)
-
-Reference:
-    Haiping Lu, K.N. Plataniotis, and A.N. Venetsanopoulos, "MPCA: Multilinear Principal Component Analysis of Tensor
-    Objects", IEEE Transactions on Neural Networks, Vol. 19, No. 1, Page: 18-39, January 2008. For initial Matlab
-    implementation, please go to https://uk.mathworks.com/matlabcentral/fileexchange/26168.
+"""Python implementation of tensor decomposition approach Multilinear Principal Component Analysis (MPCA)
+    and matrix decomposition Maximum independence domain adaptation (MIDA）
 """
 import logging
 import warnings
@@ -85,6 +81,12 @@ class MPCA(BaseEstimator, TransformerMixin):
         mean_ (array-like): Per-feature empirical mean, estimated from the training set, shape (I_1, I_2, ..., I_N).
         shape_in (tuple): Input tensor shapes, i.e. (I_1, I_2, ..., I_N).
         shape_out (tuple): Output tensor shapes, i.e. (P_1, P_2, ..., P_N).
+
+    Reference:
+        Haiping Lu, K.N. Plataniotis, and A.N. Venetsanopoulos, "MPCA: Multilinear Principal Component Analysis of
+        Tensor Objects", IEEE Transactions on Neural Networks, Vol. 19, No. 1, Page: 18-39, January 2008. For initial
+        Matlab implementation, please go to https://uk.mathworks.com/matlabcentral/fileexchange/26168.
+
     Examples:
         >>> import numpy as np
         >>> from kale.embed.mpca import MPCA

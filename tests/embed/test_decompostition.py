@@ -4,9 +4,11 @@ import numpy as np
 import pytest
 from numpy import testing
 from scipy.io import loadmat
+from sklearn.datasets import make_blobs
+from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
 
-from kale.embed.decomposition import MPCA
+from kale.embed.decomposition import MIDA, MPCA
 from kale.utils.download import download_file_by_url
 
 N_COMPS = [1, 50, 100]
@@ -80,3 +82,22 @@ def test_mpca_against_baseline(gait, baseline_model):
         # check whether each eigen-vector column is equal to/opposite of corresponding baseline eigen-vector column
         # testing.assert_allclose(abs(mpca.proj_mats[i]), abs(baseline_proj_mats[i]))
         testing.assert_allclose(mpca.proj_mats[i] ** 2, baseline_proj_mats[i] ** 2, rtol=relative_tol)
+
+
+def test_mida():
+    np.random.seed(29118)
+    # Generate toy data
+    n_samples = 200
+
+    xs, ys = make_blobs(n_samples, centers=[[0, 0], [0, 2], [1, 1]], cluster_std=[0.3, 0.35, 0.4])
+    xt, yt = make_blobs(n_samples, centers=[[2, -2], [2, 0.2], [-1, -0.8]], cluster_std=[0.35, 0.4, 0.3])
+    x = np.concatenate((xs, xt), axis=0)
+
+    covariates = np.zeros(n_samples * 2)
+    covariates[:n_samples] = 1
+
+    enc = OneHotEncoder(handle_unknown="ignore")
+    covariates_mat = enc.fit_transform(covariates.reshape(-1, 1)).toarray()
+    mida = MIDA(n_components=2)
+    x_transformed = mida.fit(x, covariates_mat).transform(x)
+    testing.assert_allclose(x_transformed.shape, (n_samples * 2, 2))

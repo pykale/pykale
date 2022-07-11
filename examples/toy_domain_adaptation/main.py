@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from sklearn.datasets import make_blobs, make_moons
+from sklearn.datasets import make_blobs
 from sklearn.linear_model import RidgeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder
@@ -21,7 +21,7 @@ def plot_scores_dist(ys_score, yt_score, title=None):
 
 
 def main():
-    np.random.seed(81192)
+    np.random.seed(29118)
     # Generate toy data
     n_samples = 200
 
