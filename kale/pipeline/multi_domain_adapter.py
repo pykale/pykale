@@ -345,50 +345,27 @@ class MFSANTrainer(BaseMultiSourceTrainer):
 class _CoIRLS(BaseEstimator, ClassifierMixin):
     """Covariate-Independence Regularized Least Squares (CoIRLS)
 
+    Reference: Zhou, S., 2022. Interpretable Domain-Aware Learning for Neuroimage Classification (Doctoral dissertation,
+        University of Sheffield).
     """
 
     def __init__(
-        self,
-        loss="mse",
-        kernel="linear",
-        kernel_kwargs=None,
-        alpha=1.0,
-        lambda_=1.0,
-        l2_ratio=1.0,
-        max_iter=1000,
-        lr=0.001,
+        self, kernel="linear", kernel_kwargs=None, alpha=1.0, lambda_=1.0, max_iter=1000,
     ):
         super().__init__()
-        loss_fns = {
-            "mse": nn.MSELoss(),
-            "hinge": [nn.HingeEmbeddingLoss(), nn.MultiLabelMarginLoss()],
-            "logits": [nn.BCEWithLogitsLoss(), nn.CrossEntropyLoss()],
-        }
-        self.loss = loss
         self.kernel = kernel
-        self.pred_loss_fn = loss_fns[loss]
         self.model = None
         self.alpha = alpha
         self.lambda_ = lambda_
-        if l2_ratio > 1 or l2_ratio < 0:
-            raise ValueError("l2_ratio should be in  range [0, 1]")
-        self.l2_ratio = l2_ratio
-        self.l1_ratio = 1 - l2_ratio
         self.max_iter = max_iter
         if kernel_kwargs is None:
             self.kernel_kwargs = dict()
         else:
             self.kernel_kwargs = kernel_kwargs
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.optimizer = None
-        self.lr = lr
         self.losses = {"ovr": [], "pred": [], "code": [], "reg": []}
         self.x = None
-        self.binary_cls = False
-        if loss == "logits":
-            self._lb = LabelBinarizer(pos_label=1, neg_label=0)
-        else:
-            self._lb = LabelBinarizer(pos_label=1, neg_label=-1)
+        self._lb = LabelBinarizer(pos_label=1, neg_label=-1)
         self.coef_ = None
 
     def fit(self, x, y, covariates):

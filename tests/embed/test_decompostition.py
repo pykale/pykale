@@ -84,13 +84,15 @@ def test_mpca_against_baseline(gait, baseline_model):
         testing.assert_allclose(mpca.proj_mats[i] ** 2, baseline_proj_mats[i] ** 2, rtol=relative_tol)
 
 
-def test_mida():
+@pytest.mark.parametrize("kernel", ["linear", "rbf"])
+@pytest.mark.parametrize("augmentation", [True, False])
+def test_mida(kernel, augmentation):
     np.random.seed(29118)
     # Generate toy data
     n_samples = 200
 
-    xs, ys = make_blobs(n_samples, centers=[[0, 0], [0, 2], [1, 1]], cluster_std=[0.3, 0.35, 0.4])
-    xt, yt = make_blobs(n_samples, centers=[[2, -2], [2, 0.2], [-1, -0.8]], cluster_std=[0.35, 0.4, 0.3])
+    xs, ys = make_blobs(n_samples, n_features=3, centers=[[0, 0, 0], [0, 2, 1]], cluster_std=[0.3, 0.35])
+    xt, yt = make_blobs(n_samples, n_features=3, centers=[[2, -2, 2], [2, 0.2, -1]], cluster_std=[0.35, 0.4])
     x = np.concatenate((xs, xt), axis=0)
 
     covariates = np.zeros(n_samples * 2)
@@ -98,6 +100,6 @@ def test_mida():
 
     enc = OneHotEncoder(handle_unknown="ignore")
     covariates_mat = enc.fit_transform(covariates.reshape(-1, 1)).toarray()
-    mida = MIDA(n_components=2)
-    x_transformed = mida.fit(x, covariates_mat).transform(x)
+    mida = MIDA(n_components=2, kernel=kernel, augmentation=augmentation)
+    x_transformed = mida.fit(x, covariates=covariates_mat).transform(x, covariates=covariates_mat)
     testing.assert_allclose(x_transformed.shape, (n_samples * 2, 2))

@@ -64,9 +64,8 @@ def test_multi_source(method, input_dimension, office_caltech_access, testing_cf
     ModelTestHelper.test_model(model, train_params, **kwargs)
 
 
-# @pytest.mark.parametrize("loss", ["logits", "mse", "hinge"])
 @pytest.mark.parametrize("kernel", ["linear", "rbf"])
-def test_coder(kernel, office_caltech_access):
+def test_coir(kernel, office_caltech_access):
     dataset = MultiDomainAdapDataset(office_caltech_access)
     dataset.prepare_data_loaders()
     dataloader = dataset.get_domain_loaders(split="train", batch_size=100)
@@ -77,7 +76,7 @@ def test_coder(kernel, office_caltech_access):
 
     x_feat = feature_network(x)
     z_one_hot = one_hot(z)
-    clf = _CoIRLS(kernel=kernel, alpha=0.01)
+    clf = _CoIRLS(kernel=kernel, alpha=1.0)
 
     x_train = torch.cat((x_feat[src_idx], x_feat[tgt_idx]))
     y_train = y[src_idx]

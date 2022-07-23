@@ -276,18 +276,12 @@ class MIDA(BaseEstimator, TransformerMixin):
         lambda_ (float): Regularization parameter for the domain covariate dependence.
         mu (float): Regularization parameter for the variance penalty.
         eta (float): Regularization parameter for the label dependence.
-        alpha : float, default=1.0. Hyperparameter of the ridge regression that learns the inverse transform
-            (when fit_inverse_transform=True).
-        fit_inverse_transform (bool): Whether to learn the inverse transform for non-precomputed kernels
-            (i.e. learn to find the pre-image of a point). This method is based on [2].
         augmentation (bool): Whether to augment the data with noise.
         kernel_params (dict): Parameters for the kernel.
 
     References:
         [1] Yan, K., Kou, L. and Zhang, D., 2018. Learning domain-invariant subspace using domain features and
             independence maximization. IEEE transactions on cybernetics, 48(1), pp.288-299.
-        [2] `Bakır, Gökhan H., Jason Weston, and Bernhard Schölkopf., 2004. "Learning to find pre-images." in NeurIPS,
-            449-456.
     """
 
     def __init__(
@@ -298,9 +292,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         lambda_=1.0,
         mu=1.0,
         eta=1.0,
-        alpha=1.0,
-        fit_inverse_transform=False,
-        augmentation=True,
+        augmentation=False,
         kernel_params=None,
     ):
         self.n_components = n_components
@@ -309,8 +301,6 @@ class MIDA(BaseEstimator, TransformerMixin):
         self.penalty = penalty
         self.mu = mu
         self.eta = eta
-        self.alpha = alpha
-        self.fit_inverse_transform = fit_inverse_transform
         self.augmentation = augmentation
         if kernel_params is None:
             self.kernel_params = {}
@@ -342,19 +332,13 @@ class MIDA(BaseEstimator, TransformerMixin):
             x = np.concatenate((x, covariates), axis=1)
 
         # Kernel matrix
-        # kernel_x = pairwise_kernels(x, metric=self.kernel, filter_params=True, **self.kernel_params)
         kernel_x = self._get_kernel(x)
         kernel_x[np.isnan(kernel_x)] = 0
 
         # Solve the optimization problem
         self._fit(kernel_x, y, covariates)
-
-        if self.fit_inverse_transform:
-            scaled_eig_vec = self.U / np.sqrt(np.abs(self.eig_values_))
-            x_transformed = np.dot(kernel_x, scaled_eig_vec)
-
-            self._fit_inverse_transform(x_transformed, x)
         self.x_fit = x
+
         return self
 
     def _fit(self, kernel_x, y, covariates=None):
@@ -383,14 +367,9 @@ class MIDA(BaseEstimator, TransformerMixin):
             y_mat = self._lb.fit_transform(y)
             ker_y = np.dot(y_mat, y_mat.T)
             obj = multi_dot([kernel_x, ctr_mat, kernel_c, ctr_mat, kernel_x.T])
-            st = multi_dot(
-                [kernel_x, ctr_mat, (self.mu * unit_mat + self.eta * ker_y / np.square(n - 1)), ctr_mat, kernel_x.T]
-            )
+            st = multi_dot([kernel_x, ctr_mat, (self.mu * unit_mat + self.eta * ker_y), ctr_mat, kernel_x.T])
         else:
-            obj = (
-                multi_dot([kernel_x, ctr_mat, kernel_c, ctr_mat, kernel_x.T]) / np.square(n - 1)
-                + self.lambda_ * unit_mat
-            )
+            obj = multi_dot([kernel_x, ctr_mat, kernel_c, ctr_mat, kernel_x.T]) + self.lambda_ * unit_mat
             st = multi_dot([kernel_x, ctr_mat, kernel_x.T])
 
         obj_ovr = np.dot(inv(obj), st)
@@ -418,29 +397,19 @@ class MIDA(BaseEstimator, TransformerMixin):
 
         return self.transform(x, covariates)
 
-    def transform(self, x, aug_features=None):
+    def transform(self, x, covariates=None):
         """
         Args:
             x : array-like, shape (n_samples, n_features)
-            aug_features : array-like, augmentation features, shape (n_samples, n_aug_features)
+            covariates : array-like, augmentation features, shape (n_samples, n_aug_features)
         Returns:
             x_transformed : array-like, shape (n_samples, n_components)
         """
         check_is_fitted(self, "x_fit")
-        if type(aug_features) == np.ndarray:
-            x = np.concatenate((x, aug_features), axis=1)
-        krnl_x = self._centerer.transform(
+        if type(covariates) == np.ndarray and self.augmentation:
+            x = np.concatenate((x, covariates), axis=1)
+        kernel_x = self._centerer.transform(
             pairwise_kernels(x, self.x_fit, metric=self.kernel, filter_params=True, **self.kernel_params)
         )
 
-        return np.dot(krnl_x, self.U)
-
-    def _fit_inverse_transform(self, x_transformed, x):
-        if hasattr(x, "tocsr"):
-            raise NotImplementedError("Inverse transform not implemented for " "sparse matrices!")
-
-        n_samples = x_transformed.shape[0]
-        k_transformed = self._get_kernel(x_transformed)
-        k_transformed.flat[:: n_samples + 1] += self.alpha
-        self.dual_coef_ = linalg.solve(k_transformed, x, sym_pos=True, overwrite_a=True)
-        self.x_transformed_fit_ = x_transformed
+        return np.dot(kernel_x, self.U)
