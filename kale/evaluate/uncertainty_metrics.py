@@ -2,7 +2,7 @@ import numpy as np
 
 
 def evaluate_bounds(
-    estimated_bounds, bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8, show_fig=False,
+    estimated_bounds, bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8, show_fig=False, combine_middle_bins=False
 ):
     """
         Evaluate uncertainty estimation's ability to predict error bounds for its quantile bins.
@@ -23,6 +23,8 @@ def evaluate_bounds(
     Returns:
         [Dict,Dict]: Pair of dicts with error bounds accuracies for all landmarks combined and landmarks seperated.
     """
+    if combine_middle_bins:
+        num_bins = 3
 
     # Initialise results dicts
     all_bound_percents = {}
@@ -254,7 +256,7 @@ def strip_for_bound(string_):
 
 
 
-def get_mean_errors(bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8):
+def get_mean_errors(bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8, pixel_to_mm_scale=1, combine_middle_bins=False):
     """
         Evaluate uncertainty estimation's mean error of each bin
         For each bin, we calculate the mean localisation error for each landmark and for all landmarks.
@@ -279,6 +281,9 @@ def get_mean_errors(bin_predictions, uncertainty_pairs, num_bins, landmarks, num
             "all error concat bins lms sep all": For every fold, every error value in a list. Each landmark is in a seperate list. The list is flattened for all the folds.
 
     """
+    #If we are combining the middle bins, we only have the 2 edge bins and the middle bins are combined into 1 bin.
+    if combine_middle_bins:
+        num_bins = 3
 
     # initialise empty dicts
     all_mean_error_bins = {}
@@ -309,8 +314,8 @@ def get_mean_errors(bin_predictions, uncertainty_pairs, num_bins, landmarks, num
                 fold_bins = data_structs[(data_structs["Testing Fold"] == fold)][
                     ["uid", "landmark", uncertainty_type + " Uncertainty bins"]
                 ]
-                # print("\n \n ", up)
-                return_dict = bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_type)
+                # print("\n \n ", up, "fold: ", fold)
+                return_dict = bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_type, pixel_to_mm_scale=pixel_to_mm_scale)
                 fold_mean_landmarks.append(return_dict["mean all lms"])
 
                 for idx_bin in range(len(return_dict["mean all bins"])):
@@ -360,7 +365,7 @@ def get_mean_errors(bin_predictions, uncertainty_pairs, num_bins, landmarks, num
          "all error concat bins lms nosep":  all_concat_error_bins_lm_nosep,  "all error concat bins lms sep foldwise":  all_concat_error_bins_lm_sep_foldwise,
          "all error concat bins lms sep all":  all_concat_error_bins_lm_sep_all}   
 
-def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8):
+def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8, combine_middle_bins=False):
     """
         Evaluate uncertainty estimation's ability to predict true error quantiles.
         For each bin, we calculate the jaccard index (JI) between the pred bins and GT error quantiles.
@@ -379,6 +384,15 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
         [Dict,Dict]: Pair of dicts with JI for all landmarks combined and landmarks seperated.
     """
 
+    #If we are combining middle bins, we need the original number of bins to calcualate the true quantiles of the error.
+    # Then, we combine all the middle bins of the true quantiles, giving us 3 bins.
+    # There are only 3 bins that have been predicted, so set num_bins to 3.
+
+    if combine_middle_bins:
+        num_bins_for_quantiles = num_bins
+        num_bins = 3
+    else:
+        num_bins_for_quantiles = num_bins
     # initialise empty dicts
     all_jaccard_data = {}
     all_jaccard_bins_lms_sep = {}
@@ -422,7 +436,7 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
                     ["uid", "landmark", uncertainty_type + " Uncertainty bins"]
                 ]
 
-                return_dict = bin_wise_jaccard(fold_errors, fold_bins, num_bins, landmarks, uncertainty_type)
+                return_dict = bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_for_quantiles, landmarks, uncertainty_type, combine_middle_bins)
 
                 # print("Fodl: %s , BWJ: %s" % (fold, return_dict))
                 fold_mean_landmarks.append(return_dict["mean all lms"])
@@ -478,7 +492,7 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
 
 
 
-def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key):
+def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key, pixel_to_mm_scale):
     """
         Helper function for get_mean_errors. Calculates the mean error for each bin and for each landmark.
 
@@ -501,11 +515,11 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key
 
     for i, landmark in enumerate(landmarks):
 
-        true_errors_lm = fold_errors[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Error"]]
-        pred_bins_lm = fold_bins[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Uncertainty bins"]]
+        true_errors_lm = fold_errors[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Error"]] 
+        pred_bins_lm = fold_bins[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Uncertainty bins"]] 
 
         # Zip to dictionary
-        true_errors_lm = dict(zip(true_errors_lm.uid, true_errors_lm[uncertainty_key + " Error"]))
+        true_errors_lm = dict(zip(true_errors_lm.uid, true_errors_lm[uncertainty_key + " Error"]* pixel_to_mm_scale))
         pred_bins_lm = dict(zip(pred_bins_lm.uid, pred_bins_lm[uncertainty_key + " Uncertainty bins"]))
 
         pred_bins_keys = []
@@ -532,7 +546,7 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key
             #test for empty bin, it would've created a mean_error==nan , so don't add it!
             if pred_b_errors == []:
                 continue
-
+            
             mean_error = np.mean(pred_b_errors)
             
             # print(uncertainty_key, ": Bin %s and mean error %s +/- %s" % (bin, mean_error, np.std(pred_b_errors)))
@@ -545,16 +559,23 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key
         all_lm_error.append(np.mean(inner_errors))
     # print(all_qs_error_concat_lms_sep)
     # exit()
+    
+    # print("mean all lms ")
+    # print("mal",mean_all_lms)
+    # print("mean_all_bins ")
+    # print("mab", mean_all_bins)
+    mean_all_lms = np.mean(all_lm_error)
+    mean_all_bins = [np.mean(x) for x in all_qs_error]
 
     return {
-        "mean all lms": np.mean(all_lm_error),
-        "mean all bins": [np.mean(x) for x in all_qs_error],
+        "mean all lms": mean_all_lms,
+        "mean all bins": mean_all_bins,
         "all bins": all_qs_error,
         "all bins concatenated lms seperated": all_qs_error_concat_lms_sep,
 
     }
 
-def bin_wise_jaccard(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key):
+def bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_quantiles, landmarks, uncertainty_key, combine_middle_bins):
     """
         Helper function for evaluate_jaccard.
 
@@ -609,11 +630,18 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, landmarks, uncertainty_ke
             pred_bins_errors.append(inner_list_errors)
             pred_bins_keys.append(inner_list)
 
+       
         # Get the true error quantiles
         sorted_errors = [v for k, v in sorted(true_errors_lm.items(), key=lambda item: item[1])]
 
-        quantiles = np.arange(1 / num_bins, 1, 1 / num_bins)[:num_bins-1]
+        quantiles = np.arange(1 / num_bins_quantiles, 1, 1 / num_bins_quantiles)[:num_bins_quantiles-1]
         quantile_thresholds = [np.quantile(sorted_errors, q) for q in quantiles]
+
+        #If we are combining the middle bins, combine the middle lists into 1 list.
+
+        if combine_middle_bins:
+            quantile_thresholds = [quantile_thresholds[0], quantile_thresholds[-1]]
+
 
         errors_groups = []
         key_groups = []

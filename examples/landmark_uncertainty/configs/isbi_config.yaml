@@ -1,0 +1,40 @@
+#Configuration for ISBI dataset
+DATASET:
+    SOURCE: None
+
+    # _C.DATASET.ROOT = "/mnt/tale_shared/schobs/data/tabular/cardiac_landmark_uncertainty/"
+
+    ROOT: "/mnt/tale_shared/schobs/data/tabular/cardiac_landmark_uncertainty/"
+    #/      mnt/tale_shared/schobs/data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples/U-NET/ISBI
+    BASE_DIR: "Uncertainty_tuples"
+    DATA: "ISBI"
+    LANDMARKS: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+    NUM_FOLDS: 4
+    UE_PAIRS_VAL: "checkpointuncertainty_pairs_valid"
+    UE_PAIRS_TEST: "checkpointuncertainty_pairs_test"
+
+
+PIPELINE:
+    NUM_QUANTILE_BINS: [3, 5,10, 20]
+
+    COMBINE_MIDDLE_BINS: True
+    PIXEL_TO_MM_SCALE: 0.1
+    IND_LANDMARKS_TO_SHOW: [8,9,2,11,14]
+    # IND_LANDMARKS_TO_SHOW: [8]
+
+    COMPARE_Q_VALUES: True
+    COMPARE_INDIVIDUAL_Q: True 
+    COMPARE_Q_MODELS: ["U-NET"]
+    COMPARE_Q_UNCERTAINTY_ERROR_PAIRS: [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"], ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"]]
+    INDIVIDUAL_Q_MODELS: ["U-NET"] 
+    SHOW_IND_LANDMARKS: True
+
+OUTPUT:
+    SAVE_FIGURES: True
+    SAVE_PREPEND: "2std_27_07_22"
+
+BOXPLOT:
+    ERROR_LIM: 32 
+    SAMPLES_AS_DOTS: False
+    SHOW_SAMPLE_INFO_MODE: "All" 
+
