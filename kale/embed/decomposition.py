@@ -235,7 +235,7 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         Args:
             x (array-like tensor): Data to be reconstructed, shape (n_samples, P_1, P_2, ..., P_N), if
-                self.vectorize == False, where P_1, P_2, ..., P_N are the reduced dimensions of of corresponding
+                self.vectorize == False, where P_1, P_2, ..., P_N are the reduced dimensions of corresponding
                 mode (1, 2, ..., N), respectively. If self.vectorize == True, shape (n_samples, self.n_components)
                 or shape (n_samples, P_1 * P_2 * ... * P_N).
 
@@ -271,13 +271,13 @@ class MIDA(BaseEstimator, TransformerMixin):
     """Maximum independence domain adaptation
     Args:
         n_components (int): Number of components to keep.
-        penalty (str): Penalty to use for the optimization problem.
-        kernel (str): Kernel to use for the optimization problem.
-        lambda_ (float): Regularization parameter for the domain covariate dependence.
-        mu (float): Regularization parameter for the variance penalty.
-        eta (float): Regularization parameter for the label dependence.
-        augmentation (bool): Whether to augment the data with noise.
-        kernel_params (dict): Parameters for the kernel.
+        penalty (str): "l2" or None. Penalty to use for the optimization problem. Defaults to None.
+        kernel (str): "linear", "rbf", or "poly". Kernel to use for MIDA. Defaults to "linear".
+        lambda_ (float): Hyperparameter of the domain covariate dependence. Defaults to 1.0.
+        mu (float): Hyperparameter of the l2 penalty. Defaults to 1.0.
+        eta (float): Hyperparameter of the label dependence. Defaults to 1.0.
+        augmentation (bool): Whether uisng covariates as augment features. Defaults to False.
+        kernel_params (dict): Parameters for the kernel. Defaults to None.
 
     References:
         [1] Yan, K., Kou, L. and Zhang, D., 2018. Learning domain-invariant subspace using domain features and
@@ -298,7 +298,10 @@ class MIDA(BaseEstimator, TransformerMixin):
         self.n_components = n_components
         self.kernel = kernel
         self.lambda_ = lambda_
-        self.penalty = penalty
+        if penalty is not None and penalty not in ["l2"]:
+            raise ValueError("Unsupport penalty type: {}".format(penalty))
+        else:
+            self.penalty = penalty
         self.mu = mu
         self.eta = eta
         self.augmentation = augmentation
@@ -306,7 +309,7 @@ class MIDA(BaseEstimator, TransformerMixin):
             self.kernel_params = {}
         else:
             self.kernel_params = kernel_params
-        self._lb = LabelBinarizer(pos_label=1, neg_label=0)
+        self._lb = LabelBinarizer(pos_label=1, neg_label=-1)
         self._centerer = KernelCenterer()
         self.x_fit = None
 
@@ -347,7 +350,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         Args:
             kernel_x: array-like, kernel matrix of input data x, shape (n_samples, n_samples)
             y: array-like. Labels, shape (nl_samples,)
-            covariates: array-like. Domain co-variates, shape (n_samples, n_co-variates)
+            covariates: array-like. Domain co-variates, shape (n_samples, n_covariates)
 
         Returns:
             self
@@ -364,13 +367,21 @@ class MIDA(BaseEstimator, TransformerMixin):
         else:
             kernel_c = np.zeros((n, n))
         if y is not None:
-            y_mat = self._lb.fit_transform(y)
+            nl = y.shape[0]
+            if nl > n:
+                raise ValueError("Number of labels exceeds number of samples")
+            y_mat_ = self._lb.fit_transform(y)
+            y_mat = np.zeros((n, y_mat_.shape[1]))
+            y_mat[:nl, :] = y_mat_
             ker_y = np.dot(y_mat, y_mat.T)
             obj = multi_dot([kernel_x, ctr_mat, kernel_c, ctr_mat, kernel_x.T])
-            st = multi_dot([kernel_x, ctr_mat, (self.mu * unit_mat + self.eta * ker_y), ctr_mat, kernel_x.T])
+            st = multi_dot([kernel_x, ctr_mat, self.eta * ker_y, ctr_mat, kernel_x.T])
         else:
             obj = multi_dot([kernel_x, ctr_mat, kernel_c, ctr_mat, kernel_x.T]) + self.lambda_ * unit_mat
-            st = multi_dot([kernel_x, ctr_mat, kernel_x.T])
+            st = unit_mat.copy()
+
+        if self.penalty == "l2":
+            st += self.mu * multi_dot([kernel_x, ctr_mat, kernel_x.T])
 
         obj_ovr = np.dot(inv(obj), st)
         n = obj_ovr.shape[0]
@@ -388,7 +399,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         Args:
             x : array-like, shape (n_samples, n_features)
             y : array-like, shape (n_samples,)
-            covariates : array-like, shape (n_samples, n_co-variates)
+            covariates : array-like, shape (n_samples, n_covariates)
 
         Returns:
             x_transformed : array-like, shape (n_samples, n_components)
@@ -401,7 +412,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         """
         Args:
             x : array-like, shape (n_samples, n_features)
-            covariates : array-like, augmentation features, shape (n_samples, n_aug_features)
+            covariates : array-like, augmentation features, shape (n_samples, n_covariates)
         Returns:
             x_transformed : array-like, shape (n_samples, n_components)
         """

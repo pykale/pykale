@@ -100,6 +100,9 @@ def test_mida(kernel, augmentation):
 
     enc = OneHotEncoder(handle_unknown="ignore")
     covariates_mat = enc.fit_transform(covariates.reshape(-1, 1)).toarray()
-    mida = MIDA(n_components=2, kernel=kernel, augmentation=augmentation)
+    mida = MIDA(n_components=2, kernel=kernel, augmentation=augmentation, penalty="l2")
     x_transformed = mida.fit(x, covariates=covariates_mat).transform(x, covariates=covariates_mat)
-    testing.assert_allclose(x_transformed.shape, (n_samples * 2, 2))
+    testing.assert_equal(x_transformed.shape, (n_samples * 2, 2))
+
+    x_transformed = mida.fit(x, ys, covariates=covariates_mat).transform(x, covariates=covariates_mat)
+    testing.assert_equal(x_transformed.shape, (n_samples * 2, 2))
