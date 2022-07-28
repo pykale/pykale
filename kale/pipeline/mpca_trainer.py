@@ -26,7 +26,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.svm import LinearSVC, SVC
 from sklearn.utils.validation import check_is_fitted
 
-from ..embed.decomposition import MPCA
+from ..embed.factorization import MPCA
 
 param_c_grids = list(np.logspace(-4, 2, 7))
 classifiers = {

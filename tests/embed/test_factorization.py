@@ -8,7 +8,7 @@ from sklearn.datasets import make_blobs
 from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
 
-from kale.embed.decomposition import MIDA, MPCA
+from kale.embed.factorization import MIDA, MPCA
 from kale.utils.download import download_file_by_url
 
 N_COMPS = [1, 50, 100]

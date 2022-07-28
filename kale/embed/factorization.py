@@ -3,8 +3,8 @@
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
-"""Python implementation of tensor decomposition approach Multilinear Principal Component Analysis (MPCA)
-    and matrix decomposition Maximum independence domain adaptation (MIDA）
+"""Python implementation of a tensor factorization approach Multilinear Principal Component Analysis (MPCA)
+    and a matrix factorization Maximum independence domain adaptation (MIDA）
 """
 import logging
 import warnings
@@ -277,7 +277,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         mu (float): Hyperparameter of the l2 penalty. Defaults to 1.0.
         eta (float): Hyperparameter of the label dependence. Defaults to 1.0.
         augmentation (bool): Whether uisng covariates as augment features. Defaults to False.
-        kernel_params (dict): Parameters for the kernel. Defaults to None.
+        kernel_params (dict or None): Parameters for the kernel. Defaults to None.
 
     References:
         [1] Yan, K., Kou, L. and Zhang, D., 2018. Learning domain-invariant subspace using domain features and
