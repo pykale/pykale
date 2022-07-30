@@ -19,10 +19,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: [3.6]  # Keep only 3.6 first, 3.7, 3.8]
+        python-version: [3.7]  # Keep only 3.7 first, 3.8, 3.9]
         exclude:
           - os: windows-latest
-            python-version: "3.6"
+            python-version: "3.7"
           - os: windows-latest
             python-version: "3.7"
     steps:

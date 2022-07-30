@@ -45,7 +45,7 @@ See our [arXiv preprint](https://arxiv.org/abs/2106.09756) and four short introd
 
 ### Step 0: Installation
 
-PyKale supports Python 3.6+. Before installing `pykale`, we suggest you to first [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware, and if graphs will be used, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation).
+PyKale supports Python 3.7+. Before installing `pykale`, we suggest you to first [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware, and if graphs will be used, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation).
 
 Simple installation of `pykale` from [PyPI](https://pypi.org/project/pykale/):
 
