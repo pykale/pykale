@@ -344,7 +344,7 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
 
     Args:
         kernel (str, optional): {"linear", "rbf", "poly"}. Kernel to use. Defaults to "linear".
-        kernel_kwargs (dict or None, optional): Hyperparameters for the kernel. Defaults to None.
+        kernel_kwargs (dict or None, optional): Hyperparameter for the kernel. Defaults to None.
         alpha (float, optional): Hyperparameter of the l2 (Ridge) penalty. Defaults to 1.0.
         lambda_ (float, optional): Hyperparameter of the covariate dependence.  Defaults to 1.0.
 
@@ -356,10 +356,6 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
     """
 
     def __init__(self, kernel="linear", kernel_kwargs=None, alpha=1.0, lambda_=1.0):
-        """_summary_
-
-
-        """
         super().__init__()
         self.kernel = kernel
         self.model = None
@@ -376,7 +372,13 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
         self.coef_ = None
 
     def fit(self, x, y, covariates):
+        """fit a model with input data, labels and covariates
 
+        Args:
+            x (np.ndarray or tensor): shape (n_samples, n_features)
+            y (np.ndarray or tensor): shape (n_samples, )
+            covariates (np.ndarray or tensor): (n_samples, n_covariates)
+        """
         self._lb.fit(y)
         x = torch.as_tensor(x)
         x = torch.cat([x, torch.ones(x.shape[0], 1)], 1)
@@ -411,7 +413,14 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
         self.x = x
 
     def predict(self, x):
+        """Predict labels for data x
 
+        Args:
+            x (np.ndarray or tensor): Samples need prediction, shape (n_samples, n_features)
+
+        Returns:
+            y (np.ndarray): Predicted labels, shape (n_samples, )
+        """
         out = self.decision_function(x)
         if self._lb.y_type_ == "binary":
             pred = self._lb.inverse_transform(torch.sign(out).view(-1))
@@ -421,7 +430,14 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
         return pred
 
     def decision_function(self, x):
+        """Compute decision scores for data x
 
+        Args:
+            x (np.ndarray or tensor): Samples need decision scores, shape (n_samples, n_features)
+
+        Returns:
+            scores (np.ndarray): Decision scores, shape (n_samples, )
+        """
         x = torch.as_tensor(x)
         x = torch.cat([x, torch.ones(x.shape[0], 1)], dim=1)
         krnl_x = torch.as_tensor(

@@ -1,9 +1,11 @@
+import matplotlib.figure
 import pytest
 import torch
 from sklearn.metrics import accuracy_score
 from torch.nn.functional import one_hot
 
 from kale.embed.image_cnn import ResNet18Feature
+from kale.interpret.visualize import plot_distro1d
 from kale.loaddata.image_access import ImageAccess
 from kale.loaddata.multi_domain import MultiDomainAdapDataset
 from kale.pipeline.multi_domain_adapter import _CoIRLS, create_ms_adapt_trainer
@@ -87,3 +89,20 @@ def test_coir(kernel, office_caltech_access):
     acc = accuracy_score(y[tgt_idx], y_pred)
 
     assert 0 <= acc <= 1
+
+    if kernel == "linear":
+        scores = [clf.decision_function(x_feat[src_idx]), clf.decision_function(x_feat[tgt_idx])]
+        domain_labels = ["source", "target"]
+        title = "Decision score distribution"
+        title_kwargs = {"fontsize": 14, "fontweight": "bold"}
+        hist_kwargs = {"kde": True, "alpha": 0.7}
+        fig = plot_distro1d(
+            scores,
+            labels=domain_labels,
+            xlabel="Decision Scores",
+            ylabel="Count",
+            title=title,
+            title_kwargs=title_kwargs,
+            hist_kwargs=hist_kwargs,
+        )
+        assert type(fig) == matplotlib.figure.Figure

@@ -28,6 +28,7 @@ requirements = [
     "scikit-image>=0.16.2",
     "scikit-learn>=0.23.2",
     "scipy>=1.5.4",
+    "seaborn",
     "tensorly>=0.5.1",
     "torch>=1.10.0",
     "torchsummary>=1.5.0",

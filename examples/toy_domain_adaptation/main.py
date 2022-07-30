@@ -6,18 +6,8 @@ from sklearn.linear_model import RidgeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder
 
+from kale.interpret.visualize import plot_distro1d
 from kale.pipeline.multi_domain_adapter import _CoIRLS
-
-
-def plot_scores_dist(ys_score, yt_score, title=None):
-    plt.figure(figsize=(8, 5))
-    sns.histplot(ys_score, color="c", label="Source", kde=True)
-    sns.histplot(yt_score, color="m", label="Target", kde=True)
-    plt.xlabel("Decision Scores")
-    plt.legend()
-    if title is not None:
-        plt.title(title, fontsize=14, fontweight="bold")
-    plt.show()
 
 
 def main():
@@ -67,7 +57,17 @@ def main():
     ys_score = clf.decision_function(xs)
     yt_score = clf.decision_function(xt)
     title = "Ridge classifier decision score distribution"
-    plot_scores_dist(ys_score, yt_score, title)
+    title_kwargs = {"fontsize": 14, "fontweight": "bold"}
+    hist_kwargs = {"kde": True, "alpha": 0.7}
+    plt_labels = ["Source", "Target"]
+    plot_distro1d(
+        [ys_score, yt_score],
+        title=title,
+        xlabel="Decision Scores",
+        labels=plt_labels,
+        hist_kwargs=hist_kwargs,
+        title_kwargs=title_kwargs,
+    ).show()
 
     # domain adaptation
     clf_ = _CoIRLS(lambda_=1)
@@ -85,7 +85,14 @@ def main():
     ys_score_ = clf_.decision_function(xs).detach().numpy().reshape(-1)
     yt_score_ = clf_.decision_function(xt).detach().numpy().reshape(-1)
     title = "Domain adaptation classifier decision score distribution"
-    plot_scores_dist(ys_score_, yt_score_, title)
+    plot_distro1d(
+        [ys_score_, yt_score_],
+        title=title,
+        xlabel="Decision Scores",
+        labels=plt_labels,
+        hist_kwargs=hist_kwargs,
+        title_kwargs=title_kwargs,
+    ).show()
 
 
 if __name__ == "__main__":
