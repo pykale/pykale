@@ -5,10 +5,10 @@ from sklearn.metrics import accuracy_score
 from torch.nn.functional import one_hot
 
 from kale.embed.image_cnn import ResNet18Feature
-from kale.interpret.visualize import plot_distro1d
+from kale.interpret.visualize import distplot_1d
 from kale.loaddata.image_access import ImageAccess
 from kale.loaddata.multi_domain import MultiDomainAdapDataset
-from kale.pipeline.multi_domain_adapter import _CoIRLS, create_ms_adapt_trainer
+from kale.pipeline.multi_domain_adapter import CoIRLS, create_ms_adapt_trainer
 from kale.predict.class_domain_nets import ClassNetSmallImage
 from tests.helpers.pipe_test_helper import ModelTestHelper
 
@@ -78,7 +78,7 @@ def test_coir(kernel, office_caltech_access):
 
     x_feat = feature_network(x)
     z_one_hot = one_hot(z)
-    clf = _CoIRLS(kernel=kernel, alpha=1.0)
+    clf = CoIRLS(kernel=kernel, alpha=1.0)
 
     x_train = torch.cat((x_feat[src_idx], x_feat[tgt_idx]))
     y_train = y[src_idx]
@@ -96,7 +96,7 @@ def test_coir(kernel, office_caltech_access):
         title = "Decision score distribution"
         title_kwargs = {"fontsize": 14, "fontweight": "bold"}
         hist_kwargs = {"alpha": 0.7}
-        fig = plot_distro1d(
+        fig = distplot_1d(
             scores,
             labels=domain_labels,
             xlabel="Decision Scores",

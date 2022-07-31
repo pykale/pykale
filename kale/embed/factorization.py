@@ -1,10 +1,10 @@
 # =============================================================================
-# Author: Shuo Zhou, szhou20@sheffield.ac.uk
+# Author: Shuo Zhou, shuo.zhou@sheffield.ac.uk
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
-"""Python implementation of a tensor factorization approach Multilinear Principal Component Analysis (MPCA)
-    and a matrix factorization Maximum independence domain adaptation (MIDA）
+"""Python implementation of a tensor factorization algorithm Multilinear Principal Component Analysis (MPCA)
+    and a matrix factorization algorithm Maximum Independence Domain Adaptation (MIDA）
 """
 import logging
 import warnings
@@ -77,7 +77,7 @@ class MPCA(BaseEstimator, TransformerMixin):
     Attributes:
         proj_mats (list of arrays): A list of transposed projection matrices, shapes (P_1, I_1), ...,
             (P_N, I_N), where P_1, ..., P_N are output tensor shape for each sample.
-        idx_order (array-like): The ordering index of projected (and vectorised) features in decreasing variance.
+        idx_order (array-like): The ordering index of projected (and vectorized) features in decreasing variance.
         mean_ (array-like): Per-feature empirical mean, estimated from the training set, shape (I_1, I_2, ..., I_N).
         shape_in (tuple): Input tensor shapes, i.e. (I_1, I_2, ..., I_N).
         shape_out (tuple): Output tensor shapes, i.e. (P_1, P_2, ..., P_N).
@@ -276,7 +276,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         lambda_ (float): Hyperparameter of the domain covariate dependence. Defaults to 1.0.
         mu (float): Hyperparameter of the l2 penalty. Defaults to 1.0.
         eta (float): Hyperparameter of the label dependence. Defaults to 1.0.
-        augmentation (bool): Whether uisng covariates as augment features. Defaults to False.
+        augmentation (bool): Whether using covariates as augment features. Defaults to False.
         kernel_params (dict or None): Parameters for the kernel. Defaults to None.
 
     References:

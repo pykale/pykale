@@ -1,5 +1,5 @@
 # =============================================================================
-# Author: Shuo Zhou, szhou20@sheffield.ac.uk
+# Author: Shuo Zhou, shuo.zhou@sheffield.ac.uk
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
@@ -126,7 +126,7 @@ def plot_multi_images(
     return fig
 
 
-def plot_distro1d(
+def distplot_1d(
     data,
     labels=None,
     xlabel=None,

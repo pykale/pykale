@@ -1,5 +1,5 @@
 # =============================================================================
-# Author: Shuo Zhou, szhou20@sheffield.ac.uk/sz144@outlook.com
+# Author: Shuo Zhou, shuo.zhou@sheffield.ac.uk/sz144@outlook.com
 # =============================================================================
 """Multi-source domain adaptation pipelines
 """
@@ -339,7 +339,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         return cls_disc * 2 / (n_domains * (n_domains - 1))
 
 
-class _CoIRLS(BaseEstimator, ClassifierMixin):
+class CoIRLS(BaseEstimator, ClassifierMixin):
     """Covariate-Independence Regularized Least Squares (CoIRLS)
 
     Args:
