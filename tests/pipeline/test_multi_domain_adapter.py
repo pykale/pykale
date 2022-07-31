@@ -95,7 +95,7 @@ def test_coir(kernel, office_caltech_access):
         domain_labels = ["source", "target"]
         title = "Decision score distribution"
         title_kwargs = {"fontsize": 14, "fontweight": "bold"}
-        hist_kwargs = {"kde": True, "alpha": 0.7}
+        hist_kwargs = {"alpha": 0.7}
         fig = plot_distro1d(
             scores,
             labels=domain_labels,

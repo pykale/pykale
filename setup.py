@@ -96,7 +96,7 @@ setup(
     python_requires=">=3.7",
     install_requires=requirements,
     extras_require={"dev": dev_requirements},
-    setup_requires=["setuptools>=38.6.0"],
+    setup_requires=["setuptools==59.5.0"],
     license="MIT",
     keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
     classifiers=[
