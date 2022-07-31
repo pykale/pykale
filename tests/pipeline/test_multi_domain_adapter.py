@@ -91,11 +91,11 @@ def test_coir(kernel, office_caltech_access):
     assert 0 <= acc <= 1
 
     if kernel == "linear":
-        scores = [clf.decision_function(x_feat[src_idx]), clf.decision_function(x_feat[tgt_idx])]
+        scores = [clf.decision_function(x_feat[src_idx])[:, 0], clf.decision_function(x_feat[tgt_idx])[:, 0]]
         domain_labels = ["source", "target"]
         title = "Decision score distribution"
         title_kwargs = {"fontsize": 14, "fontweight": "bold"}
-        hist_kwargs = {"kde": True, "alpha": 0.7}
+        hist_kwargs = {"alpha": 0.7}
         fig = plot_distro1d(
             scores,
             labels=domain_labels,
