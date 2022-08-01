@@ -67,7 +67,7 @@ def test_multi_source(method, input_dimension, office_caltech_access, testing_cf
 
 
 @pytest.mark.parametrize("kernel", ["linear", "rbf"])
-def test_coir(kernel, office_caltech_access):
+def test_coirls(kernel, office_caltech_access):
     dataset = MultiDomainAdapDataset(office_caltech_access)
     dataset.prepare_data_loaders()
     dataloader = dataset.get_domain_loaders(split="train", batch_size=100)
