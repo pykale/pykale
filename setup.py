@@ -15,7 +15,6 @@ requirements = [
     "ipykernel",
     "ipython",
     "matplotlib",
-    "nilearn",
     "numpy>=1.18.0",
     "pandas",
     "Pillow",
