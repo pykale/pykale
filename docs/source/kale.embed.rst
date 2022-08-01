@@ -14,14 +14,13 @@ kale.embed.attention\_cnn module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.seq\_nn module
---------------------------------
+kale.embed.factorization module
+----------------------
 
-.. automodule:: kale.embed.seq_nn
+.. automodule:: kale.embed.factorization
    :members:
    :undoc-members:
    :show-inheritance:
-   :exclude-members:
 
 kale.embed.gcn module
 ----------------------------
@@ -50,14 +49,6 @@ kale.embed.image\_cnn module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.mpca module
-----------------------
-
-.. automodule:: kale.embed.mpca
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.embed.positional\_encoding module
 --------------------------------------
 
@@ -65,6 +56,15 @@ kale.embed.positional\_encoding module
    :members:
    :undoc-members:
    :show-inheritance:
+
+kale.embed.seq\_nn module
+--------------------------------
+
+.. automodule:: kale.embed.seq_nn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :exclude-members:
 
 kale.embed.video\_feature\_extractor module
 -------------------------------------------
