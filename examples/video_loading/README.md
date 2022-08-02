@@ -49,20 +49,24 @@ for image in frames:
 ```
 ![alt text](https://github.com/RaivoKoot/images/blob/main/Action_Video.jpg "Action Video")
 # Table of Contents
-- [1. Requirements](#1-requirements)
-- [2. Custom Dataset](#2-custom-dataset)
-- [3. Video Frame Sampling Method](#3-video-frame-sampling-method)
-- [4. Alternate Video Frame Sampling Methods](#4-alternate-video-frame-sampling-methods)
-- [5. Using VideoFrameDataset for Training](#5-using-videoframedataset-for-training)
-- [6. Allowing Multiple Labels per Sample](#6-allowing-multiple-labels-per-sample)
-- [7. Conclusion](#7-conclusion)
-- [8. Acknowledgements](#8-acknowledgements)
+- [Efficient Video Dataset Loading, Preprocessing, and Augmentation](#efficient-video-dataset-loading-preprocessing-and-augmentation)
+    - [Overview: This example demonstrates the use of `kale.loaddata.videos.VideoFrameDataset`](#overview-this-example-demonstrates-the-use-of-kaleloaddatavideosvideoframedataset)
+    - [QuickDemo (main.py)](#quickdemo-mainpy)
+- [Table of Contents](#table-of-contents)
+    - [1. Requirements](#1-requirements)
+    - [2. Custom Dataset](#2-custom-dataset)
+    - [3. Video Frame Sampling Method](#3-video-frame-sampling-method)
+    - [4. Alternate Video Frame Sampling Methods](#4-alternate-video-frame-sampling-methods)
+    - [5. Using VideoFrameDataset for training](#5-using-videoframedataset-for-training)
+    - [6. Allowing Multiple Labels per Sample](#6-allowing-multiple-labels-per-sample)
+    - [7. Conclusion](#7-conclusion)
+    - [8. Acknowledgements](#8-acknowledgements)
 
 ### 1. Requirements
 ```
 # Without these three, VideoFrameDataset will not work.
-torchvision >= 0.8.0
-torch >= 1.7.0
+torchvision >= 0.10.0
+torch >= 1.9.0
 python >= 3.6
 ```
 ### 2. Custom Dataset
@@ -172,10 +176,10 @@ list gives label_n for the whole batch.
 A demo of this can be found at the end in `main.py`. It uses the dummy dataset in directory `demo_dataset_multilabel`,
 that is also automatically downloaded.
 
-### 5. Conclusion
+### 7. Conclusion
 A proper code-based explanation on how to use VideoFrameDataset for training is provided in `main.py`
 
-### 6. Acknowledgements
+### 8. Acknowledgements
 We thank the authors of TSN for their [codebase](https://github.com/yjxiong/tsn-pytorch), from which we took VideoFrameDataset and adapted it
 for general use and compatibility.
 ```
