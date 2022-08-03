@@ -1,10 +1,11 @@
 # =============================================================================
-# Author: Shuo Zhou, szhou20@sheffield.ac.uk
+# Author: Shuo Zhou, shuo.zhou@sheffield.ac.uk
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 
 
 def _none2dict(kwarg):
@@ -121,5 +122,59 @@ def plot_multi_images(
                 if marker_titles is not None and len(marker_titles) == n_marker:
                     plt.annotate(str(marker_titles[j]), xy=(ix, iy + 5), color=annotate_color)
         plt.title(image_titles[i])
+
+    return fig
+
+
+def distplot_1d(
+    data,
+    labels=None,
+    xlabel=None,
+    ylabel=None,
+    title=None,
+    figsize=None,
+    colors=None,
+    title_kwargs=None,
+    hist_kwargs=None,
+):
+    """Plot distribution of 1D data.
+
+    Args:
+        data (array-like or list): Data to plot.
+        labels (list, optional): List of labels for each data. Defaults to None.
+        xlabel (str, optional): Label for x-axis. Defaults to None.
+        ylabel (str, optional): Label for y-axis. Defaults to None.
+        title (str, optional): Title of the plot. Defaults to None.
+        figsize (tuple, optional): Figure size. Defaults to None.
+        colors (str, optional): Color of the line. Defaults to None.
+        title_kwargs (dict, optional): Key word arguments for title. Defaults to None.
+        hist_kwargs (dict, optional): Key word arguments for histogram. Defaults to None.
+
+    Returns:
+        [matplotlib.figure.Figure]: Figure to plot.
+    """
+    hist_kwargs = _none2dict(hist_kwargs)
+    title_kwargs = _none2dict(title_kwargs)
+
+    fig = plt.figure(figsize=figsize)
+    if colors is None:
+        colors = plt.get_cmap("Set1").colors
+
+    if type(data) != list:
+        data = [data]
+
+    if labels is None:
+        labels = np.range(len(data))
+
+    for i in range(len(data)):
+        sns.histplot(data[i], color=colors[i], label=labels[i], **hist_kwargs)
+
+    if title is not None:
+        plt.title(title, **title_kwargs)
+    if xlabel is not None:
+        plt.xlabel(xlabel)
+    if ylabel is not None:
+        plt.ylabel(ylabel)
+    plt.legend()
 
     return fig

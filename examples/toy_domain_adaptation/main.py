@@ -1,27 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from sklearn.datasets import make_blobs, make_moons
+from sklearn.datasets import make_blobs
 from sklearn.linear_model import RidgeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder
 
-from kale.pipeline.multi_domain_adapter import _CoIRLS
-
-
-def plot_scores_dist(ys_score, yt_score, title=None):
-    plt.figure(figsize=(8, 5))
-    sns.histplot(ys_score, color="c", label="Source", kde=True)
-    sns.histplot(yt_score, color="m", label="Target", kde=True)
-    plt.xlabel("Decision Scores")
-    plt.legend()
-    if title is not None:
-        plt.title(title, fontsize=14, fontweight="bold")
-    plt.show()
+from kale.interpret.visualize import distplot_1d
+from kale.pipeline.multi_domain_adapter import CoIRLS
 
 
 def main():
-    np.random.seed(81192)
+    np.random.seed(29118)
     # Generate toy data
     n_samples = 200
 
@@ -67,10 +57,20 @@ def main():
     ys_score = clf.decision_function(xs)
     yt_score = clf.decision_function(xt)
     title = "Ridge classifier decision score distribution"
-    plot_scores_dist(ys_score, yt_score, title)
+    title_kwargs = {"fontsize": 14, "fontweight": "bold"}
+    hist_kwargs = {"kde": True, "alpha": 0.7}
+    plt_labels = ["Source", "Target"]
+    distplot_1d(
+        [ys_score, yt_score],
+        labels=plt_labels,
+        xlabel="Decision Scores",
+        title=title,
+        title_kwargs=title_kwargs,
+        hist_kwargs=hist_kwargs,
+    ).show()
 
     # domain adaptation
-    clf_ = _CoIRLS(lambda_=1)
+    clf_ = CoIRLS(lambda_=1)
     # encoding one-hot domain covariate matrix
     covariates = np.zeros(n_samples * 2)
     covariates[:n_samples] = 1
@@ -85,7 +85,14 @@ def main():
     ys_score_ = clf_.decision_function(xs).detach().numpy().reshape(-1)
     yt_score_ = clf_.decision_function(xt).detach().numpy().reshape(-1)
     title = "Domain adaptation classifier decision score distribution"
-    plot_scores_dist(ys_score_, yt_score_, title)
+    distplot_1d(
+        [ys_score_, yt_score_],
+        labels=plt_labels,
+        xlabel="Decision Scores",
+        title=title,
+        title_kwargs=title_kwargs,
+        hist_kwargs=hist_kwargs,
+    ).show()
 
 
 if __name__ == "__main__":

@@ -1,20 +1,16 @@
 # =============================================================================
-# Author: Shuo Zhou, szhou20@sheffield.ac.uk
+# Author: Shuo Zhou, shuo.zhou@sheffield.ac.uk
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
-"""Python implementation of Multilinear Principal Component Analysis (MPCA)
-
-Reference:
-    Haiping Lu, K.N. Plataniotis, and A.N. Venetsanopoulos, "MPCA: Multilinear Principal Component Analysis of Tensor
-    Objects", IEEE Transactions on Neural Networks, Vol. 19, No. 1, Page: 18-39, January 2008. For initial Matlab
-    implementation, please go to https://uk.mathworks.com/matlabcentral/fileexchange/26168.
+"""Python implementation of a tensor factorization algorithm Multilinear Principal Component Analysis (MPCA)
+    and a matrix factorization algorithm Maximum Independence Domain Adaptation (MIDA）
 """
 import logging
 import warnings
 
 import numpy as np
-from numpy.linalg import inv, multi_dot
+from numpy.linalg import multi_dot
 from scipy import linalg
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics.pairwise import pairwise_kernels
@@ -81,10 +77,16 @@ class MPCA(BaseEstimator, TransformerMixin):
     Attributes:
         proj_mats (list of arrays): A list of transposed projection matrices, shapes (P_1, I_1), ...,
             (P_N, I_N), where P_1, ..., P_N are output tensor shape for each sample.
-        idx_order (array-like): The ordering index of projected (and vectorised) features in decreasing variance.
+        idx_order (array-like): The ordering index of projected (and vectorized) features in decreasing variance.
         mean_ (array-like): Per-feature empirical mean, estimated from the training set, shape (I_1, I_2, ..., I_N).
         shape_in (tuple): Input tensor shapes, i.e. (I_1, I_2, ..., I_N).
         shape_out (tuple): Output tensor shapes, i.e. (P_1, P_2, ..., P_N).
+
+    Reference:
+        Haiping Lu, K.N. Plataniotis, and A.N. Venetsanopoulos, "MPCA: Multilinear Principal Component Analysis of
+        Tensor Objects", IEEE Transactions on Neural Networks, Vol. 19, No. 1, Page: 18-39, January 2008. For initial
+        Matlab implementation, please go to https://uk.mathworks.com/matlabcentral/fileexchange/26168.
+
     Examples:
         >>> import numpy as np
         >>> from kale.embed.mpca import MPCA
@@ -233,7 +235,7 @@ class MPCA(BaseEstimator, TransformerMixin):
 
         Args:
             x (array-like tensor): Data to be reconstructed, shape (n_samples, P_1, P_2, ..., P_N), if
-                self.vectorize == False, where P_1, P_2, ..., P_N are the reduced dimensions of of corresponding
+                self.vectorize == False, where P_1, P_2, ..., P_N are the reduced dimensions of corresponding
                 mode (1, 2, ..., N), respectively. If self.vectorize == True, shape (n_samples, self.n_components)
                 or shape (n_samples, P_1 * P_2 * ... * P_N).
 
@@ -269,34 +271,22 @@ class MIDA(BaseEstimator, TransformerMixin):
     """Maximum independence domain adaptation
     Args:
         n_components (int): Number of components to keep.
-        penalty (str): Penalty to use for the optimization problem.
-        kernel (str): Kernel to use for the optimization problem.
-        lambda_ (float): Regularization parameter for the domain covariate dependence.
-        mu (float): Regularization parameter for the variance penalty.
-        eta (float): Regularization parameter for the label dependence.
-        augmentation (bool): Whether to augment the data with noise.
-        kernel_params (dict): Parameters for the kernel.
+        kernel (str): "linear", "rbf", or "poly". Kernel to use for MIDA. Defaults to "linear".
+        mu (float): Hyperparameter of the l2 penalty. Defaults to 1.0.
+        eta (float): Hyperparameter of the label dependence. Defaults to 1.0.
+        augmentation (bool): Whether using covariates as augment features. Defaults to False.
+        kernel_params (dict or None): Parameters for the kernel. Defaults to None.
 
     References:
-        Yan, K., Kou, L. and Zhang, D., 2018. Learning domain-invariant subspace using domain features and
-        independence maximization. IEEE transactions on cybernetics, 48(1), pp.288-299.
+        [1] Yan, K., Kou, L. and Zhang, D., 2018. Learning domain-invariant subspace using domain features and
+            independence maximization. IEEE transactions on cybernetics, 48(1), pp.288-299.
     """
 
     def __init__(
-        self,
-        n_components,
-        penalty=None,
-        kernel="linear",
-        lambda_=1.0,
-        mu=1.0,
-        eta=1.0,
-        augmentation=True,
-        kernel_params=None,
+        self, n_components, kernel="linear", lambda_=1.0, mu=1.0, eta=1.0, augmentation=False, kernel_params=None,
     ):
         self.n_components = n_components
         self.kernel = kernel
-        self.lambda_ = lambda_
-        self.penalty = penalty
         self.mu = mu
         self.eta = eta
         self.augmentation = augmentation
@@ -304,9 +294,16 @@ class MIDA(BaseEstimator, TransformerMixin):
             self.kernel_params = {}
         else:
             self.kernel_params = kernel_params
-        self._lb = LabelBinarizer(pos_label=1, neg_label=0)
+        self._label_binarizer = LabelBinarizer(pos_label=1, neg_label=-1)
         self._centerer = KernelCenterer()
         self.x_fit = None
+
+    def _get_kernel(self, x, y=None):
+        if self.kernel in ["linear", "rbf", "poly"]:
+            params = self.kernel_params or {}
+        else:
+            raise ValueError("Pre-computed kernel not supported")
+        return pairwise_kernels(x, y, metric=self.kernel, filter_params=True, **params)
 
     def fit(self, x, y=None, covariates=None):
         """
@@ -322,53 +319,63 @@ class MIDA(BaseEstimator, TransformerMixin):
         if self.augmentation and type(covariates) == np.ndarray:
             x = np.concatenate((x, covariates), axis=1)
 
-        n = x.shape[0]
         # Kernel matrix
-        krnl_x = pairwise_kernels(x, metric=self.kernel, filter_params=True, **self.kernel_params)
-        krnl_x[np.isnan(krnl_x)] = 0
-
-        # Identity matrix
-        unit_mat = np.eye(n)
-        # Centering matrix
-        ctr_mat = unit_mat - 1.0 / n * np.ones((n, n))
-
-        krnl_x = self._centerer.fit_transform(krnl_x)
-        if type(covariates) == np.ndarray:
-            ker_c = np.dot(covariates, covariates.T)
-        else:
-            ker_c = np.zeros((n, n))
-        if y is not None:
-            y_mat = self._lb.fit_transform(y)
-            ker_y = np.dot(y_mat, y_mat.T)
-            obj = multi_dot([krnl_x, ctr_mat, ker_c, ctr_mat, krnl_x.T])
-            st = multi_dot(
-                [krnl_x, ctr_mat, (self.mu * unit_mat + self.eta * ker_y / np.square(n - 1)), ctr_mat, krnl_x.T]
-            )
-        else:
-            obj = multi_dot([krnl_x, ctr_mat, ker_c, ctr_mat, krnl_x.T]) / np.square(n - 1) + self.lambda_ * unit_mat
-            st = multi_dot([krnl_x, ctr_mat, krnl_x.T])
+        kernel_x = self._get_kernel(x)
+        kernel_x[np.isnan(kernel_x)] = 0
 
         # Solve the optimization problem
-        self._fit(obj_min=obj, obj_max=st)
-
+        self._fit(kernel_x, y, covariates)
         self.x_fit = x
+
         return self
 
-    def _fit(self, obj_min, obj_max):
-        """solve eigen-decomposition
+    def _fit(self, kernel_x, y, covariates=None):
+        """solve MIDA
 
         Args:
-            obj_min : array-like, objective matrix to minimise, shape (n_samples, n_features)
-            obj_max : array-like, objective matrix to maximise, shape (n_samples, n_features)
+            kernel_x: array-like, kernel matrix of input data x, shape (n_samples, n_samples)
+            y: array-like. Labels, shape (nl_samples,)
+            covariates: array-like. Domain co-variates, shape (n_samples, n_covariates)
 
         Returns:
             self
         """
-        obj_ovr = np.dot(inv(obj_min), obj_max)
-        n = obj_ovr.shape[0]
-        eig_values, eig_vectors = linalg.eigh(obj_ovr, subset_by_index=[n - self.n_components, n - 1])
+        n_samples = kernel_x.shape[0]
+        # Identity (unit) matrix
+        unit_mat = np.eye(n_samples)
+        # Centering matrix
+        ctr_mat = unit_mat - 1.0 / n_samples * np.ones((n_samples, n_samples))
+
+        kernel_x = self._centerer.fit_transform(kernel_x)
+        if type(covariates) == np.ndarray:
+            kernel_c = np.dot(covariates, covariates.T)
+        else:
+            kernel_c = np.zeros((n_samples, n_samples))
+
+        if y is not None:
+            n_labeled = y.shape[0]
+            if n_labeled > n_samples:
+                raise ValueError("Number of labels exceeds number of samples")
+            y_mat_ = self._label_binarizer.fit_transform(y)
+            y_mat = np.zeros((n_samples, y_mat_.shape[1]))
+            y_mat[:n_labeled, :] = y_mat_
+            ker_y = np.dot(y_mat, y_mat.T)
+            obj = multi_dot(
+                [
+                    kernel_x,
+                    self.mu * ctr_mat
+                    + self.eta * multi_dot([ctr_mat, ker_y, ctr_mat])
+                    - multi_dot([ctr_mat, kernel_c, ctr_mat]),
+                    kernel_x.T,
+                ]
+            )
+        else:
+            obj = multi_dot([kernel_x, self.mu * ctr_mat - multi_dot([ctr_mat, kernel_c, ctr_mat]), kernel_x.T])
+
+        eig_values, eig_vectors = linalg.eigh(obj, subset_by_index=[n_samples - self.n_components, n_samples - 1])
         idx_sorted = eig_values.argsort()[::-1]
 
+        self.eig_values_ = eig_values[idx_sorted]
         self.U = eig_vectors[:, idx_sorted]
         self.U = np.asarray(self.U, dtype=np.float)
 
@@ -379,7 +386,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         Args:
             x : array-like, shape (n_samples, n_features)
             y : array-like, shape (n_samples,)
-            covariates : array-like, shape (n_samples, n_co-variates)
+            covariates : array-like, shape (n_samples, n_covariates)
 
         Returns:
             x_transformed : array-like, shape (n_samples, n_components)
@@ -388,19 +395,19 @@ class MIDA(BaseEstimator, TransformerMixin):
 
         return self.transform(x, covariates)
 
-    def transform(self, x, aug_features=None):
+    def transform(self, x, covariates=None):
         """
         Args:
             x : array-like, shape (n_samples, n_features)
-            aug_features : array-like, augmentation features, shape (n_samples, n_aug_features)
+            covariates : array-like, augmentation features, shape (n_samples, n_covariates)
         Returns:
             x_transformed : array-like, shape (n_samples, n_components)
         """
         check_is_fitted(self, "x_fit")
-        if type(aug_features) == np.ndarray:
-            x = np.concatenate((x, aug_features), axis=1)
-        krnl_x = self._centerer.transform(
+        if type(covariates) == np.ndarray and self.augmentation:
+            x = np.concatenate((x, covariates), axis=1)
+        kernel_x = self._centerer.transform(
             pairwise_kernels(x, self.x_fit, metric=self.kernel, filter_params=True, **self.kernel_params)
         )
 
-        return np.dot(krnl_x, self.U)
+        return np.dot(kernel_x, self.U)

@@ -1,5 +1,5 @@
 """
-Default configurations for cardiac MRI data (ShefPAH) processing and classification
+Default configurations for classification on resting-state fMRI of ABIDE
 """
 
 from yacs.config import CfgNode as CN
@@ -15,19 +15,18 @@ _C = CN()
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
 _C.DATASET.ROOT = "../data"
-_C.DATASET.PIPELINE = "cpac"
+_C.DATASET.PIPELINE = "cpac"  # options: {‘cpac’, ‘css’, ‘dparsf’, ‘niak’}
 _C.DATASET.ATLAS = "rois_cc200"
-_C.DATASET.SITE_IDS = None
-_C.DATASET.TARGET = "NYU"
+# options: {rois_aal, rois_cc200, rois_cc400, rois_dosenbach160, rois_ez, rois_ho, rois_tt}
+_C.DATASET.SITE_IDS = None  # list of site ids to use, if None, use all sites
+_C.DATASET.TARGET = "NYU"  # target site ids, e.g. "UM_1", "UCLA_1", "USM"
 # ---------------------------------------------------------------------------- #
 # Machine learning pipeline
 # ---------------------------------------------------------------------------- #
 _C.MODEL = CN()
-_C.MODEL.LOSS = "logits"
 _C.MODEL.KERNEL = "rbf"
 _C.MODEL.ALPHA = 0.01
 _C.MODEL.LAMBDA_ = 1.0
-_C.MODEL.LR = 0.0001
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #

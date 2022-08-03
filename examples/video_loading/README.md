@@ -59,8 +59,8 @@ for image in frames:
     - [4. Alternate Video Frame Sampling Methods](#4-alternate-video-frame-sampling-methods)
     - [5. Using VideoFrameDataset for training](#5-using-videoframedataset-for-training)
     - [6. Allowing Multiple Labels per Sample](#6-allowing-multiple-labels-per-sample)
-    - [5. Conclusion](#5-conclusion)
-    - [6. Acknowledgements](#6-acknowledgements)
+    - [7. Conclusion](#7-conclusion)
+    - [8. Acknowledgements](#8-acknowledgements)
 
 ### 1. Requirements
 ```
@@ -176,10 +176,10 @@ list gives label_n for the whole batch.
 A demo of this can be found at the end in `main.py`. It uses the dummy dataset in directory `demo_dataset_multilabel`,
 that is also automatically downloaded.
 
-### 5. Conclusion
+### 7. Conclusion
 A proper code-based explanation on how to use VideoFrameDataset for training is provided in `main.py`
 
-### 6. Acknowledgements
+### 8. Acknowledgements
 We thank the authors of TSN for their [codebase](https://github.com/yjxiong/tsn-pytorch), from which we took VideoFrameDataset and adapted it
 for general use and compatibility.
 ```

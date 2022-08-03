@@ -14,22 +14,13 @@ kale.embed.attention\_cnn module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.decomposition module
+kale.embed.factorization module
 ----------------------
 
-.. automodule:: kale.embed.decomposition
+.. automodule:: kale.embed.factorization
    :members:
    :undoc-members:
    :show-inheritance:
-
-kale.embed.seq\_nn module
---------------------------------
-
-.. automodule:: kale.embed.seq_nn
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :exclude-members:
 
 kale.embed.gcn module
 ----------------------------
@@ -65,6 +56,15 @@ kale.embed.positional\_encoding module
    :members:
    :undoc-members:
    :show-inheritance:
+
+kale.embed.seq\_nn module
+--------------------------------
+
+.. automodule:: kale.embed.seq_nn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :exclude-members:
 
 kale.embed.video\_feature\_extractor module
 -------------------------------------------
