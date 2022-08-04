@@ -1,5 +1,5 @@
 # =============================================================================
-# Author: Shuo Zhou, szhou20@sheffield.ac.uk
+# Author: Shuo Zhou, shuo.zhou@sheffield.ac.uk
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 

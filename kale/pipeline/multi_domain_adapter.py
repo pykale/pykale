@@ -1,5 +1,5 @@
 # =============================================================================
-# Author: Shuo Zhou, szhou20@sheffield.ac.uk/sz144@outlook.com
+# Author: Shuo Zhou, shuo.zhou@sheffield.ac.uk/sz144@outlook.com
 # =============================================================================
 """Multi-source domain adaptation pipelines
 """
@@ -339,7 +339,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         return cls_disc * 2 / (n_domains * (n_domains - 1))
 
 
-class _CoIRLS(BaseEstimator, ClassifierMixin):
+class CoIRLS(BaseEstimator, ClassifierMixin):
     """Covariate-Independence Regularized Least Squares (CoIRLS)
 
     Args:
@@ -368,7 +368,7 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.losses = {"ovr": [], "pred": [], "code": [], "reg": []}
         self.x = None
-        self._lb = LabelBinarizer(pos_label=1, neg_label=-1)
+        self._label_binarizer = LabelBinarizer(pos_label=1, neg_label=-1)
         self.coef_ = None
 
     def fit(self, x, y, covariates):
@@ -379,7 +379,7 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
             y (np.ndarray or tensor): shape (n_samples, )
             covariates (np.ndarray or tensor): (n_samples, n_covariates)
         """
-        self._lb.fit(y)
+        self._label_binarizer.fit(y)
         x = torch.as_tensor(x)
         x = torch.cat([x, torch.ones(x.shape[0], 1)], 1)
         y = torch.as_tensor(y)
@@ -402,7 +402,7 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
             mat_y = torch.zeros((n_samples, 1))
         else:
             mat_y = torch.zeros((n_samples, n_classes))
-        mat_y[:n_labeled, :] = torch.as_tensor(self._lb.fit_transform(y))
+        mat_y[:n_labeled, :] = torch.as_tensor(self._label_binarizer.fit_transform(y))
         mat_y = torch.as_tensor(mat_y)
 
         mat_q = torch.mm(mat_j, krnl_x) + self.alpha * unit_mat
@@ -422,10 +422,10 @@ class _CoIRLS(BaseEstimator, ClassifierMixin):
             y (np.ndarray): Predicted labels, shape (n_samples, )
         """
         out = self.decision_function(x)
-        if self._lb.y_type_ == "binary":
-            pred = self._lb.inverse_transform(torch.sign(out).view(-1))
+        if self._label_binarizer.y_type_ == "binary":
+            pred = self._label_binarizer.inverse_transform(torch.sign(out).view(-1))
         else:
-            pred = self._lb.inverse_transform(out)
+            pred = self._label_binarizer.inverse_transform(out)
 
         return pred
 

@@ -6,8 +6,8 @@ from sklearn.linear_model import RidgeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder
 
-from kale.interpret.visualize import plot_distro1d
-from kale.pipeline.multi_domain_adapter import _CoIRLS
+from kale.interpret.visualize import distplot_1d
+from kale.pipeline.multi_domain_adapter import CoIRLS
 
 
 def main():
@@ -60,17 +60,17 @@ def main():
     title_kwargs = {"fontsize": 14, "fontweight": "bold"}
     hist_kwargs = {"kde": True, "alpha": 0.7}
     plt_labels = ["Source", "Target"]
-    plot_distro1d(
+    distplot_1d(
         [ys_score, yt_score],
-        title=title,
-        xlabel="Decision Scores",
         labels=plt_labels,
-        hist_kwargs=hist_kwargs,
+        xlabel="Decision Scores",
+        title=title,
         title_kwargs=title_kwargs,
+        hist_kwargs=hist_kwargs,
     ).show()
 
     # domain adaptation
-    clf_ = _CoIRLS(lambda_=1)
+    clf_ = CoIRLS(lambda_=1)
     # encoding one-hot domain covariate matrix
     covariates = np.zeros(n_samples * 2)
     covariates[:n_samples] = 1
@@ -85,13 +85,13 @@ def main():
     ys_score_ = clf_.decision_function(xs).detach().numpy().reshape(-1)
     yt_score_ = clf_.decision_function(xt).detach().numpy().reshape(-1)
     title = "Domain adaptation classifier decision score distribution"
-    plot_distro1d(
+    distplot_1d(
         [ys_score_, yt_score_],
-        title=title,
-        xlabel="Decision Scores",
         labels=plt_labels,
-        hist_kwargs=hist_kwargs,
+        xlabel="Decision Scores",
+        title=title,
         title_kwargs=title_kwargs,
+        hist_kwargs=hist_kwargs,
     ).show()
 
 

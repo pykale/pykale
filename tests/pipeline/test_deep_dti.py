@@ -30,7 +30,7 @@ def test_deep_data(download_path):
     model = DeepDTATrainer(drug_encoder, target_encoder, decoder, lr=0.001, ci_metric=True, **save_parameters).eval()
     trainer = pl.Trainer(max_epochs=1, gpus=0)
     trainer.fit(model, train_dataloaders=train_dataloader, val_dataloaders=valid_dataloader)
-    trainer.test(test_dataloaders=test_dataloader)
+    trainer.test(dataloaders=test_dataloader)
     assert isinstance(model.drug_encoder, CNNEncoder)
     assert isinstance(model.target_encoder, CNNEncoder)
     assert isinstance(model.decoder, MLPDecoder)

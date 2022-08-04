@@ -1,16 +1,16 @@
 # =============================================================================
-# Author: Shuo Zhou, szhou20@sheffield.ac.uk
+# Author: Shuo Zhou, shuo.zhou@sheffield.ac.uk
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
-"""Python implementation of a tensor factorization approach Multilinear Principal Component Analysis (MPCA)
-    and a matrix factorization Maximum independence domain adaptation (MIDA）
+"""Python implementation of a tensor factorization algorithm Multilinear Principal Component Analysis (MPCA)
+    and a matrix factorization algorithm Maximum Independence Domain Adaptation (MIDA）
 """
 import logging
 import warnings
 
 import numpy as np
-from numpy.linalg import inv, multi_dot
+from numpy.linalg import multi_dot
 from scipy import linalg
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics.pairwise import pairwise_kernels
@@ -77,7 +77,7 @@ class MPCA(BaseEstimator, TransformerMixin):
     Attributes:
         proj_mats (list of arrays): A list of transposed projection matrices, shapes (P_1, I_1), ...,
             (P_N, I_N), where P_1, ..., P_N are output tensor shape for each sample.
-        idx_order (array-like): The ordering index of projected (and vectorised) features in decreasing variance.
+        idx_order (array-like): The ordering index of projected (and vectorized) features in decreasing variance.
         mean_ (array-like): Per-feature empirical mean, estimated from the training set, shape (I_1, I_2, ..., I_N).
         shape_in (tuple): Input tensor shapes, i.e. (I_1, I_2, ..., I_N).
         shape_out (tuple): Output tensor shapes, i.e. (P_1, P_2, ..., P_N).
@@ -271,12 +271,10 @@ class MIDA(BaseEstimator, TransformerMixin):
     """Maximum independence domain adaptation
     Args:
         n_components (int): Number of components to keep.
-        penalty (str): "l2" or None. Penalty to use for the optimization problem. Defaults to None.
         kernel (str): "linear", "rbf", or "poly". Kernel to use for MIDA. Defaults to "linear".
-        lambda_ (float): Hyperparameter of the domain covariate dependence. Defaults to 1.0.
         mu (float): Hyperparameter of the l2 penalty. Defaults to 1.0.
         eta (float): Hyperparameter of the label dependence. Defaults to 1.0.
-        augmentation (bool): Whether uisng covariates as augment features. Defaults to False.
+        augmentation (bool): Whether using covariates as augment features. Defaults to False.
         kernel_params (dict or None): Parameters for the kernel. Defaults to None.
 
     References:
@@ -285,23 +283,10 @@ class MIDA(BaseEstimator, TransformerMixin):
     """
 
     def __init__(
-        self,
-        n_components,
-        penalty=None,
-        kernel="linear",
-        lambda_=1.0,
-        mu=1.0,
-        eta=1.0,
-        augmentation=False,
-        kernel_params=None,
+        self, n_components, kernel="linear", lambda_=1.0, mu=1.0, eta=1.0, augmentation=False, kernel_params=None,
     ):
         self.n_components = n_components
         self.kernel = kernel
-        self.lambda_ = lambda_
-        if penalty is not None and penalty not in ["l2"]:
-            raise ValueError("Unsupport penalty type: {}".format(penalty))
-        else:
-            self.penalty = penalty
         self.mu = mu
         self.eta = eta
         self.augmentation = augmentation
@@ -309,7 +294,7 @@ class MIDA(BaseEstimator, TransformerMixin):
             self.kernel_params = {}
         else:
             self.kernel_params = kernel_params
-        self._lb = LabelBinarizer(pos_label=1, neg_label=-1)
+        self._label_binarizer = LabelBinarizer(pos_label=1, neg_label=-1)
         self._centerer = KernelCenterer()
         self.x_fit = None
 
@@ -355,37 +340,39 @@ class MIDA(BaseEstimator, TransformerMixin):
         Returns:
             self
         """
-        n = kernel_x.shape[0]
+        n_samples = kernel_x.shape[0]
         # Identity (unit) matrix
-        unit_mat = np.eye(n)
+        unit_mat = np.eye(n_samples)
         # Centering matrix
-        ctr_mat = unit_mat - 1.0 / n * np.ones((n, n))
+        ctr_mat = unit_mat - 1.0 / n_samples * np.ones((n_samples, n_samples))
 
         kernel_x = self._centerer.fit_transform(kernel_x)
         if type(covariates) == np.ndarray:
             kernel_c = np.dot(covariates, covariates.T)
         else:
-            kernel_c = np.zeros((n, n))
+            kernel_c = np.zeros((n_samples, n_samples))
+
         if y is not None:
-            nl = y.shape[0]
-            if nl > n:
+            n_labeled = y.shape[0]
+            if n_labeled > n_samples:
                 raise ValueError("Number of labels exceeds number of samples")
-            y_mat_ = self._lb.fit_transform(y)
-            y_mat = np.zeros((n, y_mat_.shape[1]))
-            y_mat[:nl, :] = y_mat_
+            y_mat_ = self._label_binarizer.fit_transform(y)
+            y_mat = np.zeros((n_samples, y_mat_.shape[1]))
+            y_mat[:n_labeled, :] = y_mat_
             ker_y = np.dot(y_mat, y_mat.T)
-            obj = multi_dot([kernel_x, ctr_mat, kernel_c, ctr_mat, kernel_x.T])
-            st = multi_dot([kernel_x, ctr_mat, self.eta * ker_y, ctr_mat, kernel_x.T])
+            obj = multi_dot(
+                [
+                    kernel_x,
+                    self.mu * ctr_mat
+                    + self.eta * multi_dot([ctr_mat, ker_y, ctr_mat])
+                    - multi_dot([ctr_mat, kernel_c, ctr_mat]),
+                    kernel_x.T,
+                ]
+            )
         else:
-            obj = multi_dot([kernel_x, ctr_mat, kernel_c, ctr_mat, kernel_x.T]) + self.lambda_ * unit_mat
-            st = unit_mat.copy()
+            obj = multi_dot([kernel_x, self.mu * ctr_mat - multi_dot([ctr_mat, kernel_c, ctr_mat]), kernel_x.T])
 
-        if self.penalty == "l2":
-            st += self.mu * multi_dot([kernel_x, ctr_mat, kernel_x.T])
-
-        obj_ovr = np.dot(inv(obj), st)
-        n = obj_ovr.shape[0]
-        eig_values, eig_vectors = linalg.eigh(obj_ovr, subset_by_index=[n - self.n_components, n - 1])
+        eig_values, eig_vectors = linalg.eigh(obj, subset_by_index=[n_samples - self.n_components, n_samples - 1])
         idx_sorted = eig_values.argsort()[::-1]
 
         self.eig_values_ = eig_values[idx_sorted]
