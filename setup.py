@@ -30,9 +30,9 @@ requirements = [
     "scipy>=1.5.4",
     "seaborn",
     "tensorly>=0.5.1",
-    "torch>=1.10.0",
+    "torch>=1.11.0",
     "torchsummary>=1.5.0",
-    "torchvision>=0.11.0",
+    "torchvision>=0.12.0",
     "yacs>=0.1.7",
 ]
 
