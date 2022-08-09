@@ -48,7 +48,7 @@ def main():
 
     # ---- training and evaluation ----
     gpus = 1 if device == "cuda" else 0
-    checkpoint_callback = ModelCheckpoint(monitor="valid_loss", mode="min")
+    checkpoint_callback = ModelCheckpoint(filename="{epoch}-{step}-{valid_loss:.4f}", monitor="valid_loss", mode="min")
     trainer = pl.Trainer(max_epochs=cfg.SOLVER.MAX_EPOCHS, gpus=gpus, logger=tb_logger, callbacks=[checkpoint_callback])
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=valid_loader)
     trainer.test(dataloaders=test_loader)
