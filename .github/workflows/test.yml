@@ -9,7 +9,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    # * is a special character in YAML so you have to quote this string
+    # * is a special character in YAML, so you have to quote this string
     - cron:  '0 0 * * *' # every midnight
 
 jobs:
