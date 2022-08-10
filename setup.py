@@ -23,7 +23,7 @@ requirements = [
     "pydicom",
     "pylibjpeg",
     "python-gdcm",
-    "pytorch-lightning>=1.3.0",
+    "pytorch-lightning>=1.3.0,<=1.6.5",
     "pytorch-memlab",
     "scikit-image>=0.16.2",
     "scikit-learn>=0.23.2",
