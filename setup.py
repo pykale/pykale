@@ -14,7 +14,7 @@ requirements = [
     "glob2",
     "ipykernel",
     "ipython",
-    "matplotlib",
+    "matplotlib<=3.5.2",
     "nilearn",
     "numpy>=1.18.0",
     "pandas",
