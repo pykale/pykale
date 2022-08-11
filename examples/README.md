@@ -16,7 +16,7 @@ All data in examples are from the public domain so they will be downloaded into 
   - Image classification on [CIFAR via transformers](https://github.com/pykale/pykale/tree/master/examples/cifar_cnntransformer), [CIFAR via ISONet](https://github.com/pykale/pykale/tree/master/examples/cifar_isonet), [digits via domain adaptation](https://github.com/pykale/pykale/tree/master/examples/digits_dann_lightn), [digits/office via multi-source domain adaptation](https://github.com/pykale/pykale/tree/main/examples/multisource_adapt)
   - [Action recognition via domain adaptation](https://github.com/pykale/pykale/tree/master/examples/action_dann_lightn)
   - [Video loading](https://github.com/pykale/pykale/tree/master/examples/video_loading)
-- Bioinformatics/graph analysis
+- Bioinformatics data analysis
   - [Drug-target interaction prediction](https://github.com/pykale/pykale/tree/master/examples/bindingdb_deepdta)
   - [Polypharmacy side effect prediction](https://github.com/pykale/pykale/tree/master/examples/drug_gripnet)
 - Medical image analysis
