@@ -10,7 +10,7 @@ All data in examples are from the public domain so they will be downloaded into 
 
 ## Examples are available on synthetic data and three application areas
 
-- Synthetic data
+- Synthetic data analysis
   - [Toy data classification with domain adaptation](https://github.com/pykale/pykale/tree/main/examples/toy_domain_adaptation)
 - Image/video recognition
   - Image classification on [CIFAR via transformers](https://github.com/pykale/pykale/tree/master/examples/cifar_cnntransformer), [CIFAR via ISONet](https://github.com/pykale/pykale/tree/master/examples/cifar_isonet), [digits via domain adaptation](https://github.com/pykale/pykale/tree/master/examples/digits_dann_lightn), [digits/office via multi-source domain adaptation](https://github.com/pykale/pykale/tree/main/examples/multisource_adapt)
