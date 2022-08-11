@@ -1,13 +1,13 @@
 [build-system]
 requires = [
-    "setuptools",
+    "setuptools==59.5.0",
     "wheel",
 ]
 
 [tool.black]
 # https://github.com/psf/black
 line-length = 120
-target-version = ["py36"]
+target-version = ["py37"]
 
 [tool.isort]
 known_first_party = [
@@ -19,7 +19,7 @@ known_first_party = [
 known_third_party = [
     "matplotlib",
     "numpy",
-    "setuptools",
+    "setuptools==59.5.0",
     "sphinx_rtd_theme",
     "torch",
 ]

@@ -9,7 +9,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    # * is a special character in YAML so you have to quote this string
+    # * is a special character in YAML, so you have to quote this string
     - cron:  '0 0 * * *' # every midnight
 
 jobs:
@@ -19,12 +19,12 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: [3.6]  # Keep only 3.6 first, 3.7, 3.8]
+        python-version: ["3.7", "3.8", "3.9"] # list of Python versions to test
         exclude:
           - os: windows-latest
-            python-version: "3.6"
-          - os: windows-latest
             python-version: "3.7"
+          - os: windows-latest
+            python-version: "3.8"
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python using Miniconda
@@ -36,19 +36,19 @@ jobs:
         run: |
           conda install -c conda-forge rdkit=2020.09.1.0
           pip install pyparsing==2.4.7
-          pip install torch==1.10.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-          pip install torchvision==0.11.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-          pip install torch-scatter==2.0.9 -f https://pytorch-geometric.com/whl/torch-1.10.0+cpu.html
-          pip install torch-sparse==0.6.12 -f https://pytorch-geometric.com/whl/torch-1.10.0+cpu.html
-          pip install torch-cluster==1.5.9 -f https://pytorch-geometric.com/whl/torch-1.10.0+cpu.html
-          pip install torch-spline-conv==1.2.1 -f https://pytorch-geometric.com/whl/torch-1.10.0+cpu.html
+          pip install torch==1.11.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+          pip install torchvision==0.12.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+          pip install torch-scatter==2.0.9 -f https://pytorch-geometric.com/whl/torch-1.11.0+cpu.html
+          pip install torch-sparse==0.6.13 -f https://pytorch-geometric.com/whl/torch-1.11.0+cpu.html
+          pip install torch-cluster==1.6.0 -f https://pytorch-geometric.com/whl/torch-1.11.0+cpu.html
+          pip install torch-spline-conv==1.2.1 -f https://pytorch-geometric.com/whl/torch-1.11.0+cpu.html
           pip install torch-geometric
           pip install -e .[dev]
         shell: bash -l {0}
       - name: Run tests
         id: run_tests
         run: |
-          pytest --nbmake --cov=kale
+          pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
       - name: Determine coverage
         run: |
