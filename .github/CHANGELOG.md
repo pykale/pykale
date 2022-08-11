@@ -1,3 +1,37 @@
+# Version  0.1.0
+
+
+#### New Features
+
+
+* [#246](https://github.com/pykale/pykale/pull/246): Add MIDA, CoIRLS, distribution plot, and brain example
+
+#### Bug Fixes
+
+
+* [#322](https://github.com/pykale/pykale/pull/322): Add pre-commit dependency for black and click
+* [#329](https://github.com/pykale/pykale/pull/329): update colab links in notebook examples
+* [#330](https://github.com/pykale/pykale/pull/330): Fix problems of tests for Python version 3.7, 3.8 and 3.9
+
+#### Code Improvements
+
+
+* [#320](https://github.com/pykale/pykale/pull/320): Add code scanning
+* [#321](https://github.com/pykale/pykale/pull/321): Fixes cardiac MRI example visualization number of columns
+* [#331](https://github.com/pykale/pykale/pull/331): update cmr example landmark visualization
+
+#### Documentation Updates
+
+
+* [#333](https://github.com/pykale/pykale/pull/333): Update docs and readme for 0.1.0 release
+
+#### Other Changes
+
+* [#319](https://github.com/pykale/pykale/pull/319): Release 0.1.0rc5
+* [#284](https://github.com/pykale/pykale/pull/284): Update DICOM reading and image visualization
+* [#325](https://github.com/pykale/pykale/pull/325): Fix rdkit version
+
+
 # Version  0.1.0rc5
 
 #### New Features
