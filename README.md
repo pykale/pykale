@@ -79,20 +79,20 @@ See [contributing guidelines](https://github.com/pykale/pykale/blob/main/.github
 
 ### The Team
 
-PyKale is maintained by [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/), [Robert Turner](https://github.com/bobturneruk), [Shuo Zhou](https://sz144.github.io/), [Xianyuan Liu](https://github.com/XianyuanLiu), and [Peizhen Bai](https://github.com/pz-white), with contributions from many other [contributors](https://github.com/pykale/pykale/graphs/contributors).
+PyKale is maintained by [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/), [Shuo Zhou](https://sz144.github.io/), [Xianyuan Liu](https://github.com/XianyuanLiu), and [Peizhen Bai](https://github.com/pz-white), with contributions from many other [contributors](https://github.com/pykale/pykale/graphs/contributors).
 
 ### Citation
 
 ```lang-latex
-    @article{pykale,
-      title   = {PyKale: Knowledge-Aware Machine Learning from Multiple Sources in Python},
-      author  = {Haiping Lu and Xianyuan Liu and Robert Turner and Peizhen Bai and Raivo Koot and Shuo Zhou and Mustafa Chasmai and Lawrence Schobs},
-      journal = {arXiv:2106.09756 [cs.LG]},
-      year    = {2021}
+    @inproceedings{pykale-cikm2022,
+      title     = {{PyKale}: Knowledge-Aware Machine Learning from Multiple Sources in {Python}},
+      author    = {Haiping Lu and Xianyuan Liu and Shuo Zhou and Robert Turner and Peizhen Bai and Raivo Koot and Mustafa Chasmai and Lawrence Schobs},
+      booktitle = {Proceedings of the 31st ACM International Conference on Information and Knowledge Management (CIKM)},
+      year      = {2022}
     }
 ```
 
-Please cite the preprint above (preferred) or visit [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5557244.svg)](https://doi.org/10.5281/zenodo.5557244) to select your desired citation format (e.g. BibTeX, CSL). This link resolves to the latest release.
+Please consider citing our CIKM2022 paper above if you find _PyKale_ useful to your research.
 
 ### Acknowledgements
 
