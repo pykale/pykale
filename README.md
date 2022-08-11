@@ -84,15 +84,15 @@ PyKale is maintained by [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/
 ### Citation
 
 ```lang-latex
-    @article{pykale,
-      title   = {PyKale: Knowledge-Aware Machine Learning from Multiple Sources in Python},
-      author  = {Haiping Lu and Xianyuan Liu and Robert Turner and Peizhen Bai and Raivo Koot and Shuo Zhou and Mustafa Chasmai and Lawrence Schobs},
-      journal = {arXiv:2106.09756 [cs.LG]},
-      year    = {2021}
+    @inproceedings{pykaleCIKM2022,
+      title     = {PyKale: Knowledge-Aware Machine Learning from Multiple Sources in Python},
+      author    = {Haiping Lu and Xianyuan Liu and Shuo Zhou and Robert Turner and Peizhen Bai and Raivo Koot and Mustafa Chasmai and Lawrence Schobs},
+      booktitle = {Proceedings of the 31st ACM International Conference on Information and Knowledge Management (CIKM)},
+      year      = {2022}
     }
 ```
 
-Please cite the preprint above (preferred) or visit [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5557244.svg)](https://doi.org/10.5281/zenodo.5557244) to select your desired citation format (e.g. BibTeX, CSL). This link resolves to the latest release.
+Please consider citing our CIKM2022 paper above if you find _PyKale_ useful to your research.
 
 ### Acknowledgements
 
