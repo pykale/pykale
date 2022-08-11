@@ -48,7 +48,7 @@ jobs:
       - name: Run tests
         id: run_tests
         run: |
-          pytest --nbmake --cov=kale
+          pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
       - name: Determine coverage
         run: |
