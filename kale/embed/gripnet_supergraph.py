@@ -1,4 +1,5 @@
 import torch
+import networkx as nx
 
 class SuperVertex(object):
 	def __init__(self, name: str, node_feat: torch.Tensor, edge_index: torch.Tensor, edge_type: torch.Tensor=None, edge_weight: torch.Tensor=None) -> None:
@@ -44,7 +45,7 @@ class SuperVertex(object):
 			assert self.n_edge_type == unique_edge_type.max() + 1, 'The index of edge type is not continuous and starts from 0.'
 
 	def __repr__(self) -> str:
-		return f'SuperVertex(\n name={self.name}, \n  node_feat={self.node_feat.shape}, \n  edge_index={self.edge_index.shape}, \n  n_edge_type={self.n_edge_type})'
+		return f'SuperVertex(\n    name={self.name}, \n    node_feat={self.node_feat.shape}, \n    edge_index={self.edge_index.shape}, \n    n_edge_type={self.n_edge_type})'
 
 	def add_in_supervertex(self, vertex_name: str):
 		self.in_supervertex_list.append(vertex_name)
@@ -72,4 +73,56 @@ class SuperEdge(object):
 		self.edge_index = edge_index
 
 	def __repr__(self) -> str:
-		return f'SuperEdges(\n  edge_direction={self.source_supervertex}->{self.target_supervertex}, \n  edge_index={self.edge_index.shape})'
+		return f'SuperEdges(\n    edge_direction={self.source_supervertex}->{self.target_supervertex}, \n    edge_index={self.edge_index.shape})'
+
+
+class SuperGraph(object):
+	def __init__(self, supervertex_list: list[SuperVertex], superedge_list: list[SuperEdge]) -> None:
+		r"""
+		The supergraph structure in GripNet. Each supergraph is a directed acyclic graph (DAG) containing supervertices and superedges.
+
+		Args:
+			supervertex_list (list[SuperVertex]): a list of supervertices.
+			superedge_list (list[SuperEdge]): a list of superedges.
+		"""
+		self.supervertex_dict = {sv.name: sv for sv in supervertex_list}
+		self.superedge_dict = {se.direction: se for se in superedge_list}
+
+		self.__process_supergraph__()
+		self.__update_supervertex__()
+
+	def __process_supergraph__(self):
+		r"""
+		Process the graph of the supergraph.
+		"""
+		# initialize the supergraph
+		self.G = nx.DiGraph()
+		self.G.add_edges_from(self.superedge_dict.keys())
+
+		# check if the graph is a DAG
+		assert nx.is_directed_acyclic_graph(self.G), 'The supergraph is not a directed acyclic graph.'
+
+		self.n_supervertex = self.G.number_of_nodes()
+		self.n_superedge = self.G.number_of_edges()
+
+		# get the topological order of the supergraph
+		self.topological_order = list(nx.topological_sort(self.G))
+
+	def __update_supervertex__(self):
+		r"""
+		Update the supervertices according to the superedges of the supergraph.
+		"""
+		# update the in- and out-supervertex lists of each supervertex
+		for n1, n2 in self.G.edges():
+			self.supervertex_dict[n2].add_in_supervertex(n1)
+			self.supervertex_dict[n1].add_out_supervertex(n2)
+
+		# update if the supervertex is a start supervertex of the supergraph
+		for _, sv in self.supervertex_dict.items():
+			if sv.in_supervertex_list:
+				sv.if_start_supervertex = False
+
+	def __repr__(self) -> str:
+		return f'SuperGraph(\n  svertex_dict={self.supervertex_dict.values()}, \n  sedge_dict={self.superedge_dict.values()}, \n  G={self.G}), \n  topological_order={self.topological_order}'
+
+
