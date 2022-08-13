@@ -54,3 +54,22 @@ class SuperVertex(object):
 
 	def set_name(self, vertex_name: str):
 		self.name = vertex_name
+
+
+class SuperEdge(object):
+	def __init__(self, source_supervertex: str, target_supervertex: str, edge_index: torch.Tensor) -> None:
+		"""
+		The superedge structure in GripNet. Each superedge is a bipartite subgraph containing nodes from two categories forming two node sets, connected by edges between them. The superedge can be regards as a heterogeneous graph connecting two supervertices. 
+
+		Args:
+			source_supervertex (str): the name of the source supervertex.
+			target_supervertex (str): the name of the target supervertex.
+			edge_index (torch.Tensor): edge indices in COO format with shape [2, #edges]. The first row is the index of source nodes, and the second row is the index of target nodes.
+		"""
+		self.direction = (source_supervertex, target_supervertex)
+		self.source_supervertex = source_supervertex
+		self.target_supervertex = target_supervertex
+		self.edge_index = edge_index
+
+	def __repr__(self) -> str:
+		return f'SuperEdges(\n  edge_direction={self.source_supervertex}->{self.target_supervertex}, \n  edge_index={self.edge_index.shape})'
