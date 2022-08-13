@@ -126,3 +126,25 @@ class SuperGraph(object):
 		return f'SuperGraph(\n  svertex_dict={self.supervertex_dict.values()}, \n  sedge_dict={self.superedge_dict.values()}, \n  G={self.G}), \n  topological_order={self.topological_order}'
 
 
+if __name__ == "__main__":
+	# set random seeds
+	torch.manual_seed(1111)
+
+	# create three supervertices
+	node_feat = torch.randn(4, 20)
+	edge_index = torch.tensor([[0, 1, 2, 3], [1, 2, 3, 4]])
+	edge_type = torch.tensor([0, 0, 1, 1])
+
+	sv1 = SuperVertex('1', node_feat, edge_index)
+	sv2 = SuperVertex('2', node_feat, edge_index, edge_type)
+	sv3 = SuperVertex('3', node_feat, edge_index, edge_type)
+
+	# determine the supervertices among them
+	edge_index = torch.tensor([[0, 1, 2, 3], [1, 1, 3, 3]])
+
+	se1 = SuperEdge(sv1.name, sv2.name, edge_index)
+	se2 = SuperEdge(sv2.name, sv3.name, edge_index)
+
+	# create a supergraph
+	sg = SuperGraph([sv1, sv2, sv3], [se1, se2])
+	print(sg)
