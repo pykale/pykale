@@ -14,11 +14,13 @@ class SuperVertex(object):
         edge_weight: torch.Tensor = None,
     ) -> None:
         r"""
-        The supervertex structure in GripNet. Each supervertex is a subgraph containing nodes with the same category and at least keep semantically-coherent. Supervertices can be homogeneous or heterogeneous.
+        The supervertex structure in GripNet. Each supervertex is a subgraph containing nodes with the same category
+        and at least keep semantically-coherent. Supervertices can be homogeneous or heterogeneous.
 
         Args:
             name (str): the name of the supervertex.
-            node_feat (torch.Tensor): node features of the supervertex with shape [#nodes, #features]. We recommend using `torch.sparse.FloatTensor()` if the node feature matrix is sparse.
+            node_feat (torch.Tensor): node features of the supervertex with shape [#nodes, #features]. We recommend
+            using `torch.sparse.FloatTensor()` if the node feature matrix is sparse.
             edge_index (torch.Tensor): edge indices in COO format with shape [2, #edges].
             edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0. Defaults to None.
             edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
@@ -72,12 +74,15 @@ class SuperVertex(object):
 class SuperEdge(object):
     def __init__(self, source_supervertex: str, target_supervertex: str, edge_index: torch.Tensor) -> None:
         """
-        The superedge structure in GripNet. Each superedge is a bipartite subgraph containing nodes from two categories forming two node sets, connected by edges between them. The superedge can be regards as a heterogeneous graph connecting two supervertices.
+        The superedge structure in GripNet. Each superedge is a bipartite subgraph containing nodes from two categories
+        forming two node sets, connected by edges between them. The superedge can be regards as a heterogeneous graph
+        connecting two supervertices.
 
         Args:
             source_supervertex (str): the name of the source supervertex.
             target_supervertex (str): the name of the target supervertex.
-            edge_index (torch.Tensor): edge indices in COO format with shape [2, #edges]. The first row is the index of source nodes, and the second row is the index of target nodes.
+            edge_index (torch.Tensor): edge indices in COO format with shape [2, #edges]. The first row is the index of
+            source nodes, and the second row is the index of target nodes.
         """
         self.direction = (source_supervertex, target_supervertex)
         self.source_supervertex = source_supervertex
