@@ -30,7 +30,7 @@ The datasets are downloaded from the [Bio-SNAP](http://snap.stanford.edu/biodata
 
 `python main.py --cfg configs/Drug_MINI-GripNet.yaml`
 
-## Reference:
+## References:
 
 [1] Xu, H., Sang, S., Bai, P., Li, R., Yang, L., & Lu, H. (2022). [GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs](https://doi.org/10.1016/j.patcog.2022.108973). Pattern Recognition.
 
