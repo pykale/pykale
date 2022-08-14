@@ -42,7 +42,7 @@ Kale APIs above are ordered following the machine learning pipeline, i.e., funct
     CIFAR - CNN Transformer <https://github.com/pykale/pykale/tree/main/examples/cifar_cnntransformer>
     CIFAR - ISONet <https://github.com/pykale/pykale/tree/main/examples/cifar_isonet>
     Digits - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn>
-    Drug - GripNet <https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn>
+    Drug - GripNet <https://github.com/pykale/pykale/tree/main/examples/drug_gripnet>
     VIDEOS - Data Loading <https://github.com/pykale/pykale/tree/main/examples/video_loading>
 
 .. To study later the best way to document examples
