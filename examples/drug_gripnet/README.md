@@ -27,13 +27,13 @@ The datasets are downloaded from the [Bio-SNAP](http://snap.stanford.edu/biodata
 | ChG-TargetDecagon | 3,648(P), 284(D) | 18,690  | 1                   |
 | ChChSe-Decagon    | 645(D)           | 63,473  | 1,317               |
 
-**Reference**
+**Reference**:
 
 [2] Zitnik, M., Agrawal, M., & Leskovec, J. (2018). Modeling polypharmacy side effects with graph convolutional networks. Bioinformatics, 34(13), i457-i466. [[Link](https://academic.oup.com/bioinformatics/article/34/13/i457/5045770?login=false)]
 
 ## 2. Usage
-* Dataset download: [[here](https://github.com/pykale/data/tree/main/graphs)]
+- Dataset download: [[here](https://github.com/pykale/data/tree/main/graphs)]
 
-* Algorithm: GripNet
+- Algorithm: GripNet
 
 `python main.py --cfg configs/Drug_MINI-GripNet.yaml`
