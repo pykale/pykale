@@ -2,7 +2,7 @@
 
 ## 1. Description
 
-Polypharmacy is the concurrent use of multiple medications by patients. Its side effects, polypharmacy side effects, are caused by drug combinations rather than by any single drug. In this example, we train a GripNet model [[1]](#reference) for predicting polypharmacy side effects.
+Polypharmacy is the concurrent use of multiple medications by patients. Its side effects, polypharmacy side effects, are caused by drug combinations rather than by any single drug. In this example, we train a GripNet model [[1]](https://doi.org/10.1016/j.patcog.2022.108973) for predicting polypharmacy side effects.
 
 ## 2. GripNet
 
@@ -14,7 +14,7 @@ The original implementation of GripNet is [here](https://github.com/NYXFLOWER/Gr
 
 ## 3. Dataset
 
-We train GripNet on three datasets constructed by [[2]](#reference).
+We train GripNet on three datasets constructed by [[2]](https://academic.oup.com/bioinformatics/article/34/13/i457/5045770?login=false).
 The datasets are downloaded from the [Bio-SNAP](http://snap.stanford.edu/biodata/) dataset collection. The integration of these datasets can be regarded as a knowledge graph, which contains the relations among proteins (P) and drugs (D) labeled with the P-P association, the P-D association and 1,317 side effects. The data statistics are shown below.
 
 | Dataset           | Nodes            | Edges   | #Unique Edge Labels |
