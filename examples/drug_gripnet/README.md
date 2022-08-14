@@ -31,7 +31,7 @@ The datasets are downloaded from the [Bio-SNAP](http://snap.stanford.edu/biodata
 
 [2] Zitnik, M., Agrawal, M., & Leskovec, J. (2018). Modeling polypharmacy side effects with graph convolutional networks. Bioinformatics, 34(13), i457-i466. [[Link](https://academic.oup.com/bioinformatics/article/34/13/i457/5045770?login=false)]
 
-## 2. Usage
+## 4. Usage
 - Dataset download: [[here](https://github.com/pykale/data/tree/main/graphs)]
 
 - Algorithm: GripNet
