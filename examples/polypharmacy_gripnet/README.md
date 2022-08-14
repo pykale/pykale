@@ -6,7 +6,7 @@ Polypharmacy is the concurrent use of multiple medications by patients. Its side
 
 ## 2. GripNet
 
-**Gr**aph **i**nformation **p**ropagation **Net**work (GripNet) is an effective and efficient framework for learning node representations on knowledge graphs (Subfigure A) for link prediction and node classification. It introduces a novel supergraph structure (Subfigure B) and constructs a graph neural network that passes messages via a task-specific propagation path based on the supergraph (Subfigure C).
+**Gr**aph **i**nformation **p**ropagation **Net**work ([GripNet](#reference)) is an effective and efficient framework for learning node representations on knowledge graphs (Subfigure A) for link prediction and node classification. It introduces a novel supergraph structure (Subfigure B) and constructs a graph neural network that passes messages via a task-specific propagation path based on the supergraph (Subfigure C).
 
 ![GripNet Architecture](https://ars.els-cdn.com/content/image/1-s2.0-S0031320322004538-gr2_lrg.jpg)
 
