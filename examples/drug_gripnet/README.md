@@ -1,4 +1,4 @@
-# Polypharmacy Side Effect Prediction using GripNet
+# Polypharmacy Side Effect Prediction using GripNet (Link Prediction)
 
 ## 1. Description
 
@@ -6,7 +6,7 @@ Polypharmacy is the concurrent use of multiple medications by patients. Its side
 
 **Reference**:
 
-[1] Xu, H., Sang, S., Bai, P., Yang, L., & Lu, H. (2022). GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs. Pattern Recognition. [[Link]](https://doi.org/10.1016/j.patcog.2022.108973)
+[1] Xu, H., Sang, S., Bai, P., Yang, L., & Lu, H. (2022). [GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs](https://doi.org/10.1016/j.patcog.2022.108973). Pattern Recognition.
 
 ## 2. GripNet
 
@@ -29,7 +29,7 @@ The datasets are downloaded from the [Bio-SNAP](http://snap.stanford.edu/biodata
 
 **Reference**:
 
-[2] Zitnik, M., Agrawal, M., & Leskovec, J. (2018). Modeling polypharmacy side effects with graph convolutional networks. Bioinformatics, 34(13), i457-i466. [[Link](https://academic.oup.com/bioinformatics/article/34/13/i457/5045770?login=false)]
+[2] Zitnik, M., Agrawal, M., & Leskovec, J. (2018). [Modeling polypharmacy side effects with graph convolutional networks](https://academic.oup.com/bioinformatics/article/34/13/i457/5045770?login=false). Bioinformatics, 34(13), i457-i466.
 
 ## 4. Usage
 - Dataset download: [[here](https://github.com/pykale/data/tree/main/graphs)]
