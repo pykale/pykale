@@ -6,7 +6,7 @@ Polypharmacy is the concurrent use of multiple medications by patients. Its side
 
 **Reference**:
 
-[1] Xu, H., Sang, S., Bai, P., Yang, L., & Lu, H. (2022). [GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs](https://doi.org/10.1016/j.patcog.2022.108973). Pattern Recognition.
+[1] Xu, H., Sang, S., Bai, P.,  Yang, L., & Lu, H. (2022). [GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs](https://doi.org/10.1016/j.patcog.2022.108973). Pattern Recognition.
 
 ## 2. GripNet
 
