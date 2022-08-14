@@ -2,11 +2,11 @@
 
 ## 1. Description
 
-Polypharmacy is the concurrent use of multiple medications by patients. Its side effects, polypharmacy side effects, are caused by drug combinations rather than by any single drug. In this example, we train a GripNet model [[1]](https://doi.org/10.1016/j.patcog.2022.108973) for predicting polypharmacy side effects.
+Polypharmacy is the concurrent use of multiple medications by patients. Its side effects, polypharmacy side effects, are caused by drug combinations rather than by any single drug. In this example, we train a [GripNet model](https://doi.org/10.1016/j.patcog.2022.108973) [1] for predicting polypharmacy side effects.
 
 ## 2. GripNet
 
-**Gr**aph **i**nformation **p**ropagation **Net**work ([GripNet](#reference)) is an effective and efficient framework for learning node representations on knowledge graphs (Subfigure A) for link prediction and node classification. It introduces a novel supergraph structure (Subfigure B) and constructs a graph neural network that passes messages via a task-specific propagation path based on the supergraph (Subfigure C).
+**Gr**aph **i**nformation **p**ropagation **Net**work ([GripNet](https://doi.org/10.1016/j.patcog.2022.108973)) is an effective and efficient framework for learning node representations on knowledge graphs (Subfigure A) for link prediction and node classification. It introduces a novel supergraph structure (Subfigure B) and constructs a graph neural network that passes messages via a task-specific propagation path based on the supergraph (Subfigure C).
 
 ![GripNet Architecture](https://ars.els-cdn.com/content/image/1-s2.0-S0031320322004538-gr2_lrg.jpg)
 
