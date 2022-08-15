@@ -36,14 +36,17 @@ Kale APIs above are ordered following the machine learning pipeline, i.e., funct
     :maxdepth: 1
     :caption: Example Projects
 
-    Action - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/action_dann_lightn>
+    Action Video - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/action_dann_lightn>
+    Autism fMRI - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/autism_detection>
     BindingDB - DeepDTA <https://github.com/pykale/pykale/tree/main/examples/bindingdb_deepdta>
     CardiacMRI - MPCA <https://github.com/pykale/pykale/tree/main/examples/cmri_mpca>
     CIFAR - CNN Transformer <https://github.com/pykale/pykale/tree/main/examples/cifar_cnntransformer>
     CIFAR - ISONet <https://github.com/pykale/pykale/tree/main/examples/cifar_isonet>
     Digits - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn>
-    Drug - GripNet <https://github.com/pykale/pykale/tree/main/examples/digits_dann_lightn>
-    VIDEOS - Data Loading <https://github.com/pykale/pykale/tree/main/examples/video_loading>
+    Digits/Office - Multisource Adaptation <https://github.com/pykale/pykale/tree/main/examples/multisource_adapt>
+    Toy Data - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/toy_domain_adaptation>
+    Polypharmacy - GripNet <https://github.com/pykale/pykale/tree/main/examples/polypharmacy_gripnet>
+    Video - Data Loading <https://github.com/pykale/pykale/tree/main/examples/video_loading>
 
 .. To study later the best way to document examples
 .. examples/examples.cifar_cnntransformer
