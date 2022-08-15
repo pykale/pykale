@@ -30,11 +30,19 @@ _C.PROC.SCALE = 2
 # ---------------------------------------------------------------------------- #
 # Visualization
 # ---------------------------------------------------------------------------- #
-_C.VIS_KWARGS = CN()
-_C.VIS_KWARGS.IM = {"cmap": "gray"}
-_C.VIS_KWARGS.MARKER = {"marker": "+", "color": "r", "s": 100}
+_C.IM_KWARGS = CN()
+_C.IM_KWARGS.cmap = "gray"
+
+_C.MARKER_KWARGS = CN()
+_C.MARKER_KWARGS.marker = "+"
+_C.MARKER_KWARGS.color = "r"
+_C.MARKER_KWARGS.linewidths = 1.5
+_C.MARKER_KWARGS.edgecolors = "face"
 # see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.scatter.html for more options
-_C.VIS_KWARGS.WEIGHT = {"markersize": 6, "alpha": 0.7}
+
+_C.WEIGHT_KWARGS = CN()
+_C.WEIGHT_KWARGS.markersize = 6
+_C.WEIGHT_KWARGS.alpha = 0.7
 
 # ---------------------------------------------------------------------------- #
 # Machine learning pipeline

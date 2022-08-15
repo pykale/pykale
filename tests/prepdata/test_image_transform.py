@@ -39,7 +39,7 @@ def coords():
 
 
 def test_reg(images, coords):
-    marker_kwargs = {"marker": "o", "markerfacecolor": (1, 1, 1, 0.1), "markeredgewidth": 1.5, "markeredgecolor": "r"}
+    marker_kwargs = {"marker": "o", "color": (1, 1, 1, 0.1), "s": 50}
     im_kwargs = {"cmap": "gray"}
     marker_names = ["inf insertion point", "sup insertion point", "RV inf"]
 

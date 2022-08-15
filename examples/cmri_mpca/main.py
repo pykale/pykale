@@ -85,9 +85,9 @@ def main():
             visualize.plot_multi_images(
                 [images[i][0, ...] for i in range(k * 24, min((k + 1) * 24, n_samples))],
                 marker_locs=landmarks[k * 24 : min((k + 1) * 24, n_samples), :],
-                im_kwargs=cfg.VIS_KWARGS.IM,
+                im_kwargs=dict(cfg.IM_KWARGS),
                 marker_cmap="Set1",
-                marker_kwargs=cfg.VIS_KWARGS.MARKER,
+                marker_kwargs=dict(cfg.MARKER_KWARGS),
                 marker_titles=markers,
                 image_titles=list(patient_ids[k * 24 : min((k + 1) * 24, n_samples)]),
                 n_cols=4,
@@ -98,28 +98,28 @@ def main():
     img_reg, max_dist = reg_img_stack(images.copy(), landmarks, landmarks[0])
     if save_images:
         visualize.plot_multi_images(
-            [img_reg[i][0, ...] for i in range(n_samples)], im_kwargs=cfg.VIS_KWARGS.IM, n_cols=10
+            [img_reg[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS), n_cols=10
         ).savefig(str(save_images_location) + "/1)image_registration")
 
     # ----- masking -----
     img_masked = mask_img_stack(img_reg.copy(), mask)
     if save_images:
         visualize.plot_multi_images(
-            [img_masked[i][0, ...] for i in range(n_samples)], im_kwargs=cfg.VIS_KWARGS.IM, n_cols=10
+            [img_masked[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS), n_cols=10
         ).savefig(str(save_images_location) + "/2)masking")
 
     # ----- resize -----
     img_rescaled = rescale_img_stack(img_masked.copy(), scale=1 / cfg.PROC.SCALE)
     if save_images:
         visualize.plot_multi_images(
-            [img_rescaled[i][0, ...] for i in range(n_samples)], im_kwargs=cfg.VIS_KWARGS.IM, n_cols=10
+            [img_rescaled[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS), n_cols=10
         ).savefig(str(save_images_location) + "/3)resize")
 
     # ----- normalization -----
     img_norm = normalize_img_stack(img_rescaled.copy())
     if save_images:
         visualize.plot_multi_images(
-            [img_norm[i][0, ...] for i in range(n_samples)], im_kwargs=cfg.VIS_KWARGS.IM, n_cols=10
+            [img_norm[i][0, ...] for i in range(n_samples)], im_kwargs=dict(cfg.IM_KWARGS), n_cols=10
         ).savefig(str(save_images_location) + "/4)normalize")
 
     # ---- evaluating machine learning pipeline ----
@@ -143,8 +143,8 @@ def main():
         visualize.plot_weights(
             top_weights[0][0],
             background_img=images[0][0],
-            im_kwargs=cfg.VIS_KWARGS.IM,
-            marker_kwargs=cfg.VIS_KWARGS.WEIGHT,
+            im_kwargs=dict(cfg.IM_KWARGS),
+            marker_kwargs=dict(cfg.WEIGHT_KWARGS),
         ).savefig(str(save_images_location) + "/5)weights")
 
 
