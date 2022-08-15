@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List
 
 import networkx as nx
@@ -56,9 +57,10 @@ class SuperVertex(object):
             self.n_edge_type = unique_edge_type.shape[0]
 
             # check if the index of edge type is continuous and starts from 0
-            assert (
-                self.n_edge_type == unique_edge_type.max() + 1
-            ), "The index of edge type is not continuous and starts from 0."
+            if self.n_edge_type != unique_edge_type.max() + 1:
+                error_msg = "The index of edge type is not continuous and starts from 0."
+                logging.error(error_msg)
+                raise ValueError(error_msg)
 
     def __repr__(self) -> str:
         return f"SuperVertex(\n    name={self.name}, \n    node_feat={self.node_feat.shape}, \n    edge_index={self.edge_index.shape}, \n    n_edge_type={self.n_edge_type})"
@@ -123,7 +125,10 @@ class SuperGraph(object):
         self.G.add_edges_from(self.superedge_dict.keys())
 
         # check if the graph is a DAG
-        assert nx.is_directed_acyclic_graph(self.G), "The supergraph is not a directed acyclic graph."
+        if not nx.is_directed_acyclic_graph(self.G):
+            error_msg = "The supergraph is not a directed acyclic graph."
+            logging.error(error_msg)
+            raise TypeError(error_msg)
 
         self.n_supervertex = self.G.number_of_nodes()
         self.n_superedge = self.G.number_of_edges()
@@ -181,5 +186,7 @@ class SuperVertexParaSetting(object):
         self.exter_agg_dim = exter_agg_dim
 
         # check if the mode is valid
-        if self.mode is not None:
-            assert self.mode in ["cat", "add"], "The mode is not valid. It should be 'cat' or 'add'."
+        if self.mode is not None and self.mode not in ["cat", "add"]:
+            error_msg = "The mode is not valid. It should be 'cat' or 'add'."
+            logging.error(error_msg)
+            raise ValueError(error_msg)
