@@ -1,9 +1,7 @@
-from typing import Dict, List, Literal
+from typing import Dict, List
 
 import networkx as nx
 import torch
-
-AllowedGripNetMode = Literal["add", "cat"]
 
 
 class SuperVertex(object):
@@ -159,7 +157,7 @@ class SuperVertexParaSetting(object):
             inter_feat_dim (int): the dimension of the output of the internal feature layer.
             inter_agg_dim (List[int]): the output dimensions of a sequence of internal aggregation layers.
             exter_agg_dim (Dict[str, int], optional): the dimension of received message vector from parient supervertices. Defaults to None.
-            mode (AllowedGripNetMode, optinal): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
+            mode (str, optinal): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
             num_bases (int, optional): Number of bases used for basis-decomposition if the supervertex is multi-relational. Defaults to 32.
             if_catout (bool, optional): if concatenate the output of each layers. Defaults to True.
         """
@@ -170,7 +168,7 @@ class SuperVertexParaSetting(object):
         inter_feat_dim: int,
         inter_agg_dim: List[int],
         exter_agg_dim: Dict[str, int] = None,
-        mode: AllowedGripNetMode = None,
+        mode: str = None,
         num_bases: int = 32,
         if_catout: bool = True,
     ) -> None:
@@ -181,3 +179,7 @@ class SuperVertexParaSetting(object):
         self.num_bases = num_bases
         self.if_catout = if_catout
         self.exter_agg_dim = exter_agg_dim
+
+        # check if the mode is valid
+        if self.mode is not None:
+            assert self.mode in ["cat", "add"], "The mode is not valid. It should be 'cat' or 'add'."
