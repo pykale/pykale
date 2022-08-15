@@ -1,7 +1,9 @@
-from typing import List
+from typing import Dict, List, Literal
 
 import networkx as nx
 import torch
+
+AllowedGripNetMode = Literal["add", "cat"]
 
 
 class SuperVertex(object):
@@ -147,3 +149,35 @@ class SuperGraph(object):
 
     def __repr__(self) -> str:
         return f"SuperGraph(\n  svertex_dict={self.supervertex_dict.values()}, \n  sedge_dict={self.superedge_dict.values()}, \n  G={self.G}), \n  topological_order={self.topological_order}"
+
+
+class SuperVertexParaSetting(object):
+    r"""Parameter settings for each supervertex.
+
+        Args:
+            supervertex_name (str): the name of the supervertex.
+            inter_feat_dim (int): the dimension of the output of the internal feature layer.
+            inter_agg_dim (List[int]): the output dimensions of a sequence of internal aggregation layers.
+            exter_agg_dim (Dict[str, int], optional): the dimension of received message vector from parient supervertices. Defaults to None.
+            mode (AllowedGripNetMode, optinal): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
+            num_bases (int, optional): Number of bases used for basis-decomposition if the supervertex is multi-relational. Defaults to 32.
+            if_catout (bool, optional): if concatenate the output of each layers. Defaults to True.
+        """
+
+    def __init__(
+        self,
+        supervertex_name: str,
+        inter_feat_dim: int,
+        inter_agg_dim: List[int],
+        exter_agg_dim: Dict[str, int] = None,
+        mode: AllowedGripNetMode = None,
+        num_bases: int = 32,
+        if_catout: bool = True,
+    ) -> None:
+        self.supervertex_name = supervertex_name
+        self.inter_feat_dim = inter_feat_dim
+        self.inter_agg_dim = inter_agg_dim
+        self.mode = mode
+        self.num_bases = num_bases
+        self.if_catout = if_catout
+        self.exter_agg_dim = exter_agg_dim
