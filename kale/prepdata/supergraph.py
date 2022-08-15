@@ -5,15 +5,7 @@ import torch
 
 
 class SuperVertex(object):
-    def __init__(
-        self,
-        name: str,
-        node_feat: torch.Tensor,
-        edge_index: torch.Tensor,
-        edge_type: torch.Tensor = None,
-        edge_weight: torch.Tensor = None,
-    ) -> None:
-        r"""
+    r"""
         The supervertex structure in GripNet. Each supervertex is a subgraph containing nodes with the same category
         and at least keep semantically-coherent. Supervertices can be homogeneous or heterogeneous.
 
@@ -25,6 +17,16 @@ class SuperVertex(object):
             edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0. Defaults to None.
             edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
         """
+
+    def __init__(
+        self,
+        name: str,
+        node_feat: torch.Tensor,
+        edge_index: torch.Tensor,
+        edge_type: torch.Tensor = None,
+        edge_weight: torch.Tensor = None,
+    ) -> None:
+
         self.name = name
         self.node_feat = node_feat
         self.edge_index = edge_index
@@ -72,18 +74,20 @@ class SuperVertex(object):
 
 
 class SuperEdge(object):
-    def __init__(self, source_supervertex: str, target_supervertex: str, edge_index: torch.Tensor) -> None:
-        """
-        The superedge structure in GripNet. Each superedge is a bipartite subgraph containing nodes from two categories
-        forming two node sets, connected by edges between them. The superedge can be regards as a heterogeneous graph
-        connecting two supervertices.
+    r"""
+    The superedge structure in GripNet. Each superedge is a bipartite subgraph containing nodes from two categories
+    forming two node sets, connected by edges between them. The superedge can be regards as a heterogeneous graph
+    connecting two supervertices.
 
-        Args:
-            source_supervertex (str): the name of the source supervertex.
-            target_supervertex (str): the name of the target supervertex.
-            edge_index (torch.Tensor): edge indices in COO format with shape [2, #edges]. The first row is the index of
-            source nodes, and the second row is the index of target nodes.
-        """
+    Args:
+        source_supervertex (str): the name of the source supervertex.
+        target_supervertex (str): the name of the target supervertex.
+        edge_index (torch.Tensor): edge indices in COO format with shape [2, #edges]. The first row is the index of
+        source nodes, and the second row is the index of target nodes.
+    """
+
+    def __init__(self, source_supervertex: str, target_supervertex: str, edge_index: torch.Tensor) -> None:
+
         self.direction = (source_supervertex, target_supervertex)
         self.source_supervertex = source_supervertex
         self.target_supervertex = target_supervertex
@@ -94,14 +98,16 @@ class SuperEdge(object):
 
 
 class SuperGraph(object):
-    def __init__(self, supervertex_list: List[SuperVertex], superedge_list: List[SuperEdge]) -> None:
-        r"""
-        The supergraph structure in GripNet. Each supergraph is a directed acyclic graph (DAG) containing supervertices and superedges.
+    r"""
+    The supergraph structure in GripNet. Each supergraph is a directed acyclic graph (DAG) containing supervertices and superedges.
 
-        Args:
-            supervertex_list (list[SuperVertex]): a list of supervertices.
-            superedge_list (list[SuperEdge]): a list of superedges.
-        """
+    Args:
+        supervertex_list (list[SuperVertex]): a list of supervertices.
+        superedge_list (list[SuperEdge]): a list of superedges.
+    """
+
+    def __init__(self, supervertex_list: List[SuperVertex], superedge_list: List[SuperEdge]) -> None:
+
         self.supervertex_dict = {sv.name: sv for sv in supervertex_list}
         self.superedge_dict = {se.direction: se for se in superedge_list}
 
