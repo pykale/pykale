@@ -6,17 +6,17 @@ import torch
 
 class SuperVertex(object):
     r"""
-        The supervertex structure in GripNet. Each supervertex is a subgraph containing nodes with the same category
-        and at least keep semantically-coherent. Supervertices can be homogeneous or heterogeneous.
+    The supervertex structure in GripNet. Each supervertex is a subgraph containing nodes with the same category
+    and at least keep semantically-coherent. Supervertices can be homogeneous or heterogeneous.
 
-        Args:
-            name (str): the name of the supervertex.
-            node_feat (torch.Tensor): node features of the supervertex with shape [#nodes, #features]. We recommend
-            using `torch.sparse.FloatTensor()` if the node feature matrix is sparse.
-            edge_index (torch.Tensor): edge indices in COO format with shape [2, #edges].
-            edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0. Defaults to None.
-            edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
-        """
+    Args:
+        name (str): the name of the supervertex.
+        node_feat (torch.Tensor): node features of the supervertex with shape [#nodes, #features]. We recommend
+        using `torch.sparse.FloatTensor()` if the node feature matrix is sparse.
+        edge_index (torch.Tensor): edge indices in COO format with shape [2, #edges].
+        edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0. Defaults to None.
+        edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
+    """
 
     def __init__(
         self,
