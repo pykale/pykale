@@ -5,15 +5,13 @@ from os import path
 
 from setuptools import find_packages, setup
 
-# Dependencies for core API and examples. If updating this, you may need to update docs/requirements.txt too.
+# Dependencies with options for different user needs. If updating this, you may need to update docs/requirements.txt too.
+# If option names are changed, you need to update the installation guide at docs/source/installation.md respectively.
 # Not all have a min-version specified, which is not uncommon. Specify when known or necessary (e.g. errors).
-# Install PyTorch from the official website to match the hardware.
-# To work on graphs, install torch-geometric following the official instructions (e.g. below):
-# python -m pip install torch-cluster torch-scatter torch-sparse torch-spline
+# The recommended practice is to install PyTorch from the official website to match the hardware first.
+# To work on graphs, install torch-geometric following the official instructions at https://github.com/pyg-team/pytorch_geometric#installation
 
-# Key reference 1: https://github.com/pyg-team/pytorch_geometric/blob/master/setup.py (followed)
-# Key reference 2: https://github.com/pyro-ppl/pyro/blob/dev/setup.py
-# Key reference 3: https://github.com/cornellius-gp/gpytorch/blob/master/setup.py
+# Key reference followed: https://github.com/pyg-team/pytorch_geometric/blob/master/setup.py
 
 # Core dependencies frequently used in PyKale Core API
 install_requires = [
@@ -26,7 +24,7 @@ install_requires = [
     "torchvision>=0.12.0",  # in download, sampler (non-ideal), and vision API only
 ]
 
-# Application-specific dependencies sorted alphabetically
+# Application-specific dependencies sorted alphabetically below
 
 # Dependencies for API on drug discovery using Therapeutics Data Commons (TDC)
 drug_requires = [
@@ -46,6 +44,7 @@ medim_requires = [
 video_requires = [
     "pandas",
 ]
+
 # End application-specific dependencies
 
 # Dependencies for all examples and tutorials
@@ -133,7 +132,7 @@ setup(
     },
     setup_requires=["setuptools==59.5.0"],
     license="MIT",
-    keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning, pytorch",
+    keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: Education",
