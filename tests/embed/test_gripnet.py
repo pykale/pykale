@@ -40,8 +40,8 @@ def test_gripnet_encoder(pose_data):
 
 # create three supervertices
 node_feat = torch.randn(4, 20)
-edge_index = torch.tensor([[0, 1, 2, 3], [1, 2, 3, 4]])
-edge_type = torch.tensor([0, 0, 1, 1])
+edge_index = torch.tensor([[0, 1, 2, 3], [1, 2, 3, 4]], dtype=torch.long)
+edge_type = torch.tensor([0, 0, 1, 1], dtype=torch.long)
 
 supervertex1 = SuperVertex("1", node_feat, edge_index)
 supervertex2 = SuperVertex("2", node_feat, edge_index, edge_type)
@@ -57,15 +57,36 @@ superedge2 = SuperEdge(supervertex2.name, supervertex3.name, edge_index)
 supergraph = SuperGraph([supervertex1, supervertex2, supervertex3], [superedge1, superedge2])
 
 
-def test_gripnet_internal_module():
-    """GripNet Internal Module Test with two kinds of supervertices: start supervertex and end supervertex"""
+def test_gripnet_internal_module1():
+    """GripNet Internal Module Test for start supervertex"""
 
     setting1 = SuperVertexParaSetting("start_svertex", 20, [10, 10])
-    _ = GripNetInternalModule(
+    internal_module1 = GripNetInternalModule(
         supervertex1.n_node_feat, supervertex1.n_edge_type, supervertex1.if_start_supervertex, setting1
     )
 
+    x = torch.randn(20, 20)
+    y = internal_module1(x, supervertex3.edge_index)
+
+    assert y.shape[1] == internal_module1.out_dim
+
+
+def test_gripnet_internal_module2():
+    """GripNet Internal Module Test for end supervertex"""
+
     setting2 = SuperVertexParaSetting("task_svertex", 20, [15, 10], exter_agg_dim={"1": 20, "2": 20}, mode="cat")
-    _ = GripNetInternalModule(
+    internal_module2 = GripNetInternalModule(
         supervertex3.n_node_feat, supervertex3.n_edge_type, supervertex3.if_start_supervertex, setting2
     )
+
+    x = torch.randn(20, 20)
+    x1 = torch.matmul(x, internal_module2.embedding)
+    x2 = torch.randn(20, 40)
+    xx = torch.cat((x1, x2), dim=1)
+
+    range_list = torch.LongTensor([[0, 2], [2, 4]])
+    edge_weight = torch.randn(4)
+
+    y = internal_module2(xx, supervertex3.edge_index, supervertex3.edge_type, range_list, edge_weight)
+
+    assert y.shape[1] == internal_module2.out_dim
