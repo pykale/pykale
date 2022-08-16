@@ -23,7 +23,7 @@ Install from source for the latest version and/or development:
 git clone https://github.com/pykale/pykale
 cd pykale
 pip install .  # for the core API only
-pip install -e .[dev]  # editable install for developers including all dependencies
+pip install -e .[dev]  # editable install for developers including all dependencies and examples
 ```
 
 ## Installation options
@@ -31,14 +31,14 @@ pip install -e .[dev]  # editable install for developers including all dependenc
 PyKale provides seven installation options for different user needs:
 
 - `default`: `pip install pykale` for essential functionality
-- `drug`: `pip install pykale[drug]` for drug-related functionality (currently only for [TDC](https://tdcommons.ai/))
+- `drug`: `pip install pykale[drug]` for drug-related functionality (e.g., [TDC](https://tdcommons.ai/))
 - `medim`: `pip install pykale[medim]` for medical imaging-related functionality (e.g., [DICOM](https://en.wikipedia.org/wiki/DICOM))
 - `video`: `pip install pykale[video]` for video-related functionality
 - `example`: `pip install pykale[example]` for examples and tutorials
 - `full`: `pip install pykale[full]` for all functionality, including examples and tutorials
 - `dev`: `pip install pykale[dev]` for development, including all functionality, examples, and tutorials
 
-You can install with multiple options by separating them with commas (without whitespaces):
+You can install with multiple options by separating them with commas (without whitespace) with examples below:
 
 ```sh
 pip install pykale[drug,example]
