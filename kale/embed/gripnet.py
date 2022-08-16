@@ -244,7 +244,7 @@ class TypicalGripNetEncoder(Module):
         return z
 
 
-class GripNetInternalModule(torch.nn.Module):
+class GripNetInternalModule(Module):
     """The internal module of a supervertex, which is composed of an internal feature layer and multiple internal aggregation layers."""
 
     def __init__(self, in_dim: int, n_edge_type: int, if_start_svertex: bool, setting: SuperVertexParaSetting) -> None:
@@ -362,3 +362,28 @@ class GripNetInternalModule(torch.nn.Module):
 
     def __repr__(self):
         return f"GripNetInternalModule({self.in_dim}, {self.out_dim}): LayerList(\n(internal_feat_layer): Embedding({self.in_dim}, {self.setting.inter_feat_dim})\n(internal_agg_layers): {self.internal_agg_layers}"
+
+
+class GripNetExternalModule(Module):
+    def __init__(self, in_dim, out_dim, n_out_node) -> None:
+        super(GripNetExternalModule, self).__init__()
+
+        self.in_dim = in_dim
+        self.out_dim = out_dim
+        self.n_out_node = n_out_node
+
+        self.external_agg_layer = GCNEncoderLayer(in_dim, out_dim, cached=True)
+
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor, edge_weight: torch.Tensor = None, if_relu=True):
+
+        n_source, n_feat = x.shape
+        bigraph_edge_index = edge_index + 0
+        bigraph_edge_index[1, :] += n_source
+
+        x = torch.cat([x, torch.zeros((self.n_out_node, n_feat)).to(x.device)], dim=0)
+        x = self.external_agg_layer(x, bigraph_edge_index, edge_weight)[n_source:, :]
+
+        if if_relu:
+            x = F.relu(x, inplace=True)
+
+        return x
