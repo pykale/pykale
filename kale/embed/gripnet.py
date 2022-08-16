@@ -320,7 +320,14 @@ class GripNetInternalModule(torch.nn.Module):
         range_list: torch.Tensor = None,
         edge_weight: torch.Tensor = None,
     ) -> torch.Tensor:
-        # x is the combination of internal feature layer and external aggregation layer
+        """
+        Args:
+            x (torch.Tensor): the input node feature embedding. It should be the sum or concat of the outputs of the internal feature layer and all external aggregation layers.
+            edge_index (torch.Tensor): edge index in COO format with shape [2, #edges].
+            edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0. Defaults to None.
+            range_list (torch.Tensor, optional): The index range list of each edge type with shape [num_types, 2]. Defaults to None.
+            edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
+        """
 
         if self.setting.if_catout:
             tmp = []
