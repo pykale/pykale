@@ -253,7 +253,7 @@ class GripNetInternalModule(torch.nn.Module):
         self.in_dim = in_dim
         self.out_dim = setting.inter_agg_dim[-1]
 
-        self.n_edge_type = n_edge_type
+        self.if_multirelational = 1 if n_edge_type > 1 else 0
         self.if_start_svertex = if_start_svertex
         self.setting = setting
 
@@ -294,14 +294,8 @@ class GripNetInternalModule(torch.nn.Module):
         if self.setting.if_catout:
             self.out_dim = sum(tmp_dim)
 
-        if self.n_edge_type == 1:
-            # using GCN if there is only one edge type
-            self.internal_agg_layers = torch.nn.ModuleList(
-                [GCNEncoderLayer(tmp_dim[i], tmp_dim[i + 1], cached=True) for i in range(self.n_internal_agg_layer)]
-            )
-        else:
+        if self.if_multirelational:
             # using RGCN if there are multiple edge types
-            assert self.n_edge_type > 1
             after_relu = [False if i == 0 else True for i in range(self.n_internal_agg_layer)]
             self.internal_agg_layers = torch.nn.ModuleList(
                 [
@@ -310,6 +304,11 @@ class GripNetInternalModule(torch.nn.Module):
                     )
                     for i in range(self.n_internal_agg_layer)
                 ]
+            )
+        else:
+            # using GCN if there is only one edge type
+            self.internal_agg_layers = torch.nn.ModuleList(
+                [GCNEncoderLayer(tmp_dim[i], tmp_dim[i + 1], cached=True) for i in range(self.n_internal_agg_layer)]
             )
 
     def forward(
@@ -331,14 +330,18 @@ class GripNetInternalModule(torch.nn.Module):
             assert range_list is not None
 
         for net in self.internal_agg_layers[:-1]:
-            x = net(x, edge_index, edge_type, range_list) if self.n_edge_type > 1 else net(x, edge_index, edge_weight)
+            x = (
+                net(x, edge_index, edge_type, range_list)
+                if self.if_multirelational
+                else net(x, edge_index, edge_weight)
+            )
             x = F.relu(x, inplace=True)
             if self.setting.if_catout:
                 tmp.append(x)
 
         x = (
             self.internal_agg_layers[-1](x, edge_index, edge_type, range_list)
-            if self.n_edge_type > 1
+            if self.if_multirelational
             else self.internal_agg_layers[-1](x, edge_index, edge_weight)
         )
 
