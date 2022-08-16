@@ -3,7 +3,7 @@ import os
 import pytest
 import torch
 
-from kale.embed.gripnet import GripNetExternalModule, GripNetInternalModule, TypicalGripNetEncoder
+from kale.embed.gripnet import GripNet, GripNetExternalModule, GripNetInternalModule, TypicalGripNetEncoder
 from kale.prepdata.supergraph_construct import SuperEdge, SuperGraph, SuperVertex, SuperVertexParaSetting
 from kale.utils.download import download_file_by_url
 
@@ -102,3 +102,34 @@ def test_gripnet_external_module():
 
     assert y.shape[0] == 5
     assert y.shape[1] == 7
+
+
+def test_gripnet_cat():
+    """GripNet Cat Test"""
+    setting1 = SuperVertexParaSetting("1", 20, [10, 10])
+    setting2 = SuperVertexParaSetting("2", 20, [10, 10])
+    setting3 = SuperVertexParaSetting("3", 11, [15, 10], exter_agg_dim={"1": 12, "2": 13}, mode="cat")
+
+    supergraph.set_supergraph_para_setting([setting1, setting2, setting3])
+    # TODO: update SuperGraph repr
+
+    gripnet = GripNet(supergraph)
+
+    assert (
+        gripnet.supervertex_module_list_dict["3"][-1].internal_agg_layers[0].in_channels == 11 + 12 + 13
+    ), "ValueError: invalid exter_agg_dim settings."
+
+
+def test_gripnet_add():
+    """GripNet Add Test"""
+    setting1 = SuperVertexParaSetting("1", 20, [10, 10])
+    setting2 = SuperVertexParaSetting("2", 20, [10, 10])
+    setting3 = SuperVertexParaSetting("3", 30, [15, 10], exter_agg_dim={"1": 30, "2": 30}, mode="add")
+
+    supergraph.set_supergraph_para_setting([setting1, setting2, setting3])
+
+    gripnet = GripNet(supergraph)
+
+    assert (
+        gripnet.supervertex_module_list_dict["3"][-1].internal_agg_layers[0].in_channels == 30
+    ), "ValueError: invalid exter_agg_dim settings."
