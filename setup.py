@@ -33,12 +33,13 @@ drug_requires = [
     "PyTDC",
 ]
 
-# Dependencies for medical image analysis using DICOM
+# Dependencies for medical image analysis
 medim_requires = [
     "glob2",
     "pydicom",
     "pylibjpeg",
     "python-gdcm",
+    "scikit-image>=0.16.2",
 ]
 
 # Dependencies for API on video processing

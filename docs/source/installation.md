@@ -28,17 +28,17 @@ pip install -e .[dev]  # editable install for developers including all dependenc
 
 ## Installation options
 
-PyKale provides seven installation options for different users:
+PyKale provides seven installation options for different user needs:
 
 - `default`: `pip install pykale` for essential functionality
 - `drug`: `pip install pykale[drug]` for drug-related functionality (currently only for [TDC](https://tdcommons.ai/))
-- `medim`: `pip install pykale[medim]` for medical imaging-related functionality (currently only for [DICOM](https://en.wikipedia.org/wiki/DICOM))
+- `medim`: `pip install pykale[medim]` for medical imaging-related functionality (e.g., [DICOM](https://en.wikipedia.org/wiki/DICOM))
 - `video`: `pip install pykale[video]` for video-related functionality
 - `example`: `pip install pykale[example]` for examples and tutorials
-- `full`: `pip install pykale[full]` for all functionality
-- `dev`: `pip install pykale[dev]` for development, including all functionality
+- `full`: `pip install pykale[full]` for all functionality, including examples and tutorials
+- `dev`: `pip install pykale[dev]` for development, including all functionality, examples, and tutorials
 
-You can install with multiple options by separating them with commas (without whitespaces): e.g. `
+You can install with multiple options by separating them with commas (without whitespaces):
 
 ```sh
 pip install pykale[drug,example]
