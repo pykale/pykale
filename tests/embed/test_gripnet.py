@@ -116,7 +116,7 @@ def test_gripnet_cat():
     gripnet = GripNet(supergraph)
 
     assert (
-        gripnet.supervertex_module_list_dict["3"][-1].internal_agg_layers[0].in_channels == 11 + 12 + 13
+        gripnet.supervertex_module_dict["3"][-1].internal_agg_layers[0].in_channels == 11 + 12 + 13
     ), "ValueError: invalid exter_agg_dim settings."
 
 
@@ -131,5 +131,5 @@ def test_gripnet_add():
     gripnet = GripNet(supergraph)
 
     assert (
-        gripnet.supervertex_module_list_dict["3"][-1].internal_agg_layers[0].in_channels == 30
+        gripnet.supervertex_module_dict["3"][-1].internal_agg_layers[0].in_channels == 30
     ), "ValueError: invalid exter_agg_dim settings."

@@ -375,7 +375,11 @@ class GripNetInternalModule(Module):
         return x
 
     def __repr__(self):
-        return f"GripNetInternalModule({self.in_dim}, {self.out_dim}): LayerList(\n(internal_feat_layer): Embedding({self.in_dim}, {self.setting.inter_feat_dim})\n(internal_agg_layers): {self.internal_agg_layers}"
+        tmp = [f"\n    ({i}): {l}" for i, l in enumerate(self.internal_agg_layers)]
+
+        return "{}: ModuleList(\n  (0): InternalFeatureLayer: Embedding({}, {})\n  (1): InternalFeatureAggerationModule: ModuleList({}\n  )\n)".format(
+            self.__class__.__name__, self.in_dim, self.setting.inter_feat_dim, "".join(tmp)
+        )
 
 
 class GripNetExternalModule(Module):
@@ -417,6 +421,9 @@ class GripNetExternalModule(Module):
 
         return x
 
+    def __repr__(self):
+        return "{}: {}".format(self.__class__.__name__, self.external_agg_layer.__repr__())
+
 
 class GripNet(Module):
     def __init__(self, supergraph: SuperGraph) -> None:
@@ -438,7 +445,7 @@ class GripNet(Module):
             raise ValueError(error_msg)
 
     def __init_supervertex_module_dict__(self):
-        self.supervertex_module_list_dict: Dict[str, torch.nn.ModuleList] = {}
+        self.supervertex_module_dict: Dict[str, torch.nn.ModuleList] = {}
         for supervertex_name in self.supergraph.topological_order:
             supervertex = self.supergraph.supervertex_dict[supervertex_name]
             setting = self.supergraph.supervertex_setting_dict[supervertex_name]
@@ -450,7 +457,7 @@ class GripNet(Module):
         if not supervertex.if_start_supervertex:
             # add the external modules from all parent supervertices
             for in_name in supervertex.in_supervertex_list:
-                in_dim = self.supervertex_module_list_dict[in_name][-1].out_dim
+                in_dim = self.supervertex_module_dict[in_name][-1].out_dim
 
                 assert setting.exter_agg_dim is not None
                 out_dim = setting.exter_agg_dim[in_name]
@@ -463,4 +470,7 @@ class GripNet(Module):
             )
         )
 
-        self.supervertex_module_list_dict[supervertex.name] = module_list
+        self.supervertex_module_dict[supervertex.name] = module_list
+
+    def __repr__(self):
+        return "{}: ModuleDict(\n{})".format(self.__class__.__name__, self.supervertex_module_dict)
