@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from kale.prepdata.supergraph_construct import SuperEdge, SuperGraph, SuperVertex
+from kale.prepdata.supergraph_construct import SuperEdge, SuperGraph, SuperVertex, SuperVertexParaSetting
 
 # create three supervertices
 node_feat = torch.randn(4, 20)
@@ -43,3 +43,10 @@ def test_check_supergraph_DAG():
         se3 = SuperEdge(sv3.name, sv1.name, edge_index)
 
         SuperGraph([sv1, sv2, sv3], [se1, se2, se3])
+
+
+def test_supervertex_para_setting():
+    """Test the supervertex parameter setting with and without exter_agg_dim and mode."""
+
+    SuperVertexParaSetting("start_svertex", 20, [10, 10])
+    SuperVertexParaSetting("task_svertex", 20, [15, 10], exter_agg_dim={"sv1": 20, "sv2": 20}, mode="cat")
