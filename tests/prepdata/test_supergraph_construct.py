@@ -33,5 +33,5 @@ def test_supergraph():
 def test_supervertex_para_setting():
     """Test the supervertex parameter setting with and without exter_agg_dim and mode."""
 
-    SuperVertexParaSetting("start_svertex", 20, [10, 10])
-    SuperVertexParaSetting("task_svertex", 20, [15, 10], exter_agg_dim={"sv1": 20, "sv2": 20}, mode="cat")
+    _ = SuperVertexParaSetting("start_svertex", 20, [10, 10])
+    _ = SuperVertexParaSetting("task_svertex", 20, [15, 10], exter_agg_dim={"sv1": 20, "sv2": 20}, mode="cat")
