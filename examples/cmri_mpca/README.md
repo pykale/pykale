@@ -6,7 +6,7 @@ This example demonstrates the multilinear PCA-based machine learning pipeline fo
 
 **Reference:**
 
-[1] Swift, A. J., Lu, H., Uthoff, J., Garg, P., Cogliano, M., Taylor, J., ... & Kiely, D. G. (2021). A machine learning cardiac magnetic resonance approach to extract disease features and automate pulmonary arterial hypertension diagnosis. European Heart Journal-Cardiovascular Imaging. [[Link](https://academic.oup.com/ehjcimaging/article/22/2/236/5717931)]
+[1] Swift, A. J., Lu, H., Uthoff, J., Garg, P., Cogliano, M., Taylor, J., ... & Kiely, D. G. (2021). [A machine learning cardiac magnetic resonance approach to extract disease features and automate pulmonary arterial hypertension diagnosis](https://academic.oup.com/ehjcimaging/article/22/2/236/5717931). European Heart Journal-Cardiovascular Imaging.
 
 ## 2. Usage
 

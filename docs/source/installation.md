@@ -12,7 +12,7 @@ PyKale requires a Python version 3.7 or above. Before installing pykale, you sho
 Install PyKale using `pip` for the stable version:
 
 ```bash
-pip install pykale  # for the core API and examples
+pip install pykale  # for the core API only
 ```
 
 ## Install from source
@@ -22,8 +22,27 @@ Install from source for the latest version and/or development:
 ```sh
 git clone https://github.com/pykale/pykale
 cd pykale
-pip install .  # for the core API and examples
-pip install -e .[dev]  # editable install for developers including all dependencies
+pip install .  # for the core API only
+pip install -e .[dev]  # editable install for developers including all dependencies and examples
+```
+
+## Installation options
+
+PyKale provides six installation options for different user needs:
+
+- `default`: `pip install pykale` for essential functionality
+- `drug`: `pip install pykale[drug]` for drug-related functionality (e.g., [TDC](https://tdcommons.ai/))
+- `medim`: `pip install pykale[medim]` for medical imaging-related functionality (e.g., [DICOM](https://en.wikipedia.org/wiki/DICOM))
+- `example`: `pip install pykale[example]` for examples and tutorials
+- `full`: `pip install pykale[full]` for all functionality, including examples and tutorials
+- `dev`: `pip install pykale[dev]` for development, including all functionality, examples, and tutorials
+
+Multiple options can be chosen by separating them with commas (without whitespace). See examples below.
+
+```sh
+pip install pykale[drug,example]
+pip install pykale[drug,medim]
+pip install pykale[drug,medim,example]
 ```
 
 ## Tests
