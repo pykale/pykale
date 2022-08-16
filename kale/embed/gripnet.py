@@ -5,12 +5,14 @@ the `GripNet
 <https://github.com/NYXFLOWER/GripNet>`_ source repo.
 """
 
+import logging
+
 import torch
 import torch.nn.functional as F
 from torch.nn import Module
 
 from kale.embed.gcn import GCNEncoderLayer, RGCNEncoderLayer
-from kale.prepdata.supergraph_construct import SuperVertexParaSetting
+from kale.prepdata.supergraph_construct import SuperGraph, SuperVertexParaSetting
 
 
 # Copy-paste with slight modification from https://github.com/NYXFLOWER/GripNet
@@ -246,7 +248,7 @@ class TypicalGripNetEncoder(Module):
 
 class GripNetInternalModule(Module):
     """
-    The internal module of a supervertex, which is composed of an internal feature layer and multiple internal 
+    The internal module of a supervertex, which is composed of an internal feature layer and multiple internal
     aggregation layers.
 
     Args:
@@ -334,7 +336,7 @@ class GripNetInternalModule(Module):
             x (torch.Tensor): the input node feature embedding. It should be the sum or concat of the outputs of the internal
             feature layer and all external aggregation layers.
             edge_index (torch.Tensor): edge index in COO format with shape [2, #edges].
-            edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0. 
+            edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0.
             Defaults to None.
             range_list (torch.Tensor, optional): The index range list of each edge type with shape [num_types, 2]. Defaults to None.
             edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
@@ -413,3 +415,18 @@ class GripNetExternalModule(Module):
             x = F.relu(x, inplace=True)
 
         return x
+
+
+class GripNet(Module):
+    def __init__(self, supergraph: SuperGraph) -> None:
+        super(GripNet, self).__init__()
+
+        self.supergraph = supergraph
+        self.__check_supergraph__()
+
+    def __check_supergraph__(self) -> None:
+        # check if the input supergraph has parameter settings
+        if self.supergraph.supervertex_setting_dict is None:
+            error_msg = "The supergraph should have parameter settings."
+            logging.error(error_msg)
+            raise ValueError(error_msg)
