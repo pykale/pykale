@@ -62,6 +62,28 @@ class SuperVertex(object):
                 logging.error(error_msg)
                 raise ValueError(error_msg)
 
+            # sort the edges and edge types
+            sort_index = torch.argsort(self.edge_type)
+            self.edge_index = self.edge_index[:, sort_index]
+            self.edge_type = self.edge_type[sort_index]
+
+            self.__get_range_list__()
+
+    def __get_range_list__(self):
+        """get the range of edge types"""
+        idx = 0
+        range_list = [[0, 0]]
+
+        for i, et in enumerate(self.edge_type):
+            if et != idx:
+                idx = et
+                range_list[-1][1] = i
+                range_list.append([i, i])
+
+        range_list[-1][1] = i + 1
+
+        self.range_list = torch.tensor(range_list)
+
     def __repr__(self) -> str:
         return f"SuperVertex(\n    name={self.name}, \n    node_feat={self.node_feat.shape}, \n    edge_index={self.edge_index.shape}, \n    n_edge_type={self.n_edge_type})"
 
@@ -70,9 +92,6 @@ class SuperVertex(object):
 
     def add_out_supervertex(self, vertex_name: str):
         self.out_supervertex_list.append(vertex_name)
-
-    def set_name(self, vertex_name: str):
-        self.name = vertex_name
 
 
 class SuperEdge(object):
