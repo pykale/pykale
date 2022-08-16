@@ -245,7 +245,15 @@ class TypicalGripNetEncoder(Module):
 
 
 class GripNetInternalModule(Module):
-    """The internal module of a supervertex, which is composed of an internal feature layer and multiple internal aggregation layers."""
+    """
+    The internal module of a supervertex, which is composed of an internal feature layer and multiple internal aggregation layers.
+
+    Args:
+        in_dim (int): the dimension of node features on this supervertex.
+        n_edge_type (int): the number of edge types on this supervertex.
+        if_start_svertex (bool): if this supervertex is a start supervertex on the supergraph.
+        setting (SuperVertexParaSetting): supervertex parameter settings.
+    """
 
     def __init__(self, in_dim: int, n_edge_type: int, if_start_svertex: bool, setting: SuperVertexParaSetting) -> None:
         super(GripNetInternalModule, self).__init__()
@@ -365,7 +373,15 @@ class GripNetInternalModule(Module):
 
 
 class GripNetExternalModule(Module):
-    def __init__(self, in_dim, out_dim, n_out_node) -> None:
+    """The internal module of a supervertex, which is an external feature layer.
+
+    Args:
+        in_dim (int): the dimension of the input node feature embedding.
+        out_dim (int): the dimension of the output node feature embedding.
+        n_out_node (int): the number of output nodes.
+    """
+
+    def __init__(self, in_dim: int, out_dim: int, n_out_node: int) -> None:
         super(GripNetExternalModule, self).__init__()
 
         self.in_dim = in_dim
@@ -375,6 +391,13 @@ class GripNetExternalModule(Module):
         self.external_agg_layer = GCNEncoderLayer(in_dim, out_dim, cached=True)
 
     def forward(self, x: torch.Tensor, edge_index: torch.Tensor, edge_weight: torch.Tensor = None, if_relu=True):
+        """
+        Args:
+            x (torch.Tensor): the input node feature embedding.
+            edge_index (torch.Tensor): edge index in COO format with shape [2, #edges].
+            edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
+            if_relu (bool, optional): if use ReLU before returning node feature embeddings. Defaults to True.
+        """
 
         n_source, n_feat = x.shape
         bigraph_edge_index = edge_index + 0
