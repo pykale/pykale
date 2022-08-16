@@ -312,8 +312,42 @@ class GripNetInternalModule(torch.nn.Module):
                 ]
             )
 
-    def forward(self, x, edge_index, edge_type, edge_weight, range_list=None) -> torch.Tensor:
-        pass
+    def forward(
+        self,
+        x: torch.Tensor,
+        edge_index: torch.Tensor,
+        edge_type: torch.Tensor = None,
+        range_list: torch.Tensor = None,
+        edge_weight: torch.Tensor = None,
+    ) -> torch.Tensor:
+        # x is the combination of internal feature layer and external aggregation layer
+
+        if self.setting.if_catout:
+            tmp = []
+            tmp.append(x)
+
+        if self.n_edge_type > 1:
+            assert edge_type is not None
+            assert range_list is not None
+
+        for net in self.internal_agg_layers[:-1]:
+            x = net(x, edge_index, edge_type, range_list) if self.n_edge_type > 1 else net(x, edge_index, edge_weight)
+            x = F.relu(x, inplace=True)
+            if self.setting.if_catout:
+                tmp.append(x)
+
+        x = (
+            self.internal_agg_layers[-1](x, edge_index, edge_type, range_list)
+            if self.n_edge_type > 1
+            else self.internal_agg_layers[-1](x, edge_index, edge_weight)
+        )
+
+        x = F.relu(x, inplace=True)
+        if self.setting.if_catout:
+            tmp.append(x)
+            x = torch.cat(tmp, dim=1)
+
+        return x
 
     def __repr__(self):
         return f"GripNetInternalModule({self.in_dim}, {self.out_dim}): LayerList(\n(internal_feat_layer): Embedding({self.in_dim}, {self.setting.inter_feat_dim})\n(internal_agg_layers): {self.internal_agg_layers}"
