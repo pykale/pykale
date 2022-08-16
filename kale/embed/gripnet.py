@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from torch.nn import Module
 
 from kale.embed.gcn import GCNEncoderLayer, RGCNEncoderLayer
+from kale.prepdata.supergraph_construct import SuperVertexParaSetting
 
 
 # Copy-paste with slight modification from https://github.com/NYXFLOWER/GripNet
@@ -241,3 +242,78 @@ class TypicalGripNetEncoder(Module):
             z, target_edge_index, edge_type=target_edge_relations, range_list=target_edge_range, if_catout=True
         )
         return z
+
+
+class GripNetInternalModule(torch.nn.Module):
+    """The internal module of a supervertex, which is composed of an internal feature layer and multiple internal aggregation layers."""
+
+    def __init__(self, in_dim: int, n_edge_type: int, if_start_svertex: bool, setting: SuperVertexParaSetting) -> None:
+        super(GripNetInternalModule, self).__init__()
+        # in and out dimension
+        self.in_dim = in_dim
+        self.out_dim = setting.inter_agg_dim[-1]
+
+        self.n_edge_type = n_edge_type
+        self.if_start_svertex = if_start_svertex
+        self.setting = setting
+
+        self.__init_internal_feat_layer__()
+        self.__init_internal_agg_layer__()
+
+    def __init_internal_feat_layer__(self):
+        """internal feature layer"""
+
+        self.embedding = torch.nn.Parameter(torch.Tensor(self.in_dim, self.setting.inter_feat_dim))
+        self.embedding.requires_grad = True
+
+        # reset parameters to be normally distributed
+        self.embedding.data.normal_()
+
+    def __init_internal_agg_layer__(self):
+        """internal aggregation layers"""
+
+        # compute the dim of input of the first internal aggregation layer
+        self.in_agg_dim = self.setting.inter_feat_dim
+        if not self.if_start_svertex:
+            assert self.setting.mode in [
+                "cat",
+                "add",
+            ], f"The mode {self.setting.mode} is not supported. Please use cat or add."
+
+            if self.setting.mode == "cat":
+                assert self.setting.exter_agg_dim, "The exter_agg_dim is not set."
+                self.in_agg_dim += sum(self.setting.exter_agg_dim.values())
+            else:
+                tmp = set([self.in_agg_dim] + list(self.setting.exter_agg_dim.values()))
+                assert len(tmp) == 1, "The in_agg_dim should be the same as any element in exter_agg_dim."
+
+        # create and initialize the internal aggregation layers
+        self.n_internal_agg_layer = len(self.setting.inter_agg_dim)
+        tmp_dim = [self.in_agg_dim] + self.setting.inter_agg_dim
+
+        if self.setting.if_catout:
+            self.out_dim = sum(tmp_dim)
+
+        if self.n_edge_type == 1:
+            # using GCN if there is only one edge type
+            self.internal_agg_layers = torch.nn.ModuleList(
+                [GCNEncoderLayer(tmp_dim[i], tmp_dim[i + 1], cached=True) for i in range(self.n_internal_agg_layer)]
+            )
+        else:
+            # using RGCN if there are multiple edge types
+            assert self.n_edge_type > 1
+            after_relu = [False if i == 0 else True for i in range(self.n_internal_agg_layer)]
+            self.internal_agg_layers = torch.nn.ModuleList(
+                [
+                    RGCNEncoderLayer(
+                        tmp_dim[i], tmp_dim[i + 1], self.n_edge_type, self.setting.num_bases, after_relu[i]
+                    )
+                    for i in range(self.n_internal_agg_layer)
+                ]
+            )
+
+    def forward(self, x, edge_index, edge_type, edge_weight, range_list=None) -> torch.Tensor:
+        pass
+
+    def __repr__(self):
+        return f"GripNetInternalModule({self.in_dim}, {self.out_dim}): LayerList(\n(internal_feat_layer): Embedding({self.in_dim}, {self.setting.inter_feat_dim})\n(internal_agg_layers): {self.internal_agg_layers}"
