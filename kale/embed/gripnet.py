@@ -6,13 +6,14 @@ the `GripNet
 """
 
 import logging
+from typing import Dict
 
 import torch
 import torch.nn.functional as F
 from torch.nn import Module
 
 from kale.embed.gcn import GCNEncoderLayer, RGCNEncoderLayer
-from kale.prepdata.supergraph_construct import SuperGraph, SuperVertexParaSetting
+from kale.prepdata.supergraph_construct import SuperGraph, SuperVertex, SuperVertexParaSetting
 
 
 # Copy-paste with slight modification from https://github.com/NYXFLOWER/GripNet
@@ -422,11 +423,44 @@ class GripNet(Module):
         super(GripNet, self).__init__()
 
         self.supergraph = supergraph
+
+        self.out_embed_dict: Dict[str, torch.Tensor] = {}
+
         self.__check_supergraph__()
+        self.__init_supervertex_module_dict__()
 
     def __check_supergraph__(self) -> None:
-        # check if the input supergraph has parameter settings
+        """Check if the input supergraph has parameter settings"""
+
         if self.supergraph.supervertex_setting_dict is None:
             error_msg = "The supergraph should have parameter settings."
             logging.error(error_msg)
             raise ValueError(error_msg)
+
+    def __init_supervertex_module_dict__(self):
+        self.supervertex_module_list_dict: Dict[str, torch.nn.ModuleList] = {}
+        for supervertex_name in self.supergraph.topological_order:
+            supervertex = self.supergraph.supervertex_dict[supervertex_name]
+            setting = self.supergraph.supervertex_setting_dict[supervertex_name]
+            self.__init_module_supervertex__(supervertex, setting)
+
+    def __init_module_supervertex__(self, supervertex: SuperVertex, setting: SuperVertexParaSetting):
+        module_list = torch.nn.ModuleList()
+
+        if not supervertex.if_start_supervertex:
+            # add the external modules from all parent supervertices
+            for in_name in supervertex.in_supervertex_list:
+                in_dim = self.supervertex_module_list_dict[in_name][-1].out_dim
+
+                assert setting.exter_agg_dim is not None
+                out_dim = setting.exter_agg_dim[in_name]
+                module_list.append(GripNetExternalModule(in_dim, out_dim, supervertex.n_node))
+
+        # add the internal module
+        module_list.append(
+            GripNetInternalModule(
+                supervertex.n_node_feat, supervertex.n_edge_type, supervertex.if_start_supervertex, setting
+            )
+        )
+
+        self.supervertex_module_list_dict[supervertex.name] = module_list
