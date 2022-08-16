@@ -253,6 +253,7 @@ class GripNetInternalModule(torch.nn.Module):
         self.in_dim = in_dim
         self.out_dim = setting.inter_agg_dim[-1]
 
+        self.n_edge_type = n_edge_type
         self.if_multirelational = 1 if n_edge_type > 1 else 0
         self.if_start_svertex = if_start_svertex
         self.setting = setting
@@ -325,7 +326,7 @@ class GripNetInternalModule(torch.nn.Module):
             tmp = []
             tmp.append(x)
 
-        if self.n_edge_type > 1:
+        if self.if_multirelational:
             assert edge_type is not None
             assert range_list is not None
 
