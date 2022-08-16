@@ -14,7 +14,7 @@ _C = CN()
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.DATASET.SOURCE = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64.zip"
+_C.DATASET.SOURCE = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64_v2.0.zip"
 _C.DATASET.ROOT = "../data"
 _C.DATASET.IMG_DIR = "DICOM"
 _C.DATASET.BASE_DIR = "SA_64x64"

@@ -21,9 +21,9 @@ This example demonstrates domain adaptation methods random generated toy data.
 
 ### References
 
-[1] Zhou, S., Li, W., Cox, C.R., & Lu, H. (2020). Side Information Dependence as a Regularizer for Analyzing Human Brain 
-Conditions across Cognitive Experiments. *AAAI 2020*, New York, USA. 
+[1] Zhou, S., Li, W., Cox, C.R., & Lu, H. (2020). Side Information Dependence as a Regularizer for Analyzing Human Brain
+Conditions across Cognitive Experiments. *AAAI 2020*, New York, USA.
 [[Link](https://ojs.aaai.org//index.php/AAAI/article/view/6179)]
 
-[2] Zhou, S. (2022). Interpretable Domain-Aware Learning for Neuroimage Classification (Doctoral dissertation, 
+[2] Zhou, S. (2022). Interpretable Domain-Aware Learning for Neuroimage Classification (Doctoral dissertation,
 University of Sheffield). [[Link](https://etheses.whiterose.ac.uk/31044/1/PhD_thesis_ShuoZhou_170272834.pdf)]

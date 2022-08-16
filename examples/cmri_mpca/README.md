@@ -10,7 +10,7 @@ This example demonstrates the multilinear PCA-based machine learning pipeline fo
 
 ## 2. Usage
 
-* Datasets: ShefPAH-179 (short-axis) cardiac MRI dataset  [[Link](https://github.com/pykale/data/tree/main/images/ShefPAH-179)]
+* Datasets: ShefPAH-179 v2.0 (short-axis) cardiac MRI dataset  [[Link](https://github.com/pykale/data/tree/main/images/ShefPAH-179)]
 * Algorithms: MPCA + Linear SVM / Kernel SVM / Logistic Regression,...
 * Example: Classification using SVM
 

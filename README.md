@@ -13,6 +13,7 @@
 [![Python](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)](https://www.python.org)
 [![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/optuna/optuna)
+
 [![codecov](https://codecov.io/gh/pykale/pykale/branch/main/graph/badge.svg?token=jmIYPbA2le)](https://codecov.io/gh/pykale/pykale)
 [![PyPI downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5557244.svg)](https://doi.org/10.5281/zenodo.5557244)
@@ -88,7 +89,7 @@ PyKale is maintained by [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/
 ```lang-latex
     @inproceedings{pykale-cikm2022,
       title     = {{PyKale}: Knowledge-Aware Machine Learning from Multiple Sources in {Python}},
-      author    = {Haiping Lu and Xianyuan Liu and Shuo Zhou and Robert Turner and Peizhen Bai and Raivo Koot and Mustafa Chasmai and Lawrence Schobs and Hao Xu},
+      author    = {Haiping Lu and Xianyuan Liu and Shuo Zhou and Robert Turner and Peizhen Bai and Raivo Koot and Mustafa Chasmai and Lawrence Schobs},
       booktitle = {Proceedings of the 31st ACM International Conference on Information and Knowledge Management (CIKM)},
       year      = {2022}
     }

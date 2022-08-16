@@ -11,7 +11,7 @@ from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, r
 from kale.utils.download import download_file_by_url
 
 SCALES = [4, 8]
-cmr_url = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64.zip"
+cmr_url = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64_v2.0.zip"
 
 
 @pytest.fixture(scope="module")
