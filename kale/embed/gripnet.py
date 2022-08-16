@@ -246,7 +246,8 @@ class TypicalGripNetEncoder(Module):
 
 class GripNetInternalModule(Module):
     """
-    The internal module of a supervertex, which is composed of an internal feature layer and multiple internal aggregation layers.
+    The internal module of a supervertex, which is composed of an internal feature layer and multiple internal 
+    aggregation layers.
 
     Args:
         in_dim (int): the dimension of node features on this supervertex.
@@ -333,7 +334,8 @@ class GripNetInternalModule(Module):
             x (torch.Tensor): the input node feature embedding. It should be the sum or concat of the outputs of the internal
             feature layer and all external aggregation layers.
             edge_index (torch.Tensor): edge index in COO format with shape [2, #edges].
-            edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0. Defaults to None.
+            edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0. 
+            Defaults to None.
             range_list (torch.Tensor, optional): The index range list of each edge type with shape [num_types, 2]. Defaults to None.
             edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
         """

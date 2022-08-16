@@ -120,7 +120,8 @@ class SuperEdge(object):
 
 class SuperGraph(object):
     r"""
-    The supergraph structure in GripNet. Each supergraph is a directed acyclic graph (DAG) containing supervertices and superedges.
+    The supergraph structure in GripNet. Each supergraph is a directed acyclic graph (DAG) containing 
+    supervertices and superedges.
 
     Args:
         supervertex_list (list[SuperVertex]): a list of supervertices.
@@ -178,9 +179,11 @@ class SuperVertexParaSetting(object):
 
         Args:
             supervertex_name (str): the name of the supervertex.
-            inter_feat_dim (int): the dimension of the output of the internal feature layer.
+            inter_feat_dim (int): the dimension of 
+            the output of the internal feature layer.
             inter_agg_dim (List[int]): the output dimensions of a sequence of internal aggregation layers.
-            exter_agg_dim (Dict[str, int], optional): the dimension of received message vector from parient supervertices. Defaults to None.
+            exter_agg_dim (Dict[str, int], optional): the dimension of received message vector 
+            from parient supervertices. Defaults to None.
             mode (str, optinal): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
             num_bases (int, optional): Number of bases used for basis-decomposition if the supervertex is multi-relational. Defaults to 32.
             if_catout (bool, optional): if concatenate the output of each layers. Defaults to True.
