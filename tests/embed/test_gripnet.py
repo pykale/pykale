@@ -3,7 +3,7 @@ import os
 import pytest
 import torch
 
-from kale.embed.gripnet import GripNetInternalModule, TypicalGripNetEncoder
+from kale.embed.gripnet import GripNetExternalModule, GripNetInternalModule, TypicalGripNetEncoder
 from kale.prepdata.supergraph_construct import SuperEdge, SuperGraph, SuperVertex, SuperVertexParaSetting
 from kale.utils.download import download_file_by_url
 
@@ -90,3 +90,15 @@ def test_gripnet_internal_module2():
     y = internal_module2(xx, supervertex3.edge_index, supervertex3.edge_type, range_list, edge_weight)
 
     assert y.shape[1] == internal_module2.out_dim
+
+
+def test_gripnet_external_module():
+    """GripNet External Module Test"""
+
+    external_module = GripNetExternalModule(8, 7, 5)
+    x = torch.randn((4, 8))
+    edge_index = torch.tensor([[0, 1, 2, 3], [1, 4, 3, 4]])
+    y = external_module(x, edge_index)
+
+    assert y.shape[0] == 5
+    assert y.shape[1] == 7
