@@ -38,7 +38,7 @@ PyKale provides seven installation options for different user needs:
 - `full`: `pip install pykale[full]` for all functionality, including examples and tutorials
 - `dev`: `pip install pykale[dev]` for development, including all functionality, examples, and tutorials
 
-You can install with multiple options by separating them with commas (without whitespace) with examples below:
+Multiple options can be chosen by separating them with commas (without whitespace). See examples below.
 
 ```sh
 pip install pykale[drug,example]
