@@ -33,10 +33,10 @@ def test_supergraph():
 
 def test_check_supergraph_DAG():
     """
-    Test error handling when checking if the supergraph is valid.
+    Test error handling when checking if the supergraph is directed acyclic.
     """
 
-    with pytest.raises(AssertionError, match="The supergraph is not a directed acyclic graph."):
+    with pytest.raises(ValueError, match="The supergraph is not a directed acyclic graph."):
 
         se1 = SuperEdge(sv1.name, sv2.name, edge_index)
         se2 = SuperEdge(sv2.name, sv3.name, edge_index)
