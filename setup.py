@@ -5,39 +5,62 @@ from os import path
 
 from setuptools import find_packages, setup
 
-# Dependencies for core API and examples. If updating this, you may need to update docs/requirements.txt too.
+# Dependencies with options for different user needs. If updating this, you may need to update docs/requirements.txt too.
+# If option names are changed, you need to update the installation guide at docs/source/installation.md respectively.
 # Not all have a min-version specified, which is not uncommon. Specify when known or necessary (e.g. errors).
-# Install PyTorch from the official website to match the hardware.
-# To work on graphs, install torch-geometric following the official instructions (e.g. below):
-# python -m pip install torch-cluster torch-scatter torch-sparse torch-spline
-requirements = [
+# The recommended practice is to install PyTorch from the official website to match the hardware first.
+# To work on graphs, install torch-geometric following the official instructions at https://github.com/pyg-team/pytorch_geometric#installation
+
+# Key reference followed: https://github.com/pyg-team/pytorch_geometric/blob/master/setup.py
+
+# Core dependencies frequently used in PyKale Core API
+install_requires = [
+    "numpy>=1.18.0",  # sure
+    "pandas",  # sure
+    "pytorch-lightning>=1.3.0,<=1.6.5",  # in pipeline API only
+    "scikit-learn>=0.23.2",  # sure
+    "scipy>=1.5.4",  # in factorization API only
+    "tensorly>=0.5.1",  # in factorization and model_weights API only
+    "torch>=1.11.0",  # sure
+    "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
+]
+
+# Application-specific dependencies sorted alphabetically below
+
+# Dependencies for API on drug discovery using Therapeutics Data Commons (TDC)
+drug_requires = [
+    "PyTDC",
+]
+
+# Dependencies for medical image analysis
+medim_requires = [
     "glob2",
+    "pydicom",
+    "pylibjpeg",
+    "python-gdcm",
+    "scikit-image>=0.16.2",
+]
+
+# End application-specific dependencies
+
+# Dependencies for all examples and tutorials
+example_requires = [
     "ipykernel",
     "ipython",
     "matplotlib<=3.5.2",
     "nilearn",
-    "numpy>=1.18.0",
-    "pandas",
     "Pillow",
     "PyTDC",
-    "pydicom",
-    "pylibjpeg",
-    "python-gdcm",
-    "pytorch-lightning>=1.3.0,<=1.6.5",
-    "pytorch-memlab",
-    "scikit-image>=0.16.2",
-    "scikit-learn>=0.23.2",
-    "scipy>=1.5.4",
     "seaborn",
-    "tensorly>=0.5.1",
-    "torch>=1.11.0",
     "torchsummary>=1.5.0",
-    "torchvision>=0.12.0",
     "yacs>=0.1.7",
 ]
 
+# Full dependencies except for development
+full_requires = drug_requires + medim_requires + example_requires
+
 # Additional dependencies for development
-dev_requirements = [
+dev_requires = full_requires + [
     "black==19.10b0",
     "coverage",
     "flake8",
@@ -94,8 +117,14 @@ setup(
     },
     packages=find_packages(exclude=("docs", "examples", "tests")),
     python_requires=">=3.7",
-    install_requires=requirements,
-    extras_require={"dev": dev_requirements},
+    install_requires=install_requires,
+    extras_require={
+        "drug": drug_requires,
+        "medim": medim_requires,
+        "example": example_requires,
+        "full": full_requires,
+        "dev": dev_requires,
+    },
     setup_requires=["setuptools==59.5.0"],
     license="MIT",
     keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
