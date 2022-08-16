@@ -16,12 +16,13 @@ from setuptools import find_packages, setup
 # Core dependencies frequently used in PyKale Core API
 install_requires = [
     "numpy>=1.18.0",  # sure
+    "pandas",  # sure
     "pytorch-lightning>=1.3.0,<=1.6.5",  # in pipeline API only
     "scikit-learn>=0.23.2",  # sure
     "scipy>=1.5.4",  # in factorization API only
     "tensorly>=0.5.1",  # in factorization and model_weights API only
     "torch>=1.11.0",  # sure
-    "torchvision>=0.12.0",  # in download, sampler (non-ideal), and vision API only
+    "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
 ]
 
 # Application-specific dependencies sorted alphabetically below
@@ -40,11 +41,6 @@ medim_requires = [
     "scikit-image>=0.16.2",
 ]
 
-# Dependencies for API on video processing
-video_requires = [
-    "pandas",
-]
-
 # End application-specific dependencies
 
 # Dependencies for all examples and tutorials
@@ -61,7 +57,7 @@ example_requires = [
 ]
 
 # Full dependencies except for development
-full_requires = drug_requires + medim_requires + video_requires + example_requires
+full_requires = drug_requires + medim_requires + example_requires
 
 # Additional dependencies for development
 dev_requires = full_requires + [
@@ -125,7 +121,6 @@ setup(
     extras_require={
         "drug": drug_requires,
         "medim": medim_requires,
-        "video": video_requires,
         "example": example_requires,
         "full": full_requires,
         "dev": dev_requires,
