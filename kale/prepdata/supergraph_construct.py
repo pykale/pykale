@@ -35,8 +35,8 @@ class SuperVertex(object):
         self.edge_weight = edge_weight
 
         # get the number of nodes, node features and edges
-        self.n_node, self.n_node_feat = node_feat.shape
-        self.n_edge = edge_index.shape[1]
+        self.num_node, self.num_node_feat = node_feat.shape
+        self.num_edge = edge_index.shape[1]
 
         # initialize in-supervertex and out-supervertex lists
         self.in_supervertex_list: List[str] = []
@@ -51,13 +51,13 @@ class SuperVertex(object):
         """
         # get the number of edge types
         if self.edge_type is None:
-            self.n_edge_type = 1
+            self.num_edge_type = 1
         else:
             unique_edge_type = self.edge_type.unique()
-            self.n_edge_type = unique_edge_type.shape[0]
+            self.num_edge_type = unique_edge_type.shape[0]
 
             # check if the index of edge type is continuous and starts from 0
-            if self.n_edge_type != unique_edge_type.max() + 1:
+            if self.num_edge_type != unique_edge_type.max() + 1:
                 error_msg = "The index of edge type is not continuous and starts from 0."
                 logging.error(error_msg)
                 raise ValueError(error_msg)
@@ -85,7 +85,7 @@ class SuperVertex(object):
         self.range_list = torch.tensor(range_list)
 
     def __repr__(self) -> str:
-        return f"SuperVertex(\n    name={self.name}, \n    node_feat={self.node_feat.shape}, \n    edge_index={self.edge_index.shape}, \n    n_edge_type={self.n_edge_type})"
+        return f"SuperVertex(\n    name={self.name}, \n    node_feat={self.node_feat.shape}, \n    edge_index={self.edge_index.shape}, \n    num_edge_type={self.num_edge_type})"
 
     def add_in_supervertex(self, vertex_name: str):
         self.in_supervertex_list.append(vertex_name)
@@ -205,8 +205,8 @@ class SuperGraph(object):
             logging.error(error_msg)
             raise TypeError(error_msg)
 
-        self.n_supervertex = self.G.number_of_nodes()
-        self.n_superedge = self.G.number_of_edges()
+        self.num_supervertex = self.G.number_of_nodes()
+        self.num_superedge = self.G.number_of_edges()
 
         # get the topological order of the supergraph
         self.topological_order = list(nx.topological_sort(self.G))

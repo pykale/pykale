@@ -54,14 +54,14 @@ def test_supergraph():
     """Test the supergraph construction."""
 
     # create a supergraph
-    sg = SuperGraph([supervertex1, supervertex2, supervertex3], [superedge1, superedge2])
+    supergraph = SuperGraph([supervertex1, supervertex2, supervertex3], [superedge1, superedge2])
 
-    assert sg.n_supervertex == 3
-    assert sg.n_superedge == 2
-    assert sg.topological_order == ["1", "2", "3"] or sg.topological_order == ["2", "1", "3"]
-    assert set(sg.supervertex_dict["3"].in_supervertex_list) == {"1", "2"}
+    assert supergraph.num_supervertex == 3
+    assert supergraph.num_superedge == 2
+    assert supergraph.topological_order == ["1", "2", "3"] or supergraph.topological_order == ["2", "1", "3"]
+    assert set(supergraph.supervertex_dict["3"].in_supervertex_list) == {"1", "2"}
 
-    assert sg.__repr__()
+    assert supergraph.__repr__()
 
 
 def test_supervertex_para_setting():

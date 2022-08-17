@@ -60,45 +60,45 @@ supergraph = SuperGraph([supervertex1, supervertex2, supervertex3], [superedge1,
 def test_gripnet_internal_module1():
     """GripNet Internal Module Test for start supervertex"""
 
-    setting1 = SuperVertexParaSetting("start_svertex", 20, [10, 10])
-    internal_module1 = GripNetInternalModule(
-        supervertex1.n_node_feat, supervertex1.n_edge_type, supervertex1.if_start_supervertex, setting1
+    setting1 = SuperVertexParaSetting("start_supervertex", 20, [10, 10])
+    inter_module1 = GripNetInternalModule(
+        supervertex1.num_node_feat, supervertex1.num_edge_type, supervertex1.if_start_supervertex, setting1
     )
 
     x = torch.randn(20, 20)
-    y = internal_module1(x, supervertex3.edge_index)
+    y = inter_module1(x, supervertex3.edge_index)
 
-    assert y.shape[1] == internal_module1.out_dim
+    assert y.shape[1] == inter_module1.out_channels
 
 
 def test_gripnet_internal_module2():
     """GripNet Internal Module Test for end supervertex"""
 
-    setting2 = SuperVertexParaSetting("task_svertex", 20, [15, 10], exter_agg_dim={"1": 20, "2": 20}, mode="cat")
-    internal_module2 = GripNetInternalModule(
-        supervertex3.n_node_feat, supervertex3.n_edge_type, supervertex3.if_start_supervertex, setting2
+    setting2 = SuperVertexParaSetting("task_supervertex", 20, [15, 10], exter_agg_dim={"1": 20, "2": 20}, mode="cat")
+    inter_module2 = GripNetInternalModule(
+        supervertex3.num_node_feat, supervertex3.num_edge_type, supervertex3.if_start_supervertex, setting2
     )
 
     x = torch.randn(20, 20)
-    x1 = torch.matmul(x, internal_module2.embedding)
+    x1 = torch.matmul(x, inter_module2.embedding)
     x2 = torch.randn(20, 40)
     xx = torch.cat((x1, x2), dim=1)
 
     range_list = torch.LongTensor([[0, 2], [2, 4]])
     edge_weight = torch.randn(4)
 
-    y = internal_module2(xx, supervertex3.edge_index, supervertex3.edge_type, range_list, edge_weight)
+    y = inter_module2(xx, supervertex3.edge_index, supervertex3.edge_type, range_list, edge_weight)
 
-    assert y.shape[1] == internal_module2.out_dim
+    assert y.shape[1] == inter_module2.out_channels
 
 
 def test_gripnet_external_module():
     """GripNet External Module Test"""
 
-    external_module = GripNetExternalModule(8, 7, 5)
+    exter_module = GripNetExternalModule(8, 7, 5)
     x = torch.randn((4, 8))
     edge_index = torch.tensor([[0, 1, 2, 3], [1, 4, 3, 4]])
-    y = external_module(x, edge_index)
+    y = exter_module(x, edge_index)
 
     assert y.shape[0] == 5
     assert y.shape[1] == 7
@@ -115,7 +115,7 @@ def test_gripnet_cat():
     gripnet = GripNet(supergraph)
 
     assert (
-        gripnet.supervertex_module_dict["3"][-1].internal_agg_layers[0].in_channels == 11 + 12 + 13
+        gripnet.supervertex_module_dict["3"][-1].inter_agg_layers[0].in_channels == 11 + 12 + 13
     ), "ValueError: invalid exter_agg_dim settings in the task vertex."
 
     y = gripnet()
@@ -141,7 +141,7 @@ def test_gripnet_add():
     gripnet = GripNet(supergraph)
 
     assert (
-        gripnet.supervertex_module_dict["3"][-1].internal_agg_layers[0].in_channels == 30
+        gripnet.supervertex_module_dict["3"][-1].inter_agg_layers[0].in_channels == 30
     ), "ValueError: invalid exter_agg_dim settings in the task vertex."
 
     y = gripnet()

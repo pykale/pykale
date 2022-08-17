@@ -47,7 +47,7 @@ class GripNetSuperVertex(Module):
         super(GripNetSuperVertex, self).__init__()
         self.multi_relational = multi_relational
         self.start_graph = start_graph
-        self.out_dim = channels_list[-1]
+        self.out_channels = channels_list[-1]
         self.n_cov = len(channels_list) - 1
 
         if start_graph:
@@ -253,36 +253,38 @@ class GripNetInternalModule(Module):
     aggregation layers.
 
     Args:
-        in_dim (int): the dimension of node features on this supervertex.
-        n_edge_type (int): the number of edge types on this supervertex.
+        in_channels (int): the dimension of node features on this supervertex.
+        num_edge_type (int): the number of edge types on this supervertex.
         if_start_svertex (bool): if this supervertex is a start supervertex on the supergraph.
         setting (SuperVertexParaSetting): supervertex parameter settings.
     """
 
-    def __init__(self, in_dim: int, n_edge_type: int, if_start_svertex: bool, setting: SuperVertexParaSetting) -> None:
+    def __init__(
+        self, in_channels: int, num_edge_type: int, if_start_svertex: bool, setting: SuperVertexParaSetting
+    ) -> None:
         super(GripNetInternalModule, self).__init__()
         # in and out dimension
-        self.in_dim = in_dim
-        self.out_dim = setting.inter_agg_dim[-1]
+        self.in_channels = in_channels
+        self.out_channels = setting.inter_agg_dim[-1]
 
-        self.n_edge_type = n_edge_type
-        self.if_multirelational = 1 if n_edge_type > 1 else 0
+        self.num_edge_type = num_edge_type
+        self.if_multirelational = 1 if num_edge_type > 1 else 0
         self.if_start_svertex = if_start_svertex
         self.setting = setting
 
-        self.__init_internal_feat_layer__()
-        self.__init_internal_agg_layer__()
+        self.__init_inter_feat_layer__()
+        self.__init_inter_agg_layer__()
 
-    def __init_internal_feat_layer__(self):
+    def __init_inter_feat_layer__(self):
         """internal feature layer"""
 
-        self.embedding = torch.nn.Parameter(torch.Tensor(self.in_dim, self.setting.inter_feat_dim))
+        self.embedding = torch.nn.Parameter(torch.Tensor(self.in_channels, self.setting.inter_feat_dim))
         self.embedding.requires_grad = True
 
         # reset parameters to be normally distributed
         self.embedding.data.normal_()
 
-    def __init_internal_agg_layer__(self):
+    def __init_inter_agg_layer__(self):
         """internal aggregation layers"""
 
         # compute the dim of input of the first internal aggregation layer
@@ -301,27 +303,27 @@ class GripNetInternalModule(Module):
                 assert len(tmp) == 1, "The in_agg_dim should be the same as any element in exter_agg_dim."
 
         # create and initialize the internal aggregation layers
-        self.n_internal_agg_layer = len(self.setting.inter_agg_dim)
+        self.num_inter_agg_layer = len(self.setting.inter_agg_dim)
         tmp_dim = [self.in_agg_dim] + self.setting.inter_agg_dim
 
         if self.setting.if_catout:
-            self.out_dim = sum(tmp_dim)
+            self.out_channels = sum(tmp_dim)
 
         if self.if_multirelational:
             # using RGCN if there are multiple edge types
-            after_relu = [False if i == 0 else True for i in range(self.n_internal_agg_layer)]
-            self.internal_agg_layers = torch.nn.ModuleList(
+            after_relu = [False if i == 0 else True for i in range(self.num_inter_agg_layer)]
+            self.inter_agg_layers = torch.nn.ModuleList(
                 [
                     RGCNEncoderLayer(
-                        tmp_dim[i], tmp_dim[i + 1], self.n_edge_type, self.setting.num_bases, after_relu[i]
+                        tmp_dim[i], tmp_dim[i + 1], self.num_edge_type, self.setting.num_bases, after_relu[i]
                     )
-                    for i in range(self.n_internal_agg_layer)
+                    for i in range(self.num_inter_agg_layer)
                 ]
             )
         else:
             # using GCN if there is only one edge type
-            self.internal_agg_layers = torch.nn.ModuleList(
-                [GCNEncoderLayer(tmp_dim[i], tmp_dim[i + 1], cached=True) for i in range(self.n_internal_agg_layer)]
+            self.inter_agg_layers = torch.nn.ModuleList(
+                [GCNEncoderLayer(tmp_dim[i], tmp_dim[i + 1], cached=True) for i in range(self.num_inter_agg_layer)]
             )
 
     def forward(
@@ -351,7 +353,7 @@ class GripNetInternalModule(Module):
             assert edge_type is not None
             assert range_list is not None
 
-        for net in self.internal_agg_layers[:-1]:
+        for net in self.inter_agg_layers[:-1]:
             x = (
                 net(x, edge_index, edge_type, range_list)
                 if self.if_multirelational
@@ -362,9 +364,9 @@ class GripNetInternalModule(Module):
                 tmp.append(x)
 
         x = (
-            self.internal_agg_layers[-1](x, edge_index, edge_type, range_list)
+            self.inter_agg_layers[-1](x, edge_index, edge_type, range_list)
             if self.if_multirelational
-            else self.internal_agg_layers[-1](x, edge_index, edge_weight)
+            else self.inter_agg_layers[-1](x, edge_index, edge_weight)
         )
 
         x = F.relu(x, inplace=True)
@@ -375,10 +377,10 @@ class GripNetInternalModule(Module):
         return x
 
     def __repr__(self):
-        tmp = [f"\n    ({i}): {l}" for i, l in enumerate(self.internal_agg_layers)]
+        tmp = [f"\n    ({i}): {l}" for i, l in enumerate(self.inter_agg_layers)]
 
         return "{}: ModuleList(\n  (0): InternalFeatureLayer: Embedding({}, {})\n  (1): InternalFeatureAggerationModule: ModuleList({}\n  )\n)".format(
-            self.__class__.__name__, self.in_dim, self.setting.inter_feat_dim, "".join(tmp)
+            self.__class__.__name__, self.in_channels, self.setting.inter_feat_dim, "".join(tmp)
         )
 
 
@@ -386,19 +388,19 @@ class GripNetExternalModule(Module):
     """The internal module of a supervertex, which is an external feature layer.
 
     Args:
-        in_dim (int): the dimension of the input node feature embedding.
-        out_dim (int): the dimension of the output node feature embedding.
-        n_out_node (int): the number of output nodes.
+        in_channels (int): Size of each input sample. In GripNet, it shold be the dimension of the output embedding of the corresponding parient supervertex.
+        out_channels (int): Size of each output sample. In GripNet, it is the dimension of the output embedding of the supervertex.
+        num_out_node (int): the number of output nodes.
     """
 
-    def __init__(self, in_dim: int, out_dim: int, n_out_node: int) -> None:
+    def __init__(self, in_channels: int, out_channels: int, num_out_node: int) -> None:
         super(GripNetExternalModule, self).__init__()
 
-        self.in_dim = in_dim
-        self.out_dim = out_dim
-        self.n_out_node = n_out_node
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.num_out_node = num_out_node
 
-        self.external_agg_layer = GCNEncoderLayer(in_dim, out_dim, cached=True)
+        self.exter_agg_layer = GCNEncoderLayer(in_channels, out_channels, cached=True)
 
     def forward(self, x: torch.Tensor, edge_index: torch.Tensor, edge_weight: torch.Tensor = None, if_relu=True):
         """
@@ -413,8 +415,8 @@ class GripNetExternalModule(Module):
         bigraph_edge_index = edge_index + 0
         bigraph_edge_index[1, :] += n_source
 
-        x = torch.cat([x, torch.zeros((self.n_out_node, n_feat)).to(x.device)], dim=0)
-        x = self.external_agg_layer(x, bigraph_edge_index, edge_weight)[n_source:, :]
+        x = torch.cat([x, torch.zeros((self.num_out_node, n_feat)).to(x.device)], dim=0)
+        x = self.exter_agg_layer(x, bigraph_edge_index, edge_weight)[n_source:, :]
 
         if if_relu:
             x = F.relu(x, inplace=True)
@@ -422,7 +424,7 @@ class GripNetExternalModule(Module):
         return x
 
     def __repr__(self):
-        return "{}: {}".format(self.__class__.__name__, self.external_agg_layer.__repr__())
+        return "{}: {}".format(self.__class__.__name__, self.exter_agg_layer.__repr__())
 
 
 class GripNet(Module):
@@ -458,16 +460,16 @@ class GripNet(Module):
         if not supervertex.if_start_supervertex:
             # add the external modules from all parent supervertices
             for in_name in supervertex.in_supervertex_list:
-                in_dim = self.supervertex_module_dict[in_name][-1].out_dim
+                in_channels = self.supervertex_module_dict[in_name][-1].out_channels
 
                 assert setting.exter_agg_dim is not None
-                out_dim = setting.exter_agg_dim[in_name]
-                module_list.append(GripNetExternalModule(in_dim, out_dim, supervertex.n_node))
+                out_channels = setting.exter_agg_dim[in_name]
+                module_list.append(GripNetExternalModule(in_channels, out_channels, supervertex.num_node))
 
         # add the internal module
         module_list.append(
             GripNetInternalModule(
-                supervertex.n_node_feat, supervertex.n_edge_type, supervertex.if_start_supervertex, setting
+                supervertex.num_node_feat, supervertex.num_edge_type, supervertex.if_start_supervertex, setting
             )
         )
 
@@ -509,7 +511,7 @@ class GripNet(Module):
             x = torch.cat(tmp, dim=1)
 
         # internal feature aggregation layers
-        if supervertex.n_edge_type > 1:
+        if supervertex.num_edge_type > 1:
             x = model[-1](
                 x, supervertex.edge_index, supervertex.edge_type, supervertex.range_list, supervertex.edge_weight
             )
