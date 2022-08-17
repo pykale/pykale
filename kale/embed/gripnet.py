@@ -47,7 +47,7 @@ class GripNetSuperVertex(Module):
         super(GripNetSuperVertex, self).__init__()
         self.multi_relational = multi_relational
         self.start_graph = start_graph
-        self.out_channels = channels_list[-1]
+        self.out_dim = channels_list[-1]
         self.n_cov = len(channels_list) - 1
 
         if start_graph:
@@ -248,7 +248,7 @@ class TypicalGripNetEncoder(Module):
 
 
 class GripNetInternalModule(Module):
-    """
+    r"""
     The internal module of a supervertex, which is composed of an internal feature layer and multiple internal
     aggregation layers.
 
@@ -344,8 +344,9 @@ class GripNetInternalModule(Module):
             Defaults to None.
             edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
 
-        Note: The internal feature layer is computed in the `forward` function of GripNet class. If the supervertex is not a start supervertex, `x` should be the sum or concat of the outputs of the
-        internal feature layer and all external aggregation layers.
+        Note: The internal feature layer is computed in the `forward` function of GripNet class. If the supervertex
+        is not a start supervertex, `x` should be the sum or concat of the outputs of the internal feature
+        layer and all external aggregation layers.
         """
 
         if self.setting.if_catout:
@@ -434,7 +435,8 @@ class GripNetExternalModule(Module):
 
 
 class GripNet(Module):
-    """The GripNet model proposed in `"GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs" <https://doi.org/10.1016/j.patcog.2022.108973>`_ (PatternRecognit 2022) paper.
+    """The GripNet model proposed in `"GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs"
+    <https://doi.org/10.1016/j.patcog.2022.108973>`_ (PatternRecognit 2022) paper.
 
     Args:
         supergraph (SuperGraph): the supergraph.
