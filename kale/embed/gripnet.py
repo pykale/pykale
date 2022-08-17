@@ -232,7 +232,7 @@ class TypicalGripNetEncoder(Module):
             source_x (torch.Tensor): The input source node feature embedding.
             source_edge_index (torch.Tensor): Source edge index in COO format with shape [2, num_edges].
             source_edge_weight (torch.Tensor): The one-dimensional relation weight
-            for each edge in source graph.
+                for each edge in source graph.
             inter_edge_index: Source-target edge index in COO format with shape [2, num_edges].
             target_edge_index: Target edge index in COO format with shape [2, num_edges].
             target_edge_relations: The one-dimensional relation type for each target edge in
@@ -339,9 +339,9 @@ class GripNetInternalModule(Module):
             x (torch.Tensor): the input node feature embedding.
             edge_index (torch.Tensor): edge index in COO format with shape [2, #edges].
             edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0.
-            Defaults to None.
+                Defaults to None.
             range_list (torch.Tensor, optional): The index range list of each edge type with shape [num_types, 2].
-            Defaults to None.
+                Defaults to None.
             edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
 
         Note: The internal feature layer is computed in the `forward` function of GripNet class. If the supervertex
@@ -394,9 +394,9 @@ class GripNetExternalModule(Module):
 
     Args:
         in_channels (int): Size of each input sample. In GripNet, it shold be the dimension of the output embedding of the
-        corresponding parient supervertex.
+            corresponding parient supervertex.
         out_channels (int): Size of each output sample. In GripNet, it is the dimension of the output embedding of
-        the supervertex.
+            the supervertex.
         num_out_node (int): the number of output nodes.
     """
 

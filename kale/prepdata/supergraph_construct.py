@@ -13,7 +13,7 @@ class SuperVertex(object):
     Args:
         name (str): the name of the supervertex.
         node_feat (torch.Tensor): node features of the supervertex with shape [#nodes, #features]. We recommend
-        using `torch.sparse.FloatTensor()` if the node feature matrix is sparse.
+            using `torch.sparse.FloatTensor()` if the node feature matrix is sparse.
         edge_index (torch.Tensor): edge indices in COO format with shape [2, #edges].
         edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0. Defaults to None.
         edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
@@ -118,7 +118,7 @@ class SuperEdge(object):
         source_supervertex (str): the name of the source supervertex.
         target_supervertex (str): the name of the target supervertex.
         edge_index (torch.Tensor): edge indices in COO format with shape [2, #edges]. The first row is the index of
-        source nodes, and the second row is the index of target nodes.
+            source nodes, and the second row is the index of target nodes.
         edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
     """
 
@@ -145,11 +145,10 @@ class SuperVertexParaSetting(object):
 
         Args:
             supervertex_name (str): the name of the supervertex.
-            inter_feat_dim (int): the dimension of
-            the output of the internal feature layer.
+            inter_feat_dim (int): the dimension of the output of the internal feature layer.
             inter_agg_dim (List[int]): the output dimensions of a sequence of internal aggregation layers.
-            exter_agg_dim (Dict[str, int], optional): the dimension of received message vector
-            from parient supervertices. Defaults to None.
+            exter_agg_dim (Dict[str, int], optional): the dimension of received message vector from parient supervertices.
+                Defaults to None.
             mode (str, optinal): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
             num_bases (int, optional): Number of bases used for basis-decomposition if the supervertex is multi-relational. Defaults to 32.
             if_catout (bool, optional): if concatenate the output of each layers. Defaults to True.
