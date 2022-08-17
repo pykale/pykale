@@ -27,8 +27,9 @@ install_requires = [
 
 # Application-specific dependencies sorted alphabetically below
 
-# Dependencies for API on drug discovery using Therapeutics Data Commons (TDC)
-drug_requires = [
+# Dependencies for graph analysis, e.g., for drug discovery using Therapeutics Data Commons (TDC)
+graph_requires = [
+    "networkx",
     "PyTDC",
 ]
 
@@ -57,7 +58,7 @@ example_requires = [
 ]
 
 # Full dependencies except for development
-full_requires = drug_requires + medim_requires + example_requires
+full_requires = graph_requires + medim_requires + example_requires
 
 # Additional dependencies for development
 dev_requires = full_requires + [
@@ -119,7 +120,7 @@ setup(
     python_requires=">=3.7",
     install_requires=install_requires,
     extras_require={
-        "drug": drug_requires,
+        "graph": graph_requires,
         "medim": medim_requires,
         "example": example_requires,
         "full": full_requires,
