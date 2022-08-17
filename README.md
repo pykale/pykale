@@ -89,7 +89,7 @@ PyKale is maintained by [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/
 ```lang-latex
     @inproceedings{pykale-cikm2022,
       title     = {{PyKale}: Knowledge-Aware Machine Learning from Multiple Sources in {Python}},
-      author    = {Haiping Lu and Xianyuan Liu and Shuo Zhou and Robert Turner and Peizhen Bai and Raivo Koot and Mustafa Chasmai and Lawrence Schobs},
+      author    = {Haiping Lu and Xianyuan Liu and Shuo Zhou and Robert Turner and Peizhen Bai and Raivo Koot and Mustafa Chasmai and Lawrence Schobs and Hao Xu},
       booktitle = {Proceedings of the 31st ACM International Conference on Information and Knowledge Management (CIKM)},
       year      = {2022}
     }
