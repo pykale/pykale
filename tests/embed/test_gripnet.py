@@ -120,7 +120,7 @@ def test_gripnet_cat():
 
     y = gripnet()
 
-    error_message = "Dimension mismatch in the task vertex"
+    error_message = "ValueError: dimension mismatch in the task vertex"
 
     assert gripnet.out_embed_dict["1"].shape[1] == 20 + 10 + 10, error_message
     assert gripnet.out_embed_dict["2"].shape[1] == 20 + 10 + 10, error_message
@@ -145,4 +145,4 @@ def test_gripnet_add():
     ), "ValueError: invalid exter_agg_dim settings in the task vertex."
 
     y = gripnet()
-    assert y.shape[1] == 30 + 15 + 10, "ValueError dimension mismatch in the task vertex"
+    assert y.shape[1] == 30 + 15 + 10, "ValueError: dimension mismatch in the task vertex"

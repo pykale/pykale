@@ -232,7 +232,7 @@ class TypicalGripNetEncoder(Module):
             source_x (torch.Tensor): The input source node feature embedding.
             source_edge_index (torch.Tensor): Source edge index in COO format with shape [2, num_edges].
             source_edge_weight (torch.Tensor): The one-dimensional relation weight
-                for each edge in source graph.
+            for each edge in source graph.
             inter_edge_index: Source-target edge index in COO format with shape [2, num_edges].
             target_edge_index: Target edge index in COO format with shape [2, num_edges].
             target_edge_relations: The one-dimensional relation type for each target edge in
@@ -336,13 +336,16 @@ class GripNetInternalModule(Module):
     ) -> torch.Tensor:
         r"""
         Args:
-            x (torch.Tensor): the input node feature embedding. It should be the sum or concat of the outputs of the internal
-            feature layer and all external aggregation layers.
+            x (torch.Tensor): the input node feature embedding.
             edge_index (torch.Tensor): edge index in COO format with shape [2, #edges].
             edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0.
             Defaults to None.
-            range_list (torch.Tensor, optional): The index range list of each edge type with shape [num_types, 2]. Defaults to None.
+            range_list (torch.Tensor, optional): The index range list of each edge type with shape [num_types, 2].
+            Defaults to None.
             edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
+
+        Note: The internal feature layer is computed in the `forward` function of GripNet class. If the supervertex is not a start supervertex, `x` should be the sum or concat of the outputs of the
+        internal feature layer and all external aggregation layers.
         """
 
         if self.setting.if_catout:
@@ -353,6 +356,7 @@ class GripNetInternalModule(Module):
             assert edge_type is not None
             assert range_list is not None
 
+        # internal feature aggregation layers
         for net in self.inter_agg_layers[:-1]:
             x = (
                 net(x, edge_index, edge_type, range_list)
@@ -388,8 +392,10 @@ class GripNetExternalModule(Module):
     """The internal module of a supervertex, which is an external feature layer.
 
     Args:
-        in_channels (int): Size of each input sample. In GripNet, it shold be the dimension of the output embedding of the corresponding parient supervertex.
-        out_channels (int): Size of each output sample. In GripNet, it is the dimension of the output embedding of the supervertex.
+        in_channels (int): Size of each input sample. In GripNet, it shold be the dimension of the output embedding of the
+        corresponding parient supervertex.
+        out_channels (int): Size of each output sample. In GripNet, it is the dimension of the output embedding of
+        the supervertex.
         num_out_node (int): the number of output nodes.
     """
 
@@ -428,6 +434,12 @@ class GripNetExternalModule(Module):
 
 
 class GripNet(Module):
+    """The GripNet model proposed in `"GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs" <https://doi.org/10.1016/j.patcog.2022.108973>`_ (PatternRecognit 2022) paper.
+
+    Args:
+        supergraph (SuperGraph): the supergraph.
+    """
+
     def __init__(self, supergraph: SuperGraph) -> None:
         super(GripNet, self).__init__()
 
