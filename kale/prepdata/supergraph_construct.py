@@ -1,4 +1,3 @@
-import logging
 from typing import Dict, List
 
 import networkx as nx
@@ -71,10 +70,9 @@ class SuperVertex(object):
             self.num_edge_type = unique_edge_type.shape[0]
 
             # check if the index of edge type is continuous and starts from 0
-            if self.num_edge_type != unique_edge_type.max() + 1:
-                error_msg = "The index of edge type is not continuous and starts from 0."
-                logging.error(error_msg)
-                raise ValueError(error_msg)
+            assert (
+                self.num_edge_type == unique_edge_type.max() + 1
+            ), "The index of edge type is not continuous and starts from 0."
 
             # sort the edges and edge types
             sort_index = torch.argsort(self.edge_type)
@@ -173,10 +171,8 @@ class SuperVertexParaSetting(object):
         self.exter_agg_dim = exter_agg_dim
 
         # check if the mode is valid
-        if self.mode is not None and self.mode not in ["cat", "add"]:
-            error_msg = "The mode is not valid. It should be 'cat' or 'add'."
-            logging.error(error_msg)
-            raise ValueError(error_msg)
+        if self.mode is not None:
+            assert self.mode in ["cat", "add"], "The mode is not valid. It should be either 'cat' or 'add'."
 
 
 class SuperGraph(object):
@@ -213,10 +209,7 @@ class SuperGraph(object):
         self.G.add_edges_from(self.superedge_dict.keys())
 
         # check if the graph is a DAG
-        if not nx.is_directed_acyclic_graph(self.G):
-            error_msg = "The supergraph is not a directed acyclic graph."
-            logging.error(error_msg)
-            raise TypeError(error_msg)
+        assert nx.is_directed_acyclic_graph(self.G), "The graph is not a directed acyclic graph."
 
         self.num_supervertex = self.G.number_of_nodes()
         self.num_superedge = self.G.number_of_edges()

@@ -5,7 +5,6 @@ the `GripNet
 <https://github.com/NYXFLOWER/GripNet>`_ source repo.
 """
 
-import logging
 from typing import Dict
 
 import torch
@@ -450,16 +449,9 @@ class GripNet(Module):
 
         self.out_embed_dict: Dict[str, torch.Tensor] = {}
 
-        self.__check_supergraph__()
+        assert self.supergraph.supervertex_setting_dict, "The supervertex setting dict is empty."
+
         self.__init_supervertex_module_dict__()
-
-    def __check_supergraph__(self) -> None:
-        """Check if the input supergraph has parameter settings"""
-
-        if self.supergraph.supervertex_setting_dict is None:
-            error_msg = "The supergraph should have parameter settings."
-            logging.error(error_msg)
-            raise ValueError(error_msg)
 
     def __init_supervertex_module_dict__(self):
         self.supervertex_module_dict: Dict[str, torch.nn.ModuleList] = {}

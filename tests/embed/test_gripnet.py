@@ -146,9 +146,3 @@ def test_gripnet_add():
 
     y = gripnet()
     assert y.shape[1] == 30 + 15 + 10, "ValueError: dimension mismatch in the task vertex"
-
-
-def test_gripnet_expected_exceptions_raises():
-    with pytest.raises(ValueError):
-        # for __check_supergraph__
-        _ = GripNet(supergraph)
