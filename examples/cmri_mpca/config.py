@@ -17,7 +17,7 @@ _C.DATASET = CN()
 _C.DATASET.SOURCE = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64_v2.0.zip"
 _C.DATASET.ROOT = "../data"
 _C.DATASET.IMG_DIR = "DICOM"
-_C.DATASET.BASE_DIR = "SA_64x64"
+_C.DATASET.BASE_DIR = "SA_64x64_v2.0"
 _C.DATASET.FILE_FORAMT = "zip"
 _C.DATASET.LANDMARK_FILE = "landmarks.csv"
 _C.DATASET.MASK_DIR = "Mask"
@@ -36,6 +36,7 @@ _C.IM_KWARGS.cmap = "gray"
 _C.MARKER_KWARGS = CN()
 _C.MARKER_KWARGS.marker = "+"
 _C.MARKER_KWARGS.color = "r"
+_C.MARKER_KWARGS.s = 100
 _C.MARKER_KWARGS.linewidths = 1.5
 _C.MARKER_KWARGS.edgecolors = "face"
 # see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.scatter.html for more options

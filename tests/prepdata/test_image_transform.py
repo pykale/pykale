@@ -6,7 +6,7 @@ import pytest
 from numpy import testing
 
 from kale.interpret.visualize import plot_multi_images
-from kale.loaddata.image_access import dicom2arraylist, read_dicom_dir
+from kale.loaddata.image_access import check_dicom_series_uid, dicom2arraylist, read_dicom_dir
 from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, reg_img_stack, rescale_img_stack
 from kale.utils.download import download_file_by_url
 
@@ -17,11 +17,16 @@ cmr_url = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64_v
 @pytest.fixture(scope="module")
 def images(download_path):
     download_file_by_url(cmr_url, download_path, "SA_64x64.zip", "zip")
-    img_path = os.path.join(download_path, "SA_64x64", "DICOM")
-    cmr_dcm_list = read_dicom_dir(img_path, sort_instance=True, sort_patient=True)
-    cmr_images = dicom2arraylist(dicom_patient_list=cmr_dcm_list, return_patient_id=False)
+    img_path = os.path.join(download_path, "SA_64x64_v2.0", "DICOM")
+    cmr_dcm_list = read_dicom_dir(img_path, sort_instance=True, sort_patient=True, check_series_uid=True)
+    dcms = []
+    for i in range(5):
+        for j in range(len(cmr_dcm_list[i])):
+            dcms.append(cmr_dcm_list[i][j])
+    dcm5_list = check_dicom_series_uid(dcms)
+    cmr_images = dicom2arraylist(dicom_patient_list=dcm5_list, return_patient_id=False)
 
-    return cmr_images[:5]
+    return cmr_images
 
 
 @pytest.fixture(scope="module")
@@ -39,7 +44,7 @@ def coords():
 
 
 def test_reg(images, coords):
-    marker_kwargs = {"marker": "o", "color": (1, 1, 1, 0.1), "s": 50}
+    marker_kwargs = {"marker": "+", "color": (1, 1, 1, 0.1), "s": 50}
     im_kwargs = {"cmap": "gray"}
     marker_names = ["inf insertion point", "sup insertion point", "RV inf"]
 

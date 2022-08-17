@@ -359,7 +359,7 @@ def read_dicom_phases(dicom_path, sort_instance=True):
     return dcm_phases
 
 
-def _check_dicom_series_uid(dcm_phases, sort_instance=True):
+def check_dicom_series_uid(dcm_phases, sort_instance=True):
     """Check if all dicom images have the same series UID.
 
     Args:
@@ -377,15 +377,15 @@ def _check_dicom_series_uid(dcm_phases, sort_instance=True):
             dcms[dcm.SeriesInstanceUID].append(dcm)
         if sort_instance:
             for uid in dcms:
-                dcms[uid] = dcms[uid].sort(key=lambda x: x.InstanceNumber, reverse=False)
+                dcms[uid].sort(key=lambda x: x.InstanceNumber, reverse=False)
 
-        dcm_phases = []
+        dcms_out = []
         for uid in dcms:
-            dcm_phases.extend(dcms[uid])
+            dcms_out.append(dcms[uid])
     else:
-        dcm_phases = [dcm_phases]
+        dcms_out = [dcm_phases]
 
-    return dcm_phases
+    return dcms_out
 
 
 def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False, check_series_uid=False):
@@ -421,7 +421,7 @@ def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False, check_ser
     for patient_dir in patient_dirs:
         patient_dcm_list = read_dicom_phases(patient_dir, sort_instance)
         if check_series_uid:
-            patient_dcm_list = _check_dicom_series_uid(patient_dcm_list, sort_instance)
+            patient_dcm_list = check_dicom_series_uid(patient_dcm_list, sort_instance)
             for dcm_series_instance in patient_dcm_list:
                 dcm_patients.append(dcm_series_instance)
         else:
