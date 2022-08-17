@@ -17,6 +17,20 @@ class SuperVertex(object):
         edge_index (torch.Tensor): edge indices in COO format with shape [2, #edges].
         edge_type (torch.Tensor, optional): one-dimensional relation type for each edge, indexed from 0. Defaults to None.
         edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
+
+    Examples:
+        >>> import torch
+        >>> node_feat = torch.randn(4, 20)
+        >>> edge_index = torch.tensor([[0, 1, 2, 3], [1, 2, 3, 0]])
+        >>> edge_type = torch.tensor([0, 0, 1, 1])
+        >>> edge_weight = torch.randn(4)
+        >>> # create a supervertex with homogeneous edges
+        >>> supervertex_homo = SuperVertex(node_feat, edge_index)
+        >>> # create a supervertex with hetegeneous edges
+        >>> supervertex_hete = SuperVertex(node_feat, edge_index, edge_type)
+        >>> # create a supervertex with weighted edges
+        >>> supervertex_weight1 = SuperVertex(node_feat, edge_index, edge_weight=edge_weight)
+        >>> supervertex_weight2 = SuperVertex(node_feat, edge_index, edge_type, edge_weight)
     """
 
     def __init__(
