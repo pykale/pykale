@@ -105,14 +105,22 @@ class SuperEdge(object):
         target_supervertex (str): the name of the target supervertex.
         edge_index (torch.Tensor): edge indices in COO format with shape [2, #edges]. The first row is the index of
         source nodes, and the second row is the index of target nodes.
+        edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
     """
 
-    def __init__(self, source_supervertex: str, target_supervertex: str, edge_index: torch.Tensor) -> None:
+    def __init__(
+        self,
+        source_supervertex: str,
+        target_supervertex: str,
+        edge_index: torch.Tensor,
+        edge_weight: torch.Tensor = None,
+    ) -> None:
 
         self.direction = (source_supervertex, target_supervertex)
         self.source_supervertex = source_supervertex
         self.target_supervertex = target_supervertex
         self.edge_index = edge_index
+        self.edge_weight = edge_weight
 
     def __repr__(self) -> str:
         return f"SuperEdges(\n    edge_direction={self.source_supervertex}->{self.target_supervertex}, \n    edge_index={self.edge_index.shape})"

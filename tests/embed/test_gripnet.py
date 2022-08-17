@@ -40,7 +40,7 @@ def test_gripnet_encoder(pose_data):
 
 # create three supervertices
 node_feat = torch.randn(4, 20)
-edge_index = torch.tensor([[0, 1, 2, 3], [1, 2, 3, 4]], dtype=torch.long)
+edge_index = torch.tensor([[0, 1, 2, 3], [1, 2, 3, 3]], dtype=torch.long)
 edge_type = torch.tensor([0, 0, 1, 1], dtype=torch.long)
 
 supervertex1 = SuperVertex("1", node_feat, edge_index)
@@ -117,7 +117,10 @@ def test_gripnet_cat():
 
     assert (
         gripnet.supervertex_module_dict["3"][-1].internal_agg_layers[0].in_channels == 11 + 12 + 13
-    ), "ValueError: invalid exter_agg_dim settings."
+    ), "ValueError: invalid exter_agg_dim settings in the task vertex."
+
+    y = gripnet()
+    assert y.shape[1] == 11 + 12 + 13 + 15 + 10, "ValueError dimension mismatch in the task vertex"
 
 
 def test_gripnet_add():
@@ -132,4 +135,7 @@ def test_gripnet_add():
 
     assert (
         gripnet.supervertex_module_dict["3"][-1].internal_agg_layers[0].in_channels == 30
-    ), "ValueError: invalid exter_agg_dim settings."
+    ), "ValueError: invalid exter_agg_dim settings in the task vertex."
+
+    y = gripnet()
+    assert y.shape[1] == 30 + 15 + 10, "ValueError dimension mismatch in the task vertex"

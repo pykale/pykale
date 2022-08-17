@@ -430,6 +430,7 @@ class GripNet(Module):
         super(GripNet, self).__init__()
 
         self.supergraph = supergraph
+        self.task_supervertex_name = supergraph.topological_order[-1]
 
         self.out_embed_dict: Dict[str, torch.Tensor] = {}
 
@@ -471,6 +472,51 @@ class GripNet(Module):
         )
 
         self.supervertex_module_dict[supervertex.name] = module_list
+
+    def forward(self):
+        for supervertex_name in self.supergraph.topological_order:
+            self.__forward_supervertex__(supervertex_name)
+
+        return self.out_embed_dict[self.task_supervertex_name]
+
+    def __forward_supervertex__(self, supervertex_name: str):
+        assert self.supergraph.supervertex_setting_dict is not None
+
+        supervertex = self.supergraph.supervertex_dict[supervertex_name]
+        model = self.supervertex_module_dict[supervertex_name]
+        mode = self.supergraph.supervertex_setting_dict[supervertex_name].mode
+
+        # internal feature layer
+        x = torch.matmul(supervertex.node_feat, model[-1].embedding)
+
+        # external feature aggregation layers
+        if mode == "add":
+            for idx in range(len(supervertex.in_supervertex_list)):
+                parient_name = supervertex.in_supervertex_list[idx]
+                parient_x = self.out_embed_dict[parient_name]
+                superedge = self.supergraph.superedge_dict[(parient_name, supervertex_name)]
+
+                x += model[idx](parient_x, superedge.edge_index, superedge.edge_weight)
+
+        if mode == "cat":
+            tmp = [x]
+            for idx in range(len(supervertex.in_supervertex_list)):
+                parient_name = supervertex.in_supervertex_list[idx]
+                parient_x = self.out_embed_dict[parient_name]
+                superedge = self.supergraph.superedge_dict[(parient_name, supervertex_name)]
+
+                tmp.append(model[idx](parient_x, superedge.edge_index, superedge.edge_weight))
+            x = torch.cat(tmp, dim=1)
+
+        # internal feature aggregation layers
+        if supervertex.n_edge_type > 1:
+            x = model[-1](
+                x, supervertex.edge_index, supervertex.edge_type, supervertex.range_list, supervertex.edge_weight
+            )
+        else:
+            x = model[-1](x, supervertex.edge_index, supervertex.edge_weight)
+
+        self.out_embed_dict[supervertex_name] = x
 
     def __repr__(self):
         return "{}: ModuleDict(\n{})".format(self.__class__.__name__, self.supervertex_module_dict)
