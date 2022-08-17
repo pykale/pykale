@@ -111,7 +111,6 @@ def test_gripnet_cat():
     setting3 = SuperVertexParaSetting("3", 11, [15, 10], exter_agg_dim={"1": 12, "2": 13}, mode="cat")
 
     supergraph.set_supergraph_para_setting([setting1, setting2, setting3])
-    # TODO: update SuperGraph repr
 
     gripnet = GripNet(supergraph)
 
@@ -120,7 +119,15 @@ def test_gripnet_cat():
     ), "ValueError: invalid exter_agg_dim settings in the task vertex."
 
     y = gripnet()
-    assert y.shape[1] == 11 + 12 + 13 + 15 + 10, "ValueError dimension mismatch in the task vertex"
+
+    error_message = "Dimension mismatch in the task vertex"
+
+    assert gripnet.out_embed_dict["1"].shape[1] == 20 + 10 + 10, error_message
+    assert gripnet.out_embed_dict["2"].shape[1] == 20 + 10 + 10, error_message
+    assert y.shape[1] == 11 + 12 + 13 + 15 + 10, error_message
+
+    # general tests
+    assert gripnet.__repr__() is not None
 
 
 def test_gripnet_add():
