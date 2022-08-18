@@ -25,8 +25,8 @@ def plot_weights(
         background_img (array-like, optional): 2D background image. Defaults to None.
         color_marker_pos (str, optional): Color and marker for weights in positive values. Defaults to red "rs".
         color_marker_neg (str, optional): Color and marker for weights in negative values. Defaults to blue "gs".
-        im_kwargs (dict, optional): Key word arguments for background images. Defaults to None.
-        marker_kwargs (dict, optional): Key word arguments for background images. Defaults to None.
+        im_kwargs (dict, optional): Keyword arguments for background images. Defaults to None.
+        marker_kwargs (dict, optional): Keyword arguments for background images. Defaults to None.
 
     Returns:
         [matplotlib.figure.Figure]: Figure to plot.
@@ -64,6 +64,7 @@ def plot_multi_images(
     marker_cmap=None,
     im_kwargs=None,
     marker_kwargs=None,
+    legend_kwargs=None,
 ):
     """Plot multiple images with markers in one figure.
 
@@ -76,8 +77,9 @@ def plot_multi_images(
         marker_cmap (str, optional): Name of the color map used for plotting markers. Default to None.
         image_titles (list, optional): List of title for each image, where len(image_names) == n_samples.
             Defaults to None.
-        im_kwargs (dict, optional): Key word arguments for plotting images. Defaults to None.
-        marker_kwargs (dict, optional): Key word arguments for background images. Defaults to None.
+        im_kwargs (dict, optional): Keyword arguments for plotting images. Defaults to None.
+        marker_kwargs (dict, optional): Keyword arguments for background images. Defaults to None.
+        legend_kwargs (dict, optional): Keyword arguments for legend. Defaults to None.
 
     Returns:
         [matplotlib.figure.Figure]: Figure to plot.
@@ -93,6 +95,7 @@ def plot_multi_images(
         n_rows = int(n_samples / n_cols) + 1
     im_kwargs = _none2dict(im_kwargs)
     marker_kwargs = _none2dict(marker_kwargs)
+    legend_kwargs = _none2dict(legend_kwargs)
     fig = plt.figure(figsize=(20, 36))
     if image_titles is None:
         image_titles = np.arange(n_samples) + 1
@@ -104,7 +107,6 @@ def plot_multi_images(
         marker_colors = plt.get_cmap(marker_cmap).colors
     else:
         raise ValueError("Unsupported type %s for argument 'marker_cmap'" % type(marker_cmap))
-    annotate_color = "r"
     for i in range(n_samples):
         fig.add_subplot(n_rows, n_cols, i + 1)
         plt.axis("off")
@@ -112,15 +114,20 @@ def plot_multi_images(
         if marker_locs is not None:
             coords = marker_locs[i, :].reshape((-1, 2))
             n_marker = coords.shape[0]
+            if marker_titles is not None and len(marker_titles) == n_marker:
+                plt_legend = True
+            else:
+                plt_legend = False
             for j in range(n_marker):
                 ix = coords[j, 0]
                 iy = coords[j, 1]
                 if marker_colors is not None:
-                    marker_kwargs["markeredgecolor"] = marker_colors[j]
-                    annotate_color = marker_colors[j]
-                plt.plot(ix, iy, **marker_kwargs)
-                if marker_titles is not None and len(marker_titles) == n_marker:
-                    plt.annotate(str(marker_titles[j]), xy=(ix, iy + 5), color=annotate_color)
+                    marker_kwargs["color"] = marker_colors[j]
+                if plt_legend:
+                    marker_kwargs["label"] = marker_titles[j]
+                plt.scatter(ix, iy, **marker_kwargs)
+            if plt_legend:
+                plt.legend(**legend_kwargs)
         plt.title(image_titles[i])
 
     return fig
@@ -147,8 +154,8 @@ def distplot_1d(
         title (str, optional): Title of the plot. Defaults to None.
         figsize (tuple, optional): Figure size. Defaults to None.
         colors (str, optional): Color of the line. Defaults to None.
-        title_kwargs (dict, optional): Key word arguments for title. Defaults to None.
-        hist_kwargs (dict, optional): Key word arguments for histogram. Defaults to None.
+        title_kwargs (dict, optional): Keyword arguments for title. Defaults to None.
+        hist_kwargs (dict, optional): Keyword arguments for histogram. Defaults to None.
 
     Returns:
         [matplotlib.figure.Figure]: Figure to plot.
