@@ -155,9 +155,9 @@ class SuperVertexParaSetting(object):
 
         Args:
             supervertex_name (str): the name of the supervertex.
-            inter_feat_dim (int): the dimension of the output of the internal feature layer.
-            inter_agg_dim (List[int]): the output dimensions of a sequence of internal aggregation layers.
-            exter_agg_dim (Dict[str, int], optional): the dimension of received message vector from parent supervertices.
+            internal_feat_channels (int): the dimension of the output of the internal feature layer.
+            internal_agg_channels_list (List[int]): the output dimensions of a sequence of internal aggregation layers.
+            external_agg_channels_dict (Dict[str, int], optional): the dimension of received message vector from parent supervertices.
                 Defaults to None.
             mode (str, optinal): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
             num_bases (int, optional): the umber of bases used for basis-decomposition if the
@@ -168,20 +168,20 @@ class SuperVertexParaSetting(object):
     def __init__(
         self,
         supervertex_name: str,
-        inter_feat_dim: int,
-        inter_agg_dim: List[int],
-        exter_agg_dim: Dict[str, int] = None,
+        internal_feat_channels: int,
+        internal_agg_channels_list: List[int],
+        external_agg_channels_dict: Dict[str, int] = None,
         mode: str = None,
         num_bases: int = 32,
         concat_output: bool = True,
     ) -> None:
         self.supervertex_name = supervertex_name
-        self.inter_feat_dim = inter_feat_dim
-        self.inter_agg_dim = inter_agg_dim
+        self.internal_feat_channels = internal_feat_channels
+        self.internal_agg_channels_list = internal_agg_channels_list
         self.mode = mode
         self.num_bases = num_bases
         self.concat_output = concat_output
-        self.exter_agg_dim = exter_agg_dim
+        self.external_agg_channels_dict = external_agg_channels_dict
 
         # check whether the mode is valid
         if self.mode is not None and self.mode not in ["cat", "add"]:
@@ -208,8 +208,8 @@ class SuperGraph(object):
         supervertex_setting_dict: Dict[str, SuperVertexParaSetting] = None,
     ) -> None:
 
-        self.supervertex_dict = {sv.name: sv for sv in supervertex_list}
-        self.superedge_dict = {se.direction: se for se in superedge_list}
+        self.supervertex_dict = {supervertex.name: supervertex for supervertex in supervertex_list}
+        self.superedge_dict = {superedge.direction: superedge for superedge in superedge_list}
         self.supervertex_setting_dict = supervertex_setting_dict
 
         self.__process_supergraph__()

@@ -265,7 +265,7 @@ class GripNetInternalModule(Module):
         super(GripNetInternalModule, self).__init__()
         # in and out dimension
         self.in_channels = in_channels
-        self.out_channels = setting.inter_agg_dim[-1]
+        self.out_channels = setting.internal_agg_channels_list[-1]
 
         self.num_edge_type = num_edge_type
         self.if_multirelational = 1 if num_edge_type > 1 else 0
@@ -278,7 +278,7 @@ class GripNetInternalModule(Module):
     def __init_inter_feat_layer__(self):
         """internal feature layer"""
 
-        self.embedding = torch.nn.Parameter(torch.Tensor(self.in_channels, self.setting.inter_feat_dim))
+        self.embedding = torch.nn.Parameter(torch.Tensor(self.in_channels, self.setting.internal_feat_channels))
         self.embedding.requires_grad = True
 
         # reset parameters to be normally distributed
@@ -288,7 +288,7 @@ class GripNetInternalModule(Module):
         """internal aggregation layers"""
 
         # compute the dim of input of the first internal aggregation layer
-        self.in_agg_dim = self.setting.inter_feat_dim
+        self.in_agg_channels = self.setting.internal_feat_channels
         if not self.start_supervertex:
             if self.setting.mode not in ["cat", "add"]:
                 error_msg = f"The mode {self.setting.mode} is not supported. Please use cat or add."
@@ -296,21 +296,21 @@ class GripNetInternalModule(Module):
                 raise ValueError(error_msg)
 
             if self.setting.mode == "cat":
-                if not self.setting.exter_agg_dim:
-                    error_msg = "The exter_agg_dim is not set."
+                if not self.setting.external_agg_channels_dict:
+                    error_msg = "The external_agg_channels_dict is not set."
                     logging.error(error_msg)
                     raise ValueError(error_msg)
-                self.in_agg_dim += sum(self.setting.exter_agg_dim.values())
+                self.in_agg_channels += sum(self.setting.external_agg_channels_dict.values())
             else:
-                tmp = set([self.in_agg_dim] + list(self.setting.exter_agg_dim.values()))
+                tmp = set([self.in_agg_channels] + list(self.setting.external_agg_channels_dict.values()))
                 if len(tmp) != 1:
-                    error_msg = "The in_agg_dim should be the same as any element in exter_agg_dim."
+                    error_msg = "The in_agg_channels should be the same as any element in external_agg_channels_dict."
                     logging.error(error_msg)
                     raise ValueError(error_msg)
 
         # create and initialize the internal aggregation layers
-        self.num_inter_agg_layer = len(self.setting.inter_agg_dim)
-        tmp_dim = [self.in_agg_dim] + self.setting.inter_agg_dim
+        self.num_inter_agg_layer = len(self.setting.internal_agg_channels_list)
+        tmp_dim = [self.in_agg_channels] + self.setting.internal_agg_channels_list
 
         if self.setting.concat_output:
             self.out_channels = sum(tmp_dim)
@@ -393,7 +393,7 @@ class GripNetInternalModule(Module):
         tmp = [f"\n    ({i}): {l}" for i, l in enumerate(self.inter_agg_layers)]
 
         return "{}: ModuleList(\n  (0): InternalFeatureLayer: Embedding({}, {})\n  (1): InternalFeatureAggerationModule: ModuleList({}\n  )\n)".format(
-            self.__class__.__name__, self.in_channels, self.setting.inter_feat_dim, "".join(tmp)
+            self.__class__.__name__, self.in_channels, self.setting.internal_feat_channels, "".join(tmp)
         )
 
 
@@ -487,12 +487,12 @@ class GripNet(Module):
             for in_name in supervertex.in_supervertex_list:
                 in_channels = self.supervertex_module_dict[in_name][-1].out_channels
 
-                if setting.exter_agg_dim is None:
+                if setting.external_agg_channels_dict is None:
                     error_msg = "The external aggregation dimension should be specified."
                     logging.error(error_msg)
                     raise ValueError(error_msg)
 
-                out_channels = setting.exter_agg_dim[in_name]
+                out_channels = setting.external_agg_channels_dict[in_name]
                 module_list.append(GripNetExternalModule(in_channels, out_channels, supervertex.num_node))
 
         # add the internal module
@@ -532,8 +532,7 @@ class GripNet(Module):
                 superedge = self.supergraph.superedge_dict[(parent_name, supervertex_name)]
 
                 x += model[idx](parent_x, superedge.edge_index, superedge.edge_weight)
-
-        if mode == "cat":
+        elif mode == "cat":
             tmp = [x]
             for idx in range(len(supervertex.in_supervertex_list)):
                 parent_name = supervertex.in_supervertex_list[idx]

@@ -65,10 +65,10 @@ def test_supergraph():
 
 
 def test_supervertex_para_setting():
-    """Test the supervertex parameter setting with and without exter_agg_dim and mode."""
+    """Test the supervertex parameter setting with and without external_agg_channels_dict and mode."""
 
     setting1 = SuperVertexParaSetting("2", 20, [10, 10])
-    setting2 = SuperVertexParaSetting("3", 20, [15, 10], exter_agg_dim={"sv1": 20, "sv2": 20}, mode="cat")
+    setting2 = SuperVertexParaSetting("3", 20, [15, 10], external_agg_channels_dict={"sv1": 20, "sv2": 20}, mode="cat")
 
     supergraph = SuperGraph([supervertex2, supervertex3], [superedge2], [setting1, setting2])
     assert supergraph.supervertex_setting_dict

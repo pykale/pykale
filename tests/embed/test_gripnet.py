@@ -47,7 +47,7 @@ supervertex1 = SuperVertex("1", node_feat, edge_index)
 supervertex2 = SuperVertex("2", node_feat, edge_index, edge_type)
 supervertex3 = SuperVertex("3", node_feat, edge_index, edge_type)
 
-# determine the supervertices among them
+# determine the superedges among them
 edge_index = torch.tensor([[0, 1, 2, 3], [1, 1, 3, 3]])
 
 superedge1 = SuperEdge(supervertex1.name, supervertex3.name, edge_index)
@@ -74,7 +74,9 @@ def test_gripnet_internal_module1():
 def test_gripnet_internal_module2():
     """GripNet Internal Module Test for end supervertex"""
 
-    setting2 = SuperVertexParaSetting("task_supervertex", 20, [15, 10], exter_agg_dim={"1": 20, "2": 20}, mode="cat")
+    setting2 = SuperVertexParaSetting(
+        "task_supervertex", 20, [15, 10], external_agg_channels_dict={"1": 20, "2": 20}, mode="cat"
+    )
     inter_module2 = GripNetInternalModule(
         supervertex3.num_node_feat, supervertex3.num_edge_type, supervertex3.start_supervertex, setting2
     )
@@ -111,14 +113,14 @@ def test_gripnet(mode, test_in_channels, test_out_channels):
     """GripNet Test"""
     setting1 = SuperVertexParaSetting("1", 20, [10, 10])
     setting2 = SuperVertexParaSetting("2", 20, [10, 10])
-    setting3 = SuperVertexParaSetting("3", 30, [15, 10], exter_agg_dim={"1": 30, "2": 30}, mode=mode)
+    setting3 = SuperVertexParaSetting("3", 30, [15, 10], external_agg_channels_dict={"1": 30, "2": 30}, mode=mode)
 
     supergraph.set_supergraph_para_setting([setting1, setting2, setting3])
     gripnet = GripNet(supergraph)
 
     assert (
         gripnet.supervertex_module_dict["3"][-1].inter_agg_layers[0].in_channels == test_in_channels
-    ), "ValueError: invalid exter_agg_dim settings in the task vertex."
+    ), "ValueError: invalid external_agg_channels_dict settings in the task vertex."
 
     y = gripnet()
     error_message = "ValueError: dimension mismatch in the task vertex"
