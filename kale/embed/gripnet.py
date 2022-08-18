@@ -265,7 +265,7 @@ class GripNetInternalModule(Module):
         super(GripNetInternalModule, self).__init__()
         # in and out dimension
         self.in_channels = in_channels
-        self.out_channels = setting.internal_agg_channels_list[-1]
+        self.out_channels = setting.inter_agg_channels_list[-1]
 
         self.num_edge_type = num_edge_type
         self.if_multirelational = 1 if num_edge_type > 1 else 0
@@ -278,7 +278,7 @@ class GripNetInternalModule(Module):
     def __init_inter_feat_layer__(self):
         """internal feature layer"""
 
-        self.embedding = torch.nn.Parameter(torch.Tensor(self.in_channels, self.setting.internal_feat_channels))
+        self.embedding = torch.nn.Parameter(torch.Tensor(self.in_channels, self.setting.inter_feat_channels))
         self.embedding.requires_grad = True
 
         # reset parameters to be normally distributed
@@ -288,29 +288,29 @@ class GripNetInternalModule(Module):
         """internal aggregation layers"""
 
         # compute the dim of input of the first internal aggregation layer
-        self.in_agg_channels = self.setting.internal_feat_channels
+        self.in_agg_channels = self.setting.inter_feat_channels
         if not self.start_supervertex:
             if self.setting.mode not in ["cat", "add"]:
-                error_msg = f"The mode {self.setting.mode} is not supported. Please use cat or add."
+                error_msg = "`mode` value is invalid. Use 'cat' or 'add'."
                 logging.error(error_msg)
                 raise ValueError(error_msg)
 
             if self.setting.mode == "cat":
-                if not self.setting.external_agg_channels_dict:
-                    error_msg = "The external_agg_channels_dict is not set."
+                if not self.setting.exter_agg_channels_dict:
+                    error_msg = "`exter_agg_channels_dict` is not set."
                     logging.error(error_msg)
                     raise ValueError(error_msg)
-                self.in_agg_channels += sum(self.setting.external_agg_channels_dict.values())
+                self.in_agg_channels += sum(self.setting.exter_agg_channels_dict.values())
             else:
-                tmp = set([self.in_agg_channels] + list(self.setting.external_agg_channels_dict.values()))
+                tmp = set([self.in_agg_channels] + list(self.setting.exter_agg_channels_dict.values()))
                 if len(tmp) != 1:
-                    error_msg = "The in_agg_channels should be the same as any element in external_agg_channels_dict."
+                    error_msg = "`in_agg_channels` should be the same as any element in `exter_agg_channels_dict`."
                     logging.error(error_msg)
                     raise ValueError(error_msg)
 
         # create and initialize the internal aggregation layers
-        self.num_inter_agg_layer = len(self.setting.internal_agg_channels_list)
-        tmp_dim = [self.in_agg_channels] + self.setting.internal_agg_channels_list
+        self.num_inter_agg_layer = len(self.setting.inter_agg_channels_list)
+        tmp_dim = [self.in_agg_channels] + self.setting.inter_agg_channels_list
 
         if self.setting.concat_output:
             self.out_channels = sum(tmp_dim)
@@ -361,7 +361,7 @@ class GripNetInternalModule(Module):
 
         if self.if_multirelational:
             if edge_type is None or range_list is None:
-                error_msg = "Both edge_type and range_list are required for multi-relational supervertex."
+                error_msg = "`edge_type` and `range_list` are not set."
                 logging.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -393,7 +393,7 @@ class GripNetInternalModule(Module):
         tmp = [f"\n    ({i}): {l}" for i, l in enumerate(self.inter_agg_layers)]
 
         return "{}: ModuleList(\n  (0): InternalFeatureLayer: Embedding({}, {})\n  (1): InternalFeatureAggerationModule: ModuleList({}\n  )\n)".format(
-            self.__class__.__name__, self.in_channels, self.setting.internal_feat_channels, "".join(tmp)
+            self.__class__.__name__, self.in_channels, self.setting.inter_feat_channels, "".join(tmp)
         )
 
 
@@ -417,13 +417,13 @@ class GripNetExternalModule(Module):
 
         self.exter_agg_layer = GCNEncoderLayer(in_channels, out_channels, cached=True)
 
-    def forward(self, x: torch.Tensor, edge_index: torch.Tensor, edge_weight: torch.Tensor = None, relu=True):
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor, edge_weight: torch.Tensor = None, use_relu=True):
         """
         Args:
             x (torch.Tensor): the input node feature embedding.
             edge_index (torch.Tensor): edge index in COO format with shape [2, #edges].
             edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
-            relu (bool, optional): if use ReLU before returning node feature embeddings. Defaults to True.
+            use_relu (bool, optional): whether to use ReLU before returning node feature embeddings. Defaults to True.
         """
 
         n_source, n_feat = x.shape
@@ -433,7 +433,7 @@ class GripNetExternalModule(Module):
         x = torch.cat([x, torch.zeros((self.num_out_node, n_feat)).to(x.device)], dim=0)
         x = self.exter_agg_layer(x, bigraph_edge_index, edge_weight)[n_source:, :]
 
-        if relu:
+        if use_relu:
             x = F.relu(x, inplace=True)
 
         return x
@@ -468,7 +468,7 @@ class GripNet(Module):
         """check whether the input supergraph has parameter settings"""
 
         if self.supergraph.supervertex_setting_dict is None:
-            error_msg = "The supergraph should have parameter settings."
+            error_msg = "`supervertex_setting_dict` is not set."
             logging.error(error_msg)
             raise ValueError(error_msg)
 
@@ -487,12 +487,12 @@ class GripNet(Module):
             for in_name in supervertex.in_supervertex_list:
                 in_channels = self.supervertex_module_dict[in_name][-1].out_channels
 
-                if setting.external_agg_channels_dict is None:
-                    error_msg = "The external aggregation dimension should be specified."
+                if setting.exter_agg_channels_dict is None:
+                    error_msg = "`exter_agg_channels_dict` is not set."
                     logging.error(error_msg)
                     raise ValueError(error_msg)
 
-                out_channels = setting.external_agg_channels_dict[in_name]
+                out_channels = setting.exter_agg_channels_dict[in_name]
                 module_list.append(GripNetExternalModule(in_channels, out_channels, supervertex.num_node))
 
         # add the internal module
@@ -506,7 +506,7 @@ class GripNet(Module):
 
     def forward(self):
         if self.supergraph.supervertex_setting_dict is None:
-            error_msg = "The supergraph should have parameter settings."
+            error_msg = "`supervertex_setting_dict` is not set."
             logging.error(error_msg)
             raise ValueError(error_msg)
 

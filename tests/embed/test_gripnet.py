@@ -61,14 +61,14 @@ def test_gripnet(mode, test_in_channels, test_out_channels):
 
     setting1 = SuperVertexParaSetting("1", 20, [10, 10])
     setting2 = SuperVertexParaSetting("2", 20, [10, 10])
-    setting3 = SuperVertexParaSetting("3", 30, [15, 10], external_agg_channels_dict={"1": 30, "2": 30}, mode=mode)
+    setting3 = SuperVertexParaSetting("3", 30, [15, 10], exter_agg_channels_dict={"1": 30, "2": 30}, mode=mode)
 
     supergraph.set_supergraph_para_setting([setting1, setting2, setting3])
     gripnet = GripNet(supergraph)
 
     assert (
         gripnet.supervertex_module_dict["3"][-1].inter_agg_layers[0].in_channels == test_in_channels
-    ), "ValueError: invalid external_agg_channels_dict settings in the task vertex."
+    ), "ValueError: invalid exter_agg_channels_dict settings in the task vertex."
 
     y = gripnet()
     error_message = "ValueError: dimension mismatch in the task vertex"

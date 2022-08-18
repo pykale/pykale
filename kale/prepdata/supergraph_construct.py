@@ -82,7 +82,7 @@ class SuperVertex(object):
 
             # check whether the index of edge type is continuous and starts from 0
             if self.num_edge_type != unique_edge_type.max() + 1:
-                error_msg = "The index of edge type is not continuous and starts from 0."
+                error_msg = "`edge_type` is not set correctly. It should be continuous and start from 0."
                 logging.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -98,9 +98,9 @@ class SuperVertex(object):
         idx = 0
         range_list = [[0, 0]]
 
-        for i, edgetype in enumerate(self.edge_type):
-            if edgetype != idx:
-                idx = edgetype
+        for i, edge_type in enumerate(self.edge_type):
+            if edge_type != idx:
+                idx = edge_type
                 range_list[-1][1] = i
                 range_list.append([i, i])
 
@@ -155,37 +155,37 @@ class SuperVertexParaSetting(object):
 
         Args:
             supervertex_name (str): the name of the supervertex.
-            internal_feat_channels (int): the dimension of the output of the internal feature layer.
-            internal_agg_channels_list (List[int]): the output dimensions of a sequence of internal aggregation layers.
-            external_agg_channels_dict (Dict[str, int], optional): the dimension of received message vector from parent supervertices.
+            inter_feat_channels (int): the dimension of the output of the internal feature layer.
+            inter_agg_channels_list (List[int]): the output dimensions of a sequence of internal aggregation layers.
+            exter_agg_channels_dict (Dict[str, int], optional): the dimension of received message vector from parent supervertices.
                 Defaults to None.
             mode (str, optinal): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
-            num_bases (int, optional): the umber of bases used for basis-decomposition if the
+            num_bases (int, optional): the number of bases used for basis-decomposition if the
                 supervertex is multi-relational. Defaults to 32.
-            concat_output (bool, optional): whether concatenate the output of each layers. Defaults to True.
+            concat_output (bool, optional): whether to concatenate the output of each layers. Defaults to True.
         """
 
     def __init__(
         self,
         supervertex_name: str,
-        internal_feat_channels: int,
-        internal_agg_channels_list: List[int],
-        external_agg_channels_dict: Dict[str, int] = None,
+        inter_feat_channels: int,
+        inter_agg_channels_list: List[int],
+        exter_agg_channels_dict: Dict[str, int] = None,
         mode: str = None,
         num_bases: int = 32,
         concat_output: bool = True,
     ) -> None:
         self.supervertex_name = supervertex_name
-        self.internal_feat_channels = internal_feat_channels
-        self.internal_agg_channels_list = internal_agg_channels_list
+        self.inter_feat_channels = inter_feat_channels
+        self.inter_agg_channels_list = inter_agg_channels_list
         self.mode = mode
         self.num_bases = num_bases
         self.concat_output = concat_output
-        self.external_agg_channels_dict = external_agg_channels_dict
+        self.exter_agg_channels_dict = exter_agg_channels_dict
 
         # check whether the mode is valid
         if self.mode is not None and self.mode not in ["cat", "add"]:
-            error_msg = "The mode is not valid. It should be 'cat' or 'add'."
+            error_msg = "`mode` value is invalid. It should be 'cat' or 'add'."
             logging.error(error_msg)
             raise ValueError(error_msg)
 
