@@ -250,7 +250,7 @@ class SuperGraph(object):
                 sv.start_supervertex = False
 
     def set_supergraph_para_setting(self, supervertex_setting_list: List[SuperVertexParaSetting]):
-        """Set the parameter settings of the supergraph
+        """Set the parameters of the supergraph.
 
         Args:
             supervertex_setting_list (list[SuperVertexParaSetting]): a list of parameter settings for each supervertex.
