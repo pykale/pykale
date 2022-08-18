@@ -106,9 +106,7 @@ def test_gripnet_external_module():
     assert y.shape[1] == 7
 
 
-@pytest.mark.parametrize("mode", ["cat", "add"])
-@pytest.mark.parametrize("test_in_channels", [90, 30])
-@pytest.mark.parametrize("test_out_channels", [115, 55])
+@pytest.mark.parametrize("mode,test_in_channels,test_out_channels", [("cat", 90, 115), ("add", 30, 55)])
 def test_gripnet(mode, test_in_channels, test_out_channels):
     """GripNet Test"""
     setting1 = SuperVertexParaSetting("1", 20, [10, 10])
