@@ -39,15 +39,16 @@ def main():
     cfg.freeze()
     print(cfg)
 
-    save_images = cfg.OUTPUT.SAVE_IMAGES
-    print(f"Save Images: {save_images}")
+    save_figs = cfg.OUTPUT.SAVE_FIG
+    fig_format = cfg.SAVE_FIG_KWARGS.format
+    print(f"Save Figures: {save_figs}")
 
     # ---- initialize folder to store images ----
-    save_images_location = cfg.OUTPUT.ROOT
-    print(f"Save Images: {save_images_location}")
+    save_figures_location = cfg.OUTPUT.ROOT
+    print(f"Save Figures: {save_figures_location}")
 
-    if not os.path.exists(save_images_location):
-        os.makedirs(save_images_location)
+    if not os.path.exists(save_figures_location):
+        os.makedirs(save_figures_location)
 
     # ---- setup dataset ----
     base_dir = cfg.DATASET.BASE_DIR
@@ -79,8 +80,8 @@ def main():
         marker_name = " ".join(marker_name)
         markers.append(marker_name)
 
-    if save_images:
-        n_img_per_fig = 35
+    if save_figs:
+        n_img_per_fig = 45
         n_figures = int(n_samples / n_img_per_fig) + 1
         for k in range(n_figures):
             visualize.plot_multi_images(
@@ -92,48 +93,42 @@ def main():
                 marker_titles=markers,
                 image_titles=list(patient_ids[k * n_img_per_fig : min((k + 1) * n_img_per_fig, n_samples)]),
                 n_cols=5,
-            ).savefig(str(save_images_location) + "/0)landmark_visualization_%s_of_%s.png" % (k + 1, n_figures))
+            ).savefig(
+                str(save_figures_location) + "/0)landmark_visualization_%s_of_%s.%s" % (k + 1, n_figures, fig_format),
+                **dict(cfg.SAVE_FIG_KWARGS),
+            )
 
     # ---- data pre-processing ----
     # ----- image registration -----
     img_reg, max_dist = reg_img_stack(images.copy(), landmarks, landmarks[0])
-    if save_images:
-        visualize.plot_multi_images(
-            [img_reg[i][0, ...] for i in range(n_samples)],
-            im_kwargs=dict(cfg.IM_KWARGS),
-            n_cols=10,
-            image_titles=list(patient_ids),
-        ).savefig(str(save_images_location) + "/1)image_registration")
+    plt_kawargs = dict(cfg.PLT_KWARGS)
+    plt_kawargs["im_kwargs"] = dict(cfg.IM_KWARGS)
+    plt_kawargs["image_titles"] = list(patient_ids)
+    if save_figs:
+        visualize.plot_multi_images([img_reg[i][0, ...] for i in range(n_samples)], **plt_kawargs).savefig(
+            str(save_figures_location) + "/1)image_registration.%s" % fig_format, **dict(cfg.SAVE_FIG_KWARGS)
+        )
 
     # ----- masking -----
     img_masked = mask_img_stack(img_reg.copy(), mask)
-    if save_images:
-        visualize.plot_multi_images(
-            [img_masked[i][0, ...] for i in range(n_samples)],
-            im_kwargs=dict(cfg.IM_KWARGS),
-            n_cols=10,
-            image_titles=list(patient_ids),
-        ).savefig(str(save_images_location) + "/2)masking")
+    if save_figs:
+        visualize.plot_multi_images([img_masked[i][0, ...] for i in range(n_samples)], **plt_kawargs).savefig(
+            str(save_figures_location) + "/2)masking.%s" % fig_format, **dict(cfg.SAVE_FIG_KWARGS)
+        )
 
     # ----- resize -----
     img_rescaled = rescale_img_stack(img_masked.copy(), scale=1 / cfg.PROC.SCALE)
-    if save_images:
-        visualize.plot_multi_images(
-            [img_rescaled[i][0, ...] for i in range(n_samples)],
-            im_kwargs=dict(cfg.IM_KWARGS),
-            n_cols=10,
-            image_titles=list(patient_ids),
-        ).savefig(str(save_images_location) + "/3)resize")
+    if save_figs:
+        visualize.plot_multi_images([img_rescaled[i][0, ...] for i in range(n_samples)], **plt_kawargs).savefig(
+            str(save_figures_location) + "/3)resize.%s" % fig_format, **dict(cfg.SAVE_FIG_KWARGS)
+        )
 
     # ----- normalization -----
     img_norm = normalize_img_stack(img_rescaled.copy())
-    if save_images:
-        visualize.plot_multi_images(
-            [img_norm[i][0, ...] for i in range(n_samples)],
-            im_kwargs=dict(cfg.IM_KWARGS),
-            n_cols=10,
-            image_titles=list(patient_ids),
-        ).savefig(str(save_images_location) + "/4)normalize")
+    if save_figs:
+        visualize.plot_multi_images([img_norm[i][0, ...] for i in range(n_samples)], **plt_kawargs).savefig(
+            str(save_figures_location) + "/4)normalize.%s" % fig_format, **dict(cfg.SAVE_FIG_KWARGS)
+        )
 
     # ---- evaluating machine learning pipeline ----
     x = np.concatenate([img_norm[i].reshape((1,) + img_norm[i].shape) for i in range(n_samples)], axis=0)
@@ -152,13 +147,13 @@ def main():
     weights = rescale_img_stack(weights, cfg.PROC.SCALE)  # rescale weights to original shape
     weights = mask_img_stack(weights, mask)  # masking weights
     top_weights = model_weights.select_top_weight(weights, select_ratio=0.02)  # select top 2% weights
-    if save_images:
+    if save_figs:
         visualize.plot_weights(
             top_weights[0][0],
             background_img=images[0][0],
             im_kwargs=dict(cfg.IM_KWARGS),
             marker_kwargs=dict(cfg.WEIGHT_KWARGS),
-        ).savefig(str(save_images_location) + "/5)weights")
+        ).savefig(str(save_figures_location) + "/5)weights.%s" % fig_format, **dict(cfg.SAVE_FIG_KWARGS))
 
 
 if __name__ == "__main__":

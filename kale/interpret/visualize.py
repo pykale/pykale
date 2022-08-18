@@ -25,8 +25,8 @@ def plot_weights(
         background_img (array-like, optional): 2D background image. Defaults to None.
         color_marker_pos (str, optional): Color and marker for weights in positive values. Defaults to red "rs".
         color_marker_neg (str, optional): Color and marker for weights in negative values. Defaults to blue "gs".
-        im_kwargs (dict, optional): Key word arguments for background images. Defaults to None.
-        marker_kwargs (dict, optional): Key word arguments for background images. Defaults to None.
+        im_kwargs (dict, optional): Keyword arguments for background images. Defaults to None.
+        marker_kwargs (dict, optional): Keyword arguments for background images. Defaults to None.
 
     Returns:
         [matplotlib.figure.Figure]: Figure to plot.
@@ -77,9 +77,9 @@ def plot_multi_images(
         marker_cmap (str, optional): Name of the color map used for plotting markers. Default to None.
         image_titles (list, optional): List of title for each image, where len(image_names) == n_samples.
             Defaults to None.
-        im_kwargs (dict, optional): Key word arguments for plotting images. Defaults to None.
-        marker_kwargs (dict, optional): Key word arguments for background images. Defaults to None.
-        legend_kwargs (dict, optional): Key word arguments for legend. Defaults to None.
+        im_kwargs (dict, optional): Keyword arguments for plotting images. Defaults to None.
+        marker_kwargs (dict, optional): Keyword arguments for background images. Defaults to None.
+        legend_kwargs (dict, optional): Keyword arguments for legend. Defaults to None.
 
     Returns:
         [matplotlib.figure.Figure]: Figure to plot.
@@ -154,8 +154,8 @@ def distplot_1d(
         title (str, optional): Title of the plot. Defaults to None.
         figsize (tuple, optional): Figure size. Defaults to None.
         colors (str, optional): Color of the line. Defaults to None.
-        title_kwargs (dict, optional): Key word arguments for title. Defaults to None.
-        hist_kwargs (dict, optional): Key word arguments for histogram. Defaults to None.
+        title_kwargs (dict, optional): Keyword arguments for title. Defaults to None.
+        hist_kwargs (dict, optional): Keyword arguments for histogram. Defaults to None.
 
     Returns:
         [matplotlib.figure.Figure]: Figure to plot.

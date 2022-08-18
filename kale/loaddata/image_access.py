@@ -390,7 +390,7 @@ def check_dicom_series_uid(dcm_phases, sort_instance=True):
 
 def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False, check_series_uid=False):
     """Read dicom files for multiple patients and multiple instances / phases from a given directory arranged in the
-        following structure: ::
+        following structure:
 
             root/patient_a/.../phase_1.dcm
             root/patient_a/.../phase_2.dcm

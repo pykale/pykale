@@ -45,6 +45,9 @@ _C.WEIGHT_KWARGS = CN()
 _C.WEIGHT_KWARGS.markersize = 6
 _C.WEIGHT_KWARGS.alpha = 0.7
 
+_C.PLT_KWARGS = CN()
+_C.PLT_KWARGS.n_cols = 10
+
 # ---------------------------------------------------------------------------- #
 # Machine learning pipeline
 # ---------------------------------------------------------------------------- #
@@ -56,7 +59,11 @@ _C.PIPELINE.CLASSIFIER = "linear_svc"  # ["svc", "linear_svc", "lr"]
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CN()
 _C.OUTPUT.ROOT = "./outputs"  # output_dir
-_C.OUTPUT.SAVE_IMAGES = True
+_C.OUTPUT.SAVE_FIG = True
+
+_C.SAVE_FIG_KWARGS = CN()
+_C.SAVE_FIG_KWARGS.format = "pdf"
+_C.SAVE_FIG_KWARGS.bbox_inches = "tight"
 
 
 def get_cfg_defaults():
