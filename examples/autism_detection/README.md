@@ -43,5 +43,4 @@ Machine learning for neuroimaging with scikit-learn. *Frontiers in neuroinformat
 
 [3] Zhou, S., Li, W., Cox, C.R., & Lu, H. (2020). [Side Information Dependence as a Regularizer for Analyzing Human Brain Conditions across Cognitive Experiments](https://ojs.aaai.org//index.php/AAAI/article/view/6179). in *AAAI 2020*, New York, USA.
 
-[4] Zhou, S. (2022). [Interpretable Domain-Aware Learning for Neuroimage Classification](https://etheses.whiterose.ac.uk/31044/1/PhD_thesis_ShuoZhou_170272834.pdf) (Doctoral dissertation,
-University of Sheffield).
+[4] Zhou, S. (2022). [Interpretable Domain-Aware Learning for Neuroimage Classification](https://etheses.whiterose.ac.uk/31044/1/PhD_thesis_ShuoZhou_170272834.pdf) (Doctoral dissertation, University of Sheffield).
