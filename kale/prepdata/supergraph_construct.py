@@ -17,8 +17,8 @@ import torch
 
 class SuperVertex(object):
     r"""
-    The supervertex structure in GripNet. Each supervertex is a subgraph containing nodes with the same category
-    and at least keep semantically-coherent. Supervertices can be homogeneous or heterogeneous.
+    The supervertex structure in GripNet. Each supervertex is a subgraph containing nodes of the same category
+        that are semantically-coherent. Supervertices can be homogeneous or heterogeneous.
 
     Args:
         name (str): the name of the supervertex.
@@ -65,7 +65,7 @@ class SuperVertex(object):
         # initialize in-supervertex and out-supervertex lists
         self.in_supervertex_list: List[str] = []
         self.out_supervertex_list: List[str] = []
-        self.if_start_supervertex = True
+        self.start_supervertex = True
 
         self.__process_edges__()
 
@@ -80,7 +80,7 @@ class SuperVertex(object):
             unique_edge_type = self.edge_type.unique()
             self.num_edge_type = unique_edge_type.shape[0]
 
-            # check if the index of edge type is continuous and starts from 0
+            # check whether the index of edge type is continuous and starts from 0
             if self.num_edge_type != unique_edge_type.max() + 1:
                 error_msg = "The index of edge type is not continuous and starts from 0."
                 logging.error(error_msg)
@@ -98,9 +98,9 @@ class SuperVertex(object):
         idx = 0
         range_list = [[0, 0]]
 
-        for i, et in enumerate(self.edge_type):
-            if et != idx:
-                idx = et
+        for i, edgetype in enumerate(self.edge_type):
+            if edgetype != idx:
+                idx = edgetype
                 range_list[-1][1] = i
                 range_list.append([i, i])
 
@@ -120,7 +120,7 @@ class SuperVertex(object):
 
 class SuperEdge(object):
     r"""
-    The superedge structure in GripNet. Each superedge is a bipartite subgraph containing nodes from two categories
+    A superedge structure in GripNet. Each superedge is a bipartite subgraph containing nodes from two categories
     forming two node sets, connected by edges between them. The superedge can be regards as a heterogeneous graph
     connecting two supervertices.
 
@@ -157,11 +157,12 @@ class SuperVertexParaSetting(object):
             supervertex_name (str): the name of the supervertex.
             inter_feat_dim (int): the dimension of the output of the internal feature layer.
             inter_agg_dim (List[int]): the output dimensions of a sequence of internal aggregation layers.
-            exter_agg_dim (Dict[str, int], optional): the dimension of received message vector from parient supervertices.
+            exter_agg_dim (Dict[str, int], optional): the dimension of received message vector from parent supervertices.
                 Defaults to None.
             mode (str, optinal): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
-            num_bases (int, optional): Number of bases used for basis-decomposition if the supervertex is multi-relational. Defaults to 32.
-            if_catout (bool, optional): if concatenate the output of each layers. Defaults to True.
+            num_bases (int, optional): the umber of bases used for basis-decomposition if the
+                supervertex is multi-relational. Defaults to 32.
+            concat_output (bool, optional): whether concatenate the output of each layers. Defaults to True.
         """
 
     def __init__(
@@ -172,17 +173,17 @@ class SuperVertexParaSetting(object):
         exter_agg_dim: Dict[str, int] = None,
         mode: str = None,
         num_bases: int = 32,
-        if_catout: bool = True,
+        concat_output: bool = True,
     ) -> None:
         self.supervertex_name = supervertex_name
         self.inter_feat_dim = inter_feat_dim
         self.inter_agg_dim = inter_agg_dim
         self.mode = mode
         self.num_bases = num_bases
-        self.if_catout = if_catout
+        self.concat_output = concat_output
         self.exter_agg_dim = exter_agg_dim
 
-        # check if the mode is valid
+        # check whether the mode is valid
         if self.mode is not None and self.mode not in ["cat", "add"]:
             error_msg = "The mode is not valid. It should be 'cat' or 'add'."
             logging.error(error_msg)
@@ -222,7 +223,7 @@ class SuperGraph(object):
         self.G = nx.DiGraph()
         self.G.add_edges_from(self.superedge_dict.keys())
 
-        # check if the graph is a DAG
+        # check whether the graph is a DAG
         if not nx.is_directed_acyclic_graph(self.G):
             error_msg = "The supergraph is not a directed acyclic graph."
             logging.error(error_msg)
@@ -246,7 +247,7 @@ class SuperGraph(object):
         # update if the supervertex is a start supervertex of the supergraph
         for _, sv in self.supervertex_dict.items():
             if sv.in_supervertex_list:
-                sv.if_start_supervertex = False
+                sv.start_supervertex = False
 
     def set_supergraph_para_setting(self, supervertex_setting_list: List[SuperVertexParaSetting]):
         """Set the parameter settings of the supergraph

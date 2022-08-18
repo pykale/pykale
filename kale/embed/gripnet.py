@@ -255,12 +255,12 @@ class GripNetInternalModule(Module):
     Args:
         in_channels (int): the dimension of node features on this supervertex.
         num_edge_type (int): the number of edge types on this supervertex.
-        if_start_svertex (bool): if this supervertex is a start supervertex on the supergraph.
+        start_supervertex (bool): whether this supervertex is a start supervertex on the supergraph.
         setting (SuperVertexParaSetting): supervertex parameter settings.
     """
 
     def __init__(
-        self, in_channels: int, num_edge_type: int, if_start_svertex: bool, setting: SuperVertexParaSetting
+        self, in_channels: int, num_edge_type: int, start_supervertex: bool, setting: SuperVertexParaSetting
     ) -> None:
         super(GripNetInternalModule, self).__init__()
         # in and out dimension
@@ -269,7 +269,7 @@ class GripNetInternalModule(Module):
 
         self.num_edge_type = num_edge_type
         self.if_multirelational = 1 if num_edge_type > 1 else 0
-        self.if_start_svertex = if_start_svertex
+        self.start_supervertex = start_supervertex
         self.setting = setting
 
         self.__init_inter_feat_layer__()
@@ -289,7 +289,7 @@ class GripNetInternalModule(Module):
 
         # compute the dim of input of the first internal aggregation layer
         self.in_agg_dim = self.setting.inter_feat_dim
-        if not self.if_start_svertex:
+        if not self.start_supervertex:
             assert self.setting.mode in [
                 "cat",
                 "add",
@@ -306,7 +306,7 @@ class GripNetInternalModule(Module):
         self.num_inter_agg_layer = len(self.setting.inter_agg_dim)
         tmp_dim = [self.in_agg_dim] + self.setting.inter_agg_dim
 
-        if self.setting.if_catout:
+        if self.setting.concat_output:
             self.out_channels = sum(tmp_dim)
 
         if self.if_multirelational:
@@ -349,7 +349,7 @@ class GripNetInternalModule(Module):
         layer and all external aggregation layers.
         """
 
-        if self.setting.if_catout:
+        if self.setting.concat_output:
             tmp = []
             tmp.append(x)
 
@@ -365,7 +365,7 @@ class GripNetInternalModule(Module):
                 else net(x, edge_index, edge_weight)
             )
             x = F.relu(x, inplace=True)
-            if self.setting.if_catout:
+            if self.setting.concat_output:
                 tmp.append(x)
 
         x = (
@@ -375,7 +375,7 @@ class GripNetInternalModule(Module):
         )
 
         x = F.relu(x, inplace=True)
-        if self.setting.if_catout:
+        if self.setting.concat_output:
             tmp.append(x)
             x = torch.cat(tmp, dim=1)
 
@@ -394,7 +394,7 @@ class GripNetExternalModule(Module):
 
     Args:
         in_channels (int): Size of each input sample. In GripNet, it shold be the dimension of the output embedding of the
-            corresponding parient supervertex.
+            corresponding parent supervertex.
         out_channels (int): Size of each output sample. In GripNet, it is the dimension of the output embedding of
             the supervertex.
         num_out_node (int): the number of output nodes.
@@ -409,13 +409,13 @@ class GripNetExternalModule(Module):
 
         self.exter_agg_layer = GCNEncoderLayer(in_channels, out_channels, cached=True)
 
-    def forward(self, x: torch.Tensor, edge_index: torch.Tensor, edge_weight: torch.Tensor = None, if_relu=True):
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor, edge_weight: torch.Tensor = None, relu=True):
         """
         Args:
             x (torch.Tensor): the input node feature embedding.
             edge_index (torch.Tensor): edge index in COO format with shape [2, #edges].
             edge_weight (torch.Tensor, optional): one-dimensional weight for each edge. Defaults to None.
-            if_relu (bool, optional): if use ReLU before returning node feature embeddings. Defaults to True.
+            relu (bool, optional): if use ReLU before returning node feature embeddings. Defaults to True.
         """
 
         n_source, n_feat = x.shape
@@ -425,7 +425,7 @@ class GripNetExternalModule(Module):
         x = torch.cat([x, torch.zeros((self.num_out_node, n_feat)).to(x.device)], dim=0)
         x = self.exter_agg_layer(x, bigraph_edge_index, edge_weight)[n_source:, :]
 
-        if if_relu:
+        if relu:
             x = F.relu(x, inplace=True)
 
         return x
@@ -457,7 +457,7 @@ class GripNet(Module):
         self.__init_supervertex_module_dict__()
 
     def __check_supergraph__(self) -> None:
-        """Check if the input supergraph has parameter settings"""
+        """check whether the input supergraph has parameter settings"""
 
         if self.supergraph.supervertex_setting_dict is None:
             error_msg = "The supergraph should have parameter settings."
@@ -474,7 +474,7 @@ class GripNet(Module):
     def __init_module_supervertex__(self, supervertex: SuperVertex, setting: SuperVertexParaSetting):
         module_list = torch.nn.ModuleList()
 
-        if not supervertex.if_start_supervertex:
+        if not supervertex.start_supervertex:
             # add the external modules from all parent supervertices
             for in_name in supervertex.in_supervertex_list:
                 in_channels = self.supervertex_module_dict[in_name][-1].out_channels
@@ -486,7 +486,7 @@ class GripNet(Module):
         # add the internal module
         module_list.append(
             GripNetInternalModule(
-                supervertex.num_node_feat, supervertex.num_edge_type, supervertex.if_start_supervertex, setting
+                supervertex.num_node_feat, supervertex.num_edge_type, supervertex.start_supervertex, setting
             )
         )
 
@@ -511,20 +511,20 @@ class GripNet(Module):
         # external feature aggregation layers
         if mode == "add":
             for idx in range(len(supervertex.in_supervertex_list)):
-                parient_name = supervertex.in_supervertex_list[idx]
-                parient_x = self.out_embed_dict[parient_name]
-                superedge = self.supergraph.superedge_dict[(parient_name, supervertex_name)]
+                parent_name = supervertex.in_supervertex_list[idx]
+                parent_x = self.out_embed_dict[parent_name]
+                superedge = self.supergraph.superedge_dict[(parent_name, supervertex_name)]
 
-                x += model[idx](parient_x, superedge.edge_index, superedge.edge_weight)
+                x += model[idx](parent_x, superedge.edge_index, superedge.edge_weight)
 
         if mode == "cat":
             tmp = [x]
             for idx in range(len(supervertex.in_supervertex_list)):
-                parient_name = supervertex.in_supervertex_list[idx]
-                parient_x = self.out_embed_dict[parient_name]
-                superedge = self.supergraph.superedge_dict[(parient_name, supervertex_name)]
+                parent_name = supervertex.in_supervertex_list[idx]
+                parent_x = self.out_embed_dict[parent_name]
+                superedge = self.supergraph.superedge_dict[(parent_name, supervertex_name)]
 
-                tmp.append(model[idx](parient_x, superedge.edge_index, superedge.edge_weight))
+                tmp.append(model[idx](parent_x, superedge.edge_index, superedge.edge_weight))
             x = torch.cat(tmp, dim=1)
 
         # internal feature aggregation layers

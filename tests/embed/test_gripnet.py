@@ -62,7 +62,7 @@ def test_gripnet_internal_module1():
 
     setting1 = SuperVertexParaSetting("start_supervertex", 20, [10, 10])
     inter_module1 = GripNetInternalModule(
-        supervertex1.num_node_feat, supervertex1.num_edge_type, supervertex1.if_start_supervertex, setting1
+        supervertex1.num_node_feat, supervertex1.num_edge_type, supervertex1.start_supervertex, setting1
     )
 
     x = torch.randn(20, 20)
@@ -76,7 +76,7 @@ def test_gripnet_internal_module2():
 
     setting2 = SuperVertexParaSetting("task_supervertex", 20, [15, 10], exter_agg_dim={"1": 20, "2": 20}, mode="cat")
     inter_module2 = GripNetInternalModule(
-        supervertex3.num_node_feat, supervertex3.num_edge_type, supervertex3.if_start_supervertex, setting2
+        supervertex3.num_node_feat, supervertex3.num_edge_type, supervertex3.start_supervertex, setting2
     )
 
     x = torch.randn(20, 20)
