@@ -290,17 +290,23 @@ class GripNetInternalModule(Module):
         # compute the dim of input of the first internal aggregation layer
         self.in_agg_dim = self.setting.inter_feat_dim
         if not self.start_supervertex:
-            assert self.setting.mode in [
-                "cat",
-                "add",
-            ], f"The mode {self.setting.mode} is not supported. Please use cat or add."
+            if self.setting.mode not in ["cat", "add"]:
+                error_msg = f"The mode {self.setting.mode} is not supported. Please use cat or add."
+                logging.error(error_msg)
+                raise ValueError(error_msg)
 
             if self.setting.mode == "cat":
-                assert self.setting.exter_agg_dim, "The exter_agg_dim is not set."
+                if not self.setting.exter_agg_dim:
+                    error_msg = "The exter_agg_dim is not set."
+                    logging.error(error_msg)
+                    raise ValueError(error_msg)
                 self.in_agg_dim += sum(self.setting.exter_agg_dim.values())
             else:
                 tmp = set([self.in_agg_dim] + list(self.setting.exter_agg_dim.values()))
-                assert len(tmp) == 1, "The in_agg_dim should be the same as any element in exter_agg_dim."
+                if len(tmp) != 1:
+                    error_msg = "The in_agg_dim should be the same as any element in exter_agg_dim."
+                    logging.error(error_msg)
+                    raise ValueError(error_msg)
 
         # create and initialize the internal aggregation layers
         self.num_inter_agg_layer = len(self.setting.inter_agg_dim)
@@ -354,8 +360,10 @@ class GripNetInternalModule(Module):
             tmp.append(x)
 
         if self.if_multirelational:
-            assert edge_type is not None
-            assert range_list is not None
+            if edge_type is None or range_list is None:
+                error_msg = "Both edge_type and range_list are required for multi-relational supervertex."
+                logging.error(error_msg)
+                raise ValueError(error_msg)
 
         # internal feature aggregation layers
         for net in self.inter_agg_layers[:-1]:
@@ -479,7 +487,11 @@ class GripNet(Module):
             for in_name in supervertex.in_supervertex_list:
                 in_channels = self.supervertex_module_dict[in_name][-1].out_channels
 
-                assert setting.exter_agg_dim is not None
+                if setting.exter_agg_dim is None:
+                    error_msg = "The external aggregation dimension should be specified."
+                    logging.error(error_msg)
+                    raise ValueError(error_msg)
+
                 out_channels = setting.exter_agg_dim[in_name]
                 module_list.append(GripNetExternalModule(in_channels, out_channels, supervertex.num_node))
 
@@ -493,17 +505,21 @@ class GripNet(Module):
         self.supervertex_module_dict[supervertex.name] = module_list
 
     def forward(self):
+        if self.supergraph.supervertex_setting_dict is None:
+            error_msg = "The supergraph should have parameter settings."
+            logging.error(error_msg)
+            raise ValueError(error_msg)
+
         for supervertex_name in self.supergraph.topological_order:
-            self.__forward_supervertex__(supervertex_name)
+            mode = self.supergraph.supervertex_setting_dict[supervertex_name].mode
+            self.__forward_supervertex__(supervertex_name, mode)
 
         return self.out_embed_dict[self.task_supervertex_name]
 
-    def __forward_supervertex__(self, supervertex_name: str):
-        assert self.supergraph.supervertex_setting_dict is not None
+    def __forward_supervertex__(self, supervertex_name: str, mode: str):
 
         supervertex = self.supergraph.supervertex_dict[supervertex_name]
         model = self.supervertex_module_dict[supervertex_name]
-        mode = self.supergraph.supervertex_setting_dict[supervertex_name].mode
 
         # internal feature layer
         x = torch.matmul(supervertex.node_feat, model[-1].embedding)
