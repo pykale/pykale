@@ -120,8 +120,8 @@ class SuperVertex(object):
 
 class SuperEdge(object):
     r"""
-    A superedge structure in GripNet. Each superedge is a bipartite subgraph containing nodes from two categories
-    forming two node sets, connected by edges between them. The superedge can be regards as a heterogeneous graph
+    The superedge structure in GripNet. Each superedge is a bipartite subgraph containing nodes from two categories
+    forming two node sets, connected by edges between them. A superedge can be regarded as a heterogeneous graph
     connecting two supervertices.
 
     Args:
