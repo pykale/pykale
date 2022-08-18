@@ -1,3 +1,13 @@
+# =============================================================================
+# Author: Hao Xu, xu-hao@ucsd.edu or nyx0flower@gmail.com
+#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# =============================================================================
+
+"""
+The supergraph structure from the `"GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs"
+    <https://doi.org/10.1016/j.patcog.2022.108973>`_ (PatternRecognit 2022) paper.
+"""
+
 import logging
 from typing import Dict, List
 

@@ -1,8 +1,8 @@
 """
-The GripNet is an efficient framework to learn node representations on heterogeneous graphs for the
-downstream link prediction, node classification, and visualization. The code is based on
-the `GripNet
-<https://github.com/NYXFLOWER/GripNet>`_ source repo.
+The GripNet proposed in the `"GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs"
+    <https://doi.org/10.1016/j.patcog.2022.108973>`_ (PatternRecognit 2022) paper, which is an efficient
+    framework to learn node representations on heterogeneous graphs for the downstream link prediction,
+    node classification, and visualization. The code is based on the https://github.com/NYXFLOWER/GripNet.
 """
 
 import logging
@@ -435,11 +435,14 @@ class GripNetExternalModule(Module):
 
 
 class GripNet(Module):
-    """The GripNet model proposed in `"GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs"
-    <https://doi.org/10.1016/j.patcog.2022.108973>`_ (PatternRecognit 2022) paper.
+    r"""The GripNet model.
 
     Args:
         supergraph (SuperGraph): the supergraph.
+
+    Reference:
+        Xu, H., Sang, S., Bai, P., Li, R., Yang, L. and Lu, H., 2022. GripNet: Graph Information
+        Propagation on Supergraph for Heterogeneous Graphs. Pattern Recognition, p.108973.
     """
 
     def __init__(self, supergraph: SuperGraph) -> None:
