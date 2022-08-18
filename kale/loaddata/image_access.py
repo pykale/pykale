@@ -359,9 +359,38 @@ def read_dicom_phases(dicom_path, sort_instance=True):
     return dcm_phases
 
 
-def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
+def check_dicom_series_uid(dcm_phases, sort_instance=True):
+    """Check if all dicom images have the same series UID.
+
+    Args:
+        dcm_phases (list): List of dicom dataset objects (phases)
+        sort_instance (bool, optional): Whether sort images by InstanceNumber (i.e. phase number). Defaults to True.
+
+    Returns:
+        list: List of list(s) dicom phases.
+    """
+    series_ids = [dcm.SeriesInstanceUID for dcm in dcm_phases]
+    unique_ids = np.unique(series_ids)
+    if unique_ids.shape[0] > 1:
+        dcms = {uid: [] for uid in unique_ids}
+        for dcm in dcm_phases:
+            dcms[dcm.SeriesInstanceUID].append(dcm)
+        if sort_instance:
+            for uid in dcms:
+                dcms[uid].sort(key=lambda x: x.InstanceNumber, reverse=False)
+
+        dcms_out = []
+        for uid in dcms:
+            dcms_out.append(dcms[uid])
+    else:
+        dcms_out = [dcm_phases]
+
+    return dcms_out
+
+
+def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False, check_series_uid=False):
     """Read dicom files for multiple patients and multiple instances / phases from a given directory arranged in the
-        following structure: ::
+        following structure:
 
             root/patient_a/.../phase_1.dcm
             root/patient_a/.../phase_2.dcm
@@ -380,6 +409,7 @@ def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
         sort_instance (bool, optional): Whether sort images by InstanceNumber (i.e. phase number) for each subject.
             Defaults to True.
         sort_patient (bool, optional): Whether sort subjects' images by PatientID. Defaults to False.
+        check_series_uid (bool, optional): Whether check if all series UIDs are the same. Defaults to False.
 
     Returns:
         [list[list]]: [a list of dicom dataset lists]
@@ -390,7 +420,12 @@ def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False):
 
     for patient_dir in patient_dirs:
         patient_dcm_list = read_dicom_phases(patient_dir, sort_instance)
-        dcm_patients.append(patient_dcm_list)
+        if check_series_uid:
+            patient_dcm_list = check_dicom_series_uid(patient_dcm_list, sort_instance)
+            for dcm_series_instance in patient_dcm_list:
+                dcm_patients.append(dcm_series_instance)
+        else:
+            dcm_patients.append(patient_dcm_list)
 
     if sort_patient:
         dcm_patients.sort(key=lambda x: x[0].PatientID, reverse=False)
