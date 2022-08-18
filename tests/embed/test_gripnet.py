@@ -104,45 +104,30 @@ def test_gripnet_external_module():
     assert y.shape[1] == 7
 
 
-def test_gripnet_cat():
-    """GripNet Cat Test"""
+@pytest.mark.parametrize("mode", ["cat", "add"])
+@pytest.mark.parametrize("test_in_channels", [90, 30])
+@pytest.mark.parametrize("test_out_channels", [115, 55])
+def test_gripnet(mode, test_in_channels, test_out_channels):
+    """GripNet Test"""
     setting1 = SuperVertexParaSetting("1", 20, [10, 10])
     setting2 = SuperVertexParaSetting("2", 20, [10, 10])
-    setting3 = SuperVertexParaSetting("3", 11, [15, 10], exter_agg_dim={"1": 12, "2": 13}, mode="cat")
+    setting3 = SuperVertexParaSetting("3", 30, [15, 10], exter_agg_dim={"1": 30, "2": 30}, mode=mode)
 
     supergraph.set_supergraph_para_setting([setting1, setting2, setting3])
-
     gripnet = GripNet(supergraph)
 
     assert (
-        gripnet.supervertex_module_dict["3"][-1].inter_agg_layers[0].in_channels == 11 + 12 + 13
+        gripnet.supervertex_module_dict["3"][-1].inter_agg_layers[0].in_channels == test_in_channels
     ), "ValueError: invalid exter_agg_dim settings in the task vertex."
 
     y = gripnet()
-
     error_message = "ValueError: dimension mismatch in the task vertex"
 
-    assert gripnet.out_embed_dict["1"].shape[1] == 20 + 10 + 10, error_message
-    assert gripnet.out_embed_dict["2"].shape[1] == 20 + 10 + 10, error_message
-    assert y.shape[1] == 11 + 12 + 13 + 15 + 10, error_message
+    assert y.shape[1] == test_out_channels, error_message
+
+    if mode == "cat":
+        assert gripnet.out_embed_dict["1"].shape[1] == 20 + 10 + 10, error_message
+        assert gripnet.out_embed_dict["2"].shape[1] == 20 + 10 + 10, error_message
 
     # general tests
     assert gripnet.__repr__() is not None
-
-
-def test_gripnet_add():
-    """GripNet Add Test"""
-    setting1 = SuperVertexParaSetting("1", 20, [10, 10])
-    setting2 = SuperVertexParaSetting("2", 20, [10, 10])
-    setting3 = SuperVertexParaSetting("3", 30, [15, 10], exter_agg_dim={"1": 30, "2": 30}, mode="add")
-
-    supergraph.set_supergraph_para_setting([setting1, setting2, setting3])
-
-    gripnet = GripNet(supergraph)
-
-    assert (
-        gripnet.supervertex_module_dict["3"][-1].inter_agg_layers[0].in_channels == 30
-    ), "ValueError: invalid exter_agg_dim settings in the task vertex."
-
-    y = gripnet()
-    assert y.shape[1] == 30 + 15 + 10, "ValueError: dimension mismatch in the task vertex"
