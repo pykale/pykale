@@ -36,7 +36,7 @@ class SuperVertex(object):
         >>> edge_weight = torch.randn(4)
         >>> # create a supervertex with homogeneous edges
         >>> supervertex_homo = SuperVertex(node_feat, edge_index)
-        >>> # create a supervertex with hetegeneous edges
+        >>> # create a supervertex with heterogeneous edges
         >>> supervertex_hete = SuperVertex(node_feat, edge_index, edge_type)
         >>> # create a supervertex with weighted edges
         >>> supervertex_weight1 = SuperVertex(node_feat, edge_index, edge_weight=edge_weight)
@@ -159,7 +159,7 @@ class SuperVertexParaSetting(object):
             inter_agg_channels_list (List[int]): the output dimensions of a sequence of internal aggregation layers.
             exter_agg_channels_dict (Dict[str, int], optional): the dimension of received message vector from parent supervertices.
                 Defaults to None.
-            mode (str, optinal): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
+            mode (str, optional): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
             num_bases (int, optional): the number of bases used for basis-decomposition if the
                 supervertex is multi-relational. Defaults to 32.
             concat_output (bool, optional): whether to concatenate the output of each layers. Defaults to True.

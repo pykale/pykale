@@ -123,7 +123,7 @@ class GripNetSuperEdges(Module):
     r"""
     The superedges module in GripNet. Each superedges is a bipartite subgraph containing nodes from two categories
     forming two nodes set, connected by edges between them. The superedge can be regards as a heterogeneous graph
-    connecting different supervertexs. It achieves efficient information flow propagation from all parents supervetices
+    connecting different supervetices. It achieves efficient information flow propagation from all parents supervetices
     to target supervertex.
 
     Args:
@@ -268,7 +268,7 @@ class GripNetInternalModule(Module):
         self.out_channels = setting.inter_agg_channels_list[-1]
 
         self.num_edge_type = num_edge_type
-        self.if_multirelational = 1 if num_edge_type > 1 else 0
+        self.multirelational = 1 if num_edge_type > 1 else 0
         self.start_supervertex = start_supervertex
         self.setting = setting
 
@@ -315,7 +315,7 @@ class GripNetInternalModule(Module):
         if self.setting.concat_output:
             self.out_channels = sum(tmp_dim)
 
-        if self.if_multirelational:
+        if self.multirelational:
             # using RGCN if there are multiple edge types
             after_relu = [False if i == 0 else True for i in range(self.num_inter_agg_layer)]
             self.inter_agg_layers = torch.nn.ModuleList(
@@ -359,7 +359,7 @@ class GripNetInternalModule(Module):
             tmp = []
             tmp.append(x)
 
-        if self.if_multirelational:
+        if self.multirelational:
             if edge_type is None or range_list is None:
                 error_msg = "`edge_type` and `range_list` are not set."
                 logging.error(error_msg)
@@ -367,18 +367,14 @@ class GripNetInternalModule(Module):
 
         # internal feature aggregation layers
         for net in self.inter_agg_layers[:-1]:
-            x = (
-                net(x, edge_index, edge_type, range_list)
-                if self.if_multirelational
-                else net(x, edge_index, edge_weight)
-            )
+            x = net(x, edge_index, edge_type, range_list) if self.multirelational else net(x, edge_index, edge_weight)
             x = F.relu(x, inplace=True)
             if self.setting.concat_output:
                 tmp.append(x)
 
         x = (
             self.inter_agg_layers[-1](x, edge_index, edge_type, range_list)
-            if self.if_multirelational
+            if self.multirelational
             else self.inter_agg_layers[-1](x, edge_index, edge_weight)
         )
 
@@ -392,7 +388,7 @@ class GripNetInternalModule(Module):
     def __repr__(self):
         tmp = [f"\n    ({i}): {l}" for i, l in enumerate(self.inter_agg_layers)]
 
-        return "{}: ModuleList(\n  (0): InternalFeatureLayer: Embedding({}, {})\n  (1): InternalFeatureAggerationModule: ModuleList({}\n  )\n)".format(
+        return "{}: ModuleList(\n  (0): InternalFeatureLayer: Embedding({}, {})\n  (1): InternalFeatureAggregationModule: ModuleList({}\n  )\n)".format(
             self.__class__.__name__, self.in_channels, self.setting.inter_feat_channels, "".join(tmp)
         )
 
@@ -401,7 +397,7 @@ class GripNetExternalModule(Module):
     """The internal module of a supervertex, which is an external feature layer.
 
     Args:
-        in_channels (int): Size of each input sample. In GripNet, it shold be the dimension of the output embedding of the
+        in_channels (int): Size of each input sample. In GripNet, it should be the dimension of the output embedding of the
             corresponding parent supervertex.
         out_channels (int): Size of each output sample. In GripNet, it is the dimension of the output embedding of
             the supervertex.
@@ -532,7 +528,7 @@ class GripNet(Module):
                 superedge = self.supergraph.superedge_dict[(parent_name, supervertex_name)]
 
                 x += model[idx](parent_x, superedge.edge_index, superedge.edge_weight)
-        elif mode == "cat":
+        else:
             tmp = [x]
             for idx in range(len(supervertex.in_supervertex_list)):
                 parent_name = supervertex.in_supervertex_list[idx]
