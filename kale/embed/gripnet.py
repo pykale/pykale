@@ -290,23 +290,22 @@ class GripNetInternalModule(Module):
         # compute the dim of input of the first internal aggregation layer
         self.in_agg_channels = self.setting.inter_feat_channels
         if not self.start_supervertex:
-            if self.setting.mode not in ["cat", "add"]:
-                error_msg = "`mode` value is invalid. Use 'cat' or 'add'."
-                logging.error(error_msg)
-                raise ValueError(error_msg)
-
             if self.setting.mode == "cat":
                 if not self.setting.exter_agg_channels_dict:
                     error_msg = "`exter_agg_channels_dict` is not set."
                     logging.error(error_msg)
                     raise ValueError(error_msg)
                 self.in_agg_channels += sum(self.setting.exter_agg_channels_dict.values())
-            else:
+            elif self.setting.mode == "add":
                 tmp = set([self.in_agg_channels] + list(self.setting.exter_agg_channels_dict.values()))
                 if len(tmp) != 1:
                     error_msg = "`in_agg_channels` should be the same as any element in `exter_agg_channels_dict`."
                     logging.error(error_msg)
                     raise ValueError(error_msg)
+            else:
+                error_msg = "`mode` value is invalid. Use 'cat' or 'add'."
+                logging.error(error_msg)
+                raise ValueError(error_msg)
 
         # create and initialize the internal aggregation layers
         self.num_inter_agg_layer = len(self.setting.inter_agg_channels_list)
