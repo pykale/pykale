@@ -2,7 +2,7 @@
 
 ### 1. Description
 
-This example demonstrates domain adaptation methods on random generated toy data.
+This example demonstrates domain adaptation methods on the generated toy data.
 
 ### 2. Usage
 
