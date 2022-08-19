@@ -32,7 +32,7 @@ PyKale provides six installation options for different user needs:
 
 - `default`: `pip install pykale` for essential functionality
 - `graph`: `pip install pykale[graph]` for graph-related functionality (e.g., [TDC](https://tdcommons.ai/))
-- `image`: `pip install pykale[image]` for medical imaging-related functionality (e.g., [DICOM](https://en.wikipedia.org/wiki/DICOM))
+- `image`: `pip install pykale[image]` for image-related functionality (e.g., [DICOM](https://en.wikipedia.org/wiki/DICOM))
 - `example`: `pip install pykale[example]` for examples and tutorials
 - `full`: `pip install pykale[full]` for all functionality, including examples and tutorials
 - `dev`: `pip install pykale[dev]` for development, including all functionality, examples, and tutorials
