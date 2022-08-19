@@ -33,8 +33,8 @@ graph_requires = [
     "PyTDC",
 ]
 
-# Dependencies for medical image analysis
-medim_requires = [
+# Dependencies for image analysis
+image_requires = [
     "glob2",
     "pydicom",
     "pylibjpeg",
@@ -58,7 +58,7 @@ example_requires = [
 ]
 
 # Full dependencies except for development
-full_requires = graph_requires + medim_requires + example_requires
+full_requires = graph_requires + image_requires + example_requires
 
 # Additional dependencies for development
 dev_requires = full_requires + [
@@ -121,7 +121,7 @@ setup(
     install_requires=install_requires,
     extras_require={
         "graph": graph_requires,
-        "medim": medim_requires,
+        "image": image_requires,
         "example": example_requires,
         "full": full_requires,
         "dev": dev_requires,

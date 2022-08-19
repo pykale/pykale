@@ -1,5 +1,5 @@
 from kale.embed.seq_nn import CNNEncoder
-from kale.pipeline.deep_dti import DeepDTATrainer
+from kale.pipeline.deepdta import DeepDTATrainer
 from kale.predict.decode import MLPDecoder
 
 
