@@ -6,13 +6,13 @@ Preprocess Data
 Submodules
 ----------
 
-kale.prepdata.video\_transform module
--------------------------------------
+kale.prepdata.chem\_transform module
+------------------------------------
 
-.. automodule:: kale.prepdata.video_transform
-	:members:
-	:exclude-members:
-	:show-inheritance:
+.. automodule:: kale.prepdata.chem_transform
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 kale.prepdata.image\_transform module
 -------------------------------------
@@ -22,6 +22,13 @@ kale.prepdata.image\_transform module
    :undoc-members:
    :show-inheritance:
 
+kale.prepdata.supergraph\_construct module
+-------------------------------------
+
+.. automodule:: kale.prepdata.supergraph_construct
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 kale.prepdata.tensor\_reshape module
 ------------------------------------
@@ -31,13 +38,13 @@ kale.prepdata.tensor\_reshape module
    :undoc-members:
    :show-inheritance:
 
-kale.prepdata.chem\_transform module
-------------------------------------
+kale.prepdata.video\_transform module
+-------------------------------------
 
-.. automodule:: kale.prepdata.chem_transform
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. automodule:: kale.prepdata.video_transform
+	:members:
+	:exclude-members:
+	:show-inheritance:
 
 Module contents
 ---------------
