@@ -6,7 +6,7 @@ Pipeline
 Submodules
 ----------
 
-kale.pipeline.deep_dti module
+kale.pipeline.deepdta module
 ------------------------------------
 
 .. automodule:: kale.pipeline.deep_dti
