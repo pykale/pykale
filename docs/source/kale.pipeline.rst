@@ -9,7 +9,7 @@ Submodules
 kale.pipeline.deepdta module
 ------------------------------------
 
-.. automodule:: kale.pipeline.deep_dti
+.. automodule:: kale.pipeline.deepdta
    :members:
    :undoc-members:
    :show-inheritance:
