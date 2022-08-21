@@ -67,8 +67,9 @@ for image in frames:
 # Without these three, VideoFrameDataset will not work.
 torchvision >= 0.10.0
 torch >= 1.9.0
-python >= 3.7
+python >= 3.7,<=3.9
 ```
+
 ### 2. Custom Dataset
 (This description explains using custom datasets where each sample has a single class label. If you want to know how to
 use a dataset where a sample can have more than a single class label, read this anyways and then read `6.` below)
