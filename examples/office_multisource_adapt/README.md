@@ -3,7 +3,7 @@
 ### 1. Description
 
 This example demonstrates multi-source domain adaptation methods with application in image object detection/recognition
-on office-caltech dataset.
+on [office-caltech dataset](https://github.com/pykale/data/tree/main/images/office).
 
 ### 2. Usage
 
@@ -24,22 +24,15 @@ on office-caltech dataset.
 
 `kale.embed.image_cnn`: Extract features from small-size (32x32) images using CNN.
 
-`kale.loaddata.image_access`: Data loaders for digits datasets.
-
 `kale.loaddata.image_access`: General APIs for data loaders of image datasets.
 
-`kale.loaddata.mnistm`: Data loader for the [modified MNIST data](https://github.com/zumpchke/keras_mnistm).
-
 `kale.loaddata.multi_domain`: Construct the dataset for (multiple) source and target domains.
-
-`kale.loaddata.usps`: Data loader for the [USPS data](https://git-disl.github.io/GTDLBench/datasets/usps_dataset/).
 
 `kale.pipeline.multi_domain_adapter`: Multi-source domain adaptation pipelines for image classification.
 
 `kale.predict.class_domain_nets`: Classifiers for data or domain.
 
 `kale.prepdata.image_transform`: Transforms for image data.
-
 
 ### 4. References
 
