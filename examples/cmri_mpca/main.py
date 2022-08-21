@@ -87,9 +87,9 @@ def main():
             visualize.plot_multi_images(
                 [images[i][0, ...] for i in range(k * n_img_per_fig, min((k + 1) * n_img_per_fig, n_samples))],
                 marker_locs=landmarks[k * n_img_per_fig : min((k + 1) * n_img_per_fig, n_samples), :],
-                im_kwargs=dict(cfg.IM_KWARGS),
+                im_kwargs=dict(cfg.PLT_KWS.IM),
                 marker_cmap="Set1",
-                marker_kwargs=dict(cfg.MARKER_KWARGS),
+                marker_kwargs=dict(cfg.PLT_KWS.MARKER),
                 marker_titles=markers,
                 image_titles=list(patient_ids[k * n_img_per_fig : min((k + 1) * n_img_per_fig, n_samples)]),
                 n_cols=5,
@@ -101,7 +101,7 @@ def main():
     # ---- data pre-processing ----
     # ----- image registration -----
     img_reg, max_dist = reg_img_stack(images.copy(), landmarks, landmarks[0])
-    plt_kawargs = {**{"im_kwargs": dict(cfg.IM_KWARGS), "image_titles": list(patient_ids)}, **dict(cfg.PLT_KWARGS)}
+    plt_kawargs = {**{"im_kwargs": dict(cfg.PLT_KWS.IM), "image_titles": list(patient_ids)}, **dict(cfg.PLT_KWS.PLT)}
     if save_figs:
         visualize.plot_multi_images([img_reg[i][0, ...] for i in range(n_samples)], **plt_kawargs).savefig(
             str(save_figures_location) + "/1)image_registration.%s" % fig_format, **dict(cfg.SAVE_FIG_KWARGS)
@@ -149,8 +149,8 @@ def main():
         visualize.plot_weights(
             top_weights[0][0],
             background_img=images[0][0],
-            im_kwargs=dict(cfg.IM_KWARGS),
-            marker_kwargs=dict(cfg.WEIGHT_KWARGS),
+            im_kwargs=dict(cfg.PLT_KWS.IM),
+            marker_kwargs=dict(cfg.PLT_KWS.WEIGHT),
         ).savefig(str(save_figures_location) + "/5)weights.%s" % fig_format, **dict(cfg.SAVE_FIG_KWARGS))
 
 

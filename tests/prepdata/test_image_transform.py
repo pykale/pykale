@@ -46,6 +46,7 @@ def coords():
 def test_reg(images, coords):
     marker_kwargs = {"marker": "+", "color": (1, 1, 1, 0.1), "s": 50}
     im_kwargs = {"cmap": "gray"}
+    title_kwargs = {"fontsize": 20}
     marker_names = ["inf insertion point", "sup insertion point", "RV inf"]
 
     n_samples = len(images)
@@ -57,6 +58,7 @@ def test_reg(images, coords):
         marker_cmap="Set1",
         im_kwargs=im_kwargs,
         marker_kwargs=marker_kwargs,
+        title_kwargs=title_kwargs,
     )
     assert type(fig) == matplotlib.figure.Figure
     with pytest.raises(Exception):
