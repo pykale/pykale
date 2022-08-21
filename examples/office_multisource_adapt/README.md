@@ -2,7 +2,7 @@
 
 ### 1. Description
 
-This example demonstrates multi-source domain adaptation methods with application in image object detection/recognition
+This example demonstrates multi-source domain adaptation methods with application in image recognition
 on [office-caltech dataset](https://github.com/pykale/data/tree/main/images/office).
 
 ### 2. Usage
