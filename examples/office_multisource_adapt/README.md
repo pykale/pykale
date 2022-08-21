@@ -2,7 +2,8 @@
 
 ### 1. Description
 
-This example demonstrates multi-source domain adaptation methods with application in image object detection/recognition.
+This example demonstrates multi-source domain adaptation methods with application in image object detection/recognition
+on office-caltech dataset.
 
 ### 2. Usage
 
@@ -10,7 +11,9 @@ This example demonstrates multi-source domain adaptation methods with applicatio
   * Digits (10 classes), 4 domains: MNIST, Modified MNIST (MNISTM), UPSP, SVHN
   * Office-31 (31 classes), 3 domains: Amazon (A), DSLR (D), Webcam (W)
   * Office-Caltech (10 classes), 4 domains: Amazon (A), DSLR (D), Webcam (W), Caltech (C)
-* Algorithms: M3SDA, MFSAN
+* Algorithms:
+  * Moment matching for multi-source domain adaptation (M3SDA)
+  * Multiple Feature Spaces Adaptation Network (MFSAN)
 * Example: Caltech, DSLR, and Webcam (three sources) to Amazon (target) using M3SDA and MFSAN
 
 `python main.py --cfg configs/Office2A-M3SDA.yaml --gpus 1`
@@ -36,3 +39,10 @@ This example demonstrates multi-source domain adaptation methods with applicatio
 `kale.predict.class_domain_nets`: Classifiers for data or domain.
 
 `kale.prepdata.image_transform`: Transforms for image data.
+
+
+### 4. References
+
+[1] Peng, X., Bai, Q., Xia, X., Huang, Z., Saenko, K., & Wang, B. (2019). [Moment matching for multi-source domain adaptation](https://openaccess.thecvf.com/content_ICCV_2019/html/Peng_Moment_Matching_for_Multi-Source_Domain_Adaptation_ICCV_2019_paper.html). In *ICCV 2019* (pp. 1406-1415).
+
+[2] Zhu, Y., Zhuang, F. and Wang, D. (2019). [Aligning domain-specific distribution and classifier for cross-domain classification from multiple sources](https://ojs.aaai.org/index.php/AAAI/article/view/4551). In *AAAI 2019* (pp. 5989-5996).
