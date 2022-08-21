@@ -1,3 +1,34 @@
+# Version  0.1.1
+
+
+#### New Features
+
+
+* [#340](https://github.com/pykale/pykale/pull/340): Update reading DICOM and marker visualization
+
+#### Bug Fixes
+
+
+* [#339](https://github.com/pykale/pykale/pull/339): Add setup options and improve docs
+
+#### Code Improvements
+
+
+* [#341](https://github.com/pykale/pykale/pull/341): Update Colab installation, add notebook hook, correct deepdta, and improve docs
+
+#### Documentation Updates
+
+
+* [#337](https://github.com/pykale/pykale/pull/337): Update GripNet example and contributing guidelines
+* [#343](https://github.com/pykale/pykale/pull/343): Add missing comma to bibtex and clarify python version supported
+
+#### Other Changes
+
+* [#336](https://github.com/pykale/pykale/pull/336): Release 0.1.0
+* [#338](https://github.com/pykale/pykale/pull/338): Improve GripNet implementation
+* [#342](https://github.com/pykale/pykale/pull/342): Add arguments to visualize, rename examples, and update docs
+
+
 # Version  0.1.0
 
 #### New Features
