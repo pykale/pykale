@@ -62,9 +62,11 @@ def plot_multi_images(
     image_titles=None,
     marker_titles=None,
     marker_cmap=None,
+    figsize=None,
     im_kwargs=None,
     marker_kwargs=None,
     legend_kwargs=None,
+    title_kwargs=None,
 ):
     """Plot multiple images with markers in one figure.
 
@@ -77,9 +79,11 @@ def plot_multi_images(
         marker_cmap (str, optional): Name of the color map used for plotting markers. Default to None.
         image_titles (list, optional): List of title for each image, where len(image_names) == n_samples.
             Defaults to None.
+        figsize (tuple, optional): Figure size. Defaults to None.
         im_kwargs (dict, optional): Keyword arguments for plotting images. Defaults to None.
         marker_kwargs (dict, optional): Keyword arguments for background images. Defaults to None.
         legend_kwargs (dict, optional): Keyword arguments for legend. Defaults to None.
+        title_kwargs (dict, optional): Keyword arguments for title. Defaults to None.
 
     Returns:
         [matplotlib.figure.Figure]: Figure to plot.
@@ -96,7 +100,10 @@ def plot_multi_images(
     im_kwargs = _none2dict(im_kwargs)
     marker_kwargs = _none2dict(marker_kwargs)
     legend_kwargs = _none2dict(legend_kwargs)
-    fig = plt.figure(figsize=(20, 36))
+    title_kwargs = _none2dict(title_kwargs)
+    if figsize is None:
+        figsize = (20, 36)
+    fig = plt.figure(figsize=figsize)
     if image_titles is None:
         image_titles = np.arange(n_samples) + 1
     elif type(image_titles) != list or len(image_titles) != n_samples:
@@ -128,7 +135,7 @@ def plot_multi_images(
                 plt.scatter(ix, iy, **marker_kwargs)
             if plt_legend:
                 plt.legend(**legend_kwargs)
-        plt.title(image_titles[i])
+        plt.title(image_titles[i], **title_kwargs)
 
     return fig
 
