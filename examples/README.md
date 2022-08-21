@@ -2,7 +2,7 @@
 
 Get started with these examples that demonstrate key functionalities of PyKale.
 
-Naming convention: `data_method` or `data_method_lightn` for lightning (optional)
+Naming convention: `data_method` or `problem_method`.
 
 ## Separate data and code
 
