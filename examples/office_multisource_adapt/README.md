@@ -12,8 +12,8 @@ on office-caltech dataset.
   * Office-31 (31 classes), 3 domains: Amazon (A), DSLR (D), Webcam (W)
   * Office-Caltech (10 classes), 4 domains: Amazon (A), DSLR (D), Webcam (W), Caltech (C)
 * Algorithms:
-  * Moment matching for multi-source domain adaptation (M3SDA)
-  * Multiple Feature Spaces Adaptation Network (MFSAN)
+  * [Moment matching for multi-source domain adaptation (M3SDA)](https://openaccess.thecvf.com/content_ICCV_2019/html/Peng_Moment_Matching_for_Multi-Source_Domain_Adaptation_ICCV_2019_paper.html) [[1](#4-references)][[Code](https://github.com/pykale/pykale/blob/main/kale/pipeline/multi_domain_adapter.py#L105)]
+  * [Multiple Feature Spaces Adaptation Network (MFSAN)](https://ojs.aaai.org/index.php/AAAI/article/view/4551) [[2](#4-references)][[Code](https://github.com/pykale/pykale/blob/main/kale/pipeline/multi_domain_adapter.py#L245)]
 * Example: Caltech, DSLR, and Webcam (three sources) to Amazon (target) using M3SDA and MFSAN
 
 `python main.py --cfg configs/Office2A-M3SDA.yaml --gpus 1`
