@@ -8,12 +8,14 @@
 
 -----------------------------------------
 
+<!-- Keep badges to just ONE line, i.e. only the most important badges! -->
 [![tests](https://github.com/pykale/pykale/workflows/test/badge.svg)](https://github.com/pykale/pykale/actions/workflows/test.yml)
-[![Documentation Status](https://readthedocs.org/projects/pykale/badge/?version=latest)](https://pykale.readthedocs.io/en/latest/?badge=latest)
-[![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
 [![codecov](https://codecov.io/gh/pykale/pykale/branch/main/graph/badge.svg?token=jmIYPbA2le)](https://codecov.io/gh/pykale/pykale)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/optuna/optuna)
+[![Python](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)](https://www.python.org)
+[![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
 [![PyPI downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5557244.svg)](https://doi.org/10.5281/zenodo.5557244)
+<!-- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5557244.svg)](https://doi.org/10.5281/zenodo.5557244) -->
 
 [Getting Started](https://github.com/pykale/pykale#how-to-use) |
 [Documentation](https://pykale.readthedocs.io/) |
@@ -45,7 +47,7 @@ See our [arXiv preprint](https://arxiv.org/abs/2106.09756) and four short introd
 
 ### Step 0: Installation
 
-PyKale supports Python 3.6+. Before installing `pykale`, we suggest you to first [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware, and if graphs will be used, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation).
+PyKale supports Python 3.7+. Before installing `pykale`, we suggest you to first [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware, and if graphs will be used, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation).
 
 Simple installation of `pykale` from [PyPI](https://pypi.org/project/pykale/):
 
@@ -79,20 +81,21 @@ See [contributing guidelines](https://github.com/pykale/pykale/blob/main/.github
 
 ### The Team
 
-PyKale is maintained by [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/), [Robert Turner](https://github.com/bobturneruk), [Shuo Zhou](https://sz144.github.io/), [Xianyuan Liu](https://github.com/XianyuanLiu), and [Peizhen Bai](https://github.com/pz-white), with contributions from many other [contributors](https://github.com/pykale/pykale/graphs/contributors).
+PyKale is maintained by [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/), [Shuo Zhou](https://sz144.github.io/), [Xianyuan Liu](https://github.com/XianyuanLiu), and [Peizhen Bai](https://github.com/pz-white), with contributions from many other [contributors](https://github.com/pykale/pykale/graphs/contributors).
 
 ### Citation
 
 ```lang-latex
-    @article{pykale,
-      title   = {PyKale: Knowledge-Aware Machine Learning from Multiple Sources in Python},
-      author  = {Haiping Lu and Xianyuan Liu and Robert Turner and Peizhen Bai and Raivo Koot and Shuo Zhou and Mustafa Chasmai and Lawrence Schobs},
-      journal = {arXiv:2106.09756 [cs.LG]},
-      year    = {2021}
+    @inproceedings{pykale-cikm2022,
+      title     = {{PyKale}: Knowledge-Aware Machine Learning from Multiple Sources in {Python}},
+      author    = {Haiping Lu and Xianyuan Liu and Shuo Zhou and Robert Turner and Peizhen Bai and Raivo Koot and Mustafa Chasmai and Lawrence Schobs and Hao Xu},
+      booktitle = {Proceedings of the 31st ACM International Conference on Information and Knowledge Management (CIKM)},
+      doi       = {10.1145/3511808.3557676}
+      year      = {2022}
     }
 ```
 
-Please cite the preprint above (preferred) or visit [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5557244.svg)](https://doi.org/10.5281/zenodo.5557244) to select your desired citation format (e.g. BibTeX, CSL). This link resolves to the latest release.
+Please consider citing our [CIKM2022 paper](https://doi.org/10.1145/3511808.3557676) above if you find _PyKale_ useful to your research.
 
 ### Acknowledgements
 

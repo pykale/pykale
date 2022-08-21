@@ -1,5 +1,5 @@
 # =============================================================================
-# Author: Shuo Zhou, szhou20@sheffield.ac.uk
+# Author: Shuo Zhou, shuo.zhou@sheffield.ac.uk
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
@@ -26,7 +26,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.svm import LinearSVC, SVC
 from sklearn.utils.validation import check_is_fitted
 
-from ..embed.mpca import MPCA
+from ..embed.factorization import MPCA
 
 param_c_grids = list(np.logspace(-4, 2, 7))
 classifiers = {
@@ -37,7 +37,7 @@ classifiers = {
 
 # k-fold cross validation used for grid search, i.e. searching for optimal value of C
 default_search_params = {"cv": 5}
-default_mpca_params = {"var_ratio": 0.97, "return_vector": True}
+default_mpca_params = {"var_ratio": 0.97, "vectorize": True}
 
 
 class MPCATrainer(BaseEstimator, ClassifierMixin):
@@ -125,7 +125,7 @@ class MPCATrainer(BaseEstimator, ClassifierMixin):
         """
         # fit mpca
         self.mpca.fit(x)
-        self.mpca.set_params(**{"return_vector": True})
+        self.mpca.set_params(**{"vectorize": True})
         x_transformed = self.mpca.transform(x)
 
         # feature selection

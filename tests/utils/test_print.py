@@ -13,7 +13,7 @@ def test_tprint(capsys):
 
 
 def test_pprint(capsys):
-    pprint("hello")  # noqa: T003
+    pprint("hello")  # noqa: T203
     captured = capsys.readouterr()
     assert captured.out == "\rhello\n"
 
