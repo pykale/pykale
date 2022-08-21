@@ -42,7 +42,7 @@ New modules/projects can be built following the steps below.
 
 ### Data
 
-PyKale currently supports graphs, images, texts, and videos, using PyTorch Dataloaders wherever possible. Audios are not supported yet (welcome your contribution).
+PyKale currently supports graphs, images, and videos, using PyTorch Dataloaders wherever possible. Audios are not supported yet (welcome your contribution).
 
 ### Machine learning models
 
