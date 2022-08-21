@@ -2,7 +2,7 @@
 
 ### 1. Description
 
-This example is constructed by refactoring the [ADA: (Yet) Another Domain Adaptation library](https://github.com/criteo-research/pytorch-ada), with many domain adaptation algorithms included and is modified from `digits_dann_lightn`, by replacing the feature extractor and the data loaders for video data.
+This example is constructed by refactoring the [ADA: (Yet) Another Domain Adaptation library](https://github.com/criteo-research/pytorch-ada), with many domain adaptation algorithms included and is modified from `digits_dann`, by replacing the feature extractor and the data loaders for video data.
 
 ### 2. Usage
 
