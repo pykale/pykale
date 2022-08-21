@@ -1,4 +1,8 @@
 repos:
+-   repo: https://github.com/datarootsio/databooks
+    rev: 1.0.5
+    hooks:
+    -   id: databooks-meta
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.4.0
     hooks:
@@ -41,7 +45,3 @@ repos:
     rev: v0.790
     hooks:
     -   id: mypy
--   repo: https://github.com/datarootsio/databooks
-    rev: 1.0.5
-    hooks:
-    -   id: databooks-meta

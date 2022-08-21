@@ -81,7 +81,7 @@ def plot_multi_images(
             Defaults to None.
         figsize (tuple, optional): Figure size. Defaults to None.
         im_kwargs (dict, optional): Keyword arguments for plotting images. Defaults to None.
-        marker_kwargs (dict, optional): Keyword arguments for background images. Defaults to None.
+        marker_kwargs (dict, optional): Keyword arguments for markers. Defaults to None.
         legend_kwargs (dict, optional): Keyword arguments for legend. Defaults to None.
         title_kwargs (dict, optional): Keyword arguments for title. Defaults to None.
 

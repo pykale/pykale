@@ -101,7 +101,7 @@ def main():
     # ---- data pre-processing ----
     # ----- image registration -----
     img_reg, max_dist = reg_img_stack(images.copy(), landmarks, landmarks[0])
-    plt_kawargs = {**{"im_kwargs": dict(cfg.PLT_KWS.IM), "image_titles": list(patient_ids)}, **dict(cfg.PLT_KWS)}
+    plt_kawargs = {**{"im_kwargs": dict(cfg.PLT_KWS.IM), "image_titles": list(patient_ids)}, **dict(cfg.PLT_KWS.PLT)}
     if save_figs:
         visualize.plot_multi_images([img_reg[i][0, ...] for i in range(n_samples)], **plt_kawargs).savefig(
             str(save_figures_location) + "/1)image_registration.%s" % fig_format, **dict(cfg.SAVE_FIG_KWARGS)

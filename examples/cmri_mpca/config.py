@@ -31,7 +31,8 @@ _C.PROC.SCALE = 2
 # Visualization
 # ---------------------------------------------------------------------------- #
 _C.PLT_KWS = CN()
-_C.PLT_KWS.n_cols = 10
+_C.PLT_KWS.PLT = CN()
+_C.PLT_KWS.PLT.n_cols = 10
 
 _C.PLT_KWS.IM = CN()
 _C.PLT_KWS.IM.cmap = "gray"
