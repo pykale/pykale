@@ -47,7 +47,7 @@ See our [arXiv preprint](https://arxiv.org/abs/2106.09756) and four short introd
 
 ### Step 0: Installation
 
-PyKale supports Python 3.7+. Before installing `pykale`, we suggest you to first [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware, and if graphs will be used, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation).
+PyKale supports Python 3.7, 3.8, or 3.9. Before installing `pykale`, we suggest you to first [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware, and if graphs will be used, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation).
 
 Simple installation of `pykale` from [PyPI](https://pypi.org/project/pykale/):
 
@@ -90,7 +90,7 @@ PyKale is maintained by [Haiping Lu](http://staffwww.dcs.shef.ac.uk/people/H.Lu/
       title     = {{PyKale}: Knowledge-Aware Machine Learning from Multiple Sources in {Python}},
       author    = {Haiping Lu and Xianyuan Liu and Shuo Zhou and Robert Turner and Peizhen Bai and Raivo Koot and Mustafa Chasmai and Lawrence Schobs and Hao Xu},
       booktitle = {Proceedings of the 31st ACM International Conference on Information and Knowledge Management (CIKM)},
-      doi       = {10.1145/3511808.3557676}
+      doi       = {10.1145/3511808.3557676},
       year      = {2022}
     }
 ```
