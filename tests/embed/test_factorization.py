@@ -4,9 +4,11 @@ import numpy as np
 import pytest
 from numpy import testing
 from scipy.io import loadmat
+from sklearn.datasets import make_blobs
+from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
 
-from kale.embed.mpca import MPCA
+from kale.embed.factorization import MIDA, MPCA
 from kale.utils.download import download_file_by_url
 
 N_COMPS = [1, 50, 100]
@@ -26,7 +28,7 @@ def baseline_model(download_path):
 def test_mpca(var_ratio, n_components, gait):
     # basic mpca test, return tensor
     x = gait["fea3D"].transpose((3, 0, 1, 2))
-    mpca = MPCA(var_ratio=var_ratio, return_vector=False)
+    mpca = MPCA(var_ratio=var_ratio, vectorize=False)
     x_proj = mpca.fit(x).transform(x)
 
     testing.assert_equal(x_proj.ndim, x.ndim)
@@ -41,7 +43,7 @@ def test_mpca(var_ratio, n_components, gait):
     testing.assert_equal(x_rec.shape, x.shape)
 
     # test return vector
-    mpca.set_params(**{"return_vector": True, "n_components": n_components})
+    mpca.set_params(**{"vectorize": True, "n_components": n_components})
 
     x_proj = mpca.transform(x)
     testing.assert_equal(x_proj.ndim, 2)
@@ -59,7 +61,7 @@ def test_mpca(var_ratio, n_components, gait):
     testing.assert_equal(x0_rec.shape[1:], x[0].shape)
 
     # test n_components exceeds upper limit
-    mpca.set_params(**{"return_vector": True, "n_components": np.prod(x.shape[1:]) + 1})
+    mpca.set_params(**{"vectorize": True, "n_components": np.prod(x.shape[1:]) + 1})
     x_proj = mpca.transform(x)
     testing.assert_equal(x_proj.shape[1], np.prod(mpca.shape_out))
 
@@ -80,3 +82,27 @@ def test_mpca_against_baseline(gait, baseline_model):
         # check whether each eigen-vector column is equal to/opposite of corresponding baseline eigen-vector column
         # testing.assert_allclose(abs(mpca.proj_mats[i]), abs(baseline_proj_mats[i]))
         testing.assert_allclose(mpca.proj_mats[i] ** 2, baseline_proj_mats[i] ** 2, rtol=relative_tol)
+
+
+@pytest.mark.parametrize("kernel", ["linear", "rbf"])
+@pytest.mark.parametrize("augmentation", [True, False])
+def test_mida(kernel, augmentation):
+    np.random.seed(29118)
+    # Generate toy data
+    n_samples = 200
+
+    xs, ys = make_blobs(n_samples, n_features=3, centers=[[0, 0, 0], [0, 2, 1]], cluster_std=[0.3, 0.35])
+    xt, yt = make_blobs(n_samples, n_features=3, centers=[[2, -2, 2], [2, 0.2, -1]], cluster_std=[0.35, 0.4])
+    x = np.concatenate((xs, xt), axis=0)
+
+    covariates = np.zeros(n_samples * 2)
+    covariates[:n_samples] = 1
+
+    enc = OneHotEncoder(handle_unknown="ignore")
+    covariates_mat = enc.fit_transform(covariates.reshape(-1, 1)).toarray()
+    mida = MIDA(n_components=2, kernel=kernel, augmentation=augmentation)
+    x_transformed = mida.fit_transform(x, covariates=covariates_mat)
+    testing.assert_equal(x_transformed.shape, (n_samples * 2, 2))
+
+    x_transformed = mida.fit_transform(x, ys, covariates=covariates_mat)
+    testing.assert_equal(x_transformed.shape, (n_samples * 2, 2))

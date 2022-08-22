@@ -1,11 +1,15 @@
 # =============================================================================
-# Author: Shuo Zhou, szhou20@sheffield.ac.uk/sz144@outlook.com
+# Author: Shuo Zhou, shuo.zhou@sheffield.ac.uk/sz144@outlook.com
 # =============================================================================
 """Multi-source domain adaptation pipelines
 """
 
 import torch
 import torch.nn as nn
+from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.metrics.pairwise import pairwise_kernels
+from sklearn.preprocessing import LabelBinarizer
+from torch.linalg import multi_dot
 from torch.nn.functional import one_hot
 
 import kale.predict.losses as losses
@@ -105,6 +109,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         Peng, X., Bai, Q., Xia, X., Huang, Z., Saenko, K., & Wang, B. (2019). Moment matching for multi-source
         domain adaptation. In Proceedings of the IEEE/CVF International Conference on Computer Vision
         (pp. 1406-1415).
+        https://openaccess.thecvf.com/content_ICCV_2019/html/Peng_Moment_Matching_for_Multi-Source_Domain_Adaptation_ICCV_2019_paper.html
     """
 
     def __init__(
@@ -243,6 +248,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
 
     Reference: Zhu, Y., Zhuang, F. and Wang, D., 2019, July. Aligning domain-specific distribution and classifier
         for cross-domain classification from multiple sources. In AAAI.
+        https://ojs.aaai.org/index.php/AAAI/article/view/4551
 
     Original implementation: https://github.com/easezyc/deep-transfer-learning/tree/master/MUDA/MFSAN
     """
@@ -333,3 +339,118 @@ class MFSANTrainer(BaseMultiSourceTrainer):
                 cls_disc += torch.mean(torch.abs(cls_disc_))
 
         return cls_disc * 2 / (n_domains * (n_domains - 1))
+
+
+class CoIRLS(BaseEstimator, ClassifierMixin):
+    """Covariate-Independence Regularized Least Squares (CoIRLS)
+
+    Args:
+        kernel (str, optional): {"linear", "rbf", "poly"}. Kernel to use. Defaults to "linear".
+        kernel_kwargs (dict or None, optional): Hyperparameter for the kernel. Defaults to None.
+        alpha (float, optional): Hyperparameter of the l2 (Ridge) penalty. Defaults to 1.0.
+        lambda_ (float, optional): Hyperparameter of the covariate dependence.  Defaults to 1.0.
+
+    Reference:
+        [1] Zhou, S., 2022. Interpretable Domain-Aware Learning for Neuroimage Classification (Doctoral dissertation,
+            University of Sheffield).
+        [2] Zhou, S., Li, W., Cox, C.R., & Lu, H. (2020). Side Information Dependence as a Regularizer for Analyzing
+            Human Brain Conditions across Cognitive Experiments. AAAI 2020, New York, USA.
+    """
+
+    def __init__(self, kernel="linear", kernel_kwargs=None, alpha=1.0, lambda_=1.0):
+        super().__init__()
+        self.kernel = kernel
+        self.model = None
+        self.alpha = alpha
+        self.lambda_ = lambda_
+        if kernel_kwargs is None:
+            self.kernel_kwargs = dict()
+        else:
+            self.kernel_kwargs = kernel_kwargs
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.losses = {"ovr": [], "pred": [], "code": [], "reg": []}
+        self.x = None
+        self._label_binarizer = LabelBinarizer(pos_label=1, neg_label=-1)
+        self.coef_ = None
+
+    def fit(self, x, y, covariates):
+        """fit a model with input data, labels and covariates
+
+        Args:
+            x (np.ndarray or tensor): shape (n_samples, n_features)
+            y (np.ndarray or tensor): shape (n_samples, )
+            covariates (np.ndarray or tensor): (n_samples, n_covariates)
+        """
+        self._label_binarizer.fit(y)
+        x = torch.as_tensor(x)
+        x = torch.cat([x, torch.ones(x.shape[0], 1)], 1)
+        y = torch.as_tensor(y)
+        krnl_x = torch.as_tensor(
+            pairwise_kernels(x.detach().numpy(), metric=self.kernel, filter_params=True, **self.kernel_kwargs),
+            dtype=torch.float,
+        )
+        n_samples = x.shape[0]
+        n_classes = torch.unique(y).shape[0]
+        n_labeled = y.shape[0]
+        unit_mat = torch.eye(n_samples)
+        ctr_mat = unit_mat - 1.0 / n_samples * torch.ones((n_samples, n_samples))
+        mat_j = torch.zeros((n_samples, n_samples))
+        mat_j[:n_labeled, :n_labeled] = torch.eye(n_labeled)
+
+        covariates = torch.as_tensor(covariates, dtype=torch.float)
+        krnl_cov = torch.mm(covariates, covariates.T)
+
+        if n_classes == 2:
+            mat_y = torch.zeros((n_samples, 1))
+        else:
+            mat_y = torch.zeros((n_samples, n_classes))
+        mat_y[:n_labeled, :] = torch.as_tensor(self._label_binarizer.fit_transform(y))
+        mat_y = torch.as_tensor(mat_y)
+
+        mat_q = torch.mm(mat_j, krnl_x) + self.alpha * unit_mat
+        mat_q += self.lambda_ * multi_dot((ctr_mat, krnl_cov, ctr_mat, krnl_x))
+
+        self.coef_ = torch.linalg.solve(mat_q, mat_y)
+
+        self.x = x
+
+    def predict(self, x):
+        """Predict labels for data x
+
+        Args:
+            x (np.ndarray or tensor): Samples need prediction, shape (n_samples, n_features)
+
+        Returns:
+            y (np.ndarray): Predicted labels, shape (n_samples, )
+        """
+        out = self.decision_function(x)
+        if self._label_binarizer.y_type_ == "binary":
+            pred = self._label_binarizer.inverse_transform(torch.sign(out).view(-1))
+        else:
+            pred = self._label_binarizer.inverse_transform(out)
+
+        return pred
+
+    def decision_function(self, x):
+        """Compute decision scores for data x
+
+        Args:
+            x (np.ndarray or tensor): Samples need decision scores, shape (n_samples, n_features)
+
+        Returns:
+            scores (np.ndarray): Decision scores, shape (n_samples, )
+        """
+        x = torch.as_tensor(x)
+        x = torch.cat([x, torch.ones(x.shape[0], 1)], dim=1)
+        krnl_x = torch.as_tensor(
+            pairwise_kernels(
+                x.detach().numpy(),
+                self.x.detach().numpy(),
+                metric=self.kernel,
+                filter_params=True,
+                **self.kernel_kwargs,
+            ),
+            dtype=torch.float,
+        )
+
+        return torch.mm(krnl_x, self.coef_)

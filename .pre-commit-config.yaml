@@ -1,4 +1,8 @@
 repos:
+-   repo: https://github.com/datarootsio/databooks
+    rev: 1.0.5
+    hooks:
+    -   id: databooks-meta
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.4.0
     hooks:
@@ -28,7 +32,6 @@ repos:
     -   id: black
         language_version: python3
         additional_dependencies: ['click==8.0.4']
-
 -   repo: https://github.com/pre-commit/mirrors-isort
     rev: v4.3.21
     hooks:

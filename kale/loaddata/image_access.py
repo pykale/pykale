@@ -1,3 +1,4 @@
+import glob
 import logging
 import os
 from enum import Enum
@@ -336,42 +337,125 @@ def get_cifar(cfg):
     return train_loader, valid_loader
 
 
-def read_dicom_images(dicom_path, sort_instance=True, sort_patient=False):
-    """Read dicom images for multiple patients and multiple instances/phases.
+def read_dicom_phases(dicom_path, sort_instance=True):
+    """Read dicom images of multiple instances/phases for one patient.
 
     Args:
         dicom_path (str): Path to DICOM images.
+        sort_instance (bool, optional): Whether sort images by InstanceNumber (i.e. phase number). Defaults to True.
+
+    Returns:
+        [list]: List of dicom dataset objects
+    """
+    dcm_phases = []  # list of dicom dataset objects (phases)
+    # get all dicom files under the directory
+    phase_files = glob.glob(dicom_path + "/**/*.dcm", recursive=True)
+    for phase_file in phase_files:
+        dataset = pydicom.dcmread(phase_file)
+        dcm_phases.append(dataset)
+    if sort_instance:
+        dcm_phases.sort(key=lambda x: x.InstanceNumber, reverse=False)
+
+    return dcm_phases
+
+
+def check_dicom_series_uid(dcm_phases, sort_instance=True):
+    """Check if all dicom images have the same series UID.
+
+    Args:
+        dcm_phases (list): List of dicom dataset objects (phases)
+        sort_instance (bool, optional): Whether sort images by InstanceNumber (i.e. phase number). Defaults to True.
+
+    Returns:
+        list: List of list(s) dicom phases.
+    """
+    series_ids = [dcm.SeriesInstanceUID for dcm in dcm_phases]
+    unique_ids = np.unique(series_ids)
+    if unique_ids.shape[0] > 1:
+        dcms = {uid: [] for uid in unique_ids}
+        for dcm in dcm_phases:
+            dcms[dcm.SeriesInstanceUID].append(dcm)
+        if sort_instance:
+            for uid in dcms:
+                dcms[uid].sort(key=lambda x: x.InstanceNumber, reverse=False)
+
+        dcms_out = []
+        for uid in dcms:
+            dcms_out.append(dcms[uid])
+    else:
+        dcms_out = [dcm_phases]
+
+    return dcms_out
+
+
+def read_dicom_dir(dicom_path, sort_instance=True, sort_patient=False, check_series_uid=False):
+    """Read dicom files for multiple patients and multiple instances / phases from a given directory arranged in the
+        following structure:
+
+            root/patient_a/.../phase_1.dcm
+            root/patient_a/.../phase_2.dcm
+            root/patient_a/.../phase_3.dcm
+
+            root/patient_b/.../phase_1.dcm
+            root/patient_b/.../phase_2.dcm
+            root/patient_b/.../phase_3.dcm
+
+            root/patient_m/.../phase_1.dcm
+            root/patient_m/.../phase_2.dcm
+            root/patient_m/.../phase_3.dcm
+
+    Args:
+        dicom_path (str): Directory of DICOM files.
         sort_instance (bool, optional): Whether sort images by InstanceNumber (i.e. phase number) for each subject.
             Defaults to True.
         sort_patient (bool, optional): Whether sort subjects' images by PatientID. Defaults to False.
+        check_series_uid (bool, optional): Whether check if all series UIDs are the same. Defaults to False.
 
     Returns:
-        [array-like]: [description]
+        [list[list]]: [a list of dicom dataset lists]
     """
-    sub_dirs = os.listdir(dicom_path)
-    all_ds = []
-    sub_ids = []
-    for sub_dir in sub_dirs:
-        sub_ds = []
-        sub_path = os.path.join(dicom_path, sub_dir)
-        phase_files = os.listdir(sub_path)
-        for phase_file in phase_files:
-            dataset = pydicom.dcmread(os.path.join(sub_path, phase_file))
-            sub_ds.append(dataset)
-        if sort_instance:
-            sub_ds.sort(key=lambda x: x.InstanceNumber, reverse=False)
-        sub_ids.append(int(sub_ds[0].PatientID))
-        all_ds.append(sub_ds)
+    patient_dirs = [os.path.join(dicom_path, patient_dir) for patient_dir in os.listdir(dicom_path)]
+    patient_dirs = filter(os.path.isdir, patient_dirs)
+    dcm_patients = []  # list of dicom dataset patient lists
+
+    for patient_dir in patient_dirs:
+        patient_dcm_list = read_dicom_phases(patient_dir, sort_instance)
+        if check_series_uid:
+            patient_dcm_list = check_dicom_series_uid(patient_dcm_list, sort_instance)
+            for dcm_series_instance in patient_dcm_list:
+                dcm_patients.append(dcm_series_instance)
+        else:
+            dcm_patients.append(patient_dcm_list)
 
     if sort_patient:
-        all_ds.sort(key=lambda x: int(x[0].PatientID), reverse=False)
+        dcm_patients.sort(key=lambda x: x[0].PatientID, reverse=False)
 
-    n_sub = len(all_ds)
-    n_phase = len(all_ds[0])
-    img_shape = all_ds[0][0].pixel_array.shape
-    images = np.zeros((n_sub, n_phase,) + img_shape)
-    for i in range(n_sub):
-        for j in range(n_phase):
-            images[i, j, ...] = all_ds[i][j].pixel_array
+    return dcm_patients
 
-    return images
+
+def dicom2arraylist(dicom_patient_list, return_patient_id=False):
+    """Convert dicom datasets to arrays
+
+    Args:
+        dicom_patient_list (list): List of dicom patient lists.
+        return_patient_id (bool, optional): Whether return PatientID. Defaults to False.
+
+    Returns:
+        list: list of array-like tensors.
+        list (optional): list of PatientIDs.
+    """
+    n_samples = len(dicom_patient_list)
+    image_list = []  # number of phases can be different across patients, using list to avoid the phase dimension issue
+    patient_ids = []
+    for i in range(n_samples):
+        patient_ids.append(dicom_patient_list[i][0].PatientID)
+        n_phases = len(dicom_patient_list[i])
+        img_size = dicom_patient_list[i][0].pixel_array.shape
+        img = np.zeros((n_phases,) + img_size)
+        for j in range(n_phases):
+            img[j, ...] = dicom_patient_list[i][j].pixel_array
+        image_list.append(img)
+    if return_patient_id:
+        return image_list, patient_ids
+    else:
+        return image_list

@@ -1,3 +1,56 @@
+# Version  0.1.0
+
+#### New Features
+
+* [#246](https://github.com/pykale/pykale/pull/246): Add MIDA, CoIRLS, distribution plot, and brain example
+
+#### Bug Fixes
+
+* [#322](https://github.com/pykale/pykale/pull/322): Add pre-commit dependency for black and click
+* [#330](https://github.com/pykale/pykale/pull/330): Fix problems of tests for Python version 3.7, 3.8 and 3.9
+
+#### Code Improvements
+
+* [#284](https://github.com/pykale/pykale/pull/284): Update DICOM reading and image visualization
+* [#320](https://github.com/pykale/pykale/pull/320): Add code scanning
+* [#321](https://github.com/pykale/pykale/pull/321): Fix cardiac MRI example visualization number of columns
+* [#331](https://github.com/pykale/pykale/pull/331): Update cmr example landmark visualization
+
+#### Documentation Updates
+
+* [#333](https://github.com/pykale/pykale/pull/333): Update docs and readme for 0.1.0 release
+
+# Version  0.1.0rc5
+
+#### New Features
+
+* [#251](https://github.com/pykale/pykale/pull/251): MFSAN support 1D input
+* [#273](https://github.com/pykale/pykale/pull/273): Add topk & multitask topk accuracies
+
+#### Bug Fixes
+
+* [#244](https://github.com/pykale/pykale/pull/244): Update getting indicies with torch.where
+* [#254](https://github.com/pykale/pykale/pull/254): Fix bugs for upgrading PyTroch-lightning to 1.5
+* [#256](https://github.com/pykale/pykale/pull/256) & [#257](https://github.com/pykale/pykale/pull/257): Update for PyTorch 1.10 and Torchvision 0.11.1
+* [#286](https://github.com/pykale/pykale/pull/286): Update ipython requirement from <8.0 to <9.0
+
+#### Code Improvements
+
+* [#240](https://github.com/pykale/pykale/pull/240): Refractor the code to save the images instead of opening them at runtime
+* [#271](https://github.com/pykale/pykale/pull/271): Fix doc build, improve docstrings and MPCA pipeline fit efficiency
+* [#272](https://github.com/pykale/pykale/pull/272): Update progress_bar for PyTorch Lightning & change 'target' abbreviation
+* [#283](https://github.com/pykale/pykale/pull/283): "val" in variable names to "valid"
+
+#### Tests
+
+* [#258](https://github.com/pykale/pykale/pull/258): Use pyparsing 2.4.7 in test
+
+#### Documentation Updates
+
+* [#228](https://github.com/pykale/pykale/pull/228): Zenodo json
+* [#243](https://github.com/pykale/pykale/pull/243): Clarify PR template
+* [#282](https://github.com/pykale/pykale/pull/282): Clarify when to request review and prefer just one label
+
 # Version  0.1.0rc4
 
 #### Code Improvements

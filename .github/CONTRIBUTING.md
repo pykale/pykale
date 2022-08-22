@@ -79,6 +79,7 @@ This will install the `pre-commit` hooks at `pykale\.git\hooks`, to be **trigger
 - Pre-commit hooks are configured in [`.pre-commit-config.yaml`](https://github.com/pykale/pykale/blob/main/.pre-commit-config.yaml). Only administrator should modify it.
 - These hooks, e.g.,  [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https://pycqa.github.io/isort/), will **automatically fix** some problems for you by **changing the files**, so please check the changes after you trigger `commit`.
 - If your commits can not pass the above checks, read the error message to see what has been automatically fixed and what needs your manual fix, e.g. flake8 errors. Some flake8 errors may be fixed by some hooks so you can rerun the pre-commit (e.g. re-commit to trigger it) or just run flake8 to see the updated flake8 errors.
+- If your commits can not pass the check for added large files and see the error message of `json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)`, try to upgrade your `git` to a version >= 2.29.2 to fix it.
 
 #### Manual checks and fixes (be *CAREFUL*)
 

@@ -1,0 +1,7 @@
+MODEL:
+  KERNEL: "linear"
+  ALPHA: 1.0
+  LAMBDA_: 1.0
+DATASET:
+  ATLAS: "rois_cc200"
+  SITE_IDS: ['NYU', "UM_1", "UCLA_1", "USM"]

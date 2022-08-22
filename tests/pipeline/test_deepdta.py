@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 
 from kale.embed.seq_nn import CNNEncoder
 from kale.loaddata.tdc_datasets import BindingDBDataset
-from kale.pipeline.deep_dti import BaseDTATrainer, DeepDTATrainer
+from kale.pipeline.deepdta import BaseDTATrainer, DeepDTATrainer
 from kale.predict.decode import MLPDecoder
 
 DATASET = "BindingDB_Kd"
@@ -29,8 +29,8 @@ def test_deep_data(download_path):
     save_parameters = {"seed": 2020, "batch_size": 256}
     model = DeepDTATrainer(drug_encoder, target_encoder, decoder, lr=0.001, ci_metric=True, **save_parameters).eval()
     trainer = pl.Trainer(max_epochs=1, gpus=0)
-    trainer.fit(model, train_dataloader=train_dataloader, val_dataloaders=valid_dataloader)
-    trainer.test(test_dataloaders=test_dataloader)
+    trainer.fit(model, train_dataloaders=train_dataloader, val_dataloaders=valid_dataloader)
+    trainer.test(dataloaders=test_dataloader)
     assert isinstance(model.drug_encoder, CNNEncoder)
     assert isinstance(model.target_encoder, CNNEncoder)
     assert isinstance(model.decoder, MLPDecoder)
