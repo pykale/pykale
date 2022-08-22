@@ -7,7 +7,7 @@ Drug-target interaction prediction is an important research area in the field of
 [DeepDTA](https://academic.oup.com/bioinformatics/article/34/17/i821/5093245) is the modeling of protein sequences and compound 1D
 representations with convolutional neural networks (CNNs). The whole architecture of DeepDTA is shown below.
 
-![DeepDTA](figures/deepdta.png)
+![DeepDTA](https://github.com/hkmztrk/DeepDTA/blob/master/docs/figures/deepdta.PNG)
 
 ### 3. Datasets
 We construct **three datasets** from BindingDB distinguished by different affinity measurement metrics

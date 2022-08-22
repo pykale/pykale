@@ -8,7 +8,7 @@ This also enables more advanced users to establish their own default and add new
 
 ## A simple example
 
-The following example is a simple [YAML file `tutorial.yaml`](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/configs/tutorial.yaml) used by the [digits tutorial notebook](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/tutorial.ipynb):
+The following example is a simple [YAML file `tutorial.yaml`](https://github.com/pykale/pykale/blob/main/examples/digits_dann/configs/tutorial.yaml) used by the [digits tutorial notebook](https://github.com/pykale/pykale/blob/main/examples/digits_dann/tutorial.ipynb):
 
 ```{YAML}
 DAN:
@@ -27,7 +27,7 @@ OUTPUT:
   PB_FRESH: None
 ```
 
-Related configuration settings are grouped together. The group headings and allowed values are stored in a [separate Python file `config.py`](https://github.com/pykale/pykale/blob/main/examples/digits_dann_lightn/config.py) which many users will not need to refer to. The headings and parameters in this example are explained below:
+Related configuration settings are grouped together. The group headings and allowed values are stored in a [separate Python file `config.py`](https://github.com/pykale/pykale/blob/main/examples/digits_dann/config.py) which many users will not need to refer to. The headings and parameters in this example are explained below:
 
 | Heading / Parameter | Meaning | Default |
 | --- | --- | --- |

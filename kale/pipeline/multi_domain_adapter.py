@@ -109,6 +109,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         Peng, X., Bai, Q., Xia, X., Huang, Z., Saenko, K., & Wang, B. (2019). Moment matching for multi-source
         domain adaptation. In Proceedings of the IEEE/CVF International Conference on Computer Vision
         (pp. 1406-1415).
+        https://openaccess.thecvf.com/content_ICCV_2019/html/Peng_Moment_Matching_for_Multi-Source_Domain_Adaptation_ICCV_2019_paper.html
     """
 
     def __init__(
@@ -247,6 +248,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
 
     Reference: Zhu, Y., Zhuang, F. and Wang, D., 2019, July. Aligning domain-specific distribution and classifier
         for cross-domain classification from multiple sources. In AAAI.
+        https://ojs.aaai.org/index.php/AAAI/article/view/4551
 
     Original implementation: https://github.com/easezyc/deep-transfer-learning/tree/master/MUDA/MFSAN
     """

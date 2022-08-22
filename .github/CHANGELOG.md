@@ -1,3 +1,43 @@
+# Version  0.1.1
+
+#### New Features
+
+* [#338](https://github.com/pykale/pykale/pull/338): Improve GripNet implementation
+* [#339](https://github.com/pykale/pykale/pull/339): Add setup options
+* [#340](https://github.com/pykale/pykale/pull/340): Update reading DICOM and marker visualization
+
+#### Code Improvements
+
+* [#341](https://github.com/pykale/pykale/pull/341): Update Colab installation and add notebook hook
+* [#342](https://github.com/pykale/pykale/pull/342): Add arguments to visualize and rename examples
+
+#### Documentation Updates
+
+* [#337](https://github.com/pykale/pykale/pull/337): Update GripNet example name and contributing guidelines
+* [#343](https://github.com/pykale/pykale/pull/343): Clarify python version supported
+
+# Version  0.1.0
+
+#### New Features
+
+* [#246](https://github.com/pykale/pykale/pull/246): Add MIDA, CoIRLS, distribution plot, and brain example
+
+#### Bug Fixes
+
+* [#322](https://github.com/pykale/pykale/pull/322): Add pre-commit dependency for black and click
+* [#330](https://github.com/pykale/pykale/pull/330): Fix problems of tests for Python version 3.7, 3.8 and 3.9
+
+#### Code Improvements
+
+* [#284](https://github.com/pykale/pykale/pull/284): Update DICOM reading and image visualization
+* [#320](https://github.com/pykale/pykale/pull/320): Add code scanning
+* [#321](https://github.com/pykale/pykale/pull/321): Fix cardiac MRI example visualization number of columns
+* [#331](https://github.com/pykale/pykale/pull/331): Update cmr example landmark visualization
+
+#### Documentation Updates
+
+* [#333](https://github.com/pykale/pykale/pull/333): Update docs and readme for 0.1.0 release
+
 # Version  0.1.0rc5
 
 #### New Features
