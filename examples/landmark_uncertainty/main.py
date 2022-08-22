@@ -15,11 +15,10 @@ import seaborn as sns
 from config import get_cfg_defaults
 from pandas import *
 
-from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard, get_mean_errors
-from kale.interpret.uncertainty_quantiles import box_plot, box_plot_per_model, generate_figures_comparing_bins, generate_figures_individual_bin_comparison, plot_cumulative, quantile_binning_and_est_errors
+from kale.interpret.uncertainty_quantiles import generate_figures_individual_bin_comparison, quantile_binning_and_est_errors
 from kale.loaddata.tabular_access import load_csv_columns
 from kale.predict.uncertainty_binning import quantile_binning_predictions
-from kale.prepdata.tabular_transform import apply_confidence_inversion, get_data_struct
+from kale.prepdata.tabular_transform import apply_confidence_inversion
 from kale.utils.download import download_file_by_url
 
 
@@ -162,47 +161,9 @@ def main():
                             ind_landmarks_to_show,
                             pixel_to_mm_scale
                         ],
-                    display_settings = {"cumulative_error": False, "errors": True, "jaccard": True, "error_bounds": True, "correlation": True},
+                    display_settings = {"errors": True, "jaccard": True, "error_bounds": True},
                 )
                 
-
-            #If we are comparing bins against eachother, we need to wait until all the bins have been fitted.
-            if cfg.PIPELINE.COMPARE_Q_VALUES and num_bins == cfg.PIPELINE.NUM_QUANTILE_BINS[-1]:
-
-                for c_model in compare_q_models_to_compare:
-                    for c_er_pair in compare_q_uncertainty_error_pairs:
-                        save_file_preamble = "_".join([cfg.OUTPUT.SAVE_PREPEND,"compQ",c_model ,c_er_pair[0], dataset,"combined" + str(cfg.PIPELINE.COMBINE_MIDDLE_BINS)])
-
-
-                        all_fitted_save_paths = [os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, str(x_bins)+"Bins", "fitted_quantile_binning") for x_bins in cfg.PIPELINE.NUM_QUANTILE_BINS]
-                        
-                        hatch_type = "o" if "PHD-NET" == c_model else ""
-                        color = cmaps[0] if c_er_pair[0]=="S-MHA" else cmaps[1] if c_er_pair[0]=="E-MHA" else cmaps[2] 
-                        save_folder_comparison = os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, "ComparisonBins")
-                        os.makedirs(save_folder_comparison, exist_ok=True)
-
-                        print("Comparison Q figures for: ", c_model, c_er_pair)
-                        generate_figures_comparing_bins(
-                            data=
-                                [
-                                    c_er_pair,
-                                    c_model,
-                                    dataset,
-                                    landmarks,
-                                    cfg.PIPELINE.NUM_QUANTILE_BINS,
-                                    cmaps,
-                                    all_fitted_save_paths,
-                                    save_folder_comparison,
-                                    save_file_preamble,
-                                    cfg,
-                                    show_individual_landmark_plots,
-                                    interpret,
-                                    num_folds,
-                                    ind_landmarks_to_show,
-                                    pixel_to_mm_scale
-                                ],
-                            display_settings = {"cumulative_error": True, "errors": True, "jaccard": True, "error_bounds": True, "hatch":hatch_type, "colour":color},
-                        )
 
             
 
