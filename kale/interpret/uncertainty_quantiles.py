@@ -82,7 +82,6 @@ def quantile_binning_and_est_errors(errors, uncertainties, num_bins, type="quant
     return uncert_boundaries, estimated_errors
 
 
-
 def box_plot(
     cmaps,
     landmark_uncert_dicts,
@@ -239,6 +238,7 @@ def box_plot(
         new_labels = [""] +[ x_axis_labels[0]] + number_blanks_0 + [r"$\rightarrow$"]  +number_blanks_1+ [x_axis_labels[-1] ] + [""]
         ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
 
+    ax.legend(handles=circ_patches, loc=9, fontsize=25, ncol=3, columnspacing=6)
 
     if to_log:
         # ax.set_yscale("log",base=2)
@@ -264,6 +264,7 @@ def box_plot(
         plt.gcf().set_size_inches(16.0, 10.0) 
         plt.show()
         plt.close()
+
 
 
 
@@ -355,6 +356,10 @@ def box_plot_per_model(
                 model_data = landmark_uncert_dicts[dict_key]
                 all_b_data = model_data[j]
 
+                # if j == num_bins-1:
+                #     print("Bin %s (len=%s), model: %s, uncertainty: %s, and mean error: %s" % (j,len(all_b_data), model_type, uncertainty_type, np.mean(all_b_data)))
+                #     print("and all data: ", all_b_data)
+
                 orders.append(model_type + uncertainty_type)
 
                 width = 0.08
@@ -438,7 +443,7 @@ def box_plot_per_model(
     #Show the average samples on top of boxplots, aligned. if lots of bins we can lower the height.
     if show_sample_info != "None":
         if num_bins > 5:
-            max_bin_height = max_bin_height *0.5
+            max_bin_height = max_bin_height *0.8
         else:
             max_bin_height += 0.5
         for idx_text, perc_info in enumerate(all_sample_percs):
@@ -485,7 +490,7 @@ def box_plot_per_model(
     else:
         number_blanks_0 = ["" for x in range(math.floor((num_bins-5)/2))]
         number_blanks_1 = ["" for x in range(num_bins-5 - len(number_blanks_0))]
-        new_labels = [""] +[ x_axis_labels[0]] + number_blanks_0 + [r"$\rightarrow$"]  +number_blanks_1+ [x_axis_labels[1] ] + [""]
+        new_labels = [""] +[ x_axis_labels[0]] + number_blanks_0 + [r"$\rightarrow$"]  +number_blanks_1+ [x_axis_labels[-1] ] + [""]
         ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
 
 
@@ -526,6 +531,7 @@ def box_plot_per_model(
         plt.gcf().set_size_inches(16.0, 10.0) 
         plt.show()
         plt.close()
+
 
 
 

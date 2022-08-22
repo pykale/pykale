@@ -15,11 +15,10 @@ import seaborn as sns
 from config import get_cfg_defaults
 from pandas import *
 
-from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard, get_mean_errors
-from kale.interpret.uncertainty_quantiles import box_plot, box_plot_per_model, generate_figures_comparing_bins, generate_figures_individual_bin_comparison, plot_cumulative, quantile_binning_and_est_errors
+from kale.interpret.uncertainty_quantiles import generate_figures_individual_bin_comparison, quantile_binning_and_est_errors
 from kale.loaddata.tabular_access import load_csv_columns
 from kale.predict.uncertainty_binning import quantile_binning_predictions
-from kale.prepdata.tabular_transform import apply_confidence_inversion, get_data_struct
+from kale.prepdata.tabular_transform import apply_confidence_inversion
 from kale.utils.download import download_file_by_url
 
 

@@ -1,4 +1,9 @@
 import numpy as np
+from scipy import stats
+import pandas as pd
+from kale.prepdata.tabular_transform import apply_confidence_inversion
+
+import os 
 
 def evaluate_bounds(
     estimated_bounds, bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8, show_fig=False, combine_middle_bins=False
@@ -147,6 +152,7 @@ def bin_wise_bound_eval(
 
             pred_bins_errors.append(inner_list_errors)
             pred_bins_keys.append(inner_list_bin)
+
         bins_acc = []
         bins_sizes = []
         # key_groups = []
@@ -259,6 +265,17 @@ def strip_for_bound(string_):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 def get_mean_errors(bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8, pixel_to_mm_scale=1, combine_middle_bins=False):
     """
         Evaluate uncertainty estimation's mean error of each bin
@@ -317,7 +334,7 @@ def get_mean_errors(bin_predictions, uncertainty_pairs, num_bins, landmarks, num
                 fold_bins = data_structs[(data_structs["Testing Fold"] == fold)][
                     ["uid", "landmark", uncertainty_type + " Uncertainty bins"]
                 ]
-
+                # print("\n \n ", up, "fold: ", fold)
                 return_dict = bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_type, pixel_to_mm_scale=pixel_to_mm_scale)
                 fold_mean_landmarks.append(return_dict["mean all lms"])
 
@@ -441,6 +458,7 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
 
                 return_dict = bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_for_quantiles, landmarks, uncertainty_type, combine_middle_bins)
 
+                # print("Fodl: %s , BWJ: %s" % (fold, return_dict))
                 fold_mean_landmarks.append(return_dict["mean all lms"])
                 fold_mean_landmarks_recall.append(return_dict["mean all lms recall"])
                 fold_mean_landmarks_precision.append(return_dict["mean all lms precision"])
@@ -552,13 +570,21 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key
             
             mean_error = np.mean(pred_b_errors)
             
+            # print(uncertainty_key, ": Bin %s and mean error %s +/- %s" % (bin, mean_error, np.std(pred_b_errors)))
             all_qs_error[bin].append(mean_error)
             all_qs_error_concat_lms_sep[i][bin].append(pred_b_errors)
             inner_errors.append(mean_error)
             
+            # print(i, all_qs_error_concat_lms_sep[i])
 
         all_lm_error.append(np.mean(inner_errors))
-
+    # print(all_qs_error_concat_lms_sep)
+    # exit()
+    
+    # print("mean all lms ")
+    # print("mal",mean_all_lms)
+    # print("mean_all_bins ")
+    # print("mab", mean_all_bins)
     mean_all_lms = np.mean(all_lm_error)
     mean_all_bins = [np.mean(x) for x in all_qs_error]
 
@@ -678,7 +704,9 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_quantiles, landm
         pred_bins_errors = pred_bins_errors[::-1]
         errors_groups = errors_groups[::-1]
         key_groups = key_groups[::-1]
+        # print("\n \n", uncertainty_key, ". qauntiles, ", quantiles, " and quantile thresholds: ", quantile_thresholds,)
 
+        # print("sorted errors: ", sorted_errors)
         
         # Now for each bin, get the jaccard similarity
         inner_jaccard_sims = []
@@ -697,6 +725,8 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_quantiles, landm
 
             inner_jaccard_sims.append(j_sim)
 
+            # print("Bin %s, pred keys: %s, GT keys %s" % (bin, pred_b_keys, gt_bins_keys))
+            # print("Pred len %s, GT len %s. Pred errors %s and GT errors %s" % (len(pred_bins_errors[bin]), len(errors_groups[bin]), np.sort(pred_bins_errors[bin]), np.sort(errors_groups[bin])))
             
 
             #If quantile threshold is the same as the last quantile threshold, the GT set is empty (rare, but can happen if distribution of errors is quite uniform).
@@ -716,8 +746,10 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_quantiles, landm
             all_qs_recall[bin].append(recall)
             all_qs_precision[bin].append(precision)
 
+        #     print("recall: ", recall, "precision: ", precision)
 
 
+        # print("Inner jaccard sims: ", inner_jaccard_sims)
         all_lm_jacc.append(np.mean(inner_jaccard_sims))
         all_lm_recall.append(np.mean(inner_recalls))
         all_lm_precision.append(np.mean(inner_precisions))
