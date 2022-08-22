@@ -43,6 +43,7 @@ def quantile_binning_and_est_errors(errors, uncertainties, num_bins, type="quant
     valid_types = {"quantile", "error-wise"}
     if type not in valid_types:
         raise ValueError("results: type must be one of %r. " % valid_types)
+    
 
     # Isotonically regress line
     ir = IsotonicRegression(out_of_bounds="clip", increasing=True)
