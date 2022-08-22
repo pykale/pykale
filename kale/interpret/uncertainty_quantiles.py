@@ -10,10 +10,136 @@ import matplotlib.ticker as ticker
 import numpy as np
 from matplotlib.ticker import ScalarFormatter
 from sklearn.isotonic import IsotonicRegression
+from sklearn.linear_model import LinearRegression
+import pwlf
+import csv
+
 import matplotlib.lines as mlines
-from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard, get_mean_errors
+from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard, evaluate_correlations, get_mean_errors, generate_summary_df
 
 from kale.prepdata.tabular_transform import get_data_struct
+from scipy import stats
+
+def fit_line_with_ci(errors, uncertainties, quantile_thresholds, cmaps, to_log=False, pixel_to_mm= 1.0, save_path=None):
+    """Calculates spearman correlation between errors and uncertainties. Plots piecewise linear regression with bootstrap confidence intervals.
+       Breakpoints in linear regression are defined by the uncertainty quantiles of the data.
+
+    Args:
+        errors (_type_): _description_
+        uncertainties (_type_): _description_
+        quantile_thresholds (_type_): _description_
+        cmaps (_type_): _description_
+        to_log (bool, optional): _description_. Defaults to False.
+        pixel_to_mm (float, optional): _description_. Defaults to 1.0.
+        save_path (_type_, optional): _description_. Defaults to None.
+
+    Returns:
+        _type_: _description_
+    """
+
+
+    plt.figure(figsize=(12,8))
+    ax = plt.gca()
+
+    if to_log:
+        plt.xscale('log', base=2)
+        plt.yscale('log', base=2)
+
+
+    X = uncertainties
+    y = errors * pixel_to_mm
+    plt.xlim(max(X), min(X))
+
+    #Calculate correlations
+    spm_corr, spm_p = stats.spearmanr(X,y, alternative="greater")
+    pear_corr, pear__p = stats.pearsonr(X,y)
+    correlation_dict = {"spearman": [spm_corr,spm_p], "pearson": [pear_corr,pear__p]}
+
+
+
+    #Bootstrap sample for confidence intervals
+    for i in range(0, 1000):
+        sample_index = np.random.choice(range(0, len(y)), int(len(y)*0.6))
+        
+        X_samples = X[sample_index]
+        y_samples = y[sample_index]
+        my_pwlf = pwlf.PiecewiseLinFit(X_samples, y_samples)        
+        my_pwlf.fit_with_breaks(quantile_thresholds)    
+        xHat = np.linspace(min(X), max(X), num=10000)
+        yHat = my_pwlf.predict(xHat)
+
+        #Plot each bootstrap as a grey line
+        plt.plot(xHat[::-1], yHat[::-1], '-', color="grey", alpha=0.2, zorder=2)
+
+    #Display all datapoints on plot
+    plt.scatter(X,y, marker='o', color=cmaps[2], zorder=1, alpha=0.2)
+
+
+    #Final fit on ALL the data
+    my_pwlf = pwlf.PiecewiseLinFit(X, y)
+
+    #Manually set the piecewise breaks as the quantile thresholds.
+    my_pwlf.fit_with_breaks(quantile_thresholds)
+    
+    #Plot the final fitted line, changing the colour of the line segments for each quantile for visualisation.
+    bin_label_locs = []
+    for idx in range(len(quantile_thresholds)+1):
+        colour = "blue" if idx % 2== 0 else "red"
+        xHat = np.linspace(min(X), max(X), num=20000)
+        yHat = my_pwlf.predict(xHat)
+
+        if idx == 0:
+            min_ = min(X) 
+            max_ = quantile_thresholds[idx]
+
+        elif idx <= len(quantile_thresholds) - 1:
+            min_ = quantile_thresholds[idx-1]
+            max_ = quantile_thresholds[idx]           
+        else:
+            min_ = quantile_thresholds[idx-1]
+            max_ = max(X) 
+          
+
+        plot_indicies = [i for i in range(len(xHat)) if min_ <= xHat[i] < max_]
+        bin_label_locs.append((min_+max_)/2)
+        quantile_data_indicies = [i for i in range(len(X)) if min_ <= X[i] < max_]
+        #shade background to make slices per quantile
+        q_spm_corr, q_spm_p = stats.spearmanr(X[quantile_data_indicies],y[quantile_data_indicies])
+        plt.axvspan(xHat[plot_indicies][0], xHat[plot_indicies][-1], facecolor=colour, alpha=0.1)
+        plt.plot(xHat[plot_indicies], yHat[plot_indicies], '-', color=colour, zorder=3)
+
+    # plt.xticks(bin_label_locs)
+    ax.set_xticks(bin_label_locs)
+    new_labels = [r'$Q_{{{}}}$'.format(x+1) for x in range(len(quantile_thresholds)+1)]
+    ax.xaxis.set_major_formatter(plt.FixedFormatter(new_labels ))
+    ax.yaxis.set_major_formatter(ScalarFormatter())
+
+
+    #Put text on plot showing the correlation
+    p_vl = 0.001 if np.round(spm_p,3) == 0 else  np.round(spm_p,3)
+    bold_text = r"$\bf{\rho:} $"  + r"$\bf{{{}}}$".format(np.round(spm_corr,2)) +", p-value < " + r"${{{}}}$".format(p_vl)
+
+    plt.text(0.5, 0.9,bold_text , size=25, color='black', horizontalalignment='center',  verticalalignment='center', transform=ax.transAxes)
+    ax.set_xlabel("Uncertainty Quantile", fontsize=25)
+    ax.set_ylabel("Error (mm)", fontsize=25)
+    plt.subplots_adjust(bottom=0.2)
+    plt.subplots_adjust(left=0.15)
+
+    plt.xticks(fontsize=25)
+    plt.yticks(fontsize=25)
+    
+    if save_path is not None:
+        plt.gcf().set_size_inches(16.0, 8.0) 
+        plt.tight_layout()
+        plt.savefig(save_path, dpi=600, bbox_inches="tight", pad_inches=0.1)
+        plt.close()
+    else:
+        plt.gcf().set_size_inches(16.0, 10.0) 
+        plt.show()
+        plt.close()
+
+    
+    return correlation_dict
 
 def quantile_binning_and_est_errors(errors, uncertainties, num_bins, type="quantile", acceptable_thresh=5, combine_middle_bins=False):
     """
@@ -44,11 +170,15 @@ def quantile_binning_and_est_errors(errors, uncertainties, num_bins, type="quant
 
     # Isotonically regress line
     ir = IsotonicRegression(out_of_bounds="clip", increasing=True)
+
+
+
     _ = ir.fit_transform(uncertainties, errors)
 
     uncert_boundaries = []
     estimated_errors = []
 
+    #Estimate error bounds for each quantile bin
     if type == "quantile":
         quantiles = np.arange(1 / num_bins, 1, 1 / num_bins)[:num_bins-1]
         for q in range(len(quantiles)):
@@ -57,15 +187,7 @@ def quantile_binning_and_est_errors(errors, uncertainties, num_bins, type="quant
 
             estimated_errors.append(q_error_higher[0])
             uncert_boundaries.append(q_conf_higher)
-    if combine_middle_bins:
-        # print("estimated errors before: ", estimated_errors)
-
-        estimated_errors = [estimated_errors[0],  estimated_errors[-1]]
-        uncert_boundaries = [uncert_boundaries[0],  uncert_boundaries[-1]]
-        # print("estimated errors combined middle: ", estimated_errors)
-        # print("estimated uncert_boundaries: ", uncert_boundaries)
-
-
+    
 
     elif type == "error_wise":
         quantiles = np.arange(num_bins - 1)
@@ -74,7 +196,20 @@ def quantile_binning_and_est_errors(errors, uncertainties, num_bins, type="quant
         uncert_boundaries = [(ir.predict(x)).tolist() for x in estimated_errors]
         raise NotImplementedError("error_wise Quantile Binning not implemented yet")
 
+
+    #IF combine bins, we grab only the values for the two outer bins
+    if combine_middle_bins:
+        # print("estimated errors before: ", estimated_errors)
+        print("\n Full estimated errors combined middle: ", estimated_errors)
+        print(" Fullestimated uncert_boundaries: ", uncert_boundaries)
+        estimated_errors = [estimated_errors[0],  estimated_errors[-1]]
+        uncert_boundaries = [uncert_boundaries[0],  uncert_boundaries[-1]]
+        print("Outer estimated errors combined middle: ", estimated_errors)
+        print("Outer estimated uncert_boundaries: ", uncert_boundaries)
+
+
     return uncert_boundaries, estimated_errors
+
 
 
 def box_plot(
@@ -233,13 +368,13 @@ def box_plot(
     elif num_bins <15 :
         number_blanks_0 = ["" for x in range(math.floor((num_bins-3)/2))]
         number_blanks_1 = ["" for x in range(num_bins-3 - len(number_blanks_0))]
-        new_labels = [x_axis_labels[-1]] + number_blanks_0 + [r"$\rightarrow$"]  +number_blanks_1+ [x_axis_labels[0]]
+        new_labels = [x_axis_labels[-0]] + number_blanks_0 + [r"$\rightarrow$"]  +number_blanks_1+ [x_axis_labels[-1]]
         ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
     #if more than 15 bins, we must move the first and last labels inwards to prevent overlap.
     else:
         number_blanks_0 = ["" for x in range(math.floor((num_bins-5)/2))]
         number_blanks_1 = ["" for x in range(num_bins-5 - len(number_blanks_0))]
-        new_labels = [""] +[ x_axis_labels[-1]] + number_blanks_0 + [r"$\rightarrow$"]  +number_blanks_1+ [x_axis_labels[0] ] + [""]
+        new_labels = [""] +[ x_axis_labels[0]] + number_blanks_0 + [r"$\rightarrow$"]  +number_blanks_1+ [x_axis_labels[-1] ] + [""]
         ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
 
 
@@ -259,7 +394,7 @@ def box_plot(
     ax.legend(handles=circ_patches, loc=9, fontsize=15, ncol=3, columnspacing=6)
 
     if save_path is not None:
-        plt.gcf().set_size_inches(16.0, 8.0) 
+        plt.gcf().set_size_inches(16.0, 10.0) 
         plt.tight_layout()
         plt.savefig(save_path, dpi=600, bbox_inches="tight", pad_inches=0.1)
         plt.close()
@@ -382,7 +517,7 @@ def box_plot_per_model(
                 if show_individual_dots:
                     # Add some random "jitter" to the x-axis
                     x = np.random.normal(x_loc, 0.01, size=len(displayed_data))
-                    ax.plot(x, displayed_data, color='crimson', marker='.', linestyle="None", alpha=0.2)
+                    ax.plot(x, displayed_data, color=cmaps[len(uncertainty_types_list)], marker='.', linestyle="None", alpha=0.2)
 
 
 
@@ -445,7 +580,7 @@ def box_plot_per_model(
     #Show the average samples on top of boxplots, aligned. if lots of bins we can lower the height.
     if show_sample_info != "None":
         if num_bins > 5:
-            max_bin_height = max_bin_height *0.5
+            max_bin_height = max_bin_height *0.8
         else:
             max_bin_height += 0.5
         for idx_text, perc_info in enumerate(all_sample_percs):
@@ -486,13 +621,13 @@ def box_plot_per_model(
     elif num_bins <15 :
         number_blanks_0 = ["" for x in range(math.floor((num_bins-3)/2))]
         number_blanks_1 = ["" for x in range(num_bins-3 - len(number_blanks_0))]
-        new_labels = [x_axis_labels[-1]] + number_blanks_0 + [r"$\rightarrow$"]  +number_blanks_1+ [x_axis_labels[0]]
+        new_labels = [x_axis_labels[0]] + number_blanks_0 + [r"$\rightarrow$"]  +number_blanks_1+ [x_axis_labels[-1]]
         ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
     #if more than 15 bins, we must move the first and last labels inwards to prevent overlap.
     else:
         number_blanks_0 = ["" for x in range(math.floor((num_bins-5)/2))]
         number_blanks_1 = ["" for x in range(num_bins-5 - len(number_blanks_0))]
-        new_labels = [""] +[ x_axis_labels[-1]] + number_blanks_0 + [r"$\rightarrow$"]  +number_blanks_1+ [x_axis_labels[0] ] + [""]
+        new_labels = [""] +[ x_axis_labels[0]] + number_blanks_0 + [r"$\rightarrow$"]  +number_blanks_1+ [x_axis_labels[-1] ] + [""]
         ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
 
 
@@ -526,7 +661,7 @@ def box_plot_per_model(
     # plt.autoscale()
     if save_path is not None:
         plt.gcf().set_size_inches(16.0, 10.0) 
-        plt.tight_layout()
+        # plt.tight_layout()
         plt.savefig(save_path, dpi=600, bbox_inches="tight", pad_inches=0.1)
         plt.close()
     else:
@@ -914,7 +1049,12 @@ def generate_figures_individual_bin_comparison(data, display_settings):
     all_bins_concat_lms_nosep_error = all_error_data_dict["all error concat bins lms nosep"] # shape is [num bins]
     all_bins_concat_lms_sep_foldwise_error = all_error_data_dict["all error concat bins lms sep foldwise"] # shape is [num lms][num bins]
     all_bins_concat_lms_sep_all_error = all_error_data_dict["all error concat bins lms sep all"] # same as all_bins_concat_lms_sep_foldwise but folds are flattened to a single list
+    
+    #Get correlation coefficients for all bins
+    # all_correlation_data_dict = evaluate_correlations(bins_all_lms, uncertainty_error_pairs, cmaps, num_bins, landmarks, cfg.DATASET.CONFIDENCE_INVERT, num_folds=num_folds, pixel_to_mm_scale=pixel_to_mm_scale, combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS)
 
+
+    #Get jaccard
     all_jaccard_data_dict = evaluate_jaccard(
         bins_all_lms, uncertainty_error_pairs, num_bins, landmarks, num_folds=num_folds, combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS
     )
@@ -937,8 +1077,15 @@ def generate_figures_individual_bin_comparison(data, display_settings):
     all_bins_concat_lms_sep_foldwise_errorbound = bound_return_dict["all errorbound concat bins lms sep foldwise"] # shape is [num lms][num bins]
     all_bins_concat_lms_sep_all_errorbound = bound_return_dict["all errorbound concat bins lms sep all"] # same as all_bins_concat_lms_sep_foldwise but folds are flattened to a single list
 
+    # x = generate_summary_df(all_error_data_dict, ))
+    # print("UEP ", uncertainty_error_pairs)
+    generate_summary_df(all_error_data_dict, [["all mean error bins nosep", "All Landmarks"]], "Mean error", os.path.join(save_folder, "localisation_errors.xlsx"))
 
+    # exit()
+    
     if interpret:
+        save_location=None
+
 
         #If we have combined the middle bins, we are only displaying 3 bins (outer edges, and combined middle bins).
         if cfg.PIPELINE.COMBINE_MIDDLE_BINS: 
@@ -946,6 +1093,25 @@ def generate_figures_individual_bin_comparison(data, display_settings):
         else:
             num_bins_display = num_bins
 
+
+       
+
+        #Plot piecewise linear regression for error/uncertainty prediction.
+        if display_settings["correlation"]:
+            if cfg.OUTPUT.SAVE_FIGURES:
+                save_location = save_folder
+            corr_dict = evaluate_correlations(
+                bins_all_lms,
+                uncertainty_error_pairs, 
+                cmaps, 
+                num_bins, 
+                cfg.DATASET.CONFIDENCE_INVERT, 
+                num_folds=num_folds, 
+                pixel_to_mm_scale=pixel_to_mm_scale, 
+                combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS, 
+                save_path=save_location, 
+                to_log=True
+            )
 
         # Plot cumulative error figure for all predictions
         if display_settings["cumulative_error"]:
@@ -990,10 +1156,7 @@ def generate_figures_individual_bin_comparison(data, display_settings):
 
         #Set x_axis labels for following plots.
         x_axis_labels = [r"$B_{{{}}}$".format(num_bins_display + 1 - (i + 1)) for i in range(num_bins_display + 1)]
-        save_location=None
 
-        # #Get correlations between uncertainty and error
-        # if display_settings["correlation"]:
 
         #get error bounds
 
@@ -1133,7 +1296,7 @@ def generate_figures_individual_bin_comparison(data, display_settings):
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Jaccard Index (%)",
                 num_bins=num_bins_display,
-                y_lim=70,
+                y_lim=120,
                 show_sample_info="None",
                 save_path= save_location,
             )
@@ -1192,7 +1355,7 @@ def generate_figures_individual_bin_comparison(data, display_settings):
                             x_label="Uncertainty Thresholded Bin",
                             y_label="Jaccard Index (%)",
                             num_bins=num_bins_display,
-                            y_lim=70,
+                            y_lim=100,
                             save_path=save_location
                         )
 

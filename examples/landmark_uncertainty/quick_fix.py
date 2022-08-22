@@ -4,7 +4,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 
-mypath = "/mnt/tale_shared/schobs/data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples/U-NET/ISBI"
+mypath = "/mnt/tale_shared/schobs/data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples/U-NET/ISBI/12std"
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
 

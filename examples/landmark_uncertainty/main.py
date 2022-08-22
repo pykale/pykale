@@ -31,7 +31,7 @@ def arg_parse():
     args = parser.parse_args()
 
 
-    """Example:  python main.py --cfg /configs/isbi_config.yaml """
+    """Example:  python main.py --cfg /mnt/tale_shared/schobs/pykale/pykale/examples/landmark_uncertainty/configs/isbi_config.yaml"""
     return args
 
 
@@ -162,7 +162,7 @@ def main():
                             ind_landmarks_to_show,
                             pixel_to_mm_scale
                         ],
-                    display_settings = {"cumulative_error": False, "errors": True, "jaccard": True, "error_bounds": True},
+                    display_settings = {"cumulative_error": False, "errors": True, "jaccard": True, "error_bounds": True, "correlation": True},
                 )
                 
 

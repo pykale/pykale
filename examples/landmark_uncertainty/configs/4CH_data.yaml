@@ -4,6 +4,7 @@ DATASET:
 
 PIPELINE:
 
+  # NUM_QUANTILE_BINS: [5]
   NUM_QUANTILE_BINS: [2,3,5,10,20]
 
   COMBINE_MIDDLE_BINS: False
@@ -14,7 +15,12 @@ PIPELINE:
   COMPARE_Q_MODELS: ["PHD-NET", "U-NET"]
   COMPARE_Q_UNCERTAINTY_ERROR_PAIRS: [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"], ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"]]
   INDIVIDUAL_Q_MODELS: ["U-NET", "PHD-NET"] 
-  SHOW_IND_LANDMARKS: False
+  SHOW_IND_LANDMARKS: True
+  INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS: [
+    ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"],
+    ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"],
+    ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"],
+  ]
 
 BOXPLOT:
   ERROR_LIM: 256 
@@ -25,3 +31,4 @@ BOXPLOT:
 
 OUTPUT:
   SAVE_FIGURES: True
+  SAVE_PREPEND: "8std_10_08_22"
