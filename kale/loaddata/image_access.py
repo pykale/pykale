@@ -352,6 +352,7 @@ def read_dicom_phases(dicom_path, sort_instance=True):
     phase_files = glob.glob(dicom_path + "/**/*.dcm", recursive=True)
     for phase_file in phase_files:
         dataset = pydicom.dcmread(phase_file)
+        setattr(dataset, "FilePath", phase_file)
         dcm_phases.append(dataset)
     if sort_instance:
         dcm_phases.sort(key=lambda x: x.InstanceNumber, reverse=False)
