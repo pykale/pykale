@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 
 from kale.embed.seq_nn import CNNEncoder
 from kale.loaddata.tdc_datasets import BindingDBDataset
-from kale.pipeline.deep_dti import BaseDTATrainer, DeepDTATrainer
+from kale.pipeline.deepdta import BaseDTATrainer, DeepDTATrainer
 from kale.predict.decode import MLPDecoder
 
 DATASET = "BindingDB_Kd"
