@@ -1,5 +1,0 @@
-SOLVER:
-  BASE_LR: 0.01
-  WARMUP: False
-  WARMUP_EPOCHS: 5
-  MAX_EPOCHS: 10  # For quick testing
