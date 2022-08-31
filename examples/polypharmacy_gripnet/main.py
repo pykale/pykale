@@ -7,6 +7,7 @@ import numpy as np
 import pytorch_lightning as pl
 import torch
 from torch.utils.data import Dataset
+from torch_geometric.data.data import Data
 from utils import auprc_auroc_ap, EPS, typed_negative_sampling
 
 # ========== config ==========
@@ -58,14 +59,11 @@ cfg.freeze()
 seed.set_seed(cfg.SOLVER.SEED)
 
 # ---- setup dataset ----
-
-
-# ---- setup dataset ----
-def load_data(cfg_dataset: CfgNode):
+def load_data(cfg_dataset: CfgNode) -> Data:
     """Setup dataset: download and load it."""
     # download data if not exist
-    download_file_by_url(cfg.DATASET.URL, cfg.DATASET.ROOT, f"{cfg.DATASET.NAME}.pt")
-    data_path = os.path.join(cfg.DATASET.ROOT, f"{cfg.DATASET.NAME}.pt")
+    download_file_by_url(cfg_dataset.URL, cfg_dataset.ROOT, f"{cfg_dataset.NAME}.pt")
+    data_path = os.path.join(cfg_dataset.ROOT, f"{cfg_dataset.NAME}.pt")
 
     # load data
     return torch.load(data_path)
@@ -128,9 +126,27 @@ class MultiRelaInnerProductDecoder(torch.nn.Module):
 y = gripnet()
 
 
+class PolypharmacyDataLoader(Dataset):
+    def __init__(self, data: Data, mode: str = "train"):
+        super(PolypharmacyDataLoader, self).__init__()
+
+        self.edge_index = data.__getitem__(f"{mode}_idx")
+        self.edge_type = data.__getitem__(f"{mode}_idx")
+        self.edge_type_range = data.__getitem__(f"{mode}_idx")
+
+    def __len__(self):
+        return 1
+
+    def __getitem__(self):
+        return self.edge_index, self.edge_type, self.edge_type_range
+
+
+b = PolypharmacyDataLoader(data)
+
+
 class GripNetLinkPrediction(pl.LightningDataModule):
     def __init__(self, supergraph: SuperGraph, conf_solver: CfgNode):
-        super().__init__()
+        super(GripNetLinkPrediction, self).__init__()
 
         self.conf_solver = conf_solver
 
@@ -147,7 +163,7 @@ class GripNetLinkPrediction(pl.LightningDataModule):
 
         return MultiRelaInnerProductDecoder(in_channels, num_edge_type)
 
-    def forward(self, edge_index, edge_type, edge_type_range, mode="train"):
+    def forward(self, edge_index, edge_type, edge_type_range):
         x = self.encoder()
 
         pos_score = self.decoder(x, edge_index, edge_type)
@@ -180,8 +196,27 @@ class GripNetLinkPrediction(pl.LightningDataModule):
 
         return optimizer
 
+    def __step__(self, batch, mode="train"):
+        edge_index, edge_type, edge_type_range = batch
+        loss, auprc, auroc, ap = self.forward(edge_index, edge_type, edge_type_range)
+
+        if mode != "test":
+            self.log(f"{mode}_loss", loss)
+
+        self.log(f"{mode}_auprc", auprc)
+        self.log(f"{mode}_auroc", auroc)
+        self.log(f"{mode}_ap@50", ap)
+
+        return loss
+
     def training_step(self, batch, batch_idx):
-        loss, auprc, auroc, ap = self.forward(batch)
+        return self.__step__(batch)
+
+    def test_step(self, batch, batch_idx):
+        return self.__step__(batch, mode="test")
+
+    def validation_step(self, batch, batch_idx):
+        return self.__step__(batch, mode="val")
 
     def __repr__(self) -> str:
         return "{}: \nEncoder: {} ModuleDict(\n{})\n Decoder: {}".format(
