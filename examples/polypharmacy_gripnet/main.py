@@ -1,12 +1,11 @@
 # from config import get_cfg_defaults
 import imp
 import os
-from pickletools import optimize
 
 import numpy as np
 import pytorch_lightning as pl
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 from torch_geometric.data.data import Data
 from utils import auprc_auroc_ap, EPS, typed_negative_sampling
 
@@ -43,6 +42,19 @@ C.SOLVER.LR_GAMMA = 0.1
 C.SOLVER.MAX_EPOCHS = 5
 C.SOLVER.WARMUP = False
 C.SOLVER.WARMUP_EPOCHS = 100
+
+# ---------------------------------------------------------
+# GripNet configs
+# ---------------------------------------------------------
+C.GRIPN = CfgNode()
+C.GRIPN.GG_LAYERS = [32, 16, 16]
+C.GRIPN.GD_LAYERS = [16, 32]
+C.GRIPN.DD_LAYERS = [sum(C.GRIPN.GD_LAYERS), 16]
+
+# ---------------------------------------------------------
+# Misc options
+# ---------------------------------------------------------
+C.OUTPUT_DIR = "./outputs"
 
 
 def get_cfg_defaults():
@@ -126,27 +138,45 @@ class MultiRelaInnerProductDecoder(torch.nn.Module):
 y = gripnet()
 
 
-class PolypharmacyDataLoader(Dataset):
+class PolypharmacyDataset(Dataset):
     def __init__(self, data: Data, mode: str = "train"):
-        super(PolypharmacyDataLoader, self).__init__()
+        super(PolypharmacyDataset, self).__init__()
 
         self.edge_index = data.__getitem__(f"{mode}_idx")
-        self.edge_type = data.__getitem__(f"{mode}_idx")
-        self.edge_type_range = data.__getitem__(f"{mode}_idx")
+        self.edge_type = data.__getitem__(f"{mode}_et")
+        self.edge_type_range = data.__getitem__(f"{mode}_range")
+
+        self.len = self.edge_type_range.shape[0]
 
     def __len__(self):
         return 1
 
-    def __getitem__(self):
+    def __getitem__(self, idx):
+        # start, end = self.edge_type_range[idx].tolist()
+
+        # return self.edge_index[:, start:end], self.edge_type[start:end], self.edge_type_range[idx]
         return self.edge_index, self.edge_type, self.edge_type_range
 
 
-b = PolypharmacyDataLoader(data)
+def get_all_dataloader(data: Data):
+    dataloader_list = []
+    for mode in ["train", "test"]:
+        dataset = PolypharmacyDataset(data, mode=mode)
+        loader = DataLoader(dataset, batch_size=1)
+        dataloader_list.append(loader)
+
+    return dataloader_list
 
 
-class GripNetLinkPrediction(pl.LightningDataModule):
+dataloader_train, dataloader_test = get_all_dataloader(data)
+
+a = list(dataloader_train)
+aa = a[0][0][0]
+
+
+class GripNetLinkPrediction(pl.LightningModule):
     def __init__(self, supergraph: SuperGraph, conf_solver: CfgNode):
-        super(GripNetLinkPrediction, self).__init__()
+        super().__init__()
 
         self.conf_solver = conf_solver
 
@@ -198,7 +228,9 @@ class GripNetLinkPrediction(pl.LightningDataModule):
 
     def __step__(self, batch, mode="train"):
         edge_index, edge_type, edge_type_range = batch
-        loss, auprc, auroc, ap = self.forward(edge_index, edge_type, edge_type_range)
+        loss, auprc, auroc, ap = self.forward(
+            edge_index.reshape((2, -1)), edge_type.flatten(), edge_type_range.reshape((-1, 2))
+        )
 
         if mode != "test":
             self.log(f"{mode}_loss", loss)
@@ -210,12 +242,12 @@ class GripNetLinkPrediction(pl.LightningDataModule):
         return loss
 
     def training_step(self, batch, batch_idx):
-        return self.__step__(batch)
+        return self.__step__(batch[0])
 
     def test_step(self, batch, batch_idx):
-        return self.__step__(batch, mode="test")
+        return self.__step__(batch[0], mode="test")
 
-    def validation_step(self, batch, batch_idx):
+        # def validation_step(self, batch, batch_idx):
         return self.__step__(batch, mode="val")
 
     def __repr__(self) -> str:
@@ -226,3 +258,7 @@ class GripNetLinkPrediction(pl.LightningDataModule):
 
 a = GripNetLinkPrediction(supergraph, cfg.SOLVER)
 a.forward(data.train_idx, data.train_et, data.train_range)
+
+trainer = pl.Trainer(default_root_dir=cfg.OUTPUT_DIR, max_epochs=5,)
+
+trainer.fit(a, train_dataloaders=[dataloader_train])
