@@ -228,6 +228,8 @@ class GripNet(Module):
         self.__check_supergraph__()
         self.__init_supervertex_module_dict__()
 
+        self.out_channels = self.__get_out_channels__()
+
     def __check_supergraph__(self) -> None:
         """check whether the input supergraph has parameter settings"""
 
@@ -267,6 +269,10 @@ class GripNet(Module):
         )
 
         self.supervertex_module_dict[supervertex.name] = module_list
+
+    def __get_out_channels__(self):
+        task_supervertex = self.supergraph.topological_order[-1]
+        return self.supervertex_module_dict[task_supervertex][-1].out_channels
 
     def forward(self):
         if self.supergraph.supervertex_setting_dict is None:
