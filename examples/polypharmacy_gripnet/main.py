@@ -1,9 +1,13 @@
 # from config import get_cfg_defaults
+import imp
 import os
+from pickletools import optimize
 
 import numpy as np
 import pytorch_lightning as pl
 import torch
+from torch.utils.data import Dataset
+from utils import auprc_auroc_ap, EPS, typed_negative_sampling
 
 # ========== config ==========
 from yacs.config import CfgNode
@@ -13,23 +17,23 @@ from kale.embed.gripnet import GripNet
 from kale.prepdata.supergraph_construct import SuperEdge, SuperGraph, SuperVertex, SuperVertexParaSetting
 from kale.utils.download import download_file_by_url
 
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------
 # Config definition
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------
 
 C = CfgNode()
 
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------
 # Dataset
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------
 C.DATASET = CfgNode()
 C.DATASET.ROOT = "./data"
 C.DATASET.NAME = "pose"
 C.DATASET.URL = "https://github.com/pykale/data/raw/main/graphs/pose_pyg_2.pt"
 
-# ---------------------------------------------------------------------------- #
+# ---------------------------------------------------------
 # Solver
-# ---------------------------------------------------------------------------- #
+# ---------------------------------------------------------
 C.SOLVER = CfgNode()
 C.SOLVER.SEED = 2020
 C.SOLVER.BASE_LR = 0.01
@@ -125,25 +129,65 @@ y = gripnet()
 
 
 class GripNetLinkPrediction(pl.LightningDataModule):
-    def __init__(self, supergraph: SuperGraph):
+    def __init__(self, supergraph: SuperGraph, conf_solver: CfgNode):
         super().__init__()
+
+        self.conf_solver = conf_solver
 
         self.encoder = GripNet(supergraph)
         self.decoder = self.__init_decoder__()
 
     def __init_decoder__(self) -> MultiRelaInnerProductDecoder:
         in_channels = self.encoder.out_channels
+        supergraph = self.encoder.supergraph
         task_supervertex_name = supergraph.topological_order[-1]
         num_edge_type = supergraph.supervertex_dict[task_supervertex_name].num_edge_type
 
+        self.num_task_nodes = supergraph.supervertex_dict[task_supervertex_name].num_node
+
         return MultiRelaInnerProductDecoder(in_channels, num_edge_type)
 
-    def forward(self, edge_index, edge_type, mode="train"):
+    def forward(self, edge_index, edge_type, edge_type_range, mode="train"):
         x = self.encoder()
 
-        supergraph = self.encoder.supergraph
+        pos_score = self.decoder(x, edge_index, edge_type)
+        pos_loss = -torch.log(pos_score + EPS).mean()
+
+        edge_index = typed_negative_sampling(edge_index, self.num_task_nodes, edge_type_range)
+
+        neg_score = self.decoder(x, edge_index, edge_type)
+        neg_loss = -torch.log(1 - neg_score + EPS).mean()
+
+        loss = pos_loss + neg_loss
+
+        # compute averaged metric scores over edge types
+        num_edge_type = edge_type_range.shape[0]
+        record = np.zeros((3, num_edge_type))
+        for i in range(num_edge_type):
+            start, end = edge_type_range[i]
+            ps, ns = pos_score[start:end], neg_score[start:end]
+
+            score = torch.cat([ps, ns])
+            target = torch.cat([torch.ones(ps.shape[0]), torch.zeros(ns.shape[0])])
+
+            record[0, i], record[1, i], record[2, i] = auprc_auroc_ap(target, score)
+        auprc, auroc, ap = record.mean(axis=1)
+
+        return loss, auprc, auroc, ap
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.conf_solver.BASE_LR)
+
+        return optimizer
+
+    def training_step(self, batch, batch_idx):
+        loss, auprc, auroc, ap = self.forward(batch)
 
     def __repr__(self) -> str:
         return "{}: \nEncoder: {} ModuleDict(\n{})\n Decoder: {}".format(
             self.__class__.__name__, self.encoder.__class__.__name__, self.encoder.supervertex_module_dict, self.decoder
         )
+
+
+a = GripNetLinkPrediction(supergraph, cfg.SOLVER)
+a.forward(data.train_idx, data.train_et, data.train_range)
