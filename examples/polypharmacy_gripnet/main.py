@@ -2,6 +2,7 @@
 import os
 
 import numpy as np
+import pytorch_lightning as pl
 import torch
 
 # ========== config ==========
@@ -116,3 +117,15 @@ class MultiRelaInnerProductDecoder(torch.nn.Module):
 
 
 y = gripnet()
+
+
+class GripNetLinkPrediction(pl.LightningDataModule):
+    def __init__(self, supergraph: SuperGraph):
+        super().__init__()
+        self.supergraph = supergraph
+
+        self.encoder = GripNet(supergraph)
+        # self.decoder = MultiRelaInnerProductDecoder()
+
+    def forward(self, edge_index, edge_type, mode="train"):
+        x = self.encoder()
