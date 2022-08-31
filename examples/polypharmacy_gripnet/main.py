@@ -72,7 +72,7 @@ data = load_data(cfg.DATASET)
 # ---- setup supergraph ----
 # create gene and drug supervertex
 supervertex_gene = SuperVertex("gene", data.g_feat, data.gg_edge_index)
-supervertex_drug = SuperVertex("drug", data.d_feat, data.train_idx)
+supervertex_drug = SuperVertex("drug", data.d_feat, data.train_idx, data.train_et)
 
 # create superedge form gene to drug supervertex
 superedge = SuperEdge("gene", "drug", data.gd_edge_index)
@@ -93,15 +93,15 @@ class MultiRelaInnerProductDecoder(torch.nn.Module):
     <https://arxiv.org/abs/1412.6575>`_ factorization as GripNet decoder in PoSE dataset.
     """
 
-    def __init__(self, in_dim, num_et):
+    def __init__(self, in_channels, num_edge_type):
         super(MultiRelaInnerProductDecoder, self).__init__()
-        self.num_et = num_et
-        self.in_dim = in_dim
-        self.weight = torch.nn.Parameter(torch.Tensor(num_et, in_dim))
+        self.num_edge_type = num_edge_type
+        self.in_channels = in_channels
+        self.weight = torch.nn.Parameter(torch.Tensor(num_edge_type, in_channels))
 
         self.reset_parameters()
 
-    def forward(self, z, edge_index, edge_type, sigmoid=True):
+    def forward(self, x, edge_index, edge_type, sigmoid=True):
         """
         Args:
             z: input node feature embeddings.
@@ -109,11 +109,16 @@ class MultiRelaInnerProductDecoder(torch.nn.Module):
             edge_type: The one-dimensional relation type/index for each target edge in edge_index.
             sigmoid: use sigmoid function or not.
         """
-        value = (z[edge_index[0]] * z[edge_index[1]] * self.weight[edge_type]).sum(dim=1)
+        value = (x[edge_index[0]] * x[edge_index[1]] * self.weight[edge_type]).sum(dim=1)
         return torch.sigmoid(value) if sigmoid else value
 
     def reset_parameters(self):
-        self.weight.data.normal_(std=1 / np.sqrt(self.in_dim))
+        self.weight.data.normal_(std=1 / np.sqrt(self.in_channels))
+
+    def __repr__(self) -> str:
+        return "{}: DistMultLayer(in_channels={}, num_relations={})".format(
+            self.__class__.__name__, self.in_channels, self.num_edge_type
+        )
 
 
 y = gripnet()
@@ -122,10 +127,23 @@ y = gripnet()
 class GripNetLinkPrediction(pl.LightningDataModule):
     def __init__(self, supergraph: SuperGraph):
         super().__init__()
-        self.supergraph = supergraph
 
         self.encoder = GripNet(supergraph)
-        # self.decoder = MultiRelaInnerProductDecoder()
+        self.decoder = self.__init_decoder__()
+
+    def __init_decoder__(self) -> MultiRelaInnerProductDecoder:
+        in_channels = self.encoder.out_channels
+        task_supervertex_name = supergraph.topological_order[-1]
+        num_edge_type = supergraph.supervertex_dict[task_supervertex_name].num_edge_type
+
+        return MultiRelaInnerProductDecoder(in_channels, num_edge_type)
 
     def forward(self, edge_index, edge_type, mode="train"):
         x = self.encoder()
+
+        supergraph = self.encoder.supergraph
+
+    def __repr__(self) -> str:
+        return "{}: \nEncoder: {} ModuleDict(\n{})\n Decoder: {}".format(
+            self.__class__.__name__, self.encoder.__class__.__name__, self.encoder.supervertex_module_dict, self.decoder
+        )
