@@ -1,3 +1,4 @@
+import imp
 import os
 
 import numpy as np
@@ -7,6 +8,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch_geometric.data.data import Data
 from yacs.config import CfgNode
 
+from kale.prepdata.supergraph_construct import SuperVertexParaSetting
 from kale.utils.download import download_file_by_url
 
 EPS = 1e-13
@@ -22,6 +24,23 @@ def load_data(cfg_dataset: CfgNode) -> Data:
     return torch.load(data_path)
 
 
+def setup_supervertex(sv_configs: CfgNode):
+    exter_list = sv_configs.EXTER_AGG_CHANNELS_LIST
+
+    if len(exter_list):
+        exter_dict = {k: v for k, v in exter_list}
+
+        return SuperVertexParaSetting(
+            sv_configs.NAME,
+            sv_configs.INTER_FEAT_CHANNELS,
+            sv_configs.INTER_AGG_CHANNELS_LIST,
+            exter_agg_channels_dict=exter_dict,
+            mode=sv_configs.MODE,
+        )
+
+    return SuperVertexParaSetting(sv_configs.NAME, sv_configs.INTER_FEAT_CHANNELS, sv_configs.INTER_AGG_CHANNELS_LIST,)
+
+
 class PolypharmacyDataset(Dataset):
     def __init__(self, data: Data, mode: str = "train"):
         super(PolypharmacyDataset, self).__init__()
@@ -33,12 +52,11 @@ class PolypharmacyDataset(Dataset):
         self.len = self.edge_type_range.shape[0]
 
     def __len__(self):
+
         return 1
 
     def __getitem__(self, idx):
-        # start, end = self.edge_type_range[idx].tolist()
 
-        # return self.edge_index[:, start:end], self.edge_type[start:end], self.edge_type_range[idx]
         return self.edge_index, self.edge_type, self.edge_type_range
 
 

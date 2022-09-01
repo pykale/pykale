@@ -4,11 +4,11 @@ import pytorch_lightning as pl
 import torch
 from config import get_cfg_defaults
 from model import GripNetLinkPrediction
-from utils import get_all_dataloader, load_data
+from utils import get_all_dataloader, load_data, setup_supervertex
 
 import kale.utils.seed as seed
 from kale.embed.gripnet import GripNet
-from kale.prepdata.supergraph_construct import SuperEdge, SuperGraph, SuperVertex, SuperVertexParaSetting
+from kale.prepdata.supergraph_construct import SuperEdge, SuperGraph, SuperVertex
 
 warnings.filterwarnings(action="ignore")
 
@@ -22,8 +22,9 @@ cfg = get_cfg_defaults()
 cfg.freeze()
 seed.set_seed(cfg.SOLVER.SEED)
 
-# ---- setup dataset ----
+# ---- setup dataset and data loader ----
 data = load_data(cfg.DATASET)
+dataloader_train, dataloader_test = get_all_dataloader(data)
 
 # ---- setup supergraph ----
 # create gene and drug supervertex
@@ -33,32 +34,21 @@ supervertex_drug = SuperVertex("drug", data.d_feat, data.train_idx, data.train_e
 # create superedge form gene to drug supervertex
 superedge = SuperEdge("gene", "drug", data.gd_edge_index)
 
-setting_gene = SuperVertexParaSetting("gene", 5, [4, 4])
-setting_drug = SuperVertexParaSetting("drug", 7, [6, 6], exter_agg_channels_dict={"gene": 7}, mode="cat")
+setting_gene = setup_supervertex(cfg.GRIPN_SV1)
+setting_drug = setup_supervertex(cfg.GRIPN_SV2)
 
+# construct supergraph
 supergraph = SuperGraph([supervertex_gene, supervertex_drug], [superedge])
 supergraph.set_supergraph_para_setting([setting_gene, setting_drug])
 
-gripnet = GripNet(supergraph)
-print(gripnet)
-
-
-y = gripnet()
-
-
-dataloader_train, dataloader_test = get_all_dataloader(data)
-
-a = list(dataloader_train)
-aa = a[0][0][0]
-
-
+# ---- setup model and trainer ----
 model = GripNetLinkPrediction(supergraph, cfg.SOLVER)
-# model.forward(data.train_idx, data.train_et, data.train_range)
+print(model)
 
 trainer = pl.Trainer(
     default_root_dir=cfg.OUTPUT_DIR, max_epochs=cfg.SOLVER.MAX_EPOCHS, log_every_n_steps=cfg.SOLVER.LOG_EVERY_N_STEPS
 )
 
+# ---- train and test ----
 trainer.fit(model, dataloader_train)
-
-test_result = trainer.test(model, dataloaders=dataloader_train)
+test_result = trainer.test(model, dataloader_train)
