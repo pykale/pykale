@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 import pytorch_lightning as pl
 import torch
@@ -10,11 +12,12 @@ from kale.prepdata.supergraph_construct import SuperGraph
 
 class MultiRelaInnerProductDecoder(torch.nn.Module):
     """
-    Build `DistMult
-    <https://arxiv.org/abs/1412.6575>`_ factorization as GripNet decoder in PoSE dataset.
-    """
+	Build `DistMult
+	<https://arxiv.org/abs/1412.6575>`_ factorization as GripNet decoder in PoSE dataset.
+	Copy-paste with slight modifications from https://github.com/NYXFLOWER/GripNet
+	"""
 
-    def __init__(self, in_channels, num_edge_type):
+    def __init__(self, in_channels: int, num_edge_type: int):
         super(MultiRelaInnerProductDecoder, self).__init__()
         self.num_edge_type = num_edge_type
         self.in_channels = in_channels
@@ -22,14 +25,14 @@ class MultiRelaInnerProductDecoder(torch.nn.Module):
 
         self.reset_parameters()
 
-    def forward(self, x, edge_index, edge_type, sigmoid=True):
+    def forward(self, x, edge_index: torch.Tensor, edge_type: torch.Tensor, sigmoid: bool = True) -> torch.Tensor:
         """
-        Args:
-            z: input node feature embeddings.
-            edge_index: edge index in COO format with shape [2, num_edges].
-            edge_type: The one-dimensional relation type/index for each target edge in edge_index.
-            sigmoid: use sigmoid function or not.
-        """
+		Args:
+			x: input node feature embeddings.
+			edge_index: edge index in COO format with shape [2, num_edges].
+			edge_type: The one-dimensional relation type/index for each target edge in edge_index.
+			sigmoid: use sigmoid function or not.
+		"""
         value = (x[edge_index[0]] * x[edge_index[1]] * self.weight[edge_type]).sum(dim=1)
         return torch.sigmoid(value) if sigmoid else value
 
@@ -43,6 +46,8 @@ class MultiRelaInnerProductDecoder(torch.nn.Module):
 
 
 class GripNetLinkPrediction(pl.LightningModule):
+    """Build GripNet-DistMult (encoder-decoder) model for link prediction"""
+
     def __init__(self, supergraph: SuperGraph, conf_solver: CfgNode):
         super().__init__()
 
@@ -57,11 +62,12 @@ class GripNetLinkPrediction(pl.LightningModule):
         task_supervertex_name = supergraph.topological_order[-1]
         num_edge_type = supergraph.supervertex_dict[task_supervertex_name].num_edge_type
 
+        # get the number of nodes on the task-associated supervertex
         self.num_task_nodes = supergraph.supervertex_dict[task_supervertex_name].num_node
 
         return MultiRelaInnerProductDecoder(in_channels, num_edge_type)
 
-    def forward(self, edge_index, edge_type, edge_type_range):
+    def forward(self, edge_index: torch.Tensor, edge_type: torch.Tensor, edge_type_range: torch.Tensor) -> Tuple:
         x = self.encoder()
 
         pos_score = self.decoder(x, edge_index, edge_type)
@@ -87,17 +93,6 @@ class GripNetLinkPrediction(pl.LightningModule):
             record.append(list(auprc_auroc_ap(target, score)))
         auprc, auroc, ap = np.array(record).mean(axis=0)
 
-        record = np.zeros((3, num_edge_type))
-        for i in range(num_edge_type):
-            start, end = edge_type_range[i]
-            ps, ns = pos_score[start:end], neg_score[start:end]
-
-            score = torch.cat([ps, ns])
-            target = torch.cat([torch.ones(ps.shape[0]), torch.zeros(ns.shape[0])])
-
-            record[0, i], record[1, i], record[2, i] = auprc_auroc_ap(target, score)
-        auprc, auroc, ap = record.mean(axis=1)
-
         return loss, auprc, auroc, ap
 
     def configure_optimizers(self):
@@ -111,12 +106,12 @@ class GripNetLinkPrediction(pl.LightningModule):
             edge_index.reshape((2, -1)), edge_type.flatten(), edge_type_range.reshape((-1, 2))
         )
 
-        if mode != "test":
+        if mode == "train":
             self.log(f"{mode}_loss", loss)
-
-        self.log(f"{mode}_auprc", auprc)
-        self.log(f"{mode}_auroc", auroc)
-        self.log(f"{mode}_ap@50", ap)
+        else:
+            self.log(f"{mode}_auprc", auprc)
+            self.log(f"{mode}_auroc", auroc)
+            self.log(f"{mode}_ap@50", ap)
 
         return loss
 
@@ -126,8 +121,9 @@ class GripNetLinkPrediction(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         return self.__step__(batch, mode="test")
 
-        # def validation_step(self, batch, batch_idx):
-        return self.__step__(batch, mode="val")
+    # uncomment this function if a valid set is used
+    # def validation_step(self, batch, batch_idx):
+    # return self.__step__(batch, mode="val")
 
     def __repr__(self) -> str:
         return "{}: \nEncoder: {} ModuleDict(\n{})\n Decoder: {}".format(

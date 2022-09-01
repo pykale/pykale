@@ -15,7 +15,8 @@ EPS = 1e-13
 
 
 def load_data(cfg_dataset: CfgNode) -> Data:
-    """Setup dataset: download and load it."""
+    """Setup dataset: download if need and load it."""
+
     # download data if not exist
     download_file_by_url(cfg_dataset.URL, cfg_dataset.ROOT, f"{cfg_dataset.NAME}.pt")
     data_path = os.path.join(cfg_dataset.ROOT, f"{cfg_dataset.NAME}.pt")
@@ -24,7 +25,9 @@ def load_data(cfg_dataset: CfgNode) -> Data:
     return torch.load(data_path)
 
 
-def setup_supervertex(sv_configs: CfgNode):
+def setup_supervertex(sv_configs: CfgNode) -> SuperVertexParaSetting:
+    """Get supervertex parameter setting from configurations."""
+
     exter_list = sv_configs.EXTER_AGG_CHANNELS_LIST
 
     if len(exter_list):
@@ -42,6 +45,8 @@ def setup_supervertex(sv_configs: CfgNode):
 
 
 class PolypharmacyDataset(Dataset):
+    """Polypharmacy side effect prediction dataset. Only for full-batch training."""
+
     def __init__(self, data: Data, mode: str = "train"):
         super(PolypharmacyDataset, self).__init__()
 
@@ -61,6 +66,8 @@ class PolypharmacyDataset(Dataset):
 
 
 def get_all_dataloader(data: Data):
+    """Get train and test dataloader"""
+
     dataloader_list = []
     for mode in ["train", "test"]:
         dataset = PolypharmacyDataset(data, mode=mode)
@@ -68,6 +75,10 @@ def get_all_dataloader(data: Data):
         dataloader_list.append(loader)
 
     return dataloader_list
+
+
+# ----------------------------------------------------------------------------
+# Copy-paste from https://github.com/NYXFLOWER/GripNet
 
 
 def negative_sampling(pos_edge_index, num_nodes):
@@ -102,3 +113,6 @@ def auprc_auroc_ap(target_tensor, score_tensor):
     auprc = metrics.auc(xx, y)
 
     return auprc, auroc, ap
+
+
+# ----------------------------------------------------------------------------
