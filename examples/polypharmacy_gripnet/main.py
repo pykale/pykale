@@ -28,19 +28,19 @@ def main():
     dataloader_train, _ = get_all_dataloader(data)
 
     # ---- setup supergraph ----
-    # create gene and drug supervertex
-    supervertex_gene = SuperVertex("gene", data.g_feat, data.gg_edge_index)
+    # create protein and drug supervertex
+    supervertex_protein = SuperVertex("protein", data.g_feat, data.gg_edge_index)
     supervertex_drug = SuperVertex("drug", data.d_feat, data.train_idx, data.train_et)
 
-    # create superedge form gene to drug supervertex
-    superedge = SuperEdge("gene", "drug", data.gd_edge_index)
+    # create superedge form protein to drug supervertex
+    superedge = SuperEdge("protein", "drug", data.gd_edge_index)
 
-    setting_gene = setup_supervertex(cfg.GRIPN_SV1)
+    setting_protein = setup_supervertex(cfg.GRIPN_SV1)
     setting_drug = setup_supervertex(cfg.GRIPN_SV2)
 
     # construct supergraph
-    supergraph = SuperGraph([supervertex_gene, supervertex_drug], [superedge])
-    supergraph.set_supergraph_para_setting([setting_gene, setting_drug])
+    supergraph = SuperGraph([supervertex_protein, supervertex_drug], [superedge])
+    supergraph.set_supergraph_para_setting([setting_protein, setting_drug])
 
     # ---- setup model and trainer ----
     model = GripNetLinkPrediction(supergraph, cfg.SOLVER)
@@ -54,7 +54,7 @@ def main():
 
     # ---- train and test ----
     trainer.fit(model, dataloader_train)
-    test_result = trainer.test(model, dataloader_train)
+    _ = trainer.test(model, dataloader_train)  # test on the training set
 
 
 if __name__ == "__main__":

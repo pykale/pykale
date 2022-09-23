@@ -28,24 +28,22 @@ C.SOLVER.LOG_EVERY_N_STEPS = 1
 # ---------------------------------------------------------
 # GripNet supervertex configs
 # ---------------------------------------------------------
-# create configuration for each supervertex
-# Elements in `EXTER_AGG_CHANNELS_LIST` should be a list of
-# 	combinations of supervertex name (str) and embedding
-# 	dimension (int)
-# `MODE` is either "cat" or "add"
-
 C.GRIPN_SV1 = CfgNode()
-C.GRIPN_SV1.NAME = "gene"
+C.GRIPN_SV1.NAME = "protein"
 C.GRIPN_SV1.INTER_FEAT_CHANNELS = 16
 C.GRIPN_SV1.INTER_AGG_CHANNELS_LIST = [16, 16]
 C.GRIPN_SV1.EXTER_AGG_CHANNELS_LIST = []
-C.GRIPN_SV1.MODE = ""
+# Elements in `EXTER_AGG_CHANNELS_LIST` should be a list of
+# 	combinations of supervertex name (str) and embedding
+# 	dimension (int). If the supervertex is a root supervertex,
+#   it should be an empty list.
+C.GRIPN_SV1.MODE = ""  # `MODE` is either "cat" or "add"
 
 C.GRIPN_SV2 = CfgNode()
 C.GRIPN_SV2.NAME = "drug"
 C.GRIPN_SV2.INTER_FEAT_CHANNELS = 32
 C.GRIPN_SV2.INTER_AGG_CHANNELS_LIST = [16, 16]
-C.GRIPN_SV2.EXTER_AGG_CHANNELS_LIST = [["gene", 16]]
+C.GRIPN_SV2.EXTER_AGG_CHANNELS_LIST = [["protein", 16]]
 C.GRIPN_SV2.MODE = "cat"
 
 # ---------------------------------------------------------
