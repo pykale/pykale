@@ -7,42 +7,8 @@ from utils import auprc_auroc_ap, EPS, typed_negative_sampling
 from yacs.config import CfgNode
 
 from kale.embed.gripnet import GripNet
+from kale.predict.decode import MultiRelaInnerProductDecoder
 from kale.prepdata.supergraph_construct import SuperGraph
-
-
-class MultiRelaInnerProductDecoder(torch.nn.Module):
-    """
-	Build `DistMult
-	<https://arxiv.org/abs/1412.6575>`_ factorization as GripNet decoder in PoSE dataset.
-	Copy-paste with slight modifications from https://github.com/NYXFLOWER/GripNet
-	"""
-
-    def __init__(self, in_channels: int, num_edge_type: int):
-        super(MultiRelaInnerProductDecoder, self).__init__()
-        self.num_edge_type = num_edge_type
-        self.in_channels = in_channels
-        self.weight = torch.nn.Parameter(torch.Tensor(num_edge_type, in_channels))
-
-        self.reset_parameters()
-
-    def forward(self, x, edge_index: torch.Tensor, edge_type: torch.Tensor, sigmoid: bool = True) -> torch.Tensor:
-        """
-		Args:
-			x: input node feature embeddings.
-			edge_index: edge index in COO format with shape [2, num_edges].
-			edge_type: The one-dimensional relation type/index for each target edge in edge_index.
-			sigmoid: use sigmoid function or not.
-		"""
-        value = (x[edge_index[0]] * x[edge_index[1]] * self.weight[edge_type]).sum(dim=1)
-        return torch.sigmoid(value) if sigmoid else value
-
-    def reset_parameters(self):
-        self.weight.data.normal_(std=1 / np.sqrt(self.in_channels))
-
-    def __repr__(self) -> str:
-        return "{}: DistMultLayer(in_channels={}, num_relations={})".format(
-            self.__class__.__name__, self.in_channels, self.num_edge_type
-        )
 
 
 class GripNetLinkPrediction(pl.LightningModule):
