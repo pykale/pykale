@@ -1,3 +1,4 @@
+import argparse
 import warnings
 
 import pytorch_lightning as pl
@@ -13,13 +14,24 @@ from kale.prepdata.supergraph_construct import SuperEdge, SuperGraph, SuperVerte
 warnings.filterwarnings(action="ignore")
 
 
+def arg_parse():
+    parser = argparse.ArgumentParser(description="GripNet Training for Polypharmacy Side Effect Prediction")
+    parser.add_argument("--config", type=str, default="config.yaml", help="config file path")
+    args = parser.parse_args()
+
+    return args
+
+
 def main():
+    args = arg_parse()
+
     # ---- setup device ----
     device = "cuda" if torch.cuda.is_available() else "cpu"
     device = torch.device(device)
 
     # ---- setup configs ----
     cfg = get_cfg_defaults()
+    cfg.merge_from_file(args.config)
     cfg.freeze()
     seed.set_seed(cfg.SOLVER.SEED)
 

@@ -32,7 +32,13 @@ The datasets are downloaded from the [Bio-SNAP](http://snap.stanford.edu/biodata
 python main.py
 ```
 
-## References:
+We provide a `yaml` config file for a quick testing in the `configs` folder. To use it, run:
+
+```python
+python main.py --config configs/PoSE_MINI-GripNet.yaml
+```
+
+## References
 
 [1] Xu, H., Sang, S., Bai, P., Li, R., Yang, L., & Lu, H. (2022). [GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs](https://doi.org/10.1016/j.patcog.2022.108973). Pattern Recognition.
 
