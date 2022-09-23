@@ -3,11 +3,13 @@ from typing import Tuple
 import numpy as np
 import pytorch_lightning as pl
 import torch
-from utils import auprc_auroc_ap, EPS, typed_negative_sampling
+from utils import EPS
 from yacs.config import CfgNode
 
 from kale.embed.gripnet import GripNet
+from kale.evaluate.metrics import auprc_auroc_ap
 from kale.predict.decode import MultiRelaInnerProductDecoder
+from kale.prepdata.graph_negative_sampling import typed_negative_sampling
 from kale.prepdata.supergraph_construct import SuperGraph
 
 
