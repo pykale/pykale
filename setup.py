@@ -30,7 +30,7 @@ install_requires = [
 # Dependencies for graph analysis, e.g., for drug discovery using Therapeutics Data Commons (TDC)
 graph_requires = [
     "networkx",
-    "PyTDC",
+    "PyTDC<=0.3.6",
 ]
 
 # Dependencies for image analysis
