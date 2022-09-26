@@ -24,25 +24,6 @@ def load_data(cfg_dataset: CfgNode) -> Data:
     return torch.load(data_path)
 
 
-def setup_supervertex(sv_configs: CfgNode) -> SuperVertexParaSetting:
-    """Get supervertex parameter setting from configurations."""
-
-    exter_list = sv_configs.EXTER_AGG_CHANNELS_LIST
-
-    if len(exter_list):
-        exter_dict = {k: v for k, v in exter_list}
-
-        return SuperVertexParaSetting(
-            sv_configs.NAME,
-            sv_configs.INTER_FEAT_CHANNELS,
-            sv_configs.INTER_AGG_CHANNELS_LIST,
-            exter_agg_channels_dict=exter_dict,
-            mode=sv_configs.MODE,
-        )
-
-    return SuperVertexParaSetting(sv_configs.NAME, sv_configs.INTER_FEAT_CHANNELS, sv_configs.INTER_AGG_CHANNELS_LIST,)
-
-
 class PolypharmacyDataset(Dataset):
     """Polypharmacy side effect prediction dataset. Only for full-batch training."""
 

@@ -4,11 +4,12 @@ import warnings
 import pytorch_lightning as pl
 import torch
 from config import get_cfg_defaults
-from model import GripNetLinkPrediction
-from utils import get_all_dataloader, load_data, setup_supervertex
+from model import get_model, get_supervertex
+from torch.utils.data import DataLoader
+from utils import get_all_dataloader, load_data
 
 import kale.utils.seed as seed
-from kale.embed.gripnet import GripNet
+from kale.loaddata.polypharmacy_datasets import PolypharmacyDataset
 from kale.prepdata.supergraph_construct import SuperEdge, SuperGraph, SuperVertex
 
 warnings.filterwarnings(action="ignore")
@@ -36,26 +37,26 @@ def main():
     seed.set_seed(cfg.SOLVER.SEED)
 
     # ---- setup dataset and data loader ----
-    data = load_data(cfg.DATASET)
-    dataloader_train, _ = get_all_dataloader(data)
+    train_dataset = PolypharmacyDataset(cfg.DATASET, mode="train")
+    dataloader_train = DataLoader(train_dataset, batch_size=1)
 
     # ---- setup supergraph ----
     # create protein and drug supervertex
-    supervertex_protein = SuperVertex("protein", data.g_feat, data.gg_edge_index)
-    supervertex_drug = SuperVertex("drug", data.d_feat, data.train_idx, data.train_et)
+    supervertex_protein = SuperVertex("protein", train_dataset.g_feat, train_dataset.gg_edge_index)
+    supervertex_drug = SuperVertex("drug", train_dataset.d_feat, train_dataset.edge_index, train_dataset.edge_type)
 
     # create superedge form protein to drug supervertex
-    superedge = SuperEdge("protein", "drug", data.gd_edge_index)
+    superedge = SuperEdge("protein", "drug", train_dataset.gd_edge_index)
 
-    setting_protein = setup_supervertex(cfg.GRIPN_SV1)
-    setting_drug = setup_supervertex(cfg.GRIPN_SV2)
+    setting_protein = get_supervertex(cfg.GRIPN_SV1)
+    setting_drug = get_supervertex(cfg.GRIPN_SV2)
 
     # construct supergraph
     supergraph = SuperGraph([supervertex_protein, supervertex_drug], [superedge])
     supergraph.set_supergraph_para_setting([setting_protein, setting_drug])
 
     # ---- setup model and trainer ----
-    model = GripNetLinkPrediction(supergraph, cfg.SOLVER)
+    model = get_model(supergraph, cfg)
     print(model)
 
     trainer = pl.Trainer(

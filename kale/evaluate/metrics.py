@@ -29,16 +29,16 @@ def concord_index(y, y_pred):
 
 def auprc_auroc_ap(target: torch.Tensor, score: torch.Tensor):
     """
-    AUPRC: the area under the precision-recall curve
-    AUROC: the Area Under the Receiver Operating Characteristic curve
+    AUPRC: area under the precision-recall curve
+    AUROC: area Under the Receiver Operating Characteristic curve
     ap: average precision
 
     Copy-paste from https://github.com/NYXFLOWER/GripNet
     """
     y = target.detach().cpu().numpy()
     pred = score.detach().cpu().numpy()
-    auroc, ap = metrics.roc_auc_score(y, pred), metrics.average_precision_score(y, pred)
-    y, x, _ = metrics.precision_recall_curve(y, pred)
-    auprc = metrics.auc(x, y)
+    auroc, ave_precision = metrics.roc_auc_score(y, pred), metrics.average_precision_score(y, pred)
+    precision, recall, _ = metrics.precision_recall_curve(y, pred)
+    auprc = metrics.auc(recall, precision)
 
-    return auprc, auroc, ap
+    return auprc, auroc, ave_precision
