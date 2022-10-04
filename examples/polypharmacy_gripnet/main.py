@@ -6,7 +6,6 @@ import torch
 from config import get_cfg_defaults
 from model import get_model, get_supervertex
 from torch.utils.data import DataLoader
-from utils import get_all_dataloader, load_data
 
 import kale.utils.seed as seed
 from kale.loaddata.polypharmacy_datasets import PolypharmacyDataset
