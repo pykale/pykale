@@ -9,9 +9,15 @@ from kale.utils.download import download_file_by_url
 
 
 class PolypharmacyDataset(Dataset):
-    """Polypharmacy side effect prediction dataset. Only for full-batch training."""
+    r"""Polypharmacy side effect prediction dataset. Only for full-batch training.
+
+    Args:
+        cfg_dataset (CfgNode): configurations of the dataset.
+        mode (str): "train" or "test". Defaults to "train".
+    """
 
     def __init__(self, cfg_dataset: CfgNode, mode: str = "train"):
+
         super(PolypharmacyDataset, self).__init__()
 
         self.cfg_dataset = cfg_dataset

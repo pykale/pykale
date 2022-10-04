@@ -81,7 +81,9 @@ class MultiRelaInnerProductDecoder(torch.nn.Module):
 
 
 class GripNetLinkPrediction(pl.LightningModule):
-    """Build GripNet-DistMult (encoder-decoder) model for link prediction"""
+    """
+    Build GripNet-DistMult (encoder-decoder) model for link prediction.
+    """
 
     def __init__(self, supergraph: SuperGraph, learning_rate: float):
         super().__init__()
