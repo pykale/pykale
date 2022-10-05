@@ -21,7 +21,7 @@ jobs:
         python-version: "3.7"
     - name: Install dependencies
       run: |
-        pip install pre-commit isort flake8==3.8.4 importlib-metadata<5.0
+        pip install pre-commit isort flake8==3.8.4
         pre-commit install
     - name: Run pre-commit checks including linting
       run: |
