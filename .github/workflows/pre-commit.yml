@@ -1,7 +1,7 @@
 # This workflow will run lint and many other pre-commit hooks
 # https://pre-commit.com/
 
-name: lint
+name: pre-commit-check
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    name: Lint and pre-commit checks
+    name: Pre-commit checks including linting
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -21,7 +21,7 @@ jobs:
         python-version: "3.7"
     - name: Install dependencies
       run: |
-        pip install pre-commit isort "importlib_metadata<5" "flake8==3.8.0"
+        pip install pre-commit
         pre-commit install
     - name: Run pre-commit checks including linting
       run: |
