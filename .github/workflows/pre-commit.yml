@@ -10,7 +10,7 @@ on:
     branches: [main]
 
 jobs:
-  lint:
+  pre-commit-check:
     runs-on: ubuntu-latest
     name: Pre-commit checks including linting
     steps:
