@@ -2,7 +2,7 @@
 # The project needs to be updated when we move to a new default project.
 # https://github.com/marketplace/actions/assign-to-one-project
 
-name: assign project
+name: assign-project
 
 on:
   issues:
@@ -13,12 +13,12 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  assign_one_project:
-    runs-on: ubuntu-latest
+  assign-one-project:
     name: Assign to one default project
+    runs-on: ubuntu-latest
     steps:
     - name: Assign NEW issues and NEW pull requests to a default project
       uses: srggrs/assign-one-project-github-action@1.2.1
       if: github.event.action == 'opened'
       with:
-        project: 'https://github.com/pykale/pykale/projects/10'
+        project: "https://github.com/pykale/pykale/projects/10"

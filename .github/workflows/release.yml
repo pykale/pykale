@@ -9,8 +9,8 @@ on:
 
 jobs:
   build-n-publish:
-    runs-on: ubuntu-18.04
     name: Release on PyPI
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@master
     - name: Set up Python 3.7
