@@ -11,8 +11,8 @@ on:
 
 jobs:
   pre-commit-check:
-    runs-on: ubuntu-latest
     name: Pre-commit checks including linting
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
