@@ -1,4 +1,4 @@
-# This workflow will install Python dependencies, run tests, and report the coverage with a variety of Python versions and OSs
+# This workflow will control the stale and close of pr and issues
 # For more information see: https://github.com/actions/stale
 
 name: Mark stale issues and pull requests
