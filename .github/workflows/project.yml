@@ -2,7 +2,7 @@
 # The project needs to be updated when we move to a new default project.
 # https://github.com/marketplace/actions/assign-to-one-project
 
-name: assign project
+name: assign-project
 
 on:
   issues:
