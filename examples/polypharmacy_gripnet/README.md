@@ -35,7 +35,7 @@ python main.py
 We provide a `yaml` config file for a quick testing in the `configs` folder. To use it, run:
 
 ```python
-python main.py --config configs/PoSE_MINI-GripNet.yaml
+python main.py --cfg configs/PoSE_MINI-GripNet.yaml
 ```
 
 ## References

@@ -11,8 +11,6 @@ from kale.evaluate.metrics import auprc_auroc_ap
 from kale.prepdata.graph_negative_sampling import typed_negative_sampling
 from kale.prepdata.supergraph_construct import SuperGraph
 
-EPS = 1e-13
-
 
 class MLPDecoder(nn.Module):
     r"""
@@ -45,7 +43,7 @@ class MLPDecoder(nn.Module):
         return x
 
 
-class MultiRelaInnerProductDecoder(torch.nn.Module):
+class DistMultDecoder(torch.nn.Module):
     """
     Build `DistMult
     <https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/ICLR2015_updated.pdf>`_ factorization as GripNet decoder in PoSE dataset.
@@ -53,7 +51,7 @@ class MultiRelaInnerProductDecoder(torch.nn.Module):
     """
 
     def __init__(self, in_channels: int, num_edge_type: int):
-        super(MultiRelaInnerProductDecoder, self).__init__()
+        super(DistMultDecoder, self).__init__()
         self.num_edge_type = num_edge_type
         self.in_channels = in_channels
         self.weight = torch.nn.Parameter(torch.Tensor(num_edge_type, in_channels))
@@ -85,15 +83,16 @@ class GripNetLinkPrediction(pl.LightningModule):
     Build GripNet-DistMult (encoder-decoder) model for link prediction.
     """
 
-    def __init__(self, supergraph: SuperGraph, learning_rate: float):
+    def __init__(self, supergraph: SuperGraph, learning_rate: float, epsilon: float = 1e-13):
         super().__init__()
 
         self.learning_rate = learning_rate
+        self.epsilon = epsilon
 
         self.encoder = GripNet(supergraph)
         self.decoder = self.__init_decoder__()
 
-    def __init_decoder__(self) -> MultiRelaInnerProductDecoder:
+    def __init_decoder__(self) -> DistMultDecoder:
         in_channels = self.encoder.out_channels
         supergraph = self.encoder.supergraph
         task_supervertex_name = supergraph.topological_order[-1]
@@ -102,18 +101,18 @@ class GripNetLinkPrediction(pl.LightningModule):
         # get the number of nodes on the task-associated supervertex
         self.num_task_nodes = supergraph.supervertex_dict[task_supervertex_name].num_node
 
-        return MultiRelaInnerProductDecoder(in_channels, num_edge_type)
+        return DistMultDecoder(in_channels, num_edge_type)
 
     def forward(self, edge_index: torch.Tensor, edge_type: torch.Tensor, edge_type_range: torch.Tensor) -> Tuple:
         x = self.encoder()
 
         pos_score = self.decoder(x, edge_index, edge_type)
-        pos_loss = -torch.log(pos_score + EPS).mean()
+        pos_loss = -torch.log(pos_score + self.epsilon).mean()
 
         edge_index = typed_negative_sampling(edge_index, self.num_task_nodes, edge_type_range)
 
         neg_score = self.decoder(x, edge_index, edge_type)
-        neg_loss = -torch.log(1 - neg_score + EPS).mean()
+        neg_loss = -torch.log(1 - neg_score + self.epsilon).mean()
 
         loss = pos_loss + neg_loss
 

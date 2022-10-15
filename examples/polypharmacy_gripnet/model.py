@@ -27,5 +27,6 @@ def get_model(supergraph: SuperGraph, cfg: CfgNode) -> GripNetLinkPrediction:
     """Get model from the supergraph and configurations."""
 
     learning_rate = cfg.SOLVER.BASE_LR
+    epsilon = cfg.SOLVER.EPSILON
 
-    return GripNetLinkPrediction(supergraph, learning_rate)
+    return GripNetLinkPrediction(supergraph, learning_rate, epsilon)

@@ -28,10 +28,10 @@ class PolypharmacyDataset(Dataset):
         self.edge_type_range = data.__getitem__(f"{mode}_range")
 
         if mode == "train":
-            self.g_feat = data.g_feat
-            self.gg_edge_index = data.gg_edge_index
-            self.d_feat = data.d_feat
-            self.gd_edge_index = data.gd_edge_index
+            self.protein_feat = data.g_feat
+            self.protein_edge_index = data.gg_edge_index
+            self.drug_feat = data.d_feat
+            self.protein_drug_edge_index = data.gd_edge_index
 
         self.len = self.edge_type_range.shape[0]
 
