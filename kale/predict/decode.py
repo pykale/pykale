@@ -143,7 +143,7 @@ class GripNetLinkPrediction(pl.LightningModule):
             edge_index.reshape((2, -1)), edge_type.flatten(), edge_type_range.reshape((-1, 2))
         )
 
-        if mode == "train":
+        if mode == "train" or "val":
             self.log(f"{mode}_loss", loss)
         else:
             self.log(f"{mode}_auprc", auprc)
@@ -154,6 +154,9 @@ class GripNetLinkPrediction(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         return self.__step__(batch)
+
+    def validation_step(self, batch, batch_idx):
+        return self.__step__(batch, mode="val")
 
     def test_step(self, batch, batch_idx):
         return self.__step__(batch, mode="test")

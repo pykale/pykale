@@ -64,9 +64,10 @@ def main():
         log_every_n_steps=cfg.SOLVER.LOG_EVERY_N_STEPS,
     )
 
-    # ---- train and test ----
-    trainer.fit(model, dataloader_train)
-    _ = trainer.test(model, dataloader_train)  # test on the training set
+    # ---- train, validate and test ----
+    trainer.fit(model, dataloader_train, dataloader_train)
+    _ = trainer.test(model, dataloader_train)
+    # Notice that the validation and test of the model are based on the training set in this example, due to the issues of the current example dataset. In practice, they should be based on the validation and test sets, respectively.
 
 
 if __name__ == "__main__":
