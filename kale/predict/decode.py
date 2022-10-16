@@ -18,10 +18,10 @@ class MLPDecoder(nn.Module):
     drug-target encoding information.
 
     Args:
-        in_dim (int): Dimension of input feature.
-        hidden_dim (int): Dimension of hidden layers.
-        out_dim (int): Dimension of output layer.
-        dropout_rate (float): dropout rate during training.
+        in_dim (int): the dimension of input feature.
+        hidden_dim (int): the dimension of hidden layers.
+        out_dim (int): the dimension of output layer.
+        dropout_rate (float): the dropout rate during training.
     """
 
     def __init__(self, in_dim, hidden_dim, out_dim, dropout_rate=0.1):
@@ -50,8 +50,8 @@ class DistMultDecoder(torch.nn.Module):
     Copy-paste with slight modifications from https://github.com/NYXFLOWER/GripNet.
 
     Args:
-        in_channels (int): Dimension of input feature.
-        num_edge_type (int): Number of edge types.
+        in_channels (int): the dimension of input feature.
+        num_edge_type (int): the number of edge types.
     """
 
     def __init__(self, in_channels: int, num_edge_type: int):
@@ -65,10 +65,10 @@ class DistMultDecoder(torch.nn.Module):
     def forward(self, x, edge_index: torch.Tensor, edge_type: torch.Tensor, sigmoid: bool = True) -> torch.Tensor:
         """
         Args:
-            x: input node feature embeddings.
-            edge_index: edge index in COO format with shape [2, num_edges].
-            edge_type: The one-dimensional relation type/index for each target edge in edge_index.
-            sigmoid: use sigmoid function or not.
+            x: the input node feature embeddings.
+            edge_index: the edge index in COO format with shape [2, num_edges].
+            edge_type: the one-dimensional relation type/index for each target edge in edge_index.
+            sigmoid: whether to use sigmoid function or not.
         """
         value = (x[edge_index[0]] * x[edge_index[1]] * self.weight[edge_type]).sum(dim=1)
         return torch.sigmoid(value) if sigmoid else value
@@ -88,8 +88,8 @@ class GripNetLinkPrediction(pl.LightningModule):
 
     Args:
         supergraph (SuperGraph): the input supergraph.
-        learning_rate (float): learning rate for training.
-        epsilon (float, optional): term used in the loss function to improve numerical stability. Defaults to 1e-13.
+        learning_rate (float): the learning rate for training.
+        epsilon (float, optional): a small number in loss function to improve numerical stability. Defaults to 1e-13.
     """
 
     def __init__(self, supergraph: SuperGraph, learning_rate: float, epsilon: float = 1e-13):
