@@ -13,7 +13,7 @@ class PolypharmacyDataset(Dataset):
 
     Args:
         cfg_dataset (CfgNode): configurations of the dataset.
-        mode (str): "train" or "test". Defaults to "train".
+        mode (str): "train", "valid" or "test". Defaults to "train".
     """
 
     def __init__(self, cfg_dataset: CfgNode, mode: str = "train"):
