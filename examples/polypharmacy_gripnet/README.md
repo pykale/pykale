@@ -14,7 +14,7 @@ The original implementation of GripNet is [here](https://github.com/NYXFLOWER/Gr
 
 ## 3. Dataset
 
-The [GripNet](https://doi.org/10.1016/j.patcog.2022.108973) paper studied polypharmacy side effects on the dataset constructed by [Zitnik et al. [2]](https://academic.oup.com/bioinformatics/article/34/13/i457/5045770?login=false) integrating three datasets. We call this integrated dataset GripNet-DECAGON here, which can be regarded as a knowledge graph. It contains the relations among proteins (P) and drugs (D) labeled with the P-P association, P-D association and 1,317 side effects. The data statistics are shown below. In practical usage, the dataset should be divided into training, test and validation sets. The lack of a validation set during model fitting (e.g. training) may cause a warning from `pytorch_lightning`.
+The [GripNet](https://doi.org/10.1016/j.patcog.2022.108973) paper studied polypharmacy side effects on the dataset constructed by [Zitnik et al. [2]](https://academic.oup.com/bioinformatics/article/34/13/i457/5045770?login=false) integrating three datasets. This integrated dataset can be regarded as a [knowledge graph]https://en.wikipedia.org/wiki/Knowledge_graph). It contains the relationships between proteins (P-P), proteins and drugs (P-D), and drugs, labeled with the P-P association, P-D association, and 1,317 side effects, respectively. The data statistics are shown in the table below. A standard usage should include a training set, a validation set, and a test set. The lack of a validation set during model fitting (i.e., training) may cause a warning from `pytorch_lightning`.
 
 | Dataset           | Nodes            | Edges      | #Unique Edge Labels |
 | ----------------- | ---------------- | ---------- | ------------------- |
@@ -22,7 +22,7 @@ The [GripNet](https://doi.org/10.1016/j.patcog.2022.108973) paper studied polyph
 | ChG-TargetDecagon | 3,648(P), 284(D) | 18,690     | 1                   |
 | ChChSe-Decagon    | 645(D)           | 4,649,441  | 1,317               |
 
-Note: In this example, we use a [small subset of GripNet-DECAGON](https://github.com/pykale/data/blob/main/graphs/pose_pyg_2.pt) to show the usage of GripNet in predicting polypharmacy side effects. For the purpose of demonstration, we use subsets from the training set as the validation and test sets because in this subset: 1) there are no specific validation and test sets and 2) some of the side effects are not associated with any drug pairs. We plan to update the example dataset and this example in the future.
+Note: In this example, we use a [small subset of the integrated dataset above](https://github.com/pykale/data/blob/main/graphs/pose_pyg_2.pt) to illustrate the usage of GripNet in predicting polypharmacy side effects. Here, we reuse the training set as the validation and test sets for the purpose of demonstration only. We will update this example when an improved example dataset becomes available at a later time.
 
 ## 4. Usage
 

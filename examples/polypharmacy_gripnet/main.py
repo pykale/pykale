@@ -65,7 +65,7 @@ def main():
     )
 
     # ---- train, validate and test ----
-    # The validation and test sets are subsets of the training set here. See ReadMe for details.
+    # The training set is reused here as the validation and test sets for usage demonstration. See ReadMe for details.
     trainer.fit(model, dataloader_train, dataloader_train)
     _ = trainer.test(model, dataloader_train)
 
