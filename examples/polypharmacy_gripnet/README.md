@@ -22,9 +22,9 @@ The GripNet is originally trained and tested on the integration of three dataset
 | ChG-TargetDecagon | 3,648(P), 284(D) | 18,690     | 1                   |
 | ChChSe-Decagon    | 645(D)           | 4,649,441  | 1,317               |
 
-In this example, we use a subset of GripNet-DECAGON to illustrate how to use GripNet in predicting polypharmacy side effects. The dataset should be divided into training, testing and validation sets. The lack of a validation set during model fitting (e.g. training) may cause a warning from `pytorch_lightning`.
+In this example, we use a subset of GripNet-DECAGON to illustrate how to use GripNet in predicting polypharmacy side effects. The dataset should be divided into training, test and validation sets. The lack of a validation set during model fitting (e.g. training) may cause a warning from `pytorch_lightning`.
 
-Note: The validation and the test of the model are based on the training set in this example, due to the issues of the current example dataset, including 1) the absence of the validation set and 2) some of the side effect classes are not associated with any drug pairs. In practice, they should be based on the validation and test sets, respectively. We will fix the example dataset and update this example in the future.
+Note: The validation and the test of the model are based on the training set in this example, due to the issues of the current example dataset: 1) the absence of the validation set and 2) some of the side effect classes are not associated with any drug pairs. In practice, they should be based on the validation and test sets, respectively. We will fix the example dataset and update this example in the future.
 
 ## 4. Usage
 - Dataset download: [[here](https://github.com/pykale/data/tree/main/graphs)]
