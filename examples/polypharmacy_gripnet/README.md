@@ -14,14 +14,17 @@ The original implementation of GripNet is [here](https://github.com/NYXFLOWER/Gr
 
 ## 3. Dataset
 
-We train GripNet on three datasets constructed by [[2]](https://academic.oup.com/bioinformatics/article/34/13/i457/5045770?login=false).
-The datasets are downloaded from the [Bio-SNAP](http://snap.stanford.edu/biodata/) dataset collection. The integration of these datasets can be regarded as a knowledge graph, which contains the relations among proteins (P) and drugs (D) labeled with the P-P association, the P-D association and 1,317 side effects. The data statistics are shown below.
+The GripNet is originally trained and tested on the integration of three datasets constructed by [[2]](https://academic.oup.com/bioinformatics/article/34/13/i457/5045770?login=false), and here we call this dataset integration GripNet-DECAGON. GripNet-DECAGON can be regarded as a knowledge graph, which contains the relations among proteins (P) and drugs (D) labeled with the P-P association, the P-D association and 1,317 side effects. The data statistics are shown below.
 
 | Dataset           | Nodes            | Edges      | #Unique Edge Labels |
 | ----------------- | ---------------- | ---------- | ------------------- |
 | PP-Decagon        | 19,081(P)        | 715,612    | 1                   |
 | ChG-TargetDecagon | 3,648(P), 284(D) | 18,690     | 1                   |
 | ChChSe-Decagon    | 645(D)           | 4,649,441  | 1,317               |
+
+In this example, we use a subset of GripNet-DECAGON to illustrate how to use GripNet in predicting polypharmacy side effects. The dataset should be divided into training, testing and validation sets. The lack of a validation set during model fitting (e.g. training) may cause a warning from `pytorch_lightning`.
+
+Note: The validation and the test of the model are based on the training set in this example, due to the issues of the current example dataset, including 1) the absence of the validation set and 2) some of the side effect classes are not associated with any drug pairs. In practice, they should be based on the validation and test sets, respectively. We will fix the example dataset and update this example in the future.
 
 ## 4. Usage
 - Dataset download: [[here](https://github.com/pykale/data/tree/main/graphs)]

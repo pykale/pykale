@@ -47,7 +47,11 @@ class DistMultDecoder(torch.nn.Module):
     """
     Build `DistMult
     <https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/ICLR2015_updated.pdf>`_ factorization as GripNet decoder in PoSE dataset.
-    Copy-paste with slight modifications from https://github.com/NYXFLOWER/GripNet
+    Copy-paste with slight modifications from https://github.com/NYXFLOWER/GripNet.
+
+    Args:
+        in_channels (int): Dimension of input feature.
+        num_edge_type (int): Number of edge types.
     """
 
     def __init__(self, in_channels: int, num_edge_type: int):
@@ -81,6 +85,11 @@ class DistMultDecoder(torch.nn.Module):
 class GripNetLinkPrediction(pl.LightningModule):
     """
     Build GripNet-DistMult (encoder-decoder) model for link prediction.
+
+    Args:
+        supergraph (SuperGraph): the input supergraph.
+        learning_rate (float): learning rate for training.
+        epsilon (float, optional): term used in the loss function to improve numerical stability. Defaults to 1e-13.
     """
 
     def __init__(self, supergraph: SuperGraph, learning_rate: float, epsilon: float = 1e-13):

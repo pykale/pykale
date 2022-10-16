@@ -67,8 +67,7 @@ def main():
     # ---- train, validate and test ----
     trainer.fit(model, dataloader_train, dataloader_train)
     _ = trainer.test(model, dataloader_train)
-    # Notice that the validation and test of the model are based on the training set in this example, due to the issues
-    #   of the current example dataset. In practice, they should be based on the validation and test sets, respectively.
+    # The validation and test sets are subsets of the training set in this example. See ReadMe for details.
 
 
 if __name__ == "__main__":
