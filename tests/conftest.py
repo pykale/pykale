@@ -2,9 +2,12 @@
 import os
 
 import pytest
+import tensorly as tl
 from scipy.io import loadmat
 
 from kale.utils.download import download_file_by_url
+
+tl.set_backend("pytorch")
 
 
 @pytest.fixture(scope="session")
