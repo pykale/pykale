@@ -11,7 +11,7 @@ import torch
 from config import get_cfg_defaults
 from model import get_model
 from torchsummary import summary
-from trainer import CNNTrainer
+from kale.pipeline.cifar_cnntransformer import CNNTransformerTrainer
 import pytorch_lightning as pl
 
 import kale.utils.logger as logging
@@ -72,7 +72,7 @@ def main():
         net.parameters(), lr=cfg.SOLVER.BASE_LR, momentum=cfg.SOLVER.MOMENTUM, weight_decay=cfg.SOLVER.WEIGHT_DECAY
     )
     
-    model = CNNTrainer(train_loader=train_loader, valid_loader=valid_loader, model=net, optim=optim.state_dict(), cfg=cfg)
+    model = CNNTransformerTrainer(model=net, optim=optim.state_dict(), cfg=cfg)
     trainer = pl.Trainer(
         default_root_dir=cfg.OUTPUT_DIR,
         max_epochs=cfg.SOLVER.MAX_EPOCHS,
