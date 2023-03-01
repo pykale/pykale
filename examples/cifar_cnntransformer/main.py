@@ -73,14 +73,12 @@ def main():
     )
     
     model = CNNTrainer(train_loader=train_loader, valid_loader=valid_loader, model=net, optim=optim.state_dict(), cfg=cfg)
-    
     trainer = pl.Trainer(
         default_root_dir=cfg.OUTPUT_DIR,
         max_epochs=cfg.SOLVER.MAX_EPOCHS,
         #accelerator='gpu', devices=1,
         gpus=args.gpus
     )
-    
     if args.resume:
         # Load checkpoint
         print("==> Resuming from checkpoint..")
