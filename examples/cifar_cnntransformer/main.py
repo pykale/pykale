@@ -11,7 +11,7 @@ import torch
 from config import get_cfg_defaults
 from model import get_model
 from torchsummary import summary
-from kale.pipeline.cifar_cnntransformer import CNNTransformerTrainer
+from kale.pipeline.cifar_cnntransformer_trainer import CNNTransformerTrainer
 import pytorch_lightning as pl
 
 import kale.utils.logger as logging
