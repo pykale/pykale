@@ -76,6 +76,9 @@ def main():
     trainer = pl.Trainer(
         default_root_dir=cfg.OUTPUT_DIR,
         max_epochs=cfg.SOLVER.MAX_EPOCHS,
+        accelerator="auto", 
+        #devices=1,
+        #gpus=args.gpus
     )
     
 
