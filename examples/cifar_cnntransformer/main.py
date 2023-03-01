@@ -29,7 +29,7 @@ def arg_parse():
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
              "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
-    parser.add_argument("--resume", default="", type=str)
+    #parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
 
@@ -76,18 +76,8 @@ def main():
     trainer = pl.Trainer(
         default_root_dir=cfg.OUTPUT_DIR,
         max_epochs=cfg.SOLVER.MAX_EPOCHS,
-        #accelerator='gpu', devices=1,
-        gpus=args.gpus
     )
-    if args.resume:
-        # Load checkpoint
-        print("==> Resuming from checkpoint..")
-        cp = torch.load(args.resume)
-        trainer.model.load_state_dict(cp["net"])
-        trainer.optim.load_state_dict(cp["optim"])
-        trainer.epochs = cp["epoch"]
-        trainer.train_acc = cp["train_accuracy"]
-        trainer.valid_acc = cp["test_accuracy"]
+    
 
     trainer.fit(model,train_loader, valid_loader)
     trainer.test(model, train_loader)
