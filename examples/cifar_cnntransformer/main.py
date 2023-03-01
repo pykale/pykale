@@ -77,6 +77,7 @@ def main():
         default_root_dir=cfg.OUTPUT_DIR,
         max_epochs=cfg.SOLVER.MAX_EPOCHS,
         accelerator="auto", 
+        strategy="ddp"
         #devices=1,
         #gpus=args.gpus
     )
