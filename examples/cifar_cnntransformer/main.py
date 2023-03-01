@@ -11,7 +11,8 @@ import torch
 from config import get_cfg_defaults
 from model import get_model
 from torchsummary import summary
-from trainer import Trainer
+from trainer import CNNTrainer
+import pytorch_lightning as pl
 
 import kale.utils.logger as logging
 import kale.utils.seed as seed
@@ -22,6 +23,12 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="PyTorch CIFAR10 Training")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     # parser.add_argument('--output', default='default', help='folder to save output', type=str)
+    parser.add_argument(
+        "--gpus",
+        default=1,
+        help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
+             "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+    )
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
@@ -64,9 +71,16 @@ def main():
     optim = torch.optim.SGD(
         net.parameters(), lr=cfg.SOLVER.BASE_LR, momentum=cfg.SOLVER.MOMENTUM, weight_decay=cfg.SOLVER.WEIGHT_DECAY
     )
-
-    trainer = Trainer(device, train_loader, valid_loader, net, optim, logger, cfg)
-
+    
+    model = CNNTrainer(train_loader=train_loader, valid_loader=valid_loader, model=net, optim=optim.state_dict(), cfg=cfg)
+    
+    trainer = pl.Trainer(
+        default_root_dir=cfg.OUTPUT_DIR,
+        max_epochs=cfg.SOLVER.MAX_EPOCHS,
+        #accelerator='gpu', devices=1,
+        gpus=args.gpus
+    )
+    
     if args.resume:
         # Load checkpoint
         print("==> Resuming from checkpoint..")
@@ -77,7 +91,8 @@ def main():
         trainer.train_acc = cp["train_accuracy"]
         trainer.valid_acc = cp["test_accuracy"]
 
-    trainer.train()
+    trainer.fit(model,train_loader, valid_loader)
+    trainer.test(model, train_loader)
 
 
 if __name__ == "__main__":
