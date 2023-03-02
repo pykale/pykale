@@ -64,8 +64,6 @@ def main():
     model_stats = summary(net, (3, 32, 32))
     logger.info("\n" + str(model_stats))
 
-    if device == "cuda":
-        net = torch.nn.DataParallel(net)
 
     # ---- setup trainers ----
     optim = torch.optim.SGD(
