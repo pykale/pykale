@@ -14,23 +14,33 @@ The original implementation of GripNet is [here](https://github.com/NYXFLOWER/Gr
 
 ## 3. Dataset
 
-We train GripNet on three datasets constructed by [[2]](https://academic.oup.com/bioinformatics/article/34/13/i457/5045770?login=false).
-The datasets are downloaded from the [Bio-SNAP](http://snap.stanford.edu/biodata/) dataset collection. The integration of these datasets can be regarded as a knowledge graph, which contains the relations among proteins (P) and drugs (D) labeled with the P-P association, the P-D association and 1,317 side effects. The data statistics are shown below.
+The [GripNet](https://doi.org/10.1016/j.patcog.2022.108973) paper studied polypharmacy side effects on the dataset constructed by [Zitnik et al. [2]](https://academic.oup.com/bioinformatics/article/34/13/i457/5045770?login=false) integrating three datasets. This integrated dataset can be regarded as a [knowledge graph](https://en.wikipedia.org/wiki/Knowledge_graph). It contains the relationships between proteins (P-P), proteins and drugs (P-D), and drugs, labeled with the P-P association, P-D association, and 1,317 side effects, respectively. The data statistics are shown in the table below. A standard usage should include a training set, a validation set, and a test set. The lack of a validation set during model fitting (i.e., training) may cause a warning from `pytorch_lightning`.
 
-| Dataset           | Nodes            | Edges   | #Unique Edge Labels |
-| ----------------- | ---------------- | ------- | ------------------- |
-| PP-Decagon        | 19,081(P)        | 715,612 | 1                   |
-| ChG-TargetDecagon | 3,648(P), 284(D) | 18,690  | 1                   |
-| ChChSe-Decagon    | 645(D)           | 63,473  | 1,317               |
+| Dataset           | Nodes            | Edges      | #Unique Edge Labels |
+| ----------------- | ---------------- | ---------- | ------------------- |
+| PP-Decagon        | 19,081(P)        | 715,612    | 1                   |
+| ChG-TargetDecagon | 3,648(P), 284(D) | 18,690     | 1                   |
+| ChChSe-Decagon    | 645(D)           | 4,649,441  | 1,317               |
+
+Note: In this example, we use a [small subset of the integrated dataset above](https://github.com/pykale/data/blob/main/graphs/pose_pyg_2.pt) to illustrate the usage of GripNet in predicting polypharmacy side effects. Here, we reuse the training set as the validation and test sets for the purpose of demonstration only. We will update this example when an improved example dataset becomes available at a later time.
 
 ## 4. Usage
+
 - Dataset download: [[here](https://github.com/pykale/data/tree/main/graphs)]
 
 - Algorithm: GripNet
 
-`python main.py --cfg configs/Drug_MINI-GripNet.yaml`
+```python
+python main.py
+```
 
-## References:
+We provide a `yaml` config file for a quick testing in the `configs` folder. To use it, run:
+
+```python
+python main.py --cfg configs/PoSE_MINI-GripNet.yaml
+```
+
+## References
 
 [1] Xu, H., Sang, S., Bai, P., Li, R., Yang, L., & Lu, H. (2022). [GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs](https://doi.org/10.1016/j.patcog.2022.108973). Pattern Recognition.
 
