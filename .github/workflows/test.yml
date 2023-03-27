@@ -42,7 +42,7 @@ jobs:
           pip install torch-sparse==0.6.13 -f https://pytorch-geometric.com/whl/torch-1.11.0+cpu.html
           pip install torch-cluster==1.6.0 -f https://pytorch-geometric.com/whl/torch-1.11.0+cpu.html
           pip install torch-spline-conv==1.2.1 -f https://pytorch-geometric.com/whl/torch-1.11.0+cpu.html
-          pip install torch-geometric
+          pip install torch-geometric==2.2.0
           pip install -e .[dev]
         shell: bash -l {0}
       - name: Run tests
