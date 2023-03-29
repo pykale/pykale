@@ -48,7 +48,55 @@ class SmallCNNFeature(nn.Module):
     def output_size(self):
         return self._out_features
 
+class SimpleCNN(nn.Module):
+    """
+    A builder for simple CNNs to experiment with different
+    basic architectures.
 
+    Args:
+
+        num_channels (int, optional): the number of input channels (default=3).
+        conv_layers_spec (list): A list for each convolutional layer given as [num_channels, kernel_size]. 
+            e.g. [[16, 3], [32, 3], [64, 3], [32, 1], [64, 3], [128, 3], [256, 3], [64, 1]]
+        activation_fun: one of ('relu', 'elu', 'leaky_relu') (default="relu").
+        use_batchnorm: use of batch normalization (default=True).
+        pool_locations: After which index of the below convolutionial-layer list pooling layers should be placed (default=(0,3)). 
+            e.g. (0,3) Applies 2 pooling layers.
+        num_channels: the number of input channels (default=3)
+
+    """
+
+    activations = {"relu": nn.ReLU(), "elu": nn.ELU(), "leaky_relu": nn.LeakyReLU()}
+
+    def __init__(self, conv_layers_spec, activation_fun="relu", use_batchnorm=True, pool_locations=(0, 3), num_channels=3):
+        super(SimpleCNN, self).__init__()
+        self.layers = nn.ModuleList()
+        in_channels = num_channels
+        activation_fun = self.activations[activation_fun]
+
+        # Repetitively adds a convolution, batchnorm, activationFunction,
+        # and maxpooling layer.
+        for layer_num, (num_kernels, kernel_size) in enumerate(conv_layers_spec):
+            conv = nn.Conv2d(in_channels, num_kernels, kernel_size, stride=1, padding=(kernel_size - 1) // 2)
+            self.layers.append(conv)
+
+            if use_batchnorm:
+                self.layers.append(nn.BatchNorm2d(num_kernels))
+
+            self.layers.append(activation_fun)
+
+            if layer_num in pool_locations:
+                self.layers.append(nn.MaxPool2d(kernel_size=2))
+
+            in_channels = num_kernels
+
+    def forward(self, x):
+        for block in self.layers:
+            x = block(x)
+
+        return x
+
+     
 class _Bottleneck(nn.Module):
     """Simple bottleneck as domain specific feature extractor, used in multi-source domain adaptation method MFSAN only.
         Compared to the torchvision implementation, it accepts both 1D and 2D input, and the value of expansion is
