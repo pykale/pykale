@@ -10,6 +10,7 @@ adversarial discrimination of source vs target domains, from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
 """
 
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
