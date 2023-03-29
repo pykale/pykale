@@ -10,6 +10,7 @@ adversarial discrimination of source vs target domains, from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
 """
 
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -60,7 +61,7 @@ class SoftmaxNet(nn.Module):
         return self._n_classes
 
 
-#Previously PredictionHead
+# Previously PredictionHead
 class ClassNet(nn.Module):
     """
     Simple classification prediction-head block to plug ontop of the 4D
@@ -81,8 +82,8 @@ class ClassNet(nn.Module):
         x = torch.flatten(x, 1)
         x = self.linear(x)
         return F.log_softmax(x, 1)
-    
-    
+
+
 # Previously DataClassifierDigits
 class ClassNetSmallImage(nn.Module):
     """Regular classifier network for small-size images

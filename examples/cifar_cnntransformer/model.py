@@ -3,12 +3,11 @@ Define and build the model based on chosen hyperparameters.
 """
 import torch
 import torch.nn as nn
-
-from kale.predict.class_domain_nets import ClassNet
-from kale.embed.attention_cnn import CNNTransformer, ContextCNNGeneric
-from kale.embed.image_cnn import SimpleCNN
 from trainer import CNNTransformerTrainer
 
+from kale.embed.attention_cnn import CNNTransformer, ContextCNNGeneric
+from kale.embed.image_cnn import SimpleCNN
+from kale.predict.class_domain_nets import ClassNet
 
 
 def get_model(cfg):
@@ -37,8 +36,6 @@ def get_model(cfg):
             cnn, cfg.CNN.OUTPUT_SHAPE, contextualizer=lambda x: x, output_type=cfg.TRANSFORMER.OUTPUT_TYPE
         )
 
-
-
     classifier = ClassNet(cfg.DATASET.NUM_CLASSES, cfg.CNN.OUTPUT_SHAPE)
     net = nn.Sequential(context_cnn, classifier)
     optim = torch.optim.SGD(
@@ -46,5 +43,3 @@ def get_model(cfg):
     )
     model = CNNTransformerTrainer(model=net, optim=optim.state_dict(), cfg=cfg)
     return model, optim
-
-
