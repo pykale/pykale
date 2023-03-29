@@ -65,15 +65,15 @@ class ClassNet(nn.Module):
     Simple classification prediction-head block to plug ontop of the 4D
     output of a CNN.
     Args:
-        num_classes: the number of different classes that can be predicted.
-        input_shape: the shape that input to this head will have. Expected
-                      to be (batch_size, channels, height, width)
+        n_class (int, optional): the number of different classes that can be predicted. Defaults to 10.
+        input_shape (tuples, optional): the shape that input to this head will have. Expected
+                      to be (batch_size, channels, height, width). Defaults to (-1, 64, 8, 8).
     """
 
-    def __init__(self, num_classes, input_shape):
+    def __init__(self, n_class=10, input_shape=(-1, 64, 8, 8)):
         super(PredictionHead, self).__init__()
         self.avgpool = nn.AvgPool2d(input_shape[2])
-        self.linear = nn.Linear(input_shape[1], num_classes)
+        self.linear = nn.Linear(input_shape[1], n_class)
 
     def forward(self, x):
         x = self.avgpool(x)
