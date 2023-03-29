@@ -4,8 +4,11 @@ Define and build the model based on chosen hyperparameters.
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchsummary import summary
 
 from kale.embed.attention_cnn import CNNTransformer, ContextCNNGeneric
+from trainer_new import CNNTransformerTrainer
+from copy import deepcopy
 
 
 class SimpleCNN(nn.Module):
@@ -96,5 +99,12 @@ def get_model(cfg):
             cnn, cfg.CNN.OUTPUT_SHAPE, contextualizer=lambda x: x, output_type=cfg.TRANSFORMER.OUTPUT_TYPE
         )
 
+
+
     classifier = PredictionHead(cfg.DATASET.NUM_CLASSES, cfg.CNN.OUTPUT_SHAPE)
-    return nn.Sequential(context_cnn, classifier)
+    net = nn.Sequential(context_cnn, classifier)
+    optim = torch.optim.SGD(
+        net.parameters(), lr=cfg.SOLVER.BASE_LR, momentum=cfg.SOLVER.MOMENTUM, weight_decay=cfg.SOLVER.WEIGHT_DECAY
+    )
+    model = CNNTransformerTrainer(model=net, optim=optim.state_dict(), cfg=cfg)
+    return model, optim
