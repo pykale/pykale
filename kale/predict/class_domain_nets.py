@@ -11,6 +11,7 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/mod
 """
 
 import torch.nn as nn
+import torch.nn.functional as F
 
 from kale.embed.video_i3d import Unit3D
 
@@ -71,7 +72,7 @@ class ClassNet(nn.Module):
     """
 
     def __init__(self, n_class=10, input_shape=(-1, 64, 8, 8)):
-        super(PredictionHead, self).__init__()
+        super(ClassNet, self).__init__()
         self.avgpool = nn.AvgPool2d(input_shape[2])
         self.linear = nn.Linear(input_shape[1], n_class)
 
