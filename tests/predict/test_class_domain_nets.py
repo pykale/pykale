@@ -2,6 +2,7 @@ import pytest
 import torch
 
 from kale.predict.class_domain_nets import (
+    ClassNet,
     ClassNetSmallImage,
     ClassNetVideo,
     ClassNetVideoConv,
@@ -18,6 +19,8 @@ BATCH_SIZE = 2
 # batch_size * num_channel * frame_per_segment * height * weight.
 INPUT_BATCH = torch.randn(BATCH_SIZE, 128)
 INPUT_BATCH_AVERAGE = torch.randn(BATCH_SIZE, 1024, 1, 1, 1)
+# The default input shape for ClassNet module is batch_size * channels * height * width
+INPUT_BATCH_CLASSNET = torch.randn(BATCH_SIZE, 64, 8, 8)
 CLASSNET_MODEL = [ClassNetSmallImage, ClassNetVideo]
 DOMAINNET_MODEL = [DomainNetSmallImage, DomainNetVideo]
 
@@ -27,6 +30,13 @@ def test_softmaxnet_shapes():
     model.eval()
     output_batch = model(INPUT_BATCH)
     assert output_batch.size() == (BATCH_SIZE, 8)
+
+
+def test_classpredictionhead_shapes():
+    model = ClassNet()
+    model.eval()
+    output_batch = model(INPUT_BATCH_CLASSNET)
+    assert output_batch.size() == (BATCH_SIZE, 10)  # (batch size, num_classes)
 
 
 @pytest.mark.parametrize("model", CLASSNET_MODEL)
