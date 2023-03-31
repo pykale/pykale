@@ -7,6 +7,7 @@ from trainer import CNNTransformerTrainer
 
 from kale.embed.attention_cnn import CNNTransformer, ContextCNNGeneric
 from kale.embed.image_cnn import SimpleCNN
+from kale.pipeline.cnn_trainer import CNNTransformerTrainer
 from kale.predict.class_domain_nets import ClassNet
 
 
