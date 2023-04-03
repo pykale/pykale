@@ -15,6 +15,7 @@ import seaborn as sns
 from config import get_cfg_defaults
 from pandas import *
 
+import kale.utils.logger as logging
 from kale.interpret.uncertainty_quantiles import (
     generate_figures_individual_bin_comparison,
     quantile_binning_and_est_errors,
@@ -44,8 +45,20 @@ def main():
     if args.cfg:
         cfg.merge_from_file(args.cfg)
     cfg.freeze()
-    print(cfg)
 
+    # ---- setup output ----
+    format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
+    # logging.basicConfig(format=format_str)
+
+    logger = logging.construct_logger("q_bin", cfg.OUTPUT.SAVE_FOLDER)
+    # logger.info(f"Using {device}")
+    # logger.info("\n" + cfg.dump())
+    # logger = logging.getLogger()
+
+    logger.info("test")
+
+    logger.info(cfg)
+    # print("test")
     # ---- setup dataset ----
     base_dir = cfg.DATASET.BASE_DIR
 
@@ -89,7 +102,6 @@ def main():
 
         # ---- This is the Fitting Phase ----
         if fit:
-
             # Fit all the options for the individual q selection and comparison q selection
 
             all_models_to_compare = np.unique(ind_q_models_to_compare + compare_q_models_to_compare)
@@ -99,7 +111,6 @@ def main():
 
             for model in all_models_to_compare:
                 for landmark in landmarks:
-
                     # Define Paths for this loop
                     landmark_results_path_val = os.path.join(
                         cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
@@ -124,7 +135,6 @@ def main():
         ############ Evaluation Phase ##########################
 
         if evaluate:
-
             # Get results for each individual bin.
             if cfg.PIPELINE.COMPARE_INDIVIDUAL_Q:
                 comparisons_models = "_".join(ind_q_models_to_compare)
@@ -165,8 +175,7 @@ def main():
 
 
 def fit_and_predict(landmark, uncertainty_error_pairs, ue_pairs_val, ue_pairs_test, num_bins, config, save_folder=None):
-
-    """ Loads (validation, testing data) pairs of (uncertainty, error) pairs and for each fold: used the validation
+    """Loads (validation, testing data) pairs of (uncertainty, error) pairs and for each fold: used the validation
         set to generate quantile thresholds, estimate error bounds and bin the test data accordingly. Saves
         predicted bins and error bounds to a csv.
 
@@ -190,7 +199,6 @@ def fit_and_predict(landmark, uncertainty_error_pairs, ue_pairs_val, ue_pairs_te
     error_bound_estimates = pd.DataFrame({"fold": np.arange(num_folds)})
 
     for idx, uncertainty_pairing in enumerate(uncertainty_error_pairs):
-
         uncertainty_category = uncertainty_pairing[0]
         invert_uncert_bool = [x[1] for x in invert_confidences if x[0] == uncertainty_category][0]
         uncertainty_localisation_er = uncertainty_pairing[1]
@@ -200,7 +208,6 @@ def fit_and_predict(landmark, uncertainty_error_pairs, ue_pairs_val, ue_pairs_te
         running_error_bounds = []
 
         for fold in range(num_folds):
-
             validation_pairs = load_csv_columns(
                 ue_pairs_val, "Validation Fold", fold, ["uid", uncertainty_localisation_er, uncertainty_measure],
             )
