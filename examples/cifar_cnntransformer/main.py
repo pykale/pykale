@@ -45,6 +45,7 @@ def main():
     logger = logging.construct_logger("context_cnns", cfg.OUTPUT_DIR)
     logger.info(f"Using {device}")
     logger.info("\n" + cfg.dump())
+    logger.info("test")
 
     # ---- setup dataset ----
     train_loader, valid_loader = get_cifar(cfg)
