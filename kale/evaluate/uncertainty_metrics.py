@@ -1,12 +1,15 @@
 import numpy as np
-from scipy import stats
-import pandas as pd
-from kale.prepdata.tabular_transform import apply_confidence_inversion
 
-import os 
 
 def evaluate_bounds(
-    estimated_bounds, bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8, show_fig=False, combine_middle_bins=False
+    estimated_bounds,
+    bin_predictions,
+    uncertainty_pairs,
+    num_bins,
+    landmarks,
+    num_folds=8,
+    show_fig=False,
+    combine_middle_bins=False,
 ):
     """
         Evaluate uncertainty estimation's ability to predict error bounds for its quantile bins.
@@ -36,7 +39,6 @@ def evaluate_bounds(
 
     all_concat_errorbound_bins_lm_sep_foldwise = [{} for x in range(len(landmarks))]
     all_concat_errorbound_bins_lm_sep_all = [{} for x in range(len(landmarks))]
-
 
     # Loop over combinations of models (model) and uncertainty types (up)
     for i, (model, data_structs) in enumerate(bin_predictions.items()):
@@ -80,23 +82,35 @@ def evaluate_bounds(
                     )
 
                     for lm in range(len(landmarks)):
-                        fold_all_bins_concat_lms_sep_foldwise[lm][idx_bin] = fold_all_bins_concat_lms_sep_foldwise[lm][idx_bin] + return_dict["all bins concatenated lms seperated"][lm][idx_bin]
-                        combined = fold_all_bins_concat_lms_sep_all[lm][idx_bin] + return_dict["all bins concatenated lms seperated"][lm][idx_bin]
+                        fold_all_bins_concat_lms_sep_foldwise[lm][idx_bin] = (
+                            fold_all_bins_concat_lms_sep_foldwise[lm][idx_bin]
+                            + return_dict["all bins concatenated lms seperated"][lm][idx_bin]
+                        )
+                        combined = (
+                            fold_all_bins_concat_lms_sep_all[lm][idx_bin]
+                            + return_dict["all bins concatenated lms seperated"][lm][idx_bin]
+                        )
 
-                        fold_all_bins_concat_lms_sep_all[lm][idx_bin] = combined 
+                        fold_all_bins_concat_lms_sep_all[lm][idx_bin] = combined
 
             # Reverses order so they are worst to best i.e. B5 -> B1
             all_bound_percents[model + " " + uncertainty_type] = fold_learned_bounds_mean_bins[::-1]
             all_bound_percents_nolmsep[model + " " + uncertainty_type] = fold_learned_bounds_bins_lmsnotsep[::-1]
-    
+
             for lm in range(len(all_concat_errorbound_bins_lm_sep_foldwise)):
-                all_concat_errorbound_bins_lm_sep_foldwise[lm][model + " " + uncertainty_type] = fold_all_bins_concat_lms_sep_foldwise[lm]
-                all_concat_errorbound_bins_lm_sep_all[lm][model + " " + uncertainty_type] =  fold_all_bins_concat_lms_sep_all[lm]
-    
-    return {"Error Bounds All":all_bound_percents, "all_bound_percents_nolmsep":all_bound_percents_nolmsep,
-            "all errorbound concat bins lms sep foldwise":  all_concat_errorbound_bins_lm_sep_foldwise,
-            "all errorbound concat bins lms sep all":  all_concat_errorbound_bins_lm_sep_all
-            }
+                all_concat_errorbound_bins_lm_sep_foldwise[lm][
+                    model + " " + uncertainty_type
+                ] = fold_all_bins_concat_lms_sep_foldwise[lm]
+                all_concat_errorbound_bins_lm_sep_all[lm][
+                    model + " " + uncertainty_type
+                ] = fold_all_bins_concat_lms_sep_all[lm]
+
+    return {
+        "Error Bounds All": all_bound_percents,
+        "all_bound_percents_nolmsep": all_bound_percents_nolmsep,
+        "all errorbound concat bins lms sep foldwise": all_concat_errorbound_bins_lm_sep_foldwise,
+        "all errorbound concat bins lms sep all": all_concat_errorbound_bins_lm_sep_all,
+    }
 
 
 def bin_wise_bound_eval(
@@ -123,7 +137,6 @@ def bin_wise_bound_eval(
     all_qs_size = [[] for x in range(num_bins)]
 
     all_qs_errorbound_concat_lms_sep = [[[] for y in range(num_bins)] for x in range(len(landmarks))]
-
 
     for i_lm, landmark in enumerate(landmarks):
 
@@ -207,8 +220,6 @@ def bin_wise_bound_eval(
         weighted_av = weighted_mean_lm / total_weights
         all_lm_perc.append(weighted_av)
 
-     
-
     # Weighted average for each of the quantile bins.
     weighted_av_binwise = []
     for binidx in range(len(all_qs_perc)):
@@ -236,8 +247,11 @@ def bin_wise_bound_eval(
         bin_accs = all_qs_perc[binidx]
         normal_av_bin_wise.append(np.mean(bin_accs))
 
-    return {"mean all lms": np.mean(all_lm_perc), "mean all bins": weighted_av_binwise,
-        "mean all": all_qs_perc, "all bins concatenated lms seperated": all_qs_errorbound_concat_lms_sep
+    return {
+        "mean all lms": np.mean(all_lm_perc),
+        "mean all bins": weighted_av_binwise,
+        "mean all": all_qs_perc,
+        "all bins concatenated lms seperated": all_qs_errorbound_concat_lms_sep,
     }
 
 
@@ -258,25 +272,9 @@ def strip_for_bound(string_):
     return bounds
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def get_mean_errors(bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8, pixel_to_mm_scale=1, combine_middle_bins=False):
+def get_mean_errors(
+    bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8, pixel_to_mm_scale=1, combine_middle_bins=False
+):
     """
         Evaluate uncertainty estimation's mean error of each bin
         For each bin, we calculate the mean localisation error for each landmark and for all landmarks.
@@ -301,7 +299,7 @@ def get_mean_errors(bin_predictions, uncertainty_pairs, num_bins, landmarks, num
             "all error concat bins lms sep all": For every fold, every error value in a list. Each landmark is in a seperate list. The list is flattened for all the folds.
 
     """
-    #If we are combining the middle bins, we only have the 2 edge bins and the middle bins are combined into 1 bin.
+    # If we are combining the middle bins, we only have the 2 edge bins and the middle bins are combined into 1 bin.
     if combine_middle_bins:
         num_bins = 3
 
@@ -335,35 +333,42 @@ def get_mean_errors(bin_predictions, uncertainty_pairs, num_bins, landmarks, num
                     ["uid", "landmark", uncertainty_type + " Uncertainty bins"]
                 ]
                 # print("\n \n ", up, "fold: ", fold)
-                return_dict = bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_type, pixel_to_mm_scale=pixel_to_mm_scale)
+                return_dict = bin_wise_errors(
+                    fold_errors, fold_bins, num_bins, landmarks, uncertainty_type, pixel_to_mm_scale=pixel_to_mm_scale
+                )
                 fold_mean_landmarks.append(return_dict["mean all lms"])
 
                 for idx_bin in range(len(return_dict["mean all bins"])):
                     fold_mean_bins[idx_bin].append(return_dict["mean all bins"][idx_bin])
                     fold_all_bins[idx_bin] = fold_all_bins[idx_bin] + return_dict["all bins"][idx_bin]
-                    
+
                     concat_no_sep = [x[idx_bin] for x in return_dict["all bins concatenated lms seperated"]]
 
                     flattened_concat_no_sep = [x for sublist in concat_no_sep for x in sublist]
                     flattened_concat_no_sep = [x for sublist in flattened_concat_no_sep for x in sublist]
 
-                    fold_all_bins_concat_lms_nosep[idx_bin] = fold_all_bins_concat_lms_nosep[idx_bin] + flattened_concat_no_sep
+                    fold_all_bins_concat_lms_nosep[idx_bin] = (
+                        fold_all_bins_concat_lms_nosep[idx_bin] + flattened_concat_no_sep
+                    )
 
                     for lm in range(len(landmarks)):
-                        fold_all_bins_concat_lms_sep_foldwise[lm][idx_bin] = fold_all_bins_concat_lms_sep_foldwise[lm][idx_bin] + return_dict["all bins concatenated lms seperated"][lm][idx_bin]
+                        fold_all_bins_concat_lms_sep_foldwise[lm][idx_bin] = (
+                            fold_all_bins_concat_lms_sep_foldwise[lm][idx_bin]
+                            + return_dict["all bins concatenated lms seperated"][lm][idx_bin]
+                        )
 
                         if return_dict["all bins concatenated lms seperated"][lm][idx_bin] != []:
-                            combined = fold_all_bins_concat_lms_sep_all[lm][idx_bin] + return_dict["all bins concatenated lms seperated"][lm][idx_bin][0]
-                        else: 
-                            combined = fold_all_bins_concat_lms_sep_all[lm][idx_bin] 
-                     
+                            combined = (
+                                fold_all_bins_concat_lms_sep_all[lm][idx_bin]
+                                + return_dict["all bins concatenated lms seperated"][lm][idx_bin][0]
+                            )
+                        else:
+                            combined = fold_all_bins_concat_lms_sep_all[lm][idx_bin]
 
-                        fold_all_bins_concat_lms_sep_all[lm][idx_bin] = combined 
+                        fold_all_bins_concat_lms_sep_all[lm][idx_bin] = combined
 
-                  
-            
             # exit()
-            #reverse orderings
+            # reverse orderings
             fold_mean_bins = fold_mean_bins[::-1]
             fold_all_bins = fold_all_bins[::-1]
             fold_all_bins_concat_lms_nosep = fold_all_bins_concat_lms_nosep[::-1]
@@ -373,17 +378,25 @@ def get_mean_errors(bin_predictions, uncertainty_pairs, num_bins, landmarks, num
             all_mean_error_bins[model + " " + uncertainty_type] = fold_mean_bins
             all_mean_error_bins_lms_sep[model + " " + uncertainty_type] = fold_all_bins
 
-      
             all_concat_error_bins_lm_nosep[model + " " + uncertainty_type] = fold_all_bins_concat_lms_nosep
 
             for lm in range(len(fold_all_bins_concat_lms_sep_foldwise)):
-   
-                all_concat_error_bins_lm_sep_foldwise[lm][model + " " + uncertainty_type] = fold_all_bins_concat_lms_sep_foldwise[lm]
-                all_concat_error_bins_lm_sep_all[lm][model + " " + uncertainty_type] =  fold_all_bins_concat_lms_sep_all[lm]
-               
-    return {"all mean error bins nosep": all_mean_error_bins, "all mean error bins lms sep":  all_mean_error_bins_lms_sep, 
-         "all error concat bins lms nosep":  all_concat_error_bins_lm_nosep,  "all error concat bins lms sep foldwise":  all_concat_error_bins_lm_sep_foldwise,
-         "all error concat bins lms sep all":  all_concat_error_bins_lm_sep_all}   
+
+                all_concat_error_bins_lm_sep_foldwise[lm][
+                    model + " " + uncertainty_type
+                ] = fold_all_bins_concat_lms_sep_foldwise[lm]
+                all_concat_error_bins_lm_sep_all[lm][model + " " + uncertainty_type] = fold_all_bins_concat_lms_sep_all[
+                    lm
+                ]
+
+    return {
+        "all mean error bins nosep": all_mean_error_bins,
+        "all mean error bins lms sep": all_mean_error_bins_lms_sep,
+        "all error concat bins lms nosep": all_concat_error_bins_lm_nosep,
+        "all error concat bins lms sep foldwise": all_concat_error_bins_lm_sep_foldwise,
+        "all error concat bins lms sep all": all_concat_error_bins_lm_sep_all,
+    }
+
 
 def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8, combine_middle_bins=False):
     """
@@ -404,7 +417,7 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
         [Dict,Dict]: Pair of dicts with JI for all landmarks combined and landmarks seperated.
     """
 
-    #If we are combining middle bins, we need the original number of bins to calcualate the true quantiles of the error.
+    # If we are combining middle bins, we need the original number of bins to calcualate the true quantiles of the error.
     # Then, we combine all the middle bins of the true quantiles, giving us 3 bins.
     # There are only 3 bins that have been predicted, so set num_bins to 3.
 
@@ -422,7 +435,6 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
 
     all_precision_data = {}
     all_precision__bins_lms_sep = {}
-    
 
     all_concat_jacc_bins_lm_sep_foldwise = [{} for x in range(len(landmarks))]
     all_concat_jacc_bins_lm_sep_all = [{} for x in range(len(landmarks))]
@@ -446,7 +458,7 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
 
             fold_all_bins_concat_lms_sep_foldwise = [[[] for y in range(num_bins)] for x in range(len(landmarks))]
             fold_all_bins_concat_lms_sep_all = [[[] for y in range(num_bins)] for x in range(len(landmarks))]
-           
+
             for fold in range(num_folds):
                 # Get the errors and predicted bins for this fold
                 fold_errors = data_structs[(data_structs["Testing Fold"] == fold)][
@@ -456,39 +468,53 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
                     ["uid", "landmark", uncertainty_type + " Uncertainty bins"]
                 ]
 
-                return_dict = bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_for_quantiles, landmarks, uncertainty_type, combine_middle_bins)
+                return_dict = bin_wise_jaccard(
+                    fold_errors,
+                    fold_bins,
+                    num_bins,
+                    num_bins_for_quantiles,
+                    landmarks,
+                    uncertainty_type,
+                    combine_middle_bins,
+                )
 
                 # print("Fodl: %s , BWJ: %s" % (fold, return_dict))
                 fold_mean_landmarks.append(return_dict["mean all lms"])
                 fold_mean_landmarks_recall.append(return_dict["mean all lms recall"])
                 fold_mean_landmarks_precision.append(return_dict["mean all lms precision"])
-                
 
                 for idx_bin in range(len(return_dict["mean all bins"])):
                     fold_mean_bins[idx_bin].append(return_dict["mean all bins"][idx_bin])
                     fold_all_bins[idx_bin] = fold_all_bins[idx_bin] + return_dict["all bins"][idx_bin]
 
                     fold_mean_bins_recall[idx_bin].append(return_dict["mean all bins recall"][idx_bin])
-                    fold_all_bins_recall[idx_bin] = fold_all_bins_recall[idx_bin] + return_dict["all bins recall"][idx_bin]
+                    fold_all_bins_recall[idx_bin] = (
+                        fold_all_bins_recall[idx_bin] + return_dict["all bins recall"][idx_bin]
+                    )
 
                     fold_mean_bins_precision[idx_bin].append(return_dict["mean all bins precision"][idx_bin])
-                    fold_all_bins_precision[idx_bin] = fold_all_bins_precision[idx_bin] + return_dict["all bins precision"][idx_bin]
+                    fold_all_bins_precision[idx_bin] = (
+                        fold_all_bins_precision[idx_bin] + return_dict["all bins precision"][idx_bin]
+                    )
 
-
-                    #Get the jaccard saved for the individual landmarks, flattening the folds and also not flattening the folds
+                    # Get the jaccard saved for the individual landmarks, flattening the folds and also not flattening the folds
                     for lm in range(len(landmarks)):
-                        fold_all_bins_concat_lms_sep_foldwise[lm][idx_bin] = fold_all_bins_concat_lms_sep_foldwise[lm][idx_bin] + return_dict["all bins concatenated lms seperated"][lm][idx_bin]
-                        combined = fold_all_bins_concat_lms_sep_all[lm][idx_bin] + return_dict["all bins concatenated lms seperated"][lm][idx_bin]
+                        fold_all_bins_concat_lms_sep_foldwise[lm][idx_bin] = (
+                            fold_all_bins_concat_lms_sep_foldwise[lm][idx_bin]
+                            + return_dict["all bins concatenated lms seperated"][lm][idx_bin]
+                        )
+                        combined = (
+                            fold_all_bins_concat_lms_sep_all[lm][idx_bin]
+                            + return_dict["all bins concatenated lms seperated"][lm][idx_bin]
+                        )
 
                         # if return_dict["all bins concatenated lms seperated"][lm][idx_bin] != []:
-                            # combined = fold_all_bins_concat_lms_sep_all[lm][idx_bin] + return_dict["all bins concatenated lms seperated"][lm][idx_bin][0]
-                        # else: 
-                            # combined = fold_all_bins_concat_lms_sep_all[lm][idx_bin] 
-                     
+                        # combined = fold_all_bins_concat_lms_sep_all[lm][idx_bin] + return_dict["all bins concatenated lms seperated"][lm][idx_bin][0]
+                        # else:
+                        # combined = fold_all_bins_concat_lms_sep_all[lm][idx_bin]
 
-                        fold_all_bins_concat_lms_sep_all[lm][idx_bin] = combined 
-            
-            
+                        fold_all_bins_concat_lms_sep_all[lm][idx_bin] = combined
+
             all_jaccard_data[model + " " + uncertainty_type] = fold_mean_bins
             all_jaccard_bins_lms_sep[model + " " + uncertainty_type] = fold_all_bins
 
@@ -497,20 +523,26 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
 
             all_precision_data[model + " " + uncertainty_type] = fold_mean_bins_precision
             all_precision__bins_lms_sep[model + " " + uncertainty_type] = fold_all_bins_precision
-            
+
             for lm in range(len(all_concat_jacc_bins_lm_sep_foldwise)):
-   
-                all_concat_jacc_bins_lm_sep_foldwise[lm][model + " " + uncertainty_type] = fold_all_bins_concat_lms_sep_foldwise[lm]
-                all_concat_jacc_bins_lm_sep_all[lm][model + " " + uncertainty_type] =  fold_all_bins_concat_lms_sep_all[lm]
 
-    return {"Jaccard All":all_jaccard_data, "Jaccard lms seperated": all_jaccard_bins_lms_sep, "Recall All":all_recall_data, 
-        "Recall lms seperated":all_recall_bins_lms_sep, "Precision All":all_precision_data, 
-        "Precision lms seperated":all_precision__bins_lms_sep, "all jacc concat bins lms sep foldwise":  all_concat_jacc_bins_lm_sep_foldwise,
-         "all jacc concat bins lms sep all":  all_concat_jacc_bins_lm_sep_all}
+                all_concat_jacc_bins_lm_sep_foldwise[lm][
+                    model + " " + uncertainty_type
+                ] = fold_all_bins_concat_lms_sep_foldwise[lm]
+                all_concat_jacc_bins_lm_sep_all[lm][model + " " + uncertainty_type] = fold_all_bins_concat_lms_sep_all[
+                    lm
+                ]
 
-
-
-
+    return {
+        "Jaccard All": all_jaccard_data,
+        "Jaccard lms seperated": all_jaccard_bins_lms_sep,
+        "Recall All": all_recall_data,
+        "Recall lms seperated": all_recall_bins_lms_sep,
+        "Precision All": all_precision_data,
+        "Precision lms seperated": all_precision__bins_lms_sep,
+        "all jacc concat bins lms sep foldwise": all_concat_jacc_bins_lm_sep_foldwise,
+        "all jacc concat bins lms sep all": all_concat_jacc_bins_lm_sep_all,
+    }
 
 
 def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key, pixel_to_mm_scale):
@@ -533,14 +565,13 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key
     all_qs_error = [[] for x in range(num_bins)]
     all_qs_error_concat_lms_sep = [[[] for y in range(num_bins)] for x in range(len(landmarks))]
 
-
     for i, landmark in enumerate(landmarks):
 
-        true_errors_lm = fold_errors[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Error"]] 
-        pred_bins_lm = fold_bins[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Uncertainty bins"]] 
+        true_errors_lm = fold_errors[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Error"]]
+        pred_bins_lm = fold_bins[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Uncertainty bins"]]
 
         # Zip to dictionary
-        true_errors_lm = dict(zip(true_errors_lm.uid, true_errors_lm[uncertainty_key + " Error"]* pixel_to_mm_scale))
+        true_errors_lm = dict(zip(true_errors_lm.uid, true_errors_lm[uncertainty_key + " Error"] * pixel_to_mm_scale))
         pred_bins_lm = dict(zip(pred_bins_lm.uid, pred_bins_lm[uncertainty_key + " Uncertainty bins"]))
 
         pred_bins_keys = []
@@ -557,30 +588,28 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key
             pred_bins_errors.append(inner_list_errors)
             pred_bins_keys.append(inner_list)
 
-        
         # Now for each bin, get the mean error
         inner_errors = []
         for bin in range(num_bins):
-            pred_b_keys = pred_bins_keys[bin]
             pred_b_errors = pred_bins_errors[bin]
 
-            #test for empty bin, it would've created a mean_error==nan , so don't add it!
+            # test for empty bin, it would've created a mean_error==nan , so don't add it!
             if pred_b_errors == []:
                 continue
-            
+
             mean_error = np.mean(pred_b_errors)
-            
+
             # print(uncertainty_key, ": Bin %s and mean error %s +/- %s" % (bin, mean_error, np.std(pred_b_errors)))
             all_qs_error[bin].append(mean_error)
             all_qs_error_concat_lms_sep[i][bin].append(pred_b_errors)
             inner_errors.append(mean_error)
-            
+
             # print(i, all_qs_error_concat_lms_sep[i])
 
         all_lm_error.append(np.mean(inner_errors))
     # print(all_qs_error_concat_lms_sep)
     # exit()
-    
+
     # print("mean all lms ")
     # print("mal",mean_all_lms)
     # print("mean_all_bins ")
@@ -593,10 +622,12 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key
         "mean all bins": mean_all_bins,
         "all bins": all_qs_error,
         "all bins concatenated lms seperated": all_qs_error_concat_lms_sep,
-
     }
 
-def bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_quantiles, landmarks, uncertainty_key, combine_middle_bins):
+
+def bin_wise_jaccard(
+    fold_errors, fold_bins, num_bins, num_bins_quantiles, landmarks, uncertainty_key, combine_middle_bins
+):
     """
         Helper function for evaluate_jaccard.
 
@@ -615,27 +646,22 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_quantiles, landm
     all_lm_jacc = []
     all_qs_jacc = [[] for x in range(num_bins)]
 
-
     all_qs_jacc_concat_lms_sep = [[[] for y in range(num_bins)] for x in range(len(landmarks))]
 
-
     all_lm_recall = []
-    all_qs_recall= [[] for x in range(num_bins)]
+    all_qs_recall = [[] for x in range(num_bins)]
 
     all_lm_precision = []
-    all_qs_precision= [[] for x in range(num_bins)]
+    all_qs_precision = [[] for x in range(num_bins)]
 
     for i, landmark in enumerate(landmarks):
 
         true_errors_lm = fold_errors[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Error"]]
         pred_bins_lm = fold_bins[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Uncertainty bins"]]
 
-      
-
         # Zip to dictionary
         true_errors_lm = dict(zip(true_errors_lm.uid, true_errors_lm[uncertainty_key + " Error"]))
         pred_bins_lm = dict(zip(pred_bins_lm.uid, pred_bins_lm[uncertainty_key + " Uncertainty bins"]))
-
 
         pred_bins_keys = []
         pred_bins_errors = []
@@ -651,22 +677,19 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_quantiles, landm
             pred_bins_errors.append(inner_list_errors)
             pred_bins_keys.append(inner_list)
 
-       
         # Get the true error quantiles
         sorted_errors = [v for k, v in sorted(true_errors_lm.items(), key=lambda item: item[1])]
 
-        quantiles = np.arange(1 / num_bins_quantiles, 1, 1 / num_bins_quantiles)[:num_bins_quantiles-1]
+        quantiles = np.arange(1 / num_bins_quantiles, 1, 1 / num_bins_quantiles)[: num_bins_quantiles - 1]
         quantile_thresholds = [np.quantile(sorted_errors, q) for q in quantiles]
 
-        #If we are combining the middle bins, combine the middle lists into 1 list.
+        # If we are combining the middle bins, combine the middle lists into 1 list.
 
         if combine_middle_bins:
             quantile_thresholds = [quantile_thresholds[0], quantile_thresholds[-1]]
 
-
         errors_groups = []
         key_groups = []
-
 
         for q in range(len(quantile_thresholds) + 1):
             inner_list_e = []
@@ -707,7 +730,7 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_quantiles, landm
         # print("\n \n", uncertainty_key, ". qauntiles, ", quantiles, " and quantile thresholds: ", quantile_thresholds,)
 
         # print("sorted errors: ", sorted_errors)
-        
+
         # Now for each bin, get the jaccard similarity
         inner_jaccard_sims = []
         inner_recalls = []
@@ -715,9 +738,6 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_quantiles, landm
         for bin in range(num_bins):
             pred_b_keys = pred_bins_keys[bin]
             gt_bins_keys = key_groups[bin]
-
-        
-
 
             j_sim = jaccard_similarity(pred_b_keys, gt_bins_keys)
             all_qs_jacc[bin].append(j_sim)
@@ -727,9 +747,8 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_quantiles, landm
 
             # print("Bin %s, pred keys: %s, GT keys %s" % (bin, pred_b_keys, gt_bins_keys))
             # print("Pred len %s, GT len %s. Pred errors %s and GT errors %s" % (len(pred_bins_errors[bin]), len(errors_groups[bin]), np.sort(pred_bins_errors[bin]), np.sort(errors_groups[bin])))
-            
 
-            #If quantile threshold is the same as the last quantile threshold, the GT set is empty (rare, but can happen if distribution of errors is quite uniform).
+            # If quantile threshold is the same as the last quantile threshold, the GT set is empty (rare, but can happen if distribution of errors is quite uniform).
             if len(gt_bins_keys) == 0:
                 recall = 1
                 precision = 0
@@ -748,12 +767,10 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_quantiles, landm
 
         #     print("recall: ", recall, "precision: ", precision)
 
-
         # print("Inner jaccard sims: ", inner_jaccard_sims)
         all_lm_jacc.append(np.mean(inner_jaccard_sims))
         all_lm_recall.append(np.mean(inner_recalls))
         all_lm_precision.append(np.mean(inner_precisions))
-
 
     return {
         "mean all lms": np.mean(all_lm_jacc),
@@ -766,7 +783,6 @@ def bin_wise_jaccard(fold_errors, fold_bins, num_bins, num_bins_quantiles, landm
         "mean all bins precision": [np.mean(x) for x in all_qs_precision],
         "all bins precision": all_qs_precision,
         "all bins concatenated lms seperated": all_qs_jacc_concat_lms_sep,
-
     }
 
 

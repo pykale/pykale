@@ -24,12 +24,12 @@ PIPELINE:
     # IND_LANDMARKS_TO_SHOW: [8]
 
     COMPARE_Q_VALUES: False
-    COMPARE_INDIVIDUAL_Q: True 
+    COMPARE_INDIVIDUAL_Q: True
     COMPARE_Q_MODELS: ["U-NET"]
     COMPARE_Q_UNCERTAINTY_ERROR_PAIRS: [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"], ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"]]
     # COMPARE_Q_UNCERTAINTY_ERROR_PAIRS: [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"]]
 
-    INDIVIDUAL_Q_MODELS: ["U-NET"] 
+    INDIVIDUAL_Q_MODELS: ["U-NET"]
     INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS: [
         ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"],
         ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"],
@@ -44,7 +44,6 @@ OUTPUT:
     SAVE_PREPEND: "2std_10_08_22"
 
 BOXPLOT:
-    ERROR_LIM: 32 
+    ERROR_LIM: 32
     SAMPLES_AS_DOTS: False
     SHOW_SAMPLE_INFO_MODE: "Average" #["All", "Average"]
-

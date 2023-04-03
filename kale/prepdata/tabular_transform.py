@@ -23,9 +23,9 @@ def apply_confidence_inversion(data, uncertainty_measure):
 
     # data[uncertainty_measure]  = data[data[uncertainty_measure]<0] = 0.1
 
-    #Make sure no value is less than zero.
+    # Make sure no value is less than zero.
     min_not_zero = min(i for i in data[uncertainty_measure] if i > 0)
-    data.loc[data[uncertainty_measure]<0,uncertainty_measure]= min_not_zero
+    data.loc[data[uncertainty_measure] < 0, uncertainty_measure] = min_not_zero
     data[uncertainty_measure] = 1 / data[uncertainty_measure] + 0.0000000000001
     return data
 

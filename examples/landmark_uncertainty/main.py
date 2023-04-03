@@ -15,7 +15,10 @@ import seaborn as sns
 from config import get_cfg_defaults
 from pandas import *
 
-from kale.interpret.uncertainty_quantiles import generate_figures_individual_bin_comparison, quantile_binning_and_est_errors
+from kale.interpret.uncertainty_quantiles import (
+    generate_figures_individual_bin_comparison,
+    quantile_binning_and_est_errors,
+)
 from kale.loaddata.tabular_access import load_csv_columns
 from kale.predict.uncertainty_binning import quantile_binning_predictions
 from kale.prepdata.tabular_transform import apply_confidence_inversion
@@ -28,7 +31,6 @@ def arg_parse():
     parser.add_argument("--cfg", required=False, help="path to config file", type=str)
 
     args = parser.parse_args()
-
 
     """Example:  python main.py --cfg /mnt/tale_shared/schobs/pykale/pykale/examples/landmark_uncertainty/configs/isbi_config.yaml"""
     return args
@@ -46,8 +48,8 @@ def main():
 
     # ---- setup dataset ----
     base_dir = cfg.DATASET.BASE_DIR
-    
-    #download data if neccesary 
+
+    # download data if neccesary
     if cfg.DATASET.SOURCE != None:
         download_file_by_url(
             cfg.DATASET.SOURCE,
@@ -74,8 +76,6 @@ def main():
 
     pixel_to_mm_scale = cfg.PIPELINE.PIXEL_TO_MM_SCALE
 
-  
-   
     # Define parameters for visualisation
     cmaps = sns.color_palette("deep", 10).as_hex()
 
@@ -84,24 +84,19 @@ def main():
     interpret = True
     show_individual_landmark_plots = cfg.PIPELINE.SHOW_IND_LANDMARKS
 
-   
-
-
     for num_bins in cfg.PIPELINE.NUM_QUANTILE_BINS:
-        #create the folder to save to
-        save_folder = os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, str(num_bins)+"Bins")
-       
+        # create the folder to save to
+        save_folder = os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, str(num_bins) + "Bins")
 
-    
         # ---- This is the Fitting Phase ----
         if fit:
 
-            #Fit all the options for the individual q selection and comparison q selection
-           
+            # Fit all the options for the individual q selection and comparison q selection
 
-            all_models_to_compare = np.unique(ind_q_models_to_compare+ compare_q_models_to_compare)
-            all_uncert_error_pairs_to_compare = np.unique(ind_q_uncertainty_error_pairs+ compare_q_uncertainty_error_pairs, axis=0)
-
+            all_models_to_compare = np.unique(ind_q_models_to_compare + compare_q_models_to_compare)
+            all_uncert_error_pairs_to_compare = np.unique(
+                ind_q_uncertainty_error_pairs + compare_q_uncertainty_error_pairs, axis=0
+            )
 
             for model in all_models_to_compare:
                 for landmark in landmarks:
@@ -111,7 +106,7 @@ def main():
                         cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
                     )
                     landmark_results_path_test = os.path.join(
-                        cfg.DATASET.ROOT,  base_dir, model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
+                        cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
                     )
 
                     fitted_save_at = os.path.join(save_folder, "fitted_quantile_binning", model)
@@ -126,49 +121,51 @@ def main():
                         cfg,
                         save_folder=fitted_save_at,
                     )
-            
-          
-            
 
         ############ Evaluation Phase ##########################
 
         if evaluate:
 
-            #Get results for each individual bin.
+            # Get results for each individual bin.
             if cfg.PIPELINE.COMPARE_INDIVIDUAL_Q:
                 comparisons_models = "_".join(ind_q_models_to_compare)
 
                 comparisons_um = [str(x[0]) for x in ind_q_uncertainty_error_pairs]
                 comparisons_um = "_".join(comparisons_um)
-       
-                save_file_preamble = "_".join([cfg.OUTPUT.SAVE_PREPEND,"ind", dataset, comparisons_models,comparisons_um, "combined" + str(cfg.PIPELINE.COMBINE_MIDDLE_BINS)])
-    
-                generate_figures_individual_bin_comparison(
-                    data=
-                        [
-                            ind_q_uncertainty_error_pairs,
-                            ind_q_models_to_compare,
-                            dataset,
-                            landmarks,
-                            num_bins,
-                            cmaps,
-                            os.path.join(save_folder, "fitted_quantile_binning"),
-                            save_file_preamble,
-                            cfg,
-                            show_individual_landmark_plots,
-                            interpret,
-                            num_folds,
-                            ind_landmarks_to_show,
-                            pixel_to_mm_scale
-                        ],
-                    display_settings = {"errors": True, "jaccard": True, "error_bounds": True},
+
+                save_file_preamble = "_".join(
+                    [
+                        cfg.OUTPUT.SAVE_PREPEND,
+                        "ind",
+                        dataset,
+                        comparisons_models,
+                        comparisons_um,
+                        "combined" + str(cfg.PIPELINE.COMBINE_MIDDLE_BINS),
+                    ]
                 )
-                
 
-            
+                generate_figures_individual_bin_comparison(
+                    data=[
+                        ind_q_uncertainty_error_pairs,
+                        ind_q_models_to_compare,
+                        dataset,
+                        landmarks,
+                        num_bins,
+                        cmaps,
+                        os.path.join(save_folder, "fitted_quantile_binning"),
+                        save_file_preamble,
+                        cfg,
+                        show_individual_landmark_plots,
+                        interpret,
+                        num_folds,
+                        ind_landmarks_to_show,
+                        pixel_to_mm_scale,
+                    ],
+                    display_settings={"errors": True, "jaccard": True, "error_bounds": True},
+                )
 
-        
-def fit_and_predict(landmark, uncertainty_error_pairs, ue_pairs_val, ue_pairs_test,num_bins,  config,  save_folder=None):
+
+def fit_and_predict(landmark, uncertainty_error_pairs, ue_pairs_val, ue_pairs_test, num_bins, config, save_folder=None):
 
     """ Loads (validation, testing data) pairs of (uncertainty, error) pairs and for each fold: used the validation
         set to generate quantile thresholds, estimate error bounds and bin the test data accordingly. Saves
@@ -211,7 +208,6 @@ def fit_and_predict(landmark, uncertainty_error_pairs, ue_pairs_val, ue_pairs_te
             testing_pairs = load_csv_columns(
                 ue_pairs_test, "Testing Fold", fold, ["uid", uncertainty_localisation_er, uncertainty_measure]
             )
-
 
             if invert_uncert_bool:
                 validation_pairs = apply_confidence_inversion(validation_pairs, uncertainty_measure)
