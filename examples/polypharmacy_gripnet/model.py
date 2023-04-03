@@ -1,86 +1,32 @@
-import numpy as np
-import torch
-from torch import nn
-from utils import negative_sampling
+from yacs.config import CfgNode
 
-from kale.embed.gripnet import TypicalGripNetEncoder
+from kale.predict.decode import GripNetLinkPrediction
+from kale.prepdata.supergraph_construct import SuperGraph, SuperVertexParaSetting
 
 
-class MultiRelaInnerProductDecoder(nn.Module):
-    """
-    Build `DistMult
-    <https://arxiv.org/abs/1412.6575>`_ factorization as GripNet decoder in PoSE dataset.
-    """
+def get_supervertex(sv_configs: CfgNode) -> SuperVertexParaSetting:
+    """Get supervertex parameter setting from configurations."""
 
-    def __init__(self, in_dim, num_et):
-        super(MultiRelaInnerProductDecoder, self).__init__()
-        self.num_et = num_et
-        self.in_dim = in_dim
-        self.weight = nn.Parameter(torch.Tensor(num_et, in_dim))
+    exter_list = sv_configs.EXTER_AGG_CHANNELS_LIST
 
-        self.reset_parameters()
+    if len(exter_list):
+        exter_dict = {k: v for k, v in exter_list}
 
-    def forward(self, z, edge_index, edge_type, sigmoid=True):
-        """
-        Args:
-            z: input node feature embeddings.
-            edge_index: edge index in COO format with shape [2, num_edges].
-            edge_type: The one-dimensional relation type/index for each target edge in edge_index.
-            sigmoid: use sigmoid function or not.
-        """
-        value = (z[edge_index[0]] * z[edge_index[1]] * self.weight[edge_type]).sum(dim=1)
-        return torch.sigmoid(value) if sigmoid else value
-
-    def reset_parameters(self):
-        self.weight.data.normal_(std=1 / np.sqrt(self.in_dim))
-
-
-class GripNet(nn.Module):
-    """
-    Build GripNet-DistMult (Encoder-Decoder) model for PoSE link prediction.
-    """
-
-    def __init__(
-        self,
-        gene_channels_list,
-        gd_channels_list,
-        drug_channels_list,
-        num_drug_nodes,
-        num_gene_nodes,
-        num_drug_edge_relations,
-    ):
-        """
-        Parameter meanings explained in kale.embed.gripnet module.
-        """
-        super(GripNet, self).__init__()
-        self.num_drug_nodes = num_drug_nodes
-        self.num_gene_nodes = num_gene_nodes
-        self.gn = TypicalGripNetEncoder(
-            gene_channels_list,
-            gd_channels_list,
-            drug_channels_list,
-            num_drug_nodes,
-            num_gene_nodes,
-            num_drug_edge_relations,
+        return SuperVertexParaSetting(
+            sv_configs.NAME,
+            sv_configs.INTER_FEAT_CHANNELS,
+            sv_configs.INTER_AGG_CHANNELS_LIST,
+            exter_agg_channels_dict=exter_dict,
+            mode=sv_configs.MODE,
         )
-        self.dmt = MultiRelaInnerProductDecoder(sum(drug_channels_list), num_drug_edge_relations)
 
-    def forward(
-        self,
-        gene_x,
-        gene_edge_index,
-        gene_edge_weight,
-        gd_edge_index,
-        drug_index,
-        drug_edge_types,
-        drug_edge_range,
-        device,
-    ):
-        z = self.gn(
-            gene_x, gene_edge_index, gene_edge_weight, gd_edge_index, drug_index, drug_edge_types, drug_edge_range
-        )
-        pos_index = drug_index
-        neg_index = negative_sampling(drug_index, self.num_drug_nodes).to(device)
-        pos_score = self.dmt(z, pos_index, drug_edge_types)
-        neg_score = self.dmt(z, neg_index, drug_edge_types)
-        return pos_score, neg_score
+    return SuperVertexParaSetting(sv_configs.NAME, sv_configs.INTER_FEAT_CHANNELS, sv_configs.INTER_AGG_CHANNELS_LIST,)
+
+
+def get_model(supergraph: SuperGraph, cfg: CfgNode) -> GripNetLinkPrediction:
+    """Get model from the supergraph and configurations."""
+
+    learning_rate = cfg.SOLVER.BASE_LR
+    epsilon = cfg.SOLVER.EPSILON
+
+    return GripNetLinkPrediction(supergraph, learning_rate, epsilon)

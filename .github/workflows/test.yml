@@ -1,4 +1,4 @@
-# This workflow will install Python dependencies, run tests, and report the coverage with a variety of Python versions and OSs
+# This workflow will install Python dependencies, run tests, and report the coverage with a variety of Python versions and OSs.
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
 name: test
@@ -34,7 +34,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          conda install -c conda-forge rdkit=2020.09.1.0
+          conda install -c conda-forge rdkit=2022.03.2
           pip install pyparsing==2.4.7
           pip install torch==1.11.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torchvision==0.12.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
@@ -42,7 +42,7 @@ jobs:
           pip install torch-sparse==0.6.13 -f https://pytorch-geometric.com/whl/torch-1.11.0+cpu.html
           pip install torch-cluster==1.6.0 -f https://pytorch-geometric.com/whl/torch-1.11.0+cpu.html
           pip install torch-spline-conv==1.2.1 -f https://pytorch-geometric.com/whl/torch-1.11.0+cpu.html
-          pip install torch-geometric
+          pip install torch-geometric==2.2.0
           pip install -e .[dev]
         shell: bash -l {0}
       - name: Run tests

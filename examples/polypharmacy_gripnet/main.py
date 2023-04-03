@@ -1,73 +1,73 @@
 import argparse
-import os
+import warnings
 
+import pytorch_lightning as pl
 import torch
 from config import get_cfg_defaults
-from model import GripNet
-from trainer import Trainer
+from model import get_model, get_supervertex
+from torch.utils.data import DataLoader
 
-import kale.utils.logger as lu
 import kale.utils.seed as seed
-from kale.utils.download import download_file_by_url
+from kale.loaddata.polypharmacy_datasets import PolypharmacyDataset
+from kale.prepdata.supergraph_construct import SuperEdge, SuperGraph, SuperVertex
+
+warnings.filterwarnings(action="ignore")
 
 
 def arg_parse():
-    parser = argparse.ArgumentParser(description="PyTorch CIFAR10 Training")
-    parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    parser.add_argument("--output", default="default", help="folder to save output", type=str)
-    parser.add_argument("--resume", default="", type=str)
+    parser = argparse.ArgumentParser(description="GripNet Training for Polypharmacy Side Effect Prediction")
+    parser.add_argument("--cfg", type=str, default="config.yaml", help="config file path")
     args = parser.parse_args()
+
     return args
 
 
 def main():
     args = arg_parse()
+
     # ---- setup device ----
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    print("==> Using device " + device)
+    device = torch.device(device)
 
     # ---- setup configs ----
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
     cfg.freeze()
     seed.set_seed(cfg.SOLVER.SEED)
-    # ---- setup logger and output ----
-    output_dir = os.path.join(cfg.OUTPUT_DIR, cfg.DATASET.NAME, args.output)
-    os.makedirs(output_dir, exist_ok=True)
-    logger = lu.construct_logger("gripnet", output_dir)
-    logger.info("Using " + device)
-    logger.info(cfg.dump())
-    # ---- setup dataset ----
-    download_file_by_url(cfg.DATASET.URL, cfg.DATASET.ROOT, "pose.pt", "pt")
-    data = torch.load(os.path.join(cfg.DATASET.ROOT, "pose.pt"))
-    device = torch.device(device)
-    data = data.to(device)
-    # ---- setup model ----
-    print("==> Building model..")
-    model = GripNet(
-        cfg.GRIPN.GG_LAYERS, cfg.GRIPN.GD_LAYERS, cfg.GRIPN.DD_LAYERS, data.n_d_node, data.n_g_node, data.n_dd_edge_type
-    ).to(device)
-    # TODO Visualize model
-    # ---- setup trainers ----
-    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.SOLVER.BASE_LR)
-    # TODO
-    trainer = Trainer(cfg, device, data, model, optimizer, logger, output_dir)
 
-    if args.resume:
-        # Load checkpoint
-        print("==> Resuming from checkpoint..")
-        cp = torch.load(args.resume)
-        trainer.model.load_state_dict(cp["net"])
-        trainer.optim.load_state_dict(cp["optim"])
-        trainer.epochs = cp["epoch"]
-        trainer.train_auprc = cp["train_auprc"]
-        trainer.valid_auprc = cp["valid_auprc"]
-        trainer.train_auroc = cp["train_auroc"]
-        trainer.valid_auroc = cp["valid_auroc"]
-        trainer.train_ap = cp["train_ap"]
-        trainer.valid_ap = cp["valid_ap"]
+    # ---- setup dataset and data loader ----
+    train_dataset = PolypharmacyDataset(cfg.DATASET, mode="train")
+    dataloader_train = DataLoader(train_dataset, batch_size=1)
 
-    trainer.train()
+    # ---- setup supergraph ----
+    # create protein and drug supervertex
+    supervertex_protein = SuperVertex("protein", train_dataset.protein_feat, train_dataset.protein_edge_index)
+    supervertex_drug = SuperVertex("drug", train_dataset.drug_feat, train_dataset.edge_index, train_dataset.edge_type)
+
+    # create superedge form protein to drug supervertex
+    superedge = SuperEdge("protein", "drug", train_dataset.protein_drug_edge_index)
+
+    setting_protein = get_supervertex(cfg.GRIPN_SV1)
+    setting_drug = get_supervertex(cfg.GRIPN_SV2)
+
+    # construct supergraph
+    supergraph = SuperGraph([supervertex_protein, supervertex_drug], [superedge])
+    supergraph.set_supergraph_para_setting([setting_protein, setting_drug])
+
+    # ---- setup model and trainer ----
+    model = get_model(supergraph, cfg)
+    print(model)
+
+    trainer = pl.Trainer(
+        default_root_dir=cfg.OUTPUT_DIR,
+        max_epochs=cfg.SOLVER.MAX_EPOCHS,
+        log_every_n_steps=cfg.SOLVER.LOG_EVERY_N_STEPS,
+    )
+
+    # ---- train, validate and test ----
+    # The training set is reused here as the validation and test sets for usage demonstration. See ReadMe for details.
+    trainer.fit(model, dataloader_train, dataloader_train)
+    _ = trainer.test(model, dataloader_train)
 
 
 if __name__ == "__main__":

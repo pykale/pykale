@@ -16,8 +16,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.preprocessing import KernelCenterer, LabelBinarizer
 from sklearn.utils.validation import check_is_fitted
-
-# import tensorly as tl
 from tensorly.base import fold, unfold
 from tensorly.tenalg import multi_mode_dot
 
@@ -89,7 +87,7 @@ class MPCA(BaseEstimator, TransformerMixin):
 
     Examples:
         >>> import numpy as np
-        >>> from kale.embed.mpca import MPCA
+        >>> from kale.embed.factorization import MPCA
         >>> x = np.random.random((40, 20, 25, 20))
         >>> x.shape
         (40, 20, 25, 20)
