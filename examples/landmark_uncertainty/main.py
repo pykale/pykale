@@ -71,7 +71,6 @@ def main():
     landmarks = cfg.DATASET.LANDMARKS
     num_folds = cfg.DATASET.NUM_FOLDS
 
-    # num_bins = cfg.PIPELINE.NUM_QUANTILE_BINS
     ind_landmarks_to_show = cfg.PIPELINE.IND_LANDMARKS_TO_SHOW
 
     pixel_to_mm_scale = cfg.PIPELINE.PIXEL_TO_MM_SCALE
