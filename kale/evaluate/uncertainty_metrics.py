@@ -411,12 +411,21 @@ def generate_summary_df(results_dictionary, cols_to_save, sheet_name, save_locat
         for um in results_dictionary[col_dict_key].keys():
             # print("inner keys", rpiesults_dictionary[col_dict_key].keys())
             col_data = results_dictionary[col_dict_key][um]
-            summary_dict["All " + um + " " + col_save_name + " Mean"] = np.mean(col_data)
-            summary_dict["All " + um + " " + col_save_name + " Std"] = np.std(col_data)
+            # Remove instances of None (which were added when the list was empty, rather than nan)
+            summary_dict["All " + um + " " + col_save_name + " Mean"] = np.mean(
+                [x for sublist in col_data for x in sublist if x is not None]
+            )
+            summary_dict["All " + um + " " + col_save_name + " Std"] = np.std(
+                [x for sublist in col_data for x in sublist if x is not None]
+            )
             for bin_idx, bin_data in enumerate(col_data):
                 # print(um,col_dict_key, bin_idx, len(bin_data))
-                summary_dict["B" + str(bin_idx + 1) + " " + um + " " + col_save_name + " Mean"] = np.mean(col_data)
-                summary_dict["B" + str(bin_idx + 1) + " " + um + " " + col_save_name + " Std"] = np.std(col_data)
+                summary_dict["B" + str(bin_idx + 1) + " " + um + " " + col_save_name + " Mean"] = np.mean(
+                    [x for x in bin_data if x is not None]
+                )
+                summary_dict["B" + str(bin_idx + 1) + " " + um + " " + col_save_name + " Std"] = np.std(
+                    [x for x in bin_data if x is not None]
+                )
 
     pd_df = pd.DataFrame.from_dict(summary_dict, orient="index")
 
@@ -771,7 +780,13 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key
     # print("mean_all_bins ")
     # print("mab", mean_all_bins)
     mean_all_lms = np.mean(all_lm_error)
-    mean_all_bins = [np.mean(x) for x in all_qs_error]
+    mean_all_bins = []
+    for x in all_qs_error:
+        if x == []:
+            mean_all_bins.append(None)
+        else:
+            mean_all_bins.append(np.mean(x))
+    # mean_all_bins = [np.mean(x) for x in all_qs_error]
 
     return {
         "mean all lms": mean_all_lms,

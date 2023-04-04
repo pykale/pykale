@@ -203,7 +203,7 @@ def main():
                         save_folder_comparison = os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, "ComparisonBins")
                         os.makedirs(save_folder_comparison, exist_ok=True)
 
-                        logger.info("Comparison Q figures for: ", c_model, c_er_pair)
+                        logger.info("Comparison Q figures for: %s and %s ", c_model, c_er_pair)
                         generate_figures_comparing_bins(
                             data=[
                                 c_er_pair,

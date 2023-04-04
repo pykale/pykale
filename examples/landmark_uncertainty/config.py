@@ -18,7 +18,7 @@ _C.DATASET.SOURCE = (
     "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
 )
 # _C.DATASET.SOURCE = "https://github.com/pykale/data/blob/landmark-data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
-_C.DATASET.ROOT = "../../../data/landmarks/"
+_C.DATASET.ROOT = "../data/landmarks/"
 _C.DATASET.BASE_DIR = "Uncertainty_tuples"
 
 
@@ -73,7 +73,7 @@ _C.PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS = [
 # ~#
 
 
-_C.PIPELINE.COMBINE_MIDDLE_BINS = False  # TODO: write test for bins=2,3 for this
+_C.PIPELINE.COMBINE_MIDDLE_BINS = False
 _C.PIPELINE.PIXEL_TO_MM_SCALE = 1.0
 _C.PIPELINE.IND_LANDMARKS_TO_SHOW = [-1]  # -1 means show all landmarks individually, [] means show none
 _C.PIPELINE.SHOW_IND_LANDMARKS = True
@@ -96,7 +96,7 @@ _C.WEIGHT_KWARGS.alpha = 0.7
 _C.BOXPLOT = CN()
 _C.BOXPLOT.SAMPLES_AS_DOTS = True
 _C.BOXPLOT.ERROR_LIM = 64
-_C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "All"  # "None", "All", "Average"
+_C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "Average"  # "None", "All", "Average"
 
 
 # ---------------------------------------------------------------------------- #
@@ -105,7 +105,7 @@ _C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "All"  # "None", "All", "Average"
 _C.OUTPUT = CN()
 
 
-_C.OUTPUT.SAVE_FOLDER = "../../../results/"
+_C.OUTPUT.SAVE_FOLDER = "../results/"
 _C.OUTPUT.SAVE_PREPEND = "8std_27_07_22"
 _C.OUTPUT.SAVE_FIGURES = True
 

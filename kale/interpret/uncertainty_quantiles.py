@@ -474,7 +474,7 @@ def box_plot_per_model(
                     x for x in list(landmark_uncert_dicts.keys()) if (model_type in x) and (uncertainty_type in x)
                 ][0]
                 model_data = landmark_uncert_dicts[dict_key]
-                all_b_data = model_data[j]
+                all_b_data = [x for x in model_data[j] if x is not None]
 
                 # if j == num_bins-1:
                 logger.info(
@@ -759,7 +759,7 @@ def box_plot_comparing_q(
         average_samples_per_bin = []
         # Loop through each bin and display the data
         for j in range(len(model_data)):
-            all_b_data = model_data[j]
+            all_b_data = [x for x in model_data[j] if x is not None]
 
             orders.append(model_type + uncertainty_type)
 
@@ -1214,7 +1214,7 @@ def generate_figures_individual_bin_comparison(data, display_settings):
                                 save_folder, save_file_preamble + dotted_addition + "_error_lm_" + str(idx_l) + ".pdf"
                             )
 
-                        logger.info("individual error for L", idx_l)
+                        logger.info("individual error for L%s", idx_l)
                         box_plot_per_model(
                             cmaps,
                             lm_data,
@@ -1282,7 +1282,7 @@ def generate_figures_individual_bin_comparison(data, display_settings):
                                 save_folder, save_file_preamble + "_errorbound_lm_" + str(idx_l) + ".pdf"
                             )
 
-                        logger.info("individual errorbound acc for L", idx_l)
+                        logger.info("individual errorbound acc for L%s", idx_l)
                         box_plot(
                             cmaps,
                             lm_data,
@@ -1359,7 +1359,7 @@ def generate_figures_individual_bin_comparison(data, display_settings):
                                 save_folder, save_file_preamble + "jaccard_lm_" + str(idx_l) + ".pdf"
                             )
 
-                        logger.info("individual jaccard for L", idx_l)
+                        logger.info("individual jaccard for L%s", idx_l)
                         box_plot(
                             cmaps,
                             lm_data,
@@ -1536,7 +1536,7 @@ def generate_figures_comparing_bins(data, display_settings):
                                 save_folder, save_file_preamble + dotted_addition + "_error_lm_" + str(lm) + ".pdf"
                             )
 
-                        logger.info("individual error for L", lm)
+                        logger.info("individual error for L%s", lm)
                         box_plot_comparing_q(
                             lm_data,
                             uncertainty_error_pair,
@@ -1614,7 +1614,7 @@ def generate_figures_comparing_bins(data, display_settings):
                                 save_folder, save_file_preamble + "_errorbound_lm_" + str(lm) + ".pdf"
                             )
 
-                        logger.info("individual errorbound acc for L", lm)
+                        logger.info("individual errorbound acc for L%s", lm)
                         box_plot_comparing_q(
                             lm_data,
                             uncertainty_error_pair,
@@ -1706,7 +1706,7 @@ def generate_figures_comparing_bins(data, display_settings):
                                 save_folder, save_file_preamble + "jaccard_lm_" + str(lm) + ".pdf"
                             )
 
-                        logger.info("individual jaccard for L", lm)
+                        logger.info("individual jaccard for L%s", lm)
                         box_plot_comparing_q(
                             lm_data,
                             uncertainty_error_pair,
