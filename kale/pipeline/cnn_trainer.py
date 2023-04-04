@@ -1,4 +1,3 @@
-import time
 from copy import deepcopy
 
 import pytorch_lightning as pl
