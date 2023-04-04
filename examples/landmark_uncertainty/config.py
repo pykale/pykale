@@ -18,7 +18,7 @@ _C.DATASET.SOURCE = (
     "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
 )
 # _C.DATASET.SOURCE = "https://github.com/pykale/data/blob/landmark-data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
-_C.DATASET.ROOT = "../data/landmarks/"
+_C.DATASET.ROOT = "../../../data/landmarks/"
 _C.DATASET.BASE_DIR = "Uncertainty_tuples"
 
 
@@ -105,7 +105,7 @@ _C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "Average"  # "None", "All", "Average"
 _C.OUTPUT = CN()
 
 
-_C.OUTPUT.SAVE_FOLDER = "../results/"
+_C.OUTPUT.SAVE_FOLDER = "../../../results/"
 _C.OUTPUT.SAVE_PREPEND = "8std_27_07_22"
 _C.OUTPUT.SAVE_FIGURES = True
 
