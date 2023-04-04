@@ -1,4 +1,10 @@
+import logging
+import os
+
 import numpy as np
+import pandas as pd
+
+from kale.prepdata.tabular_transform import apply_confidence_inversion
 
 
 def evaluate_bounds(
@@ -139,7 +145,6 @@ def bin_wise_bound_eval(
     all_qs_errorbound_concat_lms_sep = [[[] for y in range(num_bins)] for x in range(len(landmarks))]
 
     for i_lm, landmark in enumerate(landmarks):
-
         true_errors_lm = fold_errors[(fold_errors["landmark"] == landmark)][["uid", uncertainty_type + " Error"]]
         pred_bins_lm = fold_bins[(fold_errors["landmark"] == landmark)][["uid", uncertainty_type + " Uncertainty bins"]]
 
@@ -272,8 +277,163 @@ def strip_for_bound(string_):
     return bounds
 
 
+def evaluate_correlations(
+    bin_predictions,
+    uncertainty_error_pairs,
+    cmaps,
+    num_bins,
+    conf_invert_info,
+    num_folds=8,
+    pixel_to_mm_scale=1,
+    combine_middle_bins=False,
+    save_path=None,
+    to_log=False,
+):
+    from kale.interpret.uncertainty_quantiles import fit_line_with_ci
+
+    """
+        Calculates the correlation between error and uncertainty (default: spearmans rank) for each bin and for each landmark.
+
+        Args:
+            fold_errors (Pandas Dataframe): Pandas Dataframe of errors for this fold.
+            fold_uncertainty_values (Pandas Dataframe): Pandas Dataframe for uncertainty values for this fold.
+            num_bins (int): Number of quantile bins,
+            landmarks (list) list of landmarks to measure uncertainty estimation,
+            uncertainty_key (string): Name of uncertainty type to calculate accuracy for,
+            pixel_to_mm_scale (float): Scale factor to convert from pixels to mm.
+            correlation_type (string): Type of correlation to use (default: "spearman").
+
+        Returns:
+            [Dict]: Dict with correlation statistics.
+            Keep track of the following:
+                1) Correlations for all bins together:
+                    A) per fold per landmark
+                    B) all folds joined per landmark
+                    C) per fold for for all landmarks joined
+                    D) all folds for all landmarks joined
+                2) Correlations for each quantile seperately
+                    A) per fold per landmark
+                    B) all folds joined per landmark
+                    C) per fold for for all landmarks joined
+                    D) all folds for all landmarks joined
+
+    """
+
+    logger = logging.getLogger("qbin")
+    # define dict to save correlations to.
+    correlation_dict = {}
+
+    num_bins_quantiles = num_bins
+    # If we are combining the middle bins, we only have the 2 edge bins and the middle bins are combined into 1 bin.
+    if combine_middle_bins:
+        num_bins = 3
+
+    # Loop over models (model) and uncertainty methods (up)
+    for i, (model, data_structs) in enumerate(bin_predictions.items()):
+        correlation_dict[model] = {}
+        for up in uncertainty_error_pairs:  # up = [pair name, error name , uncertainty name]
+            uncertainty_type = up[0]
+            logger.info("All folds correlation for Model: %s, Uncertainty type %s :" % (uncertainty_type, model))
+            fold_errors = np.array(
+                data_structs[(data_structs["Testing Fold"].isin(np.arange(num_folds)))][
+                    [uncertainty_type + " Error"]
+                ].values.tolist()
+            ).flatten()
+
+            fold_uncertainty_values = data_structs[(data_structs["Testing Fold"].isin(np.arange(num_folds)))][
+                [uncertainty_type + " Uncertainty"]
+            ]
+
+            invert_uncert_bool = [x[1] for x in conf_invert_info if x[0] == uncertainty_type][0]
+            if invert_uncert_bool:
+                fold_uncertainty_values = apply_confidence_inversion(fold_uncertainty_values, up[2])
+
+            fold_uncertainty_values = np.array(fold_uncertainty_values.values.tolist()).flatten()
+
+            # Get the quantiles of the data w.r.t to the uncertainty values.
+            # Get the true uncertianty quantiles
+            sorted_uncertainties = np.sort(fold_uncertainty_values)
+
+            quantiles = np.arange(1 / num_bins_quantiles, 1, 1 / num_bins_quantiles)[: num_bins_quantiles - 1]
+            quantile_thresholds = [np.quantile(sorted_uncertainties, q) for q in quantiles]
+
+            # If we are combining the middle bins, combine the middle lists into 1 list.
+            if combine_middle_bins:
+                quantile_thresholds = [quantile_thresholds[0], quantile_thresholds[-1]]
+
+            # fit a piece-wise linear regression line between quantiles, and return correlation values.
+            # os.makedirs(os.path.join(save_path, model, uncertainty_type), exist_ok=True)
+
+            save_path_fig = (
+                os.path.join(save_path, model + "_" + uncertainty_type + "_correlation_pwr_all_lms.pdf")
+                if save_path
+                else None
+            )
+            corr_dict = fit_line_with_ci(
+                fold_errors,
+                fold_uncertainty_values,
+                quantile_thresholds,
+                cmaps,
+                pixel_to_mm=pixel_to_mm_scale,
+                save_path=save_path_fig,
+                to_log=to_log,
+            )
+
+            correlation_dict[model][uncertainty_type] = corr_dict
+
+    return correlation_dict
+
+
+def generate_summary_df(results_dictionary, cols_to_save, sheet_name, save_location):
+    """
+    Generates pandas dataframe with summary statistics.
+
+
+    Args:
+        ind_lms_results [[]]: A 2D list of all lm errors. A list for each landmark
+        sdr_dicts ([Dict]): A list of dictionaries from the function
+            localization_evaluation.success_detection_rate().
+    Returns:pd.DataFrame.from_dict({(i,j): user_dict[i][j]
+                           for i in user_dict.keys()
+                           for j in user_dict[i].keys()},
+                       orient='index')
+        PandasDataframe: A dataframe with statsitics including mean error, std error of All and individual
+            landmarks. Also includes the SDR detection rates.
+            It should look like:
+            df = {"Mean Er": {"All": 1, "L0": 1,...}, "std Er": {"All":1, "l0": 1, ...}, ...}
+
+    """
+
+    # Save data to csv files
+    # with open(save_location, 'w') as csvfile:
+    summary_dict = {}
+    for [col_dict_key, col_save_name] in cols_to_save:
+        for um in results_dictionary[col_dict_key].keys():
+            # print("inner keys", rpiesults_dictionary[col_dict_key].keys())
+            col_data = results_dictionary[col_dict_key][um]
+            summary_dict["All " + um + " " + col_save_name + " Mean"] = np.mean(col_data)
+            summary_dict["All " + um + " " + col_save_name + " Std"] = np.std(col_data)
+            for bin_idx, bin_data in enumerate(col_data):
+                # print(um,col_dict_key, bin_idx, len(bin_data))
+                summary_dict["B" + str(bin_idx + 1) + " " + um + " " + col_save_name + " Mean"] = np.mean(col_data)
+                summary_dict["B" + str(bin_idx + 1) + " " + um + " " + col_save_name + " Std"] = np.std(col_data)
+
+    pd_df = pd.DataFrame.from_dict(summary_dict, orient="index")
+
+    with pd.ExcelWriter(save_location, engine="xlsxwriter") as writer:
+        for n, df in (pd_df).items():
+            # print(n, "AND", df)
+            df.to_excel(writer, sheet_name=sheet_name)
+
+
 def get_mean_errors(
-    bin_predictions, uncertainty_pairs, num_bins, landmarks, num_folds=8, pixel_to_mm_scale=1, combine_middle_bins=False
+    bin_predictions,
+    uncertainty_pairs,
+    num_bins,
+    landmarks,
+    num_folds=8,
+    pixel_to_mm_scale=1,
+    combine_middle_bins=False,
 ):
     """
         Evaluate uncertainty estimation's mean error of each bin
@@ -312,7 +472,6 @@ def get_mean_errors(
     all_concat_error_bins_lm_nosep = {}
     # Loop over models (model) and uncertainty methods (up)
     for i, (model, data_structs) in enumerate(bin_predictions.items()):
-
         for up in uncertainty_pairs:  # up = [pair name, error name , uncertainty name]
             uncertainty_type = up[0]
 
@@ -381,7 +540,6 @@ def get_mean_errors(
             all_concat_error_bins_lm_nosep[model + " " + uncertainty_type] = fold_all_bins_concat_lms_nosep
 
             for lm in range(len(fold_all_bins_concat_lms_sep_foldwise)):
-
                 all_concat_error_bins_lm_sep_foldwise[lm][
                     model + " " + uncertainty_type
                 ] = fold_all_bins_concat_lms_sep_foldwise[lm]
@@ -440,7 +598,6 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
     all_concat_jacc_bins_lm_sep_all = [{} for x in range(len(landmarks))]
     # Loop over models (model) and uncertainty methods (up)
     for i, (model, data_structs) in enumerate(bin_predictions.items()):
-
         for up in uncertainty_pairs:  # up = [pair name, error name , uncertainty name]
             uncertainty_type = up[0]
 
@@ -525,7 +682,6 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
             all_precision__bins_lms_sep[model + " " + uncertainty_type] = fold_all_bins_precision
 
             for lm in range(len(all_concat_jacc_bins_lm_sep_foldwise)):
-
                 all_concat_jacc_bins_lm_sep_foldwise[lm][
                     model + " " + uncertainty_type
                 ] = fold_all_bins_concat_lms_sep_foldwise[lm]
@@ -547,18 +703,18 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
 
 def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key, pixel_to_mm_scale):
     """
-        Helper function for get_mean_errors. Calculates the mean error for each bin and for each landmark.
+    Helper function for get_mean_errors. Calculates the mean error for each bin and for each landmark.
 
-        Args:
-            fold_errors (Pandas Dataframe): Pandas Dataframe of errors for this fold.
-            fold_bins (Pandas Dataframe): Pandas Dataframe of predicted quantile bins for this fold.
-            num_bins (int): Number of quantile bins,
-            landmarks (list) list of landmarks to measure uncertainty estimation,
-            uncertainty_key (string): Name of uncertainty type to calculate accuracy for,
+    Args:
+        fold_errors (Pandas Dataframe): Pandas Dataframe of errors for this fold.
+        fold_bins (Pandas Dataframe): Pandas Dataframe of predicted quantile bins for this fold.
+        num_bins (int): Number of quantile bins,
+        landmarks (list) list of landmarks to measure uncertainty estimation,
+        uncertainty_key (string): Name of uncertainty type to calculate accuracy for,
 
 
-        Returns:
-            [Dict]: Dict with mean error statistics.
+    Returns:
+        [Dict]: Dict with mean error statistics.
     """
 
     all_lm_error = []
@@ -566,7 +722,6 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key
     all_qs_error_concat_lms_sep = [[[] for y in range(num_bins)] for x in range(len(landmarks))]
 
     for i, landmark in enumerate(landmarks):
-
         true_errors_lm = fold_errors[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Error"]]
         pred_bins_lm = fold_bins[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Uncertainty bins"]]
 
@@ -591,6 +746,7 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, landmarks, uncertainty_key
         # Now for each bin, get the mean error
         inner_errors = []
         for bin in range(num_bins):
+            # pred_b_keys = pred_bins_keys[bin]
             pred_b_errors = pred_bins_errors[bin]
 
             # test for empty bin, it would've created a mean_error==nan , so don't add it!
@@ -629,18 +785,18 @@ def bin_wise_jaccard(
     fold_errors, fold_bins, num_bins, num_bins_quantiles, landmarks, uncertainty_key, combine_middle_bins
 ):
     """
-        Helper function for evaluate_jaccard.
+    Helper function for evaluate_jaccard.
 
-        Args:
-            fold_errors (Pandas Dataframe): Pandas Dataframe of errors for this fold.
-            fold_bins (Pandas Dataframe): Pandas Dataframe of predicted quantile bins for this fold.
-            num_bins (int): Number of quantile bins,
-            landmarks (list) list of landmarks to measure uncertainty estimation,
-            uncertainty_key (string): Name of uncertainty type to calculate accuracy for,
+    Args:
+        fold_errors (Pandas Dataframe): Pandas Dataframe of errors for this fold.
+        fold_bins (Pandas Dataframe): Pandas Dataframe of predicted quantile bins for this fold.
+        num_bins (int): Number of quantile bins,
+        landmarks (list) list of landmarks to measure uncertainty estimation,
+        uncertainty_key (string): Name of uncertainty type to calculate accuracy for,
 
 
-        Returns:
-            [Dict]: Dict with JI statistics.
+    Returns:
+        [Dict]: Dict with JI statistics.
     """
 
     all_lm_jacc = []
@@ -655,7 +811,6 @@ def bin_wise_jaccard(
     all_qs_precision = [[] for x in range(num_bins)]
 
     for i, landmark in enumerate(landmarks):
-
         true_errors_lm = fold_errors[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Error"]]
         pred_bins_lm = fold_bins[(fold_errors["landmark"] == landmark)][["uid", uncertainty_key + " Uncertainty bins"]]
 
@@ -788,13 +943,13 @@ def bin_wise_jaccard(
 
 def jaccard_similarity(list1, list2):
     """
-        Calculates the Jaccard Index (JI) between two lists.
+    Calculates the Jaccard Index (JI) between two lists.
 
-        Args:
-            list1 (list): list of set A,
-            list2 (list): list of set B.
-        Returns:
-            float: JI between list1 and list2.
+    Args:
+        list1 (list): list of set A,
+        list2 (list): list of set B.
+    Returns:
+        float: JI between list1 and list2.
     """
 
     if len(list1) == 0 or len(list2) == 0:

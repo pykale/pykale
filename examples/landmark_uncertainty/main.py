@@ -17,6 +17,7 @@ from pandas import *
 
 import kale.utils.logger as logging
 from kale.interpret.uncertainty_quantiles import (
+    generate_figures_comparing_bins,
     generate_figures_individual_bin_comparison,
     quantile_binning_and_est_errors,
 )
@@ -47,29 +48,23 @@ def main():
     cfg.freeze()
 
     # ---- setup output ----
-    format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
-    # logging.basicConfig(format=format_str)
-
-    logger = logging.construct_logger("q_bin", cfg.OUTPUT.SAVE_FOLDER)
-    # logger.info(f"Using {device}")
-    # logger.info("\n" + cfg.dump())
-    # logger = logging.getLogger()
-
-    logger.info("test")
-
+    os.makedirs(cfg.OUTPUT.SAVE_FOLDER, exist_ok=True)
+    logger = logging.construct_logger("q_bin", cfg.OUTPUT.SAVE_FOLDER, log_to_terminal=True)
     logger.info(cfg)
-    # print("test")
+
     # ---- setup dataset ----
     base_dir = cfg.DATASET.BASE_DIR
 
     # download data if neccesary
     if cfg.DATASET.SOURCE != None:
+        logger.info("Downloading data...")
         download_file_by_url(
             cfg.DATASET.SOURCE,
             cfg.DATASET.ROOT,
             "%s.%s" % (base_dir, cfg.DATASET.FILE_FORMAT),
             file_format=cfg.DATASET.FILE_FORMAT,
         )
+        logger.info("Data downloaded!")
 
     uncertainty_pairs_val = cfg.DATASET.UE_PAIRS_VAL
     uncertainty_pairs_test = cfg.DATASET.UE_PAIRS_TEST
@@ -170,8 +165,72 @@ def main():
                         ind_landmarks_to_show,
                         pixel_to_mm_scale,
                     ],
-                    display_settings={"errors": True, "jaccard": True, "error_bounds": True},
+                    display_settings={
+                        "cumulative_error": False,
+                        "errors": True,
+                        "jaccard": True,
+                        "error_bounds": True,
+                        "correlation": False,
+                    },
                 )
+
+            # If we are comparing bins against eachother, we need to wait until all the bins have been fitted.
+            if cfg.PIPELINE.COMPARE_Q_VALUES and num_bins == cfg.PIPELINE.NUM_QUANTILE_BINS[-1]:
+                for c_model in compare_q_models_to_compare:
+                    for c_er_pair in compare_q_uncertainty_error_pairs:
+                        save_file_preamble = "_".join(
+                            [
+                                cfg.OUTPUT.SAVE_PREPEND,
+                                "compQ",
+                                c_model,
+                                c_er_pair[0],
+                                dataset,
+                                "combined" + str(cfg.PIPELINE.COMBINE_MIDDLE_BINS),
+                            ]
+                        )
+
+                        all_fitted_save_paths = [
+                            os.path.join(
+                                cfg.OUTPUT.SAVE_FOLDER, dataset, str(x_bins) + "Bins", "fitted_quantile_binning"
+                            )
+                            for x_bins in cfg.PIPELINE.NUM_QUANTILE_BINS
+                        ]
+
+                        hatch_type = "o" if "PHD-NET" == c_model else ""
+                        color = (
+                            cmaps[0] if c_er_pair[0] == "S-MHA" else cmaps[1] if c_er_pair[0] == "E-MHA" else cmaps[2]
+                        )
+                        save_folder_comparison = os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, "ComparisonBins")
+                        os.makedirs(save_folder_comparison, exist_ok=True)
+
+                        logger.info("Comparison Q figures for: ", c_model, c_er_pair)
+                        generate_figures_comparing_bins(
+                            data=[
+                                c_er_pair,
+                                c_model,
+                                dataset,
+                                landmarks,
+                                cfg.PIPELINE.NUM_QUANTILE_BINS,
+                                cmaps,
+                                all_fitted_save_paths,
+                                save_folder_comparison,
+                                save_file_preamble,
+                                cfg,
+                                show_individual_landmark_plots,
+                                interpret,
+                                num_folds,
+                                ind_landmarks_to_show,
+                                pixel_to_mm_scale,
+                            ],
+                            display_settings={
+                                "cumulative_error": True,
+                                "errors": True,
+                                "jaccard": True,
+                                "error_bounds": True,
+                                "hatch": hatch_type,
+                                "colour": color,
+                            },
+                        )
 
 
 def fit_and_predict(landmark, uncertainty_error_pairs, ue_pairs_val, ue_pairs_test, num_bins, config, save_folder=None):

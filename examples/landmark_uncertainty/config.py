@@ -18,7 +18,7 @@ _C.DATASET.SOURCE = (
     "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
 )
 # _C.DATASET.SOURCE = "https://github.com/pykale/data/blob/landmark-data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
-_C.DATASET.ROOT = "/mnt/tale_shared/schobs/data/tabular/cardiac_landmark_uncertainty/"
+_C.DATASET.ROOT = "../../../data/landmarks/"
 _C.DATASET.BASE_DIR = "Uncertainty_tuples"
 
 
@@ -47,7 +47,7 @@ _C.PIPELINE = CN()
 # TODO: If COMPARE_Q models or uncertainty_error_pairs > 1, will do each permutation. Currently, only supports 1 array length
 #
 #
-_C.PIPELINE.NUM_QUANTILE_BINS = [5]
+_C.PIPELINE.NUM_QUANTILE_BINS = [5, 10, 25]
 
 # ~# 1)
 # Compare uncertainty measures AND models over each single value of Q?
@@ -65,7 +65,7 @@ _C.PIPELINE.INDIVIDUAL_Q_MODELS = ["U-NET", "PHD-NET"]
 
 # ~# 2)
 # Compare a single uncertainty measure on single model through various values of Q bins e.g. 5, 10, 20
-_C.PIPELINE.COMPARE_Q_VALUES = False
+_C.PIPELINE.COMPARE_Q_VALUES = True
 _C.PIPELINE.COMPARE_Q_MODELS = ["PHD-NET"]  # Which model to compare over values of Q.
 _C.PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS = [
     ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"]
@@ -76,7 +76,7 @@ _C.PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS = [
 _C.PIPELINE.COMBINE_MIDDLE_BINS = False  # TODO: write test for bins=2,3 for this
 _C.PIPELINE.PIXEL_TO_MM_SCALE = 1.0
 _C.PIPELINE.IND_LANDMARKS_TO_SHOW = [-1]  # -1 means show all landmarks individually, [] means show none
-_C.PIPELINE.SHOW_IND_LANDMARKS = False
+_C.PIPELINE.SHOW_IND_LANDMARKS = True
 # ---------------------------------------------------------------------------- #
 # Visualization
 # ---------------------------------------------------------------------------- #
@@ -105,9 +105,9 @@ _C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "All"  # "None", "All", "Average"
 _C.OUTPUT = CN()
 
 
-_C.OUTPUT.SAVE_FOLDER = "/mnt/tale_shared/schobs/rebuttal/results2707/"
+_C.OUTPUT.SAVE_FOLDER = "../../../results/"
 _C.OUTPUT.SAVE_PREPEND = "8std_27_07_22"
-_C.OUTPUT.SAVE_FIGURES = False
+_C.OUTPUT.SAVE_FIGURES = True
 
 
 def get_cfg_defaults():

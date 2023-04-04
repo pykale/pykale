@@ -34,7 +34,6 @@ def quantile_binning_predictions(uncertainties_test, uncert_thresh, save_pred_pa
     all_binned_errors = {}
 
     for i, (key, fc) in enumerate(uncertainties_test.items()):
-
         for q in range(len(uncert_thresh) + 1):
             if q == 0:
                 lower_c_bound = uncert_thresh[q][0]
@@ -43,7 +42,6 @@ def quantile_binning_predictions(uncertainties_test, uncert_thresh, save_pred_pa
                     all_binned_errors[key] = q
 
             elif q < len(uncert_thresh):
-
                 lower_c_bound = uncert_thresh[q - 1][0]
                 upper_c_bound = uncert_thresh[q][0]
 
