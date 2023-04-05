@@ -3,14 +3,14 @@ from torch.utils.data import DataLoader
 import torch
 
 class AVMNISTDataset:
-    def __init__(self, data_dir,data_size = 40, flatten_audio=False, flatten_image=False, unsqueeze_channel=True, normalize_image=True, normalize_audio=True):
+    def __init__(self, data_dir,batch_size = 40, flatten_audio=False, flatten_image=False, unsqueeze_channel=True, normalize_image=True, normalize_audio=True):
         self.data_dir = data_dir
         self.flatten_audio = flatten_audio
         self.flatten_image = flatten_image
         self.unsqueeze_channel = unsqueeze_channel
         self.normalize_image = normalize_image
         self.normalize_audio = normalize_audio
-        self.data_size = data_size
+        self.batch_size = batch_size
         self.load_data()
 
     def load_data(self):
@@ -54,11 +54,11 @@ class AVMNISTDataset:
 
 
 
-    def get_train_loader(self, num_workers=4, shuffle=True):
-        return DataLoader(self.train_data, shuffle=shuffle, num_workers=num_workers, batch_size=self.data_size)
+    def get_train_loader(self,shuffle=True):
+        return DataLoader(self.train_data, shuffle=shuffle, batch_size=self.batch_size)
 
-    def get_valid_loader(self, num_workers=4, shuffle=False):
-        return DataLoader(self.valid_data, shuffle=shuffle, num_workers=num_workers, batch_size=self.data_size)
+    def get_valid_loader(self, shuffle=False):
+        return DataLoader(self.valid_data, shuffle=shuffle, batch_size=self.batch_size)
 
-    def get_test_loader(self, num_workers=4, shuffle=False):
-        return DataLoader(self.test_data, shuffle=shuffle, num_workers=num_workers, batch_size=self.data_size)
+    def get_test_loader(self, shuffle=False):
+        return DataLoader(self.test_data, shuffle=shuffle, batch_size=self.batch_size)

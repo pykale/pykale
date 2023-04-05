@@ -96,7 +96,7 @@ class Trainer:
             totals = true.shape[0]
             valloss = totalloss/totals
 
-            acc = accuracy(true, pred)
+            acc = sklearn.metrics.accuracy_score(true.cpu().numpy(), pred.cpu().numpy())
             print("Epoch "+str(epoch)+" valid loss: "+str(valloss) + " acc: "+str(acc))
             if acc > bestacc:
                 patience = 0
