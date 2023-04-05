@@ -1,0 +1,9 @@
+# Created by Haiping Lu by modifying https://github.com/HaozhiQi/ISONet/blob/master/configs/IN1k-ISO18.yaml (under the MIT License)
+SOLVER:
+  BASE_LR: 0.01
+  WARMUP: True
+  MAX_EPOCHS: 10  # For quick testing
+ISON:
+  DEPTH: 38 # From an ECCV18 paper: ResNet with depth 38, 74, 110, 152 (6n+2) for CIFAR
+  DROPOUT: True
+  DROPOUT_RATE: 0.1
