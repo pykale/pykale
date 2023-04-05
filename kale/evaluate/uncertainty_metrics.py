@@ -420,12 +420,12 @@ def generate_summary_df(results_dictionary, cols_to_save, sheet_name, save_locat
             )
             for bin_idx, bin_data in enumerate(col_data):
                 # print(um,col_dict_key, bin_idx, len(bin_data))
-                summary_dict["B" + str(bin_idx + 1) + " " + um + " " + col_save_name + " Mean"] = np.mean(
-                    [x for x in bin_data if x is not None]
-                )
-                summary_dict["B" + str(bin_idx + 1) + " " + um + " " + col_save_name + " Std"] = np.std(
-                    [x for x in bin_data if x is not None]
-                )
+                filtered_bin_data = [x for x in bin_data if x is not None]
+                summ_mean = np.mean(filtered_bin_data) if (len(filtered_bin_data) > 0) else None
+                summ_std = np.std(filtered_bin_data) if len(filtered_bin_data) > 0 else None
+
+                summary_dict["B" + str(bin_idx + 1) + " " + um + " " + col_save_name + " Mean"] = summ_mean
+                summary_dict["B" + str(bin_idx + 1) + " " + um + " " + col_save_name + " Std"] = summ_std
 
     pd_df = pd.DataFrame.from_dict(summary_dict, orient="index")
 

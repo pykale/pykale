@@ -17,7 +17,6 @@ def load_csv_columns(datapath, split, fold, cols_to_return="All"):
     Returns:
         [pandas dataframe, pandas dataframe]: dataframe selected
     """
-
     # Load the uncertainty & error results
     datafame = pd.read_csv(datapath + ".csv", header=0)
 

@@ -8,6 +8,7 @@ Placeholder.html
 
 import argparse
 import os
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -15,6 +16,7 @@ import seaborn as sns
 from config import get_cfg_defaults
 from pandas import *
 
+warnings.filterwarnings("error")
 import kale.utils.logger as logging
 from kale.interpret.uncertainty_quantiles import (
     generate_figures_comparing_bins,
@@ -68,6 +70,7 @@ def main():
 
     uncertainty_pairs_val = cfg.DATASET.UE_PAIRS_VAL
     uncertainty_pairs_test = cfg.DATASET.UE_PAIRS_TEST
+    gt_test_error_available = cfg.DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE
 
     ind_q_uncertainty_error_pairs = cfg.PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS
     ind_q_models_to_compare = cfg.PIPELINE.INDIVIDUAL_Q_MODELS
@@ -124,6 +127,7 @@ def main():
                         landmark_results_path_test,
                         num_bins,
                         cfg,
+                        groundtruth_test_errors=gt_test_error_available,
                         save_folder=fitted_save_at,
                     )
 
@@ -233,7 +237,16 @@ def main():
                         )
 
 
-def fit_and_predict(landmark, uncertainty_error_pairs, ue_pairs_val, ue_pairs_test, num_bins, config, save_folder=None):
+def fit_and_predict(
+    landmark,
+    uncertainty_error_pairs,
+    ue_pairs_val,
+    ue_pairs_test,
+    num_bins,
+    config,
+    groundtruth_test_errors,
+    save_folder=None,
+):
     """Loads (validation, testing data) pairs of (uncertainty, error) pairs and for each fold: used the validation
         set to generate quantile thresholds, estimate error bounds and bin the test data accordingly. Saves
         predicted bins and error bounds to a csv.
@@ -270,9 +283,13 @@ def fit_and_predict(landmark, uncertainty_error_pairs, ue_pairs_val, ue_pairs_te
             validation_pairs = load_csv_columns(
                 ue_pairs_val, "Validation Fold", fold, ["uid", uncertainty_localisation_er, uncertainty_measure],
             )
-            testing_pairs = load_csv_columns(
-                ue_pairs_test, "Testing Fold", fold, ["uid", uncertainty_localisation_er, uncertainty_measure]
-            )
+
+            if groundtruth_test_errors:
+                cols_to_get = ["uid", uncertainty_localisation_er, uncertainty_measure]
+            else:
+                cols_to_get = ["uid", uncertainty_measure]
+
+            testing_pairs = load_csv_columns(ue_pairs_test, "Testing Fold", fold, cols_to_get)
 
             if invert_uncert_bool:
                 validation_pairs = apply_confidence_inversion(validation_pairs, uncertainty_measure)

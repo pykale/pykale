@@ -476,6 +476,8 @@ def box_plot_per_model(
                 model_data = landmark_uncert_dicts[dict_key]
                 all_b_data = [x for x in model_data[j] if x is not None]
 
+                logging_mean = np.round(np.mean(all_b_data), 2) if len(all_b_data) > 0 else None
+                logging_std = np.round(np.std(all_b_data), 2) if len(all_b_data) > 0 else None
                 # if j == num_bins-1:
                 logger.info(
                     "Bin %s (len=%s), model: %s, uncertainty: %s, and mean error: %s +/- %s",
@@ -483,8 +485,8 @@ def box_plot_per_model(
                     len(all_b_data),
                     model_type,
                     uncertainty_type,
-                    np.round(np.mean(all_b_data), 2),
-                    np.round(np.std(all_b_data), 2),
+                    logging_mean,
+                    logging_std,
                 )
                 # print("and all data: ", all_b_data)
 
