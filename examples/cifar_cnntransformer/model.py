@@ -3,7 +3,6 @@ Define and build the model based on chosen hyperparameters.
 """
 import torch
 import torch.nn as nn
-from trainer import CNNTransformerTrainer
 
 from kale.embed.attention_cnn import CNNTransformer, ContextCNNGeneric
 from kale.embed.image_cnn import SimpleCNN
