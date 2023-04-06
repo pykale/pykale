@@ -287,7 +287,7 @@ class InfiniteSliceIterator:
 
 
 class DomainBalancedBatchSampler(BalancedBatchSampler):
-    """ BatchSampler - samples n_samples for each of the n_domains.
+    """BatchSampler - samples n_samples for each of the n_domains.
         Returns batches of size n_domains * (batch_size / n_domains)
 
     Args:

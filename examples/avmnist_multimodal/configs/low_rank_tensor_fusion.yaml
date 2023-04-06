@@ -2,4 +2,3 @@
 
 MODEL:
   FUSION: "low_rank_tensor"
-

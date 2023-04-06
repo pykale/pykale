@@ -287,7 +287,6 @@ class GripNet(Module):
         return self.out_embed_dict[self.task_supervertex_name]
 
     def __forward_supervertex__(self, supervertex_name: str, mode: str):
-
         supervertex = self.supergraph.supervertex_dict[supervertex_name]
         model = self.supervertex_module_dict[supervertex_name]
 

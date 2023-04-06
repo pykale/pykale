@@ -21,4 +21,4 @@ This example is constructed by refactoring the [MultiBenchy repository](https://
 
 `kale.embed.lenet`: Extract features from images and audios.
 
-`kale.predict.two_layered_mlp`: Predict final out from the fused features. 
+`kale.predict.two_layered_mlp`: Predict final out from the fused features.

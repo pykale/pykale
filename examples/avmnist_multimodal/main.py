@@ -1,15 +1,15 @@
-import torch
-
 import argparse
 import os
-from trainer import Trainer
-from config import get_cfg_defaults
-from kale.loaddata.avmnist_datasets import AVMNISTDataset
-from kale.utils.seed import set_seed
-from kale.utils.logger import construct_logger
-from kale.utils.download import download_file_gdrive
 
+import torch
+from config import get_cfg_defaults
 from model import get_model
+from trainer import Trainer
+
+from kale.loaddata.avmnist_datasets import AVMNISTDataset
+from kale.utils.download import download_file_gdrive
+from kale.utils.logger import construct_logger
+from kale.utils.seed import set_seed
 
 
 def arg_parse():
@@ -19,6 +19,7 @@ def arg_parse():
     parser.add_argument("--output", default="default", help="folder to save output", type=str)
     args = parser.parse_args()
     return args
+
 
 def main():
     """The main for this avmnist example, showing the workflow"""
@@ -40,17 +41,27 @@ def main():
     logger.info("Using " + device)
     logger.info("\n" + cfg.dump())
 
-    download_file_gdrive(cfg.DATASET.GDRIVE_ID,cfg.DATASET.ROOT, cfg.DATASET.NAME, cfg.DATASET.FILE_FORAMT)
+    download_file_gdrive(cfg.DATASET.GDRIVE_ID, cfg.DATASET.ROOT, cfg.DATASET.NAME, cfg.DATASET.FILE_FORAMT)
 
-    dataset = AVMNISTDataset(data_dir=cfg.DATASET.ROOT,batch_size=cfg.DATASET.BATCH_SIZE)
+    dataset = AVMNISTDataset(data_dir=cfg.DATASET.ROOT, batch_size=cfg.DATASET.BATCH_SIZE)
     traindata = dataset.get_train_loader()
     validdata = dataset.get_valid_loader()
     testdata = dataset.get_test_loader()
     print("Data Loaded Successfully")
 
-    model = get_model(cfg,device)
+    model = get_model(cfg, device)
 
-    trainer = Trainer(device,model,traindata,validdata,testdata, cfg.SOLVER.MAX_EPOCHS, optimtype= torch.optim.SGD, lr=cfg.SOLVER.BASE_LR, weight_decay=cfg.SOLVER.WEIGHT_DECAY)
+    trainer = Trainer(
+        device,
+        model,
+        traindata,
+        validdata,
+        testdata,
+        cfg.SOLVER.MAX_EPOCHS,
+        optimtype=torch.optim.SGD,
+        lr=cfg.SOLVER.BASE_LR,
+        weight_decay=cfg.SOLVER.WEIGHT_DECAY,
+    )
 
     trainer.train()
 
@@ -58,5 +69,5 @@ def main():
     trainer.single_test()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -4,6 +4,7 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 
+
 class Concat(nn.Module):
     """Concatenation of input data on dimension 1."""
 
@@ -14,7 +15,7 @@ class Concat(nn.Module):
     def forward(self, modalities):
         """
         Forward Pass of Concat.
-        
+
         :param modalities: An iterable of modalities to combine
         """
         flattened = []
@@ -43,23 +44,19 @@ class MultiplicativeInteractions2Modal(nn.Module):
         self.output_dim = output_dim
         self.output = output
         self.flatten = flatten
-        if output == 'matrix3D':
-            self.W = nn.Parameter(torch.Tensor(
-                input_dims[0], input_dims[1], output_dim[0], output_dim[1]))
+        if output == "matrix3D":
+            self.W = nn.Parameter(torch.Tensor(input_dims[0], input_dims[1], output_dim[0], output_dim[1]))
             nn.init.xavier_normal_(self.W)
-            self.U = nn.Parameter(torch.Tensor(
-                input_dims[0], output_dim[0], output_dim[1]))
+            self.U = nn.Parameter(torch.Tensor(input_dims[0], output_dim[0], output_dim[1]))
             nn.init.xavier_normal_(self.U)
-            self.V = nn.Parameter(torch.Tensor(
-                input_dims[1], output_dim[0], output_dim[1]))
+            self.V = nn.Parameter(torch.Tensor(input_dims[1], output_dim[0], output_dim[1]))
             nn.init.xavier_normal_(self.V)
             self.b = nn.Parameter(torch.Tensor(output_dim[0], output_dim[1]))
             nn.init.xavier_normal_(self.b)
 
         # most general Hypernetworks as Multiplicative Interactions.
-        elif output == 'matrix':
-            self.W = nn.Parameter(torch.Tensor(
-                input_dims[0], input_dims[1], output_dim))
+        elif output == "matrix":
+            self.W = nn.Parameter(torch.Tensor(input_dims[0], input_dims[1], output_dim))
             nn.init.xavier_normal_(self.W)
             self.U = nn.Parameter(torch.Tensor(input_dims[0], output_dim))
             nn.init.xavier_normal_(self.U)
@@ -68,18 +65,17 @@ class MultiplicativeInteractions2Modal(nn.Module):
             self.b = nn.Parameter(torch.Tensor(output_dim))
             nn.init.normal_(self.b)
         # Diagonal Forms and Gating Mechanisms.
-        elif output == 'vector':
+        elif output == "vector":
             self.W = nn.Parameter(torch.Tensor(input_dims[0], input_dims[1]))
             nn.init.xavier_normal_(self.W)
-            self.U = nn.Parameter(torch.Tensor(
-                self.input_dims[0], self.input_dims[1]))
+            self.U = nn.Parameter(torch.Tensor(self.input_dims[0], self.input_dims[1]))
             nn.init.xavier_normal_(self.U)
             self.V = nn.Parameter(torch.Tensor(self.input_dims[1]))
             nn.init.normal_(self.V)
             self.b = nn.Parameter(torch.Tensor(self.input_dims[1]))
             nn.init.normal_(self.b)
         # Scales and Biases.
-        elif output == 'scalar':
+        elif output == "scalar":
             self.W = nn.Parameter(torch.Tensor(input_dims[0]))
             nn.init.normal_(self.W)
             self.U = nn.Parameter(torch.Tensor(input_dims[0]))
@@ -91,8 +87,7 @@ class MultiplicativeInteractions2Modal(nn.Module):
         self.flip = flip
         if grad_clip is not None:
             for p in self.parameters():
-                p.register_hook(lambda grad: torch.clamp(
-                    grad, grad_clip[0], grad_clip[1]))
+                p.register_hook(lambda grad: torch.clamp(grad, grad_clip[0], grad_clip[1]))
 
     def _repeatHorizontally(self, tensor, dim):
         return tensor.repeat(dim).view(dim, -1).transpose(0, 1)
@@ -120,34 +115,30 @@ class MultiplicativeInteractions2Modal(nn.Module):
             m1 = torch.clip(m1, self.clip[0], self.clip[1])
             m2 = torch.clip(m2, self.clip[0], self.clip[1])
 
-        if self.output == 'matrix3D':
-            Wprime = torch.einsum('bn, nmpq -> bmpq', m1,
-                                  self.W) + self.V  # bmpq
-            bprime = torch.einsum('bn, npq -> bpq', m1,
-                                  self.U) + self.b    # bpq
-            output = torch.einsum('bm, bmpq -> bpq', m2,
-                                  Wprime) + bprime   # bpq
+        if self.output == "matrix3D":
+            Wprime = torch.einsum("bn, nmpq -> bmpq", m1, self.W) + self.V  # bmpq
+            bprime = torch.einsum("bn, npq -> bpq", m1, self.U) + self.b  # bpq
+            output = torch.einsum("bm, bmpq -> bpq", m2, Wprime) + bprime  # bpq
 
         # Hypernetworks as Multiplicative Interactions.
-        elif self.output == 'matrix':
-            Wprime = torch.einsum('bn, nmd -> bmd', m1,
-                                  self.W) + self.V      # bmd
-            bprime = torch.matmul(m1, self.U) + self.b      # bmd
-            output = torch.einsum('bm, bmd -> bd', m2,
-                                  Wprime) + bprime             # bmd
+        elif self.output == "matrix":
+            Wprime = torch.einsum("bn, nmd -> bmd", m1, self.W) + self.V  # bmd
+            bprime = torch.matmul(m1, self.U) + self.b  # bmd
+            output = torch.einsum("bm, bmd -> bd", m2, Wprime) + bprime  # bmd
 
         # Diagonal Forms and Gating Mechanisms.
-        elif self.output == 'vector':
-            Wprime = torch.matmul(m1, self.W) + self.V      # bm
-            bprime = torch.matmul(m1, self.U) + self.b      # b
-            output = Wprime*m2 + bprime             # bm
+        elif self.output == "vector":
+            Wprime = torch.matmul(m1, self.W) + self.V  # bm
+            bprime = torch.matmul(m1, self.U) + self.b  # b
+            output = Wprime * m2 + bprime  # bm
 
         # Scales and Biases.
-        elif self.output == 'scalar':
+        elif self.output == "scalar":
             Wprime = torch.matmul(m1, self.W.unsqueeze(1)).squeeze(1) + self.V
             bprime = torch.matmul(m1, self.U.unsqueeze(1)).squeeze(1) + self.b
-            output = self._repeatHorizontally(
-                Wprime, self.input_dims[1]) * m2 + self._repeatHorizontally(bprime, self.input_dims[1])
+            output = self._repeatHorizontally(Wprime, self.input_dims[1]) * m2 + self._repeatHorizontally(
+                bprime, self.input_dims[1]
+            )
         return output
 
 
@@ -179,14 +170,18 @@ class LowRankTensorFusion(nn.Module):
         # low-rank factors
         self.factors = []
         for input_dim in input_dims:
-            factor = nn.Parameter(torch.Tensor(
-                self.rank, input_dim+1, self.output_dim)).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+            factor = nn.Parameter(torch.Tensor(self.rank, input_dim + 1, self.output_dim)).to(
+                torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            )
             nn.init.xavier_normal_(factor)
             self.factors.append(factor)
 
-        self.fusion_weights = nn.Parameter(torch.Tensor(1, self.rank)).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
-        self.fusion_bias = nn.Parameter(
-            torch.Tensor(1, self.output_dim)).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+        self.fusion_weights = nn.Parameter(torch.Tensor(1, self.rank)).to(
+            torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        )
+        self.fusion_bias = nn.Parameter(torch.Tensor(1, self.output_dim)).to(
+            torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        )
         # init the fusion weights
         nn.init.xavier_normal_(self.fusion_weights)
         self.fusion_bias.data.fill_(0)
@@ -202,18 +197,17 @@ class LowRankTensorFusion(nn.Module):
         # here is a more efficient implementation than the one the paper describes
         # basically swapping the order of summation and elementwise product
         fused_tensor = 1
-        for (modality, factor) in zip(modalities, self.factors):
-            ones = Variable(torch.ones(batch_size, 1).type(
-                modality.dtype), requires_grad=False).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+        for modality, factor in zip(modalities, self.factors):
+            ones = Variable(torch.ones(batch_size, 1).type(modality.dtype), requires_grad=False).to(
+                torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            )
             if self.flatten:
-                modality_withones = torch.cat(
-                    (ones, torch.flatten(modality, start_dim=1)), dim=1)
+                modality_withones = torch.cat((ones, torch.flatten(modality, start_dim=1)), dim=1)
             else:
                 modality_withones = torch.cat((ones, modality), dim=1)
             modality_factor = torch.matmul(modality_withones, factor)
             fused_tensor = fused_tensor * modality_factor
 
-        output = torch.matmul(self.fusion_weights, fused_tensor.permute(
-            1, 0, 2)).squeeze() + self.fusion_bias
+        output = torch.matmul(self.fusion_weights, fused_tensor.permute(1, 0, 2)).squeeze() + self.fusion_bias
         output = output.view(-1, self.output_dim)
         return output

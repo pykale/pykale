@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 
+
 class MMDL(nn.Module):
     """Implements Multimodal Deep Learning (MMDL) classifier."""
 
@@ -33,14 +34,12 @@ class MMDL(nn.Module):
         outs = []
         if self.has_padding:
             for i in range(len(inputs[0])):
-                outs.append(self.encoders[i](
-                    [inputs[0][i], inputs[1][i]]))
+                outs.append(self.encoders[i]([inputs[0][i], inputs[1][i]]))
         else:
             for i in range(len(inputs)):
                 outs.append(self.encoders[i](inputs[i]))
         self.reps = outs
         if self.has_padding:
-
             if isinstance(outs[0], torch.Tensor):
                 out = self.fuse(outs)
             else:

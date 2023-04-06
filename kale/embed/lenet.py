@@ -1,5 +1,4 @@
 import torch
-
 from torch import nn
 from torch.nn import functional as F
 
@@ -10,7 +9,9 @@ class LeNet(nn.Module):
     Adapted from centralnet code https://github.com/slyviacassell/_MFAS/blob/master/models/central/avmnist.py.
     """
 
-    def __init__(self, in_channels, args_channels, additional_layers, output_each_layer=False, linear=None, squeeze_output=True):
+    def __init__(
+        self, in_channels, args_channels, additional_layers, output_each_layer=False, linear=None, squeeze_output=True
+    ):
         """Initialize LeNet.
 
         Args:
@@ -23,14 +24,16 @@ class LeNet(nn.Module):
         """
         super(LeNet, self).__init__()
         self.output_each_layer = output_each_layer
-        self.convs = [
-            nn.Conv2d(in_channels, args_channels, kernel_size=5, padding=2, bias=False)]
+        self.convs = [nn.Conv2d(in_channels, args_channels, kernel_size=5, padding=2, bias=False)]
         self.bns = [nn.BatchNorm2d(args_channels)]
         self.gps = [GlobalPooling2D()]
         for i in range(additional_layers):
-            self.convs.append(nn.Conv2d((2**i)*args_channels, (2**(i+1))
-                              * args_channels, kernel_size=3, padding=1, bias=False))
-            self.bns.append(nn.BatchNorm2d(args_channels*(2**(i+1))))
+            self.convs.append(
+                nn.Conv2d(
+                    (2 ** i) * args_channels, (2 ** (i + 1)) * args_channels, kernel_size=3, padding=1, bias=False
+                )
+            )
+            self.bns.append(nn.BatchNorm2d(args_channels * (2 ** (i + 1))))
             self.gps.append(GlobalPooling2D())
         self.convs = nn.ModuleList(self.convs)
         self.bns = nn.ModuleList(self.bns)
@@ -94,4 +97,3 @@ class GlobalPooling2D(nn.Module):
         x = x.view(x.size(0), -1)
 
         return x
-
