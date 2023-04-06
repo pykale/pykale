@@ -1,0 +1,5 @@
+# Created by Mohammod Suvon by modifying https://github.com/HaozhiQi/ISONet/blob/master/configs/IN1k-ISO18.yaml (under the MIT License)
+
+MODEL:
+  FUSION: "late"
+

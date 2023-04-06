@@ -1,23 +1,24 @@
-# Image Classification: ISONet on CIFAR10/100
+# Multimodal Digit Classification: Multimodal Deep Learning model (MMDL) on AVMNIST
 
 ### 1. Description
 
-This example is constructed by refactoring the [Deep Isometric Learning for Visual Recognition repository](https://github.com/HaozhiQi/ISONet) for an [ICML 2020 paper](http://proceedings.mlr.press/v119/qi20a.html).
+This example is constructed by refactoring the [MultiBenchy repository](https://github.com/pliang279/MultiBench) for [Pykale library](https://github.com/pykale/pykale).
 
 ### 2. Usage
+* Dataset: [AVMNIST](https://drive.google.com/file/d/1KvKynJJca5tDtI5Mmp6CoRh9pQywH8Xp/view)
+* Algorithm: MMDL
+* Example: AVMNIST with MMDL
 
-* Dataset: [CIFAR10, CIFAR100](https://www.cs.toronto.edu/~kriz/cifar.html)
-* Algorithm: ISONet
-* Example: CIFAR10 with ISONet38
-
-`python main.py --cfg configs/CF10-ISO38.yaml --output CF10-ISO38`
+`python main.py --cfg configs/late_fusion.yaml --output AVMNIST-LATE`
 
 ### 3. Related `kale` API
 
-`kale.embed.image_cnn`: Extract features from small-size (32x32) images using CNN.
+`kale.pipeline.mmdl`: Multimodal Deep Learning model
 
-`kale.loaddata.image_access`: Data loaders for CIFAR datasets.
+`kale.loaddata.avmnist_datasets`: Data loaders for AVMNIST datasets.
 
-`kale.predict.isonet`: ISONet classifier.
+`kale.embed.multimodal_common_fusions`: Some common fuison two fuse extracted features from 2 modalities.
 
-`kale.prepdata.image_transform`: Transforms for image data.
+`kale.embed.lenet`: Extract features from images and audios.
+
+`kale.predict.two_layered_mlp`: Predict final out from the fused features. 

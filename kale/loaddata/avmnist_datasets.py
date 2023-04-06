@@ -4,6 +4,16 @@ import torch
 
 class AVMNISTDataset:
     def __init__(self, data_dir,batch_size = 40, flatten_audio=False, flatten_image=False, unsqueeze_channel=True, normalize_image=True, normalize_audio=True):
+        """Get dataloaders for AVMNIST.
+    Args:
+        data_dir (str): Directory of data.
+        batch_size (int, optional): Batch size. Defaults to 40.
+        flatten_audio (bool, optional): Whether to flatten audio data or not. Defaults to False.
+        flatten_image (bool, optional): Whether to flatten image data or not. Defaults to False.
+        unsqueeze_channel (bool, optional): Whether to unsqueeze any channels or not. Defaults to True.
+        normalize_image (bool, optional): Whether to normalize the images before returning. Defaults to True.
+        normalize_audio (bool, optional): Whether to normalize the audio before returning. Defaults to True.
+    """
         self.data_dir = data_dir
         self.flatten_audio = flatten_audio
         self.flatten_image = flatten_image
@@ -51,8 +61,6 @@ class AVMNISTDataset:
         valid_size = train_valid_size - train_size
 
         self.train_data, self.valid_data = torch.utils.data.random_split(self.train_valid_data, [train_size, valid_size])
-
-
 
     def get_train_loader(self,shuffle=True):
         return DataLoader(self.train_data, shuffle=shuffle, batch_size=self.batch_size)

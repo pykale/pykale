@@ -4,8 +4,6 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 
-
-
 class Concat(nn.Module):
     """Concatenation of input data on dimension 1."""
 
@@ -23,7 +21,6 @@ class Concat(nn.Module):
         for modality in modalities:
             flattened.append(torch.flatten(modality, start_dim=1))
         return torch.cat(flattened, dim=1)
-
 
 
 class MultiplicativeInteractions2Modal(nn.Module):
@@ -49,34 +46,34 @@ class MultiplicativeInteractions2Modal(nn.Module):
         if output == 'matrix3D':
             self.W = nn.Parameter(torch.Tensor(
                 input_dims[0], input_dims[1], output_dim[0], output_dim[1]))
-            nn.init.xavier_normal(self.W)
+            nn.init.xavier_normal_(self.W)
             self.U = nn.Parameter(torch.Tensor(
                 input_dims[0], output_dim[0], output_dim[1]))
-            nn.init.xavier_normal(self.U)
+            nn.init.xavier_normal_(self.U)
             self.V = nn.Parameter(torch.Tensor(
                 input_dims[1], output_dim[0], output_dim[1]))
-            nn.init.xavier_normal(self.V)
+            nn.init.xavier_normal_(self.V)
             self.b = nn.Parameter(torch.Tensor(output_dim[0], output_dim[1]))
-            nn.init.xavier_normal(self.b)
+            nn.init.xavier_normal_(self.b)
 
         # most general Hypernetworks as Multiplicative Interactions.
         elif output == 'matrix':
             self.W = nn.Parameter(torch.Tensor(
                 input_dims[0], input_dims[1], output_dim))
-            nn.init.xavier_normal(self.W)
+            nn.init.xavier_normal_(self.W)
             self.U = nn.Parameter(torch.Tensor(input_dims[0], output_dim))
-            nn.init.xavier_normal(self.U)
+            nn.init.xavier_normal_(self.U)
             self.V = nn.Parameter(torch.Tensor(input_dims[1], output_dim))
-            nn.init.xavier_normal(self.V)
+            nn.init.xavier_normal_(self.V)
             self.b = nn.Parameter(torch.Tensor(output_dim))
             nn.init.normal_(self.b)
         # Diagonal Forms and Gating Mechanisms.
         elif output == 'vector':
             self.W = nn.Parameter(torch.Tensor(input_dims[0], input_dims[1]))
-            nn.init.xavier_normal(self.W)
+            nn.init.xavier_normal_(self.W)
             self.U = nn.Parameter(torch.Tensor(
                 self.input_dims[0], self.input_dims[1]))
-            nn.init.xavier_normal(self.U)
+            nn.init.xavier_normal_(self.U)
             self.V = nn.Parameter(torch.Tensor(self.input_dims[1]))
             nn.init.normal_(self.V)
             self.b = nn.Parameter(torch.Tensor(self.input_dims[1]))
@@ -184,14 +181,14 @@ class LowRankTensorFusion(nn.Module):
         for input_dim in input_dims:
             factor = nn.Parameter(torch.Tensor(
                 self.rank, input_dim+1, self.output_dim)).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
-            nn.init.xavier_normal(factor)
+            nn.init.xavier_normal_(factor)
             self.factors.append(factor)
 
         self.fusion_weights = nn.Parameter(torch.Tensor(1, self.rank)).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
         self.fusion_bias = nn.Parameter(
             torch.Tensor(1, self.output_dim)).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
         # init the fusion weights
-        nn.init.xavier_normal(self.fusion_weights)
+        nn.init.xavier_normal_(self.fusion_weights)
         self.fusion_bias.data.fill_(0)
 
     def forward(self, modalities):
