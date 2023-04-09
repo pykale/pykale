@@ -53,7 +53,7 @@ def main():
     )
 
     trainer.fit(model, train_loader, valid_loader)
-    trainer.test(model, train_loader)
+    trainer.test(model, valid_loader)
 
 
 if __name__ == "__main__":
