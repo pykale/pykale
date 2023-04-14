@@ -1,27 +1,29 @@
+"""Implements LeNet.
+
+Adapted from centralnet code https://github.com/slyviacassell/_MFAS/blob/master/models/central/avmnist.py.
+"""
+
 import torch
 from torch import nn
 from torch.nn import functional as F
 
 
 class LeNet(nn.Module):
-    """Implements LeNet.
+    """Initialize LeNet.
 
-    Adapted from centralnet code https://github.com/slyviacassell/_MFAS/blob/master/models/central/avmnist.py.
+    Args:
+        in_channels (int): Input channel number.
+        args_channels (int): Output channel number for block.
+        additional_layers (int): Number of additional blocks for LeNet.
+        output_each_layer (bool, optional): Whether to return the output of all layers. Defaults to False.
+        linear (tuple, optional): Tuple of (input_dim, output_dim) for optional linear layer post-processing. Defaults to None.
+        squeeze_output (bool, optional): Whether to squeeze output before returning. Defaults to True.
     """
 
     def __init__(
         self, in_channels, args_channels, additional_layers, output_each_layer=False, linear=None, squeeze_output=True
     ):
-        """Initialize LeNet.
 
-        Args:
-            in_channels (int): Input channel number.
-            args_channels (int): Output channel number for block.
-            additional_layers (int): Number of additional blocks for LeNet.
-            output_each_layer (bool, optional): Whether to return the output of all layers. Defaults to False.
-            linear (tuple, optional): Tuple of (input_dim, output_dim) for optional linear layer post-processing. Defaults to None.
-            squeeze_output (bool, optional): Whether to squeeze output before returning. Defaults to True.
-        """
         super(LeNet, self).__init__()
         self.output_each_layer = output_each_layer
         self.convs = [nn.Conv2d(in_channels, args_channels, kernel_size=5, padding=2, bias=False)]

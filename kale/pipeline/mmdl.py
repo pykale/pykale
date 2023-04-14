@@ -1,19 +1,21 @@
+"""Implements Multimodal Deep Learning (MMDL) classifier.
+References: https://github.com/pliang279/MultiBench/blob/main/training_structures/Supervised_Learning.py
+"""
+
 import torch
 from torch import nn
 
 
 class MMDL(nn.Module):
-    """Implements Multimodal Deep Learning (MMDL) classifier."""
+    """Instantiate MMDL Module
+    Args:
+        encoders (List): List of nn.Module encoders, one per modality.
+        fusion (nn.Module): Fusion module
+        head (nn.Module): Classifier module
+        has_padding (bool, optional): Whether input has padding or not. Defaults to False.
+    """
 
     def __init__(self, encoders, fusion, head, has_padding=False):
-        """Instantiate MMDL Module
-
-        Args:
-            encoders (List): List of nn.Module encoders, one per modality.
-            fusion (nn.Module): Fusion module
-            head (nn.Module): Classifier module
-            has_padding (bool, optional): Whether input has padding or not. Defaults to False.
-        """
         super(MMDL, self).__init__()
         self.encoders = nn.ModuleList(encoders)
         self.fuse = fusion
@@ -23,14 +25,6 @@ class MMDL(nn.Module):
         self.reps = []
 
     def forward(self, inputs):
-        """Apply MMDL to Layer Input.
-
-        Args:
-            inputs (torch.Tensor): Layer Input
-
-        Returns:
-            torch.Tensor: Layer Output
-        """
         outs = []
         if self.has_padding:
             for i in range(len(inputs[0])):

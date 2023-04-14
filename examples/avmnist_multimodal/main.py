@@ -1,3 +1,8 @@
+"""Multimodal Deep Learning on AVMNIST dataset for digit classification (0 and 1)
+
+Reference: https://github.com/pliang279/MultiBench/tree/main/examples/multimedia
+"""
+
 import argparse
 import os
 

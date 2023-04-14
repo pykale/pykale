@@ -1,4 +1,7 @@
-"""Implements common fusion patterns."""
+"""Implements some common fusion patterns.
+
+Reference: https://github.com/pliang279/MultiBench/blob/main/fusions/common_fusions.py
+"""
 
 import torch
 from torch import nn
@@ -13,11 +16,6 @@ class Concat(nn.Module):
         super(Concat, self).__init__()
 
     def forward(self, modalities):
-        """
-        Forward Pass of Concat.
-
-        :param modalities: An iterable of modalities to combine
-        """
         flattened = []
         for modality in modalities:
             flattened.append(torch.flatten(modality, start_dim=1))
@@ -25,19 +23,17 @@ class Concat(nn.Module):
 
 
 class MultiplicativeInteractions2Modal(nn.Module):
-    """Implements 2-way Modal Multiplicative Interactions."""
+    """Implements 2-way Modal Multiplicative Interactions.
+    :param input_dims: list or tuple of 2 integers indicating input dimensions of the 2 modalities
+    :param output_dim: output dimension
+    :param output: type of MI, options from 'matrix3D','matrix','vector','scalar'
+    :param flatten: whether we need to flatten the input modalities
+    :param clip: clip parameter values, None if no clip
+    :param grad_clip: clip grad values, None if no clip
+    :param flip: whether to swap the two input modalities in forward function or not
+    """
 
     def __init__(self, input_dims, output_dim, output, flatten=False, clip=None, grad_clip=None, flip=False):
-        """
-        :param input_dims: list or tuple of 2 integers indicating input dimensions of the 2 modalities
-        :param output_dim: output dimension
-        :param output: type of MI, options from 'matrix3D','matrix','vector','scalar'
-        :param flatten: whether we need to flatten the input modalities
-        :param clip: clip parameter values, None if no clip
-        :param grad_clip: clip grad values, None if no clip
-        :param flip: whether to swap the two input modalities in forward function or not
-
-        """
         super(MultiplicativeInteractions2Modal, self).__init__()
         self.input_dims = input_dims
         self.clip = clip
@@ -93,11 +89,6 @@ class MultiplicativeInteractions2Modal(nn.Module):
         return tensor.repeat(dim).view(dim, -1).transpose(0, 1)
 
     def forward(self, modalities):
-        """
-        Forward Pass of MultiplicativeInteractions2Modal.
-
-        :param modalities: An iterable of modalities to combine.
-        """
         if len(modalities) == 1:
             return modalities[0]
         elif len(modalities) > 2:
@@ -147,18 +138,15 @@ class LowRankTensorFusion(nn.Module):
     Implementation of Low-Rank Tensor Fusion.
 
     See https://github.com/Justin1904/Low-rank-Multimodal-Fusion for more information.
+
+    Initialize LowRankTensorFusion object.
+    :param input_dims: list or tuple of integers indicating input dimensions of the modalities
+    :param output_dim: output dimension
+    :param rank: a hyperparameter of LRTF. See link above for details
+    :param flatten: Boolean to dictate if output should be flattened or not. Default: True
     """
 
     def __init__(self, input_dims, output_dim, rank, flatten=True):
-        """
-        Initialize LowRankTensorFusion object.
-
-        :param input_dims: list or tuple of integers indicating input dimensions of the modalities
-        :param output_dim: output dimension
-        :param rank: a hyperparameter of LRTF. See link above for details
-        :param flatten: Boolean to dictate if output should be flattened or not. Default: True
-
-        """
         super(LowRankTensorFusion, self).__init__()
 
         # dimensions are specified in the order of audio, video and text
@@ -187,11 +175,6 @@ class LowRankTensorFusion(nn.Module):
         self.fusion_bias.data.fill_(0)
 
     def forward(self, modalities):
-        """
-        Forward Pass of Low-Rank TensorFusion.
-
-        :param modalities: An iterable of modalities to combine.
-        """
         batch_size = modalities[0].shape[0]
         # next we perform low-rank multimodal fusion
         # here is a more efficient implementation than the one the paper describes

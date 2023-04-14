@@ -1,11 +1,30 @@
+"""A standard trainer for Multimodal Deep Learning Model
+
+Constructed by refactoring: https://github.com/pliang279/MultiBench/blob/main/training_structures/Supervised_Learning.py
+"""
+
+
 import sklearn.metrics
 import torch
 import torch.nn as nn
 
-from kale.evaluate.robustness import effective_robustness, relative_robustness, single_plot
-
 
 class Trainer:
+    """
+    Handle running a simple supervised training loop.
+
+    :param total_epochs: maximum number of epochs to train
+    :param is_packed: whether the input modalities are packed in one list or not (default is False, which means we expect input of [tensor(20xmodal1_size),(20xmodal2_size),(20xlabel_size)] for batch size 20 and 2 input modalities)
+    :param early_stop: whether to stop early if valid performance does not improve over 7 epochs
+    :param optimtype: type of optimizer to use
+    :param lr: learning rate
+    :param weight_decay: weight decay of optimizer
+    :param objective: objective function, which is either one of CrossEntropyLoss, MSELoss or BCEWithLogitsLoss or a custom objective function that takes in three arguments: prediction, ground truth, and an argument dictionary.
+    :param save: the name of the saved file for the model with current best validation performance
+    :param validtime: whether to show valid time in seconds or not
+    :param clip_val: grad clipping limit
+    """
+
     def __init__(
         self,
         device,
@@ -20,24 +39,8 @@ class Trainer:
         lr=0.001,
         weight_decay=0.0,
         objective=nn.CrossEntropyLoss(),
-        save="best.pt",
         clip_val=8,
     ):
-        """
-        Handle running a simple supervised training loop.
-
-        :param total_epochs: maximum number of epochs to train
-        :param is_packed: whether the input modalities are packed in one list or not (default is False, which means we expect input of [tensor(20xmodal1_size),(20xmodal2_size),(20xlabel_size)] for batch size 20 and 2 input modalities)
-        :param early_stop: whether to stop early if valid performance does not improve over 7 epochs
-        :param optimtype: type of optimizer to use
-        :param lr: learning rate
-        :param weight_decay: weight decay of optimizer
-        :param objective: objective function, which is either one of CrossEntropyLoss, MSELoss or BCEWithLogitsLoss or a custom objective function that takes in three arguments: prediction, ground truth, and an argument dictionary.
-        :param save: the name of the saved file for the model with current best validation performance
-        :param validtime: whether to show valid time in seconds or not
-        :param clip_val: grad clipping limit
-
-        """
         self.device = device
         self.model = model
         self.train_dataloader = train_dataloader
@@ -50,7 +53,6 @@ class Trainer:
         self.lr = lr
         self.weight_decay = weight_decay
         self.objective = objective
-        self.save = save
         self.clip_val = clip_val
 
     def train(self):
@@ -74,7 +76,7 @@ class Trainer:
                     self.model.train()
                     out = self.model([i.float().to(self.device) for i in j[:-1]])
 
-                loss = self.deal_with_objective(out, j[-1])
+                loss = self.loss(out, j[-1])
 
                 totalloss += loss * len(j[-1])
                 totals += len(j[-1])
@@ -93,7 +95,7 @@ class Trainer:
                         out = self.model([[i.float().to(self.device) for i in j[0]], j[1]])
                     else:
                         out = self.model([i.float().to(self.device) for i in j[:-1]])
-                    loss = self.deal_with_objective(out, j[-1])
+                    loss = self.loss(out, j[-1])
                     totalloss += loss * len(j[-1])
 
                     pred.append(torch.argmax(out, 1))
@@ -118,9 +120,8 @@ class Trainer:
             if self.early_stop and patience > 7:
                 break
 
-    def deal_with_objective(self, pred, truth):
+    def loss(self, pred, truth):
         """Alter inputs depending on objective function, to deal with different objective arguments."""
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         if type(self.objective) == nn.CrossEntropyLoss:
             if len(truth.size()) == len(pred.size()):
                 truth1 = truth.squeeze(len(pred.size()) - 1)

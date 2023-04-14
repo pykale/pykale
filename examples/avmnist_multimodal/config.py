@@ -1,6 +1,5 @@
 """
-Default configurations for avmnist dataset using MMDL,
-based on https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/config.py
+Default configurations for avmnist dataset using Multimodal Deep Learning (MMDL).
 """
 
 from yacs.config import CfgNode as CN

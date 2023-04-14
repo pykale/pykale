@@ -1,3 +1,11 @@
+# =============================================================================
+# Author: Mohammod Suvon, m.suvon@sheffield.ac.uk
+# =============================================================================
+"""
+Define the learning model and configure model parameters.
+Constructed from https://github.com/pliang279/MultiBench/tree/main/examples/multimedia
+"""
+
 from kale.embed.lenet import LeNet
 from kale.embed.multimodal_common_fusions import Concat, LowRankTensorFusion, MultiplicativeInteractions2Modal
 from kale.pipeline.mmdl import MMDL
