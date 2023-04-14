@@ -2,22 +2,27 @@
 # Author: Lawrence Schobs, laschobs1@sheffield.ac.uk
 # =============================================================================
 
+from typing import Dict, List, Optional, Union
+
 import numpy as np
 
 
-def quantile_binning_predictions(uncertainties_test, uncert_thresh, save_pred_path=None):
-    """Bin predictions based on quantile thresholds.
+def quantile_binning_predictions(
+    uncertainties_test: Dict[str, Union[int, float]],
+    uncert_thresh: List[List[float]],
+    save_pred_path: Optional[str] = None,
+) -> Dict[str, int]:
+    """
+    Bin predictions based on quantile thresholds.
 
     Args:
-        uncertainties_test (Dict): Dict of uncertainties like {id: x, id: x}
-        uncert_thresh (list): quantile thresholds to determine binning,
-        save_pred_path (str): path preamble to save predicted bins to,
-
+        uncertainties_test (Dict): A dictionary of uncertainties with string ids and float/int uncertainty values.
+        uncert_thresh (List[List[float]]): A list of quantile thresholds to determine binning.
+        save_pred_path (str, optional): A path preamble to save predicted bins to.
 
     Returns:
-        Dict: Dictionary of predicted quantile bins.
+        Dict: A dictionary of predicted quantile bins with string ids as keys and integer bin values as values.
     """
-
     # Test if dictionary correct structure
     if not isinstance(uncertainties_test, dict):
         raise ValueError("uncertainties_test must be of type dict")

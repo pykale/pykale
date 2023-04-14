@@ -89,9 +89,15 @@ def main():
     # Define parameters for visualisation
     cmaps = sns.color_palette("deep", 10).as_hex()
 
-    fit = True
-    evaluate = True
-    interpret = True
+    if gt_test_error_available:
+        fit = True
+        evaluate = True
+        interpret = True
+    else:
+        fit = True
+        evaluate = False
+        interpret = False
+
     show_individual_landmark_plots = cfg.PIPELINE.SHOW_IND_LANDMARKS
 
     for num_bins in cfg.PIPELINE.NUM_QUANTILE_BINS:
@@ -269,6 +275,7 @@ def fit_and_predict(
     # Save results across uncertainty pairings for each landmark.
     all_testing_results = pd.DataFrame(load_csv_columns(ue_pairs_test, "Testing Fold", np.arange(num_folds)))
     error_bound_estimates = pd.DataFrame({"fold": np.arange(num_folds)})
+    all_uncert_boundaries = pd.DataFrame({"fold": np.arange(num_folds)})
 
     for idx, uncertainty_pairing in enumerate(uncertainty_error_pairs):
         uncertainty_category = uncertainty_pairing[0]
@@ -278,6 +285,7 @@ def fit_and_predict(
 
         running_results = []
         running_error_bounds = []
+        running_uncert_boundaries = []
 
         for fold in range(num_folds):
             validation_pairs = load_csv_columns(
@@ -308,13 +316,14 @@ def fit_and_predict(
             )
             running_results.append(test_bins_pred)
             running_error_bounds.append((estimated_errors))
+            running_uncert_boundaries.append(uncert_boundaries)
 
         # Combine dictionaries and save if you want
         combined_dict_bins = {k: v for x in running_results for k, v in x.items()}
 
         all_testing_results[uncertainty_measure + " bins"] = list(combined_dict_bins.values())
         error_bound_estimates[uncertainty_measure + " bounds"] = running_error_bounds
-
+        all_uncert_boundaries[uncertainty_measure + " bounds"] = running_uncert_boundaries
     # Save Bin predictions and error bound estimations to spreadsheets
     if save_folder != None:
         save_bin_path = os.path.join(save_folder)
@@ -324,6 +333,10 @@ def fit_and_predict(
         )
         error_bound_estimates.to_csv(
             os.path.join(save_bin_path, "estimated_error_bounds_l" + str(landmark) + ".csv"), index=False
+        )
+
+        all_uncert_boundaries.to_csv(
+            os.path.join(save_bin_path, "uncertainty_bounds_l" + str(landmark) + ".csv"), index=False
         )
 
     return uncert_boundaries, estimated_errors, all_testing_results

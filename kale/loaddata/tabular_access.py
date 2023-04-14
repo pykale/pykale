@@ -1,21 +1,25 @@
+from typing import List, Tuple, Union
+
 import numpy as np
 import pandas as pd
 
 
-def load_csv_columns(datapath, split, fold, cols_to_return="All"):
+def load_csv_columns(
+    datapath: str, split: str, fold: Union[int, List[int]], cols_to_return: Union[str, List[str]] = "All"
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
-        Read csv file of data, returns samples where the value of the "split" column
-        is contained in the "fold" variable. The columns cols_to_return are returned.
+    Reads a CSV file of data and returns samples where the value of the specified
+    `split` column is contained in the `fold` variable. The columns specified in `cols_to_return` are returned.
 
     Args:
-        datapath (str): Path to csv file of uncertainty results,
-        split (str): column name for split e.g. Validation, testing,
-        fold (int or [int]]): fold/s contained in the split column to return,
-        cols_to_return ([str]): Which columns to return (default="All").
-
+        datapath: The path to the CSV file of data.
+        split: The column name for the split (e.g. "Validation", "Testing").
+        fold: The fold/s contained in the split column to return. Can be a single integer or a list of integers.
+        cols_to_return: Which columns to return. If set to "All", returns all columns.
 
     Returns:
-        [pandas dataframe, pandas dataframe]: dataframe selected
+        A tuple of two pandas DataFrames: the first is the full DataFrame selected, and the second is the DataFrame
+        with only the columns specified in `cols_to_return`.
     """
     # Load the uncertainty & error results
     datafame = pd.read_csv(datapath + ".csv", header=0)

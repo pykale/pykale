@@ -3,25 +3,24 @@ Functions for manipulating tabular data
 """
 
 import os
+from typing import Any, Dict, List, Tuple
 
 import pandas as pd
 
 
-def apply_confidence_inversion(data, uncertainty_measure):
-    """ Inverses a list of numbers, adds a small number to avoid 1/0.
+def apply_confidence_inversion(data: pd.DataFrame, uncertainty_measure: str) -> Dict[str, Any]:
+    """Invert a list of numbers, add a small number to avoid division by zero.
+
     Args:
-        data (Dict): dictionary of data to invert
-        uncertainty_measure (string): key of dict to invert
+        data (Dict): Dictionary of data to invert.
+        uncertainty_measure (str): Key of dict to invert.
 
     Returns:
-        Dict: dict with inverted data.
-
+        Dict: Dictionary with inverted data.
     """
 
     if uncertainty_measure not in data:
         raise KeyError("The key %s not in the dictionary provided" % uncertainty_measure)
-
-    # data[uncertainty_measure]  = data[data[uncertainty_measure]<0] = 0.1
 
     # Make sure no value is less than zero.
     min_not_zero = min(i for i in data[uncertainty_measure] if i > 0)
@@ -30,17 +29,27 @@ def apply_confidence_inversion(data, uncertainty_measure):
     return data
 
 
-def get_data_struct(models_to_compare, landmarks, saved_bins_path_pre, dataset):
-    """ Makes a dict of pandas dataframe used to evaluate uncertainty measures
-        Args:
-            models_to_compare (list): list of set models to add to datastruct,
-            landmarks (list): list of landmarks to add to datastruct.
-            saved_bins_path_pre (string): preamble to path of where the predicted quantile bins are saved.
-            dataset (string): string of what dataset you're measuring.
+def get_data_struct(
+    models_to_compare: List[str], landmarks: List[int], saved_bins_path_pre: str, dataset: str
+) -> Tuple[Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame]]:
+    """Returns dictionaries of pandas dataframes for:
+        a) all error and prediction info
+        b) landmark separated error and prediction info
+        c) all estimated error bounds
+        d) landmark separated estimated error bounds.
 
-        Returns:
-            [Dict, Dict, Dict, Dict]: dictionaries of pandas dataframes for: a) all error & pred info, b) landmark
-            seperated error & pred info c) all estimated error bound d) landmark seperated estimated error bounds.
+    Args:
+        models_to_compare: List of set models to add to data struct.
+        landmarks: List of landmarks to add to data struct.
+        saved_bins_path_pre: Preamble to path of where the predicted quantile bins are saved.
+        dataset: String of what dataset you're measuring.
+
+    Returns:
+        A tuple containing the following dictionaries of pandas dataframes:
+            - all error and prediction info
+            - landmark separated error and prediction info
+            - all estimated error bounds
+            - landmark separated estimated error bounds.
     """
 
     data_structs = {}

@@ -5,12 +5,14 @@
 import logging
 import math
 import os
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import matplotlib.lines as mlines
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
+import pandas as pd
 import pwlf
 from matplotlib.ticker import ScalarFormatter
 from scipy import stats
@@ -26,21 +28,31 @@ from kale.evaluate.uncertainty_metrics import (
 from kale.prepdata.tabular_transform import get_data_struct
 
 
-def fit_line_with_ci(errors, uncertainties, quantile_thresholds, cmaps, to_log=False, pixel_to_mm=1.0, save_path=None):
-    """Calculates spearman correlation between errors and uncertainties. Plots piecewise linear regression with bootstrap confidence intervals.
-       Breakpoints in linear regression are defined by the uncertainty quantiles of the data.
+def fit_line_with_ci(
+    errors: np.ndarray,
+    uncertainties: np.ndarray,
+    quantile_thresholds: List[float],
+    cmaps: List[Dict[str, str]],
+    to_log: bool = False,
+    pixel_to_mm: float = 1.0,
+    save_path: Optional[str] = None,
+) -> Dict[str, List[Any]]:
+    """
+    Calculates Spearman correlation between errors and uncertainties.
+    Plots piecewise linear regression with bootstrap confidence intervals.
+    Breakpoints in linear regression are defined by the uncertainty quantiles of the data.
 
     Args:
-        errors (_type_): _description_
-        uncertainties (_type_): _description_
-        quantile_thresholds (_type_): _description_
-        cmaps (_type_): _description_
-        to_log (bool, optional): _description_. Defaults to False.
-        pixel_to_mm (float, optional): _description_. Defaults to 1.0.
-        save_path (_type_, optional): _description_. Defaults to None.
+        errors (np.ndarray): Array of errors.
+        uncertainties (np.ndarray): Array of uncertainties.
+        quantile_thresholds (List[float]): List of quantile thresholds.
+        cmaps (List[str]): List of colormap names.
+        to_log (bool, optional): Whether to apply logarithmic transformation on axes. Defaults to False.
+        pixel_to_mm (float, optional): Conversion factor from pixel to millimeters. Defaults to 1.0.
+        save_path (Optional[str], optional): Path to save the plot, if None, the plot will be shown. Defaults to None.
 
     Returns:
-        _type_: _description_
+        Dict[str, Tuple[float, float]]: Dictionary containing Spearman and Pearson correlation coefficients and p-values.
     """
 
     plt.figure(figsize=(12, 8))
@@ -152,22 +164,31 @@ def fit_line_with_ci(errors, uncertainties, quantile_thresholds, cmaps, to_log=F
 
 
 def quantile_binning_and_est_errors(
-    errors, uncertainties, num_bins, type="quantile", acceptable_thresh=5, combine_middle_bins=False
-):
+    errors: List[float],
+    uncertainties: List[float],
+    num_bins: int,
+    type: str = "quantile",
+    acceptable_thresh: float = 5,
+    combine_middle_bins: bool = False,
+) -> Tuple[List[List[float]], List[float]]:
     """
-    Calculate quantile thresholds, and isotonically regress errors and uncertainties and get estimated error bounds.
+    Calculate quantile thresholds, and isotonically regress errors and uncertainties
+    and get estimated error bounds.
 
     Args:
-        errors (list): list of errors,
-        uncertainties (list): list of uncertainties,
-        num_bins (int): Number of quantile bins,
-
-        type (str): what type of thresholds to calculate. quantile recommended. (default='quantile),
-        acceptable_thresh (float):acceptable error threshold. only relevent if type="error-wise".
-
+        errors (List[float]): List of errors.
+        uncertainties (List[float]): List of uncertainties.
+        num_bins (int): Number of quantile bins.
+        type (str, optional): Type of thresholds to calculate, "quantile" recommended.
+                              Defaults to "quantile".
+        acceptable_thresh (float, optional): Acceptable error threshold. Only relevant
+                                             if type="error-wise". Defaults to 5.
+        combine_middle_bins (bool, optional): Whether to combine middle bins.
+                                              Defaults to False.
 
     Returns:
-        [list,list]: list of quantile thresholds and estimated error bounds.
+        Tuple[List[List[float]], List[float]]: List of quantile thresholds and
+                                               estimated error bounds.
     """
 
     if len(errors) != len(uncertainties):
@@ -207,48 +228,47 @@ def quantile_binning_and_est_errors(
 
     # IF combine bins, we grab only the values for the two outer bins
     if combine_middle_bins:
-        # print("estimated errors before: ", estimated_errors)
-        # print("\n Full estimated errors combined middle: ", estimated_errors)
-        # print(" Fullestimated uncert_boundaries: ", uncert_boundaries)
         estimated_errors = [estimated_errors[0], estimated_errors[-1]]
         uncert_boundaries = [uncert_boundaries[0], uncert_boundaries[-1]]
-        # print("Outer estimated errors combined middle: ", estimated_errors)
-        # print("Outer estimated uncert_boundaries: ", uncert_boundaries)
 
     return uncert_boundaries, estimated_errors
 
 
 def box_plot(
-    cmaps,
-    landmark_uncert_dicts,
-    uncertainty_types_list,
-    models,
-    x_axis_labels,
-    x_label,
-    y_label,
-    num_bins,
-    show_sample_info="None",
-    save_path=None,
-    y_lim=120,
-    turn_to_percent=True,
-    to_log=False,
-):
+    cmaps: List[str],
+    landmark_uncert_dicts: Dict,
+    uncertainty_types_list: List[List[str]],
+    models: List[str],
+    x_axis_labels: List[str],
+    x_label: str,
+    y_label: str,
+    num_bins: int,
+    show_sample_info: str = "None",
+    save_path: Optional[str] = None,
+    y_lim: int = 120,
+    turn_to_percent: bool = True,
+    to_log: bool = False,
+) -> None:
     """
     Creates a box plot of data.
 
     Args:
-        cmaps (list): list of colours for matplotlib,
-        landmark_uncert_dicts (Dict): Dict of pandas dataframe for the data to dsiplay,
-        uncertainty_types_list ([list]): list of lists describing the different uncert combinations to test,
-        models (list): the models we want to compare, keys in landmark_uncert_dicts,
-        x_axis_labels (list): list of strings for the x-axis labels, one for each bin,
-        x_label (str): x axis label,
-        y_label (int): y axis label,
-        num_bins (int): Number of uncertainty bins,
-        save_path (str):path to save plot to. If None, displays on screen (default=None),
-        y_lim (int): y axis limit of graph (default=120),
+        cmaps (List[str]): List of colors for matplotlib.
+        landmark_uncert_dicts (Dict): Dict of pandas dataframe for the data to display.
+        uncertainty_types_list (List[List[str]]): List of lists describing the different uncertainty combinations to test.
+        models (List[str]): The models we want to compare, keys in landmark_uncert_dicts.
+        x_axis_labels (List[str]): List of strings for the x-axis labels, one for each bin.
+        x_label (str): X-axis label.
+        y_label (str): Y-axis label.
+        num_bins (int): Number of uncertainty bins.
+        show_sample_info (str, optional): Defaults to "None".
+        save_path (Optional[str], optional): Path to save the plot to. If None, displays on screen. Defaults to None.
+        y_lim (int, optional): Y-axis limit of graph. Defaults to 120.
+        turn_to_percent (bool, optional): Whether to turn data to percentages. Defaults to True.
+        to_log (bool, optional): Whether to set the y-axis scale to log. Defaults to False.
 
-
+    Returns:
+        None
     """
 
     hatch_type = "o"
@@ -264,9 +284,9 @@ def box_plot(
 
     bin_label_locs = []
     all_rects = []
-    outer_min_x_loc = 0
-    middle_min_x_loc = 0
-    inner_min_x_loc = 0
+    outer_min_x_loc = 0.0
+    middle_min_x_loc = 0.0
+    inner_min_x_loc = 0.0
 
     circ_patches = []
 
@@ -394,37 +414,43 @@ def box_plot(
 
 
 def box_plot_per_model(
-    cmaps,
-    landmark_uncert_dicts,
-    uncertainty_types_list,
-    models,
-    x_axis_labels,
-    x_label,
-    y_label,
-    num_bins,
-    show_sample_info="None",
-    save_path=None,
-    y_lim=120,
-    turn_to_percent=True,
-    to_log=False,
-    show_individual_dots=True,
-):
+    cmaps: List[str],
+    landmark_uncert_dicts: Dict[str, List[List[float]]],
+    uncertainty_types_list: List[List[str]],
+    models: List[str],
+    x_axis_labels: List[str],
+    x_label: str,
+    y_label: str,
+    num_bins: int,
+    show_sample_info: str = "None",
+    save_path: Optional[str] = None,
+    y_lim: int = 120,
+    turn_to_percent: bool = True,
+    to_log: bool = False,
+    show_individual_dots: bool = True,
+) -> None:
     """
-    Creates a box plot of data.
+    Generates a box plot to visualize and compare the performance of different models across uncertainty bins.
+
+    This function creates a box plot for each model, grouped by uncertainty types, and displays the
+    distribution of data within each bin. Individual data points can be shown as dots and additional
+    information such as the percentage of samples per bin can be displayed on top of the box plots.
 
     Args:
-        cmaps (list): list of colours for matplotlib,
-        landmark_uncert_dicts (Dict): Dict of pandas dataframe for the data to dsiplay,
-        uncertainty_types_list ([list]): list of lists describing the different uncert combinations to test,
-        models (list): the models we want to compare, keys in landmark_uncert_dicts,
-        x_axis_labels (list): list of strings for the x-axis labels, one for each bin,
-        x_label (str): x axis label,
-        y_label (int): y axis label,
-        num_bins (int): Number of uncertainty bins,
-        save_path (str):path to save plot to. If None, displays on screen (default=None),
-        y_lim (int): y axis limit of graph (default=120),
-
-
+        cmaps (List[str]): List of colors for matplotlib.
+        landmark_uncert_dicts (Dict[str, List[List[float]]]): Dict of pandas dataframes for the data to display.
+        uncertainty_types_list (List[List[str]]): List of lists describing the different uncertainty combinations to test.
+        models (List[str]): The models we want to compare, keys in landmark_uncert_dicts.
+        x_axis_labels (List[str]): List of strings for the x-axis labels, one for each bin.
+        x_label (str): x-axis label.
+        y_label (str): y-axis label.
+        num_bins (int): Number of uncertainty bins.
+        show_sample_info (str): Show sample information. Options: "None", "All", "Average". Default is "None".
+        save_path (Optional[str]): Path to save plot to. If None, displays on screen (default=None).
+        y_lim (int): y-axis limit of graph (default=120).
+        turn_to_percent (bool): Flag to turn data into percentages. Default is True.
+        to_log (bool): Flag to set y-axis scale to log. Default is False.
+        show_individual_dots (bool): Flag to show individual data points as dots. Default is True.
     """
 
     hatch_type = "o"
@@ -439,14 +465,14 @@ def box_plot_per_model(
 
     ax.xaxis.grid(False)
 
-    bin_label_locs = []
+    bin_label_locs: List[float] = []
     all_rects = []
-    outer_min_x_loc = 0
-    middle_min_x_loc = 0
-    inner_min_x_loc = 0
+    outer_min_x_loc = 0.0
+    middle_min_x_loc = 0.0
+    inner_min_x_loc = 0.0
 
     circ_patches = []
-    max_bin_height = 0
+    max_bin_height = 0.0
 
     all_sample_label_x_locs = []
     all_sample_percs = []
@@ -655,7 +681,6 @@ def box_plot_per_model(
         circ_patches.append(patches.Patch(color="none", label=r"$\bf{PSB}$" + r": % Samples per Bin"))
 
     num_cols_legend = math.ceil(len(circ_patches) / 2)
-    # ax.legend(handles=circ_patches, loc=9, fontsize=15, ncol=num_cols_legend, columnspacing=3)
     ax.legend(
         handles=circ_patches,
         fontsize=20,
@@ -666,59 +691,71 @@ def box_plot_per_model(
         fancybox=True,
         shadow=False,
     )
-    #       ncol=3, fancybox=True, shadow=True)
 
-    # ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05),
-    #       ncol=3, fancybox=True, shadow=True)
-
-    # plt.autoscale()
     if save_path is not None:
         plt.gcf().set_size_inches(12.0, 7.5)
-        # plt.tight_layout()
         plt.savefig(save_path, dpi=600, bbox_inches="tight", pad_inches=0.1)
         plt.close()
     else:
         plt.gcf().set_size_inches(16.0, 8.0)
-        # plt.gcf().set_size_inches(12.0, 7.5)
         plt.tight_layout()
         plt.show()
         plt.close()
 
 
 def box_plot_comparing_q(
-    landmark_uncert_dicts_list,
-    uncertainty_type_tuple,
-    model,
-    x_axis_labels,
-    x_label,
-    y_label,
-    num_bins_display,
-    hatch_type,
-    colour,
-    show_sample_info="None",
-    save_path=None,
-    y_lim=120,
-    turn_to_percent=True,
-    to_log=False,
-    show_individual_dots=True,
-):
+    landmark_uncert_dicts_list: List[Dict[str, List[List[float]]]],
+    uncertainty_type_tuple: List,
+    model: List[str],
+    x_axis_labels: List[str],
+    x_label: str,
+    y_label: str,
+    num_bins_display: int,
+    hatch_type: str,
+    colour: str,
+    show_sample_info: str = "None",
+    save_path: str = None,
+    y_lim: int = 120,
+    turn_to_percent: bool = True,
+    to_log: bool = False,
+    show_individual_dots: bool = True,
+) -> None:
     """
-    Creates a box plot of data, using Q (# Bins) on the x-axis. Only compares 1 model & 1 uncertainty type using Q on the x-axis.
+    Creates a box plot of data, using Q (# Bins) on the x-axis.
+    Only compares 1 model & 1 uncertainty type using Q on the x-axis.
 
     Args:
-        landmark_uncert_dicts_list ([Dict]): List of Dict of pandas dataframe for the data to dsiplay, 1 for each value for Q.
-        uncertainty_type ([str]): list describing the single uncertainty/error type to display,
-        model (str): the model we are comparing over our values of Q
-        x_axis_labels (list): list of strings for the x-axis labels, one for each bin,
-        x_label (str): x axis label,
-        y_label (int): y axis label,
-        hatch_type (str): hatch type for the box plot,
-        colour (str): colour for the box plot,
-        num_bins ([int]): List of values of Q (#bins) we are comparing on our x-axis.
-        save_path (str):path to save plot to. If None, displays on screen (default=None),
-        y_lim (int): y axis limit of graph (default=120),
-
-
+        landmark_uncert_dicts_list (List[Dict[str, List[List[float]]]]):
+            List of Dict of pandas dataframe for the data to dsiplay, 1 for each value for Q.
+        uncertainty_type_tuple (Tuple[str, str]):
+            Tuple describing the single uncertainty/error type to display.
+        model (Tuple[str, str]):
+            The model we are comparing over our values of Q.
+        x_axis_labels (List[str]):
+            List of strings for the x-axis labels, one for each bin.
+        x_label (str):
+            X-axis label.
+        y_label (str):
+            Y-axis label.
+        num_bins_display (List[int]):
+            List of values of Q (#bins) we are comparing on our x-axis.
+        hatch_type (str):
+            Hatch type for the box plot.
+        colour (str):
+            Colour for the box plot.
+        show_sample_info (str, optional):
+            Whether or not to show sample info on the plot.
+            Options are "None", "All", or "Average". Defaults to "None".
+        save_path (str, optional):
+            Path to save plot to. If None, displays on screen. Defaults to None.
+        y_lim (int, optional):
+            Y-axis limit of graph. Defaults to 120.
+        turn_to_percent (bool, optional):
+            Whether to turn data to percentages. Defaults to True.
+        to_log (bool, optional):
+            Whether to set the y-axis to logarithmic scale. Defaults to False.
+        show_individual_dots (bool, optional):
+            Whether to show individual data points. Defaults to True.
     """
 
     plt.style.use("fivethirtyeight")
@@ -732,9 +769,9 @@ def box_plot_comparing_q(
 
     bin_label_locs = []
     all_rects = []
-    outer_min_x_loc = 0
-    inner_min_x_loc = 0
-    middle_min_x_loc = 0
+    outer_min_x_loc = 0.0
+    inner_min_x_loc = 0.0
+    middle_min_x_loc = 0.0
 
     circ_patches = []
 
@@ -822,16 +859,6 @@ def box_plot_comparing_q(
             all_sample_label_x_locs.append(middle_x)
             all_sample_percs.append([mean_perc, std_perc])
 
-    # if show_sample_info == "Average":
-    #     max_bin_height += 0.5
-    #     for idx_text, perc_info in enumerate(all_sample_percs):
-    #         ax.text(all_sample_label_x_locs[idx_text], max_bin_height, # Position
-    #             r"$\bf{ASB}$"  +": \n" + r"${} \pm$".format(perc_info[0]) + "\n" + r"${}$".format(perc_info[1]) + "%",
-    #             verticalalignment='top', # Centered bottom with line
-    #             horizontalalignment='center', # Centered with horizontal line
-    #             fontsize=18
-    #         )
-
     # Show the average samples on top of boxplots, aligned. if lots of bins we can lower the height.
     if show_sample_info != "None":
         for idx_text, perc_info in enumerate(all_sample_percs):
@@ -912,27 +939,29 @@ def box_plot_comparing_q(
 
 
 def plot_cumulative(
-    cmaps,
-    data_struct,
-    models,
-    uncertainty_types,
-    bins,
-    title,
-    compare_to_all=False,
-    save_path=None,
-    pixel_to_mm_scale=1,
-):
+    cmaps: List[str],
+    data_struct: Dict[str, pd.DataFrame],
+    models: List[str],
+    uncertainty_types: List[Tuple[str, str]],
+    bins: Union[List[int], np.ndarray],
+    title: str,
+    compare_to_all: bool = False,
+    save_path: str = None,
+    pixel_to_mm_scale: float = 1,
+) -> None:
     """
     Plots cumulative errors.
 
     Args:
-        cmaps (list): list of colours for matplotlib,
-        data_struct (Dict): Dict of pandas dataframe for the data to display,
-        models (list): the models we want to compare, keys in landmark_uncert_dicts,
-        uncertainty_types ([list]): list of lists describing the different uncert combinations to test,
-        bins (list): List of bins to show error form,
-        compare_to_all (bool): Whether to compare the given subset of bins to all the data (default=False)
-        save_path (str):path to save plot to. If None, displays on screen (default=None),
+        cmaps: A list of colours for matplotlib.
+        data_struct: A dictionary containing the dataframes for each model.
+        models: A list of models we want to compare, keys in `data_struct`.
+        uncertainty_types: A list of lists describing the different uncertainty combinations to test.
+        bins: A list of bins to show error form.
+        title: The title of the plot.
+        compare_to_all: Whether to compare the given subset of bins to all the data (default=False).
+        save_path: The path to save plot to. If None, displays on screen (default=None).
+        pixel_to_mm_scale: A factor to scale pixel values to mm (default=1).
     """
 
     # make sure bins is a list and not a single value
@@ -1021,7 +1050,30 @@ def plot_cumulative(
         plt.close()
 
 
-def generate_figures_individual_bin_comparison(data, display_settings):
+def generate_figures_individual_bin_comparison(data: Tuple, display_settings: dict) -> None:
+    """Generate figures to compare localization errors, error bounds accuracy, and Jaccard index across uncertainty bins.
+
+    Args:
+        data: A tuple containing various inputs needed to generate the figures, including:
+            - uncertainty_error_pairs (List[Tuple[int, float]]): A list of tuples specifying the uncertainty thresholds and corresponding error thresholds to use for binning the data.
+            - models_to_compare (List[str]): A list of model names to compare.
+            - dataset (str): The name of the dataset being used.
+            - landmarks (List[int]): A list of landmark indices to include in the analysis.
+            - num_bins (int): The number of uncertainty bins to use.
+            - cmaps (List[str]): A list of colormap names to use for the figures.
+            - save_folder (str): The directory in which to save the generated figures.
+            - save_file_preamble (str): A string to use as the prefix for the filenames of the generated figures.
+            - cfg (Config): An object containing various configuration settings.
+            - show_individual_landmark_plots (bool): Whether to generate separate plots for each individual landmark.
+            - interpret (bool): Whether to perform interpretation analysis.
+            - num_folds (int): The number of folds to use in cross-validation.
+            - ind_landmarks_to_show (List[int]): A list of landmark indices to include in individual landmark plots.
+            - pixel_to_mm_scale (float): The pixel to mm conversion factor.
+        display_settings: A dictionary containing boolean flags indicating which figures to generate.
+
+    Returns:
+        None
+    """
     logger = logging.getLogger("qbin")
     [
         uncertainty_error_pairs,
@@ -1376,7 +1428,58 @@ def generate_figures_individual_bin_comparison(data, display_settings):
                         )
 
 
-def generate_figures_comparing_bins(data, display_settings):
+def generate_figures_comparing_bins(
+    data: Tuple[
+        List[float],  # uncertainty_error_pair
+        str,  # model
+        str,  # dataset
+        List[int],  # landmarks
+        List[int],  # all_values_q
+        List[str],  # cmaps
+        List[str],  # all_fitted_save_paths
+        str,  # save_folder
+        str,  # save_file_preamble
+        Any,  # cfg
+        bool,  # show_individual_landmark_plots
+        bool,  # interpret
+        int,  # num_folds
+        List[int],  # ind_landmarks_to_show
+        float,  # pixel_to_mm_scale
+    ],
+    display_settings: Dict[str, Any],
+) -> None:
+    """
+    Generate figures comparing localization error, error bounds accuracy, and Jaccard index for different binning
+    configurations.
+
+    Args:
+        data: Tuple containing the following elements:
+            - uncertainty_error_pair: List of two floats representing the mean and standard deviation of the noise
+              uncertainty used during training and evaluation, respectively.
+            - model: String representing the name of the model being evaluated.
+            - dataset: String representing the name of the dataset being used.
+            - landmarks: List of integers representing the landmark IDs being evaluated.
+            - all_values_q: List of integers representing the number of bins being used for each evaluation.
+            - cmaps: List of strings representing the color maps to use for plotting.
+            - all_fitted_save_paths: List of strings representing the file paths where the binned data is stored.
+            - save_folder: String representing the directory where the figures should be saved.
+            - save_file_preamble: String representing the prefix to use for all figure file names.
+            - cfg: Object representing configuration settings.
+            - show_individual_landmark_plots: Boolean indicating whether to generate individual plots for each landmark.
+            - interpret: Boolean indicating whether the results are being interpreted.
+            - num_folds: Integer representing the number of cross-validation folds to use.
+            - ind_landmarks_to_show: List of integers representing the IDs of landmarks to show in individual plots.
+            - pixel_to_mm_scale: Float representing the conversion factor from pixels to millimeters.
+
+        display_settings: Dictionary containing the following keys:
+            - 'hatch': String representing the type of hatch pattern to use in the plots.
+            - 'colour': String representing the color to use for the plots.
+
+    Returns:
+        None.
+    """
+
+    # Unpack data and logging settings
     [
         uncertainty_error_pair,
         model,
@@ -1401,8 +1504,8 @@ def generate_figures_comparing_bins(data, display_settings):
     colour = display_settings["colour"]
 
     # increse dimension of these for compatibility with future methods
-    model = [model]
-    uncertainty_error_pair = [uncertainty_error_pair]
+    model_list = [model]
+    uncertainty_error_pair_list = [uncertainty_error_pair]
 
     # If combining the middle bins we just have the 2 edge bins, and the combined middle ones.
 
@@ -1424,13 +1527,13 @@ def generate_figures_comparing_bins(data, display_settings):
         saved_bins_path_pre = all_fitted_save_paths[idx]
 
         bins_all_lms, bins_lms_sep, bounds_all_lms, bounds_lms_sep = get_data_struct(
-            model, landmarks, saved_bins_path_pre, dataset
+            model_list, landmarks, saved_bins_path_pre, dataset
         )
 
         # Get mean errors bin-wise, get all errors concatenated together bin-wise, and seperate by landmark.
         all_error_data_dict = get_mean_errors(
             bins_all_lms,
-            uncertainty_error_pair,
+            uncertainty_error_pair_list,
             num_bins,
             landmarks,
             num_folds=num_folds,
@@ -1452,7 +1555,7 @@ def generate_figures_comparing_bins(data, display_settings):
 
         all_jaccard_data_dict = evaluate_jaccard(
             bins_all_lms,
-            uncertainty_error_pair,
+            uncertainty_error_pair_list,
             num_bins,
             landmarks,
             num_folds=num_folds,
@@ -1471,7 +1574,7 @@ def generate_figures_comparing_bins(data, display_settings):
         bound_return_dict = evaluate_bounds(
             bounds_all_lms,
             bins_all_lms,
-            uncertainty_error_pair,
+            uncertainty_error_pair_list,
             num_bins,
             landmarks,
             num_folds,
@@ -1511,8 +1614,8 @@ def generate_figures_comparing_bins(data, display_settings):
 
             box_plot_comparing_q(
                 all_bins_concat_lms_nosep_error,
-                uncertainty_error_pair,
-                model,
+                uncertainty_error_pair_list,
+                model_list,
                 hatch_type=hatch,
                 colour=colour,
                 x_axis_labels=x_axis_labels,
@@ -1541,8 +1644,8 @@ def generate_figures_comparing_bins(data, display_settings):
                         logger.info("individual error for L%s", lm)
                         box_plot_comparing_q(
                             lm_data,
-                            uncertainty_error_pair,
-                            model,
+                            uncertainty_error_pair_list,
+                            model_list,
                             hatch_type=hatch,
                             colour=colour,
                             x_axis_labels=x_axis_labels,
@@ -1565,8 +1668,8 @@ def generate_figures_comparing_bins(data, display_settings):
                 )
             box_plot_comparing_q(
                 all_error_data,
-                uncertainty_error_pair,
-                model,
+                uncertainty_error_pair_list,
+                model_list,
                 hatch_type=hatch,
                 colour=colour,
                 x_axis_labels=x_axis_labels,
@@ -1590,8 +1693,8 @@ def generate_figures_comparing_bins(data, display_settings):
 
             box_plot_comparing_q(
                 all_bound_data,
-                uncertainty_error_pair,
-                model,
+                uncertainty_error_pair_list,
+                model_list,
                 hatch_type=hatch,
                 colour=colour,
                 x_axis_labels=x_axis_labels,
@@ -1619,8 +1722,8 @@ def generate_figures_comparing_bins(data, display_settings):
                         logger.info("individual errorbound acc for L%s", lm)
                         box_plot_comparing_q(
                             lm_data,
-                            uncertainty_error_pair,
-                            model,
+                            uncertainty_error_pair_list,
+                            model_list,
                             hatch_type=hatch,
                             colour=colour,
                             x_axis_labels=x_axis_labels,
@@ -1641,8 +1744,8 @@ def generate_figures_comparing_bins(data, display_settings):
 
             box_plot_comparing_q(
                 all_jaccard_data,
-                uncertainty_error_pair,
-                model,
+                uncertainty_error_pair_list,
+                model_list,
                 hatch_type=hatch,
                 colour=colour,
                 x_axis_labels=x_axis_labels,
@@ -1662,8 +1765,8 @@ def generate_figures_comparing_bins(data, display_settings):
                 save_location = os.path.join(save_folder, save_file_preamble + "_recall_jaccard_all_lms.pdf")
             box_plot_comparing_q(
                 all_recall_data,
-                uncertainty_error_pair,
-                model,
+                uncertainty_error_pair_list,
+                model_list,
                 hatch_type=hatch,
                 colour=colour,
                 x_axis_labels=x_axis_labels,
@@ -1683,8 +1786,8 @@ def generate_figures_comparing_bins(data, display_settings):
                 save_location = os.path.join(save_folder, save_file_preamble + "_precision_jaccard_all_lms.pdf")
             box_plot_comparing_q(
                 all_precision_data,
-                uncertainty_error_pair,
-                model,
+                uncertainty_error_pair_list,
+                model_list,
                 hatch_type=hatch,
                 colour=colour,
                 x_axis_labels=x_axis_labels,
@@ -1711,8 +1814,8 @@ def generate_figures_comparing_bins(data, display_settings):
                         logger.info("individual jaccard for L%s", lm)
                         box_plot_comparing_q(
                             lm_data,
-                            uncertainty_error_pair,
-                            model,
+                            uncertainty_error_pair_list,
+                            model_list,
                             hatch_type=hatch,
                             colour=colour,
                             x_axis_labels=x_axis_labels,
