@@ -1,3 +1,4 @@
+import logging
 import os
 
 import numpy as np
@@ -33,6 +34,7 @@ def fit_and_predict(
 
     """
 
+    logger = logging.getLogger("q_bin")
     invert_confidences = config.DATASET.CONFIDENCE_INVERT
     # dataset = config.DATASET.DATA
     num_folds = config.DATASET.NUM_FOLDS
@@ -104,5 +106,7 @@ def fit_and_predict(
         all_uncert_boundaries.to_csv(
             os.path.join(save_bin_path, "uncertainty_bounds_l" + str(landmark) + ".csv"), index=False
         )
-
+        logger.info(
+            "Saved predicted test bins fo L%s, error bounds and uncertainty bounds to: %s", landmark, save_bin_path
+        )
     return uncert_boundaries, estimated_errors, all_testing_results
