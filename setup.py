@@ -55,6 +55,7 @@ example_requires = [
     "seaborn",
     "torchsummary>=1.5.0",
     "yacs>=0.1.7",
+    "pwlf",
 ]
 
 # Full dependencies except for development
@@ -80,6 +81,7 @@ dev_requires = full_requires + [
     "recommonmark",
     "sphinx",
     "sphinx-rtd-theme",
+    "pwlf",
 ]
 
 
