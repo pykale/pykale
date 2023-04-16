@@ -63,11 +63,11 @@ def get_data_struct(
         all_err_bounds = []
 
         for lm in landmarks:
-            bin_pred_path = os.path.join(saved_bins_path_pre, model, "res_predicted_bins_l" + str(lm))
+            bin_pred_path = os.path.join(saved_bins_path_pre, model, dataset, "res_predicted_bins_l" + str(lm))
             bin_preds = pd.read_csv(bin_pred_path + ".csv", header=0)
             bin_preds["landmark"] = lm
 
-            error_bounds_path = os.path.join(saved_bins_path_pre, model, "estimated_error_bounds_l" + str(lm))
+            error_bounds_path = os.path.join(saved_bins_path_pre, model, dataset, "estimated_error_bounds_l" + str(lm))
             error_bounds_pred = pd.read_csv(error_bounds_path + ".csv", header=0)
             error_bounds_pred["landmark"] = lm
 

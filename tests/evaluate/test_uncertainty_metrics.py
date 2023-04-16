@@ -33,9 +33,11 @@ class TestEvaluateJaccard:
     # Using one uncertainty type, test numerous bins
     @pytest.mark.parametrize("num_bins", [2, 3, 4, 5])
     def test_one_uncertainty(self, dummy_test_preds, num_bins):
-        all_jaccard_data, all_jaccard_bins_lms_sep = evaluate_jaccard(
+        jacc_dict = evaluate_jaccard(
             dummy_test_preds[0], [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"]], num_bins, [0, 1], num_folds=8
         )
+        all_jaccard_data = jacc_dict["Jaccard All"]
+        all_jaccard_bins_lms_sep = jacc_dict["Jaccard lms seperated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA"]
         assert len(all_jaccard_data["U-NET S-MHA"]) == num_bins
@@ -47,9 +49,12 @@ class TestEvaluateJaccard:
         )  # because each landmark has 8 folds - they are seperate
 
     def test_one_fold(self, dummy_test_preds):
-        all_jaccard_data, all_jaccard_bins_lms_sep = evaluate_jaccard(
+        jacc_dict = evaluate_jaccard(
             dummy_test_preds[0], [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"]], 5, [0, 1], num_folds=1
         )
+
+        all_jaccard_data = jacc_dict["Jaccard All"]
+        all_jaccard_bins_lms_sep = jacc_dict["Jaccard lms seperated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA"]
         assert len(all_jaccard_data["U-NET S-MHA"]) == 5
@@ -59,13 +64,16 @@ class TestEvaluateJaccard:
         assert len(all_jaccard_bins_lms_sep["U-NET S-MHA"][0]) == 2  # because each landmark has 1 folds - they are sep
 
     def test_multiple_uncerts(self, dummy_test_preds):
-        all_jaccard_data, all_jaccard_bins_lms_sep = evaluate_jaccard(
+        jacc_dict = evaluate_jaccard(
             dummy_test_preds[0],
             [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"]],
             5,
             [0, 1],
             num_folds=1,
         )
+
+        all_jaccard_data = jacc_dict["Jaccard All"]
+        all_jaccard_bins_lms_sep = jacc_dict["Jaccard lms seperated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
         assert len(all_jaccard_data["U-NET S-MHA"]) == len(all_jaccard_data["U-NET E-MHA"]) == 5
@@ -80,7 +88,7 @@ class TestEvaluateJaccard:
 class TestEvaluateBounds:
     @pytest.mark.parametrize("num_bins", [2, 3, 4, 5])
     def test_one_uncertainty(self, dummy_test_preds, num_bins):
-        all_bound_percents, all_bound_percents_nolmsep = evaluate_bounds(
+        bound_dict = evaluate_bounds(
             dummy_test_preds[1],
             dummy_test_preds[0],
             [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"]],
@@ -88,6 +96,9 @@ class TestEvaluateBounds:
             [0, 1],
             num_folds=8,
         )
+
+        all_bound_percents = bound_dict["Error Bounds All"]
+        all_bound_percents_nolmsep = bound_dict["all_bound_percents_nolmsep"]
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA"]
         assert len(all_bound_percents["U-NET S-MHA"]) == num_bins
@@ -99,7 +110,7 @@ class TestEvaluateBounds:
         )  # because each landmark has 8 folds - they are seperate
 
     def test_one_fold(self, dummy_test_preds):
-        all_bound_percents, all_bound_percents_nolmsep = evaluate_bounds(
+        bound_dict = evaluate_bounds(
             dummy_test_preds[1],
             dummy_test_preds[0],
             [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"]],
@@ -107,6 +118,8 @@ class TestEvaluateBounds:
             [0, 1],
             num_folds=1,
         )
+        all_bound_percents = bound_dict["Error Bounds All"]
+        all_bound_percents_nolmsep = bound_dict["all_bound_percents_nolmsep"]
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA"]
         assert len(all_bound_percents["U-NET S-MHA"]) == 5
@@ -119,7 +132,7 @@ class TestEvaluateBounds:
 
     def test_multiple_uncerts(self, dummy_test_preds):
 
-        all_bound_percents, all_bound_percents_nolmsep = evaluate_bounds(
+        bound_dict = evaluate_bounds(
             dummy_test_preds[1],
             dummy_test_preds[0],
             [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"]],
@@ -127,6 +140,9 @@ class TestEvaluateBounds:
             [0, 1],
             num_folds=8,
         )
+
+        all_bound_percents = bound_dict["Error Bounds All"]
+        all_bound_percents_nolmsep = bound_dict["all_bound_percents_nolmsep"]
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
         assert len(all_bound_percents["U-NET S-MHA"]) == len(all_bound_percents["U-NET E-MHA"]) == 5

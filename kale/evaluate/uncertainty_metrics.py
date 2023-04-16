@@ -633,7 +633,7 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
 
 
     Returns:
-        [Dict,Dict]: Pair of dicts with JI for all landmarks combined and landmarks seperated.
+        [Dict]: Dicts with JI for all landmarks combined and landmarks seperated.
     """
 
     # If we are combining middle bins, we need the original number of bins to calcualate the true quantiles of the error.

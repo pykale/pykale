@@ -39,11 +39,12 @@ landmark_uncertainty_url = (
 # Downloads and unzips remote file
 @pytest.fixture(scope="session")
 def landmark_uncertainty_tuples_path(download_path):
-    path_ = os.path.join(download_path, "Uncertainty_tuples")
+    path_ = download_path
     os.makedirs(path_, exist_ok=True)
 
     download_file_by_url(landmark_uncertainty_url, path_, "Uncertainty_tuples.zip", "zip")
-    valid_path = os.path.join(path_, "U-NET/SA/uncertainty_pairs_valid_l0")
-    test_path = os.path.join(path_, "U-NET/SA/uncertainty_pairs_test_l0")
+    valid_path = os.path.join(path_, "Uncertainty_tuples/U-NET/SA/uncertainty_pairs_valid_l0")
+    test_path = os.path.join(path_, "Uncertainty_tuples/U-NET/SA/uncertainty_pairs_test_l0")
 
-    return valid_path, test_path, path_
+    dl_path = os.path.join(path_, "Uncertainty_tuples")
+    return valid_path, test_path, dl_path
