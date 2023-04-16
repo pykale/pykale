@@ -3,9 +3,8 @@ DATASET:
   DATA: "4CH"
   NUM_FOLDS: 1
   GROUND_TRUTH_TEST_ERRORS_AVAILABLE: False
-  SOURCE: None
-# _C.DATASET.SOURCE = "https://github.com/pykale/data/blob/landmark-data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
-  BASE_DIR: "Uncertainty_tuple_no_gt"
+  SOURCE: https://github.com/pykale/data/blob/landmark-data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
+  BASE_DIR: "Uncertainty_tuples"
 
 PIPELINE:
 
@@ -17,9 +16,9 @@ PIPELINE:
   IND_LANDMARKS_TO_SHOW: [0,1,2]
   COMPARE_Q_VALUES: True
   COMPARE_INDIVIDUAL_Q: True
-  COMPARE_Q_MODELS: ["PHD-NET", "U-NET"]
+  COMPARE_Q_MODELS: ["PHD-NET-NO-GT"]
   COMPARE_Q_UNCERTAINTY_ERROR_PAIRS: [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"], ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"]]
-  INDIVIDUAL_Q_MODELS: ["U-NET", "PHD-NET"]
+  INDIVIDUAL_Q_MODELS: ["PHD-NET-NO-GT"]
   SHOW_IND_LANDMARKS: True
   INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS: [
     ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"],
