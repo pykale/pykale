@@ -56,6 +56,7 @@ example_requires = [
     "torchsummary>=1.5.0",
     "yacs>=0.1.7",
     "pwlf",
+    "xlsxwriter",
 ]
 
 # Full dependencies except for development
@@ -82,6 +83,7 @@ dev_requires = full_requires + [
     "sphinx",
     "sphinx-rtd-theme",
     "pwlf",
+    "xlsxwriter",
 ]
 
 
