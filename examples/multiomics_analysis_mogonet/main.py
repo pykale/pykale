@@ -1,0 +1,108 @@
+"""
+Multi-omics Integration via Graph Convolutional Networks for Biomedical Data Classification.
+
+Reference:
+Wang, T., Shao, W., Huang, Z., Tang, H., Zhang, J., Ding, Z., Huang, K. (2021). MOGONET integrates multi-omics data
+using graph convolutional networks allowing patient classification and biomarker identification. Nature communications.
+https://www.nature.com/articles/s41467-021-23774-w
+"""
+
+import argparse
+import warnings
+
+import torch
+import pytorch_lightning as pl
+from config import get_cfg_defaults
+from model import MogonetModel
+
+import kale.utils.seed as seed
+import kale.prepdata.tabular_transform as T
+from kale.loaddata.multiomics_gnn_dataset import MogonetDataset
+
+
+warnings.filterwarnings(action="ignore")
+
+
+def arg_parse():
+    """Parsing arguments"""
+    parser = argparse.ArgumentParser(description="MOGONET Training for Multi-omics Data Integration")
+    parser.add_argument("--cfg", required=True, help="path to config file", type=str)
+    args = parser.parse_args()
+
+    return args
+
+
+def main():
+    args = arg_parse()
+
+    # ---- setup device ----
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print("\n==> Using device " + device)
+
+    # ---- setup configs ----
+    cfg = get_cfg_defaults()
+    cfg.merge_from_file(args.cfg)
+    cfg.freeze()
+    seed.set_seed(cfg.SOLVER.SEED)
+
+    # ---- setup dataset ----
+    print("\n==> Preparing dataset...")
+    file_names = []
+    for view in range(1, cfg.DATASET.NUM_VIEW + 1):
+        file_names.append(f"{view}_tr.csv")
+        file_names.append(f"{view}_lbl_tr.csv")
+        file_names.append(f"{view}_te.csv")
+        file_names.append(f"{view}_lbl_te.csv")
+
+    multiomics_data = MogonetDataset(
+        root=cfg.DATASET.ROOT,
+        raw_file_names=file_names,
+        num_view=cfg.DATASET.NUM_VIEW,
+        num_class=cfg.DATASET.NUM_CLASS,
+        edge_per_node=cfg.MODEL.EDGE_PER_NODE,
+        url=cfg.DATASET.URL,
+        random_split=cfg.DATASET.RANDOM_SPLIT,
+        equal_weight=cfg.MODEL.EQUAL_WEIGHT,
+        pre_transform=T.ToTensor(dtype=torch.float),
+        target_pre_transform=T.ToOneHotEncoding(dtype=torch.float)
+    )
+
+    print(multiomics_data)
+
+    # ---- setup model ----
+    print("\n==> Building model...")
+    mogonet_model = MogonetModel(cfg, dataset=multiomics_data)
+    print(mogonet_model)
+
+    # ---- setup pretrain model and trainer ----
+    print("\n==> Pretrain GCNs...")
+    model = mogonet_model.get_model(pretrain=True)
+    trainer_pretrain = pl.Trainer(
+        max_epochs=cfg.SOLVER.MAX_EPOCHS_PRETRAIN,
+        accelerator="auto",
+        devices="auto",
+        default_root_dir=cfg.OUTPUT_DIR,
+        enable_model_summary=False
+    )
+    trainer_pretrain.fit(model)
+
+    # ---- set train model and trainer ----
+    print("\n==> Training model...")
+    model = mogonet_model.get_model(pretrain=False)
+    trainer = pl.Trainer(
+        max_epochs=cfg.SOLVER.MAX_EPOCHS,
+        accelerator="auto",
+        devices="auto",
+        default_root_dir=cfg.OUTPUT_DIR,
+        enable_model_summary=False,
+        log_every_n_steps=1
+    )
+    trainer.fit(model)
+
+    # ---- testing model ----
+    print("\n==> Testing model...")
+    _ = trainer.test(model)
+
+
+if __name__ == "__main__":
+    main()
