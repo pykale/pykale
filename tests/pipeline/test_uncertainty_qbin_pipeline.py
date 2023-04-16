@@ -1,54 +1,22 @@
-"""
-Uncertainty Estimation for Landmark Localisaition
-
-
-Reference:
-Placeholder.html
-"""
-
-import argparse
 import os
-import warnings
 
 import numpy as np
-import pandas as pd
 import seaborn as sns
-from config import get_cfg_defaults
-from pandas import *
 
-from kale.embed.uncertainty_fitting import fit_and_predict
-
-warnings.filterwarnings("error")
 import kale.utils.logger as logging
+from examples.landmark_uncertainty.config import get_cfg_defaults
+from kale.embed.uncertainty_fitting import fit_and_predict
 from kale.interpret.uncertainty_quantiles import (
     generate_figures_comparing_bins,
     generate_figures_individual_bin_comparison,
-    quantile_binning_and_est_errors,
 )
-from kale.loaddata.tabular_access import load_csv_columns
-from kale.predict.uncertainty_binning import quantile_binning_predictions
-from kale.prepdata.tabular_transform import apply_confidence_inversion
 from kale.utils.download import download_file_by_url
 
 
-def arg_parse():
-    """Parsing arguments"""
-    parser = argparse.ArgumentParser(description="Machine learning pipeline for PAH diagnosis")
-    parser.add_argument("--cfg", required=False, help="path to config file", type=str)
-
-    args = parser.parse_args()
-
-    """Example:  python main.py --cfg /mnt/tale_shared/schobs/pykale/pykale/examples/landmark_uncertainty/configs/isbi_config.yaml"""
-    return args
-
-
-def main():
-    args = arg_parse()
+def test_qbin_pipeline():
 
     # ---- setup configs ----
     cfg = get_cfg_defaults()
-    if args.cfg:
-        cfg.merge_from_file(args.cfg)
     cfg.freeze()
 
     # ---- setup output ----
@@ -60,7 +28,7 @@ def main():
     base_dir = cfg.DATASET.BASE_DIR
 
     # download data if neccesary
-    if cfg.DATASET.SOURCE != None:
+    if cfg.DATASET.SOURCE is not None:
         logger.info("Downloading data...")
         data_file_name = "%s.%s" % (base_dir, cfg.DATASET.FILE_FORMAT)
         download_file_by_url(
@@ -137,7 +105,7 @@ def main():
                         save_folder=fitted_save_at,
                     )
 
-        ############ Evaluation Phase ##########################
+        # Evaluation Phase ##########################
 
         if evaluate:
             # Get results for each individual bin.
@@ -241,7 +209,3 @@ def main():
                                 "colour": color,
                             },
                         )
-
-
-if __name__ == "__main__":
-    main()
