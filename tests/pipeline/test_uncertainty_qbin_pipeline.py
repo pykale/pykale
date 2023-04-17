@@ -144,11 +144,11 @@ def test_qbin_pipeline():
                         pixel_to_mm_scale,
                     ],
                     display_settings={
-                        "cumulative_error": False,
+                        "cumulative_error": True,
                         "errors": True,
                         "jaccard": True,
                         "error_bounds": True,
-                        "correlation": False,
+                        "correlation": True,
                     },
                 )
 
