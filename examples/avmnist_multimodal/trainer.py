@@ -35,7 +35,7 @@ class Trainer:
         total_epochs,
         is_packed=False,
         early_stop=True,
-        optimtype=torch.optim.RMSprop,
+        optim=torch.optim.RMSprop,
         lr=0.001,
         weight_decay=0.0,
         objective=nn.CrossEntropyLoss(),
@@ -49,14 +49,14 @@ class Trainer:
         self.total_epochs = total_epochs
         self.is_packed = is_packed
         self.early_stop = early_stop
-        self.optimtype = optimtype
+        self.optim = optim
         self.lr = lr
         self.weight_decay = weight_decay
         self.objective = objective
         self.clip_val = clip_val
 
     def train(self):
-        op = self.optimtype(
+        op = self.optim(
             [p for p in self.model.parameters() if p.requires_grad], lr=self.lr, weight_decay=self.weight_decay
         )
         bestacc = 0

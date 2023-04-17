@@ -63,7 +63,7 @@ def main():
         validdata,
         testdata,
         cfg.SOLVER.MAX_EPOCHS,
-        optimtype=torch.optim.SGD,
+        optim=torch.optim.SGD,
         lr=cfg.SOLVER.BASE_LR,
         weight_decay=cfg.SOLVER.WEIGHT_DECAY,
     )

@@ -12,8 +12,8 @@ class LeNet(nn.Module):
     """Initialize LeNet.
 
     Args:
-        in_channels (int): Input channel number.
-        args_channels (int): Output channel number for block.
+        input_channels (int): Input channel number.
+        output_channels (int): Output channel number for block.
         additional_layers (int): Number of additional blocks for LeNet.
         output_each_layer (bool, optional): Whether to return the output of all layers. Defaults to False.
         linear (tuple, optional): Tuple of (input_dim, output_dim) for optional linear layer post-processing. Defaults to None.
@@ -21,29 +21,38 @@ class LeNet(nn.Module):
     """
 
     def __init__(
-        self, in_channels, args_channels, additional_layers, output_each_layer=False, linear=None, squeeze_output=True
+        self,
+        input_channels,
+        output_channels,
+        additional_layers,
+        output_each_layer=False,
+        linear=None,
+        squeeze_output=True,
     ):
-
         super(LeNet, self).__init__()
         self.output_each_layer = output_each_layer
-        self.convs = [nn.Conv2d(in_channels, args_channels, kernel_size=5, padding=2, bias=False)]
-        self.bns = [nn.BatchNorm2d(args_channels)]
-        self.gps = [GlobalPooling2D()]
+        self.conv_layers = [nn.Conv2d(input_channels, output_channels, kernel_size=5, padding=2, bias=False)]
+        self.batch_norms = [nn.BatchNorm2d(output_channels)]
+        self.global_pools = [GlobalPooling2D()]
+
         for i in range(additional_layers):
-            self.convs.append(
+            self.conv_layers.append(
                 nn.Conv2d(
-                    (2 ** i) * args_channels, (2 ** (i + 1)) * args_channels, kernel_size=3, padding=1, bias=False
+                    (2 ** i) * output_channels, (2 ** (i + 1)) * output_channels, kernel_size=3, padding=1, bias=False
                 )
             )
-            self.bns.append(nn.BatchNorm2d(args_channels * (2 ** (i + 1))))
-            self.gps.append(GlobalPooling2D())
-        self.convs = nn.ModuleList(self.convs)
-        self.bns = nn.ModuleList(self.bns)
-        self.gps = nn.ModuleList(self.gps)
-        self.sq_out = squeeze_output
+            self.batch_norms.append(nn.BatchNorm2d(output_channels * (2 ** (i + 1))))
+            self.global_pools.append(GlobalPooling2D())
+
+        self.conv_layers = nn.ModuleList(self.conv_layers)
+        self.batch_norms = nn.ModuleList(self.batch_norms)
+        self.global_pools = nn.ModuleList(self.global_pools)
+        self.squeeze_output = squeeze_output
         self.linear = None
+
         if linear is not None:
             self.linear = nn.Linear(linear[0], linear[1])
+
         for m in self.modules():
             if isinstance(m, (nn.Conv2d, nn.Linear)):
                 nn.init.kaiming_uniform_(m.weight)
@@ -57,24 +66,26 @@ class LeNet(nn.Module):
         Returns:
             torch.Tensor: Layer Output
         """
-        tempouts = []
-        out = x
-        for i in range(len(self.convs)):
-            out = F.relu(self.bns[i](self.convs[i](out)))
-            out = F.max_pool2d(out, 2)
-            gp = self.gps[i](out)
-            tempouts.append(gp)
+        intermediate_outputs = []
+        output = x
+        for i in range(len(self.conv_layers)):
+            output = F.relu(self.batch_norms[i](self.conv_layers[i](output)))
+            output = F.max_pool2d(output, 2)
+            global_pool = self.global_pools[i](output)
+            intermediate_outputs.append(global_pool)
 
         if self.linear is not None:
-            out = self.linear(out)
-        tempouts.append(out)
+            output = self.linear(output)
+        intermediate_outputs.append(output)
+
         if self.output_each_layer:
-            if self.sq_out:
-                return [t.squeeze() for t in tempouts]
-            return tempouts
-        if self.sq_out:
-            return out.squeeze()
-        return out
+            if self.squeeze_output:
+                return [t.squeeze() for t in intermediate_outputs]
+            return intermediate_outputs
+
+        if self.squeeze_output:
+            return output.squeeze()
+        return output
 
 
 class GlobalPooling2D(nn.Module):
