@@ -1,5 +1,6 @@
 import pytest
 import torch
+
 from kale.prepdata.distance import calculate_distance, DistanceMetric
 
 

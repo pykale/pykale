@@ -1,8 +1,8 @@
 import pytest
-import torch.nn as nn
 import torch
+import torch.nn as nn
 
-from kale.predict.initialize_nn import xavier_init, bias_init
+from kale.predict.initialize_nn import bias_init, xavier_init
 from kale.utils.seed import set_seed
 
 
