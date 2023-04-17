@@ -10,15 +10,14 @@ https://www.nature.com/articles/s41467-021-23774-w
 import argparse
 import warnings
 
-import torch
 import pytorch_lightning as pl
+import torch
 from config import get_cfg_defaults
 from model import MogonetModel
 
-import kale.utils.seed as seed
 import kale.prepdata.tabular_transform as T
+import kale.utils.seed as seed
 from kale.loaddata.multiomics_gnn_dataset import MogonetDataset
-
 
 warnings.filterwarnings(action="ignore")
 
@@ -64,7 +63,7 @@ def main():
         random_split=cfg.DATASET.RANDOM_SPLIT,
         equal_weight=cfg.MODEL.EQUAL_WEIGHT,
         pre_transform=T.ToTensor(dtype=torch.float),
-        target_pre_transform=T.ToOneHotEncoding(dtype=torch.float)
+        target_pre_transform=T.ToOneHotEncoding(dtype=torch.float),
     )
 
     print(multiomics_data)
@@ -82,7 +81,7 @@ def main():
         accelerator="auto",
         devices="auto",
         default_root_dir=cfg.OUTPUT_DIR,
-        enable_model_summary=False
+        enable_model_summary=False,
     )
     trainer_pretrain.fit(model)
 
@@ -95,7 +94,7 @@ def main():
         devices="auto",
         default_root_dir=cfg.OUTPUT_DIR,
         enable_model_summary=False,
-        log_every_n_steps=1
+        log_every_n_steps=1,
     )
     trainer.fit(model)
 

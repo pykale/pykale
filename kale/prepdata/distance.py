@@ -7,8 +7,9 @@ class DistanceMetric(Enum):
     COSINE = "COSINE"
 
 
-def calculate_distance(x1: torch.Tensor, x2: torch.Tensor = None, eps: float = 1e-8,
-                       metric: DistanceMetric = DistanceMetric.COSINE) -> torch.Tensor:
+def calculate_distance(
+    x1: torch.Tensor, x2: torch.Tensor = None, eps: float = 1e-8, metric: DistanceMetric = DistanceMetric.COSINE
+) -> torch.Tensor:
     r"""Returns similarity between :math:`x_1` and :math:`x_2`, computed along `dim`=1.
 
     Args:

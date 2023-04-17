@@ -6,20 +6,20 @@
 Construct a pipeline to run MOGONET architecture based on PyTorch Lightning.
 """
 
-from typing import List, Union
+from typing import List, Optional, Union
 
-from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
-import torch
-from torch import Tensor
-import torch.nn.functional as F
-from torch.optim.optimizer import Optimizer
-from torch.nn import CrossEntropyLoss
-from torch_sparse import SparseTensor
 import pytorch_lightning as pl
+import torch
+import torch.nn.functional as F
+from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
+from torch import Tensor
+from torch.nn import CrossEntropyLoss
+from torch.optim.optimizer import Optimizer
 from torch_geometric.loader import DataLoader
+from torch_sparse import SparseTensor
 
-from kale.loaddata.multiomics_gnn_dataset import MogonetDataset
 from kale.embed.mogonet import MogonetGCN
+from kale.loaddata.multiomics_gnn_dataset import MogonetDataset
 from kale.predict.decode import LinearClassifier, VCDN
 
 
@@ -42,17 +42,17 @@ class ModalityTrainer(pl.LightningModule):
     """
 
     def __init__(
-            self,
-            dataset: MogonetDataset,
-            num_view: int,
-            num_class: int,
-            modality_encoder: List[MogonetGCN],
-            modality_decoder: List[LinearClassifier],
-            loss_fn: CrossEntropyLoss,
-            multi_modality_decoder: VCDN = None,
-            train_multi_modality_decoder: bool = True,
-            gcn_lr: float = 5e-4,
-            vcdn_lr: float = 1e-3
+        self,
+        dataset: MogonetDataset,
+        num_view: int,
+        num_class: int,
+        modality_encoder: List[MogonetGCN],
+        modality_decoder: List[LinearClassifier],
+        loss_fn: CrossEntropyLoss,
+        multi_modality_decoder: Optional[VCDN] = None,
+        train_multi_modality_decoder: bool = True,
+        gcn_lr: float = 5e-4,
+        vcdn_lr: float = 1e-3,
     ) -> None:
         super().__init__()
         self.dataset = dataset
@@ -74,18 +74,26 @@ class ModalityTrainer(pl.LightningModule):
         optimizers = []
 
         for view in range(self.num_view):
-            optimizers.append(torch.optim.Adam(list(self.modality_encoder[view].parameters()) +
-                                               list(self.modality_decoder[view].parameters()),
-                                               lr=self.gcn_lr))
+            optimizers.append(
+                torch.optim.Adam(
+                    list(self.modality_encoder[view].parameters()) + list(self.modality_decoder[view].parameters()),
+                    lr=self.gcn_lr,
+                )
+            )
 
         if self.multi_modality_decoder is not None:
             optimizers.append(torch.optim.Adam(self.multi_modality_decoder.parameters(), lr=self.vcdn_lr))
 
         return optimizers
 
-    def forward(self, x: List[Tensor], adj_t: List[SparseTensor], multi_modality: bool = False
-                ) -> Union[Tensor, List[Tensor]]:
-        """Same as :meth:`torch.nn.Module.forward()`."""
+    def forward(
+        self, x: List[Tensor], adj_t: List[SparseTensor], multi_modality: bool = False
+    ) -> Union[Tensor, List[Tensor]]:
+        """Same as :meth:`torch.nn.Module.forward()`.
+
+        Raises:
+            TypeError: If `multi_modality_decoder` is `None` for multi-modality datasets.
+        """
         output = []
 
         for view in range(self.num_view):
@@ -94,7 +102,10 @@ class ModalityTrainer(pl.LightningModule):
         if not multi_modality:
             return output
 
-        return self.multi_modality_decoder(output)
+        if self.multi_modality_decoder is not None:
+            return self.multi_modality_decoder(output)
+
+        raise TypeError("multi_modality_decoder must be defined for multi-modality datasets.")
 
     def training_step(self, train_batch, batch_idx: int):
         """Compute and return the training loss.
@@ -132,7 +143,7 @@ class ModalityTrainer(pl.LightningModule):
             output = self.forward(x, adj_t, multi_modality=True)
             multi_loss = self.loss_fn(output, y[0])
             multi_loss = torch.mean(torch.mul(multi_loss, sample_weight[0]))
-            self.logger.log_metrics({f"train_multi_modality_step_loss": multi_loss.detach()}, self.global_step)
+            self.logger.log_metrics({"train_multi_modality_step_loss": multi_loss.detach()}, self.global_step)
 
             optimizer[-1].zero_grad()
             self.manual_backward(multi_loss)
@@ -163,16 +174,14 @@ class ModalityTrainer(pl.LightningModule):
         pred_test_data = torch.index_select(output, dim=0, index=test_batch[0].test_idx)
         final_output = F.softmax(pred_test_data, dim=1).data.cpu().numpy()
 
-        print("Test output: ", final_output.argmax(1))
-
         if self.num_class == 2:
             self.log("Accuracy", round(accuracy_score(y[0], final_output.argmax(1)), 3))
             self.log("F1", round(f1_score(y[0], final_output.argmax(1)), 3))
             self.log("AUC", round(roc_auc_score(y[0], final_output[:, 1]), 3))
         else:
             self.log("Accuracy", round(accuracy_score(y[0], final_output.argmax(1)), 3))
-            self.log("F1 weighted", round(f1_score(y[0], final_output.argmax(1), average='weighted'), 3))
-            self.log("F1 macro", round(f1_score(y[0], final_output.argmax(1), average='macro'), 3))
+            self.log("F1 weighted", round(f1_score(y[0], final_output.argmax(1), average="weighted"), 3))
+            self.log("F1 macro", round(f1_score(y[0], final_output.argmax(1), average="macro"), 3))
 
         return final_output
 
@@ -190,10 +199,7 @@ class ModalityTrainer(pl.LightningModule):
         return self._custom_data_loader()
 
     def __repr__(self) -> str:
-        model_str = [
-            "\nModel info:\n",
-            "   Modality encoder:\n"
-        ]
+        model_str = ["\nModel info:\n", "   Modality encoder:\n"]
 
         for view in range(self.num_view):
             model_str.append(f"    ({view + 1}) {self.modality_encoder[view]}")

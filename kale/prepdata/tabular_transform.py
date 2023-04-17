@@ -1,10 +1,8 @@
-from typing import Optional, Any
+from typing import Any, Optional
 
 import torch
 import torch.nn.functional as F
-
-
-Tensor = torch.Tensor
+from torch import Tensor
 
 
 class ToTensor(object):
@@ -18,10 +16,7 @@ class ToTensor(object):
             CPU.
     """
 
-    def __init__(self,
-                 dtype: Optional[torch.dtype] = None,
-                 device: Optional[torch.device] = None
-                 ) -> None:
+    def __init__(self, dtype: Optional[torch.dtype] = None, device: Optional[torch.device] = None) -> None:
         self.dtype = dtype
         self.device = device
 
@@ -52,11 +47,12 @@ class ToOneHotEncoding(object):
             CPU.
     """
 
-    def __init__(self,
-                 num_classes: Optional[int] = -1,
-                 dtype: Optional[torch.dtype] = None,
-                 device: Optional[torch.device] = None
-                 ) -> None:
+    def __init__(
+        self,
+        num_classes: Optional[int] = -1,
+        dtype: Optional[torch.dtype] = None,
+        device: Optional[torch.device] = None,
+    ) -> None:
         self.num_classes = num_classes
         self.dtype = dtype
         self.device = device

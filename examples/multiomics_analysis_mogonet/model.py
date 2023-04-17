@@ -1,10 +1,11 @@
-from yacs.config import CfgNode
+from typing import List, Optional
 
 from torch.nn import CrossEntropyLoss
+from yacs.config import CfgNode
 
+from kale.embed.mogonet import MogonetGCN
 from kale.loaddata.multiomics_gnn_dataset import MogonetDataset
 from kale.pipeline.mogonet_multiomics_trainer import ModalityTrainer
-from kale.embed.mogonet import MogonetGCN
 from kale.predict.decode import LinearClassifier, VCDN
 
 
@@ -16,16 +17,13 @@ class MogonetModel:
         dataset (MogonetDataset): The input dataset created in form of :class:`~torch_geometric.data.Dataset`.
     """
 
-    def __init__(self,
-                 cfg: CfgNode,
-                 dataset: MogonetDataset
-                 ) -> None:
+    def __init__(self, cfg: CfgNode, dataset: MogonetDataset) -> None:
         self.cfg = cfg
         self.dataset = dataset
-        self.modality_encoder = []
-        self.modality_decoder = []
-        self.multi_modality_decoder = None
-        self.loss_function = CrossEntropyLoss(reduction='none')
+        self.modality_encoder: List[MogonetGCN] = []
+        self.modality_decoder: List[LinearClassifier] = []
+        self.multi_modality_decoder: Optional[VCDN] = None
+        self.loss_function = CrossEntropyLoss(reduction="none")
         self._create_model()
 
     def _create_model(self) -> None:
@@ -37,14 +35,15 @@ class MogonetModel:
         vcdn_hidden_dim = pow(num_class, num_view)
 
         for view in range(num_view):
-            self.modality_encoder.append(MogonetGCN(in_channels=self.dataset.get(view).num_features,
-                                                    hidden_channels=gcn_hidden_dim,
-                                                    dropout=gcn_dropout_rate
-                                                    ))
+            self.modality_encoder.append(
+                MogonetGCN(
+                    in_channels=self.dataset.get(view).num_features,
+                    hidden_channels=gcn_hidden_dim,
+                    dropout=gcn_dropout_rate,
+                )
+            )
 
-            self.modality_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1],
-                                                          out_dim=num_class
-                                                          ))
+            self.modality_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_class))
 
         if num_view >= 2:
             self.multi_modality_decoder = VCDN(num_view=num_view, num_class=num_class, hidden_dim=vcdn_hidden_dim)
@@ -83,7 +82,7 @@ class MogonetModel:
             multi_modality_decoder=multi_modality_model,
             train_multi_modality_decoder=train_multi_modality_decoder,
             gcn_lr=gcn_lr,
-            vcdn_lr=vcdn_lr
+            vcdn_lr=vcdn_lr,
         )
 
         return model

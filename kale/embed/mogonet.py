@@ -14,15 +14,14 @@ https://www.nature.com/articles/s41467-021-23774-w
 from typing import List, Optional, Union
 
 import torch
-from torch.nn import Parameter
-from torch.nn import Module
-from torch import Tensor
-from torch_sparse import SparseTensor
 import torch.nn.functional as F
-from torch_geometric.nn.aggr import Aggregation
-from torch.nn.init import xavier_normal_
-from torch_geometric.nn.conv import MessagePassing
 import torch_sparse
+from torch import Tensor
+from torch.nn import Module, Parameter
+from torch.nn.init import xavier_normal_
+from torch_geometric.nn.aggr import Aggregation
+from torch_geometric.nn.conv import MessagePassing
+from torch_sparse import SparseTensor
 
 
 class MogonetGCNConv(MessagePassing):
@@ -38,12 +37,13 @@ class MogonetGCNConv(MessagePassing):
     """
 
     def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            bias: bool = True,
-            aggr: Optional[Union[str, List[str], Aggregation]] = "add",
-            **kwargs) -> None:
+        self,
+        in_channels: int,
+        out_channels: int,
+        bias: bool = True,
+        aggr: Optional[Union[str, List[str], Aggregation]] = "add",
+        **kwargs,
+    ) -> None:
         super().__init__(aggr=aggr, **kwargs)
 
         self.in_channels = in_channels
@@ -53,14 +53,13 @@ class MogonetGCNConv(MessagePassing):
         if bias:
             self.bias = Parameter(torch.Tensor(self.out_channels))
         else:
-            self.register_parameter('bias', None)
+            self.register_parameter("bias", None)
 
         self.reset_parameters()
 
     def reset_parameters(self) -> None:
         """Initialize the parameters of the model."""
         xavier_normal_(self.weight.data)
-        # self.weight.data.fill_(1.0)
 
         if self.bias is not None:
             self.bias.data.fill_(0.0)

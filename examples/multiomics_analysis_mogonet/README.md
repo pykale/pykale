@@ -7,8 +7,8 @@ Multimodal learning for multi-omics data analysis is a promising research area i
 
 ## 2. MOGONET
 
-**M**ulti-**O**mics **G**raph c**O**nvolutional **NET**works ([MOGONET](https://doi.org/10.1038/s41467-021-23774-w)) is 
-a multi-omics fusion framework for cancer classification and biomarker identification that utilizes supervised graph 
+**M**ulti-**O**mics **G**raph c**O**nvolutional **NET**works ([MOGONET](https://doi.org/10.1038/s41467-021-23774-w)) is
+a multi-omics fusion framework for cancer classification and biomarker identification that utilizes supervised graph
 convolutional networks for omics datasets. The overall framework of MOGONET is illustrated below.
 
 ![MOGONET Architecture](image/MOGONET.png)
@@ -39,7 +39,7 @@ tables.
 | DNA methylation  |        612        |      263      |   1000    |
 | miRNA expression |        612        |      263      |    503    |
 
-Note: These datasets have been processed in accordance with the **Preprocessing** section of the original paper. 
+Note: These datasets have been processed in accordance with the **Preprocessing** section of the original paper.
 
 ## 4. Usage
 

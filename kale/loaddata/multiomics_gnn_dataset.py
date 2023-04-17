@@ -9,11 +9,11 @@ Construct a dataset with multiple omics modalities based on PyTorch Geometric
 import os.path as osp
 from typing import Callable, List, Optional, Tuple, Union
 
+import numpy as np
 import torch
 import torch.nn.functional as F
+from torch_geometric.data import Data, Dataset, download_url, extract_zip
 from torch_sparse import SparseTensor
-from torch_geometric.data import Dataset, Data, download_url, extract_zip
-import numpy as np
 
 from kale.prepdata.distance import calculate_distance, DistanceMetric
 
@@ -42,17 +42,17 @@ class MultiOmicsDataset(Dataset):
     """
 
     def __init__(
-            self,
-            root: str,
-            num_view: int,
-            num_class: int,
-            url: str = None,
-            raw_file_names: List[str] = None,
-            random_split: bool = False,
-            train_size: float = 0.7,
-            transform: Optional[Callable] = None,
-            pre_transform: Optional[Callable] = None,
-            target_pre_transform: Optional[Callable] = None
+        self,
+        root: str,
+        num_view: int,
+        num_class: int,
+        url: str = None,
+        raw_file_names: List[str] = None,
+        random_split: bool = False,
+        train_size: float = 0.7,
+        transform: Optional[Callable] = None,
+        pre_transform: Optional[Callable] = None,
+        target_pre_transform: Optional[Callable] = None,
     ) -> None:
         self._url = url
         self._raw_file_names = raw_file_names
@@ -65,7 +65,7 @@ class MultiOmicsDataset(Dataset):
         super().__init__(root, transform, pre_transform)
 
     @property
-    def raw_file_names(self) -> Union[str, List[str], Tuple]:
+    def raw_file_names(self) -> Optional[List[str]]:
         r"""The name of the files in the :obj:`self.raw_dir` folder that must be present in order to skip
         downloading."""
         return self._raw_file_names
@@ -86,16 +86,17 @@ class MultiOmicsDataset(Dataset):
         if self._random_split:
             data_list = []
             for view in range(self.num_view):
-                full_data = np.loadtxt(self.raw_paths[view * 2], delimiter=',')
+                full_data = np.loadtxt(self.raw_paths[view * 2], delimiter=",")
                 full_data = full_data if self.pre_transform is None else self.pre_transform(full_data)
-                full_labels = np.loadtxt(self.raw_paths[(view * 2) + 1], delimiter=',')
+                full_labels = np.loadtxt(self.raw_paths[(view * 2) + 1], delimiter=",")
                 full_labels = full_labels.astype(int)
 
                 train_idx, test_idx = self.get_random_split(full_labels, self._num_class, self._train_size)
                 num_train = len(train_idx)
                 num_tests = len(test_idx)
-                full_labels = full_labels if self._target_pre_transform is None else self._target_pre_transform(
-                    full_labels)
+                full_labels = (
+                    full_labels if self._target_pre_transform is None else self._target_pre_transform(full_labels)
+                )
 
                 edge_index, edge_weight = self.get_adjacency_info(full_data)
                 adj_t = SparseTensor(row=edge_index[0], col=edge_index[1], value=edge_weight).t()
@@ -109,25 +110,25 @@ class MultiOmicsDataset(Dataset):
                     train_idx=train_idx,
                     test_idx=test_idx,
                     num_train=num_train,
-                    num_test=num_tests
+                    num_test=num_tests,
                 )
 
                 data = self.extend_data(data)
                 data_list.append(data)
 
-            torch.save(data_list, osp.join(self.processed_dir, 'data.pt'))
+            torch.save(data_list, osp.join(self.processed_dir, "data.pt"))
 
         else:
             data_list = []
             for view in range(self.num_view):
-                train_data = np.loadtxt(self.raw_paths[view * 4], delimiter=',')
-                train_labels = np.loadtxt(self.raw_paths[(view * 4) + 1], delimiter=',')
+                train_data = np.loadtxt(self.raw_paths[view * 4], delimiter=",")
+                train_labels = np.loadtxt(self.raw_paths[(view * 4) + 1], delimiter=",")
                 train_labels = train_labels.astype(int)
                 num_train = len(train_labels)
                 train_idx = torch.tensor(list(range(num_train)), dtype=torch.long)
 
-                test_data = np.loadtxt(self.raw_paths[(view * 4) + 2], delimiter=',')
-                test_labels = np.loadtxt(self.raw_paths[(view * 4) + 3], delimiter=',')
+                test_data = np.loadtxt(self.raw_paths[(view * 4) + 2], delimiter=",")
+                test_labels = np.loadtxt(self.raw_paths[(view * 4) + 3], delimiter=",")
                 test_labels = test_labels.astype(int)
                 num_tests = len(test_labels)
                 test_idx = torch.tensor(list(range(num_train, num_train + num_tests)), dtype=torch.long)
@@ -136,8 +137,9 @@ class MultiOmicsDataset(Dataset):
                 full_data = full_data if self.pre_transform is None else self.pre_transform(full_data)
                 full_labels = np.concatenate((train_labels, test_labels))
                 full_labels = full_labels.astype(int)
-                full_labels = full_labels if self._target_pre_transform is None else self._target_pre_transform(
-                    full_labels)
+                full_labels = (
+                    full_labels if self._target_pre_transform is None else self._target_pre_transform(full_labels)
+                )
 
                 edge_index, edge_weight = self.get_adjacency_info(full_data)
                 adj_t = SparseTensor(row=edge_index[0], col=edge_index[1], value=edge_weight)
@@ -151,13 +153,13 @@ class MultiOmicsDataset(Dataset):
                     train_idx=train_idx,
                     test_idx=test_idx,
                     num_train=num_train,
-                    num_test=num_tests
+                    num_test=num_tests,
                 )
 
                 data = self.extend_data(data)
                 data_list.append(data)
 
-            torch.save(data_list, osp.join(self.processed_dir, 'data.pt'))
+            torch.save(data_list, osp.join(self.processed_dir, "data.pt"))
 
     @staticmethod
     def get_random_split(labels, num_class: int, train_size: float = 0.7) -> Tuple:
@@ -221,14 +223,14 @@ class MultiOmicsDataset(Dataset):
 
     def get(self, view_idx) -> Data:
         r"""Gets the data object at index :obj:`idx`."""
-        data_list = torch.load(osp.join(self.processed_dir, 'data.pt'))
+        data_list = torch.load(osp.join(self.processed_dir, "data.pt"))
         return data_list[view_idx]
 
     def __len__(self) -> int:
         return 1
 
-    def __getitem__(self, index) -> Union['Dataset', Data]:
-        data_list = torch.load(osp.join(self.processed_dir, 'data.pt'))
+    def __getitem__(self, index) -> Union["Dataset", Data]:
+        data_list = torch.load(osp.join(self.processed_dir, "data.pt"))
         return data_list
 
     @property
@@ -280,13 +282,23 @@ class MogonetDataset(MultiOmicsDataset):
         equal_weight: bool = False,
         transform: Optional[Callable] = None,
         pre_transform: Optional[Callable] = None,
-        target_pre_transform: Optional[Callable] = None
+        target_pre_transform: Optional[Callable] = None,
     ):
         self.edge_per_node = edge_per_node
         self.equal_weight = equal_weight
         self.sim_threshold = None
-        super().__init__(root, num_view, num_class, url, raw_file_names, random_split, train_size, transform,
-                         pre_transform, target_pre_transform)
+        super().__init__(
+            root,
+            num_view,
+            num_class,
+            url,
+            raw_file_names,
+            random_split,
+            train_size,
+            transform,
+            pre_transform,
+            target_pre_transform,
+        )
 
     def extend_data(self, data: Data) -> Data:
         """Extend data object by adding additional attributes.
@@ -306,8 +318,9 @@ class MogonetDataset(MultiOmicsDataset):
         edge_index_train, edge_weight_train = self._get_adjacency_info(data.x[data.train_idx], train=True)
         adj_t_train = SparseTensor(row=edge_index_train[0], col=edge_index_train[1], value=edge_weight_train)
 
-        edge_index, edge_weight = self._get_adjacency_info(data.x[data.train_idx], test_data=data.x[data.test_idx],
-                                                           train=False)
+        edge_index, edge_weight = self._get_adjacency_info(
+            data.x[data.train_idx], test_data=data.x[data.test_idx], train=False
+        )
         adj_t = SparseTensor(row=edge_index[0], col=edge_index[1], value=edge_weight).t()
 
         data.edge_index = edge_index
@@ -319,8 +332,14 @@ class MogonetDataset(MultiOmicsDataset):
 
         return data
 
-    def _get_adjacency_info(self, train_data: torch.Tensor, test_data: torch.Tensor = None, train: bool = True,
-                            eps: float = 1e-8, metric: DistanceMetric = DistanceMetric.COSINE) -> Tuple:
+    def _get_adjacency_info(
+        self,
+        train_data: torch.Tensor,
+        test_data: torch.Tensor = None,
+        train: bool = True,
+        eps: float = 1e-8,
+        metric: DistanceMetric = DistanceMetric.COSINE,
+    ) -> Tuple:
         """Calculate sparse adjacency matrix of the input dataset defined by edge indices and edge attributes.
 
         Args:
@@ -354,8 +373,11 @@ class MogonetDataset(MultiOmicsDataset):
             adj_matrix[num_train:, :num_train] = torch.mul(dist, non_zero_entries)
 
         adj_matrix_trans = adj_matrix.transpose(0, 1)
-        adj_matrix = adj_matrix + adj_matrix_trans * (adj_matrix_trans > adj_matrix).float() - adj_matrix * (
-                    adj_matrix_trans > adj_matrix).float()
+        adj_matrix = (
+            adj_matrix
+            + adj_matrix_trans * (adj_matrix_trans > adj_matrix).float()
+            - adj_matrix * (adj_matrix_trans > adj_matrix).float()
+        )
         identity_mat = torch.eye(adj_matrix.shape[0], device=adj_matrix.device)
         adj_matrix = F.normalize(adj_matrix + identity_mat, p=1)
         adj_matrix = adj_matrix.to_sparse()
@@ -369,8 +391,8 @@ class MogonetDataset(MultiOmicsDataset):
             adj (torch.Tensor): The dense adjacency matrix.
             num_train (int): The number of samples in training data.
         """
-        self.sim_threshold = torch.sort(adj.reshape(-1, ), descending=True).values[self.edge_per_node * num_train]
-        self.sim_threshold = self.sim_threshold.data.cpu().item()
+        sorted_adj = torch.sort(adj.reshape(-1,), descending=True).values[self.edge_per_node * num_train]
+        self.sim_threshold = sorted_adj.item()
 
     def _generate_sparse_adj(self, adj: torch.Tensor, self_loop: bool = True) -> torch.Tensor:
         r"""Returns a sparse adjacency matrix by setting entries below the :obj:`sim_threshold` to 0.
@@ -409,10 +431,10 @@ class MogonetDataset(MultiOmicsDataset):
 
     def __repr__(self) -> str:
         modalities_str = [
-            f"\nDataset info:",
+            "\nDataset info:",
             f"\n   number of modalities: {self.num_view}",
             f"\n   number of classes: {self.num_class}",
-            f"\n\n   modality | total samples | num train | num test  | num features",
+            "\n\n   modality | total samples | num train | num test  | num features",
             f"\n   {'-' * 65}",
         ]
         for view in range(self.num_view):

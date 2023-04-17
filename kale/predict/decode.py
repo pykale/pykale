@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import List, Tuple
 
 import numpy as np
 import pytorch_lightning as pl
@@ -8,9 +8,9 @@ import torch.nn.functional as F
 
 from kale.embed.gripnet import GripNet
 from kale.evaluate.metrics import auprc_auroc_ap
+from kale.predict.initialize_nn import bias_init, xavier_init
 from kale.prepdata.graph_negative_sampling import typed_negative_sampling
 from kale.prepdata.supergraph_construct import SuperGraph
-from kale.predict.initialize_nn import xavier_init, bias_init
 
 
 class MLPDecoder(nn.Module):
@@ -220,7 +220,7 @@ class VCDN(nn.Module):
         self.model = nn.Sequential(
             nn.Linear(pow(self.num_class, self.num_view), hidden_dim),
             nn.LeakyReLU(0.25),
-            nn.Linear(hidden_dim, self.num_class)
+            nn.Linear(hidden_dim, self.num_class),
         )
         self.reset_parameters()
 
@@ -232,11 +232,14 @@ class VCDN(nn.Module):
     def forward(self, multimodal_input: List[torch.Tensor]) -> torch.Tensor:
         for view in range(self.num_view):
             multimodal_input[view] = torch.sigmoid(multimodal_input[view])
-        x = torch.reshape(torch.matmul(multimodal_input[0].unsqueeze(-1), multimodal_input[1].unsqueeze(1)),
-                          (-1, pow(self.num_class, 2), 1))
+        x = torch.reshape(
+            torch.matmul(multimodal_input[0].unsqueeze(-1), multimodal_input[1].unsqueeze(1)),
+            (-1, pow(self.num_class, 2), 1),
+        )
         for view in range(2, self.num_view):
-            x = torch.reshape(torch.matmul(x, multimodal_input[view].unsqueeze(1)), (-1, pow(self.num_class, view + 1),
-                                                                                     1))
+            x = torch.reshape(
+                torch.matmul(x, multimodal_input[view].unsqueeze(1)), (-1, pow(self.num_class, view + 1), 1)
+            )
         input_tensor = torch.reshape(x, (-1, pow(self.num_class, self.num_view)))
         output = self.model(input_tensor)
 
