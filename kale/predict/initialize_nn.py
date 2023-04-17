@@ -9,7 +9,6 @@ def xavier_init(module) -> None:
     """
     if type(module) == nn.Linear:
         nn.init.xavier_normal_(module.weight)
-        # module.weight.data.fill_(1.0)
 
 
 def bias_init(module) -> None:
