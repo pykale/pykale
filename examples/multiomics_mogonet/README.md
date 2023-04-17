@@ -1,14 +1,14 @@
-# Multi-omics Data Integration using Graph Convolutional Networks (MOGONET)
+# Multiomics Data Integration using Graph Convolutional Networks (MOGONET)
 
 ## 1. Description
 
-Multimodal learning for multi-omics data analysis is a promising research area in biomedical studies. The integration of multiple modalities (e.g., genomics, epigenomics, transcriptomics, proteomics, metabolomics , etc.) by capturing their complementary information provides a deeper understanding of most complex human diseases. This example is constructed by refactoring the [MOGONET](https://doi.org/10.1038/s41467-021-23774-w) [1], a multi-omics integrative method for biomedical classification, within the PyTorch Geometric and PyTorch Lightning ecosystems.
+Multimodal learning for multiomics data analysis is a promising research area in biomedical studies. The integration of multiple modalities (e.g., genomics, epigenomics, transcriptomics, proteomics, metabolomics , etc.) by capturing their complementary information provides a deeper understanding of most complex human diseases. This example is constructed by refactoring the [MOGONET](https://doi.org/10.1038/s41467-021-23774-w) [1], a multiomics integrative method for biomedical classification, within the PyTorch Geometric and PyTorch Lightning ecosystems.
 
 
 ## 2. MOGONET
 
 **M**ulti-**O**mics **G**raph c**O**nvolutional **NET**works ([MOGONET](https://doi.org/10.1038/s41467-021-23774-w)) is
-a multi-omics fusion framework for cancer classification and biomarker identification that utilizes supervised graph
+a multiomics fusion framework for cancer classification and biomarker identification that utilizes supervised graph
 convolutional networks for omics datasets. The overall framework of MOGONET is illustrated below.
 
 ![MOGONET Architecture](image/MOGONET.png)
@@ -17,11 +17,11 @@ The original implementation of MOGONET is available [here](https://github.com/tx
 
 ## 3. Dataset
 
-We have tested the MOGONET architecture using two preprocessed multi-omics benchmarks, ROSMAP and BRCA, which have been provided
+We have tested the MOGONET architecture using two preprocessed multiomics benchmarks, ROSMAP and BRCA, which have been provided
 by the authors of the MOGONET paper in their repository. A brief description of these datasets is shown in the following
 tables.
 
-**Table 1**: Characteristics of the ROSMAP multi-omics dataset.
+**Table 1**: Characteristics of the preprocessed ROSMAP multiomics dataset.
 
 |      Omics       | #Training samples | #Test samples | #Features  |
 |:----------------:|:-----------------:|:-------------:|:----------:|
@@ -31,7 +31,7 @@ tables.
 
 
 
-**Table 2**: Characteristics of the BRCA multi-omics dataset.
+**Table 2**: Characteristics of the preprocessed BRCA multiomics dataset.
 
 |      Omics       | #Training samples | #Test samples | #Features |
 |:----------------:|:-----------------:|:-------------:|:---------:|
@@ -43,7 +43,7 @@ Note: These datasets have been processed in accordance with the **Preprocessing*
 
 ## 4. Usage
 
-* Datasets: [BRCA, ROSMAP](https://github.com/pykale/data)
+* Datasets: [BRCA, ROSMAP](https://github.com/pykale/data/tree/main/multiomics)
 * Algorithm: MOGONET
 
 Run the MOGONET model for the BRCA and ROSMAP datasets using `yaml` configuration files provided in the `configs` folder

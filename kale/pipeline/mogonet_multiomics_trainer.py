@@ -4,6 +4,14 @@
 
 """
 Construct a pipeline to run MOGONET architecture based on PyTorch Lightning.
+
+This code is written by refactoring MOGONET code (https://github.com/txWang/MOGONET/blob/main/train_test.py)
+within the PyTorch Lightning.
+
+Reference:
+Wang, T., Shao, W., Huang, Z., Tang, H., Zhang, J., Ding, Z., Huang, K. (2021). MOGONET integrates multi-omics data
+using graph convolutional networks allowing patient classification and biomarker identification. Nature communications.
+https://www.nature.com/articles/s41467-021-23774-w
 """
 
 from typing import List, Optional, Union

@@ -5,6 +5,9 @@
 """
 Construct a message passing network using PyTorch Geometric for MOGONET method.
 
+This code is written by refactoring MOGONET model (https://github.com/txWang/MOGONET/blob/main/models.py) within
+'MessagePassing' base class provided in the PyTorch Geometric.
+
 Reference:
 Wang, T., Shao, W., Huang, Z., Tang, H., Zhang, J., Ding, Z., Huang, K. (2021). MOGONET integrates multi-omics data
 using graph convolutional networks allowing patient classification and biomarker identification. Nature communications.

@@ -1,6 +1,6 @@
 DATASET:
   NAME: "TCGA_BRCA"
-  URL: "https://github.com/pykale/data/raw/main/multi-omics/TCGA_BRCA.zip"
+  URL: "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"
   NUM_VIEW: 3
   NUM_CLASS: 5
 

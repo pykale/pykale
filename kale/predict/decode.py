@@ -202,7 +202,7 @@ class LinearClassifier(nn.Module):
 
 class VCDN(nn.Module):
     r"""The View Correlation Discovery Network (VCDN) to learn the higher-level intra-view and cross-view correlations
-    in the label space, implemented according to the method described in 'MOGONET integrates multi-omics data using
+    in the label space, implemented according to the method described in 'MOGONET integrates multiomics data using
     graph convolutional networks allowing patient classification and biomarker identification'
     - Wang, T., Shao, W., Huang, Z., Tang, H., Zhang, J., Ding, Z., Huang, K. (2021).
 

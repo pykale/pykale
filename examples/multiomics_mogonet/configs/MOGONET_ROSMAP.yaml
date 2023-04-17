@@ -1,6 +1,6 @@
 DATASET:
   NAME: "ROSMAP"
-  URL: "https://github.com/pykale/data/raw/main/multi-omics/ROSMAP.zip"
+  URL: "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
   NUM_VIEW: 3
   NUM_CLASS: 2
 
