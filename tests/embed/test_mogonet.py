@@ -3,14 +3,14 @@ import torch
 from torch_geometric.data import Data
 from torch_sparse import SparseTensor
 
-from kale.embed.mogonet import MogonetGCNConv, MogonetGCN
+from kale.embed.mogonet import MogonetGCN, MogonetGCNConv
 
 
 @pytest.fixture(scope="module")
 def test_data():
-    x = torch.Tensor([[.0, .1], [.2, .3], [.4, .5]])
+    x = torch.Tensor([[0.0, 0.1], [0.2, 0.3], [0.4, 0.5]])
     edge_index = torch.tensor([[0, 1, 2, 2], [1, 0, 1, 2]])
-    edge_weight = torch.tensor([.5, .2, .3, .4])
+    edge_weight = torch.tensor([0.5, 0.2, 0.3, 0.4])
     adj_t = SparseTensor(row=edge_index[0], col=edge_index[1], value=edge_weight)
 
     return Data(x=x, edge_index=edge_index, adj_t=adj_t)
