@@ -14,75 +14,19 @@ jobs:
     if: github.event_name == 'issues'
     runs-on: ubuntu-latest
     steps:
-      - name: Add issue to project and set status as To Do
-        uses: actions/github-script@v5
+      - uses: actions/add-to-project@RELEASE_VERSION
         with:
+          project-url: https://github.com/orgs/pykale/projects/4
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { repo, eventName, payload } = context;
-            const projectId = 4;
-            const columnName = "To do";
-            const issueId = eventName === "issues" ? payload.issue.node_id : null;
-
-            // Get the project
-            const project = await github.projects.get({
-              project_id: projectId,
-            });
-
-            // Get project columns
-            const columns = await github.projects.listColumns({
-              project_id: projectId,
-            });
-
-            // Find the "To do" column
-            const toDoColumn = columns.data.find(column => column.name === columnName);
-
-            if (!toDoColumn) {
-              throw new Error(`Column "${columnName}" not found in project "${project.data.name}"`);
-            }
-
-            // Move the issue to the "To do" column
-            await github.projects.moveCard({
-              card_id: issueId,
-              column_id: toDoColumn.id,
-              position: "top",
-            });
+          column-name: To do
 
   add-pull-request-to-project:
     name: Add pull request to project with In Progress status
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - name: Add pull request to project and set status as In Progress
-        uses: actions/github-script@v5
+      - uses: actions/add-to-project@RELEASE_VERSION
         with:
+          project-url: https://github.com/orgs/pykale/projects/4
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { repo, eventName, payload } = context;
-            const projectId = 4;
-            const columnName = "In progress";
-            const issueId = eventName === "pull_request" ? payload.pull_request.node_id : null;
-
-            // Get the project
-            const project = await github.projects.get({
-              project_id: projectId,
-            });
-
-            // Get project columns
-            const columns = await github.projects.listColumns({
-              project_id: projectId,
-            });
-
-            // Find the "In progress" column
-            const inProgressColumn = columns.data.find(column => column.name === columnName);
-
-            if (!inProgressColumn) {
-              throw new Error(`Column "${columnName}" not found in project "${project.data.name}"`);
-            }
-
-            // Move the pull request to the "In progress" column
-            await github.projects.moveCard({
-              card_id: issueId,
-              column_id: inProgressColumn.id,
-              position: "top",
-            });
+          column-name: In progress
