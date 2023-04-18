@@ -53,7 +53,7 @@ def main():
         max_epochs=cfg.SOLVER.MAX_EPOCHS,
         logger=logger,
         accelerator="auto",
-        # strategy="ddp",  # not work on Windows, which does not support CCL backend
+        strategy="ddp",  # comment this line on Windows, because Windows does not support CCL backend
         log_every_n_steps=1,
     )
 
