@@ -42,7 +42,7 @@ def main():
 
     # ---- setup model ----
     print("==> Building model..")
-    model, optim = get_model(cfg)
+    model = get_model(cfg)
 
     # ---- setup logger ----
     logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT_DIR)
