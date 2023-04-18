@@ -56,7 +56,7 @@ def generate_list(data_name, data_params_local, domain):
 
     Args:
         data_name (string): name of dataset
-        data_params_local (dict): hyper parameters from configure file
+        data_params_local (dict): hyperparameters from configure file
         domain (string): domain type (source or target)
 
     Returns:
@@ -98,12 +98,12 @@ class VideoDataset(Enum):
         Sets class_number as 8 for EPIC, 7 for ADL, 6 for both GTEA and KITCHEN.
 
         Args:
-            source: (VideoDataset): source dataset name
-            target: (VideoDataset): target dataset name
-            seed: (int): seed value set manually.
-            params: (CfgNode): hyper parameters from configure file
+            source (VideoDataset): source dataset name
+            target (VideoDataset): target dataset name
+            seed (int): seed value set manually
+            params (CfgNode): hyperparameters from configure file
 
-        Examples::
+        Examples:
             >>> source, target, num_classes = get_source_target(source, target, seed, params)
         """
         config_params = get_videodata_config(params)
@@ -209,7 +209,7 @@ class VideoDatasetAccess(DatasetAccess):
         frames_per_segment (int): length of each action sample (the unit is number of frame)
         n_classes (int): number of class
         transform_kind (string): types of video transforms
-        seed: (int): seed value set manually.
+        seed (int): seed value set manually
     """
 
     def __init__(

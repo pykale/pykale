@@ -6,14 +6,13 @@ import torch.nn as nn
 
 from kale.embed.attention_cnn import CNNTransformer, ContextCNNGeneric
 from kale.embed.image_cnn import SimpleCNN
-from kale.pipeline.cnn_trainer import CNNTransformerTrainer
+from kale.pipeline.base_trainer import CNNTransformerTrainer
 from kale.predict.class_domain_nets import ClassNet
 
 
 def get_model(cfg):
     """
-    Builds and returns a model according to the config
-    object passed.
+    Builds and returns a model according to the config object passed.
 
     Args:
         cfg: A YACS config object.
@@ -41,5 +40,5 @@ def get_model(cfg):
     optim = torch.optim.SGD(
         net.parameters(), lr=cfg.SOLVER.BASE_LR, momentum=cfg.SOLVER.MOMENTUM, weight_decay=cfg.SOLVER.WEIGHT_DECAY
     )
-    model = CNNTransformerTrainer(model=net, optim=optim.state_dict(), cfg=cfg)
-    return model, optim
+    model = CNNTransformerTrainer(model=net, optimizer=optim.state_dict(), cfg=cfg)
+    return model
