@@ -9,10 +9,10 @@ _C = CN()
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.DATASET.ROOT = "../data"
-_C.DATASET.NAME = "CIFAR10"
-_C.DATASET.NUM_CLASSES = 10
-_C.DATASET.NUM_WORKERS = 0
+_C.DATASET.ROOT = "./data"  # Root directory of dataset, "data" is in the same directory as this file
+_C.DATASET.NAME = "CIFAR10"  # Dataset name
+_C.DATASET.NUM_CLASSES = 10  # Number of classes in the dataset
+_C.DATASET.NUM_WORKERS = 0  # Number of workers for data loading
 
 # ---------------------------------------------------------------------------- #
 # Solver
@@ -38,11 +38,8 @@ _C.SOLVER.WARMUP_EPOCHS = 5
 # CNN configs
 # ---------------------------------------------------------------------------- #
 _C.CNN = CN()
-_C.CNN.POOL_LOCATIONS = (0, 3)  # After which index of the below
-# convolutionial-layer list pooling
-# layers should be placed. (0,3) Applies
-# 2 pooling layers, resulting in an image
-# size of 8x8.
+_C.CNN.POOL_LOCATIONS = (0, 3)  # After which index of the below convolutional-layer list, pooling layers
+# should be placed. (0,3) applies 2 pooling layers, resulting in an image size of 8x8.
 
 # A tuple for each convolutional layer given as (num_channels, kernel_size)
 # (Nested lists log to file prettier than nested tuples do)
@@ -50,6 +47,7 @@ _C.CNN.CONV_LAYERS = [[16, 3], [32, 3], [64, 3], [32, 1], [64, 3], [128, 3], [25
 _C.CNN.USE_BATCHNORM = True
 _C.CNN.ACTIVATION_FUN = "relu"  # one of ('relu', 'elu', 'leaky_relu')
 _C.CNN.OUTPUT_SHAPE = (-1, 64, 8, 8)
+
 # ---------------------------------------------------------------------------- #
 # Transformer configs
 # ---------------------------------------------------------------------------- #
