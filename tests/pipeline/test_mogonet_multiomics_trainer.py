@@ -1,14 +1,14 @@
-import pytorch_lightning as pl
 import pytest
+import pytorch_lightning as pl
 import torch
 from torch.nn import CrossEntropyLoss
 
 import kale.prepdata.tabular_transform as T
-from kale.loaddata.multiomics_gnn_dataset import MogonetDataset
-from kale.utils.seed import set_seed
 from kale.embed.mogonet import MogonetGCN
+from kale.loaddata.multiomics_gnn_dataset import MogonetDataset
 from kale.pipeline.mogonet_multiomics_trainer import ModalityTrainer
 from kale.predict.decode import LinearClassifier, VCDN
+from kale.utils.seed import set_seed
 
 
 @pytest.fixture
@@ -52,9 +52,7 @@ def test_model():
     for view in range(num_view):
         modality_encoder.append(
             MogonetGCN(
-                in_channels=dataset.get(view).num_features,
-                hidden_channels=gcn_hidden_dim,
-                dropout=gcn_dropout_rate,
+                in_channels=dataset.get(view).num_features, hidden_channels=gcn_hidden_dim, dropout=gcn_dropout_rate,
             )
         )
 
@@ -124,11 +122,7 @@ def test_forward(test_model, multi_modality):
 
 def test_pipeline(test_model):
     set_seed(2023)
-    trainer_pretrain = pl.Trainer(
-        max_epochs=2,
-        gpus=0,
-        enable_model_summary=False,
-    )
+    trainer_pretrain = pl.Trainer(max_epochs=2, gpus=0, enable_model_summary=False,)
 
     trainer_pretrain.fit(test_model)
     result = trainer_pretrain.test(test_model)
