@@ -5,7 +5,7 @@ In this example we train a standard 8 layer CNN on CIFAR10 as a baseline. We the
 
 [//]: # (![Model Comparisons]&#40;CIFAR10-ModelComparison-ValAcc-Lightning.png&#41;)
 <div align="center">
-	<img src="CIFAR10-ModelComparison-ValAcc-Lightning.png" alt="Editor" width="60%">
+	<img src="CIFAR10-ModelComparison-ValAcc-Lightning.png" alt="Editor" width="80%">
 </div>
 (The code example on this page does not aim to show any meaningful results, but only demonstrate the use of the CNNTransformer)
 
