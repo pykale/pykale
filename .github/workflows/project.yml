@@ -1,24 +1,80 @@
-# This workflow will automatically add an issue or pull request to the default project.
-# The project needs to be updated when we move to a new default project.
-# https://github.com/marketplace/actions/assign-to-one-project
+# This workflow will automatically assign issues and pull requests to the new default project and relocate issues to the project based on changes in their labels.
+# https://github.com/actions/add-to-project
 
 name: assign-project
 
 on:
   issues:
-    types: [opened, labeled]
+    types:
+      - opened
+      - labeled
   pull_request:
-    types: [opened, labeled]
+    types:
+      - opened
+      - labeled
+
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  assign-one-project:
-    name: Assign to one default project
+  add-issue-to-project:
+    name: Assign NEW issue to project with To do status
+    if: github.event_name == 'issues' && github.event.action == 'opened'
     runs-on: ubuntu-latest
     steps:
-    - name: Assign NEW issues and NEW pull requests to a default project
-      uses: srggrs/assign-one-project-github-action@1.2.1
-      if: github.event.action == 'opened'
-      with:
-        project: "https://github.com/pykale/pykale/projects/10"
+      - uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/orgs/pykale/projects/4
+          column-name: To do
+
+  add-pull-request-to-project:
+    name: Assign NEW pull request to project with In progress status
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/orgs/pykale/projects/4
+          column-name: In progress
+
+  move-issue-to-in-progress:
+    name: Move issue to In progress column when work-in-progress label is assigned
+    if: github.event_name == 'issues' && github.event.action == 'labeled' && contains(github.event.issue.labels.*.name, 'work-in-progress')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move issue to In progress column
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const { repo, payload } = context;
+            const projectId = 4;
+            const columnName = "In progress";
+            const issueId = payload.issue.node_id;
+
+            // Get the project
+            const project = await github.request("GET /projects/{project_id}", {
+              project_id: projectId,
+              headers: {
+                "Accept": "application/vnd.github+json",
+                "Authorization": `token ${process.env.GITHUB_TOKEN}`
+              }
+            });
+
+            // Get project columns
+            const columns = await github.projects.listColumns({
+              project_id: projectId,
+            });
+
+            // Find the "In progress" column
+            const inProgressColumn = columns.data.find(column => column.name === columnName);
+
+            if (!inProgressColumn) {
+              throw new Error(`Column "${columnName}" not found in project "${project.data.name}"`);
+            }
+
+            // Move the issue to the "In Progress" column
+            await github.projects.moveCard({
+              card_id: issueId,
+              column_id: inProgressColumn.id,
+              position: "top",
+            });
