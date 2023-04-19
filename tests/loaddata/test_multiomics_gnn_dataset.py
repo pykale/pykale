@@ -172,3 +172,6 @@ def test_mogonet_dataset():
         assert hasattr(data, "edge_index_train")
         assert hasattr(data, "edge_weight_train")
         assert hasattr(data, "adj_t_train")
+
+    assert repr(dataset) is not None
+    assert len(repr(dataset)) > 0
