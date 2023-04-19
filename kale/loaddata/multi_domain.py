@@ -302,7 +302,7 @@ class MultiDomainImageFolder(VisionDataset):
             domains (list): List of the domain names sorted alphabetically.
             domain_to_idx (dict): Dict with items (domain_name, domain_index).
             domain_labels (list): The domain_index value for each image in the dataset
-    """
+        """
 
     def __init__(
         self,
@@ -370,7 +370,7 @@ class MultiDomainImageFolder(VisionDataset):
                 tuple: (classes, class_to_idx) where classes are relative to (dir), and class_to_idx is a dictionary.
             Ensures:
                 No class is a subdirectory of another.
-        """
+            """
         classes = [d.name for d in os.scandir(directory) if d.is_dir()]
         classes.sort()
         class_to_idx = {cls_name: i for i, cls_name in enumerate(classes)}
@@ -382,7 +382,7 @@ class MultiDomainImageFolder(VisionDataset):
                 index (int): Index
             Returns:
                 tuple: (sample, target, domain) where target is class_index of the target class.
-        """
+            """
         path, target, domain = self.samples[index]
         sample = self.loader(path)
         if self.transform is not None:
