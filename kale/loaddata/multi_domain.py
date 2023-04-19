@@ -268,40 +268,40 @@ def _domain_stratified_split(domain_labels, n_partitions, split_ratios):
 class MultiDomainImageFolder(VisionDataset):
     """A generic data loader where the samples are arranged in this way: ::
 
-        root/domain_a/class_1/xxx.ext
-        root/domain_a/class_1/xxy.ext
-        root/domain_a/class_2/xxz.ext
+            root/domain_a/class_1/xxx.ext
+            root/domain_a/class_1/xxy.ext
+            root/domain_a/class_2/xxz.ext
 
-        root/domain_b/class_1/efg.ext
-        root/domain_b/class_2/pqr.ext
-        root/domain_b/class_2/lmn.ext
+            root/domain_b/class_1/efg.ext
+            root/domain_b/class_2/pqr.ext
+            root/domain_b/class_2/lmn.ext
 
-        root/domain_k/class_2/123.ext
-        root/domain_k/class_1/abc3.ext
-        root/domain_k/class_1/asd932_.ext
+            root/domain_k/class_2/123.ext
+            root/domain_k/class_1/abc3.ext
+            root/domain_k/class_1/asd932_.ext
 
-    Args:
-        root (string): Root directory path.
-        loader (callable): A function to load a sample given its path.
-        extensions (tuple[string]): A list of allowed extensions. Either extensions or is_valid_file should be
-            passed.
-        transform (callable, optional): A function/transform that takes in a sample and returns a transformed
-            version.  E.g, ``transforms.RandomCrop`` for images.
-        target_transform (callable, optional): A function/transform that takes in the target and transforms it.
-        sub_domain_set (list): A list of domain names, which should be a subset of domains (folders) under the root
-            directory. If None, all available domains will be used. Defaults to None.
-        sub_class_set (list): A list of class names, which should be a subset of classes (folders) under each
-            domain's directory. If None, all available classes will be used. Defaults to None.
-        is_valid_file (callable, optional): A function that takes path of a file and check if the file is a valid
-            file (to check corrupt files). Either extensions or is_valid_file should be passed.
-     Attributes:
-        classes (list): List of the class names sorted alphabetically.
-        class_to_idx (dict): Dict with items (class_name, class_index).
-        samples (list): List of (sample path, class_index) tuples
-        targets (list): The class_index value for each image in the dataset
-        domains (list): List of the domain names sorted alphabetically.
-        domain_to_idx (dict): Dict with items (domain_name, domain_index).
-        domain_labels (list): The domain_index value for each image in the dataset
+        Args:
+            root (string): Root directory path.
+            loader (callable): A function to load a sample given its path.
+            extensions (tuple[string]): A list of allowed extensions. Either extensions or is_valid_file should be
+                passed.
+            transform (callable, optional): A function/transform that takes in a sample and returns a transformed
+                version.  E.g, ``transforms.RandomCrop`` for images.
+            target_transform (callable, optional): A function/transform that takes in the target and transforms it.
+            sub_domain_set (list): A list of domain names, which should be a subset of domains (folders) under the root
+                directory. If None, all available domains will be used. Defaults to None.
+            sub_class_set (list): A list of class names, which should be a subset of classes (folders) under each
+                domain's directory. If None, all available classes will be used. Defaults to None.
+            is_valid_file (callable, optional): A function that takes path of a file and check if the file is a valid
+                file (to check corrupt files). Either extensions or is_valid_file should be passed.
+         Attributes:
+            classes (list): List of the class names sorted alphabetically.
+            class_to_idx (dict): Dict with items (class_name, class_index).
+            samples (list): List of (sample path, class_index) tuples
+            targets (list): The class_index value for each image in the dataset
+            domains (list): List of the domain names sorted alphabetically.
+            domain_to_idx (dict): Dict with items (domain_name, domain_index).
+            domain_labels (list): The domain_index value for each image in the dataset
     """
 
     def __init__(
@@ -363,13 +363,13 @@ class MultiDomainImageFolder(VisionDataset):
     @staticmethod
     def _find_classes(directory: str) -> Tuple[List[str], Dict[str, int]]:
         """
-        Finds the class folders in a dataset.
-        Args:
-            directory (string): Directory path.
-        Returns:
-            tuple: (classes, class_to_idx) where classes are relative to (dir), and class_to_idx is a dictionary.
-        Ensures:
-            No class is a subdirectory of another.
+            Finds the class folders in a dataset.
+            Args:
+                directory (string): Directory path.
+            Returns:
+                tuple: (classes, class_to_idx) where classes are relative to (dir), and class_to_idx is a dictionary.
+            Ensures:
+                No class is a subdirectory of another.
         """
         classes = [d.name for d in os.scandir(directory) if d.is_dir()]
         classes.sort()
@@ -378,10 +378,10 @@ class MultiDomainImageFolder(VisionDataset):
 
     def __getitem__(self, index: int) -> Tuple:
         """
-        Args:
-            index (int): Index
-        Returns:
-            tuple: (sample, target, domain) where target is class_index of the target class.
+            Args:
+                index (int): Index
+            Returns:
+                tuple: (sample, target, domain) where target is class_index of the target class.
         """
         path, target, domain = self.samples[index]
         sample = self.loader(path)

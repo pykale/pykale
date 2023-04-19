@@ -328,7 +328,8 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         return torch.stack(cls_output).mean(0)
 
     def cls_discrepancy(self, x):
-        """Compute discrepancy between all classifiers' probabilistic outputs"""
+        """Compute discrepancy between all classifiers' probabilistic outputs
+        """
         cls_output = self._get_cls_output(x)
         n_domains = len(cls_output)
         cls_disc = 0

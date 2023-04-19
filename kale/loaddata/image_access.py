@@ -193,9 +193,9 @@ class OfficeAccess(MultiDomainImageFolder, DatasetAccess):
     @staticmethod
     def download(path):
         """Download dataset.
-        Office-31 source: https://www.cc.gatech.edu/~judy/domainadapt/#datasets_code
-        Caltech-256 source: http://www.vision.caltech.edu/Image_Datasets/Caltech256/
-        Data with this library is adapted from: http://www.stat.ucla.edu/~jxie/iFRAME/code/imageClassification.rar
+            Office-31 source: https://www.cc.gatech.edu/~judy/domainadapt/#datasets_code
+            Caltech-256 source: http://www.vision.caltech.edu/Image_Datasets/Caltech256/
+            Data with this library is adapted from: http://www.stat.ucla.edu/~jxie/iFRAME/code/imageClassification.rar
         """
         url = "https://github.com/pykale/data/raw/main/images/office"
 

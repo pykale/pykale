@@ -30,6 +30,7 @@ class SoftmaxNet(nn.Module):
     def __init__(
         self, input_dim=15, n_classes=2, name="c", hidden=(), activation_fn=nn.ReLU, **activation_args,
     ):
+
         super(SoftmaxNet, self).__init__()
         self._n_classes = n_classes
         self._activation_fn = activation_fn
@@ -99,6 +100,7 @@ class DomainNetSmallImage(nn.Module):
     """
 
     def __init__(self, input_size=128, bigger_discrim=False):
+
         super(DomainNetSmallImage, self).__init__()
         output_size = 500 if bigger_discrim else 100
 
