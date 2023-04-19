@@ -1,8 +1,7 @@
 import os
 
-import numpy as np
 import torch
-from torch_geometric.data import Data
+from torch_geometric.data import Data, DataLoader
 
 import kale.prepdata.tabular_transform as T
 from kale.loaddata.multiomics_gnn_dataset import MogonetDataset, MultiOmicsDataset
@@ -10,7 +9,6 @@ from kale.utils.seed import set_seed
 
 
 def test_multiomics_dataset():
-    set_seed(2023)
     num_view = 3
     num_class = 2
     url = "https://github.com/SinaTabakhi/pykale-data/raw/main/multiomics/ROSMAP.zip"
@@ -41,6 +39,12 @@ def test_multiomics_dataset():
     for view in range(num_view * 4):
         assert os.path.exists(dataset.raw_paths[0])
 
+    # Test load preprocessed data
+    assert len(dataset) == 1
+    dataloader = DataLoader(dataset, batch_size=1)
+    next_batch = next(iter(dataloader))
+    assert len(next_batch) == num_view
+
     # Test process method
     assert dataset.len() == num_view
     for view in range(num_view):
@@ -56,12 +60,6 @@ def test_multiomics_dataset():
     for view in range(num_view):
         assert dataset.get(view).x.dtype == torch.float
         assert dataset.get(view).y.dtype == torch.float
-
-    # Test get_random_split method
-    labels = np.random.randint(low=0, high=2, size=1000)
-    train_idx, test_idx = dataset.get_random_split(labels, num_class=num_class, train_size=0.7)
-    assert len(train_idx) == 699
-    assert len(test_idx) == 301
 
 
 def test_multiomics_dataset_random_split():
