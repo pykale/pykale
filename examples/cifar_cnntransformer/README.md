@@ -10,7 +10,7 @@ In this example we train a standard 8 layer CNN on CIFAR10 as a baseline. We the
 (The code example on this page does not aim to show any meaningful results, but only demonstrate the use of the CNNTransformer)
 
 ### 2. Observations
-We observe that all models ultimately converge to a similar accuracy, only that the CNNTransformers learn slower which I think is likely because they use Dropout and the two base CNNs do not.
+We observe that all models ultimately converge to a similar accuracy, there is no distinctive difference between the learning speed of 5 models.
 
 ### 3. Usage
 `python main.py --cfg configs/one_of_the_config_files.yaml`
