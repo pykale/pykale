@@ -1198,7 +1198,7 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                 uncertainty_error_pairs,
                 np.arange(num_bins),
                 "Cumulative error for ALL predictions, dataset " + dataset,
-                save_path=None,
+                save_path=save_location,
                 pixel_to_mm_scale=pixel_to_mm_scale,
             )
             # Plot cumulative error figure for B1 only predictions
@@ -1209,7 +1209,7 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                 uncertainty_error_pairs,
                 0,
                 "Cumulative error for B1 predictions, dataset " + dataset,
-                save_path=None,
+                save_path=save_location,
                 pixel_to_mm_scale=pixel_to_mm_scale,
             )
 
@@ -1223,7 +1223,7 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                     0,
                     model_type + ". Cumulative error comparing ALL and B1, dataset " + dataset,
                     compare_to_all=True,
-                    save_path=None,
+                    save_path=save_location,
                     pixel_to_mm_scale=pixel_to_mm_scale,
                 )
 
