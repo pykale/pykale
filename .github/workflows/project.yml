@@ -1,3 +1,9 @@
+# This workflow will automatically add an issue or pull request to the default project.
+# The project needs to be updated when we move to a new default project.
+# https://github.com/actions/add-to-project
+# Follow the following link to create the encrypted secret key
+# https://docs.github.com/en/actions/security-guides/encrypted-secrets
+
 name: assign-project
 
 on:
