@@ -16,7 +16,9 @@ jobs:
         with:
           project-url: https://github.com/orgs/pykale/projects/4
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
-    
+
+
+
   add-pull-request-to-project:
     name: Add pull request to project
     if: github.event_name == 'pull_request' && github.event.action == 'opened'
