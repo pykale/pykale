@@ -1,8 +1,7 @@
-# This workflow will automatically add an issue or pull request to the default project.
-# The project needs to be updated when we move to a new default project.
-# https://github.com/actions/add-to-project
-# Follow the following link to create the encrypted secret key
-# https://docs.github.com/en/actions/security-guides/encrypted-secrets
+# This workflow will automatically add an issue or pull request to the project defined on lines 23 and 35.
+# The project needs to be updated when we move to a new project.
+# https://github.com/marketplace/actions/add-to-github-projects
+# The encrypted secret key "ADD_TO_PROJECT_PAT" has been created in accordance with the guidelines provided in https://docs.github.com/en/actions/security-guides/encrypted-secrets
 
 name: assign-project
 
@@ -22,8 +21,6 @@ jobs:
         with:
           project-url: https://github.com/orgs/pykale/projects/4
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
-
-
 
   add-pull-request-to-project:
     name: Add pull request to project
