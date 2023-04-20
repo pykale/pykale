@@ -9,8 +9,6 @@ on:
     types: [opened, labeled]
   pull_request:
     types: [opened, labeled]
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   add-issue-to-project:
@@ -20,9 +18,8 @@ jobs:
     steps:
       - uses: actions/add-to-project@v0.5.0
         with:
-          # You can target a project in a different organization
-          # to the issue
           project-url: https://github.com/orgs/pykale/projects/4
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
     
   add-pull-request-to-project:
     name: Add pull request to project
@@ -31,6 +28,5 @@ jobs:
     steps:
       - uses: actions/add-to-project@v0.5.0
         with:
-          # You can target a project in a different organization
-          # to the issue
           project-url: https://github.com/orgs/pykale/projects/4
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
