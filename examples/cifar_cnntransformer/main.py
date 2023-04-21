@@ -10,6 +10,7 @@ import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
 from pytorch_lightning import loggers as pl_loggers
+from pytorch_lightning.callbacks import TQDMProgressBar
 
 import kale.utils.seed as seed
 from kale.loaddata.image_access import get_cifar
@@ -45,13 +46,17 @@ def main():
     model = get_model(cfg)
 
     # ---- setup logger ----
-    logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT_DIR)
+    logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR)
+
+    # ---- setup progress bar ----
+    progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
 
     # ---- setup trainers ----
     trainer = pl.Trainer(
-        default_root_dir=cfg.OUTPUT_DIR,
+        default_root_dir=cfg.OUTPUT.OUT_DIR,
         max_epochs=cfg.SOLVER.MAX_EPOCHS,
         logger=logger,
+        callbacks=[progress_bar],
         accelerator="auto",
         strategy="ddp",  # comment this line on Windows, because Windows does not support CCL backend
         log_every_n_steps=1,
