@@ -1,6 +1,7 @@
-# This workflow will automatically add an issue or pull request to the default project.
-# The project needs to be updated when we move to a new default project.
-# https://github.com/marketplace/actions/assign-to-one-project
+# This workflow will automatically add an issue or pull request to the project defined on lines 22 and 32.
+# The project needs to be updated when we move to a new project.
+# https://github.com/marketplace/actions/add-to-github-projects
+# The encrypted secret key "ADD_TO_PROJECT_PAT" has been created in accordance with the guidelines provided in https://docs.github.com/en/actions/security-guides/encrypted-secrets
 
 name: assign-project
 
@@ -9,16 +10,24 @@ on:
     types: [opened, labeled]
   pull_request:
     types: [opened, labeled]
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  assign-one-project:
-    name: Assign to one default project
+  add-issue-to-project:
+    name: Add issue to project
+    if: github.event_name == 'issues' && github.event.action == 'opened'
     runs-on: ubuntu-latest
     steps:
-    - name: Assign NEW issues and NEW pull requests to a default project
-      uses: srggrs/assign-one-project-github-action@1.2.1
-      if: github.event.action == 'opened'
-      with:
-        project: "https://github.com/pykale/pykale/projects/10"
+      - uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/orgs/pykale/projects/4
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+
+  add-pull-request-to-project:
+    name: Add pull request to project
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/orgs/pykale/projects/4
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
