@@ -14,8 +14,8 @@ class SmallCNNFeature(nn.Module):
     A feature extractor for small 32x32 images (e.g. CIFAR, MNIST) that outputs a feature vector of length 128.
 
     Args:
-        num_channels: the number of input channels (default=3).
-        kernel_size: the size of the convolution kernel (default=5).
+        num_channels (int): the number of input channels (default=3).
+        kernel_size (int): the size of the convolution kernel (default=5).
 
     Examples::
         >>> feature_network = SmallCNNFeature(num_channels)
@@ -60,10 +60,10 @@ class SimpleCNN(nn.Module):
         conv_layers_spec (list): A list for each convolutional layer given as [num_channels, kernel_size].
             e.g. [[16, 3], [32, 3], [64, 3], [32, 1], [64, 3], [128, 3], [256, 3], [64, 1]]
         activation_fun: one of ('relu', 'elu', 'leaky_relu') (default="relu").
-        use_batchnorm: use of batch normalization (default=True).
-        pool_locations: After which index of the below convolutionial-layer list pooling layers should be placed (default=(0,3)).
+        use_batchnorm (boolean): use of batch normalization (default=True).
+        pool_locations (tuple): After which index of the below convolutionial-layer list pooling layers should be placed (default=(0,3)).
             e.g. (0,3) Applies 2 pooling layers.
-        num_channels: the number of input channels (default=3)
+        num_channels (int): the number of input channels (default=3)
 
     """
 
