@@ -22,6 +22,7 @@ _C.SOLVER.SEED = 42
 _C.SOLVER.BASE_LR = 0.05
 _C.SOLVER.LR_MILESTONES = [30, 60, 90]
 _C.SOLVER.LR_GAMMA = 0.1
+_C.SOLVER.TYPE = "SGD"
 _C.SOLVER.WEIGHT_DECAY = 1e-4
 _C.SOLVER.MOMENTUM = 0.9
 _C.SOLVER.NESTEROV = False
@@ -62,7 +63,9 @@ _C.TRANSFORMER.OUTPUT_TYPE = "spatial"
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-_C.OUTPUT_DIR = "./outputs"
+_C.OUTPUT = CN()
+_C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable;
+_C.OUTPUT.OUT_DIR = "./outputs"
 
 
 def get_cfg_defaults():
