@@ -1,15 +1,24 @@
-from copy import deepcopy
+# =============================================================================
+# Author: Xianyuan Liu, xianyuan.liu@outlook.com
+#         Haolin Wang, LWang0101@outlook.com
+# =============================================================================
+
+"""Classification of data
+The main structure is borrowed from kale.pipeline.domain_adapter.
+"""
+
 
 import pytorch_lightning as pl
 import torch
-import torch.nn as nn
-from torch.nn import functional as F
+
+from kale.predict import losses
 
 
 class BaseTrainer(pl.LightningModule):
     """
     Base class for classification models, based on pytorch lightning wrapper.
     If you inherit from this class, a forward pass function must be implemented.
+    The structure is borrowed from kale.pipeline.domain_adapter.BaseAdaptTrainer.
 
     Args:
         optimizer (dict): optimizer parameters.
@@ -20,14 +29,15 @@ class BaseTrainer(pl.LightningModule):
 
     def __init__(self, optimizer, max_epochs, init_lr=0.001, adapt_lr=False):
         super(BaseTrainer, self).__init__()
-        self._init_lr = init_lr
         self._optimizer_params = optimizer
-        self._adapt_lr = adapt_lr
         self._max_epochs = max_epochs
+        self._init_lr = init_lr
+        self._adapt_lr = adapt_lr
 
     def configure_optimizers(self):
         """
-        Config adam as default optimizer.
+        Default optimizer configuration. Config Adam as default optimizer and provide SGD with cosine annealing.
+        If other optimizers are needed, please override this function.
         """
         if self._optimizer_params is None:
             optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr)
@@ -39,44 +49,54 @@ class BaseTrainer(pl.LightningModule):
             optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
 
             if self._adapt_lr:
-                scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, self._max_epochs, last_epoch=-1)
+                scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, self._max_epochs)
                 return [optimizer], [scheduler]
             return [optimizer]
         raise NotImplementedError(f"Unknown optimizer type {self._optimizer_params['type']}")
 
     def forward(self, x):
         """
-        Same as :meth:`torch.nn.Module.forward()`
+        Override this function to define the forward pass. Same as :meth:`torch.nn.Module.forward()`.
+        Normally includes feature extraction and classification and be called in :meth:`compute_loss()`.
         """
         raise NotImplementedError("Forward pass needs to be defined.")
+
+    def compute_loss(self, batch, split_name="valid"):
+        """
+        Compute loss for a given batch.
+
+        Args:
+            batch (tuple): batches returned by dataloader.
+            split_name (str, optional): learning stage (one of ["train", "valid", "test"]).
+                Defaults to "valid" for validation. "train" is for training and "test" for testing.
+                This is currently used only for naming the metrics used for logging.
+
+        Returns:
+            loss (torch.Tensor): loss value.
+            log_metrics (dict): dictionary of metrics to be logged. This is needed when using PyKale logging,
+                but not mandatory when using PyTorch lightning logging.
+        """
+        raise NotImplementedError("Loss function needs to be defined.")
 
     def training_step(self, train_batch, batch_idx):
         """
         Compute and return the training loss on one step
         """
-        x, y = train_batch
-        y_pred = self(x)
-        loss = F.mse_loss(y_pred, y.view(-1, 1))
-        self.logger.log_metrics({"train_loss": loss}, self.global_step)
+        loss = self.compute_loss(train_batch, split_name="train")
         return loss
 
-    def validation_step(self, val_batch, batch_idx):
+    def validation_step(self, valid_batch, batch_idx):
         """
         Compute and return the validation loss on one step
         """
-        x, y = val_batch
-        y_pred = self(x)
-        loss = F.mse_loss(y_pred, y.view(-1, 1))
+        loss = self.compute_loss(valid_batch, split_name="valid")
         return loss
 
     def test_step(self, test_batch, batch_idx):
         """
         Compute and return the test loss on one step
         """
-        x, y = test_batch
-        y_pred = self(x)
-        loss = F.mse_loss(y_pred, y.view(-1, 1))
-        self.log("test_loss", loss, on_epoch=True, on_step=False)
+        loss = self.compute_loss(test_batch, split_name="test")
         return loss
 
 
@@ -84,209 +104,53 @@ class CNNTransformerTrainer(BaseTrainer):
 
     """Pytorch Lightning trainer for cifar-cnntransformer
     Args:
-        model (torch.nn.Sequential): model according to the config
+        feature_extractor (torch.nn.Sequential): model according to the config
         optimizer (dict): parameters of the model
-        cfg (CfgNode): hyperparameters from configure file
+        lr_milestones (list): list of epoch indices. Must be increasing.
+        lr_gamma (float): multiplicative factor of learning rate decay.
     """
 
-    def __init__(self, model, optimizer, cfg):
-        super().__init__(optimizer, cfg.SOLVER.MAX_EPOCHS, cfg.SOLVER.BASE_LR)
-
-        self.model = model
-        self.optim = optimizer
-        self.cfg = cfg
-
-        self.loss_fn = nn.NLLLoss()
-        self.train_acc, self.valid_acc = [], []
-        self.best_valid_acc = 0
-
-        self.ave_time = 0
-        self.epochs = 1
+    def __init__(
+        self, feature_extractor, task_classifier, lr_milestones, lr_gamma, **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.feat = feature_extractor
+        self.classifier = task_classifier
+        self.lr_milestones = lr_milestones
+        self.lr_gamma = lr_gamma
 
     def forward(self, x):
+        x = self.feat(x)
+        output = self.classifier(x)
+        return output
+
+    def compute_loss(self, batch, split_name="valid"):
         """
-        Same as :meth:`torch.nn.Module.forward()`
-        """
-        return self.model(x)
-
-    def training_step(self, batch, batch_idx):
-        """
-        Compute and return the training loss on one step
-        """
-        x, y = batch
-        x, y = x.to(self.device), y.to(self.device)
-
-        y_pred = self.model(x)
-
-        loss = self.loss_fn(y_pred, y)
-        _, predicted = y_pred.max(1)
-        acc = (predicted == y).sum().item() / y.size(0)
-
-        self.log("train_loss", loss)
-        self.log("train_acc", acc * 100, prog_bar=True)
-
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        """
-        Compute and return the validation loss on one step
+        Compute loss, top1 and top5 accuracy for a given batch.
         """
         x, y = batch
-        x, y = x.to(self.device), y.to(self.device)
+        y_hat = self.forward(x)
 
-        y_pred = self.model(x)
-        loss = self.loss_fn(y_pred, y)
-        _, predicted = y_pred.max(1)
-        acc = (predicted == y).sum().item() / y.size(0)
+        loss, _ = losses.cross_entropy_logits(y_hat, y)
+        top1, top5 = losses.topk_accuracy(y_hat, y, topk=(1, 5))
+        top1 = top1.double().mean()
+        top5 = top5.double().mean()
 
-        self.log("val_loss", loss)
-        self.log("val_acc", acc * 100, prog_bar=True)
-        return loss
-
-    def test_step(self, batch, batch_idx):
-        """
-        Compute and return the test loss on one step
-        """
-        x, y = batch
-        x, y = x.to(self.device), y.to(self.device)
-
-        y_pred = self.model(x)
-        loss = self.loss_fn(y_pred, y)
-        _, predicted = y_pred.max(1)
-        acc = (predicted == y).sum().item() / y.size(0)
-
-        self.log("val_loss", loss)
-        self.log("val_acc", acc * 100, prog_bar=True)
+        self.log(f"{split_name}_loss", loss)
+        self.log(f"{split_name}_top1_acc", top1)
+        self.log(f"{split_name}_top5_acc", top5)
         return loss
 
     def configure_optimizers(self):
         """
-        Config adam as default optimizer.
+        Set up an SGD optimizer and multistep learning rate scheduler.
+        When self._adapt_lr is True, the learning rate will be decayed by self.lr_gamma every step in milestones.
         """
-        c = self.cfg
-        if c.SOLVER.WARMUP and self.epochs < c.SOLVER.WARMUP_EPOCHS:
-            lr = c.SOLVER.BASE_LR * self.epochs / c.SOLVER.WARMUP_EPOCHS
-        else:
-            # normal (step) scheduling
-            lr = c.SOLVER.BASE_LR
-            for m_epoch in c.SOLVER.LR_MILESTONES:
-                if self.epochs > m_epoch:
-                    lr *= c.SOLVER.LR_GAMMA
 
-        for param_group in self.optim["param_groups"]:
-
-            param_group["lr"] = lr
-            if "scaling" in param_group:
-                param_group["lr"] *= param_group["scaling"]
-
-        # set the optimizer
-        train_params = self.optim["param_groups"][0]
-        train_params_local = deepcopy(train_params)
-        try:
-            del train_params_local["lr"]
-        except KeyError:
-            pass
-
-        optimizer = torch.optim.SGD(self.parameters(), lr=self.optim["param_groups"][0]["lr"],)
-
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, self.epochs, last_epoch=-1)
-        return [optimizer], [scheduler]
-
-
-# class CNNTransformerTrainer(pl.LightningModule):
-#
-#     """Pytorch Lightning trainer for cifar-cnntransformer
-#     Args:
-#         model (torch.nn.Sequential): model according to the config
-#         optim (dict): parameters of the model
-#         cfg: A YACS config object
-#     """
-#
-#     def __init__(self, model, optim, cfg):
-#         super().__init__()
-#
-#         self.model = model
-#         self.optim = optim
-#         self.cfg = cfg
-#
-#         self.loss_fn = nn.NLLLoss()
-#         self.train_acc, self.valid_acc = [], []
-#         self.best_valid_acc = 0
-#
-#         self.ave_time = 0
-#         self.epochs = 1
-#
-#     def forward(self, x):
-#         return self.model(x)
-#
-#     def training_step(self, batch):
-#
-#         x, y = batch
-#         x, y = x.to(self.device), y.to(self.device)
-#
-#         outputs = self.model(x)
-#
-#         loss = self.loss_fn(outputs, y)
-#         _, predicted = outputs.max(1)
-#         acc = (predicted == y).sum().item() / y.size(0)
-#
-#         self.log("train_loss", loss)
-#         self.log("train_acc", acc * 100, prog_bar=True)
-#
-#         return loss
-#
-#     def validation_step(self, batch, batch_idx):
-#         x, y = batch
-#         x, y = x.to(self.device), y.to(self.device)
-#
-#         outputs = self.model(x)
-#         loss = self.loss_fn(outputs, y)
-#         _, predicted = outputs.max(1)
-#         acc = (predicted == y).sum().item() / y.size(0)
-#
-#         self.log("val_loss", loss)
-#         self.log("val_acc", acc * 100, prog_bar=True)
-#         return loss
-#
-#     def test_step(self, batch, batch_idx):
-#         x, y = batch
-#         x, y = x.to(self.device), y.to(self.device)
-#
-#         outputs = self.model(x)
-#         loss = self.loss_fn(outputs, y)
-#         _, predicted = outputs.max(1)
-#         acc = (predicted == y).sum().item() / y.size(0)
-#
-#         self.log("val_loss", loss)
-#         self.log("val_acc", acc * 100, prog_bar=True)
-#         return loss
-#
-#     def configure_optimizers(self):
-#         c = self.cfg
-#         if c.SOLVER.WARMUP and self.epochs < c.SOLVER.WARMUP_EPOCHS:
-#             lr = c.SOLVER.BASE_LR * self.epochs / c.SOLVER.WARMUP_EPOCHS
-#         else:
-#             # normal (step) scheduling
-#             lr = c.SOLVER.BASE_LR
-#             for m_epoch in c.SOLVER.LR_MILESTONES:
-#                 if self.epochs > m_epoch:
-#                     lr *= c.SOLVER.LR_GAMMA
-#
-#         for param_group in self.optim["param_groups"]:
-#
-#             param_group["lr"] = lr
-#             if "scaling" in param_group:
-#                 param_group["lr"] *= param_group["scaling"]
-#
-#         # set the optimizer
-#         train_params = self.optim["param_groups"][0]
-#         train_params_local = deepcopy(train_params)
-#         try:
-#             del train_params_local["lr"]
-#         except KeyError:
-#             pass
-#
-#         optimizer = torch.optim.SGD(self.parameters(), lr=self.optim["param_groups"][0]["lr"],)
-#
-#         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, self.epochs, last_epoch=-1)
-#         return [optimizer], [scheduler]
+        optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
+        if self._adapt_lr:
+            scheduler = torch.optim.lr_scheduler.MultiStepLR(
+                optimizer, milestones=self.lr_milestones, gamma=self.lr_gamma
+            )
+            return [optimizer], [scheduler]
+        return [optimizer]

@@ -22,13 +22,10 @@ def get_config(cfg):
     config_params = {
         "train_params": {
             "init_lr": cfg.SOLVER.BASE_LR,
+            "adapt_lr": cfg.SOLVER.AD_LR,
             "lr_milestones": cfg.SOLVER.LR_MILESTONES,
             "lr_gamma": cfg.SOLVER.LR_GAMMA,
-            "train_batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
-            "test_batch_size": cfg.SOLVER.TEST_BATCH_SIZE,
             "max_epochs": cfg.SOLVER.MAX_EPOCHS,
-            "warmup": cfg.SOLVER.WARMUP,
-            "warmup_epochs": cfg.SOLVER.WARMUP_EPOCHS,
             "optimizer": {
                 "type": cfg.SOLVER.TYPE,
                 "optim_params": {"momentum": cfg.SOLVER.MOMENTUM, "weight_decay": cfg.SOLVER.WEIGHT_DECAY,},
