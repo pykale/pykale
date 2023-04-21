@@ -12,7 +12,6 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/mod
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from kale.embed.video_i3d import Unit3D
 
@@ -81,7 +80,7 @@ class ClassNet(nn.Module):
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.linear(x)
-        return F.log_softmax(x, 1)
+        return x
 
 
 # Previously DataClassifierDigits
