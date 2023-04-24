@@ -78,26 +78,33 @@ class BaseTrainer(pl.LightningModule):
         """
         raise NotImplementedError("Loss function needs to be defined.")
 
-    def training_step(self, train_batch, batch_idx):
+    def training_step(self, train_batch, batch_idx) -> torch.Tensor:
         """
-        Compute and return the training loss on one step
+        Compute and return the training loss on one step. loss is to store the loss value.
+        log_metrics is to store the metrics to be logged, including loss, top1 and top5 accuracies.
+
+        Use self.log_dict(log_metrics, on_step, on_epoch, logger) to log the metrics on each step and each epoch.
+        For training, log on each step and each epoch. For validation and testing, only log on each epoch.
+        This way can avoid using on_training_epoch_end() and on_validation_epoch_end().
         """
-        loss = self.compute_loss(train_batch, split_name="train")
+        loss, log_metrics = self.compute_loss(train_batch, split_name="train")
+        self.log_dict(log_metrics, on_step=True, on_epoch=True, logger=True)
+
         return loss
 
-    def validation_step(self, valid_batch, batch_idx):
+    def validation_step(self, valid_batch, batch_idx) -> None:
         """
         Compute and return the validation loss on one step
         """
-        loss = self.compute_loss(valid_batch, split_name="valid")
-        return loss
+        loss, log_metrics = self.compute_loss(valid_batch, split_name="valid")
+        self.log_dict(log_metrics, on_step=False, on_epoch=True, logger=True)
 
-    def test_step(self, test_batch, batch_idx):
+    def test_step(self, test_batch, batch_idx) -> None:
         """
         Compute and return the test loss on one step
         """
-        loss = self.compute_loss(test_batch, split_name="test")
-        return loss
+        loss, log_metrics = self.compute_loss(test_batch, split_name="test")
+        self.log_dict(log_metrics, on_step=False, on_epoch=True, logger=True)
 
 
 class CNNTransformerTrainer(BaseTrainer):
@@ -120,6 +127,9 @@ class CNNTransformerTrainer(BaseTrainer):
         self.lr_gamma = lr_gamma
 
     def forward(self, x):
+        """
+        Forward pass for the model with feature extraction and classification.
+        """
         x = self.feat(x)
         output = self.classifier(x)
         return output
@@ -136,17 +146,19 @@ class CNNTransformerTrainer(BaseTrainer):
         top1 = top1.double().mean()
         top5 = top5.double().mean()
 
-        self.log(f"{split_name}_loss", loss)
-        self.log(f"{split_name}_top1_acc", top1)
-        self.log(f"{split_name}_top5_acc", top5)
-        return loss
+        log_metrics = {
+            f"{split_name}_loss": loss,
+            f"{split_name}_top1_acc": top1,
+            f"{split_name}_top5_acc": top5,
+        }
+
+        return loss, log_metrics
 
     def configure_optimizers(self):
         """
         Set up an SGD optimizer and multistep learning rate scheduler.
         When self._adapt_lr is True, the learning rate will be decayed by self.lr_gamma every step in milestones.
         """
-
         optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
         if self._adapt_lr:
             scheduler = torch.optim.lr_scheduler.MultiStepLR(
