@@ -368,11 +368,11 @@ def evaluate_correlations(
         num_bins = 3
 
     # Loop over models (model) and uncertainty methods (up)
-    for i, (model, data_structs) in enumerate(bin_predictions.items()):
+    for _, (model, data_structs) in enumerate(bin_predictions.items()):
         correlation_dict[model] = {}
         for up in uncertainty_error_pairs:  # up = [pair name, error name , uncertainty name]
             uncertainty_type = up[0]
-            logger.info("All folds correlation for Model: %s, Uncertainty type %s :" % (uncertainty_type, model))
+            logger.info("All folds correlation for Model: %s, Uncertainty type %s :", uncertainty_type, model)
             fold_errors = np.array(
                 data_structs[(data_structs["Testing Fold"].isin(np.arange(num_folds)))][
                     [uncertainty_type + " Error"]
