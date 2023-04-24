@@ -1164,7 +1164,7 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
     # exit()
 
     if interpret:
-        save_location = None
+        # save_location = None
 
         # If we have combined the middle bins, we are only displaying 3 bins (outer edges, and combined middle bins).
         if cfg.PIPELINE.COMBINE_MIDDLE_BINS:
