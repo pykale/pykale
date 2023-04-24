@@ -74,7 +74,7 @@ def get_model(cfg):
     else:
         context_cnn = ContextCNNGeneric(
             cnn,
-            cnn_params_local["cnn_output_shape"],
+            transformer_params_local["cnn_output_shape"],
             contextualizer=lambda x: x,
             output_type=transformer_params_local["output_type"],
         )
