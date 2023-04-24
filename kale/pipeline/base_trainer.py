@@ -21,7 +21,7 @@ class BaseTrainer(pl.LightningModule):
     The structure is borrowed from kale.pipeline.domain_adapter.BaseAdaptTrainer.
 
     Args:
-        optimizer (dict): optimizer parameters.
+        optimizer (dict, None): optimizer parameters.
         max_epochs (int): maximum number of epochs.
         init_lr (float): initial learning rate. (default: 0.001)
         adapt_lr (bool): adapt learning rate during training. (default: :obj:`False`)
@@ -33,26 +33,6 @@ class BaseTrainer(pl.LightningModule):
         self._max_epochs = max_epochs
         self._init_lr = init_lr
         self._adapt_lr = adapt_lr
-
-    def configure_optimizers(self):
-        """
-        Default optimizer configuration. Config Adam as default optimizer and provide SGD with cosine annealing.
-        If other optimizers are needed, please override this function.
-        """
-        if self._optimizer_params is None:
-            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr)
-            return [optimizer]
-        if self._optimizer_params["type"] == "Adam":
-            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
-            return [optimizer]
-        if self._optimizer_params["type"] == "SGD":
-            optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
-
-            if self._adapt_lr:
-                scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, self._max_epochs)
-                return [optimizer], [scheduler]
-            return [optimizer]
-        raise NotImplementedError(f"Unknown optimizer type {self._optimizer_params['type']}")
 
     def forward(self, x):
         """
@@ -77,6 +57,26 @@ class BaseTrainer(pl.LightningModule):
                 but not mandatory when using PyTorch lightning logging.
         """
         raise NotImplementedError("Loss function needs to be defined.")
+
+    def configure_optimizers(self):
+        """
+        Default optimizer configuration. Config Adam as default optimizer and provide SGD with cosine annealing.
+        If other optimizers are needed, please override this function.
+        """
+        if self._optimizer_params is None:
+            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr)
+            return [optimizer]
+        if self._optimizer_params["type"] == "Adam":
+            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
+            return [optimizer]
+        if self._optimizer_params["type"] == "SGD":
+            optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
+
+            if self._adapt_lr:
+                scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, self._max_epochs)
+                return [optimizer], [scheduler]
+            return [optimizer]
+        raise NotImplementedError(f"Unknown optimizer type {self._optimizer_params['type']}.")
 
     def training_step(self, train_batch, batch_idx) -> torch.Tensor:
         """
@@ -111,7 +111,7 @@ class CNNTransformerTrainer(BaseTrainer):
 
     """Pytorch Lightning trainer for cifar-cnntransformer
     Args:
-        feature_extractor (torch.nn.Sequential): model according to the config
+        feature_extractor (torch.nn.Sequential, optional): model according to the config
         optimizer (dict): parameters of the model
         lr_milestones (list): list of epoch indices. Must be increasing.
         lr_gamma (float): multiplicative factor of learning rate decay.

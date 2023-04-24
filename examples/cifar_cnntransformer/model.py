@@ -18,7 +18,6 @@ def get_config(cfg):
     Args:
         cfg: A YACS config object.
     """
-
     config_params = {
         "train_params": {
             "init_lr": cfg.SOLVER.BASE_LR,
@@ -47,6 +46,7 @@ def get_config(cfg):
             "output_type": cfg.TRANSFORMER.OUTPUT_TYPE,
         },
     }
+
     return config_params
 
 
@@ -57,7 +57,6 @@ def get_model(cfg):
     Args:
         cfg: A YACS config object.
     """
-
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
@@ -81,10 +80,6 @@ def get_model(cfg):
         )
 
     classifier = ClassNet(data_params_local["num_classes"], transformer_params_local["cnn_output_shape"])
-    # net = nn.Sequential(context_cnn, classifier)
-    # optim = torch.optim.SGD(
-    #     net.parameters(), lr=cfg.SOLVER.BASE_LR, momentum=cfg.SOLVER.MOMENTUM, weight_decay=cfg.SOLVER.WEIGHT_DECAY
-    # )
-    # model = CNNTransformerTrainer(model=net, optimizer=optim.state_dict(), cfg=cfg)
     model = CNNTransformerTrainer(feature_extractor=context_cnn, task_classifier=classifier, **train_params_local)
+
     return model
