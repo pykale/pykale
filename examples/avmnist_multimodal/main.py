@@ -46,7 +46,7 @@ def main():
     logger.info("Using " + device)
     logger.info("\n" + cfg.dump())
 
-    download_file_gdrive(cfg.DATASET.GDRIVE_ID, cfg.DATASET.ROOT, cfg.DATASET.NAME, cfg.DATASET.FILE_FORAMT)
+    download_file_gdrive(cfg.DATASET.GDRIVE_ID, cfg.DATASET.ROOT, cfg.DATASET.NAME, cfg.DATASET.FILE_FORMAT)
 
     dataset = AVMNISTDataset(data_dir=cfg.DATASET.ROOT, batch_size=cfg.DATASET.BATCH_SIZE)
     traindata = dataset.get_train_loader()

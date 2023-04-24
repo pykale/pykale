@@ -1,0 +1,16 @@
+matplotlib~=3.5.2
+networkx~=2.8.4
+numpy~=1.23.5
+pandas~=1.5.2
+pillow~=9.3.0
+pydicom~=2.3.1
+pytest~=7.2.2
+scikit-image~=0.19.3
+scikit-learn~=1.0.2
+scipy~=1.9.3
+seaborn~=0.12.2
+setuptools~=65.6.3
+tensorly~=0.7.0
+torchsummary~=1.5.1
+torchvision~=0.13.1
+yacs~=0.1.8
