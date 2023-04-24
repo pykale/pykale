@@ -70,9 +70,10 @@ def main():
     trainer = pl.Trainer(
         default_root_dir=cfg.OUTPUT.OUT_DIR,
         max_epochs=cfg.SOLVER.MAX_EPOCHS,
+        accelerator="gpu" if args.gpus != 0 else "cpu",
+        devices=args.gpus,
         logger=logger,
         callbacks=[progress_bar, lr_monitor],
-        accelerator="auto",
         strategy="ddp",  # comment this line on Windows, because Windows does not support CCL backend
         log_every_n_steps=1,
     )
