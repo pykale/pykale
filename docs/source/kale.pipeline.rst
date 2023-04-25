@@ -6,6 +6,14 @@ Pipeline
 Submodules
 ----------
 
+kale.pipeline.base\_trainer module
+----------------------
+
+.. automodule:: kale.pipeline.base_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.pipeline.deepdta module
 ------------------------------------
 
