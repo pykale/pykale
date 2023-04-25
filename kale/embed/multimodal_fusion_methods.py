@@ -40,18 +40,8 @@ class MultiplicativeInteractions2Modal(nn.Module):
         self.output_dim = output_dim
         self.output = output
         self.flatten = flatten
-        if output == "matrix3D":
-            self.W = nn.Parameter(torch.Tensor(input_dims[0], input_dims[1], output_dim[0], output_dim[1]))
-            nn.init.xavier_normal_(self.W)
-            self.U = nn.Parameter(torch.Tensor(input_dims[0], output_dim[0], output_dim[1]))
-            nn.init.xavier_normal_(self.U)
-            self.V = nn.Parameter(torch.Tensor(input_dims[1], output_dim[0], output_dim[1]))
-            nn.init.xavier_normal_(self.V)
-            self.b = nn.Parameter(torch.Tensor(output_dim[0], output_dim[1]))
-            nn.init.xavier_normal_(self.b)
-
         # most general Hypernetworks as Multiplicative Interactions.
-        elif output == "matrix":
+        if output == "matrix":
             self.W = nn.Parameter(torch.Tensor(input_dims[0], input_dims[1], output_dim))
             nn.init.xavier_normal_(self.W)
             self.U = nn.Parameter(torch.Tensor(input_dims[0], output_dim))
@@ -106,13 +96,8 @@ class MultiplicativeInteractions2Modal(nn.Module):
             m1 = torch.clip(m1, self.clip[0], self.clip[1])
             m2 = torch.clip(m2, self.clip[0], self.clip[1])
 
-        if self.output == "matrix3D":
-            Wprime = torch.einsum("bn, nmpq -> bmpq", m1, self.W) + self.V  # bmpq
-            bprime = torch.einsum("bn, npq -> bpq", m1, self.U) + self.b  # bpq
-            output = torch.einsum("bm, bmpq -> bpq", m2, Wprime) + bprime  # bpq
-
         # Hypernetworks as Multiplicative Interactions.
-        elif self.output == "matrix":
+        if self.output == "matrix":
             Wprime = torch.einsum("bn, nmd -> bmd", m1, self.W) + self.V  # bmd
             bprime = torch.matmul(m1, self.U) + self.b  # bmd
             output = torch.einsum("bm, bmd -> bd", m2, Wprime) + bprime  # bmd
