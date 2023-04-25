@@ -9,7 +9,7 @@ References: 1. https://github.com/pliang279/MultiBench/blob/main/examples/multim
 """
 
 from kale.embed.lenet import LeNet
-from kale.embed.multimodal_fusion_methods import Concat, LowRankTensorFusion, MultiplicativeInteractions2Modal
+from kale.embed.multimodal_fusion import Concat, LowRankTensorFusion, MultiplicativeInteractions2Modal
 from kale.pipeline.multi_modal_module import MultiModalDeepLearning
 from kale.predict.mlp_classifier import MLPClassifier
 

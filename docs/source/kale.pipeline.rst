@@ -38,6 +38,14 @@ kale.pipeline.multi\_domain\_adapter module
    :undoc-members:
    :show-inheritance:
 
+kale.pipeline.multi\_model module
+------------------------------------
+
+.. automodule:: kale.pipeline.multi_modal_module
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.pipeline.video\_domain\_adapter module
 --------------------------------------------
 
