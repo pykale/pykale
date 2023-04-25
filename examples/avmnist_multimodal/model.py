@@ -46,7 +46,7 @@ def get_model(cfg, device):
         )
         head = MLPClassifier(cfg.MODEL.MLP_LOW_RANK_IN_DIM, cfg.MODEL.MLP_HIDDEN_DIM, cfg.MODEL.OUT_DIM)
 
-    model = MultiModalDeepLearning(encoders, fusion, head, has_padding=cfg.SOLVER.IS_PACKED).to(device)
+    model = MultiModalDeepLearning(encoders, fusion, head).to(device)
     print("Model loaded succesfully")
 
     return model

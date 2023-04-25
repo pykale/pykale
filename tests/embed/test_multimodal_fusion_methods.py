@@ -12,10 +12,28 @@ def test_concat():
 
 
 def test_multiplicative_interactions():
-    mi2m = MultiplicativeInteractions2Modal(input_dims=(10, 20), output_dim=30, output="vector")
+    mi2m_vector = MultiplicativeInteractions2Modal(input_dims=(10, 20), output_dim=30, output="vector")
     m1 = torch.randn(4, 10)
     m2 = torch.randn(4, 20)
-    output = mi2m([m1, m2])
+    output = mi2m_vector([m1, m2])
+    assert output.shape == (4, 20)
+
+    mi2m_matrix3D = MultiplicativeInteractions2Modal(input_dims=(10, 20), output_dim=30, output="matrix3D")
+    m1 = torch.randn(4, 10)
+    m2 = torch.randn(4, 20)
+    output = mi2m_matrix3D([m1, m2])
+    assert output.shape == (4, 20)
+
+    mi2m_matrix = MultiplicativeInteractions2Modal(input_dims=(10, 20), output_dim=30, output="matrix")
+    m1 = torch.randn(4, 10)
+    m2 = torch.randn(4, 20)
+    output = mi2m_matrix([m1, m2])
+    assert output.shape == (4, 20)
+
+    mi2m_scalar = MultiplicativeInteractions2Modal(input_dims=(10, 20), output_dim=30, output="scalar")
+    m1 = torch.randn(4, 10)
+    m2 = torch.randn(4, 20)
+    output = mi2m_scalar([m1, m2])
     assert output.shape == (4, 20)
 
 
