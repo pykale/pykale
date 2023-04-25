@@ -14,6 +14,14 @@ kale.prepdata.chem\_transform module
    :undoc-members:
    :show-inheritance:
 
+kale.prepdata.distance module
+-----------------------------
+
+.. automodule:: kale.prepdata.distance
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.prepdata.image\_transform module
 -------------------------------------
 
@@ -23,9 +31,17 @@ kale.prepdata.image\_transform module
    :show-inheritance:
 
 kale.prepdata.supergraph\_construct module
--------------------------------------
+------------------------------------------
 
 .. automodule:: kale.prepdata.supergraph_construct
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.prepdata.tabular_transform module
+--------------------------------------
+
+.. automodule:: kale.prepdata.tabular_transform
    :members:
    :undoc-members:
    :show-inheritance:

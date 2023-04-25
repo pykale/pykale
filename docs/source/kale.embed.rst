@@ -15,7 +15,7 @@ kale.embed.attention\_cnn module
    :show-inheritance:
 
 kale.embed.factorization module
-----------------------
+-------------------------------
 
 .. automodule:: kale.embed.factorization
    :members:
@@ -48,6 +48,14 @@ kale.embed.image\_cnn module
    :members:
    :undoc-members:
    :show-inheritance:
+
+kale.embed.mogonet module
+-------------------------
+
+.. automodule:: kale.embed.mogonet
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 kale.embed.positional\_encoding module
 --------------------------------------

@@ -46,6 +46,14 @@ kale.loaddata.multi\_domain module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.multiomics\_gnn\_dataset module
+---------------------------------------------
+
+.. automodule:: kale.loaddata.multiomics_gnn_dataset
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 kale.loaddata.sampler module
 -----------------------------------
 
