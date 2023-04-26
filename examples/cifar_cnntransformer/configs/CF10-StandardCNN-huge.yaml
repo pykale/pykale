@@ -6,4 +6,4 @@ CNN:
   OUTPUT_SHAPE: (-1, 256, 8, 8)
 
 OUTPUT:
-  OUT_DIR: './outputs/StandardCNN-large'
+  OUT_DIR: './outputs/StandardCNN-huge'
