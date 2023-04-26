@@ -33,7 +33,7 @@ def get_model(cfg, device):
     if cfg.MODEL.FUSION == "late":
         fusion = Concat()
         head = MLPClassifier(cfg.MODEL.MLP_IN_DIM, cfg.MODEL.MLP_HIDDEN_DIM, cfg.MODEL.OUT_DIM)
-    elif cfg.MODEL.FUSION == "tesnor_matrix":
+    elif cfg.MODEL.FUSION == "tensor_matrix":
         fusion = MultiplicativeInteractions2Modal(
             cfg.MODEL.MULTIPLICATIVE_FUSION_IN_DIM,
             cfg.MODEL.MULTIPLICATIVE_FUSION_OUT_DIM,
