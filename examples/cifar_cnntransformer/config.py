@@ -37,8 +37,10 @@ _C.SOLVER.TEST_BATCH_SIZE = 200
 # CNN configs
 # ---------------------------------------------------------------------------- #
 _C.CNN = CN()
-_C.CNN.POOL_LOCATIONS = (0, 3)  # After which index of the below convolutional-layer list, pooling layers
-# should be placed. (0,3) applies 2 pooling layers, resulting in an image size of 8x8.
+
+# After which index of the below convolutional-layer list, pooling layers should be placed.
+# (0,3) applies 2 pooling layers, resulting in an image size of 8x8.
+_C.CNN.POOL_LOCATIONS = (0, 3)
 
 # A tuple for each convolutional layer given as (num_channels, kernel_size)
 # (Nested lists log to file prettier than nested tuples do)
@@ -50,8 +52,8 @@ _C.CNN.OUTPUT_SHAPE = (-1, 64, 8, 8)
 # ---------------------------------------------------------------------------- #
 # Transformer configs
 # ---------------------------------------------------------------------------- #
-_C.TRANSFORMER = CN()  # Will not attach the Transformer on top of the CNN in the model if False
-_C.TRANSFORMER.USE_TRANSFORMER = True
+_C.TRANSFORMER = CN()
+_C.TRANSFORMER.USE_TRANSFORMER = True  # Will not attach the Transformer on top of the CNN in the model if False
 _C.TRANSFORMER.NUM_LAYERS = 3
 _C.TRANSFORMER.NUM_HEADS = 2
 _C.TRANSFORMER.DIM_FEEDFORWARD = 128
@@ -62,7 +64,7 @@ _C.TRANSFORMER.OUTPUT_TYPE = "spatial"
 # Misc options
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CN()
-_C.OUTPUT.PB_FRESH = 50  # 0 # 50 # 0 to disable;
+_C.OUTPUT.PB_FRESH = 50  # progress bar refresh rate in batches, set 0 to disable;
 _C.OUTPUT.OUT_DIR = "./outputs"
 
 # -----------------------------------------------------------------------------
