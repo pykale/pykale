@@ -9,7 +9,7 @@ This module provides neural network (nn) trainers for developing classification 
 defines the required fundamental functions and structures, such as the optimizer, learning rate scheduler,
 training/validation/testing procedure, workflow, etc. The BaseNNTrainer is inherited to construct specialized trainers.
 
-The structure and workflow of BaseNNTrainer is consistent with kale.pipeline.domain_adapter.BaseAdaptTrainer
+The structure and workflow of BaseNNTrainer is consistent with `kale.pipeline.domain_adapter.BaseAdaptTrainer`
 
 This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>`_ to standardize the flow.
 """
@@ -23,9 +23,11 @@ from kale.predict import losses
 
 class BaseNNTrainer(pl.LightningModule):
     """
-    Base class for classification models, based on pytorch lightning wrapper.
-    If you inherit from this class, a forward pass function must be implemented.
-    The structure is borrowed from kale.pipeline.domain_adapter.BaseAdaptTrainer.
+    Base class for classification models using neural network, based on PyTorch Lightning wrapper. The forward pass
+    and loss computation must be implemented if new trainers inherit from this class. The basic workflow is defined
+    in this class as follows. Every training/validation/testing procedure will call `compute_loss()` to compute the
+    loss and log the output metrics. The `compute_loss()` function will call `forward()` to generate the output feature
+    using the neural networks.
 
     Args:
         optimizer (dict, None): optimizer parameters.
@@ -50,7 +52,7 @@ class BaseNNTrainer(pl.LightningModule):
 
     def compute_loss(self, batch, split_name="valid"):
         """
-        Compute loss for a given batch.
+        Compute loss for a given batch
 
         Args:
             batch (tuple): batches returned by dataloader.
@@ -60,8 +62,8 @@ class BaseNNTrainer(pl.LightningModule):
 
         Returns:
             loss (torch.Tensor): loss value.
-            log_metrics (dict): dictionary of metrics to be logged. This is needed when using PyKale logging,
-                but not mandatory when using PyTorch lightning logging.
+            log_metrics (dict): dictionary of metrics to be logged. This is needed when using PyKale logging, but not
+                mandatory when using PyTorch lightning logging.
         """
         raise NotImplementedError("Loss function needs to be defined.")
 
@@ -101,14 +103,14 @@ class BaseNNTrainer(pl.LightningModule):
 
     def validation_step(self, valid_batch, batch_idx) -> None:
         """
-        Compute and return the validation loss on one step
+        Compute and return the validation loss on one step.
         """
         loss, log_metrics = self.compute_loss(valid_batch, split_name="valid")
         self.log_dict(log_metrics, on_step=False, on_epoch=True, logger=True)
 
     def test_step(self, test_batch, batch_idx) -> None:
         """
-        Compute and return the test loss on one step
+        Compute and return the test loss on one step.
         """
         loss, log_metrics = self.compute_loss(test_batch, split_name="test")
         self.log_dict(log_metrics, on_step=False, on_epoch=True, logger=True)
@@ -117,9 +119,10 @@ class BaseNNTrainer(pl.LightningModule):
 class CNNTransformerTrainer(BaseNNTrainer):
 
     """Pytorch Lightning trainer for cifar-cnntransformer
+
     Args:
-        feature_extractor (torch.nn.Sequential, optional): model according to the config
-        optimizer (dict): parameters of the model
+        feature_extractor (torch.nn.Sequential, optional): the feature extractor network.
+        optimizer (dict): optimizer parameters.
         lr_milestones (list): list of epoch indices. Must be increasing.
         lr_gamma (float): multiplicative factor of learning rate decay.
     """
