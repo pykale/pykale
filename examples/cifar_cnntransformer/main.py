@@ -1,6 +1,9 @@
 """
 This example demonstrates the use of a CNN and a Transformer-Encoder for image classification on CIFAR10 Dataset, using PyTorch Lightning.
-Reference: See kale.embed.attention_cnn for more details.
+Reference:
+        Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A., Kaiser, L., & Polosukhin, I.  (2017).
+        Attention Is All You Need.  In Proceedings of the Advances in Neural Information Processing Systems(pp. 6000-6010).
+        https://proceedings.neurips.cc/paper_files/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf
 """
 
 import argparse
