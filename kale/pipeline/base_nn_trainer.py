@@ -119,7 +119,7 @@ class BaseNNTrainer(pl.LightningModule):
 
 class CNNTransformerTrainer(BaseNNTrainer):
 
-    """PyTorch Lightning trainer for cifar-cnntransformer
+    """PyTorch Lightning trainer for cnntransformer
     Args:
         feature_extractor (torch.nn.Sequential, optional): model according to the config.
         optimizer (dict): parameters of the model.
