@@ -3,8 +3,15 @@
 #         Haolin Wang, LWang0101@outlook.com
 # =============================================================================
 
-"""Classification of data
-The main structure is borrowed from kale.pipeline.domain_adapter.
+"""Classification systems (pipelines)
+
+This module provides trainers for developing classification task models. The BaseTrainer defines the required
+fundamental functions and structures, such as the optimizer, learning rate scheduler, training/validation/testing
+procedure, workflow, etc. The BaseTrainer is inherited to construct specialized trainers.
+
+The structure and workflow of BaseTrainer is consistent with kale.pipeline.domain_adapter.BaseAdaptTrainer
+
+This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>`_ to standardize the flow.
 """
 
 
@@ -36,8 +43,8 @@ class BaseTrainer(pl.LightningModule):
 
     def forward(self, x):
         """
-        Override this function to define the forward pass. Same as :meth:`torch.nn.Module.forward()`.
-        Normally includes feature extraction and classification and be called in :meth:`compute_loss()`.
+        Override this function to define the forward pass. Normally includes feature extraction and classification
+        and be called in `compute_loss()`.
         """
         raise NotImplementedError("Forward pass needs to be defined.")
 
