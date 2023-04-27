@@ -3,7 +3,8 @@
 #         Haolin Wang, LWang0101@outlook.com
 # =============================================================================
 
-"""Classification of data
+"""
+Classification of data
 The main structure is borrowed from kale.pipeline.domain_adapter.
 """
 
@@ -17,8 +18,7 @@ from kale.predict import losses
 class BaseTrainer(pl.LightningModule):
     """
     Base class for classification models, based on pytorch lightning wrapper.
-    If you inherit from this class, a forward pass function must be implemented.
-    The structure is borrowed from kale.pipeline.domain_adapter.BaseAdaptTrainer.
+    If you inherit from this class, a forward pass function must be implemented. The structure is borrowed from kale.pipeline.domain_adapter.BaseAdaptTrainer.
 
     Args:
         optimizer (dict, None): optimizer parameters.
@@ -48,13 +48,11 @@ class BaseTrainer(pl.LightningModule):
         Args:
             batch (tuple): batches returned by dataloader.
             split_name (str, optional): learning stage (one of ["train", "valid", "test"]).
-                Defaults to "valid" for validation. "train" is for training and "test" for testing.
-                This is currently used only for naming the metrics used for logging.
+                Defaults to "valid" for validation. "train" is for training and "test" for testing. This is currently used only for naming the metrics used for logging.
 
         Returns:
             loss (torch.Tensor): loss value.
-            log_metrics (dict): dictionary of metrics to be logged. This is needed when using PyKale logging,
-                but not mandatory when using PyTorch lightning logging.
+            log_metrics (dict): dictionary of metrics to be logged. This is needed when using PyKale logging, but not mandatory when using PyTorch lightning logging.
         """
         raise NotImplementedError("Loss function needs to be defined.")
 
@@ -109,10 +107,11 @@ class BaseTrainer(pl.LightningModule):
 
 class CNNTransformerTrainer(BaseTrainer):
 
-    """Pytorch Lightning trainer for cifar-cnntransformer
+    """
+    PyTorch Lightning trainer for cifar-cnntransformer
     Args:
-        feature_extractor (torch.nn.Sequential, optional): model according to the config
-        optimizer (dict): parameters of the model
+        feature_extractor (torch.nn.Sequential, optional): model according to the config.
+        optimizer (dict): parameters of the model.
         lr_milestones (list): list of epoch indices. Must be increasing.
         lr_gamma (float): multiplicative factor of learning rate decay.
     """

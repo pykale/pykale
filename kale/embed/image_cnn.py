@@ -51,18 +51,15 @@ class SmallCNNFeature(nn.Module):
 
 class SimpleCNN(nn.Module):
     """
-    A builder for simple CNNs to experiment with different
-    basic architectures.
+    A builder for simple CNNs to experiment with different basic architectures.
 
     Args:
 
         num_channels (int, optional): the number of input channels (default=3).
-        conv_layers_spec (list): A list for each convolutional layer given as [num_channels, kernel_size].
-            e.g. [[16, 3], [32, 3], [64, 3], [32, 1], [64, 3], [128, 3], [256, 3], [64, 1]]
+        conv_layers_spec (list): A list for each convolutional layer given as [num_channels, kernel_size]. e.g. [[16, 3], [32, 3], [64, 3], [32, 1], [64, 3], [128, 3], [256, 3], [64, 1]]
         activation_fun: one of ('relu', 'elu', 'leaky_relu') (default="relu").
         use_batchnorm (boolean): use of batch normalization (default=True).
-        pool_locations (tuple): After which index of the below convolutionial-layer list pooling layers should be placed (default=(0,3)).
-            e.g. (0,3) Applies 2 pooling layers.
+        pool_locations (tuple): After which index of the below convolutionial-layer list pooling layers should be placed (default=(0,3)). e.g. (0,3) Applies 2 pooling layers.
         num_channels (int): the number of input channels (default=3)
 
     """
@@ -77,8 +74,7 @@ class SimpleCNN(nn.Module):
         in_channels = num_channels
         activation_fun = self.activations[activation_fun]
 
-        # Repetitively adds a convolution, batchnorm, activationFunction,
-        # and maxpooling layer.
+        # Repetitively adds a convolution, batchnorm, activationFunction, and maxpooling layer.
         for layer_num, (num_kernels, kernel_size) in enumerate(conv_layers_spec):
             conv = nn.Conv2d(in_channels, num_kernels, kernel_size, stride=1, padding=(kernel_size - 1) // 2)
             self.layers.append(conv)

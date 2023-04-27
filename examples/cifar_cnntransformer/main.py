@@ -1,6 +1,5 @@
 """
-This example demonstrates the use of a CNN and a Transformer-Encoder
-for image classification on CIFAR10 Dataset, using PyTorch Lightning.
+This example demonstrates the use of a CNN and a Transformer-Encoder for image classification on CIFAR10 Dataset, using PyTorch Lightning.
 Reference: See kale.embed.attention_cnn for more details.
 """
 
