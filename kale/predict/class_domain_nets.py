@@ -5,9 +5,8 @@
 
 """Classification of data or domain
 
-Modules for typical classification tasks (into class labels) and
-adversarial discrimination of source vs target domains, from
-https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
+Modules for typical classification tasks (into class labels) and adversarial discrimination of source vs target domains,
+from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
 """
 
 import torch
