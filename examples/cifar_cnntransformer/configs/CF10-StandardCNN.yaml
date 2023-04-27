@@ -2,4 +2,4 @@ TRANSFORMER:
   USE_TRANSFORMER: False
 
 OUTPUT:
-  OUT_DIR: './outputs/StandardCNN-baseline'
+  OUT_DIR: './outputs/StandardCNN'
