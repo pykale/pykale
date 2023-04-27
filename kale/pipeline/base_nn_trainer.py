@@ -5,11 +5,11 @@
 
 """Classification systems (pipelines)
 
-This module provides trainers for developing classification task models. The BaseTrainer defines the required
-fundamental functions and structures, such as the optimizer, learning rate scheduler, training/validation/testing
-procedure, workflow, etc. The BaseTrainer is inherited to construct specialized trainers.
+This module provides neural network (nn) trainers for developing classification task models. The BaseNNTrainer
+defines the required fundamental functions and structures, such as the optimizer, learning rate scheduler,
+training/validation/testing procedure, workflow, etc. The BaseNNTrainer is inherited to construct specialized trainers.
 
-The structure and workflow of BaseTrainer is consistent with kale.pipeline.domain_adapter.BaseAdaptTrainer
+The structure and workflow of BaseNNTrainer is consistent with kale.pipeline.domain_adapter.BaseAdaptTrainer
 
 This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>`_ to standardize the flow.
 """
@@ -21,7 +21,7 @@ import torch
 from kale.predict import losses
 
 
-class BaseTrainer(pl.LightningModule):
+class BaseNNTrainer(pl.LightningModule):
     """
     Base class for classification models, based on pytorch lightning wrapper.
     If you inherit from this class, a forward pass function must be implemented.
@@ -35,7 +35,7 @@ class BaseTrainer(pl.LightningModule):
     """
 
     def __init__(self, optimizer, max_epochs, init_lr=0.001, adapt_lr=False):
-        super(BaseTrainer, self).__init__()
+        super(BaseNNTrainer, self).__init__()
         self._optimizer_params = optimizer
         self._max_epochs = max_epochs
         self._init_lr = init_lr
@@ -114,7 +114,7 @@ class BaseTrainer(pl.LightningModule):
         self.log_dict(log_metrics, on_step=False, on_epoch=True, logger=True)
 
 
-class CNNTransformerTrainer(BaseTrainer):
+class CNNTransformerTrainer(BaseNNTrainer):
 
     """Pytorch Lightning trainer for cifar-cnntransformer
     Args:

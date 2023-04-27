@@ -6,10 +6,10 @@ Pipeline
 Submodules
 ----------
 
-kale.pipeline.base\_trainer module
+kale.pipeline.base\_nn\_trainer module
 ----------------------
 
-.. automodule:: kale.pipeline.base_trainer
+.. automodule:: kale.pipeline.base_nn_trainer
    :members:
    :undoc-members:
    :show-inheritance:
@@ -30,7 +30,7 @@ kale.pipeline.domain\_adapter module
    :undoc-members:
    :show-inheritance:
 
-kale.pipeline.mpca_trainer module
+kale.pipeline.mpca\_trainer module
 ------------------------------------
 
 .. automodule:: kale.pipeline.mpca_trainer
