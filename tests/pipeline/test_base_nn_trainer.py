@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 
 from kale.embed.image_cnn import SimpleCNN
-from kale.pipeline.base_trainer import BaseTrainer, CNNTransformerTrainer
+from kale.pipeline.base_nn_trainer import BaseNNTrainer, CNNTransformerTrainer
 from kale.predict.class_domain_nets import ClassNet
 
 
@@ -30,8 +30,8 @@ def batch(dataloader):
 class TestBaseTrainer:
     @pytest.fixture
     def trainer(self):
-        # Create a default BaseTrainer for testing.
-        return BaseTrainer(None, 5)
+        # Create a default BaseNNTrainer for testing.
+        return BaseNNTrainer(None, 5)
 
     def test_forward(self, trainer, batch):
         # Test forward pass. Return NotImplementError.

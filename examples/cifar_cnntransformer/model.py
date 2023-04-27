@@ -8,7 +8,7 @@ import torch.nn as nn
 
 from kale.embed.attention_cnn import CNNTransformer, ContextCNNGeneric
 from kale.embed.image_cnn import SimpleCNN
-from kale.pipeline.base_trainer import CNNTransformerTrainer
+from kale.pipeline.base_nn_trainer import CNNTransformerTrainer
 from kale.predict.class_domain_nets import ClassNet
 
 

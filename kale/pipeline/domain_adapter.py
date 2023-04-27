@@ -3,7 +3,7 @@
 This module takes individual modules as input and organises them into an architecture. This is taken directly from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/architectures.py with minor changes.
 
-This module uses `PyTorch Lightning <https://github.com/PyTorchLightning/pytorch-lightning>`_ to standardize the flow.
+This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>`_ to standardize the flow.
 """
 
 from enum import Enum
@@ -223,7 +223,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         feature_extractor (torch.nn.Module): the feature extractor network (mapping inputs :math:`x\in\mathcal{X}`
             to a latent space :math:`\mathcal{Z}`,)
         task_classifier (torch.nn.Module): the task classifier network that learns to predict labels
-            :math:`y \in \mathcal{Y}` from latent vectors,
+            :math:`y \in \mathcal{Y}` from latent vectors.
         method (Method, optional): the method implemented by the class. Defaults to None.
             Mostly useful when several methods may be implemented using the same class.
         lambda_init (float, optional): Weight attributed to the adaptation part of the loss. Defaults to 1.0.
