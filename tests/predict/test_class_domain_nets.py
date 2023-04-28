@@ -32,7 +32,7 @@ def test_softmaxnet_shapes():
     assert output_batch.size() == (BATCH_SIZE, 8)
 
 
-def test_classpredictionhead_shapes():
+def test_classnet_shapes():
     model = ClassNet()
     model.eval()
     output_batch = model(INPUT_BATCH_CLASSNET)
@@ -40,7 +40,7 @@ def test_classpredictionhead_shapes():
 
 
 @pytest.mark.parametrize("model", CLASSNET_MODEL)
-def test_classnet_shapes(model):
+def test_classnetmodel_shapes(model):
     model = model(input_size=128, n_class=8)
     model.eval()
     output_batch = model(INPUT_BATCH)
