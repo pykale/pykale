@@ -46,8 +46,7 @@ class BaseNNTrainer(pl.LightningModule):
 
     def forward(self, x):
         """
-        Override this function to define the forward pass. Normally includes feature extraction and classification
-        and be called in `compute_loss()`.
+        Override this function to define the forward pass. Normally includes feature extraction and classification and be called in `compute_loss()`.
         """
         raise NotImplementedError("Forward pass needs to be defined.")
 
