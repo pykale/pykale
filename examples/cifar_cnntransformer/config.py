@@ -38,13 +38,12 @@ _C.SOLVER.TEST_BATCH_SIZE = 200
 # ---------------------------------------------------------------------------- #
 _C.CNN = CN()
 
-# A tuple for each convolutional layer is given as (num_channels, kernel_size). Nested lists log to file prettier than nested tuples do.
-_C.CNN.POOL_LOCATIONS = (0, 3)
-
-# A tuple for each convolutional layer is given as (num_channels, kernel_size). Nested lists log to file prettier than nested tuples do.
+# A list for each convolutional layer is given as (num_channels, kernel_size). Nested lists log to file prettier
+# than nested tuples do.
 _C.CNN.CONV_LAYERS = [[16, 3], [32, 3], [64, 3], [32, 1], [64, 3], [128, 3], [256, 3], [64, 1]]
 
-# The index after which pooling layers should be positioned in the convolutional layer list. (0,3) applies 2 pooling layers, resulting in an image size of 8x8.
+# The index after which pooling layers should be positioned in the convolutional layer list. (0,3) applies 2 pooling
+# layers, resulting in an image size of 8x8.
 _C.CNN.POOL_LOCATIONS = (0, 3)
 
 _C.CNN.USE_BATCHNORM = True
