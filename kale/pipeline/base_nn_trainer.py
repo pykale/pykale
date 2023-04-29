@@ -23,8 +23,7 @@ from kale.predict import losses
 
 
 class BaseNNTrainer(pl.LightningModule):
-    """
-    Base class for classification models using neural network, based on PyTorch Lightning wrapper. The forward pass
+    """Base class for classification models using neural network, based on PyTorch Lightning wrapper. The forward pass
     and loss computation must be implemented if new trainers inherit from this class. The basic workflow is defined
     in this class as follows. Every training/validation/testing procedure will call `compute_loss()` to compute the
     loss and log the output metrics. The `compute_loss()` function will call `forward()` to generate the output feature
@@ -33,8 +32,8 @@ class BaseNNTrainer(pl.LightningModule):
     Args:
         optimizer (dict, None): optimizer parameters.
         max_epochs (int): maximum number of epochs.
-        init_lr (float): initial learning rate. (default: 0.001)
-        adapt_lr (bool): adapt learning rate during training. (default: :obj:`False`)
+        init_lr (float): initial learning rate. Defaults to 0.001.
+        adapt_lr (bool): whether to use the schedule for the learning rate. Defaults to False.
     """
 
     def __init__(self, optimizer, max_epochs, init_lr=0.001, adapt_lr=False):
@@ -45,31 +44,29 @@ class BaseNNTrainer(pl.LightningModule):
         self._adapt_lr = adapt_lr
 
     def forward(self, x):
-        """
-        Override this function to define the forward pass. Normally includes feature extraction and classification and be called in `compute_loss()`.
+        """Override this function to define the forward pass. Normally includes feature extraction and classification
+        and be called in `compute_loss()`.
         """
         raise NotImplementedError("Forward pass needs to be defined.")
 
     def compute_loss(self, batch, split_name="valid"):
-        """
-        Compute loss for a given batch.
+        """Compute loss for a given batch.
 
         Args:
             batch (tuple): batches returned by dataloader.
             split_name (str, optional): learning stage (one of ["train", "valid", "test"]).
-                Defaults to "valid" for validation. "train" is for training and "test" for testing. This is currently used only for naming the metrics used for logging.
+                Defaults to "valid" for validation. "train" is for training and "test" for testing. This is currently
+                used only for naming the metrics used for logging.
 
         Returns:
             loss (torch.Tensor): loss value.
             log_metrics (dict): dictionary of metrics to be logged. This is needed when using PyKale logging, but not
-                mandatory when using PyTorch lightning logging.
-            log_metrics (dict): dictionary of metrics to be logged. This is needed when using PyKale logging, but not mandatory when using PyTorch lightning logging.
+                mandatory when using PyTorch Lightning logging.
         """
         raise NotImplementedError("Loss function needs to be defined.")
 
     def configure_optimizers(self):
-        """
-        Default optimizer configuration. Config Adam as default optimizer and provide SGD with cosine annealing.
+        """Default optimizer configuration. Set Adam to the default and provide SGD with cosine annealing.
         If other optimizers are needed, please override this function.
         """
         if self._optimizer_params is None:
@@ -88,13 +85,12 @@ class BaseNNTrainer(pl.LightningModule):
         raise NotImplementedError(f"Unknown optimizer type {self._optimizer_params['type']}.")
 
     def training_step(self, train_batch, batch_idx) -> torch.Tensor:
-        """
-        Compute and return the training loss on one step. loss is to store the loss value.
-        log_metrics is to store the metrics to be logged, including loss, top1 and top5 accuracies.
+        """Compute and return the training loss and metrics on one step. loss is to store the loss value. log_metrics
+        is to store the metrics to be logged, including loss, top1 and/or top5 accuracies.
 
-        Use self.log_dict(log_metrics, on_step, on_epoch, logger) to log the metrics on each step and each epoch.
-        For training, log on each step and each epoch. For validation and testing, only log on each epoch.
-        This way can avoid using on_training_epoch_end() and on_validation_epoch_end().
+        Use self.log_dict(log_metrics, on_step, on_epoch, logger) to log the metrics on each step and each epoch. For
+        training, log on each step and each epoch. For validation and testing, only log on each epoch. This way can
+        avoid using on_training_epoch_end() and on_validation_epoch_end().
         """
         loss, log_metrics = self.compute_loss(train_batch, split_name="train")
         self.log_dict(log_metrics, on_step=True, on_epoch=True, logger=True)
@@ -102,33 +98,27 @@ class BaseNNTrainer(pl.LightningModule):
         return loss
 
     def validation_step(self, valid_batch, batch_idx) -> None:
-        """
-        Compute and return the validation loss on one step.
-        """
+        """Compute and return the validation loss and metrics on one step."""
         loss, log_metrics = self.compute_loss(valid_batch, split_name="valid")
         self.log_dict(log_metrics, on_step=False, on_epoch=True, logger=True)
 
     def test_step(self, test_batch, batch_idx) -> None:
-        """
-        Compute and return the test loss on one step.
-        """
+        """Compute and return the testing loss and metrics on one step."""
         loss, log_metrics = self.compute_loss(test_batch, split_name="test")
         self.log_dict(log_metrics, on_step=False, on_epoch=True, logger=True)
 
 
 class CNNTransformerTrainer(BaseNNTrainer):
+    """PyTorch Lightning trainer for cnntransformer.
 
-    """PyTorch Lightning trainer for cnntransformer
     Args:
-        feature_extractor (torch.nn.Sequential, optional): model according to the config.
-        optimizer (dict): parameters of the model.
+        feature_extractor (torch.nn.Sequential, optional): the feature extractor network.
+        optimizer (dict): optimizer parameters.
         lr_milestones (list): list of epoch indices. Must be increasing.
         lr_gamma (float): multiplicative factor of learning rate decay.
     """
 
-    def __init__(
-        self, feature_extractor, task_classifier, lr_milestones, lr_gamma, **kwargs,
-    ):
+    def __init__(self, feature_extractor, task_classifier, lr_milestones, lr_gamma, **kwargs):
         super().__init__(**kwargs)
         self.feat = feature_extractor
         self.classifier = task_classifier
@@ -136,17 +126,13 @@ class CNNTransformerTrainer(BaseNNTrainer):
         self.lr_gamma = lr_gamma
 
     def forward(self, x):
-        """
-        Forward pass for the model with feature extraction and classification.
-        """
+        """Forward pass for the model with a feature extractor and a classifier."""
         x = self.feat(x)
         output = self.classifier(x)
         return output
 
     def compute_loss(self, batch, split_name="valid"):
-        """
-        Compute loss, top1 and top5 accuracy for a given batch.
-        """
+        """Compute loss, top1 and top5 accuracy for a given batch."""
         x, y = batch
         y_hat = self.forward(x)
 
@@ -164,9 +150,8 @@ class CNNTransformerTrainer(BaseNNTrainer):
         return loss, log_metrics
 
     def configure_optimizers(self):
-        """
-        Set up an SGD optimizer and multistep learning rate scheduler.
-        When self._adapt_lr is True, the learning rate will be decayed by self.lr_gamma every step in milestones.
+        """Set up an SGD optimizer and multistep learning rate scheduler. When self._adapt_lr is True, the learning
+        rate will be decayed by self.lr_gamma every step in milestones.
         """
         optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
         if self._adapt_lr:
