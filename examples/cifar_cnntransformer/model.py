@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 
 from kale.embed.attention_cnn import CNNTransformer, ContextCNNGeneric
-from kale.embed.image_cnn import SimpleCNN
+from kale.embed.image_cnn import SimpleCNNBuilder
 from kale.pipeline.base_nn_trainer import CNNTransformerTrainer
 from kale.predict.class_domain_nets import ClassNet
 
@@ -67,7 +67,7 @@ def get_model(cfg):
     transformer_params = config_params["transformer_params"]
     transformer_params_local = deepcopy(transformer_params)
 
-    cnn = SimpleCNN(**cnn_params_local)
+    cnn = SimpleCNNBuilder(**cnn_params_local)
 
     if cfg.TRANSFORMER.USE_TRANSFORMER:
         context_cnn = CNNTransformer(cnn, **transformer_params_local)
