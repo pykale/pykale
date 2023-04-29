@@ -1,5 +1,4 @@
-"""
-CNNs for extracting features from small images of size 32x32 (e.g. MNIST) and regular images of size 224x224 (e.g.
+"""CNNs for extracting features from small images of size 32x32 (e.g. MNIST) and regular images of size 224x224 (e.g.
 ImageNet). The code is based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py,
  which is for domain adaptation.
 """
@@ -53,13 +52,15 @@ class SimpleCNNBuilder(nn.Module):
     """A builder for simple CNNs to experiment with different basic architectures.
 
     Args:
-        num_channels (int, optional): the number of input channels (default=3).
-        conv_layers_spec (list): A list for each convolutional layer given as [num_channels, kernel_size]. e.g. [[16, 3], [16, 1]]
-        activation_fun: one of ('relu', 'elu', 'leaky_relu') (default="relu").
-        use_batchnorm (boolean): use of batch normalization (default=True).
-        pool_locations (tuple): After which index of the below convolutionial-layer list pooling layers should be placed
-            (default=(0,3)). e.g. (0,3) Applies 2 pooling layers placed after the first and fourth convolutional layer.
-        num_channels (int): the number of input channels (default=3)
+        num_channels (int, optional): the number of input channels. Defaults to 3.
+        conv_layers_spec (list): a list for each convolutional layer given as [num_channels, kernel_size].
+            For example, [[16, 3], [16, 1]] represents 2 layers with 16 filters and kernel sizes of 3 and 1 respectively.
+        activation_fun (str): a string specifying the activation function to use. one of ('relu', 'elu', 'leaky_relu').
+            Defaults to "relu".
+        use_batchnorm (boolean): a boolean flag indicating whether to use batch normalization. Defaults to True.
+        pool_locations (tuple): the index after which pooling layers should be placed in the convolutional layer list.
+            Defaults to (0,3). (0,3) means placing 2 pooling layers after the first and fourth convolutional layer.
+        num_channels (int): the number of input channels. Defaults to 3.
     """
 
     activations = {"relu": nn.ReLU(), "elu": nn.ELU(), "leaky_relu": nn.LeakyReLU()}

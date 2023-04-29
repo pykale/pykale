@@ -60,8 +60,8 @@ class SoftmaxNet(nn.Module):
 
 
 class ClassNet(nn.Module):
-    """
-    Simple classification prediction-head block to plug ontop of the 4D output of a CNN.
+    """Simple classification prediction-head block to plug ontop of the 4D output of a CNN.
+
     Args:
         n_class (int, optional): the number of different classes that can be predicted. Defaults to 10.
         input_shape (tuples, optional): the shape that input to this head will have. Expected
