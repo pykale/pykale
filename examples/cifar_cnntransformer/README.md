@@ -7,7 +7,7 @@ In this example we train a standard 8 layer CNN on CIFAR10 as a baseline. We the
 <div align="center">
 	<img src="CIFAR10-ModelComparison-ValAcc-Lightning.png" alt="Editor" width="80%">
 </div>
-(The code example in this folder does not aim to achieve any state-of-art result, but only a demonstration of the use of CNNTransformer.)
+(The code example in this folder is not intended to achieve any state-of-art result, but rather to demonstrate the use of CNNTransformer.)
 
 ### 2. Observations
 We observe that all models ultimately converge to similar accuracy, except for CNNTransformer-huge, which is slightly inferior. There is no distinctive difference between the learning speed of all models.
@@ -16,7 +16,7 @@ We observe that all models ultimately converge to similar accuracy, except for C
 `python main.py --cfg configs/one_of_the_config_files.yaml`
 
 ### 4. Architecture
-For clarity and as an example, below is the architecture of the CNNTransformer-Medium.
+For clarity and as an example, the architecture of the CNNTransformer-Medium is shown below.
 
 <pre>
 ---------------------------------------------------------------------------------------------------------
