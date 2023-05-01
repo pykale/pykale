@@ -18,7 +18,7 @@ install_requires = [
     "numpy>=1.18.0",  # sure
     "pandas",  # sure
     "pytorch-lightning>=1.3.0,<=1.6.5",  # in pipeline API only
-    "scikit-learn>=0.24.2",  # sure
+    "scikit-learn>=0.23.2",  # sure
     "scipy>=1.5.4",  # in factorization API only
     "tensorly>=0.5.1,<=0.7.0",  # in factorization and model_weights API only
     "torch>=1.11.0",  # sure
@@ -85,7 +85,9 @@ dev_requires = full_requires + [
 
 # Get version
 def read(*names, **kwargs):
-    with open(path.join(path.dirname(__file__), *names), encoding=kwargs.get("encoding", "utf8")) as fp:
+    with open(
+        path.join(path.dirname(__file__), *names), encoding=kwargs.get("encoding", "utf-8"), errors="ignore"
+    ) as fp:
         return fp.read()
 
 
@@ -97,9 +99,8 @@ def find_version(*file_paths):
     raise RuntimeError("Unable to find version string.")
 
 
-readme = open("README.md", encoding="utf-8").read()  # Added encoding parameter here
+readme = open("README.md").read()  # Added encoding parameter here
 version = find_version("kale", "__init__.py")
-
 
 # Run the setup
 setup(
