@@ -303,7 +303,10 @@ def get_cifar(cfg):
     """Gets training and validation data loaders for the CIFAR datasets
 
     Args:
-        cfg: A YACS config object.
+        cfg (CfgNode): hyperparameters from configure file
+
+    Examples:
+        >>> train_loader, valid_loader = get_cifar(cfg)
     """
     logging.info("==> Preparing to load data " + cfg.DATASET.NAME + " at " + cfg.DATASET.ROOT)
     cifar_train_transform = get_transform("cifar", augment=True)
