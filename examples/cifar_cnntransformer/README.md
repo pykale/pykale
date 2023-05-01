@@ -3,17 +3,20 @@
 ### 1. Description
 In this example we train a standard 8 layer CNN on CIFAR10 as a baseline. We then take the same CNN architecture and stack a Transformer-Encoder ontop and train this new CNNTransformer model from scratch. We present several different variants of this model where we only alter the Transformer size. Below, the validation accuracy of each model is compared.
 
-![Model Comparisons](CIFAR10-ModelComparison-ValAcc.png)
-(The code example on this page does not aim to show any meaningful results, but only demonstrate the use of the CNNTransformer)
+[//]: # (![Model Comparisons]&#40;CIFAR10-ModelComparison-ValAcc-Lightning.png&#41;)
+<div align="center">
+	<img src="CIFAR10-ModelComparison-ValAcc-Lightning.png" alt="Editor" width="80%">
+</div>
+(This example is not intended to achieve any state-of-the-art result, but only a demonstration of the use of CNNTransformer.)
 
 ### 2. Observations
-We observe that all models ultimately converge to a similar accuracy, only that the CNNTransformers learn slower which I think is likely because they use Dropout and the two base CNNs do not.
+We observe that all models ultimately converge to similar accuracy, except for CNNTransformer-huge, which is slightly inferior. There is no distinctive difference between the learning speed of all models.
 
 ### 3. Usage
 `python main.py --cfg configs/one_of_the_config_files.yaml`
 
 ### 4. Architecture
-For clarity and as an example, below is the architecture of the CNNTransformer-Medium.
+For clarity and as an example, the architecture of the CNNTransformer-Medium is shown below.
 
 <pre>
 ---------------------------------------------------------------------------------------------------------

@@ -56,7 +56,7 @@ def get_config(cfg):
 # Based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/utils/experimentation.py
 def get_model(cfg, dataset, num_classes):
     """
-    Builds and returns a model and associated hyper parameters according to the config object passed.
+    Builds and returns a model and associated hyperparameters according to the config object passed.
 
     Args:
         cfg: A YACS config object.

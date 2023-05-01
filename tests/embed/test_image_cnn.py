@@ -7,6 +7,7 @@ from kale.embed.image_cnn import (
     ResNet50Feature,
     ResNet101Feature,
     ResNet152Feature,
+    SimpleCNNBuilder,
     SmallCNNFeature,
 )
 
@@ -28,6 +29,15 @@ def test_smallcnnfeature_shapes():
     model.eval()
     output_batch = model(INPUT_BATCH)
     assert output_batch.size() == (BATCH_SIZE, 128)
+
+
+def test_simplecnnbuilder_shapes():
+    model = SimpleCNNBuilder(
+        conv_layers_spec=[[16, 3], [32, 3], [64, 3], [32, 1], [64, 3], [128, 3], [256, 3], [64, 1]]
+    )
+    model.eval()
+    output_batch = model(INPUT_BATCH)
+    assert output_batch.size() == (BATCH_SIZE, 64, 8, 8)
 
 
 @pytest.mark.parametrize("param", PARAM)
