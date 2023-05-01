@@ -1,1 +1,2 @@
-OUTPUT_DIR: './outputs/CNNTransformer-base'
+OUTPUT:
+  OUT_DIR: './outputs/CNNTransformer'
