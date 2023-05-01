@@ -1,9 +1,10 @@
-"""
-This example demonstrates the use of a CNN and a Transformer-Encoder for image classification on CIFAR10 Dataset, using PyTorch Lightning.
+"""This example is about the use of a CNN and a Transformer-Encoder for image classification on CIFAR10 Dataset,
+using PyTorch Lightning.
+
 Reference:
-        Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A., Kaiser, L., & Polosukhin, I.  (2017).
-        Attention Is All You Need.  In Proceedings of the Advances in Neural Information Processing Systems(pp. 6000-6010).
-        https://proceedings.neurips.cc/paper_files/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf
+    Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A., Kaiser, L., & Polosukhin, I.  (2017).
+    Attention Is All You Need.  In Proceedings of the Advances in Neural Information Processing Systems(pp. 6000-6010).
+    https://papers.nips.cc/paper_files/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html
 """
 
 import argparse

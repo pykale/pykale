@@ -2,7 +2,7 @@ import pytest
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-from kale.embed.image_cnn import SimpleCNN
+from kale.embed.image_cnn import SimpleCNNBuilder
 from kale.pipeline.base_nn_trainer import BaseNNTrainer, CNNTransformerTrainer
 from kale.predict.class_domain_nets import ClassNet
 
@@ -102,7 +102,7 @@ class TestCNNTransformerTrainer:
     @pytest.fixture
     def trainer(self):
         # Create a CNNTransformerTrainer for testing.
-        cnn = SimpleCNN([[4, 3], [16, 1]])
+        cnn = SimpleCNNBuilder([[4, 3], [16, 1]])
         classifier = ClassNet()
         return CNNTransformerTrainer(
             feature_extractor=cnn,
