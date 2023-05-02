@@ -14,7 +14,7 @@ from setuptools import find_packages, setup
 
 # Key reference followed: https://github.com/pyg-team/pytorch_geometric/blob/master/setup.py
 
-# Set an environment variable to bypass the error message.
+# Set an environment variable to bypass the SKLEARN error message.
 os.environ["SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL"] = "True"
 
 # Core dependencies frequently used in PyKale Core API
