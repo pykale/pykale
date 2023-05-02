@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import re
 from io import open
 from os import path
@@ -12,6 +13,9 @@ from setuptools import find_packages, setup
 # To work on graphs, install torch-geometric following the official instructions at https://github.com/pyg-team/pytorch_geometric#installation
 
 # Key reference followed: https://github.com/pyg-team/pytorch_geometric/blob/master/setup.py
+
+# Set an environment variable to bypass the error message. (temporary solution)
+os.environ["SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL"] = "True"
 
 # Core dependencies frequently used in PyKale Core API
 install_requires = [
@@ -85,9 +89,7 @@ dev_requires = full_requires + [
 
 # Get version
 def read(*names, **kwargs):
-    with open(
-        path.join(path.dirname(__file__), *names), encoding=kwargs.get("encoding", "utf-8"), errors="ignore"
-    ) as fp:
+    with open(path.join(path.dirname(__file__), *names), encoding=kwargs.get("encoding", "utf8")) as fp:
         return fp.read()
 
 
@@ -118,7 +120,7 @@ setup(
         "Source": "https://github.com/pykale/pykale",
     },
     packages=find_packages(exclude=("docs", "examples", "tests")),
-    python_requires=">=3.8,<=3.10",
+    python_requires=">=3.8,<3.11",
     install_requires=install_requires,
     extras_require={
         "graph": graph_requires,
