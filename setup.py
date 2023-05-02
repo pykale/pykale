@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import os
 import re
 from io import open
 from os import path
@@ -13,9 +12,6 @@ from setuptools import find_packages, setup
 # To work on graphs, install torch-geometric following the official instructions at https://github.com/pyg-team/pytorch_geometric#installation
 
 # Key reference followed: https://github.com/pyg-team/pytorch_geometric/blob/master/setup.py
-
-# Set an environment variable to bypass the SKLEARN error message. Reference followed: https://github.com/scikit-learn/sklearn-pypi-package#how-to-fix-the-error-for-the-main-use-cases
-os.environ["SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL"] = "True"
 
 # Core dependencies frequently used in PyKale Core API
 install_requires = [
@@ -53,7 +49,7 @@ example_requires = [
     "ipykernel",
     "ipython<=8.12.0",  # IPython 8.13+ support Python 3.9+ only and IPython 8.0-8.12 supports Python 3.8+.
     "matplotlib<=3.5.2",
-    "nilearn",
+    "nilearn>=0.7.0",
     "Pillow",
     "PyTDC",
     "seaborn",
