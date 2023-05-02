@@ -101,7 +101,7 @@ def find_version(*file_paths):
     raise RuntimeError("Unable to find version string.")
 
 
-readme = open("README.md").read()  # Added encoding parameter here
+readme = open("README.md").read()
 version = find_version("kale", "__init__.py")
 
 # Run the setup
