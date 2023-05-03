@@ -8,6 +8,7 @@ Placeholder.html
 
 import argparse
 import os
+import shutil
 import warnings
 
 import numpy as np
@@ -184,6 +185,9 @@ def main():
                     },
                 )
 
+                # #delete figures after testing
+                # shutil.rmtree(os.path.join(save_folder, "fitted_quantile_binning"))
+
             # If we are comparing bins against eachother, we need to wait until all the bins have been fitted.
             if cfg.PIPELINE.COMPARE_Q_VALUES and num_bins == cfg.PIPELINE.NUM_QUANTILE_BINS[-1]:
                 for c_model in compare_q_models_to_compare:
@@ -241,6 +245,8 @@ def main():
                                 "colour": color,
                             },
                         )
+
+                        # shutil.rmtree(save_folder_comparison)
 
 
 if __name__ == "__main__":

@@ -1042,7 +1042,7 @@ def plot_cumulative(
     ax.tick_params(axis="y", colors="black")
 
     if save_path is not None:
-        plt.savefig(save_path, dpi=100, bbox_inches="tight", pad_inches=0.2)
+        plt.savefig(save_path + "cumulative_error.pdf", dpi=100, bbox_inches="tight", pad_inches=0.2)
         plt.close()
     else:
         plt.gcf().set_size_inches(16.0, 10.0)
@@ -1191,6 +1191,7 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
 
         # Plot cumulative error figure for all predictions
         if display_settings["cumulative_error"]:
+            save_location = save_folder
             plot_cumulative(
                 cmaps,
                 bins_all_lms,

@@ -476,7 +476,7 @@ def generate_summary_df(
 
     pd_df = pd.DataFrame.from_dict(summary_dict, orient="index")
 
-    with pd.ExcelWriter(save_location, engine="xlsxwriter") as writer:
+    with pd.ExcelWriter(save_location, engine="xlsxwriter") as writer:  # pylint: disable=abstract-class-instantiated
         for n, df in (pd_df).items():
             # print(n, "AND", df)
             df.to_excel(writer, sheet_name=sheet_name)

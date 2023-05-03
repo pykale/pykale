@@ -107,6 +107,6 @@ def fit_and_predict(
             os.path.join(save_bin_path, "uncertainty_bounds_l" + str(landmark) + ".csv"), index=False
         )
         logger.info(
-            "Saved predicted test bins fo L%s, error bounds and uncertainty bounds to: %s", landmark, save_bin_path
+            "Saved predicted test bins for L%s, error bounds and uncertainty bounds to: %s", landmark, save_bin_path
         )
-    return uncert_boundaries, estimated_errors, all_testing_results
+    return all_uncert_boundaries, error_bound_estimates, all_testing_results
