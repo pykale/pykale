@@ -375,7 +375,7 @@ class MIDA(BaseEstimator, TransformerMixin):
 
         self.eig_values_ = eig_values[idx_sorted]
         self.U = eig_vectors[:, idx_sorted]
-        self.U = np.asarray(self.U, dtype=np.float)
+        self.U = np.asarray(self.U, dtype=np.float64)
 
         return self
 
