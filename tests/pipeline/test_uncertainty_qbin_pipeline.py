@@ -194,7 +194,7 @@ def test_qbin_pipeline():
                 fitted_save_at = os.path.join(save_folder, "fitted_quantile_binning", model, dataset)
                 os.makedirs(save_folder, exist_ok=True)
 
-                test_qbin_fit(
+                helper_test_qbin_fit(
                     landmark,
                     all_uncert_error_pairs_to_compare,
                     landmark_results_path_val,
@@ -257,7 +257,7 @@ def test_qbin_pipeline():
 
         search_dir = os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, "/")
 
-        test_expected_files_exist(exp, search_dir)
+        helper_test_expected_files_exist(exp, search_dir)
 
         # Now delete for memory
         for expected_file in exp:
@@ -317,7 +317,7 @@ def test_qbin_pipeline():
                 },
             )
 
-    test_expected_files_exist(EXPECTED_FILES_COMP, os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset))
+    helper_test_expected_files_exist(EXPECTED_FILES_COMP, os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset))
 
     # Now delete for memory
     for expected_file in EXPECTED_FILES_COMP:
@@ -325,7 +325,20 @@ def test_qbin_pipeline():
         os.remove(file_path)
 
 
-def test_expected_files_exist(expected_files, save_folder):
+def helper_test_expected_files_exist(expected_files, save_folder):
+    """
+    Test whether all expected files are present in the specified directory or any of its subdirectories.
+
+    Args:
+        expected_files (list): A list of file names or paths that are expected to be found in the `save_folder` or its subdirectories.
+        save_folder (str): The root directory in which to search for the expected files.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If any expected file is not found in the `save_folder` or its subdirectories.
+    """
     num_found = 0
     for expected_file in expected_files:
         for dirpath, _, _ in os.walk(save_folder):
@@ -337,27 +350,7 @@ def test_expected_files_exist(expected_files, save_folder):
     assert num_found == len(expected_files)
 
 
-def test_paths_in_directory(paths, root_dir):
-    """
-    Test if all paths have the same root directory.
-
-    Parameters:
-        paths (list): A list of paths to check.
-        root_dir (str): The root directory that all paths should be contained within.
-
-    Raises:
-        AssertionError: If any path is not contained within the root directory.
-
-    Returns:
-        None.
-    """
-    # Check if all paths are contained within the root directory
-    assert all(
-        os.path.abspath(path).startswith(os.path.abspath(root_dir)) for path in paths
-    ), f"Not all paths are contained within {root_dir}"
-
-
-def test_qbin_fit(
+def helper_test_qbin_fit(
     landmark: int,
     all_uncert_error_pairs_to_compare: np.ndarray,
     landmark_results_path_val: str,
@@ -417,21 +410,30 @@ def test_qbin_fit(
     # Test `estimated_errors` using `csv_equality_helper()`
     csv_equality_helper(
         estimated_errors,
-        "./tests/test_data/Uncertainty_tuples/" + model + "/4CH/" + str(num_bins) + "Bins_fit/estimated_error_bounds",
+        os.path.join(cfg.DATASET.ROOT, cfg.DATASET.BASE_DIR, model)
+        + "/4CH/"
+        + str(num_bins)
+        + "Bins_fit/estimated_error_bounds",
         landmark,
     )
 
     # Test `uncert_boundaries` using `csv_equality_helper()`
     csv_equality_helper(
         uncert_boundaries,
-        "./tests/test_data/Uncertainty_tuples/" + model + "/4CH/" + str(num_bins) + "Bins_fit/uncertainty_bounds",
+        os.path.join(cfg.DATASET.ROOT, cfg.DATASET.BASE_DIR, model)
+        + "/4CH/"
+        + str(num_bins)
+        + "Bins_fit/uncertainty_bounds",
         landmark,
     )
 
     # Test `predicted_bins` using `csv_equality_helper()`
     csv_equality_helper(
         predicted_bins,
-        "./tests/test_data/Uncertainty_tuples/" + model + "/4CH/" + str(num_bins) + "Bins_fit/res_predicted_bins",
+        os.path.join(cfg.DATASET.ROOT, cfg.DATASET.BASE_DIR, model)
+        + "/4CH/"
+        + str(num_bins)
+        + "Bins_fit/res_predicted_bins",
         landmark,
     )
 
