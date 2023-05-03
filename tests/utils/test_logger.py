@@ -41,9 +41,6 @@ def test_construct_logger_terminal(caplog):
     assert "This is a debug message" in caplog.text
     assert "This is an info message" in caplog.text
 
-    # Clean up
-    os.rmdir(save_dir)
-
 
 @pytest.fixture
 def log_file_name(testing_logger):
