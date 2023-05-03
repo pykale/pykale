@@ -27,7 +27,6 @@ def testing_logger():
     os.remove(gitdiff_file_name)
 
 
-@pytest.fixture
 def test_construct_logger_terminal(caplog):
     """Test that logger logs to terminal when log_to_terminal is True."""
     logger_name = "test_logger"
