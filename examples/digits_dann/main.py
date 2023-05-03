@@ -74,9 +74,10 @@ def main():
         trainer = pl.Trainer(
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
+            accelerator="gpu" if args.gpus != 0 else "cpu",
+            devices=args.gpus,
             callbacks=[checkpoint_callback, progress_bar],
             logger=tb_logger,
-            gpus=args.gpus,
         )
 
         trainer.fit(model)
