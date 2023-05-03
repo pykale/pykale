@@ -49,7 +49,7 @@ example_requires = [
     "ipykernel",
     "ipython<=8.12.0",  # IPython 8.13+ support Python 3.9+ only and IPython 8.0-8.12 supports Python 3.8+.
     "matplotlib<=3.5.2",
-    "nilearn",
+    "nilearn>=0.7.0",
     "Pillow",
     "PyTDC",
     "seaborn",
@@ -100,7 +100,6 @@ def find_version(*file_paths):
 readme = open("README.md").read()
 version = find_version("kale", "__init__.py")
 
-
 # Run the setup
 setup(
     name="pykale",
@@ -117,7 +116,7 @@ setup(
         "Source": "https://github.com/pykale/pykale",
     },
     packages=find_packages(exclude=("docs", "examples", "tests")),
-    python_requires=">=3.7,<3.10",
+    python_requires=">=3.8,<3.11",
     install_requires=install_requires,
     extras_require={
         "graph": graph_requires,
