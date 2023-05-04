@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Any, Tuple, Union
 
 import torch
 import torch.nn as nn
@@ -15,17 +15,17 @@ class ContextCNNGeneric(nn.Module):
     into a sequence.
 
     Args:
-        cnn: any convolutional neural network that takes in batches of images of
+        cnn (nn.Module): any convolutional neural network that takes in batches of images of
              shape (batch_size, channels, height, width) and outputs tensor
              representations of shape (batch_size, out_channels, out_height, out_width).
-        cnn_output_shape: A tuple of shape (batch_size, num_channels, height, width)
+        cnn_output_shape (tuple): A tuple of shape (batch_size, num_channels, height, width)
                            describing the output shape of the given CNN (required).
-        contextualizer: A sequence-to-sequence model that takes inputs of shape
+        contextualizer (nn.Module, optional): A sequence-to-sequence model that takes inputs of shape
                          (num_timesteps, batch_size, num_features) and uses
                          attention to contextualize the sequence and returns
                          a sequence of the exact same shape. This will mainly be
                          a Transformer-Encoder (required).
-        output_type: One of 'sequence' or 'spatial'. If Spatial then the final
+        output_type (string): One of 'sequence' or 'spatial'. If Spatial then the final
                       output of the model, which is a sequence, will be reshaped
                       to resemble the image-batch shape of the output of the CNN.
                       If Sequence then the output sequence is returned as is (required).
@@ -45,7 +45,11 @@ class ContextCNNGeneric(nn.Module):
     """
 
     def __init__(
-        self, cnn: nn.Module, cnn_output_shape: Tuple[int, int, int, int], contextualizer: nn.Module, output_type: str
+        self,
+        cnn: nn.Module,
+        cnn_output_shape: Tuple[int, int, int, int],
+        contextualizer: Union[nn.Module, Any],
+        output_type: str,
     ):
         super(ContextCNNGeneric, self).__init__()
         assert output_type in ["spatial", "sequence"], (
@@ -84,21 +88,21 @@ class CNNTransformer(ContextCNNGeneric):
     information.
 
     Args:
-        cnn: any convolutional neural network that takes in batches of images of
+        cnn (nn.Module): any convolutional neural network that takes in batches of images of
              shape (batch_size, channels, height, width) and outputs tensor
              representations of shape (batch_size, out_channels, out_height, out_width) (required).
-        cnn_output_shape: a tuple of shape (batch_size, num_channels, height, width)
+        cnn_output_shape (tuple): a tuple of shape (batch_size, num_channels, height, width)
                            describing the output shape of the given CNN (required).
-        num_layers: number of attention layers in the Transformer-Encoder (required).
-        num_heads: number of attention heads in each transformer block (required).
-        dim_feedforward: number of neurons in the intermediate dense layer of
+        num_layers (int): number of attention layers in the Transformer-Encoder (required).
+        num_heads (int): number of attention heads in each transformer block (required).
+        dim_feedforward (int): number of neurons in the intermediate dense layer of
                           each transformer feedforward block (required).
-        dropout: dropout rate of the transformer layers (required).
-        output_type: one of 'sequence' or 'spatial'. If Spatial then the final
+        dropout (float): dropout rate of the transformer layers (required).
+        output_type (string): one of 'sequence' or 'spatial'. If Spatial then the final
                       output of the model, which is the sequence output of the
                       Transformer-Encoder, will be reshaped to resemble the
                       image-batch shape of the output of the CNN (required).
-        positional_encoder: None or a nn.Module that expects inputs of
+        positional_encoder (nn.Module): None or a nn.Module that expects inputs of
                             shape (sequence_length, batch_size, embedding_dim)
                             and returns the same input after adding
                             some positional information to the embeddings. If

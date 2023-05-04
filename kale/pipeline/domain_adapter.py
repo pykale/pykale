@@ -3,7 +3,7 @@
 This module takes individual modules as input and organises them into an architecture. This is taken directly from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/architectures.py with minor changes.
 
-This module uses `PyTorch Lightning <https://github.com/PyTorchLightning/pytorch-lightning>`_ to standardize the flow.
+This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>`_ to standardize the flow.
 """
 
 from enum import Enum
@@ -221,21 +221,22 @@ class BaseAdaptTrainer(pl.LightningModule):
     Args:
         dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used for train, validation, and tests.
         feature_extractor (torch.nn.Module): the feature extractor network (mapping inputs :math:`x\in\mathcal{X}`
-            to a latent space :math:`\mathcal{Z}`,)
+            to a latent space :math:`\mathcal{Z}`,).
         task_classifier (torch.nn.Module): the task classifier network that learns to predict labels
-            :math:`y \in \mathcal{Y}` from latent vectors,
+            :math:`y \in \mathcal{Y}` from latent vectors.
         method (Method, optional): the method implemented by the class. Defaults to None.
             Mostly useful when several methods may be implemented using the same class.
-        lambda_init (float, optional): Weight attributed to the adaptation part of the loss. Defaults to 1.0.
-        adapt_lambda (bool, optional): Whether to make lambda grow from 0 to 1 following the schedule from
+        lambda_init (float, optional): weight attributed to the adaptation part of the loss. Defaults to 1.0.
+        adapt_lambda (bool, optional): whether to make lambda grow from 0 to 1 following the schedule from
             the DANN paper. Defaults to True.
-        adapt_lr (bool, optional): Whether to use the schedule for the learning rate as defined
+        adapt_lr (bool, optional): whether to use the schedule for the learning rate as defined
             in the DANN paper. Defaults to True.
-        nb_init_epochs (int, optional): Number of warmup epochs (during which lambda=0, training only on the source). Defaults to 10.
-        nb_adapt_epochs (int, optional): Number of training epochs. Defaults to 50.
-        batch_size (int, optional): Defaults to 32.
-        init_lr (float, optional): Initial learning rate. Defaults to 1e-3.
-        optimizer (dict, optional): Optimizer parameters, a dictionary with 2 keys:
+        nb_init_epochs (int, optional): number of warmup epochs (during which lambda=0, training only on the source).
+            Defaults to 10.
+        nb_adapt_epochs (int, optional): number of training epochs. Defaults to 50.
+        batch_size (int, optional): defaults to 32.
+        init_lr (float, optional): initial learning rate. Defaults to 1e-3.
+        optimizer (dict, optional): optimizer parameters, a dictionary with 2 keys:
             "type": a string in ("SGD", "Adam", "AdamW")
             "optim_params": kwargs for the above PyTorch optimizer.
             Defaults to None.

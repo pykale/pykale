@@ -1,5 +1,4 @@
-"""
-CNNs for extracting features from small images of size 32x32 (e.g. MNIST) and regular images of size 224x224 (e.g.
+"""CNNs for extracting features from small images of size 32x32 (e.g. MNIST) and regular images of size 224x224 (e.g.
 ImageNet). The code is based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py,
  which is for domain adaptation.
 """
@@ -14,8 +13,8 @@ class SmallCNNFeature(nn.Module):
     A feature extractor for small 32x32 images (e.g. CIFAR, MNIST) that outputs a feature vector of length 128.
 
     Args:
-        num_channels: the number of input channels (default=3).
-        kernel_size: the size of the convolution kernel (default=5).
+        num_channels (int): the number of input channels (default=3).
+        kernel_size (int): the size of the convolution kernel (default=5).
 
     Examples::
         >>> feature_network = SmallCNNFeature(num_channels)
@@ -47,6 +46,53 @@ class SmallCNNFeature(nn.Module):
 
     def output_size(self):
         return self._out_features
+
+
+class SimpleCNNBuilder(nn.Module):
+    """A builder for simple CNNs to experiment with different basic architectures.
+
+    Args:
+        num_channels (int, optional): the number of input channels. Defaults to 3.
+        conv_layers_spec (list): a list for each convolutional layer given as [num_channels, kernel_size].
+            For example, [[16, 3], [16, 1]] represents 2 layers with 16 filters and kernel sizes of 3 and 1 respectively.
+        activation_fun (str): a string specifying the activation function to use. one of ('relu', 'elu', 'leaky_relu').
+            Defaults to "relu".
+        use_batchnorm (boolean): a boolean flag indicating whether to use batch normalization. Defaults to True.
+        pool_locations (tuple): the index after which pooling layers should be placed in the convolutional layer list.
+            Defaults to (0,3). (0,3) means placing 2 pooling layers after the first and fourth convolutional layer.
+        num_channels (int): the number of input channels. Defaults to 3.
+    """
+
+    activations = {"relu": nn.ReLU(), "elu": nn.ELU(), "leaky_relu": nn.LeakyReLU()}
+
+    def __init__(
+        self, conv_layers_spec, activation_fun="relu", use_batchnorm=True, pool_locations=(0, 3), num_channels=3
+    ):
+        super(SimpleCNNBuilder, self).__init__()
+        self.layers = nn.ModuleList()
+        in_channels = num_channels
+        activation_fun = self.activations[activation_fun]
+
+        # Repetitively adds a convolution, batch-norm, activation Function, and max-pooling layer.
+        for layer_num, (num_kernels, kernel_size) in enumerate(conv_layers_spec):
+            conv = nn.Conv2d(in_channels, num_kernels, kernel_size, stride=1, padding=(kernel_size - 1) // 2)
+            self.layers.append(conv)
+
+            if use_batchnorm:
+                self.layers.append(nn.BatchNorm2d(num_kernels))
+
+            self.layers.append(activation_fun)
+
+            if layer_num in pool_locations:
+                self.layers.append(nn.MaxPool2d(kernel_size=2))
+
+            in_channels = num_kernels
+
+    def forward(self, x):
+        for block in self.layers:
+            x = block(x)
+
+        return x
 
 
 class _Bottleneck(nn.Module):

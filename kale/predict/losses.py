@@ -8,21 +8,26 @@ from torch.autograd import grad
 from torch.nn import functional as F
 
 
-def cross_entropy_logits(linear_output, label, weights=None):
+def cross_entropy_logits(output, target, weights=None):
     """Computes cross entropy with logits
+
+    Args:
+        output (Tensor): The output of the last layer of the network, before softmax.
+        target (Tensor): The ground truth label.
+        weights (Tensor, optional): The weight of each sample. Defaults to None.
 
     Examples:
         See DANN, WDGRL, and MMD trainers in kale.pipeline.domain_adapter
     """
 
-    class_output = F.log_softmax(linear_output, dim=1)
+    class_output = F.log_softmax(output, dim=1)
     max_class = class_output.max(1)
     y_hat = max_class[1]  # get the index of the max log-probability
-    correct = y_hat.eq(label.view(label.size(0)).type_as(y_hat))
+    correct = y_hat.eq(target.view(target.size(0)).type_as(y_hat))
     if weights is None:
-        loss = nn.NLLLoss()(class_output, label.type_as(y_hat).view(label.size(0)))
+        loss = nn.NLLLoss()(class_output, target.type_as(y_hat).view(target.size(0)))
     else:
-        losses = nn.NLLLoss(reduction="none")(class_output, label.type_as(y_hat).view(label.size(0)))
+        losses = nn.NLLLoss(reduction="none")(class_output, target.type_as(y_hat).view(target.size(0)))
         loss = torch.sum(weights * losses) / torch.sum(weights)
     return loss, correct
 
@@ -31,8 +36,8 @@ def topk_accuracy(output, target, topk=(1,)):
     """Computes the top-k accuracy for the specified values of k.
 
     Args:
-        output (Tensor): Generated predictions. Shape: (batch_size, class_count).
-        target (Tensor): Ground truth. Shape: (batch_size)
+        output (Tensor): output (Tensor): The output of the last layer of the network, before softmax. Shape: (batch_size, class_count).
+        target (Tensor): The ground truth label. Shape: (batch_size)
         topk (tuple(int)): Compute accuracy at top-k for the values of k specified in this parameter.
     Returns:
         list(Tensor): A list of tensors of the same length as topk.

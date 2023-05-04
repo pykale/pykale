@@ -1,6 +1,6 @@
 repos:
 -   repo: https://github.com/datarootsio/databooks
-    rev: 1.0.5
+    rev: 1.3.7
     hooks:
     -   id: databooks-meta
 -   repo: https://github.com/pre-commit/pre-commit-hooks

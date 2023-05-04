@@ -182,7 +182,7 @@ class ReweightedBatchSampler(torch.utils.data.sampler.BatchSampler):
             krem = k - n_classes
             wrem = 1 - sum_w
             logging.warning(f"will assume uniform distribution for labels > {len(class_weights)}")
-            self._class_weights = np.ones(n_classes, dtype=np.float)
+            self._class_weights = np.ones(n_classes, dtype=np.float64)
             self._class_weights[:k] = class_weights
             self._class_weights[k:] = wrem / krem
         else:
