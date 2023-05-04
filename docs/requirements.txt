@@ -18,7 +18,7 @@ pandas
 pillow>=6.2.0
 PyTDC
 pytorch-lightning
-rdkit-pypi
+rdkit
 recommonmark
 scikit-learn
 sphinx-markdown-tables
