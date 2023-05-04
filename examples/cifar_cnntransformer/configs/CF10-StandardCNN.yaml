@@ -1,4 +1,5 @@
 TRANSFORMER:
   USE_TRANSFORMER: False
 
-OUTPUT_DIR: './outputs/StandardCNN-baseline'
+OUTPUT:
+  OUT_DIR: './outputs/StandardCNN'

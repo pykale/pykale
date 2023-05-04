@@ -6,6 +6,14 @@ Pipeline
 Submodules
 ----------
 
+kale.pipeline.base\_nn\_trainer module
+----------------------
+
+.. automodule:: kale.pipeline.base_nn_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.pipeline.deepdta module
 ------------------------------------
 
@@ -23,14 +31,14 @@ kale.pipeline.domain\_adapter module
    :show-inheritance:
 
 kale.pipeline.mogonet\_multiomics\_trainer module
--------------------------------------------------
+------------------------------------
 
 .. automodule:: kale.pipeline.mogonet_multiomics_trainer
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-kale.pipeline.mpca_trainer module
+kale.pipeline.mpca\_trainer module
 ------------------------------------
 
 .. automodule:: kale.pipeline.mpca_trainer
@@ -39,7 +47,7 @@ kale.pipeline.mpca_trainer module
    :show-inheritance:
 
 kale.pipeline.multi\_domain\_adapter module
--------------------------------------------
+------------------------------------
 
 .. automodule:: kale.pipeline.multi_domain_adapter
    :members:

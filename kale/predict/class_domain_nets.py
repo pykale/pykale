@@ -5,11 +5,11 @@
 
 """Classification of data or domain
 
-Modules for typical classification tasks (into class labels) and
-adversarial discrimination of source vs target domains, from
-https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
+Modules for typical classification tasks (into class labels) and adversarial discrimination of source vs target domains,
+from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py
 """
 
+import torch
 import torch.nn as nn
 
 from kale.embed.video_i3d import Unit3D
@@ -59,7 +59,27 @@ class SoftmaxNet(nn.Module):
         return self._n_classes
 
 
-# Previously DataClassifierDigits
+class ClassNet(nn.Module):
+    """Simple classification prediction-head block to plug ontop of the 4D output of a CNN.
+
+    Args:
+        n_class (int, optional): the number of different classes that can be predicted. Defaults to 10.
+        input_shape (tuples, optional): the shape that input to this head will have. Expected
+                      to be (batch_size, channels, height, width). Defaults to (-1, 64, 8, 8).
+    """
+
+    def __init__(self, n_class=10, input_shape=(-1, 64, 8, 8)):
+        super(ClassNet, self).__init__()
+        self.avgpool = nn.AvgPool2d(input_shape[2])
+        self.linear = nn.Linear(input_shape[1], n_class)
+
+    def forward(self, x):
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.linear(x)
+        return x
+
+
 class ClassNetSmallImage(nn.Module):
     """Regular classifier network for small-size images
 
@@ -90,7 +110,6 @@ class ClassNetSmallImage(nn.Module):
         return x
 
 
-# Previously DomainClassifierDigits
 class DomainNetSmallImage(nn.Module):
     """Domain classifier network for small-size images
 
