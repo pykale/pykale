@@ -8,7 +8,7 @@ https://data.pyg.org/whl/torch-1.9.0%2Bcpu/torch_scatter-2.0.7-cp37-cp37m-linux_
 https://data.pyg.org/whl/torch-1.9.0%2Bcpu/torch_sparse-0.6.10-cp37-cp37m-linux_x86_64.whl
 https://download.pytorch.org/whl/cpu/torch-1.9.1%2Bcpu-cp37-cp37m-linux_x86_64.whl
 
-ipython<9.0
+ipython<=8.12.0
 
 nbsphinx
 nbsphinx-link
@@ -18,7 +18,7 @@ pandas
 pillow>=6.2.0
 PyTDC
 pytorch-lightning
-rdkit-pypi
+rdkit
 recommonmark
 scikit-learn
 sphinx-markdown-tables
