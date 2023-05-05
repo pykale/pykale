@@ -28,7 +28,7 @@ log space.
 You'll need to install the external [RDKit](https://github.com/rdkit/rdkit) package for running the example codes.
 
 ```
-conda install -c conda-forge rdkit
+pip install rdkit
 ```
 
 ### 5. Usage
