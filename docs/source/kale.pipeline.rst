@@ -31,7 +31,7 @@ kale.pipeline.domain\_adapter module
    :show-inheritance:
 
 kale.pipeline.mogonet\_multiomics\_trainer module
-------------------------------------
+-------------------------------------------------
 
 .. automodule:: kale.pipeline.mogonet_multiomics_trainer
    :members:
