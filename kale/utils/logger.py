@@ -16,14 +16,27 @@ def out_file_core():
     return f"log-{date}-{str(uuid.uuid4())}"
 
 
-def construct_logger(name, save_dir):
-    """Constructs a logger. Saves the output as a text file at a specified path. Also saves the output of `git diff HEAD` to the same folder.
+def construct_logger(name, save_dir, log_to_terminal=False):
+    """
+    Constructs a logger that saves the output as a text file and optionally logs to the terminal.
 
-    Reference: https://docs.python.org/3/library/logging.html
+    The logger is configured to output messages at the DEBUG level, and it saves the output as a text file with a name
+    based on the current timestamp and the specified name. It also saves the output of `git diff HEAD` to a file with
+    the same name and the extension `.gitdiff.patch`.
 
     Args:
-        name (str): the logger name, typically the method name
-        save_dir (str): the path to save the log file (.txt)
+        name (str): The name of the logger, typically the name of the method being logged.
+        save_dir (str): The directory where the log file and git diff file will be saved.
+        log_to_terminal (bool, optional): Whether to also log messages to the terminal. Defaults to False.
+
+    Returns:
+        logging.Logger: The constructed logger.
+
+    Reference:
+        https://docs.python.org/3/library/logging.html
+
+    Raises:
+        None.
     """
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
@@ -37,5 +50,11 @@ def construct_logger(name, save_dir):
     logger.addHandler(fh)
     gitdiff_patch = os.path.join(save_dir, file_no_ext + ".gitdiff.patch")
     os.system(f"git diff HEAD > {gitdiff_patch}")
+
+    if log_to_terminal:
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
 
     return logger

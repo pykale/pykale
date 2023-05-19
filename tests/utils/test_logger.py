@@ -27,6 +27,21 @@ def testing_logger():
     os.remove(gitdiff_file_name)
 
 
+def test_construct_logger_terminal(caplog):
+    """Test that logger logs to terminal when log_to_terminal is True."""
+    logger_name = "test_logger"
+    save_dir = "./logs"
+    os.makedirs(save_dir, exist_ok=True)
+
+    t_logger = logger.construct_logger(logger_name, save_dir, log_to_terminal=True)
+    t_logger.debug("This is a debug message")
+    t_logger.info("This is an info message")
+
+    # Assert that messages were logged to the terminal
+    assert "This is a debug message" in caplog.text
+    assert "This is an info message" in caplog.text
+
+
 @pytest.fixture
 def log_file_name(testing_logger):
     filehandler = testing_logger.handlers[0]
