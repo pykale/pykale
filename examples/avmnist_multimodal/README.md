@@ -2,12 +2,12 @@
 
 ### 1. Description
 
-This example is constructed by refactoring the [MultiBenchy repository](https://github.com/pliang279/MultiBench) for [Pykale library](https://github.com/pykale/pykale).
+This example is constructed by refactoring the [MultiBench repository](https://github.com/pliang279/MultiBench) for [Pykale library](https://github.com/pykale/pykale).
 
 ### 2. Usage
 * Dataset: [AVMNIST](https://drive.google.com/file/d/1KvKynJJca5tDtI5Mmp6CoRh9pQywH8Xp/view)
-* Algorithm: MMDL
-* Example: AVMNIST with MMDL
+* Algorithm: Multimodal Deep Learning (MMDL)
+* Example: AVMNIST with Multimodal Deep Learning
 
 `python main.py --cfg configs/late_fusion.yaml --output AVMNIST-LATE`
 

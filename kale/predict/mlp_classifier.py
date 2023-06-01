@@ -1,4 +1,4 @@
-"""Two layered perceptron.
+"""Two layered mlp classifier.
 References: https://github.com/pliang279/MultiBench/blob/main/unimodals/common_models.py
 """
 
