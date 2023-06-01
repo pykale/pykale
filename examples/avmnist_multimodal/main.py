@@ -71,7 +71,7 @@ def main():
     trainer.train()
 
     print("Testing:")
-    trainer.single_test()
+    trainer.test()
 
 
 if __name__ == "__main__":

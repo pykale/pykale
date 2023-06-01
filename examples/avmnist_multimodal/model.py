@@ -1,6 +1,3 @@
-# =============================================================================
-# Author: Mohammod Suvon, m.suvon@sheffield.ac.uk
-# =============================================================================
 """
 Define the learning model and configure model parameters.
 References: 1. https://github.com/pliang279/MultiBench/blob/main/examples/multimedia/avmnist_simple_late_fusion.py

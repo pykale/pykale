@@ -137,8 +137,8 @@ class Trainer:
         else:
             return self.objective(pred, truth)
 
-    def single_test(self):
-        """Run single test for model.
+    def test(self):
+        """Run test for model.
         Args:
             model (nn.Module): Model to test
             test_dataloader (torch.utils.data.Dataloader): Test dataloader
