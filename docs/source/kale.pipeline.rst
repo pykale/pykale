@@ -46,7 +46,7 @@ kale.pipeline.multi\_domain\_adapter module
    :undoc-members:
    :show-inheritance:
 
-kale.pipeline.multi\_model module
+kale.pipeline.multi\_modal module
 ------------------------------------
 
 .. automodule:: kale.pipeline.multi_modal_module
