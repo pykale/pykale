@@ -2,7 +2,7 @@
 
 ### 1. Description
 
-This example is constructed by refactoring the [MultiBench repository](https://github.com/pliang279/MultiBench) for [Pykale library](https://github.com/pykale/pykale).
+This example is constructed by refactoring the code of [MultiBench repository](https://github.com/pliang279/MultiBench) for [Pykale library](https://github.com/pykale/pykale).
 
 ### 2. Usage
 * Dataset: [AVMNIST](https://drive.google.com/file/d/1KvKynJJca5tDtI5Mmp6CoRh9pQywH8Xp/view)
