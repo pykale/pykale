@@ -3,9 +3,11 @@
 # =============================================================================
 
 """
-Construct a message passing network using PyTorch Geometric for MOGONET method.
+Construct a message passing network using PyTorch Geometric for the MOGONET method. MOGONET is a multiomics fusion
+framework for cancer classification and biomarker identification that utilizes supervised graph convolutional networks
+for omics datasets.
 
-This code is written by refactoring MOGONET model (https://github.com/txWang/MOGONET/blob/main/models.py) within
+This code is written by refactoring MOGONET code (https://github.com/txWang/MOGONET/blob/main/models.py) within
 'MessagePassing' base class provided in the PyTorch Geometric.
 
 Reference:
@@ -28,7 +30,7 @@ from torch_sparse import SparseTensor
 
 
 class MogonetGCNConv(MessagePassing):
-    r"""Create message passing layers for MOGONET method.
+    r"""Create message passing layers for the MOGONET method.
 
     Args:
         in_channels (int): Size of each input sample.
