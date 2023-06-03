@@ -30,7 +30,16 @@ from torch_sparse import SparseTensor
 
 
 class MogonetGCNConv(MessagePassing):
-    r"""Create message passing layers for the MOGONET method.
+    r"""Create message passing layers for the MOGONET method. Each layer is defined as:
+
+    .. math::
+        H^{(l+1)}=f(H^{(l)}, A) = \sigma(AH^{(l)}W^{(l)})
+
+    where :math:`\mathbf{H^{(l)}}` is the input of the :math:`l` th layer and :math:`\mathbf{W^{(l)}}` is the weight
+    matrix of the :math:`l` th layer. :math:`\sigma(.)` denotes a non-linear activation function.
+
+    For more information please refer to the
+    `MOGONET paper from Wang et al. <https://www.nature.com/articles/s41467-021-23774-w>`__.
 
     Args:
         in_channels (int): Size of each input sample.
@@ -63,7 +72,7 @@ class MogonetGCNConv(MessagePassing):
         self.reset_parameters()
 
     def reset_parameters(self) -> None:
-        """Initialize the parameters of the model."""
+        """Reset all parameters of the model."""
         xavier_normal_(self.weight.data)
 
         if self.bias is not None:
@@ -76,9 +85,7 @@ class MogonetGCNConv(MessagePassing):
         return out
 
     def message(self, x_j: Tensor) -> Tensor:
-        r"""Construct messages from node :math:`j` to node :math:`i` in analogy to :math:`\phi_{\mathbf{\Theta}}` for
-        each edge in :obj:`edge_index`.
-        """
+        r"""Construct messages from node :math:`j` to node :math:`i` for each edge in :obj:`edge_index`."""
         return x_j
 
     def message_and_aggregate(self, adj_t: Union[SparseTensor, Tensor], x: Tensor) -> Tensor:
@@ -86,20 +93,20 @@ class MogonetGCNConv(MessagePassing):
         return torch_sparse.matmul(adj_t, x, reduce=self.aggr)
 
     def update(self, aggr_out: Tensor) -> Tensor:
-        r"""Update node embeddings in analogy to :math:`\gamma_{\mathbf{\Theta}}` for each node
-        :math:`i \in \mathcal{V}`.
-        """
+        r"""Update node embeddings for each node :math:`i \in \mathcal{V}`."""
         if self.bias is not None:
             aggr_out = aggr_out + self.bias
         return aggr_out
 
 
 class MogonetGCN(Module):
-    r"""Create the structure of the graph convolutional network in MOGONET method.
+    r"""Create the structure of the graph convolutional network in the MOGONET method.
+    For more information please refer to the
+    `MOGONET paper from Wang et al. <https://www.nature.com/articles/s41467-021-23774-w>`__.
 
     Args:
-        in_channels (int): The dimension of input feature.
-        hidden_channels (List[int]): A list of dimensions of hidden layers.
+        in_channels (int): Size of each input sample.
+        hidden_channels (List[int]): A list of sizes of hidden layers.
         dropout (float): Probability of an element to be zeroed.
     """
 
