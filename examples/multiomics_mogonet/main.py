@@ -1,5 +1,5 @@
 """
-Multi-omics Integration via Graph Convolutional Networks for Biomedical Data Classification.
+Multiomics Integration via Graph Convolutional Networks for Cancer Classification Tasks.
 
 Reference:
 Wang, T., Shao, W., Huang, Z., Tang, H., Zhang, J., Ding, Z., Huang, K. (2021). MOGONET integrates multi-omics data
@@ -24,7 +24,7 @@ warnings.filterwarnings(action="ignore")
 
 def arg_parse():
     """Parsing arguments"""
-    parser = argparse.ArgumentParser(description="MOGONET Training for Multi-omics Data Integration")
+    parser = argparse.ArgumentParser(description="MOGONET Training for Multiomics Data Integration")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     args = parser.parse_args()
 
