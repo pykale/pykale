@@ -28,6 +28,8 @@ from kale.prepdata.distance import calculate_distance, DistanceMetric
 
 class MultiOmicsDataset(Dataset):
     r"""The multiomics data for creating graph dataset.
+    See `here <https://pytorch-geometric.readthedocs.io/en/latest/tutorial/create_dataset.html>`__ in PyTorch Geometric
+    for the accompanying tutorial .
 
     Args:
         root (string): Root directory where the dataset should be saved.
@@ -90,9 +92,11 @@ class MultiOmicsDataset(Dataset):
         extract_zip(path, self.raw_dir)
 
     def process(self) -> None:
-        r"""Processes the dataset to the ``self.processed_dir`` folder."""
+        r"""Processes the dataset to the ``self.processed_dir`` folder. This function reads input files, creates a
+        ''Data'' object, and saves it into the ''processed_dir''."""
+        data_list = []
+
         if self._random_split:
-            data_list = []
             for view in range(self.num_view):
                 full_data = np.loadtxt(self.raw_paths[view * 2], delimiter=",")
                 full_data = full_data if self.pre_transform is None else self.pre_transform(full_data)
@@ -124,10 +128,8 @@ class MultiOmicsDataset(Dataset):
                 data = self.extend_data(data)
                 data_list.append(data)
 
-            torch.save(data_list, osp.join(self.processed_dir, "data.pt"))
-
         else:
-            data_list = []
+            # The datasets provided here have already been pre-split into training and test sets.
             for view in range(self.num_view):
                 train_data = np.loadtxt(self.raw_paths[view * 4], delimiter=",")
                 train_labels = np.loadtxt(self.raw_paths[(view * 4) + 1], delimiter=",")
@@ -167,7 +169,7 @@ class MultiOmicsDataset(Dataset):
                 data = self.extend_data(data)
                 data_list.append(data)
 
-            torch.save(data_list, osp.join(self.processed_dir, "data.pt"))
+        torch.save(data_list, osp.join(self.processed_dir, "data.pt"))
 
     @staticmethod
     def get_random_split(labels, num_class: int, train_size: float = 0.7) -> Tuple:
