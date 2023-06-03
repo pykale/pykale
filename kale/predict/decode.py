@@ -202,14 +202,14 @@ class LinearClassifier(nn.Module):
 
 class VCDN(nn.Module):
     r"""The View Correlation Discovery Network (VCDN) to learn the higher-level intra-view and cross-view correlations
-    in the label space, implemented according to the method described in 'MOGONET integrates multiomics data using
+    in the label space, implemented according to the method described in 'MOGONET integrates multi-omics data using
     graph convolutional networks allowing patient classification and biomarker identification'
     - Wang, T., Shao, W., Huang, Z., Tang, H., Zhang, J., Ding, Z., Huang, K. (2021).
 
     Args:
         num_view (int): The total number of modalities in the dataset.
         num_class (int): The total number of classes in the dataset.
-        hidden_dim (int): The dimension of the hidden layer.
+        hidden_dim (int): Size of the hidden layer.
     """
 
     def __init__(self, num_view: int, num_class: int, hidden_dim: int) -> None:
