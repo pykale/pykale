@@ -394,27 +394,27 @@ class MogonetDataset(MultiOmicsDataset):
 
         return adj_matrix.indices(), adj_matrix.values()
 
-    def _find_sim_threshold(self, adj: torch.Tensor, num_train: int) -> None:
+    def _find_sim_threshold(self, adj_mat: torch.Tensor, num_train: int) -> None:
         r"""Finds a threshold for the adjacency matrix in order to keep the predefined number of edges per nodes.
 
         Args:
-            adj (torch.Tensor): The dense adjacency matrix.
+            adj_mat (torch.Tensor): The dense adjacency matrix.
             num_train (int): The number of samples in training data.
         """
-        sorted_adj = torch.sort(adj.reshape(-1,), descending=True).values[self.edge_per_node * num_train]
+        sorted_adj = torch.sort(adj_mat.reshape(-1,), descending=True).values[self.edge_per_node * num_train]
         self.sim_threshold = sorted_adj.item()
 
-    def _generate_sparse_adj(self, adj: torch.Tensor, self_loop: bool = True) -> torch.Tensor:
+    def _generate_sparse_adj(self, adj_mat: torch.Tensor, self_loop: bool = True) -> torch.Tensor:
         r"""Returns a sparse adjacency matrix by setting entries below the ``sim_threshold`` to 0.
 
         Args:
-            adj (torch.Tensor): The dense adjacency matrix.
+            adj_mat (torch.Tensor): The dense adjacency matrix.
             self_loop (bool, optional): Whether to fill the main diagonal with zero. (default: ``True``)
 
         Returns:
             torch.Tensor: Computed sparse adjacency matrix.
         """
-        non_zero_entries = (adj >= self.sim_threshold).float()
+        non_zero_entries = (adj_mat >= self.sim_threshold).float()
         if self_loop:
             non_zero_entries.fill_diagonal_(0)
 
