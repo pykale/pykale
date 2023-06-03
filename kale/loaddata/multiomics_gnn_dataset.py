@@ -34,19 +34,19 @@ class MultiOmicsDataset(Dataset):
         num_view (int): The total number of modalities in the dataset.
         num_class (int): The total number of classes in the dataset.
         url (string, optional): The url to download the dataset from.
-        raw_file_names (list[callable], optional): The name of the files in the :obj:`self.raw_dir` folder that must be
+        raw_file_names (list[callable], optional): The name of the files in the ``self.raw_dir`` folder that must be
             present in order to skip downloading.
         random_split (bool, optional): Whether to split the dataset into random train and test subsets. (default:
-            :obj:`False`)
+            ``False``)
         train_size (float, optional): The proportion of the dataset to include in the train split that should be between
-            0.0 and 1.0. This parameter is used when :obj:`random_split` is :obj:`True`.
+            0.0 and 1.0. This parameter is used when ``random_split`` is ``True``.
         transform (callable, optional): A function/transform that takes in an array_like data and returns a transformed
-            version. The data object will be transformed before every access. (default: :obj:`None`)
+            version. The data object will be transformed before every access. (default: ``None``)
         pre_transform (callable, optional): A function/transform that takes in an array_like data and returns a
-            transformed version. The data object will be transformed before being saved to disk. (default: :obj:`None`)
+            transformed version. The data object will be transformed before being saved to disk. (default: ``None``)
         target_pre_transform (callable, optional): A function/transform that takes in an array_like of labels and
             returns a transformed version. The label object will be transformed before being saved to disk. (default:
-            :obj:`None`)
+            ``None``)
     """
 
     def __init__(
@@ -74,23 +74,23 @@ class MultiOmicsDataset(Dataset):
 
     @property
     def raw_file_names(self) -> Optional[List[str]]:
-        r"""The name of the files in the :obj:`self.raw_dir` folder that must be present in order to skip
+        r"""The name of the files in the ``self.raw_dir`` folder that must be present in order to skip
         downloading."""
         return self._raw_file_names
 
     @property
     def processed_file_names(self) -> Union[str, List[str], Tuple]:
-        r"""The name of the files in the :obj:`self.processed_dir` folder that must be present in order to skip
+        r"""The name of the files in the ``self.processed_dir`` folder that must be present in order to skip
         processing."""
         return self._processed_file_names
 
     def download(self) -> None:
-        r"""Downloads the dataset to the :obj:`self.raw_dir` folder."""
+        r"""Downloads the dataset to the ``self.raw_dir`` folder."""
         path = download_url(self._url, self.raw_dir)
         extract_zip(path, self.raw_dir)
 
     def process(self) -> None:
-        r"""Processes the dataset to the :obj:`self.processed_dir` folder."""
+        r"""Processes the dataset to the ``self.processed_dir`` folder."""
         if self._random_split:
             data_list = []
             for view in range(self.num_view):
@@ -230,7 +230,7 @@ class MultiOmicsDataset(Dataset):
         return self.num_view
 
     def get(self, view_idx) -> Data:
-        r"""Gets the data object at index :obj:`idx`."""
+        r"""Gets the data object at index ``idx``."""
         data_list = torch.load(osp.join(self.processed_dir, "data.pt"))
         return data_list[view_idx]
 
@@ -257,24 +257,24 @@ class MogonetDataset(MultiOmicsDataset):
 
     Args:
         root (string): Root directory where the dataset should be saved.
-        raw_file_names (list[callable], optional): The name of the files in the :obj:`self.raw_dir` folder that must be
+        raw_file_names (list[callable], optional): The name of the files in the ``self.raw_dir`` folder that must be
             present in order to skip downloading.
         num_view (int): The total number of modalities in the dataset.
         num_class (int): The total number of classes in the dataset.
         edge_per_node (int): Predefined number of edges per nodes in computing adjacency matrix.
         url (string, optional): The url to download the dataset from.
         random_split (bool, optional): Whether to split the dataset into random train and test subsets. (default:
-            :obj:`False`)
+            ``False``)
         train_size (float, optional): The proportion of the dataset to include in the train split that should be between
-            0.0 and 1.0. This parameter is used when :obj:`random_split` is :obj:`True`.
-        equal_weight (bool, optional): Whether to use equal weights for all samples. (default: :obj:`False`)
+            0.0 and 1.0. This parameter is used when ``random_split`` is ``True``.
+        equal_weight (bool, optional): Whether to use equal weights for all samples. (default: ``False``)
         transform (callable, optional): A function/transform that takes in an array_like data and returns a transformed
-            version. The data object will be transformed before every access. (default: :obj:`None`)
+            version. The data object will be transformed before every access. (default: ``None``)
         pre_transform (callable, optional): A function/transform that takes in an array_like data and returns a
-            transformed version. The data object will be transformed before being saved to disk. (default: :obj:`None`)
+            transformed version. The data object will be transformed before being saved to disk. (default: ``None``)
         target_pre_transform (callable, optional): A function/transform that takes in an array_like of labels and
             returns a transformed version. The label object will be transformed before being saved to disk. (default:
-            :obj:`None`)
+            ``None``)
     """
 
     def __init__(
@@ -353,12 +353,12 @@ class MogonetDataset(MultiOmicsDataset):
         Args:
             train_data (torch.Tensor): The training data.
             test_data (torch.Tensor, optional): The test data. If None then the adjacency matrix is only calculated on
-                the train data. (default: :obj:`None`)
+                the train data. (default: ``None``)
             train (bool, optional): Whether to use only train data to calculate the adjacency matrix. (default:
-                :obj:`True`)
+                ``True``)
             eps (float, optional): Small value to avoid division by zero. (default: 1e-8)
             metric (DistanceMetric, optional): The metric to compute distance between input matrices. (default:
-                :obj:`DistanceMetric.COSINE`)
+                ``DistanceMetric.COSINE``)
 
         Returns:
             A tuple of edge indices and edge attributes.
@@ -403,11 +403,11 @@ class MogonetDataset(MultiOmicsDataset):
         self.sim_threshold = sorted_adj.item()
 
     def _generate_sparse_adj(self, adj: torch.Tensor, self_loop: bool = True) -> torch.Tensor:
-        r"""Returns a sparse adjacency matrix by setting entries below the :obj:`sim_threshold` to 0.
+        r"""Returns a sparse adjacency matrix by setting entries below the ``sim_threshold`` to 0.
 
         Args:
             adj (torch.Tensor): The dense adjacency matrix.
-            self_loop (bool, optional): Whether to fill the main diagonal with zero. (default: `True`)
+            self_loop (bool, optional): Whether to fill the main diagonal with zero. (default: ``True``)
 
         Returns:
             torch.Tensor: Computed sparse adjacency matrix.

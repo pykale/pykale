@@ -52,7 +52,7 @@ class MogonetModel:
         """Return the prepared MOGONET model based on user preference.
 
         Args:
-            pretrain (bool, optional): Whether to return the pretrain model. (default: :obj:`False`)
+            pretrain (bool, optional): Whether to return the pretrain model. (default: ``False``)
 
         Returns:
             ModalityTrainer: The prepared MOGONET model.

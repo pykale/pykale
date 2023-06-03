@@ -14,9 +14,9 @@ def calculate_distance(
 
     Args:
         x1 (torch.Tensor): The tensor input data.
-        x2 (torch.Tensor, optional): The tensor input data. (default :obj:`None`)
+        x2 (torch.Tensor, optional): The tensor input data. (default ``None``)
         eps (float, optional): Small value to avoid division by zero. (default: 1e-8)
-        metric (DistanceMetric, optional): The metric to compute distance between input matrices. (default: :obj:`DistanceMetric.COSINE`)
+        metric (DistanceMetric, optional): The metric to compute distance between input matrices. (default: ``DistanceMetric.COSINE``)
 
         Returns:
         torch.Tensor: The computed similarity tensor between :math:`x_1` and :math:`x_2`.

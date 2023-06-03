@@ -44,9 +44,9 @@ class MogonetGCNConv(MessagePassing):
     Args:
         in_channels (int): Size of each input sample.
         out_channels (int): Size of each output sample.
-        bias (bool, optional): If set to :obj:`False`, the layer will not learn an additive bias. (default: :obj:`True`)
+        bias (bool, optional): If set to ``False``, the layer will not learn an additive bias. (default: ``True``)
         aggr (string or list or Aggregation, optional): The aggregation scheme to use,
-            *e.g.*, :obj:`"add"`, :obj:`"sum"` :obj:`"mean"`, :obj:`"min"`, :obj:`"max"` or :obj:`"mul"`.
+            *e.g.*, ``"add"``, ``"sum"``, ``"mean"``, ``"min"``, ``"max"`` or ``"mul"``.
         **kwargs (optional): Additional arguments of :class:`torch_geometric.nn.conv.MessagePassing`.
     """
 
@@ -85,7 +85,7 @@ class MogonetGCNConv(MessagePassing):
         return out
 
     def message(self, x_j: Tensor) -> Tensor:
-        r"""Construct messages from node :math:`j` to node :math:`i` for each edge in :obj:`edge_index`."""
+        r"""Construct messages from node :math:`j` to node :math:`i` for each edge in ``edge_index``."""
         return x_j
 
     def message_and_aggregate(self, adj_t: Union[SparseTensor, Tensor], x: Tensor) -> Tensor:

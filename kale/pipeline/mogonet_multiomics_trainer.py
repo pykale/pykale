@@ -32,7 +32,7 @@ from kale.predict.decode import LinearClassifier, VCDN
 
 
 class ModalityTrainer(pl.LightningModule):
-    r"""The implementation of MOGONET method, which is based on PyTorch Lightning.
+    r"""The implementation of the MOGONET method, which is based on PyTorch Lightning.
 
     Args:
         dataset (MogonetDataset): The input dataset created in form of :class:`~torch_geometric.data.Dataset`.
@@ -43,8 +43,8 @@ class ModalityTrainer(pl.LightningModule):
         loss_fn (CrossEntropyLoss): The loss function used to gauge the error between the prediction outputs and the
             provided target values.
         multi_modality_decoder (VCDN, optional): The VCDN decoder used in the multi modality dataset.
-            (default: :obj:`None`)
-        train_multi_modality_decoder (bool, optional): Whether to train VCDN module. (default: :obj:`True`)
+            (default: ``None``)
+        train_multi_modality_decoder (bool, optional): Whether to train VCDN module. (default: ``True``)
         gcn_lr (float, optional): The learning rate used in GCN module. (default: 5e-4)
         vcdn_lr (float, optional): The learning rate used in VCDN module. (default: 1e-3)
     """
