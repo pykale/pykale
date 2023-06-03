@@ -2,7 +2,7 @@
 
 ## 1. Description
 
-Multimodal learning for multiomics data analysis is a promising research area in biomedical studies. The integration of multiple modalities (e.g., genomics, epigenomics, transcriptomics, proteomics, metabolomics , etc.) by capturing their complementary information provides a deeper understanding of most complex human diseases. This example is constructed by refactoring the code of [MOGONET](https://doi.org/10.1038/s41467-021-23774-w) [1], a multiomics integrative method for classification tasks in biomedical applications, using the PyTorch Geometric and PyTorch Lightning frameworks.
+Multimodal learning for multiomics data analysis is a promising research area in biomedical studies. The integration of multiple modalities (e.g., genomics, epigenomics, transcriptomics, proteomics, metabolomics , etc.) by capturing their complementary information provides a deeper understanding of most complex human diseases. This example is constructed by refactoring the code of [MOGONET](https://doi.org/10.1038/s41467-021-23774-w) [1], a multiomics integrative method for cancer classification tasks, using the PyTorch Geometric and PyTorch Lightning frameworks.
 
 
 ## 2. MOGONET
