@@ -255,7 +255,7 @@ class MultiOmicsDataset(Dataset):
 
 
 class MogonetDataset(MultiOmicsDataset):
-    r"""The multiomics data for creating graph dataset based on the settings in MOGONET paper.
+    r"""The multiomics data for creating graph dataset based on the settings in the MOGONET paper.
 
     Args:
         root (string): Root directory where the dataset should be saved.
@@ -354,10 +354,10 @@ class MogonetDataset(MultiOmicsDataset):
 
         Args:
             train_data (torch.Tensor): The training data.
-            test_data (torch.Tensor, optional): The test data. If None then the adjacency matrix is only calculated on
-                the train data. (default: ``None``)
-            train (bool, optional): Whether to use only train data to calculate the adjacency matrix. (default:
-                ``True``)
+            test_data (torch.Tensor, optional): The test data. If ''None'' then the adjacency matrix is only calculated
+                on the train data. (default: ``None``)
+            train (bool, optional): Whether to use only train data to calculate the adjacency matrix. If ''False'' then
+                the entire dataset (training and test sets) is used. (default: ``True``)
             eps (float, optional): Small value to avoid division by zero. (default: 1e-8)
             metric (DistanceMetric, optional): The metric to compute distance between input matrices. (default:
                 ``DistanceMetric.COSINE``)
