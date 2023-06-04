@@ -17,7 +17,7 @@ from model import MogonetModel
 
 import kale.prepdata.tabular_transform as T
 import kale.utils.seed as seed
-from kale.loaddata.multiomics_gnn_dataset import MogonetDataset
+from kale.loaddata.multiomics_datasets import MogonetDataset
 
 warnings.filterwarnings(action="ignore")
 

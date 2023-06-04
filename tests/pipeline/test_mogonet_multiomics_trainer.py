@@ -5,7 +5,7 @@ from torch.nn import CrossEntropyLoss
 
 import kale.prepdata.tabular_transform as T
 from kale.embed.mogonet import MogonetGCN
-from kale.loaddata.multiomics_gnn_dataset import MogonetDataset
+from kale.loaddata.multiomics_datasets import MogonetDataset
 from kale.pipeline.mogonet_multiomics_trainer import ModalityTrainer
 from kale.predict.decode import LinearClassifier, VCDN
 from kale.utils.seed import set_seed

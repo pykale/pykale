@@ -4,7 +4,7 @@ import torch
 from torch_geometric.data import Data, DataLoader
 
 import kale.prepdata.tabular_transform as T
-from kale.loaddata.multiomics_gnn_dataset import MogonetDataset, MultiOmicsDataset
+from kale.loaddata.multiomics_datasets import MogonetDataset, MultiOmicsDataset
 from kale.utils.seed import set_seed
 
 

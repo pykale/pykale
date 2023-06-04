@@ -4,7 +4,7 @@ from torch.nn import CrossEntropyLoss
 from yacs.config import CfgNode
 
 from kale.embed.mogonet import MogonetGCN
-from kale.loaddata.multiomics_gnn_dataset import MogonetDataset
+from kale.loaddata.multiomics_datasets import MogonetDataset
 from kale.pipeline.mogonet_multiomics_trainer import ModalityTrainer
 from kale.predict.decode import LinearClassifier, VCDN
 
