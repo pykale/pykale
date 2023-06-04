@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 from kale.embed.gripnet import GripNet
 from kale.evaluate.metrics import auprc_auroc_ap
-from kale.predict.initialize_nn import bias_init, xavier_init
+from kale.utils.initialize_nn import bias_init, xavier_init
 from kale.prepdata.graph_negative_sampling import typed_negative_sampling
 from kale.prepdata.supergraph_construct import SuperGraph
 

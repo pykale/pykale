@@ -2,7 +2,7 @@ import pytest
 import torch
 import torch.nn as nn
 
-from kale.predict.initialize_nn import bias_init, xavier_init
+from kale.utils.initialize_nn import bias_init, xavier_init
 from kale.utils.seed import set_seed
 
 
