@@ -14,14 +14,6 @@ kale.prepdata.chem\_transform module
    :undoc-members:
    :show-inheritance:
 
-kale.prepdata.distance module
------------------------------
-
-.. automodule:: kale.prepdata.distance
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.prepdata.image\_transform module
 -------------------------------------
 

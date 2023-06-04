@@ -6,6 +6,14 @@ Utilities
 Submodules
 ----------
 
+kale.utils.distance module
+-----------------------------
+
+.. automodule:: kale.utils.distance
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.utils.download module
 --------------------------
 

@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from kale.prepdata.distance import calculate_distance, DistanceMetric
+from kale.utils.distance import calculate_distance, DistanceMetric
 
 
 @pytest.fixture

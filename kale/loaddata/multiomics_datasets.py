@@ -23,7 +23,7 @@ import torch.nn.functional as F
 from torch_geometric.data import Data, Dataset, download_url, extract_zip
 from torch_sparse import SparseTensor
 
-from kale.prepdata.distance import calculate_distance, DistanceMetric
+from kale.utils.distance import calculate_distance, DistanceMetric
 
 
 class MultiOmicsDataset(Dataset):
