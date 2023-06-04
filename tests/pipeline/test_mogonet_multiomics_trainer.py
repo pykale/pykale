@@ -5,7 +5,7 @@ from torch.nn import CrossEntropyLoss
 
 import kale.prepdata.tabular_transform as T
 from kale.embed.mogonet import MogonetGCN
-from kale.loaddata.multiomics_datasets import MogonetDataset
+from kale.loaddata.multiomics_datasets import SparseMultiOmicsDataset
 from kale.pipeline.mogonet_multiomics_trainer import ModalityTrainer
 from kale.predict.decode import LinearClassifier, VCDN
 from kale.utils.seed import set_seed
@@ -35,7 +35,7 @@ def test_model():
         file_names.append(f"{view}_te.csv")
         file_names.append(f"{view}_lbl_te.csv")
 
-    dataset = MogonetDataset(
+    dataset = SparseMultiOmicsDataset(
         root=root,
         raw_file_names=file_names,
         num_view=num_view,
@@ -101,7 +101,7 @@ def test_model_multi_class():
         file_names.append(f"{view}_te.csv")
         file_names.append(f"{view}_lbl_te.csv")
 
-    dataset = MogonetDataset(
+    dataset = SparseMultiOmicsDataset(
         root=root,
         raw_file_names=file_names,
         num_view=num_view,
@@ -144,7 +144,7 @@ def test_model_multi_class():
 
 
 def test_init(test_model):
-    assert isinstance(test_model.dataset, MogonetDataset)
+    assert isinstance(test_model.dataset, SparseMultiOmicsDataset)
     assert test_model.num_view == 3
     assert test_model.num_class == 2
     assert all(isinstance(encoder, MogonetGCN) for encoder in test_model.modality_encoder)

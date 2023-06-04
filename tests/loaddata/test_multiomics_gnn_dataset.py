@@ -4,7 +4,7 @@ import torch
 from torch_geometric.data import Data, DataLoader
 
 import kale.prepdata.tabular_transform as T
-from kale.loaddata.multiomics_datasets import MogonetDataset, MultiOmicsDataset
+from kale.loaddata.multiomics_datasets import SparseMultiOmicsDataset, MultiOmicsDataset
 from kale.utils.seed import set_seed
 
 
@@ -123,7 +123,7 @@ def test_mogonet_dataset():
         file_names.append(f"{view}_te.csv")
         file_names.append(f"{view}_lbl_te.csv")
 
-    dataset = MogonetDataset(
+    dataset = SparseMultiOmicsDataset(
         root=root,
         raw_file_names=file_names,
         num_view=num_view,

@@ -17,7 +17,7 @@ from model import MogonetModel
 
 import kale.prepdata.tabular_transform as T
 import kale.utils.seed as seed
-from kale.loaddata.multiomics_datasets import MogonetDataset
+from kale.loaddata.multiomics_datasets import SparseMultiOmicsDataset
 
 warnings.filterwarnings(action="ignore")
 
@@ -53,7 +53,7 @@ def main():
         file_names.append(f"{view}_te.csv")
         file_names.append(f"{view}_lbl_te.csv")
 
-    multiomics_data = MogonetDataset(
+    multiomics_data = SparseMultiOmicsDataset(
         root=cfg.DATASET.ROOT,
         raw_file_names=file_names,
         num_view=cfg.DATASET.NUM_VIEW,

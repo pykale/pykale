@@ -4,7 +4,7 @@ from torch.nn import CrossEntropyLoss
 from yacs.config import CfgNode
 
 from kale.embed.mogonet import MogonetGCN
-from kale.loaddata.multiomics_datasets import MogonetDataset
+from kale.loaddata.multiomics_datasets import SparseMultiOmicsDataset
 from kale.pipeline.mogonet_multiomics_trainer import ModalityTrainer
 from kale.predict.decode import LinearClassifier, VCDN
 
@@ -14,10 +14,10 @@ class MogonetModel:
 
     Args:
         cfg (CfgNode): A YACS config object.
-        dataset (MogonetDataset): The input dataset created in form of :class:`~torch_geometric.data.Dataset`.
+        dataset (SparseMultiOmicsDataset): The input dataset created in form of :class:`~torch_geometric.data.Dataset`.
     """
 
-    def __init__(self, cfg: CfgNode, dataset: MogonetDataset) -> None:
+    def __init__(self, cfg: CfgNode, dataset: SparseMultiOmicsDataset) -> None:
         self.cfg = cfg
         self.dataset = dataset
         self.modality_encoder: List[MogonetGCN] = []

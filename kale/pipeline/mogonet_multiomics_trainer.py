@@ -27,7 +27,7 @@ from torch_geometric.loader import DataLoader
 from torch_sparse import SparseTensor
 
 from kale.embed.mogonet import MogonetGCN
-from kale.loaddata.multiomics_datasets import MogonetDataset
+from kale.loaddata.multiomics_datasets import SparseMultiOmicsDataset
 from kale.predict.decode import LinearClassifier, VCDN
 
 
@@ -35,7 +35,7 @@ class ModalityTrainer(pl.LightningModule):
     r"""The implementation of the MOGONET method, which is based on PyTorch Lightning.
 
     Args:
-        dataset (MogonetDataset): The input dataset created in form of :class:`~torch_geometric.data.Dataset`.
+        dataset (SparseMultiOmicsDataset): The input dataset created in form of :class:`~torch_geometric.data.Dataset`.
         num_view (int): The total number of modalities in the dataset.
         num_class (int): The total number of classes in the dataset.
         modality_encoder (List[MogonetGCN]): The list of GCN encoders for each modality.
@@ -51,7 +51,7 @@ class ModalityTrainer(pl.LightningModule):
 
     def __init__(
         self,
-        dataset: MogonetDataset,
+        dataset: SparseMultiOmicsDataset,
         num_view: int,
         num_class: int,
         modality_encoder: List[MogonetGCN],

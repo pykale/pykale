@@ -254,8 +254,8 @@ class MultiOmicsDataset(Dataset):
         return self._num_class
 
 
-class MogonetDataset(MultiOmicsDataset):
-    r"""The multiomics data for creating graph dataset based on the settings in the MOGONET paper.
+class SparseMultiOmicsDataset(MultiOmicsDataset):
+    r"""The multiomics data for creating sparse graph dataset based on the settings in the MOGONET paper.
 
     Args:
         root (string): Root directory where the dataset should be saved.
