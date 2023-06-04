@@ -8,10 +8,10 @@ from kale.loaddata.multiomics_datasets import SparseMultiOmicsDataset, MultiOmic
 from kale.utils.seed import set_seed
 
 
-def test_multiomics_dataset():
+def test_multiomics_datasets():
     num_view = 3
     num_class = 2
-    url = "https://github.com/SinaTabakhi/pykale-data/raw/main/multiomics/ROSMAP.zip"
+    url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
     root = "tests/test_data/multiomics/"
     file_names = []
     for view in range(1, num_view + 1):
@@ -62,11 +62,11 @@ def test_multiomics_dataset():
         assert dataset.get(view).y.dtype == torch.float
 
 
-def test_multiomics_dataset_random_split():
+def test_multiomics_datasets_random_split():
     set_seed(2023)
     num_view = 3
     num_class = 2
-    url = "https://github.com/SinaTabakhi/pykale-data/raw/main/multiomics/ROSMAP.zip"
+    url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
     root = "tests/test_data/multiomics/random/"
     file_names = []
     for view in range(1, num_view + 1):
@@ -111,11 +111,11 @@ def test_multiomics_dataset_random_split():
         assert dataset.get(view).y.dtype == torch.float
 
 
-def test_mogonet_dataset():
+def test_sparse_multiomics_datasets():
     num_view = 3
     num_class = 2
-    url = "https://github.com/SinaTabakhi/pykale-data/raw/main/multiomics/ROSMAP.zip"
-    root = "tests/test_data/mogonet/"
+    url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
+    root = "tests/test_data/sparse/"
     file_names = []
     for view in range(1, num_view + 1):
         file_names.append(f"{view}_tr.csv")

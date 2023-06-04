@@ -26,7 +26,7 @@ def test_model():
     modality_decoder = []
     multi_modality_decoder = None
 
-    url = "https://github.com/SinaTabakhi/pykale-data/raw/main/multiomics/ROSMAP.zip"
+    url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
     root = "tests/test_data/multiomics/trainer/"
     file_names = []
     for view in range(1, num_view + 1):
@@ -92,7 +92,7 @@ def test_model_multi_class():
     modality_decoder = []
     multi_modality_decoder = None
 
-    url = "https://github.com/SinaTabakhi/pykale-data/raw/main/multiomics/TCGA_BRCA.zip"
+    url = "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"
     root = "tests/test_data/multiomics/trainer/multi_class/"
     file_names = []
     for view in range(1, num_view + 1):
