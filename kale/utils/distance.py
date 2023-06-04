@@ -10,7 +10,10 @@ class DistanceMetric(Enum):
 def calculate_distance(
     x1: torch.Tensor, x2: torch.Tensor = None, eps: float = 1e-8, metric: DistanceMetric = DistanceMetric.COSINE
 ) -> torch.Tensor:
-    r"""Returns similarity between :math:`x_1` and :math:`x_2`, computed along `dim`=1.
+    r"""Returns similarity between :math:`x_1` and :math:`x_2`, computed along `dim`=1. This method calculates the
+    similarity between each pair of data points in two input matrices.
+    Note that this implementation differs from the existing implementations in PyTorch, as they calculate the similarity
+    between each row of one matrix with its corresponding row in the other matrix.
 
     Args:
         x1 (torch.Tensor): The tensor input data.
