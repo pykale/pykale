@@ -22,14 +22,6 @@ kale.predict.decode module
    :undoc-members:
    :show-inheritance:
 
-kale.predict.initialize_nn module
----------------------------------
-
-.. automodule:: kale.predict.initialize_nn
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.predict.isonet module
 --------------------------
 

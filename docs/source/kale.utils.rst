@@ -14,6 +14,14 @@ kale.utils.download module
    :undoc-members:
    :show-inheritance:
 
+kale.utils.initialize_nn module
+-------------------------------
+
+.. automodule:: kale.utils.initialize_nn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.utils.logger module
 ------------------------
 
