@@ -5,7 +5,7 @@ from yacs.config import CfgNode
 
 from kale.embed.mogonet import MogonetGCN
 from kale.loaddata.multiomics_datasets import SparseMultiOmicsDataset
-from kale.pipeline.mogonet_multiomics_trainer import ModalityTrainer
+from kale.pipeline.multiomics_trainer import ModalityTrainer
 from kale.predict.decode import LinearClassifier, VCDN
 
 

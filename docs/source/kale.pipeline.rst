@@ -30,14 +30,6 @@ kale.pipeline.domain\_adapter module
    :undoc-members:
    :show-inheritance:
 
-kale.pipeline.mogonet\_multiomics\_trainer module
--------------------------------------------------
-
-.. automodule:: kale.pipeline.mogonet_multiomics_trainer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.pipeline.mpca\_trainer module
 ------------------------------------
 
@@ -50,6 +42,14 @@ kale.pipeline.multi\_domain\_adapter module
 ------------------------------------
 
 .. automodule:: kale.pipeline.multi_domain_adapter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.pipeline.multiomics\_trainer module
+-----------------------------------------
+
+.. automodule:: kale.pipeline.multiomics_trainer
    :members:
    :undoc-members:
    :show-inheritance:
