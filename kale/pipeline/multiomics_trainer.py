@@ -21,8 +21,7 @@ import torch
 import torch.nn.functional as F
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 from torch import Tensor
-from torch.nn import CrossEntropyLoss
-from torch.nn import ModuleList
+from torch.nn import CrossEntropyLoss, ModuleList
 from torch.optim.optimizer import Optimizer
 from torch_geometric.loader import DataLoader
 from torch_sparse import SparseTensor
