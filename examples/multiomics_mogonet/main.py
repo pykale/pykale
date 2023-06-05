@@ -77,7 +77,11 @@ def main():
     print("\n==> Pretrain GCNs...")
     model = mogonet_model.get_model(pretrain=True)
     trainer_pretrain = pl.Trainer(
-        max_epochs=cfg.SOLVER.MAX_EPOCHS_PRETRAIN, default_root_dir=cfg.OUTPUT_DIR, enable_model_summary=False,
+        max_epochs=cfg.SOLVER.MAX_EPOCHS_PRETRAIN,
+        default_root_dir=cfg.OUTPUT_DIR,
+        accelerator="auto",
+        devices="auto",
+        enable_model_summary=False,
     )
     trainer_pretrain.fit(model)
 
@@ -87,6 +91,8 @@ def main():
     trainer = pl.Trainer(
         max_epochs=cfg.SOLVER.MAX_EPOCHS,
         default_root_dir=cfg.OUTPUT_DIR,
+        accelerator="auto",
+        devices="auto",
         enable_model_summary=False,
         log_every_n_steps=1,
     )

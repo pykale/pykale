@@ -22,6 +22,7 @@ import torch.nn.functional as F
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 from torch import Tensor
 from torch.nn import CrossEntropyLoss
+from torch.nn import ModuleList
 from torch.optim.optimizer import Optimizer
 from torch_geometric.loader import DataLoader
 from torch_sparse import SparseTensor
@@ -66,8 +67,8 @@ class ModalityTrainer(pl.LightningModule):
         self.dataset = dataset
         self.num_view = num_view
         self.num_class = num_class
-        self.modality_encoder = modality_encoder
-        self.modality_decoder = modality_decoder
+        self.modality_encoder = ModuleList(modality_encoder)
+        self.modality_decoder = ModuleList(modality_decoder)
         self.multi_modality_decoder = multi_modality_decoder
         self.train_multi_modality_decoder = train_multi_modality_decoder
         self.loss_fn = loss_fn
@@ -180,16 +181,17 @@ class ModalityTrainer(pl.LightningModule):
             output = self.forward(x, adj_t, multi_modality=False)[0]
 
         pred_test_data = torch.index_select(output, dim=0, index=test_batch[0].test_idx)
-        final_output = F.softmax(pred_test_data, dim=1).data.cpu().numpy()
+        final_output = F.softmax(pred_test_data, dim=1).detach().cpu().numpy()
+        actual_output = y[0].detach().cpu()
 
         if self.num_class == 2:
-            self.log("Accuracy", round(accuracy_score(y[0], final_output.argmax(1)), 3))
-            self.log("F1", round(f1_score(y[0], final_output.argmax(1)), 3))
-            self.log("AUC", round(roc_auc_score(y[0], final_output[:, 1]), 3))
+            self.log("Accuracy", round(accuracy_score(actual_output, final_output.argmax(1)), 3))
+            self.log("F1", round(f1_score(actual_output, final_output.argmax(1)), 3))
+            self.log("AUC", round(roc_auc_score(actual_output, final_output[:, 1]), 3))
         else:
-            self.log("Accuracy", round(accuracy_score(y[0], final_output.argmax(1)), 3))
-            self.log("F1 weighted", round(f1_score(y[0], final_output.argmax(1), average="weighted"), 3))
-            self.log("F1 macro", round(f1_score(y[0], final_output.argmax(1), average="macro"), 3))
+            self.log("Accuracy", round(accuracy_score(actual_output, final_output.argmax(1)), 3))
+            self.log("F1 weighted", round(f1_score(actual_output, final_output.argmax(1), average="weighted"), 3))
+            self.log("F1 macro", round(f1_score(actual_output, final_output.argmax(1), average="macro"), 3))
 
         return final_output
 
