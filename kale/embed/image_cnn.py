@@ -154,7 +154,7 @@ class ResNet18Feature(nn.Module):
     Modified ResNet18 (without the last layer) feature extractor for regular 224x224 images.
 
     Args:
-        weights (bool): The pretrained weights to use. See
+        weights (models.ResNet18_Weights or string): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html#torchvision.models.ResNet18_Weights
         for more details. By default, ResNet18_Weights.DEFAULT will be used.
     Note:
@@ -197,7 +197,7 @@ class ResNet34Feature(nn.Module):
     Modified ResNet34 (without the last layer) feature extractor for regular 224x224 images.
 
     Args:
-        weights (bool): The pretrained weights to use. See
+        weights (models.ResNet34_Weights or string): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet34.html#torchvision.models.ResNet34_Weights
         for more details. By default, ResNet34_Weights.DEFAULT will be used.
 
@@ -241,7 +241,7 @@ class ResNet50Feature(nn.Module):
     Modified ResNet50 (without the last layer) feature extractor for regular 224x224 images.
 
     Args:
-        weights (bool): The pretrained weights to use. See
+        weights (models.ResNet50_Weights or string): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet50.html#torchvision.models.ResNet50_Weights
         for more details. By default, ResNet50_Weights.DEFAULT will be used.
 
@@ -285,7 +285,7 @@ class ResNet101Feature(nn.Module):
     Modified ResNet101 (without the last layer) feature extractor for regular 224x224 images.
 
     Args:
-        weights (bool): The pretrained weights to use. See
+        weights (models.ResNet101_Weights or string): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet101.html#torchvision.models.ResNet101_Weights
         for more details. By default, ResNet101_Weights.DEFAULT will be used.
 
@@ -329,7 +329,7 @@ class ResNet152Feature(nn.Module):
     Modified ResNet152 (without the last layer) feature extractor for regular 224x224 images.
 
     Args:
-        weights (bool): The pretrained weights to use. See
+        weights (models.ResNet152_Weights or string): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet152.html#torchvision.models.ResNet152_Weights
         for more details. By default, ResNet152_Weights.DEFAULT will be used.
 
