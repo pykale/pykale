@@ -156,7 +156,7 @@ class ResNet18Feature(nn.Module):
     Args:
         weights (bool): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html#torchvision.models.ResNet18_Weights
-        for more details. By default, ResNet50_Weights.DEFAULT will be used.
+        for more details. By default, ResNet18_Weights.DEFAULT will be used.
     Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
@@ -199,7 +199,7 @@ class ResNet34Feature(nn.Module):
     Args:
         weights (bool): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet34.html#torchvision.models.ResNet34_Weights
-        for more details. By default, ResNet50_Weights.DEFAULT will be used.
+        for more details. By default, ResNet34_Weights.DEFAULT will be used.
 
     Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
@@ -287,7 +287,7 @@ class ResNet101Feature(nn.Module):
     Args:
         weights (bool): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet101.html#torchvision.models.ResNet101_Weights
-        for more details. By default, ResNet50_Weights.DEFAULT will be used.
+        for more details. By default, ResNet101_Weights.DEFAULT will be used.
 
     Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
@@ -331,7 +331,7 @@ class ResNet152Feature(nn.Module):
     Args:
         weights (bool): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet152.html#torchvision.models.ResNet152_Weights
-        for more details. By default, ResNet50_Weights.DEFAULT will be used.
+        for more details. By default, ResNet152_Weights.DEFAULT will be used.
 
     Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
