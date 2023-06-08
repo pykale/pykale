@@ -43,7 +43,7 @@ def test_simplecnnbuilder_shapes():
 @pytest.mark.parametrize("param", PARAM)
 def test_shapes(param):
     model, out_size = param
-    model = model(pretrained=False)
+    model = model(weights="Default")
     model.eval()
     output_batch = model(INPUT_BATCH)
     assert output_batch.size() == (BATCH_SIZE, out_size)
