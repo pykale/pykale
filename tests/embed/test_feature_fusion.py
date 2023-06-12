@@ -1,6 +1,6 @@
 import torch
 
-from kale.embed.multimodal_fusion import Concat, LowRankTensorFusion, MultiplicativeInteractions2Modal
+from kale.embed.feature_fusion import Concat, LowRankTensorFusion, MultiplicativeInteractions2Modal
 
 
 def test_concat():

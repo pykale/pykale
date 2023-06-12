@@ -44,7 +44,7 @@ Kale APIs above are ordered following the machine learning pipeline, i.e., funct
     CIFAR - ISONet <https://github.com/pykale/pykale/tree/main/examples/cifar_isonet>
     Digits - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/digits_dann>
     Digits/Office - Multisource Adaptation <https://github.com/pykale/pykale/tree/main/examples/office_multisource_adapt>
-    Multimodal - AVMNIST <https://github.com/pykale/pykale/tree/main/examples/avmnist_multimodal>
+    AVMNIST - Multimodal Deep Learning <https://github.com/pykale/pykale/tree/main/examples/avmnist_multimodal>
     Toy Data - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/toy_domain_adaptation>
     Polypharmacy - GripNet <https://github.com/pykale/pykale/tree/main/examples/polypharmacy_gripnet>
     Video - Data Loading <https://github.com/pykale/pykale/tree/main/examples/video_loading>

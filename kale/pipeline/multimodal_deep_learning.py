@@ -6,11 +6,12 @@ from torch import nn
 
 class MultiModalDeepLearning(nn.Module):
     """Instantiate MultiModalDeepLearning Module
+
     Args:
-    encoders (List): List of nn.Module encoders, one per modality.
-    fusion (nn.Module): Fusion module
-    head (nn.Module): Classifier module
-    has_padding (bool, optional): Whether input has padding or not. Defaults to False.
+        encoders (List): List of nn.Module encoders, one per modality.
+        fusion (nn.Module): Fusion module
+        head (nn.Module): Classifier module
+        has_padding (bool, optional): Whether input has padding or not. Defaults to False.
     """
 
     def __init__(self, encoders, fusion, head):

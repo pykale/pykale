@@ -14,10 +14,10 @@ kale.loaddata.dataset\_access module
    :undoc-members:
    :show-inheritance:
 
-kale.loaddata.avmnist\_datasets module
+kale.loaddata.avmnist module
 --------------------------------------
 
-.. automodule:: kale.loaddata.avmnist_datasets
+.. automodule:: kale.loaddata.avmnist
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from kale.pipeline.multi_modal_module import MultiModalDeepLearning
+from kale.pipeline.multimodal_deep_learning import MultiModalDeepLearning
 
 
 class _TestEncoder(nn.Module):

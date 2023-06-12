@@ -46,10 +46,10 @@ kale.pipeline.multi\_domain\_adapter module
    :undoc-members:
    :show-inheritance:
 
-kale.pipeline.multi\_modal module
+kale.pipeline.multimodal\_deep\_learning module
 ------------------------------------
 
-.. automodule:: kale.pipeline.multi_modal_module
+.. automodule:: kale.pipeline.multimodal_deep_learning
    :members:
    :undoc-members:
    :show-inheritance:

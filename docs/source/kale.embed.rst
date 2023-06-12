@@ -49,16 +49,8 @@ kale.embed.image\_cnn module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.lenet module
-------------------------------------
 
-.. automodule:: kale.embed.lenet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-kale.embed.multimodal\_fusion module
+kale.embed.feature\_fusion module
 ------------------------------------
 
 .. automodule:: kale.embed.multimodal_fusion

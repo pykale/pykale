@@ -18,6 +18,8 @@ This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>`
 
 import pytorch_lightning as pl
 import torch
+import torch.nn as nn
+from sklearn.metrics import accuracy_score
 
 from kale.predict import losses
 
@@ -160,3 +162,66 @@ class CNNTransformerTrainer(BaseNNTrainer):
             )
             return [optimizer], [scheduler]
         return [optimizer]
+
+
+class MultiModalTrainer(pl.LightningModule):
+    """PyTorch Lightning trainer for MultiModalTrainer.
+
+    Args:
+        model (torch.nn.Module): The PyTorch model to train.
+        is_packed (bool, optional): A flag indicating if sequences are packed (variable length sequences). Defaults to False.
+        optim (torch.optim, optional): The optimization algorithm to use. Defaults to torch.optim.SGD.
+        lr (float, optional): Learning rate for the optimizer. Defaults to 0.001.
+        weight_decay (float, optional): Weight decay for the optimizer. Defaults to 0.0.
+        objective (torch.nn.Module, optional): Loss function. Defaults to torch.nn.CrossEntropyLoss.
+    """
+
+    def __init__(
+        self, model, is_packed=False, optim=torch.optim.SGD, lr=0.001, weight_decay=0.0, objective=nn.CrossEntropyLoss()
+    ):
+        super(MultiModalTrainer, self).__init__()
+        self.model = model
+        self.is_packed = is_packed
+        self.optim = optim
+        self.lr = lr
+        self.weight_decay = weight_decay
+        self.objective = objective
+
+    def forward(self, x):
+        if self.is_packed:
+            with torch.backends.cudnn.flags(enabled=False):
+                return self.model([[i.float() for i in x[0]], x[1]])
+        else:
+            return self.model([i.float() for i in x[:-1]])
+
+    def compute_loss(self, batch, split_name="valid"):
+        out = self.forward(batch)
+        if len(batch[-1].size()) == len(out.size()):
+            truth1 = batch[-1].squeeze(len(out.size()) - 1)
+        else:
+            truth1 = batch[-1]
+        loss = self.objective(out, truth1.long())
+        # calculate accuracy
+        pred = torch.argmax(out, dim=1)
+        accuracy = accuracy_score(truth1.cpu().numpy(), pred.cpu().numpy())
+
+        return loss, {"loss": loss.item(), "accuracy": accuracy}
+
+    def configure_optimizers(self):
+        optimizer = self.optim(
+            [p for p in self.model.parameters() if p.requires_grad], lr=self.lr, weight_decay=self.weight_decay
+        )
+        return optimizer
+
+    def training_step(self, train_batch, batch_idx):
+        loss, metrics = self.compute_loss(train_batch, split_name="train")
+        self.log_dict(metrics, on_step=True, on_epoch=True, logger=True)
+        return loss
+
+    def validation_step(self, valid_batch, batch_idx):
+        loss, metrics = self.compute_loss(valid_batch, split_name="valid")
+        self.log_dict(metrics, on_step=False, on_epoch=True, logger=True)
+
+    def test_step(self, test_batch, batch_idx):
+        loss, metrics = self.compute_loss(test_batch, split_name="test")
+        self.log_dict(metrics, on_step=False, on_epoch=True, logger=True)

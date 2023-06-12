@@ -24,13 +24,16 @@ class Concat(nn.Module):
 
 class MultiplicativeInteractions2Modal(nn.Module):
     """Implements 2-way Modal Multiplicative Interactions.
-    :param input_dims: list or tuple of 2 integers indicating input dimensions of the 2 modalities
-    :param output_dim: output dimension
-    :param output: type of MI, options from 'matrix3D','matrix','vector','scalar'
-    :param flatten: whether we need to flatten the input modalities
-    :param clip: clip parameter values, None if no clip
-    :param grad_clip: clip grad values, None if no clip
-    :param flip: whether to swap the two input modalities in forward function or not
+
+    Args:
+        input_dims (int): list or tuple of 2 integers indicating input dimensions of the 2 modalities
+        output_dim (int): output dimension
+        output (str): type of MI, options from 'matrix3D','matrix','vector','scalar'
+        flatten (bool): whether we need to flatten the input modalities
+        clip (tuple, optional): clip parameter values, None if no clip
+        grad_clip (tuple, optional): clip grad values, None if no clip
+        flip (bool): whether to swap the two input modalities in forward function or not
+
     """
 
     def __init__(self, input_dims, output_dim, output, flatten=False, clip=None, grad_clip=None, flip=False):
@@ -119,16 +122,16 @@ class MultiplicativeInteractions2Modal(nn.Module):
 
 
 class LowRankTensorFusion(nn.Module):
-    """
-    Implementation of Low-Rank Tensor Fusion.
+    """Implementation of Low-Rank Tensor Fusion.
 
-    See https://github.com/Justin1904/Low-rank-Multimodal-Fusion for more information.
+    Args:
+        input_dims (int): list or tuple of integers indicating input dimensions of the modalities
+        output_dim (int): output dimension
+        rank (int): a hyperparameter of low rank tensor fusion.
+        flatten (bool): Boolean to dictate if output should be flattened or not. Default: True
 
-    Initialize LowRankTensorFusion object.
-    :param input_dims: list or tuple of integers indicating input dimensions of the modalities
-    :param output_dim: output dimension
-    :param rank: a hyperparameter of LRTF. See link above for details
-    :param flatten: Boolean to dictate if output should be flattened or not. Default: True
+    Note:
+        Adapted from https://github.com/Justin1904/Low-rank-Multimodal-Fusion.
     """
 
     def __init__(self, input_dims, output_dim, rank, flatten=True):
@@ -161,9 +164,7 @@ class LowRankTensorFusion(nn.Module):
 
     def forward(self, modalities):
         batch_size = modalities[0].shape[0]
-        # next we perform low-rank multimodal fusion
-        # here is a more efficient implementation than the one the paper describes
-        # basically swapping the order of summation and elementwise product
+        # Next, we perform low-rank multimodal fusion, which essentially involves swapping the order of summation and element-wise product.
         fused_tensor = 1
         for modality, factor in zip(modalities, self.factors):
             ones = Variable(torch.ones(batch_size, 1).type(modality.dtype), requires_grad=False).to(

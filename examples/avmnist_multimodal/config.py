@@ -1,5 +1,5 @@
 """
-Default configurations for avmnist dataset using Multimodal Deep Learning (MMDL).
+Default configurations for AVMNIST dataset using Multimodal Deep Learning (MMDL).
 """
 
 from yacs.config import CfgNode as CN
@@ -15,9 +15,8 @@ _C = CN()
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
 _C.DATASET.ROOT = "avmnist"
-_C.DATASET.NAME = "data.zip"
+_C.DATASET.NAME = "avmnist.zip"
 _C.DATASET.GDRIVE_ID = "1N5k-LvLwLbPBgn3GdVg6fXMBIR6pYrKb"
-_C.DATASET.BASE_DIR = "avmnist"
 _C.DATASET.FILE_FORMAT = "zip"
 _C.DATASET.BATCH_SIZE = 40
 _C.DATASET.SHUFFLE = True
@@ -58,10 +57,24 @@ _C.MODEL.MULTIPLICATIVE_OUTPUT = "matrix"
 _C.MODEL.LOW_RANK_TENSOR_IN_DIM = [_C.MODEL.CHANNELS * 8, _C.MODEL.CHANNELS * 32]
 _C.MODEL.LOW_RANK_TENSOR_OUT_DIM = _C.MODEL.CHANNELS * 20
 _C.MODEL.LOW_RANK_TENSOR_RANK = 40
+
+
+# -----------------------------------------------------------------------------
+# Comet Logger (optional) - https://www.comet.ml/site/
+# -----------------------------------------------------------------------------
+_C.COMET = CN()
+_C.COMET.ENABLE = False  # Set True to enable Comet logging (requires an API key).
+_C.COMET.API_KEY = ""  # Your Comet API key
+_C.COMET.PROJECT_NAME = "Multomodal Deep Learning"
+_C.COMET.EXPERIMENT_NAME = "MultimodlaDeepLearning"
+
+
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-_C.OUTPUT_DIR = "./outputs"
+_C.OUTPUT = CN()
+_C.OUTPUT.OUT_DIR = "./outputs"
+_C.OUTPUT.PB_FRESH = 50  # Number of steps before a new progress bar is printed. Set 0 to disable the progress bar.
 
 
 def get_cfg_defaults():
