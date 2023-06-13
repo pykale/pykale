@@ -38,10 +38,10 @@ jobs:
           pip install pyparsing==2.4.7
           pip install torch==1.13.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torchvision==0.14.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-          pip install torch-scatter==2.0.9 -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
-          pip install torch-sparse==0.6.14 -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
+          pip install torch-scatter==2.1.1 -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
+          pip install torch-sparse==0.6.17 -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
           pip install torch-cluster==1.6.0 -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
-          pip install torch-spline-conv==1.2.1 -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
+          pip install torch-spline-conv==1.2.2 -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
           pip install torch-geometric==2.2.0
           pip install -e .[dev]
         shell: bash -l {0}
