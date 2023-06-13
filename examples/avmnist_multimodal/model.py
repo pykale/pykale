@@ -1,5 +1,5 @@
 """
-Define the learning model and configure model hyperparameters.
+Define the Multimodal Deep Learning (MMDL) model and configure model hyperparameters.
 References: 1. https://github.com/pliang279/MultiBench/blob/main/examples/multimedia/avmnist_simple_late_fusion.py
             2. https://github.com/pliang279/MultiBench/blob/main/examples/multimedia/avmnist_low_rank_tensor.py
             3. https://github.com/pliang279/MultiBench/blob/main/examples/multimedia/avmnist_multi_interac_matrix.py

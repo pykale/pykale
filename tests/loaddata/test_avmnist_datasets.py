@@ -8,13 +8,13 @@ from kale.loaddata.avmnist_datasets import AVMNISTDataset
 
 
 @pytest.fixture(scope="module")
-def dummy_avmnist_data():
+def dummy_data():
     # Create temporary directory for data
     temp_dir = tempfile.TemporaryDirectory()
     data_dir = temp_dir.name
 
     # Create dummy AVMNIST data
-    create_dummy_avmnist_data(data_dir)
+    create_dummy_data(data_dir)
 
     yield data_dir
 
@@ -22,7 +22,7 @@ def dummy_avmnist_data():
     temp_dir.cleanup()
 
 
-def create_dummy_avmnist_data(data_dir):
+def create_dummy_data(data_dir):
     os.makedirs(os.path.join(data_dir, "image"))
     os.makedirs(os.path.join(data_dir, "audio"))
 
@@ -43,9 +43,9 @@ def create_dummy_avmnist_data(data_dir):
     np.save(os.path.join(data_dir, "test_labels.npy"), test_labels)
 
 
-def test_avmnist_dataset(dummy_avmnist_data):
+def test_avmnist_dataset(dummy_data):
     # Initialize AVMNISTDataset with temporary data directory
-    dataset = AVMNISTDataset(dummy_avmnist_data)
+    dataset = AVMNISTDataset(dummy_data)
 
     # Test train, validation, and test data loaders
     train_loader = dataset.get_train_loader()

@@ -1,5 +1,4 @@
-"""Implements some common fusion patterns.
-
+"""
 Reference: https://github.com/pliang279/MultiBench/blob/main/fusions/common_fusions.py
 """
 
@@ -23,12 +22,12 @@ class Concat(nn.Module):
 
 
 class MultiplicativeInteractions2Modal(nn.Module):
-    """Implements 2-way Modal Multiplicative Interactions.
+    """Implements Tensor Matrix fusion.
 
     Args:
         input_dims (int): list or tuple of 2 integers indicating input dimensions of the 2 modalities
         output_dim (int): output dimension
-        output (str): type of MI, options from 'matrix3D','matrix','vector','scalar'
+        output (str): type of Multiplicative Interactions, options from 'matrix','vector','scalar'
         flatten (bool): whether we need to flatten the input modalities
         clip (tuple, optional): clip parameter values, None if no clip
         grad_clip (tuple, optional): clip grad values, None if no clip
@@ -122,7 +121,7 @@ class MultiplicativeInteractions2Modal(nn.Module):
 
 
 class LowRankTensorFusion(nn.Module):
-    """Implementation of Low-Rank Tensor Fusion.
+    """Implementation of Low-Rank Tensor fusion.
 
     Args:
         input_dims (int): list or tuple of integers indicating input dimensions of the modalities

@@ -36,7 +36,7 @@ def arg_parse():
 
 
 def main():
-    """The main for this avmnist example, showing the workflow"""
+    """The main for this AVMNIST example, showing the workflow"""
     args = arg_parse()
     # ---- setup device ----
     device = "cuda" if torch.cuda.is_available() else "cpu"

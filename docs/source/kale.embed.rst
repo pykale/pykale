@@ -53,7 +53,7 @@ kale.embed.image\_cnn module
 kale.embed.feature\_fusion module
 ------------------------------------
 
-.. automodule:: kale.embed.multimodal_fusion
+.. automodule:: kale.embed.feature_fusion
    :members:
    :undoc-members:
    :show-inheritance:

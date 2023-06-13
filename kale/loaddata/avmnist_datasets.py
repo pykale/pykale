@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 
 
 class AVMNISTDataset:
-    """Get dataloaders for AVMNIST.
+    """ Get dataloaders for AVMNIST.
 
     Args:
         data_dir (str): Directory of data.
