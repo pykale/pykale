@@ -17,13 +17,7 @@ class PolypharmacyDataset(Dataset):
         mode (string): "train", "valid" or "test". Defaults to "train".
     """
 
-    def __init__(
-            self,
-            url: str,
-            root: str,
-            name: str,
-            mode: str = "train"
-    ):
+    def __init__(self, url: str, root: str, name: str, mode: str = "train"):
         super(PolypharmacyDataset, self).__init__()
 
         self.url = url
