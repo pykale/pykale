@@ -18,7 +18,7 @@ pandas
 pillow>=6.2.0
 PyTDC
 pytorch-lightning
-rdkit-pypi
+rdkit
 recommonmark
 scikit-learn
 sphinx-markdown-tables
@@ -29,4 +29,5 @@ torch-geometric
 
 torchsummary>=1.5.0
 torchvision
+urllib3<2.0
 yacs>=0.1.7
