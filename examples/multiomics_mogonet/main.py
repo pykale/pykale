@@ -47,16 +47,16 @@ def main():
     # ---- setup dataset ----
     print("\n==> Preparing dataset...")
     file_names = []
-    for view in range(1, cfg.DATASET.NUM_VIEW + 1):
-        file_names.append(f"{view}_tr.csv")
-        file_names.append(f"{view}_lbl_tr.csv")
-        file_names.append(f"{view}_te.csv")
-        file_names.append(f"{view}_lbl_te.csv")
+    for modality in range(1, cfg.DATASET.NUM_MODALITIES + 1):
+        file_names.append(f"{modality}_tr.csv")
+        file_names.append(f"{modality}_lbl_tr.csv")
+        file_names.append(f"{modality}_te.csv")
+        file_names.append(f"{modality}_lbl_te.csv")
 
     multiomics_data = SparseMultiOmicsDataset(
         root=cfg.DATASET.ROOT,
         raw_file_names=file_names,
-        num_view=cfg.DATASET.NUM_VIEW,
+        num_modalities=cfg.DATASET.NUM_MODALITIES,
         num_classes=cfg.DATASET.NUM_CLASSES,
         edge_per_node=cfg.MODEL.EDGE_PER_NODE,
         url=cfg.DATASET.URL,

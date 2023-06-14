@@ -207,18 +207,18 @@ class VCDN(nn.Module):
     - Wang, T., Shao, W., Huang, Z., Tang, H., Zhang, J., Ding, Z., Huang, K. (2021).
 
     Args:
-        num_view (int): The total number of modalities in the dataset.
+        num_modalities (int): The total number of modalities in the dataset.
         num_classes (int): The total number of classes in the dataset.
         hidden_dim (int): Size of the hidden layer.
     """
 
-    def __init__(self, num_view: int, num_classes: int, hidden_dim: int) -> None:
+    def __init__(self, num_modalities: int, num_classes: int, hidden_dim: int) -> None:
         super().__init__()
 
-        self.num_view = num_view
+        self.num_modalities = num_modalities
         self.num_classes = num_classes
         self.model = nn.Sequential(
-            nn.Linear(pow(self.num_classes, self.num_view), hidden_dim),
+            nn.Linear(pow(self.num_classes, self.num_modalities), hidden_dim),
             nn.LeakyReLU(0.25),
             nn.Linear(hidden_dim, self.num_classes),
         )
@@ -230,17 +230,17 @@ class VCDN(nn.Module):
         self.model.apply(bias_init)
 
     def forward(self, multimodal_input: List[torch.Tensor]) -> torch.Tensor:
-        for view in range(self.num_view):
-            multimodal_input[view] = torch.sigmoid(multimodal_input[view])
+        for modality in range(self.num_modalities):
+            multimodal_input[modality] = torch.sigmoid(multimodal_input[modality])
         x = torch.reshape(
             torch.matmul(multimodal_input[0].unsqueeze(-1), multimodal_input[1].unsqueeze(1)),
             (-1, pow(self.num_classes, 2), 1),
         )
-        for view in range(2, self.num_view):
+        for modality in range(2, self.num_modalities):
             x = torch.reshape(
-                torch.matmul(x, multimodal_input[view].unsqueeze(1)), (-1, pow(self.num_classes, view + 1), 1)
+                torch.matmul(x, multimodal_input[modality].unsqueeze(1)), (-1, pow(self.num_classes, modality + 1), 1)
             )
-        input_tensor = torch.reshape(x, (-1, pow(self.num_classes, self.num_view)))
+        input_tensor = torch.reshape(x, (-1, pow(self.num_classes, self.num_modalities)))
         output = self.model(input_tensor)
 
         return output

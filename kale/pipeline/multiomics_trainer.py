@@ -36,7 +36,7 @@ class ModalityTrainer(pl.LightningModule):
 
     Args:
         dataset (SparseMultiOmicsDataset): The input dataset created in form of :class:`~torch_geometric.data.Dataset`.
-        num_view (int): The total number of modalities in the dataset.
+        num_modalities (int): The total number of modalities in the dataset.
         num_classes (int): The total number of classes in the dataset.
         modality_encoder (List[MogonetGCN]): The list of GCN encoders for each modality.
         modality_decoder (List[LinearClassifier]): The list of linear classifier decoders for each modality.
@@ -52,7 +52,7 @@ class ModalityTrainer(pl.LightningModule):
     def __init__(
         self,
         dataset: SparseMultiOmicsDataset,
-        num_view: int,
+        num_modalities: int,
         num_classes: int,
         modality_encoder: List[MogonetGCN],
         modality_decoder: List[LinearClassifier],
@@ -64,7 +64,7 @@ class ModalityTrainer(pl.LightningModule):
     ) -> None:
         super().__init__()
         self.dataset = dataset
-        self.num_view = num_view
+        self.num_modalities = num_modalities
         self.num_classes = num_classes
         self.modality_encoder = ModuleList(modality_encoder)
         self.modality_decoder = ModuleList(modality_decoder)
@@ -81,10 +81,10 @@ class ModalityTrainer(pl.LightningModule):
         """Return the optimizers that are being used during training."""
         optimizers = []
 
-        for view in range(self.num_view):
+        for modality in range(self.num_modalities):
             optimizers.append(
                 torch.optim.Adam(
-                    list(self.modality_encoder[view].parameters()) + list(self.modality_decoder[view].parameters()),
+                    list(self.modality_encoder[modality].parameters()) + list(self.modality_decoder[modality].parameters()),
                     lr=self.gcn_lr,
                 )
             )
@@ -104,8 +104,8 @@ class ModalityTrainer(pl.LightningModule):
         """
         output = []
 
-        for view in range(self.num_view):
-            output.append(self.modality_decoder[view](self.modality_encoder[view](x[view], adj_t[view])))
+        for modality in range(self.num_modalities):
+            output.append(self.modality_decoder[modality](self.modality_encoder[modality](x[modality], adj_t[modality])))
 
         if not multi_modality:
             return output
@@ -129,8 +129,8 @@ class ModalityTrainer(pl.LightningModule):
         adj_t = []
         y = []
         sample_weight = []
-        for view in range(self.num_view):
-            data = train_batch[view]
+        for modality in range(self.num_modalities):
+            data = train_batch[modality]
             x.append(data.x[data.train_idx])
             adj_t.append(data.adj_t_train)
             y.append(data.y[data.train_idx])
@@ -138,14 +138,14 @@ class ModalityTrainer(pl.LightningModule):
 
         outputs = self.forward(x, adj_t, multi_modality=False)
 
-        for view in range(self.num_view):
-            loss = self.loss_fn(outputs[view], y[view])
-            loss = torch.mean(torch.mul(loss, sample_weight[view]))
-            self.logger.log_metrics({f"train_modality_step_loss ({view + 1})": loss.detach()}, self.global_step)
+        for modality in range(self.num_modalities):
+            loss = self.loss_fn(outputs[modality], y[modality])
+            loss = torch.mean(torch.mul(loss, sample_weight[modality]))
+            self.logger.log_metrics({f"train_modality_step_loss ({modality + 1})": loss.detach()}, self.global_step)
 
-            optimizer[view].zero_grad()
+            optimizer[modality].zero_grad()
             self.manual_backward(loss)
-            optimizer[view].step()
+            optimizer[modality].step()
 
         if self.train_multi_modality_decoder and self.multi_modality_decoder is not None:
             output = self.forward(x, adj_t, multi_modality=True)
@@ -168,8 +168,8 @@ class ModalityTrainer(pl.LightningModule):
         x = []
         adj_t = []
         y = []
-        for view in range(self.num_view):
-            data = test_batch[view]
+        for modality in range(self.num_modalities):
+            data = test_batch[modality]
             x.append(data.x)
             adj_t.append(data.adj_t)
             y.append(torch.argmax(data.y[data.test_idx], dim=1))
@@ -210,12 +210,12 @@ class ModalityTrainer(pl.LightningModule):
     def __repr__(self) -> str:
         model_str = ["\nModel info:\n", "   Modality encoder:\n"]
 
-        for view in range(self.num_view):
-            model_str.append(f"    ({view + 1}) {self.modality_encoder[view]}")
+        for modality in range(self.num_modalities):
+            model_str.append(f"    ({modality + 1}) {self.modality_encoder[modality]}")
 
         model_str.append("\n\n  Modality decoder:\n")
-        for view in range(self.num_view):
-            model_str.append(f"    ({view + 1}) {self.modality_decoder[view]}")
+        for modality in range(self.num_modalities):
+            model_str.append(f"    ({modality + 1}) {self.modality_decoder[modality]}")
 
         if self.multi_modality_decoder is not None:
             model_str.append("\n\n  Multi-modality decoder:\n")

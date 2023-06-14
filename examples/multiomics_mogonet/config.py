@@ -14,7 +14,7 @@ C.DATASET.ROOT = "dataset/"
 C.DATASET.NAME = "TCGA_BRCA"
 C.DATASET.URL = "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"
 C.DATASET.RANDOM_SPLIT = False
-C.DATASET.NUM_VIEW = 3  # Number of omics modalities in the dataset
+C.DATASET.NUM_MODALITIES = 3  # Number of omics modalities in the dataset
 C.DATASET.NUM_CLASSES = 5
 
 # ---------------------------------------------------------

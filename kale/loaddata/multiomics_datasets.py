@@ -33,7 +33,7 @@ class MultiOmicsDataset(Dataset):
 
     Args:
         root (string): Root directory where the dataset should be saved.
-        num_view (int): The total number of modalities in the dataset.
+        num_modalities (int): The total number of modalities in the dataset.
         num_classes (int): The total number of classes in the dataset.
         url (string, optional): The url to download the dataset from.
         raw_file_names (list[callable], optional): The name of the files in the ``self.raw_dir`` folder that must be
@@ -54,7 +54,7 @@ class MultiOmicsDataset(Dataset):
     def __init__(
         self,
         root: str,
-        num_view: int,
+        num_modalities: int,
         num_classes: int,
         url: str = None,
         raw_file_names: List[str] = None,
@@ -66,7 +66,7 @@ class MultiOmicsDataset(Dataset):
     ) -> None:
         self._url = url
         self._raw_file_names = raw_file_names
-        self._num_view = num_view
+        self._num_modalities = num_modalities
         self._num_classes = num_classes
         self._random_split = random_split
         self._train_size = train_size
@@ -97,10 +97,10 @@ class MultiOmicsDataset(Dataset):
         data_list = []
 
         if self._random_split:
-            for view in range(self.num_view):
-                full_data = np.loadtxt(self.raw_paths[view * 2], delimiter=",")
+            for modality in range(self.num_modalities):
+                full_data = np.loadtxt(self.raw_paths[modality * 2], delimiter=",")
                 full_data = full_data if self.pre_transform is None else self.pre_transform(full_data)
-                full_labels = np.loadtxt(self.raw_paths[(view * 2) + 1], delimiter=",")
+                full_labels = np.loadtxt(self.raw_paths[(modality * 2) + 1], delimiter=",")
                 full_labels = full_labels.astype(int)
 
                 train_idx, test_idx = self.get_random_split(full_labels, self._num_classes, self._train_size)
@@ -130,15 +130,15 @@ class MultiOmicsDataset(Dataset):
 
         else:
             # The datasets provided here have already been pre-split into training and test sets.
-            for view in range(self.num_view):
-                train_data = np.loadtxt(self.raw_paths[view * 4], delimiter=",")
-                train_labels = np.loadtxt(self.raw_paths[(view * 4) + 1], delimiter=",")
+            for modality in range(self.num_modalities):
+                train_data = np.loadtxt(self.raw_paths[modality * 4], delimiter=",")
+                train_labels = np.loadtxt(self.raw_paths[(modality * 4) + 1], delimiter=",")
                 train_labels = train_labels.astype(int)
                 num_train = len(train_labels)
                 train_idx = torch.tensor(list(range(num_train)), dtype=torch.long)
 
-                test_data = np.loadtxt(self.raw_paths[(view * 4) + 2], delimiter=",")
-                test_labels = np.loadtxt(self.raw_paths[(view * 4) + 3], delimiter=",")
+                test_data = np.loadtxt(self.raw_paths[(modality * 4) + 2], delimiter=",")
+                test_labels = np.loadtxt(self.raw_paths[(modality * 4) + 3], delimiter=",")
                 test_labels = test_labels.astype(int)
                 num_tests = len(test_labels)
                 test_idx = torch.tensor(list(range(num_train, num_train + num_tests)), dtype=torch.long)
@@ -229,12 +229,12 @@ class MultiOmicsDataset(Dataset):
 
     def len(self) -> int:
         r"""Returns the number of graphs stored in the dataset."""
-        return self.num_view
+        return self.num_modalities
 
-    def get(self, view_idx) -> Data:
+    def get(self, modality_idx) -> Data:
         r"""Gets the data object at index ``idx``."""
         data_list = torch.load(osp.join(self.processed_dir, "data.pt"))
-        return data_list[view_idx]
+        return data_list[modality_idx]
 
     def __len__(self) -> int:
         return 1
@@ -244,9 +244,9 @@ class MultiOmicsDataset(Dataset):
         return data_list
 
     @property
-    def num_view(self) -> int:
+    def num_modalities(self) -> int:
         r"""Returns the number of modalities in the dataset."""
-        return self._num_view
+        return self._num_modalities
 
     @property
     def num_classes(self) -> int:
@@ -261,7 +261,7 @@ class SparseMultiOmicsDataset(MultiOmicsDataset):
         root (string): Root directory where the dataset should be saved.
         raw_file_names (list[callable], optional): The name of the files in the ``self.raw_dir`` folder that must be
             present in order to skip downloading.
-        num_view (int): The total number of modalities in the dataset.
+        num_modalities (int): The total number of modalities in the dataset.
         num_classes (int): The total number of classes in the dataset.
         edge_per_node (int): Predefined number of edges per nodes in computing adjacency matrix.
         url (string, optional): The url to download the dataset from.
@@ -283,7 +283,7 @@ class SparseMultiOmicsDataset(MultiOmicsDataset):
         self,
         root: str,
         raw_file_names: List[str],
-        num_view: int,
+        num_modalities: int,
         num_classes: int,
         edge_per_node: int,
         url: str = None,
@@ -299,7 +299,7 @@ class SparseMultiOmicsDataset(MultiOmicsDataset):
         self.sim_threshold = None
         super().__init__(
             root,
-            num_view,
+            num_modalities,
             num_classes,
             url,
             raw_file_names,
@@ -442,19 +442,19 @@ class SparseMultiOmicsDataset(MultiOmicsDataset):
     def __repr__(self) -> str:
         modalities_str = [
             "\nDataset info:",
-            f"\n   number of modalities: {self.num_view}",
+            f"\n   number of modalities: {self.num_modalities}",
             f"\n   number of classes: {self.num_classes}",
             "\n\n   modality | total samples | num train | num test  | num features",
             f"\n   {'-' * 65}",
         ]
-        for view in range(self.num_view):
-            view_data = self.get(view)
+        for modality in range(self.num_modalities):
+            modality_data = self.get(modality)
             modalities_str.append(
-                f"\n   {view + 1:<8} | "
-                f"{len(view_data.x):<13} | "
-                f"{len(view_data.x[view_data.train_idx]):<9} | "
-                f"{len(view_data.x[view_data.test_idx]):<9} | "
-                f"{view_data.num_features:<12}"
+                f"\n   {modality + 1:<8} | "
+                f"{len(modality_data.x):<13} | "
+                f"{len(modality_data.x[modality_data.train_idx]):<9} | "
+                f"{len(modality_data.x[modality_data.test_idx]):<9} | "
+                f"{modality_data.num_features:<12}"
             )
 
         modalities_str.append(f"\n   {'-' * 65}\n\n")
