@@ -9,21 +9,21 @@ from kale.utils.seed import set_seed
 
 
 def test_multiomics_datasets():
-    num_view = 3
-    num_class = 2
+    num_modalities = 3
+    num_classes = 2
     url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
     root = "tests/test_data/multiomics/"
     file_names = []
-    for view in range(1, num_view + 1):
-        file_names.append(f"{view}_tr.csv")
-        file_names.append(f"{view}_lbl_tr.csv")
-        file_names.append(f"{view}_te.csv")
-        file_names.append(f"{view}_lbl_te.csv")
+    for modality in range(1, num_modalities + 1):
+        file_names.append(f"{modality}_tr.csv")
+        file_names.append(f"{modality}_lbl_tr.csv")
+        file_names.append(f"{modality}_te.csv")
+        file_names.append(f"{modality}_lbl_te.csv")
 
     dataset = MultiOmicsDataset(
         root=root,
-        num_view=num_view,
-        num_class=num_class,
+        num_modalities=num_modalities,
+        num_classes=num_classes,
         url=url,
         raw_file_names=file_names,
         random_split=False,
@@ -36,19 +36,19 @@ def test_multiomics_datasets():
     assert os.path.isfile(os.path.join(root, "raw/ROSMAP.zip"))
     assert os.path.isfile(os.path.join(root, "processed/data.pt"))
 
-    for view in range(num_view * 4):
+    for modality in range(num_modalities * 4):
         assert os.path.exists(dataset.raw_paths[0])
 
     # Test load preprocessed data
     assert len(dataset) == 1
     dataloader = DataLoader(dataset, batch_size=1)
     next_batch = next(iter(dataloader))
-    assert len(next_batch) == num_view
+    assert len(next_batch) == num_modalities
 
     # Test process method
-    assert dataset.len() == num_view
-    for view in range(num_view):
-        data = dataset.get(view)
+    assert dataset.len() == num_modalities
+    for modality in range(num_modalities):
+        data = dataset.get(modality)
         assert isinstance(data, Data)
         assert len(data.x) == data.num_train + data.num_test
         assert len(data.y) == data.num_train + data.num_test
@@ -57,26 +57,26 @@ def test_multiomics_datasets():
         assert len(data.test_idx) > 0
         assert len(data.test_idx) == data.num_test
 
-    for view in range(num_view):
-        assert dataset.get(view).x.dtype == torch.float
-        assert dataset.get(view).y.dtype == torch.float
+    for modality in range(num_modalities):
+        assert dataset.get(modality).x.dtype == torch.float
+        assert dataset.get(modality).y.dtype == torch.float
 
 
 def test_multiomics_datasets_random_split():
     set_seed(2023)
-    num_view = 3
-    num_class = 2
+    num_modalities = 3
+    num_classes = 2
     url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
     root = "tests/test_data/multiomics/random/"
     file_names = []
-    for view in range(1, num_view + 1):
-        file_names.append(f"{view}_tr.csv")
-        file_names.append(f"{view}_lbl_tr.csv")
+    for modality in range(1, num_modalities + 1):
+        file_names.append(f"{modality}_tr.csv")
+        file_names.append(f"{modality}_lbl_tr.csv")
 
     dataset = MultiOmicsDataset(
         root=root,
-        num_view=num_view,
-        num_class=num_class,
+        num_modalities=num_modalities,
+        num_classes=num_classes,
         url=url,
         raw_file_names=file_names,
         random_split=True,
@@ -89,13 +89,13 @@ def test_multiomics_datasets_random_split():
     assert os.path.isfile(os.path.join(root, "raw/ROSMAP.zip"))
     assert os.path.isfile(os.path.join(root, "processed/data.pt"))
 
-    for view in range(num_view * 4):
+    for modality in range(num_modalities * 4):
         assert os.path.exists(dataset.raw_paths[0])
 
     # Test process method
-    assert dataset.len() == num_view
-    for view in range(num_view):
-        data = dataset.get(view)
+    assert dataset.len() == num_modalities
+    for modality in range(num_modalities):
+        data = dataset.get(modality)
         assert isinstance(data, Data)
         assert len(data.x) == data.num_train + data.num_test
         assert len(data.y) == data.num_train + data.num_test
@@ -106,28 +106,28 @@ def test_multiomics_datasets_random_split():
         assert abs(len(data.test_idx) - 0.3 * len(data.y)) <= 2
         assert len(data.test_idx) == data.num_test
 
-    for view in range(num_view):
-        assert dataset.get(view).x.dtype == torch.float
-        assert dataset.get(view).y.dtype == torch.float
+    for modality in range(num_modalities):
+        assert dataset.get(modality).x.dtype == torch.float
+        assert dataset.get(modality).y.dtype == torch.float
 
 
 def test_sparse_multiomics_datasets():
-    num_view = 3
-    num_class = 2
+    num_modalities = 3
+    num_classes = 2
     url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
     root = "tests/test_data/sparse/"
     file_names = []
-    for view in range(1, num_view + 1):
-        file_names.append(f"{view}_tr.csv")
-        file_names.append(f"{view}_lbl_tr.csv")
-        file_names.append(f"{view}_te.csv")
-        file_names.append(f"{view}_lbl_te.csv")
+    for modality in range(1, num_modalities + 1):
+        file_names.append(f"{modality}_tr.csv")
+        file_names.append(f"{modality}_lbl_tr.csv")
+        file_names.append(f"{modality}_te.csv")
+        file_names.append(f"{modality}_lbl_te.csv")
 
     dataset = SparseMultiOmicsDataset(
         root=root,
         raw_file_names=file_names,
-        num_view=num_view,
-        num_class=num_class,
+        num_modalities=num_modalities,
+        num_classes=num_classes,
         edge_per_node=10,
         url=url,
         random_split=False,
@@ -141,17 +141,17 @@ def test_sparse_multiomics_datasets():
     assert os.path.isfile(os.path.join(root, "raw/ROSMAP.zip"))
     assert os.path.isfile(os.path.join(root, "processed/data.pt"))
 
-    for view in range(num_view * 4):
+    for modality in range(num_modalities * 4):
         assert os.path.exists(dataset.raw_paths[0])
 
-    assert dataset.num_view == num_view
-    assert dataset.num_class == num_class
+    assert dataset.num_modalities == num_modalities
+    assert dataset.num_classes == num_classes
 
     # Test process method
-    assert dataset.len() == num_view
+    assert dataset.len() == num_modalities
 
-    for view in range(num_view):
-        data = dataset.get(view)
+    for modality in range(num_modalities):
+        data = dataset.get(modality)
         assert isinstance(data, Data)
         assert len(data.x) == data.num_train + data.num_test
         assert len(data.y) == data.num_train + data.num_test
@@ -160,13 +160,13 @@ def test_sparse_multiomics_datasets():
         assert len(data.test_idx) > 0
         assert len(data.test_idx) == data.num_test
 
-    for view in range(num_view):
-        assert dataset.get(view).x.dtype == torch.float
-        assert dataset.get(view).y.dtype == torch.float
+    for modality in range(num_modalities):
+        assert dataset.get(modality).x.dtype == torch.float
+        assert dataset.get(modality).y.dtype == torch.float
 
     # Test extend_data method
-    for view in range(num_view):
-        data = dataset.get(view)
+    for modality in range(num_modalities):
+        data = dataset.get(modality)
         assert len(data.train_sample_weight) == len(data.y[data.train_idx])
         assert hasattr(data, "train_sample_weight")
         assert hasattr(data, "edge_index_train")
