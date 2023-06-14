@@ -208,19 +208,19 @@ class VCDN(nn.Module):
 
     Args:
         num_view (int): The total number of modalities in the dataset.
-        num_class (int): The total number of classes in the dataset.
+        num_classes (int): The total number of classes in the dataset.
         hidden_dim (int): Size of the hidden layer.
     """
 
-    def __init__(self, num_view: int, num_class: int, hidden_dim: int) -> None:
+    def __init__(self, num_view: int, num_classes: int, hidden_dim: int) -> None:
         super().__init__()
 
         self.num_view = num_view
-        self.num_class = num_class
+        self.num_classes = num_classes
         self.model = nn.Sequential(
-            nn.Linear(pow(self.num_class, self.num_view), hidden_dim),
+            nn.Linear(pow(self.num_classes, self.num_view), hidden_dim),
             nn.LeakyReLU(0.25),
-            nn.Linear(hidden_dim, self.num_class),
+            nn.Linear(hidden_dim, self.num_classes),
         )
         self.reset_parameters()
 
@@ -234,13 +234,13 @@ class VCDN(nn.Module):
             multimodal_input[view] = torch.sigmoid(multimodal_input[view])
         x = torch.reshape(
             torch.matmul(multimodal_input[0].unsqueeze(-1), multimodal_input[1].unsqueeze(1)),
-            (-1, pow(self.num_class, 2), 1),
+            (-1, pow(self.num_classes, 2), 1),
         )
         for view in range(2, self.num_view):
             x = torch.reshape(
-                torch.matmul(x, multimodal_input[view].unsqueeze(1)), (-1, pow(self.num_class, view + 1), 1)
+                torch.matmul(x, multimodal_input[view].unsqueeze(1)), (-1, pow(self.num_classes, view + 1), 1)
             )
-        input_tensor = torch.reshape(x, (-1, pow(self.num_class, self.num_view)))
+        input_tensor = torch.reshape(x, (-1, pow(self.num_classes, self.num_view)))
         output = self.model(input_tensor)
 
         return output

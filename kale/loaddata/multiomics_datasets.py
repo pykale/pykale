@@ -34,7 +34,7 @@ class MultiOmicsDataset(Dataset):
     Args:
         root (string): Root directory where the dataset should be saved.
         num_view (int): The total number of modalities in the dataset.
-        num_class (int): The total number of classes in the dataset.
+        num_classes (int): The total number of classes in the dataset.
         url (string, optional): The url to download the dataset from.
         raw_file_names (list[callable], optional): The name of the files in the ``self.raw_dir`` folder that must be
             present in order to skip downloading.
@@ -55,7 +55,7 @@ class MultiOmicsDataset(Dataset):
         self,
         root: str,
         num_view: int,
-        num_class: int,
+        num_classes: int,
         url: str = None,
         raw_file_names: List[str] = None,
         random_split: bool = False,
@@ -67,7 +67,7 @@ class MultiOmicsDataset(Dataset):
         self._url = url
         self._raw_file_names = raw_file_names
         self._num_view = num_view
-        self._num_class = num_class
+        self._num_classes = num_classes
         self._random_split = random_split
         self._train_size = train_size
         self._target_pre_transform = target_pre_transform
@@ -103,7 +103,7 @@ class MultiOmicsDataset(Dataset):
                 full_labels = np.loadtxt(self.raw_paths[(view * 2) + 1], delimiter=",")
                 full_labels = full_labels.astype(int)
 
-                train_idx, test_idx = self.get_random_split(full_labels, self._num_class, self._train_size)
+                train_idx, test_idx = self.get_random_split(full_labels, self._num_classes, self._train_size)
                 num_train = len(train_idx)
                 num_tests = len(test_idx)
                 full_labels = (
@@ -172,12 +172,12 @@ class MultiOmicsDataset(Dataset):
         torch.save(data_list, osp.join(self.processed_dir, "data.pt"))
 
     @staticmethod
-    def get_random_split(labels, num_class: int, train_size: float = 0.7) -> Tuple:
+    def get_random_split(labels, num_classes: int, train_size: float = 0.7) -> Tuple:
         """Split arrays into random train and test indices.
 
         Args:
             labels (array-like): Array-like object that represents the labels of the dataset.
-            num_class (int): The total number of classes in the dataset.
+            num_classes (int): The total number of classes in the dataset.
             train_size (float, optional): The proportion of the dataset to include in the train split that should be
                 between 0.0 and 1.0. (default: 0.7)
 
@@ -186,7 +186,7 @@ class MultiOmicsDataset(Dataset):
         """
         train_idx = []
         test_idx = []
-        for c in range(num_class):
+        for c in range(num_classes):
             idx = (labels == c).nonzero()[0]
             idx = idx[torch.randperm(len(idx))]
             num_train = int(len(idx) * train_size)
@@ -249,9 +249,9 @@ class MultiOmicsDataset(Dataset):
         return self._num_view
 
     @property
-    def num_class(self) -> int:
+    def num_classes(self) -> int:
         r"""Returns the number of classes in the dataset."""
-        return self._num_class
+        return self._num_classes
 
 
 class SparseMultiOmicsDataset(MultiOmicsDataset):
@@ -262,7 +262,7 @@ class SparseMultiOmicsDataset(MultiOmicsDataset):
         raw_file_names (list[callable], optional): The name of the files in the ``self.raw_dir`` folder that must be
             present in order to skip downloading.
         num_view (int): The total number of modalities in the dataset.
-        num_class (int): The total number of classes in the dataset.
+        num_classes (int): The total number of classes in the dataset.
         edge_per_node (int): Predefined number of edges per nodes in computing adjacency matrix.
         url (string, optional): The url to download the dataset from.
         random_split (bool, optional): Whether to split the dataset into random train and test subsets. (default:
@@ -284,7 +284,7 @@ class SparseMultiOmicsDataset(MultiOmicsDataset):
         root: str,
         raw_file_names: List[str],
         num_view: int,
-        num_class: int,
+        num_classes: int,
         edge_per_node: int,
         url: str = None,
         random_split: bool = False,
@@ -300,7 +300,7 @@ class SparseMultiOmicsDataset(MultiOmicsDataset):
         super().__init__(
             root,
             num_view,
-            num_class,
+            num_classes,
             url,
             raw_file_names,
             random_split,
@@ -432,7 +432,7 @@ class SparseMultiOmicsDataset(MultiOmicsDataset):
         if self.equal_weight:
             sample_weight = np.ones(len(labels)) / len(labels)
         else:
-            count = np.bincount(labels, minlength=self.num_class)
+            count = np.bincount(labels, minlength=self.num_classes)
             sample_weight = count[labels] / np.sum(count)
 
         sample_weight = torch.tensor(sample_weight, dtype=torch.float)
@@ -443,7 +443,7 @@ class SparseMultiOmicsDataset(MultiOmicsDataset):
         modalities_str = [
             "\nDataset info:",
             f"\n   number of modalities: {self.num_view}",
-            f"\n   number of classes: {self.num_class}",
+            f"\n   number of classes: {self.num_classes}",
             "\n\n   modality | total samples | num train | num test  | num features",
             f"\n   {'-' * 65}",
         ]

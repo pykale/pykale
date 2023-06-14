@@ -29,10 +29,10 @@ class MogonetModel:
     def _create_model(self) -> None:
         """Create MOGONET model via the config file."""
         num_view = self.cfg.DATASET.NUM_VIEW
-        num_class = self.cfg.DATASET.NUM_CLASS
+        num_classes = self.cfg.DATASET.NUM_CLASSES
         gcn_dropout_rate = self.cfg.MODEL.GCN_DROPOUT_RATE
         gcn_hidden_dim = self.cfg.MODEL.GCN_HIDDEN_DIM
-        vcdn_hidden_dim = pow(num_class, num_view)
+        vcdn_hidden_dim = pow(num_classes, num_view)
 
         for view in range(num_view):
             self.modality_encoder.append(
@@ -43,10 +43,10 @@ class MogonetModel:
                 )
             )
 
-            self.modality_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_class))
+            self.modality_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_classes))
 
         if num_view >= 2:
-            self.multi_modality_decoder = VCDN(num_view=num_view, num_class=num_class, hidden_dim=vcdn_hidden_dim)
+            self.multi_modality_decoder = VCDN(num_view=num_view, num_classes=num_classes, hidden_dim=vcdn_hidden_dim)
 
     def get_model(self, pretrain: bool = False) -> ModalityTrainer:
         """Return the prepared MOGONET model based on user preference.
@@ -58,7 +58,7 @@ class MogonetModel:
             ModalityTrainer: The prepared MOGONET model.
         """
         num_view = self.cfg.DATASET.NUM_VIEW
-        num_class = self.cfg.DATASET.NUM_CLASS
+        num_classes = self.cfg.DATASET.NUM_CLASSES
         gcn_lr_pretrain = self.cfg.MODEL.GCN_LR_PRETRAIN
         gcn_lr = self.cfg.MODEL.GCN_LR
         vcdn_lr = self.cfg.MODEL.VCDN_LR
@@ -75,7 +75,7 @@ class MogonetModel:
         model = ModalityTrainer(
             dataset=self.dataset,
             num_view=num_view,
-            num_class=num_class,
+            num_classes=num_classes,
             modality_encoder=self.modality_encoder,
             modality_decoder=self.modality_decoder,
             loss_fn=self.loss_function,

@@ -37,7 +37,7 @@ class ModalityTrainer(pl.LightningModule):
     Args:
         dataset (SparseMultiOmicsDataset): The input dataset created in form of :class:`~torch_geometric.data.Dataset`.
         num_view (int): The total number of modalities in the dataset.
-        num_class (int): The total number of classes in the dataset.
+        num_classes (int): The total number of classes in the dataset.
         modality_encoder (List[MogonetGCN]): The list of GCN encoders for each modality.
         modality_decoder (List[LinearClassifier]): The list of linear classifier decoders for each modality.
         loss_fn (CrossEntropyLoss): The loss function used to gauge the error between the prediction outputs and the
@@ -53,7 +53,7 @@ class ModalityTrainer(pl.LightningModule):
         self,
         dataset: SparseMultiOmicsDataset,
         num_view: int,
-        num_class: int,
+        num_classes: int,
         modality_encoder: List[MogonetGCN],
         modality_decoder: List[LinearClassifier],
         loss_fn: CrossEntropyLoss,
@@ -65,7 +65,7 @@ class ModalityTrainer(pl.LightningModule):
         super().__init__()
         self.dataset = dataset
         self.num_view = num_view
-        self.num_class = num_class
+        self.num_classes = num_classes
         self.modality_encoder = ModuleList(modality_encoder)
         self.modality_decoder = ModuleList(modality_decoder)
         self.multi_modality_decoder = multi_modality_decoder
@@ -183,7 +183,7 @@ class ModalityTrainer(pl.LightningModule):
         final_output = F.softmax(pred_test_data, dim=1).detach().cpu().numpy()
         actual_output = y[0].detach().cpu()
 
-        if self.num_class == 2:
+        if self.num_classes == 2:
             self.log("Accuracy", round(accuracy_score(actual_output, final_output.argmax(1)), 3))
             self.log("F1", round(f1_score(actual_output, final_output.argmax(1)), 3))
             self.log("AUC", round(roc_auc_score(actual_output, final_output[:, 1]), 3))

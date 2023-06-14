@@ -57,7 +57,7 @@ def main():
         root=cfg.DATASET.ROOT,
         raw_file_names=file_names,
         num_view=cfg.DATASET.NUM_VIEW,
-        num_class=cfg.DATASET.NUM_CLASS,
+        num_classes=cfg.DATASET.NUM_CLASSES,
         edge_per_node=cfg.MODEL.EDGE_PER_NODE,
         url=cfg.DATASET.URL,
         random_split=cfg.DATASET.RANDOM_SPLIT,

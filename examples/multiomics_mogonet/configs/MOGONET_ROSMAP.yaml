@@ -2,7 +2,7 @@ DATASET:
   NAME: "ROSMAP"
   URL: "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
   NUM_VIEW: 3
-  NUM_CLASS: 2
+  NUM_CLASSES: 2
 
 SOLVER:
   MAX_EPOCHS_PRETRAIN: 5 # For quick testing
