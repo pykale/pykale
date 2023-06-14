@@ -90,14 +90,6 @@ kale.embed.video\_res3d module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_selayer module
---------------------------------
-
-.. automodule:: kale.embed.video_selayer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.embed.video\_se\_i3d module
 --------------------------------
 
@@ -110,6 +102,14 @@ kale.embed.video\_se\_res3d module
 ----------------------------------
 
 .. automodule:: kale.embed.video_se_res3d
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.embed.video\_selayer module
+--------------------------------
+
+.. automodule:: kale.embed.video_selayer
    :members:
    :undoc-members:
    :show-inheritance:
