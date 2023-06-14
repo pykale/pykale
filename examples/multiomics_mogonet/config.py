@@ -1,3 +1,10 @@
+"""
+Default configurations according to the MOGONET method described in 'MOGONET integrates multi-omics data using
+graph convolutional networks allowing patient classification and biomarker identification'
+- Wang, T., Shao, W., Huang, Z., Tang, H., Zhang, J., Ding, Z., Huang, K. (2021).
+
+https://github.com/txWang/MOGONET/blob/main/main_mogonet.py
+"""
 from yacs.config import CfgNode
 
 # ---------------------------------------------------------
