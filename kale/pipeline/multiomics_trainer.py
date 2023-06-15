@@ -84,7 +84,8 @@ class ModalityTrainer(pl.LightningModule):
         for modality in range(self.num_modalities):
             optimizers.append(
                 torch.optim.Adam(
-                    list(self.modality_encoder[modality].parameters()) + list(self.modality_decoder[modality].parameters()),
+                    list(self.modality_encoder[modality].parameters())
+                    + list(self.modality_decoder[modality].parameters()),
                     lr=self.gcn_lr,
                 )
             )
@@ -105,7 +106,9 @@ class ModalityTrainer(pl.LightningModule):
         output = []
 
         for modality in range(self.num_modalities):
-            output.append(self.modality_decoder[modality](self.modality_encoder[modality](x[modality], adj_t[modality])))
+            output.append(
+                self.modality_decoder[modality](self.modality_encoder[modality](x[modality], adj_t[modality]))
+            )
 
         if not multi_modality:
             return output

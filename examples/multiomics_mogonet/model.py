@@ -46,7 +46,9 @@ class MogonetModel:
             self.modality_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_classes))
 
         if num_modalities >= 2:
-            self.multi_modality_decoder = VCDN(num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim)
+            self.multi_modality_decoder = VCDN(
+                num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim
+            )
 
     def get_model(self, pretrain: bool = False) -> ModalityTrainer:
         """Return the prepared MOGONET model based on user preference.
