@@ -7,7 +7,7 @@ Submodules
 ----------
 
 kale.utils.distance module
------------------------------
+--------------------------
 
 .. automodule:: kale.utils.distance
    :members:

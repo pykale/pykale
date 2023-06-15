@@ -39,7 +39,7 @@ kale.prepdata.supergraph\_construct module
    :show-inheritance:
 
 kale.prepdata.tabular\_transform module
-------------------------------------------
+---------------------------------------
 
 .. automodule:: kale.prepdata.tabular_transform
    :members:
