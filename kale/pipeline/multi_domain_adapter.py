@@ -80,7 +80,7 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
     def compute_loss(self, batch, split_name="valid"):
         raise NotImplementedError("Loss needs to be defined.")
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self, outputs):
         metrics_to_log = (
             "valid_loss",
             "valid_source_acc",
@@ -89,7 +89,7 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 
-    def test_epoch_end(self, outputs):
+    def on_test_epoch_end(self, outputs):
         metrics_at_test = (
             "test_loss",
             "test_source_acc",

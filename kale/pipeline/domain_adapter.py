@@ -390,7 +390,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         #     "log": log_dict,
         # }
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self, outputs):
         metrics_to_log = (
             "valid_loss",
             "valid_source_acc",
@@ -404,7 +404,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_metrics["test_loss"] = loss
         return log_metrics
 
-    def test_epoch_end(self, outputs):
+    def on_test_epoch_end(self, outputs):
         metrics_at_test = (
             "test_loss",
             "test_source_acc",
@@ -519,7 +519,7 @@ class BaseDANNLike(BaseAdaptTrainer):
         }
         return task_loss, adv_loss, log_metrics
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self, outputs):
         metrics_to_log = (
             "valid_loss",
             "valid_task_loss",
@@ -532,7 +532,7 @@ class BaseDANNLike(BaseAdaptTrainer):
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 
-    def test_epoch_end(self, outputs):
+    def on_test_epoch_end(self, outputs):
         metrics_at_test = (
             "test_loss",
             "test_source_acc",
@@ -1052,7 +1052,7 @@ class BaseMMDLike(BaseAdaptTrainer):
         }
         return task_loss, mmd, log_metrics
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self, outputs):
         metrics_to_log = (
             "valid_loss",
             "valid_source_acc",
@@ -1061,7 +1061,7 @@ class BaseMMDLike(BaseAdaptTrainer):
         )
         return self._validation_epoch_end(outputs, metrics_to_log)
 
-    def test_epoch_end(self, outputs):
+    def on_test_epoch_end(self, outputs):
         metrics_at_test = (
             "test_loss",
             "test_source_acc",

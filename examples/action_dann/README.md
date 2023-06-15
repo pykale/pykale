@@ -12,15 +12,15 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 
 For training (using 1 GPU):
 
-`python main.py --cfg configs/EPIC-D12D2-DANN.yaml --gpus 1`
+`python main.py --cfg configs/EPIC-D12D2-DANN.yaml --devices 1`
 
-`python main.py --cfg configs/EPIC-D12D2-CDAN.yaml --gpus 1`
+`python main.py --cfg configs/EPIC-D12D2-CDAN.yaml --devices 1`
 
-`python main.py --cfg configs/EPIC-D12D2-DAN.yaml --gpus 1`
+`python main.py --cfg configs/EPIC-D12D2-DAN.yaml --devices 1`
 
 For test:
 
-`python test.py --cfg configs/EPIC-D12D2-DANN.yaml --gpus 1 --ckpt your_pretrained_model.ckpt `
+`python test.py --cfg configs/EPIC-D12D2-DANN.yaml --devices 1 --ckpt your_pretrained_model.ckpt `
 
 ### 3. Related `kale` API
 

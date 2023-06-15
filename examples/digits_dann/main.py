@@ -22,7 +22,7 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Digits Datasets")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument(
-        "--gpus",
+        "--devices",
         default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
@@ -74,8 +74,8 @@ def main():
         trainer = pl.Trainer(
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
-            accelerator="gpu" if args.gpus != 0 else "cpu",
-            devices=args.gpus,
+            accelerator="gpu" if args.devices != 0 else "cpu",
+            devices=args.devices,
             callbacks=[checkpoint_callback, progress_bar],
             logger=tb_logger,
         )
