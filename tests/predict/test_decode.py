@@ -54,10 +54,10 @@ def test_linear_classifier_parameter_initialization():
 
 @pytest.fixture
 def vcdn():
-    num_modalities = 3
-    num_classes = 4
-    hidden_dim = pow(num_classes, num_modalities)
-    return VCDN(num_modalities=num_modalities, num_classes=num_classes, hidden_dim=hidden_dim)
+    num_view = 3
+    num_class = 4
+    hidden_dim = pow(num_class, num_view)
+    return VCDN(num_view=num_view, num_class=num_class, hidden_dim=hidden_dim)
 
 
 def test_vcdn_forward(vcdn):
