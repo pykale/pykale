@@ -23,7 +23,7 @@ kale.embed.factorization module
    :show-inheritance:
 
 kale.embed.gcn module
-----------------------------
+---------------------
 
 .. automodule:: kale.embed.gcn
    :members:
@@ -32,7 +32,7 @@ kale.embed.gcn module
    :exclude-members: message, update
 
 kale.embed.gripnet module
-----------------------------
+-------------------------
 
 .. automodule:: kale.embed.gripnet
    :members:
@@ -66,7 +66,7 @@ kale.embed.positional\_encoding module
    :show-inheritance:
 
 kale.embed.seq\_nn module
---------------------------------
+-------------------------
 
 .. automodule:: kale.embed.seq_nn
    :members:
@@ -98,14 +98,6 @@ kale.embed.video\_res3d module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_selayer module
---------------------------------
-
-.. automodule:: kale.embed.video_selayer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.embed.video\_se\_i3d module
 --------------------------------
 
@@ -118,6 +110,14 @@ kale.embed.video\_se\_res3d module
 ----------------------------------
 
 .. automodule:: kale.embed.video_se_res3d
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.embed.video\_selayer module
+--------------------------------
+
+.. automodule:: kale.embed.video_selayer
    :members:
    :undoc-members:
    :show-inheritance:

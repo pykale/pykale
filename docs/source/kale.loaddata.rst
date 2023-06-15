@@ -14,16 +14,8 @@ kale.loaddata.dataset\_access module
    :undoc-members:
    :show-inheritance:
 
-kale.loaddata.videos module
----------------------------
-
-.. automodule:: kale.loaddata.videos
-   :members:
-   :exclude-members: VideoRecord
-   :show-inheritance:
-
 kale.loaddata.image\_access
-------------------------------------------
+---------------------------
 
 .. automodule:: kale.loaddata.image_access
    :members:
@@ -31,7 +23,7 @@ kale.loaddata.image\_access
    :show-inheritance:
 
 kale.loaddata.mnistm module
------------------------------------
+---------------------------
 
 .. automodule:: kale.loaddata.mnistm
    :members:
@@ -78,6 +70,14 @@ kale.loaddata.tdc\_datasets module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.usps module
+-------------------------
+
+.. automodule:: kale.loaddata.usps
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.video\_access module
 ----------------------------------
 
@@ -95,11 +95,19 @@ kale.loaddata.video\_datasets module
    :show-inheritance:
 
 kale.loaddata.video\_multi\_domain module
-------------------------------------------
+-----------------------------------------
 
 .. automodule:: kale.loaddata.video_multi_domain
    :members:
    :undoc-members:
+   :show-inheritance:
+
+kale.loaddata.videos module
+---------------------------
+
+.. automodule:: kale.loaddata.videos
+   :members:
+   :exclude-members: VideoRecord
    :show-inheritance:
 
 Module contents

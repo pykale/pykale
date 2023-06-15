@@ -14,6 +14,14 @@ kale.prepdata.chem\_transform module
    :undoc-members:
    :show-inheritance:
 
+kale.prepdata.graph\_negative\_sampling module
+----------------------------------------------
+
+.. automodule:: kale.prepdata.graph_negative_sampling
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.prepdata.image\_transform module
 -------------------------------------
 
