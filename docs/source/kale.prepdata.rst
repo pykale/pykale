@@ -38,14 +38,6 @@ kale.prepdata.supergraph\_construct module
    :undoc-members:
    :show-inheritance:
 
-kale.prepdata.tabular\_transform module
----------------------------------------
-
-.. automodule:: kale.prepdata.tabular_transform
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.prepdata.tensor\_reshape module
 ------------------------------------
 
@@ -58,9 +50,9 @@ kale.prepdata.video\_transform module
 -------------------------------------
 
 .. automodule:: kale.prepdata.video_transform
-    :members:
-    :exclude-members:
-    :show-inheritance:
+	:members:
+	:exclude-members:
+	:show-inheritance:
 
 Module contents
 ---------------

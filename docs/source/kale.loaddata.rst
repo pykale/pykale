@@ -31,33 +31,25 @@ kale.loaddata.mnistm module
    :show-inheritance:
 
 kale.loaddata.multi\_domain module
------------------------------------
+----------------------------------
 
 .. automodule:: kale.loaddata.multi_domain
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.loaddata.multiomics\_datasets module
----------------------------------------------
+kale.loaddata.polypharmacy\_datasets module
+-------------------------------------------
 
-.. automodule:: kale.loaddata.multiomics_datasets
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-kale.loaddata.sampler module
------------------------------------
-
-.. automodule:: kale.loaddata.sampler
+.. automodule:: kale.loaddata.polypharmacy_datasets
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.loaddata.usps module
------------------------------------
+kale.loaddata.sampler module
+----------------------------
 
-.. automodule:: kale.loaddata.usps
+.. automodule:: kale.loaddata.sampler
    :members:
    :undoc-members:
    :show-inheritance:
