@@ -52,14 +52,18 @@ def test_model():
     for modality in range(num_modalities):
         modality_encoder.append(
             MogonetGCN(
-                in_channels=dataset.get(modality).num_features, hidden_channels=gcn_hidden_dim, dropout=gcn_dropout_rate,
+                in_channels=dataset.get(modality).num_features,
+                hidden_channels=gcn_hidden_dim,
+                dropout=gcn_dropout_rate,
             )
         )
 
         modality_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_classes))
 
     if num_modalities >= 2:
-        multi_modality_decoder = VCDN(num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim)
+        multi_modality_decoder = VCDN(
+            num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim
+        )
 
     trainer = ModalityTrainer(
         dataset=dataset,
@@ -118,14 +122,18 @@ def test_model_multi_class():
     for modality in range(num_modalities):
         modality_encoder.append(
             MogonetGCN(
-                in_channels=dataset.get(modality).num_features, hidden_channels=gcn_hidden_dim, dropout=gcn_dropout_rate,
+                in_channels=dataset.get(modality).num_features,
+                hidden_channels=gcn_hidden_dim,
+                dropout=gcn_dropout_rate,
             )
         )
 
         modality_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_classes))
 
     if num_modalities >= 2:
-        multi_modality_decoder = VCDN(num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim)
+        multi_modality_decoder = VCDN(
+            num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim
+        )
 
     trainer = ModalityTrainer(
         dataset=dataset,
