@@ -36,7 +36,7 @@ def main():
     seed.set_seed(cfg.SOLVER.SEED)
 
     # ---- setup dataset and data loader ----
-    train_dataset = PolypharmacyDataset(cfg.DATASET, mode="train")
+    train_dataset = PolypharmacyDataset(cfg.DATASET.URL, cfg.DATASET.ROOT, cfg.DATASET.NAME, mode="train")
     dataloader_train = DataLoader(train_dataset, batch_size=1)
 
     # ---- setup supergraph ----

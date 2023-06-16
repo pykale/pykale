@@ -7,7 +7,7 @@ Submodules
 ----------
 
 kale.interpret.model\_weights module
-----------------------------------------
+------------------------------------
 
 .. automodule:: kale.interpret.model_weights
    :members:
@@ -15,7 +15,7 @@ kale.interpret.model\_weights module
    :show-inheritance:
 
 kale.interpret.visualize module
-----------------------------------------
+-------------------------------
 
 .. automodule:: kale.interpret.visualize
    :members:
