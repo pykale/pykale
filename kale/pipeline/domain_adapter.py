@@ -297,14 +297,14 @@ class BaseAdaptTrainer(pl.LightningModule):
         if self._adapt_lambda:
             self.lamb_da = self._init_lambda * self._grow_fact
 
-    def get_parameters_watch_list(self):
-        """
-        Update this list for parameters to watch while training (ie log with MLFlow)
-        """
-        return {
-            "lambda": self.lamb_da,
-            "last_epoch": self.current_epoch,
-        }
+    # def get_parameters_watch_list(self):
+    #     """
+    #     Update this list for parameters to watch while training (ie log with MLFlow)
+    #     """
+    #     return {
+    #         "lambda": self.lamb_da,
+    #         "last_epoch": self.current_epoch,
+    #     }
 
     def forward(self, x):
         raise NotImplementedError("Forward pass needs to be defined.")
@@ -353,20 +353,20 @@ class BaseAdaptTrainer(pl.LightningModule):
         else:
             loss = task_loss + self.lamb_da * adv_loss
 
-        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
-        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
+        # log_metrics = get_aggregated_metrics_from_dict(log_metrics)
+        # log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
         log_metrics["train_total_loss"] = loss
         log_metrics["train_adv_loss"] = adv_loss
         log_metrics["train_task_loss"] = task_loss
 
-        for key in log_metrics:
-            self.log(key, log_metrics[key])
+        # for key in log_metrics:
+        #     self.log(key, log_metrics[key])
 
-        return {
-            "loss": loss,  # required, for backward pass
-            # "progress_bar": {"class_loss": task_loss},
-            # "log": log_metrics,
-        }
+        self.log_dict(log_metrics, on_step=True, on_epoch=True, logger=True)
+        self.log("alpha", self.alpha, on_step=False, on_epoch=True, logger=True)
+        self.log("lambda", self.lamb_da, on_step=False, on_epoch=True, logger=True)
+
+        return loss  # required, for backward pass
 
     def validation_step(self, batch, batch_nb):
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="valid")
@@ -374,52 +374,56 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_metrics["valid_loss"] = loss
         log_metrics["valid_task_loss"] = task_loss
         log_metrics["valid_adv_loss"] = adv_loss
-        return log_metrics
+        self.log_dict(log_metrics, on_step=False, on_epoch=True, logger=True)
 
-    def _validation_epoch_end(self, outputs, metrics_at_valid):
-        log_dict = get_aggregated_metrics(metrics_at_valid, outputs)
-        device = outputs[0].get("valid_loss").device
-        log_dict.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), device))
+        # return log_metrics
 
-        for key in log_dict:
-            self.log(key, log_dict[key], prog_bar=True)
+    # def _validation_epoch_end(self, outputs, metrics_at_valid):
+    #     log_dict = get_aggregated_metrics(metrics_at_valid, outputs)
+    #     device = outputs[0].get("valid_loss").device
+    #     log_dict.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), device))
+    #
+    #     for key in log_dict:
+    #         self.log(key, log_dict[key], prog_bar=True)
 
-        # return {
-        #     "valid_loss": avg_loss,  # for callbacks (eg early stopping)
-        #     "progress_bar": {"valid_loss": avg_loss},
-        #     "log": log_dict,
-        # }
+    # return {
+    #     "valid_loss": avg_loss,  # for callbacks (eg early stopping)
+    #     "progress_bar": {"valid_loss": avg_loss},
+    #     "log": log_dict,
+    # }
 
-    def on_validation_epoch_end(self, outputs):
-        metrics_to_log = (
-            "valid_loss",
-            "valid_source_acc",
-            "valid_target_acc",
-        )
-        return self._validation_epoch_end(outputs, metrics_to_log)
+    # def on_validation_epoch_end(self):
+    #     metrics_to_log = (
+    #         "valid_loss",
+    #         "valid_source_acc",
+    #         "valid_target_acc",
+    #     )
+    # return self._validation_epoch_end(outputs, metrics_to_log)
 
     def test_step(self, batch, batch_nb):
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="test")
         loss = task_loss + self.lamb_da * adv_loss
         log_metrics["test_loss"] = loss
-        return log_metrics
+        log_metrics["test_task_loss"] = task_loss
+        log_metrics["test_adv_loss"] = adv_loss
+        self.log_dict(log_metrics, on_step=False, on_epoch=True, logger=True)
 
-    def on_test_epoch_end(self, outputs):
-        metrics_at_test = (
-            "test_loss",
-            "test_source_acc",
-            "test_target_acc",
-        )
-        log_dict = get_aggregated_metrics(metrics_at_test, outputs)
+    # def on_test_epoch_end(self, outputs):
+    #     metrics_at_test = (
+    #         "test_loss",
+    #         "test_source_acc",
+    #         "test_target_acc",
+    #     )
+    #     log_dict = get_aggregated_metrics(metrics_at_test, outputs)
+    #
+    #     for key in log_dict:
+    #         self.log(key, log_dict[key], prog_bar=True)
 
-        for key in log_dict:
-            self.log(key, log_dict[key], prog_bar=True)
-
-        # return {
-        #     "avg_test_loss": log_dict["test_loss"],
-        #     "progress_bar": log_dict,
-        #     "log": log_dict,
-        # }
+    # return {
+    #     "avg_test_loss": log_dict["test_loss"],
+    #     "progress_bar": log_dict,
+    #     "log": log_dict,
+    # }
 
     def _configure_optimizer(self, parameters):
         if self._optimizer_params is None:
@@ -480,13 +484,13 @@ class BaseDANNLike(BaseAdaptTrainer):
 
         self.domain_classifier = critic
 
-    def get_parameters_watch_list(self):
-        """
-        Update this list for parameters to watch while training (ie log with MLFlow)
-        """
-        param_list = super().get_parameters_watch_list()
-        param_list.update({"alpha": self.alpha, "entropy_reg": self._entropy_reg})
-        return param_list
+    # def get_parameters_watch_list(self):
+    #     """
+    #     Update this list for parameters to watch while training (ie log with MLFlow)
+    #     """
+    #     param_list = super().get_parameters_watch_list()
+    #     param_list.update({"alpha": self.alpha, "entropy_reg": self._entropy_reg})
+    #     return param_list
 
     def _update_batch_epoch_factors(self, batch_id):
         super()._update_batch_epoch_factors(batch_id)
@@ -504,51 +508,58 @@ class BaseDANNLike(BaseAdaptTrainer):
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
 
         loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
         loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
+
+        dok = torch.cat((dok_src, dok_tgt)).double().mean()
+        dok_src = dok_src.double().mean()
+        dok_tgt = dok_tgt.double().mean()
+
         adv_loss = loss_dmn_src + loss_dmn_tgt
         task_loss = loss_cls
 
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
+            f"{split_name}_domain_acc": dok,
             f"{split_name}_source_domain_acc": dok_src,
             f"{split_name}_target_domain_acc": dok_tgt,
         }
         return task_loss, adv_loss, log_metrics
 
-    def on_validation_epoch_end(self, outputs):
-        metrics_to_log = (
-            "valid_loss",
-            "valid_task_loss",
-            "valid_adv_loss",
-            "valid_source_acc",
-            "valid_target_acc",
-            "valid_source_domain_acc",
-            "valid_target_domain_acc",
-            "valid_domain_acc",
-        )
-        return self._validation_epoch_end(outputs, metrics_to_log)
+    # def on_validation_epoch_end(self, outputs):
+    #     metrics_to_log = (
+    #         "valid_loss",
+    #         "valid_task_loss",
+    #         "valid_adv_loss",
+    #         "valid_source_acc",
+    #         "valid_target_acc",
+    #         "valid_source_domain_acc",
+    #         "valid_target_domain_acc",
+    #         "valid_domain_acc",
+    #     )
+    #     return self._validation_epoch_end(outputs, metrics_to_log)
 
-    def on_test_epoch_end(self, outputs):
-        metrics_at_test = (
-            "test_loss",
-            "test_source_acc",
-            "test_target_acc",
-            "test_domain_acc",
-        )
-        log_dict = get_aggregated_metrics(metrics_at_test, outputs)
+    # def on_test_epoch_end(self, outputs):
+    #     metrics_at_test = (
+    #         "test_loss",
+    #         "test_source_acc",
+    #         "test_target_acc",
+    #         "test_domain_acc",
+    #     )
+    #     log_dict = get_aggregated_metrics(metrics_at_test, outputs)
+    #
+    #     for key in log_dict:
+    #         self.log(key, log_dict[key], prog_bar=True)
 
-        for key in log_dict:
-            self.log(key, log_dict[key], prog_bar=True)
-
-        # return {
-        #     "avg_test_loss": log_dict["test_loss"],
-        #     "progress_bar": log_dict,
-        #     "log": log_dict,
-        # }
+    # return {
+    #     "avg_test_loss": log_dict["test_loss"],
+    #     "progress_bar": log_dict,
+    #     "log": log_dict,
+    # }
 
 
 class DANNTrainer(BaseDANNLike):
@@ -652,6 +663,8 @@ class CDANTrainer(BaseDANNLike):
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
 
         if self.entropy:
             e_s = self._compute_entropy_weights(y_hat)
@@ -665,13 +678,17 @@ class CDANTrainer(BaseDANNLike):
         loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size), source_weight)
         loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)), target_weight)
 
+        dok = torch.cat((dok_src, dok_tgt)).double().mean()
+        dok_src = dok_src.double().mean()
+        dok_tgt = dok_tgt.double().mean()
+
         adv_loss = loss_dmn_src + loss_dmn_tgt
         task_loss = loss_cls
 
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
+            f"{split_name}_domain_acc": dok,
             f"{split_name}_source_domain_acc": dok_src,
             f"{split_name}_target_domain_acc": dok_tgt,
         }
