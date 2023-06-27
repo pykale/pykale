@@ -65,6 +65,15 @@ _C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
 _C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
 _C.OUTPUT.OUT_DIR = os.path.join("outputs", _C.DATASET.SOURCE + "2" + _C.DATASET.TARGET)
 
+# -----------------------------------------------------------------------------
+# Comet Logger (optional) - https://www.comet.ml/site/
+# -----------------------------------------------------------------------------
+_C.COMET = CN()
+_C.COMET.ENABLE = False  # Set True to enable Comet logging (requires an API key).
+_C.COMET.API_KEY = ""  # Your Comet API key
+_C.COMET.PROJECT_NAME = "Digit DANN"
+_C.COMET.EXPERIMENT_NAME = "DigitDANN"
+
 
 def get_cfg_defaults():
     return _C.clone()
