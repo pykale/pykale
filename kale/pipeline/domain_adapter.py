@@ -362,9 +362,11 @@ class BaseAdaptTrainer(pl.LightningModule):
         # for key in log_metrics:
         #     self.log(key, log_metrics[key])
 
-        self.log_dict(log_metrics, on_step=True, on_epoch=True, logger=True)
-        self.log("alpha", self.alpha, on_step=False, on_epoch=True, logger=True)
-        self.log("lambda", self.lamb_da, on_step=False, on_epoch=True, logger=True)
+        self.log_dict(log_metrics, on_step=True, on_epoch=True)
+
+        # logging alpha and lambda when they exist (they exist for DANN and CDAN but not for DAN and JAN)
+        self.log("alpha", self.alpha, on_step=False, on_epoch=True) if hasattr(self, "alpha") else None
+        self.log("lambda", self.lamb_da, on_step=False, on_epoch=True) if hasattr(self, "lamb_da") else None
 
         return loss  # required, for backward pass
 
@@ -374,7 +376,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_metrics["valid_loss"] = loss
         log_metrics["valid_task_loss"] = task_loss
         log_metrics["valid_adv_loss"] = adv_loss
-        self.log_dict(log_metrics, on_step=False, on_epoch=True, logger=True)
+        self.log_dict(log_metrics, on_step=False, on_epoch=True)
 
         # return log_metrics
 
@@ -406,7 +408,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_metrics["test_loss"] = loss
         log_metrics["test_task_loss"] = task_loss
         log_metrics["test_adv_loss"] = adv_loss
-        self.log_dict(log_metrics, on_step=False, on_epoch=True, logger=True)
+        self.log_dict(log_metrics, on_step=False, on_epoch=True)
 
     # def on_test_epoch_end(self, outputs):
     #     metrics_at_test = (
@@ -1058,6 +1060,8 @@ class BaseMMDLike(BaseAdaptTrainer):
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
 
         mmd = self._compute_mmd(phi_s, phi_t, y_hat, y_t_hat)
         task_loss = loss_cls
@@ -1069,32 +1073,32 @@ class BaseMMDLike(BaseAdaptTrainer):
         }
         return task_loss, mmd, log_metrics
 
-    def on_validation_epoch_end(self, outputs):
-        metrics_to_log = (
-            "valid_loss",
-            "valid_source_acc",
-            "valid_target_acc",
-            "valid_domain_acc",
-        )
-        return self._validation_epoch_end(outputs, metrics_to_log)
+    # def on_validation_epoch_end(self, outputs):
+    #     metrics_to_log = (
+    #         "valid_loss",
+    #         "valid_source_acc",
+    #         "valid_target_acc",
+    #         "valid_domain_acc",
+    #     )
+    #     return self._validation_epoch_end(outputs, metrics_to_log)
 
-    def on_test_epoch_end(self, outputs):
-        metrics_at_test = (
-            "test_loss",
-            "test_source_acc",
-            "test_target_acc",
-            "test_domain_acc",
-        )
-        log_dict = get_aggregated_metrics(metrics_at_test, outputs)
+    # def on_test_epoch_end(self, outputs):
+    #     metrics_at_test = (
+    #         "test_loss",
+    #         "test_source_acc",
+    #         "test_target_acc",
+    #         "test_domain_acc",
+    #     )
+    #     log_dict = get_aggregated_metrics(metrics_at_test, outputs)
+    #
+    #     for key in log_dict:
+    #         self.log(key, log_dict[key], prog_bar=True)
 
-        for key in log_dict:
-            self.log(key, log_dict[key], prog_bar=True)
-
-        # return {
-        #     "avg_test_loss": log_dict["test_loss"],
-        #     "progress_bar": log_dict,
-        #     "log": log_dict,
-        # }
+    # return {
+    #     "avg_test_loss": log_dict["test_loss"],
+    #     "progress_bar": log_dict,
+    #     "log": log_dict,
+    # }
 
 
 class DANTrainer(BaseMMDLike):
