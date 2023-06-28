@@ -745,9 +745,15 @@ class WDGRLTrainer(BaseDANNLike):
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
 
         _, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
         _, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)))
+
+        dok = torch.cat((dok_src, dok_tgt)).double().mean()
+        dok_src = dok_src.double().mean()
+        dok_tgt = dok_tgt.double().mean()
 
         wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
         adv_loss = wasserstein_distance
@@ -756,7 +762,7 @@ class WDGRLTrainer(BaseDANNLike):
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
+            f"{split_name}_domain_acc": dok,
             f"{split_name}_source_domain_acc": dok_src,
             f"{split_name}_target_domain_acc": dok_tgt,
             f"{split_name}_wasserstein_dist": wasserstein_distance,
@@ -804,19 +810,19 @@ class WDGRLTrainer(BaseDANNLike):
         else:
             loss = task_loss + self.lamb_da * adv_loss
 
-        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
-        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
+        # log_metrics = get_aggregated_metrics_from_dict(log_metrics)
+        # log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
         log_metrics["train_total_loss"] = loss
+        log_metrics["train_adv_loss"] = adv_loss
         log_metrics["train_task_loss"] = task_loss
 
-        for key in log_metrics:
-            self.log(key, log_metrics[key])
+        self.log_dict(log_metrics, on_step=True, on_epoch=True)
 
-        return {
-            "loss": loss,  # required, for backward pass
-            # "progress_bar": {"class_loss": task_loss},
-            # "log": log_metrics,
-        }
+        # logging alpha and lambda when they exist (they exist for DANN and CDAN but not for DAN and JAN)
+        self.log("alpha", self.alpha, on_step=False, on_epoch=True) if hasattr(self, "alpha") else None
+        self.log("lambda", self.lamb_da, on_step=False, on_epoch=True) if hasattr(self, "lamb_da") else None
+
+        return loss  # required, for backward pass
 
     def configure_optimizers(self):
         nets = [self.feat, self.classifier]
