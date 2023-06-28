@@ -362,7 +362,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         # for key in log_metrics:
         #     self.log(key, log_metrics[key])
 
-        self.log_dict(log_metrics, on_step=True, on_epoch=True)
+        self.log_dict(log_metrics, on_step=True, on_epoch=False)
 
         # logging alpha and lambda when they exist (they exist for DANN and CDAN but not for DAN and JAN)
         self.log("alpha", self.alpha, on_step=False, on_epoch=True) if hasattr(self, "alpha") else None
@@ -816,7 +816,7 @@ class WDGRLTrainer(BaseDANNLike):
         log_metrics["train_adv_loss"] = adv_loss
         log_metrics["train_task_loss"] = task_loss
 
-        self.log_dict(log_metrics, on_step=True, on_epoch=True)
+        self.log_dict(log_metrics, on_step=True, on_epoch=False)
 
         # logging alpha and lambda when they exist (they exist for DANN and CDAN but not for DAN and JAN)
         self.log("alpha", self.alpha, on_step=False, on_epoch=True) if hasattr(self, "alpha") else None
