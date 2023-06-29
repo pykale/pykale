@@ -5,7 +5,7 @@ References: 1. https://github.com/pliang279/MultiBench/blob/main/examples/multim
             3. https://github.com/pliang279/MultiBench/blob/main/examples/multimedia/avmnist_multi_interac_matrix.py
 """
 
-from kale.embed.feature_fusion import Concat, LowRankTensorFusion, BimodalMatrixFusionInteractor
+from kale.embed.feature_fusion import BimodalMatrixFusionInteractor, Concat, LowRankTensorFusion
 from kale.embed.image_cnn import LeNet
 from kale.pipeline.base_nn_trainer import MultimodalTrainer
 from kale.pipeline.multimodal_deep_learning import MultimodalDeepLearning
