@@ -165,8 +165,9 @@ class CNNTransformerTrainer(BaseNNTrainer):
 
 
 class MultimodalTrainer(pl.LightningModule):
-    """PyTorch Lightning trainer for MultimodalTrainer.
-
+    """MultimodalTrainer, serves as a PyTorch Lightning trainer for multimodal models. It is designed to handle training, validation, and testing steps for multimodal data using specified models, optimization algorithms, and loss functions.
+       For each training, validation, and test step, the trainer class computes the model's loss and accuracy and logs these metrics. This trainer simplifies the process of training complex multimodal models, allowing the user to focus on model architecture and hyperparameter tuning.
+       This trainer is flexible and can be used with various models, optimizers, and loss functions, enabling its use across a wide range of multimodal learning tasks.
     Args:
         model (torch.nn.Module): The PyTorch model to train.
         is_packed (bool, optional): A flag indicating if sequences are packed (variable length sequences). Defaults to False.
@@ -201,7 +202,6 @@ class MultimodalTrainer(pl.LightningModule):
         else:
             truth1 = batch[-1]
         loss = self.objective(out, truth1.long())
-        # calculate accuracy
         pred = torch.argmax(out, dim=1)
         accuracy = accuracy_score(truth1.cpu().numpy(), pred.cpu().numpy())
 

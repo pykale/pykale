@@ -361,7 +361,10 @@ class ResNet152Feature(nn.Module):
 
 
 class LeNet(nn.Module):
-    """A simple CNN feature extractor for image and audio modality.
+    """LeNet is a customizable Convolutional Neural Network (CNN) model based on the LeNet architecture, designed for feature extraction from image and audio modalities.
+       LeNet supports several layers of 2D convolution, followed by batch normalization, max pooling, and adaptive average pooling, with a configurable number of channels. The depth of the network (number of convolutional blocks) is adjustable with the 'additional_layers' parameter.
+       An optional linear layer can be added at the end for further transformation of the output, which could be useful for various tasks such as classification or regression. The 'output_each_layer' option allows for returning the output of each layer instead of just the final output, which can be beneficial for certain tasks or for analyzing the intermediate representations learned by the network.
+       By default, the output tensor is squeezed before being returned, removing dimensions of size one, but this can be configured with the 'squeeze_output' parameter.
 
     Args:
         input_channels (int): Input channel number.
