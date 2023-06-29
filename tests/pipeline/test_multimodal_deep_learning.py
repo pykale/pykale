@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from kale.pipeline.multimodal_deep_learning import MultiModalDeepLearning
+from kale.pipeline.multimodal_deep_learning import MultimodalDeepLearning
 
 
 class _TestEncoder(nn.Module):
@@ -36,7 +36,7 @@ def test_multimodal_module():
     encoders = [_TestEncoder(10, 32), _TestEncoder(15, 32)]
     fusion = _TestFusion(64, 64)
     head = _TestClassifier(64, 3)
-    model = MultiModalDeepLearning(encoders, fusion, head)
+    model = MultimodalDeepLearning(encoders, fusion, head)
 
     input1 = torch.randn(32, 10)
     input2 = torch.randn(32, 15)

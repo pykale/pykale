@@ -164,8 +164,8 @@ class CNNTransformerTrainer(BaseNNTrainer):
         return [optimizer]
 
 
-class MultiModalTrainer(pl.LightningModule):
-    """PyTorch Lightning trainer for MultiModalTrainer.
+class MultimodalTrainer(pl.LightningModule):
+    """PyTorch Lightning trainer for MultimodalTrainer.
 
     Args:
         model (torch.nn.Module): The PyTorch model to train.
@@ -179,7 +179,7 @@ class MultiModalTrainer(pl.LightningModule):
     def __init__(
         self, model, is_packed=False, optim=torch.optim.SGD, lr=0.001, weight_decay=0.0, objective=nn.CrossEntropyLoss()
     ):
-        super(MultiModalTrainer, self).__init__()
+        super(MultimodalTrainer, self).__init__()
         self.model = model
         self.is_packed = is_packed
         self.optim = optim

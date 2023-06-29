@@ -21,13 +21,13 @@ class Concat(nn.Module):
         return torch.cat(flattened, dim=1)
 
 
-class MultiplicativeInteractions2Modal(nn.Module):
-    """Implements Tensor Matrix fusion.
+class BimodalMatrixFusionInteractor(nn.Module):
+    """Implements BimodalMatrixFusionInteractor fusion.
 
     Args:
         input_dims (int): list or tuple of 2 integers indicating input dimensions of the 2 modalities
         output_dim (int): output dimension
-        output (str): type of Multiplicative Interactions, options from 'matrix','vector','scalar'
+        output (str): type of BimodalMatrix Interactions, options from 'matrix','vector','scalar'
         flatten (bool): whether we need to flatten the input modalities
         clip (tuple, optional): clip parameter values, None if no clip
         grad_clip (tuple, optional): clip grad values, None if no clip
@@ -36,7 +36,7 @@ class MultiplicativeInteractions2Modal(nn.Module):
     """
 
     def __init__(self, input_dims, output_dim, output, flatten=False, clip=None, grad_clip=None, flip=False):
-        super(MultiplicativeInteractions2Modal, self).__init__()
+        super(BimodalMatrixFusionInteractor, self).__init__()
         self.input_dims = input_dims
         self.clip = clip
         self.output_dim = output_dim

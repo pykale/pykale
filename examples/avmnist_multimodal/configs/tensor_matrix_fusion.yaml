@@ -1,5 +1,0 @@
-MODEL:
-  FUSION: "tensor_matrix"
-
-OUTPUT:
-  OUT_DIR: './outputs/tensor_matrix_fusion'

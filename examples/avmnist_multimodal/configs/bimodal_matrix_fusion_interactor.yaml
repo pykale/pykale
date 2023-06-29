@@ -1,0 +1,5 @@
+MODEL:
+  FUSION: "bimodal_matrix_fusion_interactor"
+
+OUTPUT:
+  OUT_DIR: './outputs/bimodal_matrix_fusion_interactor'

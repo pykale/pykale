@@ -5,10 +5,10 @@ References: 1. https://github.com/pliang279/MultiBench/blob/main/examples/multim
             3. https://github.com/pliang279/MultiBench/blob/main/examples/multimedia/avmnist_multi_interac_matrix.py
 """
 
-from kale.embed.feature_fusion import Concat, LowRankTensorFusion, MultiplicativeInteractions2Modal
+from kale.embed.feature_fusion import Concat, LowRankTensorFusion, BimodalMatrixFusionInteractor
 from kale.embed.image_cnn import LeNet
-from kale.pipeline.base_nn_trainer import MultiModalTrainer
-from kale.pipeline.multimodal_deep_learning import MultiModalDeepLearning
+from kale.pipeline.base_nn_trainer import MultimodalTrainer
+from kale.pipeline.multimodal_deep_learning import MultimodalDeepLearning
 from kale.predict.decode import MLPDecoder
 
 
@@ -29,8 +29,8 @@ def get_model(cfg, device):
         head = MLPDecoder(
             cfg.MODEL.MLP_IN_DIM, cfg.MODEL.MLP_HIDDEN_DIM, cfg.MODEL.OUT_DIM, include_additional_layers=False
         )
-    elif cfg.MODEL.FUSION == "tensor_matrix":
-        fusion = MultiplicativeInteractions2Modal(
+    elif cfg.MODEL.FUSION == "bimodal_matrix_fusion_interactor":
+        fusion = BimodalMatrixFusionInteractor(
             cfg.MODEL.MULTIPLICATIVE_FUSION_IN_DIM,
             cfg.MODEL.MULTIPLICATIVE_FUSION_OUT_DIM,
             cfg.MODEL.MULTIPLICATIVE_OUTPUT,
@@ -46,7 +46,7 @@ def get_model(cfg, device):
             cfg.MODEL.MLP_LOW_RANK_IN_DIM, cfg.MODEL.MLP_HIDDEN_DIM, cfg.MODEL.OUT_DIM, include_additional_layers=False
         )
 
-    classifier = MultiModalDeepLearning(encoders, fusion, head).to(device)
+    classifier = MultimodalDeepLearning(encoders, fusion, head).to(device)
 
-    model = MultiModalTrainer(classifier, lr=cfg.SOLVER.BASE_LR, weight_decay=cfg.SOLVER.WEIGHT_DECAY)
+    model = MultimodalTrainer(classifier, lr=cfg.SOLVER.BASE_LR, weight_decay=cfg.SOLVER.WEIGHT_DECAY)
     return model

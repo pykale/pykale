@@ -4,8 +4,8 @@ References: https://github.com/pliang279/MultiBench/blob/main/training_structure
 from torch import nn
 
 
-class MultiModalDeepLearning(nn.Module):
-    """Instantiate MultiModalDeepLearning Module
+class MultimodalDeepLearning(nn.Module):
+    """Instantiate MultimodalDeepLearning Module
 
     Args:
         encoders (List): List of nn.Module encoders, one per modality.
@@ -15,7 +15,7 @@ class MultiModalDeepLearning(nn.Module):
     """
 
     def __init__(self, encoders, fusion, head):
-        super(MultiModalDeepLearning, self).__init__()
+        super(MultimodalDeepLearning, self).__init__()
         self.encoders = nn.ModuleList(encoders)
         self.fusion_module = fusion
         self.classifier = head

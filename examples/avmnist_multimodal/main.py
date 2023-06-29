@@ -1,4 +1,4 @@
-"""This example is about the utilization of Multimodal Deep Learning for digit classification (0 and 1) on the AVMNIST dataset.
+"""This example is about the utilization of Multimodal Deep Learning (MMDL) for digit classification (0 and 1) on the AVMNIST dataset.
 
 Reference: https://github.com/pliang279/MultiBench/tree/main/examples/multimedia
 """

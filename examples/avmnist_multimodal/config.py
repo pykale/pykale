@@ -1,5 +1,5 @@
 """
-Default configurations for AVMNIST dataset using Multimodal Deep Learning (MMDL).
+Default configurations for the AVMNIST dataset using Multimodal Deep Learning (MMDL).
 """
 
 from yacs.config import CfgNode as CN
