@@ -11,7 +11,7 @@ def test_concat():
     assert output.shape == (4, 5 * (3 + 2))
 
 
-def test_multiplicative_interactions():
+def test_bimodal_matrix_fusion_interactor():
     mi2m_vector = BimodalMatrixFusionInteractor(input_dims=(10, 20), output_dim=30, output="vector")
     m1 = torch.randn(4, 10)
     m2 = torch.randn(4, 20)
