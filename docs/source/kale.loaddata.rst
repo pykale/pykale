@@ -15,19 +15,11 @@ kale.loaddata.dataset\_access module
    :show-inheritance:
 
 kale.loaddata.avmnist module
---------------------------------------
+----------------------------
 
 .. automodule:: kale.loaddata.avmnist
    :members:
    :undoc-members:
-   :show-inheritance:
-
-kale.loaddata.videos module
----------------------------
-
-.. automodule:: kale.loaddata.videos
-   :members:
-   :exclude-members: VideoRecord
    :show-inheritance:
 
 kale.loaddata.image\_access

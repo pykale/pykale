@@ -47,7 +47,7 @@ kale.pipeline.multi\_domain\_adapter module
    :show-inheritance:
 
 kale.pipeline.multimodal\_deep\_learning module
-------------------------------------
+-----------------------------------------------
 
 .. automodule:: kale.pipeline.multimodal_deep_learning
    :members:
