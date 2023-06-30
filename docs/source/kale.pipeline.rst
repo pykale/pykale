@@ -7,7 +7,7 @@ Submodules
 ----------
 
 kale.pipeline.base\_nn\_trainer module
-----------------------
+--------------------------------------
 
 .. automodule:: kale.pipeline.base_nn_trainer
    :members:
@@ -15,7 +15,7 @@ kale.pipeline.base\_nn\_trainer module
    :show-inheritance:
 
 kale.pipeline.deepdta module
-------------------------------------
+----------------------------
 
 .. automodule:: kale.pipeline.deepdta
    :members:
@@ -31,7 +31,7 @@ kale.pipeline.domain\_adapter module
    :show-inheritance:
 
 kale.pipeline.mpca\_trainer module
-------------------------------------
+----------------------------------
 
 .. automodule:: kale.pipeline.mpca_trainer
    :members:
@@ -39,7 +39,7 @@ kale.pipeline.mpca\_trainer module
    :show-inheritance:
 
 kale.pipeline.multi\_domain\_adapter module
-------------------------------------
+-------------------------------------------
 
 .. automodule:: kale.pipeline.multi_domain_adapter
    :members:
@@ -55,7 +55,7 @@ kale.pipeline.multimodal\_deep\_learning module
    :show-inheritance:
 
 kale.pipeline.video\_domain\_adapter module
---------------------------------------------
+-------------------------------------------
 
 .. automodule:: kale.pipeline.video_domain_adapter
    :members:
