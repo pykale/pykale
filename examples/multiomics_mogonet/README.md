@@ -13,7 +13,7 @@ convolutional networks for omics datasets. The overall framework of MOGONET is i
 
 ![MOGONET Architecture](image/MOGONET.png)
 
-The original implementation of MOGONET is available [here](https://github.com/txWang/MOGONET.git).
+The original implementation of MOGONET is available [here](https://github.com/txWang/MOGONET).
 
 ## 3. Dataset
 
