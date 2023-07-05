@@ -44,10 +44,7 @@ C.MODEL.GCN_DROPOUT_RATE = 0.5
 C.MODEL.GCN_HIDDEN_DIM = [400, 400, 200]
 
 # The View Correlation Discovery Network (VCDN) to learn the higher-level intra-view and cross-view correlations
-# in the label space.
-# See the original paper for more information:
-#  - 'MOGONET integrates multi-omics data using graph convolutional networks allowing patient classification and
-#     biomarker identification', Wang, T., Shao, W., Huang, Z., Tang, H., Zhang, J., Ding, Z., Huang, K. (2021).
+# in the label space. See the MOGONET paper for more information.
 C.MODEL.VCDN_LR = 1e-3
 
 # ---------------------------------------------------------
