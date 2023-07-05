@@ -49,9 +49,9 @@ Note: These datasets have been processed following the **Preprocessing** section
 Run the MOGONET model for the BRCA and ROSMAP datasets using `yaml` configuration files provided in the `configs` folder
 for quick testing. To use them, run:
 
-`python main.py --cfg configs/MOGONET_BRCA.yaml`
+`python main.py --cfg configs/MOGONET_BRCA_quick_test.yaml`
 
-`python main.py --cfg configs/MOGONET_ROSMAP.yaml`
+`python main.py --cfg configs/MOGONET_ROSMAP_quick_test.yaml`
 
 
 ## Reference
