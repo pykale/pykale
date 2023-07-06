@@ -15,9 +15,9 @@ import torch
 from config import get_cfg_defaults
 from model import MogonetModel
 
-from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 import kale.utils.seed as seed
 from kale.loaddata.multiomics_datasets import SparseMultiOmicsDataset
+from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 
 warnings.filterwarnings(action="ignore")
 
