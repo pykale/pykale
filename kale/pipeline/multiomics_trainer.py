@@ -3,9 +3,9 @@
 # =============================================================================
 
 """
-Construct a pipeline to run MOGONET method based on PyTorch Lightning.
+Construct a pipeline to run the MOGONET method based on PyTorch Lightning.
 
-This code is written by refactoring MOGONET code (https://github.com/txWang/MOGONET/blob/main/train_test.py)
+This code is written by refactoring the MOGONET code (https://github.com/txWang/MOGONET/blob/main/train_test.py)
 within the PyTorch Lightning.
 
 Reference:

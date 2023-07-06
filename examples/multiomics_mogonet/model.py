@@ -10,7 +10,7 @@ from kale.predict.decode import LinearClassifier, VCDN
 
 
 class MogonetModel:
-    r"""Setup MOGONET model via the config file.
+    r"""Setup the MOGONET model via the config file.
 
     Args:
         cfg (CfgNode): A YACS config object.
@@ -27,7 +27,7 @@ class MogonetModel:
         self._create_model()
 
     def _create_model(self) -> None:
-        """Create MOGONET model via the config file."""
+        """Create the MOGONET model via the config file."""
         num_modalities = self.cfg.DATASET.NUM_MODALITIES
         num_classes = self.cfg.DATASET.NUM_CLASSES
         gcn_dropout_rate = self.cfg.MODEL.GCN_DROPOUT_RATE

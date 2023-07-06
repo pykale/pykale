@@ -7,7 +7,7 @@ Construct a message passing network using PyTorch Geometric for the MOGONET meth
 framework for cancer classification and biomarker identification that utilizes supervised graph convolutional networks
 for omics datasets.
 
-This code is written by refactoring MOGONET code (https://github.com/txWang/MOGONET/blob/main/models.py) within
+This code is written by refactoring the MOGONET code (https://github.com/txWang/MOGONET/blob/main/models.py) within
 'MessagePassing' base class provided in the PyTorch Geometric.
 
 Reference:

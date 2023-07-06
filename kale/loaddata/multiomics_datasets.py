@@ -5,8 +5,8 @@
 """
 Construct a dataset with multiple omics modalities based on PyTorch Geometric.
 
-This code is written by refactoring MOGONET dataset code (https://github.com/txWang/MOGONET/blob/main/train_test.py)
-within 'Dataset' class provided in the PyTorch Geometric.
+This code is written by refactoring the MOGONET dataset code (https://github.com/txWang/MOGONET/blob/main/train_test.py)
+within the 'Dataset' class provided in the PyTorch Geometric.
 
 Reference:
 Wang, T., Shao, W., Huang, Z., Tang, H., Zhang, J., Ding, Z., Huang, K. (2021). MOGONET integrates multi-omics data
