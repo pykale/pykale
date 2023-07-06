@@ -1,3 +1,11 @@
+# =============================================================================
+# Author: Sina Tabakhi, sina.tabakhi@gmail.com
+# =============================================================================
+
+"""
+Provide data transformations for tabular datasets.
+"""
+
 from typing import Any, Optional
 
 import torch
