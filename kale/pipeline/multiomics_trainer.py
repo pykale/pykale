@@ -211,6 +211,11 @@ class ModalityTrainer(pl.LightningModule):
         return self._custom_data_loader()
 
     def __str__(self) -> str:
+        r"""Returns a string representation of the multiomics trainer object.
+
+        Returns:
+            str: The string representation of the multiomics trainer object.
+        """
         model_str = ["\nModel info:\n", "   Modality encoder:\n"]
 
         for modality in range(self.num_modalities):

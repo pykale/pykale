@@ -90,4 +90,9 @@ class MogonetModel:
         return model
 
     def __str__(self) -> str:
+        r"""Returns a string representation of the model object.
+
+        Returns:
+            str: The string representation of the model object.
+        """
         return self.get_model().__str__()
