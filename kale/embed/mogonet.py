@@ -100,8 +100,7 @@ class MogonetGCNConv(MessagePassing):
 
 class MogonetGCN(Module):
     r"""Create the structure of the graph convolutional network in the MOGONET method.
-    For more information please refer to the
-    `MOGONET paper from Wang et al. <https://www.nature.com/articles/s41467-021-23774-w>`__.
+    For more information please refer to the MOGONET paper.
 
     Args:
         in_channels (int): Size of each input sample.
