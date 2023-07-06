@@ -38,8 +38,7 @@ class MogonetGCNConv(MessagePassing):
     where :math:`\mathbf{H^{(l)}}` is the input of the :math:`l` th layer and :math:`\mathbf{W^{(l)}}` is the weight
     matrix of the :math:`l` th layer. :math:`\sigma(.)` denotes a non-linear activation function.
 
-    For more information please refer to the
-    `MOGONET paper from Wang et al. <https://www.nature.com/articles/s41467-021-23774-w>`__.
+    For more information please refer to the MOGONET paper.
 
     Args:
         in_channels (int): Size of each input sample.
