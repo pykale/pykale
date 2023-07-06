@@ -210,7 +210,7 @@ class ModalityTrainer(pl.LightningModule):
         """Return an iterable or collection of iterables specifying test samples."""
         return self._custom_data_loader()
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         model_str = ["\nModel info:\n", "   Modality encoder:\n"]
 
         for modality in range(self.num_modalities):

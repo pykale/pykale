@@ -89,5 +89,5 @@ class MogonetModel:
 
         return model
 
-    def __repr__(self) -> str:
-        return self.get_model().__repr__()
+    def __str__(self) -> str:
+        return self.get_model().__str__()

@@ -439,7 +439,7 @@ class SparseMultiOmicsDataset(MultiOmicsDataset):
 
         return sample_weight
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         modalities_str = [
             "\nDataset info:",
             f"\n   number of modalities: {self.num_modalities}",

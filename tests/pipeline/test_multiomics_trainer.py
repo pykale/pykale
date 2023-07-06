@@ -208,8 +208,8 @@ def test_pipeline(test_model):
     assert 0 <= result[0]["F1"] <= 1
     assert 0 <= result[0]["AUC"] <= 1
 
-    assert repr(test_model) is not None
-    assert len(repr(test_model)) > 0
+    assert str(test_model) is not None
+    assert len(str(test_model)) > 0
 
 
 def test_multi_class_example(test_model_multi_class):

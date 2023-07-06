@@ -173,5 +173,5 @@ def test_sparse_multiomics_datasets():
         assert hasattr(data, "edge_weight_train")
         assert hasattr(data, "adj_t_train")
 
-    assert repr(dataset) is not None
-    assert len(repr(dataset)) > 0
+    assert str(dataset) is not None
+    assert len(str(dataset)) > 0
