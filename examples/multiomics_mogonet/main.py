@@ -15,7 +15,7 @@ import torch
 from config import get_cfg_defaults
 from model import MogonetModel
 
-import kale.prepdata.tabular_transform as T
+from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 import kale.utils.seed as seed
 from kale.loaddata.multiomics_datasets import SparseMultiOmicsDataset
 
@@ -62,8 +62,8 @@ def main():
         url=cfg.DATASET.URL,
         random_split=cfg.DATASET.RANDOM_SPLIT,
         equal_weight=cfg.MODEL.EQUAL_WEIGHT,
-        pre_transform=T.ToTensor(dtype=torch.float),
-        target_pre_transform=T.ToOneHotEncoding(dtype=torch.float),
+        pre_transform=ToTensor(dtype=torch.float),
+        target_pre_transform=ToOneHotEncoding(dtype=torch.float),
     )
 
     print(multiomics_data)
