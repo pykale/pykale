@@ -1,3 +1,11 @@
+# =============================================================================
+# Author: Sina Tabakhi, sina.tabakhi@gmail.com
+# =============================================================================
+
+"""
+Provide distance (i.e., similarity) calculation methods using various distance metrics.
+"""
+
 from enum import Enum
 
 import torch
@@ -13,7 +21,8 @@ def calculate_distance(
     r"""Returns similarity between :math:`x_1` and :math:`x_2`, computed along `dim`=1. This method calculates the
     similarity between each pair of data points in two input matrices.
     Note that this implementation differs from the existing implementations in PyTorch, as they calculate the similarity
-    between each row of one matrix with its corresponding row in the other matrix.
+    between each row of one matrix with its corresponding row in the other matrix (i.e., pairwise distance between
+    columns of input matrices).
 
     Args:
         x1 (torch.Tensor): The tensor input data.
