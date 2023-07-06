@@ -17,7 +17,7 @@ The original implementation of MOGONET is available [here](https://github.com/tx
 
 ## 3. Dataset
 
-We have tested the MOGONET architecture using two preprocessed multiomics benchmarks, ROSMAP and BRCA, which have been provided
+We have tested the MOGONET method using two preprocessed multiomics benchmarks, ROSMAP and BRCA, which have been provided
 by the authors of the MOGONET paper in their repository. A brief description of these datasets is shown in the following
 tables.
 
