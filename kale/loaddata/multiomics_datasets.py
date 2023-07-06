@@ -202,7 +202,7 @@ class MultiOmicsDataset(Dataset):
 
     @staticmethod
     def get_adjacency_info(data: torch.Tensor) -> Tuple:
-        """Calculate sparse adjacency matrix of the input dataset defined by edge indices and edge attributes.
+        """Calculate a sparse adjacency matrix of the input dataset defined by edge indices and edge attributes.
 
         Args:
             data (torch.Tensor): The input data.
@@ -350,7 +350,7 @@ class SparseMultiOmicsDataset(MultiOmicsDataset):
         eps: float = 1e-8,
         metric: DistanceMetric = DistanceMetric.COSINE,
     ) -> Tuple:
-        """Calculate sparse adjacency matrix of the input dataset defined by edge indices and edge attributes.
+        """Calculate a sparse adjacency matrix of the input dataset defined by edge indices and edge attributes.
 
         Args:
             train_data (torch.Tensor): The training data.
