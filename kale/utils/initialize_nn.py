@@ -1,3 +1,11 @@
+# =============================================================================
+# Author: Sina Tabakhi, sina.tabakhi@gmail.com
+# =============================================================================
+
+"""
+Provide methods for initializing neural network parameters (i.e., weights and biases).
+"""
+
 import torch.nn as nn
 
 
