@@ -29,7 +29,7 @@ from kale.utils.distance import calculate_distance, DistanceMetric
 class MultiOmicsDataset(Dataset):
     r"""The multiomics data for creating graph dataset.
     See `here <https://pytorch-geometric.readthedocs.io/en/latest/tutorial/create_dataset.html>`__ in PyTorch Geometric
-    for the accompanying tutorial .
+    for the accompanying tutorial.
 
     Args:
         root (string): Root directory where the dataset should be saved.
