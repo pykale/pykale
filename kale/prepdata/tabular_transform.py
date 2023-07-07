@@ -14,7 +14,10 @@ from torch import Tensor
 
 
 class ToTensor(object):
-    r"""Convert an array_like data to a tensor of the same shape
+    r"""Convert an array_like data to a tensor of the same shape. This class provides a callable object that allows
+    instances of the class to be called as a function. In other words, this class wraps the functionality of
+    `torch.tensor <https://pytorch.org/docs/stable/generated/torch.tensor.html>`__ and allows users to use it as a
+    callable instance.
 
     Args:
         dtype (torch.dtype, optional): The desired data type of returned tensor. Default: if :obj:`None`, infers data
@@ -44,6 +47,11 @@ class ToOneHotEncoding(object):
     r"""Convert an array_like of class values of shape ``(*,)`` to a tensor of shape ``(*, num_classes)`` that have
     zeros everywhere except where the index of last dimension matches the corresponding value of the input tensor, in
     which case it will be 1.
+
+    Note that this class provides a callable object that allows instances of the class to be called as a function. In
+    other words, this class wraps the functionality of the one_hot method in the
+    `PyTorch <https://pytorch.org/docs/stable/generated/torch.nn.functional.one_hot.html>`__ and allows users to use it
+     as a callable instance.
 
     Args:
         num_classes (int, optional): Total number of classes. If set to -1, the number of classes will be inferred as
