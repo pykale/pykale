@@ -16,20 +16,16 @@ def test_mlp_decoder():
     assert output.size() == (16, 1)
 
 
-def test_linear_classifier_model_shape():
-    in_dim = 10
-    out_dim = 5
-    model = LinearClassifier(in_dim, out_dim)
-    assert model.fc.weight.size() == (out_dim, in_dim)
-
-
-def test_linear_classifier_output_shape():
+def test_linear_classifier_shape():
     in_dim = 10
     out_dim = 5
     batch_size = 16
     x = torch.randn(batch_size, in_dim)
     model = LinearClassifier(in_dim, out_dim)
     y = model(x)
+    # model shape test
+    assert model.fc.weight.size() == (out_dim, in_dim)
+    # output shape test
     assert y.shape == (batch_size, out_dim)
 
 
