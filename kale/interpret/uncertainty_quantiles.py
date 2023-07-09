@@ -234,103 +234,6 @@ def quantile_binning_and_est_errors(
     return uncert_boundaries, estimated_errors
 
 
-def box_plot_inner_loop(
-    j,
-    i,
-    hash_idx,
-    cmaps,
-    model_type,
-    uncertainty_type,
-    hatch_type,
-    circ_patches,
-    landmark_uncert_dicts,
-    list_comp_bool,
-    orders,
-    outer_min_x_loc,
-    middle_min_x_loc,
-    inbetween_locs,
-    turn_to_percent,
-    ax,
-    width,
-    show_individual_dots,
-    uncertainty_types_list,
-    show_sample_info,
-    average_samples_per_bin,
-    all_sample_label_x_locs,
-    all_sample_percs,
-    all_rects,
-    inner_min_x_loc,
-):
-
-    if j == 0:
-        if hash_idx == 1:
-            circ11 = patches.Patch(
-                facecolor=cmaps[i], label=model_type + " " + uncertainty_type, hatch=hatch_type, edgecolor="black",
-            )
-        else:
-            circ11 = patches.Patch(facecolor=cmaps[i], label=model_type + " " + uncertainty_type)
-        circ_patches.append(circ11)
-
-    dict_key = [x for x in list(landmark_uncert_dicts.keys()) if (model_type in x) and (uncertainty_type in x)][0]
-    model_data = landmark_uncert_dicts[dict_key]
-
-    if list_comp_bool:
-        all_b_data = [x for x in model_data[j] if x is not None]
-    else:
-        all_b_data = model_data[j]
-
-    orders.append(model_type + uncertainty_type)
-
-    x_loc = [(outer_min_x_loc + inner_min_x_loc + middle_min_x_loc)]
-    inbetween_locs.append(x_loc[0])
-
-    # Turn data to percentages
-    if turn_to_percent:
-        displayed_data = [(x) * 100 for x in all_b_data]
-    else:
-        displayed_data = all_b_data
-    rect = ax.boxplot(displayed_data, positions=x_loc, sym="", widths=width, showmeans=True, patch_artist=True)
-
-    if show_individual_dots:
-        # Add some random "jitter" to the x-axis
-        x = np.random.normal(x_loc, 0.01, size=len(displayed_data))
-        ax.plot(
-            x, displayed_data, color=cmaps[len(uncertainty_types_list)], marker=".", linestyle="None", alpha=0.75,
-        )
-
-    # Set colour, pattern, median line and mean marker.
-    for r in rect["boxes"]:
-        r.set(color="black", linewidth=1)
-        r.set(facecolor=cmaps[i])
-
-        if hash_idx == 1:
-            r.set_hatch(hatch_type)
-
-    for median in rect["medians"]:
-        median.set(color="crimson", linewidth=3)
-
-    for mean in rect["means"]:
-        mean.set(markerfacecolor="crimson", markeredgecolor="black", markersize=10)
-
-    # max_bin_height = max(max(rect["caps"][-1].get_ydata()), max_bin_height)
-
-    """If we are showing sample info, keep track of it and display after on top of biggest whisker."""
-    if show_sample_info != "None":
-        flattened_model_data = [x for xss in model_data for x in xss]
-        percent_size = np.round(len(all_b_data) / len(flattened_model_data) * 100, 1)
-        average_samples_per_bin.append(percent_size)
-
-        if show_sample_info == "All":
-            """This adds the number of samples on top of the top whisker"""
-            (x_l, y), (x_r, _) = rect["caps"][-1].get_xydata()
-            x_line_center = (x_l + x_r) / 2
-            all_sample_label_x_locs.append(x_line_center)
-            all_sample_percs.append(percent_size)
-    all_rects.append(rect)
-
-    inner_min_x_loc += 0.1 + width
-
-
 def generic_box_plot_loop(
     cmaps: List[str],
     landmark_uncert_dicts: Dict,
@@ -491,35 +394,6 @@ def generic_box_plot_loop(
             else:
                 outer_min_x_loc += 0.25
 
-        # Show the average samples on top of boxplots, aligned. if lots of bins we can lower the height.
-    if show_sample_info != "None":
-        if num_bins > 5:
-            max_bin_height = max_bin_height * 0.8
-        else:
-            max_bin_height += 0.5
-        for idx_text, perc_info in enumerate(all_sample_percs):
-            if show_sample_info == "Average":
-                ax.text(
-                    all_sample_label_x_locs[idx_text],
-                    max_bin_height,  # Position
-                    r"$\bf{PSB}$" + ": \n" + r"${} \pm$".format(perc_info[0]) + "\n" + r"${}$".format(perc_info[1]),
-                    verticalalignment="bottom",  # Centered bottom with line
-                    horizontalalignment="center",  # Centered with horizontal line
-                    fontsize=25,
-                )
-            elif show_sample_info == "All":
-                if idx_text % 2 == 0:
-                    label_height = max_bin_height + 1.5
-                else:
-                    label_height = max_bin_height
-                ax.text(
-                    all_sample_label_x_locs[idx_text],
-                    label_height,  # Position
-                    str(perc_info) + "%",
-                    horizontalalignment="center",  # Centered with horizontal line
-                    fontsize=15,
-                )
-
     format_plot(
         ax,
         save_path,
@@ -537,27 +411,89 @@ def generic_box_plot_loop(
         x_axis_labels,
         num_bins,
         uncertainty_types_list,
+        all_sample_percs,
+        all_sample_label_x_locs,
+        max_bin_height,
     )
 
 
 def format_plot(
     ax,
-    save_path,
-    show_sample_info,
-    to_log,
-    circ_patches,
-    y_lim,
-    y_lim_min,
-    turn_to_percent,
-    x_label,
-    y_label,
-    font_size_1,
-    font_size_2,
-    bin_label_locs,
-    x_axis_labels,
-    num_bins,
-    uncertainty_types_list,
-):
+    save_path: Optional[str],
+    show_sample_info: str,
+    to_log: bool,
+    circ_patches: List[patches.Patch],
+    y_lim: float,
+    y_lim_min: float,
+    turn_to_percent: bool,
+    x_label: str,
+    y_label: str,
+    font_size_1: int,
+    font_size_2: int,
+    bin_label_locs: List[float],
+    x_axis_labels: List[str],
+    num_bins: int,
+    uncertainty_types_list: List[List[str]],
+    all_sample_percs: List[List[float]],
+    all_sample_label_x_locs: List[List[Any]],
+    max_bin_height: float,
+    comparing_q: bool = False,
+) -> None:
+    """
+    This function takes a matplotlib Axes object and formats the plot according to the provided parameters.
+
+    Args:
+        ax: A matplotlib axes object to be formatted.
+        save_path: The path where the plot should be saved. If None, the plot will be shown using plt.show().
+        show_sample_info: Determines how sample information is displayed. Can be "None", "Average", or "All".
+        to_log: If True, sets the y-axis to log scale.
+        circ_patches: List of matplotlib patches to be added to the legend.
+        y_lim: The upper limit for the y-axis.
+        y_lim_min: The lower limit for the y-axis.
+        turn_to_percent: If True, converts y-axis values to percentages.
+        x_label: The label for the x-axis.
+        y_label: The label for the y-axis.
+        font_size_1: The font size for the axis labels.
+        font_size_2: The font size for the tick labels.
+        bin_label_locs: The x-axis locations of the bin labels.
+        x_axis_labels: The labels for the x-axis.
+        num_bins: The number of bins.
+        uncertainty_types_list: The list of uncertainty types.
+        all_sample_percs: The percentage of samples for each bin.
+        all_sample_label_x_locs: The x-axis locations of the sample percentage labels.
+        max_bin_height: The maximum height of a bin in the plot.
+        comparing_q: If True, it uses a ticker.FixedFormatter for the x-axis.
+
+    Returns:
+        None
+    """
+
+    # Show the average samples on top of boxplots, aligned. if lots of bins we can lower the height.
+    if show_sample_info != "None":
+        for idx_text, perc_info in enumerate(all_sample_percs):
+            if show_sample_info == "Average":
+                ax.text(
+                    all_sample_label_x_locs[idx_text],
+                    max_bin_height * 0.8,  # Position
+                    r"$\bf{PSB}$" + ": \n" + r"${} \pm$".format(perc_info[0]) + "\n" + r"${}$".format(perc_info[1]),
+                    verticalalignment="bottom",  # Centered bottom with line
+                    horizontalalignment="center",  # Centered with horizontal line
+                    fontsize=25,
+                )
+            elif show_sample_info == "All":
+                if idx_text % 2 == 0:
+                    label_height = max_bin_height + 3
+                else:
+                    label_height = max_bin_height + 1
+                ax.text(
+                    all_sample_label_x_locs[idx_text][0],
+                    label_height,  # Position
+                    r"$\bf{PSB}$" + ": \n" + str(perc_info) + "%",
+                    verticalalignment="bottom",  # Centered bottom with line
+                    horizontalalignment="center",  # Centered with horizontal line
+                    fontsize=25,
+                )
+
     ax.set_xlabel(x_label, fontsize=font_size_1)
     ax.set_ylabel(y_label, fontsize=font_size_1)
     ax.set_xticks(bin_label_locs)
@@ -568,31 +504,36 @@ def format_plot(
     plt.xticks(fontsize=font_size_2)
     plt.yticks(fontsize=font_size_2)
 
-    if num_bins <= 5:
-        ax.xaxis.set_major_formatter(ticker.FixedFormatter(x_axis_labels[:-1] * (len(uncertainty_types_list) * 2)))
-    # If too many bins, only show the first and last or it will appear too squished, indicate direction with arrow.
-    elif num_bins < 15:
-        number_blanks_0 = ["" for x in range(math.floor((num_bins - 3) / 2))]
-        number_blanks_1 = ["" for x in range(num_bins - 3 - len(number_blanks_0))]
-        new_labels = [x_axis_labels[0]] + number_blanks_0 + [r"$\rightarrow$"] + number_blanks_1 + [x_axis_labels[-1]]
-        ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
-    # if more than 15 bins, we must move the first and last labels inwards to prevent overlap.
+    if comparing_q:
+        ax.xaxis.set_major_formatter(ticker.FixedFormatter(x_axis_labels))
+
     else:
-        number_blanks_0 = ["" for x in range(math.floor((num_bins - 5) / 2))]
-        number_blanks_1 = ["" for x in range(num_bins - 5 - len(number_blanks_0))]
-        new_labels = (
-            [""]
-            + [x_axis_labels[0]]
-            + number_blanks_0
-            + [r"$\rightarrow$"]
-            + number_blanks_1
-            + [x_axis_labels[-1]]
-            + [""]
-        )
-        ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
+        if num_bins <= 5:
+            ax.xaxis.set_major_formatter(ticker.FixedFormatter(x_axis_labels[:-1] * (len(uncertainty_types_list) * 2)))
+        # If too many bins, only show the first and last or it will appear too squished, indicate direction with arrow.
+        elif num_bins < 15:
+            number_blanks_0 = ["" for x in range(math.floor((num_bins - 3) / 2))]
+            number_blanks_1 = ["" for x in range(num_bins - 3 - len(number_blanks_0))]
+            new_labels = (
+                [x_axis_labels[0]] + number_blanks_0 + [r"$\rightarrow$"] + number_blanks_1 + [x_axis_labels[-1]]
+            )
+            ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
+        # if more than 15 bins, we must move the first and last labels inwards to prevent overlap.
+        else:
+            number_blanks_0 = ["" for x in range(math.floor((num_bins - 5) / 2))]
+            number_blanks_1 = ["" for x in range(num_bins - 5 - len(number_blanks_0))]
+            new_labels = (
+                [""]
+                + [x_axis_labels[0]]
+                + number_blanks_0
+                + [r"$\rightarrow$"]
+                + number_blanks_1
+                + [x_axis_labels[-1]]
+                + [""]
+            )
+            ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
 
     if to_log:
-        # ax.set_yscale("log",base=2)
         ax.set_yscale("symlog", base=2)
         ax.yaxis.set_major_formatter(ScalarFormatter())
         ax.set_ylim(y_lim_min, y_lim)
@@ -629,8 +570,6 @@ def format_plot(
         fancybox=True,
         shadow=False,
     )
-
-    # ax.legend(handles=circ_patches, loc=9, fontsize=30, ncol=3, columnspacing=6)
 
     if save_path is not None:
         plt.gcf().set_size_inches(16.0, 10.0)
@@ -709,10 +648,9 @@ def box_plot_per_model(
         uncertainty_type = up[0]
         for hash_idx, model_type in enumerate(models):
             inbetween_locs = []
+            average_samples_per_bin = []
 
             for j in range(num_bins):
-                average_samples_per_bin = []
-
                 if j == 0:
                     if hash_idx == 1:
                         circ11 = patches.Patch(
@@ -808,114 +746,27 @@ def box_plot_per_model(
 
         outer_min_x_loc += 0.24
 
-    # Show the average samples on top of boxplots, aligned. if lots of bins we can lower the height.
-    if show_sample_info != "None":
-        if num_bins > 5:
-            max_bin_height = max_bin_height * 0.8
-        else:
-            max_bin_height += 0.5
-        for idx_text, perc_info in enumerate(all_sample_percs):
-            if show_sample_info == "Average":
-                ax.text(
-                    all_sample_label_x_locs[idx_text],
-                    max_bin_height,  # Position
-                    r"$\bf{PSB}$" + ": \n" + r"${} \pm$".format(perc_info[0]) + "\n" + r"${}$".format(perc_info[1]),
-                    verticalalignment="bottom",  # Centered bottom with line
-                    horizontalalignment="center",  # Centered with horizontal line
-                    fontsize=25,
-                )
-            elif show_sample_info == "All":
-                if idx_text % 2 == 0:
-                    label_height = max_bin_height + 1.5
-                else:
-                    label_height = max_bin_height
-                ax.text(
-                    all_sample_label_x_locs[idx_text],
-                    label_height,  # Position
-                    str(perc_info) + "%",
-                    horizontalalignment="center",  # Centered with horizontal line
-                    fontsize=15,
-                )
-
-    ax.set_xlabel(x_label, fontsize=30)
-    ax.set_ylabel(y_label, fontsize=30)
-    ax.set_xticks(bin_label_locs)
-
-    plt.subplots_adjust(bottom=0.15)
-    plt.subplots_adjust(left=0.15)
-
-    # plt.axis("tight")
-    plt.xticks(fontsize=25)
-    plt.yticks(fontsize=25)
-
-    if num_bins <= 5:
-        ax.xaxis.set_major_formatter(ticker.FixedFormatter(x_axis_labels[:-1] * (len(uncertainty_types_list) * 2)))
-    # If too many bins, only show the first and last or it will appear too squished, indicate direction with arrow.
-    elif num_bins < 15:
-        number_blanks_0 = ["" for x in range(math.floor((num_bins - 3) / 2))]
-        number_blanks_1 = ["" for x in range(num_bins - 3 - len(number_blanks_0))]
-        new_labels = [x_axis_labels[0]] + number_blanks_0 + [r"$\rightarrow$"] + number_blanks_1 + [x_axis_labels[-1]]
-        ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
-    # if more than 15 bins, we must move the first and last labels inwards to prevent overlap.
-    else:
-        number_blanks_0 = ["" for x in range(math.floor((num_bins - 5) / 2))]
-        number_blanks_1 = ["" for x in range(num_bins - 5 - len(number_blanks_0))]
-        new_labels = (
-            [""]
-            + [x_axis_labels[0]]
-            + number_blanks_0
-            + [r"$\rightarrow$"]
-            + number_blanks_1
-            + [x_axis_labels[-1]]
-            + [""]
-        )
-        ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
-
-    if to_log:
-        # ax.set_yscale("log",base=2)
-        ax.set_yscale("symlog", base=2)
-
-        ax.yaxis.set_major_formatter(ScalarFormatter())
-        ax.set_ylim(-0.1, y_lim)  # set the x ticks in aesthitically pleasing place
-
-    else:
-        ax.set_ylim((-0.1, y_lim))  # set the x ticks in aesthitically pleasing place
-
-    # Add more to legend, add the mean symbol and median symbol.
-    red_triangle_mean = mlines.Line2D(
-        [], [], color="crimson", marker="^", markeredgecolor="black", linestyle="None", markersize=10, label="Mean"
+    format_plot(
+        ax,
+        save_path,
+        show_sample_info,
+        to_log,
+        circ_patches,
+        y_lim,
+        -0.1,
+        turn_to_percent,
+        x_label,
+        y_label,
+        30,
+        30,
+        bin_label_locs,
+        x_axis_labels,
+        num_bins,
+        uncertainty_types_list,
+        all_sample_percs,
+        all_sample_label_x_locs,
+        max_bin_height,
     )
-    circ_patches.append(red_triangle_mean)
-
-    red_line_median = mlines.Line2D(
-        [], [], color="crimson", marker="", markeredgecolor="black", markersize=10, label="Median"
-    )
-    circ_patches.append(red_line_median)
-
-    if show_sample_info == "Average":
-        circ_patches.append(patches.Patch(color="none", label=r"$\bf{PSB}$" + r": % Samples per Bin"))
-
-    num_cols_legend = math.ceil(len(circ_patches) / 2)
-    ax.legend(
-        handles=circ_patches,
-        fontsize=20,
-        ncol=num_cols_legend,
-        columnspacing=2,
-        loc="upper center",
-        bbox_to_anchor=(0.5, 1.18),
-        fancybox=True,
-        shadow=False,
-    )
-
-    if save_path is not None:
-        plt.gcf().set_size_inches(12.0, 7.5)
-        plt.savefig(save_path, dpi=600, bbox_inches="tight", pad_inches=0.1)
-        plt.close()
-    else:
-        plt.gcf().set_size_inches(16.0, 8.0)
-        plt.tight_layout()
-        plt.show()
-        plt.close()
 
 
 def box_plot_comparing_q(
@@ -1074,83 +925,28 @@ def box_plot_comparing_q(
             all_sample_label_x_locs.append(middle_x)
             all_sample_percs.append([mean_perc, std_perc])
 
-    # Show the average samples on top of boxplots, aligned. if lots of bins we can lower the height.
-    if show_sample_info != "None":
-        for idx_text, perc_info in enumerate(all_sample_percs):
-            if show_sample_info == "Average":
-                ax.text(
-                    all_sample_label_x_locs[idx_text],
-                    max_bin_height * 0.8,  # Position
-                    r"$\bf{PSB}$" + ": \n" + r"${} \pm$".format(perc_info[0]) + "\n" + r"${}$".format(perc_info[1]),
-                    verticalalignment="bottom",  # Centered bottom with line
-                    horizontalalignment="center",  # Centered with horizontal line
-                    fontsize=25,
-                )
-            elif show_sample_info == "All":
-                if idx_text % 2 == 0:
-                    label_height = max_bin_height + 3
-                else:
-                    label_height = max_bin_height + 1
-                ax.text(
-                    all_sample_label_x_locs[idx_text][0],
-                    label_height,  # Position
-                    r"$\bf{PSB}$" + ": \n" + str(perc_info) + "%",
-                    verticalalignment="bottom",  # Centered bottom with line
-                    horizontalalignment="center",  # Centered with horizontal line
-                    fontsize=25,
-                )
-
-    ax.set_xlabel(x_label, fontsize=30)
-    ax.set_ylabel(y_label, fontsize=30)
-    ax.set_xticks(bin_label_locs)
-
-    plt.subplots_adjust(bottom=0.15)
-    plt.subplots_adjust(left=0.15)
-
-    plt.xticks(fontsize=25)
-    plt.yticks(fontsize=25)
-
-    ax.xaxis.set_major_formatter(ticker.FixedFormatter(x_axis_labels))
-
-    if to_log:
-        # ax.set_yscale("log",base=2)
-        ax.set_yscale("symlog", base=2)
-
-        ax.yaxis.set_major_formatter(ScalarFormatter())
-        ax.set_ylim(-0.1, y_lim)  # set the x ticks in aesthitically pleasing place
-
-    else:
-        ax.set_ylim((-0.1, y_lim))  # set the x ticks in aesthitically pleasing place
-
-    # Add more to legend, add the mean symbol and median symbol.
-
-    red_triangle_mean = mlines.Line2D(
-        [], [], color="crimson", marker="^", markeredgecolor="black", linestyle="None", markersize=10, label="Mean"
+    format_plot(
+        ax,
+        save_path,
+        show_sample_info,
+        to_log,
+        circ_patches,
+        y_lim,
+        -0.1,
+        turn_to_percent,
+        x_label,
+        y_label,
+        30,
+        25,
+        bin_label_locs,
+        x_axis_labels,
+        num_bins_display,
+        uncertainty_type_tuple,
+        all_sample_percs,
+        all_sample_label_x_locs,
+        max_bin_height,
+        comparing_q=True,
     )
-    circ_patches.append(red_triangle_mean)
-
-    red_line_median = mlines.Line2D(
-        [], [], color="crimson", marker="", markeredgecolor="black", markersize=10, label="Median"
-    )
-    circ_patches.append(red_line_median)
-
-    if show_sample_info == "Average":
-        circ_patches.append(patches.Patch(color="none", label=r"$\bf{PSB}$" + r": % Samples per Bin"))
-    elif show_sample_info == "All":
-        circ_patches.append(patches.Patch(color="none", label=r"$\bf{PSB}$" + r": % Samples per Bin"))
-
-    ax.legend(handles=circ_patches, loc=9, fontsize=20, ncol=4, columnspacing=6)
-    # plt.autoscale()
-    if save_path is not None:
-        plt.gcf().set_size_inches(16.0, 10.0)
-        plt.tight_layout()
-        plt.savefig(save_path, dpi=600, bbox_inches="tight", pad_inches=0.1)
-        plt.close()
-    else:
-        plt.gcf().set_size_inches(16.0, 10.0)
-        plt.tight_layout()
-        plt.show()
-        plt.close()
 
 
 def plot_cumulative(
@@ -1478,28 +1274,6 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                 save_path=save_location,
             )
 
-            generic_box_plot_loop(
-                cmaps,
-                all_bins_concat_lms_nosep_error,
-                uncertainty_error_pairs,
-                models_to_compare,
-                x_axis_labels=x_axis_labels,
-                x_label="Uncertainty Thresholded Bin",
-                y_label="Localization Error (mm)",
-                turn_to_percent=False,
-                num_bins=num_bins_display,
-                show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
-                to_log=True,
-                save_path=save_location,
-                width=0.25,
-                y_lim_min=-0.1,
-                font_size_1=30,
-                font_size_2=25,
-                list_comp_bool=True,
-            )
-
             if show_individual_landmark_plots:
                 # plot the concatentated errors for each landmark seperately
                 for idx_l, lm_data in enumerate(all_bins_concat_lms_sep_all_error):
@@ -1528,28 +1302,6 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                             save_path=save_location,
                         )
 
-                        generic_box_plot_loop(
-                            cmaps,
-                            lm_data,
-                            uncertainty_error_pairs,
-                            models_to_compare,
-                            x_axis_labels=x_axis_labels,
-                            x_label="Uncertainty Thresholded Bin",
-                            y_label="Localization Error (mm)",
-                            turn_to_percent=False,
-                            num_bins=num_bins_display,
-                            show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                            show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                            y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
-                            to_log=True,
-                            save_path=save_location,
-                            width=0.25,
-                            y_lim_min=-0.1,
-                            font_size_1=30,
-                            font_size_2=25,
-                            list_comp_bool=True,
-                        )
-
             logger.info("Mean error")
 
             if cfg["OUTPUT"]["SAVE_FIGURES"]:
@@ -1570,28 +1322,6 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                 y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
                 to_log=True,
                 save_path=save_location,
-            )
-
-            generic_box_plot_loop(
-                cmaps,
-                all_error_data,
-                uncertainty_error_pairs,
-                models_to_compare,
-                x_axis_labels=x_axis_labels,
-                x_label="Uncertainty Thresholded Bin",
-                y_label="Mean Localization Error (mm)",
-                turn_to_percent=False,
-                num_bins=num_bins_display,
-                show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
-                to_log=True,
-                save_path=save_location,
-                width=0.25,
-                y_lim_min=-0.1,
-                font_size_1=30,
-                font_size_2=25,
-                list_comp_bool=True,
             )
 
         # Plot Error Bound Accuracy
