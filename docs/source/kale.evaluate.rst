@@ -7,7 +7,7 @@ Submodules
 ----------
 
 kale.evaluate.metrics module
---------------------------------------
+----------------------------
 
 .. automodule:: kale.evaluate.metrics
    :members:

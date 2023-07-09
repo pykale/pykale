@@ -21,11 +21,23 @@ def construct_logger(name, save_dir, log_to_terminal=False):
     Also saves the output of `git diff HEAD` to the same folder.
     Takes option to log to terminal, which will print logging statements. Default is False.
 
-    Reference: https://docs.python.org/3/library/logging.html
+    The logger is configured to output messages at the DEBUG level, and it saves the output as a text file with a name
+    based on the current timestamp and the specified name. It also saves the output of `git diff HEAD` to a file with
+    the same name and the extension `.gitdiff.patch`.
 
     Args:
-        name (str): the logger name, typically the method name
-        save_dir (str): the path to save the log file (.txt)
+        name (str): The name of the logger, typically the name of the method being logged.
+        save_dir (str): The directory where the log file and git diff file will be saved.
+        log_to_terminal (bool, optional): Whether to also log messages to the terminal. Defaults to False.
+
+    Returns:
+        logging.Logger: The constructed logger.
+
+    Reference:
+        https://docs.python.org/3/library/logging.html
+
+    Raises:
+        None.
     """
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
