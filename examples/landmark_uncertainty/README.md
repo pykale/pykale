@@ -54,8 +54,9 @@ python main.py --cfg configs/no_gt_test_example.yaml
  Find additional experimental results from our paper in this repository [additional results](https://github.com/Schobs/Qbin).
 
 
-## 5. Advanced Usage
- You can add your own config or change the config options in the .yaml files. The config options are as follows:
+## 5. Advanced Usage - Config Options
+ You can add your own config or change the config options in the .yaml files.
+ To use your own data, you can simply change the paths in DATASET, as shown in the examples.
 
 ### Quick Tips:
 - To display rather than save figures set OUTPUT.SAVE_FIGURES: False in the .yaml file.
@@ -63,61 +64,67 @@ python main.py --cfg configs/no_gt_test_example.yaml
 - If test error is not available, set DATASET.TEST_ERROR_AVAILABLE: False in the .yaml file.
 - Check out the BOXPLOT options to turn on/off visualizations of all landmarks on the box plots and adjust error limits.
 
-### Dataset
+The configuration options are broken into a few sections:
+- A) [Dataset](#a-dataset) - options related to the dataset.
+- B) [Pipeline](#b-pipeline) - options related to the pipeline.
+- C) [Plotting](#c-visualisation-im_kwargs-marker_kwargs-weight_kwargs) - options related to the plots.
+- D) [Boxplot](#d-boxplot) - options related to the boxplot detai.
+- E) [Output](#e-output) - options related to output paths.
+
+
+### A) Dataset
 
 The following are the configuration options related to the dataset.
 
-#### DATASET.SOURCE
+#### `DATASET.SOURCE`
 
 The URL source of the dataset. This option points to the location where the dataset is hosted. If you have local data, set this to None and put your data under DATASET.ROOT.
 
 Default:
-_C.DATASET.SOURCE = "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
+`_C.DATASET.SOURCE` = "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
 
-#### DATASET.ROOT
+#### `DATASET.ROOT`
 
 The root directory where the dataset will be downloaded and extracted to. If you have local data, set this to the directory where your data is stored.
 
 Default:
-_C.DATASET.ROOT = "../../../data/landmarks/"
+`_C.DATASET.ROOT` = "../../../data/landmarks/"
 
-#### DATASET.BASE_DIR
+#### `DATASET.BASE_DIR`
 
 The base directory within the `DATASET.ROOT` directory where the dataset will be downloaded and extracted to. If you have local data, set this to one level in of ROOT.
 
 Default:
-_C.DATASET.BASE_DIR = "Uncertainty_tuples"
+`_C.DATASET.BASE_DIR` = "Uncertainty_tuples"
 
-#### DATASET.FILE_FORMAT
+#### `DATASET.FILE_FORMAT`
 
 The format of the dataset file. This option is used to specify the format of the dataset file when the file is downloaded and extracted.
 
 Default:
-_C.DATASET.FILE_FORMAT = "zip"
+`_C.DATASET.FILE_FORMAT` = "zip"
 
- #### DATASET.CONFIDENCE_INVERT
+ #### `DATASET.CONFIDENCE_INVERT`
 
 A list of tuples specifying the uncertainty measures and whether or not to invert their confidence values. The measures are specified by name and the inversion is specified using a boolean value.
 
 Default:
-_C.DATASET.CONFIDENCE_INVERT = [["S-MHA", True], ["E-MHA", True], ["E-CPV", False]]
+_C.DATASET.CONFIDENCE_INVERT` = [["S-MHA", True], ["E-MHA", True], ["E-CPV", False]]
 
-#### DATASET.DATA
+#### `DATASET.DATA`
 
 The type of dataset to use. This option specifies which subset of the dataset to use for the experiment. For the examples, you can use 4CH, SA or ISBI.
 
 Default:
-_C.DATASET.DATA = "4CH"
-<br/><br/>
+`_C.DATASET.DATA` = "4CH"
 
-#### DATASET.LANDMARKS
+#### `DATASET.LANDMARKS`
 
 A list of landmark indices to use in the experiment.
 
 Default:
-_C.DATASET.LANDMARKS = [0, 1, 2]
+`_C.DATASET.LANDMARKS` = [0, 1, 2]
 
-<br/><br/>
 
 #### `DATASET.NUM_FOLDS`
 
@@ -126,7 +133,6 @@ The number of cross-validation folds to analyse. If no cross-validaiton, set to 
 Default:
 `_C.DATASET.NUM_FOLDS = 8`
 
-<br/><br/>
 
 #### `DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE`
 
@@ -135,7 +141,6 @@ A boolean indicating whether ground truth test errors are available in the datas
 Default:
 `_C.DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE = True`
 
-<br/><br/>
 
 #### `DATASET.UE_PAIRS_VAL`
 
@@ -146,193 +151,206 @@ Default:
 
 (The program will infer uncertainty_pairs_valid_l0.csv, uncertainty_pairs_valid_l1.csv, uncertainty_pairs_valid_l2.csv, etc.)
 
-#### DATASET.UE_PAIRS_TEST
+#### `DATASET.UE_PAIRS_TEST`
 
 The name of the file containing the uncertainty pairs for testing. This option specifies the name of the file containing the uncertainty pairs for testing. This should be the preamble name of the .csv files before _lX.csv where X will be the landmark index.
 
 Default:
-_C.DATASET.UE_PAIRS_TEST = "uncertainty_pairs_test"
+`_C.DATASET.UE_PAIRS_TEST` = "uncertainty_pairs_test"
 
 (The program will infer uncertainty_pairs_test_l0.csv, uncertainty_pairs_test_l1.csv, uncertainty_pairs_test_l2.csv, etc.)
 
+<br/><br/>
 
-### Pipeline
+
+### B) Pipeline
 
 The following are the configuration options related to the pipeline.
 
-#### PIPELINE.NUM_QUANTILE_BINS
+#### `PIPELINE.NUM_QUANTILE_BINS`
 
 A list of integers specifying the number of quantile bins to use for the uncertainty histogram. Use multiple if you want to compare the performance of different numbers of quantile bins, or just set it to a single integer if you want to use a single number of quantile bins e.g. [5].
 
 Default:
-_C.PIPELINE.NUM_QUANTILE_BINS = [5, 10, 25]
+`_C.PIPELINE.NUM_QUANTILE_BINS` = [5, 10, 25]
 
-#### PIPELINE.COMPARE_INDIVIDUAL_Q
+#### `PIPELINE.COMPARE_INDIVIDUAL_Q`
 
 A boolean indicating whether to compare uncertainty measures and models over each single value of Q (Q= NUM_QUANTILE_BINS).
 
 Default:
-_C.PIPELINE.COMPARE_INDIVIDUAL_Q = True
+`_C.PIPELINE.COMPARE_INDIVIDUAL_Q` = True
 
-#### PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS
+#### `PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS`
 
 A list of lists specifying the uncertainty error pairs to compare for each value of Q. Each sublist should contain three elements: the name of the uncertainty measure, the key for the error in the CSV file, and the key for the uncertainty in the CSV file.
 
 Default:
-_C.PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS = [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"], ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"]]
+`_C.PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS` = [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"], ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"]]
 
-#### PIPELINE.INDIVIDUAL_Q_MODELS
+#### `PIPELINE.INDIVIDUAL_Q_MODELS`
 
 A list of model names found in the path to compare for each value of Q.
 
 Default:
 _C.PIPELINE.INDIVIDUAL_Q_MODELS = ["U-NET", "PHD-NET"]
 
-#### PIPELINE.COMPARE_Q_VALUES
+#### `PIPELINE.COMPARE_Q_VALUES`
 
 A boolean indicating whether to compare a single uncertainty measure on a single model through various values of Q bins.
 
 Default:
-_C.PIPELINE.COMPARE_Q_VALUES = True
+`_C.PIPELINE.COMPARE_Q_VALUES` = True
 
-#### PIPELINE.COMPARE_Q_MODELS
+#### `PIPELINE.COMPARE_Q_MODELS`
 
 A list of model names to compare over values of Q.
 
 Default:
-_C.PIPELINE.COMPARE_Q_MODELS = ["PHD-NET"]
+`_C.PIPELINE.COMPARE_Q_MODELS` = ["PHD-NET"]
 
-#### PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS
+#### `PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS`
 
 A list of lists specifying the uncertainty error pairs to compare over values of Q. Each sublist should contain three elements: the name of the uncertainty measure, the key for the error in the CSV file, and the key for the uncertainty in the CSV file.
 
 Default:
-_C.PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS = [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"]]
+`_C.PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS` = [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"]]
 
-#### PIPELINE.COMBINE_MIDDLE_BINS
+#### `PIPELINE.COMBINE_MIDDLE_BINS`
 
 A boolean indicating whether to combine the middle quantile bins into a single bin.
 
 Default:
-_C.PIPELINE.COMBINE_MIDDLE_BINS = False
+`_C.PIPELINE.COMBINE_MIDDLE_BINS` = False
 
-#### PIPELINE.PIXEL_TO_MM_SCALE
+#### `PIPELINE.PIXEL_TO_MM_SCALE`
 
 A float specifying the scale factor to convert pixel units to millimeter units.
 
 Default:
-_C.PIPELINE.PIXEL_TO_MM_SCALE = 1.0
+`_C.PIPELINE.PIXEL_TO_MM_SCALE` = 1.0
 
-#### PIPELINE.IND_LANDMARKS_TO_SHOW
+#### `PIPELINE.IND_LANDMARKS_TO_SHOW`
 
 A list of landmark indices to show individually. A value of -1 means show all landmarks individually, and an empty list means show none.
 
 Default:
-_C.PIPELINE.IND_LANDMARKS_TO_SHOW = [-1]
+`_C.PIPELINE.IND_LANDMARKS_TO_SHOW` = [-1]
 
-#### PIPELINE.SHOW_IND_LANDMARKS
+#### `PIPELINE.SHOW_IND_LANDMARKS`
 
 A boolean indicating whether to show results from individual landmarks.
 
 Default:
-_C.PIPELINE.SHOW_IND_LANDMARKS = True
+_C.`PIPELINE.SHOW_IND_LANDMARKS` = True
 
+<br/><br/>
 
-### IM_KWARGS
-The following are the configuration options related to visualization.
+### C) Visualisation: IM_KWARGS, MARKER_KWARGS, WEIGHT_KWARGS
+The following are the configuration options related to visualization and plotting.
 
-#### IM_KWARGS.CMAP
+#### `IM_KWARGS.CMAP`
 
 The color map to use for the image.
 
 Default:
-_C.IM_KWARGS.cmap = "gray"
+`_C.IM_KWARGS.cmap` = "gray"
 
-#### MARKER_KWARGS.MARKER
+#### `MARKER_KWARGS.MARKER`
 
 The marker style to use for the landmark points.
 
 Default:
-_C.MARKER_KWARGS.marker = "o"
+`_C.MARKER_KWARGS.marker` = "o"
 
-#### MARKER_KWARGS.MARKERFACECOLOR
+#### `MARKER_KWARGS.MARKERFACECOLOR`
 
 The face color to use for the landmark points.
 
 Default:
 _C.MARKER_KWARGS.markerfacecolor = (1, 1, 1, 0.1)
 
-#### MARKER_KWARGS.MARKEREDGEWIDTH
+#### `MARKER_KWARGS.MARKEREDGEWIDTH`
 
 The edge width to use for the landmark points.
 
 Default:
-_C.MARKER_KWARGS.markeredgewidth = 1.5
+`_C.MARKER_KWARGS.markeredgewidth` = 1.5
 
-#### MARKER_KWARGS.MARKEREDGECOLOR
+#### `MARKER_KWARGS.MARKEREDGECOLOR`
 
 The edge color to use for the landmark points.
 
 Default:
-_C.MARKER_KWARGS.markeredgecolor = "r"
+`_C.MARKER_KWARGS.markeredgecolor` = "r"
 
-#### WEIGHT_KWARGS.MARKERSIZE
+#### `WEIGHT_KWARGS.MARKERSIZE`
 
 The size to use for the weights of the landmark points.
 
 Default:
-_C.WEIGHT_KWARGS.markersize = 6
+`_C.WEIGHT_KWARGS.markersize` = 6
 
-#### WEIGHT_KWARGS.ALPHA
+#### `WEIGHT_KWARGS.ALPHA`
 
 The transparency to use for the plots.
 
 Default:
-_C.WEIGHT_KWARGS.alpha = 0.7
+`_C.WEIGHT_KWARGS.alpha` = 0.7
 
-#### BOXPLOT.SAMPLES_AS_DOTS
+<br/><br/>
+
+
+### D) BOXPLOT
+The following are the configuration options related to the box plot.
+
+
+#### `BOXPLOT.SAMPLES_AS_DOTS`
 
 A boolean indicating whether to show the samples as dots on the box plot (can be expensive if many landmarks.).
 
 Default:
-_C.BOXPLOT.SAMPLES_AS_DOTS = True
+`_C.BOXPLOT.SAMPLES_AS_DOTS` = True
 
-#### BOXPLOT.ERROR_LIM
+#### `BOXPLOT.ERROR_LIM`
 
 The error limit to use for the box plot.
 
 Default:
-_C.BOXPLOT.ERROR_LIM = 64
+`_C.BOXPLOT.ERROR_LIM` = 64
 
-#### BOXPLOT.SHOW_SAMPLE_INFO_MODE
+#### `BOXPLOT.SHOW_SAMPLE_INFO_MODE`
 
 The mode for showing sample information on the box plot. The available modes are "None", "All", and "Average".
 
 Default:
 _C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "Average"
 
-### OUTPUT
+<br/><br/>
+
+
+### E) OUTPUT
 
 The following are miscellaneous configuration options.
 
-#### OUTPUT.SAVE_FOLDER
+#### `OUTPUT.SAVE_FOLDER`
 
 The folder where the experiment results will be saved.
 
 Default:
-_C.OUTPUT.SAVE_FOLDER = "../../../results/"
+`_C.OUTPUT.SAVE_FOLDER` = "../../../results/"
 
-#### OUTPUT.SAVE_PREPEND
+#### `OUTPUT.SAVE_PREPEND`
 
 The string to prepend to the output file names.
 
 Default:
-_C.OUTPUT.SAVE_PREPEND = "8std_27_07_22"
+`_C.OUTPUT.SAVE_PREPEND` = "8std_27_07_22"
 
-#### OUTPUT.SAVE_FIGURES
+#### `OUTPUT.SAVE_FIGURES`
 
 A boolean indicating whether to save the figures generated during the experiment.
 If False, the figures will be shown instead.
 
 Default:
-_C.OUTPUT.SAVE_FIGURES = True
+`_C.OUTPUT.SAVE_FIGURES` = True
