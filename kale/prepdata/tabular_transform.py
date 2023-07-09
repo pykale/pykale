@@ -32,11 +32,12 @@ def apply_confidence_inversion(data: pd.DataFrame, uncertainty_measure: str) -> 
 def get_data_struct(
     models_to_compare: List[str], landmarks: List[int], saved_bins_path_pre: str, dataset: str
 ) -> Tuple[Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame]]:
-    """Returns dictionaries of pandas dataframes for:
-        a) all error and prediction info
-        b) landmark separated error and prediction info
-        c) all estimated error bounds
-        d) landmark separated estimated error bounds.
+    """
+    Returns dictionaries of pandas dataframes for:
+        a) all error and prediction info (all prediction data across landmarks for each model),
+        b) landmark separated error and prediction info (prediction data for each model and each landmark),
+        c) all estimated error bounds (estimated error bounds across landmarks for each model),
+        d) landmark separated estimated error bounds (estimated error bounds for each model and each landmark).
 
     Args:
         models_to_compare: List of set models to add to data struct.
@@ -45,13 +46,20 @@ def get_data_struct(
         dataset: String of what dataset you're measuring.
 
     Returns:
-        A tuple containing the following dictionaries of pandas dataframes:
-            - all error and prediction info
-            - landmark separated error and prediction info
-            - all estimated error bounds
-            - landmark separated estimated error bounds.
-    """
+        data_structs: Dictionary where keys are model names and values are pandas dataframes containing
+                      all prediction data across landmarks for that model.
 
+        data_struct_sep: Dictionary where keys are a combination of model names and landmark indices (e.g., "model1 L1"),
+                         and values are pandas dataframes containing prediction data for the corresponding model and landmark.
+
+        data_struct_bounds: Dictionary where keys are a combination of model names and the string " Error Bounds"
+                            (e.g., "model1 Error Bounds"), and values are pandas dataframes containing all estimated
+                            error bounds across landmarks for that model.
+
+        data_struct_bounds_sep: Dictionary where keys are a combination of model names, landmark indices and the string
+                                "Error Bounds" (e.g., "model1 Error Bounds L1"), and values are pandas dataframes containing
+                                estimated error bounds for the corresponding model and landmark.
+    """
     data_structs = {}
     data_struct_sep = {}  #
 
