@@ -35,10 +35,10 @@ def fit_and_predict(
     """
 
     logger = logging.getLogger("q_bin")
-    invert_confidences = config.DATASET.CONFIDENCE_INVERT
+    invert_confidences = config["DATASET"]["CONFIDENCE_INVERT"]
     # dataset = config.DATASET.DATA
-    num_folds = config.DATASET.NUM_FOLDS
-    combine_middle_bins = config.PIPELINE.COMBINE_MIDDLE_BINS
+    num_folds = config["DATASET"]["NUM_FOLDS"]
+    combine_middle_bins = config["PIPELINE"]["COMBINE_MIDDLE_BINS"]
 
     # Save results across uncertainty pairings for each landmark.
     all_testing_results = pd.DataFrame(load_csv_columns(ue_pairs_test, "Testing Fold", np.arange(num_folds)))

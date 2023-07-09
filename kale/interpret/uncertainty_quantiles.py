@@ -234,7 +234,104 @@ def quantile_binning_and_est_errors(
     return uncert_boundaries, estimated_errors
 
 
-def box_plot(
+def box_plot_inner_loop(
+    j,
+    i,
+    hash_idx,
+    cmaps,
+    model_type,
+    uncertainty_type,
+    hatch_type,
+    circ_patches,
+    landmark_uncert_dicts,
+    list_comp_bool,
+    orders,
+    outer_min_x_loc,
+    middle_min_x_loc,
+    inbetween_locs,
+    turn_to_percent,
+    ax,
+    width,
+    show_individual_dots,
+    uncertainty_types_list,
+    show_sample_info,
+    average_samples_per_bin,
+    all_sample_label_x_locs,
+    all_sample_percs,
+    all_rects,
+    inner_min_x_loc,
+):
+
+    if j == 0:
+        if hash_idx == 1:
+            circ11 = patches.Patch(
+                facecolor=cmaps[i], label=model_type + " " + uncertainty_type, hatch=hatch_type, edgecolor="black",
+            )
+        else:
+            circ11 = patches.Patch(facecolor=cmaps[i], label=model_type + " " + uncertainty_type)
+        circ_patches.append(circ11)
+
+    dict_key = [x for x in list(landmark_uncert_dicts.keys()) if (model_type in x) and (uncertainty_type in x)][0]
+    model_data = landmark_uncert_dicts[dict_key]
+
+    if list_comp_bool:
+        all_b_data = [x for x in model_data[j] if x is not None]
+    else:
+        all_b_data = model_data[j]
+
+    orders.append(model_type + uncertainty_type)
+
+    x_loc = [(outer_min_x_loc + inner_min_x_loc + middle_min_x_loc)]
+    inbetween_locs.append(x_loc[0])
+
+    # Turn data to percentages
+    if turn_to_percent:
+        displayed_data = [(x) * 100 for x in all_b_data]
+    else:
+        displayed_data = all_b_data
+    rect = ax.boxplot(displayed_data, positions=x_loc, sym="", widths=width, showmeans=True, patch_artist=True)
+
+    if show_individual_dots:
+        # Add some random "jitter" to the x-axis
+        x = np.random.normal(x_loc, 0.01, size=len(displayed_data))
+        ax.plot(
+            x, displayed_data, color=cmaps[len(uncertainty_types_list)], marker=".", linestyle="None", alpha=0.75,
+        )
+
+    # Set colour, pattern, median line and mean marker.
+    for r in rect["boxes"]:
+        r.set(color="black", linewidth=1)
+        r.set(facecolor=cmaps[i])
+
+        if hash_idx == 1:
+            r.set_hatch(hatch_type)
+
+    for median in rect["medians"]:
+        median.set(color="crimson", linewidth=3)
+
+    for mean in rect["means"]:
+        mean.set(markerfacecolor="crimson", markeredgecolor="black", markersize=10)
+
+    # max_bin_height = max(max(rect["caps"][-1].get_ydata()), max_bin_height)
+
+    """If we are showing sample info, keep track of it and display after on top of biggest whisker."""
+    if show_sample_info != "None":
+        flattened_model_data = [x for xss in model_data for x in xss]
+        percent_size = np.round(len(all_b_data) / len(flattened_model_data) * 100, 1)
+        average_samples_per_bin.append(percent_size)
+
+        if show_sample_info == "All":
+            """This adds the number of samples on top of the top whisker"""
+            (x_l, y), (x_r, _) = rect["caps"][-1].get_xydata()
+            x_line_center = (x_l + x_r) / 2
+            all_sample_label_x_locs.append(x_line_center)
+            all_sample_percs.append(percent_size)
+    all_rects.append(rect)
+
+    inner_min_x_loc += 0.1 + width
+
+
+def generic_box_plot_loop(
     cmaps: List[str],
     landmark_uncert_dicts: Dict,
     uncertainty_types_list: List[List[str]],
@@ -243,34 +340,18 @@ def box_plot(
     x_label: str,
     y_label: str,
     num_bins: int,
+    list_comp_bool: bool,
+    width: float,
+    y_lim_min: float,
+    font_size_1: int,
+    font_size_2: int,
     show_sample_info: str = "None",
     save_path: Optional[str] = None,
     y_lim: int = 120,
     turn_to_percent: bool = True,
     to_log: bool = False,
-) -> None:
-    """
-    Creates a box plot of data.
-
-    Args:
-        cmaps (List[str]): List of colors for matplotlib.
-        landmark_uncert_dicts (Dict): Dict of pandas dataframe for the data to display.
-        uncertainty_types_list (List[List[str]]): List of lists describing the different uncertainty combinations to test.
-        models (List[str]): The models we want to compare, keys in landmark_uncert_dicts.
-        x_axis_labels (List[str]): List of strings for the x-axis labels, one for each bin.
-        x_label (str): X-axis label.
-        y_label (str): Y-axis label.
-        num_bins (int): Number of uncertainty bins.
-        show_sample_info (str, optional): Defaults to "None".
-        save_path (Optional[str], optional): Path to save the plot to. If None, displays on screen. Defaults to None.
-        y_lim (int, optional): Y-axis limit of graph. Defaults to 120.
-        turn_to_percent (bool, optional): Whether to turn data to percentages. Defaults to True.
-        to_log (bool, optional): Whether to set the y-axis scale to log. Defaults to False.
-
-    Returns:
-        None
-    """
-
+    show_individual_dots: bool = True,
+):
     hatch_type = "o"
 
     plt.style.use("fivethirtyeight")
@@ -282,20 +363,27 @@ def box_plot(
 
     ax.xaxis.grid(False)
 
-    bin_label_locs = []
+    bin_label_locs: List[float] = []
     all_rects = []
     outer_min_x_loc = 0.0
     middle_min_x_loc = 0.0
     inner_min_x_loc = 0.0
 
     circ_patches = []
+    max_bin_height = 0.0
+
+    all_sample_label_x_locs = []
+    all_sample_percs = []
 
     for i, (up) in enumerate(uncertainty_types_list):
         uncertainty_type = up[0]
 
         for j in range(num_bins):
             inbetween_locs = []
+            average_samples_per_bin = []
+
             for hash_idx, model_type in enumerate(models):
+
                 if j == 0:
                     if hash_idx == 1:
                         circ11 = patches.Patch(
@@ -312,23 +400,37 @@ def box_plot(
                     x for x in list(landmark_uncert_dicts.keys()) if (model_type in x) and (uncertainty_type in x)
                 ][0]
                 model_data = landmark_uncert_dicts[dict_key]
-                all_b_data = model_data[j]
+
+                if list_comp_bool:
+                    all_b_data = [x for x in model_data[j] if x is not None]
+                else:
+                    all_b_data = model_data[j]
 
                 orders.append(model_type + uncertainty_type)
-
-                width = 0.2
 
                 x_loc = [(outer_min_x_loc + inner_min_x_loc + middle_min_x_loc)]
                 inbetween_locs.append(x_loc[0])
 
                 # Turn data to percentages
                 if turn_to_percent:
-                    percent_data = [(x) * 100 for x in all_b_data]
+                    displayed_data = [(x) * 100 for x in all_b_data]
                 else:
-                    percent_data = all_b_data
+                    displayed_data = all_b_data
                 rect = ax.boxplot(
-                    percent_data, positions=x_loc, sym="", widths=width, showmeans=True, patch_artist=True
+                    displayed_data, positions=x_loc, sym="", widths=width, showmeans=True, patch_artist=True
                 )
+
+                if show_individual_dots:
+                    # Add some random "jitter" to the x-axis
+                    x = np.random.normal(x_loc, 0.01, size=len(displayed_data))
+                    ax.plot(
+                        x,
+                        displayed_data,
+                        color=cmaps[len(uncertainty_types_list)],
+                        marker=".",
+                        linestyle="None",
+                        alpha=0.75,
+                    )
 
                 # Set colour, pattern, median line and mean marker.
                 for r in rect["boxes"]:
@@ -337,32 +439,134 @@ def box_plot(
 
                     if hash_idx == 1:
                         r.set_hatch(hatch_type)
+
                 for median in rect["medians"]:
                     median.set(color="crimson", linewidth=3)
 
                 for mean in rect["means"]:
                     mean.set(markerfacecolor="crimson", markeredgecolor="black", markersize=10)
 
+                max_bin_height = max(max(rect["caps"][-1].get_ydata()), max_bin_height)
+
+                """If we are showing sample info, keep track of it and display after on top of biggest whisker."""
+                if show_sample_info != "None":
+                    flattened_model_data = [x for xss in model_data for x in xss]
+                    percent_size = np.round(len(all_b_data) / len(flattened_model_data) * 100, 1)
+                    average_samples_per_bin.append(percent_size)
+
+                    if show_sample_info == "All":
+                        """This adds the number of samples on top of the top whisker"""
+                        (x_l, y), (x_r, _) = rect["caps"][-1].get_xydata()
+                        x_line_center = (x_l + x_r) / 2
+                        all_sample_label_x_locs.append(x_line_center)
+                        all_sample_percs.append(percent_size)
                 all_rects.append(rect)
 
                 inner_min_x_loc += 0.1 + width
-            bin_label_locs.append(np.mean(inbetween_locs))
+
+            """ Keep track of average sample infos. Plot at the END so we know what the max height for all Qs are."""
+            if show_sample_info == "Average":
+                middle_x = np.mean(inbetween_locs)
+                mean_perc = np.round(np.mean(average_samples_per_bin), 1)
+                std_perc = np.round(np.std(average_samples_per_bin), 1)
+                all_sample_label_x_locs.append(middle_x)
+                all_sample_percs.append([mean_perc, std_perc])
+
+            if list_comp_bool:
+                bin_label_locs = bin_label_locs + inbetween_locs
+            else:
+                bin_label_locs.append(np.mean(inbetween_locs))
+
             middle_min_x_loc += 0.02
 
-        if num_bins > 10:
-            outer_min_x_loc += 0.35
+        # IF lots of bins we must make the gap between plots bigger to prevent overlapping x-tick labels.
+        if list_comp_bool:
+            if num_bins > 9:
+                middle_min_x_loc += 0.25
+            else:
+                middle_min_x_loc += 0.12
         else:
-            outer_min_x_loc += 0.25
+            if num_bins > 10:
+                outer_min_x_loc += 0.35
+            else:
+                outer_min_x_loc += 0.25
 
-    ax.set_xlabel(x_label, fontsize=30)
-    ax.set_ylabel(y_label, fontsize=30)
+        # Show the average samples on top of boxplots, aligned. if lots of bins we can lower the height.
+    if show_sample_info != "None":
+        if num_bins > 5:
+            max_bin_height = max_bin_height * 0.8
+        else:
+            max_bin_height += 0.5
+        for idx_text, perc_info in enumerate(all_sample_percs):
+            if show_sample_info == "Average":
+                ax.text(
+                    all_sample_label_x_locs[idx_text],
+                    max_bin_height,  # Position
+                    r"$\bf{PSB}$" + ": \n" + r"${} \pm$".format(perc_info[0]) + "\n" + r"${}$".format(perc_info[1]),
+                    verticalalignment="bottom",  # Centered bottom with line
+                    horizontalalignment="center",  # Centered with horizontal line
+                    fontsize=25,
+                )
+            elif show_sample_info == "All":
+                if idx_text % 2 == 0:
+                    label_height = max_bin_height + 1.5
+                else:
+                    label_height = max_bin_height
+                ax.text(
+                    all_sample_label_x_locs[idx_text],
+                    label_height,  # Position
+                    str(perc_info) + "%",
+                    horizontalalignment="center",  # Centered with horizontal line
+                    fontsize=15,
+                )
+
+    format_plot(
+        ax,
+        save_path,
+        show_sample_info,
+        to_log,
+        circ_patches,
+        y_lim,
+        y_lim_min,
+        turn_to_percent,
+        x_label,
+        y_label,
+        font_size_1,
+        font_size_2,
+        bin_label_locs,
+        x_axis_labels,
+        num_bins,
+        uncertainty_types_list,
+    )
+
+
+def format_plot(
+    ax,
+    save_path,
+    show_sample_info,
+    to_log,
+    circ_patches,
+    y_lim,
+    y_lim_min,
+    turn_to_percent,
+    x_label,
+    y_label,
+    font_size_1,
+    font_size_2,
+    bin_label_locs,
+    x_axis_labels,
+    num_bins,
+    uncertainty_types_list,
+):
+    ax.set_xlabel(x_label, fontsize=font_size_1)
+    ax.set_ylabel(y_label, fontsize=font_size_1)
     ax.set_xticks(bin_label_locs)
 
     plt.subplots_adjust(bottom=0.15)
     plt.subplots_adjust(left=0.15)
 
-    plt.xticks(fontsize=30)
-    plt.yticks(fontsize=30)
+    plt.xticks(fontsize=font_size_2)
+    plt.yticks(fontsize=font_size_2)
 
     if num_bins <= 5:
         ax.xaxis.set_major_formatter(ticker.FixedFormatter(x_axis_labels[:-1] * (len(uncertainty_types_list) * 2)))
@@ -370,7 +574,7 @@ def box_plot(
     elif num_bins < 15:
         number_blanks_0 = ["" for x in range(math.floor((num_bins - 3) / 2))]
         number_blanks_1 = ["" for x in range(num_bins - 3 - len(number_blanks_0))]
-        new_labels = [x_axis_labels[-0]] + number_blanks_0 + [r"$\rightarrow$"] + number_blanks_1 + [x_axis_labels[-1]]
+        new_labels = [x_axis_labels[0]] + number_blanks_0 + [r"$\rightarrow$"] + number_blanks_1 + [x_axis_labels[-1]]
         ax.xaxis.set_major_formatter(ticker.FixedFormatter(new_labels * (len(uncertainty_types_list) * 2)))
     # if more than 15 bins, we must move the first and last labels inwards to prevent overlap.
     else:
@@ -391,16 +595,42 @@ def box_plot(
         # ax.set_yscale("log",base=2)
         ax.set_yscale("symlog", base=2)
         ax.yaxis.set_major_formatter(ScalarFormatter())
-        ax.set_ylim(-2, y_lim)
+        ax.set_ylim(y_lim_min, y_lim)
 
     else:
-        ax.set_ylim((-2, y_lim))
+        ax.set_ylim((y_lim_min, y_lim))
 
     # If using percent, doesnt make sense to show any y tick above 100
     if turn_to_percent and y_lim > 100:
         plt.yticks(np.arange(0, y_lim, 20))
 
-    ax.legend(handles=circ_patches, loc=9, fontsize=30, ncol=3, columnspacing=6)
+    # Add more to legend, add the mean symbol and median symbol.
+    red_triangle_mean = mlines.Line2D(
+        [], [], color="crimson", marker="^", markeredgecolor="black", linestyle="None", markersize=10, label="Mean"
+    )
+    circ_patches.append(red_triangle_mean)
+
+    red_line_median = mlines.Line2D(
+        [], [], color="crimson", marker="", markeredgecolor="black", markersize=10, label="Median"
+    )
+    circ_patches.append(red_line_median)
+
+    if show_sample_info == "Average":
+        circ_patches.append(patches.Patch(color="none", label=r"$\bf{PSB}$" + r": % Samples per Bin"))
+
+    num_cols_legend = math.ceil(len(circ_patches) / 2)
+    ax.legend(
+        handles=circ_patches,
+        fontsize=20,
+        ncol=num_cols_legend,
+        columnspacing=2,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.18),
+        fancybox=True,
+        shadow=False,
+    )
+
+    # ax.legend(handles=circ_patches, loc=9, fontsize=30, ncol=3, columnspacing=6)
 
     if save_path is not None:
         plt.gcf().set_size_inches(16.0, 10.0)
@@ -454,8 +684,6 @@ def box_plot_per_model(
     """
 
     hatch_type = "o"
-    logger = logging.getLogger("qbin")
-
     plt.style.use("fivethirtyeight")
 
     orders = []
@@ -482,8 +710,9 @@ def box_plot_per_model(
         for hash_idx, model_type in enumerate(models):
             inbetween_locs = []
 
-            average_samples_per_bin = []
             for j in range(num_bins):
+                average_samples_per_bin = []
+
                 if j == 0:
                     if hash_idx == 1:
                         circ11 = patches.Patch(
@@ -501,20 +730,6 @@ def box_plot_per_model(
                 ][0]
                 model_data = landmark_uncert_dicts[dict_key]
                 all_b_data = [x for x in model_data[j] if x is not None]
-
-                logging_mean = np.round(np.mean(all_b_data), 2) if len(all_b_data) > 0 else None
-                logging_std = np.round(np.std(all_b_data), 2) if len(all_b_data) > 0 else None
-                # if j == num_bins-1:
-                logger.info(
-                    "Bin %s (len=%s), model: %s, uncertainty: %s, and mean error: %s +/- %s",
-                    j,
-                    len(all_b_data),
-                    model_type,
-                    uncertainty_type,
-                    logging_mean,
-                    logging_std,
-                )
-                # print("and all data: ", all_b_data)
 
                 orders.append(model_type + uncertainty_type)
 
@@ -1107,7 +1322,7 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
         landmarks,
         num_folds=num_folds,
         pixel_to_mm_scale=pixel_to_mm_scale,
-        combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+        combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
     )
     all_error_data = all_error_data_dict["all mean error bins nosep"]
 
@@ -1126,7 +1341,7 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
         num_bins,
         landmarks,
         num_folds=num_folds,
-        combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+        combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
     )
     all_jaccard_data = all_jaccard_data_dict["Jaccard All"]
     all_recall_data = all_jaccard_data_dict["Recall All"]
@@ -1143,7 +1358,7 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
         num_bins,
         landmarks,
         num_folds,
-        combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+        combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
     )
 
     all_bound_data = bound_return_dict["Error Bounds All"]
@@ -1167,31 +1382,34 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
         # save_location = None
 
         # If we have combined the middle bins, we are only displaying 3 bins (outer edges, and combined middle bins).
-        if cfg.PIPELINE.COMBINE_MIDDLE_BINS:
+        if cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]:
             num_bins_display = 3
         else:
             num_bins_display = num_bins
 
+        if cfg["OUTPUT"]["SAVE_FIGURES"]:
+            save_location = save_folder
+        else:
+            save_location = None
+
         # Plot piecewise linear regression for error/uncertainty prediction.
         if display_settings["correlation"]:
-            if cfg.OUTPUT.SAVE_FIGURES:
-                save_location = save_folder
+
             _ = evaluate_correlations(
                 bins_all_lms,
                 uncertainty_error_pairs,
                 cmaps,
                 num_bins,
-                cfg.DATASET.CONFIDENCE_INVERT,
+                cfg["DATASET"]["CONFIDENCE_INVERT"],
                 num_folds=num_folds,
                 pixel_to_mm_scale=pixel_to_mm_scale,
-                combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+                combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
                 save_path=save_location,
                 to_log=True,
             )
 
         # Plot cumulative error figure for all predictions
         if display_settings["cumulative_error"]:
-            save_location = save_folder
             plot_cumulative(
                 cmaps,
                 bins_all_lms,
@@ -1236,8 +1454,8 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
         if display_settings["errors"]:
             # mean error concat for each bin
             logger.info("mean error concat all L")
-            if cfg.OUTPUT.SAVE_FIGURES:
-                if cfg.BOXPLOT.SAMPLES_AS_DOTS:
+            if cfg["OUTPUT"]["SAVE_FIGURES"]:
+                if cfg["BOXPLOT"]["SAMPLES_AS_DOTS"]:
                     dotted_addition = "_dotted"
                 else:
                     dotted_addition = "_undotted"
@@ -1253,23 +1471,46 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                 y_label="Localization Error (mm)",
                 num_bins=num_bins_display,
                 turn_to_percent=False,
-                show_sample_info=cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
-                show_individual_dots=cfg.BOXPLOT.SAMPLES_AS_DOTS,
-                y_lim=cfg.BOXPLOT.ERROR_LIM,
+                show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
+                show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+                y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
                 to_log=True,
                 save_path=save_location,
+            )
+
+            generic_box_plot_loop(
+                cmaps,
+                all_bins_concat_lms_nosep_error,
+                uncertainty_error_pairs,
+                models_to_compare,
+                x_axis_labels=x_axis_labels,
+                x_label="Uncertainty Thresholded Bin",
+                y_label="Localization Error (mm)",
+                turn_to_percent=False,
+                num_bins=num_bins_display,
+                show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
+                show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+                y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
+                to_log=True,
+                save_path=save_location,
+                width=0.25,
+                y_lim_min=-0.1,
+                font_size_1=30,
+                font_size_2=25,
+                list_comp_bool=True,
             )
 
             if show_individual_landmark_plots:
                 # plot the concatentated errors for each landmark seperately
                 for idx_l, lm_data in enumerate(all_bins_concat_lms_sep_all_error):
                     if idx_l in ind_landmarks_to_show or ind_landmarks_to_show == [-1]:
-                        if cfg.OUTPUT.SAVE_FIGURES:
+                        if cfg["OUTPUT"]["SAVE_FIGURES"]:
                             save_location = os.path.join(
                                 save_folder, save_file_preamble + dotted_addition + "_error_lm_" + str(idx_l) + ".pdf"
                             )
 
                         logger.info("individual error for L%s", idx_l)
+
                         box_plot_per_model(
                             cmaps,
                             lm_data,
@@ -1280,19 +1521,42 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                             y_label="Error (mm)",
                             num_bins=num_bins_display,
                             turn_to_percent=False,
-                            show_sample_info=cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
-                            show_individual_dots=cfg.BOXPLOT.SAMPLES_AS_DOTS,
-                            y_lim=cfg.BOXPLOT.ERROR_LIM,
+                            show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
+                            show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+                            y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
                             to_log=True,
                             save_path=save_location,
                         )
 
+                        generic_box_plot_loop(
+                            cmaps,
+                            lm_data,
+                            uncertainty_error_pairs,
+                            models_to_compare,
+                            x_axis_labels=x_axis_labels,
+                            x_label="Uncertainty Thresholded Bin",
+                            y_label="Localization Error (mm)",
+                            turn_to_percent=False,
+                            num_bins=num_bins_display,
+                            show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
+                            show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+                            y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
+                            to_log=True,
+                            save_path=save_location,
+                            width=0.25,
+                            y_lim_min=-0.1,
+                            font_size_1=30,
+                            font_size_2=25,
+                            list_comp_bool=True,
+                        )
+
             logger.info("Mean error")
 
-            if cfg.OUTPUT.SAVE_FIGURES:
+            if cfg["OUTPUT"]["SAVE_FIGURES"]:
                 save_location = os.path.join(
                     save_folder, save_file_preamble + dotted_addition + "mean_error_folds_all_lms.pdf"
                 )
+
             box_plot_per_model(
                 cmaps,
                 all_error_data,
@@ -1303,19 +1567,41 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                 y_label="Mean Error (mm)",
                 num_bins=num_bins_display,
                 turn_to_percent=False,
-                y_lim=cfg.BOXPLOT.ERROR_LIM,
+                y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
                 to_log=True,
                 save_path=save_location,
+            )
+
+            generic_box_plot_loop(
+                cmaps,
+                all_error_data,
+                uncertainty_error_pairs,
+                models_to_compare,
+                x_axis_labels=x_axis_labels,
+                x_label="Uncertainty Thresholded Bin",
+                y_label="Mean Localization Error (mm)",
+                turn_to_percent=False,
+                num_bins=num_bins_display,
+                show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
+                show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+                y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
+                to_log=True,
+                save_path=save_location,
+                width=0.25,
+                y_lim_min=-0.1,
+                font_size_1=30,
+                font_size_2=25,
+                list_comp_bool=True,
             )
 
         # Plot Error Bound Accuracy
 
         if display_settings["error_bounds"]:
             logger.info(" errorbound acc for all landmarks.")
-            if cfg.OUTPUT.SAVE_FIGURES:
+            if cfg["OUTPUT"]["SAVE_FIGURES"]:
                 save_location = os.path.join(save_folder, save_file_preamble + "_errorbound_all_lms.pdf")
 
-            box_plot(
+            generic_box_plot_loop(
                 cmaps,
                 all_bound_data,
                 uncertainty_error_pairs,
@@ -1326,19 +1612,26 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                 num_bins=num_bins_display,
                 save_path=save_location,
                 y_lim=120,
+                width=0.2,
+                y_lim_min=-2,
+                font_size_1=30,
+                font_size_2=30,
+                show_individual_dots=False,
+                list_comp_bool=False,
             )
 
             if show_individual_landmark_plots:
                 # plot the concatentated error bounds for each landmark seperately
                 for idx_l, lm_data in enumerate(all_bins_concat_lms_sep_all_errorbound):
                     if idx_l in ind_landmarks_to_show or ind_landmarks_to_show == [-1]:
-                        if cfg.OUTPUT.SAVE_FIGURES:
+                        if cfg["OUTPUT"]["SAVE_FIGURES"]:
                             save_location = os.path.join(
                                 save_folder, save_file_preamble + "_errorbound_lm_" + str(idx_l) + ".pdf"
                             )
 
                         logger.info("individual errorbound acc for L%s", idx_l)
-                        box_plot(
+
+                        generic_box_plot_loop(
                             cmaps,
                             lm_data,
                             uncertainty_error_pairs,
@@ -1349,14 +1642,21 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                             num_bins=num_bins_display,
                             save_path=save_location,
                             y_lim=120,
+                            width=0.2,
+                            y_lim_min=-2,
+                            font_size_1=30,
+                            font_size_2=30,
+                            show_individual_dots=False,
+                            list_comp_bool=False,
                         )
 
         # Plot Jaccard Index
         if display_settings["jaccard"]:
             logger.info("Plot jaccard for all landmarks.")
-            if cfg.OUTPUT.SAVE_FIGURES:
+            if cfg["OUTPUT"]["SAVE_FIGURES"]:
                 save_location = os.path.join(save_folder, save_file_preamble + "_jaccard_all_lms.pdf")
-            box_plot(
+
+            generic_box_plot_loop(
                 cmaps,
                 all_jaccard_data,
                 uncertainty_error_pairs,
@@ -1365,15 +1665,21 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Jaccard Index (%)",
                 num_bins=num_bins_display,
-                y_lim=70,
-                show_sample_info="None",
                 save_path=save_location,
+                y_lim=70,
+                width=0.2,
+                y_lim_min=-2,
+                font_size_1=30,
+                font_size_2=30,
+                show_individual_dots=False,
+                list_comp_bool=False,
             )
 
             # mean recall for each bin
-            if cfg.OUTPUT.SAVE_FIGURES:
+            if cfg["OUTPUT"]["SAVE_FIGURES"]:
                 save_location = os.path.join(save_folder, save_file_preamble + "_recall_jaccard_all_lms.pdf")
-            box_plot(
+
+            generic_box_plot_loop(
                 cmaps,
                 all_recall_data,
                 uncertainty_error_pairs,
@@ -1383,14 +1689,21 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                 y_label="Ground Truth Bins Recall",
                 num_bins=num_bins_display,
                 turn_to_percent=True,
-                y_lim=120,
                 save_path=save_location,
+                y_lim=120,
+                width=0.2,
+                y_lim_min=-2,
+                font_size_1=30,
+                font_size_2=30,
+                show_individual_dots=False,
+                list_comp_bool=False,
             )
 
             # mean precision for each bin
-            if cfg.OUTPUT.SAVE_FIGURES:
+            if cfg["OUTPUT"]["SAVE_FIGURES"]:
                 save_location = os.path.join(save_folder, save_file_preamble + "_precision_jaccard_all_lms.pdf")
-            box_plot(
+
+            generic_box_plot_loop(
                 cmaps,
                 all_precision_data,
                 uncertainty_error_pairs,
@@ -1400,8 +1713,14 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                 y_label="Ground Truth Bins Precision",
                 num_bins=num_bins_display,
                 turn_to_percent=True,
-                y_lim=120,
                 save_path=save_location,
+                y_lim=120,
+                width=0.2,
+                y_lim_min=-2,
+                font_size_1=30,
+                font_size_2=30,
+                show_individual_dots=False,
+                list_comp_bool=False,
             )
 
             if show_individual_landmark_plots:
@@ -1409,13 +1728,14 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
 
                 for idx_l, lm_data in enumerate(all_bins_concat_lms_sep_all_jacc):
                     if idx_l in ind_landmarks_to_show or ind_landmarks_to_show == [-1]:
-                        if cfg.OUTPUT.SAVE_FIGURES:
+                        if cfg["OUTPUT"]["SAVE_FIGURES"]:
                             save_location = os.path.join(
                                 save_folder, save_file_preamble + "jaccard_lm_" + str(idx_l) + ".pdf"
                             )
 
                         logger.info("individual jaccard for L%s", idx_l)
-                        box_plot(
+
+                        generic_box_plot_loop(
                             cmaps,
                             lm_data,
                             uncertainty_error_pairs,
@@ -1424,8 +1744,14 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                             x_label="Uncertainty Thresholded Bin",
                             y_label="Jaccard Index (%)",
                             num_bins=num_bins_display,
-                            y_lim=70,
                             save_path=save_location,
+                            y_lim=70,
+                            width=0.2,
+                            y_lim_min=-2,
+                            font_size_1=30,
+                            font_size_2=30,
+                            show_individual_dots=False,
+                            list_comp_bool=False,
                         )
 
 
@@ -1539,7 +1865,7 @@ def generate_figures_comparing_bins(
             landmarks,
             num_folds=num_folds,
             pixel_to_mm_scale=pixel_to_mm_scale,
-            combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+            combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
         )
         all_error_data.append(all_error_data_dict["all mean error bins nosep"])
         all_error_lm_sep.append(all_error_data_dict["all mean error bins lms sep"])
@@ -1560,7 +1886,7 @@ def generate_figures_comparing_bins(
             num_bins,
             landmarks,
             num_folds=num_folds,
-            combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+            combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
         )
         all_jaccard_data.append(all_jaccard_data_dict["Jaccard All"])
         all_recall_data.append(all_jaccard_data_dict["Recall All"])
@@ -1579,7 +1905,7 @@ def generate_figures_comparing_bins(
             num_bins,
             landmarks,
             num_folds,
-            combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+            combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
         )
 
         all_bound_data.append(bound_return_dict["Error Bounds All"])
@@ -1592,7 +1918,7 @@ def generate_figures_comparing_bins(
 
     if interpret:
         # If we have combined the middle bins, we are only displaying 3 bins (outer edges, and combined middle bins).
-        if cfg.PIPELINE.COMBINE_MIDDLE_BINS:
+        if cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]:
             num_bins_display = 3
         else:
             num_bins_display = num_bins
@@ -1606,8 +1932,8 @@ def generate_figures_comparing_bins(
         if display_settings["errors"]:
             # mean error concat for each bin
             logger.info("mean error concat all L")
-            if cfg.OUTPUT.SAVE_FIGURES:
-                if cfg.BOXPLOT.SAMPLES_AS_DOTS:
+            if cfg["OUTPUT"]["SAVE_FIGURES"]:
+                if cfg["BOXPLOT"]["SAMPLES_AS_DOTS"]:
                     dotted_addition = "_dotted"
                 else:
                     dotted_addition = "_undotted"
@@ -1624,9 +1950,9 @@ def generate_figures_comparing_bins(
                 y_label="Localization Error (mm)",
                 num_bins_display=num_bins_display,
                 turn_to_percent=False,
-                show_sample_info=cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
-                show_individual_dots=cfg.BOXPLOT.SAMPLES_AS_DOTS,
-                y_lim=cfg.BOXPLOT.ERROR_LIM,
+                show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
+                show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+                y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
                 to_log=True,
                 save_path=save_location,
             )
@@ -1637,7 +1963,7 @@ def generate_figures_comparing_bins(
                     lm_data = [x[lm] for x in all_bins_concat_lms_sep_all_error]
 
                     if lm in ind_landmarks_to_show or ind_landmarks_to_show == [-1]:
-                        if cfg.OUTPUT.SAVE_FIGURES:
+                        if cfg["OUTPUT"]["SAVE_FIGURES"]:
                             save_location = os.path.join(
                                 save_folder, save_file_preamble + dotted_addition + "_error_lm_" + str(lm) + ".pdf"
                             )
@@ -1654,16 +1980,16 @@ def generate_figures_comparing_bins(
                             y_label="Localization Error (mm)",
                             num_bins_display=num_bins_display,
                             turn_to_percent=False,
-                            show_sample_info=cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
-                            show_individual_dots=cfg.BOXPLOT.SAMPLES_AS_DOTS,
-                            y_lim=cfg.BOXPLOT.ERROR_LIM,
+                            show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
+                            show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+                            y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
                             to_log=True,
                             save_path=save_location,
                         )
 
             logger.info("mean error")
 
-            if cfg.OUTPUT.SAVE_FIGURES:
+            if cfg["OUTPUT"]["SAVE_FIGURES"]:
                 save_location = os.path.join(
                     save_folder, save_file_preamble + dotted_addition + "mean_error_folds_all_lms.pdf"
                 )
@@ -1680,7 +2006,7 @@ def generate_figures_comparing_bins(
                 turn_to_percent=False,
                 show_sample_info="None",
                 show_individual_dots=False,
-                y_lim=cfg.BOXPLOT.ERROR_LIM,
+                y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
                 to_log=True,
                 save_path=save_location,
             )
@@ -1689,7 +2015,7 @@ def generate_figures_comparing_bins(
 
         if display_settings["error_bounds"]:
             logger.info(" errorbound acc for all landmarks.")
-            if cfg.OUTPUT.SAVE_FIGURES:
+            if cfg["OUTPUT"]["SAVE_FIGURES"]:
                 save_location = os.path.join(save_folder, save_file_preamble + "_errorbound_all_lms.pdf")
 
             box_plot_comparing_q(
@@ -1715,7 +2041,7 @@ def generate_figures_comparing_bins(
                     lm_data = [x[lm] for x in all_bins_concat_lms_sep_all_errorbound]
 
                     if lm in ind_landmarks_to_show or ind_landmarks_to_show == [-1]:
-                        if cfg.OUTPUT.SAVE_FIGURES:
+                        if cfg["OUTPUT"]["SAVE_FIGURES"]:
                             save_location = os.path.join(
                                 save_folder, save_file_preamble + "_errorbound_lm_" + str(lm) + ".pdf"
                             )
@@ -1740,7 +2066,7 @@ def generate_figures_comparing_bins(
         # Plot Jaccard Index
         if display_settings["jaccard"]:
             logger.info("Plot jaccard for all landmarks.")
-            if cfg.OUTPUT.SAVE_FIGURES:
+            if cfg["OUTPUT"]["SAVE_FIGURES"]:
                 save_location = os.path.join(save_folder, save_file_preamble + "_jaccard_all_lms.pdf")
 
             box_plot_comparing_q(
@@ -1762,7 +2088,7 @@ def generate_figures_comparing_bins(
             # mean recall for each bin
             logger.info("Plot recall for all landmarks.")
 
-            if cfg.OUTPUT.SAVE_FIGURES:
+            if cfg["OUTPUT"]["SAVE_FIGURES"]:
                 save_location = os.path.join(save_folder, save_file_preamble + "_recall_jaccard_all_lms.pdf")
             box_plot_comparing_q(
                 all_recall_data,
@@ -1783,7 +2109,7 @@ def generate_figures_comparing_bins(
             # mean precision for each bin
             logger.info("Plot precision for all landmarks.")
 
-            if cfg.OUTPUT.SAVE_FIGURES:
+            if cfg["OUTPUT"]["SAVE_FIGURES"]:
                 save_location = os.path.join(save_folder, save_file_preamble + "_precision_jaccard_all_lms.pdf")
             box_plot_comparing_q(
                 all_precision_data,
@@ -1807,7 +2133,7 @@ def generate_figures_comparing_bins(
                     lm_data = [x[lm] for x in all_bins_concat_lms_sep_all_jacc]
 
                     if lm in ind_landmarks_to_show or ind_landmarks_to_show == [-1]:
-                        if cfg.OUTPUT.SAVE_FIGURES:
+                        if cfg["OUTPUT"]["SAVE_FIGURES"]:
                             save_location = os.path.join(
                                 save_folder, save_file_preamble + "jaccard_lm_" + str(lm) + ".pdf"
                             )

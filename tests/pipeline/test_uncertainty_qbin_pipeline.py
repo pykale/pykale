@@ -3,16 +3,67 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+import pytest
 import seaborn as sns
 
 import kale.utils.logger as logging
-from examples.landmark_uncertainty.config import get_cfg_defaults
 from kale.embed.uncertainty_fitting import fit_and_predict
 from kale.interpret.uncertainty_quantiles import (
     generate_figures_comparing_bins,
     generate_figures_individual_bin_comparison,
 )
 from kale.utils.download import download_file_by_url
+
+
+@pytest.fixture(scope="module")
+def testing_cfg(download_path):
+    config_params = {
+        "DATASET": {
+            "SOURCE": "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip",
+            "ROOT": "../../../data/landmarks/",
+            "BASE_DIR": "Uncertainty_tuples",
+            "FILE_FORMAT": "zip",
+            "CONFIDENCE_INVERT": [["S-MHA", True], ["E-MHA", True], ["E-CPV", False]],
+            "DATA": "4CH",
+            "LANDMARKS": [0, 1, 2],
+            "NUM_FOLDS": 8,
+            "GROUND_TRUTH_TEST_ERRORS_AVAILABLE": True,
+            "UE_PAIRS_VAL": "uncertainty_pairs_valid",
+            "UE_PAIRS_TEST": "uncertainty_pairs_test",
+        },
+        "PIPELINE": {
+            "NUM_QUANTILE_BINS": [3, 5],
+            "COMPARE_INDIVIDUAL_Q": True,
+            "INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS": [
+                ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"],
+                ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"],
+            ],
+            "INDIVIDUAL_Q_MODELS": ["U-NET", "PHD-NET"],
+            "COMPARE_Q_VALUES": True,
+            "COMPARE_Q_MODELS": ["PHD-NET", "U-NET"],
+            "COMPARE_Q_UNCERTAINTY_ERROR_PAIRS": [
+                ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"],
+                ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"],
+            ],
+            "COMBINE_MIDDLE_BINS": False,
+            "PIXEL_TO_MM_SCALE": 1.0,
+            "IND_LANDMARKS_TO_SHOW": [0],
+            "SHOW_IND_LANDMARKS": True,
+        },
+        "IM_KWARGS": {"cmap": "gray"},
+        "MARKER_KWARGS": {
+            "marker": "o",
+            "markerfacecolor": (1, 1, 1, 0.1),
+            "markeredgewidth": 1.5,
+            "markeredgecolor": "r",
+        },
+        "WEIGHT_KWARGS": {"markersize": 6, "alpha": 0.7},
+        "BOXPLOT": {"SAMPLES_AS_DOTS": False, "ERROR_LIM": 256, "SHOW_SAMPLE_INFO_MODE": "Average"},
+        "OUTPUT": {"SAVE_FOLDER": "./results/testing", "SAVE_PREPEND": "testing", "SAVE_FIGURES": True},
+    }
+
+    yield config_params
+
 
 # DEFINE constants for testing
 EXPECTED_FILES_IND_3 = [
@@ -120,58 +171,54 @@ EXPECTED_FILES_COMP = [
 ]
 
 
-def test_qbin_pipeline():
+def test_qbin_pipeline(testing_cfg):
     """Test the uncertainty quantile binning pipeline."""
 
-    # ---- setup configs ----
-    cfg = get_cfg_defaults()
-    cfg.merge_from_file("./examples/landmark_uncertainty/configs/testing_config.yaml")
-    # /pykale/examples/landmark_uncertainty/configs/testing_config.yaml
-    cfg.freeze()
-    #  /pykale/tests/pipeline/test_uncertainty_qbin_pipeline.py
     # ---- setup output ----
-    os.makedirs(cfg.OUTPUT.SAVE_FOLDER, exist_ok=True)
-    logger = logging.construct_logger("q_bin", cfg.OUTPUT.SAVE_FOLDER, log_to_terminal=True)
-    logger.info(cfg)
+    os.makedirs(testing_cfg["OUTPUT"]["SAVE_FOLDER"], exist_ok=True)
+    logger = logging.construct_logger("q_bin", testing_cfg["OUTPUT"]["SAVE_FOLDER"], log_to_terminal=True)
 
     # ---- setup dataset ----
-    base_dir = cfg.DATASET.BASE_DIR
+    base_dir = testing_cfg["DATASET"]["BASE_DIR"]
 
-    # download data if neccesary
-    if cfg.DATASET.SOURCE is not None:
+    # download data if necessary
+    if testing_cfg["DATASET"]["SOURCE"] is not None:
         logger.info("Downloading data...")
-        data_file_name = "%s.%s" % (base_dir, cfg.DATASET.FILE_FORMAT)
+        data_file_name = "%s.%s" % (base_dir, testing_cfg["DATASET"]["FILE_FORMAT"])
         download_file_by_url(
-            cfg.DATASET.SOURCE, cfg.DATASET.ROOT, data_file_name, file_format=cfg.DATASET.FILE_FORMAT,
+            testing_cfg["DATASET"]["SOURCE"],
+            testing_cfg["DATASET"]["ROOT"],
+            data_file_name,
+            file_format=testing_cfg["DATASET"]["FILE_FORMAT"],
         )
-        logger.info("Data downloaded to %s!", cfg.DATASET.ROOT + base_dir)
+        logger.info("Data downloaded to %s!", testing_cfg["DATASET"]["ROOT"] + base_dir)
 
-    uncertainty_pairs_val = cfg.DATASET.UE_PAIRS_VAL
-    uncertainty_pairs_test = cfg.DATASET.UE_PAIRS_TEST
-    gt_test_error_available = cfg.DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE
+    uncertainty_pairs_val = testing_cfg["DATASET"]["UE_PAIRS_VAL"]
+    uncertainty_pairs_test = testing_cfg["DATASET"]["UE_PAIRS_TEST"]
+    gt_test_error_available = testing_cfg["DATASET"]["GROUND_TRUTH_TEST_ERRORS_AVAILABLE"]
 
-    ind_q_uncertainty_error_pairs = cfg.PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS
-    ind_q_models_to_compare = cfg.PIPELINE.INDIVIDUAL_Q_MODELS
+    ind_q_uncertainty_error_pairs = testing_cfg["PIPELINE"]["INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS"]
+    ind_q_models_to_compare = testing_cfg["PIPELINE"]["INDIVIDUAL_Q_MODELS"]
 
-    compare_q_uncertainty_error_pairs = cfg.PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS
-    compare_q_models_to_compare = cfg.PIPELINE.COMPARE_Q_MODELS
+    compare_q_uncertainty_error_pairs = testing_cfg["PIPELINE"]["COMPARE_Q_UNCERTAINTY_ERROR_PAIRS"]
+    compare_q_models_to_compare = testing_cfg["PIPELINE"]["COMPARE_Q_MODELS"]
 
-    dataset = cfg.DATASET.DATA
-    landmarks = cfg.DATASET.LANDMARKS
-    num_folds = cfg.DATASET.NUM_FOLDS
+    dataset = testing_cfg["DATASET"]["DATA"]
+    landmarks = testing_cfg["DATASET"]["LANDMARKS"]
+    num_folds = testing_cfg["DATASET"]["NUM_FOLDS"]
 
-    ind_landmarks_to_show = cfg.PIPELINE.IND_LANDMARKS_TO_SHOW
+    ind_landmarks_to_show = testing_cfg["PIPELINE"]["IND_LANDMARKS_TO_SHOW"]
 
-    pixel_to_mm_scale = cfg.PIPELINE.PIXEL_TO_MM_SCALE
+    pixel_to_mm_scale = testing_cfg["PIPELINE"]["PIXEL_TO_MM_SCALE"]
 
-    # Define parameters for visualisation
+    # Define parameters for visualization
     cmaps = sns.color_palette("deep", 10).as_hex()
 
-    show_individual_landmark_plots = cfg.PIPELINE.SHOW_IND_LANDMARKS
+    show_individual_landmark_plots = testing_cfg["PIPELINE"]["SHOW_IND_LANDMARKS"]
 
-    for num_bins in cfg.PIPELINE.NUM_QUANTILE_BINS:
+    for num_bins in testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"]:
         # create the folder to save to
-        save_folder = os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, str(num_bins) + "Bins")
+        save_folder = os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset, str(num_bins) + "Bins")
 
         # ---- This is the Fitting Phase ----
         # Fit all the options for the individual q selection and comparison q selection
@@ -185,10 +232,18 @@ def test_qbin_pipeline():
             for landmark in landmarks:
                 # Define Paths for this loop
                 landmark_results_path_val = os.path.join(
-                    cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
+                    testing_cfg["DATASET"]["ROOT"],
+                    base_dir,
+                    model,
+                    dataset,
+                    uncertainty_pairs_val + "_l" + str(landmark),
                 )
                 landmark_results_path_test = os.path.join(
-                    cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
+                    testing_cfg["DATASET"]["ROOT"],
+                    base_dir,
+                    model,
+                    dataset,
+                    uncertainty_pairs_test + "_l" + str(landmark),
                 )
 
                 fitted_save_at = os.path.join(save_folder, "fitted_quantile_binning", model, dataset)
@@ -200,7 +255,7 @@ def test_qbin_pipeline():
                     landmark_results_path_val,
                     landmark_results_path_test,
                     num_bins,
-                    cfg,
+                    testing_cfg,
                     gt_test_error_available,
                     fitted_save_at,
                     model,
@@ -215,12 +270,12 @@ def test_qbin_pipeline():
 
         save_file_preamble = "_".join(
             [
-                cfg.OUTPUT.SAVE_PREPEND,
+                testing_cfg["OUTPUT"]["SAVE_PREPEND"],
                 "ind",
                 dataset,
                 comparisons_models,
                 comparisons_um,
-                "combined" + str(cfg.PIPELINE.COMBINE_MIDDLE_BINS),
+                "combined" + str(testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]),
             ]
         )
 
@@ -234,7 +289,7 @@ def test_qbin_pipeline():
                 cmaps,
                 os.path.join(save_folder, "fitted_quantile_binning"),
                 save_file_preamble,
-                cfg,
+                testing_cfg,
                 show_individual_landmark_plots,
                 True,
                 num_folds,
@@ -255,37 +310,39 @@ def test_qbin_pipeline():
         else:
             exp = EXPECTED_FILES_IND_5
 
-        search_dir = os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, "/")
+        search_dir = os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset, "/")
 
         helper_test_expected_files_exist(exp, search_dir)
 
         # Now delete for memory
         for expected_file in exp:
-            file_path = os.path.join(os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset), expected_file)
+            file_path = os.path.join(os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset), expected_file)
             os.remove(file_path)
 
-    # If we are comparing bins against eachother, we need to wait until all the bins have been fitted.
+    # If we are comparing bins against each other, we need to wait until all the bins have been fitted.
     for c_model in compare_q_models_to_compare:
         for c_er_pair in compare_q_uncertainty_error_pairs:
             save_file_preamble = "_".join(
                 [
-                    cfg.OUTPUT.SAVE_PREPEND,
+                    testing_cfg["OUTPUT"]["SAVE_PREPEND"],
                     "compQ",
                     c_model,
                     c_er_pair[0],
                     dataset,
-                    "combined" + str(cfg.PIPELINE.COMBINE_MIDDLE_BINS),
+                    "combined" + str(testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]),
                 ]
             )
 
             all_fitted_save_paths = [
-                os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, str(x_bins) + "Bins", "fitted_quantile_binning")
-                for x_bins in cfg.PIPELINE.NUM_QUANTILE_BINS
+                os.path.join(
+                    testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset, str(x_bins) + "Bins", "fitted_quantile_binning"
+                )
+                for x_bins in testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"]
             ]
 
             hatch_type = "o" if "PHD-NET" == c_model else ""
             color = cmaps[0] if c_er_pair[0] == "S-MHA" else cmaps[1] if c_er_pair[0] == "E-MHA" else cmaps[2]
-            save_folder_comparison = os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, "ComparisonBins")
+            save_folder_comparison = os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset, "ComparisonBins")
             os.makedirs(save_folder_comparison, exist_ok=True)
 
             logger.info("Comparison Q figures for: %s and %s ", c_model, c_er_pair)
@@ -295,12 +352,12 @@ def test_qbin_pipeline():
                     c_model,
                     dataset,
                     landmarks,
-                    cfg.PIPELINE.NUM_QUANTILE_BINS,
+                    testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"],
                     cmaps,
                     all_fitted_save_paths,
                     save_folder_comparison,
                     save_file_preamble,
-                    cfg,
+                    testing_cfg,
                     show_individual_landmark_plots,
                     True,
                     num_folds,
@@ -317,11 +374,11 @@ def test_qbin_pipeline():
                 },
             )
 
-    helper_test_expected_files_exist(EXPECTED_FILES_COMP, os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset))
+    helper_test_expected_files_exist(EXPECTED_FILES_COMP, os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset))
 
     # Now delete for memory
     for expected_file in EXPECTED_FILES_COMP:
-        file_path = os.path.join(os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset), expected_file)
+        file_path = os.path.join(os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset), expected_file)
         os.remove(file_path)
 
 
@@ -340,14 +397,26 @@ def helper_test_expected_files_exist(expected_files, save_folder):
         AssertionError: If any expected file is not found in the `save_folder` or its subdirectories.
     """
     num_found = 0
+    not_found_files = []
+    found_files = []
     for expected_file in expected_files:
+        found = False
         for dirpath, _, _ in os.walk(save_folder):
             file_path = os.path.join(dirpath, expected_file)
             if os.path.isfile(file_path):
                 num_found += 1
+                found_files.append(expected_file)
+                found = True
                 break
+        if not found:
+            not_found_files.append(expected_file)
 
-    assert num_found == len(expected_files)
+    assert num_found == len(expected_files), (
+        "Not all expected files were found in the save folder: "
+        + str(not_found_files)
+        + "\n FOUND: "
+        + str(found_files)
+    )
 
 
 def helper_test_qbin_fit(
@@ -410,7 +479,7 @@ def helper_test_qbin_fit(
     # Test `estimated_errors` using `csv_equality_helper()`
     csv_equality_helper(
         estimated_errors,
-        os.path.join(cfg.DATASET.ROOT, cfg.DATASET.BASE_DIR, model)
+        os.path.join(cfg["DATASET"]["ROOT"], cfg["DATASET"]["BASE_DIR"], model)
         + "/4CH/"
         + str(num_bins)
         + "Bins_fit/estimated_error_bounds",
@@ -420,7 +489,7 @@ def helper_test_qbin_fit(
     # Test `uncert_boundaries` using `csv_equality_helper()`
     csv_equality_helper(
         uncert_boundaries,
-        os.path.join(cfg.DATASET.ROOT, cfg.DATASET.BASE_DIR, model)
+        os.path.join(cfg["DATASET"]["ROOT"], cfg["DATASET"]["BASE_DIR"], model)
         + "/4CH/"
         + str(num_bins)
         + "Bins_fit/uncertainty_bounds",
@@ -430,7 +499,7 @@ def helper_test_qbin_fit(
     # Test `predicted_bins` using `csv_equality_helper()`
     csv_equality_helper(
         predicted_bins,
-        os.path.join(cfg.DATASET.ROOT, cfg.DATASET.BASE_DIR, model)
+        os.path.join(cfg["DATASET"]["ROOT"], cfg["DATASET"]["BASE_DIR"], model)
         + "/4CH/"
         + str(num_bins)
         + "Bins_fit/res_predicted_bins",

@@ -3,7 +3,12 @@ Uncertainty Estimation for Landmark Localisaition
 
 
 Reference:
-Placeholder.html
+L. A. Schobs, A. J. Swift and H. Lu,
+"Uncertainty Estimation for Heatmap-Based Landmark Localization,"
+in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034,
+April 2023, doi: 10.1109/TMI.2022.3222730.
+
+Paper link: https://arxiv.org/abs/2203.02351
 """
 
 import argparse
@@ -24,11 +29,7 @@ import kale.utils.logger as logging
 from kale.interpret.uncertainty_quantiles import (
     generate_figures_comparing_bins,
     generate_figures_individual_bin_comparison,
-    quantile_binning_and_est_errors,
 )
-from kale.loaddata.tabular_access import load_csv_columns
-from kale.predict.uncertainty_binning import quantile_binning_predictions
-from kale.prepdata.tabular_transform import apply_confidence_inversion
 from kale.utils.download import download_file_by_url
 
 
@@ -177,11 +178,11 @@ def main():
                         pixel_to_mm_scale,
                     ],
                     display_settings={
-                        "cumulative_error": True,
+                        "cumulative_error": False,
                         "errors": True,
                         "jaccard": True,
                         "error_bounds": True,
-                        "correlation": True,
+                        "correlation": False,
                     },
                 )
 

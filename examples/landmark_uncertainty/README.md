@@ -1,10 +1,10 @@
 # Uncertainty Estimation in Landmark Localization
 
-Reference:  L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization," in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
+Reference:  [L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization," in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.](https://arxiv.org/abs/2203.02351)
 
 ## 1. Description
 
-In this example we implement the methods from [Uncertainty Estimation for Heatmap-based Landmark Localization](placeholder_link). The method is Quantile Binning, which bins landmark predictions by any continuous uncertainty estimation measure. We assign each bin estimated localization error bounds. We can use these bins to filter out the worst predictions, or identify the likely best predictions.
+In this example we implement the methods from [Uncertainty Estimation for Heatmap-based Landmark Localization](https://arxiv.org/abs/2203.02351). The method is Quantile Binning, which bins landmark predictions by any continuous uncertainty estimation measure. We assign each bin estimated localization error bounds. We can use these bins to filter out the worst predictions, or identify the likely best predictions.
 
 We evaluate how well an uncertainty measure predicts localization error by measuring the [Jaccard Index](https://en.wikipedia.org/wiki/Jaccard_index) (a similarity measure) between the predicted bins and the ground truth error quantiles. We also evaluate the accuracy of the estimated error bounds. This framework is applicable to any dataset consisting of (*Continuous Uncertainty Measure*, *Continuous Evaluation Metric*) tuples.
 
@@ -33,7 +33,7 @@ We compare these measures on landmark predictions from:
 
 We also provide an example where the ground truth test error is not available under PHD-NET-NO-GT/.
 
-The full README for the datasets can be found [here]([datasets/README.md](https://github.com/pykale/data/tree/main/tabular/cardiac_landmark_uncertainty)).
+The full README for the datasets can be found [here](https://github.com/pykale/data/tree/main/tabular/cardiac_landmark_uncertainty).
 
 ## 3. Usage
 
@@ -95,7 +95,7 @@ The format of the dataset file. This option is used to specify the format of the
 Default:
 _C.DATASET.FILE_FORMAT = "zip"
 
-#### DATASET.CONFIDENCE_INVERT
+ #### DATASET.CONFIDENCE_INVERT
 
 A list of tuples specifying the uncertainty measures and whether or not to invert their confidence values. The measures are specified by name and the inversion is specified using a boolean value.
 
@@ -108,6 +108,7 @@ The type of dataset to use. This option specifies which subset of the dataset to
 
 Default:
 _C.DATASET.DATA = "4CH"
+<br/><br/>
 
 #### DATASET.LANDMARKS
 
@@ -116,26 +117,32 @@ A list of landmark indices to use in the experiment.
 Default:
 _C.DATASET.LANDMARKS = [0, 1, 2]
 
-#### DATASET.NUM_FOLDS
+<br/><br/>
+
+#### `DATASET.NUM_FOLDS`
 
 The number of cross-validation folds to analyse. If no cross-validaiton, set to 1.
 
 Default:
-_C.DATASET.NUM_FOLDS = 8
+`_C.DATASET.NUM_FOLDS = 8`
 
-#### DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE
+<br/><br/>
+
+#### `DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE`
 
 A boolean indicating whether ground truth test errors are available in the dataset. If false, it will only fit the quantile binning model to the validation set, it won't attempt to evalute the performance on the test set since there is no ground truth test error.
 
 Default:
-_C.DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE = True
+`_C.DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE = True`
 
-#### DATASET.UE_PAIRS_VAL
+<br/><br/>
+
+#### `DATASET.UE_PAIRS_VAL`
 
 The name of the file containing the uncertainty pairs for validation. This option specifies the name of the file containing the uncertainty pairs for validation. This should be the preamble name of the .csv files before _lX.csv where X will be the landmark index.
 
 Default:
-_C.DATASET.UE_PAIRS_VAL = "uncertainty_pairs_valid"
+`_C.DATASET.UE_PAIRS_VAL = "uncertainty_pairs_valid"`
 
 (The program will infer uncertainty_pairs_valid_l0.csv, uncertainty_pairs_valid_l1.csv, uncertainty_pairs_valid_l2.csv, etc.)
 
