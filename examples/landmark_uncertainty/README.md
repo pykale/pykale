@@ -4,7 +4,7 @@ Reference:  [L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for He
 
 ## 1. Description
 
-In this example we implement the methods from [Uncertainty Estimation for Heatmap-based Landmark Localization](https://arxiv.org/abs/2203.02351). The method is Quantile Binning, which bins landmark predictions by any continuous uncertainty estimation measure. We assign each bin estimated localization error bounds. We can use these bins to filter out the worst predictions, or identify the likely best predictions.
+In this example we implement the methods from [Uncertainty Estimation for Heatmap-based Landmark Localization](https://arxiv.org/abs/2203.02351) [1]. The method is Quantile Binning, which bins landmark predictions by any continuous uncertainty estimation measure. We assign each bin estimated localization error bounds. We can use these bins to filter out the worst predictions, or identify the likely best predictions.
 
 We evaluate how well an uncertainty measure predicts localization error by measuring the [Jaccard Index](https://en.wikipedia.org/wiki/Jaccard_index) (a similarity measure) between the predicted bins and the ground truth error quantiles. We also evaluate the accuracy of the estimated error bounds. This framework is applicable to any dataset consisting of (*Continuous Uncertainty Measure*, *Continuous Evaluation Metric*) tuples.
 
@@ -16,7 +16,7 @@ Fig. 1 depicts the features exemplified in this example. Note that **a)** and **
 
 ## 2. Datasets
 
-We provide three tabular datasets containing landmark localization error and uncertainty estimation values: 1) 303 Short Axis View CMR images with 3 landmarks (SA), 422 Four Chamber View CMR images with 3 landmarks (4ch), and 400 Cephalometric Radiology images with 19 landmarks (Cephalometric). The CMR dataset is from the [ASPIRE Registry](https://erj.ersjournals.com/content/39/4/945), and the Cephalometric dataset is from an [ISBI grand challenge](https://www.researchgate.net/publication/296621456_A_benchmark_for_comparison_of_dental_radiography_analysis_algorithms).
+We provide three tabular datasets containing landmark localization error and uncertainty estimation values: 1) 303 Short Axis View CMR images with 3 landmarks (SA), 422 Four Chamber View CMR images with 3 landmarks (4ch), and 400 Cephalometric Radiology images with 19 landmarks (Cephalometric). The CMR dataset is from the [ASPIRE Registry](https://erj.ersjournals.com/content/39/4/945) [2], and the Cephalometric dataset is from an [ISBI grand challenge](https://www.researchgate.net/publication/296621456_A_benchmark_for_comparison_of_dental_radiography_analysis_algorithms) [3].
 
 For each uncertainty measure we provide tuples of (*Continuous Uncertainty Measure*, *Continuous Localization Error*) for each sample in the validation and test set in tabular form. We have split the data into 8 folds and used cross validation to gather validation and test set uncertainty tuples for every sample in the datasets.
 
@@ -28,8 +28,8 @@ In this example, we compare the uncertainty measures:
 
 We compare these measures on landmark predictions from:
 
-- A [U-Net model](https://link.springer.com/content/pdf/10.1007/978-3-319-24574-4_28.pdf).
-- A [PHD-Net model](https://ieeexplore.ieee.org/document/9433895/).
+- A [U-Net model](https://link.springer.com/content/pdf/10.1007/978-3-319-24574-4_28.pdf) [4].
+- A [PHD-Net model](https://ieeexplore.ieee.org/document/9433895/) [5].
 
 We also provide an example where the ground truth test error is not available under PHD-NET-NO-GT/.
 
@@ -354,3 +354,16 @@ If False, the figures will be shown instead.
 
 Default:
 `_C.OUTPUT.SAVE_FIGURES` = True
+
+
+## 6. References
+[1] L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization," in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
+
+[2] J. Hurdman, R. Condliffe, C.A. Elliot, C. Davies, C. Hill, J.M. Wild, D. Capener, P. Sephton, N. Hamilton, I.J. Armstrong, C. Billings, A. Lawrie, I. Sabroe, M. Akil, L. O’Toole, D.G. Kiely
+European Respiratory Journal 2012 39: 945-955; DOI: 10.1183/09031936.00078411
+
+[3] Wang, Ching-Wei & Huang, Cheng-Ta & Lee, Jia-Hong & Li, Chung-Hsing & Chang, Sheng-Wei & Siao, Ming-Jhih & Lai, Tat-Ming & Ibragimov, Bulat & Vrtovec, Tomaž & Ronneberger, Olaf & Fischer, Philipp & Cootes, Tim & Lindner, Claudia. (2016). A benchmark for comparison of dental radiography analysis algorithms. Medical Image Analysis. 31. 10.1016/j.media.2016.02.004.
+
+[4] Ronneberger, O., Fischer, P., Brox, T. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. In: Navab, N., Hornegger, J., Wells, W., Frangi, A. (eds) Medical Image Computing and Computer-Assisted Intervention – MICCAI 2015. MICCAI 2015. Lecture Notes in Computer Science(), vol 9351. Springer, Cham. https://doi.org/10.1007/978-3-319-24574-4_28
+
+[5] L. Schobs, S. Zhou, M. Cogliano, A. J. Swift and H. Lu, "Confidence-Quantifying Landmark Localisation For Cardiac MRI," 2021 IEEE 18th International Symposium on Biomedical Imaging (ISBI), Nice, France, 2021, pp. 985-988, doi: 10.1109/ISBI48211.2021.9433895.

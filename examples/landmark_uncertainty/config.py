@@ -45,9 +45,7 @@ _C.PIPELINE = CN()
 # Can choose to evalute over a single value or multiple values for Q (# bins). You can:
 # 1) Evaluate over each value of Q (set COMPARE_INDIVIDUAL_Q = True). For each Q it will compare DATASET.MODELS and DATASET.UNCERTAINTY_ERROR_PAIRS against eachother.
 # 2) Compare results of a single model and a single uncertainty error pair (set COMPARE_Q_VALUES = True).
-# TODO: If COMPARE_Q models or uncertainty_error_pairs > 1, will do each permutation. Currently, only supports 1 array length
-#
-#
+
 _C.PIPELINE.NUM_QUANTILE_BINS = [5, 10, 25]
 
 # ~# 1)
@@ -78,6 +76,7 @@ _C.PIPELINE.COMBINE_MIDDLE_BINS = False
 _C.PIPELINE.PIXEL_TO_MM_SCALE = 1.0
 _C.PIPELINE.IND_LANDMARKS_TO_SHOW = [-1]  # -1 means show all landmarks individually, [] means show none
 _C.PIPELINE.SHOW_IND_LANDMARKS = True
+
 # ---------------------------------------------------------------------------- #
 # Visualization
 # ---------------------------------------------------------------------------- #

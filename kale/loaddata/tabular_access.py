@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import List, Union
 
 import numpy as np
 import pandas as pd
@@ -6,7 +6,7 @@ import pandas as pd
 
 def load_csv_columns(
     datapath: str, split: str, fold: Union[int, List[int]], cols_to_return: Union[str, List[str]] = "All"
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+) -> pd.DataFrame:
     """
     Reads a CSV file of data and returns samples where the value of the specified
     `split` column is contained in the `fold` variable. The columns specified in `cols_to_return` are returned.

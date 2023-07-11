@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Tuple
 import pandas as pd
 
 
-def apply_confidence_inversion(data: pd.DataFrame, uncertainty_measure: str) -> Dict[str, Any]:
+def apply_confidence_inversion(data: pd.DataFrame, uncertainty_measure: str) -> Tuple[Any, Any]:
     """Invert a list of numbers, add a small number to avoid division by zero.
 
     Args:
