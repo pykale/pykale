@@ -256,8 +256,27 @@ def generic_box_plot_loop(
     show_individual_dots: bool = True,
 ) -> None:
     """
-    Generates and saves box plots of given data. The function is versatile and accommodates various customization
-    options such as turning data into percentages, using a logarithmic scale, showing individual data points, etc.
+    This function generates box plots for multiple types of data coming from various models. It is highly customizable
+    and can handle different specifications for plot attributes.
+
+    Customizations include:
+
+    1. Color specification: User can provide a list of color specifications for each box plot using `cmaps` parameter.
+    2. Axis labels: The x and y axis labels can be customized using `x_label` and `y_label` parameters.
+    3. Box width: The width of each box plot can be adjusted using `width` parameter.
+    4. Font sizes: Two different font sizes can be used in the plot, adjustable by `font_size_1` and `font_size_2`.
+    5. Limits of y-axis: The upper and lower limits of the y-axis can be set using `y_lim` and `y_lim_min` parameters.
+    6. Logarithmic scale: If `to_log` is set to True, the y-axis will be in logarithmic scale.
+    7. Display of individual data points: The user can choose to display individual data points in each box plot
+       by setting `show_individual_dots` to True.
+    8. Data transformation: The data can be transformed to percentages using `turn_to_percent` parameter.
+    9. Display of sample information: The user can choose to display information about the number of samples in each
+       box plot by setting `show_sample_info` to "None", "All", or "Average".
+
+    The function creates box plots for each combination of model and uncertainty type. It can save the resulting plot
+    to a specified location.
+
+
 
     Args:
         cmaps (List[str]): Colors for the box plots.

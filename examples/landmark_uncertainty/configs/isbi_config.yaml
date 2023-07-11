@@ -2,7 +2,7 @@
 DATASET:
     DATA: "ISBI_2std"
     LANDMARKS: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-    NUM_FOLDS: 1
+    NUM_FOLDS: 4
     UE_PAIRS_VAL: "checkpointuncertainty_pairs_valid"
     UE_PAIRS_TEST: "checkpointuncertainty_pairs_test"
 
@@ -33,7 +33,7 @@ PIPELINE:
     SHOW_IND_LANDMARKS: True
 
 OUTPUT:
-    SAVE_FIGURES: True
+    SAVE_FIGURES: False
     SAVE_PREPEND: "2std_10_08_22"
 
 BOXPLOT:
