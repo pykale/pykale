@@ -236,7 +236,7 @@ def quantile_binning_and_est_errors(
 
 def generic_box_plot_loop(
     cmaps: List[str],
-    landmark_uncert_dicts: Dict,
+    landmark_uncert_dicts: Dict[str, List[List[float]]],
     uncertainty_types_list: List[List[str]],
     models: List[str],
     x_axis_labels: List[str],
@@ -254,7 +254,35 @@ def generic_box_plot_loop(
     turn_to_percent: bool = True,
     to_log: bool = False,
     show_individual_dots: bool = True,
-):
+) -> None:
+    """
+    Generates and saves box plots of given data. The function is versatile and accommodates various customization
+    options such as turning data into percentages, using a logarithmic scale, showing individual data points, etc.
+
+    Args:
+        cmaps (List[str]): Colors for the box plots.
+        landmark_uncert_dicts (Dict[str, List[List[float]]]): Dictionary with landmarks, uncertainty values and corresponding data.
+        uncertainty_types_list (List[List[str]]): List of lists containing uncertainty types.
+        models (List[str]): List of models for which box plots are being made.
+        x_axis_labels (List[str]): Labels for the x-axis.
+        x_label (str): The label for the x-axis.
+        y_label (str): The label for the y-axis.
+        num_bins (int): The number of bins to be used for the box plot.
+        list_comp_bool (bool): Flag to determine if list comprehension should be used.
+        width (float): The width of the boxes in the box plot.
+        y_lim_min (float): The minimum limit for the y-axis.
+        font_size_1 (int): Font size for the first element.
+        font_size_2 (int): Font size for the second element.
+        show_sample_info (str): Information about the samples to be displayed. Default is "None".
+        save_path (Optional[str]): The path where the plot will be saved. If None, the plot won't be saved. Default is None.
+        y_lim (int): The maximum limit for the y-axis. Default is 120.
+        turn_to_percent (bool): Flag to determine if data should be converted to percentages. Default is True.
+        to_log (bool): Flag to determine if a logarithmic scale should be used. Default is False.
+        show_individual_dots (bool): Flag to determine if individual data points should be shown. Default is True.
+
+    Returns:
+        None. The function displays and/or saves a plot.
+    """
     hatch_type = "o"
 
     plt.style.use("fivethirtyeight")
