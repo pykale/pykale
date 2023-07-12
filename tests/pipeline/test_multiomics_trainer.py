@@ -3,11 +3,11 @@ import pytorch_lightning as pl
 import torch
 from torch.nn import CrossEntropyLoss
 
-from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 from kale.embed.mogonet import MogonetGCN
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.pipeline.multiomics_trainer import ModalityTrainer
 from kale.predict.decode import LinearClassifier, VCDN
+from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 from kale.utils.seed import set_seed
 
 

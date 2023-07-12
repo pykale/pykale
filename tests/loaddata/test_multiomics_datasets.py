@@ -3,8 +3,8 @@ import os
 import torch
 from torch_geometric.data import Data, DataLoader
 
-from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 from kale.loaddata.multiomics_datasets import MultiomicsDataset, SparseMultiomicsDataset
+from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 from kale.utils.seed import set_seed
 
 
