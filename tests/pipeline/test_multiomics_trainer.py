@@ -3,7 +3,7 @@ import pytorch_lightning as pl
 import torch
 from torch.nn import CrossEntropyLoss
 
-import kale.prepdata.tabular_transform as T
+from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 from kale.embed.mogonet import MogonetGCN
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.pipeline.multiomics_trainer import ModalityTrainer
@@ -45,8 +45,8 @@ def test_model():
         random_split=False,
         train_size=0.7,
         equal_weight=False,
-        pre_transform=T.ToTensor(dtype=torch.float),
-        target_pre_transform=T.ToOneHotEncoding(dtype=torch.float),
+        pre_transform=ToTensor(dtype=torch.float),
+        target_pre_transform=ToOneHotEncoding(dtype=torch.float),
     )
 
     for modality in range(num_modalities):
@@ -115,8 +115,8 @@ def test_model_multi_class():
         random_split=False,
         train_size=0.7,
         equal_weight=False,
-        pre_transform=T.ToTensor(dtype=torch.float),
-        target_pre_transform=T.ToOneHotEncoding(dtype=torch.float),
+        pre_transform=ToTensor(dtype=torch.float),
+        target_pre_transform=ToOneHotEncoding(dtype=torch.float),
     )
 
     for modality in range(num_modalities):

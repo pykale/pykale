@@ -3,7 +3,7 @@ import os
 import torch
 from torch_geometric.data import Data, DataLoader
 
-import kale.prepdata.tabular_transform as T
+from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 from kale.loaddata.multiomics_datasets import MultiomicsDataset, SparseMultiomicsDataset
 from kale.utils.seed import set_seed
 
@@ -28,8 +28,8 @@ def test_multiomics_datasets():
         raw_file_names=file_names,
         random_split=False,
         train_size=0.7,
-        pre_transform=T.ToTensor(dtype=torch.float),
-        target_pre_transform=T.ToOneHotEncoding(dtype=torch.float),
+        pre_transform=ToTensor(dtype=torch.float),
+        target_pre_transform=ToOneHotEncoding(dtype=torch.float),
     )
 
     # Test download method
@@ -81,8 +81,8 @@ def test_multiomics_datasets_random_split():
         raw_file_names=file_names,
         random_split=True,
         train_size=0.7,
-        pre_transform=T.ToTensor(dtype=torch.float),
-        target_pre_transform=T.ToOneHotEncoding(dtype=torch.float),
+        pre_transform=ToTensor(dtype=torch.float),
+        target_pre_transform=ToOneHotEncoding(dtype=torch.float),
     )
 
     # Test download method
@@ -133,8 +133,8 @@ def test_sparse_multiomics_datasets():
         random_split=False,
         train_size=0.7,
         equal_weight=False,
-        pre_transform=T.ToTensor(dtype=torch.float),
-        target_pre_transform=T.ToOneHotEncoding(dtype=torch.float),
+        pre_transform=ToTensor(dtype=torch.float),
+        target_pre_transform=ToOneHotEncoding(dtype=torch.float),
     )
 
     # Test download method
