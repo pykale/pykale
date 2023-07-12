@@ -3,7 +3,9 @@
 # =============================================================================
 
 """
-Construct a pipeline to run the MOGONET method based on PyTorch Lightning.
+Construct a pipeline to run the MOGONET method based on PyTorch Lightning. MOGONET is a multiomics fusion framework for
+cancer classification and biomarker identification that utilizes supervised graph convolutional networks for omics
+datasets.
 
 This code is written by refactoring the MOGONET code (https://github.com/txWang/MOGONET/blob/main/train_test.py)
 within the PyTorch Lightning.
@@ -32,19 +34,20 @@ from kale.predict.decode import LinearClassifier, VCDN
 
 
 class ModalityTrainer(pl.LightningModule):
-    r"""The implementation of the MOGONET method, which is based on PyTorch Lightning.
+    r"""The PyTorch Lightning implementation of the MOGONET method, a multiomics fusion method designed for
+    classification tasks.
 
     Args:
         dataset (SparseMultiomicsDataset): The input dataset created in form of :class:`~torch_geometric.data.Dataset`.
         num_modalities (int): The total number of modalities in the dataset.
         num_classes (int): The total number of classes in the dataset.
-        modality_encoder (List[MogonetGCN]): The list of GCN encoders for each modality.
-        modality_decoder (List[LinearClassifier]): The list of linear classifier decoders for each modality.
+        unimodal_encoder (List[MogonetGCN]): The list of GCN encoders for each modality.
+        unimodal_decoder (List[LinearClassifier]): The list of linear classifier decoders for each modality.
         loss_fn (CrossEntropyLoss): The loss function used to gauge the error between the prediction outputs and the
             provided target values.
-        multi_modality_decoder (VCDN, optional): The VCDN decoder used in the multi modality dataset.
+        multimodal_decoder (VCDN, optional): The VCDN decoder used in the multiomics dataset.
             (default: ``None``)
-        train_multi_modality_decoder (bool, optional): Whether to train VCDN module. (default: ``True``)
+        train_multimodal_decoder (bool, optional): Whether to train VCDN module. (default: ``True``)
         gcn_lr (float, optional): The learning rate used in the GCN module. (default: 5e-4)
         vcdn_lr (float, optional): The learning rate used in the VCDN module. (default: 1e-3)
     """
@@ -54,11 +57,11 @@ class ModalityTrainer(pl.LightningModule):
         dataset: SparseMultiomicsDataset,
         num_modalities: int,
         num_classes: int,
-        modality_encoder: List[MogonetGCN],
-        modality_decoder: List[LinearClassifier],
+        unimodal_encoder: List[MogonetGCN],
+        unimodal_decoder: List[LinearClassifier],
         loss_fn: CrossEntropyLoss,
-        multi_modality_decoder: Optional[VCDN] = None,
-        train_multi_modality_decoder: bool = True,
+        multimodal_decoder: Optional[VCDN] = None,
+        train_multimodal_decoder: bool = True,
         gcn_lr: float = 5e-4,
         vcdn_lr: float = 1e-3,
     ) -> None:
@@ -66,10 +69,10 @@ class ModalityTrainer(pl.LightningModule):
         self.dataset = dataset
         self.num_modalities = num_modalities
         self.num_classes = num_classes
-        self.modality_encoder = ModuleList(modality_encoder)
-        self.modality_decoder = ModuleList(modality_decoder)
-        self.multi_modality_decoder = multi_modality_decoder
-        self.train_multi_modality_decoder = train_multi_modality_decoder
+        self.unimodal_encoder = ModuleList(unimodal_encoder)
+        self.unimodal_decoder = ModuleList(unimodal_decoder)
+        self.multimodal_decoder = multimodal_decoder
+        self.train_multimodal_decoder = train_multimodal_decoder
         self.loss_fn = loss_fn
         self.gcn_lr = gcn_lr
         self.vcdn_lr = vcdn_lr
@@ -84,39 +87,39 @@ class ModalityTrainer(pl.LightningModule):
         for modality in range(self.num_modalities):
             optimizers.append(
                 torch.optim.Adam(
-                    list(self.modality_encoder[modality].parameters())
-                    + list(self.modality_decoder[modality].parameters()),
+                    list(self.unimodal_encoder[modality].parameters())
+                    + list(self.unimodal_decoder[modality].parameters()),
                     lr=self.gcn_lr,
                 )
             )
 
-        if self.multi_modality_decoder is not None:
-            optimizers.append(torch.optim.Adam(self.multi_modality_decoder.parameters(), lr=self.vcdn_lr))
+        if self.multimodal_decoder is not None:
+            optimizers.append(torch.optim.Adam(self.multimodal_decoder.parameters(), lr=self.vcdn_lr))
 
         return optimizers
 
     def forward(
-        self, x: List[Tensor], adj_t: List[SparseTensor], multi_modality: bool = False
+        self, x: List[Tensor], adj_t: List[SparseTensor], multimodal: bool = False
     ) -> Union[Tensor, List[Tensor]]:
         """Same as :meth:`torch.nn.Module.forward()`.
 
         Raises:
-            TypeError: If `multi_modality_decoder` is `None` for multi-modality datasets.
+            TypeError: If `multimodal_decoder` is `None` for multiomics datasets.
         """
         output = []
 
         for modality in range(self.num_modalities):
             output.append(
-                self.modality_decoder[modality](self.modality_encoder[modality](x[modality], adj_t[modality]))
+                self.unimodal_decoder[modality](self.unimodal_encoder[modality](x[modality], adj_t[modality]))
             )
 
-        if not multi_modality:
+        if not multimodal:
             return output
 
-        if self.multi_modality_decoder is not None:
-            return self.multi_modality_decoder(output)
+        if self.multimodal_decoder is not None:
+            return self.multimodal_decoder(output)
 
-        raise TypeError("multi_modality_decoder must be defined for multi-modality datasets.")
+        raise TypeError("multimodal_decoder must be defined for multiomics datasets.")
 
     def training_step(self, train_batch, batch_idx: int):
         """Compute and return the training loss.
@@ -139,22 +142,22 @@ class ModalityTrainer(pl.LightningModule):
             y.append(data.y[data.train_idx])
             sample_weight.append(data.train_sample_weight)
 
-        outputs = self.forward(x, adj_t, multi_modality=False)
+        outputs = self.forward(x, adj_t, multimodal=False)
 
         for modality in range(self.num_modalities):
             loss = self.loss_fn(outputs[modality], y[modality])
             loss = torch.mean(torch.mul(loss, sample_weight[modality]))
-            self.logger.log_metrics({f"train_modality_step_loss ({modality + 1})": loss.detach()}, self.global_step)
+            self.logger.log_metrics({f"train_unimodal_step_loss ({modality + 1})": loss.detach()}, self.global_step)
 
             optimizer[modality].zero_grad()
             self.manual_backward(loss)
             optimizer[modality].step()
 
-        if self.train_multi_modality_decoder and self.multi_modality_decoder is not None:
-            output = self.forward(x, adj_t, multi_modality=True)
+        if self.train_multimodal_decoder and self.multimodal_decoder is not None:
+            output = self.forward(x, adj_t, multimodal=True)
             multi_loss = self.loss_fn(output, y[0])
             multi_loss = torch.mean(torch.mul(multi_loss, sample_weight[0]))
-            self.logger.log_metrics({"train_multi_modality_step_loss": multi_loss.detach()}, self.global_step)
+            self.logger.log_metrics({"train_multimodal_step_loss": multi_loss.detach()}, self.global_step)
 
             optimizer[-1].zero_grad()
             self.manual_backward(multi_loss)
@@ -177,10 +180,10 @@ class ModalityTrainer(pl.LightningModule):
             adj_t.append(data.adj_t)
             y.append(torch.argmax(data.y[data.test_idx], dim=1))
 
-        if self.multi_modality_decoder is not None:
-            output = self.forward(x, adj_t, multi_modality=True)
+        if self.multimodal_decoder is not None:
+            output = self.forward(x, adj_t, multimodal=True)
         else:
-            output = self.forward(x, adj_t, multi_modality=False)[0]
+            output = self.forward(x, adj_t, multimodal=False)[0]
 
         pred_test_data = torch.index_select(output, dim=0, index=test_batch[0].test_idx)
         final_output = F.softmax(pred_test_data, dim=1).detach().cpu().numpy()
@@ -216,17 +219,17 @@ class ModalityTrainer(pl.LightningModule):
         Returns:
             str: The string representation of the multiomics trainer object.
         """
-        model_str = ["\nModel info:\n", "   Modality encoder:\n"]
+        model_str = ["\nModel info:\n", "   Unimodal encoder:\n"]
 
         for modality in range(self.num_modalities):
-            model_str.append(f"    ({modality + 1}) {self.modality_encoder[modality]}")
+            model_str.append(f"    ({modality + 1}) {self.unimodal_encoder[modality]}")
 
-        model_str.append("\n\n  Modality decoder:\n")
+        model_str.append("\n\n  Unimodal decoder:\n")
         for modality in range(self.num_modalities):
-            model_str.append(f"    ({modality + 1}) {self.modality_decoder[modality]}")
+            model_str.append(f"    ({modality + 1}) {self.unimodal_decoder[modality]}")
 
-        if self.multi_modality_decoder is not None:
-            model_str.append("\n\n  Multi-modality decoder:\n")
-            model_str.append(f"    {self.multi_modality_decoder}")
+        if self.multimodal_decoder is not None:
+            model_str.append("\n\n  Multimodal decoder:\n")
+            model_str.append(f"    {self.multimodal_decoder}")
 
         return "".join(model_str)
