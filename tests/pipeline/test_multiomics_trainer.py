@@ -61,9 +61,7 @@ def test_model():
         unimodal_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_classes))
 
     if num_modalities >= 2:
-        multimodal_decoder = VCDN(
-            num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim
-        )
+        multimodal_decoder = VCDN(num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim)
 
     trainer = ModalityTrainer(
         dataset=dataset,
@@ -131,9 +129,7 @@ def test_model_multi_class():
         unimodal_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_classes))
 
     if num_modalities >= 2:
-        multimodal_decoder = VCDN(
-            num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim
-        )
+        multimodal_decoder = VCDN(num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim)
 
     trainer = ModalityTrainer(
         dataset=dataset,
