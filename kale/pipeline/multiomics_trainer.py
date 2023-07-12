@@ -201,16 +201,16 @@ class MultiomicsTrainer(pl.LightningModule):
         return final_output
 
     def _custom_data_loader(self) -> DataLoader:
-        """Return an iterable or collection of iterables specifying samples."""
+        """Return an iterable or a collection of iterables that specifies all the samples in the dataset."""
         dataloaders = DataLoader(self.dataset, batch_size=1)
         return dataloaders
 
     def train_dataloader(self) -> DataLoader:
-        """Return an iterable or collection of iterables specifying training samples."""
+        """Return an iterable or a collection of iterables that specifies training samples in the dataset."""
         return self._custom_data_loader()
 
     def test_dataloader(self) -> DataLoader:
-        """Return an iterable or collection of iterables specifying test samples."""
+        """Return an iterable or a collection of iterables that specifies test samples in the dataset."""
         return self._custom_data_loader()
 
     def __str__(self) -> str:
