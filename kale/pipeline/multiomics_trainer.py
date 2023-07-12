@@ -33,7 +33,7 @@ from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.predict.decode import LinearClassifier, VCDN
 
 
-class ModalityTrainer(pl.LightningModule):
+class MultiomicsTrainer(pl.LightningModule):
     r"""The PyTorch Lightning implementation of the MOGONET method, a multiomics fusion method designed for
     classification tasks.
 

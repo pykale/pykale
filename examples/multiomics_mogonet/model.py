@@ -5,7 +5,7 @@ from yacs.config import CfgNode
 
 from kale.embed.mogonet import MogonetGCN
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
-from kale.pipeline.multiomics_trainer import ModalityTrainer
+from kale.pipeline.multiomics_trainer import MultiomicsTrainer
 from kale.predict.decode import LinearClassifier, VCDN
 
 
@@ -50,14 +50,14 @@ class MogonetModel:
                 num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim
             )
 
-    def get_model(self, pretrain: bool = False) -> ModalityTrainer:
+    def get_model(self, pretrain: bool = False) -> MultiomicsTrainer:
         """Return the prepared MOGONET model based on user preference.
 
         Args:
             pretrain (bool, optional): Whether to return the pretrain model. (default: ``False``)
 
         Returns:
-            ModalityTrainer: The prepared MOGONET model.
+            MultiomicsTrainer: The prepared MOGONET model.
         """
         num_modalities = self.cfg.DATASET.NUM_MODALITIES
         num_classes = self.cfg.DATASET.NUM_CLASSES
@@ -74,7 +74,7 @@ class MogonetModel:
             train_multimodal_decoder = True
             gcn_lr = gcn_lr
 
-        model = ModalityTrainer(
+        model = MultiomicsTrainer(
             dataset=self.dataset,
             num_modalities=num_modalities,
             num_classes=num_classes,

@@ -5,7 +5,7 @@ from torch.nn import CrossEntropyLoss
 
 from kale.embed.mogonet import MogonetGCN
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
-from kale.pipeline.multiomics_trainer import ModalityTrainer
+from kale.pipeline.multiomics_trainer import MultiomicsTrainer
 from kale.predict.decode import LinearClassifier, VCDN
 from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 from kale.utils.seed import set_seed
@@ -63,7 +63,7 @@ def test_model():
     if num_modalities >= 2:
         multimodal_decoder = VCDN(num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim)
 
-    trainer = ModalityTrainer(
+    trainer = MultiomicsTrainer(
         dataset=dataset,
         num_modalities=num_modalities,
         num_classes=num_classes,
@@ -131,7 +131,7 @@ def test_model_multi_class():
     if num_modalities >= 2:
         multimodal_decoder = VCDN(num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim)
 
-    trainer = ModalityTrainer(
+    trainer = MultiomicsTrainer(
         dataset=dataset,
         num_modalities=num_modalities,
         num_classes=num_classes,
