@@ -173,8 +173,8 @@ def test_configure_optimizers(test_model):
     assert optimizers[test_model.num_modalities].param_groups[0]["lr"] == 1e-3
 
 
-@pytest.mark.parametrize("multi_modality", [False, True])
-def test_forward(test_model, multi_modality):
+@pytest.mark.parametrize("multimodal", [False, True])
+def test_forward(test_model, multimodal):
     x = []
     adj_t = []
     for modality in range(test_model.num_modalities):
@@ -182,10 +182,10 @@ def test_forward(test_model, multi_modality):
         x.append(data.x[data.train_idx])
         adj_t.append(data.adj_t_train)
 
-    outputs = test_model.forward(x, adj_t, multi_modality)
+    outputs = test_model.forward(x, adj_t, multimodal)
 
-    assert isinstance(outputs, list) != multi_modality
-    if not multi_modality:
+    assert isinstance(outputs, list) != multimodal
+    if not multimodal:
         assert len(outputs) == test_model.num_modalities
         for modality in range(test_model.num_modalities):
             assert outputs[modality].shape == (test_model.dataset.get(modality).num_train, test_model.num_classes)
@@ -194,7 +194,7 @@ def test_forward(test_model, multi_modality):
         assert outputs.shape == (test_model.dataset.get(0).num_train, test_model.num_classes)
         test_model.multimodal_decoder = None
         with pytest.raises(TypeError):
-            _ = test_model.forward(x, adj_t, multi_modality)
+            _ = test_model.forward(x, adj_t, multimodal)
 
 
 def test_pipeline(test_model):
