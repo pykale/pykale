@@ -296,7 +296,7 @@ class SparseMultiomicsDataset(MultiomicsDataset):
     ):
         self.edge_per_node = edge_per_node
         self.equal_weight = equal_weight
-        self.sim_threshold = None
+        self.sim_threshold = None  # similarity threshold to keep the desired number of edges in the adjacency matrix.
         super().__init__(
             root,
             num_modalities,
@@ -395,7 +395,8 @@ class SparseMultiomicsDataset(MultiomicsDataset):
         return adj_matrix.indices(), adj_matrix.values()
 
     def _find_sim_threshold(self, adj_mat: torch.Tensor, num_train: int) -> None:
-        r"""Finds a threshold for the adjacency matrix in order to keep the predefined number of edges per nodes.
+        r"""Finds a similarity threshold for the adjacency matrix in order to keep the predefined number of edges per
+        nodes.
 
         Args:
             adj_mat (torch.Tensor): The dense adjacency matrix.
