@@ -20,9 +20,9 @@ class MogonetModel:
     def __init__(self, cfg: CfgNode, dataset: SparseMultiomicsDataset) -> None:
         self.cfg = cfg
         self.dataset = dataset
-        self.modality_encoder: List[MogonetGCN] = []
-        self.modality_decoder: List[LinearClassifier] = []
-        self.multi_modality_decoder: Optional[VCDN] = None
+        self.unimodal_encoder: List[MogonetGCN] = []
+        self.unimodal_decoder: List[LinearClassifier] = []
+        self.multimodal_decoder: Optional[VCDN] = None
         self.loss_function = CrossEntropyLoss(reduction="none")
         self._create_model()
 
@@ -35,7 +35,7 @@ class MogonetModel:
         vcdn_hidden_dim = pow(num_classes, num_modalities)
 
         for modality in range(num_modalities):
-            self.modality_encoder.append(
+            self.unimodal_encoder.append(
                 MogonetGCN(
                     in_channels=self.dataset.get(modality).num_features,
                     hidden_channels=gcn_hidden_dim,
@@ -43,10 +43,10 @@ class MogonetModel:
                 )
             )
 
-            self.modality_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_classes))
+            self.unimodal_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_classes))
 
         if num_modalities >= 2:
-            self.multi_modality_decoder = VCDN(
+            self.multimodal_decoder = VCDN(
                 num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim
             )
 
@@ -66,23 +66,23 @@ class MogonetModel:
         vcdn_lr = self.cfg.MODEL.VCDN_LR
 
         if pretrain:
-            multi_modality_model = None
-            train_multi_modality_decoder = False
+            multimodal_model = None
+            train_multimodal_decoder = False
             gcn_lr = gcn_lr_pretrain
         else:
-            multi_modality_model = self.multi_modality_decoder
-            train_multi_modality_decoder = True
+            multimodal_model = self.multimodal_decoder
+            train_multimodal_decoder = True
             gcn_lr = gcn_lr
 
         model = ModalityTrainer(
             dataset=self.dataset,
             num_modalities=num_modalities,
             num_classes=num_classes,
-            modality_encoder=self.modality_encoder,
-            modality_decoder=self.modality_decoder,
+            unimodal_encoder=self.unimodal_encoder,
+            unimodal_decoder=self.unimodal_decoder,
             loss_fn=self.loss_function,
-            multi_modality_decoder=multi_modality_model,
-            train_multi_modality_decoder=train_multi_modality_decoder,
+            multimodal_decoder=multimodal_model,
+            train_multimodal_decoder=train_multimodal_decoder,
             gcn_lr=gcn_lr,
             vcdn_lr=vcdn_lr,
         )
