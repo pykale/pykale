@@ -4,7 +4,7 @@ import torch
 from torch_geometric.data import Data, DataLoader
 
 import kale.prepdata.tabular_transform as T
-from kale.loaddata.multiomics_datasets import MultiOmicsDataset, SparseMultiOmicsDataset
+from kale.loaddata.multiomics_datasets import MultiomicsDataset, SparseMultiomicsDataset
 from kale.utils.seed import set_seed
 
 
@@ -20,7 +20,7 @@ def test_multiomics_datasets():
         file_names.append(f"{modality}_te.csv")
         file_names.append(f"{modality}_lbl_te.csv")
 
-    dataset = MultiOmicsDataset(
+    dataset = MultiomicsDataset(
         root=root,
         num_modalities=num_modalities,
         num_classes=num_classes,
@@ -73,7 +73,7 @@ def test_multiomics_datasets_random_split():
         file_names.append(f"{modality}_tr.csv")
         file_names.append(f"{modality}_lbl_tr.csv")
 
-    dataset = MultiOmicsDataset(
+    dataset = MultiomicsDataset(
         root=root,
         num_modalities=num_modalities,
         num_classes=num_classes,
@@ -123,7 +123,7 @@ def test_sparse_multiomics_datasets():
         file_names.append(f"{modality}_te.csv")
         file_names.append(f"{modality}_lbl_te.csv")
 
-    dataset = SparseMultiOmicsDataset(
+    dataset = SparseMultiomicsDataset(
         root=root,
         raw_file_names=file_names,
         num_modalities=num_modalities,

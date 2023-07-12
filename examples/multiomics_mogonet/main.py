@@ -16,7 +16,7 @@ from config import get_cfg_defaults
 from model import MogonetModel
 
 import kale.utils.seed as seed
-from kale.loaddata.multiomics_datasets import SparseMultiOmicsDataset
+from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 
 warnings.filterwarnings(action="ignore")
@@ -53,7 +53,7 @@ def main():
         file_names.append(f"{modality}_te.csv")
         file_names.append(f"{modality}_lbl_te.csv")
 
-    multiomics_data = SparseMultiOmicsDataset(
+    multiomics_data = SparseMultiomicsDataset(
         root=cfg.DATASET.ROOT,
         raw_file_names=file_names,
         num_modalities=cfg.DATASET.NUM_MODALITIES,

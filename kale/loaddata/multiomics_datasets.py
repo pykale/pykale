@@ -26,7 +26,7 @@ from torch_sparse import SparseTensor
 from kale.utils.distance import calculate_distance, DistanceMetric
 
 
-class MultiOmicsDataset(Dataset):
+class MultiomicsDataset(Dataset):
     r"""The multiomics data for creating graph dataset.
     See `here <https://pytorch-geometric.readthedocs.io/en/latest/tutorial/create_dataset.html>`__ in PyTorch Geometric
     for the accompanying tutorial.
@@ -254,7 +254,7 @@ class MultiOmicsDataset(Dataset):
         return self._num_classes
 
 
-class SparseMultiOmicsDataset(MultiOmicsDataset):
+class SparseMultiomicsDataset(MultiomicsDataset):
     r"""The multiomics data for creating sparse graph dataset based on the settings in the MOGONET paper.
 
     Args:
