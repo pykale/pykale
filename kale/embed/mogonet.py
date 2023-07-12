@@ -8,7 +8,7 @@ framework for cancer classification and biomarker identification that utilizes s
 for omics datasets.
 
 This code is written by refactoring the MOGONET code (https://github.com/txWang/MOGONET/blob/main/models.py) within
-'MessagePassing' base class provided in the PyTorch Geometric.
+the 'MessagePassing' base class provided in the PyTorch Geometric.
 
 Reference:
 Wang, T., Shao, W., Huang, Z., Tang, H., Zhang, J., Ding, Z., Huang, K. (2021). MOGONET integrates multi-omics data
@@ -35,8 +35,8 @@ class MogonetGCNConv(MessagePassing):
     .. math::
         H^{(l+1)}=f(H^{(l)}, A) = \sigma(AH^{(l)}W^{(l)})
 
-    where :math:`\mathbf{H^{(l)}}` is the input of the :math:`l` th layer and :math:`\mathbf{W^{(l)}}` is the weight
-    matrix of the :math:`l` th layer. :math:`\sigma(.)` denotes a non-linear activation function.
+    where :math:`\mathbf{H^{(l)}}` is the input of the :math:`l`-th layer and :math:`\mathbf{W^{(l)}}` is the weight
+    matrix of the :math:`l`-th layer. :math:`\sigma(.)` denotes a non-linear activation function.
 
     For more information please refer to the MOGONET paper.
 
