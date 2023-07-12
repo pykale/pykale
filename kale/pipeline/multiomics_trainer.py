@@ -45,8 +45,8 @@ class ModalityTrainer(pl.LightningModule):
         multi_modality_decoder (VCDN, optional): The VCDN decoder used in the multi modality dataset.
             (default: ``None``)
         train_multi_modality_decoder (bool, optional): Whether to train VCDN module. (default: ``True``)
-        gcn_lr (float, optional): The learning rate used in GCN module. (default: 5e-4)
-        vcdn_lr (float, optional): The learning rate used in VCDN module. (default: 1e-3)
+        gcn_lr (float, optional): The learning rate used in the GCN module. (default: 5e-4)
+        vcdn_lr (float, optional): The learning rate used in the VCDN module. (default: 1e-3)
     """
 
     def __init__(
@@ -78,7 +78,7 @@ class ModalityTrainer(pl.LightningModule):
         self.automatic_optimization = False
 
     def configure_optimizers(self) -> Union[Optimizer, List[Optimizer]]:
-        """Return the optimizers that are being used during training."""
+        """Return the optimizers used during training."""
         optimizers = []
 
         for modality in range(self.num_modalities):
