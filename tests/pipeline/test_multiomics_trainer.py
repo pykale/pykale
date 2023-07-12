@@ -22,9 +22,9 @@ def test_model():
     vcdn_lr = 1e-3
     loss_function = CrossEntropyLoss(reduction="none")
 
-    modality_encoder = []
-    modality_decoder = []
-    multi_modality_decoder = None
+    unimodal_encoder = []
+    unimodal_decoder = []
+    multimodal_decoder = None
 
     url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
     root = "tests/test_data/multiomics/trainer/"
@@ -50,7 +50,7 @@ def test_model():
     )
 
     for modality in range(num_modalities):
-        modality_encoder.append(
+        unimodal_encoder.append(
             MogonetGCN(
                 in_channels=dataset.get(modality).num_features,
                 hidden_channels=gcn_hidden_dim,
@@ -58,10 +58,10 @@ def test_model():
             )
         )
 
-        modality_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_classes))
+        unimodal_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_classes))
 
     if num_modalities >= 2:
-        multi_modality_decoder = VCDN(
+        multimodal_decoder = VCDN(
             num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim
         )
 
@@ -69,11 +69,11 @@ def test_model():
         dataset=dataset,
         num_modalities=num_modalities,
         num_classes=num_classes,
-        modality_encoder=modality_encoder,
-        modality_decoder=modality_decoder,
+        unimodal_encoder=unimodal_encoder,
+        unimodal_decoder=unimodal_decoder,
         loss_fn=loss_function,
-        multi_modality_decoder=multi_modality_decoder,
-        train_multi_modality_decoder=True,
+        multimodal_decoder=multimodal_decoder,
+        train_multimodal_decoder=True,
         gcn_lr=gcn_lr,
         vcdn_lr=vcdn_lr,
     )
@@ -92,9 +92,9 @@ def test_model_multi_class():
     vcdn_lr = 1e-3
     loss_function = CrossEntropyLoss(reduction="none")
 
-    modality_encoder = []
-    modality_decoder = []
-    multi_modality_decoder = None
+    unimodal_encoder = []
+    unimodal_decoder = []
+    multimodal_decoder = None
 
     url = "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"
     root = "tests/test_data/multiomics/trainer/multi_class/"
@@ -120,7 +120,7 @@ def test_model_multi_class():
     )
 
     for modality in range(num_modalities):
-        modality_encoder.append(
+        unimodal_encoder.append(
             MogonetGCN(
                 in_channels=dataset.get(modality).num_features,
                 hidden_channels=gcn_hidden_dim,
@@ -128,10 +128,10 @@ def test_model_multi_class():
             )
         )
 
-        modality_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_classes))
+        unimodal_decoder.append(LinearClassifier(in_dim=gcn_hidden_dim[-1], out_dim=num_classes))
 
     if num_modalities >= 2:
-        multi_modality_decoder = VCDN(
+        multimodal_decoder = VCDN(
             num_modalities=num_modalities, num_classes=num_classes, hidden_dim=vcdn_hidden_dim
         )
 
@@ -139,11 +139,11 @@ def test_model_multi_class():
         dataset=dataset,
         num_modalities=num_modalities,
         num_classes=num_classes,
-        modality_encoder=modality_encoder,
-        modality_decoder=modality_decoder,
+        unimodal_encoder=unimodal_encoder,
+        unimodal_decoder=unimodal_decoder,
         loss_fn=loss_function,
-        multi_modality_decoder=multi_modality_decoder,
-        train_multi_modality_decoder=True,
+        multimodal_decoder=multimodal_decoder,
+        train_multimodal_decoder=True,
         gcn_lr=gcn_lr,
         vcdn_lr=vcdn_lr,
     )
@@ -155,11 +155,11 @@ def test_init(test_model):
     assert isinstance(test_model.dataset, SparseMultiomicsDataset)
     assert test_model.num_modalities == 3
     assert test_model.num_classes == 2
-    assert all(isinstance(encoder, MogonetGCN) for encoder in test_model.modality_encoder)
-    assert all(isinstance(decoder, LinearClassifier) for decoder in test_model.modality_decoder)
+    assert all(isinstance(encoder, MogonetGCN) for encoder in test_model.unimodal_encoder)
+    assert all(isinstance(decoder, LinearClassifier) for decoder in test_model.unimodal_decoder)
     assert isinstance(test_model.loss_fn, CrossEntropyLoss)
-    assert isinstance(test_model.multi_modality_decoder, VCDN)
-    assert test_model.train_multi_modality_decoder
+    assert isinstance(test_model.multimodal_decoder, VCDN)
+    assert test_model.train_multimodal_decoder
     assert test_model.gcn_lr == 5e-4
     assert test_model.vcdn_lr == 1e-3
 
@@ -192,7 +192,7 @@ def test_forward(test_model, multi_modality):
     else:
         assert isinstance(outputs, torch.Tensor)
         assert outputs.shape == (test_model.dataset.get(0).num_train, test_model.num_classes)
-        test_model.multi_modality_decoder = None
+        test_model.multimodal_decoder = None
         with pytest.raises(TypeError):
             _ = test_model.forward(x, adj_t, multi_modality)
 
