@@ -28,7 +28,6 @@ examples/*/tb_logs/
 examples/*/logs/
 examples/*/demo*/
 examples/*/configs_experiment/
-results/*
 
 # Logs
 log-*.txt

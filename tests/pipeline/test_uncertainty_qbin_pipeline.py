@@ -8,19 +8,16 @@ import seaborn as sns
 
 import kale.utils.logger as logging
 from kale.embed.uncertainty_fitting import fit_and_predict
-from kale.interpret.uncertainty_quantiles import (
-    generate_figures_comparing_bins,
-    generate_figures_individual_bin_comparison,
-)
+from kale.interpret.uncertainty_quantiles import generate_fig_comparing_bins, generate_fig_individual_bin_comparison
 from kale.utils.download import download_file_by_url
 
 
 @pytest.fixture(scope="module")
-def testing_cfg(download_path):
+def testing_cfg():
     config_params = {
         "DATASET": {
             "SOURCE": "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip",
-            "ROOT": "../../../data/landmarks/",
+            "ROOT": "tests/test_data",
             "BASE_DIR": "Uncertainty_tuples",
             "FILE_FORMAT": "zip",
             "CONFIDENCE_INVERT": [["S-MHA", True], ["E-MHA", True], ["E-CPV", False]],
@@ -59,7 +56,7 @@ def testing_cfg(download_path):
         },
         "WEIGHT_KWARGS": {"markersize": 6, "alpha": 0.7},
         "BOXPLOT": {"SAMPLES_AS_DOTS": False, "ERROR_LIM": 256, "SHOW_SAMPLE_INFO_MODE": "Average"},
-        "OUTPUT": {"SAVE_FOLDER": "./results/testing", "SAVE_PREPEND": "testing", "SAVE_FIGURES": True},
+        "OUTPUT": {"SAVE_FOLDER": "tests/test_data", "SAVE_PREPEND": "testing", "SAVE_FIGURES": True},
     }
 
     yield config_params
@@ -279,7 +276,7 @@ def test_qbin_pipeline(testing_cfg):
             ]
         )
 
-        generate_figures_individual_bin_comparison(
+        generate_fig_individual_bin_comparison(
             data=[
                 ind_q_uncertainty_error_pairs,
                 ind_q_models_to_compare,
@@ -346,7 +343,7 @@ def test_qbin_pipeline(testing_cfg):
             os.makedirs(save_folder_comparison, exist_ok=True)
 
             logger.info("Comparison Q figures for: %s and %s ", c_model, c_er_pair)
-            generate_figures_comparing_bins(
+            generate_fig_comparing_bins(
                 data=[
                     c_er_pair,
                     c_model,

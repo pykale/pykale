@@ -1108,7 +1108,7 @@ def plot_cumulative(
         plt.close()
 
 
-def generate_figures_individual_bin_comparison(data: Tuple, display_settings: dict) -> None:
+def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) -> None:
     """Generate figures to compare localization errors, error bounds accuracy, and Jaccard index across uncertainty bins.
 
     Args:
@@ -1532,7 +1532,7 @@ def generate_figures_individual_bin_comparison(data: Tuple, display_settings: di
                         )
 
 
-def generate_figures_comparing_bins(
+def generate_fig_comparing_bins(
     data: Tuple[
         List[float],  # uncertainty_error_pair
         str,  # model

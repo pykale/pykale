@@ -1,3 +1,7 @@
+# Configuration option for the 4CH data where the Ground Truth (GT) labels for the test data
+# are not avaliable. Useful example for inference time where you want to bin by uncertainty.
+# See the documentation for full information on the configuration file options:
+# pykale/examples/landmark_uncertainty/README.md
 
 DATASET:
   DATA: "4CH"
@@ -7,7 +11,6 @@ DATASET:
   BASE_DIR: "Uncertainty_tuples"
 
 PIPELINE:
-
   NUM_QUANTILE_BINS: [5,10,20]
   COMBINE_MIDDLE_BINS: False
   PIXEL_TO_MM_SCALE: 1.0
@@ -29,8 +32,6 @@ BOXPLOT:
   SAMPLES_AS_DOTS: False
   SHOW_SAMPLE_INFO_MODE: "Average"
 
-
-
 OUTPUT:
-  SAVE_FIGURES: True
+  SAVE_FIGURES: True # True to save, False to visualize in matplotlib
   SAVE_PREPEND: "8std_10_08_22"

@@ -26,21 +26,18 @@ from kale.embed.uncertainty_fitting import fit_and_predict
 
 warnings.filterwarnings("error")
 import kale.utils.logger as logging
-from kale.interpret.uncertainty_quantiles import (
-    generate_figures_comparing_bins,
-    generate_figures_individual_bin_comparison,
-)
+from kale.interpret.uncertainty_quantiles import generate_fig_comparing_bins, generate_fig_individual_bin_comparison
 from kale.utils.download import download_file_by_url
 
 
 def arg_parse():
     """Parsing arguments"""
-    parser = argparse.ArgumentParser(description="Machine learning pipeline for PAH diagnosis")
+    parser = argparse.ArgumentParser(description="Quantile Binning for landmark uncertainty estimation.")
     parser.add_argument("--cfg", required=False, help="path to config file", type=str)
 
     args = parser.parse_args()
 
-    """Example:  python main.py --cfg /mnt/tale_shared/schobs/pykale/pykale/examples/landmark_uncertainty/configs/isbi_config.yaml"""
+    """Example:  python main.py --cfg ../configs/isbi_config.yaml"""
     return args
 
 
@@ -88,7 +85,7 @@ def main():
 
     pixel_to_mm_scale = cfg.PIPELINE.PIXEL_TO_MM_SCALE
 
-    # Define parameters for visualisation
+    # Define parameters for visualization
     cmaps = sns.color_palette("deep", 10).as_hex()
 
     if gt_test_error_available:
@@ -108,7 +105,7 @@ def main():
 
         # ---- This is the Fitting Phase ----
         if fit:
-            # Fit all the options for the individual q selection and comparison q selection
+            # Fit all the options for the individual Q selection and comparison Q selection
 
             all_models_to_compare = np.unique(ind_q_models_to_compare + compare_q_models_to_compare)
             all_uncert_error_pairs_to_compare = np.unique(
@@ -160,7 +157,7 @@ def main():
                     ]
                 )
 
-                generate_figures_individual_bin_comparison(
+                generate_fig_individual_bin_comparison(
                     data=[
                         ind_q_uncertainty_error_pairs,
                         ind_q_models_to_compare,
@@ -186,7 +183,7 @@ def main():
                     },
                 )
 
-            # If we are comparing bins against eachother, we need to wait until all the bins have been fitted.
+            # If we are comparing bins against each other, we need to wait until all the bins have been fitted.
             if cfg.PIPELINE.COMPARE_Q_VALUES and num_bins == cfg.PIPELINE.NUM_QUANTILE_BINS[-1]:
                 for c_model in compare_q_models_to_compare:
                     for c_er_pair in compare_q_uncertainty_error_pairs:
@@ -216,7 +213,7 @@ def main():
                         os.makedirs(save_folder_comparison, exist_ok=True)
 
                         logger.info("Comparison Q figures for: %s and %s ", c_model, c_er_pair)
-                        generate_figures_comparing_bins(
+                        generate_fig_comparing_bins(
                             data=[
                                 c_er_pair,
                                 c_model,
@@ -243,8 +240,6 @@ def main():
                                 "colour": color,
                             },
                         )
-
-                        # shutil.rmtree(save_folder_comparison)
 
 
 if __name__ == "__main__":

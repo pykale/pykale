@@ -17,7 +17,6 @@ _C.DATASET = CN()
 _C.DATASET.SOURCE = (
     "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
 )
-# _C.DATASET.SOURCE = "https://github.com/pykale/data/blob/landmark-data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
 _C.DATASET.ROOT = "../../../data/landmarks/"
 _C.DATASET.BASE_DIR = "Uncertainty_tuples"
 
@@ -42,8 +41,8 @@ _C.DATASET.UE_PAIRS_TEST = "uncertainty_pairs_test"
 # ---------------------------------------------------------------------------- #
 _C.PIPELINE = CN()
 
-# Can choose to evalute over a single value or multiple values for Q (# bins). You can:
-# 1) Evaluate over each value of Q (set COMPARE_INDIVIDUAL_Q = True). For each Q it will compare DATASET.MODELS and DATASET.UNCERTAINTY_ERROR_PAIRS against eachother.
+# Can choose to evaluate over a single value or multiple values for Q (# bins). You can:
+# 1) Evaluate over each value of Q (set COMPARE_INDIVIDUAL_Q = True). For each Q it will compare DATASET.MODELS and DATASET.UNCERTAINTY_ERROR_PAIRS against each other.
 # 2) Compare results of a single model and a single uncertainty error pair (set COMPARE_Q_VALUES = True).
 
 _C.PIPELINE.NUM_QUANTILE_BINS = [5, 10, 25]
@@ -51,7 +50,7 @@ _C.PIPELINE.NUM_QUANTILE_BINS = [5, 10, 25]
 # ~# 1)
 # Compare uncertainty measures AND models over each single value of Q?
 _C.PIPELINE.COMPARE_INDIVIDUAL_Q = True
-# [NAME, KEY (error in CSV), KEY (uncertainty in csv)]
+# [NAME, KEY (error in csv), KEY (uncertainty in csv)]
 _C.PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS = [
     ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"],
     ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"],
@@ -62,13 +61,11 @@ _C.PIPELINE.INDIVIDUAL_Q_MODELS = ["U-NET", "PHD-NET"]
 # ~#
 
 
-# ~# 2)
+# 2)
 # Compare a single uncertainty measure on single model through various values of Q bins e.g. 5, 10, 20
 _C.PIPELINE.COMPARE_Q_VALUES = True
 _C.PIPELINE.COMPARE_Q_MODELS = ["PHD-NET"]  # Which model to compare over values of Q.
-_C.PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS = [
-    ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"]
-]  # Which uncertainty estimation measure to compare over values of Q.  # TODO: test to make sure this is 2D
+_C.PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS = [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"]]
 # ~#
 
 
@@ -105,9 +102,9 @@ _C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "Average"  # "None", "All", "Average"
 _C.OUTPUT = CN()
 
 
-_C.OUTPUT.SAVE_FOLDER = "../../../results/"
+_C.OUTPUT.SAVE_FOLDER = "./outputs/"
 _C.OUTPUT.SAVE_PREPEND = "8std_27_07_22"
-_C.OUTPUT.SAVE_FIGURES = True
+_C.OUTPUT.SAVE_FIGURES = True  # True to save, False to visualize in matplotlib
 
 
 def get_cfg_defaults():

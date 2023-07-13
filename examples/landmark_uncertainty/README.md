@@ -1,6 +1,5 @@
 # Uncertainty Estimation in Landmark Localization
 
-Reference:  [L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization," in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.](https://arxiv.org/abs/2203.02351)
 
 ## 1. Description
 
@@ -16,7 +15,7 @@ Fig. 1 depicts the features exemplified in this example. Note that **a)** and **
 
 ## 2. Datasets
 
-We provide three tabular datasets containing landmark localization error and uncertainty estimation values: 1) 303 Short Axis View CMR images with 3 landmarks (SA), 422 Four Chamber View CMR images with 3 landmarks (4ch), and 400 Cephalometric Radiology images with 19 landmarks (Cephalometric). The CMR dataset is from the [ASPIRE Registry](https://erj.ersjournals.com/content/39/4/945) [2], and the Cephalometric dataset is from an [ISBI grand challenge](https://www.researchgate.net/publication/296621456_A_benchmark_for_comparison_of_dental_radiography_analysis_algorithms) [3].
+We provide three tabular datasets containing landmark localization error and uncertainty estimation values: 1) 303 Short Axis View Cardiac Magnetic Resonance (CMR) images with 3 landmarks (SA), 422 Four Chamber View CMR images with 3 landmarks (4ch), and 400 Cephalometric Radiology images with 19 landmarks (Cephalometric). The CMR dataset is from the [ASPIRE Registry](https://erj.ersjournals.com/content/39/4/945) [2], and the Cephalometric dataset is from an [ISBI grand challenge](https://www.researchgate.net/publication/296621456_A_benchmark_for_comparison_of_dental_radiography_analysis_algorithms) [3].
 
 For each uncertainty measure we provide tuples of (*Continuous Uncertainty Measure*, *Continuous Localization Error*) for each sample in the validation and test set in tabular form. We have split the data into 8 folds and used cross validation to gather validation and test set uncertainty tuples for every sample in the datasets.
 
@@ -37,18 +36,17 @@ The full README for the datasets can be found [here](https://github.com/pykale/d
 
 ## 3. Usage
 
-Run Quantile Binning for the Four Chamber, Short Axis, and Cephalometric data respectively:
+Run Quantile Binning for the Four Chamber data, Short Axis data, Cephalometric data, and Four Chamber No Ground Truth Test labels data respectively:
 
 ```bash
 python main.py --cfg configs/4CH_data.yaml
 python main.py --cfg configs/SA_data.yaml
 python main.py --cfg configs/isbi_config.yaml
 python main.py --cfg configs/no_gt_test_example.yaml
-
 ```
 
 
- Edit it the above yaml files for additional configuration options.
+Edit the above yaml files for additional configuration options.
 
  ## 4. Additional Experimental Results
  Find additional experimental results from our paper in this repository [additional results](https://github.com/Schobs/Qbin).
@@ -59,10 +57,10 @@ python main.py --cfg configs/no_gt_test_example.yaml
  To use your own data, you can simply change the paths in DATASET, as shown in the examples.
 
 ### Quick Tips:
-- To display rather than save figures set OUTPUT.SAVE_FIGURES: False in the .yaml file.
-- To compare results for different numbers of Quantile Bins, check out the documentation below for PIPELINE.NUM_QUANTILE_BINS
-- If test error is not available, set DATASET.TEST_ERROR_AVAILABLE: False in the .yaml file.
-- Check out the BOXPLOT options to turn on/off visualizations of all landmarks on the box plots and adjust error limits.
+- To display rather than save figures set `OUTPUT.SAVE_FIGURES`: `False` in the .yaml file.
+- To compare results for different numbers of Quantile Bins, check out the documentation below for `PIPELINE.NUM_QUANTILE_BINS`
+- If test error is not available, set `DATASET.TEST_ERROR_AVAILABLE`: False in the .yaml file.
+- Check out the `BOXPLOT` options to turn on/off visualizations of all landmarks on the box plots and adjust error limits.
 
 The configuration options are broken into a few sections:
 - A) [Dataset](#a-dataset) - options related to the dataset.
@@ -92,7 +90,13 @@ Default:
 
 #### `DATASET.BASE_DIR`
 
-The base directory within the `DATASET.ROOT` directory where the dataset will be downloaded and extracted to. If you have local data, set this to one level in of ROOT.
+The base directory within the `DATASET.ROOT` directory where the dataset will be downloaded and extracted to. If you have local data, set this to one level down of ROOT, where the data is stored.
+
+e.g. if you are using `4CH` data (`DATASET.DATA`="4CH") and the full path to the data is "../../../data/landmarks/Uncertainty_tuples/4CH" then:
+
+1) Set `DATASET.BASE_DIR` = "Uncertainty_tuples"
+2)  Set `_C.DATASET.ROOT` = "../../../data/landmarks/".
+
 
 Default:
 `_C.DATASET.BASE_DIR` = "Uncertainty_tuples"
@@ -128,7 +132,7 @@ Default:
 
 #### `DATASET.NUM_FOLDS`
 
-The number of cross-validation folds to analyse. If no cross-validaiton, set to 1.
+The number of cross-validation folds to analyze. If no cross-validaiton, set to 1.
 
 Default:
 `_C.DATASET.NUM_FOLDS = 8`
@@ -338,7 +342,7 @@ The following are miscellaneous configuration options.
 The folder where the experiment results will be saved.
 
 Default:
-`_C.OUTPUT.SAVE_FOLDER` = "../../../results/"
+`_C.OUTPUT.SAVE_FOLDER` = "./outputs/""
 
 #### `OUTPUT.SAVE_PREPEND`
 
