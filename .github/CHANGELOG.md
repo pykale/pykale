@@ -1,3 +1,41 @@
+# Version  0.1.2
+
+
+#### New Features
+
+* [#348](https://github.com/pykale/pykale/pull/348): Create stale workflow
+* [#356](https://github.com/pykale/pykale/pull/356): Update CIFAR CNNTransformer example to Lightning
+* [#358](https://github.com/pykale/pykale/pull/358): Add option to log messages to terminal
+* [#365](https://github.com/pykale/pykale/pull/365): Update project.yml
+
+#### Bug Fixes
+
+* [#353](https://github.com/pykale/pykale/pull/353): Fix importlib-metadata
+* [#370](https://github.com/pykale/pykale/pull/370): Support py3.10 and remove py3.7
+* [#372](https://github.com/pykale/pykale/pull/372): Update IPython version from <9.0 to <8.13
+* [#377](https://github.com/pykale/pykale/pull/377): Remove the py3.7 and added py3.10 in docs & switch to pip install rdkit & replace np.float with np.float64.
+* [#380](https://github.com/pykale/pykale/pull/380): Fix readthedoc error
+* [#382](https://github.com/pykale/pykale/pull/382): Fix "OSError" error in testflow 
+
+#### Code Improvements
+
+* [#345](https://github.com/pykale/pykale/pull/345): Add file path as a dicom dataset attribution
+* [#346](https://github.com/pykale/pykale/pull/346): Update the polypharmacy example and GripNet implementation
+* [#385](https://github.com/pykale/pykale/pull/385): Refactor input parameter of the data loader in PolypharmacyDataset class
+* [#386](https://github.com/pykale/pykale/pull/386): Refactor documentation and resolve module visibility issues in PyKale
+
+#### Tests
+
+* [#347](https://github.com/pykale/pykale/pull/347): Fix rdkit error in testflow
+* [#355](https://github.com/pykale/pykale/pull/355): Fix tensorly version and update flake8 github link
+
+#### Other Changes
+
+* [#344](https://github.com/pykale/pykale/pull/344): Release 0.1.1
+* [#357](https://github.com/pykale/pykale/pull/357): Add pyg version constraint in CI envs
+* [#359](https://github.com/pykale/pykale/pull/359): Create FUNDING.yml
+
+
 # Version  0.1.1
 
 #### New Features
