@@ -1,4 +1,4 @@
-"""This example is about the utilization of Multimodal Deep Learning (MMDL) for digit classification (0 and 1) on the AVMNIST dataset.
+"""This example is about the application of Multimodal Deep Learning (MMDL) for digit classification (0 and 1) on the AVMNIST dataset.
 
 Reference: https://github.com/pliang279/MultiBench/tree/main/examples/multimedia
 """
@@ -36,7 +36,6 @@ def arg_parse():
 
 
 def main():
-    """The main for this AVMNIST example, showing the workflow"""
     args = arg_parse()
     # ---- setup device ----
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -64,7 +63,6 @@ def main():
 
     model = get_model(cfg, device)
 
-    # ---- setup logger ----
     # Choose one logger (CometLogger or TensorBoardLogger) using cfg.COMET.ENABLE
     if cfg.COMET.ENABLE:
         suffix = str(int(time.time() * 1000))[6:]

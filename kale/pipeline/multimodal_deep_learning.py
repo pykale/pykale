@@ -10,7 +10,7 @@ from torch import nn
 class MultimodalDeepLearning(nn.Module):
     """The MMDL classifier is built from three components:
        1. Encoders: A list of PyTorch `nn.Module` encoders, with one encoder per modality. Each encoder is responsible for transforming the raw input of a single modality into a high-level representation.
-       2. Fusion Module: A PyTorch `nn.Module` that merges the high-level representations from each modality into a single representation. This fusion can be performed in various ways, such as concatenation or more complex fusion methods like tensor-based or bilinear fusion.
+       2. Fusion Module: A PyTorch `nn.Module` that merges the high-level representations from each modality into a single representation. This fusion can be performed in various ways, such as concatenation or more complex fusion methods like tensor-based fusion.
        3. Head/Classifier: A PyTorch `nn.Module` that takes the fused representation and outputs a class prediction. This is typically a feedforward neural network with one output node for binary classification tasks, or `n` output nodes for multi-class classification tasks where `n` is the number of classes.
        During the forward pass, the model first applies each encoder to the corresponding modality to obtain high-level representations. It then fuses these representations using the fusion module and passes the fused representation to the classifier to get the final output.
     Args:
