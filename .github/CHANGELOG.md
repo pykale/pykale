@@ -1,3 +1,24 @@
+# Version  0.1.2
+
+#### New Features
+
+* [#348](https://github.com/pykale/pykale/pull/348): Create stale workflow
+* [#356](https://github.com/pykale/pykale/pull/356): Update CIFAR CNNTransformer example to Lightning
+* [#358](https://github.com/pykale/pykale/pull/358): Add option to log messages to terminal
+* [#365](https://github.com/pykale/pykale/pull/365): Update project.yml for the new project board
+* [#370](https://github.com/pykale/pykale/pull/370): Support py3.10 and remove py3.7
+
+#### Bug Fixes
+
+* [#372](https://github.com/pykale/pykale/pull/372): Update IPython version from <9.0 to <8.13 to support Python 3.8
+
+#### Code Improvements
+
+* [#345](https://github.com/pykale/pykale/pull/345): Add file path as a dicom dataset attribute
+* [#346](https://github.com/pykale/pykale/pull/346): Update the polypharmacy example and GripNet implementation
+* [#385](https://github.com/pykale/pykale/pull/385): Refactor input parameter of the data loader in PolypharmacyDataset class
+* [#386](https://github.com/pykale/pykale/pull/386): Refactor documentation and resolve module visibility issues in PyKale
+
 # Version  0.1.1
 
 #### New Features
