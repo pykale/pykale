@@ -37,7 +37,13 @@ def arg_parse():
 
     args = parser.parse_args()
 
-    """Example:  python main.py --cfg ../configs/isbi_config.yaml"""
+    """Example:
+    python main.py
+
+    To use a custom config, or a config file provided in the configs folder:
+    python main.py --cfg ../configs/isbi_config.yaml
+
+    """
     return args
 
 
