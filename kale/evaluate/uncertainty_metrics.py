@@ -646,7 +646,6 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, 
             mean_all_bins.append(None)
         else:
             mean_all_bins.append(np.mean(x))
-    # mean_all_bins = [np.mean(x) for x in all_qs_error]
 
     return {
         "mean all targets": mean_all_targets,

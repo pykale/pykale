@@ -5,6 +5,8 @@ Functions to save results to Excel files.
 
 """
 
+from typing import Any, Dict
+
 import numpy as np
 import pandas as pd
 
@@ -56,7 +58,27 @@ def generate_summary_df(
                 summary_dict["B" + str(bin_idx + 1) + " " + um + " " + col_save_name + " Mean"] = summ_mean
                 summary_dict["B" + str(bin_idx + 1) + " " + um + " " + col_save_name + " Std"] = summ_std
 
-    pd_df = pd.DataFrame.from_dict(summary_dict, orient="index")
+    save_dict_xlsx(summary_dict, save_location, sheet_name)
+
+
+def save_dict_xlsx(data_dict: Dict[Any, Any], save_location: str, sheet_name: str) -> None:
+    """
+    Save a dictionary to an Excel file using the XlsxWriter engine.
+
+    Parameters:
+    data_dict (Dict[Any, Any]): The dictionary that needs to be saved to an Excel file. The keys of the dictionary represent the
+                                row index and the values represent the data in the row. If a dictionary value is a list or a
+                                series, each element in the list/series will be a column in the row.
+
+    save_location (str): The location where the Excel file will be saved. This should include the full path and the filename,
+                         for example, "/path/to/save/data.xlsx". Overwrites the file if it already exists.
+
+    sheet_name (str): The name of the sheet where the dictionary will be saved in the Excel file.
+
+    Returns:
+    None: This function does not return anything. It saves the dictionary as an Excel file at the specified location.
+    """
+    pd_df = pd.DataFrame.from_dict(data_dict, orient="index")
 
     with pd.ExcelWriter(save_location, engine="xlsxwriter") as writer:  # pylint: disable=abstract-class-instantiated
         for n, df in (pd_df).items():
