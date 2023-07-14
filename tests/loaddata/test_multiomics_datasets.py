@@ -1,6 +1,6 @@
 import os
-import pytest
 
+import pytest
 import torch
 from torch_geometric.data import Data, DataLoader
 
@@ -9,7 +9,7 @@ from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 from kale.utils.seed import set_seed
 
 
-@pytest.mark.parametrize('random_split', [True, False])
+@pytest.mark.parametrize("random_split", [True, False])
 def test_multiomics_datasets(random_split):
     num_modalities = 3
     num_classes = 2
