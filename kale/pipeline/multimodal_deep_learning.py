@@ -1,5 +1,4 @@
-"""This module implements a Multimodal Deep Learning (MMDL) classifier. The MMDL classifier uses separate encoders for each modality, a fusion technique to combine the modalities, and a classifier head for final prediction.
-   This approach enables the extraction of intricate patterns from multi-modal data, leading to improved prediction accuracy.
+"""This module implements a Multimodal Deep Learning (MMDL) classifier. The MMDL classifier uses separate encoders for each modality, a fusion technique to combine the modalities, and a classifier head for final prediction. This approach enables the extraction of intricate patterns from multi-modal data, leading to improved prediction accuracy.
    The module is designed to be flexible, allowing for easy integration of various encoders, fusion methods, and classifiers. This ensures that the system can adapt to various multi-modal tasks and datasets, enhancing its utility in diverse multi-modal learning scenarios.
    Reference: https://github.com/pliang279/MultiBench/blob/main/training_structures/Supervised_Learning.py
 """

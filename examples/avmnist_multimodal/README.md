@@ -31,7 +31,7 @@ python main.py --cfg configs/bimodal_matrix_fusion_interactor.yaml --output AVMN
 
 `kale.loaddata.avmnist_datasets`: This is a data loading module specifically designed for handling the AVMNIST dataset. The AVMNIST dataset is a multimodal version of the traditional MNIST, containing both audio and visual data corresponding to the original MNIST data. This module provides efficient ways to load, preprocess, and format this data in a manner that makes it ready for training a multimodal deep learning model.
 
-`kale.embed.feature_fusion`: This module provides a set of feature fusion techniques used for integrating the features extracted from different modalities, like image and audio. Fusion methods could include techniques such as concatenation, addition, multiplication, or more complex approaches like low-rank tensor fusion. The choice of fusion method can greatly influence the performance of the resulting multimodal model.
+`kale.embed.feature_fusion`: This module provides a comprehensive set of feature fusion methods, designed for integrating distinct modalities like image and audio. It utilizes a wide range of methods, from simple concatenation, addition, and multiplication fusion, to more sophisticated approaches such as low-rank tensor fusion. The choice of fusion method can greatly influence the performance of the resulting multimodal model.
 
 `kale.embed.image_cnn.LeNet`: This is a base neural network trainer that allows the extraction of features from different modalities like images and audios.
 

@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 
 
 class AVMNISTDataset:
-    """This class loads the AVMNIST audio-visual data stored in a specified directory, and prepares it for training, validation, and testing.
+    """This class loads the AVMNIST data stored in a specified directory, and prepares it for training, validation, and testing.
     This class also takes care of the pre-processing steps such as reshaping and normalizing the data based on provided arguments. This includes options to flatten the audio and image data, normalize the image and audio data, and add an additional dimension to the data, often used to represent the channel in image or audio data.
     Furthermore, The class handles the splitting of data into training and validation sets. It provides separate data loaders for the training, validation, and testing sets, which can be used to iterate over the data during model training and evaluation.
     This data loader class simplifies the data preparation process for multimodal learning tasks, allowing the user to focus on model architecture and hyperparameter tuning.
