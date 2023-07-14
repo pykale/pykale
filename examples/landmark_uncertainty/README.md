@@ -51,8 +51,10 @@ Edit the above yaml files for additional configuration options.
  ## 4. Additional Experimental Results
  Find additional experimental results from our paper in this repository [additional results](https://github.com/Schobs/Qbin).
 
+## 5. Quantile Binning Beyond Landmarks
+Quantile Binning can be used for purposes beyond landmarks. Simply follow the same format for your data as detailed [here](https://github.com/pykale/data/tree/main/tabular/cardiac_landmark_uncertainty)
 
-## 5. Advanced Usage - Config Options
+## 6. Advanced Usage - Config Options
  You can add your own config or change the config options in the .yaml files.
  To use your own data, you can simply change the paths in DATASET, as shown in the examples.
 

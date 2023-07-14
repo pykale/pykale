@@ -38,7 +38,7 @@ def evaluate_bounds(
     if combine_middle_bins:
         num_bins = 3
 
-    # Initialise results dicts
+    # Initialize results dicts
     all_bound_percents = {}
     all_bound_percents_nolmsep = {}
 
@@ -401,8 +401,6 @@ def evaluate_correlations(
                 quantile_thresholds = [quantile_thresholds[0], quantile_thresholds[-1]]
 
             # fit a piece-wise linear regression line between quantiles, and return correlation values.
-            # os.makedirs(os.path.join(save_path, model, uncertainty_type), exist_ok=True)
-
             save_path_fig = (
                 os.path.join(save_path, model + "_" + uncertainty_type + "_correlation_pwr_all_lms.pdf")
                 if save_path
@@ -440,7 +438,7 @@ def generate_summary_df(
 
     Returns:
         pd.DataFrame: A dataframe with statistics including mean error, std error of All and individual
-        landmarks. Also includes the SDR detection rates.
+        landmarks. Also includes the Sucess detection rates (SDR).
         The dataframe should have the following structure:
             df = {
                 "All um col_save_name Mean": value,
@@ -478,7 +476,6 @@ def generate_summary_df(
 
     with pd.ExcelWriter(save_location, engine="xlsxwriter") as writer:  # pylint: disable=abstract-class-instantiated
         for n, df in (pd_df).items():
-            # print(n, "AND", df)
             df.to_excel(writer, sheet_name=sheet_name)
 
 
@@ -520,7 +517,7 @@ def get_mean_errors(
     if combine_middle_bins:
         num_bins = 3
 
-    # initialise empty dicts
+    # initialize empty dicts
     all_mean_error_bins = {}
     all_mean_error_bins_lms_sep = {}
     all_concat_error_bins_lm_sep_foldwise: List[Dict] = [{} for x in range(len(landmarks))]
@@ -645,7 +642,7 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, landmarks, nu
         num_bins = 3
     else:
         num_bins_for_quantiles = num_bins
-    # initialise empty dicts
+    # initialize empty dicts
     all_jaccard_data = {}
     all_jaccard_bins_lms_sep = {}
 
