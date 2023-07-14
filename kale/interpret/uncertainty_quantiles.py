@@ -8,7 +8,7 @@ Functions related to interpreting the uncertainty quantiles from the quantile bi
    B) Perform Isotonic regression on uncertainty & error pairs (quantile_binning_and_est_errors)
    C) Plot boxplots: generic_box_plot_loop, format_plot, box_plot_per_model, box_plot_comparing_q
    D) Plot cumularive error plots: plot_cumulative
-   E) Big caller functions for analysis loop for QBinnig:  generate_fig_individual_bin_comparison, generate_fig_comparing_bins
+   E) Big caller functions for analysis loop for QBinning:  generate_fig_individual_bin_comparison, generate_fig_comparing_bins
 
    """
 import logging
@@ -1118,17 +1118,23 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
             - uncertainty_error_pairs (List[Tuple[int, float]]): A list of tuples specifying the uncertainty thresholds and corresponding error thresholds to use for binning the data.
             - models_to_compare (List[str]): A list of model names to compare.
             - dataset (str): The name of the dataset being used.
-            - target_indicies (List[int]): A list of target indices to include in the analysis.
+            - target_indices (List[int]): A list of target indices to include in the analysis.
             - num_bins (int): The number of uncertainty bins to use.
             - cmaps (List[str]): A list of colormap names to use for the figures.
             - save_folder (str): The directory in which to save the generated figures.
             - save_file_preamble (str): A string to use as the prefix for the filenames of the generated figures.
-            - cfg (Config): An object containing various configuration settings.
+            - combine_middle_bins (bool): Whether to combine the middle bins or not.
+            - save_figures_bool (bool): Whether to save the generated figures or not. If False, displays instead
+            - confidence_invert (bool): Whether to invert the confidence values to uncertainty or not.
+            - samples_as_dots_bool (bool): Whether to show individual samples as dots in the box plots or not.
+            - show_sample_info_mode (str): The mode for showing sample information in the box plots.
+            - box_plot_error_lim (float): The y-axis limit for the error box plots.
             - show_individual_target_plots (bool): Whether to generate separate plots for each individual target.
-            - interpret (bool): Whether to perform interpretation analysis.
+            - interpret (bool): Whether to perform interpretation analysis i.e. visualization.
             - num_folds (int): The number of folds to use in cross-validation.
             - ind_targets_to_show (List[int]): A list of target indices to include in individual target plots.
             - error_scaling_factor (float, optional): Scaling factor for error. Defaults to 1.0.
+
 
         display_settings: A dictionary containing boolean flags indicating which figures to generate.
 
@@ -1145,7 +1151,12 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
         cmaps,
         save_folder,
         save_file_preamble,
-        cfg,
+        combine_middle_bins,
+        save_figures_bool,
+        confidence_invert,
+        samples_as_dots_bool,
+        show_sample_info_mode,
+        box_plot_error_lim,
         show_individual_target_plots,
         interpret,
         num_folds,
@@ -1167,7 +1178,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
         target_indices,
         num_folds=num_folds,
         error_scaling_factor=error_scaling_factor,
-        combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
+        combine_middle_bins=combine_middle_bins,
     )
     all_error_data = all_error_data_dict["all mean error bins nosep"]
 
@@ -1186,7 +1197,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
         num_bins,
         target_indices,
         num_folds=num_folds,
-        combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
+        combine_middle_bins=combine_middle_bins,
     )
     all_jaccard_data = all_jaccard_data_dict["Jaccard All"]
     all_recall_data = all_jaccard_data_dict["Recall All"]
@@ -1203,7 +1214,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
         num_bins,
         target_indices,
         num_folds,
-        combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
+        combine_middle_bins=combine_middle_bins,
     )
 
     all_bound_data = bound_return_dict["Error Bounds All"]
@@ -1222,12 +1233,12 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
     if interpret:
 
         # If we have combined the middle bins, we are only displaying 3 bins (outer edges, and combined middle bins).
-        if cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]:
+        if combine_middle_bins:
             num_bins_display = 3
         else:
             num_bins_display = num_bins
 
-        if cfg["OUTPUT"]["SAVE_FIGURES"]:
+        if save_figures_bool:
             save_location = save_folder
         else:
             save_location = None
@@ -1240,10 +1251,10 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 uncertainty_error_pairs,
                 cmaps,
                 num_bins,
-                cfg["DATASET"]["CONFIDENCE_INVERT"],
+                confidence_invert,
                 num_folds=num_folds,
                 error_scaling_factor=error_scaling_factor,
-                combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
+                combine_middle_bins=combine_middle_bins,
                 save_path=save_location,
                 to_log=True,
             )
@@ -1293,8 +1304,8 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
         if display_settings["errors"]:
             # mean error concat for each bin
             logger.info("mean error concat all L")
-            if cfg["OUTPUT"]["SAVE_FIGURES"]:
-                if cfg["BOXPLOT"]["SAMPLES_AS_DOTS"]:
+            if save_figures_bool:
+                if samples_as_dots_bool:
                     dotted_addition = "_dotted"
                 else:
                     dotted_addition = "_undotted"
@@ -1312,9 +1323,9 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 y_label="Localization Error (mm)",
                 num_bins=num_bins_display,
                 turn_to_percent=False,
-                show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
+                show_sample_info=show_sample_info_mode,
+                show_individual_dots=samples_as_dots_bool,
+                y_lim=box_plot_error_lim,
                 to_log=True,
                 save_path=save_location,
             )
@@ -1323,7 +1334,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 # plot the concatentated errors for each target seperately
                 for idx_l, target_data in enumerate(all_bins_concat_targets_sep_all_error):
                     if idx_l in ind_targets_to_show or ind_targets_to_show == [-1]:
-                        if cfg["OUTPUT"]["SAVE_FIGURES"]:
+                        if save_figures_bool:
                             save_location = os.path.join(
                                 save_folder,
                                 save_file_preamble + dotted_addition + "_error_target_" + str(idx_l) + ".pdf",
@@ -1341,16 +1352,16 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                             y_label="Error (mm)",
                             num_bins=num_bins_display,
                             turn_to_percent=False,
-                            show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                            show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                            y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
+                            show_sample_info=show_sample_info_mode,
+                            show_individual_dots=samples_as_dots_bool,
+                            y_lim=box_plot_error_lim,
                             to_log=True,
                             save_path=save_location,
                         )
 
             logger.info("Mean error")
 
-            if cfg["OUTPUT"]["SAVE_FIGURES"]:
+            if save_figures_bool:
                 save_location = os.path.join(
                     save_folder, save_file_preamble + dotted_addition + "mean_error_folds_all_targets.pdf"
                 )
@@ -1365,7 +1376,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 y_label="Mean Error (mm)",
                 num_bins=num_bins_display,
                 turn_to_percent=False,
-                y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
+                y_lim=box_plot_error_lim,
                 to_log=True,
                 save_path=save_location,
             )
@@ -1373,7 +1384,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
         # Plot Error Bound Accuracy
         if display_settings["error_bounds"]:
             logger.info(" errorbound acc for all targets.")
-            if cfg["OUTPUT"]["SAVE_FIGURES"]:
+            if save_figures_bool:
                 save_location = os.path.join(save_folder, save_file_preamble + "_errorbound_all_targets.pdf")
 
             generic_box_plot_loop(
@@ -1399,7 +1410,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 # plot the concatentated error bounds for each target seperately
                 for idx_l, target_data in enumerate(all_bins_concat_targets_sep_all_errorbound):
                     if idx_l in ind_targets_to_show or ind_targets_to_show == [-1]:
-                        if cfg["OUTPUT"]["SAVE_FIGURES"]:
+                        if save_figures_bool:
                             save_location = os.path.join(
                                 save_folder, save_file_preamble + "_errorbound_target_" + str(idx_l) + ".pdf"
                             )
@@ -1428,7 +1439,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
         # Plot Jaccard Index
         if display_settings["jaccard"]:
             logger.info("Plot jaccard for all targets.")
-            if cfg["OUTPUT"]["SAVE_FIGURES"]:
+            if save_figures_bool:
                 save_location = os.path.join(save_folder, save_file_preamble + "_jaccard_all_targets.pdf")
 
             generic_box_plot_loop(
@@ -1451,7 +1462,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
             )
 
             # mean recall for each bin
-            if cfg["OUTPUT"]["SAVE_FIGURES"]:
+            if save_figures_bool:
                 save_location = os.path.join(save_folder, save_file_preamble + "_recall_jaccard_all_targets.pdf")
 
             generic_box_plot_loop(
@@ -1475,7 +1486,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
             )
 
             # mean precision for each bin
-            if cfg["OUTPUT"]["SAVE_FIGURES"]:
+            if save_figures_bool:
                 save_location = os.path.join(save_folder, save_file_preamble + "_precision_jaccard_all_targets.pdf")
 
             generic_box_plot_loop(
@@ -1503,7 +1514,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
                 for idx_l, target_data in enumerate(all_bins_concat_targets_sep_all_jacc):
                     if idx_l in ind_targets_to_show or ind_targets_to_show == [-1]:
-                        if cfg["OUTPUT"]["SAVE_FIGURES"]:
+                        if save_figures_bool:
                             save_location = os.path.join(
                                 save_folder, save_file_preamble + "jaccard_target_" + str(idx_l) + ".pdf"
                             )
@@ -1530,48 +1541,32 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                         )
 
 
-def generate_fig_comparing_bins(
-    data: Tuple[
-        List[float],  # uncertainty_error_pair
-        str,  # model
-        str,  # dataset
-        List[int],  # targets
-        List[int],  # all_values_q
-        List[str],  # cmaps
-        List[str],  # all_fitted_save_paths
-        str,  # save_folder
-        str,  # save_file_preamble
-        Any,  # cfg
-        bool,  # show_individual_target_plots
-        bool,  # interpret
-        int,  # num_folds
-        List[int],  # ind_targets_to_show
-        float,  # error_scaling_factor
-    ],
-    display_settings: Dict[str, Any],
-) -> None:
+def generate_fig_comparing_bins(data: Tuple, display_settings: Dict[str, Any],) -> None:
     """
     Generate figures comparing localization error, error bounds accuracy, and Jaccard index for different binning
     configurations.
 
     Args:
-        data: Tuple containing the following elements:
-            - uncertainty_error_pair: List of two floats representing the mean and standard deviation of the noise
-              uncertainty used during training and evaluation, respectively.
-            - model: String representing the name of the model being evaluated.
-            - dataset: String representing the name of the dataset being used.
-            - targets: List of integers representing the target indices being evaluated.
-            - all_values_q: List of integers representing the number of bins being used for each evaluation.
-            - cmaps: List of strings representing the color maps to use for plotting.
-            - all_fitted_save_paths: List of strings representing the file paths where the binned data is stored.
-            - save_folder: String representing the directory where the figures should be saved.
-            - save_file_preamble: String representing the prefix to use for all figure file names.
-            - cfg: Object representing configuration settings.
-            - show_individual_target_plots: Boolean indicating whether to generate individual plots for each target.
-            - interpret: Boolean indicating whether the results are being interpreted.
-            - num_folds: Integer representing the number of cross-validation folds to use.
-            - ind_targets_to_show: List of integers representing the target indices to show in individual plots.
-            -  error_scaling_factor (float, optional): Scaling factor for error. Defaults to 1.0.
+        data (Tuple): A tuple containing various inputs needed to generate the figures. The tuple should include the following elements:
+            - uncertainty_error_pair (Tuple[float, float]): A tuple representing the mean and standard deviation of the noise uncertainty used during training and evaluation.
+            - model (str): The name of the model being evaluated.
+            - dataset (str): The name of the dataset being used.
+            - targets (List[int]): A list of target indices being evaluated.
+            - all_values_q (List[int]): A list of integers representing the number of bins being used for each evaluation.
+            - cmaps (List[str]): A list of colormap names to use for plotting.
+            - all_fitted_save_paths (List[str]): A list of file paths where the binned data is stored.
+            - save_folder (str): The directory where the figures should be saved.
+            - save_file_preamble (str): The prefix to use for all figure file names.
+            - combine_middle_bins (bool): Whether to combine the middle bins or not.
+            - save_figures_bool (bool): Whether to save the generated figures or not. If false, shows instead.
+            - samples_as_dots_bool (bool): Whether to show individual samples as dots in the box plots or not.
+            - show_sample_info_mode (str): The mode for showing sample information in the box plots.
+            - box_plot_error_lim (float): The y-axis limit for the error box plots.
+            - show_individual_target_plots (bool): Whether to generate individual plots for each target.
+            - interpret (bool): Whether the results are being interpreted.
+            - num_folds (int): The number of cross-validation folds to use.
+            - ind_targets_to_show (List[int]): A list of target indices to show in individual plots.
+            - error_scaling_factor (float, optional): Scaling factor for error. Defaults to 1.0.
 
         display_settings: Dictionary containing the following keys:
             - 'hatch': String representing the type of hatch pattern to use in the plots.
@@ -1592,7 +1587,11 @@ def generate_fig_comparing_bins(
         all_fitted_save_paths,
         save_folder,
         save_file_preamble,
-        cfg,
+        combine_middle_bins,  # cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]
+        save_figures_bool,  # cfg["OUTPUT"]["SAVE_FIGURES"]
+        samples_as_dots_bool,  # cfg["BOXPLOT"]["SAMPLES_AS_DOTS"]
+        show_sample_info_mode,  # cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"]
+        box_plot_error_lim,  # cfg["BOXPLOT"]["ERROR_LIM"]
         show_individual_target_plots,
         interpret,
         num_folds,
@@ -1640,7 +1639,7 @@ def generate_fig_comparing_bins(
             targets,
             num_folds=num_folds,
             error_scaling_factor=error_scaling_factor,
-            combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
+            combine_middle_bins=combine_middle_bins,
         )
         all_error_data.append(all_error_data_dict["all mean error bins nosep"])
         all_error_target_sep.append(all_error_data_dict["all mean error bins targets sep"])
@@ -1661,7 +1660,7 @@ def generate_fig_comparing_bins(
             num_bins,
             targets,
             num_folds=num_folds,
-            combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
+            combine_middle_bins=combine_middle_bins,
         )
         all_jaccard_data.append(all_jaccard_data_dict["Jaccard All"])
         all_recall_data.append(all_jaccard_data_dict["Recall All"])
@@ -1680,7 +1679,7 @@ def generate_fig_comparing_bins(
             num_bins,
             targets,
             num_folds,
-            combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
+            combine_middle_bins=combine_middle_bins,
         )
 
         all_bound_data.append(bound_return_dict["Error Bounds All"])
@@ -1693,7 +1692,7 @@ def generate_fig_comparing_bins(
 
     if interpret:
         # If we have combined the middle bins, we are only displaying 3 bins (outer edges, and combined middle bins).
-        if cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]:
+        if combine_middle_bins:
             num_bins_display = 3
         else:
             num_bins_display = num_bins
@@ -1707,8 +1706,8 @@ def generate_fig_comparing_bins(
         if display_settings["errors"]:
             # mean error concat for each bin
             logger.info("mean error concat all L")
-            if cfg["OUTPUT"]["SAVE_FIGURES"]:
-                if cfg["BOXPLOT"]["SAMPLES_AS_DOTS"]:
+            if save_figures_bool:
+                if samples_as_dots_bool:
                     dotted_addition = "_dotted"
                 else:
                     dotted_addition = "_undotted"
@@ -1727,9 +1726,9 @@ def generate_fig_comparing_bins(
                 y_label="Localization Error (mm)",
                 num_bins_display=num_bins_display,
                 turn_to_percent=False,
-                show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
+                show_sample_info=show_sample_info_mode,
+                show_individual_dots=samples_as_dots_bool,
+                y_lim=box_plot_error_lim,
                 to_log=True,
                 save_path=save_location,
             )
@@ -1740,7 +1739,7 @@ def generate_fig_comparing_bins(
                     target_data = [x[target_idx] for x in all_bins_concat_targets_sep_all_error]
 
                     if target_idx in ind_targets_to_show or ind_targets_to_show == [-1]:
-                        if cfg["OUTPUT"]["SAVE_FIGURES"]:
+                        if save_figures_bool:
                             save_location = os.path.join(
                                 save_folder,
                                 save_file_preamble + dotted_addition + "_error_target_" + str(target_idx) + ".pdf",
@@ -1758,16 +1757,14 @@ def generate_fig_comparing_bins(
                             y_label="Localization Error (mm)",
                             num_bins_display=num_bins_display,
                             turn_to_percent=False,
-                            show_sample_info=cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                            show_individual_dots=cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                            y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
+                            show_sample_info=show_sample_info_mode,
+                            show_individual_dots=samples_as_dots_bool,
+                            y_lim=box_plot_error_lim,
                             to_log=True,
                             save_path=save_location,
                         )
 
-            logger.info("mean error")
-
-            if cfg["OUTPUT"]["SAVE_FIGURES"]:
+            if save_figures_bool:
                 save_location = os.path.join(
                     save_folder, save_file_preamble + dotted_addition + "mean_error_folds_all_targets.pdf"
                 )
@@ -1784,7 +1781,7 @@ def generate_fig_comparing_bins(
                 turn_to_percent=False,
                 show_sample_info="None",
                 show_individual_dots=False,
-                y_lim=cfg["BOXPLOT"]["ERROR_LIM"],
+                y_lim=box_plot_error_lim,
                 to_log=True,
                 save_path=save_location,
             )
@@ -1793,7 +1790,7 @@ def generate_fig_comparing_bins(
 
         if display_settings["error_bounds"]:
             logger.info(" errorbound acc for all targets.")
-            if cfg["OUTPUT"]["SAVE_FIGURES"]:
+            if save_figures_bool:
                 save_location = os.path.join(save_folder, save_file_preamble + "_errorbound_all_targets.pdf")
 
             box_plot_comparing_q(
@@ -1819,7 +1816,7 @@ def generate_fig_comparing_bins(
                     target_data = [x[target_idx] for x in all_bins_concat_targets_sep_all_errorbound]
 
                     if target_idx in ind_targets_to_show or ind_targets_to_show == [-1]:
-                        if cfg["OUTPUT"]["SAVE_FIGURES"]:
+                        if save_figures_bool:
                             save_location = os.path.join(
                                 save_folder, save_file_preamble + "_errorbound_target_" + str(target_idx) + ".pdf"
                             )
@@ -1844,7 +1841,7 @@ def generate_fig_comparing_bins(
         # Plot Jaccard Index
         if display_settings["jaccard"]:
             logger.info("Plot jaccard for all targets.")
-            if cfg["OUTPUT"]["SAVE_FIGURES"]:
+            if save_figures_bool:
                 save_location = os.path.join(save_folder, save_file_preamble + "_jaccard_all_targets.pdf")
 
             box_plot_comparing_q(
@@ -1866,7 +1863,7 @@ def generate_fig_comparing_bins(
             # mean recall for each bin
             logger.info("Plot recall for all targets.")
 
-            if cfg["OUTPUT"]["SAVE_FIGURES"]:
+            if save_figures_bool:
                 save_location = os.path.join(save_folder, save_file_preamble + "_recall_jaccard_all_targets.pdf")
             box_plot_comparing_q(
                 all_recall_data,
@@ -1887,7 +1884,7 @@ def generate_fig_comparing_bins(
             # mean precision for each bin
             logger.info("Plot precision for all targets.")
 
-            if cfg["OUTPUT"]["SAVE_FIGURES"]:
+            if save_figures_bool:
                 save_location = os.path.join(save_folder, save_file_preamble + "_precision_jaccard_all_targets.pdf")
             box_plot_comparing_q(
                 all_precision_data,
@@ -1911,7 +1908,7 @@ def generate_fig_comparing_bins(
                     target_data = [x[target_idx] for x in all_bins_concat_targets_sep_all_jacc]
 
                     if target_idx in ind_targets_to_show or ind_targets_to_show == [-1]:
-                        if cfg["OUTPUT"]["SAVE_FIGURES"]:
+                        if save_figures_bool:
                             save_location = os.path.join(
                                 save_folder, save_file_preamble + "jaccard_target_" + str(target_idx) + ".pdf"
                             )
