@@ -84,7 +84,7 @@ def test_model(num_classes, url):
     return trainer
 
 
-@pytest.mark.parametrize('num_classes, url', [(2, binary_class_data_url), (5, multi_class_data_url)])
+@pytest.mark.parametrize("num_classes, url", [(2, binary_class_data_url), (5, multi_class_data_url)])
 def test_init(test_model, num_classes, url):
     assert isinstance(test_model.dataset, SparseMultiomicsDataset)
     assert test_model.num_modalities == 3
@@ -98,7 +98,7 @@ def test_init(test_model, num_classes, url):
     assert test_model.vcdn_lr == 1e-3
 
 
-@pytest.mark.parametrize('num_classes, url', [(2, binary_class_data_url), (5, multi_class_data_url)])
+@pytest.mark.parametrize("num_classes, url", [(2, binary_class_data_url), (5, multi_class_data_url)])
 def test_configure_optimizers(test_model, num_classes, url):
     optimizers = test_model.configure_optimizers()
     assert len(optimizers) == 4
@@ -108,10 +108,15 @@ def test_configure_optimizers(test_model, num_classes, url):
     assert optimizers[test_model.num_modalities].param_groups[0]["lr"] == 1e-3
 
 
-@pytest.mark.parametrize('num_classes, url, multimodal', [(2, binary_class_data_url, False),
-                                                        (2, binary_class_data_url, True),
-                                                        (5, multi_class_data_url, False),
-                                                         (5, multi_class_data_url, True),])
+@pytest.mark.parametrize(
+    "num_classes, url, multimodal",
+    [
+        (2, binary_class_data_url, False),
+        (2, binary_class_data_url, True),
+        (5, multi_class_data_url, False),
+        (5, multi_class_data_url, True),
+    ],
+)
 def test_forward2(test_model, num_classes, url, multimodal):
     x = []
     adj_t = []
@@ -135,7 +140,7 @@ def test_forward2(test_model, num_classes, url, multimodal):
             _ = test_model.forward(x, adj_t, multimodal)
 
 
-@pytest.mark.parametrize('num_classes, url', [(2, binary_class_data_url), (5, multi_class_data_url)])
+@pytest.mark.parametrize("num_classes, url", [(2, binary_class_data_url), (5, multi_class_data_url)])
 def test_pipeline(test_model, num_classes, url):
     set_seed(2023)
     trainer_pretrain = pl.Trainer(max_epochs=2, gpus=0, enable_model_summary=False,)
