@@ -11,7 +11,7 @@ Multimodal learning for multiomics data analysis is a promising research area in
 a multiomics fusion framework for cancer classification and biomarker identification that utilizes supervised graph
 convolutional networks for omics datasets. The overall framework of MOGONET is illustrated below.
 
-![MOGONET Architecture](image/MOGONET.png)
+![MOGONET Architecture](https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41467-021-23774-w/MediaObjects/41467_2021_23774_Fig1_HTML.png)
 
 The original implementation of MOGONET is available [here](https://github.com/txWang/MOGONET).
 
