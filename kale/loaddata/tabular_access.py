@@ -1,3 +1,9 @@
+"""Authors: Lawrence Schobs, lawrenceschobs@gmail.com
+
+Functions for accessing tabular data.
+
+"""
+
 from typing import List, Union
 
 import numpy as np

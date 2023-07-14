@@ -1,5 +1,7 @@
 """
-Default configurations for uncertainty estimation using Quantile Binning
+Default configurations for uncertainty estimation using Quantile Binning.
+See the documentation for full information on the configuration file options:
+pykale/examples/landmark_uncertainty/README.md
 """
 
 from yacs.config import CfgNode as CN
@@ -103,7 +105,7 @@ _C.OUTPUT = CN()
 
 
 _C.OUTPUT.SAVE_FOLDER = "./outputs/"
-_C.OUTPUT.SAVE_PREPEND = "8std_27_07_22"
+_C.OUTPUT.SAVE_PREPEND = "example"
 _C.OUTPUT.SAVE_FIGURES = True  # True to save, False to visualize in matplotlib
 
 

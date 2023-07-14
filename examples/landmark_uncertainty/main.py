@@ -243,7 +243,7 @@ def main():
                                 "jaccard": True,
                                 "error_bounds": True,
                                 "hatch": hatch_type,
-                                "colour": color,
+                                "color": color,
                             },
                         )
 

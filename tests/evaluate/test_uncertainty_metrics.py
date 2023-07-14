@@ -21,11 +21,11 @@ UNCERTAINTIES = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 
 @pytest.fixture(scope="module")
 def dummy_test_preds(landmark_uncertainty_tuples_path):
-    bins_all_lms, bins_lms_sep, bounds_all_lms, bounds_lms_sep = get_data_struct(
+    bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = get_data_struct(
         ["U-NET"], [0, 1], landmark_uncertainty_tuples_path[2], "SA"
     )
 
-    return bins_all_lms, bounds_all_lms
+    return bins_all_targets, bounds_all_targets
 
 
 class TestEvaluateJaccard:
@@ -37,15 +37,15 @@ class TestEvaluateJaccard:
             dummy_test_preds[0], [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"]], num_bins, [0, 1], num_folds=8
         )
         all_jaccard_data = jacc_dict["Jaccard All"]
-        all_jaccard_bins_lms_sep = jacc_dict["Jaccard lms seperated"]
+        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets seperated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA"]
         assert len(all_jaccard_data["U-NET S-MHA"]) == num_bins
 
-        assert list(all_jaccard_bins_lms_sep.keys()) == ["U-NET S-MHA"]
-        assert len(all_jaccard_bins_lms_sep["U-NET S-MHA"]) == num_bins
+        assert list(all_jaccard_bins_targets_sep.keys()) == ["U-NET S-MHA"]
+        assert len(all_jaccard_bins_targets_sep["U-NET S-MHA"]) == num_bins
         assert (
-            len(all_jaccard_bins_lms_sep["U-NET S-MHA"][0]) == 8 * 2
+            len(all_jaccard_bins_targets_sep["U-NET S-MHA"][0]) == 8 * 2
         )  # because each landmark has 8 folds - they are seperate
 
     def test_one_fold(self, dummy_test_preds):
@@ -54,14 +54,16 @@ class TestEvaluateJaccard:
         )
 
         all_jaccard_data = jacc_dict["Jaccard All"]
-        all_jaccard_bins_lms_sep = jacc_dict["Jaccard lms seperated"]
+        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets seperated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA"]
         assert len(all_jaccard_data["U-NET S-MHA"]) == 5
 
-        assert list(all_jaccard_bins_lms_sep.keys()) == ["U-NET S-MHA"]
-        assert len(all_jaccard_bins_lms_sep["U-NET S-MHA"]) == 5
-        assert len(all_jaccard_bins_lms_sep["U-NET S-MHA"][0]) == 2  # because each landmark has 1 folds - they are sep
+        assert list(all_jaccard_bins_targets_sep.keys()) == ["U-NET S-MHA"]
+        assert len(all_jaccard_bins_targets_sep["U-NET S-MHA"]) == 5
+        assert (
+            len(all_jaccard_bins_targets_sep["U-NET S-MHA"][0]) == 2
+        )  # because each landmark has 1 folds - they are sep
 
     def test_multiple_uncerts(self, dummy_test_preds):
         jacc_dict = evaluate_jaccard(
@@ -73,15 +75,17 @@ class TestEvaluateJaccard:
         )
 
         all_jaccard_data = jacc_dict["Jaccard All"]
-        all_jaccard_bins_lms_sep = jacc_dict["Jaccard lms seperated"]
+        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets seperated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
         assert len(all_jaccard_data["U-NET S-MHA"]) == len(all_jaccard_data["U-NET E-MHA"]) == 5
 
-        assert list(all_jaccard_bins_lms_sep.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
-        assert len(all_jaccard_bins_lms_sep["U-NET S-MHA"]) == len(all_jaccard_bins_lms_sep["U-NET E-MHA"]) == 5
+        assert list(all_jaccard_bins_targets_sep.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
+        assert len(all_jaccard_bins_targets_sep["U-NET S-MHA"]) == len(all_jaccard_bins_targets_sep["U-NET E-MHA"]) == 5
         assert (
-            len(all_jaccard_bins_lms_sep["U-NET S-MHA"][0]) == len(all_jaccard_bins_lms_sep["U-NET E-MHA"][0]) == 2
+            len(all_jaccard_bins_targets_sep["U-NET S-MHA"][0])
+            == len(all_jaccard_bins_targets_sep["U-NET E-MHA"][0])
+            == 2
         )  # because each landmark has 8 folds - they are sep
 
 
@@ -98,15 +102,15 @@ class TestEvaluateBounds:
         )
 
         all_bound_percents = bound_dict["Error Bounds All"]
-        all_bound_percents_nolmsep = bound_dict["all_bound_percents_nolmsep"]
+        all_bound_percents_notargetsep = bound_dict["all_bound_percents_notargetsep"]
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA"]
         assert len(all_bound_percents["U-NET S-MHA"]) == num_bins
 
-        assert list(all_bound_percents_nolmsep.keys()) == ["U-NET S-MHA"]
-        assert len(all_bound_percents_nolmsep["U-NET S-MHA"]) == num_bins
+        assert list(all_bound_percents_notargetsep.keys()) == ["U-NET S-MHA"]
+        assert len(all_bound_percents_notargetsep["U-NET S-MHA"]) == num_bins
         assert (
-            len(all_bound_percents_nolmsep["U-NET S-MHA"][0]) == 8 * 2
+            len(all_bound_percents_notargetsep["U-NET S-MHA"][0]) == 8 * 2
         )  # because each landmark has 8 folds - they are seperate
 
     def test_one_fold(self, dummy_test_preds):
@@ -119,15 +123,15 @@ class TestEvaluateBounds:
             num_folds=1,
         )
         all_bound_percents = bound_dict["Error Bounds All"]
-        all_bound_percents_nolmsep = bound_dict["all_bound_percents_nolmsep"]
+        all_bound_percents_notargetsep = bound_dict["all_bound_percents_notargetsep"]
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA"]
         assert len(all_bound_percents["U-NET S-MHA"]) == 5
 
-        assert list(all_bound_percents_nolmsep.keys()) == ["U-NET S-MHA"]
-        assert len(all_bound_percents_nolmsep["U-NET S-MHA"]) == 5
+        assert list(all_bound_percents_notargetsep.keys()) == ["U-NET S-MHA"]
+        assert len(all_bound_percents_notargetsep["U-NET S-MHA"]) == 5
         assert (
-            len(all_bound_percents_nolmsep["U-NET S-MHA"][0]) == 2
+            len(all_bound_percents_notargetsep["U-NET S-MHA"][0]) == 2
         )  # because each landmark has 1 folds - they are sep
 
     def test_multiple_uncerts(self, dummy_test_preds):
@@ -142,15 +146,19 @@ class TestEvaluateBounds:
         )
 
         all_bound_percents = bound_dict["Error Bounds All"]
-        all_bound_percents_nolmsep = bound_dict["all_bound_percents_nolmsep"]
+        all_bound_percents_notargetsep = bound_dict["all_bound_percents_notargetsep"]
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
         assert len(all_bound_percents["U-NET S-MHA"]) == len(all_bound_percents["U-NET E-MHA"]) == 5
 
-        assert list(all_bound_percents_nolmsep.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
-        assert len(all_bound_percents_nolmsep["U-NET S-MHA"]) == len(all_bound_percents_nolmsep["U-NET E-MHA"]) == 5
+        assert list(all_bound_percents_notargetsep.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
         assert (
-            len(all_bound_percents_nolmsep["U-NET S-MHA"][0])
-            == len(all_bound_percents_nolmsep["U-NET E-MHA"][0])
+            len(all_bound_percents_notargetsep["U-NET S-MHA"])
+            == len(all_bound_percents_notargetsep["U-NET E-MHA"])
+            == 5
+        )
+        assert (
+            len(all_bound_percents_notargetsep["U-NET S-MHA"][0])
+            == len(all_bound_percents_notargetsep["U-NET E-MHA"][0])
             == 8 * 2
         )  # because each landmark has 8 folds - they are sep

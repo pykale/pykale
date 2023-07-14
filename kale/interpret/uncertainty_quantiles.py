@@ -1,7 +1,16 @@
-# =============================================================================
-# Author: Lawrence Schobs, laschobs1@sheffield.ac.uk
-# =============================================================================
+"""
+Authors: Lawrence Schobs, lawrenceschobs@gmail.com
+Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization,"
+in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
+Functions related to interpreting the uncertainty quantiles from the quantile binning method in terms of:
+   A) Correlation of uncertainty with error (fit_line_with_ci)
+   B) Perform Isotonic regression on uncertainty & error pairs (quantile_binning_and_est_errors)
+   C) Plot boxplots: generic_box_plot_loop, format_plot, box_plot_per_model, box_plot_comparing_q
+   D) Plot cumularive error plots: plot_cumulative
+   E) Big caller functions for analysis loop for QBinnig:  generate_fig_individual_bin_comparison, generate_fig_comparing_bins
+
+   """
 import logging
 import math
 import os
@@ -18,14 +27,10 @@ from matplotlib.ticker import ScalarFormatter
 from scipy import stats
 from sklearn.isotonic import IsotonicRegression
 
-from kale.evaluate.uncertainty_metrics import (
-    evaluate_bounds,
-    evaluate_correlations,
-    evaluate_jaccard,
-    generate_summary_df,
-    get_mean_errors,
-)
+from kale.evaluate.similarity_metrics import evaluate_correlations
+from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard, get_mean_errors
 from kale.prepdata.tabular_transform import get_data_struct
+from kale.utils.save_xlsx import generate_summary_df
 
 
 def fit_line_with_ci(
@@ -34,7 +39,7 @@ def fit_line_with_ci(
     quantile_thresholds: List[float],
     cmaps: List[Dict[str, str]],
     to_log: bool = False,
-    pixel_to_mm: float = 1.0,
+    error_scaling_factor: float = 1.0,
     save_path: Optional[str] = None,
 ) -> Dict[str, List[Any]]:
     """
@@ -48,7 +53,7 @@ def fit_line_with_ci(
         quantile_thresholds (List[float]): List of quantile thresholds.
         cmaps (List[str]): List of colormap names.
         to_log (bool, optional): Whether to apply logarithmic transformation on axes. Defaults to False.
-        pixel_to_mm (float, optional): Conversion factor from pixel to millimeters. Defaults to 1.0.
+        error_scaling_factor (float, optional): Scaling factor for error. Defaults to 1.0.
         save_path (Optional[str], optional): Path to save the plot, if None, the plot will be shown. Defaults to None.
 
     Returns:
@@ -63,7 +68,7 @@ def fit_line_with_ci(
         plt.yscale("log", base=2)
 
     X = uncertainties
-    y = errors * pixel_to_mm
+    y = errors * error_scaling_factor
     plt.xlim(max(X), min(X))
 
     # Calculate correlations
@@ -94,10 +99,10 @@ def fit_line_with_ci(
     # Manually set the piecewise breaks as the quantile thresholds.
     my_pwlf.fit_with_breaks(quantile_thresholds)
 
-    # Plot the final fitted line, changing the colour of the line segments for each quantile for visualisation.
+    # Plot the final fitted line, changing the color of the line segments for each quantile for visualisation.
     bin_label_locs = []
     for idx in range(len(quantile_thresholds) + 1):
-        colour = "blue" if idx % 2 == 0 else "red"
+        color = "blue" if idx % 2 == 0 else "red"
         xHat = np.linspace(min(X), max(X), num=20000)
         yHat = my_pwlf.predict(xHat)
 
@@ -117,10 +122,9 @@ def fit_line_with_ci(
         quantile_data_indicies = [i for i in range(len(X)) if min_ <= X[i] < max_]
         # shade background to make slices per quantile
         q_spm_corr, q_spm_p = stats.spearmanr(X[quantile_data_indicies], y[quantile_data_indicies])
-        plt.axvspan(xHat[plot_indicies][0], xHat[plot_indicies][-1], facecolor=colour, alpha=0.1)
-        plt.plot(xHat[plot_indicies], yHat[plot_indicies], "-", color=colour, zorder=3)
+        plt.axvspan(xHat[plot_indicies][0], xHat[plot_indicies][-1], facecolor=color, alpha=0.1)
+        plt.plot(xHat[plot_indicies], yHat[plot_indicies], "-", color=color, zorder=3)
 
-    # plt.xticks(bin_label_locs)
     ax.set_xticks(bin_label_locs)
     new_labels = [r"$Q_{{{}}}$".format(x + 1) for x in range(len(quantile_thresholds) + 1)]
     ax.xaxis.set_major_formatter(plt.FixedFormatter(new_labels))
@@ -236,7 +240,7 @@ def quantile_binning_and_est_errors(
 
 def generic_box_plot_loop(
     cmaps: List[str],
-    landmark_uncert_dicts: Dict[str, List[List[float]]],
+    target_uncert_dicts: Dict[str, List[List[float]]],
     uncertainty_types_list: List[List[str]],
     models: List[str],
     x_axis_labels: List[str],
@@ -280,7 +284,8 @@ def generic_box_plot_loop(
 
     Args:
         cmaps (List[str]): Colors for the box plots.
-        landmark_uncert_dicts (Dict[str, List[List[float]]]): Dictionary with landmarks, uncertainty values and corresponding data.
+        target_uncert_dicts (Dict[str, List[List[float]]]): Dictionary with lists of [error, uncertainty values] for all targets
+          and corresponding data.
         uncertainty_types_list (List[List[str]]): List of lists containing uncertainty types.
         models (List[str]): List of models for which box plots are being made.
         x_axis_labels (List[str]): Labels for the x-axis.
@@ -347,9 +352,9 @@ def generic_box_plot_loop(
                     circ_patches.append(circ11)
 
                 dict_key = [
-                    x for x in list(landmark_uncert_dicts.keys()) if (model_type in x) and (uncertainty_type in x)
+                    x for x in list(target_uncert_dicts.keys()) if (model_type in x) and (uncertainty_type in x)
                 ][0]
-                model_data = landmark_uncert_dicts[dict_key]
+                model_data = target_uncert_dicts[dict_key]
 
                 if list_comp_bool:
                     all_b_data = [x for x in model_data[j] if x is not None]
@@ -382,7 +387,7 @@ def generic_box_plot_loop(
                         alpha=0.75,
                     )
 
-                # Set colour, pattern, median line and mean marker.
+                # Set color, pattern, median line and mean marker.
                 for r in rect["boxes"]:
                     r.set(color="black", linewidth=1)
                     r.set(facecolor=cmaps[i])
@@ -631,7 +636,7 @@ def format_plot(
 
 def box_plot_per_model(
     cmaps: List[str],
-    landmark_uncert_dicts: Dict[str, List[List[float]]],
+    target_uncert_dicts: Dict[str, List[List[float]]],
     uncertainty_types_list: List[List[str]],
     models: List[str],
     x_axis_labels: List[str],
@@ -654,9 +659,9 @@ def box_plot_per_model(
 
     Args:
         cmaps (List[str]): List of colors for matplotlib.
-        landmark_uncert_dicts (Dict[str, List[List[float]]]): Dict of pandas dataframes for the data to display.
+        target_uncert_dicts (Dict[str, List[List[float]]]): Dict of pandas dataframes for the data to display.
         uncertainty_types_list (List[List[str]]): List of lists describing the different uncertainty combinations to test.
-        models (List[str]): The models we want to compare, keys in landmark_uncert_dicts.
+        models (List[str]): The models we want to compare, keys in target_uncert_dicts.
         x_axis_labels (List[str]): List of strings for the x-axis labels, one for each bin.
         x_label (str): x-axis label.
         y_label (str): y-axis label.
@@ -674,8 +679,6 @@ def box_plot_per_model(
 
     orders = []
     ax = plt.gca()
-
-    # fig.set_size_inches(24, 10)
 
     ax.xaxis.grid(False)
 
@@ -711,9 +714,9 @@ def box_plot_per_model(
                     circ_patches.append(circ11)
 
                 dict_key = [
-                    x for x in list(landmark_uncert_dicts.keys()) if (model_type in x) and (uncertainty_type in x)
+                    x for x in list(target_uncert_dicts.keys()) if (model_type in x) and (uncertainty_type in x)
                 ][0]
-                model_data = landmark_uncert_dicts[dict_key]
+                model_data = target_uncert_dicts[dict_key]
                 all_b_data = [x for x in model_data[j] if x is not None]
 
                 orders.append(model_type + uncertainty_type)
@@ -744,7 +747,7 @@ def box_plot_per_model(
                         alpha=0.75,
                     )
 
-                # Set colour, pattern, median line and mean marker.
+                # Set color, pattern, median line and mean marker.
                 for r in rect["boxes"]:
                     r.set(color="black", linewidth=1)
                     r.set(facecolor=cmaps[i])
@@ -817,7 +820,7 @@ def box_plot_per_model(
 
 
 def box_plot_comparing_q(
-    landmark_uncert_dicts_list: List[Dict[str, List[List[float]]]],
+    target_uncert_dicts_list: List[Dict[str, List[List[float]]]],
     uncertainty_type_tuple: List,
     model: List[str],
     x_axis_labels: List[str],
@@ -825,7 +828,7 @@ def box_plot_comparing_q(
     y_label: str,
     num_bins_display: int,
     hatch_type: str,
-    colour: str,
+    color: str,
     show_sample_info: str = "None",
     save_path: str = None,
     y_lim: int = 120,
@@ -838,7 +841,7 @@ def box_plot_comparing_q(
     Only compares 1 model & 1 uncertainty type using Q on the x-axis.
 
     Args:
-        landmark_uncert_dicts_list (List[Dict[str, List[List[float]]]]):
+        target_uncert_dicts_list (List[Dict[str, List[List[float]]]]):
             List of Dict of pandas dataframe for the data to dsiplay, 1 for each value for Q.
         uncertainty_type_tuple (Tuple[str, str]):
             Tuple describing the single uncertainty/error type to display.
@@ -854,8 +857,8 @@ def box_plot_comparing_q(
             List of values of Q (#bins) we are comparing on our x-axis.
         hatch_type (str):
             Hatch type for the box plot.
-        colour (str):
-            Colour for the box plot.
+        color (str):
+            color for the box plot.
         show_sample_info (str, optional):
             Whether or not to show sample info on the plot.
             Options are "None", "All", or "Average". Defaults to "None".
@@ -893,7 +896,7 @@ def box_plot_comparing_q(
 
     # Set legend
     circ11 = patches.Patch(
-        hatch=hatch_type, facecolor=colour, label=model_type + " " + uncertainty_type, edgecolor="black",
+        hatch=hatch_type, facecolor=color, label=model_type + " " + uncertainty_type, edgecolor="black",
     )
     circ_patches.append(circ11)
 
@@ -903,11 +906,11 @@ def box_plot_comparing_q(
 
     for idx, q_value in enumerate(x_axis_labels):
         inbetween_locs = []
-        landmark_uncert_dicts = landmark_uncert_dicts_list[idx]
+        target_uncert_dicts = target_uncert_dicts_list[idx]
 
         # Get key for the model and uncetainty type for data
-        dict_key = [x for x in list(landmark_uncert_dicts.keys()) if (model_type in x) and (uncertainty_type in x)][0]
-        model_data = landmark_uncert_dicts[dict_key]
+        dict_key = [x for x in list(target_uncert_dicts.keys()) if (model_type in x) and (uncertainty_type in x)][0]
+        model_data = target_uncert_dicts[dict_key]
         average_samples_per_bin = []
         # Loop through each bin and display the data
         for j in range(len(model_data)):
@@ -934,10 +937,10 @@ def box_plot_comparing_q(
                 x = np.random.normal(x_loc, 0.01, size=len(displayed_data))
                 ax.plot(x, displayed_data, color="crimson", marker=".", linestyle="None", alpha=0.2)
 
-            # Set colour, pattern, median line and mean marker.
+            # Set color, pattern, median line and mean marker.
             for r in rect["boxes"]:
                 r.set(color="black", linewidth=1)
-                r.set(facecolor=colour)
+                r.set(facecolor=color)
                 r.set_hatch(hatch_type)
             for median in rect["medians"]:
                 median.set(color="crimson", linewidth=3)
@@ -1005,13 +1008,13 @@ def plot_cumulative(
     title: str,
     compare_to_all: bool = False,
     save_path: str = None,
-    pixel_to_mm_scale: float = 1,
+    error_scaling_factor: float = 1,
 ) -> None:
     """
     Plots cumulative errors.
 
     Args:
-        cmaps: A list of colours for matplotlib.
+        cmaps: A list of colors for matplotlib.
         data_struct: A dictionary containing the dataframes for each model.
         models: A list of models we want to compare, keys in `data_struct`.
         uncertainty_types: A list of lists describing the different uncertainty combinations to test.
@@ -1019,7 +1022,7 @@ def plot_cumulative(
         title: The title of the plot.
         compare_to_all: Whether to compare the given subset of bins to all the data (default=False).
         save_path: The path to save plot to. If None, displays on screen (default=None).
-        pixel_to_mm_scale: A factor to scale pixel values to mm (default=1).
+        error_scaling_factor (float, optional): Scaling factor for error. Defaults to 1.0.
     """
 
     # make sure bins is a list and not a single value
@@ -1038,11 +1041,10 @@ def plot_cumulative(
     plt.title(title)
 
     ax.set_xscale("log")
-    # ax.set_xlim(0, 30)
     line_styles = [":", "-", "dotted", "-."]
     for i, (up) in enumerate(uncertainty_types):
         uncertainty = up[0]
-        colour = cmaps[i]
+        color = cmaps[i]
         for hash_idx, model_type in enumerate(models):
             line = line_styles[hash_idx]
 
@@ -1050,7 +1052,7 @@ def plot_cumulative(
             dataframe = data_struct[model_type]
             model_un_errors = (
                 dataframe[dataframe[uncertainty + " Uncertainty bins"].isin(bins)][uncertainty + " Error"].values
-                * pixel_to_mm_scale
+                * error_scaling_factor
             )
 
             p = 100 * np.arange(len(model_un_errors)) / (len(model_un_errors) - 1)
@@ -1061,14 +1063,14 @@ def plot_cumulative(
                 sorted_errors,
                 p,
                 label=model_type + " " + uncertainty,
-                color=colour,
+                color=color,
                 linestyle=line,
                 dash_capstyle="round",
             )
 
             if compare_to_all:
                 dataframe = data_struct[model_type]
-                model_un_errors = dataframe[uncertainty + " Error"].values * pixel_to_mm_scale
+                model_un_errors = dataframe[uncertainty + " Error"].values * error_scaling_factor
 
                 p = 100 * np.arange(len(model_un_errors)) / (len(model_un_errors) - 1)
 
@@ -1078,7 +1080,7 @@ def plot_cumulative(
                     sorted_errors,
                     p,
                     label=model_type + " " + uncertainty,
-                    color=colour,
+                    color=color,
                     linestyle=line,
                     dash_capstyle="round",
                 )
@@ -1116,17 +1118,18 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
             - uncertainty_error_pairs (List[Tuple[int, float]]): A list of tuples specifying the uncertainty thresholds and corresponding error thresholds to use for binning the data.
             - models_to_compare (List[str]): A list of model names to compare.
             - dataset (str): The name of the dataset being used.
-            - landmarks (List[int]): A list of landmark indices to include in the analysis.
+            - target_indicies (List[int]): A list of target indices to include in the analysis.
             - num_bins (int): The number of uncertainty bins to use.
             - cmaps (List[str]): A list of colormap names to use for the figures.
             - save_folder (str): The directory in which to save the generated figures.
             - save_file_preamble (str): A string to use as the prefix for the filenames of the generated figures.
             - cfg (Config): An object containing various configuration settings.
-            - show_individual_landmark_plots (bool): Whether to generate separate plots for each individual landmark.
+            - show_individual_target_plots (bool): Whether to generate separate plots for each individual target.
             - interpret (bool): Whether to perform interpretation analysis.
             - num_folds (int): The number of folds to use in cross-validation.
-            - ind_landmarks_to_show (List[int]): A list of landmark indices to include in individual landmark plots.
-            - pixel_to_mm_scale (float): The pixel to mm conversion factor.
+            - ind_targets_to_show (List[int]): A list of target indices to include in individual target plots.
+            - error_scaling_factor (float, optional): Scaling factor for error. Defaults to 1.0.
+
         display_settings: A dictionary containing boolean flags indicating which figures to generate.
 
     Returns:
@@ -1137,52 +1140,51 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
         uncertainty_error_pairs,
         models_to_compare,
         dataset,
-        landmarks,
+        target_indices,
         num_bins,
         cmaps,
         save_folder,
         save_file_preamble,
         cfg,
-        show_individual_landmark_plots,
+        show_individual_target_plots,
         interpret,
         num_folds,
-        ind_landmarks_to_show,
-        pixel_to_mm_scale,
+        ind_targets_to_show,
+        error_scaling_factor,
     ] = data
 
     # If combining the middle bins we just have the 2 edge bins, and the combined middle ones.
 
-    # saved_bins_path = os.path.join(save_folder, "Uncertainty_Preds", model, dataset, "res_predicted_bins")
-    bins_all_lms, bins_lms_sep, bounds_all_lms, bounds_lms_sep = get_data_struct(
-        models_to_compare, landmarks, save_folder, dataset
+    bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = get_data_struct(
+        models_to_compare, target_indices, save_folder, dataset
     )
 
-    # Get mean errors bin-wise, get all errors concatenated together bin-wise, and seperate by landmark.
+    # Get mean errors bin-wise, get all errors concatenated together bin-wise, and seperate by target.
     all_error_data_dict = get_mean_errors(
-        bins_all_lms,
+        bins_all_targets,
         uncertainty_error_pairs,
         num_bins,
-        landmarks,
+        target_indices,
         num_folds=num_folds,
-        pixel_to_mm_scale=pixel_to_mm_scale,
+        error_scaling_factor=error_scaling_factor,
         combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
     )
     all_error_data = all_error_data_dict["all mean error bins nosep"]
 
-    all_bins_concat_lms_nosep_error = all_error_data_dict["all error concat bins lms nosep"]  # shape is [num bins]
+    all_bins_concat_targets_nosep_error = all_error_data_dict[
+        "all error concat bins targets nosep"
+    ]  # shape is [num bins]
 
-    all_bins_concat_lms_sep_all_error = all_error_data_dict[
-        "all error concat bins lms sep all"
-    ]  # same as all_bins_concat_lms_sep_foldwise but folds are flattened to a single list
-
-    # Get correlation coefficients for all bins
+    all_bins_concat_targets_sep_all_error = all_error_data_dict[
+        "all error concat bins targets sep all"
+    ]  # same as all_bins_concat_targets_sep_foldwise but folds are flattened to a single list
 
     # Get jaccard
     all_jaccard_data_dict = evaluate_jaccard(
-        bins_all_lms,
+        bins_all_targets,
         uncertainty_error_pairs,
         num_bins,
-        landmarks,
+        target_indices,
         num_folds=num_folds,
         combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
     )
@@ -1190,39 +1192,34 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
     all_recall_data = all_jaccard_data_dict["Recall All"]
     all_precision_data = all_jaccard_data_dict["Precision All"]
 
-    all_bins_concat_lms_sep_all_jacc = all_jaccard_data_dict[
-        "all jacc concat bins lms sep all"
-    ]  # same as all_bins_concat_lms_sep_foldwise but folds are flattened to a single list
+    all_bins_concat_targets_sep_all_jacc = all_jaccard_data_dict[
+        "all jacc concat bins targets sep all"
+    ]  # same as all_bins_concat_targets_sep_foldwise but folds are flattened to a single list
 
     bound_return_dict = evaluate_bounds(
-        bounds_all_lms,
-        bins_all_lms,
+        bounds_all_targets,
+        bins_all_targets,
         uncertainty_error_pairs,
         num_bins,
-        landmarks,
+        target_indices,
         num_folds,
         combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
     )
 
     all_bound_data = bound_return_dict["Error Bounds All"]
 
-    all_bins_concat_lms_sep_all_errorbound = bound_return_dict[
-        "all errorbound concat bins lms sep all"
-    ]  # same as all_bins_concat_lms_sep_foldwise but folds are flattened to a single list
+    all_bins_concat_targets_sep_all_errorbound = bound_return_dict[
+        "all errorbound concat bins targets sep all"
+    ]  # same as all_bins_concat_targets_sep_foldwise but folds are flattened to a single list
 
-    # x = generate_summary_df(all_error_data_dict, ))
-    # print("UEP ", uncertainty_error_pairs)
     generate_summary_df(
         all_error_data_dict,
-        [["all mean error bins nosep", "All Landmarks"]],
+        [["all mean error bins nosep", "All Targets"]],
         "Mean error",
-        os.path.join(save_folder, "localisation_errors.xlsx"),
+        os.path.join(save_folder, "target_errors.xlsx"),
     )
 
-    # exit()
-
     if interpret:
-        # save_location = None
 
         # If we have combined the middle bins, we are only displaying 3 bins (outer edges, and combined middle bins).
         if cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]:
@@ -1239,13 +1236,13 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
         if display_settings["correlation"]:
 
             _ = evaluate_correlations(
-                bins_all_lms,
+                bins_all_targets,
                 uncertainty_error_pairs,
                 cmaps,
                 num_bins,
                 cfg["DATASET"]["CONFIDENCE_INVERT"],
                 num_folds=num_folds,
-                pixel_to_mm_scale=pixel_to_mm_scale,
+                error_scaling_factor=error_scaling_factor,
                 combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
                 save_path=save_location,
                 to_log=True,
@@ -1255,45 +1252,44 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
         if display_settings["cumulative_error"]:
             plot_cumulative(
                 cmaps,
-                bins_all_lms,
+                bins_all_targets,
                 models_to_compare,
                 uncertainty_error_pairs,
                 np.arange(num_bins),
                 "Cumulative error for ALL predictions, dataset " + dataset,
                 save_path=save_location,
-                pixel_to_mm_scale=pixel_to_mm_scale,
+                error_scaling_factor=error_scaling_factor,
             )
             # Plot cumulative error figure for B1 only predictions
             plot_cumulative(
                 cmaps,
-                bins_all_lms,
+                bins_all_targets,
                 models_to_compare,
                 uncertainty_error_pairs,
                 0,
                 "Cumulative error for B1 predictions, dataset " + dataset,
                 save_path=save_location,
-                pixel_to_mm_scale=pixel_to_mm_scale,
+                error_scaling_factor=error_scaling_factor,
             )
 
             # Plot cumulative error figure comparing B1 and ALL, for both models
             for model_type in models_to_compare:
                 plot_cumulative(
                     cmaps,
-                    bins_all_lms,
+                    bins_all_targets,
                     [model_type],
                     uncertainty_error_pairs,
                     0,
                     model_type + ". Cumulative error comparing ALL and B1, dataset " + dataset,
                     compare_to_all=True,
                     save_path=save_location,
-                    pixel_to_mm_scale=pixel_to_mm_scale,
+                    error_scaling_factor=error_scaling_factor,
                 )
 
         # Set x_axis labels for following plots.
         x_axis_labels = [r"$B_{{{}}}$".format(num_bins_display + 1 - (i + 1)) for i in range(num_bins_display + 1)]
 
         # get error bounds
-
         if display_settings["errors"]:
             # mean error concat for each bin
             logger.info("mean error concat all L")
@@ -1302,11 +1298,13 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                     dotted_addition = "_dotted"
                 else:
                     dotted_addition = "_undotted"
-                save_location = os.path.join(save_folder, save_file_preamble + dotted_addition + "_error_all_lms.pdf")
+                save_location = os.path.join(
+                    save_folder, save_file_preamble + dotted_addition + "_error_all_targets.pdf"
+                )
 
             box_plot_per_model(
                 cmaps,
-                all_bins_concat_lms_nosep_error,
+                all_bins_concat_targets_nosep_error,
                 uncertainty_error_pairs,
                 models_to_compare,
                 x_axis_labels=x_axis_labels,
@@ -1321,20 +1319,21 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 save_path=save_location,
             )
 
-            if show_individual_landmark_plots:
-                # plot the concatentated errors for each landmark seperately
-                for idx_l, lm_data in enumerate(all_bins_concat_lms_sep_all_error):
-                    if idx_l in ind_landmarks_to_show or ind_landmarks_to_show == [-1]:
+            if show_individual_target_plots:
+                # plot the concatentated errors for each target seperately
+                for idx_l, target_data in enumerate(all_bins_concat_targets_sep_all_error):
+                    if idx_l in ind_targets_to_show or ind_targets_to_show == [-1]:
                         if cfg["OUTPUT"]["SAVE_FIGURES"]:
                             save_location = os.path.join(
-                                save_folder, save_file_preamble + dotted_addition + "_error_lm_" + str(idx_l) + ".pdf"
+                                save_folder,
+                                save_file_preamble + dotted_addition + "_error_target_" + str(idx_l) + ".pdf",
                             )
 
-                        logger.info("individual error for L%s", idx_l)
+                        logger.info("individual error for T%s", idx_l)
 
                         box_plot_per_model(
                             cmaps,
-                            lm_data,
+                            target_data,
                             uncertainty_error_pairs,
                             models_to_compare,
                             x_axis_labels=x_axis_labels,
@@ -1353,7 +1352,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
             if cfg["OUTPUT"]["SAVE_FIGURES"]:
                 save_location = os.path.join(
-                    save_folder, save_file_preamble + dotted_addition + "mean_error_folds_all_lms.pdf"
+                    save_folder, save_file_preamble + dotted_addition + "mean_error_folds_all_targets.pdf"
                 )
 
             box_plot_per_model(
@@ -1372,11 +1371,10 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
             )
 
         # Plot Error Bound Accuracy
-
         if display_settings["error_bounds"]:
-            logger.info(" errorbound acc for all landmarks.")
+            logger.info(" errorbound acc for all targets.")
             if cfg["OUTPUT"]["SAVE_FIGURES"]:
-                save_location = os.path.join(save_folder, save_file_preamble + "_errorbound_all_lms.pdf")
+                save_location = os.path.join(save_folder, save_file_preamble + "_errorbound_all_targets.pdf")
 
             generic_box_plot_loop(
                 cmaps,
@@ -1397,20 +1395,20 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 list_comp_bool=False,
             )
 
-            if show_individual_landmark_plots:
-                # plot the concatentated error bounds for each landmark seperately
-                for idx_l, lm_data in enumerate(all_bins_concat_lms_sep_all_errorbound):
-                    if idx_l in ind_landmarks_to_show or ind_landmarks_to_show == [-1]:
+            if show_individual_target_plots:
+                # plot the concatentated error bounds for each target seperately
+                for idx_l, target_data in enumerate(all_bins_concat_targets_sep_all_errorbound):
+                    if idx_l in ind_targets_to_show or ind_targets_to_show == [-1]:
                         if cfg["OUTPUT"]["SAVE_FIGURES"]:
                             save_location = os.path.join(
-                                save_folder, save_file_preamble + "_errorbound_lm_" + str(idx_l) + ".pdf"
+                                save_folder, save_file_preamble + "_errorbound_target_" + str(idx_l) + ".pdf"
                             )
 
-                        logger.info("individual errorbound acc for L%s", idx_l)
+                        logger.info("individual errorbound acc for T%s", idx_l)
 
                         generic_box_plot_loop(
                             cmaps,
-                            lm_data,
+                            target_data,
                             uncertainty_error_pairs,
                             models_to_compare,
                             x_axis_labels=x_axis_labels,
@@ -1429,9 +1427,9 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
         # Plot Jaccard Index
         if display_settings["jaccard"]:
-            logger.info("Plot jaccard for all landmarks.")
+            logger.info("Plot jaccard for all targets.")
             if cfg["OUTPUT"]["SAVE_FIGURES"]:
-                save_location = os.path.join(save_folder, save_file_preamble + "_jaccard_all_lms.pdf")
+                save_location = os.path.join(save_folder, save_file_preamble + "_jaccard_all_targets.pdf")
 
             generic_box_plot_loop(
                 cmaps,
@@ -1454,7 +1452,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
             # mean recall for each bin
             if cfg["OUTPUT"]["SAVE_FIGURES"]:
-                save_location = os.path.join(save_folder, save_file_preamble + "_recall_jaccard_all_lms.pdf")
+                save_location = os.path.join(save_folder, save_file_preamble + "_recall_jaccard_all_targets.pdf")
 
             generic_box_plot_loop(
                 cmaps,
@@ -1478,7 +1476,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
             # mean precision for each bin
             if cfg["OUTPUT"]["SAVE_FIGURES"]:
-                save_location = os.path.join(save_folder, save_file_preamble + "_precision_jaccard_all_lms.pdf")
+                save_location = os.path.join(save_folder, save_file_preamble + "_precision_jaccard_all_targets.pdf")
 
             generic_box_plot_loop(
                 cmaps,
@@ -1500,21 +1498,21 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 list_comp_bool=False,
             )
 
-            if show_individual_landmark_plots:
-                # plot the jaccard index for each landmark seperately
+            if show_individual_target_plots:
+                # plot the jaccard index for each target seperately
 
-                for idx_l, lm_data in enumerate(all_bins_concat_lms_sep_all_jacc):
-                    if idx_l in ind_landmarks_to_show or ind_landmarks_to_show == [-1]:
+                for idx_l, target_data in enumerate(all_bins_concat_targets_sep_all_jacc):
+                    if idx_l in ind_targets_to_show or ind_targets_to_show == [-1]:
                         if cfg["OUTPUT"]["SAVE_FIGURES"]:
                             save_location = os.path.join(
-                                save_folder, save_file_preamble + "jaccard_lm_" + str(idx_l) + ".pdf"
+                                save_folder, save_file_preamble + "jaccard_target_" + str(idx_l) + ".pdf"
                             )
 
-                        logger.info("individual jaccard for L%s", idx_l)
+                        logger.info("individual jaccard for T%s", idx_l)
 
                         generic_box_plot_loop(
                             cmaps,
-                            lm_data,
+                            target_data,
                             uncertainty_error_pairs,
                             models_to_compare,
                             x_axis_labels=x_axis_labels,
@@ -1537,18 +1535,18 @@ def generate_fig_comparing_bins(
         List[float],  # uncertainty_error_pair
         str,  # model
         str,  # dataset
-        List[int],  # landmarks
+        List[int],  # targets
         List[int],  # all_values_q
         List[str],  # cmaps
         List[str],  # all_fitted_save_paths
         str,  # save_folder
         str,  # save_file_preamble
         Any,  # cfg
-        bool,  # show_individual_landmark_plots
+        bool,  # show_individual_target_plots
         bool,  # interpret
         int,  # num_folds
-        List[int],  # ind_landmarks_to_show
-        float,  # pixel_to_mm_scale
+        List[int],  # ind_targets_to_show
+        float,  # error_scaling_factor
     ],
     display_settings: Dict[str, Any],
 ) -> None:
@@ -1562,22 +1560,22 @@ def generate_fig_comparing_bins(
               uncertainty used during training and evaluation, respectively.
             - model: String representing the name of the model being evaluated.
             - dataset: String representing the name of the dataset being used.
-            - landmarks: List of integers representing the landmark IDs being evaluated.
+            - targets: List of integers representing the target indices being evaluated.
             - all_values_q: List of integers representing the number of bins being used for each evaluation.
             - cmaps: List of strings representing the color maps to use for plotting.
             - all_fitted_save_paths: List of strings representing the file paths where the binned data is stored.
             - save_folder: String representing the directory where the figures should be saved.
             - save_file_preamble: String representing the prefix to use for all figure file names.
             - cfg: Object representing configuration settings.
-            - show_individual_landmark_plots: Boolean indicating whether to generate individual plots for each landmark.
+            - show_individual_target_plots: Boolean indicating whether to generate individual plots for each target.
             - interpret: Boolean indicating whether the results are being interpreted.
             - num_folds: Integer representing the number of cross-validation folds to use.
-            - ind_landmarks_to_show: List of integers representing the IDs of landmarks to show in individual plots.
-            - pixel_to_mm_scale: Float representing the conversion factor from pixels to millimeters.
+            - ind_targets_to_show: List of integers representing the target indices to show in individual plots.
+            -  error_scaling_factor (float, optional): Scaling factor for error. Defaults to 1.0.
 
         display_settings: Dictionary containing the following keys:
             - 'hatch': String representing the type of hatch pattern to use in the plots.
-            - 'colour': String representing the color to use for the plots.
+            - 'color': String representing the color to use for the plots.
 
     Returns:
         None.
@@ -1588,24 +1586,24 @@ def generate_fig_comparing_bins(
         uncertainty_error_pair,
         model,
         dataset,
-        landmarks,
+        targets,
         all_values_q,
         cmaps,
         all_fitted_save_paths,
         save_folder,
         save_file_preamble,
         cfg,
-        show_individual_landmark_plots,
+        show_individual_target_plots,
         interpret,
         num_folds,
-        ind_landmarks_to_show,
-        pixel_to_mm_scale,
+        ind_targets_to_show,
+        error_scaling_factor,
     ] = data
 
     logger = logging.getLogger("qbin")
 
     hatch = display_settings["hatch"]
-    colour = display_settings["colour"]
+    color = display_settings["color"]
 
     # increse dimension of these for compatibility with future methods
     model_list = [model]
@@ -1614,84 +1612,84 @@ def generate_fig_comparing_bins(
     # If combining the middle bins we just have the 2 edge bins, and the combined middle ones.
 
     all_error_data = []
-    all_error_lm_sep = []
-    all_bins_concat_lms_nosep_error = []
-    all_bins_concat_lms_sep_foldwise_error = []
-    all_bins_concat_lms_sep_all_error = []
+    all_error_target_sep = []
+    all_bins_concat_targets_nosep_error = []
+    all_bins_concat_targets_sep_foldwise_error = []
+    all_bins_concat_targets_sep_all_error = []
     all_jaccard_data = []
     all_recall_data = []
     all_precision_data = []
-    all_bins_concat_lms_sep_foldwise_jacc = []
-    all_bins_concat_lms_sep_all_jacc = []
+    all_bins_concat_targets_sep_foldwise_jacc = []
+    all_bins_concat_targets_sep_all_jacc = []
     all_bound_data = []
-    all_bins_concat_lms_sep_foldwise_errorbound = []
-    all_bins_concat_lms_sep_all_errorbound = []
+    all_bins_concat_targets_sep_foldwise_errorbound = []
+    all_bins_concat_targets_sep_all_errorbound = []
 
     for idx, num_bins in enumerate(all_values_q):
         saved_bins_path_pre = all_fitted_save_paths[idx]
 
-        bins_all_lms, bins_lms_sep, bounds_all_lms, bounds_lms_sep = get_data_struct(
-            model_list, landmarks, saved_bins_path_pre, dataset
+        bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = get_data_struct(
+            model_list, targets, saved_bins_path_pre, dataset
         )
 
-        # Get mean errors bin-wise, get all errors concatenated together bin-wise, and seperate by landmark.
+        # Get mean errors bin-wise, get all errors concatenated together bin-wise, and seperate by target.
         all_error_data_dict = get_mean_errors(
-            bins_all_lms,
+            bins_all_targets,
             uncertainty_error_pair_list,
             num_bins,
-            landmarks,
+            targets,
             num_folds=num_folds,
-            pixel_to_mm_scale=pixel_to_mm_scale,
+            error_scaling_factor=error_scaling_factor,
             combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
         )
         all_error_data.append(all_error_data_dict["all mean error bins nosep"])
-        all_error_lm_sep.append(all_error_data_dict["all mean error bins lms sep"])
+        all_error_target_sep.append(all_error_data_dict["all mean error bins targets sep"])
 
-        all_bins_concat_lms_nosep_error.append(
-            all_error_data_dict["all error concat bins lms nosep"]
+        all_bins_concat_targets_nosep_error.append(
+            all_error_data_dict["all error concat bins targets nosep"]
         )  # shape is [num bins]
-        all_bins_concat_lms_sep_foldwise_error.append(
-            all_error_data_dict["all error concat bins lms sep foldwise"]
-        )  # shape is [num lms][num bins]
-        all_bins_concat_lms_sep_all_error.append(
-            all_error_data_dict["all error concat bins lms sep all"]
-        )  # same as all_bins_concat_lms_sep_foldwise but folds are flattened to a single list
+        all_bins_concat_targets_sep_foldwise_error.append(
+            all_error_data_dict["all error concat bins targets sep foldwise"]
+        )  # shape is [num targets][num bins]
+        all_bins_concat_targets_sep_all_error.append(
+            all_error_data_dict["all error concat bins targets sep all"]
+        )  # same as all_bins_concat_targets_sep_foldwise but folds are flattened to a single list
 
         all_jaccard_data_dict = evaluate_jaccard(
-            bins_all_lms,
+            bins_all_targets,
             uncertainty_error_pair_list,
             num_bins,
-            landmarks,
+            targets,
             num_folds=num_folds,
             combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
         )
         all_jaccard_data.append(all_jaccard_data_dict["Jaccard All"])
         all_recall_data.append(all_jaccard_data_dict["Recall All"])
         all_precision_data.append(all_jaccard_data_dict["Precision All"])
-        all_bins_concat_lms_sep_foldwise_jacc.append(
-            all_jaccard_data_dict["all jacc concat bins lms sep foldwise"]
-        )  # shape is [num lms][num bins]
-        all_bins_concat_lms_sep_all_jacc.append(
-            all_jaccard_data_dict["all jacc concat bins lms sep all"]
-        )  # same as all_bins_concat_lms_sep_foldwise but folds are flattened to a single list
+        all_bins_concat_targets_sep_foldwise_jacc.append(
+            all_jaccard_data_dict["all jacc concat bins targets sep foldwise"]
+        )  # shape is [num targets][num bins]
+        all_bins_concat_targets_sep_all_jacc.append(
+            all_jaccard_data_dict["all jacc concat bins targets sep all"]
+        )  # same as all_bins_concat_targets_sep_foldwise but folds are flattened to a single list
 
         bound_return_dict = evaluate_bounds(
-            bounds_all_lms,
-            bins_all_lms,
+            bounds_all_targets,
+            bins_all_targets,
             uncertainty_error_pair_list,
             num_bins,
-            landmarks,
+            targets,
             num_folds,
             combine_middle_bins=cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
         )
 
         all_bound_data.append(bound_return_dict["Error Bounds All"])
-        all_bins_concat_lms_sep_foldwise_errorbound.append(
-            bound_return_dict["all errorbound concat bins lms sep foldwise"]
-        )  # shape is [num lms][num bins]
-        all_bins_concat_lms_sep_all_errorbound.append(
-            bound_return_dict["all errorbound concat bins lms sep all"]
-        )  # same as all_bins_concat_lms_sep_foldwise but folds are flattened to a single list
+        all_bins_concat_targets_sep_foldwise_errorbound.append(
+            bound_return_dict["all errorbound concat bins targets sep foldwise"]
+        )  # shape is [num targets][num bins]
+        all_bins_concat_targets_sep_all_errorbound.append(
+            bound_return_dict["all errorbound concat bins targets sep all"]
+        )  # same as all_bins_concat_targets_sep_foldwise but folds are flattened to a single list
 
     if interpret:
         # If we have combined the middle bins, we are only displaying 3 bins (outer edges, and combined middle bins).
@@ -1714,14 +1712,16 @@ def generate_fig_comparing_bins(
                     dotted_addition = "_dotted"
                 else:
                     dotted_addition = "_undotted"
-                save_location = os.path.join(save_folder, save_file_preamble + dotted_addition + "_error_all_lms.pdf")
+                save_location = os.path.join(
+                    save_folder, save_file_preamble + dotted_addition + "_error_all_targets.pdf"
+                )
 
             box_plot_comparing_q(
-                all_bins_concat_lms_nosep_error,
+                all_bins_concat_targets_nosep_error,
                 uncertainty_error_pair_list,
                 model_list,
                 hatch_type=hatch,
-                colour=colour,
+                color=color,
                 x_axis_labels=x_axis_labels,
                 x_label="Q (# Bins)",
                 y_label="Localization Error (mm)",
@@ -1734,24 +1734,25 @@ def generate_fig_comparing_bins(
                 save_path=save_location,
             )
 
-            if show_individual_landmark_plots:
-                # plot the concatentated errors for each landmark seperately. Must transpose the iteration.
-                for lm in landmarks:
-                    lm_data = [x[lm] for x in all_bins_concat_lms_sep_all_error]
+            if show_individual_target_plots:
+                # plot the concatentated errors for each target seperately. Must transpose the iteration.
+                for target_idx in targets:
+                    target_data = [x[target_idx] for x in all_bins_concat_targets_sep_all_error]
 
-                    if lm in ind_landmarks_to_show or ind_landmarks_to_show == [-1]:
+                    if target_idx in ind_targets_to_show or ind_targets_to_show == [-1]:
                         if cfg["OUTPUT"]["SAVE_FIGURES"]:
                             save_location = os.path.join(
-                                save_folder, save_file_preamble + dotted_addition + "_error_lm_" + str(lm) + ".pdf"
+                                save_folder,
+                                save_file_preamble + dotted_addition + "_error_target_" + str(target_idx) + ".pdf",
                             )
 
-                        logger.info("individual error for L%s", lm)
+                        logger.info("individual error for T%s", target_idx)
                         box_plot_comparing_q(
-                            lm_data,
+                            target_data,
                             uncertainty_error_pair_list,
                             model_list,
                             hatch_type=hatch,
-                            colour=colour,
+                            color=color,
                             x_axis_labels=x_axis_labels,
                             x_label="Q (# Bins)",
                             y_label="Localization Error (mm)",
@@ -1768,14 +1769,14 @@ def generate_fig_comparing_bins(
 
             if cfg["OUTPUT"]["SAVE_FIGURES"]:
                 save_location = os.path.join(
-                    save_folder, save_file_preamble + dotted_addition + "mean_error_folds_all_lms.pdf"
+                    save_folder, save_file_preamble + dotted_addition + "mean_error_folds_all_targets.pdf"
                 )
             box_plot_comparing_q(
                 all_error_data,
                 uncertainty_error_pair_list,
                 model_list,
                 hatch_type=hatch,
-                colour=colour,
+                color=color,
                 x_axis_labels=x_axis_labels,
                 x_label="Q (# Bins)",
                 y_label="Mean Error (mm)",
@@ -1791,16 +1792,16 @@ def generate_fig_comparing_bins(
         # Plot Error Bound Accuracy
 
         if display_settings["error_bounds"]:
-            logger.info(" errorbound acc for all landmarks.")
+            logger.info(" errorbound acc for all targets.")
             if cfg["OUTPUT"]["SAVE_FIGURES"]:
-                save_location = os.path.join(save_folder, save_file_preamble + "_errorbound_all_lms.pdf")
+                save_location = os.path.join(save_folder, save_file_preamble + "_errorbound_all_targets.pdf")
 
             box_plot_comparing_q(
                 all_bound_data,
                 uncertainty_error_pair_list,
                 model_list,
                 hatch_type=hatch,
-                colour=colour,
+                color=color,
                 x_axis_labels=x_axis_labels,
                 x_label="Q (# Bins)",
                 y_label="Error Bound Accuracy (%)",
@@ -1812,24 +1813,24 @@ def generate_fig_comparing_bins(
                 save_path=save_location,
             )
 
-            if show_individual_landmark_plots:
-                # plot the concatentated errors for each landmark seperately. Must transpose the iteration.
-                for lm in landmarks:
-                    lm_data = [x[lm] for x in all_bins_concat_lms_sep_all_errorbound]
+            if show_individual_target_plots:
+                # plot the concatentated errors for each target seperately. Must transpose the iteration.
+                for target_idx in targets:
+                    target_data = [x[target_idx] for x in all_bins_concat_targets_sep_all_errorbound]
 
-                    if lm in ind_landmarks_to_show or ind_landmarks_to_show == [-1]:
+                    if target_idx in ind_targets_to_show or ind_targets_to_show == [-1]:
                         if cfg["OUTPUT"]["SAVE_FIGURES"]:
                             save_location = os.path.join(
-                                save_folder, save_file_preamble + "_errorbound_lm_" + str(lm) + ".pdf"
+                                save_folder, save_file_preamble + "_errorbound_target_" + str(target_idx) + ".pdf"
                             )
 
-                        logger.info("individual errorbound acc for L%s", lm)
+                        logger.info("individual errorbound acc for T%s", target_idx)
                         box_plot_comparing_q(
-                            lm_data,
+                            target_data,
                             uncertainty_error_pair_list,
                             model_list,
                             hatch_type=hatch,
-                            colour=colour,
+                            color=color,
                             x_axis_labels=x_axis_labels,
                             x_label="Q (# Bins)",
                             y_label="Error Bound Accuracy (%)",
@@ -1842,16 +1843,16 @@ def generate_fig_comparing_bins(
 
         # Plot Jaccard Index
         if display_settings["jaccard"]:
-            logger.info("Plot jaccard for all landmarks.")
+            logger.info("Plot jaccard for all targets.")
             if cfg["OUTPUT"]["SAVE_FIGURES"]:
-                save_location = os.path.join(save_folder, save_file_preamble + "_jaccard_all_lms.pdf")
+                save_location = os.path.join(save_folder, save_file_preamble + "_jaccard_all_targets.pdf")
 
             box_plot_comparing_q(
                 all_jaccard_data,
                 uncertainty_error_pair_list,
                 model_list,
                 hatch_type=hatch,
-                colour=colour,
+                color=color,
                 x_axis_labels=x_axis_labels,
                 x_label="Q (# Bins)",
                 y_label="Jaccard Index (%)",
@@ -1863,16 +1864,16 @@ def generate_fig_comparing_bins(
             )
 
             # mean recall for each bin
-            logger.info("Plot recall for all landmarks.")
+            logger.info("Plot recall for all targets.")
 
             if cfg["OUTPUT"]["SAVE_FIGURES"]:
-                save_location = os.path.join(save_folder, save_file_preamble + "_recall_jaccard_all_lms.pdf")
+                save_location = os.path.join(save_folder, save_file_preamble + "_recall_jaccard_all_targets.pdf")
             box_plot_comparing_q(
                 all_recall_data,
                 uncertainty_error_pair_list,
                 model_list,
                 hatch_type=hatch,
-                colour=colour,
+                color=color,
                 x_axis_labels=x_axis_labels,
                 x_label="Q (# Bins)",
                 y_label="Ground Truth Bin Recall (%)",
@@ -1884,16 +1885,16 @@ def generate_fig_comparing_bins(
             )
 
             # mean precision for each bin
-            logger.info("Plot precision for all landmarks.")
+            logger.info("Plot precision for all targets.")
 
             if cfg["OUTPUT"]["SAVE_FIGURES"]:
-                save_location = os.path.join(save_folder, save_file_preamble + "_precision_jaccard_all_lms.pdf")
+                save_location = os.path.join(save_folder, save_file_preamble + "_precision_jaccard_all_targets.pdf")
             box_plot_comparing_q(
                 all_precision_data,
                 uncertainty_error_pair_list,
                 model_list,
                 hatch_type=hatch,
-                colour=colour,
+                color=color,
                 x_axis_labels=x_axis_labels,
                 x_label="Q (# Bins)",
                 y_label="Ground Truth Bin Precision (%)",
@@ -1904,24 +1905,24 @@ def generate_fig_comparing_bins(
                 save_path=save_location,
             )
 
-            if show_individual_landmark_plots:
-                # plot the concatentated errors for each landmark seperately. Must transpose the iteration.
-                for lm in landmarks:
-                    lm_data = [x[lm] for x in all_bins_concat_lms_sep_all_jacc]
+            if show_individual_target_plots:
+                # plot the concatentated errors for each target seperately. Must transpose the iteration.
+                for target_idx in targets:
+                    target_data = [x[target_idx] for x in all_bins_concat_targets_sep_all_jacc]
 
-                    if lm in ind_landmarks_to_show or ind_landmarks_to_show == [-1]:
+                    if target_idx in ind_targets_to_show or ind_targets_to_show == [-1]:
                         if cfg["OUTPUT"]["SAVE_FIGURES"]:
                             save_location = os.path.join(
-                                save_folder, save_file_preamble + "jaccard_lm_" + str(lm) + ".pdf"
+                                save_folder, save_file_preamble + "jaccard_target_" + str(target_idx) + ".pdf"
                             )
 
-                        logger.info("individual jaccard for L%s", lm)
+                        logger.info("individual jaccard for T%s", target_idx)
                         box_plot_comparing_q(
-                            lm_data,
+                            target_data,
                             uncertainty_error_pair_list,
                             model_list,
                             hatch_type=hatch,
-                            colour=colour,
+                            color=color,
                             x_axis_labels=x_axis_labels,
                             x_label="Q (# Bins)",
                             y_label="Jaccard Index (%)",

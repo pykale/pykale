@@ -31,4 +31,4 @@ BOXPLOT:
 
 OUTPUT:
   SAVE_FIGURES: True # True to save, False to visualize in matplotlib
-  SAVE_PREPEND: "1_lm_example"
+  SAVE_PREPEND: "1_target_example"

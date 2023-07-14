@@ -30,35 +30,35 @@ def apply_confidence_inversion(data: pd.DataFrame, uncertainty_measure: str) -> 
 
 
 def get_data_struct(
-    models_to_compare: List[str], landmarks: List[int], saved_bins_path_pre: str, dataset: str
+    models_to_compare: List[str], targets: List[int], saved_bins_path_pre: str, dataset: str
 ) -> Tuple[Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame]]:
     """
     Returns dictionaries of pandas dataframes for:
-        a) all error and prediction info (all prediction data across landmarks for each model),
-        b) landmark separated error and prediction info (prediction data for each model and each landmark),
-        c) all estimated error bounds (estimated error bounds across landmarks for each model),
-        d) landmark separated estimated error bounds (estimated error bounds for each model and each landmark).
+        a) all error and prediction info (all prediction data across targets for each model),
+        b) target separated error and prediction info (prediction data for each model and each target),
+        c) all estimated error bounds (estimated error bounds across targets for each model),
+        d) target separated estimated error bounds (estimated error bounds for each model and each target).
 
     Args:
         models_to_compare: List of set models to add to data struct.
-        landmarks: List of landmarks to add to data struct.
+        targets: List of targets to add to data struct.
         saved_bins_path_pre: Preamble to path of where the predicted quantile bins are saved.
         dataset: String of what dataset you're measuring.
 
     Returns:
         data_structs: Dictionary where keys are model names and values are pandas dataframes containing
-                      all prediction data across landmarks for that model.
+                      all prediction data across targets for that model.
 
-        data_struct_sep: Dictionary where keys are a combination of model names and landmark indices (e.g., "model1 L1"),
-                         and values are pandas dataframes containing prediction data for the corresponding model and landmark.
+        data_struct_sep: Dictionary where keys are a combination of model names and target indices (e.g., "model1 T1"),
+                         and values are pandas dataframes containing prediction data for the corresponding model and target.
 
         data_struct_bounds: Dictionary where keys are a combination of model names and the string " Error Bounds"
                             (e.g., "model1 Error Bounds"), and values are pandas dataframes containing all estimated
-                            error bounds across landmarks for that model.
+                            error bounds across targets for that model.
 
-        data_struct_bounds_sep: Dictionary where keys are a combination of model names, landmark indices and the string
+        data_struct_bounds_sep: Dictionary where keys are a combination of model names, target indices and the string
                                 "Error Bounds" (e.g., "model1 Error Bounds L1"), and values are pandas dataframes containing
-                                estimated error bounds for the corresponding model and landmark.
+                                estimated error bounds for the corresponding model and target.
     """
     data_structs = {}
     data_struct_sep = {}  #
@@ -67,24 +67,26 @@ def get_data_struct(
     data_struct_bounds_sep = {}
 
     for model in models_to_compare:
-        all_landmarks = []
+        all_targets = []
         all_err_bounds = []
 
-        for lm in landmarks:
-            bin_pred_path = os.path.join(saved_bins_path_pre, model, dataset, "res_predicted_bins_l" + str(lm))
+        for target_idx in targets:
+            bin_pred_path = os.path.join(saved_bins_path_pre, model, dataset, "res_predicted_bins_t" + str(target_idx))
             bin_preds = pd.read_csv(bin_pred_path + ".csv", header=0)
-            bin_preds["landmark"] = lm
+            bin_preds["target_idx"] = target_idx
 
-            error_bounds_path = os.path.join(saved_bins_path_pre, model, dataset, "estimated_error_bounds_l" + str(lm))
+            error_bounds_path = os.path.join(
+                saved_bins_path_pre, model, dataset, "estimated_error_bounds_t" + str(target_idx)
+            )
             error_bounds_pred = pd.read_csv(error_bounds_path + ".csv", header=0)
-            error_bounds_pred["landmark"] = lm
+            error_bounds_pred["target"] = target_idx
 
-            all_landmarks.append(bin_preds)
+            all_targets.append(bin_preds)
             all_err_bounds.append(error_bounds_pred)
-            data_struct_sep[model + " L" + str(lm)] = bin_preds
-            data_struct_bounds_sep[model + "Error Bounds L" + str(lm)] = error_bounds_pred
+            data_struct_sep[model + " L" + str(target_idx)] = bin_preds
+            data_struct_bounds_sep[model + "Error Bounds L" + str(target_idx)] = error_bounds_pred
 
-        data_structs[model] = pd.concat(all_landmarks, axis=0, ignore_index=True)
+        data_structs[model] = pd.concat(all_targets, axis=0, ignore_index=True)
         data_struct_bounds[model + " Error Bounds"] = pd.concat(all_err_bounds, axis=0, ignore_index=True)
 
     return data_structs, data_struct_sep, data_struct_bounds, data_struct_bounds_sep

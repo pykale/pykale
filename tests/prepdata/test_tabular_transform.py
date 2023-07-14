@@ -44,16 +44,16 @@ def test_apply_confidence_inversion(input, expected):
 # Test that we can read csvs in the correct structure and return a dict of pandas dataframes in correct structure.
 def test_get_data_struct(landmark_uncertainty_tuples_path):
 
-    bins_all_lms, bins_lms_sep, bounds_all_lms, bounds_lms_sep = get_data_struct(
+    bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = get_data_struct(
         ["U-NET"], [0, 1], landmark_uncertainty_tuples_path[2], "SA"
     )
 
-    assert isinstance(bins_all_lms, dict)
-    assert isinstance(bins_all_lms["U-NET"], pd.DataFrame)
-    assert sorted(list(bins_all_lms["U-NET"].keys())) == sorted(EXPECTED_COLS)
-    assert isinstance(bins_lms_sep, dict)
-    assert list(bins_lms_sep.keys()) == ["U-NET L0", "U-NET L1"]
-    assert sorted(list(bins_lms_sep["U-NET L0"].keys())) == sorted(EXPECTED_COLS)
+    assert isinstance(bins_all_targets, dict)
+    assert isinstance(bins_all_targets["U-NET"], pd.DataFrame)
+    assert sorted(list(bins_all_targets["U-NET"].keys())) == sorted(EXPECTED_COLS)
+    assert isinstance(bins_targets_sep, dict)
+    assert list(bins_targets_sep.keys()) == ["U-NET L0", "U-NET L1"]
+    assert sorted(list(bins_targets_sep["U-NET L0"].keys())) == sorted(EXPECTED_COLS)
 
-    assert isinstance(bounds_all_lms, dict)
-    assert isinstance(bounds_lms_sep, dict)
+    assert isinstance(bounds_all_targets, dict)
+    assert isinstance(bounds_targets_sep, dict)
