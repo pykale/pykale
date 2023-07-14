@@ -52,7 +52,43 @@ Edit the above yaml files for additional configuration options.
  Find additional experimental results from our paper in this repository [additional results](https://github.com/Schobs/Qbin).
 
 ## 5. Quantile Binning Beyond Landmarks
-Quantile Binning can be used for purposes beyond landmarks. Simply follow the same format for your data as detailed [here](https://github.com/pykale/data/tree/main/tabular/cardiac_landmark_uncertainty)
+Quantile Binning can be used for purposes beyond landmarks. Simply follow the same format for your data as detailed [here](https://github.com/pykale/data/tree/main/tabular/cardiac_landmark_uncertainty). In a nutshell, each sample in the .csv should contain a column for the continuous uncertainty measure and a column for the continuous evaluation metric. Multiple uncertainty measures or evaluation metrics can be present for one sample (e.g. results from Monte Carlo Dropout and Deep Ensembles).
+
+In your config.yaml file, specify the \<uncertainty_measure, evaluation_metric\> tuples you want to use for Quantile Binning.
+
+If you want to compare multiple metrics against eachother, you can specify multiple tuples in a list.
+
+Specify them in `PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS` and/or `PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS`. See [below](#6-advanced-usage---config-options) for more details on these config options.
+
+The pipeline supports evaluating the uncertainty from multiple targets (e.g. landmarks) at once. This works by formatting your data in lists: one list for each target. See the code in main.py for how this works. In our examples, we select DATASET.LANDMARKS to represent the indicies of the targets.
+
+To change this in your example, observe the following in main.py
+
+```python
+
+    for model in all_models_to_compare:
+        for landmark in landmarks:
+            # Define Paths for this loop
+            landmark_results_path_val = os.path.join(
+                cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
+            )
+            landmark_results_path_test = os.path.join(
+                cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
+            )
+
+            fitted_save_at = os.path.join(save_folder, "fitted_quantile_binning", model, dataset)
+            os.makedirs(save_folder, exist_ok=True)
+            .
+            .
+            .
+            (rest of code)
+
+```
+
+When you loop through the target indicies (landmarks in the example above), you can specify the paths for each target.
+
+If you only have one target (e.g. regression of a house price), follow the config file [one_target_example.yaml](/pykale/examples/landmark_uncertainty/configs/one_target_example.yaml) for how to do this. Essentially, you just use a list of length 1.
+
 
 ## 6. Advanced Usage - Config Options
  You can add your own config or change the config options in the .yaml files.
