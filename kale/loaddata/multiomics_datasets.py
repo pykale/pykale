@@ -96,41 +96,17 @@ class MultiomicsDataset(Dataset):
         ''Data'' object, and saves it into the ''processed_dir''."""
         data_list = []
 
-        if self._random_split:
-            for modality in range(self.num_modalities):
+        for modality in range(self.num_modalities):
+            if self._random_split:
                 full_data = np.loadtxt(self.raw_paths[modality * 2], delimiter=",")
-                full_data = full_data if self.pre_transform is None else self.pre_transform(full_data)
                 full_labels = np.loadtxt(self.raw_paths[(modality * 2) + 1], delimiter=",")
                 full_labels = full_labels.astype(int)
 
                 train_idx, test_idx = self.get_random_split(full_labels, self._num_classes, self._train_size)
                 num_train = len(train_idx)
                 num_tests = len(test_idx)
-                full_labels = (
-                    full_labels if self._target_pre_transform is None else self._target_pre_transform(full_labels)
-                )
-
-                edge_index, edge_weight = self.get_adjacency_info(full_data)
-                adj_t = SparseTensor(row=edge_index[0], col=edge_index[1], value=edge_weight).t()
-
-                data = Data(
-                    x=full_data,
-                    edge_index=edge_index,
-                    edge_weight=edge_weight,
-                    adj_t=adj_t,
-                    y=full_labels,
-                    train_idx=train_idx,
-                    test_idx=test_idx,
-                    num_train=num_train,
-                    num_test=num_tests,
-                )
-
-                data = self.extend_data(data)
-                data_list.append(data)
-
-        else:
-            # The datasets provided here have already been pre-split into training and test sets.
-            for modality in range(self.num_modalities):
+            else:
+                # The datasets provided here have already been pre-split into training and test sets.
                 train_data = np.loadtxt(self.raw_paths[modality * 4], delimiter=",")
                 train_labels = np.loadtxt(self.raw_paths[(modality * 4) + 1], delimiter=",")
                 train_labels = train_labels.astype(int)
@@ -144,30 +120,29 @@ class MultiomicsDataset(Dataset):
                 test_idx = torch.tensor(list(range(num_train, num_train + num_tests)), dtype=torch.long)
 
                 full_data = np.concatenate((train_data, test_data), axis=0)
-                full_data = full_data if self.pre_transform is None else self.pre_transform(full_data)
                 full_labels = np.concatenate((train_labels, test_labels))
                 full_labels = full_labels.astype(int)
-                full_labels = (
-                    full_labels if self._target_pre_transform is None else self._target_pre_transform(full_labels)
-                )
 
-                edge_index, edge_weight = self.get_adjacency_info(full_data)
-                adj_t = SparseTensor(row=edge_index[0], col=edge_index[1], value=edge_weight)
+            full_data = full_data if self.pre_transform is None else self.pre_transform(full_data)
+            full_labels = full_labels if self._target_pre_transform is None else self._target_pre_transform(full_labels)
 
-                data = Data(
-                    x=full_data,
-                    edge_index=edge_index,
-                    edge_weight=edge_weight,
-                    adj_t=adj_t,
-                    y=full_labels,
-                    train_idx=train_idx,
-                    test_idx=test_idx,
-                    num_train=num_train,
-                    num_test=num_tests,
-                )
+            edge_index, edge_weight = self.get_adjacency_info(full_data)
+            adj_t = SparseTensor(row=edge_index[0], col=edge_index[1], value=edge_weight)
 
-                data = self.extend_data(data)
-                data_list.append(data)
+            data = Data(
+                x=full_data,
+                edge_index=edge_index,
+                edge_weight=edge_weight,
+                adj_t=adj_t,
+                y=full_labels,
+                train_idx=train_idx,
+                test_idx=test_idx,
+                num_train=num_train,
+                num_test=num_tests,
+            )
+
+            data = self.extend_data(data)
+            data_list.append(data)
 
         torch.save(data_list, osp.join(self.processed_dir, "data.pt"))
 
@@ -331,7 +306,7 @@ class SparseMultiomicsDataset(MultiomicsDataset):
         edge_index, edge_weight = self._get_adjacency_info(
             data.x[data.train_idx], test_data=data.x[data.test_idx], train=False
         )
-        adj_t = SparseTensor(row=edge_index[0], col=edge_index[1], value=edge_weight).t()
+        adj_t = SparseTensor(row=edge_index[0], col=edge_index[1], value=edge_weight)
 
         data.edge_index = edge_index
         data.edge_weight = edge_weight
