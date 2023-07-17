@@ -65,30 +65,30 @@ def testing_cfg():
 # DEFINE constants for testing
 EXPECTED_FILES_IND_3 = [
     "3Bins/fitted_quantile_binningcumulative_error.pdf",
-    "3Bins/fitted_quantile_binning/localisation_errors.xlsx",
+    "3Bins/fitted_quantile_binning/target_errors.xlsx",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_t_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undottedmean_error_folds_all_targets.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_t_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_target_0.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_all_targets.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_recall_jaccard_all_targets.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_precision_jaccard_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalsejaccard_t_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalsejaccard_target_0.pdf",
 ]
 # /home/schobs/Documents/results/testing/4CH/3Bins/
 EXPECTED_FILES_IND_5 = [
     "5Bins/fitted_quantile_binningcumulative_error.pdf",
-    "5Bins/fitted_quantile_binning/localisation_errors.xlsx",
+    "5Bins/fitted_quantile_binning/target_errors.xlsx",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_t_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undottedmean_error_folds_all_targets.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_t_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_target_0.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_all_targets.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_recall_jaccard_all_targets.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_precision_jaccard_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalsejaccard_t_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalsejaccard_target_0.pdf",
 ]
 EXPECED_FILES_FIT = [
     "3Bins/fitted_quantile_binning/PHD-NET/4CH/res_predicted_bins_t0.csv",
@@ -130,41 +130,41 @@ EXPECED_FILES_FIT = [
 ]
 EXPECTED_FILES_COMP = [
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_error_t_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undottedmean_error_folds_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_errorbound_t_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalsejaccard_t_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalsejaccard_target_0.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_error_t_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undottedmean_error_folds_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_errorbound_t_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalsejaccard_t_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalsejaccard_target_0.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_error_t_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undottedmean_error_folds_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_errorbound_t_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalsejaccard_t_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalsejaccard_target_0.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_error_t_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undottedmean_error_folds_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_errorbound_t_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalsejaccard_t_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalsejaccard_target_0.pdf",
 ]
 
 
@@ -233,14 +233,14 @@ def test_qbin_pipeline(testing_cfg):
                     base_dir,
                     model,
                     dataset,
-                    uncertainty_pairs_val + "_l" + str(landmark),
+                    uncertainty_pairs_val + "_t" + str(landmark),
                 )
                 landmark_results_path_test = os.path.join(
                     testing_cfg["DATASET"]["ROOT"],
                     base_dir,
                     model,
                     dataset,
-                    uncertainty_pairs_test + "_l" + str(landmark),
+                    uncertainty_pairs_test + "_t" + str(landmark),
                 )
 
                 fitted_save_at = os.path.join(save_folder, "fitted_quantile_binning", model, dataset)
@@ -359,7 +359,6 @@ def test_qbin_pipeline(testing_cfg):
                     all_fitted_save_paths,
                     save_folder_comparison,
                     save_file_preamble,
-                    testing_cfg,
                     testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
                     testing_cfg["OUTPUT"]["SAVE_FIGURES"],
                     testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
@@ -563,7 +562,7 @@ def read_csv_landmark(csv_preamble, landmark):
     If the CSV file cannot be found or contains invalid data, the function raises an appropriate error.
     """
 
-    csv_path = os.path.join(csv_preamble + "_l" + str(landmark) + ".csv")
+    csv_path = os.path.join(csv_preamble + "_t" + str(landmark) + ".csv")
     # Read the CSV file
     df = pd.read_csv(csv_path)
 
