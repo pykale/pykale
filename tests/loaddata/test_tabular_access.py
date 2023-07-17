@@ -39,7 +39,6 @@ EXPECTED_COLS = [
     ],
 )
 def test_load_csv_columns_cols_return(landmark_uncertainty_tuples_path, return_columns):
-    # download_file_by_url(landmark_uncertainty_url, landmark_uncertainty_dl, "Uncertainty_tuples.zip", "zip")
     returned_cols = load_csv_columns(
         landmark_uncertainty_tuples_path[0], "Testing Fold", np.arange(8), cols_to_return=return_columns[0],
     )

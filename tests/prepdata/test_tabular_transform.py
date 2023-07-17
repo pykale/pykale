@@ -24,7 +24,7 @@ EXPECTED_COLS = [
     "S-MHA Uncertainty bins",
     "Validation Fold",
     "Testing Fold",
-    "landmark",
+    "target_idx",
 ]
 
 DUMMY_DICT = pd.DataFrame({"data": [0.1, 0.2, 0.9, 1.5]})
