@@ -11,10 +11,10 @@ Reference:
 [4] Zhou, S. (2022). Interpretable Domain-Aware Learning for Neuroimage Classification (Doctoral dissertation, University of Sheffield). https://etheses.whiterose.ac.uk/31044/1/PhD_thesis_ShuoZhou_170272834.pdf
 """
 import os
-import numpy as np
-import pandas as pd
 import warnings
 
+import numpy as np
+import pandas as pd
 from config import get_cfg_defaults
 from nilearn.connectome import ConnectivityMeasure
 from nilearn.datasets import fetch_abide_pcp
@@ -22,9 +22,10 @@ from sklearn.linear_model import RidgeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder
 
-from kale.utils.download import download_file_by_url
-from kale.pipeline.multi_domain_adapter import CoIRLS
 from kale.interpret import visualize
+from kale.pipeline.multi_domain_adapter import CoIRLS
+from kale.utils.download import download_file_by_url
+
 
 def cross_validation(x, y, covariates, estimator, domain_adaptation=False):
     results = {"Target": [], "Num_samples": [], "Accuracy": []}
@@ -42,8 +43,9 @@ def cross_validation(x, y, covariates, estimator, domain_adaptation=False):
         y_src = y[idx_src]
 
         if domain_adaptation:
-            estimator.fit(np.concatenate((x_src, x_tgt)), y_src,
-                          np.concatenate((covariate_mat[idx_src], covariate_mat[idx_tgt])))
+            estimator.fit(
+                np.concatenate((x_src, x_tgt)), y_src, np.concatenate((covariate_mat[idx_src], covariate_mat[idx_tgt]))
+            )
         else:
             estimator.fit(x_src, y_src)
         y_pred = estimator.predict(x_tgt)
@@ -59,9 +61,10 @@ def cross_validation(x, y, covariates, estimator, domain_adaptation=False):
 
     return pd.DataFrame(results)
 
+
 def main():
     # ---- Ignore warnings ----
-    warnings.filterwarnings('ignore')
+    warnings.filterwarnings("ignore")
 
     # ---- Path to `.yaml` config file ----
     cfg_path = "configs/tutorial.yaml"
@@ -75,11 +78,16 @@ def main():
     pipeline = cfg.DATASET.PIPELINE
     atlas = cfg.DATASET.ATLAS
     site_ids = cfg.DATASET.SITE_IDS
-    abide = fetch_abide_pcp(data_dir=root_dir, pipeline=pipeline,
-                            band_pass_filtering=True, global_signal_regression=False,
-                            derivatives=atlas, quality_checked=False,
-                            SITE_ID=site_ids,
-                            verbose=1)
+    abide = fetch_abide_pcp(
+        data_dir=root_dir,
+        pipeline=pipeline,
+        band_pass_filtering=True,
+        global_signal_regression=False,
+        derivatives=atlas,
+        quality_checked=False,
+        SITE_ID=site_ids,
+        verbose=1,
+    )
 
     # ---- Read Phenotypic data ----
     pheno_file = os.path.join(cfg.DATASET.ROOT, "ABIDE_pcp/Phenotypic_V1_0b_preprocessed1.csv")
@@ -100,7 +108,7 @@ def main():
     pheno = pheno_info.loc[use_idx, ["SITE_ID", "DX_GROUP"]].reset_index(drop=True)
 
     # ---- Extracting Brain Networks Features ----
-    correlation_measure = ConnectivityMeasure(kind='correlation', vectorize=True)
+    correlation_measure = ConnectivityMeasure(kind="correlation", vectorize=True)
     brain_networks = correlation_measure.fit_transform(time_series)
 
     # ---- Machine Learning for Multi-site Data ----
@@ -111,9 +119,11 @@ def main():
 
     print("Domain Adaptation")
     estimator = CoIRLS(kernel=cfg.MODEL.KERNEL, lambda_=cfg.MODEL.LAMBDA_, alpha=cfg.MODEL.ALPHA)
-    res_df = cross_validation(brain_networks, pheno["DX_GROUP"].values, pheno["SITE_ID"].values,
-                              estimator, domain_adaptation=True)
+    res_df = cross_validation(
+        brain_networks, pheno["DX_GROUP"].values, pheno["SITE_ID"].values, estimator, domain_adaptation=True
+    )
     print(res_df)
+
 
 if __name__ == "__main__":
     main()
