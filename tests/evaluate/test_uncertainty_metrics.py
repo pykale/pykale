@@ -3,7 +3,7 @@ import logging
 import pytest
 
 from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard
-from kale.prepdata.tabular_transform import get_data_struct
+from kale.prepdata.tabular_transform import generate_struct_for_qbin
 
 # from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
@@ -21,7 +21,7 @@ UNCERTAINTIES = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 
 @pytest.fixture(scope="module")
 def dummy_test_preds(landmark_uncertainty_tuples_path):
-    bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = get_data_struct(
+    bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = generate_struct_for_qbin(
         ["U-NET"], [0, 1], landmark_uncertainty_tuples_path[2], "SA"
     )
 

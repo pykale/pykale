@@ -1,5 +1,5 @@
 """
-Uncertainty Estimation for Landmark Localisaition
+Uncertainty Estimation for Landmark Localization
 
 
 Reference:
@@ -13,7 +13,6 @@ Paper link: https://arxiv.org/abs/2203.02351
 
 import argparse
 import os
-import shutil
 import warnings
 
 import numpy as np
@@ -22,12 +21,12 @@ import seaborn as sns
 from config import get_cfg_defaults
 from pandas import *
 
-from kale.embed.uncertainty_fitting import fit_and_predict
-
-warnings.filterwarnings("error")
 import kale.utils.logger as logging
+from kale.embed.uncertainty_fitting import fit_and_predict
 from kale.interpret.uncertainty_quantiles import generate_fig_comparing_bins, generate_fig_individual_bin_comparison
 from kale.utils.download import download_file_by_url
+
+warnings.filterwarnings("error")
 
 
 def arg_parse():

@@ -42,7 +42,7 @@ def evaluate_correlations(
     uncertainty_error_pairs: List[Tuple[str, str, str]],
     cmaps: List[Dict[Any, Any]],
     num_bins: int,
-    conf_invert_info: List[Tuple[str, bool]],
+    confidence_invert_tuples: List[Tuple[str, bool]],
     num_folds: int = 8,
     error_scaling_factor: float = 1,
     combine_middle_bins: bool = False,
@@ -61,9 +61,11 @@ def evaluate_correlations(
             error, and uncertainty inversion keys for each pair.
         cmaps: A dictionary of colour maps to use for plotting the results.
         num_bins: The number of quantile bins to divide the data into.
-        conf_invert_info: A list of tuples specifying whether to invert the uncertainty values for each method.
+        confidence_invert_tuples: A list of tuples specifying whether to invert the uncertainty values for each method..
+                          First element is a string specifying the uncertainty method name and the second element is a boolean
+                          whether to invert e.g. [["E-MHA", True], ["E-CPV", False]]
         num_folds: The number of folds to use for cross-validation (default: 8).
-        error_scaling_factor: The scale factor to convert from pixels to millimeters (default: 1).
+        error_scaling_factor: The scale factor to transform error by (default: 1).
         combine_middle_bins: Whether to combine the middle bins into one bin (default: False).
         save_path: The path to save the correlation plots (default: None).
         to_log: Whether to use logarithmic scaling for the x and y axes of the plots (default: False).
@@ -104,7 +106,7 @@ def evaluate_correlations(
     if combine_middle_bins:
         num_bins = 3
 
-    # Loop over models (model) and uncertainty methods (up)
+    # Loop over models (model) and uncertainty methods (uncert_pair)
     for _, (model, data_structs) in enumerate(bin_predictions.items()):
         correlation_dict[model] = {}
         for uncert_pair in uncertainty_error_pairs:  # uncert_pair = [pair name, error name , uncertainty name]
@@ -120,7 +122,7 @@ def evaluate_correlations(
                 [uncertainty_type + " Uncertainty"]
             ]
 
-            invert_uncert_bool = [x[1] for x in conf_invert_info if x[0] == uncertainty_type][0]
+            invert_uncert_bool = [x[1] for x in confidence_invert_tuples if x[0] == uncertainty_type][0]
             if invert_uncert_bool:
                 fold_uncertainty_values = apply_confidence_inversion(fold_uncertainty_values, uncert_pair[2])
 

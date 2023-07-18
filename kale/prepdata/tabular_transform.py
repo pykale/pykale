@@ -29,13 +29,13 @@ def apply_confidence_inversion(data: pd.DataFrame, uncertainty_measure: str) -> 
     return data
 
 
-def get_data_struct(
+def generate_struct_for_qbin(
     models_to_compare: List[str], targets: List[int], saved_bins_path_pre: str, dataset: str
 ) -> Tuple[Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame]]:
     """
     Returns dictionaries of pandas dataframes for:
         a) all error and prediction info (all prediction data across targets for each model),
-        b) target separated error and prediction info (prediction data for each model and each target),
+        b) target indices for separated error and prediction info (prediction data for each model and each target),
         c) all estimated error bounds (estimated error bounds across targets for each model),
         d) target separated estimated error bounds (estimated error bounds for each model and each target).
 

@@ -29,7 +29,7 @@ from sklearn.isotonic import IsotonicRegression
 
 from kale.evaluate.similarity_metrics import evaluate_correlations
 from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard, get_mean_errors
-from kale.prepdata.tabular_transform import get_data_struct
+from kale.prepdata.tabular_transform import generate_struct_for_qbin
 from kale.utils.save_xlsx import generate_summary_df
 
 
@@ -255,7 +255,7 @@ def generic_box_plot_loop(
     show_sample_info: str = "None",
     save_path: Optional[str] = None,
     y_lim: int = 120,
-    turn_to_percent: bool = True,
+    convert_to_percent: bool = True,
     to_log: bool = False,
     show_individual_dots: bool = True,
 ) -> None:
@@ -273,7 +273,7 @@ def generic_box_plot_loop(
     6. Logarithmic scale: If `to_log` is set to True, the y-axis will be in logarithmic scale.
     7. Display of individual data points: The user can choose to display individual data points in each box plot
        by setting `show_individual_dots` to True.
-    8. Data transformation: The data can be transformed to percentages using `turn_to_percent` parameter.
+    8. Data transformation: The data can be transformed to percentages using `convert_to_percent` parameter.
     9. Display of sample information: The user can choose to display information about the number of samples in each
        box plot by setting `show_sample_info` to "None", "All", or "Average".
 
@@ -300,7 +300,7 @@ def generic_box_plot_loop(
         show_sample_info (str): Information about the samples to be displayed. Default is "None".
         save_path (Optional[str]): The path where the plot will be saved. If None, the plot won't be saved. Default is None.
         y_lim (int): The maximum limit for the y-axis. Default is 120.
-        turn_to_percent (bool): Flag to determine if data should be converted to percentages. Default is True.
+        convert_to_percent (bool): Flag to determine if data should be converted to percentages. Default is True.
         to_log (bool): Flag to determine if a logarithmic scale should be used. Default is False.
         show_individual_dots (bool): Flag to determine if individual data points should be shown. Default is True.
 
@@ -313,9 +313,6 @@ def generic_box_plot_loop(
 
     orders = []
     ax = plt.gca()
-
-    # fig.set_size_inches(24, 10)
-
     ax.xaxis.grid(False)
 
     bin_label_locs: List[float] = []
@@ -330,8 +327,8 @@ def generic_box_plot_loop(
     all_sample_label_x_locs = []
     all_sample_percs = []
 
-    for i, (up) in enumerate(uncertainty_types_list):
-        uncertainty_type = up[0]
+    for i, (uncert_pair) in enumerate(uncertainty_types_list):
+        uncertainty_type = (uncert_pair)[0]
 
         for j in range(num_bins):
             inbetween_locs = []
@@ -367,7 +364,7 @@ def generic_box_plot_loop(
                 inbetween_locs.append(x_loc[0])
 
                 # Turn data to percentages
-                if turn_to_percent:
+                if convert_to_percent:
                     displayed_data = [(x) * 100 for x in all_b_data]
                 else:
                     displayed_data = all_b_data
@@ -434,7 +431,7 @@ def generic_box_plot_loop(
 
             middle_min_x_loc += 0.02
 
-        # IF lots of bins we must make the gap between plots bigger to prevent overlapping x-tick labels.
+        # If lots of bins we must make the gap between plots bigger to prevent overlapping x-tick labels.
         if list_comp_bool:
             if num_bins > 9:
                 middle_min_x_loc += 0.25
@@ -454,7 +451,7 @@ def generic_box_plot_loop(
         circ_patches,
         y_lim,
         y_lim_min,
-        turn_to_percent,
+        convert_to_percent,
         x_label,
         y_label,
         font_size_1,
@@ -477,7 +474,7 @@ def format_plot(
     circ_patches: List[patches.Patch],
     y_lim: float,
     y_lim_min: float,
-    turn_to_percent: bool,
+    convert_to_percent: bool,
     x_label: str,
     y_label: str,
     font_size_1: int,
@@ -502,7 +499,7 @@ def format_plot(
         circ_patches: List of matplotlib patches to be added to the legend.
         y_lim: The upper limit for the y-axis.
         y_lim_min: The lower limit for the y-axis.
-        turn_to_percent: If True, converts y-axis values to percentages.
+        convert_to_percent: If True, converts y-axis values to percentages.
         x_label: The label for the x-axis.
         y_label: The label for the y-axis.
         font_size_1: The font size for the axis labels.
@@ -594,7 +591,7 @@ def format_plot(
         ax.set_ylim((y_lim_min, y_lim))
 
     # If using percent, doesnt make sense to show any y tick above 100
-    if turn_to_percent and y_lim > 100:
+    if convert_to_percent and y_lim > 100:
         plt.yticks(np.arange(0, y_lim, 20))
 
     # Add more to legend, add the mean symbol and median symbol.
@@ -646,7 +643,7 @@ def box_plot_per_model(
     show_sample_info: str = "None",
     save_path: Optional[str] = None,
     y_lim: int = 120,
-    turn_to_percent: bool = True,
+    convert_to_percent: bool = True,
     to_log: bool = False,
     show_individual_dots: bool = True,
 ) -> None:
@@ -669,7 +666,7 @@ def box_plot_per_model(
         show_sample_info (str): Show sample information. Options: "None", "All", "Average". Default is "None".
         save_path (Optional[str]): Path to save plot to. If None, displays on screen (default=None).
         y_lim (int): y-axis limit of graph (default=120).
-        turn_to_percent (bool): Flag to turn data into percentages. Default is True.
+        convert_to_percent (bool): Flag to turn data into percentages. Default is True.
         to_log (bool): Flag to set y-axis scale to log. Default is False.
         show_individual_dots (bool): Flag to show individual data points as dots. Default is True.
     """
@@ -694,8 +691,8 @@ def box_plot_per_model(
     all_sample_label_x_locs = []
     all_sample_percs = []
 
-    for i, (up) in enumerate(uncertainty_types_list):
-        uncertainty_type = up[0]
+    for i, (uncert_pair) in enumerate(uncertainty_types_list):
+        uncertainty_type = (uncert_pair)[0]
         for hash_idx, model_type in enumerate(models):
             inbetween_locs = []
             average_samples_per_bin = []
@@ -727,7 +724,7 @@ def box_plot_per_model(
                 inbetween_locs.append(x_loc[0])
 
                 # Turn data to percentages
-                if turn_to_percent:
+                if convert_to_percent:
                     displayed_data = [(x) * 100 for x in all_b_data]
                 else:
                     displayed_data = all_b_data
@@ -804,7 +801,7 @@ def box_plot_per_model(
         circ_patches,
         y_lim,
         -0.1,
-        turn_to_percent,
+        convert_to_percent,
         x_label,
         y_label,
         30,
@@ -832,7 +829,7 @@ def box_plot_comparing_q(
     show_sample_info: str = "None",
     save_path: str = None,
     y_lim: int = 120,
-    turn_to_percent: bool = True,
+    convert_to_percent: bool = True,
     to_log: bool = False,
     show_individual_dots: bool = True,
 ) -> None:
@@ -866,7 +863,7 @@ def box_plot_comparing_q(
             Path to save plot to. If None, displays on screen. Defaults to None.
         y_lim (int, optional):
             Y-axis limit of graph. Defaults to 120.
-        turn_to_percent (bool, optional):
+        convert_to_percent (bool, optional):
             Whether to turn data to percentages. Defaults to True.
         to_log (bool, optional):
             Whether to set the y-axis to logarithmic scale. Defaults to False.
@@ -878,9 +875,6 @@ def box_plot_comparing_q(
 
     orders = []
     ax = plt.gca()
-
-    # fig.set_size_inches(24, 10)
-
     ax.xaxis.grid(False)
 
     bin_label_locs = []
@@ -924,7 +918,7 @@ def box_plot_comparing_q(
             inbetween_locs.append(x_loc[0])
 
             # Turn data to percentages
-            if turn_to_percent:
+            if convert_to_percent:
                 displayed_data = [(x) * 100 for x in all_b_data]
             else:
                 displayed_data = all_b_data
@@ -983,7 +977,7 @@ def box_plot_comparing_q(
         circ_patches,
         y_lim,
         -0.1,
-        turn_to_percent,
+        convert_to_percent,
         x_label,
         y_label,
         30,
@@ -1042,8 +1036,8 @@ def plot_cumulative(
 
     ax.set_xscale("log")
     line_styles = [":", "-", "dotted", "-."]
-    for i, (up) in enumerate(uncertainty_types):
-        uncertainty = up[0]
+    for i, (uncert_pair) in enumerate(uncertainty_types):
+        uncertainty = (uncert_pair)[0]
         color = cmaps[i]
         for hash_idx, model_type in enumerate(models):
             line = line_styles[hash_idx]
@@ -1086,7 +1080,6 @@ def plot_cumulative(
                 )
 
     handles, labels = ax.get_legend_handles_labels()
-    # ax2.legend(loc=2})
     ax.legend(handles, labels, prop={"size": 10})
     plt.axvline(x=5, color=cmaps[3])
 
@@ -1166,7 +1159,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
     # If combining the middle bins we just have the 2 edge bins, and the combined middle ones.
 
-    bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = get_data_struct(
+    bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = generate_struct_for_qbin(
         models_to_compare, target_indices, save_folder, dataset
     )
 
@@ -1322,7 +1315,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Localization Error (mm)",
                 num_bins=num_bins_display,
-                turn_to_percent=False,
+                convert_to_percent=False,
                 show_sample_info=show_sample_info_mode,
                 show_individual_dots=samples_as_dots_bool,
                 y_lim=box_plot_error_lim,
@@ -1351,7 +1344,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                             x_label="Uncertainty Thresholded Bin",
                             y_label="Error (mm)",
                             num_bins=num_bins_display,
-                            turn_to_percent=False,
+                            convert_to_percent=False,
                             show_sample_info=show_sample_info_mode,
                             show_individual_dots=samples_as_dots_bool,
                             y_lim=box_plot_error_lim,
@@ -1375,7 +1368,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Mean Error (mm)",
                 num_bins=num_bins_display,
-                turn_to_percent=False,
+                convert_to_percent=False,
                 y_lim=box_plot_error_lim,
                 to_log=True,
                 save_path=save_location,
@@ -1474,7 +1467,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Ground Truth Bins Recall",
                 num_bins=num_bins_display,
-                turn_to_percent=True,
+                convert_to_percent=True,
                 save_path=save_location,
                 y_lim=120,
                 width=0.2,
@@ -1498,7 +1491,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Ground Truth Bins Precision",
                 num_bins=num_bins_display,
-                turn_to_percent=True,
+                convert_to_percent=True,
                 save_path=save_location,
                 y_lim=120,
                 width=0.2,
@@ -1627,7 +1620,7 @@ def generate_fig_comparing_bins(data: Tuple, display_settings: Dict[str, Any],) 
     for idx, num_bins in enumerate(all_values_q):
         saved_bins_path_pre = all_fitted_save_paths[idx]
 
-        bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = get_data_struct(
+        bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = generate_struct_for_qbin(
             model_list, targets, saved_bins_path_pre, dataset
         )
 
@@ -1725,7 +1718,7 @@ def generate_fig_comparing_bins(data: Tuple, display_settings: Dict[str, Any],) 
                 x_label="Q (# Bins)",
                 y_label="Localization Error (mm)",
                 num_bins_display=num_bins_display,
-                turn_to_percent=False,
+                convert_to_percent=False,
                 show_sample_info=show_sample_info_mode,
                 show_individual_dots=samples_as_dots_bool,
                 y_lim=box_plot_error_lim,
@@ -1756,7 +1749,7 @@ def generate_fig_comparing_bins(data: Tuple, display_settings: Dict[str, Any],) 
                             x_label="Q (# Bins)",
                             y_label="Localization Error (mm)",
                             num_bins_display=num_bins_display,
-                            turn_to_percent=False,
+                            convert_to_percent=False,
                             show_sample_info=show_sample_info_mode,
                             show_individual_dots=samples_as_dots_bool,
                             y_lim=box_plot_error_lim,
@@ -1778,7 +1771,7 @@ def generate_fig_comparing_bins(data: Tuple, display_settings: Dict[str, Any],) 
                 x_label="Q (# Bins)",
                 y_label="Mean Error (mm)",
                 num_bins_display=num_bins_display,
-                turn_to_percent=False,
+                convert_to_percent=False,
                 show_sample_info="None",
                 show_individual_dots=False,
                 y_lim=box_plot_error_lim,
@@ -1803,7 +1796,7 @@ def generate_fig_comparing_bins(data: Tuple, display_settings: Dict[str, Any],) 
                 x_label="Q (# Bins)",
                 y_label="Error Bound Accuracy (%)",
                 num_bins_display=num_bins_display,
-                turn_to_percent=True,
+                convert_to_percent=True,
                 show_sample_info="None",
                 show_individual_dots=False,
                 y_lim=100,
@@ -1832,7 +1825,7 @@ def generate_fig_comparing_bins(data: Tuple, display_settings: Dict[str, Any],) 
                             x_label="Q (# Bins)",
                             y_label="Error Bound Accuracy (%)",
                             num_bins_display=num_bins_display,
-                            turn_to_percent=True,
+                            convert_to_percent=True,
                             show_individual_dots=False,
                             y_lim=100,
                             save_path=save_location,
@@ -1854,7 +1847,7 @@ def generate_fig_comparing_bins(data: Tuple, display_settings: Dict[str, Any],) 
                 x_label="Q (# Bins)",
                 y_label="Jaccard Index (%)",
                 num_bins_display=num_bins_display,
-                turn_to_percent=True,
+                convert_to_percent=True,
                 show_individual_dots=False,
                 y_lim=70,
                 save_path=save_location,
@@ -1875,7 +1868,7 @@ def generate_fig_comparing_bins(data: Tuple, display_settings: Dict[str, Any],) 
                 x_label="Q (# Bins)",
                 y_label="Ground Truth Bin Recall (%)",
                 num_bins_display=num_bins_display,
-                turn_to_percent=True,
+                convert_to_percent=True,
                 show_individual_dots=False,
                 y_lim=120,
                 save_path=save_location,
@@ -1896,7 +1889,7 @@ def generate_fig_comparing_bins(data: Tuple, display_settings: Dict[str, Any],) 
                 x_label="Q (# Bins)",
                 y_label="Ground Truth Bin Precision (%)",
                 num_bins_display=num_bins_display,
-                turn_to_percent=True,
+                convert_to_percent=True,
                 show_individual_dots=False,
                 y_lim=120,
                 save_path=save_location,
@@ -1924,7 +1917,7 @@ def generate_fig_comparing_bins(data: Tuple, display_settings: Dict[str, Any],) 
                             x_label="Q (# Bins)",
                             y_label="Jaccard Index (%)",
                             num_bins_display=num_bins_display,
-                            turn_to_percent=True,
+                            convert_to_percent=True,
                             show_individual_dots=False,
                             y_lim=70,
                             save_path=save_location,

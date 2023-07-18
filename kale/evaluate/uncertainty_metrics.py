@@ -3,10 +3,10 @@ Authors: Lawrence Schobs, lawrenceschobs@gmail.com
 Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization,"
 in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
-Functions related evaluating the quantile binning method in terms of:
-   A) binning accuracy to ground truth bins: evaluate_jaccard, bin_wise_jaccard
-   B) binning error bound accuracy: evaluate_bounds, bin_wise_bound_eval
-   C) Binning attributes such as mean errors of bins (get_mean_errors, bin_wise_errors)
+Functions related to  evaluating the quantile binning method in terms of:
+   A) Binning accuracy to ground truth bins: evaluate_jaccard, bin_wise_jaccard.
+   B) Binning error bound accuracy: evaluate_bounds, bin_wise_bound_eval
+   C) Binning attributes such as mean errors of bins (get_mean_errors, bin_wise_errors).
 
 """
 
@@ -56,7 +56,7 @@ def evaluate_bounds(
     all_concat_errorbound_bins_target_sep_foldwise = [{} for x in range(len(targets))]  # type: List[Dict]
     all_concat_errorbound_bins_target_sep_all = [{} for x in range(len(targets))]  # type: List[Dict]
 
-    # Loop over combinations of models (model) and uncertainty types (up)
+    # Loop over combinations of models (model) and uncertainty types (uncert_pair)
     for i, (model, data_structs) in enumerate(bin_predictions.items()):
         error_bounds = estimated_bounds[model + " Error Bounds"]
 
@@ -177,18 +177,18 @@ def bin_wise_bound_eval(
         [[] for y in range(num_bins)] for x in range(len(targets))
     ]
 
-    for i_lm, target_idx in enumerate(targets):
-        true_errors_lm = fold_errors[(fold_errors["target_idx"] == target_idx)][["uid", uncertainty_type + " Error"]]
-        pred_bins_lm = fold_bins[(fold_errors["target_idx"] == target_idx)][
+    for i_ti, target_idx in enumerate(targets):
+        true_errors_ti = fold_errors[(fold_errors["target_idx"] == target_idx)][["uid", uncertainty_type + " Error"]]
+        pred_bins_ti = fold_bins[(fold_errors["target_idx"] == target_idx)][
             ["uid", uncertainty_type + " Uncertainty bins"]
         ]
 
         # Zip to dictionary
-        true_errors_lm = dict(zip(true_errors_lm.uid, true_errors_lm[uncertainty_type + " Error"]))
-        pred_bins_lm = dict(zip(pred_bins_lm.uid, pred_bins_lm[uncertainty_type + " Uncertainty bins"]))
+        true_errors_ti = dict(zip(true_errors_ti.uid, true_errors_ti[uncertainty_type + " Error"]))
+        pred_bins_ti = dict(zip(pred_bins_ti.uid, pred_bins_ti[uncertainty_type + " Uncertainty bins"]))
 
         # The error bounds are from B1 -> B5 i.e. best quantile of predictions to worst quantile of predictions
-        fold_bounds = fold_bounds_all_targets[i_lm]
+        fold_bounds = fold_bounds_all_targets[i_ti]
 
         # For each bin, see what % of targets are between the error bounds. If bin=0 then lower bound = 0, if bin=Q then no upper bound
         # Keep track of #samples in each bin for weighted mean.
@@ -197,18 +197,17 @@ def bin_wise_bound_eval(
         pred_bins_keys = []
         pred_bins_errors = []
         for i in range(num_bins):
-            inner_list_bin = list([key for key, val in pred_bins_lm.items() if str(i) == str(val)])
+            inner_list_bin = list([key for key, val in pred_bins_ti.items() if str(i) == str(val)])
             inner_list_errors = []
 
             for id_ in inner_list_bin:
-                inner_list_errors.append(list([val for key, val in true_errors_lm.items() if str(key) == str(id_)])[0])
+                inner_list_errors.append(list([val for key, val in true_errors_ti.items() if str(key) == str(id_)])[0])
 
             pred_bins_errors.append(inner_list_errors)
             pred_bins_keys.append(inner_list_bin)
 
         bins_acc = []
         bins_sizes = []
-        # key_groups = []
         for q in range((num_bins)):
             inner_bin_correct = 0
 
@@ -247,17 +246,17 @@ def bin_wise_bound_eval(
 
             all_qs_perc[q].append(accuracy_bin)
             all_qs_size[q].append(len(inbin_errors))
-            all_qs_errorbound_concat_targets_sep[i_lm][q].append(accuracy_bin)
+            all_qs_errorbound_concat_targets_sep[i_ti][q].append(accuracy_bin)
 
         # Weighted average over all bins
-        weighted_mean_lm = 0.0
+        weighted_mean_ti = 0.0
         total_weights = 0.0
         for l_idx in range(len(bins_sizes)):
             bin_acc = bins_acc[l_idx]
             bin_size = bins_sizes[l_idx]
-            weighted_mean_lm += bin_acc * bin_size
+            weighted_mean_ti += bin_acc * bin_size
             total_weights += bin_size
-        weighted_av = weighted_mean_lm / total_weights
+        weighted_av = weighted_mean_ti / total_weights
         all_target_perc.append(weighted_av)
 
     # Weighted average for each of the quantile bins.
@@ -281,7 +280,7 @@ def bin_wise_bound_eval(
             weighted_av_bin = weighted_mean_bin / total_weights_bin
         weighted_av_binwise.append(weighted_av_bin)
 
-    # No weighted average, just normal av
+    # No weighted average, just normal average
     normal_av_bin_wise = []
     for binidx in range(len(all_qs_perc)):
         bin_accs = all_qs_perc[binidx]
@@ -340,7 +339,7 @@ def get_mean_errors(
     all_concat_error_bins_target_sep_all: List[Dict] = [{} for x in range(len(targets))]
 
     all_concat_error_bins_target_nosep = {}
-    # Loop over models (model) and uncertainty methods (up)
+    # Loop over models (model) and uncertainty methods (uncert_pair)
     for i, (model, data_structs) in enumerate(bin_predictions.items()):
         for uncert_pair in uncertainty_pairs:  # uncert_pair = [pair name, error name , uncertainty name]
             uncertainty_type = uncert_pair[0]
@@ -475,7 +474,7 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, targets, num_
 
     all_concat_jacc_bins_target_sep_foldwise = [{} for x in range(len(targets))]
     all_concat_jacc_bins_target_sep_all = [{} for x in range(len(targets))]
-    # Loop over models (model) and uncertainty methods (up)
+    # Loop over models (model) and uncertainty methods (uncert_pair)
     for i, (model, data_structs) in enumerate(bin_predictions.items()):
         for uncert_pair in uncertainty_pairs:  # uncert_pair = [pair name, error name , uncertainty name]
             uncertainty_type = uncert_pair[0]
@@ -595,27 +594,27 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, 
     all_qs_error_concat_targets_sep = [[[] for y in range(num_bins)] for x in range(len(targets))]
 
     for i, target_idx in enumerate(targets):
-        true_errors_lm = fold_errors[(fold_errors["target_idx"] == target_idx)][["uid", uncertainty_key + " Error"]]
-        pred_bins_lm = fold_bins[(fold_errors["target_idx"] == target_idx)][
+        true_errors_ti = fold_errors[(fold_errors["target_idx"] == target_idx)][["uid", uncertainty_key + " Error"]]
+        pred_bins_ti = fold_bins[(fold_errors["target_idx"] == target_idx)][
             ["uid", uncertainty_key + " Uncertainty bins"]
         ]
 
         # Zip to dictionary
-        true_errors_lm = dict(
-            zip(true_errors_lm.uid, true_errors_lm[uncertainty_key + " Error"] * error_scaling_factor)
+        true_errors_ti = dict(
+            zip(true_errors_ti.uid, true_errors_ti[uncertainty_key + " Error"] * error_scaling_factor)
         )
-        pred_bins_lm = dict(zip(pred_bins_lm.uid, pred_bins_lm[uncertainty_key + " Uncertainty bins"]))
+        pred_bins_ti = dict(zip(pred_bins_ti.uid, pred_bins_ti[uncertainty_key + " Uncertainty bins"]))
 
         pred_bins_keys = []
         pred_bins_errors = []
 
         # This is saving them from best quantile of predictions to worst quantile of predictions in terms of uncertainty
         for j in range(num_bins):
-            inner_list = list([key for key, val in pred_bins_lm.items() if str(j) == str(val)])
+            inner_list = list([key for key, val in pred_bins_ti.items() if str(j) == str(val)])
             inner_list_errors = []
 
             for id_ in inner_list:
-                inner_list_errors.append(list([val for key, val in true_errors_lm.items() if str(key) == str(id_)])[0])
+                inner_list_errors.append(list([val for key, val in true_errors_ti.items() if str(key) == str(id_)])[0])
 
             pred_bins_errors.append(inner_list_errors)
             pred_bins_keys.append(inner_list)
@@ -631,8 +630,6 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, 
                 continue
 
             mean_error = np.mean(pred_b_errors)
-
-            # print(uncertainty_key, ": Bin %s and mean error %s +/- %s" % (bin, mean_error, np.std(pred_b_errors)))
             all_qs_error[bin].append(mean_error)
             all_qs_error_concat_targets_sep[i][bin].append(pred_b_errors)
             inner_errors.append(mean_error)
@@ -703,31 +700,31 @@ def bin_wise_jaccard(
     all_qs_precision: List[List[float]] = [[] for x in range(num_bins)]
 
     for i, target_idx in enumerate(targets):
-        true_errors_lm = fold_errors[(fold_errors["target_idx"] == target_idx)][["uid", uncertainty_key + " Error"]]
-        pred_bins_lm = fold_bins[(fold_errors["target_idx"] == target_idx)][
+        true_errors_ti = fold_errors[(fold_errors["target_idx"] == target_idx)][["uid", uncertainty_key + " Error"]]
+        pred_bins_ti = fold_bins[(fold_errors["target_idx"] == target_idx)][
             ["uid", uncertainty_key + " Uncertainty bins"]
         ]
 
         # Zip to dictionary
-        true_errors_lm = dict(zip(true_errors_lm.uid, true_errors_lm[uncertainty_key + " Error"]))
-        pred_bins_lm = dict(zip(pred_bins_lm.uid, pred_bins_lm[uncertainty_key + " Uncertainty bins"]))
+        true_errors_ti = dict(zip(true_errors_ti.uid, true_errors_ti[uncertainty_key + " Error"]))
+        pred_bins_ti = dict(zip(pred_bins_ti.uid, pred_bins_ti[uncertainty_key + " Uncertainty bins"]))
 
         pred_bins_keys = []
         pred_bins_errors = []
 
         # This is saving them from best quantile of predictions to worst quantile of predictions in terms of uncertainty
         for j in range(num_bins):
-            inner_list = list([key for key, val in pred_bins_lm.items() if str(j) == str(val)])
+            inner_list = list([key for key, val in pred_bins_ti.items() if str(j) == str(val)])
             inner_list_errors = []
 
             for id_ in inner_list:
-                inner_list_errors.append(list([val for key, val in true_errors_lm.items() if str(key) == str(id_)])[0])
+                inner_list_errors.append(list([val for key, val in true_errors_ti.items() if str(key) == str(id_)])[0])
 
             pred_bins_errors.append(inner_list_errors)
             pred_bins_keys.append(inner_list)
 
         # Get the true error quantiles
-        sorted_errors = [v for k, v in sorted(true_errors_lm.items(), key=lambda item: item[1])]
+        sorted_errors = [v for k, v in sorted(true_errors_ti.items(), key=lambda item: item[1])]
 
         quantiles = np.arange(1 / num_bins_quantiles, 1, 1 / num_bins_quantiles)[: num_bins_quantiles - 1]
         quantile_thresholds = [np.quantile(sorted_errors, q) for q in quantiles]
@@ -743,7 +740,7 @@ def bin_wise_jaccard(
         for q in range(len(quantile_thresholds) + 1):
             inner_list_e = []
             inner_list_id = []
-            for i_te, (id_, error) in enumerate(true_errors_lm.items()):
+            for i_te, (id_, error) in enumerate(true_errors_ti.items()):
                 if q == 0:
                     lower = 0
                     upper = quantile_thresholds[q]

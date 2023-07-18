@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 import pytest
 
-from kale.prepdata.tabular_transform import apply_confidence_inversion, get_data_struct
+from kale.prepdata.tabular_transform import apply_confidence_inversion, generate_struct_for_qbin
 from kale.utils.seed import set_seed
 
 seed = 36
@@ -44,7 +44,7 @@ def test_apply_confidence_inversion(input, expected):
 # Test that we can read csvs in the correct structure and return a dict of pandas dataframes in correct structure.
 def test_get_data_struct(landmark_uncertainty_tuples_path):
 
-    bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = get_data_struct(
+    bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = generate_struct_for_qbin(
         ["U-NET"], [0, 1], landmark_uncertainty_tuples_path[2], "SA"
     )
 
