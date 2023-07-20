@@ -5,7 +5,12 @@ import pandas as pd
 import pytest
 import torch
 
-from kale.prepdata.tabular_transform import apply_confidence_inversion, generate_struct_for_qbin, ToOneHotEncoding, ToTensor
+from kale.prepdata.tabular_transform import (
+    apply_confidence_inversion,
+    generate_struct_for_qbin,
+    ToOneHotEncoding,
+    ToTensor,
+)
 from kale.utils.seed import set_seed
 
 
