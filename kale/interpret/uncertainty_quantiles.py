@@ -400,7 +400,7 @@ def generic_box_plot_loop(
 
                 max_bin_height = max(max(rect["caps"][-1].get_ydata()), max_bin_height)
 
-                """If we are showing sample info, keep track of it and display after on top of biggest whisker."""
+                """If we are showing sample statistics, keep track of it and display after on top of biggest whisker."""
                 if show_sample_info != "None":
                     flattened_model_data = [x for xss in model_data for x in xss]
                     percent_size = np.round(len(all_b_data) / len(flattened_model_data) * 100, 1)
@@ -416,7 +416,7 @@ def generic_box_plot_loop(
 
                 inner_min_x_loc += 0.1 + width
 
-            """ Keep track of average sample infos. Plot at the END so we know what the max height for all Qs are."""
+            """ Keep track of average sample statistics. Plot at the END so we know what the max height for all Qs are."""
             if show_sample_info == "Average":
                 middle_x = np.mean(inbetween_locs)
                 mean_perc = np.round(np.mean(average_samples_per_bin), 1)
@@ -759,7 +759,7 @@ def box_plot_per_model(
 
                 max_bin_height = max(max(rect["caps"][-1].get_ydata()), max_bin_height)
 
-                """If we are showing sample info, keep track of it and display after on top of biggest whisker."""
+                """If we are showing sample statistics, keep track of it and display after on top of biggest whisker."""
                 if show_sample_info != "None":
                     flattened_model_data = [x for xss in model_data for x in xss]
                     percent_size = np.round(len(all_b_data) / len(flattened_model_data) * 100, 1)
@@ -775,7 +775,7 @@ def box_plot_per_model(
 
                 inner_min_x_loc += 0.1 + width
 
-            """ Keep track of average sample infos. Plot at the END so we know what the max height for all Qs are."""
+            """ Keep track of average sample statistics. Plot at the END so we know what the max height for all Qs are."""
             if show_sample_info == "Average":
                 middle_x = np.mean(inbetween_locs)
                 mean_perc = np.round(np.mean(average_samples_per_bin), 1)
@@ -942,7 +942,7 @@ def box_plot_comparing_q(
             for mean in rect["means"]:
                 mean.set(markerfacecolor="crimson", markeredgecolor="black", markersize=10)
 
-            """If we are showing sample info, keep track of it and display after on top of biggest whisker."""
+            """If we are showing sample statistics, keep track of it and display after on top of biggest whisker."""
             if show_sample_info != "None":
                 flattened_model_data = [x for xss in model_data for x in xss]
                 percent_size = np.round(len(all_b_data) / len(flattened_model_data) * 100, 1)
@@ -961,7 +961,7 @@ def box_plot_comparing_q(
         outer_min_x_loc += 0.2
         bin_label_locs.append(np.mean(inbetween_locs))
 
-        """ Keep track of average sample infos. Plot at the END so we know what the max height for all Qs are."""
+        """ Keep track of average sample statistics. Plot at the END so we know what the max height for all Qs are."""
         if show_sample_info == "Average":
             middle_x = np.mean(inbetween_locs)
             mean_perc = np.round(np.mean(average_samples_per_bin), 1)

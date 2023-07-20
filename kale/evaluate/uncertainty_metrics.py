@@ -256,11 +256,11 @@ def bin_wise_bound_eval(
             bin_size = bins_sizes[l_idx]
             weighted_mean_ti += bin_acc * bin_size
             total_weights += bin_size
-        weighted_av = weighted_mean_ti / total_weights
-        all_target_perc.append(weighted_av)
+        weighted_ave = weighted_mean_ti / total_weights
+        all_target_perc.append(weighted_ave)
 
     # Weighted average for each of the quantile bins.
-    weighted_av_binwise = []
+    weighted_ave_binwise = []
     for binidx in range(len(all_qs_perc)):
         bin_accs = all_qs_perc[binidx]
         bin_asizes = all_qs_size[binidx]
@@ -275,20 +275,20 @@ def bin_wise_bound_eval(
 
         # Avoid div by 0
         if weighted_mean_bin == 0 or total_weights_bin == 0:
-            weighted_av_bin = 0.0
+            weighted_ave_bin = 0.0
         else:
-            weighted_av_bin = weighted_mean_bin / total_weights_bin
-        weighted_av_binwise.append(weighted_av_bin)
+            weighted_ave_bin = weighted_mean_bin / total_weights_bin
+        weighted_ave_binwise.append(weighted_ave_bin)
 
     # No weighted average, just normal average
-    normal_av_bin_wise = []
+    normal_ave_bin_wise = []
     for binidx in range(len(all_qs_perc)):
         bin_accs = all_qs_perc[binidx]
-        normal_av_bin_wise.append(np.mean(bin_accs))
+        normal_ave_bin_wise.append(np.mean(bin_accs))
 
     return {
         "mean all targets": np.mean(all_target_perc),
-        "mean all bins": weighted_av_binwise,
+        "mean all bins": weighted_ave_binwise,
         "mean all": all_qs_perc,
         "all bins concatenated targets seperated": all_qs_errorbound_concat_targets_sep,
     }
