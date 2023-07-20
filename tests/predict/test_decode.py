@@ -15,7 +15,7 @@ def test_mlp_decoder():
         hidden_dim=hidden_dim,
         out_dim=out_dim,
         dropout_rate=dropout_rate,
-        iinclude_decoder_layers=include_decoder_layers,
+        include_decoder_layers=include_decoder_layers,
     )
     assert mlp_decoder.fc1.weight.size() == (hidden_dim, in_dim)
     assert mlp_decoder.fc2.weight.size() == (hidden_dim, hidden_dim)
