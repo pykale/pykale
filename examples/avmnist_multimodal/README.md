@@ -18,7 +18,7 @@ python main.py --cfg configs/late_fusion.yaml --output AVMNIST-LATE
 ```
 or
 ```python
-python main.py --cfg configs/low_rank_tensor_fusion.yaml --output AVMNIST-LOW_RANK_TENSOR
+python main.py --cfg configs/low_rank_tensor_fusion.yaml --output AVMNIST_LOW_RANK_TENSOR
 ```
 or
 ```python
