@@ -1,5 +1,5 @@
 """
-Default configurations for the AVMNIST dataset using Multimodal Deep Learning (MMDL).
+Default configurations for the AVMNIST dataset using Multimodal Neural Network (MMNN).
 """
 
 from yacs.config import CfgNode as CN
@@ -65,8 +65,8 @@ _C.MODEL.LOW_RANK_TENSOR_RANK = 40
 _C.COMET = CN()
 _C.COMET.ENABLE = False  # Set True to enable Comet logging (requires an API key).
 _C.COMET.API_KEY = ""  # Your Comet API key
-_C.COMET.PROJECT_NAME = "Multimodal Deep Learning"
-_C.COMET.EXPERIMENT_NAME = "AVMNIST_MMDL"
+_C.COMET.PROJECT_NAME = "Multimodal Neural Network"
+_C.COMET.EXPERIMENT_NAME = "AVMNIST_MMNN"
 
 
 # ---------------------------------------------------------------------------- #

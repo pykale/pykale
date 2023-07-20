@@ -37,7 +37,7 @@ class BimodalInteractionFusion(nn.Module):
         This fusion approach allows for complex interactions between the modalities and is well-suited for tasks that require the integration of heterogeneous data.
     Args:
         input_dims (int): list or tuple of 2 integers indicating input dimensions of the 2 modalities
-        output_dim (int): output dimension
+        output_dim (int): output dimension after the fusion
         output (str): type of BimodalMatrix Interactions, options from 'matrix','vector','scalar'
         flatten (bool): whether we need to flatten the input modalities
         clip (tuple, optional): clip parameter values, None if no clip

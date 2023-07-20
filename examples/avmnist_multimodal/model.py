@@ -1,5 +1,5 @@
 """
-Define the Multimodal Deep Learning (MMDL) model and configure model hyperparameters.
+Define and build the Multimodal Neural Network (MMNN) model based on chosen hyperparameters..
 References: 1. https://github.com/pliang279/MultiBench/blob/main/examples/multimedia/avmnist_simple_late_fusion.py
             2. https://github.com/pliang279/MultiBench/blob/main/examples/multimedia/avmnist_low_rank_tensor.py
             3. https://github.com/pliang279/MultiBench/blob/main/examples/multimedia/avmnist_multi_interac_matrix.py
@@ -13,7 +13,7 @@ from kale.predict.decode import MLPDecoder
 
 def get_model(cfg, device):
     """
-    Builds and returns an MMDL model.
+    Builds and returns an MMNN model according to the config object passed.
 
     Args:
         cfg: A YACS config object.

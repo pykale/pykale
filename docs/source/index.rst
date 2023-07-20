@@ -38,7 +38,7 @@ Kale APIs above are ordered following the machine learning pipeline, i.e., funct
 
     Action Video - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/action_dann>
     Autism fMRI - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/multisite_neuroimg_adapt>
-    AVMNIST - Multimodal Deep Learning <https://github.com/pykale/pykale/tree/main/examples/avmnist_multimodal>
+    AVMNIST - Multimodal Neural Network <https://github.com/pykale/pykale/tree/main/examples/avmnist_multimodal>
     BindingDB - DeepDTA <https://github.com/pykale/pykale/tree/main/examples/bindingdb_deepdta>
     CardiacMRI - MPCA <https://github.com/pykale/pykale/tree/main/examples/cmri_mpca>
     CIFAR - CNN Transformer <https://github.com/pykale/pykale/tree/main/examples/cifar_cnntransformer>
