@@ -46,6 +46,14 @@ kale.pipeline.multi\_domain\_adapter module
    :undoc-members:
    :show-inheritance:
 
+kale.pipeline.multiomics\_trainer module
+-----------------------------------------
+
+.. automodule:: kale.pipeline.multiomics_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.pipeline.video\_domain\_adapter module
 -------------------------------------------
 
