@@ -49,6 +49,14 @@ kale.embed.image\_cnn module
    :undoc-members:
    :show-inheritance:
 
+kale.embed.mogonet module
+-------------------------
+
+.. automodule:: kale.embed.mogonet
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 kale.embed.feature\_fusion module
 ------------------------------------
