@@ -21,7 +21,7 @@ from kale.utils.initialize_nn import bias_init, xavier_init
 
 class MLPDecoder(nn.Module):
     """
-    A generalized MLP model that can act as either an 2 layer MLPDecoder or an 4 layer MLPDecoder based on the include_additional_layers parameter.
+    A generalized MLP model that can act as either a 2 layer MLPDecoder or a 4 layer MLPDecoder based on the include_decoder_layers parameter.
 
     Args:
         in_dim (int): the dimension of input feature.
@@ -31,12 +31,12 @@ class MLPDecoder(nn.Module):
         include_decoder_layers (bool): whether or not to include the additional layers that are part of the MLPDecoder
     """
 
-    def __init__(self, in_dim, hidden_dim, out_dim, dropout_rate=0.1, include_additional_layers=False):
+    def __init__(self, in_dim, hidden_dim, out_dim, dropout_rate=0.1, include_decoder_layers=False):
         super(MLPDecoder, self).__init__()
         self.fc1 = nn.Linear(in_dim, hidden_dim)
-        self.include_additional_layers = include_additional_layers
+        self.include_decoder_layers = include_decoder_layers
 
-        if self.include_additional_layers:
+        if self.include_decoder_layers:
             self.fc2 = nn.Linear(hidden_dim, hidden_dim)
             self.fc3 = nn.Linear(hidden_dim, out_dim)
             self.fc4 = nn.Linear(out_dim, 1)
@@ -51,7 +51,7 @@ class MLPDecoder(nn.Module):
         x = self.dropout(x)
         x = self.fc2(x)
 
-        if self.include_additional_layers:
+        if self.include_decoder_layers:
             x = self.dropout(F.relu(x))
             x = F.relu(self.fc3(x))
             x = self.fc4(x)

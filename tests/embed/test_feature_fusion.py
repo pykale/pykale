@@ -1,6 +1,6 @@
 import torch
 
-from kale.embed.feature_fusion import BimodalMatrixFusionInteractor, Concat, LowRankTensorFusion
+from kale.embed.feature_fusion import BimodalInteractionFusion, Concat, LowRankTensorFusion
 
 
 def test_concat():
@@ -11,20 +11,20 @@ def test_concat():
     assert output.shape == (4, 5 * (3 + 2))
 
 
-def test_bimodal_matrix_fusion_interactor():
-    mi2m_vector = BimodalMatrixFusionInteractor(input_dims=(10, 20), output_dim=30, output="vector")
+def bimodal_interaction_fusion():
+    mi2m_vector = BimodalInteractionFusion(input_dims=(10, 20), output_dim=30, output="vector")
     m1 = torch.randn(4, 10)
     m2 = torch.randn(4, 20)
     output = mi2m_vector([m1, m2])
     assert output.shape == (4, 20)
 
-    mi2m_matrix = BimodalMatrixFusionInteractor(input_dims=(10, 20), output_dim=30, output="matrix")
+    mi2m_matrix = BimodalInteractionFusion(input_dims=(10, 20), output_dim=30, output="matrix")
     m1 = torch.randn(4, 10)
     m2 = torch.randn(4, 20)
     output = mi2m_matrix([m1, m2])
     assert output.shape == (4, 30)
 
-    mi2m_scalar = BimodalMatrixFusionInteractor(input_dims=(10, 20), output_dim=30, output="scalar")
+    mi2m_scalar = BimodalInteractionFusion(input_dims=(10, 20), output_dim=30, output="scalar")
     m1 = torch.randn(4, 10)
     m2 = torch.randn(4, 20)
     output = mi2m_scalar([m1, m2])

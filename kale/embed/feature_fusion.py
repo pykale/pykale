@@ -1,6 +1,6 @@
 """This module implements three different multimodal fusion methods:
 1. Concat
-2. BimodalMatrixFusionInteractor
+2. BimodalInteractionFusion
 3. LowRankTensorFusion
 Each of these fusion methods are designed to work with input modalities as PyTorch tensors and perform different operations to combine and create a joint representation of the input data.
 Reference: https://github.com/pliang279/MultiBench/blob/main/fusions/common_fusions.py
@@ -27,8 +27,8 @@ class Concat(nn.Module):
         return torch.cat(flattened, dim=1)
 
 
-class BimodalMatrixFusionInteractor(nn.Module):
-    """ BimodalMatrixFusionInteractor is a PyTorch module that performs fusion of two data modalities through a hypernetwork-based interaction mechanism. The 'input_dims' argument specifies the input dimensions of the two modalities. The 'output_dim' argument specifies the output dimension after the fusion. The 'output' argument defines the type of bimodal matrix interactions to be performed, which can be 'matrix', 'vector', or 'scalar'.
+class BimodalInteractionFusion(nn.Module):
+    """ BimodalInteractionFusion is a PyTorch module that performs fusion of two data modalities through a hypernetwork-based interaction mechanism. The 'input_dims' argument specifies the input dimensions of the two modalities. The 'output_dim' argument specifies the output dimension after the fusion. The 'output' argument defines the type of bimodal matrix interactions to be performed, which can be 'matrix', 'vector', or 'scalar'.
         This fusion method  supports three types of bimodal interactions:
             - Matrix: It implements a general hypernetwork mechanism where the interaction is multiplicative. It uses separate weight matrices and biases for the two modalities.
             - Vector: It uses diagonal forms and gating mechanisms, applying element-wise multiplication to combine the modalities.
@@ -46,7 +46,7 @@ class BimodalMatrixFusionInteractor(nn.Module):
     """
 
     def __init__(self, input_dims, output_dim, output, flatten=False, clip=None, grad_clip=None, flip=False):
-        super(BimodalMatrixFusionInteractor, self).__init__()
+        super(BimodalInteractionFusion, self).__init__()
         self.input_dims = input_dims
         self.clip = clip
         self.output_dim = output_dim
@@ -133,9 +133,9 @@ class LowRankTensorFusion(nn.Module):
        The final output is reshaped to the specified 'output_dim' and returned. If 'flatten' is set to True, each modality is first flattened before concatenation with a ones tensor and the subsequent multiplication with its factor.
        This approach provides an efficient and compact representation for capturing interactions among multiple modalities, making it suitable for tasks involving high-dimensional multimodal data.
     Args:
-        input_dims (int): list or tuple of integers indicating input dimensions of the modalities
-        output_dim (int): output dimension
-        rank (int): a hyperparameter of low rank tensor fusion.
+        input_dims (int): A list or tuple of integers indicating input dimensions of the modalities.
+        output_dim (int): output dimension after the fusion.
+        rank (int): A hyperparameter specifying the rank for the low-rank tensor decomposition.
         flatten (bool): Boolean to dictate if output should be flattened or not. Default: True
 
     Note:

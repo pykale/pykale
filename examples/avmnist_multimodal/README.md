@@ -22,12 +22,10 @@ python main.py --cfg configs/low_rank_tensor_fusion.yaml --output AVMNIST-LOW_RA
 ```
 or
 ```python
-python main.py --cfg configs/bimodal_matrix_fusion_interactor.yaml --output AVMNIST-BIMODA_MATRIX
+python main.py --cfg configs/bimodal_interaction_fusion.yaml --output AVMNIST-BIMODAL_INTERACTION
 ```
 
 ### 3. Related `kale` API
-
-`kale.pipeline.multimodal_deep_learning`: This module provides a pipeline to perform multimodal deep learning method. It's used for handling and processing data from multiple 'modalities' such as images, text, audio, etc.
 
 `kale.loaddata.avmnist_datasets`: This is a data loading module specifically designed for handling the AVMNIST dataset. The AVMNIST dataset is a multimodal version of the traditional MNIST, containing both audio and visual data corresponding to the original MNIST data. This module provides efficient ways to load, preprocess, and format this data in a manner that makes it ready for training a multimodal deep learning model.
 
@@ -35,6 +33,6 @@ python main.py --cfg configs/bimodal_matrix_fusion_interactor.yaml --output AVMN
 
 `kale.embed.image_cnn.LeNet`: This is a base neural network trainer that allows the extraction of features from different modalities like images and audios.
 
-`kale.pipeline.base_nn_trainer.MultimodalTrainer`: This module includes a model trainer that consists of a training loop, optimizer configuration, and evaluation metrics.
+`kale.pipeline.base_nn_trainer.MultimodalNNTrainer`: This module includes a model trainer that consists of a training loop, optimizer configuration, and evaluation metrics.
 
 `kale.predict.decode`: This module is responsible for generating final predictions from the fused features. A two-layered MLPDecoder has been used to generate the final output.

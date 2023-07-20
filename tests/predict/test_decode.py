@@ -8,14 +8,14 @@ from kale.utils.seed import set_seed
 def test_mlp_decoder():
     # Test with additional layers
     in_dim, hidden_dim, out_dim = 8, 16, 32
-    include_additional_layers = True
+    include_decoder_layers = True
     dropout_rate = 0.1
     mlp_decoder = MLPDecoder(
         in_dim=in_dim,
         hidden_dim=hidden_dim,
         out_dim=out_dim,
         dropout_rate=dropout_rate,
-        include_additional_layers=include_additional_layers,
+        iinclude_decoder_layers=include_decoder_layers,
     )
     assert mlp_decoder.fc1.weight.size() == (hidden_dim, in_dim)
     assert mlp_decoder.fc2.weight.size() == (hidden_dim, hidden_dim)
@@ -27,13 +27,13 @@ def test_mlp_decoder():
 
     # Test without additional layers
     in_dim, hidden_dim, out_dim = 8, 16, 2
-    include_additional_layers = False
+    include_decoder_layers = False
     mlp_decoder = MLPDecoder(
         in_dim=in_dim,
         hidden_dim=hidden_dim,
         out_dim=out_dim,
         dropout_rate=dropout_rate,
-        include_additional_layers=include_additional_layers,
+        include_decoder_layers=include_decoder_layers,
     )
     assert mlp_decoder.fc1.weight.size() == (hidden_dim, in_dim)
     assert mlp_decoder.fc2.weight.size() == (out_dim, hidden_dim)

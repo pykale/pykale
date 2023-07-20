@@ -42,7 +42,7 @@ def get_model(cfg):
         hidden_dim=decoder_hidden_dim,
         out_dim=decoder_out_dim,
         dropout_rate=dropout_rate,
-        include_additional_layers=True,
+        include_decoder_layers=True,
     )
 
     # ---- learning rate ----

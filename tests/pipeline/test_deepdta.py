@@ -24,7 +24,7 @@ def test_deep_data(download_path):
     target_encoder = CNNEncoder(
         num_embeddings=25, embedding_dim=128, sequence_length=1200, num_kernels=32, kernel_length=8
     )
-    decoder = MLPDecoder(in_dim=192, hidden_dim=16, out_dim=16, include_additional_layers=True)
+    decoder = MLPDecoder(in_dim=192, hidden_dim=16, out_dim=16, include_decoder_layers=True)
     # test deep_dta trainer
     save_parameters = {"seed": 2020, "batch_size": 256}
     model = DeepDTATrainer(drug_encoder, target_encoder, decoder, lr=0.001, ci_metric=True, **save_parameters).eval()
