@@ -41,12 +41,14 @@ def download_file_by_url(url, output_directory, output_file_name, file_format=No
     file = Path(output_directory).joinpath(output_file_name)
     if os.path.exists(file):
         logging.info("Skipping Download and Extraction")
+
         return
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
 
     if file_format in ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]:
         logging.info("Downloading and extracting {}.".format(output_file_name))
+
         download_and_extract_archive(url=url, download_root=output_directory, filename=output_file_name)
         logging.info("Datasets downloaded and extracted in {}".format(file))
     else:

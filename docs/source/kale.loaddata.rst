@@ -70,6 +70,14 @@ kale.loaddata.sampler module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.tabular\_access module
+----------------------------------
+
+.. automodule:: kale.loaddata.tabular_access
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.tdc\_datasets module
 ----------------------------------
 

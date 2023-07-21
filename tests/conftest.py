@@ -28,3 +28,23 @@ def office_path(download_path):
     path_ = os.path.join(download_path, "office")
     os.makedirs(path_, exist_ok=True)
     return path_
+
+
+# Landmark Global fixtures
+landmark_uncertainty_url = (
+    "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
+)
+
+
+# Downloads and unzips remote file
+@pytest.fixture(scope="session")
+def landmark_uncertainty_tuples_path(download_path):
+    path_ = download_path
+    os.makedirs(path_, exist_ok=True)
+
+    download_file_by_url(landmark_uncertainty_url, path_, "Uncertainty_tuples.zip", "zip")
+    valid_path = os.path.join(path_, "Uncertainty_tuples/U-NET/SA/uncertainty_pairs_valid_t0")
+    test_path = os.path.join(path_, "Uncertainty_tuples/U-NET/SA/uncertainty_pairs_test_t0")
+
+    dl_path = os.path.join(path_, "Uncertainty_tuples")
+    return valid_path, test_path, dl_path

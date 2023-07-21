@@ -1,13 +1,15 @@
+"""
+Functions for manipulating/transforming tabular data
+"""
 # =============================================================================
 # Author: Sina Tabakhi, sina.tabakhi@gmail.com
+#         Lawrance Schobs, lawrenceschobs@gmail.com
 # =============================================================================
 
-"""
-Provide data transformations for tabular datasets.
-"""
+import os
+from typing import Any, Dict, List, Optional, Tuple
 
-from typing import Any, Optional
-
+import pandas as pd
 import torch
 import torch.nn.functional as F
 from torch import Tensor
@@ -85,3 +87,87 @@ class ToOneHotEncoding(object):
         data_tensor = torch.tensor(data, dtype=torch.long)
         data_tensor = F.one_hot(data_tensor, num_classes=self.num_classes)
         return torch.tensor(data_tensor, dtype=self.dtype, device=self.device)
+
+
+def apply_confidence_inversion(data: pd.DataFrame, uncertainty_measure: str) -> Tuple[Any, Any]:
+    """Invert a list of numbers, add a small number to avoid division by zero.
+
+    Args:
+        data (Dict): Dictionary of data to invert.
+        uncertainty_measure (str): Key of dict to invert.
+
+    Returns:
+        Dict: Dictionary with inverted data.
+    """
+
+    if uncertainty_measure not in data:
+        raise KeyError("The key %s not in the dictionary provided" % uncertainty_measure)
+
+    # Make sure no value is less than zero.
+    min_not_zero = min(i for i in data[uncertainty_measure] if i > 0)
+    data.loc[data[uncertainty_measure] < 0, uncertainty_measure] = min_not_zero
+    data[uncertainty_measure] = 1 / data[uncertainty_measure] + 0.0000000000001
+    return data
+
+
+def generate_struct_for_qbin(
+    models_to_compare: List[str], targets: List[int], saved_bins_path_pre: str, dataset: str
+) -> Tuple[Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame], Dict[str, pd.DataFrame]]:
+    """
+    Returns dictionaries of pandas dataframes for:
+        a) all error and prediction info (all prediction data across targets for each model),
+        b) target indices for separated error and prediction info (prediction data for each model and each target),
+        c) all estimated error bounds (estimated error bounds across targets for each model),
+        d) target separated estimated error bounds (estimated error bounds for each model and each target).
+
+    Args:
+        models_to_compare: List of set models to add to data struct.
+        targets: List of targets to add to data struct.
+        saved_bins_path_pre: Preamble to path of where the predicted quantile bins are saved.
+        dataset: String of what dataset you're measuring.
+
+    Returns:
+        data_structs: Dictionary where keys are model names and values are pandas dataframes containing
+                      all prediction data across targets for that model.
+
+        data_struct_sep: Dictionary where keys are a combination of model names and target indices (e.g., "model1 T1"),
+                         and values are pandas dataframes containing prediction data for the corresponding model and target.
+
+        data_struct_bounds: Dictionary where keys are a combination of model names and the string " Error Bounds"
+                            (e.g., "model1 Error Bounds"), and values are pandas dataframes containing all estimated
+                            error bounds across targets for that model.
+
+        data_struct_bounds_sep: Dictionary where keys are a combination of model names, target indices and the string
+                                "Error Bounds" (e.g., "model1 Error Bounds L1"), and values are pandas dataframes containing
+                                estimated error bounds for the corresponding model and target.
+    """
+    data_structs = {}
+    data_struct_sep = {}  #
+
+    data_struct_bounds = {}
+    data_struct_bounds_sep = {}
+
+    for model in models_to_compare:
+        all_targets = []
+        all_err_bounds = []
+
+        for target_idx in targets:
+            bin_pred_path = os.path.join(saved_bins_path_pre, model, dataset, "res_predicted_bins_t" + str(target_idx))
+            bin_preds = pd.read_csv(bin_pred_path + ".csv", header=0)
+            bin_preds["target_idx"] = target_idx
+
+            error_bounds_path = os.path.join(
+                saved_bins_path_pre, model, dataset, "estimated_error_bounds_t" + str(target_idx)
+            )
+            error_bounds_pred = pd.read_csv(error_bounds_path + ".csv", header=0)
+            error_bounds_pred["target"] = target_idx
+
+            all_targets.append(bin_preds)
+            all_err_bounds.append(error_bounds_pred)
+            data_struct_sep[model + " L" + str(target_idx)] = bin_preds
+            data_struct_bounds_sep[model + "Error Bounds L" + str(target_idx)] = error_bounds_pred
+
+        data_structs[model] = pd.concat(all_targets, axis=0, ignore_index=True)
+        data_struct_bounds[model + " Error Bounds"] = pd.concat(all_err_bounds, axis=0, ignore_index=True)
+
+    return data_structs, data_struct_sep, data_struct_bounds, data_struct_bounds_sep
