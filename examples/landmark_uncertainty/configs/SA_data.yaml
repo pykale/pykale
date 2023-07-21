@@ -1,0 +1,27 @@
+# Configuration option for the SA data.
+# See the documentation for full information on the configuration file options:
+# pykale/examples/landmark_uncertainty/README.md
+
+DATASET:
+  DATA: "SA"
+
+PIPELINE:
+  NUM_QUANTILE_BINS: [2,3,5,10,20]
+  COMBINE_MIDDLE_BINS: False
+  PIXEL_TO_MM_SCALE: 1.0
+  IND_LANDMARKS_TO_SHOW: [0,1,2]
+  COMPARE_Q_VALUES: True
+  COMPARE_INDIVIDUAL_Q: True
+  COMPARE_Q_MODELS: ["PHD-NET", "U-NET"]
+  COMPARE_Q_UNCERTAINTY_ERROR_PAIRS: [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"], ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"]]
+  INDIVIDUAL_Q_MODELS: ["PHD-NET", "U-NET"]
+  SHOW_IND_LANDMARKS: True
+
+BOXPLOT:
+  ERROR_LIM: 128
+  SAMPLES_AS_DOTS: False
+  SHOW_SAMPLE_INFO_MODE: "Average"
+
+OUTPUT:
+  SAVE_FIGURES: True # True to save, False to visualize in matplotlib
+  SAVE_PREPEND: "8std_10_08_22"

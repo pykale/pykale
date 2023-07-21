@@ -1,0 +1,37 @@
+# Configuration option for the 4CH data where the Ground Truth (GT) labels for the test data
+# are not avaliable. Useful example for inference time where you want to bin by uncertainty.
+# See the documentation for full information on the configuration file options:
+# pykale/examples/landmark_uncertainty/README.md
+
+DATASET:
+  DATA: "4CH"
+  NUM_FOLDS: 1
+  GROUND_TRUTH_TEST_ERRORS_AVAILABLE: False
+  SOURCE: https://github.com/pykale/data/blob/landmark-data/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip?raw=true"
+  BASE_DIR: "Uncertainty_tuples"
+
+PIPELINE:
+  NUM_QUANTILE_BINS: [5,10,20]
+  COMBINE_MIDDLE_BINS: False
+  PIXEL_TO_MM_SCALE: 1.0
+  IND_LANDMARKS_TO_SHOW: [0,1,2]
+  COMPARE_Q_VALUES: True
+  COMPARE_INDIVIDUAL_Q: True
+  COMPARE_Q_MODELS: ["PHD-NET-NO-GT"]
+  COMPARE_Q_UNCERTAINTY_ERROR_PAIRS: [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"], ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"]]
+  INDIVIDUAL_Q_MODELS: ["PHD-NET-NO-GT"]
+  SHOW_IND_LANDMARKS: True
+  INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS: [
+    ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"],
+    ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"],
+    ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"],
+  ]
+
+BOXPLOT:
+  ERROR_LIM: 256
+  SAMPLES_AS_DOTS: False
+  SHOW_SAMPLE_INFO_MODE: "Average"
+
+OUTPUT:
+  SAVE_FIGURES: True # True to save, False to visualize in matplotlib
+  SAVE_PREPEND: "8std_10_08_22"
