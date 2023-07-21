@@ -39,6 +39,14 @@ kale.predict.losses module
    :show-inheritance:
 
 
+kale.predict.uncertainty\_binning
+----------------------------------
+
+.. automodule:: kale.predict.uncertainty_binning
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

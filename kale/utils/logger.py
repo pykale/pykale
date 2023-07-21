@@ -17,8 +17,9 @@ def out_file_core():
 
 
 def construct_logger(name, save_dir, log_to_terminal=False):
-    """
-    Constructs a logger that saves the output as a text file and optionally logs to the terminal.
+    """Constructs a logger. Saves the output as a text file at a specified path.
+    Also saves the output of `git diff HEAD` to the same folder.
+    Takes option to log to terminal, which will print logging statements. Default is False.
 
     The logger is configured to output messages at the DEBUG level, and it saves the output as a text file with a name
     based on the current timestamp and the specified name. It also saves the output of `git diff HEAD` to a file with

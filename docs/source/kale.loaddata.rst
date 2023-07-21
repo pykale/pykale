@@ -38,6 +38,14 @@ kale.loaddata.multi\_domain module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.multiomics\_datasets module
+-----------------------------------------
+
+.. automodule:: kale.loaddata.multiomics_datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.polypharmacy\_datasets module
 -------------------------------------------
 
@@ -50,6 +58,14 @@ kale.loaddata.sampler module
 ----------------------------
 
 .. automodule:: kale.loaddata.sampler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.loaddata.tabular\_access module
+----------------------------------
+
+.. automodule:: kale.loaddata.tabular_access
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,0 +1,13 @@
+DATASET:
+  NAME: "ROSMAP"
+  URL: "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
+  NUM_MODALITIES: 3
+  NUM_CLASSES: 2
+
+SOLVER:
+  MAX_EPOCHS_PRETRAIN: 5 # For quick testing
+  MAX_EPOCHS: 10  # For quick testing
+
+MODEL:
+  EDGE_PER_NODE: 2
+  GCN_HIDDEN_DIM: [200, 200, 100]

@@ -14,6 +14,13 @@ kale.evaluate.metrics module
    :undoc-members:
    :show-inheritance:
 
+kale.evaluate.uncertainty\_metrics
+--------------------------------
+
+.. automodule:: kale.evaluate.uncertainty_metrics
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------
