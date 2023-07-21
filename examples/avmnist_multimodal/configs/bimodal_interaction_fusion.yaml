@@ -1,0 +1,5 @@
+MODEL:
+  FUSION: "bimodal_interaction_fusion"
+
+OUTPUT:
+  OUT_DIR: './outputs/bimodal_interaction_fusion'

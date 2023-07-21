@@ -1,6 +1,7 @@
 # =============================================================================
 # Author: Xianyuan Liu, xianyuan.liu@outlook.com
 #         Haolin Wang, LWang0101@outlook.com
+#         Mohammod Naimul Islam Suvon, m.suvon@sheffield.ac.uk
 # =============================================================================
 
 
@@ -13,11 +14,17 @@ training/validation/testing procedure, workflow, etc. The BaseNNTrainer is inher
 The structure and workflow of BaseNNTrainer is consistent with `kale.pipeline.domain_adapter.BaseAdaptTrainer`
 
 This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>`_ to standardize the flow.
+
+This module also provides a Multimodal Neural Network Trainer (MultimodalNNTrainer) where this trainer uses separate encoders for each modality, a fusion technique to combine the modalities, and a classifier head for final prediction.
+MultimodalNNTrainer is also designed to handle training, validation, and testing steps for multimodal data using specified models, optimization algorithms, and loss functions.
+Adapted from: https://github.com/pliang279/MultiBench/blob/main/training_structures/Supervised_Learning.py
 """
 
 
 import pytorch_lightning as pl
 import torch
+import torch.nn as nn
+from sklearn.metrics import accuracy_score
 
 from kale.predict import losses
 
@@ -160,3 +167,92 @@ class CNNTransformerTrainer(BaseNNTrainer):
             )
             return [optimizer], [scheduler]
         return [optimizer]
+
+
+class MultimodalNNTrainer(pl.LightningModule):
+    """MultimodalNNTrainer, serves as a PyTorch Lightning trainer for multimodal models. It is designed to handle training, validation, and testing steps for multimodal data using specified models, optimization algorithms, and loss functions.
+       For each training, validation, and test step, the trainer class computes the model's loss and accuracy and logs these metrics. This trainer simplifies the process of training complex multimodal models, allowing the user to focus on model architecture and hyperparameter tuning.
+       This trainer is flexible and can be used with various models, optimizers, and loss functions, enabling its use across a wide range of multimodal learning tasks.
+    Args:
+        encoders (List[nn.Module]): A list of PyTorch `nn.Module` encoders, with one encoder per modality. Each encoder is responsible for transforming the raw input of a single modality into a high-level representation.
+        fusion (nn.Module): A PyTorch `nn.Module` that merges the high-level representations from each modality into a single representation.
+        head (nn.Module): A PyTorch `nn.Module` that takes the fused representation and outputs a class prediction.
+        is_packed (bool, optional):  whether the input modalities are packed in one list or not (default is False, which means we expect input of [tensor(20xmodal1_size),(20xmodal2_size),(20xlabel_size)] for batch size 20 and 2 input modalities)
+        optim (torch.optim, optional): The optimization algorithm to use. Defaults to torch.optim.SGD.
+        lr (float, optional): Learning rate for the optimizer. Defaults to 0.001.
+        weight_decay (float, optional): Weight decay for the optimizer. Defaults to 0.0.
+        objective (torch.nn.Module, optional): Loss function. Defaults to torch.nn.CrossEntropyLoss.
+    """
+
+    def __init__(
+        self,
+        encoders,
+        fusion,
+        head,
+        variable_length_sequences=False,
+        optim=torch.optim.SGD,
+        lr=0.001,
+        weight_decay=0.0,
+        objective=nn.CrossEntropyLoss(),
+    ):
+        super(MultimodalNNTrainer, self).__init__()
+
+        self.encoders = nn.ModuleList(encoders)
+        self.fusion_module = fusion
+        self.classifier = head
+        self.modalities_reps = []
+        self.fusion_output = None
+
+        self.variable_length_sequences = variable_length_sequences
+        self.optim = optim
+        self.lr = lr
+        self.weight_decay = weight_decay
+        self.objective = objective
+
+    def forward(self, inputs):
+        if self.variable_length_sequences:
+            with torch.backends.cudnn.flags(enabled=False):
+                inputs = [[i.float() for i in inputs[0]], inputs[1]]
+        else:
+            inputs = [i.float() for i in inputs[:-1]]
+
+        modality_outputs = []
+        for i in range(len(inputs)):
+            modality_outputs.append(self.encoders[i](inputs[i]))
+        self.modalities_reps = modality_outputs
+        fused_output = self.fusion_module(modality_outputs)
+        self.fusion_output = fused_output
+        if type(fused_output) is tuple:
+            fused_output = fused_output[0]
+        return self.classifier(fused_output)
+
+    def compute_loss(self, batch, split_name="valid"):
+        out = self.forward(batch)
+        if len(batch[-1].size()) == len(out.size()):
+            truth1 = batch[-1].squeeze(len(out.size()) - 1)
+        else:
+            truth1 = batch[-1]
+        loss = self.objective(out, truth1.long())
+        pred = torch.argmax(out, dim=1)
+        accuracy = accuracy_score(truth1.cpu().numpy(), pred.cpu().numpy())
+
+        return loss, {"loss": loss.item(), "accuracy": accuracy}
+
+    def configure_optimizers(self):
+        optimizer = self.optim(
+            [p for p in self.parameters() if p.requires_grad], lr=self.lr, weight_decay=self.weight_decay
+        )
+        return optimizer
+
+    def training_step(self, train_batch, batch_idx):
+        loss, metrics = self.compute_loss(train_batch, split_name="train")
+        self.log_dict(metrics, on_step=True, on_epoch=True, logger=True)
+        return loss
+
+    def validation_step(self, valid_batch, batch_idx):
+        loss, metrics = self.compute_loss(valid_batch, split_name="valid")
+        self.log_dict(metrics, on_step=False, on_epoch=True, logger=True)
+
+    def test_step(self, test_batch, batch_idx):
+        loss, metrics = self.compute_loss(test_batch, split_name="test")
+        self.log_dict(metrics, on_step=False, on_epoch=True, logger=True)
