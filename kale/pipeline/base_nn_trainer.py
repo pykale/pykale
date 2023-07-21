@@ -1,6 +1,7 @@
 # =============================================================================
 # Author: Xianyuan Liu, xianyuan.liu@outlook.com
 #         Haolin Wang, LWang0101@outlook.com
+#         Mohammod Naimul Islam Suvon, m.suvon@sheffield.ac.uk
 # =============================================================================
 
 
@@ -13,6 +14,10 @@ training/validation/testing procedure, workflow, etc. The BaseNNTrainer is inher
 The structure and workflow of BaseNNTrainer is consistent with `kale.pipeline.domain_adapter.BaseAdaptTrainer`
 
 This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>`_ to standardize the flow.
+
+This module also provides a Multimodal Neural Network Trainer (MultimodalNNTrainer) where this trainer uses separate encoders for each modality, a fusion technique to combine the modalities, and a classifier head for final prediction.
+MultimodalNNTrainer is also designed to handle training, validation, and testing steps for multimodal data using specified models, optimization algorithms, and loss functions.
+Adapted from: https://github.com/pliang279/MultiBench/blob/main/training_structures/Supervised_Learning.py
 """
 
 
@@ -172,7 +177,7 @@ class MultimodalNNTrainer(pl.LightningModule):
         encoders (List[nn.Module]): A list of PyTorch `nn.Module` encoders, with one encoder per modality. Each encoder is responsible for transforming the raw input of a single modality into a high-level representation.
         fusion (nn.Module): A PyTorch `nn.Module` that merges the high-level representations from each modality into a single representation.
         head (nn.Module): A PyTorch `nn.Module` that takes the fused representation and outputs a class prediction.
-        variable_length_sequences (bool, optional):  A boolean flag indicating whether the input sequences are of variable length and have been packed. Here, packed sequences refer to variable-length sequences that are processed by recurrent layers such as LSTM or GRU. This flag is used to apply appropriate transformations to the input data during the forward pass.
+        is_packed (bool, optional):  whether the input modalities are packed in one list or not (default is False, which means we expect input of [tensor(20xmodal1_size),(20xmodal2_size),(20xlabel_size)] for batch size 20 and 2 input modalities)
         optim (torch.optim, optional): The optimization algorithm to use. Defaults to torch.optim.SGD.
         lr (float, optional): Learning rate for the optimizer. Defaults to 0.001.
         weight_decay (float, optional): Weight decay for the optimizer. Defaults to 0.0.

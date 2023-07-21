@@ -21,7 +21,7 @@ from kale.utils.initialize_nn import bias_init, xavier_init
 
 class MLPDecoder(nn.Module):
     """
-    A generalized MLP model that can act as either a 2 layer MLPDecoder or a 4 layer MLPDecoder based on the include_decoder_layers parameter.
+    A generalized MLP model that can act as either a 2-layer MLPDecoder or a 4-layer MLPDecoder based on the include_decoder_layers parameter.
 
     Args:
         in_dim (int): the dimension of input feature.
