@@ -20,33 +20,42 @@ from kale.utils.initialize_nn import bias_init, xavier_init
 
 
 class MLPDecoder(nn.Module):
-    r"""
-    The MLP decoder module, which comprises four fully connected neural networks. It's a common decoder for decoding
-    drug-target encoding information.
+    """
+    A generalized MLP model that can act as either a 2-layer MLPDecoder or a 4-layer MLPDecoder based on the include_decoder_layers parameter.
 
     Args:
         in_dim (int): the dimension of input feature.
         hidden_dim (int): the dimension of hidden layers.
         out_dim (int): the dimension of output layer.
         dropout_rate (float): the dropout rate during training.
+        include_decoder_layers (bool): whether or not to include the additional layers that are part of the MLPDecoder
     """
 
-    def __init__(self, in_dim, hidden_dim, out_dim, dropout_rate=0.1):
+    def __init__(self, in_dim, hidden_dim, out_dim, dropout_rate=0.1, include_decoder_layers=False):
         super(MLPDecoder, self).__init__()
         self.fc1 = nn.Linear(in_dim, hidden_dim)
-        self.fc2 = nn.Linear(hidden_dim, hidden_dim)
-        self.fc3 = nn.Linear(hidden_dim, out_dim)
-        self.fc4 = nn.Linear(out_dim, 1)
-        torch.nn.init.normal_(self.fc4.weight)
-        self.dropout = nn.Dropout(dropout_rate)
+        self.include_decoder_layers = include_decoder_layers
+
+        if self.include_decoder_layers:
+            self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+            self.fc3 = nn.Linear(hidden_dim, out_dim)
+            self.fc4 = nn.Linear(out_dim, 1)
+            torch.nn.init.normal_(self.fc4.weight)
+            self.dropout = nn.Dropout(dropout_rate)
+        else:
+            self.fc2 = nn.Linear(hidden_dim, out_dim)
+            self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
-        x = F.relu(self.fc2(x))
-        x = self.dropout(x)
-        x = F.relu(self.fc3(x))
-        x = self.fc4(x)
+        x = self.fc2(x)
+
+        if self.include_decoder_layers:
+            x = self.dropout(F.relu(x))
+            x = F.relu(self.fc3(x))
+            x = self.fc4(x)
+
         return x
 
 

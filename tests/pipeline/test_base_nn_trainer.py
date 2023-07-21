@@ -1,9 +1,10 @@
 import pytest
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
 from kale.embed.image_cnn import SimpleCNNBuilder
-from kale.pipeline.base_nn_trainer import BaseNNTrainer, CNNTransformerTrainer
+from kale.pipeline.base_nn_trainer import BaseNNTrainer, CNNTransformerTrainer, MultimodalNNTrainer
 from kale.predict.class_domain_nets import ClassNet
 
 
@@ -159,3 +160,78 @@ class TestCNNTransformerTrainer:
     def test_test_step(self, trainer, batch):
         # Test testing step.
         trainer.test_step(batch, batch_idx=0)
+
+
+class _TestEncoder(nn.Module):
+    def __init__(self, input_dim, output_dim):
+        super(_TestEncoder, self).__init__()
+        self.fc = nn.Linear(input_dim, output_dim)
+
+    def forward(self, x):
+        return self.fc(x)
+
+
+class _TestFusion(nn.Module):
+    def __init__(self, input_dim, output_dim):
+        super(_TestFusion, self).__init__()
+        self.fc = nn.Linear(input_dim, output_dim)
+
+    def forward(self, x):
+        x_concat = torch.cat(x, dim=1)
+        return self.fc(x_concat)
+
+
+class _TestClassifier(nn.Module):
+    def __init__(self, input_dim, num_classes):
+        super(_TestClassifier, self).__init__()
+        self.fc = nn.Linear(input_dim, num_classes)
+
+    def forward(self, x):
+        return self.fc(x)
+
+
+@pytest.fixture
+def multimodal_model():
+    encoders = [_TestEncoder(5, 10) for _ in range(2)]
+    fusion = _TestFusion(20, 10)
+    head = _TestClassifier(10, 2)
+    model = MultimodalNNTrainer(encoders, fusion, head)
+    return model
+
+
+def test_compute_loss(multimodal_model):
+    x = [torch.rand(1, 5) for _ in range(2)]
+    y = torch.tensor([1])
+    batch = [*x, y]
+    loss, metrics = multimodal_model.compute_loss(batch)
+    assert isinstance(loss, torch.Tensor)
+    assert set(metrics.keys()) == {"loss", "accuracy"}
+    assert isinstance(metrics["loss"], float)
+    assert isinstance(metrics["accuracy"], float)
+
+
+def test_training_step(multimodal_model):
+    x = [torch.rand(1, 5) for _ in range(2)]
+    y = torch.tensor([1])
+    batch = [*x, y]
+    loss = multimodal_model.training_step(batch, 0)
+    assert isinstance(loss, torch.Tensor)
+
+
+def test_validation_step(multimodal_model):
+    x = [torch.rand(1, 5) for _ in range(2)]
+    y = torch.tensor([1])
+    batch = [*x, y]
+    multimodal_model.validation_step(batch, 0)
+
+
+def test_test_step(multimodal_model):
+    x = [torch.rand(1, 5) for _ in range(2)]
+    y = torch.tensor([1])
+    batch = [*x, y]
+    multimodal_model.test_step(batch, 0)
+
+
+def test_configure_optimizers(multimodal_model):
+    optimizer = multimodal_model.configure_optimizers()
+    assert isinstance(optimizer, torch.optim.Optimizer)
