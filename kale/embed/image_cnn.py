@@ -4,6 +4,7 @@ ImageNet). The code is based on https://github.com/criteo-research/pytorch-ada/b
 """
 
 import torch.nn as nn
+from torch.nn import functional as F
 from torchvision import models
 
 
@@ -366,3 +367,81 @@ class ResNet152Feature(nn.Module):
 
     def output_size(self):
         return self._out_features
+
+
+class LeNet(nn.Module):
+    """LeNet is a customizable Convolutional Neural Network (CNN) model based on the LeNet architecture, designed for feature extraction from image and audio modalities.
+       LeNet supports several layers of 2D convolution, followed by batch normalization, max pooling, and adaptive average pooling, with a configurable number of channels. The depth of the network (number of convolutional blocks) is adjustable with the 'additional_layers' parameter.
+       An optional linear layer can be added at the end for further transformation of the output, which could be useful for various tasks such as classification or regression. The 'output_each_layer' option allows for returning the output of each layer instead of just the final output, which can be beneficial for certain tasks or for analyzing the intermediate representations learned by the network.
+       By default, the output tensor is squeezed before being returned, removing dimensions of size one, but this can be configured with the 'squeeze_output' parameter.
+
+    Args:
+        input_channels (int): Input channel number.
+        output_channels (int): Output channel number for block.
+        additional_layers (int): Number of additional blocks for LeNet.
+        output_each_layer (bool, optional): Whether to return the output of all layers. Defaults to False.
+        linear (tuple, optional): Tuple of (input_dim, output_dim) for optional linear layer post-processing. Defaults to None.
+        squeeze_output (bool, optional): Whether to squeeze output before returning. Defaults to True.
+
+    Note:
+        Adapted code from https://github.com/slyviacassell/_MFAS/blob/master/models/central/avmnist.py.
+    """
+
+    def __init__(
+        self,
+        input_channels,
+        output_channels,
+        additional_layers,
+        output_each_layer=False,
+        linear=None,
+        squeeze_output=True,
+    ):
+        super(LeNet, self).__init__()
+        self.output_each_layer = output_each_layer
+        self.conv_layers = [nn.Conv2d(input_channels, output_channels, kernel_size=5, padding=2, bias=False)]
+        self.batch_norms = [nn.BatchNorm2d(output_channels)]
+        self.global_pools = [nn.AdaptiveAvgPool2d(1)]
+
+        for i in range(additional_layers):
+            self.conv_layers.append(
+                nn.Conv2d(
+                    (2 ** i) * output_channels, (2 ** (i + 1)) * output_channels, kernel_size=3, padding=1, bias=False
+                )
+            )
+            self.batch_norms.append(nn.BatchNorm2d(output_channels * (2 ** (i + 1))))
+            self.global_pools.append(nn.AdaptiveAvgPool2d(1))
+
+        self.conv_layers = nn.ModuleList(self.conv_layers)
+        self.batch_norms = nn.ModuleList(self.batch_norms)
+        self.global_pools = nn.ModuleList(self.global_pools)
+        self.squeeze_output = squeeze_output
+        self.linear = None
+
+        if linear is not None:
+            self.linear = nn.Linear(linear[0], linear[1])
+
+        for m in self.modules():
+            if isinstance(m, (nn.Conv2d, nn.Linear)):
+                nn.init.kaiming_uniform_(m.weight)
+
+    def forward(self, x):
+        intermediate_outputs = []
+        output = x
+        for i in range(len(self.conv_layers)):
+            output = F.relu(self.batch_norms[i](self.conv_layers[i](output)))
+            output = F.max_pool2d(output, 2)
+            global_pool = self.global_pools[i](output).view(output.size(0), -1)
+            intermediate_outputs.append(global_pool)
+
+        if self.linear is not None:
+            output = self.linear(output)
+        intermediate_outputs.append(output)
+
+        if self.output_each_layer:
+            if self.squeeze_output:
+                return [t.squeeze() for t in intermediate_outputs]
+            return intermediate_outputs
+
+        if self.squeeze_output:
+            return output.squeeze()
+        return output

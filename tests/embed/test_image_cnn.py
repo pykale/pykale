@@ -2,6 +2,7 @@ import pytest
 import torch
 
 from kale.embed.image_cnn import (
+    LeNet,
     ResNet18Feature,
     ResNet34Feature,
     ResNet50Feature,
@@ -47,3 +48,14 @@ def test_shapes(param):
     model.eval()
     output_batch = model(INPUT_BATCH)
     assert output_batch.size() == (BATCH_SIZE, out_size)
+
+
+def test_lenet_output_shapes():
+    input_channels = 3
+    output_channels = 6
+    additional_layers = 2
+    lenet = LeNet(input_channels, output_channels, additional_layers)
+
+    x = torch.randn(16, 3, 32, 32)
+    output = lenet(x)
+    assert output.shape == (16, 24, 4, 4), "Unexpected output shape"

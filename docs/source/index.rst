@@ -38,12 +38,14 @@ Kale APIs above are ordered following the machine learning pipeline, i.e., funct
 
     Action Video - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/action_dann>
     Autism fMRI - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/multisite_neuroimg_adapt>
+    AVMNIST - Multimodal Neural Network <https://github.com/pykale/pykale/tree/main/examples/avmnist_multimodal>
     BindingDB - DeepDTA <https://github.com/pykale/pykale/tree/main/examples/bindingdb_deepdta>
     CardiacMRI - MPCA <https://github.com/pykale/pykale/tree/main/examples/cmri_mpca>
     CIFAR - CNN Transformer <https://github.com/pykale/pykale/tree/main/examples/cifar_cnntransformer>
     CIFAR - ISONet <https://github.com/pykale/pykale/tree/main/examples/cifar_isonet>
     Digits - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/digits_dann>
     Digits/Office - Multisource Adaptation <https://github.com/pykale/pykale/tree/main/examples/office_multisource_adapt>
+    Multiomics - MOGONET <https://github.com/pykale/pykale/tree/main/examples/multiomics_mogonet>
     Toy Data - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/toy_domain_adaptation>
     Polypharmacy - GripNet <https://github.com/pykale/pykale/tree/main/examples/polypharmacy_gripnet>
     Video - Data Loading <https://github.com/pykale/pykale/tree/main/examples/video_loading>

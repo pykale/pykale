@@ -1,4 +1,10 @@
-from typing import Tuple
+"""
+Provides implementations of various decoders based on neural network modules for prediction and classification tasks.
+Refer to the PyTorch documentation for the accompanying tutorial on neural network modules:
+https://pytorch.org/docs/stable/generated/torch.nn.Module.html
+"""
+
+from typing import List, Tuple
 
 import numpy as np
 import pytorch_lightning as pl
@@ -10,36 +16,46 @@ from kale.embed.gripnet import GripNet
 from kale.evaluate.metrics import auprc_auroc_ap
 from kale.prepdata.graph_negative_sampling import typed_negative_sampling
 from kale.prepdata.supergraph_construct import SuperGraph
+from kale.utils.initialize_nn import bias_init, xavier_init
 
 
 class MLPDecoder(nn.Module):
-    r"""
-    The MLP decoder module, which comprises four fully connected neural networks. It's a common decoder for decoding
-    drug-target encoding information.
+    """
+    A generalized MLP model that can act as either a 2-layer MLPDecoder or a 4-layer MLPDecoder based on the include_decoder_layers parameter.
 
     Args:
         in_dim (int): the dimension of input feature.
         hidden_dim (int): the dimension of hidden layers.
         out_dim (int): the dimension of output layer.
         dropout_rate (float): the dropout rate during training.
+        include_decoder_layers (bool): whether or not to include the additional layers that are part of the MLPDecoder
     """
 
-    def __init__(self, in_dim, hidden_dim, out_dim, dropout_rate=0.1):
+    def __init__(self, in_dim, hidden_dim, out_dim, dropout_rate=0.1, include_decoder_layers=False):
         super(MLPDecoder, self).__init__()
         self.fc1 = nn.Linear(in_dim, hidden_dim)
-        self.fc2 = nn.Linear(hidden_dim, hidden_dim)
-        self.fc3 = nn.Linear(hidden_dim, out_dim)
-        self.fc4 = nn.Linear(out_dim, 1)
-        torch.nn.init.normal_(self.fc4.weight)
-        self.dropout = nn.Dropout(dropout_rate)
+        self.include_decoder_layers = include_decoder_layers
+
+        if self.include_decoder_layers:
+            self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+            self.fc3 = nn.Linear(hidden_dim, out_dim)
+            self.fc4 = nn.Linear(out_dim, 1)
+            torch.nn.init.normal_(self.fc4.weight)
+            self.dropout = nn.Dropout(dropout_rate)
+        else:
+            self.fc2 = nn.Linear(hidden_dim, out_dim)
+            self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
-        x = F.relu(self.fc2(x))
-        x = self.dropout(x)
-        x = F.relu(self.fc3(x))
-        x = self.fc4(x)
+        x = self.fc2(x)
+
+        if self.include_decoder_layers:
+            x = self.dropout(F.relu(x))
+            x = F.relu(self.fc3(x))
+            x = self.fc4(x)
+
         return x
 
 
@@ -173,3 +189,73 @@ class GripNetLinkPrediction(pl.LightningModule):
         return "{}: \nEncoder: {} ModuleDict(\n{})\n Decoder: {}".format(
             self.__class__.__name__, self.encoder.__class__.__name__, self.encoder.supervertex_module_dict, self.decoder
         )
+
+
+class LinearClassifier(nn.Module):
+    r"""Build a linear transformation module.
+
+    Args:
+        in_dim (int): Size of each input sample.
+        out_dim (int): Size of each output sample.
+        bias (bool, optional): If set to ``False``, the layer will not learn an additive bias. (default: ``True``)
+    """
+
+    def __init__(self, in_dim: int, out_dim: int, bias: bool = True) -> None:
+        super().__init__()
+        self.fc = nn.Linear(in_dim, out_dim, bias=bias)
+        self.reset_parameters()
+
+    def reset_parameters(self) -> None:
+        """Initialize the parameters of the model."""
+        self.fc.apply(xavier_init)
+        self.fc.apply(bias_init)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.fc(x)
+        return x
+
+
+class VCDN(nn.Module):
+    r"""The View Correlation Discovery Network (VCDN) to learn the higher-level intra-view and cross-view correlations
+    in the label space, implemented according to the method described in 'MOGONET integrates multi-omics data using
+    graph convolutional networks allowing patient classification and biomarker identification'
+    - Wang, T., Shao, W., Huang, Z., Tang, H., Zhang, J., Ding, Z., Huang, K. (2021).
+
+    Args:
+        num_modalities (int): The total number of modalities in the dataset.
+        num_classes (int): The total number of classes in the dataset.
+        hidden_dim (int): Size of the hidden layer.
+    """
+
+    def __init__(self, num_modalities: int, num_classes: int, hidden_dim: int) -> None:
+        super().__init__()
+
+        self.num_modalities = num_modalities
+        self.num_classes = num_classes
+        self.model = nn.Sequential(
+            nn.Linear(pow(self.num_classes, self.num_modalities), hidden_dim),
+            nn.LeakyReLU(0.25),
+            nn.Linear(hidden_dim, self.num_classes),
+        )
+        self.reset_parameters()
+
+    def reset_parameters(self) -> None:
+        """Initialize the parameters of the model."""
+        self.model.apply(xavier_init)
+        self.model.apply(bias_init)
+
+    def forward(self, multimodal_input: List[torch.Tensor]) -> torch.Tensor:
+        for modality in range(self.num_modalities):
+            multimodal_input[modality] = torch.sigmoid(multimodal_input[modality])
+        x = torch.reshape(
+            torch.matmul(multimodal_input[0].unsqueeze(-1), multimodal_input[1].unsqueeze(1)),
+            (-1, pow(self.num_classes, 2), 1),
+        )
+        for modality in range(2, self.num_modalities):
+            x = torch.reshape(
+                torch.matmul(x, multimodal_input[modality].unsqueeze(1)), (-1, pow(self.num_classes, modality + 1), 1)
+            )
+        input_tensor = torch.reshape(x, (-1, pow(self.num_classes, self.num_modalities)))
+        output = self.model(input_tensor)
+
+        return output

@@ -64,7 +64,7 @@ def _check_tensor_dim_shape(x, n_dims, shape_):
 
 
 class MPCA(BaseEstimator, TransformerMixin):
-    """MPCA implementation compatible with sickit-learn
+    """MPCA implementation compatible with scikit-learn
 
     Args:
         var_ratio (float, optional): Percentage of variance explained (between 0 and 1). Defaults to 0.97.
