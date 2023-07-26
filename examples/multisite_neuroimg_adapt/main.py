@@ -19,47 +19,11 @@ from config import get_cfg_defaults
 from nilearn.connectome import ConnectivityMeasure
 from nilearn.datasets import fetch_abide_pcp
 from sklearn.linear_model import RidgeClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import OneHotEncoder
 
+from kale.evaluate import cross_validation
 from kale.interpret import visualize
 from kale.pipeline.multi_domain_adapter import CoIRLS
 from kale.utils.download import download_file_by_url
-
-
-def cross_validation(x, y, covariates, estimator, domain_adaptation=False):
-    results = {"Target": [], "Num_samples": [], "Accuracy": []}
-    unique_covariates = np.unique(covariates)
-    n_covariates = len(unique_covariates)
-    enc = OneHotEncoder(handle_unknown="ignore")
-    covariate_mat = enc.fit_transform(covariates.reshape(-1, 1)).toarray()
-
-    for tgt in unique_covariates:
-        idx_tgt = np.where(covariates == tgt)
-        idx_src = np.where(covariates != tgt)
-        x_tgt = x[idx_tgt]
-        x_src = x[idx_src]
-        y_tgt = y[idx_tgt]
-        y_src = y[idx_src]
-
-        if domain_adaptation:
-            estimator.fit(
-                np.concatenate((x_src, x_tgt)), y_src, np.concatenate((covariate_mat[idx_src], covariate_mat[idx_tgt]))
-            )
-        else:
-            estimator.fit(x_src, y_src)
-        y_pred = estimator.predict(x_tgt)
-        results["Accuracy"].append(accuracy_score(y_tgt, y_pred))
-        results["Target"].append(tgt)
-        results["Num_samples"].append(x_tgt.shape[0])
-
-    mean_acc = sum([results["Num_samples"][i] * results["Accuracy"][i] for i in range(n_covariates)])
-    mean_acc /= x.shape[0]
-    results["Target"].append("Average")
-    results["Num_samples"].append(x.shape[0])
-    results["Accuracy"].append(mean_acc)
-
-    return pd.DataFrame(results)
 
 
 def main():
@@ -114,15 +78,17 @@ def main():
     # ---- Machine Learning for Multi-site Data ----
     print("Baseline")
     estimator = RidgeClassifier()
-    res_df = cross_validation(brain_networks, pheno["DX_GROUP"].values, pheno["SITE_ID"].values, estimator)
-    print(res_df)
+    results = cross_validation.leave_one_group_out_cross_validate(
+        brain_networks, pheno["DX_GROUP"].values, pheno["SITE_ID"].values, estimator
+    )
+    print(pd.DataFrame.from_dict(results))
 
     print("Domain Adaptation")
     estimator = CoIRLS(kernel=cfg.MODEL.KERNEL, lambda_=cfg.MODEL.LAMBDA_, alpha=cfg.MODEL.ALPHA)
-    res_df = cross_validation(
+    results = cross_validation.leave_one_group_out_cross_validate(
         brain_networks, pheno["DX_GROUP"].values, pheno["SITE_ID"].values, estimator, domain_adaptation=True
     )
-    print(res_df)
+    print(pd.DataFrame.from_dict(results))
 
 
 if __name__ == "__main__":
