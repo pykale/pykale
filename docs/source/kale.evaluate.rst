@@ -6,6 +6,14 @@ Evaluate
 Submodules
 ----------
 
+kale.evaluate.cross\_validation module
+----------------------------
+
+.. automodule:: kale.evaluate.cross_validation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.evaluate.metrics module
 ----------------------------
 
