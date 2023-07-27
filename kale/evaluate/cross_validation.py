@@ -3,7 +3,24 @@ from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder
 
 
-def leave_one_group_out_cross_validate(x, y, covariates, estimator, domain_adaptation=False) -> dict:
+def leave_one_out_cross_validate(x, y, covariates, estimator, domain_adaptation=False) -> dict:
+    """
+    Perform leave-one-out cross validation (LOOCV) for a given estimator.
+
+    Args:
+        x: Input data [n_samples, n_features].
+        y: Target labels [n_samples].
+        covariates: Covariates indicating classes for LOOCV [n_samples].
+        estimator: Machine learning estimator to be evaluated from kale or scikit-learn.
+        domain_adaptation: Whether to use domain adaptation during training.
+
+    Returns:
+        dict: A dictionary containing LOOCV results for each target group with 3 keys.
+
+            - 'Target': List of unique target groups or classes.
+            - 'Num_samples': List containing number of samples in each target group.
+            - 'Accuracy': List of accuracy scores for each target group.
+    """
     target, num_samples, accuracy = [], [], []
     enc = OneHotEncoder(handle_unknown="ignore")
     covariate_mat = enc.fit_transform(covariates.reshape(-1, 1)).toarray()

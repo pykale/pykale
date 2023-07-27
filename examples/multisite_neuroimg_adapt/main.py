@@ -21,9 +21,7 @@ from nilearn.datasets import fetch_abide_pcp
 from sklearn.linear_model import RidgeClassifier
 
 from kale.evaluate import cross_validation
-from kale.interpret import visualize
 from kale.pipeline.multi_domain_adapter import CoIRLS
-from kale.utils.download import download_file_by_url
 
 
 def main():
@@ -42,7 +40,7 @@ def main():
     pipeline = cfg.DATASET.PIPELINE
     atlas = cfg.DATASET.ATLAS
     site_ids = cfg.DATASET.SITE_IDS
-    abide = fetch_abide_pcp(
+    fetch_abide_pcp(
         data_dir=root_dir,
         pipeline=pipeline,
         band_pass_filtering=True,
@@ -78,14 +76,14 @@ def main():
     # ---- Machine Learning for Multi-site Data ----
     print("Baseline")
     estimator = RidgeClassifier()
-    results = cross_validation.leave_one_group_out_cross_validate(
+    results = cross_validation.leave_one_out_cross_validate(
         brain_networks, pheno["DX_GROUP"].values, pheno["SITE_ID"].values, estimator
     )
     print(pd.DataFrame.from_dict(results))
 
     print("Domain Adaptation")
     estimator = CoIRLS(kernel=cfg.MODEL.KERNEL, lambda_=cfg.MODEL.LAMBDA_, alpha=cfg.MODEL.ALPHA)
-    results = cross_validation.leave_one_group_out_cross_validate(
+    results = cross_validation.leave_one_out_cross_validate(
         brain_networks, pheno["DX_GROUP"].values, pheno["SITE_ID"].values, estimator, domain_adaptation=True
     )
     print(pd.DataFrame.from_dict(results))
