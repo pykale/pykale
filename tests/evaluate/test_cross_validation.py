@@ -28,7 +28,7 @@ def test_loocv_without_domain_adaptation(sample_data):
     # Check if the length of 'Target', 'Num_samples', and 'Accuracy' lists is the same
     assert len(result["Target"]) == len(result["Num_samples"]) == len(result["Accuracy"])
 
-    # Check if the last element of 'Target' is "Average"
+    # Check if the 'Target' list contains correct groups
     assert result["Target"] == ["A", "B", "Average"]
 
     # Check if the number of samples is correct for each target group
@@ -52,7 +52,7 @@ def test_loocv_with_domain_adaptation(sample_data):
     # Check if the length of 'Target', 'Num_samples', and 'Accuracy' lists is the same
     assert len(result["Target"]) == len(result["Num_samples"]) == len(result["Accuracy"])
 
-    # Check if the last element of 'Target' is "Average"
+    # Check if the 'Target' list contains correct groups
     assert result["Target"] == ["A", "B", "Average"]
 
     # Check if the number of samples is correct for each target group
