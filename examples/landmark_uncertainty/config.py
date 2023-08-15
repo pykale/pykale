@@ -19,7 +19,7 @@ _C.DATASET = CN()
 _C.DATASET.SOURCE = (
     "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
 )
-_C.DATASET.ROOT = "../../../data/landmarks/"
+_C.DATASET.ROOT = "../data/landmarks/"
 _C.DATASET.BASE_DIR = "Uncertainty_tuples"
 
 
