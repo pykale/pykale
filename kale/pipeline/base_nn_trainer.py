@@ -20,12 +20,11 @@ MultimodalNNTrainer is also designed to handle training, validation, and testing
 Adapted from: https://github.com/pliang279/MultiBench/blob/main/training_structures/Supervised_Learning.py
 """
 
-
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-from sklearn.metrics import accuracy_score
 
+from kale.evaluate.performance_metrics import benchmark_evalaution
 from kale.predict import losses
 
 
@@ -234,9 +233,13 @@ class MultimodalNNTrainer(pl.LightningModule):
             truth1 = batch[-1]
         loss = self.objective(out, truth1.long())
         pred = torch.argmax(out, dim=1)
-        accuracy = accuracy_score(truth1.cpu().numpy(), pred.cpu().numpy())
 
-        return loss, {"loss": loss.item(), "accuracy": accuracy}
+        # Convert logits to probabilities (works for both binary and multi-class)
+        probabilities = torch.nn.functional.softmax(out, dim=1).cpu().detach().numpy()
+        truth_numpy = truth1.cpu().numpy()
+        performance_eval = benchmark_evalaution(truth_numpy, pred, probabilities)
+
+        return loss, performance_eval
 
     def configure_optimizers(self):
         optimizer = self.optim(

@@ -1,7 +1,6 @@
-import os
-
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 
 
 def compute_calibration(true_labels, pred_labels, confidences, num_bins=10):
@@ -20,20 +19,18 @@ def compute_calibration(true_labels, pred_labels, confidences, num_bins=10):
     of the highest scoring class.
 
     Returns a dictionary containing the following NumPy arrays:
-        accuracies: the average accuracy for each bin
-        confidences: the average confidence for each bin
-        counts: the number of examples in each bin
-        bins: the confidence thresholds for each bin
         avg_accuracy: the accuracy over the entire test set
         avg_confidence: the average confidence over the entire test set
         expected_calibration_error: a weighted average of all calibration gaps
         max_calibration_error: the largest calibration gap across all bins
     """
+    if isinstance(pred_labels, torch.Tensor):
+        pred_labels = pred_labels.cpu().numpy()
     assert len(confidences) == len(pred_labels)
     assert len(confidences) == len(true_labels)
     assert num_bins > 0
 
-    bin_size = 1.0 / num_bins
+    # bin_size = 1.0 / num_bins
     bins = np.linspace(0.0, 1.0, num_bins + 1)
     indices = np.digitize(confidences, bins, right=True)
 
@@ -48,19 +45,18 @@ def compute_calibration(true_labels, pred_labels, confidences, num_bins=10):
             bin_confidences[b] = np.mean(confidences[selected])
             bin_counts[b] = len(selected)
 
-    avg_acc = np.sum(bin_accuracies * bin_counts) / np.sum(bin_counts)
+    # avg_acc = np.sum(bin_accuracies * bin_counts) / np.sum(bin_counts)
     avg_conf = np.sum(bin_confidences * bin_counts) / np.sum(bin_counts)
 
     gaps = np.abs(bin_accuracies - bin_confidences)
     ece = np.sum(gaps * bin_counts) / np.sum(bin_counts)
     mce = np.max(gaps)
 
-    return {
-        "accuracies": bin_accuracies,
-        "confidences": bin_confidences,
-        "counts": bin_counts,
-        "bins": bins,
-        "avg_accuracy": avg_acc,
+    return {  # "accuracies": bin_accuracies,
+        # "confidences": bin_confidences,
+        # "counts": bin_counts,
+        # "bins": bins,
+        # "avg_accuracy": avg_acc,
         "avg_confidence": avg_conf,
         "expected_calibration_error": ece,
         "max_calibration_error": mce,
@@ -251,6 +247,8 @@ def reliability_diagram(
         dpi: setting for matplotlib
         return_fig: if True, returns the matplotlib Figure object
     """
+    if isinstance(pred_labels, torch.Tensor):
+        pred_labels = pred_labels.cpu().numpy()
     bin_data = compute_calibration(true_labels, pred_labels, confidences, num_bins)
     return _reliability_diagram_combined(
         bin_data, draw_ece, draw_bin_importance, draw_averages, title, figsize=figsize, dpi=dpi, return_fig=return_fig
