@@ -76,14 +76,14 @@ def main():
     # ---- Machine Learning for Multi-site Data ----
     print("Baseline")
     estimator = RidgeClassifier()
-    results = cross_validation.leave_one_out_cross_validate(
+    results = cross_validation.leave_one_group_out(
         brain_networks, pheno["DX_GROUP"].values, pheno["SITE_ID"].values, estimator
     )
     print(pd.DataFrame.from_dict(results))
 
     print("Domain Adaptation")
     estimator = CoIRLS(kernel=cfg.MODEL.KERNEL, lambda_=cfg.MODEL.LAMBDA_, alpha=cfg.MODEL.ALPHA)
-    results = cross_validation.leave_one_out_cross_validate(
+    results = cross_validation.leave_one_group_out(
         brain_networks, pheno["DX_GROUP"].values, pheno["SITE_ID"].values, estimator, domain_adaptation=True
     )
     print(pd.DataFrame.from_dict(results))
