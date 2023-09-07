@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.preprocessing import OneHotEncoder
 
 
@@ -21,31 +22,25 @@ def leave_one_group_out(x, y, groups, estimator, domain_adaptation=False) -> dic
             - 'Num_samples': List containing number of samples in each target group.
             - 'Accuracy': List of accuracy scores for each target group.
     """
-    target, num_samples, accuracy = [], [], []
     enc = OneHotEncoder(handle_unknown="ignore")
     group_mat = enc.fit_transform(groups.reshape(-1, 1)).toarray()
-    unique_groups = np.unique(groups)
+    target, num_samples, accuracy = np.unique(groups).tolist(), [], []
 
-    for tgt in unique_groups:
-        idx_tgt = np.where(groups == tgt)
-        idx_src = np.where(groups != tgt)
-        x_tgt = x[idx_tgt]
-        x_src = x[idx_src]
-        y_tgt = y[idx_tgt]
-        y_src = y[idx_src]
+    logo = LeaveOneGroupOut()
+    for train, test in logo.split(x, y, groups=groups):
+        x_src, x_tgt = x[train], x[test]
+        y_src, y_tgt = y[train], y[test]
 
         if domain_adaptation:
-            estimator.fit(
-                np.concatenate((x_src, x_tgt)), y_src, np.concatenate((group_mat[idx_src], group_mat[idx_tgt]))
-            )
+            estimator.fit(np.concatenate((x_src, x_tgt)), y_src, np.concatenate((group_mat[train], group_mat[test])))
         else:
             estimator.fit(x_src, y_src)
+
         y_pred = estimator.predict(x_tgt)
-        target.append(tgt)
         num_samples.append(x_tgt.shape[0])
         accuracy.append(accuracy_score(y_tgt, y_pred))
 
-    mean_acc = sum([num_samples[i] * accuracy[i] for i in range(len(unique_groups))]) / x.shape[0]
+    mean_acc = sum([num_samples[i] * accuracy[i] for i in range(len(target))]) / x.shape[0]
     target.append("Average")
     num_samples.append(x.shape[0])
     accuracy.append(mean_acc)
