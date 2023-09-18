@@ -1,0 +1,40 @@
+# Configuration option for the ISBI Cephalometric data.
+# See the documentation for full information on the configuration file options:
+# pykale/examples/landmark_uncertainty/README.md
+
+
+DATASET:
+    DATA: "ISBI_2std"
+    LANDMARKS: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+    NUM_FOLDS: 4
+    UE_PAIRS_VAL: "checkpointuncertainty_pairs_valid"
+    UE_PAIRS_TEST: "checkpointuncertainty_pairs_test"
+
+PIPELINE:
+    NUM_QUANTILE_BINS: [3,5,10]
+    # NUM_QUANTILE_BINS: [5]
+    COMBINE_MIDDLE_BINS: False
+    PIXEL_TO_MM_SCALE: 0.1
+    IND_LANDMARKS_TO_SHOW: [8,9,2,11,14]
+    # IND_LANDMARKS_TO_SHOW: [8]
+    COMPARE_Q_VALUES: True
+    COMPARE_INDIVIDUAL_Q: True
+    COMPARE_Q_MODELS: ["U-NET"]
+    COMPARE_Q_UNCERTAINTY_ERROR_PAIRS: [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"], ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"]]
+    # COMPARE_Q_UNCERTAINTY_ERROR_PAIRS: [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"]]
+    INDIVIDUAL_Q_MODELS: ["U-NET"]
+    INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS: [
+        ["S-MHA", "S-MHA Error", "S-MHA Uncertainty"],
+        ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"],
+        ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"],
+    ]
+    SHOW_IND_LANDMARKS: True
+
+OUTPUT:
+    SAVE_FIGURES: True # True to save, False to visualize in matplotlib
+    SAVE_PREPEND: "2std_10_08_22"
+
+BOXPLOT:
+    ERROR_LIM: 32
+    SAMPLES_AS_DOTS: False
+    SHOW_SAMPLE_INFO_MODE: "Average" #["All", "Average"]

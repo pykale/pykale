@@ -22,6 +22,14 @@ kale.embed.factorization module
    :undoc-members:
    :show-inheritance:
 
+kale.embed.feature\_fusion module
+------------------------------------
+
+.. automodule:: kale.embed.feature_fusion
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.embed.gcn module
 ---------------------
 
@@ -48,6 +56,15 @@ kale.embed.image\_cnn module
    :members:
    :undoc-members:
    :show-inheritance:
+
+kale.embed.mogonet module
+-------------------------
+
+.. automodule:: kale.embed.mogonet
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 kale.embed.positional\_encoding module
 --------------------------------------
