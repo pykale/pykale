@@ -1,3 +1,7 @@
+"""
+Functions implementing cross-validation methods for assessing model fit.
+"""
+
 import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import LeaveOneGroupOut
@@ -26,8 +30,7 @@ def leave_one_group_out(x, y, groups, estimator, domain_adaptation=False) -> dic
     group_mat = enc.fit_transform(groups.reshape(-1, 1)).toarray()
     target, num_samples, accuracy = np.unique(groups).tolist(), [], []
 
-    logo = LeaveOneGroupOut()
-    for train, test in logo.split(x, y, groups=groups):
+    for train, test in LeaveOneGroupOut().split(x, y, groups=groups):
         x_src, x_tgt = x[train], x[test]
         y_src, y_tgt = y[train], y[test]
 

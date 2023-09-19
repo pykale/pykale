@@ -10,8 +10,8 @@ Reference:
 
 [4] Zhou, S. (2022). Interpretable Domain-Aware Learning for Neuroimage Classification (Doctoral dissertation, University of Sheffield). https://etheses.whiterose.ac.uk/31044/1/PhD_thesis_ShuoZhou_170272834.pdf
 """
+import argparse
 import os
-import warnings
 
 import numpy as np
 import pandas as pd
@@ -20,34 +20,38 @@ from nilearn.connectome import ConnectivityMeasure
 from nilearn.datasets import fetch_abide_pcp
 from sklearn.linear_model import RidgeClassifier
 
+import kale.utils.seed as seed
 from kale.evaluate import cross_validation
 from kale.pipeline.multi_domain_adapter import CoIRLS
 
 
-def main():
-    # ---- Ignore warnings ----
-    warnings.filterwarnings("ignore")
+def arg_parse():
+    parser = argparse.ArgumentParser(
+        description="Autism Detection: Domain Adaptation for Multi-Site Neuroimaging Data Analysis"
+    )
+    parser.add_argument("--cfg", required=True, help="path to config file", type=str)
+    args = parser.parse_args()
+    return args
 
-    # ---- Path to `.yaml` config file ----
-    cfg_path = "configs/tutorial.yaml"
+
+def main():
+    args = arg_parse()
+
+    # ---- Set up configs ----
     cfg = get_cfg_defaults()
-    cfg.merge_from_file(cfg_path)
+    cfg.merge_from_file(args.cfg)
     cfg.freeze()
-    print(cfg)
+    seed.set_seed(cfg.SOLVER.SEED)
 
     # ---- Fetch ABIDE fMRI timeseries ----
-    root_dir = cfg.DATASET.ROOT
-    pipeline = cfg.DATASET.PIPELINE
-    atlas = cfg.DATASET.ATLAS
-    site_ids = cfg.DATASET.SITE_IDS
     fetch_abide_pcp(
-        data_dir=root_dir,
-        pipeline=pipeline,
+        data_dir=cfg.DATASET.ROOT,
+        pipeline=cfg.DATASET.PIPELINE,
         band_pass_filtering=True,
         global_signal_regression=False,
-        derivatives=atlas,
+        derivatives=cfg.DATASET.ATLAS,
         quality_checked=False,
-        SITE_ID=site_ids,
+        SITE_ID=cfg.DATASET.SITE_IDS,
         verbose=1,
     )
 
@@ -56,11 +60,11 @@ def main():
     pheno_info = pd.read_csv(pheno_file, index_col=0)
 
     # ---- Read timeseries from files ----
-    data_dir = os.path.join(root_dir, "ABIDE_pcp/%s/filt_noglobal" % pipeline)
+    data_dir = os.path.join(cfg.DATASET.ROOT, "ABIDE_pcp/%s/filt_noglobal" % cfg.DATASET.PIPELINE)
     use_idx = []
     time_series = []
     for i in pheno_info.index:
-        data_file_name = "%s_%s.1D" % (pheno_info.loc[i, "FILE_ID"], atlas)
+        data_file_name = "%s_%s.1D" % (pheno_info.loc[i, "FILE_ID"], cfg.DATASET.ATLAS)
         data_path = os.path.join(data_dir, data_file_name)
         if os.path.exists(data_path):
             time_series.append(np.loadtxt(data_path, skiprows=0))

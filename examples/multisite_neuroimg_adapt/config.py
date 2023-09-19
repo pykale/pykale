@@ -20,6 +20,11 @@ _C.DATASET.ATLAS = "rois_cc200"
 # options: {rois_aal, rois_cc200, rois_cc400, rois_dosenbach160, rois_ez, rois_ho, rois_tt}
 _C.DATASET.SITE_IDS = None  # list of site ids to use, if None, use all sites
 _C.DATASET.TARGET = "NYU"  # target site ids, e.g. "UM_1", "UCLA_1", "USM"
+# ---------------------------------------------------------
+# Solver
+# ---------------------------------------------------------
+_C.SOLVER = CN()
+_C.SOLVER.SEED = 2023
 # ---------------------------------------------------------------------------- #
 # Machine learning pipeline
 # ---------------------------------------------------------------------------- #

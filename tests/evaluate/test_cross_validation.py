@@ -15,49 +15,27 @@ def sample_data():
     return x, y, groups
 
 
+# Checks leave-one-group-out results for above sample data
+def check_leave_one_group_out_results(results):
+    assert "Target" in results
+    assert "Num_samples" in results
+    assert "Accuracy" in results
+    assert len(results["Target"]) == len(results["Num_samples"]) == len(results["Accuracy"])
+    assert results["Target"] == ["A", "B", "Average"]
+    assert results["Num_samples"] == [4, 4, 8]
+    for accuracy in results["Accuracy"]:
+        assert 0 <= accuracy <= 1
+
+
 def test_leave_one_group_out_without_domain_adaptation(sample_data):
     x, y, groups = sample_data
     estimator = DummyClassifier()
-    result = cross_validation.leave_one_group_out(x, y, groups, estimator, domain_adaptation=False)
-
-    # Check if all keys are present in the result dictionary
-    assert "Target" in result
-    assert "Num_samples" in result
-    assert "Accuracy" in result
-
-    # Check if the length of 'Target', 'Num_samples', and 'Accuracy' lists is the same
-    assert len(result["Target"]) == len(result["Num_samples"]) == len(result["Accuracy"])
-
-    # Check if the 'Target' list contains correct groups
-    assert result["Target"] == ["A", "B", "Average"]
-
-    # Check if the number of samples is correct for each target group
-    assert result["Num_samples"] == [4, 4, 8]
-
-    # Check if the accuracy scores are within the expected range
-    for accuracy in result["Accuracy"]:
-        assert 0 <= accuracy <= 1
+    results = cross_validation.leave_one_group_out(x, y, groups, estimator, domain_adaptation=False)
+    check_leave_one_group_out_results(results)
 
 
 def test_leave_one_group_out_with_domain_adaptation(sample_data):
     x, y, groups = sample_data
     estimator = CoIRLS(kernel="linear", lambda_=1.0, alpha=1.0)
-    result = cross_validation.leave_one_group_out(x, y, groups, estimator, domain_adaptation=True)
-
-    # Check if all keys are present in the result dictionary
-    assert "Target" in result
-    assert "Num_samples" in result
-    assert "Accuracy" in result
-
-    # Check if the length of 'Target', 'Num_samples', and 'Accuracy' lists is the same
-    assert len(result["Target"]) == len(result["Num_samples"]) == len(result["Accuracy"])
-
-    # Check if the 'Target' list contains correct groups
-    assert result["Target"] == ["A", "B", "Average"]
-
-    # Check if the number of samples is correct for each target group
-    assert result["Num_samples"] == [4, 4, 8]
-
-    # Check if the accuracy scores are within the expected range
-    for accuracy in result["Accuracy"]:
-        assert 0 <= accuracy <= 1
+    results = cross_validation.leave_one_group_out(x, y, groups, estimator, domain_adaptation=True)
+    check_leave_one_group_out_results(results)
