@@ -18,6 +18,7 @@ pandas
 pillow>=6.2.0
 PyTDC
 pytorch-lightning
+pyyaml>=6.0
 rdkit
 recommonmark
 scikit-learn
