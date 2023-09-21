@@ -15,8 +15,6 @@ from kale.pipeline.domain_adapter import (
     BaseMMDLike,
     CDANTrainer,
     DANNTrainer,
-    get_aggregated_metrics_from_dict,
-    get_metrics_from_parameter_dict,
     GradReverse,
     Method,
     set_requires_grad,
@@ -155,7 +153,12 @@ class BaseMMDLikeVideo(BaseMMDLike):
         # ok is abbreviation for (all) correct
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
+
+        mmd = mmd.double().mean()
         task_loss = loss_cls
+
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
@@ -302,6 +305,13 @@ class DANNTrainerVideo(DANNTrainer):
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
+
+        dok = torch.cat((dok_src, dok_tgt)).double().mean()
+        dok_src = dok_src.double().mean()
+        dok_tgt = dok_tgt.double().mean()
+
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
         task_loss = loss_cls
 
@@ -324,14 +334,20 @@ class DANNTrainerVideo(DANNTrainer):
         else:
             loss = task_loss + self.lamb_da * adv_loss
 
-        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
-        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
+        # log_metrics = get_aggregated_metrics_from_dict(log_metrics)
+        # log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
         log_metrics["train_total_loss"] = loss
         log_metrics["train_adv_loss"] = adv_loss
         log_metrics["train_task_loss"] = task_loss
 
-        for key in log_metrics:
-            self.log(key, log_metrics[key])
+        # for key in log_metrics:
+        #     self.log(key, log_metrics[key])
+
+        self.log_dict(log_metrics, on_step=True, on_epoch=False)
+
+        # logging alpha and lambda when they exist (they exist for DANN and CDAN but not for DAN and JAN)
+        self.log("alpha", self.alpha, on_step=False, on_epoch=True) if hasattr(self, "alpha") else None
+        self.log("lambda", self.lamb_da, on_step=False, on_epoch=True) if hasattr(self, "lamb_da") else None
 
         return {"loss": loss}
 
@@ -447,9 +463,9 @@ class CDANTrainerVideo(CDANTrainer):
         if self.rgb and self.flow:  # For joint input
             loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
             loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
-            dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
-            dok_src = torch.cat((dok_src_rgb, dok_src_flow))
-            dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
+            dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow)).double().mean()
+            dok_src = torch.cat((dok_src_rgb, dok_src_flow)).double().mean()
+            dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow)).double().mean()
         else:
             if self.rgb:  # For rgb input
                 d_hat = d_hat_rgb
@@ -460,11 +476,16 @@ class CDANTrainerVideo(CDANTrainer):
 
             loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
             loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
-            dok = torch.cat((dok_src, dok_tgt))
+            dok = torch.cat((dok_src, dok_tgt)).double().mean()
+            dok_src = dok_src.double().mean()
+            dok_tgt = dok_tgt.double().mean()
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-        adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
+
+        adv_loss = loss_dmn_src + loss_dmn_tgt
         task_loss = loss_cls
 
         log_metrics = {
@@ -550,9 +571,9 @@ class WDGRLTrainerVideo(WDGRLTrainer):
             _, dok_tgt_flow = losses.cross_entropy_logits(d_t_hat_flow, torch.ones(batch_size))
 
         if self.rgb and self.flow:  # For joint input
-            dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
-            dok_src = torch.cat((dok_src_rgb, dok_src_flow))
-            dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
+            dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow)).double().mean()
+            dok_src = torch.cat((dok_src_rgb, dok_src_flow)).double().mean()
+            dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow)).double().mean()
             wasserstein_distance_rgb = d_hat_rgb.mean() - (1 + self._beta_ratio) * d_t_hat_rgb.mean()
             wasserstein_distance_flow = d_hat_flow.mean() - (1 + self._beta_ratio) * d_t_hat_flow.mean()
             wasserstein_distance = (wasserstein_distance_rgb + wasserstein_distance_flow) / 2
@@ -569,10 +590,15 @@ class WDGRLTrainerVideo(WDGRLTrainer):
                 dok_tgt = dok_tgt_flow
 
             wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
-            dok = torch.cat((dok_src, dok_tgt))
+            dok = torch.cat((dok_src, dok_tgt)).double().mean()
+            dok_src = dok_src.double().mean()
+            dok_tgt = dok_tgt.double().mean()
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
+
         adv_loss = wasserstein_distance
         task_loss = loss_cls
 
