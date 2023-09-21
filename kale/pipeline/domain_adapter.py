@@ -871,6 +871,7 @@ class WDGRLTrainerMod(WDGRLTrainer):
         self._k_critic = k_critic
         self._beta_ratio = beta_ratio
         self._gamma = gamma
+        self.automatic_optimization = False
 
     def critic_update_steps(self, batch):
         (x_s, y_s), (x_tu, _) = batch
@@ -894,66 +895,81 @@ class WDGRLTrainerMod(WDGRLTrainer):
             "log": log_metrics,
         }
 
-    def training_step(self, batch, batch_id, optimizer_idx):
+    # def training_step(self, batch, batch_id, optimizer_idx):
+    def training_step(self, batch, batch_id):
+        # optimizer_step is not used in the new version of PyTorch Lightning,
+        # so we need to implement staged optimizer in training_step.
+        # This may casue the implementation to be a little different from the old version.
+
         self._update_batch_epoch_factors(batch_id)
 
-        if optimizer_idx == 0:
-            return self.critic_update_steps(batch)
+        # Retrieve the critic and task optimizers
+        critic_opt, task_opt = self.optimizers()
+
+        # if optimizer_idx == 0:
+        #     return self.critic_update_steps(batch)
 
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
         if self.current_epoch < self._init_epochs:
             # init phase doesn't use few-shot learning
             # ad-hoc decision but makes models more comparable between each other
             loss = task_loss
+
+            # do not update critic
+            task_opt.step()
+            task_opt.zero_grad()
         else:
             loss = task_loss + self.lamb_da * adv_loss
 
-        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
-        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
+            critic_opt.step()
+            critic_opt.zero_grad()
+
+            # update discriminator opt every k_critic steps
+            if (batch_id + 1) % self._k_critic == 0:
+                task_opt.step()
+                task_opt.zero_grad()
+
+        # log_metrics = get_aggregated_metrics_from_dict(log_metrics)
+        # log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
         log_metrics["train_total_loss"] = loss
         log_metrics["train_task_loss"] = task_loss
 
-        for key in log_metrics:
-            self.log(key, log_metrics[key])
+        self.log_dict(log_metrics, on_step=True, on_epoch=False)
 
-        return {
-            "loss": loss,  # required, for backward pass
-            # "progress_bar": {"class_loss": task_loss},
-            # "log": log_metrics,
-        }
+        return loss  # required, for backward pass
 
     # Add on_tpu=False etc following https://github.com/PyTorchLightning/pytorch-lightning/issues/2934
     # to fix error for WDGRLMod: TypeError: optimizer_step() got an unexpected keyword argument 'on_tpu'
-    def optimizer_step(
-        self,
-        current_epoch,
-        batch_nb,
-        optimizer,
-        optimizer_i,
-        second_order_closure=None,
-        on_tpu=False,
-        using_native_amp=False,
-        using_lbfgs=False,
-    ):
-        if current_epoch < self._init_epochs:
-            # do not update critic
-            if optimizer_i == 0:
-                pass
-            if optimizer_i == 1:
-                optimizer.step()
-                optimizer.zero_grad()
-        else:
-            if optimizer_i == 0:
-                optimizer.step()
-                optimizer.zero_grad()
-
-            # update discriminator opt every k_critic steps
-            if optimizer_i == 1:
-                if (batch_nb + 1) % self._k_critic == 0:
-                    optimizer.step()
-                optimizer.zero_grad()
-
-        optimizer.step(closure=second_order_closure)
+    # def optimizer_step(
+    #     self,
+    #     current_epoch,
+    #     batch_nb,
+    #     optimizer,
+    #     # optimizer_i,
+    #     second_order_closure=None,
+    #     # on_tpu=False,
+    #     # using_native_amp=False,
+    #     # using_lbfgs=False,
+    # ):
+    #     if current_epoch < self._init_epochs:
+    #         # do not update critic
+    #         if optimizer_i == 0:
+    #             pass
+    #         if optimizer_i == 1:
+    #             optimizer.step()
+    #             optimizer.zero_grad()
+    #     else:
+    #         if optimizer_i == 0:
+    #             optimizer.step()
+    #             optimizer.zero_grad()
+    #
+    #         # update discriminator opt every k_critic steps
+    #         if optimizer_i == 1:
+    #             if (batch_nb + 1) % self._k_critic == 0:
+    #                 optimizer.step()
+    #             optimizer.zero_grad()
+    #
+    #     optimizer.step(closure=second_order_closure)
 
     def configure_optimizers(self):
         nets = [self.feat, self.classifier]
@@ -1006,7 +1022,8 @@ class FewShotDANNTrainer(BaseDANNLike):
         loss_cls_s, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         loss_cls_tl, ok_tl = losses.cross_entropy_logits(y_tl_hat, y_tl)
         _, ok_tu = losses.cross_entropy_logits(y_tu_hat, y_tu)
-        ok_tgt = torch.cat((ok_tl, ok_tu))
+        ok_tgt = torch.cat((ok_tl, ok_tu)).double().mean()
+        ok_src = ok_src.double().mean()
 
         if self.current_epoch < self._init_epochs:
             # init phase doesn't use few-shot learning
@@ -1025,10 +1042,14 @@ class FewShotDANNTrainer(BaseDANNLike):
 
         adv_loss = loss_dmn_src + loss_dmn_tgt
 
+        dok = torch.cat((dok_src, dok_tgt)).double().mean()
+        dok_src = dok_src.double().mean()
+        dok_tgt = dok_tgt.double().mean()
+
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
+            f"{split_name}_domain_acc": dok,
             f"{split_name}_source_domain_acc": dok_src,
             f"{split_name}_target_domain_acc": dok_tgt,
         }
