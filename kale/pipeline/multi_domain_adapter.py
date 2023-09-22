@@ -14,7 +14,7 @@ from torch.nn.functional import one_hot
 
 import kale.predict.losses as losses
 from kale.embed.image_cnn import _Bottleneck
-from kale.pipeline.domain_adapter import BaseAdaptTrainer, get_aggregated_metrics
+from kale.pipeline.domain_adapter import BaseAdaptTrainer
 
 
 def create_ms_adapt_trainer(method: str, dataset, feature_extractor, task_classifier, **train_params):
@@ -80,26 +80,26 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
     def compute_loss(self, batch, split_name="valid"):
         raise NotImplementedError("Loss needs to be defined.")
 
-    def on_validation_epoch_end(self, outputs):
-        metrics_to_log = (
-            "valid_loss",
-            "valid_source_acc",
-            "valid_target_acc",
-            "valid_domain_acc",
-        )
-        return self._validation_epoch_end(outputs, metrics_to_log)
-
-    def on_test_epoch_end(self, outputs):
-        metrics_at_test = (
-            "test_loss",
-            "test_source_acc",
-            "test_target_acc",
-            "test_domain_acc",
-        )
-        log_dict = get_aggregated_metrics(metrics_at_test, outputs)
-
-        for key in log_dict:
-            self.log(key, log_dict[key], prog_bar=True)
+    # def on_validation_epoch_end(self, outputs):
+    #     metrics_to_log = (
+    #         "valid_loss",
+    #         "valid_source_acc",
+    #         "valid_target_acc",
+    #         "valid_domain_acc",
+    #     )
+    #     return self._validation_epoch_end(outputs, metrics_to_log)
+    #
+    # def on_test_epoch_end(self, outputs):
+    #     metrics_at_test = (
+    #         "test_loss",
+    #         "test_source_acc",
+    #         "test_target_acc",
+    #         "test_domain_acc",
+    #     )
+    #     log_dict = get_aggregated_metrics(metrics_at_test, outputs)
+    #
+    #     for key in log_dict:
+    #         self.log(key, log_dict[key], prog_bar=True)
 
 
 class M3SDATrainer(BaseMultiSourceTrainer):
@@ -144,7 +144,10 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         else:
             ok_tgt = 0.0
 
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
         task_loss = cls_loss
+
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
@@ -223,7 +226,10 @@ class _DINTrainer(BaseMultiSourceTrainer):
         loss_cls, ok_src = losses.cross_entropy_logits(cls_output[src_idx], y[src_idx])
         _, ok_tgt = losses.cross_entropy_logits(cls_output[tgt_idx], y[tgt_idx])
 
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
         task_loss = loss_cls
+
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
@@ -310,7 +316,10 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         y_tgt_hat = self._get_avg_cls_output(phi_x[tgt_idx])
         _, ok_tgt = losses.cross_entropy_logits(y_tgt_hat, y[tgt_idx])
 
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
         task_loss = loss_cls
+
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
