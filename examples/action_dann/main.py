@@ -92,6 +92,7 @@ def main():
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
             # resume_from_checkpoint=last_checkpoint_file,
+            accelerator="gpu" if args.devices != 0 else "cpu",
             devices=args.devices,
             logger=tb_logger,  # logger,
             # weights_summary='full',
