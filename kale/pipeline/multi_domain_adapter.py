@@ -80,27 +80,6 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
     def compute_loss(self, batch, split_name="valid"):
         raise NotImplementedError("Loss needs to be defined.")
 
-    # def on_validation_epoch_end(self, outputs):
-    #     metrics_to_log = (
-    #         "valid_loss",
-    #         "valid_source_acc",
-    #         "valid_target_acc",
-    #         "valid_domain_acc",
-    #     )
-    #     return self._validation_epoch_end(outputs, metrics_to_log)
-    #
-    # def on_test_epoch_end(self, outputs):
-    #     metrics_at_test = (
-    #         "test_loss",
-    #         "test_source_acc",
-    #         "test_target_acc",
-    #         "test_domain_acc",
-    #     )
-    #     log_dict = get_aggregated_metrics(metrics_at_test, outputs)
-    #
-    #     for key in log_dict:
-    #         self.log(key, log_dict[key], prog_bar=True)
-
 
 class M3SDATrainer(BaseMultiSourceTrainer):
     """Moment matching for multi-source domain adaptation (M3SDA).
