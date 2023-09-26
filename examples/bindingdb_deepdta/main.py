@@ -32,7 +32,7 @@ def main():
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
     cfg.freeze()
-    tb_logger = TensorBoardLogger("tb_logs", name=cfg.DATASET.NAME)
+    tb_logger = TensorBoardLogger("outputs", name=cfg.DATASET.NAME)
 
     # ---- set dataset ----
     train_dataset = BindingDBDataset(name=cfg.DATASET.NAME, split="train", path=cfg.DATASET.PATH)

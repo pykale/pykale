@@ -12,4 +12,4 @@ DAN:
 MODEL:
   METHOD: 'r3d_18'
 OUTPUT:
-  OUT_DIR: 'logs/EPIC-d12d2-dann/'
+  OUT_DIR: 'outputs/EPIC-d12d2-dann/'

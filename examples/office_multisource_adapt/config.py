@@ -67,7 +67,7 @@ _C.OUTPUT = CN()
 _C.OUTPUT.OUT_DIR = "./outputs"  # output_dir
 _C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
 _C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
-_C.OUTPUT.OUT_DIR = os.path.join("logs", "Tgt" + _C.DATASET.TARGET)
+_C.OUTPUT.OUT_DIR = os.path.join("outputs", "Tgt" + _C.DATASET.TARGET)
 
 
 def get_cfg_defaults():
