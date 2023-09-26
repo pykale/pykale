@@ -1,5 +1,5 @@
 DATASET:
-  ROOT: 'examples/protonet/configs/omniglot_resnet18_5way5shot.yaml'
+  ROOT: '/home/wenrui/Projects/pykale/examples/protonet/data/omniglot'
 MODEL:
   BACKBONE: 'resnet18'
   PRETRAIN_WEIGHTS: None
