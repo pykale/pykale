@@ -8,6 +8,17 @@ from torch.nn import functional as F
 from torchvision import models
 
 
+class Flatten(nn.Module):
+    """Flatten layer
+    This module is to replace the last fc layer of pre-trained models with
+    flatten layer.
+    """
+    def __init__(self):
+        super(Flatten, self).__init__()
+
+    def forward(self, x):
+        return x.view(x.size(0), -1)
+
 # From FeatureExtractorDigits in adalib
 class SmallCNNFeature(nn.Module):
     """
