@@ -1,5 +1,5 @@
 DATASET:
-  ROOT: 'Data/omniglot/'
+  ROOT: '/home/wenrui/Projects/Demos/Data/omniglot'
 MODEL:
   BACKBONE: 'resnet18'
   PRETRAIN_WEIGHTS: None
@@ -15,7 +15,7 @@ VAL:
   K_SHOTS: 5
   K_QUERIES: 15
 OUTPUT:
-  LOG_DIR: 'ProtoNet/logs'
+  LOG_DIR: 'examples/protonet/logs'
   WEIGHT_DIR: 'weights'
   SAVE_FREQ: 1
   SAVE_TOP_K: 2

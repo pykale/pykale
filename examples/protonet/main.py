@@ -6,22 +6,23 @@ Reference:
     Prototypical networks for few-shot learning. 
     Advances in neural information processing systems, 30.
 """
-
+import sys
 import argparse
 import os
 from datetime import datetime
-
 import pytorch_lightning as pl
 from config import get_cfg_defaults
-from n_way_k_shot import NWayKShotDataset
+from kale.loaddata.n_way_k_shot import NWayKShotDataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from train import ProtoNetTrainer
+from kale.pipeline.protonet import ProtoNetTrainer
+from kale.embed.image_cnn import *
+from torchvision.models import *
 
 
 def get_parser():
     parser = argparse.ArgumentParser(description="ProtoNet")
-    parser.add_argument("--cfg", default="ProtoNet/config.yaml", type=str)
+    parser.add_argument("--cfg", default="examples/protonet/config.yaml", type=str)
     parser.add_argument("--gpus", default=1, type=int)
     return parser
 
@@ -41,6 +42,8 @@ def main():
     net = eval(
             f"{cfg.MODEL.BACKBONE}(weights={cfg.MODEL.PRETRAIN_WEIGHTS})"
         )
+    if cfg.MODEL.BACKBONE.startswith("resnet"):
+        net.fc = Flatten()
     model = ProtoNetTrainer(cfg=cfg, net=net)
 
     # ---- set data loader ----

@@ -52,7 +52,7 @@ class ProtoNetTrainer(pl.LightningModule):
             device=cfg.DEVICE
         )
 
-    def forward(self, images, k_shots, n_ways):
+    def forward(self, images, k_shots, n_ways) -> torch.Tensor:
         images = images.to(self.cfg.DEVICE)
         supports = images[0][0:k_shots]
         queries = images[0][k_shots:]
@@ -63,7 +63,7 @@ class ProtoNetTrainer(pl.LightningModule):
         feature_que = self.model(queries)
         return feature_sup, feature_que
 
-    def compute_loss(self, feature_sup, feature_que, mode="train"):
+    def compute_loss(self, feature_sup, feature_que, mode="train") -> Any:
         """
         Compute loss and accuracy. Here we use the same loss function for both
         training and validation, which is Euclidean distance related. 
@@ -135,7 +135,7 @@ class ProtoNetTrainer(pl.LightningModule):
                       prog_bar=True,
                       logger=True)
 
-    def configure_optimizers(self):
+    def configure_optimizers(self) -> torch.optim.Optimizer:
         """
         Configure optimizer for training. Can be modified to support different
         optimizers from torch.optim.
@@ -146,7 +146,7 @@ class ProtoNetTrainer(pl.LightningModule):
                         )
         return optimizer
 
-    def get_progress_bar_dict(self):
+    def get_progress_bar_dict(self) -> dict:
         """Remove v_num from the progress bar."""
         items = super().get_progress_bar_dict()
         items.pop("v_num", None)
