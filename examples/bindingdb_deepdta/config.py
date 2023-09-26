@@ -1,3 +1,7 @@
+"""
+Default configurations for the BindingDB datasets using DeepDTA.
+"""
+
 from yacs.config import CfgNode as CN
 
 # -----------------------------------------------------------------------------

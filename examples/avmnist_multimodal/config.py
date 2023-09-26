@@ -26,7 +26,6 @@ _C.DATASET.UNSQUEEZE_CHANNEL = False
 _C.DATASET.NORMALIZE_IMAGE = False
 _C.DATASET.NORMALIZE_AUDIO = False
 
-
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
@@ -58,7 +57,6 @@ _C.MODEL.LOW_RANK_TENSOR_IN_DIM = [_C.MODEL.CHANNELS * 8, _C.MODEL.CHANNELS * 32
 _C.MODEL.LOW_RANK_TENSOR_OUT_DIM = _C.MODEL.CHANNELS * 20
 _C.MODEL.LOW_RANK_TENSOR_RANK = 40
 
-
 # -----------------------------------------------------------------------------
 # Comet Logger (optional) - https://www.comet.ml/site/
 # -----------------------------------------------------------------------------
@@ -67,7 +65,6 @@ _C.COMET.ENABLE = False  # Set True to enable Comet logging (requires an API key
 _C.COMET.API_KEY = ""  # Your Comet API key
 _C.COMET.PROJECT_NAME = "Multimodal Neural Network"
 _C.COMET.EXPERIMENT_NAME = "AVMNIST_MMNN"
-
 
 # ---------------------------------------------------------------------------- #
 # Misc options
