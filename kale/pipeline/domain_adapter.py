@@ -47,37 +47,6 @@ def set_requires_grad(model, requires_grad=True):
         param.requires_grad = requires_grad
 
 
-# def get_aggregated_metrics(metric_name_list, metric_outputs):
-#     """Get a dictionary of the mean metric values (to log) from metric names and their values"""
-#     metric_dict = {}
-#     for metric_name in metric_name_list:
-#         metric_dim = len(metric_outputs[0][metric_name].shape)
-#         if metric_dim == 0:
-#             metric_value = torch.stack([x[metric_name] for x in metric_outputs]).mean()
-#         else:
-#             metric_value = torch.cat([x[metric_name] for x in metric_outputs]).double().mean()
-#         metric_dict[metric_name] = metric_value.item()
-#     return metric_dict
-
-
-# def get_aggregated_metrics_from_dict(input_metric_dict):
-#     """Get a dictionary of the mean metric values (to log) from a dictionary of metric values"""
-#     metric_dict = {}
-#     for metric_name, metric_value in input_metric_dict.items():
-#         metric_dim = len(metric_value.shape)
-#         if metric_dim == 0:
-#             metric_dict[metric_name] = metric_value
-#         else:
-#             metric_dict[metric_name] = metric_value.double().mean()
-#     return metric_dict
-
-
-# # multi-GPUs: mandatory to convert float values into tensors
-# def get_metrics_from_parameter_dict(parameter_dict, device):
-#     """Get a key-value pair from the hyperparameter dictionary"""
-#     return {k: torch.tensor(v, device=device) for k, v in parameter_dict.items()}
-
-
 class Method(Enum):
     """
     Lists the available methods.
@@ -716,8 +685,6 @@ class WDGRLTrainer(BaseDANNLike):
         else:
             loss = task_loss + self.lamb_da * adv_loss
 
-        # log_metrics = get_aggregated_metrics_from_dict(log_metrics)
-        # log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
         log_metrics["train_total_loss"] = loss
         log_metrics["train_adv_loss"] = adv_loss
         log_metrics["train_task_loss"] = task_loss
@@ -812,9 +779,6 @@ class WDGRLTrainerMod(WDGRLTrainer):
         # Retrieve the critic and task optimizers
         critic_opt, task_opt = self.optimizers()
 
-        # if optimizer_idx == 0:
-        #     return self.critic_update_steps(batch)
-
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
         if self.current_epoch < self._init_epochs:
             # init phase doesn't use few-shot learning
@@ -835,8 +799,6 @@ class WDGRLTrainerMod(WDGRLTrainer):
                 task_opt.step()
                 task_opt.zero_grad()
 
-        # log_metrics = get_aggregated_metrics_from_dict(log_metrics)
-        # log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
         log_metrics["train_total_loss"] = loss
         log_metrics["train_task_loss"] = task_loss
 
@@ -844,6 +806,8 @@ class WDGRLTrainerMod(WDGRLTrainer):
 
         return loss  # required, for backward pass
 
+    # PyTorch Lightning 2.0+ has a different optimizer_step, so we implement this staged optimization in training_step
+    # above. We will retain optimizer_step until we have assessed WDGRLTrainerMod, after which it will be removed.
     # Add on_tpu=False etc following https://github.com/PyTorchLightning/pytorch-lightning/issues/2934
     # to fix error for WDGRLMod: TypeError: optimizer_step() got an unexpected keyword argument 'on_tpu'
     # def optimizer_step(
