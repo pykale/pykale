@@ -21,7 +21,6 @@ def leave_one_group_out(x, y, groups, estimator, domain_adaptation=False) -> dic
 
     Returns:
         dict: A dictionary containing results for each target group with 3 keys.
-
             - 'Target': List of unique target groups or classes.
             - 'Num_samples': List containing number of samples in each target group.
             - 'Accuracy': List of accuracy scores for each target group.
