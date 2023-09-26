@@ -47,37 +47,6 @@ def set_requires_grad(model, requires_grad=True):
         param.requires_grad = requires_grad
 
 
-def get_aggregated_metrics(metric_name_list, metric_outputs):
-    """Get a dictionary of the mean metric values (to log) from metric names and their values"""
-    metric_dict = {}
-    for metric_name in metric_name_list:
-        metric_dim = len(metric_outputs[0][metric_name].shape)
-        if metric_dim == 0:
-            metric_value = torch.stack([x[metric_name] for x in metric_outputs]).mean()
-        else:
-            metric_value = torch.cat([x[metric_name] for x in metric_outputs]).double().mean()
-        metric_dict[metric_name] = metric_value.item()
-    return metric_dict
-
-
-def get_aggregated_metrics_from_dict(input_metric_dict):
-    """Get a dictionary of the mean metric values (to log) from a dictionary of metric values"""
-    metric_dict = {}
-    for metric_name, metric_value in input_metric_dict.items():
-        metric_dim = len(metric_value.shape)
-        if metric_dim == 0:
-            metric_dict[metric_name] = metric_value
-        else:
-            metric_dict[metric_name] = metric_value.double().mean()
-    return metric_dict
-
-
-# multi-GPUs: mandatory to convert float values into tensors
-def get_metrics_from_parameter_dict(parameter_dict, device):
-    """Get a key-value pair from the hyperparameter dictionary"""
-    return {k: torch.tensor(v, device=device) for k, v in parameter_dict.items()}
-
-
 class Method(Enum):
     """
     Lists the available methods.
@@ -297,15 +266,6 @@ class BaseAdaptTrainer(pl.LightningModule):
         if self._adapt_lambda:
             self.lamb_da = self._init_lambda * self._grow_fact
 
-    def get_parameters_watch_list(self):
-        """
-        Update this list for parameters to watch while training (ie log with MLFlow)
-        """
-        return {
-            "lambda": self.lamb_da,
-            "last_epoch": self.current_epoch,
-        }
-
     def forward(self, x):
         raise NotImplementedError("Forward pass needs to be defined.")
 
@@ -353,20 +313,17 @@ class BaseAdaptTrainer(pl.LightningModule):
         else:
             loss = task_loss + self.lamb_da * adv_loss
 
-        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
-        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
         log_metrics["train_total_loss"] = loss
         log_metrics["train_adv_loss"] = adv_loss
         log_metrics["train_task_loss"] = task_loss
 
-        for key in log_metrics:
-            self.log(key, log_metrics[key])
+        self.log_dict(log_metrics, on_step=True, on_epoch=False)
 
-        return {
-            "loss": loss,  # required, for backward pass
-            # "progress_bar": {"class_loss": task_loss},
-            # "log": log_metrics,
-        }
+        # logging alpha and lambda when they exist (they exist for DANN and CDAN but not for DAN and JAN)
+        self.log("alpha", self.alpha, on_step=False, on_epoch=True) if hasattr(self, "alpha") else None
+        self.log("lambda", self.lamb_da, on_step=False, on_epoch=True) if hasattr(self, "lamb_da") else None
+
+        return loss  # required, for backward pass
 
     def validation_step(self, batch, batch_nb):
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="valid")
@@ -374,52 +331,15 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_metrics["valid_loss"] = loss
         log_metrics["valid_task_loss"] = task_loss
         log_metrics["valid_adv_loss"] = adv_loss
-        return log_metrics
-
-    def _validation_epoch_end(self, outputs, metrics_at_valid):
-        log_dict = get_aggregated_metrics(metrics_at_valid, outputs)
-        device = outputs[0].get("valid_loss").device
-        log_dict.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), device))
-
-        for key in log_dict:
-            self.log(key, log_dict[key], prog_bar=True)
-
-        # return {
-        #     "valid_loss": avg_loss,  # for callbacks (eg early stopping)
-        #     "progress_bar": {"valid_loss": avg_loss},
-        #     "log": log_dict,
-        # }
-
-    def validation_epoch_end(self, outputs):
-        metrics_to_log = (
-            "valid_loss",
-            "valid_source_acc",
-            "valid_target_acc",
-        )
-        return self._validation_epoch_end(outputs, metrics_to_log)
+        self.log_dict(log_metrics, on_step=False, on_epoch=True)
 
     def test_step(self, batch, batch_nb):
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="test")
         loss = task_loss + self.lamb_da * adv_loss
         log_metrics["test_loss"] = loss
-        return log_metrics
-
-    def test_epoch_end(self, outputs):
-        metrics_at_test = (
-            "test_loss",
-            "test_source_acc",
-            "test_target_acc",
-        )
-        log_dict = get_aggregated_metrics(metrics_at_test, outputs)
-
-        for key in log_dict:
-            self.log(key, log_dict[key], prog_bar=True)
-
-        # return {
-        #     "avg_test_loss": log_dict["test_loss"],
-        #     "progress_bar": log_dict,
-        #     "log": log_dict,
-        # }
+        log_metrics["test_task_loss"] = task_loss
+        log_metrics["test_adv_loss"] = adv_loss
+        self.log_dict(log_metrics, on_step=False, on_epoch=True)
 
     def _configure_optimizer(self, parameters):
         if self._optimizer_params is None:
@@ -480,14 +400,6 @@ class BaseDANNLike(BaseAdaptTrainer):
 
         self.domain_classifier = critic
 
-    def get_parameters_watch_list(self):
-        """
-        Update this list for parameters to watch while training (ie log with MLFlow)
-        """
-        param_list = super().get_parameters_watch_list()
-        param_list.update({"alpha": self.alpha, "entropy_reg": self._entropy_reg})
-        return param_list
-
     def _update_batch_epoch_factors(self, batch_id):
         super()._update_batch_epoch_factors(batch_id)
         if self._adapt_reg:
@@ -504,51 +416,27 @@ class BaseDANNLike(BaseAdaptTrainer):
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
 
         loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
         loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
+
+        dok = torch.cat((dok_src, dok_tgt)).double().mean()
+        dok_src = dok_src.double().mean()
+        dok_tgt = dok_tgt.double().mean()
+
         adv_loss = loss_dmn_src + loss_dmn_tgt
         task_loss = loss_cls
 
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
+            f"{split_name}_domain_acc": dok,
             f"{split_name}_source_domain_acc": dok_src,
             f"{split_name}_target_domain_acc": dok_tgt,
         }
         return task_loss, adv_loss, log_metrics
-
-    def validation_epoch_end(self, outputs):
-        metrics_to_log = (
-            "valid_loss",
-            "valid_task_loss",
-            "valid_adv_loss",
-            "valid_source_acc",
-            "valid_target_acc",
-            "valid_source_domain_acc",
-            "valid_target_domain_acc",
-            "valid_domain_acc",
-        )
-        return self._validation_epoch_end(outputs, metrics_to_log)
-
-    def test_epoch_end(self, outputs):
-        metrics_at_test = (
-            "test_loss",
-            "test_source_acc",
-            "test_target_acc",
-            "test_domain_acc",
-        )
-        log_dict = get_aggregated_metrics(metrics_at_test, outputs)
-
-        for key in log_dict:
-            self.log(key, log_dict[key], prog_bar=True)
-
-        # return {
-        #     "avg_test_loss": log_dict["test_loss"],
-        #     "progress_bar": log_dict,
-        #     "log": log_dict,
-        # }
 
 
 class DANNTrainer(BaseDANNLike):
@@ -652,6 +540,8 @@ class CDANTrainer(BaseDANNLike):
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
 
         if self.entropy:
             e_s = self._compute_entropy_weights(y_hat)
@@ -665,13 +555,17 @@ class CDANTrainer(BaseDANNLike):
         loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size), source_weight)
         loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)), target_weight)
 
+        dok = torch.cat((dok_src, dok_tgt)).double().mean()
+        dok_src = dok_src.double().mean()
+        dok_tgt = dok_tgt.double().mean()
+
         adv_loss = loss_dmn_src + loss_dmn_tgt
         task_loss = loss_cls
 
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
+            f"{split_name}_domain_acc": dok,
             f"{split_name}_source_domain_acc": dok_src,
             f"{split_name}_target_domain_acc": dok_tgt,
         }
@@ -726,9 +620,15 @@ class WDGRLTrainer(BaseDANNLike):
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
 
         _, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
         _, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)))
+
+        dok = torch.cat((dok_src, dok_tgt)).double().mean()
+        dok_src = dok_src.double().mean()
+        dok_tgt = dok_tgt.double().mean()
 
         wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
         adv_loss = wasserstein_distance
@@ -737,7 +637,7 @@ class WDGRLTrainer(BaseDANNLike):
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
+            f"{split_name}_domain_acc": dok,
             f"{split_name}_source_domain_acc": dok_src,
             f"{split_name}_target_domain_acc": dok_tgt,
             f"{split_name}_wasserstein_dist": wasserstein_distance,
@@ -785,19 +685,17 @@ class WDGRLTrainer(BaseDANNLike):
         else:
             loss = task_loss + self.lamb_da * adv_loss
 
-        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
-        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
         log_metrics["train_total_loss"] = loss
+        log_metrics["train_adv_loss"] = adv_loss
         log_metrics["train_task_loss"] = task_loss
 
-        for key in log_metrics:
-            self.log(key, log_metrics[key])
+        self.log_dict(log_metrics, on_step=True, on_epoch=False)
 
-        return {
-            "loss": loss,  # required, for backward pass
-            # "progress_bar": {"class_loss": task_loss},
-            # "log": log_metrics,
-        }
+        # logging alpha and lambda when they exist (they exist for DANN and CDAN but not for DAN and JAN)
+        self.log("alpha", self.alpha, on_step=False, on_epoch=True) if hasattr(self, "alpha") else None
+        self.log("lambda", self.lamb_da, on_step=False, on_epoch=True) if hasattr(self, "lamb_da") else None
+
+        return loss  # required, for backward pass
 
     def configure_optimizers(self):
         nets = [self.feat, self.classifier]
@@ -846,6 +744,7 @@ class WDGRLTrainerMod(WDGRLTrainer):
         self._k_critic = k_critic
         self._beta_ratio = beta_ratio
         self._gamma = gamma
+        self.automatic_optimization = False
 
     def critic_update_steps(self, batch):
         (x_s, y_s), (x_tu, _) = batch
@@ -869,66 +768,78 @@ class WDGRLTrainerMod(WDGRLTrainer):
             "log": log_metrics,
         }
 
-    def training_step(self, batch, batch_id, optimizer_idx):
+    # def training_step(self, batch, batch_id, optimizer_idx):
+    def training_step(self, batch, batch_id):
+        # optimizer_step is not used in the new version of PyTorch Lightning,
+        # so we need to implement staged optimizer in training_step.
+        # This may casue the implementation to be a little different from the old version.
+
         self._update_batch_epoch_factors(batch_id)
 
-        if optimizer_idx == 0:
-            return self.critic_update_steps(batch)
+        # Retrieve the critic and task optimizers
+        critic_opt, task_opt = self.optimizers()
 
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
         if self.current_epoch < self._init_epochs:
             # init phase doesn't use few-shot learning
             # ad-hoc decision but makes models more comparable between each other
             loss = task_loss
+
+            # do not update critic
+            task_opt.step()
+            task_opt.zero_grad()
         else:
             loss = task_loss + self.lamb_da * adv_loss
 
-        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
-        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
+            critic_opt.step()
+            critic_opt.zero_grad()
+
+            # update discriminator opt every k_critic steps
+            if (batch_id + 1) % self._k_critic == 0:
+                task_opt.step()
+                task_opt.zero_grad()
+
         log_metrics["train_total_loss"] = loss
         log_metrics["train_task_loss"] = task_loss
 
-        for key in log_metrics:
-            self.log(key, log_metrics[key])
+        self.log_dict(log_metrics, on_step=True, on_epoch=False)
 
-        return {
-            "loss": loss,  # required, for backward pass
-            # "progress_bar": {"class_loss": task_loss},
-            # "log": log_metrics,
-        }
+        return loss  # required, for backward pass
 
+    # PyTorch Lightning 2.0+ has a different optimizer_step, so we implement this staged optimization in training_step
+    # above. We will retain optimizer_step until we have assessed WDGRLTrainerMod, after which it will be removed.
     # Add on_tpu=False etc following https://github.com/PyTorchLightning/pytorch-lightning/issues/2934
     # to fix error for WDGRLMod: TypeError: optimizer_step() got an unexpected keyword argument 'on_tpu'
-    def optimizer_step(
-        self,
-        current_epoch,
-        batch_nb,
-        optimizer,
-        optimizer_i,
-        second_order_closure=None,
-        on_tpu=False,
-        using_native_amp=False,
-        using_lbfgs=False,
-    ):
-        if current_epoch < self._init_epochs:
-            # do not update critic
-            if optimizer_i == 0:
-                pass
-            if optimizer_i == 1:
-                optimizer.step()
-                optimizer.zero_grad()
-        else:
-            if optimizer_i == 0:
-                optimizer.step()
-                optimizer.zero_grad()
-
-            # update discriminator opt every k_critic steps
-            if optimizer_i == 1:
-                if (batch_nb + 1) % self._k_critic == 0:
-                    optimizer.step()
-                optimizer.zero_grad()
-
-        optimizer.step(closure=second_order_closure)
+    # def optimizer_step(
+    #     self,
+    #     current_epoch,
+    #     batch_nb,
+    #     optimizer,
+    #     # optimizer_i,
+    #     second_order_closure=None,
+    #     # on_tpu=False,
+    #     # using_native_amp=False,
+    #     # using_lbfgs=False,
+    # ):
+    #     if current_epoch < self._init_epochs:
+    #         # do not update critic
+    #         if optimizer_i == 0:
+    #             pass
+    #         if optimizer_i == 1:
+    #             optimizer.step()
+    #             optimizer.zero_grad()
+    #     else:
+    #         if optimizer_i == 0:
+    #             optimizer.step()
+    #             optimizer.zero_grad()
+    #
+    #         # update discriminator opt every k_critic steps
+    #         if optimizer_i == 1:
+    #             if (batch_nb + 1) % self._k_critic == 0:
+    #                 optimizer.step()
+    #             optimizer.zero_grad()
+    #
+    #     optimizer.step(closure=second_order_closure)
 
     def configure_optimizers(self):
         nets = [self.feat, self.classifier]
@@ -981,7 +892,8 @@ class FewShotDANNTrainer(BaseDANNLike):
         loss_cls_s, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         loss_cls_tl, ok_tl = losses.cross_entropy_logits(y_tl_hat, y_tl)
         _, ok_tu = losses.cross_entropy_logits(y_tu_hat, y_tu)
-        ok_tgt = torch.cat((ok_tl, ok_tu))
+        ok_tgt = torch.cat((ok_tl, ok_tu)).double().mean()
+        ok_src = ok_src.double().mean()
 
         if self.current_epoch < self._init_epochs:
             # init phase doesn't use few-shot learning
@@ -1000,10 +912,14 @@ class FewShotDANNTrainer(BaseDANNLike):
 
         adv_loss = loss_dmn_src + loss_dmn_tgt
 
+        dok = torch.cat((dok_src, dok_tgt)).double().mean()
+        dok_src = dok_src.double().mean()
+        dok_tgt = dok_tgt.double().mean()
+
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
+            f"{split_name}_domain_acc": dok,
             f"{split_name}_source_domain_acc": dok_src,
             f"{split_name}_target_domain_acc": dok_tgt,
         }
@@ -1041,6 +957,8 @@ class BaseMMDLike(BaseAdaptTrainer):
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        ok_src = ok_src.double().mean()
+        ok_tgt = ok_tgt.double().mean()
 
         mmd = self._compute_mmd(phi_s, phi_t, y_hat, y_t_hat)
         task_loss = loss_cls
@@ -1051,33 +969,6 @@ class BaseMMDLike(BaseAdaptTrainer):
             f"{split_name}_domain_acc": mmd,
         }
         return task_loss, mmd, log_metrics
-
-    def validation_epoch_end(self, outputs):
-        metrics_to_log = (
-            "valid_loss",
-            "valid_source_acc",
-            "valid_target_acc",
-            "valid_domain_acc",
-        )
-        return self._validation_epoch_end(outputs, metrics_to_log)
-
-    def test_epoch_end(self, outputs):
-        metrics_at_test = (
-            "test_loss",
-            "test_source_acc",
-            "test_target_acc",
-            "test_domain_acc",
-        )
-        log_dict = get_aggregated_metrics(metrics_at_test, outputs)
-
-        for key in log_dict:
-            self.log(key, log_dict[key], prog_bar=True)
-
-        # return {
-        #     "avg_test_loss": log_dict["test_loss"],
-        #     "progress_bar": log_dict,
-        #     "log": log_dict,
-        # }
 
 
 class DANTrainer(BaseMMDLike):

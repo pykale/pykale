@@ -68,7 +68,7 @@ def get_model(cfg, dataset, num_channels):
     if cfg.DATASET.NAME.upper() == "DIGITS":
         feature_network = SmallCNNFeature(num_channels)
     else:
-        feature_network = ResNet18Feature(num_channels)
+        feature_network = ResNet18Feature()
 
     if cfg.DAN.METHOD == "MFSAN":
         feature_network = torch.nn.Sequential(*(list(feature_network.children())[:-1]))

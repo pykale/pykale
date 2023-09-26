@@ -16,9 +16,9 @@ on [office-caltech dataset](https://github.com/pykale/data/tree/main/images/offi
   * [Multiple Feature Spaces Adaptation Network (MFSAN)](https://ojs.aaai.org/index.php/AAAI/article/view/4551) [[2](#4-references)][[Code](https://github.com/pykale/pykale/blob/main/kale/pipeline/multi_domain_adapter.py#L245)]
 * Example: Caltech, DSLR, and Webcam (three sources) to Amazon (target) using M3SDA and MFSAN
 
-`python main.py --cfg configs/Office2A-M3SDA.yaml --gpus 1`
+`python main.py --cfg configs/Office2A-M3SDA.yaml --devices 1`
 
-`python main.py --cfg configs/Office2A-MFSAN.yaml --gpus 1`
+`python main.py --cfg configs/Office2A-MFSAN.yaml --devices 1`
 
 ### 3. Related `kale` API
 
