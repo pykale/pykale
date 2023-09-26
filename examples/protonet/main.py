@@ -6,7 +6,6 @@ Reference:
     Prototypical networks for few-shot learning. 
     Advances in neural information processing systems, 30.
 """
-import sys
 import argparse
 import os
 from datetime import datetime
@@ -62,7 +61,7 @@ def main():
         batch_size=cfg.TRAIN.N_WAYS,
         shuffle=True,
         num_workers=30,
-        drop_last=True,
+        drop_last=True, # must be True
     )
     val_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
@@ -73,9 +72,8 @@ def main():
     )
     val_dataloader = DataLoader(
         val_set, batch_size=cfg.VAL.N_WAYS,
-        shuffle=True,
         num_workers=30,
-        drop_last=True
+        drop_last=True # must be True
     )
 
     # ---- set logger ----

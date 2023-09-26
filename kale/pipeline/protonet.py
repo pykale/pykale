@@ -146,8 +146,8 @@ class ProtoNetTrainer(pl.LightningModule):
                         )
         return optimizer
 
-    def get_progress_bar_dict(self) -> dict:
+    def get_metrics(self, trainer, model) -> dict:
         """Remove v_num from the progress bar."""
-        items = super().get_progress_bar_dict()
+        items = super().get_metrics(trainer, model)
         items.pop("v_num", None)
         return items
