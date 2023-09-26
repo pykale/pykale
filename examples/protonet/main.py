@@ -22,7 +22,7 @@ from torchvision.models import *
 def get_parser():
     parser = argparse.ArgumentParser(description="ProtoNet")
     parser.add_argument("--cfg",
-                        default="examples/protonet/config.yaml",
+                        default="examples/protonet/configs/omniglot_resnet18_5way5shot.yaml",
                         type=str)
     parser.add_argument("--gpus",
                         default=1,
