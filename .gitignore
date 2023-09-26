@@ -40,7 +40,6 @@ docs/source/backup
 # Testing
 .coverage
 cov*.xml
-test_data
 tests/test_data
 tests/loaddata/tests
 tests/pipeline/tests
