@@ -1,5 +1,5 @@
 DATASET:
-  ROOT: 'examples/protonet/data/omniglot'
+  ROOT: 'examples/protonet/configs/omniglot_resnet18_5way5shot.yaml'
 MODEL:
   BACKBONE: 'resnet18'
   PRETRAIN_WEIGHTS: None
@@ -12,7 +12,7 @@ TRAIN:
   K_QUERIES: 15
 VAL:
   N_WAYS: 5
-  K_SHOTS: 5
+  K_SHOTS: 1
   K_QUERIES: 15
 OUTPUT:
   LOG_DIR: 'examples/protonet/logs'
