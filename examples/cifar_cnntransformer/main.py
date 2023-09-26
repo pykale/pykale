@@ -24,7 +24,7 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="CNN Transformer on CIFAR10 Dataset")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument(
-        "--gpus",
+        "--devices",
         default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
@@ -73,8 +73,8 @@ def main():
     trainer = pl.Trainer(
         default_root_dir=cfg.OUTPUT.OUT_DIR,
         max_epochs=cfg.SOLVER.MAX_EPOCHS,
-        accelerator="gpu" if args.gpus != 0 else "cpu",
-        devices=args.gpus,
+        accelerator="gpu" if args.devices != 0 else "cpu",
+        devices=args.devices,
         logger=logger,
         callbacks=[progress_bar, lr_monitor],
         strategy="ddp",  # comment this line on Windows, because Windows does not support CCL backend
