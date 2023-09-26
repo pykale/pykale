@@ -104,7 +104,7 @@ _C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "Average"  # "None", "All", "Average"
 _C.OUTPUT = CN()
 
 
-_C.OUTPUT.SAVE_FOLDER = "./outputs/"
+_C.OUTPUT.OUT_DIR = "./outputs/"
 _C.OUTPUT.SAVE_PREPEND = "example"
 _C.OUTPUT.SAVE_FIGURES = True  # True to save, False to visualize in matplotlib
 

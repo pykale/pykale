@@ -56,8 +56,8 @@ def main():
     cfg.freeze()
 
     # ---- setup output ----
-    os.makedirs(cfg.OUTPUT.SAVE_FOLDER, exist_ok=True)
-    logger = logging.construct_logger("q_bin", cfg.OUTPUT.SAVE_FOLDER, log_to_terminal=True)
+    os.makedirs(cfg.OUTPUT.OUT_DIR, exist_ok=True)
+    logger = logging.construct_logger("q_bin", cfg.OUTPUT.OUT_DIR, log_to_terminal=True)
     logger.info(cfg)
 
     # ---- setup dataset ----
@@ -106,7 +106,7 @@ def main():
 
     for num_bins in cfg.PIPELINE.NUM_QUANTILE_BINS:
         # create the folder to save to
-        save_folder = os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, str(num_bins) + "Bins")
+        save_folder = os.path.join(cfg.OUTPUT.OUT_DIR, dataset, str(num_bins) + "Bins")
 
         # ---- This is the Fitting Phase ----
         if fit:
@@ -209,9 +209,7 @@ def main():
                         )
 
                         all_fitted_save_paths = [
-                            os.path.join(
-                                cfg.OUTPUT.SAVE_FOLDER, dataset, str(x_bins) + "Bins", "fitted_quantile_binning"
-                            )
+                            os.path.join(cfg.OUTPUT.OUT_DIR, dataset, str(x_bins) + "Bins", "fitted_quantile_binning")
                             for x_bins in cfg.PIPELINE.NUM_QUANTILE_BINS
                         ]
 
@@ -219,7 +217,7 @@ def main():
                         color = (
                             cmaps[0] if c_er_pair[0] == "S-MHA" else cmaps[1] if c_er_pair[0] == "E-MHA" else cmaps[2]
                         )
-                        save_folder_comparison = os.path.join(cfg.OUTPUT.SAVE_FOLDER, dataset, "ComparisonBins")
+                        save_folder_comparison = os.path.join(cfg.OUTPUT.OUT_DIR, dataset, "ComparisonBins")
                         os.makedirs(save_folder_comparison, exist_ok=True)
 
                         logger.info("Comparison Q figures for: %s and %s ", c_model, c_er_pair)

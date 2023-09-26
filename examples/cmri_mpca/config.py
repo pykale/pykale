@@ -59,7 +59,7 @@ _C.PIPELINE.CLASSIFIER = "linear_svc"  # ["svc", "linear_svc", "lr"]
 # Misc options
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CN()
-_C.OUTPUT.ROOT = "./outputs"  # output_dir
+_C.OUTPUT.OUT_DIR = "./outputs"  # output_dir
 _C.OUTPUT.SAVE_FIG = True
 
 _C.SAVE_FIG_KWARGS = CN()

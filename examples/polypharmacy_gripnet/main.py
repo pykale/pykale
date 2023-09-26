@@ -59,7 +59,7 @@ def main():
     print(model)
 
     trainer = pl.Trainer(
-        default_root_dir=cfg.OUTPUT_DIR,
+        default_root_dir=cfg.OUTPUT.OUT_DIR,
         max_epochs=cfg.SOLVER.MAX_EPOCHS,
         log_every_n_steps=cfg.SOLVER.LOG_EVERY_N_STEPS,
     )

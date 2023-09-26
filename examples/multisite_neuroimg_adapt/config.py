@@ -31,7 +31,7 @@ _C.MODEL.LAMBDA_ = 1.0
 # Misc options
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CN()
-_C.OUTPUT.ROOT = "./outputs"  # output_dir
+_C.OUTPUT.OUT_DIR = "./outputs"  # output_dir
 
 
 def get_cfg_defaults():

@@ -29,6 +29,7 @@ _C.DATASET.NUM_CHANNELS = 3
 _C.DATASET.DIMENSION = 784
 _C.DATASET.WEIGHT_TYPE = "natural"
 _C.DATASET.SIZE_TYPE = "source"
+
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
@@ -58,14 +59,15 @@ _C.DAN = CN()
 _C.DAN.METHOD = "M3SDA"  # choices=['M3SDA', 'MFSAN']
 _C.DAN.USERANDOM = False
 _C.DAN.RANDOM_DIM = 1024
+
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CN()
-_C.OUTPUT.ROOT = "./outputs"  # output_dir
+_C.OUTPUT.OUT_DIR = "./outputs"  # output_dir
 _C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
 _C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
-_C.OUTPUT.TB_DIR = os.path.join("lightning_logs", "Tgt" + _C.DATASET.TARGET)
+_C.OUTPUT.OUT_DIR = os.path.join("logs", "Tgt" + _C.DATASET.TARGET)
 
 
 def get_cfg_defaults():

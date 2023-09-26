@@ -62,7 +62,8 @@ _C.ISON.TRANS_FUN = "basic_transform"
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-_C.OUTPUT_DIR = "./outputs"
+_C.OUTPUT = CN()
+_C.OUTPUT.OUT_DIR = "./outputs"
 
 
 def get_cfg_defaults():
