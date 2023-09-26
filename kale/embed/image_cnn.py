@@ -18,6 +18,17 @@ class Flatten(nn.Module):
 
     def forward(self, x):
         return x.view(x.size(0), -1)
+    
+class Identity(nn.Module):
+    """Identity layer
+    This module is to any unwanted layer sof pre-trained models with
+    identity layer.
+    """
+    def __init__(self):
+        super(Identity, self).__init__()
+
+    def forward(self, x):
+        return x
 
 # From FeatureExtractorDigits in adalib
 class SmallCNNFeature(nn.Module):
