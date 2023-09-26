@@ -268,3 +268,49 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
             moment_sum += euclidean(x_k_order[i], x_k_order[j])
             n_pair += 1
     return moment_sum / n_pair
+
+class proto_loss:
+    """
+    ProtoNet loss function
+    This is a specific loss function for prototypical networks and n-way-k-shot problems.
+    It computes the loss and accuracy of the model by measuring the Euclidean distance
+    between features of support samples and query samples.
+
+    Bacause the loss requests some constant hyperparameters, it is not a general function 
+    but defined as a class.
+    """
+    def __init__(self, **kwarg):
+        super().__init__()
+        self.n_ways = kwarg["n_ways"]
+        self.k_query = kwarg["k_query"]
+        self.device = kwarg["device"]
+
+    def __call__(self, feature_sup, feature_que):
+        prototypes = feature_sup.mean(dim=1)
+        dists = self.euclidean_dist(feature_que, prototypes)
+        log_p_y = F.log_softmax(-dists, dim=1)
+        log_p_y = log_p_y.view(self.n_ways, self.k_query, -1)
+        labels = torch.arange(self.n_ways).to(self.device)
+        labels = labels.view(self.n_ways, 1, 1)
+        labels = labels.expand(self.n_ways, self.k_query, 1).long()
+        loss_val = -log_p_y.gather(2, labels).squeeze().view(-1).mean()
+        _, y_hat = log_p_y.max(2)
+        acc_val = torch.eq(y_hat, labels.squeeze()).float().mean()
+        return loss_val, acc_val
+    
+    def euclidean_dist(self, x, y):
+        """
+        Compute euclidean distance between two groups of tensors.
+        Because the above Euclidean function is not suitable for group computing,
+        it is re-defined here.
+        """
+        # x: N x D
+        # y: M x D
+        n = x.size(0)
+        m = y.size(0)
+        d = x.size(1)
+        if d != y.size(1):
+            raise Exception
+        x = x.unsqueeze(1).expand(n, m, d)
+        y = y.unsqueeze(0).expand(n, m, d)
+        return torch.pow(x - y, 2).sum(2)
