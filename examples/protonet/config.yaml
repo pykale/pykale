@@ -1,5 +1,5 @@
 DATASET:
-  ROOT: '/home/wenrui/Projects/Demos/Data/omniglot'
+  ROOT: 'examples/protonet/data/omniglot'
 MODEL:
   BACKBONE: 'resnet18'
   PRETRAIN_WEIGHTS: None
