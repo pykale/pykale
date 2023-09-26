@@ -49,6 +49,7 @@ mini-ImageNet, tiered-ImageNet, Omniglot, etc. (For some datasets, they need to 
 #### 1-gpu training:
 
 Example - omniglot + resnet18 + 5-way-5-shot
+
 `python main.py --cfg examples/protonet/configs/omniglot_resnet18_5way5shot.yaml --gpus 1`
 
 Customized running
