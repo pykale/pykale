@@ -82,6 +82,16 @@ If no `test` folder in custom dataset, both copying & pasting `val` subset and r
 - `kale.pipeline.protonet`: ProtoNet trainer in pl.LightningModule class.
 - `kale.predict.losses.proto_loss`: Compute the loss and accuracy for protonet.
 
+## Reference
+```
+@inproceedings{snell2017prototypical,
+  title={Prototypical Networks for Few-shot Learning},
+  author={Snell, Jake and Swersky, Kevin and Zemel, Richard},
+  booktitle={Advances in Neural Information Processing Systems},
+  year={2017}
+ }
+```
+
 
 
 

@@ -303,6 +303,9 @@ class proto_loss:
         Compute euclidean distance between two groups of tensors.
         Because the above Euclidean function is not suitable for group computing,
         it is re-defined here.
+
+        Reference:
+            [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks)
         """
         # x: N x D
         # y: M x D
