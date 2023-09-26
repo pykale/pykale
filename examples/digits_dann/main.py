@@ -5,6 +5,7 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 
 import argparse
 import logging
+import time
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
@@ -22,12 +23,11 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Digits Datasets")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument(
-        "--gpus",
+        "--devices",
         default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
-    parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
 
@@ -45,6 +45,7 @@ def main():
     # ---- setup output ----
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
+
     # ---- setup dataset ----
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(cfg.DATASET.SOURCE.upper()), DigitDataset(cfg.DATASET.TARGET.upper()), cfg.DATASET.ROOT
@@ -63,24 +64,46 @@ def main():
         # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         set_seed(seed)
         print(f"==> Building model for seed {seed} ......")
-        # ---- setup model and logger ----
+
+        # ---- setup model ----
         model, train_params = get_model(cfg, dataset, num_channels)
-        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
+
+        # ---- setup logger ----
+        if cfg.COMET.ENABLE:
+            suffix = str(int(time.time() * 1000))[6:]
+            logger = pl_loggers.CometLogger(
+                api_key=cfg.COMET.API_KEY,
+                project_name=cfg.COMET.PROJECT_NAME,
+                save_dir=cfg.OUTPUT.OUT_DIR,
+                experiment_name="{}_{}".format(cfg.COMET.EXPERIMENT_NAME, suffix),
+            )
+        else:
+            logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
+
+        # ---- setup callbacks ----
+        # setup checkpoint callback
         checkpoint_callback = ModelCheckpoint(
             filename="{epoch}-{step}-{valid_loss:.4f}", monitor="valid_loss", mode="min",
         )
+
+        # setup progress bar
         progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
 
+        # ---- setup trainer ----
         trainer = pl.Trainer(
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
+            accelerator="gpu" if args.devices != 0 else "cpu",
+            devices=args.devices,
             callbacks=[checkpoint_callback, progress_bar],
-            logger=tb_logger,
-            gpus=args.gpus,
+            logger=logger,
         )
 
+        # ---- start training ----
         trainer.fit(model)
-        trainer.test()
+
+        # ---- start testing ----
+        trainer.test(ckpt_path="best")
 
 
 if __name__ == "__main__":

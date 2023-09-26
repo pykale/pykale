@@ -22,7 +22,7 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="Multi-source domain adaptation")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument(
-        "--gpus",
+        "--devices",
         default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
@@ -79,7 +79,7 @@ def main():
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
             callbacks=[checkpoint_callback, progress_bar],
-            gpus=args.gpus,
+            devices=args.devices,
             auto_select_gpus=True,
             logger=tb_logger,  # logger,
             # weights_summary='full',
