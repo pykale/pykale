@@ -17,7 +17,7 @@ def leave_one_group_out(x, y, groups, estimator, use_domain_adaptation=False) ->
         y (np.ndarray or torch.tensor): Target labels [n_samples].
         groups (np.ndarray or torch.tensor): Group labels to be left out [n_samples].
         estimator (estimator object): Machine learning estimator to be evaluated from kale or scikit-learn.
-        domain_adaptation (bool): Whether to use domain adaptation, i.e., leveraging test data, during training.
+        use_domain_adaptation (bool): Whether to use domain adaptation, i.e., leveraging test data, during training.
 
     Returns:
         dict: A dictionary containing results for each target group with 3 keys.
