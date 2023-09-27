@@ -8,7 +8,7 @@ from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.preprocessing import OneHotEncoder
 
 
-def leave_one_group_out(x, y, groups, estimator, domain_adaptation=False) -> dict:
+def leave_one_group_out(x, y, groups, estimator, use_domain_adaptation=False) -> dict:
     """
     Perform leave one group out cross validation for a given estimator.
 
@@ -37,7 +37,7 @@ def leave_one_group_out(x, y, groups, estimator, domain_adaptation=False) -> dic
         x_src, x_tgt = x[train], x[test]
         y_src, y_tgt = y[train], y[test]
 
-        if domain_adaptation:
+        if use_domain_adaptation:
             estimator.fit(np.concatenate((x_src, x_tgt)), y_src, np.concatenate((group_mat[train], group_mat[test])))
         else:
             estimator.fit(x_src, y_src)
