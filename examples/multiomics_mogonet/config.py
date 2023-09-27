@@ -5,18 +5,18 @@ graph convolutional networks allowing patient classification and biomarker ident
 
 https://github.com/txWang/MOGONET/blob/main/main_mogonet.py
 """
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
 
 # ---------------------------------------------------------
 # Config definition
 # ---------------------------------------------------------
 
-_C = CN()
+_C = CfgNode()
 
 # ---------------------------------------------------------
 # Dataset
 # ---------------------------------------------------------
-_C.DATASET = CN()
+_C.DATASET = CfgNode()
 _C.DATASET.ROOT = "dataset/"
 _C.DATASET.NAME = "TCGA_BRCA"
 _C.DATASET.URL = "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"
@@ -27,7 +27,7 @@ _C.DATASET.NUM_CLASSES = 5
 # ---------------------------------------------------------
 # Solver
 # ---------------------------------------------------------
-_C.SOLVER = CN()
+_C.SOLVER = CfgNode()
 _C.SOLVER.SEED = 2023
 _C.SOLVER.MAX_EPOCHS_PRETRAIN = 500
 _C.SOLVER.MAX_EPOCHS = 2500
@@ -35,7 +35,7 @@ _C.SOLVER.MAX_EPOCHS = 2500
 # -----------------------------------------------------------------------------
 # Model (MOGONET) configs
 # -----------------------------------------------------------------------------
-_C.MODEL = CN()
+_C.MODEL = CfgNode()
 _C.MODEL.EDGE_PER_NODE = 10  # Predefined number of edges per nodes in computing adjacency matrix
 _C.MODEL.EQUAL_WEIGHT = False
 _C.MODEL.GCN_LR_PRETRAIN = 1e-3
@@ -50,7 +50,7 @@ _C.MODEL.VCDN_LR = 1e-3
 # ---------------------------------------------------------
 # Misc options
 # ---------------------------------------------------------
-_C.OUTPUT = CN()
+_C.OUTPUT = CfgNode()
 _C.OUTPUT.OUT_DIR = "./outputs"
 
 

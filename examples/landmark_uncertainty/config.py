@@ -4,18 +4,18 @@ See the documentation for full information on the configuration file options:
 pykale/examples/landmark_uncertainty/README.md
 """
 
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
 
 # -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
 
-_C = CN()
+_C = CfgNode()
 
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
-_C.DATASET = CN()
+_C.DATASET = CfgNode()
 _C.DATASET.SOURCE = (
     "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
 )
@@ -41,7 +41,7 @@ _C.DATASET.UE_PAIRS_TEST = "uncertainty_pairs_test"
 # ---------------------------------------------------------------------------- #
 # Uncertainty Estimation Pipeline Parameters
 # ---------------------------------------------------------------------------- #
-_C.PIPELINE = CN()
+_C.PIPELINE = CfgNode()
 
 # Can choose to evaluate over a single value or multiple values for Q (# bins). You can:
 # 1) Evaluate over each value of Q (set COMPARE_INDIVIDUAL_Q = True). For each Q it will compare DATASET.MODELS and DATASET.UNCERTAINTY_ERROR_PAIRS against each other.
@@ -79,20 +79,20 @@ _C.PIPELINE.SHOW_IND_LANDMARKS = True
 # ---------------------------------------------------------------------------- #
 # Visualization
 # ---------------------------------------------------------------------------- #
-_C.IM_KWARGS = CN()
+_C.IM_KWARGS = CfgNode()
 _C.IM_KWARGS.cmap = "gray"
 
-_C.MARKER_KWARGS = CN()
+_C.MARKER_KWARGS = CfgNode()
 _C.MARKER_KWARGS.marker = "o"
 _C.MARKER_KWARGS.markerfacecolor = (1, 1, 1, 0.1)
 _C.MARKER_KWARGS.markeredgewidth = 1.5
 _C.MARKER_KWARGS.markeredgecolor = "r"
 
-_C.WEIGHT_KWARGS = CN()
+_C.WEIGHT_KWARGS = CfgNode()
 _C.WEIGHT_KWARGS.markersize = 6
 _C.WEIGHT_KWARGS.alpha = 0.7
 
-_C.BOXPLOT = CN()
+_C.BOXPLOT = CfgNode()
 _C.BOXPLOT.SAMPLES_AS_DOTS = True
 _C.BOXPLOT.ERROR_LIM = 64
 _C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "Average"  # "None", "All", "Average"
@@ -101,7 +101,7 @@ _C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "Average"  # "None", "All", "Average"
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-_C.OUTPUT = CN()
+_C.OUTPUT = CfgNode()
 
 
 _C.OUTPUT.OUT_DIR = "./outputs/"

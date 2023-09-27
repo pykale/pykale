@@ -1,18 +1,18 @@
 """
 Default configurations for Polypharmacy Side Effect Prediction using GripNet
 """
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
 
 # ---------------------------------------------------------
 # Config definition
 # ---------------------------------------------------------
 
-_C = CN()
+_C = CfgNode()
 
 # ---------------------------------------------------------
 # Dataset
 # ---------------------------------------------------------
-_C.DATASET = CN()
+_C.DATASET = CfgNode()
 _C.DATASET.ROOT = "./data"
 _C.DATASET.NAME = "pose"
 _C.DATASET.URL = "https://github.com/pykale/data/raw/main/graphs/pose_pyg_2.pt"
@@ -20,7 +20,7 @@ _C.DATASET.URL = "https://github.com/pykale/data/raw/main/graphs/pose_pyg_2.pt"
 # ---------------------------------------------------------
 # Solver
 # ---------------------------------------------------------
-_C.SOLVER = CN()
+_C.SOLVER = CfgNode()
 _C.SOLVER.SEED = 1111
 _C.SOLVER.BASE_LR = 0.01
 _C.SOLVER.EPSILON = 1e-10
@@ -30,7 +30,7 @@ _C.SOLVER.LOG_EVERY_N_STEPS = 1
 # ---------------------------------------------------------
 # GripNet supervertex configs
 # ---------------------------------------------------------
-_C.GRIPN_SV1 = CN()
+_C.GRIPN_SV1 = CfgNode()
 _C.GRIPN_SV1.NAME = "protein"
 _C.GRIPN_SV1.INTER_FEAT_CHANNELS = 16
 _C.GRIPN_SV1.INTER_AGG_CHANNELS_LIST = [16, 16]
@@ -39,7 +39,7 @@ _C.GRIPN_SV1.EXTER_AGG_CHANNELS_LIST = []
 #   dimension (int). If the supervertex is a root supervertex, it should be an empty list.
 _C.GRIPN_SV1.MODE = ""  # `MODE` is either "cat" or "add"
 
-_C.GRIPN_SV2 = CN()
+_C.GRIPN_SV2 = CfgNode()
 _C.GRIPN_SV2.NAME = "drug"
 _C.GRIPN_SV2.INTER_FEAT_CHANNELS = 32
 _C.GRIPN_SV2.INTER_AGG_CHANNELS_LIST = [16, 16]
@@ -49,7 +49,7 @@ _C.GRIPN_SV2.MODE = "cat"
 # ---------------------------------------------------------
 # Misc options
 # ---------------------------------------------------------
-_C.OUTPUT = CN()
+_C.OUTPUT = CfgNode()
 _C.OUTPUT.OUT_DIR = "./outputs"
 
 
