@@ -17,11 +17,11 @@ from setuptools import find_packages, setup
 install_requires = [
     "numpy>=1.18.0",  # sure
     "pandas",  # sure
-    "pytorch-lightning>=1.3.0,<=1.6.5",  # in pipeline API only
+    "pytorch-lightning>=2.0.0",  # in pipeline API only
     "scikit-learn>=0.23.2",  # sure
     "scipy>=1.5.4",  # in factorization API only
-    "tensorly>=0.5.1,<=0.7.0",  # in factorization and model_weights API only
-    "torch>=1.11.0",  # sure
+    "tensorly>=0.5.1",  # in factorization and model_weights API only
+    "torch>=2.0.0",  # sure
     "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
 ]
 
