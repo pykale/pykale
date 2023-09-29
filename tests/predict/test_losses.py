@@ -70,7 +70,7 @@ def test_proto_loss():
     n_dim = random.randint(1, 512)
     feature_sup = torch.rand(n_way, k_support, n_dim)
     feature_que = torch.rand(n_way * k_query, n_dim)
-    loss_fn = proto_loss(n_ways=n_way, k_query=k_query, device="cuda")
+    loss_fn = proto_loss(n_ways=n_way, k_query=k_query, device="cpu")
     loss, acc = loss_fn(feature_sup, feature_que)
     assert isinstance(loss, torch.Tensor)
     assert isinstance(acc, torch.Tensor)

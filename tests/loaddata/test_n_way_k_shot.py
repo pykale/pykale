@@ -1,5 +1,3 @@
-# import sys
-# sys.path.append("/home/wenrui/Projects/pykale/")
 import os
 import random
 from pathlib import Path
