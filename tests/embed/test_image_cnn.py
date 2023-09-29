@@ -2,6 +2,8 @@ import pytest
 import torch
 
 from kale.embed.image_cnn import (
+    Flatten,
+    Identity,
     LeNet,
     ResNet18Feature,
     ResNet34Feature,
@@ -10,8 +12,6 @@ from kale.embed.image_cnn import (
     ResNet152Feature,
     SimpleCNNBuilder,
     SmallCNNFeature,
-    Flatten,
-    Identity,
 )
 
 BATCH_SIZE = 64
