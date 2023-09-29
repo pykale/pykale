@@ -15,7 +15,6 @@ from kale.utils.download import download_file_by_url
 
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 url = "https://github.com/pykale/data/raw/main/images/omniglot/demo_data.zip"
-# cfg_url = "https://raw.githubusercontent.com/pykale/pykale/add_prototypical_network/examples/protonet/configs/omniglot_resnet18_5way5shot.yaml"
 modes = ["train", "val", "test"]
 
 
@@ -28,20 +27,15 @@ def testing_cfg_data(download_path):
 
 
 @pytest.fixture(scope="module")
-def testing_cfg_model(download_path):
+def testing_cfg_model():
     _C = CN()
     _C.SEED = 1397
     _C.DEVICE = "cuda"
 
-    # ---------------------------------------------------------------------------- #
-    # Model
-    # ---------------------------------------------------------------------------- #
     _C.MODEL = CN()
     _C.MODEL.BACKBONE = "resnet18"
     _C.MODEL.PRETRAIN_WEIGHTS = None
-    # ---------------------------------------------------------------------------- #
-    # Train
-    # ---------------------------------------------------------------------------- #
+
     _C.TRAIN = CN()
     _C.TRAIN.EPOCHS = 1
     _C.TRAIN.OPTIMIZER = "SGD"
@@ -49,16 +43,12 @@ def testing_cfg_model(download_path):
     _C.TRAIN.N_WAYS = 30
     _C.TRAIN.K_SHOTS = 5
     _C.TRAIN.K_QUERIES = 15
-    # ---------------------------------------------------------------------------- #
-    # Val
-    # ---------------------------------------------------------------------------- #
+
     _C.VAL = CN()
     _C.VAL.N_WAYS = 5
     _C.VAL.K_SHOTS = 5
     _C.VAL.K_QUERIES = 15
-    # ---------------------------------------------------------------------------- #
-    # Logger
-    # ---------------------------------------------------------------------------- #
+
     _C.OUTPUT = CN()
     _C.OUTPUT.LOG_DIR = "logs"
     _C.OUTPUT.WEIGHT_DIR = "weights"
@@ -71,15 +61,11 @@ def testing_cfg_model(download_path):
 @pytest.mark.parametrize("mode", modes)
 def test_protonet(mode, testing_cfg_data, testing_cfg_model):
     cfg_data = testing_cfg_data
-    
-    # cfg_model.freeze()
+
     output_dir = str(Path(cfg_data.DATASET.ROOT).parent.absolute())
     download_file_by_url(url=url, output_directory=output_dir, output_file_name="demo_data.zip", file_format="zip")
 
     cfg_model = testing_cfg_model
-    # cfg_model.merge_from_file(os.path.join(cfg_data.DATASET.ROOT, "..", "omniglot.yaml"))
-    # cfg_model.TRAIN.EPOCHs = 1
-    # download_file_by_url(url=cfg_url, output_directory=output_dir, output_file_name="omniglot.yaml", file_format="yaml")
     transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
     dataset = NWayKShotDataset(
         path=cfg_data.DATASET.ROOT,
