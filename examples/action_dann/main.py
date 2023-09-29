@@ -84,9 +84,7 @@ def main():
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
         progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
 
-        ### Set the lightning trainer. Comment `limit_train_batches`, `limit_val_batches`, `limit_test_batches` when
-        # training. Uncomment and change the ratio to test the code on the smallest sub-dataset for efficiency in
-        # debugging. Uncomment early_stop_callback to activate early stopping.
+        ### Set the lightning trainer.
         trainer = pl.Trainer(
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
@@ -96,9 +94,6 @@ def main():
             logger=tb_logger,
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,
             callbacks=[lr_monitor, checkpoint_callback, progress_bar],
-            # limit_train_batches=0.005,
-            # limit_val_batches=0.06,
-            # limit_test_batches=0.06,
         )
 
         ### Find learning_rate
