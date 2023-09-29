@@ -13,18 +13,20 @@ class Flatten(nn.Module):
     This module is to replace the last fc layer of pre-trained models with
     flatten layer.
     """
+
     def __init__(self):
         super(Flatten, self).__init__()
 
     def forward(self, x):
         return x.view(x.size(0), -1)
-    
+
 
 class Identity(nn.Module):
     """Identity layer
     This module is to any unwanted layer sof pre-trained models with
     identity layer.
     """
+
     def __init__(self):
         super(Identity, self).__init__()
 

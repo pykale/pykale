@@ -1,5 +1,6 @@
 import os
 from typing import Any
+
 import numpy as np
 import torch
 from PIL import Image
@@ -7,14 +8,7 @@ from torch.utils.data import Dataset
 
 
 class NWayKShotDataset(Dataset):
-    def __init__(
-        self,
-        path: str,
-        mode: str = "train",
-        k_shot: int = 5,
-        query_samples: int = 15,
-        transform: Any = None
-    ):
+    def __init__(self, path: str, mode: str = "train", k_shot: int = 5, query_samples: int = 15, transform: Any = None):
         super(NWayKShotDataset, self).__init__()
         """
         This is a dataset class for few-shot learning. The dataset should be organized as:
@@ -48,11 +42,11 @@ class NWayKShotDataset(Dataset):
                     - img_1
                     - img_2
                     ...
-                ... 
+                ...
 
         Args:
             path (string): A string, which is the root directory of data.
-            mode (string): A string, which is the mode of the dataset. 
+            mode (string): A string, which is the mode of the dataset.
                            It can be 'train', 'val' or 'test'.
             k_shot (int): Number of support examples for each class in each episode.
             query_samples (int): Number of query examples for each class in each episode.
@@ -72,9 +66,7 @@ class NWayKShotDataset(Dataset):
 
     def __getitem__(self, idx):
         image_idx = np.random.choice(
-            [i for (i, item) in enumerate(self.labels) if item == idx],
-            self.k_shot + self.query_samples,
-            replace=False,
+            [i for (i, item) in enumerate(self.labels) if item == idx], self.k_shot + self.query_samples, replace=False,
         )
         images = []
         labels = []

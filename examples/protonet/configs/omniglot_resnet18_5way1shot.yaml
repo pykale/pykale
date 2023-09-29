@@ -21,4 +21,4 @@ OUTPUT:
   SAVE_TOP_K: 2
   SAVE_LAST: True
 SEED: 1397
-DEVICE: 'cuda' 
+DEVICE: 'cuda'

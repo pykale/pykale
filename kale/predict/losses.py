@@ -277,9 +277,10 @@ class proto_loss:
     It computes the loss and accuracy of the model by measuring the Euclidean distance
     between features of support samples and query samples.
 
-    Bacause the loss requests some constant hyperparameters, it is not a general function 
+    Bacause the loss requests some constant hyperparameters, it is not a general function
     but defined as a class.
     """
+
     def __init__(self, **kwarg):
         super().__init__()
         self.n_ways = kwarg["n_ways"]
@@ -298,7 +299,7 @@ class proto_loss:
         _, y_hat = log_p_y.max(2)
         acc_val = torch.eq(y_hat, labels.squeeze()).float().mean()
         return loss_val, acc_val
-    
+
     def euclidean_dist(self, x, y):
         """
         Compute euclidean distance between two groups of tensors.

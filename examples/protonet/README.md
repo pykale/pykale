@@ -6,12 +6,12 @@ This example is constructed by modifying [Prototypical Networks for Few-shot Lea
 
 ## 2. Usage
 
-### Datasets 
+### Datasets
 
 mini-ImageNet, tiered-ImageNet, Omniglot, etc. (For some datasets, they need to be refactored as following.)
 
 <pre>
-└── root 
+└── root
     ├── train
     |   ├── class 1
     |   |   ├── image 1
@@ -91,8 +91,3 @@ If no `test` folder in custom dataset, both copying & pasting `val` subset and r
   year={2017}
  }
 ```
-
-
-
-
-
