@@ -12,7 +12,7 @@ from torchvision import transforms
 
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 url = 'https://github.com/pykale/data/raw/main/images/omniglot/demo_data.zip'
-mode="train"
+modes=["train", 'val', 'test']
 
 @pytest.fixture(scope="module")
 def testing_cfg(download_path):
@@ -21,8 +21,8 @@ def testing_cfg(download_path):
     cfg.DATASET.ROOT = root_dir + "/" + download_path + "/omniglot_test_data/"
     yield cfg
 
-@pytest.mark.parametrize('mode', mode)
-def test_n_way_k_shot(mode, testing_cfg):
+@pytest.mark.parametrize('modes', modes)
+def test_n_way_k_shot(modes, testing_cfg):
     cfg = testing_cfg
     output_dir = str(Path(cfg.DATASET.ROOT).parent.absolute())
     download_file_by_url(
@@ -35,11 +35,26 @@ def test_n_way_k_shot(mode, testing_cfg):
         transforms.Resize((224, 224)),
         transforms.ToTensor()
     ])
-    dataset = NWayKShotDataset(
-        path=cfg.DATASET.ROOT,
-        mode=mode,
-        k_shot=5,
-        query_samples=5,
-        transform=transform,
-    )
+    for mode in modes:
+        dataset = NWayKShotDataset(
+            path=cfg.DATASET.ROOT,
+            mode=mode,
+            k_shot=5,
+            query_samples=5,
+            transform=transform,
+        )
+        dataloader = torch.utils.data.DataLoader(
+            dataset, 
+            batch_size=5, 
+            shuffle=True, 
+            num_workers=30, 
+            drop_last=True
+        )
+        batch = next(iter(dataloader))
+        assert isinstance(batch, tuple)
+        assert isinstance(batch[0], torch.Tensor)
+        assert isinstance(batch[1], torch.Tensor)
+        assert batch[0].shape == (5, 5, 3, 224, 224)
+        assert batch[1].shape == (5, 5)
+
     
