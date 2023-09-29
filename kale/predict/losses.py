@@ -288,6 +288,12 @@ class proto_loss:
         self.device = kwarg["device"]
 
     def __call__(self, feature_sup, feature_que):
+        """
+        feature_sup: shape (n_ways, k_shot, feature_dim)
+        feature_que: shape (n_ways * k_query, feature_dim)
+        """
+        feature_sup = feature_sup.to(self.device)
+        feature_que = feature_que.to(self.device)
         prototypes = feature_sup.mean(dim=1)
         dists = self.euclidean_dist(feature_que, prototypes)
         log_p_y = F.log_softmax(-dists, dim=1)

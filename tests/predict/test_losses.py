@@ -1,7 +1,7 @@
 import pytest
 import torch
-
-from kale.predict.losses import multitask_topk_accuracy, topk_accuracy
+import random
+from kale.predict.losses import multitask_topk_accuracy, topk_accuracy, proto_loss
 
 # Dummy data: [batch_size, num_classes]
 # Dummy ground truth: batch_size
@@ -59,3 +59,20 @@ def test_multitask_topk_accuracy():
     assert top1_value.cpu() == pytest.approx(1 / 5)
     assert top3_value.cpu() == pytest.approx(2 / 5)
     assert top5_value.cpu() == pytest.approx(3 / 5)
+
+
+def test_proto_loss():
+    n_way = random.randint(1, 10)
+    k_support = random.randint(1, 10)
+    k_query = random.randint(1, 10)
+    n_dim = random.randint(1, 512)
+    feature_sup = torch.rand(n_way, k_support, n_dim)
+    feature_que = torch.rand(n_way * k_query, n_dim)
+    loss_fn = proto_loss(n_ways=n_way, k_query=k_query, device="cuda")
+    loss, acc = loss_fn(feature_sup, feature_que)
+    assert isinstance(loss, torch.Tensor)
+    assert isinstance(acc, torch.Tensor)
+    prototypes = feature_sup.mean(dim=1)
+    dists = loss_fn.euclidean_dist(prototypes, feature_que)
+    assert dists.shape == (n_way, n_way * k_query)
+
