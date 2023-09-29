@@ -63,8 +63,8 @@ class NWayKShotDataset(Dataset):
         self.query_samples = query_samples
         self.mode = mode
         self.transform = transform
-        self.images = []
-        self.labels = []
+        self.images = [] # type: list
+        self.labels = [] # type: list
         self._load_data()
         print("Load {} images in {} mode.".format(len(self.labels), self.mode))
 
