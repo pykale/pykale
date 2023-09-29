@@ -11,22 +11,18 @@ import os
 from datetime import datetime
 import pytorch_lightning as pl
 from config import get_cfg_defaults
-from kale.loaddata.n_way_k_shot import NWayKShotDataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from kale.pipeline.protonet import ProtoNetTrainer
-from kale.embed.image_cnn import *
 from torchvision.models import *
+from kale.embed.image_cnn import *
+from kale.loaddata.n_way_k_shot import NWayKShotDataset
+from kale.pipeline.protonet import ProtoNetTrainer
 
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Args of ProtoNet")
-    parser.add_argument("--cfg",
-                        default="examples/protonet/configs/omniglot_resnet18_5way5shot.yaml",
-                        type=str)
-    parser.add_argument("--gpus",
-                        default=1,
-                        type=int)
+    parser.add_argument("--cfg", default="examples/protonet/configs/omniglot_resnet18_5way5shot.yaml", type=str)
+    parser.add_argument("--gpus", default=1, type=int)
     return parser
 
 
@@ -51,7 +47,7 @@ def main():
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor()
-        ])
+    ])
     train_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="train",
@@ -64,11 +60,10 @@ def main():
         batch_size=cfg.TRAIN.N_WAYS,
         shuffle=True,
         num_workers=30,
-        drop_last=True  # must be True
+        drop_last=True
     )
     val_set = NWayKShotDataset(
-        path=cfg.DATASET.ROOT,
-        mode="val",
+        path=cfg.DATASET.ROOT, mode="val",
         k_shot=cfg.VAL.K_SHOTS,
         query_samples=cfg.VAL.K_QUERIES,
         transform=transform
@@ -78,7 +73,7 @@ def main():
         batch_size=cfg.VAL.N_WAYS,
         num_workers=30,
         drop_last=True
-    )  # must be True
+    )
 
     # ---- set logger ----
     dt_string = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
@@ -86,7 +81,11 @@ def main():
     logger.log_hyperparams(cfg)
 
     # ---- set callbacks ----
-    dirpath = os.path.join(cfg.OUTPUT.LOG_DIR, dt_string, cfg.OUTPUT.WEIGHT_DIR)
+    dirpath = os.path.join(
+        cfg.OUTPUT.LOG_DIR,
+        dt_string,
+        cfg.OUTPUT.WEIGHT_DIR
+    )
     model_checkpoint = pl.callbacks.ModelCheckpoint(
         dirpath=dirpath,
         filename="{epoch}-{val_acc:.2f}",
@@ -108,9 +107,11 @@ def main():
     )
 
     # ---- training ----
-    trainer.fit(model=model,
-                train_dataloaders=train_dataloader,
-                val_dataloaders=val_dataloader)
+    trainer.fit(
+        model=model,
+        train_dataloaders=train_dataloader,
+        val_dataloaders=val_dataloader
+    )
 
 
 if __name__ == "__main__":
