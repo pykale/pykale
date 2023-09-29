@@ -141,9 +141,9 @@ class ProtoNetTrainer(pl.LightningModule):
         optimizers from torch.optim.
         """
         optimizer = eval(f"torch.optim.{self.cfg.TRAIN.OPTIMIZER}")(
-                                self.model.parameters(),
-                                lr=self.cfg.TRAIN.LEARNING_RATE
-                            )
+            self.model.parameters(),
+            lr=self.cfg.TRAIN.LEARNING_RATE
+            )
         return optimizer
 
     def get_metrics(self, trainer, model) -> dict:
