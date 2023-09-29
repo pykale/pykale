@@ -9,14 +9,13 @@ from torchvision.models import *
 from yacs.config import CfgNode as CN
 
 from kale.embed.image_cnn import *
-from kale.embed.image_cnn import Flatten
 from kale.loaddata.n_way_k_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
 from kale.utils.download import download_file_by_url
 
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 url = "https://github.com/pykale/data/raw/main/images/omniglot/demo_data.zip"
-cfg_url = "https://raw.githubusercontent.com/pykale/pykale/add_prototypical_network/examples/protonet/configs/omniglot_resnet18_5way5shot.yaml"
+# cfg_url = "https://raw.githubusercontent.com/pykale/pykale/add_prototypical_network/examples/protonet/configs/omniglot_resnet18_5way5shot.yaml"
 modes = ["train", "val", "test"]
 
 
@@ -24,7 +23,7 @@ modes = ["train", "val", "test"]
 def testing_cfg_data(download_path):
     cfg = CN()
     cfg.DATASET = CN()
-    cfg.DATASET.ROOT = root_dir + "/" + download_path + "/demo_data/"
+    cfg.DATASET.ROOT = os.path.join(root_dir, download_path, "demo_data")
     yield cfg
 
 
@@ -33,11 +32,7 @@ def testing_cfg_model(download_path):
     _C = CN()
     _C.SEED = 1397
     _C.DEVICE = "cuda"
-    # -----------------------------------------------------------------------------
-    # Dataset
-    # -----------------------------------------------------------------------------
-    _C.DATASET = CN()
-    _C.DATASET.ROOT = "Data/omniglot/"
+
     # ---------------------------------------------------------------------------- #
     # Model
     # ---------------------------------------------------------------------------- #
@@ -48,7 +43,7 @@ def testing_cfg_model(download_path):
     # Train
     # ---------------------------------------------------------------------------- #
     _C.TRAIN = CN()
-    _C.TRAIN.EPOCHS = 100
+    _C.TRAIN.EPOCHS = 1
     _C.TRAIN.OPTIMIZER = "SGD"
     _C.TRAIN.LEARNING_RATE = 1e-3
     _C.TRAIN.N_WAYS = 30
@@ -76,13 +71,15 @@ def testing_cfg_model(download_path):
 @pytest.mark.parametrize("mode", modes)
 def test_protonet(mode, testing_cfg_data, testing_cfg_model):
     cfg_data = testing_cfg_data
-    cfg_model = testing_cfg_model
-    cfg_model.merge_from_file(cfg_data.DATASET.ROOT + "/../omniglot.yaml")
-    cfg_model.TRAIN.EPOCHs = 1
+    
     # cfg_model.freeze()
     output_dir = str(Path(cfg_data.DATASET.ROOT).parent.absolute())
     download_file_by_url(url=url, output_directory=output_dir, output_file_name="demo_data.zip", file_format="zip")
-    download_file_by_url(url=cfg_url, output_directory=output_dir, output_file_name="omniglot.yaml", file_format="yaml")
+
+    cfg_model = testing_cfg_model
+    # cfg_model.merge_from_file(os.path.join(cfg_data.DATASET.ROOT, "..", "omniglot.yaml"))
+    # cfg_model.TRAIN.EPOCHs = 1
+    # download_file_by_url(url=cfg_url, output_directory=output_dir, output_file_name="omniglot.yaml", file_format="yaml")
     transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
     dataset = NWayKShotDataset(
         path=cfg_data.DATASET.ROOT,
