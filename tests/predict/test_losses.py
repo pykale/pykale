@@ -1,7 +1,9 @@
+import random
+
 import pytest
 import torch
-import random
-from kale.predict.losses import multitask_topk_accuracy, topk_accuracy, proto_loss
+
+from kale.predict.losses import multitask_topk_accuracy, proto_loss, topk_accuracy
 
 # Dummy data: [batch_size, num_classes]
 # Dummy ground truth: batch_size
@@ -75,4 +77,3 @@ def test_proto_loss():
     prototypes = feature_sup.mean(dim=1)
     dists = loss_fn.euclidean_dist(prototypes, feature_que)
     assert dists.shape == (n_way, n_way * k_query)
-
