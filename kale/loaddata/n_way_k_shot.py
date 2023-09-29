@@ -15,6 +15,7 @@ class NWayKShotDataset(Dataset):
         query_samples: int = 15,
         transform: Any = None
     ):
+        super(NWayKShotDataset, self).__init__()
         """
         This is a dataset class for few-shot learning. The dataset should be organized as:
         root:
