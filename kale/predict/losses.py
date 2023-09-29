@@ -269,6 +269,7 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
             n_pair += 1
     return moment_sum / n_pair
 
+
 class proto_loss:
     """
     ProtoNet loss function

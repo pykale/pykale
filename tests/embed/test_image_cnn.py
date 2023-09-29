@@ -10,6 +10,8 @@ from kale.embed.image_cnn import (
     ResNet152Feature,
     SimpleCNNBuilder,
     SmallCNNFeature,
+    Flatten,
+    Identity
 )
 
 BATCH_SIZE = 64

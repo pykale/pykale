@@ -1,6 +1,5 @@
 import torch
 from sklearn import metrics
-import torch.nn.functional as F
 
 
 def concord_index(y, y_pred):
