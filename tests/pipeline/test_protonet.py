@@ -5,10 +5,11 @@ import pytest
 import pytorch_lightning as pl
 import torch
 from torchvision import transforms
-from torchvision.models import *
+
+# from torchvision.models import *  # resnet18, resnet34, resnet50, resnet101, resnet152
 from yacs.config import CfgNode as CN
 
-from kale.embed.image_cnn import *
+from kale.embed.image_cnn import ResNet18Feature
 from kale.loaddata.n_way_k_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
 from kale.utils.download import download_file_by_url
@@ -33,7 +34,7 @@ def testing_cfg_model():
     _C.DEVICE = "cuda"
 
     _C.MODEL = CN()
-    _C.MODEL.BACKBONE = "resnet18"
+    _C.MODEL.BACKBONE = "ResNet18Feature"
     _C.MODEL.PRETRAIN_WEIGHTS = None
 
     _C.TRAIN = CN()
@@ -77,9 +78,7 @@ def test_protonet(mode, testing_cfg_data, testing_cfg_model):
     dataloader = torch.utils.data.DataLoader(
         dataset, batch_size=cfg_model.TRAIN.N_WAYS, shuffle=True, num_workers=30, drop_last=True
     )
-    net = eval(f"{cfg_model.MODEL.BACKBONE}(weights={cfg_model.MODEL.PRETRAIN_WEIGHTS})")
-    if cfg_model.MODEL.BACKBONE.startswith("resnet"):
-        net.fc = Flatten()
+    net = ResNet18Feature(weights=cfg_model.MODEL.PRETRAIN_WEIGHTS)
     model = ProtoNetTrainer(cfg=cfg_model, net=net)
     trainer = pl.Trainer(max_epochs=cfg_model.TRAIN.EPOCHS, accelerator="cuda" if torch.cuda.is_available() else "cpu")
 
