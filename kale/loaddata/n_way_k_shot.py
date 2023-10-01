@@ -67,6 +67,7 @@ class NWayKShotDataset(Dataset):
     def __getitem__(self, idx):
         image_idx = self._get_idx(idx)
         images = self._sample_data(image_idx)
+        assert isinstance(images, list)
         images = torch.stack(images)
         return images, idx
 

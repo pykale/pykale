@@ -20,7 +20,7 @@ modes = ["train", "val", "test"]
 def testing_cfg(download_path):
     cfg = CN()
     cfg.DATASET = CN()
-    cfg.DATASET.ROOT = root_dir + "/" + download_path + "/demo_data/"
+    cfg.DATASET.ROOT = os.path.join(root_dir, download_path, "demo_data")
     yield cfg
 
 
