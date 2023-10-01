@@ -82,7 +82,7 @@ def test_protonet(mode, testing_cfg_data, testing_cfg_model):
         net.fc = Flatten()
     model = ProtoNetTrainer(cfg=cfg_model, net=net)
     trainer = pl.Trainer(
-        gpus=0, max_epochs=cfg_model.TRAIN.EPOCHS, accelerator="cuda" if torch.cuda.is_available() else "cpu"
+        max_epochs=cfg_model.TRAIN.EPOCHS, accelerator="cuda" if torch.cuda.is_available() else "cpu"
     )
     if mode == "train":
         trainer.fit(model, train_dataloaders=dataloader, val_dataloaders=dataloader)
