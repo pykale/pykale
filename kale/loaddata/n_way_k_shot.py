@@ -65,19 +65,20 @@ class NWayKShotDataset(Dataset):
         return len(self.classes)
 
     def __getitem__(self, idx):
+        image_idx = self._get_idx(idx)
+        images = self._sample_data(image_idx)
+        images = torch.stack(images)
+        return images, idx
+
+    def _get_idx(self, idx):
         image_idx = np.random.choice(
             [i for (i, item) in enumerate(self.labels) if item == idx], self.k_shot + self.query_samples, replace=False,
         )
-        images = []
-        labels = []
-        for index in image_idx:
-            labels.append(self.labels[index])
-            if self.transform:
-                images.append(self.transform(self.images[index]))
-            else:
-                images.append(self.images[index])
-        images = torch.stack(images)
-        return images, idx
+        return image_idx
+
+    def _sample_data(self, image_idx):
+        images = [self.transform(self.images[index]) if self.transform else self.images[index] for index in image_idx]
+        return images
 
     def _load_data(self):
         cls_path = os.path.join(self.root, self.mode)

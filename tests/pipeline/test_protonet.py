@@ -37,7 +37,7 @@ def testing_cfg_model():
     _C.MODEL.PRETRAIN_WEIGHTS = None
 
     _C.TRAIN = CN()
-    _C.TRAIN.EPOCHS = 1
+    _C.TRAIN.EPOCHS = 2
     _C.TRAIN.OPTIMIZER = "SGD"
     _C.TRAIN.LEARNING_RATE = 1e-3
     _C.TRAIN.N_WAYS = 30
@@ -81,10 +81,19 @@ def test_protonet(mode, testing_cfg_data, testing_cfg_model):
     if cfg_model.MODEL.BACKBONE.startswith("resnet"):
         net.fc = Flatten()
     model = ProtoNetTrainer(cfg=cfg_model, net=net)
-    trainer = pl.Trainer(
-        max_epochs=cfg_model.TRAIN.EPOCHS, accelerator="cuda" if torch.cuda.is_available() else "cpu"
-    )
+    trainer = pl.Trainer(max_epochs=cfg_model.TRAIN.EPOCHS, accelerator="cuda" if torch.cuda.is_available() else "cpu")
+
     if mode == "train":
+        for images, _ in dataloader:
+            feature_sup, feature_que = model.forward(images, cfg_model.cfg.TRAIN.K_SHOTS, cfg_model.cfg.TRAIN.N_WAYS)
+            loss, metrics = model.compute_loss(feature_sup, feature_que, mode="train")
+            assert isinstance(feature_que, torch.Tensor)
+            assert isinstance(feature_sup, torch.Tensor)
+            assert isinstance(loss, torch.Tensor)
+            assert isinstance(metrics, dict)
+            break
+
+        assert isinstance(model.configure_optimizers(), torch.optim.Optimizer)
         trainer.fit(model, train_dataloaders=dataloader, val_dataloaders=dataloader)
     else:
         trainer.test(model, dataloaders=dataloader)

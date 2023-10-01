@@ -2,6 +2,7 @@ import os
 import random
 from pathlib import Path
 
+import numpy as np
 import pytest
 import torch
 from torchvision import transforms
@@ -35,6 +36,10 @@ def test_n_way_k_shot(mode, testing_cfg):
     dataset = NWayKShotDataset(
         path=cfg.DATASET.ROOT, mode=mode, k_shot=k_shot, query_samples=query_samples, transform=transform,
     )
+    assert len(dataset) == len(dataset.classes)
+    assert isinstance(dataset._get_idx(0), np.ndarray)
+    assert isinstance(dataset._sample_data(dataset._get_idx(0)), list)
+    assert isinstance(dataset._sample_data(dataset._get_idx(0))[0], torch.Tensor)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=n_way, shuffle=True, num_workers=30, drop_last=True)
     batch = next(iter(dataloader))
     assert isinstance(batch[0], torch.Tensor)
