@@ -30,8 +30,7 @@ def leave_one_group_out(x, y, groups, estimator, use_domain_adaptation=False) ->
     enc = OneHotEncoder(handle_unknown="ignore")
     group_mat = enc.fit_transform(groups.reshape(-1, 1)).toarray()
     target, num_samples, accuracy = np.unique(groups).tolist(), [], []
-
-    y_pred = np.zeros(y.shape)
+    y_pred = np.zeros(y.shape)  # Store all predicted labels to compute accuracy
 
     for train, test in LeaveOneGroupOut().split(x, y, groups=groups):
         x_src, x_tgt = x[train], x[test]
