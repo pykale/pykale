@@ -21,6 +21,7 @@ modes = ["train", "val", "test"]
 def testing_cfg(download_path):
     cfg = CN()
     cfg.DATASET = CN()
+    download_path = download_path.split("/")[-1]
     cfg.DATASET.ROOT = os.path.join(root_dir, download_path, "demo_data")
     yield cfg
 
@@ -39,7 +40,7 @@ def test_n_way_k_shot(mode, testing_cfg):
     )
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=5, shuffle=True, drop_last=True)
 
-    assert len(dataset) != len(dataset.classes)
+    assert len(dataset) == len(dataset.classes)
     assert isinstance(dataset._get_idx(0), np.ndarray)
     assert isinstance(dataset._sample_data(dataset._get_idx(0)), list)
     assert isinstance(dataset._sample_data(dataset._get_idx(0))[0], torch.Tensor)
@@ -55,3 +56,6 @@ def test_n_way_k_shot(mode, testing_cfg):
     assert isinstance(batch[1], torch.Tensor)
     assert batch[0].shape == (n_way, k_shot + query_samples, 3, 224, 224)
     assert batch[1].shape == (n_way,)
+
+if __name__ == "__main__":
+    pytest.main([__file__])
