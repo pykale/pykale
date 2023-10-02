@@ -62,6 +62,14 @@ kale.pipeline.video\_domain\_adapter module
    :undoc-members:
    :show-inheritance:
 
+kale.pipeline.protonet module
+-------------------------------------------
+
+.. automodule:: kale.pipeline.protonet
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

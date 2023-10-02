@@ -4,29 +4,29 @@ Default configurations for prototypical networks
 
 import os
 
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
 
 # -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
-_C = CN()
+_C = CfgNode()
 _C.SEED = 1397
 _C.DEVICE = "cuda"
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
-_C.DATASET = CN()
+_C.DATASET = CfgNode()
 _C.DATASET.ROOT = "Data/omniglot/"
 # ---------------------------------------------------------------------------- #
 # Model
 # ---------------------------------------------------------------------------- #
-_C.MODEL = CN()
+_C.MODEL = CfgNode()
 _C.MODEL.BACKBONE = "resnet18"
 _C.MODEL.PRETRAIN_WEIGHTS = None
 # ---------------------------------------------------------------------------- #
 # Train
 # ---------------------------------------------------------------------------- #
-_C.TRAIN = CN()
+_C.TRAIN = CfgNode()
 _C.TRAIN.EPOCHS = 100
 _C.TRAIN.OPTIMIZER = "SGD"
 _C.TRAIN.LEARNING_RATE = 1e-3
@@ -36,14 +36,14 @@ _C.TRAIN.K_QUERIES = 15
 # ---------------------------------------------------------------------------- #
 # Val
 # ---------------------------------------------------------------------------- #
-_C.VAL = CN()
+_C.VAL = CfgNode()
 _C.VAL.N_WAYS = 5
 _C.VAL.K_SHOTS = 5
 _C.VAL.K_QUERIES = 15
 # ---------------------------------------------------------------------------- #
 # Logger
 # ---------------------------------------------------------------------------- #
-_C.OUTPUT = CN()
+_C.OUTPUT = CfgNode()
 _C.OUTPUT.LOG_DIR = "logs"
 _C.OUTPUT.WEIGHT_DIR = "weights"
 _C.OUTPUT.SAVE_FREQ = 1
