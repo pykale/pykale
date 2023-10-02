@@ -1,55 +1,57 @@
-from typing import List, Tuple
-
+"""
+Default configurations for Polypharmacy Side Effect Prediction using GripNet
+"""
 from yacs.config import CfgNode
 
 # ---------------------------------------------------------
 # Config definition
 # ---------------------------------------------------------
 
-C = CfgNode()
+_C = CfgNode()
 
 # ---------------------------------------------------------
 # Dataset
 # ---------------------------------------------------------
-C.DATASET = CfgNode()
-C.DATASET.ROOT = "./data"
-C.DATASET.NAME = "pose"
-C.DATASET.URL = "https://github.com/pykale/data/raw/main/graphs/pose_pyg_2.pt"
+_C.DATASET = CfgNode()
+_C.DATASET.ROOT = "./data"
+_C.DATASET.NAME = "pose"
+_C.DATASET.URL = "https://github.com/pykale/data/raw/main/graphs/pose_pyg_2.pt"
 
 # ---------------------------------------------------------
 # Solver
 # ---------------------------------------------------------
-C.SOLVER = CfgNode()
-C.SOLVER.SEED = 1111
-C.SOLVER.BASE_LR = 0.01
-C.SOLVER.EPSILON = 1e-10
-C.SOLVER.MAX_EPOCHS = 66
-C.SOLVER.LOG_EVERY_N_STEPS = 1
+_C.SOLVER = CfgNode()
+_C.SOLVER.SEED = 1111
+_C.SOLVER.BASE_LR = 0.01
+_C.SOLVER.EPSILON = 1e-10
+_C.SOLVER.MAX_EPOCHS = 66
+_C.SOLVER.LOG_EVERY_N_STEPS = 1
 
 # ---------------------------------------------------------
 # GripNet supervertex configs
 # ---------------------------------------------------------
-C.GRIPN_SV1 = CfgNode()
-C.GRIPN_SV1.NAME = "protein"
-C.GRIPN_SV1.INTER_FEAT_CHANNELS = 16
-C.GRIPN_SV1.INTER_AGG_CHANNELS_LIST = [16, 16]
-C.GRIPN_SV1.EXTER_AGG_CHANNELS_LIST = []
+_C.GRIPN_SV1 = CfgNode()
+_C.GRIPN_SV1.NAME = "protein"
+_C.GRIPN_SV1.INTER_FEAT_CHANNELS = 16
+_C.GRIPN_SV1.INTER_AGG_CHANNELS_LIST = [16, 16]
+_C.GRIPN_SV1.EXTER_AGG_CHANNELS_LIST = []
 # Elements in `EXTER_AGG_CHANNELS_LIST` should be a list of combinations of supervertex name (str) and embedding
 #   dimension (int). If the supervertex is a root supervertex, it should be an empty list.
-C.GRIPN_SV1.MODE = ""  # `MODE` is either "cat" or "add"
+_C.GRIPN_SV1.MODE = ""  # `MODE` is either "cat" or "add"
 
-C.GRIPN_SV2 = CfgNode()
-C.GRIPN_SV2.NAME = "drug"
-C.GRIPN_SV2.INTER_FEAT_CHANNELS = 32
-C.GRIPN_SV2.INTER_AGG_CHANNELS_LIST = [16, 16]
-C.GRIPN_SV2.EXTER_AGG_CHANNELS_LIST = [["protein", 16]]
-C.GRIPN_SV2.MODE = "cat"
+_C.GRIPN_SV2 = CfgNode()
+_C.GRIPN_SV2.NAME = "drug"
+_C.GRIPN_SV2.INTER_FEAT_CHANNELS = 32
+_C.GRIPN_SV2.INTER_AGG_CHANNELS_LIST = [16, 16]
+_C.GRIPN_SV2.EXTER_AGG_CHANNELS_LIST = [["protein", 16]]
+_C.GRIPN_SV2.MODE = "cat"
 
 # ---------------------------------------------------------
 # Misc options
 # ---------------------------------------------------------
-C.OUTPUT_DIR = "./outputs"
+_C.OUTPUT = CfgNode()
+_C.OUTPUT.OUT_DIR = "./outputs"
 
 
 def get_cfg_defaults():
-    return C.clone()
+    return _C.clone()

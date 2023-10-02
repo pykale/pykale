@@ -68,7 +68,12 @@ def main():
 
     # ---- setup model and logger ----
     model, train_params = get_model(cfg, dataset, num_classes)
-    trainer = pl.Trainer(logger=False, resume_from_checkpoint=args.ckpt, devices=args.devices,)
+    trainer = pl.Trainer(
+        logger=False,
+        resume_from_checkpoint=args.ckpt,
+        accelerator="gpu" if args.devices != 0 else "cpu",
+        devices=args.devices if args.devices != 0 else "auto",
+    )
 
     model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt))
 
