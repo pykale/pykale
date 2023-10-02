@@ -3,18 +3,18 @@ Default configurations for image classification using ISONet,
 based on https://github.com/HaozhiQi/ISONet/blob/master/isonet/utils/config.py
 """
 
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
 
 # -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
 
-_C = CN()
+_C = CfgNode()
 
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
-_C.DATASET = CN()
+_C.DATASET = CfgNode()
 _C.DATASET.ROOT = "../data"
 _C.DATASET.NAME = "CIFAR10"
 _C.DATASET.NUM_CLASSES = 10
@@ -23,7 +23,7 @@ _C.DATASET.NUM_WORKERS = 1
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
-_C.SOLVER = CN()
+_C.SOLVER = CfgNode()
 _C.SOLVER.SEED = 2020
 _C.SOLVER.BASE_LR = 0.05
 _C.SOLVER.LR_MILESTONES = [30, 60, 90]
@@ -44,7 +44,7 @@ _C.SOLVER.WARMUP_FACTOR = 0.2
 # ---------------------------------------------------------------------------- #
 # ISONet configs
 # ---------------------------------------------------------------------------- #
-_C.ISON = CN()
+_C.ISON = CfgNode()
 _C.ISON.DEPTH = 34
 _C.ISON.ORTHO_COEFF = 1e-4
 _C.ISON.HAS_BN = False
@@ -62,7 +62,8 @@ _C.ISON.TRANS_FUN = "basic_transform"
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-_C.OUTPUT_DIR = "./outputs"
+_C.OUTPUT = CfgNode()
+_C.OUTPUT.OUT_DIR = "./outputs"
 
 
 def get_cfg_defaults():

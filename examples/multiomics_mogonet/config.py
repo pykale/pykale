@@ -11,47 +11,48 @@ from yacs.config import CfgNode
 # Config definition
 # ---------------------------------------------------------
 
-C = CfgNode()
+_C = CfgNode()
 
 # ---------------------------------------------------------
 # Dataset
 # ---------------------------------------------------------
-C.DATASET = CfgNode()
-C.DATASET.ROOT = "dataset/"
-C.DATASET.NAME = "TCGA_BRCA"
-C.DATASET.URL = "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"
-C.DATASET.RANDOM_SPLIT = False
-C.DATASET.NUM_MODALITIES = 3  # Number of omics modalities in the dataset
-C.DATASET.NUM_CLASSES = 5
+_C.DATASET = CfgNode()
+_C.DATASET.ROOT = "dataset/"
+_C.DATASET.NAME = "TCGA_BRCA"
+_C.DATASET.URL = "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"
+_C.DATASET.RANDOM_SPLIT = False
+_C.DATASET.NUM_MODALITIES = 3  # Number of omics modalities in the dataset
+_C.DATASET.NUM_CLASSES = 5
 
 # ---------------------------------------------------------
 # Solver
 # ---------------------------------------------------------
-C.SOLVER = CfgNode()
-C.SOLVER.SEED = 2023
-C.SOLVER.MAX_EPOCHS_PRETRAIN = 500
-C.SOLVER.MAX_EPOCHS = 2500
+_C.SOLVER = CfgNode()
+_C.SOLVER.SEED = 2023
+_C.SOLVER.MAX_EPOCHS_PRETRAIN = 500
+_C.SOLVER.MAX_EPOCHS = 2500
 
 # -----------------------------------------------------------------------------
 # Model (MOGONET) configs
 # -----------------------------------------------------------------------------
-C.MODEL = CfgNode()
-C.MODEL.EDGE_PER_NODE = 10  # Predefined number of edges per nodes in computing adjacency matrix
-C.MODEL.EQUAL_WEIGHT = False
-C.MODEL.GCN_LR_PRETRAIN = 1e-3
-C.MODEL.GCN_LR = 5e-4
-C.MODEL.GCN_DROPOUT_RATE = 0.5
-C.MODEL.GCN_HIDDEN_DIM = [400, 400, 200]
+_C.MODEL = CfgNode()
+_C.MODEL.EDGE_PER_NODE = 10  # Predefined number of edges per nodes in computing adjacency matrix
+_C.MODEL.EQUAL_WEIGHT = False
+_C.MODEL.GCN_LR_PRETRAIN = 1e-3
+_C.MODEL.GCN_LR = 5e-4
+_C.MODEL.GCN_DROPOUT_RATE = 0.5
+_C.MODEL.GCN_HIDDEN_DIM = [400, 400, 200]
 
 # The View Correlation Discovery Network (VCDN) to learn the higher-level intra-view and cross-view correlations
 # in the label space. See the MOGONET paper for more information.
-C.MODEL.VCDN_LR = 1e-3
+_C.MODEL.VCDN_LR = 1e-3
 
 # ---------------------------------------------------------
 # Misc options
 # ---------------------------------------------------------
-C.OUTPUT_DIR = "./outputs"
+_C.OUTPUT = CfgNode()
+_C.OUTPUT.OUT_DIR = "./outputs"
 
 
 def get_cfg_defaults():
-    return C.clone()
+    return _C.clone()

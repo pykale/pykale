@@ -24,7 +24,7 @@ def arg_parse():
     parser.add_argument(
         "--devices",
         default=1,
-        help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
+        help="gpu id(s) to use. int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
     parser.add_argument("--resume", default="", type=str)
@@ -69,7 +69,7 @@ def main():
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, num_channels)
 
-        tb_logger = TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
+        tb_logger = TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
             filename="{epoch}-{step}-{valid_loss:.4f}", monitor="valid_loss", mode="min",
         )
@@ -79,8 +79,8 @@ def main():
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
             callbacks=[checkpoint_callback, progress_bar],
-            devices=args.devices,
-            auto_select_gpus=True,
+            accelerator="gpu" if args.devices != 0 else "cpu",
+            devices=args.devices if args.devices != 0 else "auto",
             logger=tb_logger,  # logger,
             # weights_summary='full',
             fast_dev_run=False,  # True,

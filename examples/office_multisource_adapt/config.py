@@ -3,18 +3,18 @@ Default configurations for multi-source domain adapation
 """
 import os
 
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
 
 # -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
 
-_C = CN()
+_C = CfgNode()
 
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
-_C.DATASET = CN()
+_C.DATASET = CfgNode()
 _C.DATASET.ROOT = "../data"
 _C.DATASET.NAME = "digits"  # choices=['office', 'digits', 'office_caltech', 'office31']
 _C.DATASET.TARGET = "MNIST"
@@ -29,10 +29,11 @@ _C.DATASET.NUM_CHANNELS = 3
 _C.DATASET.DIMENSION = 784
 _C.DATASET.WEIGHT_TYPE = "natural"
 _C.DATASET.SIZE_TYPE = "source"
+
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
-_C.SOLVER = CN()
+_C.SOLVER = CfgNode()
 _C.SOLVER.SEED = 2021
 _C.SOLVER.BASE_LR = 0.001  # Initial learning rate
 _C.SOLVER.MOMENTUM = 0.9
@@ -54,18 +55,19 @@ _C.SOLVER.INIT_LAMBDA = 1
 # ---------------------------------------------------------------------------- #
 # Domain Adaptation Net (DAN) configs
 # ---------------------------------------------------------------------------- #
-_C.DAN = CN()
+_C.DAN = CfgNode()
 _C.DAN.METHOD = "M3SDA"  # choices=['M3SDA', 'MFSAN']
 _C.DAN.USERANDOM = False
 _C.DAN.RANDOM_DIM = 1024
+
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-_C.OUTPUT = CN()
-_C.OUTPUT.ROOT = "./outputs"  # output_dir
+_C.OUTPUT = CfgNode()
+_C.OUTPUT.OUT_DIR = "./outputs"  # output_dir
 _C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
 _C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
-_C.OUTPUT.TB_DIR = os.path.join("lightning_logs", "Tgt" + _C.DATASET.TARGET)
+_C.OUTPUT.OUT_DIR = os.path.join("outputs", "Tgt" + _C.DATASET.TARGET)
 
 
 def get_cfg_defaults():

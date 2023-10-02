@@ -78,7 +78,7 @@ def main():
     model = mogonet_model.get_model(pretrain=True)
     trainer_pretrain = pl.Trainer(
         max_epochs=cfg.SOLVER.MAX_EPOCHS_PRETRAIN,
-        default_root_dir=cfg.OUTPUT_DIR,
+        default_root_dir=cfg.OUTPUT.OUT_DIR,
         accelerator="auto",
         devices="auto",
         enable_model_summary=False,
@@ -90,7 +90,7 @@ def main():
     model = mogonet_model.get_model(pretrain=False)
     trainer = pl.Trainer(
         max_epochs=cfg.SOLVER.MAX_EPOCHS,
-        default_root_dir=cfg.OUTPUT_DIR,
+        default_root_dir=cfg.OUTPUT.OUT_DIR,
         accelerator="auto",
         devices="auto",
         enable_model_summary=False,

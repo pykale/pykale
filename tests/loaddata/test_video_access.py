@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 import torch
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
 
 from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.multi_domain import DomainsDatasetBase
@@ -40,8 +40,8 @@ url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 
 @pytest.fixture(scope="module")
 def testing_cfg(download_path):
-    cfg = CN()
-    cfg.DATASET = CN()
+    cfg = CfgNode()
+    cfg.DATASET = CfgNode()
     cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
     cfg.DATASET.IMAGE_MODALITY = "joint"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
