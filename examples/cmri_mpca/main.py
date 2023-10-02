@@ -44,7 +44,7 @@ def main():
     print(f"Save Figures: {save_figs}")
 
     # ---- initialize folder to store images ----
-    save_figures_location = cfg.OUTPUT.ROOT
+    save_figures_location = cfg.OUTPUT.OUT_DIR
     print(f"Save Figures: {save_figures_location}")
 
     if not os.path.exists(save_figures_location):

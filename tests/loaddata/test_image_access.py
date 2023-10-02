@@ -1,7 +1,7 @@
 import pytest
 import torch
 from numpy import testing
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
 
 from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.image_access import DigitDataset, DigitDatasetAccess, get_cifar, ImageAccess
@@ -137,9 +137,9 @@ DATASET_NAMES = ["CIFAR10", "CIFAR100"]
 
 @pytest.fixture(scope="module")
 def testing_cfg(download_path):
-    cfg = CN()
-    cfg.DATASET = CN()
-    cfg.SOLVER = CN()
+    cfg = CfgNode()
+    cfg.DATASET = CfgNode()
+    cfg.SOLVER = CfgNode()
     cfg.DATASET.ROOT = download_path
     # cfg.DATASET.DOWNLOAD = True
     cfg.SOLVER.TRAIN_BATCH_SIZE = 16
