@@ -6,7 +6,6 @@ import pytorch_lightning as pl
 import torch
 from torchvision import transforms
 
-# from torchvision.models import *  # resnet18, resnet34, resnet50, resnet101, resnet152
 from yacs.config import CfgNode as CN
 
 from kale.embed.image_cnn import ResNet18Feature
