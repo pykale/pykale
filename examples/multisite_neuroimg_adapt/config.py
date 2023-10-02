@@ -2,18 +2,18 @@
 Default configurations for classification on resting-state fMRI of ABIDE
 """
 
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
 
 # -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
 
-_C = CN()
+_C = CfgNode()
 
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
-_C.DATASET = CN()
+_C.DATASET = CfgNode()
 _C.DATASET.ROOT = "../data"
 _C.DATASET.PIPELINE = "cpac"  # options: {‘cpac’, ‘css’, ‘dparsf’, ‘niak’}
 _C.DATASET.ATLAS = "rois_cc200"
@@ -23,15 +23,15 @@ _C.DATASET.TARGET = "NYU"  # target site ids, e.g. "UM_1", "UCLA_1", "USM"
 # ---------------------------------------------------------------------------- #
 # Machine learning pipeline
 # ---------------------------------------------------------------------------- #
-_C.MODEL = CN()
+_C.MODEL = CfgNode()
 _C.MODEL.KERNEL = "rbf"
 _C.MODEL.ALPHA = 0.01
 _C.MODEL.LAMBDA_ = 1.0
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-_C.OUTPUT = CN()
-_C.OUTPUT.ROOT = "./outputs"  # output_dir
+_C.OUTPUT = CfgNode()
+_C.OUTPUT.OUT_DIR = "./outputs"  # output_dir
 
 
 def get_cfg_defaults():

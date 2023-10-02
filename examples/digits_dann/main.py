@@ -25,7 +25,7 @@ def arg_parse():
     parser.add_argument(
         "--devices",
         default=1,
-        help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
+        help="gpu id(s) to use. int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
     args = parser.parse_args()
@@ -94,7 +94,7 @@ def main():
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
             accelerator="gpu" if args.devices != 0 else "cpu",
-            devices=args.devices,
+            devices=args.devices if args.devices != 0 else "auto",
             callbacks=[checkpoint_callback, progress_bar],
             logger=logger,
         )

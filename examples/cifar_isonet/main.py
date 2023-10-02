@@ -41,7 +41,7 @@ def main():
     set_seed(cfg.SOLVER.SEED)
 
     # ---- setup logger and output ----
-    output_dir = os.path.join(cfg.OUTPUT_DIR, cfg.DATASET.NAME, args.output)
+    output_dir = os.path.join(cfg.OUTPUT.OUT_DIR, cfg.DATASET.NAME, args.output)
     os.makedirs(output_dir, exist_ok=True)
     logger = construct_logger("isonet", output_dir)
     logger.info("Using " + device)

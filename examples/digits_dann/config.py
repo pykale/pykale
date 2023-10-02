@@ -4,18 +4,18 @@ Default configurations for domain adaptation
 
 import os
 
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
 
 # -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
 
-_C = CN()
+_C = CfgNode()
 
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
-_C.DATASET = CN()
+_C.DATASET = CfgNode()
 _C.DATASET.ROOT = "./data"  # Root directory of dataset, "data" is in the same directory as this file
 _C.DATASET.NAME = "digits"  # Dataset type name
 _C.DATASET.SOURCE = "mnist"  # The source dataset name
@@ -30,7 +30,7 @@ _C.DATASET.VALID_SPLIT_RATIO = 0.1  # Ratio of validation set to the training da
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
-_C.SOLVER = CN()
+_C.SOLVER = CfgNode()
 _C.SOLVER.SEED = 2020
 _C.SOLVER.BASE_LR = 0.001
 _C.SOLVER.MOMENTUM = 0.9
@@ -52,7 +52,7 @@ _C.SOLVER.INIT_LAMBDA = 1.0  # Initial value of lambda
 # ---------------------------------------------------------------------------- #
 # Domain Adaptation Net (DAN) configs
 # ---------------------------------------------------------------------------- #
-_C.DAN = CN()
+_C.DAN = CfgNode()
 _C.DAN.METHOD = "CDAN"  # choices=['CDAN', 'CDAN-E', 'DANN', 'DAN', 'JAN']
 _C.DAN.USERANDOM = False
 _C.DAN.RANDOM_DIM = 1024
@@ -60,7 +60,7 @@ _C.DAN.RANDOM_DIM = 1024
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-_C.OUTPUT = CN()
+_C.OUTPUT = CfgNode()
 _C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
 _C.OUTPUT.PB_FRESH = 0  # Number of steps before a new progress bar is printed. Set 0 to disable the progress bar
 _C.OUTPUT.OUT_DIR = os.path.join("outputs", _C.DATASET.SOURCE + "2" + _C.DATASET.TARGET)
@@ -68,7 +68,7 @@ _C.OUTPUT.OUT_DIR = os.path.join("outputs", _C.DATASET.SOURCE + "2" + _C.DATASET
 # -----------------------------------------------------------------------------
 # Comet Logger (optional) - https://www.comet.ml/site/
 # -----------------------------------------------------------------------------
-_C.COMET = CN()
+_C.COMET = CfgNode()
 _C.COMET.ENABLE = False  # Set True to enable Comet logging (requires an API key).
 _C.COMET.API_KEY = ""  # Your Comet API key
 _C.COMET.PROJECT_NAME = "Digit DANN"
