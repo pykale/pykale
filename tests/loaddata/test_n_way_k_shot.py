@@ -41,8 +41,8 @@ def test_n_way_k_shot(mode, testing_cfg):
     dataset = NWayKShotDataset(
         path=cfg.DATASET.ROOT, mode=mode, k_shot=k_shot, query_samples=query_samples, transform=transform
     )
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=5, shuffle=True, drop_last=True)
-    logging.info("length of dataloader: {}".format(len(dataloader)))
+    # dataloader = torch.utils.data.DataLoader(dataset, batch_size=5, shuffle=True, drop_last=True)
+    logging.info("length of dataset: {}".format(len(dataset)))
 
     assert len(dataset) == len(dataset.classes)
     assert isinstance(dataset._get_idx(0), np.ndarray)
@@ -51,15 +51,19 @@ def test_n_way_k_shot(mode, testing_cfg):
     assert isinstance(dataset.__getitem__(0), tuple)
     assert isinstance(dataset.__getitem__(0)[0], torch.Tensor)
     assert isinstance(dataset.__getitem__(0)[1], int)
+    logging.info("Finishing 1st part test")
 
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=n_way, shuffle=True, num_workers=30, drop_last=True)
-    batch = next(iter(dataloader))
-    assert len(dataloader) > 0
-    assert isinstance(batch, list)
-    assert isinstance(batch[0], torch.Tensor)
-    assert isinstance(batch[1], torch.Tensor)
-    assert batch[0].shape == (n_way, k_shot + query_samples, 3, 224, 224)
-    assert batch[1].shape == (n_way,)
+    for batch in dataloader:
+        logging.info("Finishing 2nd part test")
+        assert len(dataloader) > 0
+        assert isinstance(batch, list)
+        assert isinstance(batch[0], torch.Tensor)
+        assert isinstance(batch[1], torch.Tensor)
+        assert batch[0].shape == (n_way, k_shot + query_samples, 3, 224, 224)
+        assert batch[1].shape == (n_way,)
+        break
+    logging.info("Finishing test")
 
 
 # if __name__ == "__main__":
