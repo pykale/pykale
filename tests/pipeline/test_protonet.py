@@ -12,7 +12,7 @@ from kale.loaddata.n_way_k_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
 from kale.utils.download import download_file_by_url
 
-root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+# root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 url = "https://github.com/pykale/data/raw/main/images/omniglot/demo_data.zip"
 modes = ["train", "val", "test"]
 
@@ -21,7 +21,8 @@ modes = ["train", "val", "test"]
 def testing_cfg_data(download_path):
     cfg = CN()
     cfg.DATASET = CN()
-    cfg.DATASET.ROOT = os.path.join(root_dir, download_path, "demo_data")
+    # cfg.DATASET.ROOT = os.path.join(root_dir, download_path, "demo_data")
+    cfg.DATASET.ROOT = os.path.join(download_path, "demo_data")
     yield cfg
 
 
