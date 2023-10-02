@@ -1,7 +1,7 @@
 import os
 import random
 from pathlib import Path
-
+import logging
 import numpy as np
 import pytest
 import torch
@@ -31,14 +31,17 @@ def test_n_way_k_shot(mode, testing_cfg):
     cfg = testing_cfg
     output_dir = str(Path(cfg.DATASET.ROOT).parent.absolute())
     download_file_by_url(url=url, output_directory=output_dir, output_file_name="omniglot_demo.zip", file_format="zip")
+    logging.info("Demo data downloaded and extracted in {}".format(cfg.DATASET.ROOT))
     transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
     k_shot = random.randint(1, 10)
     query_samples = random.randint(1, 10)
     n_way = random.randint(1, 10)
+    logging.info("k_shot: {}, query_samples: {}, n_way: {}".format(k_shot, query_samples, n_way))
     dataset = NWayKShotDataset(
         path=cfg.DATASET.ROOT, mode=mode, k_shot=k_shot, query_samples=query_samples, transform=transform
     )
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=5, shuffle=True, drop_last=True)
+    logging.info("length of dataloader: {}".format(len(dataloader)))
 
     assert len(dataset) == len(dataset.classes)
     assert isinstance(dataset._get_idx(0), np.ndarray)
