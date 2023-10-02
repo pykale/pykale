@@ -109,4 +109,3 @@ class ProtoNetTrainer(pl.LightningModule):
             self.model.parameters(), lr=self.cfg.TRAIN.LEARNING_RATE
         )
         return optimizer
-

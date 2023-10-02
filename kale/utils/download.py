@@ -39,6 +39,7 @@ def download_file_by_url(url, output_directory, output_file_name, file_format=No
 
     output_directory = Path(output_directory).absolute()
     file = Path(output_directory).joinpath(output_file_name)
+
     if os.path.exists(file):
         logging.info("Skipping Download and Extraction")
 

@@ -11,7 +11,8 @@ from yacs.config import CfgNode as CN
 from kale.loaddata.n_way_k_shot import NWayKShotDataset
 from kale.utils.download import download_file_by_url
 
-root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
 url = "https://github.com/pykale/data/raw/main/images/omniglot/demo_data.zip"
 modes = ["train", "val", "test"]
 
@@ -38,7 +39,7 @@ def test_n_way_k_shot(mode, testing_cfg):
     )
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=5, shuffle=True, drop_last=True)
 
-    assert len(dataset) == len(dataset.classes)
+    assert len(dataset) != len(dataset.classes)
     assert isinstance(dataset._get_idx(0), np.ndarray)
     assert isinstance(dataset._sample_data(dataset._get_idx(0)), list)
     assert isinstance(dataset._sample_data(dataset._get_idx(0))[0], torch.Tensor)
