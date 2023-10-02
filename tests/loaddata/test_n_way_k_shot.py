@@ -38,7 +38,6 @@ def test_n_way_k_shot(mode, testing_cfg):
     )
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=5, shuffle=True, drop_last=True)
 
-    
     assert len(dataset) == len(dataset.classes)
     assert isinstance(dataset._get_idx(0), np.ndarray)
     assert isinstance(dataset._sample_data(dataset._get_idx(0)), list)

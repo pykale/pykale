@@ -76,7 +76,7 @@ def test_protonet(mode, testing_cfg_data, testing_cfg_model):
         transform=transform,
     )
     dataloader = torch.utils.data.DataLoader(
-        dataset, batch_size=cfg_model.TRAIN.N_WAYS, shuffle=(mode=='train'), drop_last=True
+        dataset, batch_size=cfg_model.TRAIN.N_WAYS, shuffle=(mode == "train"), drop_last=True
     )
     assert len(dataloader) > 0
     net = ResNet18Feature(weights=cfg_model.MODEL.PRETRAIN_WEIGHTS).to(cfg_model.DEVICE)

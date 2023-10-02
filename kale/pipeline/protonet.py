@@ -54,8 +54,6 @@ class ProtoNetTrainer(pl.LightningModule):
         feature_sup = self.model(supports).reshape(n_ways, k_shots, -1)
         feature_que = self.model(queries)
         return feature_sup, feature_que
-    
-    
 
     def compute_loss(self, feature_sup, feature_que, mode="train") -> Any:
         """
