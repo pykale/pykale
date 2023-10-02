@@ -155,15 +155,16 @@ class ResNet18Feature(nn.Module):
     Modified ResNet18 (without the last layer) feature extractor for regular 224x224 images.
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-
+        weights (models.ResNet18_Weights or string): The pretrained weights to use. See
+         https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html#torchvision.models.ResNet18_Weights
+        for more details. By default, ResNet18_Weights.DEFAULT will be used.
     Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
-    def __init__(self, pretrained=True):
+    def __init__(self, weights=models.ResNet18_Weights.DEFAULT):
         super(ResNet18Feature, self).__init__()
-        model_resnet18 = models.resnet18(pretrained)
+        model_resnet18 = models.resnet18(weights=weights)
         self.conv1 = model_resnet18.conv1
         self.bn1 = model_resnet18.bn1
         self.relu = model_resnet18.relu
@@ -197,15 +198,17 @@ class ResNet34Feature(nn.Module):
     Modified ResNet34 (without the last layer) feature extractor for regular 224x224 images.
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        weights (models.ResNet34_Weights or string): The pretrained weights to use. See
+         https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet34.html#torchvision.models.ResNet34_Weights
+        for more details. By default, ResNet34_Weights.DEFAULT will be used.
 
     Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
-    def __init__(self, pretrained=True):
+    def __init__(self, weights=models.ResNet34_Weights.DEFAULT):
         super(ResNet34Feature, self).__init__()
-        model_resnet34 = models.resnet34(pretrained)
+        model_resnet34 = models.resnet34(weights=weights)
         self.conv1 = model_resnet34.conv1
         self.bn1 = model_resnet34.bn1
         self.relu = model_resnet34.relu
@@ -239,15 +242,17 @@ class ResNet50Feature(nn.Module):
     Modified ResNet50 (without the last layer) feature extractor for regular 224x224 images.
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        weights (models.ResNet50_Weights or string): The pretrained weights to use. See
+         https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet50.html#torchvision.models.ResNet50_Weights
+        for more details. By default, ResNet50_Weights.DEFAULT will be used.
 
     Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
-    def __init__(self, pretrained=True):
+    def __init__(self, weights=models.ResNet50_Weights.DEFAULT):
         super(ResNet50Feature, self).__init__()
-        model_resnet50 = models.resnet50(pretrained)
+        model_resnet50 = models.resnet50(weights=weights)
         self.conv1 = model_resnet50.conv1
         self.bn1 = model_resnet50.bn1
         self.relu = model_resnet50.relu
@@ -281,15 +286,17 @@ class ResNet101Feature(nn.Module):
     Modified ResNet101 (without the last layer) feature extractor for regular 224x224 images.
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        weights (models.ResNet101_Weights or string): The pretrained weights to use. See
+         https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet101.html#torchvision.models.ResNet101_Weights
+        for more details. By default, ResNet101_Weights.DEFAULT will be used.
 
     Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
-    def __init__(self, pretrained=True):
+    def __init__(self, weights=models.ResNet101_Weights.DEFAULT):
         super(ResNet101Feature, self).__init__()
-        model_resnet101 = models.resnet101(pretrained)
+        model_resnet101 = models.resnet101(weights=weights)
         self.conv1 = model_resnet101.conv1
         self.bn1 = model_resnet101.bn1
         self.relu = model_resnet101.relu
@@ -323,15 +330,17 @@ class ResNet152Feature(nn.Module):
     Modified ResNet152 (without the last layer) feature extractor for regular 224x224 images.
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        weights (models.ResNet152_Weights or string): The pretrained weights to use. See
+         https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet152.html#torchvision.models.ResNet152_Weights
+        for more details. By default, ResNet152_Weights.DEFAULT will be used.
 
     Note:
         Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
-    def __init__(self, pretrained=True):
+    def __init__(self, weights=models.ResNet152_Weights.DEFAULT):
         super(ResNet152Feature, self).__init__()
-        model_resnet152 = models.resnet152(pretrained)
+        model_resnet152 = models.resnet152(weights=weights)
         self.conv1 = model_resnet152.conv1
         self.bn1 = model_resnet152.bn1
         self.relu = model_resnet152.relu

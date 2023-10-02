@@ -16,7 +16,7 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="DeepDTA on BindingDB dataset")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument(
-        "--gpus",
+        "--devices",
         default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU. str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
@@ -47,9 +47,11 @@ def main():
     model = get_model(cfg)
 
     # ---- training and evaluation ----
-    gpus = 1 if device == "cuda" else 0
+    devices = 1 if device == "cuda" else 0
     checkpoint_callback = ModelCheckpoint(filename="{epoch}-{step}-{valid_loss:.4f}", monitor="valid_loss", mode="min")
-    trainer = pl.Trainer(max_epochs=cfg.SOLVER.MAX_EPOCHS, gpus=gpus, logger=tb_logger, callbacks=[checkpoint_callback])
+    trainer = pl.Trainer(
+        max_epochs=cfg.SOLVER.MAX_EPOCHS, devices=devices, logger=tb_logger, callbacks=[checkpoint_callback]
+    )
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=valid_loader)
     trainer.test(dataloaders=test_loader)
 

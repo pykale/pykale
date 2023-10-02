@@ -94,7 +94,7 @@ class ClassNetSmallImage(nn.Module):
         self.fc1 = nn.Linear(input_size, 100)
         self.bn1 = nn.BatchNorm1d(100)
         self.relu1 = nn.ReLU()
-        self.dp1 = nn.Dropout2d()
+        self.dp1 = nn.Dropout()
         self.fc2 = nn.Linear(100, 100)
         self.bn2 = nn.BatchNorm1d(100)
         self.relu2 = nn.ReLU()
