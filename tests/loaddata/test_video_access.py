@@ -43,7 +43,7 @@ def testing_cfg(download_path):
     cfg = CN()
     cfg.DATASET = CN()
     # cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
-    cfg.DATASET.ROOT = download_path + "/video_test_data/"
+    cfg.DATASET.ROOT = os.path.join(download_path, "video_test_data")
     cfg.DATASET.IMAGE_MODALITY = "joint"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
     yield cfg
