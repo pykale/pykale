@@ -53,7 +53,8 @@ def test_n_way_k_shot(mode, testing_cfg):
     assert isinstance(dataset.__getitem__(0)[1], int)
     logging.info("Finishing 1st part test")
 
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=n_way, shuffle=True, num_workers=30, drop_last=True)
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=n_way, shuffle=True, drop_last=True)
+    logging.info("length of dataloader: {}".format(len(dataloader)))
     for batch in dataloader:
         logging.info("Finishing 2nd part test")
         assert len(dataloader) > 0
