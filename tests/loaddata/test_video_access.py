@@ -34,7 +34,7 @@ seed = 36
 set_seed(seed)
 CLASS_SUBSETS = [[1, 3, 8]]
 
-root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+# root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 
 
@@ -42,7 +42,8 @@ url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 def testing_cfg(download_path):
     cfg = CN()
     cfg.DATASET = CN()
-    cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
+    # cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
+    cfg.DATASET.ROOT = os.path.join(download_path, "video_test_data")
     cfg.DATASET.IMAGE_MODALITY = "joint"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
     yield cfg

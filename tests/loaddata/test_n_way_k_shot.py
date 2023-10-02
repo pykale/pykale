@@ -58,5 +58,5 @@ def test_n_way_k_shot(mode, testing_cfg):
     assert batch[1].shape == (n_way,)
 
 
-if __name__ == "__main__":
-    pytest.main([__file__])
+# if __name__ == "__main__":
+#     pytest.main([__file__])
