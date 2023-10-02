@@ -1,7 +1,8 @@
+import logging
 import os
 import random
 from pathlib import Path
-import logging
+
 import numpy as np
 import pytest
 import torch

@@ -15,7 +15,7 @@ VAL:
   K_SHOTS: 5
   K_QUERIES: 15
 OUTPUT:
-  LOG_DIR: 'examples/protonet/logs'
+  LOG_DIR: 'outputs/protonet/logs'
   WEIGHT_DIR: 'weights'
   SAVE_FREQ: 1
   SAVE_TOP_K: 2
