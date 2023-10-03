@@ -1,6 +1,5 @@
 import pytest
 import torch
-import logging
 
 from kale.embed.image_cnn import (
     Flatten,
@@ -51,7 +50,7 @@ def test_shapes(param):
     model.eval()
     output_batch = model(INPUT_BATCH)
     assert output_batch.size() == (BATCH_SIZE, out_size)
-    logging.info("Output shape: {}".format(model.output_size()))
+    # logging.info("Output shape: {}".format(model.output_size()))
     assert model.output_size() == out_size
 
 
