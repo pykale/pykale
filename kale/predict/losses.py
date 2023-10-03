@@ -284,9 +284,9 @@ class proto_loss:
         n_ways (int): number of classes in a task
         k_query (int): number of query samples per class
         device (torch.device): the desired device of returned tensor
-        
+
     Reference:
-        Snell, Jake, Kevin Swersky, and Richard Zemel. "Prototypical networks for few-shot learning." 
+        Snell, Jake, Kevin Swersky, and Richard Zemel. "Prototypical networks for few-shot learning."
         Advances in neural information processing systems 30 (2017).
     """
 

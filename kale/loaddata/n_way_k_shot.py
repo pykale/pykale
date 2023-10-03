@@ -12,7 +12,7 @@ class NWayKShotDataset(Dataset):
     This is a dataset class for few-shot learning. It is used to load data for N-way K-shot learning for Prototypical Networks.
 
     Note:
-        The dataset should be organized as: 
+        The dataset should be organized as:
         - root
             - train
                 - class_name 1
@@ -53,9 +53,10 @@ class NWayKShotDataset(Dataset):
         query_samples (int): Number of query examples for each class in each episode.
         transform (callable, optional): Optional transform to be applied on a sample.
     """
+
     def __init__(self, path: str, mode: str = "train", k_shot: int = 5, query_samples: int = 15, transform: Any = None):
         super(NWayKShotDataset, self).__init__()
-        
+
         self.root = path
         self.k_shot = k_shot
         self.query_samples = query_samples
