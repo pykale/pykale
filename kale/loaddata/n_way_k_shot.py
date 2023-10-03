@@ -13,7 +13,7 @@ class NWayKShotDataset(Dataset):
 
     Note:
         The dataset should be organized as:
-        
+
         - root
             - train
                 - class_name 1
