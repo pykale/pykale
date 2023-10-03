@@ -2,6 +2,8 @@ import pytest
 import torch
 
 from kale.embed.image_cnn import (
+    Flatten,
+    Identity,
     LeNet,
     ResNet18Feature,
     ResNet34Feature,
@@ -59,3 +61,17 @@ def test_lenet_output_shapes():
     x = torch.randn(16, 3, 32, 32)
     output = lenet(x)
     assert output.shape == (16, 24, 4, 4), "Unexpected output shape"
+
+
+def test_flatten_output_shapes():
+    flatten = Flatten()
+    x = torch.randn(16, 3, 32, 32)
+    output = flatten(x)
+    assert output.shape == (16, 3072), "Unexpected output shape"
+
+
+def test_identity_output_shapes():
+    identity = Identity()
+    x = torch.randn(16, 3, 32, 32)
+    output = identity(x)
+    assert output.shape == (16, 3, 32, 32), "Unexpected output shape"
