@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from kale.predict.losses import _moment_k, euclidean, multitask_topk_accuracy, topk_accuracy
+from kale.predict.losses import multitask_topk_accuracy, topk_accuracy
 
 # Dummy data: [batch_size, num_classes]
 # Dummy ground truth: batch_size
@@ -59,6 +59,3 @@ def test_multitask_topk_accuracy():
     assert top1_value.cpu() == pytest.approx(1 / 5)
     assert top3_value.cpu() == pytest.approx(2 / 5)
     assert top5_value.cpu() == pytest.approx(3 / 5)
-
-
-
