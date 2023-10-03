@@ -30,7 +30,7 @@ class Flatten(nn.Module):
 
 class Identity(nn.Module):
     """Identity layer
-    This module is to any unwanted layers of pre-trained models with
+    This module is to replace any unwanted layers of pre-trained models with
     identity layer. It returns the input tensor as output.
 
     Examples:
