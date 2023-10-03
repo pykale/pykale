@@ -12,7 +12,6 @@ from kale.pipeline.multi_domain_adapter import CoIRLS, create_ms_adapt_trainer
 from kale.predict.class_domain_nets import ClassNetSmallImage
 from tests.helpers.pipe_test_helper import ModelTestHelper
 
-import logging
 
 @pytest.fixture(scope="module")
 def testing_cfg(download_path):
@@ -49,12 +48,12 @@ def test_multi_source(method, input_dimension, office_caltech_access, testing_cf
     # setup classifier
     classifier_network = ClassNetSmallImage
     train_params = testing_cfg["train_params"].copy()
-    
+
     if method == "MFSAN":
         train_params["input_dimension"] = input_dimension
         if input_dimension == 2:
             feature_network = torch.nn.Sequential(*(list(feature_network.children())[:-1]))
-    
+
     model = create_ms_adapt_trainer(
         method=method,
         dataset=dataset,
@@ -64,7 +63,7 @@ def test_multi_source(method, input_dimension, office_caltech_access, testing_cf
         target_domain="amazon",
         **train_params,
     )
-    
+
     kwargs = {"limit_train_batches": 0.1, "limit_val_batches": 0.3, "limit_test_batches": 0.2}
     ModelTestHelper.test_model(model, train_params, **kwargs)
 
@@ -75,11 +74,10 @@ def test_coirls(kernel, office_caltech_access):
     dataset.prepare_data_loaders()
     dataloader = dataset.get_domain_loaders(split="train", batch_size=100)
     feature_network = ResNet18Feature()
-    
+
     x, y, z = next(iter(dataloader))
     tgt_idx = torch.where(z == 0)
     src_idx = torch.where(z != 0)
-    
 
     x_feat = feature_network(x)
     z_one_hot = one_hot(z)
