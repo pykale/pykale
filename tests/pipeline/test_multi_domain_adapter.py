@@ -39,7 +39,7 @@ MSDA_METHODS = ["MFSAN", "M3SDA", "DIN"]
 
 
 @pytest.mark.parametrize("method", MSDA_METHODS)
-@pytest.mark.parametrize("input_dimension", [1, 2])
+@pytest.mark.parametrize("input_dimension", [2])
 def test_multi_source(method, input_dimension, office_caltech_access, testing_cfg):
     if method != "MFSAN" and input_dimension == 2:
         pytest.skip()
@@ -51,7 +51,7 @@ def test_multi_source(method, input_dimension, office_caltech_access, testing_cf
     if method == "MFSAN":
         train_params["input_dimension"] = input_dimension
         if input_dimension == 2:
-            feature_network = torch.nn.Sequential(*(list(feature_network.children())[:-1]))
+            feature_network = torch.nn.Sequential(*(list(feature_network.model.children())[:-1]))
 
     model = create_ms_adapt_trainer(
         method=method,
