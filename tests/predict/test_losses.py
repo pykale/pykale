@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from kale.predict.losses import multitask_topk_accuracy, topk_accuracy
+from kale.predict.losses import multitask_topk_accuracy, topk_accuracy, hsic, euclidean, _moment_k
 
 # Dummy data: [batch_size, num_classes]
 # Dummy ground truth: batch_size
@@ -59,3 +59,26 @@ def test_multitask_topk_accuracy():
     assert top1_value.cpu() == pytest.approx(1 / 5)
     assert top3_value.cpu() == pytest.approx(2 / 5)
     assert top5_value.cpu() == pytest.approx(3 / 5)
+
+# def test_hisc():
+#     kx = torch.randn(5, 5)
+#     ky = torch.randn(5, 5)
+#     device = torch.device("cpu")
+#     assert hsic(kx, ky, device) >= 0
+
+def test_euclidean():
+    x = torch.randn(5, 5)
+    y = torch.randn(5, 5)
+    assert isinstance(euclidean(x, y), torch.Tensor)
+    assert euclidean(x, y) >= 0
+    assert euclidean(x, x) == 0
+    assert euclidean(y, y) == 0
+    assert euclidean(x, y) == euclidean(y, x)
+
+
+def test_moment_k():
+    x = torch.randn(5, 128)
+    domain_labels = torch.tensor([0, 1, 2, 3, 4])
+    assert _moment_k(x, domain_labels, 2) >= 0
+    assert isinstance(_moment_k(x, domain_labels, 2), torch.Tensor)
+
