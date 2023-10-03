@@ -78,7 +78,7 @@ def main():
     brain_networks = correlation_measure.fit_transform(time_series)
 
     # ---- Machine Learning for Multi-site Data ----
-    print("Baseline Model")
+    print("Baseline")
     estimator = RidgeClassifier()
     results = cross_validation.leave_one_group_out(
         brain_networks, pheno["DX_GROUP"].values, pheno["SITE_ID"].values, estimator
