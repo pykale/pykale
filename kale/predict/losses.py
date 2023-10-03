@@ -284,6 +284,11 @@ class proto_loss:
         n_ways (int): number of classes in a task
         k_query (int): number of query samples per class
         device (torch.device): the desired device of returned tensor
+    
+    Examples:
+        >>> loss_fn = proto_loss(n_ways=5, k_query=15, device=torch.device("cuda"))
+        >>> loss_val, acc_val = loss_fn(feature_sup, feature_que)
+        
 
     Reference:
         Snell, Jake, Kevin Swersky, and Richard Zemel. "Prototypical networks for few-shot learning."
@@ -301,6 +306,7 @@ class proto_loss:
         Args:
             feature_sup (torch.Tensor): shape (n_ways, k_shot, feature_dim)
             feature_que (torch.Tensor): shape (n_ways * k_query, feature_dim)
+
         Returns:
             tuple: (loss_val, acc_val)
             loss_val (torch.Tensor): loss value
