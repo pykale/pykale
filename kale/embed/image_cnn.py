@@ -203,12 +203,30 @@ class ResNet18Feature(nn.Module):
 
     def __init__(self, weights=models.ResNet18_Weights.DEFAULT):
         super(ResNet18Feature, self).__init__()
-        self.model = models.resnet18(weights=weights)
-        self._out_features = self.model.fc.in_features
-        self.model.fc = Flatten()
+        model_resnet18 = models.resnet18(weights=weights)
+        self.conv1 = model_resnet18.conv1
+        self.bn1 = model_resnet18.bn1
+        self.relu = model_resnet18.relu
+        self.maxpool = model_resnet18.maxpool
+        self.layer1 = model_resnet18.layer1
+        self.layer2 = model_resnet18.layer2
+        self.layer3 = model_resnet18.layer3
+        self.layer4 = model_resnet18.layer4
+        self.avgpool = model_resnet18.avgpool
+        self._out_features = model_resnet18.fc.in_features
 
     def forward(self, x):
-        return self.model(x)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        return x
 
     def output_size(self):
         return self._out_features
@@ -229,12 +247,30 @@ class ResNet34Feature(nn.Module):
 
     def __init__(self, weights=models.ResNet34_Weights.DEFAULT):
         super(ResNet34Feature, self).__init__()
-        self.model = models.resnet34(weights=weights)
-        self._out_features = self.model.fc.in_features
-        self.model.fc = Flatten()
+        model_resnet34 = models.resnet34(weights=weights)
+        self.conv1 = model_resnet34.conv1
+        self.bn1 = model_resnet34.bn1
+        self.relu = model_resnet34.relu
+        self.maxpool = model_resnet34.maxpool
+        self.layer1 = model_resnet34.layer1
+        self.layer2 = model_resnet34.layer2
+        self.layer3 = model_resnet34.layer3
+        self.layer4 = model_resnet34.layer4
+        self.avgpool = model_resnet34.avgpool
+        self._out_features = model_resnet34.fc.in_features
 
     def forward(self, x):
-        return self.model(x)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        return x
 
     def output_size(self):
         return self._out_features
@@ -255,12 +291,30 @@ class ResNet50Feature(nn.Module):
 
     def __init__(self, weights=models.ResNet50_Weights.DEFAULT):
         super(ResNet50Feature, self).__init__()
-        self.model = models.resnet50(weights=weights)
-        self._out_features = self.model.fc.in_features
-        self.model.fc = Flatten()
+        model_resnet50 = models.resnet50(weights=weights)
+        self.conv1 = model_resnet50.conv1
+        self.bn1 = model_resnet50.bn1
+        self.relu = model_resnet50.relu
+        self.maxpool = model_resnet50.maxpool
+        self.layer1 = model_resnet50.layer1
+        self.layer2 = model_resnet50.layer2
+        self.layer3 = model_resnet50.layer3
+        self.layer4 = model_resnet50.layer4
+        self.avgpool = model_resnet50.avgpool
+        self._out_features = model_resnet50.fc.in_features
 
     def forward(self, x):
-        return self.model(x)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        return x
 
     def output_size(self):
         return self._out_features
@@ -281,12 +335,30 @@ class ResNet101Feature(nn.Module):
 
     def __init__(self, weights=models.ResNet101_Weights.DEFAULT):
         super(ResNet101Feature, self).__init__()
-        self.model = models.resnet101(weights=weights)
-        self._out_features = self.model.fc.in_features
-        self.model.fc = Flatten()
+        model_resnet101 = models.resnet101(weights=weights)
+        self.conv1 = model_resnet101.conv1
+        self.bn1 = model_resnet101.bn1
+        self.relu = model_resnet101.relu
+        self.maxpool = model_resnet101.maxpool
+        self.layer1 = model_resnet101.layer1
+        self.layer2 = model_resnet101.layer2
+        self.layer3 = model_resnet101.layer3
+        self.layer4 = model_resnet101.layer4
+        self.avgpool = model_resnet101.avgpool
+        self._out_features = model_resnet101.fc.in_features
 
     def forward(self, x):
-        return self.model(x)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        return x
 
     def output_size(self):
         return self._out_features
@@ -307,12 +379,30 @@ class ResNet152Feature(nn.Module):
 
     def __init__(self, weights=models.ResNet152_Weights.DEFAULT):
         super(ResNet152Feature, self).__init__()
-        self.model = models.resnet152(weights=weights)
-        self._out_features = self.model.fc.in_features
-        self.model.fc = Flatten()
+        model_resnet152 = models.resnet152(weights=weights)
+        self.conv1 = model_resnet152.conv1
+        self.bn1 = model_resnet152.bn1
+        self.relu = model_resnet152.relu
+        self.maxpool = model_resnet152.maxpool
+        self.layer1 = model_resnet152.layer1
+        self.layer2 = model_resnet152.layer2
+        self.layer3 = model_resnet152.layer3
+        self.layer4 = model_resnet152.layer4
+        self.avgpool = model_resnet152.avgpool
+        self._out_features = model_resnet152.fc.in_features
 
     def forward(self, x):
-        return self.model(x)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        return x
 
     def output_size(self):
         return self._out_features
