@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 import pytest
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
 
 from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
@@ -34,9 +34,9 @@ url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 
 @pytest.fixture(scope="module")
 def testing_cfg(download_path):
-    cfg = CN()
-    cfg.DATASET = CN()
-    cfg.DAN = CN()
+    cfg = CfgNode()
+    cfg.DATASET = CfgNode()
+    cfg.DAN = CfgNode()
     cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
     yield cfg

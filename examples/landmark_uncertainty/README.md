@@ -375,12 +375,12 @@ _C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "Average"
 
 The following are miscellaneous configuration options.
 
-#### `OUTPUT.SAVE_FOLDER`
+#### `OUTPUT.OUT_DIR`
 
 The folder where the experiment results will be saved.
 
 Default:
-`_C.OUTPUT.SAVE_FOLDER` = "./outputs/""
+`_C.OUTPUT.OUT_DIR` = "./outputs/""
 
 #### `OUTPUT.SAVE_PREPEND`
 

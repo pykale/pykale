@@ -1,15 +1,19 @@
-from yacs.config import CfgNode as CN
+"""
+Default configurations for the BindingDB datasets using DeepDTA.
+"""
+
+from yacs.config import CfgNode
 
 # -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
 
-_C = CN()
+_C = CfgNode()
 
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
-_C.DATASET = CN()
+_C.DATASET = CfgNode()
 _C.DATASET.PATH = "./data"
 _C.DATASET.NAME = "BindingDB_IC50"
 _C.DATASET.Y_LOG = True
@@ -17,7 +21,7 @@ _C.DATASET.Y_LOG = True
 # -----------------------------------------------------------------------------
 # Model component
 # -----------------------------------------------------------------------------
-_C.MODEL = CN()
+_C.MODEL = CfgNode()
 _C.MODEL.DRUG_DIM = 128
 _C.MODEL.TARGET_DIM = 128
 _C.MODEL.DRUG_LENGTH = 85
@@ -35,7 +39,7 @@ _C.MODEL.MLP_DROPOUT_RATE = 0.2
 # -----------------------------------------------------------------------------
 # Solver
 # -----------------------------------------------------------------------------
-_C.SOLVER = CN()
+_C.SOLVER = CfgNode()
 _C.SOLVER.SEED = 2020
 _C.SOLVER.LR = 0.001
 _C.SOLVER.MIN_EPOCHS = 0
