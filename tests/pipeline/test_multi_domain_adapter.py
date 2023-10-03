@@ -39,7 +39,7 @@ MSDA_METHODS = ["MFSAN", "M3SDA", "DIN"]
 
 
 @pytest.mark.parametrize("method", MSDA_METHODS)
-@pytest.mark.parametrize("input_dimension", [2])
+@pytest.mark.parametrize("input_dimension", [1, 2])
 def test_multi_source(method, input_dimension, office_caltech_access, testing_cfg):
     if method != "MFSAN" and input_dimension == 2:
         pytest.skip()
