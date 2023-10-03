@@ -10,9 +10,8 @@ from torchvision import models
 
 class Flatten(nn.Module):
     """Flatten layer
-    This module is to replace the last fc layer of pre-trained models with
-    flatten layer. It flattens the input tensor to 2D vector, which will be (B, N).
-    B is the batch size and N is the product of all dimensions except the first one.
+    This module is to replace the last fc layer of the pre-trained model with a flatten layer. It flattens the input
+    tensor to 2D vector, which is (B, N). B is the batch size and N is the product of all dimensions except batch size.
 
     Examples:
         >>> x = torch.randn(8, 3, 224, 224)
@@ -30,8 +29,8 @@ class Flatten(nn.Module):
 
 class Identity(nn.Module):
     """Identity layer
-    This module is to replace any unwanted layers of pre-trained models with
-    identity layer. It returns the input tensor as output.
+    This module is to replace an unwanted layers of the pre-trained model with an identity layer.
+    It returns the input tensor as output.
 
     Examples:
         >>> x = torch.randn(8, 3, 224, 224)
@@ -197,8 +196,6 @@ class ResNet18Feature(nn.Module):
         weights (models.ResNet18_Weights or string): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html#torchvision.models.ResNet18_Weights
         for more details. By default, ResNet18_Weights.DEFAULT will be used.
-    Note:
-        Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
     def __init__(self, weights=models.ResNet18_Weights.DEFAULT):
@@ -222,9 +219,6 @@ class ResNet34Feature(nn.Module):
         weights (models.ResNet34_Weights or string): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet34.html#torchvision.models.ResNet34_Weights
         for more details. By default, ResNet34_Weights.DEFAULT will be used.
-
-    Note:
-        Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
     def __init__(self, weights=models.ResNet34_Weights.DEFAULT):
@@ -248,9 +242,6 @@ class ResNet50Feature(nn.Module):
         weights (models.ResNet50_Weights or string): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet50.html#torchvision.models.ResNet50_Weights
         for more details. By default, ResNet50_Weights.DEFAULT will be used.
-
-    Note:
-        Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
     def __init__(self, weights=models.ResNet50_Weights.DEFAULT):
@@ -274,9 +265,6 @@ class ResNet101Feature(nn.Module):
         weights (models.ResNet101_Weights or string): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet101.html#torchvision.models.ResNet101_Weights
         for more details. By default, ResNet101_Weights.DEFAULT will be used.
-
-    Note:
-        Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
     def __init__(self, weights=models.ResNet101_Weights.DEFAULT):
@@ -300,9 +288,6 @@ class ResNet152Feature(nn.Module):
         weights (models.ResNet152_Weights or string): The pretrained weights to use. See
          https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet152.html#torchvision.models.ResNet152_Weights
         for more details. By default, ResNet152_Weights.DEFAULT will be used.
-
-    Note:
-        Code adapted by pytorch-ada from https://github.com/thuml/Xlearn/blob/master/pytorch/src/network.py
     """
 
     def __init__(self, weights=models.ResNet152_Weights.DEFAULT):
