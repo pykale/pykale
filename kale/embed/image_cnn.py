@@ -11,7 +11,14 @@ from torchvision import models
 class Flatten(nn.Module):
     """Flatten layer
     This module is to replace the last fc layer of pre-trained models with
-    flatten layer.
+    flatten layer. It flattens the input tensor to 2D vector, which will be (B, N).
+    B is the batch size and N is the product of all dimensions except the first one.
+
+    Examples:
+        >>> x = torch.randn(8, 3, 224, 224)
+        >>> x = Flatten()(x)
+        >>> print(x.shape)
+        >>> (8, 150528)
     """
 
     def __init__(self):
@@ -24,7 +31,13 @@ class Flatten(nn.Module):
 class Identity(nn.Module):
     """Identity layer
     This module is to any unwanted layer sof pre-trained models with
-    identity layer.
+    identity layer. It returns the input tensor as output.
+
+    Examples:
+        >>> x = torch.randn(8, 3, 224, 224)
+        >>> x = Identity()(x)
+        >>> print(x.shape)
+        >>> (8, 3, 224, 224)
     """
 
     def __init__(self):

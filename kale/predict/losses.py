@@ -272,13 +272,22 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
 
 class proto_loss:
     """
-    ProtoNet loss function
+    ProtoNet loss function.
     This is a specific loss function for prototypical networks and n-way-k-shot problems.
     It computes the loss and accuracy of the model by measuring the Euclidean distance
     between features of support samples and query samples.
 
     Bacause the loss requests some constant hyperparameters, it is not a general function
     but defined as a class.
+
+    Args:
+        n_ways (int): number of classes in a task
+        k_query (int): number of query samples per class
+        device (torch.device): the desired device of returned tensor
+        
+    Reference:
+        Snell, Jake, Kevin Swersky, and Richard Zemel. "Prototypical networks for few-shot learning." 
+        Advances in neural information processing systems 30 (2017).
     """
 
     def __init__(self, **kwarg):
@@ -289,8 +298,13 @@ class proto_loss:
 
     def __call__(self, feature_sup, feature_que):
         """
-        feature_sup: shape (n_ways, k_shot, feature_dim)
-        feature_que: shape (n_ways * k_query, feature_dim)
+        Args:
+            feature_sup (torch.Tensor): shape (n_ways, k_shot, feature_dim)
+            feature_que (torch.Tensor): shape (n_ways * k_query, feature_dim)
+        Returns:
+            tuple: (loss_val, acc_val)
+            loss_val (torch.Tensor): loss value
+            acc_val (torch.Tensor): accuracy value
         """
         feature_sup = feature_sup.to(self.device)
         feature_que = feature_que.to(self.device)
@@ -312,11 +326,13 @@ class proto_loss:
         Because the above Euclidean function is not suitable for group computing,
         it is re-defined here.
 
-        Reference:
-            [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks)
+        Args:
+            x (torch.Tensor): variables set 1: (N, D)
+            y (torch.Tensor): variables set 2: (M, D)
+
+        Returns:
+            torch.Tensor: Euclidean distance: (N, M)
         """
-        # x: N x D
-        # y: M x D
         n = x.size(0)
         m = y.size(0)
         d = x.size(1)

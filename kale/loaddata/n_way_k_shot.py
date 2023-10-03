@@ -8,50 +8,54 @@ from torch.utils.data import Dataset
 
 
 class NWayKShotDataset(Dataset):
+    """
+    This is a dataset class for few-shot learning. It is used to load data for N-way K-shot learning for Prototypical Networks.
+
+    Note:
+        The dataset should be organized as: 
+        - root
+            - train
+                - class_name 1
+                    - xxx.png
+                    - yyy.png
+                    - ...
+                - class_name 2
+                    - xxx.png
+                    - yyy.png
+                    - ...
+                - ...
+            - val
+                - class_name 1
+                    - xxx.png
+                    - yyy.png
+                    - ...
+                - class_name 2
+                    - xxx.png
+                    - yyy.png
+                    - ...
+                - ...
+            - test (optional)
+                - class_name 1
+                    - xxx.png
+                    - yyy.png
+                    - ...
+                - class_name 2
+                    - xxx.png
+                    - yyy.png
+                    - ...
+                - ...
+
+    Args:
+        path (string): A string, which is the root directory of data.
+        mode (string): A string, which is the mode of the dataset.
+                        It can be 'train', 'val' or 'test'.
+        k_shot (int): Number of support examples for each class in each episode.
+        query_samples (int): Number of query examples for each class in each episode.
+        transform (callable, optional): Optional transform to be applied on a sample.
+    """
     def __init__(self, path: str, mode: str = "train", k_shot: int = 5, query_samples: int = 15, transform: Any = None):
         super(NWayKShotDataset, self).__init__()
-        """
-        This is a dataset class for few-shot learning. The dataset should be organized as:
-        root:
-            - train:
-                - class_1:
-                    - img_1
-                    - img_2
-                    ...
-                - class_2:
-                    - img_1
-                    - img_2
-                    ...
-                ...
-            - val:
-                - class_1:
-                    - img_1
-                    - img_2
-                    ...
-                - class_2:
-                    - img_1
-                    - img_2
-                    ...
-                ...
-            - test (optional):
-                - class_1:
-                    - img_1
-                    - img_2
-                    ...
-                - class_2:
-                    - img_1
-                    - img_2
-                    ...
-                ...
-
-        Args:
-            path (string): A string, which is the root directory of data.
-            mode (string): A string, which is the mode of the dataset.
-                           It can be 'train', 'val' or 'test'.
-            k_shot (int): Number of support examples for each class in each episode.
-            query_samples (int): Number of query examples for each class in each episode.
-            transform (callable, optional): Optional transform to be applied on a sample.
-        """
+        
         self.root = path
         self.k_shot = k_shot
         self.query_samples = query_samples
