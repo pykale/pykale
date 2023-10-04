@@ -8,6 +8,43 @@ from torch.nn import functional as F
 from torchvision import models
 
 
+class Flatten(nn.Module):
+    """Flatten layer
+    This module is to replace the last fc layer of the pre-trained model with a flatten layer. It flattens the input
+    tensor to a 2D vector, which is (B, N). B is the batch size and N is the product of all dimensions except the batch size.
+
+    Examples:
+        >>> x = torch.randn(8, 3, 224, 224)
+        >>> x = Flatten()(x)
+        >>> print(x.shape)
+        >>> (8, 150528)
+    """
+
+    def __init__(self):
+        super(Flatten, self).__init__()
+
+    def forward(self, x):
+        return x.view(x.size(0), -1)
+
+
+class Identity(nn.Module):
+    """Identity layer
+    This module is to replace any unwanted layers in a pre-defined model with an identity layer.
+    It returns the input tensor as the output.
+
+    Examples:
+        >>> x = torch.randn(8, 3, 224, 224)
+        >>> x = Identity()(x)
+        >>> print(x.shape)
+        >>> (8, 3, 224, 224)
+    """
+
+    def __init__(self):
+        super(Identity, self).__init__()
+
+    def forward(self, x):
+        return x
+
 # From FeatureExtractorDigits in adalib
 class SmallCNNFeature(nn.Module):
     """
