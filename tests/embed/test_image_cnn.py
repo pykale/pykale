@@ -50,6 +50,7 @@ def test_shapes(param):
     model.eval()
     output_batch = model(INPUT_BATCH)
     assert output_batch.size() == (BATCH_SIZE, out_size)
+    assert model.output_size() == out_size
 
 
 def test_lenet_output_shapes():
