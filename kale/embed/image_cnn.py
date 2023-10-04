@@ -45,6 +45,7 @@ class Identity(nn.Module):
     def forward(self, x):
         return x
 
+
 # From FeatureExtractorDigits in adalib
 class SmallCNNFeature(nn.Module):
     """
