@@ -21,8 +21,8 @@ from kale.embed.image_cnn import *
 from kale.loaddata.n_way_k_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
 
-# import sys
-# sys.path.append("/home/wenrui/Projects/pykale/")
+import sys
+sys.path.append("/home/wenrui/Projects/pykale/")
 
 
 def get_parser():
@@ -33,15 +33,6 @@ def get_parser():
     )
     parser.add_argument("--gpus", default=1, type=int)
     return parser
-
-
-def weights_update(model, checkpoint):
-    """Load the pre-trained parameters to the model."""
-    model_dict = model.state_dict()
-    pretrained_dict = {k: v for k, v in checkpoint["state_dict"].items() if k in model_dict}
-    model_dict.update(pretrained_dict)
-    model.load_state_dict(model_dict)
-    return model
 
 
 def main():
@@ -102,7 +93,7 @@ def main():
     )
 
     # ---- test ----
-    model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt))
+    # model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt))
     trainer.test(model=model, dataloaders=test_dataloader, ckpt_path=args.ckpt)
 
 
