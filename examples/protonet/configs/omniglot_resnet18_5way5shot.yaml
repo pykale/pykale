@@ -1,5 +1,6 @@
 DATASET:
   ROOT: '/home/wenrui/Projects/pykale/examples/protonet/data/omniglot'
+  IMG_SIZE: 84
 MODEL:
   BACKBONE: 'resnet18'
   PRETRAIN_WEIGHTS: None

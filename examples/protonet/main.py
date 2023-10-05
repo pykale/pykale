@@ -8,16 +8,17 @@ Reference:
 """
 import argparse
 import os
+import sys
 from datetime import datetime
 
 import pytorch_lightning as pl
-from config import get_cfg_defaults
 import torch
+from config import get_cfg_defaults
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.models import *
-import sys
-sys.path.append('/home/wenrui/Projects/pykale/')
+
+sys.path.append("/home/wenrui/Projects/pykale/")
 from kale.embed.image_cnn import *
 from kale.loaddata.n_way_k_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
@@ -50,7 +51,9 @@ def main():
     model = ProtoNetTrainer(cfg=cfg, net=net)
 
     # ---- set data loader ----
-    transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
+    transform = transforms.Compose(
+        [transforms.Resize((cfg.DATASET.IMG_SIZE, cfg.DATASET.IMG_SIZE)), transforms.ToTensor()]
+    )
     train_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="train",

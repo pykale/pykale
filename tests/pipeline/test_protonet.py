@@ -48,13 +48,6 @@ def testing_cfg_model():
     _C.VAL.N_WAYS = 5
     _C.VAL.K_SHOTS = 5
     _C.VAL.K_QUERIES = 15
-
-    _C.OUTPUT = CN()
-    _C.OUTPUT.LOG_DIR = "logs"
-    _C.OUTPUT.WEIGHT_DIR = "weights"
-    _C.OUTPUT.SAVE_FREQ = 1
-    _C.OUTPUT.SAVE_TOP_K = 2
-    _C.OUTPUT.SAVE_LAST = True
     yield _C.clone()
 
 
@@ -66,7 +59,7 @@ def test_protonet(mode, testing_cfg_data, testing_cfg_model):
     download_file_by_url(url=url, output_directory=output_dir, output_file_name="omniglot_demo.zip", file_format="zip")
 
     cfg_model = testing_cfg_model
-    transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
+    transform = transforms.Compose([transforms.Resize((84, 84)), transforms.ToTensor()])
     dataset = NWayKShotDataset(
         path=cfg_data.DATASET.ROOT,
         mode=mode,

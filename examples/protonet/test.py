@@ -59,7 +59,9 @@ def main():
     model = ProtoNetTrainer(cfg=cfg, net=net)
 
     # ---- set data loader ----
-    transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
+    transform = transforms.Compose(
+        [transforms.Resize((cfg.DATASET.IMG_SIZE, cfg.DATASET.IMG_SIZE)), transforms.ToTensor()]
+    )
 
     test_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT, mode="test", k_shot=cfg.VAL.K_SHOTS, query_samples=cfg.VAL.K_QUERIES, transform=transform
