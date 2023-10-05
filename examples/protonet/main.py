@@ -12,10 +12,12 @@ from datetime import datetime
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
+import torch
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.models import *
-
+import sys
+sys.path.append('/home/wenrui/Projects/pykale/')
 from kale.embed.image_cnn import *
 from kale.loaddata.n_way_k_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
@@ -32,11 +34,13 @@ def main():
     # ---- get args ----
     parser = get_parser()
     args = parser.parse_args()
+    args.gpus = min(args.gpus, torch.cuda.device_count())
 
     # ---- get configurations ----
     cfg_path = args.cfg
     cfg = get_cfg_defaults()
     cfg.merge_from_file(cfg_path)
+    cfg.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     cfg.freeze()
 
     # ---- set model ----
@@ -54,11 +58,11 @@ def main():
         query_samples=cfg.TRAIN.K_QUERIES,
         transform=transform,
     )
-    train_dataloader = DataLoader(train_set, batch_size=cfg.TRAIN.N_WAYS, shuffle=True, num_workers=30, drop_last=True)
+    train_dataloader = DataLoader(train_set, batch_size=cfg.TRAIN.N_WAYS, shuffle=True, drop_last=True)
     val_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT, mode="val", k_shot=cfg.VAL.K_SHOTS, query_samples=cfg.VAL.K_QUERIES, transform=transform
     )
-    val_dataloader = DataLoader(val_set, batch_size=cfg.VAL.N_WAYS, num_workers=30, drop_last=True)
+    val_dataloader = DataLoader(val_set, batch_size=cfg.VAL.N_WAYS, drop_last=True)
 
     # ---- set logger ----
     dt_string = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")

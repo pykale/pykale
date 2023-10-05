@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 
 class NWayKShotDataset(Dataset):
     """
-    This is a dataset class for few-shot learning. It is used to load data for N-way K-shot learning for Prototypical Networks.
+    This is a Dataset class for few-shot learning. It is used to load data for N-way K-shot learning for Prototypical Networks.
 
     Note:
         The dataset should be organized as:
@@ -47,11 +47,11 @@ class NWayKShotDataset(Dataset):
                 - ...
 
     Args:
-        path (string): A string, which is the root directory of data.
+        path (string): A string, which is the root directory of the data.
         mode (string): A string, which is the mode of the dataset.
                         It can be 'train', 'val' or 'test'.
-        k_shot (int): Number of support examples for each class in each episode.
-        query_samples (int): Number of query examples for each class in each episode.
+        k_shot (int): Number of support examples per class in each episode.
+        query_samples (int): Number of query examples per class in each episode.
         transform (callable, optional): Optional transform to be applied on a sample.
     """
 

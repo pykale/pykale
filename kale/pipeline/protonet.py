@@ -27,9 +27,9 @@ class ProtoNetTrainer(pl.LightningModule):
     """ProtoNet trainer class
 
     Args:
-        cfg (yacs.config.CfgNode): Configurations of trainer.
-        model (torch.nn.Module): A feature extractor without fc layer.
-                                 Output 1-D vectors.
+        cfg (yacs.config.CfgNode): Configurations of the trainer.
+        model (torch.nn.Module): A feature extractor replaced classfier with a flatten layer.
+                                 Output 1-D feature vectors.
     """
 
     def __init__(self, cfg: yacs.config.CfgNode, net: torch.nn.Module) -> None:
@@ -58,12 +58,12 @@ class ProtoNetTrainer(pl.LightningModule):
     def compute_loss(self, feature_sup, feature_que, mode="train") -> tuple:
         """
         Compute loss and accuracy. Here we use the same loss function for both
-        training and validation, which is Euclidean distance related.
+        training and validation, which is related to Euclidean distance.
 
         Args:
             feature_sup (torch.Tensor): Support features.
             feature_que (torch.Tensor): Query features.
-            mode (str): Mode of the trainer, "train" or "val".
+            mode (str): Mode of the trainer, "train", "val" or "test".
 
         Returns:
             loss (torch.Tensor): Loss value.

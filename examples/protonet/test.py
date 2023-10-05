@@ -43,11 +43,13 @@ def main():
     # ---- get args ----
     parser = get_parser()
     args = parser.parse_args()
+    args.gpus = min(args.gpus, torch.cuda.device_count())
 
     # ---- get configurations ----
     cfg_path = args.cfg
     cfg = get_cfg_defaults()
     cfg.merge_from_file(cfg_path)
+    cfg.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     cfg.freeze()
 
     # ---- set model ----
