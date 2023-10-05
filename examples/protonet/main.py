@@ -62,11 +62,11 @@ def main():
 
     # ---- set logger ----
     dt_string = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    logger = pl.loggers.TensorBoardLogger(cfg.OUTPUT.LOG_DIR, name=dt_string)
+    logger = pl.loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name=dt_string)
     logger.log_hyperparams(cfg)
 
     # ---- set callbacks ----
-    dirpath = os.path.join(cfg.OUTPUT.LOG_DIR, dt_string, cfg.OUTPUT.WEIGHT_DIR)
+    dirpath = os.path.join(cfg.OUTPUT.OUT_DIR, dt_string, cfg.OUTPUT.WEIGHT_DIR)
     model_checkpoint = pl.callbacks.ModelCheckpoint(
         dirpath=dirpath,
         filename="{epoch}-{val_acc:.2f}",
