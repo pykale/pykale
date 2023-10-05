@@ -1,0 +1,56 @@
+DATASET: !!python/object/new:yacs.config.CfgNode
+  dictitems:
+    IMG_SIZE: 84
+    ROOT: /home/wenrui/Projects/pykale/examples/protonet/data/omniglot
+  state:
+    __deprecated_keys__: !!set {}
+    __immutable__: true
+    __new_allowed__: false
+    __renamed_keys__: {}
+DEVICE: cuda
+MODEL: !!python/object/new:yacs.config.CfgNode
+  dictitems:
+    BACKBONE: resnet18
+    PRETRAIN_WEIGHTS: null
+  state:
+    __deprecated_keys__: !!set {}
+    __immutable__: true
+    __new_allowed__: false
+    __renamed_keys__: {}
+OUTPUT: !!python/object/new:yacs.config.CfgNode
+  dictitems:
+    LOG_DIR: logs
+    OUT_DIR: examples/protonet/outputs/
+    SAVE_FREQ: 1
+    SAVE_LAST: true
+    SAVE_TOP_K: 2
+    WEIGHT_DIR: weights
+  state:
+    __deprecated_keys__: !!set {}
+    __immutable__: true
+    __new_allowed__: false
+    __renamed_keys__: {}
+SEED: 1397
+TRAIN: !!python/object/new:yacs.config.CfgNode
+  dictitems:
+    EPOCHS: 100
+    K_QUERIES: 15
+    K_SHOTS: 5
+    LEARNING_RATE: 0.001
+    N_WAYS: 30
+    OPTIMIZER: SGD
+  state:
+    __deprecated_keys__: !!set {}
+    __immutable__: true
+    __new_allowed__: false
+    __renamed_keys__: {}
+VAL: !!python/object/new:yacs.config.CfgNode
+  dictitems:
+    K_QUERIES: 15
+    K_SHOTS: 5
+    N_WAYS: 5
+  state:
+    __deprecated_keys__: !!set {}
+    __immutable__: true
+    __new_allowed__: false
+    __renamed_keys__: {}

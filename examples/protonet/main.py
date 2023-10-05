@@ -8,8 +8,11 @@ Reference:
 """
 import argparse
 import os
-import sys
+
+# import sys
+# sys.path.append("/home/wenrui/Projects/pykale/")
 from datetime import datetime
+from typing import Any
 
 import pytorch_lightning as pl
 import torch
@@ -18,7 +21,6 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.models import *
 
-sys.path.append("/home/wenrui/Projects/pykale/")
 from kale.embed.image_cnn import *
 from kale.loaddata.n_way_k_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
@@ -28,6 +30,7 @@ def get_parser():
     parser = argparse.ArgumentParser(description="Args of ProtoNet")
     parser.add_argument("--cfg", default="examples/protonet/configs/omniglot_resnet18_5way5shot.yaml", type=str)
     parser.add_argument("--gpus", default=1, type=int)
+    parser.add_argument("--ckpt", default=None, type=Any)
     return parser
 
 
@@ -95,7 +98,7 @@ def main():
     )
 
     # ---- training ----
-    trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
+    trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader, ckpt_path=args.ckpt)
 
 
 if __name__ == "__main__":

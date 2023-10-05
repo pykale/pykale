@@ -21,11 +21,16 @@ from kale.embed.image_cnn import *
 from kale.loaddata.n_way_k_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
 
+# import sys
+# sys.path.append("/home/wenrui/Projects/pykale/")
+
 
 def get_parser():
     parser = argparse.ArgumentParser(description="ProtoNet")
     parser.add_argument("--cfg", default="examples/protonet/configs/omniglot_resnet18_5way5shot.yaml", type=str)
-    parser.add_argument("--ckpt", default="examples/protonet/logs/2023-09-26-15-14-41/weights/last.ckpt", type=str)
+    parser.add_argument(
+        "--ckpt", default="examples/protonet/outputs/2023-10-05-13-29-35/weights/epoch=2-val_acc=0.70.ckpt", type=str
+    )
     parser.add_argument("--gpus", default=1, type=int)
     return parser
 
@@ -93,12 +98,12 @@ def main():
         callbacks=[model_checkpoint],
         accelerator="gpu" if args.gpus > 0 else "cpu",
         log_every_n_steps=cfg.OUTPUT.SAVE_FREQ,
-        resume_from_checkpoint=args.ckpt,
+        # resume_from_checkpoint=args.ckpt,
     )
 
     # ---- test ----
     model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt))
-    trainer.test(model=model, dataloaders=test_dataloader)
+    trainer.test(model=model, dataloaders=test_dataloader, ckpt_path=args.ckpt)
 
 
 if __name__ == "__main__":
