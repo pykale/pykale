@@ -41,7 +41,7 @@ _C.VAL.K_QUERIES = 15
 # Logger
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CfgNode()
-_C.OUTPUT.OUT_DIR = 'examples/protonet/outputs/'
+_C.OUTPUT.OUT_DIR = "examples/protonet/outputs/"
 _C.OUTPUT.LOG_DIR = "logs"
 _C.OUTPUT.WEIGHT_DIR = "weights"
 _C.OUTPUT.SAVE_FREQ = 1
