@@ -8,6 +8,7 @@ Reference:
 """
 import argparse
 import os
+import sys
 from datetime import datetime
 
 import pytorch_lightning as pl
@@ -21,7 +22,6 @@ from kale.embed.image_cnn import *
 from kale.loaddata.n_way_k_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
 
-import sys
 sys.path.append("/home/wenrui/Projects/pykale/")
 
 
