@@ -55,6 +55,3 @@ outputs/*
 # cmri_mpca - the saved images
 examples/cmri_mpca/outputs
 
-# docs
-docs/build
-docs/source/examples
