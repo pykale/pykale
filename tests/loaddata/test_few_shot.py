@@ -11,7 +11,6 @@ from yacs.config import CfgNode
 from kale.loaddata.few_shot import NWayKShotDataset
 from kale.utils.download import download_file_by_url
 
-
 url = "https://github.com/pykale/data/raw/main/images/omniglot/omniglot_demo.zip"
 modes = ["train", "val", "test"]
 
@@ -36,7 +35,7 @@ def test_n_way_k_shot(mode, testing_cfg):
     dataset = NWayKShotDataset(
         path=cfg.DATASET.ROOT, mode=mode, k_shot=k_shot, query_samples=query_samples, transform=transform
     )
-    
+
     assert len(dataset) == len(dataset.classes) > 0
     assert isinstance(dataset._get_idx(0), np.ndarray)
     assert isinstance(dataset._sample_data(dataset._get_idx(0)), list)

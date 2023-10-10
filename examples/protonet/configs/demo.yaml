@@ -12,4 +12,3 @@ OUTPUT:
   OUT_DIR: 'outputs/'
   LOG_DIR: 'logs'
   WEIGHT_DIR: 'weights'
-
