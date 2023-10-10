@@ -15,7 +15,6 @@ from typing import Any
 
 import pytorch_lightning as pl
 import torch
-import yacs
 
 from kale.predict.losses import proto_loss
 
@@ -28,18 +27,18 @@ class ProtoNetTrainer(pl.LightningModule):
     """
 
     def __init__(
-            self, 
-            net: torch.nn.Module,
-            train_n_way: int = 30,
-            train_k_shot: int = 5,
-            train_k_query: int = 15,
-            val_n_way: int = 5,
-            val_k_shot: int = 5,
-            val_k_query: int = 15,
-            devices: str = "cuda",
-            optimizer: str = "SGD",
-            lr: float = 0.001,
-            ) -> None:
+        self,
+        net: torch.nn.Module,
+        train_n_way: int = 30,
+        train_k_shot: int = 5,
+        train_k_query: int = 15,
+        val_n_way: int = 5,
+        val_k_shot: int = 5,
+        val_k_query: int = 15,
+        devices: str = "cuda",
+        optimizer: str = "SGD",
+        lr: float = 0.001,
+    ) -> None:
         super().__init__()
 
         self.train_n_way = train_n_way
@@ -118,7 +117,5 @@ class ProtoNetTrainer(pl.LightningModule):
         """
         Configure optimizer for training. Can be modified to support different optimizers from torch.optim.
         """
-        optimizer = eval(f"torch.optim.{self.optimizer}")(
-            self.model.parameters(), lr=self.lr
-        )
+        optimizer = eval(f"torch.optim.{self.optimizer}")(self.model.parameters(), lr=self.lr)
         return optimizer

@@ -1,20 +1,11 @@
-import os
-import sys
-from pathlib import Path
-
 import pytest
 import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader, TensorDataset
-from torchvision import transforms
 from yacs.config import CfgNode as CfgNode
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-
 from kale.embed.image_cnn import ResNet18Feature
-from kale.loaddata.few_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
-from kale.utils.download import download_file_by_url
 
 url = "https://github.com/pykale/data/raw/main/images/omniglot/omniglot_demo.zip"
 modes = ["train", "val", "test"]

@@ -6,6 +6,7 @@ Reference:
 """
 import argparse
 import os
+import sys
 from datetime import datetime
 from typing import Any
 
@@ -15,8 +16,8 @@ from config import get_cfg_defaults
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.models import *
-import sys
-sys.path.append('/home/wenrui/Projects/pykale/')
+
+sys.path.append("/home/wenrui/Projects/pykale/")
 from kale.embed.image_cnn import *
 from kale.loaddata.few_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
