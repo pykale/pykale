@@ -21,7 +21,7 @@ modes = ["train", "val", "test"]
 
 
 @pytest.fixture(scope="module")
-def testing_cfg_model():
+def testing_cfg():
     _C = CfgNode()
     _C.SEED = 1397
     _C.DEVICE = "cpu"
@@ -60,18 +60,29 @@ def dataloader(data):
 
 
 @pytest.mark.parametrize("mode", modes)
-def test_protonet(mode, testing_cfg_model, dataloader):
+def test_protonet(mode, testing_cfg, dataloader):
 
-    cfg_model = testing_cfg_model
+    cfg = testing_cfg
 
     assert len(dataloader) > 0
-    net = ResNet18Feature(weights=cfg_model.MODEL.PRETRAIN_WEIGHTS).to(cfg_model.DEVICE)
-    model = ProtoNetTrainer(cfg=cfg_model, net=net)
-    trainer = pl.Trainer(max_epochs=cfg_model.TRAIN.EPOCHS, accelerator=cfg_model.DEVICE)
+    net = ResNet18Feature(weights=cfg.MODEL.PRETRAIN_WEIGHTS).to(cfg.DEVICE)
+    model = ProtoNetTrainer(
+        net=net,
+        train_n_way=cfg.TRAIN.N_WAYS,
+        train_k_shot=cfg.TRAIN.K_SHOTS,
+        train_k_query=cfg.TRAIN.K_QUERIES,
+        val_n_way=cfg.VAL.N_WAYS,
+        val_k_shot=cfg.VAL.K_SHOTS,
+        val_k_query=cfg.VAL.K_QUERIES,
+        devices=cfg.DEVICE,
+        optimizer=cfg.TRAIN.OPTIMIZER,
+        lr=cfg.TRAIN.LEARNING_RATE,
+    )
+    trainer = pl.Trainer(max_epochs=cfg.TRAIN.EPOCHS, accelerator=cfg.DEVICE)
 
     if mode == "train":
         for images, _ in dataloader:
-            feature_sup, feature_que = model.forward(images, cfg_model.TRAIN.K_SHOTS, cfg_model.TRAIN.N_WAYS)
+            feature_sup, feature_que = model.forward(images, cfg.TRAIN.K_SHOTS, cfg.TRAIN.N_WAYS)
             loss, metrics = model.compute_loss(feature_sup, feature_que, mode="train")
             assert isinstance(feature_que, torch.Tensor)
             assert isinstance(feature_sup, torch.Tensor)

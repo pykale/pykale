@@ -15,7 +15,8 @@ from config import get_cfg_defaults
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.models import *
-
+import sys
+sys.path.append('/home/wenrui/Projects/pykale/')
 from kale.embed.image_cnn import *
 from kale.loaddata.few_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
@@ -44,7 +45,18 @@ def main():
     net = eval(f"{cfg.MODEL.BACKBONE}(weights={cfg.MODEL.PRETRAIN_WEIGHTS})")
     if cfg.MODEL.BACKBONE.startswith("resnet"):
         net.fc = Flatten()
-    model = ProtoNetTrainer(cfg=cfg, net=net)
+    model = ProtoNetTrainer(
+        net=net,
+        train_n_way=cfg.TRAIN.N_WAYS,
+        train_k_shot=cfg.TRAIN.K_SHOTS,
+        train_k_query=cfg.TRAIN.K_QUERIES,
+        val_n_way=cfg.VAL.N_WAYS,
+        val_k_shot=cfg.VAL.K_SHOTS,
+        val_k_query=cfg.VAL.K_QUERIES,
+        devices=cfg.DEVICE,
+        optimizer=cfg.TRAIN.OPTIMIZER,
+        lr=cfg.TRAIN.LEARNING_RATE,
+    )
 
     # ---- set data loader ----
     transform = transforms.Compose(
