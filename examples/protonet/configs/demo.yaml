@@ -1,0 +1,15 @@
+DATASET:
+  ROOT: 'data/omniglot'
+TRAIN:
+  N_WAYS: 30
+  K_SHOTS: 5
+  K_QUERIES: 15
+VAL:
+  N_WAYS: 5
+  K_SHOTS: 1
+  K_QUERIES: 15
+OUTPUT:
+  OUT_DIR: 'outputs/'
+  LOG_DIR: 'logs'
+  WEIGHT_DIR: 'weights'
+

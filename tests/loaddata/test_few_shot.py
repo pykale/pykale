@@ -6,12 +6,11 @@ import numpy as np
 import pytest
 import torch
 from torchvision import transforms
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
 
-from kale.loaddata.n_way_k_shot import NWayKShotDataset
+from kale.loaddata.few_shot import NWayKShotDataset
 from kale.utils.download import download_file_by_url
 
-# root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 url = "https://github.com/pykale/data/raw/main/images/omniglot/omniglot_demo.zip"
 modes = ["train", "val", "test"]
@@ -19,8 +18,8 @@ modes = ["train", "val", "test"]
 
 @pytest.fixture(scope="module")
 def testing_cfg(download_path):
-    cfg = CN()
-    cfg.DATASET = CN()
+    cfg = CfgNode()
+    cfg.DATASET = CfgNode()
     cfg.DATASET.ROOT = os.path.join(download_path, "omniglot_demo")
     yield cfg
 
@@ -37,7 +36,8 @@ def test_n_way_k_shot(mode, testing_cfg):
     dataset = NWayKShotDataset(
         path=cfg.DATASET.ROOT, mode=mode, k_shot=k_shot, query_samples=query_samples, transform=transform
     )
-    assert len(dataset) == len(dataset.classes)
+    
+    assert len(dataset) == len(dataset.classes) > 0
     assert isinstance(dataset._get_idx(0), np.ndarray)
     assert isinstance(dataset._sample_data(dataset._get_idx(0)), list)
     assert isinstance(dataset._sample_data(dataset._get_idx(0))[0], torch.Tensor)
@@ -54,7 +54,3 @@ def test_n_way_k_shot(mode, testing_cfg):
         assert batch[0].shape == (n_way, k_shot + query_samples, 3, 224, 224)
         assert batch[1].shape == (n_way,)
         break
-
-
-# if __name__ == "__main__":
-#     pytest.main([__file__])

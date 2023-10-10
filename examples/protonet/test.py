@@ -8,7 +8,6 @@ Reference:
 """
 import argparse
 import os
-import sys
 from datetime import datetime
 
 import pytorch_lightning as pl
@@ -19,33 +18,27 @@ from torchvision import transforms
 from torchvision.models import *
 
 from kale.embed.image_cnn import *
-from kale.loaddata.n_way_k_shot import NWayKShotDataset
+from kale.loaddata.few_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
 
-sys.path.append("/home/wenrui/Projects/pykale/")
 
-
-def get_parser():
-    parser = argparse.ArgumentParser(description="ProtoNet")
-    parser.add_argument("--cfg", default="examples/protonet/configs/omniglot_resnet18_5way5shot.yaml", type=str)
-    parser.add_argument(
-        "--ckpt", default="examples/protonet/outputs/2023-10-05-13-29-35/weights/epoch=2-val_acc=0.70.ckpt", type=str
-    )
-    parser.add_argument("--gpus", default=1, type=int)
-    return parser
+def arg_parse():
+    parser = argparse.ArgumentParser(description="Args of ProtoNet")
+    parser.add_argument("--cfg", default="configs/omniglot_resnet18_5way5shot.yaml", type=str)
+    parser.add_argument("--devices", default=1, type=int)
+    parser.add_argument("--ckpt", default=None)
+    args = parser.parse_args()
+    return args
 
 
 def main():
     # ---- get args ----
-    parser = get_parser()
-    args = parser.parse_args()
-    args.gpus = min(args.gpus, torch.cuda.device_count())
+    args = arg_parse()
 
     # ---- get configurations ----
     cfg_path = args.cfg
     cfg = get_cfg_defaults()
     cfg.merge_from_file(cfg_path)
-    cfg.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     cfg.freeze()
 
     # ---- set model ----
@@ -65,12 +58,12 @@ def main():
     test_dataloader = DataLoader(test_set, batch_size=cfg.VAL.N_WAYS, num_workers=30, drop_last=True)  # must be True
 
     # ---- set logger ----
-    dt_string = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    logger = pl.loggers.TensorBoardLogger(cfg.OUTPUT.LOG_DIR, name=dt_string)
+    experiment_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    logger = pl.loggers.TensorBoardLogger(cfg.OUTPUT.LOG_DIR, name=experiment_time)
     logger.log_hyperparams(cfg)
 
     # ---- set callbacks ----
-    dirpath = os.path.join(cfg.OUTPUT.LOG_DIR, dt_string, cfg.OUTPUT.WEIGHT_DIR)
+    dirpath = os.path.join(cfg.OUTPUT.LOG_DIR, experiment_time, cfg.OUTPUT.WEIGHT_DIR)
     model_checkpoint = pl.callbacks.ModelCheckpoint(
         dirpath=dirpath,
         filename="{epoch}-{val_acc:.2f}",

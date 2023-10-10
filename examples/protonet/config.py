@@ -13,7 +13,7 @@ _C.DEVICE = "cuda"
 # Dataset
 # ---------------------------------------------------------------------------- #
 _C.DATASET = CfgNode()
-_C.DATASET.ROOT = "Data/omniglot/"
+_C.DATASET.ROOT = "data/omniglot/"
 _C.DATASET.IMG_SIZE = 84
 # ---------------------------------------------------------------------------- #
 # Model
@@ -32,7 +32,7 @@ _C.TRAIN.N_WAYS = 30
 _C.TRAIN.K_SHOTS = 5
 _C.TRAIN.K_QUERIES = 15
 # ---------------------------------------------------------------------------- #
-# Val
+# Validation and Test
 # ---------------------------------------------------------------------------- #
 _C.VAL = CfgNode()
 _C.VAL.N_WAYS = 5
@@ -42,7 +42,7 @@ _C.VAL.K_QUERIES = 15
 # Logger
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CfgNode()
-_C.OUTPUT.OUT_DIR = "examples/protonet/outputs/"
+_C.OUTPUT.OUT_DIR = "outputs/"
 _C.OUTPUT.LOG_DIR = "logs"
 _C.OUTPUT.WEIGHT_DIR = "weights"
 _C.OUTPUT.SAVE_FREQ = 1

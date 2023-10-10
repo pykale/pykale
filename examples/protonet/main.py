@@ -2,15 +2,10 @@
 This example is about training prototypical networks to perform N-Way-K-Shot problems.
 
 Reference:
-    Snell, J., Swersky, K. and Zemel, R., 2017.
-    Prototypical networks for few-shot learning.
-    Advances in neural information processing systems, 30.
+    Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning. Advances in neural information processing systems, 30.
 """
 import argparse
 import os
-
-# import sys
-# sys.path.append("/home/wenrui/Projects/pykale/")
 from datetime import datetime
 from typing import Any
 
@@ -22,29 +17,27 @@ from torchvision import transforms
 from torchvision.models import *
 
 from kale.embed.image_cnn import *
-from kale.loaddata.n_way_k_shot import NWayKShotDataset
+from kale.loaddata.few_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
 
 
-def get_parser():
+def arg_parse():
     parser = argparse.ArgumentParser(description="Args of ProtoNet")
-    parser.add_argument("--cfg", default="examples/protonet/configs/omniglot_resnet18_5way5shot.yaml", type=str)
-    parser.add_argument("--gpus", default=1, type=int)
+    parser.add_argument("--cfg", default="configs/omniglot_resnet18_5way5shot.yaml", type=str)
+    parser.add_argument("--devices", default=1, type=int)
     parser.add_argument("--ckpt", default=None, type=Any)
-    return parser
+    args = parser.parse_args()
+    return args
 
 
 def main():
     # ---- get args ----
-    parser = get_parser()
-    args = parser.parse_args()
-    args.gpus = min(args.gpus, torch.cuda.device_count())
+    args = arg_parse()
 
     # ---- get configurations ----
     cfg_path = args.cfg
     cfg = get_cfg_defaults()
     cfg.merge_from_file(cfg_path)
-    cfg.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     cfg.freeze()
 
     # ---- set model ----
@@ -69,14 +62,18 @@ def main():
         path=cfg.DATASET.ROOT, mode="val", k_shot=cfg.VAL.K_SHOTS, query_samples=cfg.VAL.K_QUERIES, transform=transform
     )
     val_dataloader = DataLoader(val_set, batch_size=cfg.VAL.N_WAYS, drop_last=True)
+    test_set = NWayKShotDataset(
+        path=cfg.DATASET.ROOT, mode="test", k_shot=cfg.VAL.K_SHOTS, query_samples=cfg.VAL.K_QUERIES, transform=transform
+    )
+    test_dataloader = DataLoader(test_set, batch_size=cfg.VAL.N_WAYS, drop_last=True)
 
     # ---- set logger ----
-    dt_string = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    logger = pl.loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name=dt_string)
+    experiment_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    logger = pl.loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name=experiment_time)
     logger.log_hyperparams(cfg)
 
     # ---- set callbacks ----
-    dirpath = os.path.join(cfg.OUTPUT.OUT_DIR, dt_string, cfg.OUTPUT.WEIGHT_DIR)
+    dirpath = os.path.join(cfg.OUTPUT.OUT_DIR, experiment_time, cfg.OUTPUT.WEIGHT_DIR)
     model_checkpoint = pl.callbacks.ModelCheckpoint(
         dirpath=dirpath,
         filename="{epoch}-{val_acc:.2f}",
@@ -89,16 +86,17 @@ def main():
 
     # ---- set trainer ----
     trainer = pl.Trainer(
-        gpus=args.gpus,
+        devices=args.devices,
         max_epochs=cfg.TRAIN.EPOCHS,
         logger=logger,
         callbacks=[model_checkpoint],
-        accelerator="gpu" if args.gpus > 0 else "cpu",
+        accelerator="gpu" if args.devices > 0 else "cpu",
         log_every_n_steps=cfg.OUTPUT.SAVE_FREQ,
     )
 
     # ---- training ----
     trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader, ckpt_path=args.ckpt)
+    trainer.test(model=model, dataloaders=test_dataloader, ckpt_path="best")
 
 
 if __name__ == "__main__":

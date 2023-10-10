@@ -9,7 +9,6 @@ Reference:
 
 import argparse
 import time
-from typing import Any
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
@@ -30,8 +29,6 @@ def arg_parse():
         help="gpu id(s) to use. int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
-    parser.add_argument("--ckpt_resume", default=None, help="path to train checkpoint file", type=Any)
-    parser.add_argument("--ckpt_test", default=None, help="path to test checkpoint file", type=Any)
     args = parser.parse_args()
     return args
 
@@ -85,10 +82,10 @@ def main():
     )
 
     # ---- start training ----
-    trainer.fit(model, train_loader, valid_loader, ckpt_path=args.ckpt_resume)
+    trainer.fit(model, train_loader, valid_loader)
 
     # ---- start testing ----
-    trainer.test(model, valid_loader, ckpt_path=args.ckpt_test)
+    trainer.test(model, valid_loader)
 
 
 if __name__ == "__main__":

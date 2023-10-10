@@ -6,22 +6,6 @@ Embed
 Submodules
 ----------
 
-kale.embed.Flatten module
---------------------------------
-
-.. automodule:: kale.embed.Flatten
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kale.embed.Identify module
---------------------------------
-
-.. automodule:: kale.embed.Identify
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.embed.attention\_cnn module
 --------------------------------
 

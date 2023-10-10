@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 
 class NWayKShotDataset(Dataset):
     """
-    This is a Dataset class for few-shot learning. It is used to load data for N-way K-shot learning for Prototypical Networks.
+    It is used to load data for N-way K-shot learning using Prototypical Networks.
 
     Note:
         The dataset should be organized as:
@@ -47,12 +47,11 @@ class NWayKShotDataset(Dataset):
                 - ...
 
     Args:
-        path (string): A string, which is the root directory of the data.
-        mode (string): A string, which is the mode of the dataset.
-                        It can be 'train', 'val' or 'test'.
-        k_shot (int): Number of support examples per class in each episode.
-        query_samples (int): Number of query examples per class in each episode.
-        transform (callable, optional): Optional transform to be applied on a sample.
+        path (string): The root directory of the data.
+        mode (string): The mode of the dataset. It can be 'train', 'val' or 'test'. Default: 'train'.
+        k_shot (int): Number of support examples per class in each episode. Default: 5.
+        query_samples (int): Number of query examples per class in each episode. Default: 15.
+        transform (callable, optional): Optional transform to be applied on a sample. Default: None.
     """
 
     def __init__(self, path: str, mode: str = "train", k_shot: int = 5, query_samples: int = 15, transform: Any = None):
@@ -68,9 +67,11 @@ class NWayKShotDataset(Dataset):
         self._load_data()
 
     def __len__(self):
+        # length of the dataset is the number of classes
         return len(self.classes)
 
     def __getitem__(self, idx):
+        # sample data for one class
         image_idx = self._get_idx(idx)
         images = self._sample_data(image_idx)
         assert isinstance(images, list)
@@ -78,22 +79,25 @@ class NWayKShotDataset(Dataset):
         return images, idx
 
     def _get_idx(self, idx):
+        # get the indices of images for one class
         image_idx = np.random.choice(
             [i for (i, item) in enumerate(self.labels) if item == idx], self.k_shot + self.query_samples, replace=False,
         )
         return image_idx
 
     def _sample_data(self, image_idx):
+        # sample data for one class
         images = [self.transform(self.images[index]) if self.transform else self.images[index] for index in image_idx]
         return images
 
     def _load_data(self):
-        cls_path = os.path.join(self.root, self.mode)
-        classes = os.listdir(cls_path)
+        # load data from the root directory
+        data_path = os.path.join(self.root, self.mode)
+        classes = os.listdir(data_path)
         classes.sort()
         self.classes = classes
         for i, c in enumerate(classes):
-            c_dir = os.path.join(cls_path, c)
+            c_dir = os.path.join(data_path, c)
             imgs = os.listdir(c_dir)
             for img in imgs:
                 img_path = os.path.join(c_dir, img)

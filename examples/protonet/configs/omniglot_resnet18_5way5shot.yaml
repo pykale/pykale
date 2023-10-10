@@ -1,5 +1,5 @@
 DATASET:
-  ROOT: '/home/wenrui/Projects/pykale/examples/protonet/data/omniglot'
+  ROOT: 'data/omniglot'
   IMG_SIZE: 84
 MODEL:
   BACKBONE: 'resnet18'
@@ -16,7 +16,7 @@ VAL:
   K_SHOTS: 5
   K_QUERIES: 15
 OUTPUT:
-  OUT_DIR: 'examples/protonet/outputs/'
+  OUT_DIR: 'outputs'
   LOG_DIR: 'logs'
   WEIGHT_DIR: 'weights'
   SAVE_FREQ: 1

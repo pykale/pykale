@@ -36,7 +36,7 @@ def topk_accuracy(output, target, topk=(1,)):
     """Computes the top-k accuracy for the specified values of k.
 
     Args:
-        output (Tensor): output (Tensor): The output of the last layer of the network, before softmax. Shape: (batch_size, class_count).
+        output (Tensor): The output of the last layer of the network, before softmax. Shape: (batch_size, class_count).
         target (Tensor): The ground truth label. Shape: (batch_size)
         topk (tuple(int)): Compute accuracy at top-k for the values of k specified in this parameter.
     Returns:
@@ -281,9 +281,9 @@ class proto_loss:
     but defined as a class.
 
     Args:
-        n_ways (int): number of classes in a task
-        k_query (int): number of query samples per class
-        device (torch.device): the desired device of returned tensor
+        n_ways (int): Number of classes in a task
+        k_query (int): Number of query samples per class
+        device (torch.device): The desired device of returned tensor
 
     Examples:
         >>> loss_fn = proto_loss(n_ways=5, k_query=15, device=torch.device("cuda"))
@@ -291,8 +291,8 @@ class proto_loss:
 
 
     Reference:
-        Snell, Jake, Kevin Swersky, and Richard Zemel. "Prototypical networks for few-shot learning."
-        Advances in neural information processing systems 30 (2017).
+        Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning.
+        Advances in neural information processing systems, 30.
     """
 
     def __init__(self, **kwarg):
@@ -328,13 +328,12 @@ class proto_loss:
 
     def euclidean_dist(self, x, y):
         """
-        Compute euclidean distance between two groups of tensors.
-        Because the above Euclidean function is not suitable for group computing,
-        it is re-defined here.
+        Compute euclidean distance between two groups of tensors. Because the above Euclidean
+        function is not suitable for group computing, it is re-defined here.
 
         Args:
-            x (torch.Tensor): variables set 1: (N, D)
-            y (torch.Tensor): variables set 2: (M, D)
+            x (torch.Tensor): Variables set 1: (N, D)
+            y (torch.Tensor): Variables set 2: (M, D)
 
         Returns:
             torch.Tensor: Euclidean distance: (N, M)

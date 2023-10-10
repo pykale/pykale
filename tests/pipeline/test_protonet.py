@@ -4,39 +4,32 @@ from pathlib import Path
 import pytest
 import pytorch_lightning as pl
 import torch
+from torch.utils.data import DataLoader, TensorDataset
 from torchvision import transforms
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode as CfgNode
+
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
 from kale.embed.image_cnn import ResNet18Feature
-from kale.loaddata.n_way_k_shot import NWayKShotDataset
+from kale.loaddata.few_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
 from kale.utils.download import download_file_by_url
 
-# root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 url = "https://github.com/pykale/data/raw/main/images/omniglot/omniglot_demo.zip"
 modes = ["train", "val", "test"]
 
-
-@pytest.fixture(scope="module")
-def testing_cfg_data(download_path):
-    cfg = CN()
-    cfg.DATASET = CN()
-    # cfg.DATASET.ROOT = os.path.join(root_dir, download_path, "demo_data")
-    cfg.DATASET.ROOT = os.path.join(download_path, "omniglot_demo")
-    yield cfg
-
-
 @pytest.fixture(scope="module")
 def testing_cfg_model():
-    _C = CN()
+    _C = CfgNode()
     _C.SEED = 1397
     _C.DEVICE = "cpu"
 
-    _C.MODEL = CN()
+    _C.MODEL = CfgNode()
     _C.MODEL.BACKBONE = "ResNet18Feature"
     _C.MODEL.PRETRAIN_WEIGHTS = None
 
-    _C.TRAIN = CN()
+    _C.TRAIN = CfgNode()
     _C.TRAIN.EPOCHS = 1
     _C.TRAIN.OPTIMIZER = "SGD"
     _C.TRAIN.LEARNING_RATE = 1e-3
@@ -44,32 +37,31 @@ def testing_cfg_model():
     _C.TRAIN.K_SHOTS = 5
     _C.TRAIN.K_QUERIES = 15
 
-    _C.VAL = CN()
+    _C.VAL = CfgNode()
     _C.VAL.N_WAYS = 5
     _C.VAL.K_SHOTS = 5
     _C.VAL.K_QUERIES = 15
     yield _C.clone()
 
+@pytest.fixture
+def data():
+    # Create dummy data for testing. The dimension is following the CIFAR10 dataset.
+    x = torch.randn(5, 20, 3, 84, 84)
+    y = torch.randint(0, 10, (5,))
+    return TensorDataset(x, y)
+
+
+@pytest.fixture
+def dataloader(data):
+    # Create a DataLoader for the dummy data.
+    return DataLoader(data, batch_size=5)
+
 
 @pytest.mark.parametrize("mode", modes)
-def test_protonet(mode, testing_cfg_data, testing_cfg_model):
-    cfg_data = testing_cfg_data
-
-    output_dir = str(Path(cfg_data.DATASET.ROOT).parent.absolute())
-    download_file_by_url(url=url, output_directory=output_dir, output_file_name="omniglot_demo.zip", file_format="zip")
+def test_protonet(mode, testing_cfg_model, dataloader):
 
     cfg_model = testing_cfg_model
-    transform = transforms.Compose([transforms.Resize((84, 84)), transforms.ToTensor()])
-    dataset = NWayKShotDataset(
-        path=cfg_data.DATASET.ROOT,
-        mode=mode,
-        k_shot=cfg_model.TRAIN.K_SHOTS,
-        query_samples=cfg_model.TRAIN.K_QUERIES,
-        transform=transform,
-    )
-    dataloader = torch.utils.data.DataLoader(
-        dataset, batch_size=cfg_model.TRAIN.N_WAYS, shuffle=(mode == "train"), drop_last=True
-    )
+
     assert len(dataloader) > 0
     net = ResNet18Feature(weights=cfg_model.MODEL.PRETRAIN_WEIGHTS).to(cfg_model.DEVICE)
     model = ProtoNetTrainer(cfg=cfg_model, net=net)
