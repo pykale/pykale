@@ -46,7 +46,8 @@ tests/pipeline/tests
 
 # Lightning
 lightning_logs
-tb_logs/*
+tb_logs
+outputs
 
 # Jupyter Notebook Checkpoints
 *-checkpoint.ipynb
