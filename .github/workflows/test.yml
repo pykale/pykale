@@ -32,6 +32,15 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
+
+      - name: Cache .testmondata
+        uses: actions/cache@v2
+        with:
+          path: .testmondata
+          key: ${{ runner.os }}-testmon-${{ hashFiles('**/*.py') }}
+          restore-keys: |
+            ${{ runner.os }}-testmon-
+
       - name: Install dependencies
         run: |
           pip install rdkit
@@ -48,7 +57,7 @@ jobs:
       - name: Run tests
         id: run_tests
         run: |
-          pytest --nbmake --nbmake-timeout=3000 --cov=kale
+          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
       - name: Determine coverage
         run: |
