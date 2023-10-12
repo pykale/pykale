@@ -43,17 +43,25 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ matrix.path }}
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-python${{ matrix.python-version }}-pip-
+
+#          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+#          restore-keys: |
+#            ${{ runner.os }}-pip-
 
       - name: Cache .testmondata
         uses: actions/cache@v2
         with:
           path: .testmondata
-          key: ${{ runner.os }}-testmon-${{ hashFiles('**/*.py') }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py') }}
           restore-keys: |
-            ${{ runner.os }}-testmon-
+            ${{ runner.os }}-python${{ matrix.python-version }}-testmon-
+
+#          key: ${{ runner.os }}-testmon-${{ hashFiles('**/*.py') }}
+#          restore-keys: |
+#            ${{ runner.os }}-testmon-
 
       - name: Install dependencies
         run: |
