@@ -58,7 +58,6 @@ jobs:
             ${{ runner.os }}-python${{ matrix.python-version }}-testmon-
 
       - name: Install dependencies
-        if: steps.cache-pip.outputs.cache-hit != 'true'
         run: |
           pip install rdkit
           pip install pyparsing==3.0.9
