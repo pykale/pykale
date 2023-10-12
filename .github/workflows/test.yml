@@ -40,6 +40,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Cache pip dependencies
+        id: cache-pip
         uses: actions/cache@v2
         with:
           path: ${{ matrix.path }}
@@ -47,11 +48,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-python${{ matrix.python-version }}-pip-
 
-#          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-#          restore-keys: |
-#            ${{ runner.os }}-pip-
-
       - name: Cache .testmondata
+        id: cache-testmon
         uses: actions/cache@v2
         with:
           path: .testmondata
@@ -59,11 +57,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-python${{ matrix.python-version }}-testmon-
 
-#          key: ${{ runner.os }}-testmon-${{ hashFiles('**/*.py') }}
-#          restore-keys: |
-#            ${{ runner.os }}-testmon-
-
       - name: Install dependencies
+        if: steps.cache-pip.outputs.cache-hit != 'true'
         run: |
           pip install rdkit
           pip install pyparsing==3.0.9
@@ -76,14 +71,17 @@ jobs:
           pip install torch_geometric==2.3.0
           pip install -e .[dev]
         shell: bash -l {0}
+
       - name: Run tests
         id: run_tests
         run: |
           pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
+
       - name: Determine coverage
         run: |
           coverage xml
         shell: bash -l {0}
+
       - name: Report coverage
         uses: codecov/codecov-action@v1
