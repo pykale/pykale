@@ -38,8 +38,10 @@ docs/build/
 docs/source/backup
 
 # Testing
+.testmondata
 .coverage
 cov*.xml
+collect_env.py
 tests/test_data
 tests/loaddata/tests
 tests/pipeline/tests
