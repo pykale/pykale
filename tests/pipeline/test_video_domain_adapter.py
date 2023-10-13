@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import pytest
@@ -28,7 +27,6 @@ VALID_RATIO = 0.1
 seed = 36
 set_seed(seed)
 
-root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 
 
@@ -37,7 +35,7 @@ def testing_cfg(download_path):
     cfg = CfgNode()
     cfg.DATASET = CfgNode()
     cfg.DAN = CfgNode()
-    cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
+    cfg.DATASET.ROOT = download_path + "/video_test_data/"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
     yield cfg
 

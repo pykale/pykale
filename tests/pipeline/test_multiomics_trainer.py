@@ -143,7 +143,7 @@ def test_forward2(test_model, num_classes, url, multimodal):
 @pytest.mark.parametrize("num_classes, url", [(2, binary_class_data_url), (5, multi_class_data_url)])
 def test_pipeline(test_model, num_classes, url):
     set_seed(2023)
-    trainer_pretrain = pl.Trainer(max_epochs=2, accelerator="cpu", enable_model_summary=False,)
+    trainer_pretrain = pl.Trainer(default_root_dir="./tests/outputs",            max_epochs=2, accelerator="cpu", enable_model_summary=False,)
 
     trainer_pretrain.fit(test_model)
     result = trainer_pretrain.test(test_model)

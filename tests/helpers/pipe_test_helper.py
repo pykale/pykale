@@ -9,6 +9,7 @@ class ModelTestHelper:
         assert isinstance(model, domain_adapter.BaseAdaptTrainer)
         # training process
         trainer = pl.Trainer(
+            default_root_dir="tests/outputs",
             min_epochs=train_params["nb_init_epochs"], max_epochs=train_params["nb_adapt_epochs"], devices=1, **kwargs
         )
         trainer.fit(model)
