@@ -55,9 +55,10 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .testmondata_bp
-          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py') }}
+#          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py') }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-cache
           restore-keys: |
-            ${{ runner.os }}-python${{ matrix.python-version }}-testmon-
+            ${{ runner.os }}-python${{ matrix.python-version }}-testmon-cache
 
       - name: Install dependencies
         run: |
@@ -73,23 +74,24 @@ jobs:
           pip install -e .[dev]
         shell: bash -l {0}
 
-      # Only generate pytest-testmon cache if the event is push or schedule
-      - name: Run tests (push and schedule)
+      # Generate pytest-testmon cache if the event is push
+      - name: Run tests (push)
         id: run_tests_push
-        if: github.event_name == 'push' || github.event_name == 'schedule'
+        if: github.event_name == 'push'
         run: |
           pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
-      # Run the whole test if the event is schedule
+      # Run the whole test and generate pytest-testmon cache if the event is schedule
       - name: Run tests (schedule)
         id: run_tests_schedule
         if: github.event_name == 'schedule'
         run: |
           pytest --no-testmon --nbmake --nbmake-timeout=3000 --cov=kale
+          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
-      # Collect pytest-testmon cache without changes if the event is pull_request
+      # Restore pytest-testmon cache without generating new cache if the event is pull request
       - name: Run tests (pull request)
         id: run_tests_pull_request
         if: github.event_name == 'pull_request'
