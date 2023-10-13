@@ -103,9 +103,8 @@ jobs:
         id: run_tests_pull_request
         if: github.event_name == 'pull_request'
         run: |
-          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
+          pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
-#          pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
 
       - name: Determine coverage
         run: |
