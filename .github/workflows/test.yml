@@ -39,20 +39,22 @@ jobs:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
 
+      # Cache downloaded pip dependencies
       - name: Cache pip dependencies
         id: cache-pip
         uses: actions/cache@v2
         with:
           path: ${{ matrix.path }}
-          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
           restore-keys: |
             ${{ runner.os }}-python${{ matrix.python-version }}-pip-
 
+      # Cache pytest-testmon cache
       - name: Cache .testmondata
         id: cache-testmon
         uses: actions/cache@v2
         with:
-          path: .testmondata
+          path: .testmondata_bp
           key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py') }}
           restore-keys: |
             ${{ runner.os }}-python${{ matrix.python-version }}-testmon-
@@ -71,10 +73,28 @@ jobs:
           pip install -e .[dev]
         shell: bash -l {0}
 
-      - name: Run tests
-        id: run_tests
+      # Only generate pytestmon cache if the event is push or schedule
+      - name: Run tests (push and schedule)
+        id: run_tests_push
+        if: github.event_name == 'push' || github.event_name == 'schedule'
         run: |
           pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
+        shell: bash -l {0}
+
+      # Run the whole test if the event is schedule
+      - name: Run tests (schedule)
+        id: run_tests_schedule
+        if: github.event_name == 'schedule'
+        run: |
+          pytest --no-testmon --nbmake --nbmake-timeout=3000 --cov=kale
+        shell: bash -l {0}
+
+      # Collect pytestmon cache without changes if the event is pull_request
+      - name: Run tests (pull request)
+        id: run_tests_pull_request
+        if: github.event_name == 'pull_request'
+        run: |
+          pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
       - name: Determine coverage
