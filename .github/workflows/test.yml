@@ -55,10 +55,10 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .testmondata_bp
-#          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py') }}
           key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-cache
           restore-keys: |
             ${{ runner.os }}-python${{ matrix.python-version }}-testmon-cache
+#          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py') }}
 
       - name: Install dependencies
         run: |
