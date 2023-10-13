@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import pytest
@@ -34,7 +33,6 @@ seed = 36
 set_seed(seed)
 CLASS_SUBSETS = [[1, 3, 8]]
 
-root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 
 
@@ -42,7 +40,8 @@ url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 def testing_cfg(download_path):
     cfg = CfgNode()
     cfg.DATASET = CfgNode()
-    cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
+
+    cfg.DATASET.ROOT = download_path + "/video_test_data/"
     cfg.DATASET.IMAGE_MODALITY = "joint"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
     yield cfg
