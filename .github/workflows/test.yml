@@ -73,7 +73,7 @@ jobs:
           pip install -e .[dev]
         shell: bash -l {0}
 
-      # Only generate pytestmon cache if the event is push or schedule
+      # Only generate pytest-testmon cache if the event is push or schedule
       - name: Run tests (push and schedule)
         id: run_tests_push
         if: github.event_name == 'push' || github.event_name == 'schedule'
@@ -89,7 +89,7 @@ jobs:
           pytest --no-testmon --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
-      # Collect pytestmon cache without changes if the event is pull_request
+      # Collect pytest-testmon cache without changes if the event is pull_request
       - name: Run tests (pull request)
         id: run_tests_pull_request
         if: github.event_name == 'pull_request'
