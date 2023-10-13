@@ -57,7 +57,7 @@ jobs:
           path: .testmondata_bp
           key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-cache
           restore-keys: |
-            ${{ runner.os }}-python${{ matrix.python-version }}-testmon-cache
+            ${{ runner.os }}-python${{ matrix.python-version }}-testmon-
 #          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py') }}
 
       - name: Install dependencies
