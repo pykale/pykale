@@ -84,7 +84,7 @@ jobs:
 
       # Run the whole test if the event is schedule
       - name: Run tests (schedule-all)
-        id: run_tests_schedule
+        id: run_tests_schedule_all
         if: github.event_name == 'schedule'
         run: |
           pytest --nbmake --nbmake-timeout=3000 --cov=kale
@@ -92,7 +92,7 @@ jobs:
 
       # Generate pytest-testmon cache if the event is schedule
       - name: Run tests (schedule-testmon)
-        id: run_tests_schedule
+        id: run_tests_schedule_testmon
         if: github.event_name == 'schedule'
         run: |
           pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
