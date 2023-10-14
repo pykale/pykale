@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests, and report the coverage with a variety of Python versions and OSs.
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: test-unlabel
+name: test when label removed
 
 on:
   pull_request:
@@ -9,20 +9,7 @@ on:
     types: [unlabeled]
 
 jobs:
-  check-label:
-    runs-on: ubuntu-latest
-    outputs:
-      was_label_removed: ${{ steps.check.outputs.was_label_removed }}
-    steps:
-    - name: Check which label was removed
-      id: check
-      run: |
-        echo "{was_label_removed}=={$(if [[ "${{ github.event.label.name }}" == "enable-test-changed-only" ]]; then echo 'true'; else echo 'false'; fi)"} >> $GITHUB_OUTPUT
-
-
-        test-unlabel:
-    needs: check-label
-    if: needs.check-label.outputs.was_label_removed == 'true'
+  test:
     name: Test (${{ matrix.os }}, python version ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -40,6 +27,8 @@ jobs:
           - os: windows-latest
             path: ~\AppData\Local\pip\Cache
 
+    if: github.event.label.name == 'enable-test-changed-only'
+
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python using Miniconda
@@ -47,6 +36,7 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
+
 
       # Check for test-changed-only label
       - name: Check for test-changed-only label
