@@ -38,7 +38,7 @@ docs/build/
 docs/source/backup
 
 # Testing
-.testmondata_bp
+.testmondata
 .coverage
 cov*.xml
 collect_env.py

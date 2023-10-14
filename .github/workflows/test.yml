@@ -54,7 +54,7 @@ jobs:
         id: cache-testmon
         uses: actions/cache@v2
         with:
-          path: .testmondata_bp
+          path: .testmondata
 #          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-cache
           key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py') }}
           restore-keys: |
@@ -103,7 +103,8 @@ jobs:
         id: run_tests_pull_request
         if: github.event_name == 'pull_request'
         run: |
-          pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
+          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
+#          pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
       - name: Determine coverage
