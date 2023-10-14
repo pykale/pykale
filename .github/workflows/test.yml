@@ -83,7 +83,7 @@ jobs:
         shell: bash -l {0}
 
       # Run the whole test if the event is schedule
-      - name: Run tests (schedule-all)
+      - name: Run tests (schedule test-all)
         id: run_tests_schedule_all
         if: github.event_name == 'schedule'
         run: |
@@ -91,7 +91,7 @@ jobs:
         shell: bash -l {0}
 
       # Generate pytest-testmon cache if the event is schedule
-      - name: Run tests (schedule-testmon)
+      - name: Run tests (schedule test-changed)
         id: run_tests_schedule_testmon
         if: github.event_name == 'schedule'
         run: |
