@@ -39,17 +39,17 @@ jobs:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
 
-      # Check for work-in-progress label
-      - name: Check for work-in-progress label
-        id: check_wip_label
+      # Check for test-changed-only label
+      - name: Check for test-changed-only label
+        id: check_enabled_label
         run: |
-          has_wip_label=false
+          has_enabled_label=false
           labels_json="${{ toJSON(github.event.pull_request.labels.*.name) }}"
-          if [[ "$labels_json" == *"work-in-progress"* ]]; then
-            has_wip_label=true
+          if [[ "$labels_json" == *"enable-test-changed-only"* ]]; then
+            has_enabled_label=true
           fi
-          echo "has_wip_label is $has_wip_label"
-          echo "has_wip_label=$has_wip_label" >> $GITHUB_OUTPUT
+          echo "has_enabled_label is $has_enabled_label"
+          echo "has_enabled_label=$has_enabled_label" >> $GITHUB_OUTPUT
         shell: bash -l {0}
 
       # Cache downloaded pip dependencies
@@ -106,7 +106,7 @@ jobs:
       # Restore pytest-testmon cache without generating new cache if the event is pull request and the label is work-in-progress
       - name: Run tests (test the changed in pull request)
         id: run_tests_changed_pull_request
-        if: github.event_name == 'pull_request' && steps.check_wip_label.outputs.has_wip_label == 'true'
+        if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'true'
         run: |
           pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
 #          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
@@ -115,7 +115,7 @@ jobs:
       # Run the whole test if the event is pull request and the label is not 'work-in-progress'
       - name: Run tests (test all in pull request)
         id: run_tests_all_pull_request
-        if: github.event_name == 'pull_request' && steps.check_wip_label.outputs.has_wip_label == 'false'
+        if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'false'
         run: |
           pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
