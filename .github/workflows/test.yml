@@ -121,9 +121,12 @@ jobs:
         shell: bash -l {0}
 
       - name: Determine coverage
+        id: coverage
+        if: steps.check_enabled_label.outputs.has_enabled_label == 'false'
         run: |
           coverage xml
         shell: bash -l {0}
 
       - name: Report coverage
+        if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'false'
         uses: codecov/codecov-action@v1
