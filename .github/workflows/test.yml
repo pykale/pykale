@@ -42,17 +42,14 @@ jobs:
       - name: Check for WIP label
         id: check_labels
         run: |
-          labels_json='["work-in-progress"]'
           has_wip_label=false
-          echo $labels_json | jq -r '.[]' | while read label; do
-            if [[ $label == *"work-in-progress"* ]]; then
+          for label in ${{ toJSON(github.event.pull_request.labels.*.name) }}; do
+            if [[ "$label" == *"work-in-progress"* ]]; then
               has_wip_label=true
               break
             fi
           done
           echo "::set-output name=has_wip_label::$has_wip_label"
-#          echo "{has_wip_label}={$has_wip_label}" >> $GITHUB_OUTPUT
-        shell: bash -l {0}
 
       # Cache downloaded pip dependencies
       - name: Cache pip dependencies
