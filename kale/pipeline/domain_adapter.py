@@ -247,6 +247,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._dataset.prepare_data_loaders()
         self._nb_training_batches = None  # to be set by method train_dataloader
         self._optimizer_params = optimizer
+        self._optimizer_params = optimizer
 
     @property
     def method(self):
