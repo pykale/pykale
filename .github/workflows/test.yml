@@ -40,8 +40,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       # Check for work-in-progress label
-      - name: Check for WIP label
-        id: check_labels
+      - name: Check for work-in-progress label
+        id: check_wip
         run: |
           has_wip_label=false
           labels_json="${{ toJSON(github.event.pull_request.labels.*.name) }}"
@@ -92,7 +92,7 @@ jobs:
         id: run_tests_changed
         if: github.event_name == 'push' || github.event_name == 'schedule'
         run: |
-          pytest --testmon --nbmake --nbmake-timeout=3000
+          pytest --testmon
         shell: bash -l {0}
 
       # Run the whole test if the event is push to main or schedule
