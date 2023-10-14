@@ -47,7 +47,7 @@ jobs:
           if [[ "$labels_json" == *"work-in-progress"* ]]; then
             has_wip_label=true
           fi
-          echo "::set-output name=has_wip_label::$has_wip_label"
+          echo "has_wip_label is $has_wip_label"
         shell: bash -l {0}
 
       # Cache downloaded pip dependencies
