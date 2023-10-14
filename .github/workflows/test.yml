@@ -50,7 +50,8 @@ jobs:
               break
             fi
           done
-          echo "{has_wip_label}={$has_wip_label}" >> $GITHUB_OUTPUT
+          echo "::set-output name=has_wip_label::$has_wip_label"
+#          echo "{has_wip_label}={$has_wip_label}" >> $GITHUB_OUTPUT
         shell: bash -l {0}
 
       # Cache downloaded pip dependencies
