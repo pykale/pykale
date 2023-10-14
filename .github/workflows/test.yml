@@ -39,6 +39,7 @@ jobs:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
 
+      # Check for work-in-progress label
       - name: Check for WIP label
         id: check_labels
         run: |
@@ -48,6 +49,7 @@ jobs:
             has_wip_label=true
           fi
           echo "has_wip_label is $has_wip_label"
+          echo "has_wip_label=$has_wip_label" >> $GITHUB_OUTPUT
         shell: bash -l {0}
 
       # Cache downloaded pip dependencies
