@@ -51,6 +51,7 @@ jobs:
             fi
           done
           echo "{has_wip_label}={$has_wip_label}" >> $GITHUB_OUTPUT
+        shell: bash -l {0}
 
       # Cache downloaded pip dependencies
       - name: Cache pip dependencies
