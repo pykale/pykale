@@ -75,7 +75,7 @@ jobs:
         shell: bash -l {0}
 
       # Generate pytest-testmon cache if the event is push
-      - name: Run tests (push)
+      - name: Run tests (push to main)
         id: run_tests_push
         if: github.event_name == 'push'
         run: |
