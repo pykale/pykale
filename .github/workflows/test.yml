@@ -39,6 +39,19 @@ jobs:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
 
+      - name: Check for WIP label
+        id: check_labels
+        run: |
+          has_wip_label=false
+          labels_json="${{ toJSON(github.event.pull_request.labels.*.name) }}"
+          for label in $labels_json; do
+            if [[ "$label" == *"work-in-progress"* ]]; then
+              has_wip_label=true
+              break
+            fi
+          done
+          echo "::set-output name=has_wip_label::$has_wip_label"
+
       # Cache downloaded pip dependencies
       - name: Cache pip dependencies
         id: cache-pip
@@ -93,7 +106,7 @@ jobs:
       # Restore pytest-testmon cache without generating new cache if the event is pull request and the label is work-in-progress
       - name: Run tests (test the changed in pull request)
         id: run_tests_changed_pull_request
-        if: github.event_name == 'pull_request' && github.event.pull_request.labels.*.name == 'work-in-progress'
+        if: github.event_name == 'pull_request' && steps.check_labels.outputs.has_wip_label == 'true'
         run: |
           pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
 #          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
@@ -102,7 +115,7 @@ jobs:
       # Run the whole test if the event is pull request and the label is not 'work-in-progress'
       - name: Run tests (test all in pull request)
         id: run_tests_all_pull_request
-        if: github.event_name == 'pull_request' && github.event.pull_request.labels.*.name != 'work-in-progress'
+        if: github.event_name == 'pull_request' && steps.check_labels.outputs.has_wip_label == 'false'
         run: |
           pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
