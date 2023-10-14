@@ -42,10 +42,10 @@ jobs:
       - name: Check for WIP label
         id: check_labels
         run: |
-          labels_json="${{ toJSON(github.event.pull_request.labels.*.name) }}"
+          labels_json='["work-in-progress"]'
           has_wip_label=false
           echo $labels_json | jq -r '.[]' | while read label; do
-          if [[ $LABELS == *"work in progress"* ]]; then
+            if [[ $label == *"work-in-progress"* ]]; then
               has_wip_label=true
               break
             fi
