@@ -247,6 +247,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._dataset.prepare_data_loaders()
         self._nb_training_batches = None  # to be set by method train_dataloader
         self._optimizer_params = optimizer
+        self._optimizer_params = optimizer
 
     @property
     def method(self):
@@ -460,10 +461,10 @@ class DANNTrainer(BaseDANNLike):
             self._method = Method(method)
             assert self._method.is_dann_method()
 
-    def forward(self, x):
+    def forward(self, x1):
         if self.feat is not None:
-            x = self.feat(x)
-        feature = x.view(x.size(0), -1)
+            x1 = self.feat(x1)
+        feature = x1.view(x1.size(0), -1)
 
         reverse_feature = GradReverse.apply(feature, self.alpha)
         class_output = self.classifier(feature)
