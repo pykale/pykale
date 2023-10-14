@@ -1,0 +1,102 @@
+# This workflow will install Python dependencies, run tests, and report the coverage with a variety of Python versions and OSs.
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: test-unlabel
+
+on:
+  pull_request:
+    branches: [main]
+    types: [unlabeled]
+
+jobs:
+  check-label:
+    runs-on: ubuntu-latest
+    outputs:
+      was_label_removed: ${{ steps.check.outputs.was_label_removed }}
+    steps:
+    - name: Check which label was removed
+      id: check
+      run: |
+        echo "{was_label_removed}=={$(if [[ "${{ github.event.label.name }}" == "enable-test-changed-only" ]]; then echo 'true'; else echo 'false'; fi)"} >> $GITHUB_OUTPUT
+
+
+        test-unlabel:
+    needs: check-label
+    if: needs.check-label.outputs.was_label_removed == 'true'
+    name: Test (${{ matrix.os }}, python version ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.8", "3.9", "3.10"] # list of Python versions to test
+        exclude:
+          - os: windows-latest
+            python-version: "3.8"
+          - os: windows-latest
+            python-version: "3.9"
+        include:
+          - os: ubuntu-latest
+            path: ~/.cache/pip
+          - os: windows-latest
+            path: ~\AppData\Local\pip\Cache
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python using Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+
+      # Check for test-changed-only label
+      - name: Check for test-changed-only label
+        id: check_enabled_label
+        run: |
+          has_enabled_label=false
+          labels_json="${{ toJSON(github.event.pull_request.labels.*.name) }}"
+          if [[ "$labels_json" == *"enable-test-changed-only"* ]]; then
+            has_enabled_label=true
+          fi
+          echo "has_enabled_label is $has_enabled_label"
+          echo "has_enabled_label=$has_enabled_label" >> $GITHUB_OUTPUT
+        shell: bash -l {0}
+
+      # Cache downloaded pip dependencies
+      - name: Cache pip dependencies
+        id: cache_pip
+        uses: actions/cache@v2
+        with:
+          path: ${{ matrix.path }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-python${{ matrix.python-version }}-pip-
+
+      - name: Install dependencies
+        run: |
+          pip install rdkit
+          pip install pyparsing==3.0.9
+          pip install torch==2.0.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+          pip install torchvision==0.15.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+          pip install torch_scatter==2.1.1 -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
+          pip install torch_sparse==0.6.17 -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
+          pip install torch_cluster==1.6.1 -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
+          pip install torch_spline_conv==1.2.2 -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
+          pip install torch_geometric==2.3.0
+          pip install -e .[dev]
+        shell: bash -l {0}
+
+       # Run the whole test if the event is pull request and the label is not 'work-in-progress'
+      - name: Run tests (test all in pull request)
+        id: run_tests_all_pull_request
+        run: |
+          pytest --nbmake --nbmake-timeout=3000 --cov=kale
+        shell: bash -l {0}
+
+      - name: Determine coverage
+        id: coverage
+        run: |
+          coverage xml
+        shell: bash -l {0}
+
+      - name: Report coverage
+        uses: codecov/codecov-action@v1
