@@ -223,7 +223,6 @@ class VideoDatasetAccess(DatasetAccess):
         self._frames_per_segment = frames_per_segment
         self._transform = video_transform.get_transform(transform_kind, self._image_modality)
         self._seed = seed
-        self._seed = seed
 
     def get_train_valid(self, valid_ratio):
         """Get the train and validation dataset with the fixed random split. This is used for joint input like RGB and
