@@ -108,7 +108,7 @@ jobs:
 
 
       # Pull Request
-      # Restore pytest-testmon cache without generating new cache if the event is pull request and the label is work-in-progress
+      # Restore pytest-testmon cache without generating new cache if the event is pull request and the label is 'enable-test-changed-only'
       - name: Run tests (test the changed in pull request)
         id: run_tests_changed_pull_request
         if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'true'
@@ -117,7 +117,7 @@ jobs:
 #          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
-      # Run the whole test if the event is pull request and the label is not 'work-in-progress'
+      # Run the whole test if the event is pull request and the label is not 'enable-test-changed-only'
       - name: Run tests (test all in pull request)
         id: run_tests_all_pull_request
         if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'false'
