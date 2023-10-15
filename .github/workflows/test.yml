@@ -111,8 +111,8 @@ jobs:
         id: run_tests_changed_pull_request
         if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'true'
         run: |
-          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
-#          pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
+          pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
+#          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
       # Run the whole test if the event is pull request and the label is not 'work-in-progress'
