@@ -1,5 +1,6 @@
+# This workflow activates only when the 'enable-test-changed-only' label is removed, triggering a full test run.
+# This is useful for running an all test after fixing a bug in the pull request.
 # This workflow will install Python dependencies, run tests, and report the coverage with a variety of Python versions and OSs.
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
 name: test when label removed
 
