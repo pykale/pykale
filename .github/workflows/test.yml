@@ -88,14 +88,6 @@ jobs:
 
 
       # Push and Schedule
-      # Run the whole test if the event is push to main or schedule
-      - name: Run tests (test all)
-        id: run_tests_all
-        if: github.event_name == 'push' || github.event_name == 'schedule'
-        run: |
-          pytest --nbmake --nbmake-timeout=3000 --cov=kale
-        shell: bash -l {0}
-
       # Generate pytest-testmon cache if the event is push to main or schedule
       - name: Run tests (test the changed)
         id: run_tests_changed
@@ -104,16 +96,16 @@ jobs:
           pytest --testmon
         shell: bash -l {0}
 
-
-      # Pull Request
-      # Run the whole test if the event is pull request and the label is not 'work-in-progress'
-      - name: Run tests (test all in pull request)
-        id: run_tests_all_pull_request
-        if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'false'
+      # Run the whole test if the event is push to main or schedule
+      - name: Run tests (test all)
+        id: run_tests_all
+        if: github.event_name == 'push' || github.event_name == 'schedule'
         run: |
           pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
+
+      # Pull Request
       # Restore pytest-testmon cache without generating new cache if the event is pull request and the label is work-in-progress
       - name: Run tests (test the changed in pull request)
         id: run_tests_changed_pull_request
@@ -121,7 +113,14 @@ jobs:
         run: |
           pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
 #          pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
-#          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
+        shell: bash -l {0}
+
+      # Run the whole test if the event is pull request and the label is not 'work-in-progress'
+      - name: Run tests (test all in pull request)
+        id: run_tests_all_pull_request
+        if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'false'
+        run: |
+          pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
 
