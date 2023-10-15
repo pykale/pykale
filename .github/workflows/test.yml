@@ -68,8 +68,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .testmondata
-          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-cache
-#          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py', '**/*.md', '**/*.rst', '**/*.yaml') }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py', '**/*.md', '**/*.rst', '**/*.yaml') }}
           restore-keys: |
             ${{ runner.os }}-python${{ matrix.python-version }}-testmon-
 
