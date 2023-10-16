@@ -64,7 +64,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-python${{ matrix.python-version }}-pip-
 
-      # Cache pytest-testmon cache
+      # Restore pytest testmon cache
       - name: Cache .testmondata
         id: cache_testmon
         uses: actions/cache@v2
@@ -90,13 +90,21 @@ jobs:
 
 
       # Push and Schedule
-      # Generate pytest-testmon cache if the event is push to main or schedule
+      # Generate pytest testmon cache if the event is push to main or schedule
       - name: Run tests (test the changed)
         id: run_tests_changed
         if: github.event_name == 'push' || github.event_name == 'schedule'
         run: |
           pytest --testmon
         shell: bash -l {0}
+
+      # Save pytest testmon cache
+      - name: Save .testmondata cache
+        if: github.event_name == 'push' && steps.cache_testmon.outputs.cache-hit != 'true' # Save only if cache wasn't hit and it's a push event to main
+        uses: actions/cache@v2
+        with:
+          path: .testmondata
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py', '**/*.md', '**/*.rst', '**/*.yaml') }}
 
       # Run the whole test if the event is push to main or schedule
       - name: Run tests (test all)
@@ -113,7 +121,8 @@ jobs:
         id: run_tests_changed_pull_request
         if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'true'
         run: |
-          pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
+          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
+#          pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
 #          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
