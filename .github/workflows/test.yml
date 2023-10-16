@@ -98,14 +98,6 @@ jobs:
           pytest --testmon
         shell: bash -l {0}
 
-      # Save pytest testmon cache
-      - name: Save .testmondata cache
-        if: github.event_name == 'push' && steps.cache_testmon.outputs.cache-hit != 'true' # Save only if cache wasn't hit and it's a push event to main
-        uses: actions/cache@v2
-        with:
-          path: .testmondata
-          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py', '**/*.md', '**/*.rst', '**/*.yaml') }}
-
       # Run the whole test if the event is push to main or schedule
       - name: Run tests (test all)
         id: run_tests_all
