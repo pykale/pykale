@@ -1,0 +1,26 @@
+DATASET:
+  ROOT: 'data/omniglot'
+  IMG_SIZE: 84
+MODEL:
+  BACKBONE: 'resnet18'
+  PRETRAIN_WEIGHTS: None
+TRAIN:
+  EPOCHS: 100
+  OPTIMIZER: 'SGD'
+  LEARNING_RATE: 0.001
+  N_WAYS: 30
+  K_SHOTS: 5
+  K_QUERIES: 15
+VAL:
+  N_WAYS: 5
+  K_SHOTS: 1
+  K_QUERIES: 15
+OUTPUT:
+  OUT_DIR: 'outputs/'
+  LOG_DIR: 'logs'
+  WEIGHT_DIR: 'weights'
+  SAVE_FREQ: 1
+  SAVE_TOP_K: 2
+  SAVE_LAST: True
+SEED: 1397
+DEVICE: 'cuda'
