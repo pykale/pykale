@@ -18,7 +18,6 @@ from pytorch_lightning.callbacks import LearningRateMonitor, TQDMProgressBar
 
 import kale.utils.seed as seed
 from kale.loaddata.image_access import get_cifar
-from typing import Any
 
 
 def arg_parse():
