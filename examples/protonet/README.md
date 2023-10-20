@@ -2,7 +2,7 @@
 
 ### 1. Description
 
-This example is an implementation of [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks) in pytorch-lightning. It is now integrated into Pykale pipelines. This example is a demo telling how to use ProtoNet pipeline in Pykale.
+This example is an implementation of [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks) in PyTorch-Lightning. It is now integrated into PyKale pipelines. This example is a demo telling how to use ProtoNet pipeline in PyKale.
 
 ## 2. Usage
 
@@ -46,7 +46,7 @@ This data loader can be used on several few-shot learning datasets, such as mini
 
 ### Example Running
 
-#### Single gpu training:
+#### Single GPU training:
 
 Example - Training ResNet18 on Omniglot in a 5-way-5-shot Protocol
 
@@ -73,7 +73,7 @@ Customized running
 
 The test hyper-parameters are the same as the 'VAL' section of the config file.
 
-If no `test` folder in the custom dataset, choose one of the following options to do:
+If no `test` folder in the custom dataset, choose one of the following options:
 - Copying & pasting `val` subset and renaming it as `test`
 - Changing the `mode` in defining `test_set` part in `test.py` to `val`.
 
