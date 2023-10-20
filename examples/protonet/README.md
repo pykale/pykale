@@ -2,7 +2,7 @@
 
 ### 1. Description
 
-This example is an implementation of [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks) in PyTorch-Lightning. It is now integrated into PyKale pipelines. This example is a demo telling how to use ProtoNet pipeline in PyKale.
+This example demonstrates how to implement [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks) within the PyKale pipeline using PyTorch-Lightning. Below, we offer guidance on how to use ProtoNet effectively.
 
 ## 2. Usage
 
