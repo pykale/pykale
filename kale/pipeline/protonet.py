@@ -71,8 +71,8 @@ class ProtoNetTrainer(pl.LightningModule):
 
     def compute_loss(self, feature_sup, feature_que, mode="train") -> tuple:
         """
-        Compute loss and accuracy. Here we use the same loss function for both training and validation,
-        which is related to Euclidean distance.
+        Compute loss and accuracy. Here we use the same loss function for both training and validation, which is related
+         to Euclidean distance.
 
         Args:
             feature_sup (torch.Tensor): Support features.
@@ -89,9 +89,9 @@ class ProtoNetTrainer(pl.LightningModule):
 
     def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
         """
-        Training step. Compute loss and accuracy, and log them by self.log_dict. For training,
-        log on each step and each epoch. For validation and testing, only log on each epoch.
-        This way can avoid using on_training_epoch_end() and on_validation_epoch_end().
+        Training step. Compute loss and accuracy, and log them by self.log_dict. For training, log on each step and each
+         epoch. For validation and testing, only log on each epoch. This way can avoid using on_training_epoch_end()
+         and on_validation_epoch_end().
         """
         images, _ = batch
         feature_sup, feature_que = self.forward(images, self.train_k_shot, self.train_n_way)
