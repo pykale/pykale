@@ -4,7 +4,7 @@ This example is about training prototypical networks to perform N-Way-K-Shot pro
 Reference:
     Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical Networks for Few-shot Learning. Advances in Neural Information Processing Systems, 30.
 """
-import argparsePrototypical Networks for Few-shot Learning
+import argparse
 import os
 from datetime import datetime
 from typing import Any
