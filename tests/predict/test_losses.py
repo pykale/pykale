@@ -3,7 +3,7 @@ import random
 import pytest
 import torch
 
-from kale.predict.losses import multitask_topk_accuracy, proto_loss, topk_accuracy
+from kale.predict.losses import multitask_topk_accuracy, protonet_loss, topk_accuracy
 
 # Dummy data: [batch_size, num_classes]
 # Dummy ground truth: batch_size
@@ -70,10 +70,10 @@ def test_proto_loss():
     n_dim = random.randint(1, 512)
     feature_sup = torch.rand(n_way, k_support, n_dim)
     feature_que = torch.rand(n_way * k_query, n_dim)
-    loss_fn = proto_loss(n_ways=n_way, k_query=k_query, device="cpu")
+    loss_fn = protonet_loss(n_ways=n_way, k_query=k_query, device="cpu")
     loss, acc = loss_fn(feature_sup, feature_que)
     assert isinstance(loss, torch.Tensor)
     assert isinstance(acc, torch.Tensor)
     prototypes = feature_sup.mean(dim=1)
-    dists = loss_fn.euclidean_dist(prototypes, feature_que)
+    dists = loss_fn.euclidean_dist_for_tensor_group(prototypes, feature_que)
     assert dists.shape == (n_way, n_way * k_query)

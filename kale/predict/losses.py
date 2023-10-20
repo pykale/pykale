@@ -224,7 +224,8 @@ def hsic(kx, ky, device):
 
 
 def euclidean(x1, x2):
-    """Compute the Euclidean distance
+    """
+    Compute the Euclidean distance between two sets of variables.
 
     Args:
         x1 (torch.Tensor): variables set 1
@@ -270,15 +271,13 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
     return moment_sum / n_pair
 
 
-class proto_loss:
+class protonet_loss:
     """
     ProtoNet loss function.
-    This is a specific loss function for prototypical networks and n-way-k-shot problems.
-    It computes the loss and accuracy of the model by measuring the Euclidean distance
-    between features of support samples and query samples.
+    This is a specific loss function for prototypical networks and n-way-k-shot problems. It computes the loss and
+    accuracy of the model by measuring the Euclidean distance between features of support samples and query samples.
 
-    Bacause the loss requests some constant hyperparameters, it is not a general function
-    but defined as a class.
+    Bacause the loss requests some constant hyperparameters, it is not a general function but defined as a class.
 
     Args:
         n_ways (int): Number of classes in a task
@@ -286,13 +285,13 @@ class proto_loss:
         device (torch.device): The desired device of returned tensor
 
     Examples:
-        >>> loss_fn = proto_loss(n_ways=5, k_query=15, device=torch.device("cuda"))
-        >>> loss_val, acc_val = loss_fn(feature_sup, feature_que)
+        >>> loss_fn = protonet_loss(n_ways=5, k_query=15, device=torch.device("cuda"))
+        >>> loss, acc = loss_fn(feature_sup, feature_que)
 
 
     Reference:
-        Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning.
-        Advances in neural information processing systems, 30.
+        Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical Networks for Few-shot Learning.
+        Advances in Neural Information Processing Systems, 30.
     """
 
     def __init__(self, **kwarg):
@@ -315,21 +314,20 @@ class proto_loss:
         feature_sup = feature_sup.to(self.device)
         feature_que = feature_que.to(self.device)
         prototypes = feature_sup.mean(dim=1)
-        dists = self.euclidean_dist(feature_que, prototypes)
+        dists = self.euclidean_dist_for_tensor_group(feature_que, prototypes)
         log_p_y = F.log_softmax(-dists, dim=1)
         log_p_y = log_p_y.view(self.n_ways, self.k_query, -1)
         labels = torch.arange(self.n_ways).to(self.device)
         labels = labels.view(self.n_ways, 1, 1)
         labels = labels.expand(self.n_ways, self.k_query, 1).long()
-        loss_val = -log_p_y.gather(2, labels).squeeze().view(-1).mean()
+        loss = -log_p_y.gather(2, labels).squeeze().view(-1).mean()
         _, y_hat = log_p_y.max(2)
-        acc_val = torch.eq(y_hat, labels.squeeze()).float().mean()
-        return loss_val, acc_val
+        acc = torch.eq(y_hat, labels.squeeze()).float().mean()
+        return loss, acc
 
-    def euclidean_dist(self, x, y):
+    def euclidean_dist_for_tensor_group(self, x, y):
         """
-        Compute euclidean distance between two groups of tensors. Because the above Euclidean
-        function is not suitable for group computing, it is re-defined here.
+        Compute Euclidean distance between two groups of tensors.
 
         Args:
             x (torch.Tensor): Variables set 1: (N, D)

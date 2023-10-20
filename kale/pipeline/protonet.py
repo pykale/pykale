@@ -16,7 +16,7 @@ from typing import Any
 import pytorch_lightning as pl
 import torch
 
-from kale.predict.losses import proto_loss
+from kale.predict.losses import protonet_loss
 
 
 class ProtoNetTrainer(pl.LightningModule):
@@ -55,8 +55,8 @@ class ProtoNetTrainer(pl.LightningModule):
         self.model = net
 
         # loss
-        self.loss_train = proto_loss(n_ways=train_n_way, k_query=train_k_query, device=self.devices)
-        self.loss_val = proto_loss(n_ways=val_n_way, k_query=val_k_query, device=self.devices)
+        self.loss_train = protonet_loss(n_ways=train_n_way, k_query=train_k_query, device=self.devices)
+        self.loss_val = protonet_loss(n_ways=val_n_way, k_query=val_k_query, device=self.devices)
 
     def forward(self, x, k_shots, n_ways) -> torch.Tensor:
         x = x.to(self.devices)
