@@ -6,6 +6,7 @@ from kale.utils.seed import set_seed
 
 
 def test_mlp_decoder():
+    pass
     # Test with additional layers
     in_dim, hidden_dim, out_dim = 8, 16, 32
     include_decoder_layers = True

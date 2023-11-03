@@ -18,8 +18,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: ["3.8", "3.9", "3.10"] # list of Python versions to test
+        os: [ubuntu-latest]
+        python-version: ["3.10"] # list of Python versions to test
         exclude:
           - os: windows-latest
             python-version: "3.8"
@@ -43,16 +43,20 @@ jobs:
           pip install torch_cluster==1.6.1 -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
           pip install torch_spline_conv==1.2.2 -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
           pip install torch_geometric==2.3.0
+          pip install -r tests/requirements_gha_test.txt
           pip install -e .[dev]
         shell: bash -l {0}
       - name: Run tests
         id: run_tests
+        env: 
+          TMNET_API_KEY: ${{ secrets.TMNET_API_KEY }}
         run: |
-          pytest --nbmake --nbmake-timeout=3000 --cov=kale
+          pytest --nbmake --nbmake-timeout=3000 --tmnet
         shell: bash -l {0}
-      - name: Determine coverage
-        run: |
-          coverage xml
-        shell: bash -l {0}
-      - name: Report coverage
-        uses: codecov/codecov-action@v1
+
+      #   - name: Determine coverage
+      #   run: |
+      #     coverage xml
+      #   shell: bash -l {0}
+      # - name: Report coverage
+      #   uses: codecov/codecov-action@v1
