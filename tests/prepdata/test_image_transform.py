@@ -16,7 +16,6 @@ cmr_url = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64_v
 
 @pytest.fixture(scope="module")
 def images(download_path):
-    download_file_by_url(cmr_url, download_path, "SA_64x64.zip", "zip")
     img_path = os.path.join(download_path, "SA_64x64_v2.0", "DICOM")
     cmr_dcm_list = read_dicom_dir(img_path, sort_instance=True, sort_patient=True, check_series_uid=True)
     dcms = []

@@ -14,12 +14,11 @@ def download_path():
     return path
 
 
-gait_url = "https://github.com/pykale/data/raw/main/videos/gait/gait_gallery_data.mat"
-
+#gait_url = "https://github.com/pykale/data/raw/main/videos/gait/gait_gallery_data.mat"
 
 @pytest.fixture(scope="session")
 def gait(download_path):
-    download_file_by_url(gait_url, download_path, "gait.mat", "mat")
+    
     return loadmat(os.path.join(download_path, "gait.mat"))
 
 
@@ -31,9 +30,9 @@ def office_path(download_path):
 
 
 # Landmark Global fixtures
-landmark_uncertainty_url = (
-    "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
-)
+# landmark_uncertainty_url = (
+#     "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
+# )
 
 
 # Downloads and unzips remote file
@@ -42,7 +41,6 @@ def landmark_uncertainty_tuples_path(download_path):
     path_ = download_path
     os.makedirs(path_, exist_ok=True)
 
-    download_file_by_url(landmark_uncertainty_url, path_, "Uncertainty_tuples.zip", "zip")
     valid_path = os.path.join(path_, "Uncertainty_tuples/U-NET/SA/uncertainty_pairs_valid_t0")
     test_path = os.path.join(path_, "Uncertainty_tuples/U-NET/SA/uncertainty_pairs_test_t0")
 

@@ -179,17 +179,7 @@ def test_qbin_pipeline(testing_cfg):
     base_dir = testing_cfg["DATASET"]["BASE_DIR"]
 
     # download data if necessary
-    if testing_cfg["DATASET"]["SOURCE"] is not None:
-        logger.info("Downloading data...")
-        data_file_name = "%s.%s" % (base_dir, testing_cfg["DATASET"]["FILE_FORMAT"])
-        download_file_by_url(
-            testing_cfg["DATASET"]["SOURCE"],
-            testing_cfg["DATASET"]["ROOT"],
-            data_file_name,
-            file_format=testing_cfg["DATASET"]["FILE_FORMAT"],
-        )
-        logger.info("Data downloaded to %s!", testing_cfg["DATASET"]["ROOT"] + base_dir)
-
+   
     uncertainty_pairs_val = testing_cfg["DATASET"]["UE_PAIRS_VAL"]
     uncertainty_pairs_test = testing_cfg["DATASET"]["UE_PAIRS_TEST"]
     gt_test_error_available = testing_cfg["DATASET"]["GROUND_TRUTH_TEST_ERRORS_AVAILABLE"]

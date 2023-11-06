@@ -29,7 +29,6 @@ seed = 36
 set_seed(seed)
 
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 
 
 @pytest.fixture(scope="module")
@@ -37,7 +36,6 @@ def testing_cfg(download_path):
     cfg = CfgNode()
     cfg.DATASET = CfgNode()
     cfg.DAN = CfgNode()
-    cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
     yield cfg
 
@@ -81,12 +79,12 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
     cfg.DAN.USERANDOM = False
 
     # download example data
-    download_file_by_url(
-        url=url,
-        output_directory=str(Path(cfg.DATASET.ROOT).parent.absolute()),
-        output_file_name="video_test_data.zip",
-        file_format="zip",
-    )
+    # download_file_by_url(
+    #     url=url,
+    #     output_directory=str(Path(cfg.DATASET.ROOT).parent.absolute()),
+    #     output_file_name="video_test_data.zip",
+    #     file_format="zip",
+    # )
 
     # build dataset
     source, target, num_classes = VideoDataset.get_source_target(

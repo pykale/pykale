@@ -13,6 +13,7 @@ _C.DATASET.ROOT = "./data"  # Root directory of dataset, "data" is in the same d
 _C.DATASET.NAME = "CIFAR10"  # Dataset name
 _C.DATASET.NUM_CLASSES = 10  # Number of classes in the dataset
 _C.DATASET.NUM_WORKERS = 0  # Number of workers for data loading
+_C.DATASET.DOWNLOAD = True  # Download the dataset if it is not found in the root directory
 
 # ---------------------------------------------------------------------------- #
 # Solver

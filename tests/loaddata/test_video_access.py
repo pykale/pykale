@@ -78,12 +78,12 @@ def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, dat
     cfg.DATASET.WEIGHT_TYPE = weight_type
     cfg.DATASET.SIZE_TYPE = datasize_type
 
-    download_file_by_url(
-        url=url,
-        output_directory=str(Path(cfg.DATASET.ROOT).parent.absolute()),
-        output_file_name="video_test_data.zip",
-        file_format="zip",
-    )
+    # download_file_by_url(
+    #     url=url,
+    #     output_directory=str(Path(cfg.DATASET.ROOT).parent.absolute()),
+    #     output_file_name="video_test_data.zip",
+    #     file_format="zip",
+    # )
 
     # test get_source_target
     source, target, num_classes = VideoDataset.get_source_target(
