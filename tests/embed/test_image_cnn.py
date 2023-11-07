@@ -2,6 +2,8 @@ import pytest
 import torch
 
 from kale.embed.image_cnn import (
+    Flatten,
+    Identity,
     LeNet,
     ResNet18Feature,
     ResNet34Feature,
@@ -44,10 +46,11 @@ def test_simplecnnbuilder_shapes():
 @pytest.mark.parametrize("param", PARAM)
 def test_shapes(param):
     model, out_size = param
-    model = model(pretrained=False)
+    model = model(weights="DEFAULT")
     model.eval()
     output_batch = model(INPUT_BATCH)
     assert output_batch.size() == (BATCH_SIZE, out_size)
+    assert model.output_size() == out_size
 
 
 def test_lenet_output_shapes():
@@ -55,7 +58,20 @@ def test_lenet_output_shapes():
     output_channels = 6
     additional_layers = 2
     lenet = LeNet(input_channels, output_channels, additional_layers)
-
     x = torch.randn(16, 3, 32, 32)
     output = lenet(x)
     assert output.shape == (16, 24, 4, 4), "Unexpected output shape"
+
+
+def test_flatten_output_shapes():
+    flatten = Flatten()
+    x = torch.randn(16, 3, 32, 32)
+    output = flatten(x)
+    assert output.shape == (16, 3072), "Unexpected output shape"
+
+
+def test_identity_output_shapes():
+    identity = Identity()
+    x = torch.randn(16, 3, 32, 32)
+    output = identity(x)
+    assert output.shape == (16, 3, 32, 32), "Unexpected output shape"

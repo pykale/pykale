@@ -28,7 +28,7 @@ def test_deep_data(download_path):
     # test deep_dta trainer
     save_parameters = {"seed": 2020, "batch_size": 256}
     model = DeepDTATrainer(drug_encoder, target_encoder, decoder, lr=0.001, ci_metric=True, **save_parameters).eval()
-    trainer = pl.Trainer(max_epochs=1, gpus=0)
+    trainer = pl.Trainer(default_root_dir="./tests/outputs", accelerator="cpu", max_epochs=1, devices=1)
     trainer.fit(model, train_dataloaders=train_dataloader, val_dataloaders=valid_dataloader)
     trainer.test(dataloaders=test_dataloader)
     assert isinstance(model.drug_encoder, CNNEncoder)

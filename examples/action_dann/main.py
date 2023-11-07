@@ -24,9 +24,9 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="Domain Adversarial Networks on Action Datasets")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument(
-        "--gpus",
+        "--devices",
         default=1,
-        help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
+        help="gpu id(s) to use. int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
     parser.add_argument("--resume", default="", type=str)
@@ -69,9 +69,8 @@ def main():
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, num_classes)
-        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
+        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
-            # dirpath=full_checkpoint_dir,
             filename="{epoch}-{step}-{valid_loss:.4f}",
             # save_last=True,
             # save_top_k=1,
@@ -85,22 +84,16 @@ def main():
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
         progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
 
-        ### Set the lightning trainer. Comment `limit_train_batches`, `limit_val_batches`, `limit_test_batches` when
-        # training. Uncomment and change the ratio to test the code on the smallest sub-dataset for efficiency in
-        # debugging. Uncomment early_stop_callback to activate early stopping.
+        ### Set the lightning trainer.
         trainer = pl.Trainer(
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
             # resume_from_checkpoint=last_checkpoint_file,
-            gpus=args.gpus,
-            logger=tb_logger,  # logger,
-            # weights_summary='full',
-            fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
+            accelerator="gpu" if args.devices != 0 else "cpu",
+            devices=args.devices if args.devices != 0 else "auto",
+            logger=tb_logger,
+            fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,
             callbacks=[lr_monitor, checkpoint_callback, progress_bar],
-            # callbacks=[early_stop_callback, lr_monitor],
-            # limit_train_batches=0.005,
-            # limit_val_batches=0.06,
-            # limit_test_batches=0.06,
         )
 
         ### Find learning_rate
