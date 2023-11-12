@@ -9,7 +9,7 @@ The supergraph structure from the `"GripNet: Graph Information Propagation on Su
 """
 
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import networkx as nx
 import torch
@@ -170,8 +170,8 @@ class SuperVertexParaSetting(object):
         supervertex_name: str,
         inter_feat_channels: int,
         inter_agg_channels_list: List[int],
-        exter_agg_channels_dict: Dict[str, int] = None,
-        mode: str = None,
+        exter_agg_channels_dict: Optional[Dict[str, int]] = None,
+        mode: Optional[str] = None,
         num_bases: int = 32,
         concat_output: bool = True,
     ) -> None:
@@ -205,7 +205,7 @@ class SuperGraph(object):
         self,
         supervertex_list: List[SuperVertex],
         superedge_list: List[SuperEdge],
-        supervertex_setting_dict: Dict[str, SuperVertexParaSetting] = None,
+        supervertex_setting_dict: Optional[Dict[str, SuperVertexParaSetting]] = None,
     ) -> None:
 
         self.supervertex_dict = {supervertex.name: supervertex for supervertex in supervertex_list}
