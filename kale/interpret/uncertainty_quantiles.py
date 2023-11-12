@@ -827,7 +827,7 @@ def box_plot_comparing_q(
     hatch_type: str,
     color: str,
     show_sample_info: str = "None",
-    save_path: str = None,
+    save_path: Optional[str] = None,
     y_lim: int = 120,
     convert_to_percent: bool = True,
     to_log: bool = False,
@@ -1001,7 +1001,7 @@ def plot_cumulative(
     bins: Union[List[int], np.ndarray],
     title: str,
     compare_to_all: bool = False,
-    save_path: str = None,
+    save_path: Optional[str] = None,
     error_scaling_factor: float = 1,
 ) -> None:
     """
