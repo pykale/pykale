@@ -377,7 +377,12 @@ class SparseMultiomicsDataset(MultiomicsDataset):
             adj_mat (torch.Tensor): The dense adjacency matrix.
             num_train (int): The number of samples in training data.
         """
-        sorted_adj_mat = torch.sort(adj_mat.reshape(-1,), descending=True).values[self.edge_per_node * num_train]
+        sorted_adj_mat = torch.sort(
+            adj_mat.reshape(
+                -1,
+            ),
+            descending=True,
+        ).values[self.edge_per_node * num_train]
         self.sim_threshold = sorted_adj_mat.item()
 
     def _generate_sparse_adj(self, adj_mat: torch.Tensor, self_loop: bool = True) -> torch.Tensor:

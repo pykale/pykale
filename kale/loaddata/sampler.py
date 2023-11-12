@@ -210,7 +210,12 @@ class ReweightedBatchSampler(torch.utils.data.sampler.BatchSampler):
     def __iter__(self):
         for _ in range(self._n_batches):
             # sample batch_size classes
-            class_idx = np.random.choice(self._classes, p=self._class_weights, replace=True, size=self._batch_size,)
+            class_idx = np.random.choice(
+                self._classes,
+                p=self._class_weights,
+                replace=True,
+                size=self._batch_size,
+            )
             indices = []
             for class_, num in zip(*np.unique(class_idx, return_counts=True)):
                 indices.extend(self._class_to_iter[class_].get(num))
@@ -287,7 +292,7 @@ class InfiniteSliceIterator:
 
 
 class DomainBalancedBatchSampler(BalancedBatchSampler):
-    """ BatchSampler - samples n_samples for each of the n_domains.
+    """BatchSampler - samples n_samples for each of the n_domains.
         Returns batches of size n_domains * (batch_size / n_domains)
 
     Args:
