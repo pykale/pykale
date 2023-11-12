@@ -20,7 +20,7 @@ repos:
         exclude: .conda/meta.yaml
     -   id: requirements-txt-fixer
 -   repo: https://github.com/pycqa/flake8.git
-    rev: 3.9.2
+    rev: 6.1.0
     hooks:
     -   id: flake8
         additional_dependencies: [flake8-print, "importlib-metadata<5.0.0"]
