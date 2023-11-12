@@ -60,7 +60,7 @@ def test_reg(images, coords):
         marker_kwargs=marker_kwargs,
         title_kwargs=title_kwargs,
     )
-    assert type(fig) == matplotlib.figure.Figure
+    assert isinstance(fig, matplotlib.figure.Figure)
     with pytest.raises(Exception):
         reg_img_stack(images, coords[1:, :], coords[0])
     images_reg, max_dist = reg_img_stack(images, coords, target_coords=coords[0])
@@ -70,7 +70,7 @@ def test_reg(images, coords):
     # add one for avoiding inf relative difference
     testing.assert_allclose(max_dist + 1, np.ones(n_samples), rtol=2, atol=2)
     fig = plot_multi_images([images_reg[i][0, ...] for i in range(n_samples)], n_cols=5)
-    assert type(fig) == matplotlib.figure.Figure
+    assert isinstance(fig, matplotlib.figure.Figure)
 
 
 @pytest.mark.parametrize("scale", SCALES)

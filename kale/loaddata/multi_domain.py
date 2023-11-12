@@ -324,7 +324,7 @@ class MultiDomainImageFolder(VisionDataset):
     ) -> None:
         super(MultiDomainImageFolder, self).__init__(root, transform=transform, target_transform=target_transform)
         domains, domain_to_idx = self._find_classes(self.root)
-        if type(sub_domain_set) == list:
+        if isinstance(sub_domain_set, list):
             for domain_name in sub_domain_set:
                 if domain_name not in domains:
                     raise ValueError("Domain %s not in the image directory" % domain_name)
@@ -332,7 +332,7 @@ class MultiDomainImageFolder(VisionDataset):
             domain_to_idx = {domain_name: i for i, domain_name in enumerate(sub_domain_set)}
 
         classes, class_to_idx = self._find_classes(os.path.join(self.root, domains[0]))
-        if type(sub_class_set) == list:
+        if isinstance(sub_class_set, list):
             for class_name in sub_class_set:
                 if class_name not in classes:
                     raise ValueError("Class %s not in the image directory" % class_name)

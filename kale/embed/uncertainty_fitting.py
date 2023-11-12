@@ -90,7 +90,8 @@ def fit_and_predict(
                 validation_pairs = apply_confidence_inversion(validation_pairs, uncertainty_measure)
                 testing_pairs = apply_confidence_inversion(testing_pairs, uncertainty_measure)
 
-            # Get Quantile Thresholds, fit Isotonic Regression (IR) line and estimate Error bounds. Return both and save for each fold and target.
+            # Get Quantile Thresholds, fit Isotonic Regression (IR) line and estimate Error bounds.
+            # Return both and save for each fold and target.
             validation_errors = validation_pairs[evaluation_metric].values
             validation_uncerts = validation_pairs[uncertainty_measure].values
             uncert_boundaries, estimated_errors = quantile_binning_and_est_errors(

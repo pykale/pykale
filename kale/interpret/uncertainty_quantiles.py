@@ -1110,7 +1110,8 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
     Args:
         data: A tuple containing various inputs needed to generate the figures, including:
-            - uncertainty_error_pairs (List[Tuple[int, float]]): A list of tuples specifying the uncertainty thresholds and corresponding error thresholds to use for binning the data.
+            - uncertainty_error_pairs (List[Tuple[int, float]]): A list of tuples specifying the uncertainty thresholds
+            and corresponding error thresholds to use for binning the data.
             - models_to_compare (List[str]): A list of model names to compare.
             - dataset (str): The name of the dataset being used.
             - target_indices (List[int]): A list of target indices to include in the analysis.
@@ -1544,7 +1545,8 @@ def generate_fig_comparing_bins(
 
     Args:
         data (Tuple): A tuple containing various inputs needed to generate the figures. The tuple should include the following elements:
-            - uncertainty_error_pair (Tuple[float, float]): A tuple representing the mean and standard deviation of the noise uncertainty used during training and evaluation.
+            - uncertainty_error_pair (Tuple[float, float]): A tuple representing the mean and standard deviation of
+            the noise uncertainty used during training and evaluation.
             - model (str): The name of the model being evaluated.
             - dataset (str): The name of the dataset being used.
             - targets (List[int]): A list of target indices being evaluated.
