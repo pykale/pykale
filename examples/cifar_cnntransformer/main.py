@@ -84,7 +84,7 @@ def main():
     )
 
     # ---- start training ----
-    # trainer.fit(model, train_loader, valid_loader, ckpt_path=args.ckpt_resume)
+    trainer.fit(model, train_loader, valid_loader, ckpt_path=args.ckpt_resume)
 
     # ---- start testing ----
     trainer.test(model, valid_loader, ckpt_path=args.ckpt_test)
