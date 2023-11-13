@@ -124,7 +124,6 @@ class CNNTransformer(ContextCNNGeneric):
         output_type: str,
         positional_encoder: nn.Module = None,
     ):
-
         num_channels = cnn_output_shape[1]
         height = cnn_output_shape[2]
         width = cnn_output_shape[3]

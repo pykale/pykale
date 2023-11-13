@@ -48,9 +48,7 @@ class PolypharmacyDataset(Dataset):
         return torch.load(data_path)
 
     def __len__(self):
-
         return 1
 
     def __getitem__(self, idx):
-
         return self.edge_index, self.edge_type, self.edge_type_range

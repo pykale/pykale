@@ -73,7 +73,10 @@ def fit_and_predict(
 
         for fold in range(num_folds):
             validation_pairs = load_csv_columns(
-                ue_pairs_val, "Validation Fold", fold, ["uid", evaluation_metric, uncertainty_measure],
+                ue_pairs_val,
+                "Validation Fold",
+                fold,
+                ["uid", evaluation_metric, uncertainty_measure],
             )
 
             if groundtruth_test_errors:

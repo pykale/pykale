@@ -13,8 +13,8 @@ from torch.autograd import Variable
 
 class Concat(nn.Module):
     """Concat is a simple PyTorch module for fusing multimodal data by concatenating tensors along dimension 1.
-       This fusion method is often used in multimodal learning where data from different modalities (e.g., image, audio) are processed separately and then fused together for further processing or decision making. Each modality data is first flattened from its second dimension onward and then these flattened tensors are concatenated together.
-       This approach to fusion maintains the independence of the modalities before the fusion point, allowing the network to learn separate representations for each modality before combining them.
+    This fusion method is often used in multimodal learning where data from different modalities (e.g., image, audio) are processed separately and then fused together for further processing or decision making. Each modality data is first flattened from its second dimension onward and then these flattened tensors are concatenated together.
+    This approach to fusion maintains the independence of the modalities before the fusion point, allowing the network to learn separate representations for each modality before combining them.
     """
 
     def __init__(self):
@@ -28,7 +28,7 @@ class Concat(nn.Module):
 
 
 class BimodalInteractionFusion(nn.Module):
-    """ BimodalInteractionFusion is a PyTorch module that performs fusion of two data modalities through a hypernetwork-based interaction mechanism. The 'input_dims' argument specifies the input dimensions of the two modalities. The 'output_dim' argument specifies the output dimension after the fusion. The 'output' argument defines the type of bimodal matrix interactions to be performed, which can be 'matrix', 'vector', or 'scalar'.
+    """BimodalInteractionFusion is a PyTorch module that performs fusion of two data modalities through a hypernetwork-based interaction mechanism. The 'input_dims' argument specifies the input dimensions of the two modalities. The 'output_dim' argument specifies the output dimension after the fusion. The 'output' argument defines the type of bimodal matrix interactions to be performed, which can be 'matrix', 'vector', or 'scalar'.
         This fusion method  supports three types of bimodal interactions:
             - Matrix: It implements a general hypernetwork mechanism where the interaction is multiplicative. It uses separate weight matrices and biases for the two modalities.
             - Vector: It uses diagonal forms and gating mechanisms, applying element-wise multiplication to combine the modalities.

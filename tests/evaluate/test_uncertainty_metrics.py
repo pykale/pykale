@@ -29,7 +29,6 @@ def dummy_test_preds(landmark_uncertainty_tuples_path):
 
 
 class TestEvaluateJaccard:
-
     # Using one uncertainty type, test numerous bins
     @pytest.mark.parametrize("num_bins", [2, 3, 4, 5])
     def test_one_uncertainty(self, dummy_test_preds, num_bins):
@@ -135,7 +134,6 @@ class TestEvaluateBounds:
         )  # because each landmark has 1 folds - they are sep
 
     def test_multiple_uncerts(self, dummy_test_preds):
-
         bound_dict = evaluate_bounds(
             dummy_test_preds[1],
             dummy_test_preds[0],

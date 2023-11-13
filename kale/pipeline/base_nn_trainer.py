@@ -80,10 +80,18 @@ class BaseNNTrainer(pl.LightningModule):
             optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr)
             return [optimizer]
         if self._optimizer_params["type"] == "Adam":
-            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
+            optimizer = torch.optim.Adam(
+                self.parameters(),
+                lr=self._init_lr,
+                **self._optimizer_params["optim_params"],
+            )
             return [optimizer]
         if self._optimizer_params["type"] == "SGD":
-            optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
+            optimizer = torch.optim.SGD(
+                self.parameters(),
+                lr=self._init_lr,
+                **self._optimizer_params["optim_params"],
+            )
 
             if self._adapt_lr:
                 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, self._max_epochs)
@@ -160,7 +168,11 @@ class CNNTransformerTrainer(BaseNNTrainer):
         """Set up an SGD optimizer and multistep learning rate scheduler. When self._adapt_lr is True, the learning
         rate will be decayed by self.lr_gamma every step in milestones.
         """
-        optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
+        optimizer = torch.optim.SGD(
+            self.parameters(),
+            lr=self._init_lr,
+            **self._optimizer_params["optim_params"],
+        )
         if self._adapt_lr:
             scheduler = torch.optim.lr_scheduler.MultiStepLR(
                 optimizer, milestones=self.lr_milestones, gamma=self.lr_gamma
