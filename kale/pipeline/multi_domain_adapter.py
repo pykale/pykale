@@ -56,7 +56,13 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
     """
 
     def __init__(
-        self, dataset, feature_extractor, task_classifier, n_classes: int, target_domain: str, **base_params,
+        self,
+        dataset,
+        feature_extractor,
+        task_classifier,
+        n_classes: int,
+        target_domain: str,
+        **base_params,
     ):
         super().__init__(dataset, feature_extractor, task_classifier, **base_params)
         self.n_classes = n_classes
@@ -280,7 +286,10 @@ class MFSANTrainer(BaseMultiSourceTrainer):
             phi_src = self.domain_net[src_domain].forward(phi_x[src_domain_idx])
             phi_tgt = self.domain_net[src_domain].forward(phi_x[tgt_idx])
             kernels = losses.gaussian_kernel(
-                phi_src, phi_tgt, kernel_mul=self._kernel_mul, kernel_num=self._kernel_num,
+                phi_src,
+                phi_tgt,
+                kernel_mul=self._kernel_mul,
+                kernel_num=self._kernel_num,
             )
             domain_dist += losses.compute_mmd_loss(kernels, len(phi_src))
             y_src_hat = self.classifiers[src_domain](phi_src)
@@ -316,8 +325,7 @@ class MFSANTrainer(BaseMultiSourceTrainer):
         return torch.stack(cls_output).mean(0)
 
     def cls_discrepancy(self, x):
-        """Compute discrepancy between all classifiers' probabilistic outputs
-        """
+        """Compute discrepancy between all classifiers' probabilistic outputs"""
         cls_output = self._get_cls_output(x)
         n_domains = len(cls_output)
         cls_disc = 0

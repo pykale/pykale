@@ -73,7 +73,7 @@ def test_linear_classifier_parameter_initialization():
         if "bias" in name:
             assert torch.allclose(param.data, torch.zeros_like(param.data))
         else:
-            assert param.std().detach().numpy() == pytest.approx(1 / in_dim ** 0.5, rel=1e-1)
+            assert param.std().detach().numpy() == pytest.approx(1 / in_dim**0.5, rel=1e-1)
 
 
 @pytest.fixture

@@ -83,7 +83,9 @@ def main():
         # ---- setup callbacks ----
         # setup checkpoint callback
         checkpoint_callback = ModelCheckpoint(
-            filename="{epoch}-{step}-{valid_loss:.4f}", monitor="valid_loss", mode="min",
+            filename="{epoch}-{step}-{valid_loss:.4f}",
+            monitor="valid_loss",
+            mode="min",
         )
 
         # setup progress bar
