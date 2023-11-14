@@ -174,6 +174,7 @@ class LowRankTensorFusion(nn.Module):
             ones = Variable(torch.ones(batch_size, 1).type(modality.dtype), requires_grad=False).to(
                 torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             )
+            modality = modality.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
             if self.flatten:
                 modality_withones = torch.cat((ones, torch.flatten(modality, start_dim=1)), dim=1)
             else:
