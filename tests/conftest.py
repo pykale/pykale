@@ -4,8 +4,6 @@ import os
 import pytest
 from scipy.io import loadmat
 
-from kale.utils.download import download_file_by_url
-
 
 @pytest.fixture(scope="session")
 def download_path():
@@ -14,11 +12,12 @@ def download_path():
     return path
 
 
-#gait_url = "https://github.com/pykale/data/raw/main/videos/gait/gait_gallery_data.mat"
+# gait_url = "https://github.com/pykale/data/raw/main/videos/gait/gait_gallery_data.mat"
+
 
 @pytest.fixture(scope="session")
 def gait(download_path):
-    
+
     return loadmat(os.path.join(download_path, "gait.mat"))
 
 

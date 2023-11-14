@@ -46,7 +46,7 @@ def test_model(num_classes, url):
         num_modalities=num_modalities,
         num_classes=num_classes,
         edge_per_node=10,
-        # url=url,
+        url=url,
         random_split=False,
         train_size=0.7,
         equal_weight=False,

@@ -313,11 +313,19 @@ def get_cifar(cfg):
     cifar_test_transform = get_transform("cifar", augment=False)
 
     if cfg.DATASET.NAME == "CIFAR10":
-        train_set = datasets.CIFAR10(cfg.DATASET.ROOT, train=True, download=cfg.DATASET.DOWNLOAD, transform=cifar_train_transform)
-        valid_set = datasets.CIFAR10(cfg.DATASET.ROOT, train=False, download=cfg.DATASET.DOWNLOAD, transform=cifar_test_transform)
+        train_set = datasets.CIFAR10(
+            cfg.DATASET.ROOT, train=True, download=cfg.DATASET.DOWNLOAD, transform=cifar_train_transform
+        )
+        valid_set = datasets.CIFAR10(
+            cfg.DATASET.ROOT, train=False, download=cfg.DATASET.DOWNLOAD, transform=cifar_test_transform
+        )
     elif cfg.DATASET.NAME == "CIFAR100":
-        train_set = datasets.CIFAR100(cfg.DATASET.ROOT, train=True, download=cfg.DATASET.DOWNLOAD, transform=cifar_train_transform)
-        valid_set = datasets.CIFAR100(cfg.DATASET.ROOT, train=False, download=cfg.DATASET.DOWNLOAD, transform=cifar_test_transform)
+        train_set = datasets.CIFAR100(
+            cfg.DATASET.ROOT, train=True, download=cfg.DATASET.DOWNLOAD, transform=cifar_train_transform
+        )
+        valid_set = datasets.CIFAR100(
+            cfg.DATASET.ROOT, train=False, download=cfg.DATASET.DOWNLOAD, transform=cifar_test_transform
+        )
     else:
         raise NotImplementedError
 

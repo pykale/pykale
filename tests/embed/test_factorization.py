@@ -10,7 +10,6 @@ from tensorly.tenalg import multi_mode_dot
 
 from kale.embed.factorization import MIDA, MPCA
 
-
 N_COMPS = [1, 50, 100]
 VAR_RATIOS = [0.7, 0.95]
 relative_tol = 0.00001
@@ -19,7 +18,7 @@ baseline_url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baselin
 
 @pytest.fixture(scope="module")
 def baseline_model(download_path):
-    
+
     return loadmat(os.path.join(download_path, "baseline.mat"))
 
 

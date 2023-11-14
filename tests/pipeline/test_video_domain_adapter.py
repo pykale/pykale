@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 import pytest
 from yacs.config import CfgNode
@@ -8,10 +7,12 @@ from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
 from kale.pipeline import domain_adapter, video_domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
-from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
 from tests.helpers.boring_model import VideoBoringModel
 from tests.helpers.pipe_test_helper import ModelTestHelper
+
+# from pathlib import Path
+
 
 SOURCES = [
     "ADL;7;adl_P_11_train.pkl;adl_P_11_test.pkl",
@@ -35,6 +36,7 @@ root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 def testing_cfg(download_path):
     cfg = CfgNode()
     cfg.DATASET = CfgNode()
+    cfg.DATASET.ROOT = download_path + "/video_test_data/"
     cfg.DAN = CfgNode()
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
     yield cfg
