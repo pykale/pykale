@@ -29,8 +29,8 @@ def arg_parse():
         help="gpu id(s) to use. int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
-    parser.add_argument("--ckpt_resume", default="", help="path to train checkpoint file", type=str)
-    parser.add_argument("--ckpt_test", default="best", help="path to test checkpoint file", type=str)
+    parser.add_argument("--ckpt_resume", default=None, help="path to train checkpoint file", type=str)
+    parser.add_argument("--ckpt_test", default=None, help="path to test checkpoint file", type=str)
     args = parser.parse_args()
     return args
 
