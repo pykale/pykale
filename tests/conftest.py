@@ -17,7 +17,6 @@ def download_path():
 
 @pytest.fixture(scope="session")
 def gait(download_path):
-
     return loadmat(os.path.join(download_path, "gait.mat"))
 
 

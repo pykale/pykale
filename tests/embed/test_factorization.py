@@ -18,7 +18,6 @@ baseline_url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baselin
 
 @pytest.fixture(scope="module")
 def baseline_model(download_path):
-
     return loadmat(os.path.join(download_path, "baseline.mat"))
 
 

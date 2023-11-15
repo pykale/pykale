@@ -1,6 +1,3 @@
-
-import os
-
 import pytest
 import torch
 from yacs.config import CfgNode

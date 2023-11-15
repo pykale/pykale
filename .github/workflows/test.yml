@@ -45,7 +45,7 @@ jobs:
           pip install torch_geometric==2.3.0
           pip install -e .[dev]
         shell: bash -l {0}
-      
+
       - name: Run tests
         id: run_tests
         run: |

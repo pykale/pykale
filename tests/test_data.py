@@ -53,7 +53,10 @@ multi_class_data_url = "https://github.com/pykale/data/raw/main/multiomics/TCGA_
 
 dataset_root = str(download_path) + "/multiomics/trainer/binary_class/"
 download_file_by_url(
-    url=binary_class_data_url, output_directory=dataset_root, output_file_name="binary_class.zip", file_format="zip",
+    url=binary_class_data_url,
+    output_directory=dataset_root,
+    output_file_name="binary_class.zip",
+    file_format="zip",
 )
 
 dataset_root = str(download_path) + "/multiomics/trainer/multi_class/"
