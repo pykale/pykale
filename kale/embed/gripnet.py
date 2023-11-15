@@ -156,17 +156,18 @@ class GripNetInternalModule(Module):
     def __repr__(self):
         tmp = [f"\n    ({i}): {l}" for i, l in enumerate(self.inter_agg_layers)]
 
-        return "{}: ModuleList(\n  (0): InternalFeatureLayer: Embedding({}, {})\n  (1): InternalFeatureAggregationModule: ModuleList({}\n  )\n)".format(
-            self.__class__.__name__, self.in_channels, self.setting.inter_feat_channels, "".join(tmp)
-        )
+        return (
+            "{}: ModuleList(\n  (0): InternalFeatureLayer: Embedding({}, {})\n  "
+            "(1): InternalFeatureAggregationModule: ModuleList({}\n  )\n)"
+        ).format(self.__class__.__name__, self.in_channels, self.setting.inter_feat_channels, "".join(tmp))
 
 
 class GripNetExternalModule(Module):
     """The internal module of a supervertex, which is an external feature layer.
 
     Args:
-        in_channels (int): Size of each input sample. In GripNet, it should be the dimension of the output embedding of the
-            corresponding parent supervertex.
+        in_channels (int): Size of each input sample. In GripNet, it should be the dimension of the output embedding of
+        the corresponding parent supervertex.
         out_channels (int): Size of each output sample. In GripNet, it is the dimension of the output embedding of
             the supervertex.
         num_out_node (int): the number of output nodes.

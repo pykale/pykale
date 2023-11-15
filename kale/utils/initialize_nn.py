@@ -15,7 +15,7 @@ def xavier_init(module) -> None:
     Args:
         module (torch.Tensor): The input module.
     """
-    if type(module) == nn.Linear:
+    if isinstance(module, nn.Linear):
         nn.init.xavier_normal_(module.weight)
 
 
@@ -25,5 +25,5 @@ def bias_init(module) -> None:
     Args:
         module (torch.Tensor): The input module.
     """
-    if type(module) == nn.Linear and module.bias is not None:
+    if isinstance(module, nn.Linear) and module.bias is not None:
         module.bias.data.fill_(0.0)
