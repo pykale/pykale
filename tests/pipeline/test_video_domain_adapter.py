@@ -1,3 +1,4 @@
+
 import os
 
 import pytest
@@ -30,7 +31,6 @@ seed = 36
 set_seed(seed)
 
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-
 
 @pytest.fixture(scope="module")
 def testing_cfg(download_path):

@@ -180,7 +180,6 @@ class RGCNEncoderLayer(MessagePassing):
         self.reset_parameters()
 
     def reset_parameters(self):
-
         self.att.data.normal_(std=1 / np.sqrt(self.num_bases))
 
         if self.after_relu:
@@ -226,7 +225,6 @@ class RGCNEncoderLayer(MessagePassing):
         return torch.cat(out_list)
 
     def update(self, aggr_out, x):
-
         out = aggr_out + torch.matmul(x, self.root)
 
         if self.bias is not None:

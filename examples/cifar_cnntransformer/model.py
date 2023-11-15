@@ -27,10 +27,15 @@ def get_config(cfg):
             "max_epochs": cfg.SOLVER.MAX_EPOCHS,
             "optimizer": {
                 "type": cfg.SOLVER.TYPE,
-                "optim_params": {"momentum": cfg.SOLVER.MOMENTUM, "weight_decay": cfg.SOLVER.WEIGHT_DECAY,},
+                "optim_params": {
+                    "momentum": cfg.SOLVER.MOMENTUM,
+                    "weight_decay": cfg.SOLVER.WEIGHT_DECAY,
+                },
             },
         },
-        "data_params": {"num_classes": cfg.DATASET.NUM_CLASSES,},
+        "data_params": {
+            "num_classes": cfg.DATASET.NUM_CLASSES,
+        },
         "cnn_params": {
             "conv_layers_spec": cfg.CNN.CONV_LAYERS,
             "activation_fun": cfg.CNN.ACTIVATION_FUN,

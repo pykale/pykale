@@ -40,7 +40,10 @@ EXPECTED_COLS = [
 )
 def test_load_csv_columns_cols_return(landmark_uncertainty_tuples_path, return_columns):
     returned_cols = load_csv_columns(
-        landmark_uncertainty_tuples_path[0], "Testing Fold", np.arange(8), cols_to_return=return_columns[0],
+        landmark_uncertainty_tuples_path[0],
+        "Testing Fold",
+        np.arange(8),
+        cols_to_return=return_columns[0],
     )
     assert list(returned_cols.columns) == return_columns[1]
 

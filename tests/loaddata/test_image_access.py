@@ -101,7 +101,11 @@ def test_class_subsets(class_subset, valid_ratio, download_path):
     )
 
     dataset_subset = MultiDomainDatasets(
-        source, target, config_weight_type=WEIGHT_TYPE[0], config_size_type=DATASIZE_TYPE[1], class_ids=class_subset,
+        source,
+        target,
+        config_weight_type=WEIGHT_TYPE[0],
+        config_size_type=DATASIZE_TYPE[1],
+        class_ids=class_subset,
     )
 
     train, valid = source.get_train_valid(valid_ratio)

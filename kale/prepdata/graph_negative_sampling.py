@@ -17,11 +17,11 @@ def negative_sampling(pos_edge_index: torch.Tensor, num_nodes: int) -> torch.Ten
     idx = pos_edge_index[0] * num_nodes + pos_edge_index[1]
     idx = idx.to(torch.device("cpu"))
 
-    perm = torch.tensor(np.random.choice(num_nodes ** 2, idx.size(0)))
+    perm = torch.tensor(np.random.choice(num_nodes**2, idx.size(0)))
     mask = torch.from_numpy(np.isin(perm, idx).astype(np.uint8))
     rest = mask.nonzero().view(-1)
     while rest.numel() > 0:  # pragma: no cover
-        tmp = torch.tensor(np.random.choice(num_nodes ** 2, rest.size(0)))
+        tmp = torch.tensor(np.random.choice(num_nodes**2, rest.size(0)))
         mask = torch.from_numpy(np.isin(tmp, idx).astype(np.uint8))
         perm[rest] = tmp
         rest = mask.nonzero().view(-1)

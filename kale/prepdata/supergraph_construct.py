@@ -9,7 +9,7 @@ The supergraph structure from the `"GripNet: Graph Information Propagation on Su
 """
 
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import networkx as nx
 import torch
@@ -51,7 +51,6 @@ class SuperVertex(object):
         edge_type: torch.Tensor = None,
         edge_weight: torch.Tensor = None,
     ) -> None:
-
         self.name = name
         self.node_feat = node_feat
         self.edge_index = edge_index
@@ -139,7 +138,6 @@ class SuperEdge(object):
         edge_index: torch.Tensor,
         edge_weight: torch.Tensor = None,
     ) -> None:
-
         self.direction = (source_supervertex, target_supervertex)
         self.source_supervertex = source_supervertex
         self.target_supervertex = target_supervertex
@@ -153,25 +151,25 @@ class SuperEdge(object):
 class SuperVertexParaSetting(object):
     r"""Parameter settings for each supervertex.
 
-        Args:
-            supervertex_name (str): the name of the supervertex.
-            inter_feat_channels (int): the dimension of the output of the internal feature layer.
-            inter_agg_channels_list (List[int]): the output dimensions of a sequence of internal aggregation layers.
-            exter_agg_channels_dict (Dict[str, int], optional): the dimension of received message vector from parent supervertices.
-                Defaults to None.
-            mode (str, optional): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
-            num_bases (int, optional): the number of bases used for basis-decomposition if the
-                supervertex is multi-relational. Defaults to 32.
-            concat_output (bool, optional): whether to concatenate the output of each layers. Defaults to True.
-        """
+    Args:
+        supervertex_name (str): the name of the supervertex.
+        inter_feat_channels (int): the dimension of the output of the internal feature layer.
+        inter_agg_channels_list (List[int]): the output dimensions of a sequence of internal aggregation layers.
+        exter_agg_channels_dict (Dict[str, int], optional): the dimension of received message vector from parent supervertices.
+            Defaults to None.
+        mode (str, optional): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
+        num_bases (int, optional): the number of bases used for basis-decomposition if the
+            supervertex is multi-relational. Defaults to 32.
+        concat_output (bool, optional): whether to concatenate the output of each layers. Defaults to True.
+    """
 
     def __init__(
         self,
         supervertex_name: str,
         inter_feat_channels: int,
         inter_agg_channels_list: List[int],
-        exter_agg_channels_dict: Dict[str, int] = None,
-        mode: str = None,
+        exter_agg_channels_dict: Optional[Dict[str, int]] = None,
+        mode: Optional[str] = None,
         num_bases: int = 32,
         concat_output: bool = True,
     ) -> None:
@@ -205,9 +203,8 @@ class SuperGraph(object):
         self,
         supervertex_list: List[SuperVertex],
         superedge_list: List[SuperEdge],
-        supervertex_setting_dict: Dict[str, SuperVertexParaSetting] = None,
+        supervertex_setting_dict: Optional[Dict[str, SuperVertexParaSetting]] = None,
     ) -> None:
-
         self.supervertex_dict = {supervertex.name: supervertex for supervertex in supervertex_list}
         self.superedge_dict = {superedge.direction: superedge for superedge in superedge_list}
         self.supervertex_setting_dict = supervertex_setting_dict

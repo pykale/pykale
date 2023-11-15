@@ -74,7 +74,7 @@ def test_mpca_against_baseline(gait, baseline_model):
     testing.assert_allclose(baseline_mean, mpca.mean_)
     baseline_proj_x = multi_mode_dot(x - baseline_mean, baseline_proj_mats, modes=[1, 2, 3])
     # check whether the output embeddings is close to the baseline output by keeping the same variance ratio 97%
-    testing.assert_allclose(x_proj ** 2, baseline_proj_x ** 2, rtol=relative_tol)
+    testing.assert_allclose(x_proj**2, baseline_proj_x**2, rtol=relative_tol)
     # testing.assert_equal(x_proj.shape, baseline_proj_x.shape)
 
     for i in range(x.ndim - 1):

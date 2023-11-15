@@ -7,6 +7,7 @@ This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>`
 """
 
 from enum import Enum
+from typing import Optional
 
 import numpy as np
 import pytorch_lightning as pl
@@ -216,7 +217,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         dataset,
         feature_extractor,
         task_classifier,
-        method: str = None,
+        method: Optional[str] = None,
         lambda_init: float = 1.0,
         adapt_lambda: bool = True,
         adapt_lr: bool = True,
@@ -224,7 +225,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         nb_adapt_epochs: int = 50,
         batch_size: int = 32,
         init_lr: float = 1e-3,
-        optimizer: dict = None,
+        optimizer: Optional[dict] = None,
     ):
         super().__init__()
         self._method = method
@@ -343,13 +344,26 @@ class BaseAdaptTrainer(pl.LightningModule):
 
     def _configure_optimizer(self, parameters):
         if self._optimizer_params is None:
-            optimizer = torch.optim.Adam(parameters, lr=self._init_lr, betas=(0.8, 0.999), weight_decay=1e-5,)
+            optimizer = torch.optim.Adam(
+                parameters,
+                lr=self._init_lr,
+                betas=(0.8, 0.999),
+                weight_decay=1e-5,
+            )
             return [optimizer]
         if self._optimizer_params["type"] == "Adam":
-            optimizer = torch.optim.Adam(parameters, lr=self._init_lr, **self._optimizer_params["optim_params"],)
+            optimizer = torch.optim.Adam(
+                parameters,
+                lr=self._init_lr,
+                **self._optimizer_params["optim_params"],
+            )
             return [optimizer]
         if self._optimizer_params["type"] == "SGD":
-            optimizer = torch.optim.SGD(parameters, lr=self._init_lr, **self._optimizer_params["optim_params"],)
+            optimizer = torch.optim.SGD(
+                parameters,
+                lr=self._init_lr,
+                **self._optimizer_params["optim_params"],
+            )
 
             if self._adapt_lr:
                 feature_sched = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: self._lr_fact)
@@ -450,7 +464,13 @@ class DANNTrainer(BaseDANNLike):
     """
 
     def __init__(
-        self, dataset, feature_extractor, task_classifier, critic, method=None, **base_params,
+        self,
+        dataset,
+        feature_extractor,
+        task_classifier,
+        critic,
+        method=None,
+        **base_params,
     ):
         super().__init__(dataset, feature_extractor, task_classifier, critic, **base_params)
 
@@ -588,7 +608,15 @@ class WDGRLTrainer(BaseDANNLike):
     """
 
     def __init__(
-        self, dataset, feature_extractor, task_classifier, critic, k_critic=5, gamma=10, beta_ratio=0, **base_params,
+        self,
+        dataset,
+        feature_extractor,
+        task_classifier,
+        critic,
+        k_critic=5,
+        gamma=10,
+        beta_ratio=0,
+        **base_params,
     ):
         """
         parameters:
@@ -733,7 +761,15 @@ class WDGRLTrainerMod(WDGRLTrainer):
     """
 
     def __init__(
-        self, dataset, feature_extractor, task_classifier, critic, k_critic=5, gamma=10, beta_ratio=0, **base_params,
+        self,
+        dataset,
+        feature_extractor,
+        task_classifier,
+        critic,
+        k_critic=5,
+        gamma=10,
+        beta_ratio=0,
+        **base_params,
     ):
         """
         parameters:
@@ -930,7 +966,13 @@ class BaseMMDLike(BaseAdaptTrainer):
     """Common API for MME-based deep learning DA methods: DAN, JAN"""
 
     def __init__(
-        self, dataset, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5, **base_params,
+        self,
+        dataset,
+        feature_extractor,
+        task_classifier,
+        kernel_mul=2.0,
+        kernel_num=5,
+        **base_params,
     ):
         super().__init__(dataset, feature_extractor, task_classifier, **base_params)
 
@@ -986,7 +1028,12 @@ class DANTrainer(BaseMMDLike):
 
     def _compute_mmd(self, phi_s, phi_t, y_hat, y_t_hat):
         batch_size = int(phi_s.size()[0])
-        kernels = losses.gaussian_kernel(phi_s, phi_t, kernel_mul=self._kernel_mul, kernel_num=self._kernel_num,)
+        kernels = losses.gaussian_kernel(
+            phi_s,
+            phi_t,
+            kernel_mul=self._kernel_mul,
+            kernel_num=self._kernel_num,
+        )
         return losses.compute_mmd_loss(kernels, batch_size)
 
 
@@ -1001,10 +1048,21 @@ class JANTrainer(BaseMMDLike):
     """
 
     def __init__(
-        self, dataset, feature_extractor, task_classifier, kernel_mul=(2.0, 2.0), kernel_num=(5, 1), **base_params,
+        self,
+        dataset,
+        feature_extractor,
+        task_classifier,
+        kernel_mul=(2.0, 2.0),
+        kernel_num=(5, 1),
+        **base_params,
     ):
         super().__init__(
-            dataset, feature_extractor, task_classifier, kernel_mul=kernel_mul, kernel_num=kernel_num, **base_params,
+            dataset,
+            feature_extractor,
+            task_classifier,
+            kernel_mul=kernel_mul,
+            kernel_num=kernel_num,
+            **base_params,
         )
 
     def _compute_mmd(self, phi_s, phi_t, y_hat, y_t_hat):

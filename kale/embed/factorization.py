@@ -281,7 +281,14 @@ class MIDA(BaseEstimator, TransformerMixin):
     """
 
     def __init__(
-        self, n_components, kernel="linear", lambda_=1.0, mu=1.0, eta=1.0, augmentation=False, kernel_params=None,
+        self,
+        n_components,
+        kernel="linear",
+        lambda_=1.0,
+        mu=1.0,
+        eta=1.0,
+        augmentation=False,
+        kernel_params=None,
     ):
         self.n_components = n_components
         self.kernel = kernel

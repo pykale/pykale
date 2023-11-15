@@ -33,7 +33,6 @@ class TestQuantileBinningPredictions:
         ],
     )
     def test_quantile_binning_predictions_thresh(self, uncertainty_thresh_list, expected):
-
         test_dict = dict(zip(DUMMY_TABULAR_DATA["uid"], DUMMY_TABULAR_DATA["E-CPV Uncertainty"]))
         assert quantile_binning_predictions(test_dict, uncertainty_thresh_list) == expected
 
