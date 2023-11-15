@@ -66,8 +66,8 @@ def save_dict_xlsx(data_dict: Dict[Any, Any], save_location: str, sheet_name: st
     Save a dictionary to an Excel file using the XlsxWriter engine.
 
     Parameters:
-    data_dict (Dict[Any, Any]): The dictionary that needs to be saved to an Excel file. The keys of the dictionary represent the
-                                row index and the values represent the data in the row. If a dictionary value is a list or a
+    data_dict (Dict[Any, Any]): The dictionary that needs to be saved to an Excel file. The keys represent the row index
+                                and the values represent the data in the row. If a dictionary value is a list or a
                                 series, each element in the list/series will be a column in the row.
 
     save_location (str): The location where the Excel file will be saved. This should include the full path and the filename,

@@ -108,7 +108,10 @@ class SuperVertex(object):
         self.range_list = torch.tensor(range_list)
 
     def __repr__(self) -> str:
-        return f"SuperVertex(\n    name={self.name}, \n    node_feat={self.node_feat.shape}, \n    edge_index={self.edge_index.shape}, \n    num_edge_type={self.num_edge_type})"
+        return (
+            f"SuperVertex(\n    name={self.name}, \n    node_feat={self.node_feat.shape}, \n    "
+            f"edge_index={self.edge_index.shape}, \n    num_edge_type={self.num_edge_type})"
+        )
 
     def add_in_supervertex(self, vertex_name: str):
         self.in_supervertex_list.append(vertex_name)
@@ -145,7 +148,10 @@ class SuperEdge(object):
         self.edge_weight = edge_weight
 
     def __repr__(self) -> str:
-        return f"SuperEdges(\n    edge_direction={self.source_supervertex}->{self.target_supervertex}, \n    edge_index={self.edge_index.shape})"
+        return (
+            f"SuperEdges(\n    edge_direction={self.source_supervertex}->{self.target_supervertex}, "
+            f"\n    edge_index={self.edge_index.shape})"
+        )
 
 
 class SuperVertexParaSetting(object):
@@ -255,4 +261,8 @@ class SuperGraph(object):
         self.supervertex_setting_dict = {sv.supervertex_name: sv for sv in supervertex_setting_list}
 
     def __repr__(self) -> str:
-        return f"SuperGraph(\n  svertex_dict={self.supervertex_dict.values()}, \n  sedge_dict={self.superedge_dict.values()}, \n  G={self.G}), \n  topological_order={self.topological_order}"
+        return (
+            f"SuperGraph(\n  svertex_dict={self.supervertex_dict.values()}, "
+            f"\n  sedge_dict={self.superedge_dict.values()}, \n  G={self.G}), "
+            f"\n  topological_order={self.topological_order}"
+        )

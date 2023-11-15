@@ -105,4 +105,4 @@ def test_coirls(kernel, office_caltech_access):
             title_kwargs=title_kwargs,
             hist_kwargs=hist_kwargs,
         )
-        assert type(fig) == matplotlib.figure.Figure
+        assert isinstance(fig, matplotlib.figure.Figure)

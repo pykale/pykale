@@ -52,7 +52,7 @@ def test_mpca_trainer(classifier, params, gait):
         weights = trainer.mpca.inverse_transform(trainer.clf.coef_) - trainer.mpca.mean_
         top_weights = model_weights.select_top_weight(weights, select_ratio=0.1)
         fig = visualize.plot_weights(top_weights[0][0], background_img=x[0][0])
-        assert type(fig) == matplotlib.figure.Figure
+        assert isinstance(fig, matplotlib.figure.Figure)
 
 
 def test_invalid_init():
