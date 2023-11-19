@@ -9,10 +9,7 @@ from kale.interpret.visualize import plot_multi_images
 from kale.loaddata.image_access import check_dicom_series_uid, dicom2arraylist, read_dicom_dir
 from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, reg_img_stack, rescale_img_stack
 
-# from kale.utils.download import download_file_by_url
-
 SCALES = [4, 8]
-# cmr_url = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64_v2.0.zip"
 
 
 @pytest.fixture(scope="module")

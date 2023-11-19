@@ -10,8 +10,6 @@ import kale.utils.logger as logging
 from kale.embed.uncertainty_fitting import fit_and_predict
 from kale.interpret.uncertainty_quantiles import generate_fig_comparing_bins, generate_fig_individual_bin_comparison
 
-# from kale.utils.download import download_file_by_url
-
 
 @pytest.fixture(scope="module")
 def testing_cfg():
@@ -178,8 +176,6 @@ def test_qbin_pipeline(testing_cfg):
 
     # ---- setup dataset ----
     base_dir = testing_cfg["DATASET"]["BASE_DIR"]
-
-    # download data if necessary
 
     uncertainty_pairs_val = testing_cfg["DATASET"]["UE_PAIRS_VAL"]
     uncertainty_pairs_test = testing_cfg["DATASET"]["UE_PAIRS_TEST"]
