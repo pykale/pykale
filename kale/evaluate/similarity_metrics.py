@@ -17,13 +17,12 @@ from kale.prepdata.tabular_transform import apply_confidence_inversion
 def jaccard_similarity(list1: list, list2: list) -> float:
     """
     Calculates the Jaccard Index (JI) between two lists.
+
     Args:
         list1 (list): List of elements in set A.
         list2 (list): List of elements in set B.
     Returns:
-        float: JI between list1 and list2.
-    Raises:
-        None.
+        float: The Jaccard Index between list1 and list2.
     Example:
         >>> jaccard_similarity([1,2,3], [2,3,4])
         0.5
