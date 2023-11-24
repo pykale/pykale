@@ -58,14 +58,14 @@ kale.prepdata.video\_transform module
 -------------------------------------
 
 .. automodule:: kale.prepdata.video_transform
-	:members:
-	:exclude-members:
-	:show-inheritance:
+    :members:
+    :exclude-members:
+    :show-inheritance:
 
 Module contents
 ---------------
 
 .. automodule:: kale.prepdata
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:
