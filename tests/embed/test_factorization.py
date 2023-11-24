@@ -9,7 +9,6 @@ from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
 
 from kale.embed.factorization import MIDA, MPCA
-from kale.utils.download import download_file_by_url
 
 N_COMPS = [1, 50, 100]
 VAR_RATIOS = [0.7, 0.95]
@@ -19,7 +18,6 @@ baseline_url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baselin
 
 @pytest.fixture(scope="module")
 def baseline_model(download_path):
-    download_file_by_url(baseline_url, download_path, "baseline.mat", "mat")
     return loadmat(os.path.join(download_path, "baseline.mat"))
 
 

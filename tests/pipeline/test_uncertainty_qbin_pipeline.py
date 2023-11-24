@@ -9,7 +9,6 @@ import seaborn as sns
 import kale.utils.logger as logging
 from kale.embed.uncertainty_fitting import fit_and_predict
 from kale.interpret.uncertainty_quantiles import generate_fig_comparing_bins, generate_fig_individual_bin_comparison
-from kale.utils.download import download_file_by_url
 
 
 @pytest.fixture(scope="module")
@@ -177,18 +176,6 @@ def test_qbin_pipeline(testing_cfg):
 
     # ---- setup dataset ----
     base_dir = testing_cfg["DATASET"]["BASE_DIR"]
-
-    # download data if necessary
-    if testing_cfg["DATASET"]["SOURCE"] is not None:
-        logger.info("Downloading data...")
-        data_file_name = "%s.%s" % (base_dir, testing_cfg["DATASET"]["FILE_FORMAT"])
-        download_file_by_url(
-            testing_cfg["DATASET"]["SOURCE"],
-            testing_cfg["DATASET"]["ROOT"],
-            data_file_name,
-            file_format=testing_cfg["DATASET"]["FILE_FORMAT"],
-        )
-        logger.info("Data downloaded to %s!", testing_cfg["DATASET"]["ROOT"] + base_dir)
 
     uncertainty_pairs_val = testing_cfg["DATASET"]["UE_PAIRS_VAL"]
     uncertainty_pairs_test = testing_cfg["DATASET"]["UE_PAIRS_TEST"]

@@ -198,6 +198,7 @@ class LowRankTensorFusion(nn.Module):
                 torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             )
             modality = modality.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+
             factor = factor.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
 
             if self.flatten:

@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 import torch
 from yacs.config import CfgNode
@@ -8,7 +6,6 @@ from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.multi_domain import DomainsDatasetBase
 from kale.loaddata.video_access import get_image_modality, VideoDataset, VideoDatasetAccess
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
-from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
 
 SOURCES = [
@@ -40,7 +37,6 @@ url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 def testing_cfg(download_path):
     cfg = CfgNode()
     cfg.DATASET = CfgNode()
-
     cfg.DATASET.ROOT = download_path + "/video_test_data/"
     cfg.DATASET.IMAGE_MODALITY = "joint"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
@@ -76,13 +72,6 @@ def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, dat
     cfg.DATASET.TGT_TESTLIST = target_testlist
     cfg.DATASET.WEIGHT_TYPE = weight_type
     cfg.DATASET.SIZE_TYPE = datasize_type
-
-    download_file_by_url(
-        url=url,
-        output_directory=str(Path(cfg.DATASET.ROOT).parent.absolute()),
-        output_file_name="video_test_data.zip",
-        file_format="zip",
-    )
 
     # test get_source_target
     source, target, num_classes = VideoDataset.get_source_target(
