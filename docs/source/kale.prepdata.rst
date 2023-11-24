@@ -31,7 +31,7 @@ kale.prepdata.image\_transform module
    :show-inheritance:
 
 kale.prepdata.string\_transform module
--------------------------------------
+--------------------------------------
 
 .. automodule:: kale.prepdata.string_transform
    :members:

@@ -23,7 +23,7 @@ kale.embed.factorization module
    :show-inheritance:
 
 kale.embed.feature\_fusion module
-------------------------------------
+---------------------------------
 
 .. automodule:: kale.embed.feature_fusion
    :members:
@@ -78,6 +78,15 @@ kale.embed.seq\_nn module
 -------------------------
 
 .. automodule:: kale.embed.seq_nn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :exclude-members:
+
+kale.embed.uncertainty\_fitting module
+--------------------------------------
+
+.. automodule:: kale.embed.uncertainty_fitting
    :members:
    :undoc-members:
    :show-inheritance:
