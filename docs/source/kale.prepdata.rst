@@ -30,6 +30,14 @@ kale.prepdata.image\_transform module
    :undoc-members:
    :show-inheritance:
 
+kale.prepdata.string\_transform module
+-------------------------------------
+
+.. automodule:: kale.prepdata.string_transform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.prepdata.supergraph\_construct module
 ------------------------------------------
 
