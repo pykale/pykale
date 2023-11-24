@@ -26,7 +26,7 @@ url = "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertai
 download_file_by_url(url, path_test_data, "Uncertainty_tuples.zip", "zip")
 
 
-# 
+#
 # Downloading MPCA data for tests/embed/test_factorization.py test
 url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baseline.mat"
 download_file_by_url(url, path_test_data, "baseline.mat", "mat")
@@ -37,7 +37,6 @@ url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 download_file_by_url(
     url=url, output_directory=path_test_data, output_file_name="video_test_data.zip", file_format="zip"
 )
-
 
 
 # Downloading Binary Class and Multi Class Multiomics Dataset for tests/pipeline/test_multiomics_trainer.py test
