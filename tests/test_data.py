@@ -18,32 +18,29 @@ def download_path():
 path_test_data = download_path()
 
 
-# tests/conftest.py
-# gait gallery data
+# Downloading gait gallery data for tests/conftest.py test
 url = "https://github.com/pykale/data/raw/main/videos/gait/gait_gallery_data.mat"
 download_file_by_url(url, path_test_data, "gait.mat", "mat")
-# Landmark Global fixtures
+# Downloading Landmark Global fixtures data for tests/conftest.py test
 url = "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
 download_file_by_url(url, path_test_data, "Uncertainty_tuples.zip", "zip")
 
 
-# MPCA
-# tests/embed/test_factorization.py
+# 
+# Downloading MPCA data for tests/embed/test_factorization.py test
 url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baseline.mat"
 download_file_by_url(url, path_test_data, "baseline.mat", "mat")
 
 
-# tests/loaddata/test_video_access.py
-# tests/pipeline/test_video_domain_adapter.py
-# Downloading Test Video Data
+# Downloading Test Video Data for tests/loaddata/test_video_access.py and tests/pipeline/test_video_domain_adapter.py test
 url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 download_file_by_url(
     url=url, output_directory=path_test_data, output_file_name="video_test_data.zip", file_format="zip"
 )
 
 
-# tests/pipeline/test_multiomics_trainer.py
-# Downloading Binary Class and Multi Class Multiomics Dataset
+
+# Downloading Binary Class and Multi Class Multiomics Dataset for tests/pipeline/test_multiomics_trainer.py test
 url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
 dataset_root = str(Path(path_test_data) / "multiomics/trainer/binary_class/")
 download_file_by_url(
@@ -56,14 +53,12 @@ url = "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"
 dataset_root = str(Path(path_test_data) / "multiomics/trainer/multi_class/")
 download_file_by_url(url=url, output_directory=dataset_root, output_file_name="multi_class.zip", file_format="zip")
 
-# tests/prepdata/test_image_transform.py
-# Downloading CMR Dataset
+# Downloading CMR Dataset for tests/prepdata/test_image_transform.py test
 url = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64_v2.0.zip"
 download_file_by_url(url, path_test_data, "SA_64x64.zip", "zip")
 
-office_path = str(Path(path_test_data) / "office")
 
-
+# Downloading MNISTM, USPS, SVHN, CIFAR10, CIFAR100 for tests/loaddata/test_image_access.py test
 datasets.MNIST(path_test_data, train=True, transform=get_transform("mnistm"), download=True)
 MNISTM(path_test_data, train=True, transform=get_transform("mnistm"), download=True)
 USPS(path_test_data, train=True, transform=get_transform("mnistm"), download=True)
@@ -73,6 +68,8 @@ datasets.CIFAR10(path_test_data, train=True, download=True, transform=get_transf
 datasets.CIFAR100(path_test_data, train=True, download=True, transform=get_transform("cifar", augment=True))
 
 
+# Downloading Office-31 Dataset for tests/loaddata/test_image_access.py test
+office_path = str(Path(path_test_data) / "office")
 OFFICE_DOMAINS = ["amazon", "caltech", "dslr", "webcam"]
 url = "https://github.com/pykale/data/raw/main/images/office"
 for domain_ in OFFICE_DOMAINS:
@@ -81,8 +78,7 @@ for domain_ in OFFICE_DOMAINS:
     download_file_by_url(data_url, office_path, filename, "zip")
 
 
-# Downloading Drug-Target Interaction (DTI) Datasets
+# Downloading Drug-Target Interaction (DTI) Datasets for tests/loaddata/test_tdc_datasets.py test
 SOURCES = ["BindingDB_Kd", "BindingDB_Ki"]
-
 for source_name in SOURCES:
     test_dataset = DTI(name=source_name, path=path_test_data)
