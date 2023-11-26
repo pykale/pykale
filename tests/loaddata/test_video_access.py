@@ -1,6 +1,7 @@
+import os
+
 import pytest
 import torch
-import os
 from yacs.config import CfgNode
 
 from kale.loaddata.dataset_access import get_class_subset

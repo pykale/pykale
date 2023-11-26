@@ -81,7 +81,9 @@ class NWayKShotDataset(Dataset):
     def _get_idx(self, idx):
         # get the indices of images for one class
         image_idx = np.random.choice(
-            [i for (i, item) in enumerate(self.labels) if item == idx], self.k_shot + self.query_samples, replace=False,
+            [i for (i, item) in enumerate(self.labels) if item == idx],
+            self.k_shot + self.query_samples,
+            replace=False,
         )
         return image_idx
 

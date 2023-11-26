@@ -52,7 +52,6 @@ def dataloader(data):
 
 @pytest.mark.parametrize("mode", modes)
 def test_protonet(mode, testing_cfg, dataloader):
-
     cfg = testing_cfg
 
     assert len(dataloader) > 0
