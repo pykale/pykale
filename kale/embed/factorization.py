@@ -281,7 +281,14 @@ class MIDA(BaseEstimator, TransformerMixin):
     """
 
     def __init__(
-        self, n_components, kernel="linear", lambda_=1.0, mu=1.0, eta=1.0, augmentation=False, kernel_params=None,
+        self,
+        n_components,
+        kernel="linear",
+        lambda_=1.0,
+        mu=1.0,
+        eta=1.0,
+        augmentation=False,
+        kernel_params=None,
     ):
         self.n_components = n_components
         self.kernel = kernel
@@ -314,7 +321,7 @@ class MIDA(BaseEstimator, TransformerMixin):
             Unsupervised MIDA is performed if y is None.
             Semi-supervised MIDA is performed is y is not None.
         """
-        if self.augmentation and type(covariates) == np.ndarray:
+        if self.augmentation and isinstance(covariates, np.ndarray):
             x = np.concatenate((x, covariates), axis=1)
 
         # Kernel matrix
@@ -345,7 +352,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         ctr_mat = unit_mat - 1.0 / n_samples * np.ones((n_samples, n_samples))
 
         kernel_x = self._centerer.fit_transform(kernel_x)
-        if type(covariates) == np.ndarray:
+        if isinstance(covariates, np.ndarray):
             kernel_c = np.dot(covariates, covariates.T)
         else:
             kernel_c = np.zeros((n_samples, n_samples))
@@ -402,7 +409,7 @@ class MIDA(BaseEstimator, TransformerMixin):
             x_transformed : array-like, shape (n_samples, n_components)
         """
         check_is_fitted(self, "x_fit")
-        if type(covariates) == np.ndarray and self.augmentation:
+        if isinstance(covariates, np.ndarray) and self.augmentation:
             x = np.concatenate((x, covariates), axis=1)
         kernel_x = self._centerer.transform(
             pairwise_kernels(x, self.x_fit, metric=self.kernel, filter_params=True, **self.kernel_params)

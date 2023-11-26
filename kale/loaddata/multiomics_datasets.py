@@ -56,8 +56,8 @@ class MultiomicsDataset(Dataset):
         root: str,
         num_modalities: int,
         num_classes: int,
-        url: str = None,
-        raw_file_names: List[str] = None,
+        url: Optional[str] = None,
+        raw_file_names: Optional[List[str]] = None,
         random_split: bool = False,
         train_size: float = 0.7,
         transform: Optional[Callable] = None,
@@ -261,7 +261,7 @@ class SparseMultiomicsDataset(MultiomicsDataset):
         num_modalities: int,
         num_classes: int,
         edge_per_node: int,
-        url: str = None,
+        url: Optional[str] = None,
         random_split: bool = False,
         train_size: float = 0.7,
         equal_weight: bool = False,
@@ -377,7 +377,12 @@ class SparseMultiomicsDataset(MultiomicsDataset):
             adj_mat (torch.Tensor): The dense adjacency matrix.
             num_train (int): The number of samples in training data.
         """
-        sorted_adj_mat = torch.sort(adj_mat.reshape(-1,), descending=True).values[self.edge_per_node * num_train]
+        sorted_adj_mat = torch.sort(
+            adj_mat.reshape(
+                -1,
+            ),
+            descending=True,
+        ).values[self.edge_per_node * num_train]
         self.sim_threshold = sorted_adj_mat.item()
 
     def _generate_sparse_adj(self, adj_mat: torch.Tensor, self_loop: bool = True) -> torch.Tensor:

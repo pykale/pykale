@@ -150,7 +150,13 @@ def gradient_penalty(critic, h_s, h_t):
     interpolates = torch.cat((interpolates, h_s, h_t), dim=0).requires_grad_()
 
     preds = critic(interpolates)
-    gradients = grad(preds, interpolates, grad_outputs=torch.ones_like(preds), retain_graph=True, create_graph=True,)[0]
+    gradients = grad(
+        preds,
+        interpolates,
+        grad_outputs=torch.ones_like(preds),
+        retain_graph=True,
+        create_graph=True,
+    )[0]
     gradient_norm = gradients.norm(2, dim=1)
     gradient_penalty = ((gradient_norm - 1) ** 2).mean()
     # except:
@@ -175,9 +181,9 @@ def gaussian_kernel(source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None
     if fix_sigma:
         bandwidth = fix_sigma
     else:
-        bandwidth = torch.sum(l2_distance.data) / (n_samples ** 2 - n_samples)
+        bandwidth = torch.sum(l2_distance.data) / (n_samples**2 - n_samples)
     bandwidth /= kernel_mul ** (kernel_num // 2)
-    bandwidth_list = [bandwidth * (kernel_mul ** i) for i in range(kernel_num)]
+    bandwidth_list = [bandwidth * (kernel_mul**i) for i in range(kernel_num)]
     kernel_val = [torch.exp(-l2_distance / bandwidth_temp) for bandwidth_temp in bandwidth_list]
     return sum(kernel_val)  # /len(kernel_val)
 
@@ -220,7 +226,7 @@ def hsic(kx, ky, device):
     if ky.shape[0] != n:
         raise ValueError("kx and ky are expected to have the same sample sizes.")
     ctr_mat = torch.eye(n, device=device) - torch.ones((n, n), device=device) / n
-    return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (n ** 2)
+    return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (n**2)
 
 
 def euclidean(x1, x2):

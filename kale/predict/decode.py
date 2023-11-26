@@ -62,7 +62,8 @@ class MLPDecoder(nn.Module):
 class DistMultDecoder(torch.nn.Module):
     """
     Build `DistMult
-    <https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/ICLR2015_updated.pdf>`_ factorization as GripNet decoder in PoSE dataset.
+    <https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/ICLR2015_updated.pdf>`_ factorization
+    as GripNet decoder in PoSE dataset.
     Copy-paste with slight modifications from https://github.com/NYXFLOWER/GripNet.
 
     Args:

@@ -11,7 +11,8 @@ from torchvision import models
 class Flatten(nn.Module):
     """Flatten layer
     This module is to replace the last fc layer of the pre-trained model with a flatten layer. It flattens the input
-    tensor to a 2D vector, which is (B, N). B is the batch size and N is the product of all dimensions except the batch size.
+    tensor to a 2D vector, which is (B, N). B is the batch size and N is the product of all dimensions except
+    the batch size.
 
     Examples:
         >>> x = torch.randn(8, 3, 224, 224)
@@ -136,13 +137,13 @@ class SimpleCNNBuilder(nn.Module):
 
 class _Bottleneck(nn.Module):
     """Simple bottleneck as domain specific feature extractor, used in multi-source domain adaptation method MFSAN only.
-        Compared to the torchvision implementation, it accepts both 1D and 2D input, and the value of expansion is
-        flexible and an average pooling layer is added.
+    Compared to the torchvision implementation, it accepts both 1D and 2D input, and the value of expansion is
+    flexible and an average pooling layer is added.
 
-        The code is based on:
-            https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py#L86,
-            https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_2src/resnet.py#L94, and
-            https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_3src/resnet.py#L93
+    The code is based on:
+        https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py#L86,
+        https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_2src/resnet.py#L94, and
+        https://github.com/easezyc/deep-transfer-learning/blob/master/MUDA/MFSAN/MFSAN_3src/resnet.py#L93
     """
 
     def __init__(self, inplanes: int, planes: int, stride: int = 1, expansion: int = 1, input_dimension=2):
@@ -304,10 +305,17 @@ class ResNet152Feature(nn.Module):
 
 
 class LeNet(nn.Module):
-    """LeNet is a customizable Convolutional Neural Network (CNN) model based on the LeNet architecture, designed for feature extraction from image and audio modalities.
-       LeNet supports several layers of 2D convolution, followed by batch normalization, max pooling, and adaptive average pooling, with a configurable number of channels. The depth of the network (number of convolutional blocks) is adjustable with the 'additional_layers' parameter.
-       An optional linear layer can be added at the end for further transformation of the output, which could be useful for various tasks such as classification or regression. The 'output_each_layer' option allows for returning the output of each layer instead of just the final output, which can be beneficial for certain tasks or for analyzing the intermediate representations learned by the network.
-       By default, the output tensor is squeezed before being returned, removing dimensions of size one, but this can be configured with the 'squeeze_output' parameter.
+    """LeNet is a customizable Convolutional Neural Network (CNN) model based on the LeNet architecture, designed for
+    feature extraction from image and audio modalities.
+       LeNet supports several layers of 2D convolution, followed by batch normalization, max pooling, and adaptive
+       average pooling, with a configurable number of channels.
+       The depth of the network (number of convolutional blocks) is adjustable with the 'additional_layers' parameter.
+       An optional linear layer can be added at the end for further transformation of the output, which could be useful
+       for various tasks such as classification or regression. The 'output_each_layer' option allows for returning the
+       output of each layer instead of just the final output, which can be beneficial for certain tasks or for analyzing
+       the intermediate representations learned by the network.
+       By default, the output tensor is squeezed before being returned, removing dimensions of size one, but this can be
+       configured with the 'squeeze_output' parameter.
 
     Args:
         input_channels (int): Input channel number.
@@ -339,7 +347,7 @@ class LeNet(nn.Module):
         for i in range(additional_layers):
             self.conv_layers.append(
                 nn.Conv2d(
-                    (2 ** i) * output_channels, (2 ** (i + 1)) * output_channels, kernel_size=3, padding=1, bias=False
+                    (2**i) * output_channels, (2 ** (i + 1)) * output_channels, kernel_size=3, padding=1, bias=False
                 )
             )
             self.batch_norms.append(nn.BatchNorm2d(output_channels * (2 ** (i + 1))))

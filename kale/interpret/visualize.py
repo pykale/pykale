@@ -31,7 +31,7 @@ def plot_weights(
     Returns:
         [matplotlib.figure.Figure]: Figure to plot.
     """
-    if type(weight_img) != np.ndarray:
+    if not isinstance(weight_img, np.ndarray):
         weight_img = np.array(weight_img)
     if len(weight_img.shape) != 2:
         raise ValueError(
@@ -106,11 +106,11 @@ def plot_multi_images(
     fig = plt.figure(figsize=figsize)
     if image_titles is None:
         image_titles = np.arange(n_samples) + 1
-    elif type(image_titles) != list or len(image_titles) != n_samples:
+    elif not isinstance(image_titles, list) or len(image_titles) != n_samples:
         raise ValueError("Invalid type or length of 'image_names'!")
     if marker_cmap is None:
         marker_colors = None
-    elif type(marker_cmap) == str:
+    elif isinstance(marker_cmap, str):
         marker_colors = plt.get_cmap(marker_cmap).colors
     else:
         raise ValueError("Unsupported type %s for argument 'marker_cmap'" % type(marker_cmap))
@@ -174,7 +174,7 @@ def distplot_1d(
     if colors is None:
         colors = plt.get_cmap("Set1").colors
 
-    if type(data) != list:
+    if not isinstance(data, list):
         data = [data]
 
     if labels is None:

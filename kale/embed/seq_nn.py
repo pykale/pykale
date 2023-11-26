@@ -9,9 +9,9 @@ from torch_geometric.nn import GCNConv, global_max_pool
 
 class CNNEncoder(nn.Module):
     r"""
-    The DeepDTA's CNN encoder module, which comprises three 1D-convolutional layers and one max-pooling layer. The module
-    is applied to encoding drug/target sequence information, and the input should be transformed information with
-    integer/label encoding. The original paper is `"DeepDTA: deep drug–target binding affinity prediction"
+    The DeepDTA's CNN encoder module, which comprises three 1D-convolutional layers and one max-pooling layer.
+    The module is applied to encoding drug/target sequence information, and the input should be transformed information
+    with integer/label encoding. The original paper is `"DeepDTA: deep drug–target binding affinity prediction"
     <https://academic.oup.com/bioinformatics/article/34/17/i821/5093245>`_ .
 
     Args:

@@ -335,7 +335,6 @@ def generic_box_plot_loop(
             average_samples_per_bin = []
 
             for hash_idx, model_type in enumerate(models):
-
                 if j == 0:
                     if hash_idx == 1:
                         circ11 = patches.Patch(
@@ -827,7 +826,7 @@ def box_plot_comparing_q(
     hatch_type: str,
     color: str,
     show_sample_info: str = "None",
-    save_path: str = None,
+    save_path: Optional[str] = None,
     y_lim: int = 120,
     convert_to_percent: bool = True,
     to_log: bool = False,
@@ -890,7 +889,10 @@ def box_plot_comparing_q(
 
     # Set legend
     circ11 = patches.Patch(
-        hatch=hatch_type, facecolor=color, label=model_type + " " + uncertainty_type, edgecolor="black",
+        hatch=hatch_type,
+        facecolor=color,
+        label=model_type + " " + uncertainty_type,
+        edgecolor="black",
     )
     circ_patches.append(circ11)
 
@@ -1001,7 +1003,7 @@ def plot_cumulative(
     bins: Union[List[int], np.ndarray],
     title: str,
     compare_to_all: bool = False,
-    save_path: str = None,
+    save_path: Optional[str] = None,
     error_scaling_factor: float = 1,
 ) -> None:
     """
@@ -1108,7 +1110,8 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
     Args:
         data: A tuple containing various inputs needed to generate the figures, including:
-            - uncertainty_error_pairs (List[Tuple[int, float]]): A list of tuples specifying the uncertainty thresholds and corresponding error thresholds to use for binning the data.
+            - uncertainty_error_pairs (List[Tuple[int, float]]): A list of tuples specifying the uncertainty thresholds
+            and corresponding error thresholds to use for binning the data.
             - models_to_compare (List[str]): A list of model names to compare.
             - dataset (str): The name of the dataset being used.
             - target_indices (List[int]): A list of target indices to include in the analysis.
@@ -1224,7 +1227,6 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
     )
 
     if interpret:
-
         # If we have combined the middle bins, we are only displaying 3 bins (outer edges, and combined middle bins).
         if combine_middle_bins:
             num_bins_display = 3
@@ -1238,7 +1240,6 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
         # Plot piecewise linear regression for error/uncertainty prediction.
         if display_settings["correlation"]:
-
             _ = evaluate_correlations(
                 bins_all_targets,
                 uncertainty_error_pairs,
@@ -1534,14 +1535,18 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                         )
 
 
-def generate_fig_comparing_bins(data: Tuple, display_settings: Dict[str, Any],) -> None:
+def generate_fig_comparing_bins(
+    data: Tuple,
+    display_settings: Dict[str, Any],
+) -> None:
     """
     Generate figures comparing localization error, error bounds accuracy, and Jaccard index for different binning
     configurations.
 
     Args:
         data (Tuple): A tuple containing various inputs needed to generate the figures. The tuple should include the following elements:
-            - uncertainty_error_pair (Tuple[float, float]): A tuple representing the mean and standard deviation of the noise uncertainty used during training and evaluation.
+            - uncertainty_error_pair (Tuple[float, float]): A tuple representing the mean and standard deviation of
+            the noise uncertainty used during training and evaluation.
             - model (str): The name of the model being evaluated.
             - dataset (str): The name of the dataset being used.
             - targets (List[int]): A list of target indices being evaluated.

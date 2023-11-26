@@ -11,7 +11,7 @@ from kale.loaddata.multi_domain import DomainsDatasetBase, MultiDomainAdapDatase
 @pytest.mark.parametrize("test_on_all", [True, False])
 def test_office31(office_path, test_on_all):
     office_access = ImageAccess.get_multi_domain_images(
-        "OFFICE31", office_path, download=True, return_domain_label=True
+        "OFFICE31", office_path, download=False, return_domain_label=True
     )
     testing.assert_equal(len(office_access.class_to_idx), 31)
     testing.assert_equal(len(office_access.domain_to_idx), 3)
@@ -27,7 +27,7 @@ def test_office31(office_path, test_on_all):
 
 def test_office_caltech(office_path):
     office_access = ImageAccess.get_multi_domain_images(
-        "OFFICE_CALTECH", office_path, download=True, return_domain_label=True
+        "OFFICE_CALTECH", office_path, download=False, return_domain_label=True
     )
     testing.assert_equal(len(office_access.class_to_idx), 10)
     testing.assert_equal(len(office_access.domain_to_idx), 4)
@@ -35,7 +35,7 @@ def test_office_caltech(office_path):
 
 @pytest.mark.parametrize("split_ratio", [0.9, 1])
 def test_custom_office(office_path, split_ratio):
-    kwargs = {"download": True, "split_train_test": True, "split_ratio": split_ratio}
+    kwargs = {"download": False, "split_train_test": True, "split_ratio": split_ratio}
     source = ImageAccess.get_multi_domain_images("office", office_path, sub_domain_set=["dslr"], **kwargs)
     target = ImageAccess.get_multi_domain_images("office", office_path, sub_domain_set=["webcam"], **kwargs)
     dataset = MultiDomainDatasets(source_access=source, target_access=target)
@@ -101,7 +101,11 @@ def test_class_subsets(class_subset, valid_ratio, download_path):
     )
 
     dataset_subset = MultiDomainDatasets(
-        source, target, config_weight_type=WEIGHT_TYPE[0], config_size_type=DATASIZE_TYPE[1], class_ids=class_subset,
+        source,
+        target,
+        config_weight_type=WEIGHT_TYPE[0],
+        config_size_type=DATASIZE_TYPE[1],
+        class_ids=class_subset,
     )
 
     train, valid = source.get_train_valid(valid_ratio)
@@ -141,7 +145,7 @@ def testing_cfg(download_path):
     cfg.DATASET = CfgNode()
     cfg.SOLVER = CfgNode()
     cfg.DATASET.ROOT = download_path
-    # cfg.DATASET.DOWNLOAD = True
+    cfg.DATASET.DOWNLOAD = False
     cfg.SOLVER.TRAIN_BATCH_SIZE = 16
     cfg.SOLVER.TEST_BATCH_SIZE = 20
     cfg.DATASET.NUM_WORKERS = 1
