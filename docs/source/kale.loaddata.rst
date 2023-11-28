@@ -6,6 +6,14 @@ Load Data
 Submodules
 ----------
 
+kale.loaddata.avmnist\_datasets module
+--------------------------------------
+
+.. automodule:: kale.loaddata.avmnist_datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.dataset\_access module
 ------------------------------------
 
@@ -14,16 +22,8 @@ kale.loaddata.dataset\_access module
    :undoc-members:
    :show-inheritance:
 
-kale.loaddata.avmnist module
-----------------------------
-
-.. automodule:: kale.loaddata.avmnist
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kale.loaddata.image\_access
----------------------------
+kale.loaddata.image\_access module
+----------------------------------
 
 .. automodule:: kale.loaddata.image_access
    :members:
@@ -71,7 +71,7 @@ kale.loaddata.sampler module
    :show-inheritance:
 
 kale.loaddata.tabular\_access module
-----------------------------------
+------------------------------------
 
 .. automodule:: kale.loaddata.tabular_access
    :members:

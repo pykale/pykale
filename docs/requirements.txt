@@ -16,10 +16,13 @@ numpy
 
 pandas
 pillow>=6.2.0
+pwlf
+pydicom
 PyTDC
 pytorch-lightning
 rdkit
 recommonmark
+scikit-image
 scikit-learn
 sphinx-markdown-tables
 sphinx-rtd-theme
