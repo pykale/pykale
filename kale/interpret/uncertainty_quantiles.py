@@ -1,5 +1,6 @@
 """
 Authors: Lawrence Schobs, lawrenceschobs@gmail.com
+
 Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization,"
 in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
@@ -10,7 +11,7 @@ Functions related to interpreting the uncertainty quantiles from the quantile bi
    D) Plot cumularive error plots: plot_cumulative
    E) Big caller functions for analysis loop for QBinning:  generate_fig_individual_bin_comparison, generate_fig_comparing_bins
 
-   """
+"""
 import logging
 import math
 import os
