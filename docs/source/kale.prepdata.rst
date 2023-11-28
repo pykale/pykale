@@ -30,6 +30,14 @@ kale.prepdata.image\_transform module
    :undoc-members:
    :show-inheritance:
 
+kale.prepdata.string\_transform module
+--------------------------------------
+
+.. automodule:: kale.prepdata.string_transform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.prepdata.supergraph\_construct module
 ------------------------------------------
 
@@ -58,14 +66,14 @@ kale.prepdata.video\_transform module
 -------------------------------------
 
 .. automodule:: kale.prepdata.video_transform
-	:members:
-	:exclude-members:
-	:show-inheritance:
+    :members:
+    :exclude-members:
+    :show-inheritance:
 
 Module contents
 ---------------
 
 .. automodule:: kale.prepdata
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:

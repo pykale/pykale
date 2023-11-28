@@ -47,7 +47,7 @@ kale.pipeline.multi\_domain\_adapter module
    :show-inheritance:
 
 kale.pipeline.multiomics\_trainer module
------------------------------------------
+----------------------------------------
 
 .. automodule:: kale.pipeline.multiomics_trainer
    :members:
