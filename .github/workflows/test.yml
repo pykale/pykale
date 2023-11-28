@@ -38,6 +38,7 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
+          miniconda-version: latest
 
       - name: Cache pip dependencies
         id: cache_pip
