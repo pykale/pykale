@@ -44,7 +44,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ matrix.path }}
-          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('../setup.py') }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
           restore-keys: |
             ${{ runner.os }}-python${{ matrix.python-version }}-pip-
 
