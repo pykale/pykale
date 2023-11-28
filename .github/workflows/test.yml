@@ -30,6 +30,7 @@ jobs:
             path: ~/.cache/pip
           - os: windows-latest
             path: ~\AppData\Local\pip\Cache
+
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python using Miniconda
@@ -38,13 +39,12 @@ jobs:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
 
-      # Cache downloaded pip dependencies
       - name: Cache pip dependencies
         id: cache_pip
         uses: actions/cache@v2
         with:
           path: ${{ matrix.path }}
-          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('setup.py') }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
           restore-keys: |
             ${{ runner.os }}-python${{ matrix.python-version }}-pip-
 
@@ -67,9 +67,11 @@ jobs:
         run: |
           pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
+
       - name: Determine coverage
         run: |
           coverage xml
         shell: bash -l {0}
+
       - name: Report coverage
         uses: codecov/codecov-action@v1
