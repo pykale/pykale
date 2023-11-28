@@ -15,7 +15,6 @@ from setuptools import find_packages, setup
 
 # Core dependencies frequently used in PyKale Core API
 install_requires = [
-    "numpy>=1.18.0",  # sure
     "pandas",  # sure
     "pytorch-lightning>=2.0.0",  # in pipeline API only
     "scikit-learn>=0.23.2",  # sure
@@ -55,7 +54,7 @@ example_requires = [
     "seaborn",
     "torchsummary>=1.5.0",
     "yacs>=0.1.7",
-#    "pwlf",
+    "pwlf",
     "xlsxwriter",
 ]
 
