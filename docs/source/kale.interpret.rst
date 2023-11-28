@@ -15,8 +15,8 @@ kale.interpret.model\_weights module
    :show-inheritance:
 
 
-kale.interpret.uncertainty\_quantiles
---------------------------------
+kale.interpret.uncertainty\_quantiles module
+--------------------------------------------
 
 .. automodule:: kale.interpret.uncertainty_quantiles
    :members:
