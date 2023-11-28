@@ -81,3 +81,8 @@ for domain_ in OFFICE_DOMAINS:
 SOURCES = ["BindingDB_Kd", "BindingDB_Ki"]
 for source_name in SOURCES:
     test_dataset = DTI(name=source_name, path=path_test_data)
+
+
+# Downloading Omniglot Dataset for tests/loaddata/test_few_shot.py test
+url = "https://github.com/pykale/data/raw/main/images/omniglot/omniglot_demo.zip"
+download_file_by_url(url=url, output_directory=path_test_data, output_file_name="omniglot_demo.zip", file_format="zip")
