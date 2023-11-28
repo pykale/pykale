@@ -55,7 +55,7 @@ example_requires = [
     "seaborn",
     "torchsummary>=1.5.0",
     "yacs>=0.1.7",
-    "pwlf",
+#    "pwlf",
     "xlsxwriter",
 ]
 
