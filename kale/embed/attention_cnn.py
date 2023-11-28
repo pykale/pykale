@@ -148,6 +148,3 @@ class CNNTransformer(ContextCNNGeneric):
         for p in encoder.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
-
-
-# add this line for cache download pip dependencies testing
