@@ -25,6 +25,11 @@ jobs:
             python-version: "3.8"
           - os: windows-latest
             python-version: "3.9"
+        include:
+          - os: ubuntu-latest
+            path: ~/.cache/pip
+          - os: windows-latest
+            path: ~\AppData\Local\pip\Cache
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python using Miniconda
@@ -32,6 +37,17 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
+
+      # Cache downloaded pip dependencies
+      - name: Cache pip dependencies
+        id: cache_pip
+        uses: actions/cache@v2
+        with:
+          path: ${{ matrix.path }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-python${{ matrix.python-version }}-pip-
+
       - name: Install dependencies
         run: |
           pip install rdkit
