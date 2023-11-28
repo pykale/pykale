@@ -23,9 +23,9 @@ from kale.pipeline.protonet import ProtoNetTrainer
 
 def arg_parse():
     parser = argparse.ArgumentParser(description="Args of ProtoNet")
-    parser.add_argument("--cfg", default="configs/omniglot_resnet18_5way5shot.yaml", type=str)
+    parser.add_argument("--cfg", default="configs/demo.yaml", type=str)
     parser.add_argument("--devices", default=1, type=int)
-    parser.add_argument("--ckpt", default=None, type=Any)
+    parser.add_argument("--ckpt", default="", type=str)
     args = parser.parse_args()
     return args
 
