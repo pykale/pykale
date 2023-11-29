@@ -50,8 +50,8 @@ jobs:
             ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
           # Using the full hash of setup.py will cause the cache to be invalidated whenever the setup.py file changes.
           # An alternative is to use 'restore-keys: ${{ runner.os }}-python${{ matrix.python-version }}-pip-', which is
-          # suggested from [GitHub](https://github.com/davronaliyev/Cache-dependencies-in-GitHub-Actions/blob/main/examples.md#python---pip).
-          # However, it will always restore the saved cache rather than create a new one even if setup.py has changed.
+          # suggested by GitHub (https://github.com/davronaliyev/Cache-dependencies-in-GitHub-Actions/blob/main/examples.md#python---pip).
+          # However, it will restore the saved cache rather than create a new one even when the setup.py file changes.
 
       - name: Install dependencies
         run: |
