@@ -25,6 +25,12 @@ jobs:
             python-version: "3.8"
           - os: windows-latest
             python-version: "3.9"
+        include:
+          - os: ubuntu-latest
+            path: ~/.cache/pip
+          - os: windows-latest
+            path: ~\AppData\Local\pip\Cache
+
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python using Miniconda
@@ -32,6 +38,21 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
+          miniconda-version: latest
+
+      - name: Cache pip dependencies
+        id: cache_pip
+        uses: actions/cache@v2
+        with:
+          path: ${{ matrix.path }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
+          # Using the full hash of setup.py will cause the cache to be invalidated whenever the setup.py file changes.
+          # An alternative is to use 'restore-keys: ${{ runner.os }}-python${{ matrix.python-version }}-pip-', which is
+          # suggested by GitHub (https://github.com/davronaliyev/Cache-dependencies-in-GitHub-Actions/blob/main/examples.md#python---pip).
+          # However, it will restore the saved cache rather than create a new one even when the setup.py file changes.
+
       - name: Install dependencies
         run: |
           pip install rdkit
@@ -51,9 +72,11 @@ jobs:
         run: |
           pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
+
       - name: Determine coverage
         run: |
           coverage xml
         shell: bash -l {0}
+
       - name: Report coverage
         uses: codecov/codecov-action@v1
