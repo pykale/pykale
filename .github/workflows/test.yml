@@ -47,7 +47,7 @@ jobs:
           path: ${{ matrix.path }}
           key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
           restore-keys: |
-            ${{ runner.os }}-python${{ matrix.python-version }}-pip-
+            ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
 
       - name: Install dependencies
         run: |
