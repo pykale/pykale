@@ -81,3 +81,5 @@ for domain_ in OFFICE_DOMAINS:
 SOURCES = ["BindingDB_Kd", "BindingDB_Ki"]
 for source_name in SOURCES:
     test_dataset = DTI(name=source_name, path=path_test_data)
+
+# test
