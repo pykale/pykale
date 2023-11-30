@@ -17,7 +17,6 @@ def download_path():
 
 path_test_data = download_path()
 
-
 # Downloading gait gallery data for tests/conftest.py test
 url = "https://github.com/pykale/data/raw/main/videos/gait/gait_gallery_data.mat"
 download_file_by_url(url, path_test_data, "gait.mat", "mat")
@@ -25,19 +24,15 @@ download_file_by_url(url, path_test_data, "gait.mat", "mat")
 url = "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
 download_file_by_url(url, path_test_data, "Uncertainty_tuples.zip", "zip")
 
-
-#
 # Downloading MPCA data for tests/embed/test_factorization.py test
 url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baseline.mat"
 download_file_by_url(url, path_test_data, "baseline.mat", "mat")
-
 
 # Downloading Test Video Data for tests/loaddata/test_video_access.py and tests/pipeline/test_video_domain_adapter.py test
 url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
 download_file_by_url(
     url=url, output_directory=path_test_data, output_file_name="video_test_data.zip", file_format="zip"
 )
-
 
 # Downloading Binary Class and Multi Class Multiomics Dataset for tests/pipeline/test_multiomics_trainer.py test
 url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
@@ -56,7 +51,6 @@ download_file_by_url(url=url, output_directory=dataset_root, output_file_name="m
 url = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64_v2.0.zip"
 download_file_by_url(url, path_test_data, "SA_64x64.zip", "zip")
 
-
 # Downloading MNISTM, USPS, SVHN, CIFAR10, CIFAR100 for tests/loaddata/test_image_access.py test
 datasets.MNIST(path_test_data, train=True, transform=get_transform("mnistm"), download=True)
 MNISTM(path_test_data, train=True, transform=get_transform("mnistm"), download=True)
@@ -66,7 +60,6 @@ datasets.SVHN(path_test_data, split="test", transform=get_transform("mnistm"), d
 datasets.CIFAR10(path_test_data, train=True, download=True, transform=get_transform("cifar", augment=True))
 datasets.CIFAR100(path_test_data, train=True, download=True, transform=get_transform("cifar", augment=True))
 
-
 # Downloading Office-31 Dataset for tests/loaddata/test_image_access.py test
 office_path = str(Path(path_test_data) / "office")
 OFFICE_DOMAINS = ["amazon", "caltech", "dslr", "webcam"]
@@ -75,7 +68,6 @@ for domain_ in OFFICE_DOMAINS:
     filename = "%s.zip" % domain_
     data_url = "%s/%s" % (url, filename)
     download_file_by_url(data_url, office_path, filename, "zip")
-
 
 # Downloading Drug-Target Interaction (DTI) Datasets for tests/loaddata/test_tdc_datasets.py test
 SOURCES = ["BindingDB_Kd", "BindingDB_Ki"]
