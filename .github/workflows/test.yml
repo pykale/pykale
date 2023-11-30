@@ -72,6 +72,7 @@ jobs:
         id: cache_data
         uses: actions/cache@v2
         with:
+          path: tests/test_data
           key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/tests/test_data.py') }}
           restore-keys: |
             ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/tests/test_data.py') }}
