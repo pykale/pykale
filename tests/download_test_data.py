@@ -20,6 +20,7 @@ path_test_data = download_path()
 # Downloading gait gallery data for tests/conftest.py test
 url = "https://github.com/pykale/data/raw/main/videos/gait/gait_gallery_data.mat"
 download_file_by_url(url, path_test_data, "gait.mat", "mat")
+
 # Downloading Landmark Global fixtures data for tests/conftest.py test
 url = "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
 download_file_by_url(url, path_test_data, "Uncertainty_tuples.zip", "zip")
