@@ -74,6 +74,7 @@ class SmallCNNFeature(nn.Module):
         self.bn3 = nn.BatchNorm2d(64 * 2)
         self.sigmoid = nn.Sigmoid()
         self._out_features = 128
+        self._out_features = 128
 
     def forward(self, input_):
         x = self.bn1(self.conv1(input_))
