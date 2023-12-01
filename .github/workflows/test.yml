@@ -69,6 +69,22 @@ jobs:
           pip install -e .[dev]
         shell: bash -l {0}
 
+      - name: Cache downloaded test data
+        id: cache_data
+        uses: actions/cache@v2
+        with:
+          path: tests/test_data
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-data-${{ hashFiles('tests/download_test_data.py') }}
+          restore-keys: |
+            ${{ runner.os }}-python${{ matrix.python-version }}-data-${{ hashFiles('tests/download_test_data.py') }}
+          # Use strict matching for the hash of download_test_data.py, as we want to update the cache whenever the file changes.
+
+      - name: Download test data
+        if: steps.cache_data.outputs.cache-hit != 'true'
+        run : |
+          python tests/download_test_data.py
+        shell: bash -l {0}
+
       - name: Run tests
         id: run_tests
         run: |
