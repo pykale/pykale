@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from tdc.multi_pred import DTI
-from torchvision import datasets
+from torchvision.datasets import CIFAR10, CIFAR100, MNIST, SVHN
 
 from kale.loaddata.mnistm import MNISTM
 from kale.loaddata.usps import USPS
@@ -10,67 +10,103 @@ from kale.utils.download import download_file_by_url
 
 
 def download_path():
-    path = Path("tests") / "test_data"
+    path = Path("tests").joinpath("test_data")
     path.mkdir(parents=True, exist_ok=True)
     return str(path)
 
 
-path_test_data = download_path()
+def download_gait_gallery_data(save_path):
+    # Downloading gait gallery data for tests/conftest.py test
+    url = "https://github.com/pykale/data/raw/main/videos/gait/gait_gallery_data.mat"
+    download_file_by_url(url, save_path, "gait.mat", "mat")
 
-# Downloading gait gallery data for tests/conftest.py test
-url = "https://github.com/pykale/data/raw/main/videos/gait/gait_gallery_data.mat"
-download_file_by_url(url, path_test_data, "gait.mat", "mat")
 
-# Downloading Landmark Global fixtures data for tests/conftest.py test
-url = "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
-download_file_by_url(url, path_test_data, "Uncertainty_tuples.zip", "zip")
+def download_landmark_global_data(save_path):
+    # Downloading landmark global fixtures data for tests/conftest.py test
+    url = "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
+    download_file_by_url(url, save_path, "Uncertainty_tuples.zip", "zip")
 
-# Downloading MPCA data for tests/embed/test_factorization.py test
-url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baseline.mat"
-download_file_by_url(url, path_test_data, "baseline.mat", "mat")
 
-# Downloading Test Video Data for tests/loaddata/test_video_access.py and tests/pipeline/test_video_domain_adapter.py test
-url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
-download_file_by_url(
-    url=url, output_directory=path_test_data, output_file_name="video_test_data.zip", file_format="zip"
-)
+def download_mpca_data(save_path):
+    # Downloading MPCA data for tests/embed/test_factorization.py test
+    url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baseline.mat"
+    download_file_by_url(url, save_path, "baseline.mat", "mat")
 
-# Downloading Binary Class and Multi Class Multiomics Dataset for tests/pipeline/test_multiomics_trainer.py test
-url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
-dataset_root = str(Path(path_test_data) / "multiomics/trainer/binary_class/")
-download_file_by_url(
-    url=url,
-    output_directory=dataset_root,
-    output_file_name="binary_class.zip",
-    file_format="zip",
-)
-url = "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"
-dataset_root = str(Path(path_test_data) / "multiomics/trainer/multi_class/")
-download_file_by_url(url=url, output_directory=dataset_root, output_file_name="multi_class.zip", file_format="zip")
 
-# Downloading CMR Dataset for tests/prepdata/test_image_transform.py test
-url = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64_v2.0.zip"
-download_file_by_url(url, path_test_data, "SA_64x64.zip", "zip")
+def download_video_data(save_path):
+    # Downloading video data for tests/loaddata/test_video_access.py and tests/pipeline/test_video_domain_adapter.py tests
+    url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
+    download_file_by_url(url, save_path, "video_test_data.zip", "zip")
 
-# Downloading MNISTM, USPS, SVHN, CIFAR10, CIFAR100 for tests/loaddata/test_image_access.py test
-datasets.MNIST(path_test_data, train=True, transform=get_transform("mnistm"), download=True)
-MNISTM(path_test_data, train=True, transform=get_transform("mnistm"), download=True)
-USPS(path_test_data, train=True, transform=get_transform("mnistm"), download=True)
-datasets.SVHN(path_test_data, split="train", transform=get_transform("mnistm"), download=True)
-datasets.SVHN(path_test_data, split="test", transform=get_transform("mnistm"), download=True)
-datasets.CIFAR10(path_test_data, train=True, download=True, transform=get_transform("cifar", augment=True))
-datasets.CIFAR100(path_test_data, train=True, download=True, transform=get_transform("cifar", augment=True))
 
-# Downloading Office-31 Dataset for tests/loaddata/test_image_access.py test
-office_path = str(Path(path_test_data) / "office")
-OFFICE_DOMAINS = ["amazon", "caltech", "dslr", "webcam"]
-url = "https://github.com/pykale/data/raw/main/images/office"
-for domain_ in OFFICE_DOMAINS:
-    filename = "%s.zip" % domain_
-    data_url = "%s/%s" % (url, filename)
-    download_file_by_url(data_url, office_path, filename, "zip")
+def download_multiomics_data(save_path):
+    # Downloading Binary Class and Multi Class Multiomics datasets for tests/pipeline/test_multiomics_trainer.py test
+    url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
+    binary_save_path = Path(save_path).joinpath("multiomics/trainer/binary_class/")
+    download_file_by_url(url, binary_save_path, "binary_class.zip", "zip")
 
-# Downloading Drug-Target Interaction (DTI) Datasets for tests/loaddata/test_tdc_datasets.py test
-SOURCES = ["BindingDB_Kd", "BindingDB_Ki"]
-for source_name in SOURCES:
-    test_dataset = DTI(name=source_name, path=path_test_data)
+    url = "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"
+    multi_save_path = Path(save_path).joinpath("multiomics/trainer/multi_class/")
+    download_file_by_url(url, multi_save_path, "multi_class.zip", "zip")
+
+
+def download_cmr_data(save_path):
+    # Downloading CMR dataset for tests/prepdata/test_image_transform.py test
+    url = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64_v2.0.zip"
+    download_file_by_url(url, save_path, "SA_64x64.zip", "zip")
+
+
+def download_mnist_data(save_path):
+    # Downloading MNIST datasets for tests/loaddata/test_image_access.py test
+    MNIST(save_path, train=True, transform=get_transform("mnistm"), download=True)
+    MNISTM(save_path, train=True, transform=get_transform("mnistm"), download=True)
+
+
+def download_usps_data(save_path):
+    # Downloading USPS dataset for tests/loaddata/test_image_access.py test
+    USPS(save_path, train=True, transform=get_transform("mnistm"), download=True)
+
+
+def download_svhn_data(save_path):
+    # Downloading SVHN dataset for tests/loaddata/test_image_access.py test
+    SVHN(save_path, split="train", transform=get_transform("mnistm"), download=True)
+    SVHN(save_path, split="test", transform=get_transform("mnistm"), download=True)
+
+
+def download_cifar_data(save_path):
+    # Downloading CIFAR10 and CIFAR100 datasets for tests/loaddata/test_image_access.py test
+    CIFAR10(save_path, train=True, download=True, transform=get_transform("cifar", augment=True))
+    CIFAR100(save_path, train=True, download=True, transform=get_transform("cifar", augment=True))
+
+
+def download_office_data(save_path):
+    # Downloading Office-31 dataset for tests/loaddata/test_image_access.py test
+    office_save_path = Path(save_path).joinpath("office")
+    url = "https://github.com/pykale/data/raw/main/images/office"
+    for domain in ["amazon", "caltech", "dslr", "webcam"]:
+        filename = "%s.zip" % domain
+        data_url = "%s/%s" % (url, filename)
+        download_file_by_url(data_url, office_save_path, filename, "zip")
+
+
+def download_dti_data(save_path):
+    # Downloading Drug-Target Interaction (DTI) datasets for tests/loaddata/test_tdc_datasets.py test
+    for source_name in ["BindingDB_Kd", "BindingDB_Ki"]:
+        _ = DTI(name=source_name, path=save_path)
+
+
+if __name__ == "__main__":
+    path_to_test_data = download_path()
+
+    download_gait_gallery_data(path_to_test_data)
+    download_landmark_global_data(path_to_test_data)
+    download_mpca_data(path_to_test_data)
+    download_video_data(path_to_test_data)
+    download_multiomics_data(path_to_test_data)
+    download_cmr_data(path_to_test_data)
+    download_mnist_data(path_to_test_data)
+    download_usps_data(path_to_test_data)
+    download_svhn_data(path_to_test_data)
+    download_cifar_data(path_to_test_data)
+    download_office_data(path_to_test_data)
+    download_dti_data(path_to_test_data)
