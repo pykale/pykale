@@ -45,13 +45,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ matrix.path }}
-          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-20231130-${{ hashFiles('**/setup.py') }}
           restore-keys: |
-            ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
-          # Using the full hash of setup.py will cause the cache to be invalidated whenever the setup.py file changes.
-          # An alternative is to use 'restore-keys: ${{ runner.os }}-python${{ matrix.python-version }}-pip-', which is
-          # suggested by GitHub (https://github.com/davronaliyev/Cache-dependencies-in-GitHub-Actions/blob/main/examples.md#python---pip).
-          # However, it will restore the saved cache rather than create a new one even when the setup.py file changes.
+            ${{ runner.os }}-python${{ matrix.python-version }}-pip-20231130-
+          # We have used a softer matching strategy for the full hash of setup.py, as recommended by GitHub.
+          # See: https://github.com/davronaliyev/Cache-dependencies-in-GitHub-Actions/blob/main/examples.md#python---pip
+          # This restores the cache first and then downloads any changed packages to avoid updating the cache with
+          # every change to the setup.py file, thus reducing the storage requirements of GitHub Action.
+          # We set a date tag to the cache key to show the updated date of the cache. We can update this date tag to
+          # generate new cache after every major changes in setup.py.
 
       - name: Install dependencies
         run: |
@@ -65,6 +67,22 @@ jobs:
           pip install torch_spline_conv==1.2.2 -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
           pip install torch_geometric==2.3.0
           pip install -e .[dev]
+        shell: bash -l {0}
+
+      - name: Cache downloaded test data
+        id: cache_data
+        uses: actions/cache@v2
+        with:
+          path: tests/test_data
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-data-${{ hashFiles('tests/download_test_data.py') }}
+          restore-keys: |
+            ${{ runner.os }}-python${{ matrix.python-version }}-data-${{ hashFiles('tests/download_test_data.py') }}
+          # Use strict matching for the hash of download_test_data.py, as we want to update the cache whenever the file changes.
+
+      - name: Download test data
+        if: steps.cache_data.outputs.cache-hit != 'true'
+        run : |
+          python tests/download_test_data.py
         shell: bash -l {0}
 
       - name: Run tests
