@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import pytest
@@ -8,7 +7,6 @@ from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
 from kale.pipeline import domain_adapter, video_domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
-from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
 from tests.helpers.boring_model import VideoBoringModel
 from tests.helpers.pipe_test_helper import ModelTestHelper
@@ -28,16 +26,15 @@ VALID_RATIO = 0.1
 seed = 36
 set_seed(seed)
 
-root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
+root_dir = str(Path.cwd().parent.parent)
 
 
 @pytest.fixture(scope="module")
 def testing_cfg(download_path):
     cfg = CfgNode()
     cfg.DATASET = CfgNode()
+    cfg.DATASET.ROOT = str(Path(download_path) / "video_test_data")
     cfg.DAN = CfgNode()
-    cfg.DATASET.ROOT = root_dir + "/" + download_path + "/video_test_data/"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
     yield cfg
 
@@ -79,14 +76,6 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
     cfg.DATASET.WEIGHT_TYPE = WEIGHT_TYPE
     cfg.DATASET.SIZE_TYPE = DATASIZE_TYPE
     cfg.DAN.USERANDOM = False
-
-    # download example data
-    download_file_by_url(
-        url=url,
-        output_directory=str(Path(cfg.DATASET.ROOT).parent.absolute()),
-        output_file_name="video_test_data.zip",
-        file_format="zip",
-    )
 
     # build dataset
     source, target, num_classes = VideoDataset.get_source_target(

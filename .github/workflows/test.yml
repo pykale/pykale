@@ -40,39 +40,22 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
+          miniconda-version: latest
 
-      # Check for test-changed-only label
-      - name: Check for test-changed-only label
-        id: check_enabled_label
-        run: |
-          has_enabled_label=false
-          labels_json="${{ toJSON(github.event.pull_request.labels.*.name) }}"
-          if [[ "$labels_json" == *"enable-test-changed-only"* ]]; then
-            has_enabled_label=true
-          fi
-          echo "has_enabled_label is $has_enabled_label"
-          echo "has_enabled_label=$has_enabled_label" >> $GITHUB_OUTPUT
-        shell: bash -l {0}
-
-      # Cache downloaded pip dependencies
       - name: Cache pip dependencies
         id: cache_pip
         uses: actions/cache@v2
         with:
           path: ${{ matrix.path }}
-          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.py') }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-20231130-${{ hashFiles('**/setup.py') }}
           restore-keys: |
-            ${{ runner.os }}-python${{ matrix.python-version }}-pip-
-
-      # Restore pytest testmon cache
-      - name: Cache .testmondata
-        id: cache_testmon
-        uses: actions/cache@v2
-        with:
-          path: .testmondata
-          key: ${{ runner.os }}-python${{ matrix.python-version }}-testmon-${{ hashFiles('**/*.py', '**/*.md', '**/*.rst', '**/*.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-python${{ matrix.python-version }}-testmon-
+            ${{ runner.os }}-python${{ matrix.python-version }}-pip-20231130-
+          # We have used a softer matching strategy for the full hash of setup.py, as recommended by GitHub.
+          # See: https://github.com/davronaliyev/Cache-dependencies-in-GitHub-Actions/blob/main/examples.md#python---pip
+          # This restores the cache first and then downloads any changed packages to avoid updating the cache with
+          # every change to the setup.py file, thus reducing the storage requirements of GitHub Action.
+          # We set a date tag to the cache key to show the updated date of the cache. We can update this date tag to
+          # generate new cache after every major changes in setup.py.
 
       - name: Install dependencies
         run: |
@@ -88,6 +71,21 @@ jobs:
           pip install -e .[dev]
         shell: bash -l {0}
 
+      - name: Cache downloaded test data
+        id: cache_data
+        uses: actions/cache@v2
+        with:
+          path: tests/test_data
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-data-${{ hashFiles('tests/download_test_data.py') }}
+          restore-keys: |
+            ${{ runner.os }}-python${{ matrix.python-version }}-data-${{ hashFiles('tests/download_test_data.py') }}
+          # Use strict matching for the hash of download_test_data.py, as we want to update the cache whenever the file changes.
+
+      - name: Download test data
+        if: steps.cache_data.outputs.cache-hit != 'true'
+        run : |
+          python tests/download_test_data.py
+        shell: bash -l {0}
 
       # Push and Schedule
       # Generate pytest testmon cache if the event is push to main or schedule
@@ -106,7 +104,6 @@ jobs:
           pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
-
       # Pull Request
       # Restore pytest-testmon cache without generating new cache if the event is pull request and the label is 'enable-test-changed-only'
       - name: Run tests (test the changed in pull request)
@@ -124,7 +121,6 @@ jobs:
         run: |
           pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
-
 
       - name: Determine coverage
         id: coverage

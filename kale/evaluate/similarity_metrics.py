@@ -17,13 +17,12 @@ from kale.prepdata.tabular_transform import apply_confidence_inversion
 def jaccard_similarity(list1: list, list2: list) -> float:
     """
     Calculates the Jaccard Index (JI) between two lists.
+
     Args:
         list1 (list): List of elements in set A.
         list2 (list): List of elements in set B.
     Returns:
-        float: JI between list1 and list2.
-    Raises:
-        None.
+        float: The Jaccard Index between list1 and list2.
     Example:
         >>> jaccard_similarity([1,2,3], [2,3,4])
         0.5
@@ -61,9 +60,9 @@ def evaluate_correlations(
             error, and uncertainty inversion keys for each pair.
         cmaps: A dictionary of colour maps to use for plotting the results.
         num_bins: The number of quantile bins to divide the data into.
-        confidence_invert_tuples: A list of tuples specifying whether to invert the uncertainty values for each method..
-                          First element is a string specifying the uncertainty method name and the second element is a boolean
-                          whether to invert e.g. [["E-MHA", True], ["E-CPV", False]]
+        confidence_invert_tuples: A list of tuples specifying whether to invert the uncertainty values for each method.
+                          First element is a string specifying the uncertainty method name and the second element is
+                          a boolean whether to invert e.g. [["E-MHA", True], ["E-CPV", False]]
         num_folds: The number of folds to use for cross-validation (default: 8).
         error_scaling_factor: The scale factor to transform error by (default: 1).
         combine_middle_bins: Whether to combine the middle bins into one bin (default: False).

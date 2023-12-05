@@ -17,6 +17,7 @@ def generate_summary_df(
     """
     Generates pandas dataframe with summary statistics.
     Designed for use in Quantile Binning (/pykale/examples/landmark_uncertainty/main.py).
+
     Args:
         results_dictionary (dict): A dictionary containing results for each quantile bin and uncertainty method.
             The keys are strings indicating the name of each uncertainty method.
@@ -65,18 +66,18 @@ def save_dict_xlsx(data_dict: Dict[Any, Any], save_location: str, sheet_name: st
     """
     Save a dictionary to an Excel file using the XlsxWriter engine.
 
-    Parameters:
-    data_dict (Dict[Any, Any]): The dictionary that needs to be saved to an Excel file. The keys of the dictionary represent the
-                                row index and the values represent the data in the row. If a dictionary value is a list or a
-                                series, each element in the list/series will be a column in the row.
+    Args:
+        data_dict (Dict[Any, Any]): The dictionary that needs to be saved to an Excel file. The keys represent the row
+                                    index and the values represent the data in the row. If a dictionary value is a list
+                                    or a series, each element in the list/series will be a column in the row.
 
-    save_location (str): The location where the Excel file will be saved. This should include the full path and the filename,
-                         for example, "/path/to/save/data.xlsx". Overwrites the file if it already exists.
+        save_location (str): The location where the Excel file will be saved. This should include the full path and the
+                            filename, for example, "/path/to/save/data.xlsx". Overwrites the file if it already exists.
 
-    sheet_name (str): The name of the sheet where the dictionary will be saved in the Excel file.
+        sheet_name (str): The name of the sheet where the dictionary will be saved in the Excel file.
 
     Returns:
-    None: This function does not return anything. It saves the dictionary as an Excel file at the specified location.
+        None: This function does not return anything. It saves the dictionary as an Excel file at the specified location.
     """
     pd_df = pd.DataFrame.from_dict(data_dict, orient="index")
 

@@ -33,7 +33,12 @@ def test_i3d_shapes():
 
 def test_videoresnet_basicblock_shapes():
     # test VideoResNet with BasicBlock
-    resnet = VideoResNet(block=BasicBlock, conv_makers=[Conv3DSimple] * 4, layers=[2, 2, 2, 2], stem=BasicStem,)
+    resnet = VideoResNet(
+        block=BasicBlock,
+        conv_makers=[Conv3DSimple] * 4,
+        layers=[2, 2, 2, 2],
+        stem=BasicStem,
+    )
     resnet.eval()
     output_batch = resnet(INPUT_BATCH_RGB)
     assert output_batch.size() == (2, 512)
@@ -42,7 +47,10 @@ def test_videoresnet_basicblock_shapes():
 def test_videoresenet_bottleneck_shapes():
     # test VideoResNet with Bottleneck
     resnet_bottleneck = VideoResNet(
-        block=Bottleneck, conv_makers=[Conv3DSimple] * 4, layers=[2, 2, 2, 2], stem=BasicStem,
+        block=Bottleneck,
+        conv_makers=[Conv3DSimple] * 4,
+        layers=[2, 2, 2, 2],
+        stem=BasicStem,
     )
     resnet_bottleneck.eval()
     output_batch = resnet_bottleneck(INPUT_BATCH_RGB)

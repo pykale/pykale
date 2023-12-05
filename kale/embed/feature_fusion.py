@@ -2,7 +2,8 @@
 1. Concat
 2. BimodalInteractionFusion
 3. LowRankTensorFusion
-Each of these fusion methods are designed to work with input modalities as PyTorch tensors and perform different operations to combine and create a joint representation of the input data.
+Each of these fusion methods are designed to work with input modalities as PyTorch tensors and perform different
+operations to combine and create a joint representation of the input data.
 Reference: https://github.com/pliang279/MultiBench/blob/main/fusions/common_fusions.py
 """
 
@@ -13,8 +14,11 @@ from torch.autograd import Variable
 
 class Concat(nn.Module):
     """Concat is a simple PyTorch module for fusing multimodal data by concatenating tensors along dimension 1.
-       This fusion method is often used in multimodal learning where data from different modalities (e.g., image, audio) are processed separately and then fused together for further processing or decision making. Each modality data is first flattened from its second dimension onward and then these flattened tensors are concatenated together.
-       This approach to fusion maintains the independence of the modalities before the fusion point, allowing the network to learn separate representations for each modality before combining them.
+    This fusion method is often used in multimodal learning where data from different modalities (e.g., image, audio)
+    are processed separately and then fused together for further processing or decision-making. Each modality data is
+    first flattened from its second dimension onward and then these flattened tensors are concatenated together.
+    This approach to fusion maintains the independence of the modalities before the fusion point, allowing the network
+    to learn separate representations for each modality before combining them.
     """
 
     def __init__(self):
@@ -28,13 +32,21 @@ class Concat(nn.Module):
 
 
 class BimodalInteractionFusion(nn.Module):
-    """ BimodalInteractionFusion is a PyTorch module that performs fusion of two data modalities through a hypernetwork-based interaction mechanism. The 'input_dims' argument specifies the input dimensions of the two modalities. The 'output_dim' argument specifies the output dimension after the fusion. The 'output' argument defines the type of bimodal matrix interactions to be performed, which can be 'matrix', 'vector', or 'scalar'.
+    """BimodalInteractionFusion is a PyTorch module that performs fusion of two data modalities through a
+    hypernetwork-based interaction mechanism. The 'input_dims' argument specifies the input dimensions of the two
+    modalities. The 'output_dim' argument specifies the output dimension after the fusion. The 'output' argument
+    defines the type of bimodal matrix interactions to be performed, which can be 'matrix', 'vector', or 'scalar'.
         This fusion method  supports three types of bimodal interactions:
-            - Matrix: It implements a general hypernetwork mechanism where the interaction is multiplicative. It uses separate weight matrices and biases for the two modalities.
-            - Vector: It uses diagonal forms and gating mechanisms, applying element-wise multiplication to combine the modalities.
+            - Matrix: It implements a general hypernetwork mechanism where the interaction is multiplicative. It uses
+            separate weight matrices and biases for the two modalities.
+            - Vector: It uses diagonal forms and gating mechanisms, applying element-wise multiplication to combine the
+            modalities.
             - Scalar: It applies scales and biases to the input modalities before combining them.
-        This fusion method uses xavier normal distribution for initializing the weight matrices and normal distribution for the biases. It also provides options to clip the parameter values and their gradients within specified ranges to prevent them from exploding or vanishing.
-        This fusion approach allows for complex interactions between the modalities and is well-suited for tasks that require the integration of heterogeneous data.
+        This fusion method uses xavier normal distribution for initializing the weight matrices and normal distribution
+        for the biases. It also provides options to clip the parameter values and their gradients within specified
+        ranges to prevent them from exploding or vanishing.
+        This fusion approach allows for complex interactions between the modalities and is well-suited for tasks that
+        require the integration of heterogeneous data.
     Args:
         input_dims (int): list or tuple of 2 integers indicating input dimensions of the 2 modalities
         output_dim (int): output dimension after the fusion
@@ -126,12 +138,23 @@ class BimodalInteractionFusion(nn.Module):
 
 class LowRankTensorFusion(nn.Module):
     """LowRankTensorFusion is a PyTorch module that performs multimodal fusion using a low-rank tensor-based approach.
-       The 'input_dims' argument specifies the input dimensions of each modality. The 'output_dim' argument defines the output dimension after the fusion. The 'rank' argument is a hyperparameter specifying the rank for the low-rank tensor decomposition.
-       This fusion method performs fusion by assuming a low-rank structure for the interaction tensor, effectively compressing the interaction space. It leverages a set of low-rank factors, one for each modality, that are learned during training.
-       These factors are initialized with xavier normal distribution and are applied to their corresponding modalities during the forward pass. A tensor product is computed across all modalities and their respective factors, resulting in a fused tensor.
-       Next, a weighted summation of this fused tensor is computed using fusion weights, followed by the addition of a fusion bias. Both fusion weights and bias are learnable parameters initialized with xavier normal distribution and zero respectively.
-       The final output is reshaped to the specified 'output_dim' and returned. If 'flatten' is set to True, each modality is first flattened before concatenation with a ones tensor and the subsequent multiplication with its factor.
-       This approach provides an efficient and compact representation for capturing interactions among multiple modalities, making it suitable for tasks involving high-dimensional multimodal data.
+       The 'input_dims' argument specifies the input dimensions of each modality. The 'output_dim' argument defines the
+       output dimension after the fusion. The 'rank' argument is a hyperparameter specifying the rank for the low-rank
+       tensor decomposition.
+       This fusion method performs fusion by assuming a low-rank structure for the interaction tensor, effectively
+       compressing the interaction space. It leverages a set of low-rank factors, one for each modality, that are
+       learned during training.
+       These factors are initialized with xavier normal distribution and are applied to their corresponding modalities
+       during the forward pass. A tensor product is computed across all modalities and their respective factors,
+       resulting in a fused tensor.
+       Next, a weighted summation of this fused tensor is computed using fusion weights, followed by the addition of a
+       fusion bias. Both fusion weights and bias are learnable parameters initialized with xavier normal distribution
+       and zero respectively.
+       The final output is reshaped to the specified 'output_dim' and returned. If 'flatten' is set to True, each
+       modality is first flattened before concatenation with a ones tensor and the subsequent multiplication with its
+       factor.
+       This approach provides an efficient and compact representation for capturing interactions among multiple
+       modalities, making it suitable for tasks involving high-dimensional multimodal data.
     Args:
         input_dims (int): A list or tuple of integers indicating input dimensions of the modalities.
         output_dim (int): output dimension after the fusion.
@@ -175,6 +198,7 @@ class LowRankTensorFusion(nn.Module):
                 torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             )
             modality = modality.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+
             factor = factor.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
 
             if self.flatten:

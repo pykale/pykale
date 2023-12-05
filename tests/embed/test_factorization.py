@@ -9,7 +9,6 @@ from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
 
 from kale.embed.factorization import MIDA, MPCA
-from kale.utils.download import download_file_by_url
 
 N_COMPS = [1, 50, 100]
 VAR_RATIOS = [0.7, 0.95]
@@ -19,7 +18,6 @@ baseline_url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baselin
 
 @pytest.fixture(scope="module")
 def baseline_model(download_path):
-    download_file_by_url(baseline_url, download_path, "baseline.mat", "mat")
     return loadmat(os.path.join(download_path, "baseline.mat"))
 
 
@@ -75,7 +73,7 @@ def test_mpca_against_baseline(gait, baseline_model):
     testing.assert_allclose(baseline_mean, mpca.mean_)
     baseline_proj_x = multi_mode_dot(x - baseline_mean, baseline_proj_mats, modes=[1, 2, 3])
     # check whether the output embeddings is close to the baseline output by keeping the same variance ratio 97%
-    testing.assert_allclose(x_proj ** 2, baseline_proj_x ** 2, rtol=relative_tol)
+    testing.assert_allclose(x_proj**2, baseline_proj_x**2, rtol=relative_tol)
     # testing.assert_equal(x_proj.shape, baseline_proj_x.shape)
 
     for i in range(x.ndim - 1):

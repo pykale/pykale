@@ -163,8 +163,8 @@ def bin_wise_bound_eval(
               - 'mean all targets': The mean accuracy over all targets and quantile bins.
               - 'mean all bins': A list of mean accuracy values for each quantile bin (all targets included).
               - 'mean all': A list of accuracy values for each quantile bin and target, weighted by # targets in each bin.
-              - 'all bins concatenated targets separated': A list of accuracy values for each quantile bin, concatenated for each
-                target separately.
+              - 'all bins concatenated targets separated': A list of accuracy values for each quantile bin, concatenated
+               for each target separately.
 
     Example:
         >>> bin_wise_bound_eval(fold_bounds_all_targets, fold_errors, fold_bins, [0,1], 'S-MHA', num_bins=5)
@@ -190,7 +190,8 @@ def bin_wise_bound_eval(
         # The error bounds are from B1 -> B5 i.e. best quantile of predictions to worst quantile of predictions
         fold_bounds = fold_bounds_all_targets[i_ti]
 
-        # For each bin, see what % of targets are between the error bounds. If bin=0 then lower bound = 0, if bin=Q then no upper bound
+        # For each bin, see what % of targets are between the error bounds.
+        # If bin=0 then lower bound = 0, if bin=Q then no upper bound
         # Keep track of #samples in each bin for weighted mean.
 
         # turn dictionary of predicted bins into [[num_bins]] array
@@ -306,11 +307,12 @@ def get_mean_errors(
     """
     Evaluate uncertainty estimation's mean error of each bin.
     For each bin, we calculate the mean localization error for each target and for all targets.
-    We calculate the mean error for each dictionary in the bin_predictions dict. For each bin, we calculate: a) the mean and
-    std over all folds and all targets b) the mean and std for each target over all folds.
+    We calculate the mean error for each dictionary in the bin_predictions dict. For each bin, we calculate: a) the mean
+    and std over all folds and all targets b) the mean and std for each target over all folds.
 
     Args:
-        bin_predictions (Dict): Dict of Pandas DataFrames where each DataFrame has errors, predicted bins for all uncertainty measures for a model.
+        bin_predictions (Dict): Dict of Pandas DataFrames where each DataFrame has errors, predicted bins for all
+        uncertainty measures for a model.
         uncertainty_pairs (List[Tuple[str, str]]): List of tuples describing the different uncertainty combinations to test.
         num_bins (int): Number of quantile bins.
         targets (List[str]): List of targets to measure uncertainty estimation.
@@ -319,7 +321,8 @@ def get_mean_errors(
         combine_middle_bins (bool, optional): Combine middle bins if True. Defaults to False.
 
     Returns:
-        Dict[str, Union[Dict[str, List[List[float]]], List[Dict[str, List[float]]]]]: Dictionary with mean error for all targets combined and targets separated.
+        Dict[str, Union[Dict[str, List[List[float]]], List[Dict[str, List[float]]]]]: Dictionary with mean error for all
+         targets combined and targets separated.
             Keys that are returned:
                 "all mean error bins nosep":  For every fold, the mean error for each bin. All targets are combined in the same list.
                 "all mean error bins targets sep":   For every fold, the mean error for each bin. Each target is in a separate list.
@@ -453,7 +456,7 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, targets, num_
         [Dict]: Dicts with JI for all targets combined and targets seperated.
     """
 
-    # If we are combining middle bins, we need the original number of bins to calcualate the true quantiles of the error.
+    # If combining middle bins, we need the original number of bins to calcualate the true quantiles of the error.
     # Then, we combine all the middle bins of the true quantiles, giving us 3 bins.
     # There are only 3 bins that have been predicted, so set num_bins to 3.
 

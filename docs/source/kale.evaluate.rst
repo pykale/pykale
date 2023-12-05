@@ -7,7 +7,7 @@ Submodules
 ----------
 
 kale.evaluate.cross\_validation module
-----------------------------
+--------------------------------------
 
 .. automodule:: kale.evaluate.cross_validation
    :members:
@@ -22,8 +22,16 @@ kale.evaluate.metrics module
    :undoc-members:
    :show-inheritance:
 
+kale.evaluate.similarity\_metrics
+---------------------------------
+
+.. automodule:: kale.evaluate.similarity_metrics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.evaluate.uncertainty\_metrics
---------------------------------
+----------------------------------
 
 .. automodule:: kale.evaluate.uncertainty_metrics
    :members:

@@ -193,9 +193,9 @@ class OfficeAccess(MultiDomainImageFolder, DatasetAccess):
     @staticmethod
     def download(path):
         """Download dataset.
-            Office-31 source: https://www.cc.gatech.edu/~judy/domainadapt/#datasets_code
-            Caltech-256 source: http://www.vision.caltech.edu/Image_Datasets/Caltech256/
-            Data with this library is adapted from: http://www.stat.ucla.edu/~jxie/iFRAME/code/imageClassification.rar
+        Office-31 source: https://www.cc.gatech.edu/~judy/domainadapt/#datasets_code
+        Caltech-256 source: http://www.vision.caltech.edu/Image_Datasets/Caltech256/
+        Data with this library is adapted from: http://www.stat.ucla.edu/~jxie/iFRAME/code/imageClassification.rar
         """
         url = "https://github.com/pykale/data/raw/main/images/office"
 
@@ -313,11 +313,19 @@ def get_cifar(cfg):
     cifar_test_transform = get_transform("cifar", augment=False)
 
     if cfg.DATASET.NAME == "CIFAR10":
-        train_set = datasets.CIFAR10(cfg.DATASET.ROOT, train=True, download=True, transform=cifar_train_transform)
-        valid_set = datasets.CIFAR10(cfg.DATASET.ROOT, train=False, download=True, transform=cifar_test_transform)
+        train_set = datasets.CIFAR10(
+            cfg.DATASET.ROOT, train=True, download=cfg.DATASET.DOWNLOAD, transform=cifar_train_transform
+        )
+        valid_set = datasets.CIFAR10(
+            cfg.DATASET.ROOT, train=False, download=cfg.DATASET.DOWNLOAD, transform=cifar_test_transform
+        )
     elif cfg.DATASET.NAME == "CIFAR100":
-        train_set = datasets.CIFAR100(cfg.DATASET.ROOT, train=True, download=True, transform=cifar_train_transform)
-        valid_set = datasets.CIFAR100(cfg.DATASET.ROOT, train=False, download=True, transform=cifar_test_transform)
+        train_set = datasets.CIFAR100(
+            cfg.DATASET.ROOT, train=True, download=cfg.DATASET.DOWNLOAD, transform=cifar_train_transform
+        )
+        valid_set = datasets.CIFAR100(
+            cfg.DATASET.ROOT, train=False, download=cfg.DATASET.DOWNLOAD, transform=cifar_test_transform
+        )
     else:
         raise NotImplementedError
 

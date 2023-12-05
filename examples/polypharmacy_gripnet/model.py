@@ -20,7 +20,11 @@ def get_supervertex(sv_configs: CfgNode) -> SuperVertexParaSetting:
             mode=sv_configs.MODE,
         )
 
-    return SuperVertexParaSetting(sv_configs.NAME, sv_configs.INTER_FEAT_CHANNELS, sv_configs.INTER_AGG_CHANNELS_LIST,)
+    return SuperVertexParaSetting(
+        sv_configs.NAME,
+        sv_configs.INTER_FEAT_CHANNELS,
+        sv_configs.INTER_AGG_CHANNELS_LIST,
+    )
 
 
 def get_model(supergraph: SuperGraph, cfg: CfgNode) -> GripNetLinkPrediction:

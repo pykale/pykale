@@ -83,8 +83,6 @@ dev_requires = full_requires + [
     "recommonmark",
     "sphinx",
     "sphinx-rtd-theme",
-    "pwlf",
-    "xlsxwriter",
 ]
 
 

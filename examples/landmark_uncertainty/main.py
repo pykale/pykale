@@ -68,7 +68,10 @@ def main():
         logger.info("Downloading data...")
         data_file_name = "%s.%s" % (base_dir, cfg.DATASET.FILE_FORMAT)
         download_file_by_url(
-            cfg.DATASET.SOURCE, cfg.DATASET.ROOT, data_file_name, file_format=cfg.DATASET.FILE_FORMAT,
+            cfg.DATASET.SOURCE,
+            cfg.DATASET.ROOT,
+            data_file_name,
+            file_format=cfg.DATASET.FILE_FORMAT,
         )
         logger.info("Data downloaded to %s!", cfg.DATASET.ROOT + base_dir)
 

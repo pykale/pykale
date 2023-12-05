@@ -71,7 +71,9 @@ def main():
 
         tb_logger = TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
-            filename="{epoch}-{step}-{valid_loss:.4f}", monitor="valid_loss", mode="min",
+            filename="{epoch}-{step}-{valid_loss:.4f}",
+            monitor="valid_loss",
+            mode="min",
         )
         progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
 

@@ -8,15 +8,12 @@ from numpy import testing
 from kale.interpret.visualize import plot_multi_images
 from kale.loaddata.image_access import check_dicom_series_uid, dicom2arraylist, read_dicom_dir
 from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, reg_img_stack, rescale_img_stack
-from kale.utils.download import download_file_by_url
 
 SCALES = [4, 8]
-cmr_url = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64_v2.0.zip"
 
 
 @pytest.fixture(scope="module")
 def images(download_path):
-    download_file_by_url(cmr_url, download_path, "SA_64x64.zip", "zip")
     img_path = os.path.join(download_path, "SA_64x64_v2.0", "DICOM")
     cmr_dcm_list = read_dicom_dir(img_path, sort_instance=True, sort_patient=True, check_series_uid=True)
     dcms = []
@@ -60,7 +57,7 @@ def test_reg(images, coords):
         marker_kwargs=marker_kwargs,
         title_kwargs=title_kwargs,
     )
-    assert type(fig) == matplotlib.figure.Figure
+    assert isinstance(fig, matplotlib.figure.Figure)
     with pytest.raises(Exception):
         reg_img_stack(images, coords[1:, :], coords[0])
     images_reg, max_dist = reg_img_stack(images, coords, target_coords=coords[0])
@@ -70,7 +67,7 @@ def test_reg(images, coords):
     # add one for avoiding inf relative difference
     testing.assert_allclose(max_dist + 1, np.ones(n_samples), rtol=2, atol=2)
     fig = plot_multi_images([images_reg[i][0, ...] for i in range(n_samples)], n_cols=5)
-    assert type(fig) == matplotlib.figure.Figure
+    assert isinstance(fig, matplotlib.figure.Figure)
 
 
 @pytest.mark.parametrize("scale", SCALES)

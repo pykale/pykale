@@ -4,12 +4,12 @@
 # =============================================================================
 
 """
-The supergraph structure from the `"GripNet: Graph Information Propagation on Supergraph for Heterogeneous Graphs"
-    <https://doi.org/10.1016/j.patcog.2022.108973>`_ (PatternRecognit 2022) paper.
+The supergraph structure from the Pattern Recognition 2022 paper "GripNet: Graph Information Propagation on Supergraph
+for Heterogeneous Graphs" <https://doi.org/10.1016/j.patcog.2022.108973>.
 """
 
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import networkx as nx
 import torch
@@ -51,7 +51,6 @@ class SuperVertex(object):
         edge_type: torch.Tensor = None,
         edge_weight: torch.Tensor = None,
     ) -> None:
-
         self.name = name
         self.node_feat = node_feat
         self.edge_index = edge_index
@@ -109,7 +108,10 @@ class SuperVertex(object):
         self.range_list = torch.tensor(range_list)
 
     def __repr__(self) -> str:
-        return f"SuperVertex(\n    name={self.name}, \n    node_feat={self.node_feat.shape}, \n    edge_index={self.edge_index.shape}, \n    num_edge_type={self.num_edge_type})"
+        return (
+            f"SuperVertex(\n    name={self.name}, \n    node_feat={self.node_feat.shape}, \n    "
+            f"edge_index={self.edge_index.shape}, \n    num_edge_type={self.num_edge_type})"
+        )
 
     def add_in_supervertex(self, vertex_name: str):
         self.in_supervertex_list.append(vertex_name)
@@ -139,7 +141,6 @@ class SuperEdge(object):
         edge_index: torch.Tensor,
         edge_weight: torch.Tensor = None,
     ) -> None:
-
         self.direction = (source_supervertex, target_supervertex)
         self.source_supervertex = source_supervertex
         self.target_supervertex = target_supervertex
@@ -147,31 +148,34 @@ class SuperEdge(object):
         self.edge_weight = edge_weight
 
     def __repr__(self) -> str:
-        return f"SuperEdges(\n    edge_direction={self.source_supervertex}->{self.target_supervertex}, \n    edge_index={self.edge_index.shape})"
+        return (
+            f"SuperEdges(\n    edge_direction={self.source_supervertex}->{self.target_supervertex}, "
+            f"\n    edge_index={self.edge_index.shape})"
+        )
 
 
 class SuperVertexParaSetting(object):
     r"""Parameter settings for each supervertex.
 
-        Args:
-            supervertex_name (str): the name of the supervertex.
-            inter_feat_channels (int): the dimension of the output of the internal feature layer.
-            inter_agg_channels_list (List[int]): the output dimensions of a sequence of internal aggregation layers.
-            exter_agg_channels_dict (Dict[str, int], optional): the dimension of received message vector from parent supervertices.
-                Defaults to None.
-            mode (str, optional): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
-            num_bases (int, optional): the number of bases used for basis-decomposition if the
-                supervertex is multi-relational. Defaults to 32.
-            concat_output (bool, optional): whether to concatenate the output of each layers. Defaults to True.
-        """
+    Args:
+        supervertex_name (str): the name of the supervertex.
+        inter_feat_channels (int): the dimension of the output of the internal feature layer.
+        inter_agg_channels_list (List[int]): the output dimensions of a sequence of internal aggregation layers.
+        exter_agg_channels_dict (Dict[str, int], optional): the dimension of received message vector from parent supervertices.
+            Defaults to None.
+        mode (str, optional): the allowed gripnet mode--'cat' or 'add'. Defaults to None.
+        num_bases (int, optional): the number of bases used for basis-decomposition if the
+            supervertex is multi-relational. Defaults to 32.
+        concat_output (bool, optional): whether to concatenate the output of each layers. Defaults to True.
+    """
 
     def __init__(
         self,
         supervertex_name: str,
         inter_feat_channels: int,
         inter_agg_channels_list: List[int],
-        exter_agg_channels_dict: Dict[str, int] = None,
-        mode: str = None,
+        exter_agg_channels_dict: Optional[Dict[str, int]] = None,
+        mode: Optional[str] = None,
         num_bases: int = 32,
         concat_output: bool = True,
     ) -> None:
@@ -205,9 +209,8 @@ class SuperGraph(object):
         self,
         supervertex_list: List[SuperVertex],
         superedge_list: List[SuperEdge],
-        supervertex_setting_dict: Dict[str, SuperVertexParaSetting] = None,
+        supervertex_setting_dict: Optional[Dict[str, SuperVertexParaSetting]] = None,
     ) -> None:
-
         self.supervertex_dict = {supervertex.name: supervertex for supervertex in supervertex_list}
         self.superedge_dict = {superedge.direction: superedge for superedge in superedge_list}
         self.supervertex_setting_dict = supervertex_setting_dict
@@ -258,4 +261,8 @@ class SuperGraph(object):
         self.supervertex_setting_dict = {sv.supervertex_name: sv for sv in supervertex_setting_list}
 
     def __repr__(self) -> str:
-        return f"SuperGraph(\n  svertex_dict={self.supervertex_dict.values()}, \n  sedge_dict={self.superedge_dict.values()}, \n  G={self.G}), \n  topological_order={self.topological_order}"
+        return (
+            f"SuperGraph(\n  svertex_dict={self.supervertex_dict.values()}, "
+            f"\n  sedge_dict={self.superedge_dict.values()}, \n  G={self.G}), "
+            f"\n  topological_order={self.topological_order}"
+        )
