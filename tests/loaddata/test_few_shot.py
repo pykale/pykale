@@ -11,7 +11,7 @@ from yacs.config import CfgNode
 from kale.loaddata.few_shot import NWayKShotDataset
 from kale.utils.download import download_file_by_url
 
-url = "https://github.com/pykale/data/raw/main/images/omniglot/omniglot_demo.zip"
+
 modes = ["train", "val", "test"]
 
 
@@ -19,7 +19,7 @@ modes = ["train", "val", "test"]
 def testing_cfg(download_path):
     cfg = CfgNode()
     cfg.DATASET = CfgNode()
-    cfg.DATASET.ROOT = os.path.join(download_path, "omniglot_demo")
+    cfg.DATASET.ROOT = str(Path(download_path) / "omniglot_demo")
     yield cfg
 
 
@@ -27,7 +27,7 @@ def testing_cfg(download_path):
 def test_n_way_k_shot(mode, testing_cfg):
     cfg = testing_cfg
     output_dir = str(Path(cfg.DATASET.ROOT).parent.absolute())
-    download_file_by_url(url=url, output_directory=output_dir, output_file_name="omniglot_demo.zip", file_format="zip")
+    
     transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
     k_shot = random.randint(1, 10)
     query_samples = random.randint(1, 10)
@@ -35,7 +35,6 @@ def test_n_way_k_shot(mode, testing_cfg):
     dataset = NWayKShotDataset(
         path=cfg.DATASET.ROOT, mode=mode, k_shot=k_shot, query_samples=query_samples, transform=transform
     )
-
     assert len(dataset) == len(dataset.classes) > 0
     assert isinstance(dataset._get_idx(0), np.ndarray)
     assert isinstance(dataset._sample_data(dataset._get_idx(0)), list)
