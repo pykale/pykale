@@ -94,6 +94,7 @@ def download_dti_data(save_path):
     for source_name in ["BindingDB_Kd", "BindingDB_Ki"]:
         _ = DTI(name=source_name, path=save_path)
 
+
 def download_omniglot_data(save_path):
     # Downloading Omniglot Dataset for tests/loaddata/test_few_shot.py test
     url = "https://github.com/pykale/data/raw/main/images/omniglot/omniglot_demo.zip"

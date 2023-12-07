@@ -1,4 +1,3 @@
-import os
 import random
 from pathlib import Path
 
@@ -9,8 +8,6 @@ from torchvision import transforms
 from yacs.config import CfgNode
 
 from kale.loaddata.few_shot import NWayKShotDataset
-from kale.utils.download import download_file_by_url
-
 
 modes = ["train", "val", "test"]
 
@@ -26,8 +23,7 @@ def testing_cfg(download_path):
 @pytest.mark.parametrize("mode", modes)
 def test_n_way_k_shot(mode, testing_cfg):
     cfg = testing_cfg
-    output_dir = str(Path(cfg.DATASET.ROOT).parent.absolute())
-    
+
     transform = transforms.Compose([transforms.Resize((224, 224)), transforms.ToTensor()])
     k_shot = random.randint(1, 10)
     query_samples = random.randint(1, 10)
