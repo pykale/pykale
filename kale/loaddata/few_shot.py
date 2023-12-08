@@ -56,8 +56,8 @@ class NWayKShotDataset(Dataset):
     Args:
         path (string): The root directory of the data.
         mode (string): The mode of the dataset. It can be 'train', 'val' or 'test'. Default: 'train'.
-        k_shot (int): Number of support examples per class in each episode. Default: 5.
-        query_samples (int): Number of query examples per class in each episode. Default: 15.
+        num_support_samples (int): Number of support examples per class in each episode. Default: 5.
+        num_query_samples (int): Number of query examples per class in each episode. Default: 15.
         transform (callable, optional): Optional transform to be applied on a sample. Default: None.
     """
 
@@ -65,15 +65,15 @@ class NWayKShotDataset(Dataset):
         self,
         path: str,
         mode: str = "train",
-        k_shot: int = 5,
-        query_samples: int = 15,
+        num_support_samples: int = 5,
+        num_query_samples: int = 15,
         transform: Optional[Callable] = None,
     ):
         super(NWayKShotDataset, self).__init__()
 
         self.root = path
-        self.k_shot = k_shot
-        self.query_samples = query_samples
+        self.num_support_samples = num_support_samples
+        self.num_query_samples = num_query_samples
         self.mode = mode
         self.transform = transform
         self.images = []  # type: list
@@ -81,7 +81,7 @@ class NWayKShotDataset(Dataset):
         self._load_data()
 
     def __len__(self):
-        # length of the dataset is the number of classes
+        # the length of the dataset is the number of classes
         return len(self.classes)
 
     def __getitem__(self, idx):
@@ -93,10 +93,10 @@ class NWayKShotDataset(Dataset):
         return images, idx
 
     def _get_idx(self, idx):
-        # get the indices of images for one class
+        # getting the indices of images for one class
         image_idx = np.random.choice(
             [i for (i, item) in enumerate(self.labels) if item == idx],
-            self.k_shot + self.query_samples,
+            self.num_support_samples + self.num_query_samples,
             replace=False,
         )
         return image_idx

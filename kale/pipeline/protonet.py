@@ -29,24 +29,24 @@ class ProtoNetTrainer(pl.LightningModule):
     def __init__(
         self,
         net: torch.nn.Module,
-        train_n_way: int = 30,
-        train_k_shot: int = 5,
-        train_k_query: int = 15,
-        val_n_way: int = 5,
-        val_k_shot: int = 5,
-        val_k_query: int = 15,
+        train_num_classes: int = 30,
+        train_num_support_samples: int = 5,
+        train_num_query_samples: int = 15,
+        val_num_classes: int = 5,
+        val_num_support_samples: int = 5,
+        val_num_query_samples: int = 15,
         devices: str = "cuda",
         optimizer: str = "SGD",
         lr: float = 0.001,
     ) -> None:
         super().__init__()
 
-        self.train_n_way = train_n_way
-        self.train_k_shot = train_k_shot
-        self.train_k_query = train_k_query
-        self.val_n_way = val_n_way
-        self.val_k_shot = val_k_shot
-        self.val_k_query = val_k_query
+        self.train_num_classes = train_num_classes
+        self.train_num_support_samples = train_num_support_samples
+        self.train_num_query_samples = train_num_query_samples
+        self.val_num_classes = val_num_classes
+        self.val_num_support_samples = val_num_support_samples
+        self.val_num_query_samples = val_num_query_samples
         self.devices = devices
         self.optimizer = optimizer
         self.lr = lr
@@ -55,17 +55,17 @@ class ProtoNetTrainer(pl.LightningModule):
         self.model = net
 
         # loss
-        self.loss_train = protonet_loss(n_ways=train_n_way, k_query=train_k_query, device=self.devices)
-        self.loss_val = protonet_loss(n_ways=val_n_way, k_query=val_k_query, device=self.devices)
+        self.loss_train = protonet_loss(num_classes=train_num_classes, num_query_samples=train_num_query_samples, device=self.devices)
+        self.loss_val = protonet_loss(num_classes=val_num_classes, num_query_samples=val_num_query_samples, device=self.devices)
 
-    def forward(self, x, k_shots, n_ways) -> torch.Tensor:
+    def forward(self, x, num_support_samples, num_classes) -> torch.Tensor:
         x = x.to(self.devices)
-        supports = x[0][0:k_shots]
-        queries = x[0][k_shots:]
+        supports = x[0][0:num_support_samples]
+        queries = x[0][num_support_samples:]
         for image in x[1:]:
-            supports = torch.cat((supports, image[0:k_shots]), dim=0)
-            queries = torch.cat((queries, image[k_shots:]), dim=0)
-        feature_support = self.model(supports).reshape(n_ways, k_shots, -1)
+            supports = torch.cat((supports, image[0:num_support_samples]), dim=0)
+            queries = torch.cat((queries, image[num_support_samples:]), dim=0)
+        feature_support = self.model(supports).reshape(num_classes, num_support_samples, -1)
         feature_query = self.model(queries)
         return feature_support, feature_query
 
@@ -93,7 +93,7 @@ class ProtoNetTrainer(pl.LightningModule):
          and on_validation_epoch_end().
         """
         images, _ = batch
-        feature_support, feature_query = self.forward(images, self.train_k_shot, self.train_n_way)
+        feature_support, feature_query = self.forward(images, self.train_num_support_samples, self.train_num_classes)
         loss, log_metrics = self.compute_loss(feature_support, feature_query, mode="train")
         self.log_dict(log_metrics, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
@@ -101,14 +101,14 @@ class ProtoNetTrainer(pl.LightningModule):
     def validation_step(self, batch: Any, batch_idx: int) -> None:
         """Compute and return the validation loss and log_metrics on one step."""
         images, _ = batch
-        feature_support, feature_query = self.forward(images, self.val_k_shot, self.val_n_way)
+        feature_support, feature_query = self.forward(images, self.val_num_support_samples, self.val_num_classes)
         _, log_metrics = self.compute_loss(feature_support, feature_query, mode="val")
         self.log_dict(log_metrics, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
     def test_step(self, batch: Any, batch_idx: int) -> None:
         """Compute and return the test loss and log_metrics on one step."""
         images, _ = batch
-        feature_support, feature_query = self.forward(images, self.val_k_shot, self.val_n_way)
+        feature_support, feature_query = self.forward(images, self.val_num_support_samples, self.val_num_classes)
         _, log_metrics = self.compute_loss(feature_support, feature_query, mode="val")
         self.log_dict(log_metrics, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 

@@ -47,12 +47,12 @@ def main():
 
     model = ProtoNetTrainer(
         net=net,
-        train_n_way=cfg.TRAIN.N_WAYS,
-        train_k_shot=cfg.TRAIN.K_SHOTS,
-        train_k_query=cfg.TRAIN.K_QUERIES,
-        val_n_way=cfg.VAL.N_WAYS,
-        val_k_shot=cfg.VAL.K_SHOTS,
-        val_k_query=cfg.VAL.K_QUERIES,
+        train_num_classes=cfg.TRAIN.N_WAYS,
+        train_num_support_samples=cfg.TRAIN.K_SHOTS,
+        train_num_query_samples=cfg.TRAIN.K_QUERIES,
+        val_num_classes=cfg.VAL.N_WAYS,
+        val_num_support_samples=cfg.VAL.K_SHOTS,
+        val_num_query_samples=cfg.VAL.K_QUERIES,
         devices=cfg.DEVICE,
         optimizer=cfg.TRAIN.OPTIMIZER,
         lr=cfg.TRAIN.LEARNING_RATE,
@@ -65,17 +65,17 @@ def main():
     train_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="train",
-        k_shot=cfg.TRAIN.K_SHOTS,
-        query_samples=cfg.TRAIN.K_QUERIES,
+        num_support_samples=cfg.TRAIN.K_SHOTS,
+        num_query_samples=cfg.TRAIN.K_QUERIES,
         transform=transform,
     )
     train_dataloader = DataLoader(train_set, batch_size=cfg.TRAIN.N_WAYS, shuffle=True, drop_last=True)
     val_set = NWayKShotDataset(
-        path=cfg.DATASET.ROOT, mode="val", k_shot=cfg.VAL.K_SHOTS, query_samples=cfg.VAL.K_QUERIES, transform=transform
+        path=cfg.DATASET.ROOT, mode="val", num_support_samples=cfg.VAL.K_SHOTS, num_query_samples=cfg.VAL.K_QUERIES, transform=transform
     )
     val_dataloader = DataLoader(val_set, batch_size=cfg.VAL.N_WAYS, drop_last=True)
     test_set = NWayKShotDataset(
-        path=cfg.DATASET.ROOT, mode="test", k_shot=cfg.VAL.K_SHOTS, query_samples=cfg.VAL.K_QUERIES, transform=transform
+        path=cfg.DATASET.ROOT, mode="test", num_support_samples=cfg.VAL.K_SHOTS, num_query_samples=cfg.VAL.K_QUERIES, transform=transform
     )
     test_dataloader = DataLoader(test_set, batch_size=cfg.VAL.N_WAYS, drop_last=True)
 
