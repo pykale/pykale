@@ -44,7 +44,7 @@ This data loader can be used on several few-shot learning datasets, such as mini
         └── ...
 </pre>
 
-### Example Running
+### Examples
 
 #### Single GPU training:
 
