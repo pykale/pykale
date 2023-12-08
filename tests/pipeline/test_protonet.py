@@ -24,14 +24,14 @@ def testing_cfg():
     _C.TRAIN.EPOCHS = 1
     _C.TRAIN.OPTIMIZER = "SGD"
     _C.TRAIN.LEARNING_RATE = 1e-3
-    _C.TRAIN.N_WAYS = 5
-    _C.TRAIN.K_SHOTS = 5
-    _C.TRAIN.K_QUERIES = 15
+    _C.TRAIN.NUM_CLASSES = 5
+    _C.TRAIN.NUM_SUPPORT_SAMPLES = 5
+    _C.TRAIN.NUM_QUERY_SAMPLES = 15
 
     _C.VAL = CfgNode()
-    _C.VAL.N_WAYS = 5
-    _C.VAL.K_SHOTS = 5
-    _C.VAL.K_QUERIES = 15
+    _C.VAL.NUM_CLASSES = 5
+    _C.VAL.NUM_SUPPORT_SAMPLES = 5
+    _C.VAL.NUM_QUERY_SAMPLES = 15
     yield _C.clone()
 
 
@@ -57,12 +57,12 @@ def test_protonet(mode, testing_cfg, dataloader):
     net = ResNet18Feature(weights=cfg.MODEL.PRETRAIN_WEIGHTS).to(cfg.DEVICE)
     model = ProtoNetTrainer(
         net=net,
-        train_n_way=cfg.TRAIN.N_WAYS,
-        train_k_shot=cfg.TRAIN.K_SHOTS,
-        train_k_query=cfg.TRAIN.K_QUERIES,
-        val_n_way=cfg.VAL.N_WAYS,
-        val_k_shot=cfg.VAL.K_SHOTS,
-        val_k_query=cfg.VAL.K_QUERIES,
+        train_num_classes=cfg.TRAIN.NUM_CLASSES,
+        train_num_support_samples=cfg.TRAIN.NUM_SUPPORT_SAMPLES,
+        train_num_query_samples=cfg.TRAIN.NUM_QUERY_SAMPLES,
+        val_num_classes=cfg.VAL.NUM_CLASSES,
+        val_num_support_samples=cfg.VAL.NUM_SUPPORT_SAMPLES,
+        val_num_query_samples=cfg.VAL.NUM_QUERY_SAMPLES,
         devices=cfg.DEVICE,
         optimizer=cfg.TRAIN.OPTIMIZER,
         lr=cfg.TRAIN.LEARNING_RATE,
@@ -71,10 +71,10 @@ def test_protonet(mode, testing_cfg, dataloader):
 
     if mode == "train":
         for images, _ in dataloader:
-            feature_sup, feature_que = model.forward(images, cfg.TRAIN.K_SHOTS, cfg.TRAIN.N_WAYS)
-            loss, metrics = model.compute_loss(feature_sup, feature_que, mode="train")
-            assert isinstance(feature_que, torch.Tensor)
-            assert isinstance(feature_sup, torch.Tensor)
+            feature_support, feature_query = model.forward(images, cfg.TRAIN.NUM_SUPPORT_SAMPLES, cfg.TRAIN.NUM_CLASSES)
+            loss, metrics = model.compute_loss(feature_support, feature_query, mode="train")
+            assert isinstance(feature_query, torch.Tensor)
+            assert isinstance(feature_support, torch.Tensor)
             assert isinstance(loss, torch.Tensor)
             assert isinstance(metrics, dict)
             break
