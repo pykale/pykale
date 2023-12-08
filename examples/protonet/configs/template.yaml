@@ -1,3 +1,7 @@
+"""
+This is a template config file for ProtoNet.
+Users can customize all hyperparameters for their own use cases.
+"""
 DATASET:
   ROOT: 'data/omniglot'
   IMG_SIZE: 84

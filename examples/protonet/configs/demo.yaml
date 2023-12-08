@@ -1,3 +1,10 @@
+"""
+This is a demo config file for ProtoNet in the few-shot learning.
+Users can customize the data and ouput paths for their own use cases.
+
+For more adjustable hyperparameters, please refer to template.yaml.
+
+"""
 DATASET:
   ROOT: 'data/omniglot'
 OUTPUT:
