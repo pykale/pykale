@@ -20,6 +20,7 @@ from torchvision.models import *
 from kale.embed.image_cnn import *
 from kale.loaddata.few_shot import NWayKShotDataset
 from kale.pipeline.protonet import ProtoNetTrainer
+from kale.prepdata.image_transform import get_transform
 
 
 def arg_parse():
@@ -60,9 +61,7 @@ def main():
     )
 
     # ---- set data loader ----
-    transform = transforms.Compose(
-        [transforms.Resize((cfg.DATASET.IMG_SIZE, cfg.DATASET.IMG_SIZE)), transforms.ToTensor()]
-    )
+    transform = get_transform(kind="omniglot", augment=False)
     train_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="train",
