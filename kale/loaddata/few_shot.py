@@ -58,7 +58,7 @@ class NWayKShotDataset(Dataset):
         mode (string): The mode of the dataset. It can be 'train', 'val' or 'test'. Default: 'train'.
         k_shot (int): Number of support examples per class in each episode. Default: 5.
         query_samples (int): Number of query examples per class in each episode. Default: 15.
-        transform (torchvision.transforms, optional): Optional transform to be applied on a sample. Default: None.
+        transform (callable, optional): Optional transform to be applied on a sample. Default: None.
     """
 
     def __init__(
