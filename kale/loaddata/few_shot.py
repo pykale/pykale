@@ -1,15 +1,21 @@
+"""
+Dataset for N-way K-shot setting in few-shot problems.
+
+"""
+
 import os
-from typing import Any
+from typing import Optional
 
 import numpy as np
 import torch
+# import torchvision
 from PIL import Image
 from torch.utils.data import Dataset
 
 
 class NWayKShotDataset(Dataset):
     """
-    It is used to load data for N-way K-shot learning using Prototypical Networks.
+    It is used to load data for N-way K-shot problems in few-shot learning.
 
     Note:
         The dataset should be organized as:
@@ -51,10 +57,17 @@ class NWayKShotDataset(Dataset):
         mode (string): The mode of the dataset. It can be 'train', 'val' or 'test'. Default: 'train'.
         k_shot (int): Number of support examples per class in each episode. Default: 5.
         query_samples (int): Number of query examples per class in each episode. Default: 15.
-        transform (callable, optional): Optional transform to be applied on a sample. Default: None.
+        transform (torchvision.transforms, optional): Optional transform to be applied on a sample. Default: None.
     """
 
-    def __init__(self, path: str, mode: str = "train", k_shot: int = 5, query_samples: int = 15, transform: Any = None):
+    def __init__(
+        self,
+        path: str,
+        mode: str = "train",
+        k_shot: int = 5,
+        query_samples: int = 15,
+        transform: Optional[callable] = None,
+    ):
         super(NWayKShotDataset, self).__init__()
 
         self.root = path
@@ -71,7 +84,7 @@ class NWayKShotDataset(Dataset):
         return len(self.classes)
 
     def __getitem__(self, idx):
-        # sample data for one class
+        # sampling data for one class
         image_idx = self._get_idx(idx)
         images = self._sample_data(image_idx)
         assert isinstance(images, list)
@@ -88,12 +101,12 @@ class NWayKShotDataset(Dataset):
         return image_idx
 
     def _sample_data(self, image_idx):
-        # sample data for one class
+        # sampling data for one class
         images = [self.transform(self.images[index]) if self.transform else self.images[index] for index in image_idx]
         return images
 
     def _load_data(self):
-        # load data from the root directory
+        # loading data from the root directory
         data_path = os.path.join(self.root, self.mode)
         classes = os.listdir(data_path)
         classes.sort()

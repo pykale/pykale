@@ -44,6 +44,7 @@ def main():
     net = eval(f"{cfg.MODEL.BACKBONE}(weights={cfg.MODEL.PRETRAIN_WEIGHTS})")
     if cfg.MODEL.BACKBONE.startswith("resnet"):
         net.fc = Flatten()
+
     model = ProtoNetTrainer(
         net=net,
         train_n_way=cfg.TRAIN.N_WAYS,

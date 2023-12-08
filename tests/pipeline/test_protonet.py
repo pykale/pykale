@@ -7,7 +7,6 @@ from yacs.config import CfgNode as CfgNode
 from kale.embed.image_cnn import ResNet18Feature
 from kale.pipeline.protonet import ProtoNetTrainer
 
-url = "https://github.com/pykale/data/raw/main/images/omniglot/omniglot_demo.zip"
 modes = ["train", "val", "test"]
 
 

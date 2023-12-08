@@ -65,25 +65,25 @@ class ProtoNetTrainer(pl.LightningModule):
         for image in x[1:]:
             supports = torch.cat((supports, image[0:k_shots]), dim=0)
             queries = torch.cat((queries, image[k_shots:]), dim=0)
-        feature_sup = self.model(supports).reshape(n_ways, k_shots, -1)
-        feature_que = self.model(queries)
-        return feature_sup, feature_que
+        feature_support = self.model(supports).reshape(n_ways, k_shots, -1)
+        feature_query = self.model(queries)
+        return feature_support, feature_query
 
-    def compute_loss(self, feature_sup, feature_que, mode="train") -> tuple:
+    def compute_loss(self, feature_support, feature_query, mode="train") -> tuple:
         """
         Compute loss and accuracy. Here we use the same loss function for both training and validation, which is related
          to Euclidean distance.
 
         Args:
-            feature_sup (torch.Tensor): Support features.
-            feature_que (torch.Tensor): Query features.
+            feature_support (torch.Tensor): Support features.
+            feature_query (torch.Tensor): Query features.
             mode (str): Mode of the trainer, "train", "val" or "test".
 
         Returns:
             loss (torch.Tensor): Loss value.
             return_dict (dict): Dictionary of loss and accuracy.
         """
-        loss, acc = eval(f"self.loss_{mode}")(feature_sup, feature_que)
+        loss, acc = eval(f"self.loss_{mode}")(feature_support, feature_query)
         return_dict = {"{}_loss".format(mode): loss.item(), "{}_acc".format(mode): acc}
         return loss, return_dict
 
@@ -94,28 +94,28 @@ class ProtoNetTrainer(pl.LightningModule):
          and on_validation_epoch_end().
         """
         images, _ = batch
-        feature_sup, feature_que = self.forward(images, self.train_k_shot, self.train_n_way)
-        loss, log_metrics = self.compute_loss(feature_sup, feature_que, mode="train")
+        feature_support, feature_query = self.forward(images, self.train_k_shot, self.train_n_way)
+        loss, log_metrics = self.compute_loss(feature_support, feature_query, mode="train")
         self.log_dict(log_metrics, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     def validation_step(self, batch: Any, batch_idx: int) -> None:
         """Compute and return the validation loss and log_metrics on one step."""
         images, _ = batch
-        feature_sup, feature_que = self.forward(images, self.val_k_shot, self.val_n_way)
-        _, log_metrics = self.compute_loss(feature_sup, feature_que, mode="val")
+        feature_support, feature_query = self.forward(images, self.val_k_shot, self.val_n_way)
+        _, log_metrics = self.compute_loss(feature_support, feature_query, mode="val")
         self.log_dict(log_metrics, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
     def test_step(self, batch: Any, batch_idx: int) -> None:
         """Compute and return the test loss and log_metrics on one step."""
         images, _ = batch
-        feature_sup, feature_que = self.forward(images, self.val_k_shot, self.val_n_way)
-        _, log_metrics = self.compute_loss(feature_sup, feature_que, mode="val")
+        feature_support, feature_query = self.forward(images, self.val_k_shot, self.val_n_way)
+        _, log_metrics = self.compute_loss(feature_support, feature_query, mode="val")
         self.log_dict(log_metrics, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         """
-        Configure optimizer for training. Can be modified to support different optimizers from torch.optim.
+        Configure optimizer for training. Can be modified to sipportport different optimizers from torch.optim.
         """
         optimizer = eval(f"torch.optim.{self.optimizer}")(self.model.parameters(), lr=self.lr)
         return optimizer
