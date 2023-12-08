@@ -1,5 +1,6 @@
 """
 This example is about training prototypical networks to perform N-Way-K-Shot problems.
+By default, this example uses the Omniglot dataset, which can be downloaded from https://github.com/brendenlake/omniglot.
 
 Reference:
     Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical Networks for Few-shot Learning. Advances in Neural Information Processing Systems, 30.
