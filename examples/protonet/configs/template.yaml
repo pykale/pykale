@@ -1,7 +1,5 @@
-"""
-This is a template config file for ProtoNet.
-Users can customize all hyperparameters for their own use cases.
-"""
+# This is a demo config file for protonet.
+# Users can modify all hyperparameters to train their own model.
 DATASET:
   ROOT: 'data/omniglot'
   IMG_SIZE: 84
@@ -12,13 +10,13 @@ TRAIN:
   EPOCHS: 100
   OPTIMIZER: 'Adam'
   LEARNING_RATE: 0.001
-  N_WAYS: 30
-  K_SHOTS: 5
-  K_QUERIES: 15
+  NUM_CLASSES: 30
+  NUM_SUPPORT_SAMPLES: 5
+  NUM_QUERY_SAMPLES: 15
 VAL:
-  N_WAYS: 5
-  K_SHOTS: 5
-  K_QUERIES: 15
+  NUM_CLASSES: 5
+  NUM_SUPPORT_SAMPLES: 5
+  NUM_QUERY_SAMPLES: 15
 OUTPUT:
   OUT_DIR: 'outputs'
   LOG_DIR: 'logs'

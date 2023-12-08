@@ -28,16 +28,16 @@ _C.TRAIN = CfgNode()
 _C.TRAIN.EPOCHS = 100
 _C.TRAIN.OPTIMIZER = "SGD"
 _C.TRAIN.LEARNING_RATE = 1e-3
-_C.TRAIN.N_WAYS = 30
-_C.TRAIN.K_SHOTS = 5
-_C.TRAIN.K_QUERIES = 15
+_C.TRAIN.NUM_CLASSES = 30
+_C.TRAIN.NUM_SUPPORT_SAMPLES = 5
+_C.TRAIN.NUM_QUERY_SAMPLES = 15
 # ---------------------------------------------------------------------------- #
 # Validation and Test
 # ---------------------------------------------------------------------------- #
 _C.VAL = CfgNode()
-_C.VAL.N_WAYS = 5
-_C.VAL.K_SHOTS = 5
-_C.VAL.K_QUERIES = 15
+_C.VAL.NUM_CLASSES = 5
+_C.VAL.NUM_SUPPORT_SAMPLES = 5
+_C.VAL.NUM_QUERY_SAMPLES = 15
 # ---------------------------------------------------------------------------- #
 # Logger
 # ---------------------------------------------------------------------------- #
