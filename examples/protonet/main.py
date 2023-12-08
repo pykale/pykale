@@ -48,12 +48,12 @@ def main():
 
     model = ProtoNetTrainer(
         net=net,
-        train_num_classes=cfg.TRAIN.N_WAYS,
-        train_num_support_samples=cfg.TRAIN.K_SHOTS,
-        train_num_query_samples=cfg.TRAIN.K_QUERIES,
-        val_num_classes=cfg.VAL.N_WAYS,
-        val_num_support_samples=cfg.VAL.K_SHOTS,
-        val_num_query_samples=cfg.VAL.K_QUERIES,
+        train_num_classes=cfg.TRAIN.NUM_CLASSES,
+        train_num_support_samples=cfg.TRAIN.NUM_SUPPORT_SAMPLES,
+        train_num_query_samples=cfg.TRAIN.NUM_QUERY_SAMPLES,
+        val_num_classes=cfg.VAL.NUM_CLASSES,
+        val_num_support_samples=cfg.VAL.NUM_SUPPORT_SAMPLES,
+        val_num_query_samples=cfg.VAL.NUM_QUERY_SAMPLES,
         devices=cfg.DEVICE,
         optimizer=cfg.TRAIN.OPTIMIZER,
         lr=cfg.TRAIN.LEARNING_RATE,
@@ -66,27 +66,27 @@ def main():
     train_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="train",
-        num_support_samples=cfg.TRAIN.K_SHOTS,
-        num_query_samples=cfg.TRAIN.K_QUERIES,
+        num_support_samples=cfg.TRAIN.NUM_SUPPORT_SAMPLES,
+        num_query_samples=cfg.TRAIN.NUM_QUERY_SAMPLES,
         transform=transform,
     )
-    train_dataloader = DataLoader(train_set, batch_size=cfg.TRAIN.N_WAYS, shuffle=True, drop_last=True)
+    train_dataloader = DataLoader(train_set, batch_size=cfg.TRAIN.NUM_CLASSES, shuffle=True, drop_last=True)
     val_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="val",
-        num_support_samples=cfg.VAL.K_SHOTS,
-        num_query_samples=cfg.VAL.K_QUERIES,
+        num_support_samples=cfg.VAL.NUM_SUPPORT_SAMPLES,
+        num_query_samples=cfg.VAL.NUM_QUERY_SAMPLES,
         transform=transform,
     )
-    val_dataloader = DataLoader(val_set, batch_size=cfg.VAL.N_WAYS, drop_last=True)
+    val_dataloader = DataLoader(val_set, batch_size=cfg.VAL.NUM_CLASSES, drop_last=True)
     test_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="test",
-        num_support_samples=cfg.VAL.K_SHOTS,
-        num_query_samples=cfg.VAL.K_QUERIES,
+        num_support_samples=cfg.VAL.NUM_SUPPORT_SAMPLES,
+        num_query_samples=cfg.VAL.NUM_QUERY_SAMPLES,
         transform=transform,
     )
-    test_dataloader = DataLoader(test_set, batch_size=cfg.VAL.N_WAYS, drop_last=True)
+    test_dataloader = DataLoader(test_set, batch_size=cfg.VAL.NUM_CLASSES, drop_last=True)
 
     # ---- set logger ----
     experiment_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
