@@ -16,7 +16,7 @@ from torch.utils.data import Dataset
 
 class NWayKShotDataset(Dataset):
     """
-    It is used to load data for N-way K-shot problems in few-shot learning.
+    It loads data for N-way K-shot problems in few-shot learning.
 
     Note:
         The dataset should be organized as:

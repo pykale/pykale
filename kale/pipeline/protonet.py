@@ -1,14 +1,14 @@
 # =============================================================================
-# Author: Wenrui Fan, wenrui.fan@sheffield.ac.uk
+# Author: Wenrui Fan, winslow.fan@outlook.com
 # =============================================================================
 
 """ProtoNet trainer (pipelines)
 
-This module contains the ProtoNet trainer class and its related functions. It is used to train the ProtoNet model in N-way-k-shot problems.
+This module contains the ProtoNet trainer class and its related functions. It trains the ProtoNet model in N-way-k-shot problems.
 
-This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>` to standardize the flow.
+This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>` to standardize the workflow.
 
-This is a modified version of original prototypical networks for few-shot learning projects from https://github.com/jakesnell/prototypical-networks.
+This is a modified version of the original prototypical neural networks for few-shot learning projects from https://github.com/jakesnell/prototypical-networks.
 """
 
 from typing import Any
