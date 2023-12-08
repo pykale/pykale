@@ -4,7 +4,7 @@
 
 This example demonstrates how to implement [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks) within the PyKale pipeline using PyTorch-Lightning. Below, we offer guidance on how to use ProtoNet effectively.
 
-ProtoNet is designed for the few-shot learning under N-Way-K-Shot setting. 
+ProtoNet is designed for the few-shot learning under N-Way-K-Shot setting.
 
 - N-way: This refers to the number of different classes or categories involved in a learning task. For example, in a 5-way problem, the model is presented with instances from 5 different classes.
 

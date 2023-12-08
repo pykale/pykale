@@ -16,7 +16,7 @@ from torch.utils.data import Dataset
 class NWayKShotDataset(Dataset):
     """
     It loads data for N-way K-shot problems in few-shot learning.
-    
+
     - N-way: This refers to the number of different classes or categories involved in a learning task. For example, in a 5-way problem, the model is presented with instances from 5 different classes.
 
     - K-shot: This indicates the number of examples (or "shots") from each class that the model has access to for learning. In a 1-shot learning task, the model gets only one example per class, while in a 3-shot task, it gets three examples per class.

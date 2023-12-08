@@ -55,8 +55,12 @@ class ProtoNetTrainer(pl.LightningModule):
         self.model = net
 
         # loss
-        self.loss_train = protonet_loss(num_classes=train_num_classes, num_query_samples=train_num_query_samples, device=self.devices)
-        self.loss_val = protonet_loss(num_classes=val_num_classes, num_query_samples=val_num_query_samples, device=self.devices)
+        self.loss_train = protonet_loss(
+            num_classes=train_num_classes, num_query_samples=train_num_query_samples, device=self.devices
+        )
+        self.loss_val = protonet_loss(
+            num_classes=val_num_classes, num_query_samples=val_num_query_samples, device=self.devices
+        )
 
     def forward(self, x, num_support_samples, num_classes) -> torch.Tensor:
         x = x.to(self.devices)

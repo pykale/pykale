@@ -72,11 +72,19 @@ def main():
     )
     train_dataloader = DataLoader(train_set, batch_size=cfg.TRAIN.N_WAYS, shuffle=True, drop_last=True)
     val_set = NWayKShotDataset(
-        path=cfg.DATASET.ROOT, mode="val", num_support_samples=cfg.VAL.K_SHOTS, num_query_samples=cfg.VAL.K_QUERIES, transform=transform
+        path=cfg.DATASET.ROOT,
+        mode="val",
+        num_support_samples=cfg.VAL.K_SHOTS,
+        num_query_samples=cfg.VAL.K_QUERIES,
+        transform=transform,
     )
     val_dataloader = DataLoader(val_set, batch_size=cfg.VAL.N_WAYS, drop_last=True)
     test_set = NWayKShotDataset(
-        path=cfg.DATASET.ROOT, mode="test", num_support_samples=cfg.VAL.K_SHOTS, num_query_samples=cfg.VAL.K_QUERIES, transform=transform
+        path=cfg.DATASET.ROOT,
+        mode="test",
+        num_support_samples=cfg.VAL.K_SHOTS,
+        num_query_samples=cfg.VAL.K_QUERIES,
+        transform=transform,
     )
     test_dataloader = DataLoader(test_set, batch_size=cfg.VAL.N_WAYS, drop_last=True)
 
