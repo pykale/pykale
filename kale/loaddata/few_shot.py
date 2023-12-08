@@ -4,10 +4,11 @@ Dataset for N-way K-shot setting in few-shot problems.
 """
 
 import os
-from typing import Optional
+from typing import Callable, Optional
 
 import numpy as np
 import torch
+
 # import torchvision
 from PIL import Image
 from torch.utils.data import Dataset
@@ -66,7 +67,7 @@ class NWayKShotDataset(Dataset):
         mode: str = "train",
         k_shot: int = 5,
         query_samples: int = 15,
-        transform: Optional[callable] = None,
+        transform: Optional[Callable] = None,
     ):
         super(NWayKShotDataset, self).__init__()
 

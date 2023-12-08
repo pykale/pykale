@@ -71,8 +71,7 @@ class ProtoNetTrainer(pl.LightningModule):
 
     def compute_loss(self, feature_support, feature_query, mode="train") -> tuple:
         """
-        Compute loss and accuracy. Here we use the same loss function for both training and validation, which is related
-         to Euclidean distance.
+        Compute loss and accuracy. Here we use the same loss function for both training and validation, which is related to Euclidean distance.
 
         Args:
             feature_support (torch.Tensor): Support features.
