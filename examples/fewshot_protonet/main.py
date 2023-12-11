@@ -10,18 +10,14 @@ By default, this example uses the Omniglot dataset, which can be downloaded from
 Reference:
     Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical Networks for Few-shot Learning. Advances in Neural Information Processing Systems, 30.
 """
-import sys
-sys.path.append("/home/wenrui/Projects/pykale/")
 import argparse
 import os
 from datetime import datetime
-from typing import Any
+from typing import Optional
 
 import pytorch_lightning as pl
-import torch
 from config import get_cfg_defaults
 from torch.utils.data import DataLoader
-from torchvision import transforms
 from torchvision.models import *
 
 from kale.embed.image_cnn import *
@@ -34,7 +30,7 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="Args of ProtoNet")
     parser.add_argument("--cfg", default="configs/demo.yaml", type=str)
     parser.add_argument("--devices", default=1, type=int)
-    parser.add_argument("--ckpt", default="", type=str)
+    parser.add_argument("--ckpt", default=None, type=Optional[str])
     args = parser.parse_args()
     return args
 

@@ -300,18 +300,15 @@ class protonet_loss:
         Advances in Neural Information Processing Systems, 30.
     """
 
-    def __init__(self,
-                 num_classes: int = 5,
-                 num_query_samples: int = 15,
-                 device: torch.device = torch.device("cpu")) -> None:
+    def __init__(
+        self, num_classes: int = 5, num_query_samples: int = 15, device: torch.device = torch.device("cpu")
+    ) -> None:
         super().__init__()
         self.num_classes = num_classes
         self.num_query_samples = num_query_samples
         self.device = device
 
-    def __call__(self,
-                 feature_support: torch.Tensor,
-                 feature_query: torch.Tensor) -> (torch.Tensor, torch.Tensor):
+    def __call__(self, feature_support: torch.Tensor, feature_query: torch.Tensor) -> tuple:
         """
         Args:
             feature_support (torch.Tensor): shape (num_classes, k_shot, feature_dim)
@@ -336,9 +333,7 @@ class protonet_loss:
         acc = torch.eq(y_hat, labels.squeeze()).float().mean()
         return loss, acc
 
-    def euclidean_dist_for_tensor_group(self,
-                                        x: torch.Tensor,
-                                        y: torch.Tensor) -> torch.Tensor:
+    def euclidean_dist_for_tensor_group(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """
         Compute Euclidean distance between two groups of tensors.
 
