@@ -61,7 +61,7 @@ def main():
     )
 
     # ---- set data loader ----
-    transform = get_transform(kind="omniglot", augment=False)
+    transform = get_transform(kind="few-shot", augment=False)
     train_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="train",

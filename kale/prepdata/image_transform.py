@@ -87,7 +87,7 @@ def get_transform(kind, augment=False):
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ]
         )
-    elif kind == "omniglot":
+    elif kind == "few-shot":
         # The image size is fixed to 224x224. If needed, we can add an argument about image_size.
         transform = transforms.Compose(
             [
