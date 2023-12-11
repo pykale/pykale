@@ -14,7 +14,7 @@ modes = ["train", "val", "test"]
 def testing_cfg():
     _C = CfgNode()
     _C.SEED = 1397
-    _C.DEVICE = "cpu"
+    _C.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
     _C.MODEL = CfgNode()
     _C.MODEL.BACKBONE = "ResNet18Feature"

@@ -64,13 +64,14 @@ def test_multitask_topk_accuracy():
 
 
 def test_proto_loss():
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     num_classes = random.randint(1, 10)
     num_support_samples = random.randint(1, 10)
     num_query_samples = random.randint(1, 10)
     n_dim = random.randint(1, 512)
     feature_support = torch.rand(num_classes, num_support_samples, n_dim)
     feature_query = torch.rand(num_classes * num_query_samples, n_dim)
-    loss_fn = protonet_loss(num_classess=num_classes, num_query_samples=num_query_samples, device="cpu")
+    loss_fn = protonet_loss(num_classes=num_classes, num_query_samples=num_query_samples, device=device)
     loss, acc = loss_fn(feature_support, feature_query)
     assert isinstance(loss, torch.Tensor)
     assert isinstance(acc, torch.Tensor)
