@@ -85,9 +85,9 @@ If no `test` folder in the custom dataset, choose one of the following options:
 
 ## 3. Related `kale` API
 
-- `kale.loaddata.n_way_k_shot`: Dataset class for N-way-K-shot problems.
+- `kale.loaddata.few_shot`: Dataset class for N-way-K-shot problems.
 - `kale.embed.image_cnn`: Resnet feature extractors.
-- `kale.pipeline.protonet`: ProtoNet trainer in pl.LightningModule class.
+- `kale.pipeline.fewshot_trainer`: ProtoNet trainer in pl.LightningModule class.
 - `kale.predict.losses.proto_loss`: Compute the loss and accuracy for protonet.
 
 ## Reference
