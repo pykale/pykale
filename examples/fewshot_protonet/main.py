@@ -10,6 +10,8 @@ By default, this example uses the Omniglot dataset, which can be downloaded from
 Reference:
     Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical Networks for Few-shot Learning. Advances in Neural Information Processing Systems, 30.
 """
+import sys
+sys.path.append("/home/wenrui/Projects/pykale/kale")
 import argparse
 import os
 from datetime import datetime
