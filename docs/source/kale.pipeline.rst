@@ -62,10 +62,10 @@ kale.pipeline.video\_domain\_adapter module
    :undoc-members:
    :show-inheritance:
 
-kale.pipeline.protonet module
+kale.pipeline.fewshot\_trainer module
 -------------------------------------------
 
-.. automodule:: kale.pipeline.protonet
+.. automodule:: kale.pipeline.fewshot_trainer
    :members:
    :undoc-members:
    :show-inheritance:

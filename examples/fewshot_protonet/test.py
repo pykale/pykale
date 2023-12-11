@@ -19,7 +19,7 @@ from torchvision.models import *
 
 from kale.embed.image_cnn import *
 from kale.loaddata.few_shot import NWayKShotDataset
-from kale.pipeline.protonet import ProtoNetTrainer
+from kale.pipeline.fewshot_trainer import ProtoNetTrainer
 
 
 def arg_parse():

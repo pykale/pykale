@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from yacs.config import CfgNode as CfgNode
 
 from kale.embed.image_cnn import ResNet18Feature
-from kale.pipeline.protonet import ProtoNetTrainer
+from kale.pipeline.fewshot_trainer import ProtoNetTrainer
 
 modes = ["train", "val", "test"]
 
