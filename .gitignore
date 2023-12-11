@@ -42,7 +42,7 @@ docs/source/backup
 cov*.xml
 tests/test_data
 tests/*/tests
-bin/
+
 
 # Lightning
 lightning_logs
