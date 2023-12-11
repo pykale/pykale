@@ -11,7 +11,7 @@ Reference:
     Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical Networks for Few-shot Learning. Advances in Neural Information Processing Systems, 30.
 """
 import sys
-sys.path.append("/home/wenrui/Projects/pykale/kale")
+sys.path.append("/home/wenrui/Projects/pykale/")
 import argparse
 import os
 from datetime import datetime

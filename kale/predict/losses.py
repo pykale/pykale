@@ -286,13 +286,13 @@ class protonet_loss:
     Bacause the loss requests some constant hyperparameters, it is not a general function but defined as a class.
 
     Args:
-        n_ways (int): Number of classes in a task
-        k_query (int): Number of query samples per class
+        num_classes (int): Number of classes in a task
+        num_query_samples (int): Number of query samples per class
         device (torch.device): The desired device of returned tensor
 
     Examples:
-        >>> loss_fn = protonet_loss(n_ways=5, k_query=15, device=torch.device("cuda"))
-        >>> loss, acc = loss_fn(feature_sup, feature_que)
+        >>> loss_fn = protonet_loss(num_classes=5, num_query_samples=15, device=torch.device("cuda"))
+        >>> loss, acc = loss_fn(feature_support, feature_query)
 
 
     Reference:
@@ -300,38 +300,45 @@ class protonet_loss:
         Advances in Neural Information Processing Systems, 30.
     """
 
-    def __init__(self, **kwarg):
+    def __init__(self,
+                 num_classes: int = 5,
+                 num_query_samples: int = 15,
+                 device: torch.device = torch.device("cpu")) -> None:
         super().__init__()
-        self.n_ways = kwarg["n_ways"]
-        self.k_query = kwarg["k_query"]
-        self.device = kwarg["device"]
+        self.num_classes = num_classes
+        self.num_query_samples = num_query_samples
+        self.device = device
 
-    def __call__(self, feature_sup, feature_que):
+    def __call__(self,
+                 feature_support: torch.Tensor,
+                 feature_query: torch.Tensor) -> (torch.Tensor, torch.Tensor):
         """
         Args:
-            feature_sup (torch.Tensor): shape (n_ways, k_shot, feature_dim)
-            feature_que (torch.Tensor): shape (n_ways * k_query, feature_dim)
+            feature_support (torch.Tensor): shape (num_classes, k_shot, feature_dim)
+            feature_query (torch.Tensor): shape (num_classes * num_query_samples, feature_dim)
 
         Returns:
             tuple: (loss_val, acc_val)
             loss_val (torch.Tensor): loss value
             acc_val (torch.Tensor): accuracy value
         """
-        feature_sup = feature_sup.to(self.device)
-        feature_que = feature_que.to(self.device)
-        prototypes = feature_sup.mean(dim=1)
-        dists = self.euclidean_dist_for_tensor_group(feature_que, prototypes)
+        feature_support = feature_support.to(self.device)
+        feature_query = feature_query.to(self.device)
+        prototypes = feature_support.mean(dim=1)
+        dists = self.euclidean_dist_for_tensor_group(feature_query, prototypes)
         log_p_y = F.log_softmax(-dists, dim=1)
-        log_p_y = log_p_y.view(self.n_ways, self.k_query, -1)
-        labels = torch.arange(self.n_ways).to(self.device)
-        labels = labels.view(self.n_ways, 1, 1)
-        labels = labels.expand(self.n_ways, self.k_query, 1).long()
+        log_p_y = log_p_y.view(self.num_classes, self.num_query_samples, -1)
+        labels = torch.arange(self.num_classes).to(self.device)
+        labels = labels.view(self.num_classes, 1, 1)
+        labels = labels.expand(self.num_classes, self.num_query_samples, 1).long()
         loss = -log_p_y.gather(2, labels).squeeze().view(-1).mean()
         _, y_hat = log_p_y.max(2)
         acc = torch.eq(y_hat, labels.squeeze()).float().mean()
         return loss, acc
 
-    def euclidean_dist_for_tensor_group(self, x, y):
+    def euclidean_dist_for_tensor_group(self,
+                                        x: torch.Tensor,
+                                        y: torch.Tensor) -> torch.Tensor:
         """
         Compute Euclidean distance between two groups of tensors.
 
