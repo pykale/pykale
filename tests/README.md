@@ -19,9 +19,9 @@ These guidelines will help you to write tests to address sufficiently compact pi
 
 See more details below, particularly [test data](#test-data), [common parameters](#common-parameters), and [running tests locally](#running-tests-locally).
 
-## Test pipeline
+## Test workflow
 
-The test pipeline is defined in [`pykale/.github/workflows/test.yml`](https://github.com/pykale/pykale/blob/main/.github/workflows/test.yml). It is triggered on every pull request and every push to the main branch, and we also run it at midnight (UK time) each day.
+The test workflow is defined in [`pykale/.github/workflows/test.yml`](https://github.com/pykale/pykale/blob/main/.github/workflows/test.yml). It is triggered on every pull request and every push to the main branch, and we also run it at midnight (UK time) each day.
 
 To minimize additional downloading time, test data and pip packages, once downloaded, are stored in the [GitHub Actions Caches](https://github.com/pykale/pykale/actions/caches) for future reuse. Test data caching uses strict matching of the cache key, meaning any change in `tests/download_test_data.py` will update the cache. For efficiency, pip package caching uses soft matching, resulting in cache updates driven by both the date tag and any modifications in `**/setup.py`.
 
