@@ -19,9 +19,13 @@ These guidelines will help you to write tests to address sufficiently compact pi
 
 See more details below, particularly [test data](#test-data), [common parameters](#common-parameters), and [running tests locally](#running-tests-locally).
 
+## Test Pipeline
+
+The test pipeline is defined in [`pykale/.github/workflows/test.yml`](https://github.com/pykale/pykale/blob/main/.github/workflows/test.yml). It runs on every pull request, push to the main branch and every midnight. Downloaded test data and pip packages are cached in the GitHub Actions runner. Please note strict matching of the cache key is used to test data and a softer matching is used to pip packages for efficiency.
+
 ## Test data
 
-Data needed for testing should be uploaded to [pykale/data](https://github.com/pykale/data) (preferred) or other external sources, and **automatically downloaded** via `download_file_by_url` from `kale.utils.download` during tests to `tests/test_data` as defined `download_path` of [`tests/conftest.py`](https://github.com/pykale/pykale/blob/main/tests/conftest.py). More complex test data requirements for your **pull request** can be discussed in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
+Data needed for testing should be uploaded to [pykale/data](https://github.com/pykale/data) (preferred) or other external sources. All data downloading processes should be included in [download_test_data.py](https://github.com/pykale/pykale/blob/refine_test_readme/tests/download_test_data.py). It is recommended to use `download_file_by_url` from `kale.utils.download` for downloading data during tests to `tests/test_data`, as defined `download_path` of [`tests/conftest.py`](https://github.com/pykale/pykale/blob/main/tests/conftest.py). More complex test data requirements for your **pull request** can be discussed in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
 
 ## Common parameters
 
