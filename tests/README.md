@@ -27,7 +27,7 @@ To minimise additional downloading time, test data and pip packages once downloa
 
 ## Test data
 
-Data needed for testing should be uploaded to [pykale/data](https://github.com/pykale/data) (preferred) or other external sources. All data downloading processes should be included in [download_test_data.py](https://github.com/pykale/pykale/blob/refine_test_readme/tests/download_test_data.py). It is recommended to use `download_file_by_url` from `kale.utils.download` for downloading data during tests to `tests/test_data`, as defined `download_path` of [`tests/conftest.py`](https://github.com/pykale/pykale/blob/main/tests/conftest.py). More complex test data requirements for your **pull request** can be discussed in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
+Data needed for testing should be uploaded to [pykale/data](https://github.com/pykale/data) (preferred) or other external sources. All data downloading processes should be included in [`tests/download_test_data.py`](https://github.com/pykale/pykale/blob/refine_test_readme/tests/download_test_data.py). It is recommended to use `download_file_by_url` from `kale.utils.download` for downloading data during tests to `tests/test_data`, as defined `download_path` of [`tests/conftest.py`](https://github.com/pykale/pykale/blob/main/tests/conftest.py). More complex test data requirements for your **pull request** can be discussed in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
 
 ## Common parameters
 
