@@ -21,7 +21,9 @@ See more details below, particularly [test data](#test-data), [common parameters
 
 ## Test Pipeline
 
-The test pipeline is defined in [`pykale/.github/workflows/test.yml`](https://github.com/pykale/pykale/blob/main/.github/workflows/test.yml). It runs on every pull request, push to the main branch and every midnight. Downloaded test data and pip packages are cached in the GitHub Actions runner. Please note strict matching of the cache key is used to test data and a softer matching is used to pip packages for efficiency.
+The test pipeline is defined in [`pykale/.github/workflows/test.yml`](https://github.com/pykale/pykale/blob/main/.github/workflows/test.yml). It is triggered on every pull request, push to the main branch and at midnight each day.
+
+To minimise additional downloading time, test data and pip packages once downloaded are stored in the [GitHub Actions Caches](https://github.com/pykale/pykale/actions/caches) for future reuse. Test data caching uses strict matching of the cache key, meaning any change in `tests/download_test_data.py` will update the cache. For efficiency, pip package caching uses soft matching, resulting in cache updates driven by both the date tag and any modifications in `**/setup.py`.
 
 ## Test data
 
