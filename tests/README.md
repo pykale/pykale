@@ -19,7 +19,7 @@ These guidelines will help you to write tests to address sufficiently compact pi
 
 See more details below, particularly [test data](#test-data), [common parameters](#common-parameters), and [running tests locally](#running-tests-locally).
 
-## Test Pipeline
+## Test pipeline
 
 The test pipeline is defined in [`pykale/.github/workflows/test.yml`](https://github.com/pykale/pykale/blob/main/.github/workflows/test.yml). It is triggered on every pull request, push to the main branch and at midnight each day.
 
