@@ -19,9 +19,15 @@ These guidelines will help you to write tests to address sufficiently compact pi
 
 See more details below, particularly [test data](#test-data), [common parameters](#common-parameters), and [running tests locally](#running-tests-locally).
 
+## Test workflow
+
+The test workflow is defined in [`pykale/.github/workflows/test.yml`](https://github.com/pykale/pykale/blob/main/.github/workflows/test.yml). It is triggered on every pull request and every push to the main branch, and we also run it at midnight (UK time) each day.
+
+To minimize additional downloading time, test data and pip packages, once downloaded, are stored in the [GitHub Actions Caches](https://github.com/pykale/pykale/actions/caches) for future reuse. Test data caching uses strict matching of the cache key, meaning any change in `tests/download_test_data.py` will update the cache. For efficiency, pip package caching uses soft matching, resulting in cache updates driven by both the date tag and any modifications in `**/setup.py`.
+
 ## Test data
 
-Data needed for testing should be uploaded to [pykale/data](https://github.com/pykale/data) (preferred) or other external sources, and **automatically downloaded** via `download_file_by_url` from `kale.utils.download` during tests to `tests/test_data` as defined `download_path` of [`tests/conftest.py`](https://github.com/pykale/pykale/blob/main/tests/conftest.py). More complex test data requirements for your **pull request** can be discussed in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
+Data needed for testing should be uploaded to [pykale/data](https://github.com/pykale/data) (preferred) or other external sources. All data downloading processes should be included in [`tests/download_test_data.py`](https://github.com/pykale/pykale/blob/refine_test_readme/tests/download_test_data.py). It is recommended to use `download_file_by_url` from `kale.utils.download` for downloading data during tests to `tests/test_data`, as defined `download_path` of [`tests/conftest.py`](https://github.com/pykale/pykale/blob/main/tests/conftest.py). More complex test data requirements for your **pull request** can be discussed in the motivating **issue** or [pykale discussions on testing](https://github.com/pykale/pykale/discussions/categories/testing).
 
 ## Common parameters
 
