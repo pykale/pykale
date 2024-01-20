@@ -1,8 +1,8 @@
-# =============================================================================
+# ==============================================================================
 # Author: Wenrui Fan, winslow.fan@outlook.com
-# =============================================================================
+# ==============================================================================
 
-"""ProtoNet trainer (pipelines)
+"""ProtoNet Trainer (pipelines)
 
 This module contains the ProtoNet trainer class and its related functions. It trains the ProtoNet model in N-way-k-shot problems.
 
@@ -21,9 +21,21 @@ from kale.predict.losses import protonet_loss
 
 class ProtoNetTrainer(pl.LightningModule):
     """ProtoNet trainer class
+    This class trains the ProtoNet model in few-shot learning problems.
+    It uses `PyTorch Lightning` to standardize the workflow.
+    Nothing should be changed except updating the protonet_loss function in kale.predict.losses.
 
     Args:
-        model (torch.nn.Module): A feature extractor replaced classfier with a flatten layer. Output 1-D feature vectors.
+        net (torch.nn.Module): A feature extractor, whose classifier layer should be removed. It outputs a 1-D feature vector.
+        train_num_classes (int): Number of classes in training.
+        train_num_support_samples (int): Number of support samples per class in training.
+        train_num_query_samples (int): Number of query samples per class in training.
+        val_num_classes (int): Number of classes in validation.
+        val_num_support_samples (int): Number of support samples per class in validation.
+        val_num_query_samples (int): Number of query samples per class in validation.
+        devices (str): Devices used for training. Default: "cuda".
+        optimizer (str): Optimizer used for training. Default: "SGD".
+        lr (float): Learning rate. Default: 0.001.
     """
 
     def __init__(

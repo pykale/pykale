@@ -2,19 +2,19 @@
 
 ### 1. Description
 
-This example demonstrates how to implement [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks) within the PyKale pipeline using PyTorch-Lightning. Below, we offer guidance on how to use ProtoNet effectively.
+This guide elucidates the process of integrating Prototypical Networks for Few-shot Learning within the PyKale framework, utilizing PyTorch-Lightning. Subsequent sections provide detailed instructions on the effective utilization of ProtoNet.
 
-ProtoNet is designed for the few-shot learning under N-Way-K-Shot setting.
+ProtoNet is specifically engineered for few-shot learning in an $N$-Way-$K$-Shot paradigm:
 
-- N-way: This refers to the number of different classes or categories involved in a learning task. For example, in a 5-way problem, the model is presented with instances from 5 different classes.
+$N$-way: This term delineates the number of distinct classes or categories encompassed in a given learning task. For instance, within a 5-way scenario, the model encounters instances emanating from five disparate classes.
 
-- K-shot: This indicates the number of examples (or "shots") from each class that the model has access to for learning. In a 1-shot learning task, the model gets only one example per class, while in a 3-shot task, it gets three examples per class.
+$K$-shot: This concept pertains to the quantity of exemplars (referred to as "shots") from each class that are accessible to the model for the learning process. A 1-shot learning task furnishes the model with a singular example per class, whereas a 3-shot task provides three examples per class.
 
 ## 2. Usage
 
 ### Datasets
 
-This data loader can be used on several few-shot learning datasets, such as mini-ImageNet, tiered-ImageNet and Omniglot, etc. (For some datasets, they need to be refactored as follows.)
+This data loader can be used on several few-shot learning datasets, such as [mini-ImageNet](https://www.kaggle.com/datasets/arjunashok33/miniimagenet), [tiered-ImageNet](https://www.kaggle.com/datasets/arjun2000ashok/tieredimagenet) and [Omniglot](https://github.com/brendenlake/omniglot), etc. (For some datasets, they need to be refactored as follows.)
 
 <pre>
 └── root
@@ -62,9 +62,9 @@ Customized running
 
 `python main.py --cfg configs/{dataset name}_{backbone}_{n}way{k}shot.yaml --gpus 1`
 
-- Define a customized config file by users. Fill in the blank in {} in the above command.
+- Define a customized configuration file. Fill in the blank in {} in the above command.
 - Available backbones: any `resnet` structures from `torchvision.models` or `kale.embed.image_cnn`.
-- Example configurations can be found in `config/omniglot_resnet18_5way5shot.yaml` and `config/omniglot_resnet18_5way1shot.yaml`.
+- Example configurations can be found in `configs/omniglot_resnet18_5way5shot.yaml` and `configs/omniglot_resnet18_5way1shot.yaml`.
 - Remember to change `DATASET.ROOT` item in config files to fit your dataset directory.
 
 #### Test
@@ -85,12 +85,13 @@ If no `test` folder in the custom dataset, choose one of the following options:
 
 ## 3. Related `kale` API
 
-- `kale.loaddata.few_shot`: Dataset class for N-way-K-shot problems.
-- `kale.embed.image_cnn`: Resnet feature extractors.
+- `kale.loaddata.few_shot`: Dataset class for $N$-way-$K$-shot problems.
+- `kale.embed.image_cnn`: ResNet feature extractors.
 - `kale.pipeline.fewshot_trainer`: ProtoNet trainer in pl.LightningModule class.
 - `kale.predict.losses.proto_loss`: Compute the loss and accuracy for protonet.
 
 ## Reference
+[Prototypical Networks for Few-shot Learning](https://arxiv.org/abs/1703.05175)
 ```
 @inproceedings{snell2017prototypical,
   title={Prototypical Networks for Few-shot Learning},
