@@ -38,15 +38,18 @@ docs/build/
 docs/source/backup
 
 # Testing
+.testmondata
 .coverage
 cov*.xml
+collect_env.py
 tests/test_data
 tests/loaddata/tests
 tests/pipeline/tests
 
 # Lightning
 lightning_logs
-tb_logs/*
+tb_logs
+outputs
 
 # Jupyter Notebook Checkpoints
 *-checkpoint.ipynb
