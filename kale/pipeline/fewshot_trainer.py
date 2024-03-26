@@ -4,7 +4,7 @@
 
 """ProtoNet Trainer (pipelines)
 
-This module contains the ProtoNet trainer class and its related functions. It trains the ProtoNet model in N-way-k-shot problems.
+This module contains the ProtoNet trainer class and its related functions. It trains the ProtoNet model for few-shot problems under the N-way-K-shot setting.
 
 This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>` to standardize the workflow.
 
@@ -130,7 +130,7 @@ class ProtoNetTrainer(pl.LightningModule):
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         """
-        Configure optimizer for training. Can be modified to sipportport different optimizers from torch.optim.
+        Configure optimizer for training. Can be modified to support different optimizers from torch.optim.
         """
         optimizer = eval(f"torch.optim.{self.optimizer}")(self.model.parameters(), lr=self.lr)
         return optimizer
