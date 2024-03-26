@@ -2,19 +2,19 @@
 
 ### 1. Description
 
-This guide elucidates the process of integrating Prototypical Networks for Few-shot Learning within the PyKale framework, using PyTorch-Lightning. Subsequent sections provide detailed instructions on the effective utilization of ProtoNet.
+This demo implements [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks) within the PyKale framework. The following instructions are about how to use it.
 
-ProtoNet is specifically engineered for few-shot learning in an $N$-Way $K$-Shot paradigm:
+ProtoNet is specific cally engineered for few-shot learning in an $N$-Way $K$-Shot paradigm:
 
-$N$-way: This term delineates the number of distinct classes or categories encompassed in a given learning task. For instance, within a 5-way scenario, the model encounters instances emanating from five disparate classes.
+$N$-way: It means the number of classes or categories in one epoch in training. For instance, within a 5-way scenario, the model encounters instances emanating from five classes in an epoch.
 
-$K$-shot: This concept pertains to the number of examples (referred to as "shots") from each class that are accessible to the model for the learning process. A 1-shot learning task furnishes the model with a singular example per class, whereas a 3-shot task provides three examples per class.
+$K$-shot: This is the number of examples (referred to as "shots") from each class in the learning process. A 1-shot learning task is that there is only one example per class, while a 3-shot task has three examples per class.
 
 ## 2. Usage
 
 ### Datasets
 
-This data loader can be used on several few-shot learning datasets, such as [mini-ImageNet](https://www.kaggle.com/datasets/arjunashok33/miniimagenet), [tiered-ImageNet](https://www.kaggle.com/datasets/arjun2000ashok/tieredimagenet) and [Omniglot](https://github.com/brendenlake/omniglot), etc. (For some datasets, they need to be refactored as follows.)
+This data loader can be used on several few-shot learning datasets, such as [mini-ImageNet](https://www.kaggle.com/datasets/arjunashok33/miniimagenet), [tiered-ImageNet](https://www.kaggle.com/datasets/arjun2000ashok/tieredimagenet) and [Omniglot](https://github.com/brendenlake/omniglot), etc. All datasets should be organized as follows.
 
 <pre>
 └── root
