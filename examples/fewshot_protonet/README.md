@@ -2,13 +2,13 @@
 
 ### 1. Description
 
-This guide elucidates the process of integrating Prototypical Networks for Few-shot Learning within the PyKale framework, utilizing PyTorch-Lightning. Subsequent sections provide detailed instructions on the effective utilization of ProtoNet.
+This guide elucidates the process of integrating Prototypical Networks for Few-shot Learning within the PyKale framework, using PyTorch-Lightning. Subsequent sections provide detailed instructions on the effective utilization of ProtoNet.
 
-ProtoNet is specifically engineered for few-shot learning in an $N$-Way-$K$-Shot paradigm:
+ProtoNet is specifically engineered for few-shot learning in an $N$-Way $K$-Shot paradigm:
 
 $N$-way: This term delineates the number of distinct classes or categories encompassed in a given learning task. For instance, within a 5-way scenario, the model encounters instances emanating from five disparate classes.
 
-$K$-shot: This concept pertains to the quantity of exemplars (referred to as "shots") from each class that are accessible to the model for the learning process. A 1-shot learning task furnishes the model with a singular example per class, whereas a 3-shot task provides three examples per class.
+$K$-shot: This concept pertains to the number of examples (referred to as "shots") from each class that are accessible to the model for the learning process. A 1-shot learning task furnishes the model with a singular example per class, whereas a 3-shot task provides three examples per class.
 
 ## 2. Usage
 
