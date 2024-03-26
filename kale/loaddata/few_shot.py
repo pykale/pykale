@@ -59,7 +59,7 @@ class NWayKShotDataset(Dataset):
     Args:
         path (string): The root directory of the data.
         mode (string): The mode of the dataset. It can be 'train', 'val', or 'test'. Default: 'train'.
-        num_support_samples (int): Number of support examples per class in each iteration. It is corresponding to K in N-way-K-shot setting Default: 5.
+        num_support_samples (int): Number of support examples per class in each iteration. It corresponds to K in the N-way-K-shot setting. Default: 5.
         num_query_samples (int): Number of query examples per class in each iteration. Default: 15.
         transform (callable, optional): Optional transform to be applied on a sample. Default: None.
     """
