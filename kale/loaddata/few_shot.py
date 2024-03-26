@@ -1,5 +1,5 @@
 """
-Dataset for N-way K-shot setting in few-shot problems.
+Dataset for N-way-K-shot setting in few-shot problems.
 Author: Wenrui Fan
 Email: winslow.fan@outlook.com
 """
