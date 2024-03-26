@@ -6,9 +6,9 @@ This demo implements [Prototypical Networks for Few-shot Learning](https://githu
 
 ProtoNet is for few-shot learning under $N$-Way - $K$-Shot settings:
 
-$N$-way: It means the number of classes or categories in one epoch in training. For instance, in a 5-way scenario, data from five classes is fed into the model in an epoch.
+$N$-way: It means the number of classes or categories in one epoch in evaluation. For instance, in a 5-way scenario, data from five classes is fed into the model in an epoch.
 
-$K$-shot: This is the number of examples (referred to as "shots") from each class in training. A 1-shot learning task indicates only one example per class, while a 3-shot task has three examples per class.
+$K$-shot: This is the number of examples (referred to as "shots") from each class in training and evaluation. A 1-shot learning task indicates only one example per class, while a 3-shot task has three examples per class.
 
 ## 2. Usage
 

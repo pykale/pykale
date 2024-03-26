@@ -17,9 +17,9 @@ class NWayKShotDataset(Dataset):
     """
     It loads data for N-way K-shot problems in few-shot learning.
 
-    - N-way: This refers to the number of different classes or categories in one epoch in training. For example, in a 5-way problem, the model is presented with instances from 5 different classes for every epoch.
+    - N-way: This refers to the number of different classes or categories in one epoch in evaluation. For example, in a 5-way problem, the model is fed with instances from 5 different classes for every epoch.
 
-    - K-shot: It is the number of examples (or "shots") from each class in training. In a 1-shot learning task, the model gets only one example per class, while in a 3-shot task, it gets three examples per class.
+    - K-shot: It is the number of examples (or "shots") from each class in training and evaluation. In a 1-shot learning task, the model gets only one example per class, while in a 3-shot task, it gets three examples per class.
 
     Note:
         The dataset should be organized as:
@@ -59,7 +59,7 @@ class NWayKShotDataset(Dataset):
     Args:
         path (string): The root directory of the data.
         mode (string): The mode of the dataset. It can be 'train', 'val', or 'test'. Default: 'train'.
-        num_support_samples (int): Number of support examples per class in each iteration. Default: 5.
+        num_support_samples (int): Number of support examples per class in each iteration. It is corresponding to K in N-way-K-shot setting Default: 5.
         num_query_samples (int): Number of query examples per class in each iteration. Default: 15.
         transform (callable, optional): Optional transform to be applied on a sample. Default: None.
     """
