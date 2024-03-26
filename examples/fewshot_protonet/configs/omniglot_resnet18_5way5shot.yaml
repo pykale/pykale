@@ -1,5 +1,5 @@
-# This is a comprehensive config file for protonet.
-# Users can modify all changeable hyperparameters to train their own model.
+# This is a config file for training a Prototypical Network on the Omniglot dataset with a ResNet-18 backbone.
+# The model is trained in a 5-way 5-shot setting.
 DATASET:
   ROOT: 'data/omniglot'
   IMG_SIZE: 84
