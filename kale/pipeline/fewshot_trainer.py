@@ -28,10 +28,10 @@ class ProtoNetTrainer(pl.LightningModule):
     Args:
         net (torch.nn.Module): A feature extractor, whose classifier layer should be removed. It outputs a 1-D feature vector.
         train_num_classes (int): Number of classes in training.
-        train_num_support_samples (int): Number of support samples per class in training. It is corresponding to K under N-way-K-shot settings.
+        train_num_support_samples (int): Number of support samples per class in training. It corresponds to K under N-way-K-shot settings.
         train_num_query_samples (int): Number of query samples per class in training.
-        val_num_classes (int): Number of classes in validation. It is corresponding to N under N-way-K-shot settings.
-        val_num_support_samples (int): Number of support samples per class in validation. It is corresponding to K under N-way-K-shot settings.
+        val_num_classes (int): Number of classes in validation. It corresponds to N under N-way-K-shot settings.
+        val_num_support_samples (int): Number of support samples per class in validation. It corresponds to K under N-way-K-shot settings.
         val_num_query_samples (int): Number of query samples per class in validation.
         devices (str): Devices used for training. Default: "cuda".
         optimizer (str): Optimizer used for training. Default: "SGD".
