@@ -4,11 +4,11 @@
 
 This demo implements [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks) within the PyKale framework. The following instructions are about how to use it.
 
-ProtoNet is specific cally engineered for few-shot learning in an $N$-Way $K$-Shot paradigm:
+ProtoNet is for few-shot learning under $N$-Way $K$-Shot settings:
 
-$N$-way: It means the number of classes or categories in one epoch in training. For instance, within a 5-way scenario, the model encounters instances emanating from five classes in an epoch.
+$N$-way: It means the number of classes or categories in one epoch in training. For instance, in a 5-way scenario, data from five classes is fed into the model in an epoch.
 
-$K$-shot: This is the number of examples (referred to as "shots") from each class in the learning process. A 1-shot learning task is that there is only one example per class, while a 3-shot task has three examples per class.
+$K$-shot: This is the number of examples (referred to as "shots") from each class in training. A 1-shot learning task indicates only one example per class, while a 3-shot task has three examples per class.
 
 ## 2. Usage
 
