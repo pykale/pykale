@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import torch
 from yacs.config import CfgNode
@@ -30,14 +32,12 @@ seed = 36
 set_seed(seed)
 CLASS_SUBSETS = [[1, 3, 8]]
 
-url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
-
 
 @pytest.fixture(scope="module")
 def testing_cfg(download_path):
     cfg = CfgNode()
     cfg.DATASET = CfgNode()
-    cfg.DATASET.ROOT = download_path + "/video_test_data/"
+    cfg.DATASET.ROOT = os.path.join(download_path, "video_test_data")
     cfg.DATASET.IMAGE_MODALITY = "joint"
     cfg.DATASET.FRAMES_PER_SEGMENT = 16
     yield cfg

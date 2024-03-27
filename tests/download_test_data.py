@@ -95,6 +95,12 @@ def download_dti_data(save_path):
         _ = DTI(name=source_name, path=save_path)
 
 
+def download_omniglot_data(save_path):
+    # Downloading Omniglot Dataset for tests/loaddata/test_few_shot.py test
+    url = "https://github.com/pykale/data/raw/main/images/omniglot/omniglot_demo.zip"
+    download_file_by_url(url, save_path, "omniglot_demo.zip", "zip")
+
+
 if __name__ == "__main__":
     path_to_test_data = download_path()
 
@@ -110,3 +116,4 @@ if __name__ == "__main__":
     download_cifar_data(path_to_test_data)
     download_office_data(path_to_test_data)
     download_dti_data(path_to_test_data)
+    download_omniglot_data(path_to_test_data)
