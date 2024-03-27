@@ -56,31 +56,31 @@ This data loader can be used on several few-shot learning datasets, such as [min
 
 Example - Training ResNet18 on Omniglot in a 5-way-5-shot protocol
 
-`python main.py --cfg configs/omniglot_resnet18_5way5shot.yaml --gpus 1`
+`python main.py --cfg configs/demo.yaml --gpus 1`
 
 Customized running
 
-`python main.py --cfg configs/{dataset name}_{backbone}_{n}way{k}shot.yaml --gpus 1`
+`python main.py --cfg configs/template.yaml --gpus 1`
 
-- Define a customized configuration file. Fill in the blank in {} in the above command.
+- `demo.yaml` is a demo configuration file. Change `DATASET.ROOT` item in config files to fit your dataset directory for a quick demo running.
+- `template.yaml` contains all hyperparameters that users can change. It allows users to customize the model accordingly.
 - Available backbones: any `resnet` structures from `torchvision.models` or `kale.embed.image_cnn`.
-- Example configurations can be found in `configs/omniglot_resnet18_5way5shot.yaml` and `configs/omniglot_resnet18_5way1shot.yaml`.
-- Change `DATASET.ROOT` item in config files to fit your dataset directory.
+
 
 #### Test
 
 Example - Testing ResNet18 on Omniglot in a 5-way-5-shot protocol
 
-`python main.py --cfg configs/omniglot_resnet18_5way5shot.yaml --gpus 1 --ckpt {path to ckpt file}`
+`python main.py --cfg configs/demo.yaml --gpus 1 --ckpt {path to ckpt file}`
 
 Customized running
 
-`python main.py --cfg configs/{dataset name}_{backbone}_{n}way{k}shot.yaml --gpus 1 --ckpt {path to ckpt file}`
+`python main.py --cfg configs/template.yaml --gpus 1 --ckpt {path to ckpt file}`
 
 The test hyper-parameters are the same as the `VAL` section of the config file.
 
 If no `test` folder in the custom dataset, choose one of the following options:
-- Copy and past `val` set and rename it as `test`
+- Use the 'val' set as the test set. Copy and paste the `val` set and rename it as `test`.
 - Change the `mode` in defining the `test_set` part in `test.py` to `val`.
 
 ## 3. Related `kale` API
