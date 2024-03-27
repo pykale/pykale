@@ -315,9 +315,9 @@ class protonet_loss:
             feature_query (torch.Tensor): shape (num_classes * num_query_samples, feature_dim)
 
         Returns:
-            tuple: (loss_val, acc_val)
-            loss_val (torch.Tensor): loss value
-            acc_val (torch.Tensor): accuracy value
+            tuple: (loss, acc)
+            loss (torch.Tensor): loss value
+            acc (torch.Tensor): accuracy value
         """
         feature_support = feature_support.to(self.device)
         feature_query = feature_query.to(self.device)
@@ -335,7 +335,7 @@ class protonet_loss:
 
     def euclidean_dist_for_tensor_group(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """
-        Compute Euclidean distance between two groups of tensors.
+        Compute the Euclidean distance between two batches.
 
         Args:
             x (torch.Tensor): Variables set 1: (N, D)
