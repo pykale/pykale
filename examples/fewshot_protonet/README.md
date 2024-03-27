@@ -62,7 +62,7 @@ Customized running
 
 `python main.py --cfg configs/template.yaml --gpus 1`
 
-- `demo.yaml` is a demo configuration file. Change `DATASET.ROOT` item in config files to fit your dataset directory for a quick demo running.
+- `demo.yaml` is a demo configuration file. Change `DATASET.ROOT` item in it to fit your dataset directory for a quick demo running.
 - `template.yaml` contains all hyperparameters that users can change. It allows users to customize the model accordingly.
 - Available backbones: any `resnet` structures from `torchvision.models` or `kale.embed.image_cnn`.
 
