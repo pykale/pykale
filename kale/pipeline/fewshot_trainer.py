@@ -4,7 +4,7 @@
 
 """ProtoNet Trainer (pipelines)
 
-This module contains the ProtoNet trainer class and related functions. It trains the ProtoNet model for few-shot problems under N-way-K-shot settings.
+This module contains the ProtoNet trainer class and related functions. It trains the ProtoNet model for few-shot learning problems under N-way-K-shot settings.
 
 This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>` to standardize the workflow.
 
@@ -26,7 +26,7 @@ class ProtoNetTrainer(pl.LightningModule):
     Nothing should be changed except updating the protonet_loss function in kale.predict.losses.
 
     Args:
-        net (torch.nn.Module): A feature extractor, whose classifier layer should be removed. It outputs a 1-D feature vector.
+        net (torch.nn.Module): A feature extractor without any task-specific heads. It outputs a 1-D feature vector.
         train_num_classes (int): Number of classes in training.
         train_num_support_samples (int): Number of support samples per class in training. It corresponds to K under N-way-K-shot settings.
         train_num_query_samples (int): Number of query samples per class in training.
