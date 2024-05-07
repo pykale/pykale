@@ -1,5 +1,5 @@
 """
-This demo trains a prototypical network to solve N-Way-K-Shot problems.
+This demo trains a prototypical network model for few-shot learning problems under N-way-K-shot settings
 
 - N-way: This refers to the number of different classes or categories involved in evaluation. For example, in a 5-way problem, the model is presented with instances from 5 different classes.
 

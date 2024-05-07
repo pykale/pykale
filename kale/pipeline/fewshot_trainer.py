@@ -4,7 +4,7 @@
 
 """ProtoNet Trainer (pipelines)
 
-This module contains the ProtoNet trainer class and related functions. It trains the ProtoNet model for few-shot learning problems under N-way-K-shot settings.
+This module contains the ProtoNet trainer class and related functions. It trains a prototypical network model for few-shot learning problems under N-way-K-shot settings.
 
 This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>` to standardize the workflow.
 
