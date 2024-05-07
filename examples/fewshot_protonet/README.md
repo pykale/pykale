@@ -14,7 +14,7 @@ $K$-shot: This is the number of examples (referred to as "shots") from each clas
 
 ### Datasets
 
-This data loader can be used on several few-shot learning datasets, such as [mini-ImageNet](https://www.kaggle.com/datasets/arjunashok33/miniimagenet), tiered-ImageNet ([official dataset-generating tool](https://github.com/yaoyao-liu/tiered-imagenet-tools), [ready-to-download data](https://www.kaggle.com/datasets/arjun2000ashok/tieredimagenet)), and [Omniglot](https://github.com/brendenlake/omniglot), etc. All datasets should be organized as follows.
+This data loader can be used on several few-shot learning datasets, such as mini-ImageNet ([official image list](https://drive.google.com/file/d/1iBu_Iqt49opXHSUNcTRU2WQas1WICLwQ/view)/[ready-to-download data on Kaggle](https://www.kaggle.com/datasets/arjunashok33/miniimagenet)), tiered-ImageNet ([official dataset-generating tool](https://github.com/yaoyao-liu/tiered-imagenet-tools)/[ready-to-download data on Kaggle](https://www.kaggle.com/datasets/arjun2000ashok/tieredimagenet)), and Omniglot ([official downloading code](https://github.com/brendenlake/omniglot)/[ready-to-download data on Kaggle](https://www.kaggle.com/datasets/watesoyan/omniglot)), etc. All datasets should be organized as follows.
 
 <pre>
 └── root
