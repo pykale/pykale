@@ -23,7 +23,8 @@ class ProtoNetTrainer(pl.LightningModule):
     """ProtoNet trainer class
     This class trains the ProtoNet model in few-shot learning problems.
     It uses `PyTorch Lightning` to standardize the workflow.
-    Nothing should be changed except updating the protonet_loss function in kale.predict.losses.
+    This trainer is relatively separate from other functions in the library.
+    Updating other functions except the protonet_loss function in kale.predict.losses may not affect this trainer.
 
     Args:
         net (torch.nn.Module): A feature extractor without any task-specific heads. It outputs a 1-D feature vector.

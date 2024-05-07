@@ -2,7 +2,7 @@
 
 ### 1. Description
 
-This demo implements [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks) within the PyKale framework. The following instructions are about how to use it.
+This demo implements [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks) within the `PyKale` framework. The following instructions are about how to use it.
 
 ProtoNet is for few-shot learning under $N$-Way - $K$-Shot settings:
 
