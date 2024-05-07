@@ -4,7 +4,7 @@
 
 This demo implements [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks) within the `PyKale` framework. The following instructions are about how to use it.
 
-ProtoNet is for few-shot learning under $N$-Way - $K$-Shot settings:
+ProtoNet is for few-shot learning under $N$-Way $K$-Shot settings:
 
 $N$-way: It means the number of classes or categories in one epoch in evaluation. For instance, in a 5-way scenario, data from five classes is fed into the model in an epoch.
 
@@ -14,7 +14,7 @@ $K$-shot: This is the number of examples (referred to as "shots") from each clas
 
 ### Datasets
 
-This data loader can be used on several few-shot learning datasets, such as [mini-ImageNet](https://www.kaggle.com/datasets/arjunashok33/miniimagenet), [tiered-ImageNet](https://www.kaggle.com/datasets/arjun2000ashok/tieredimagenet) and [Omniglot](https://github.com/brendenlake/omniglot), etc. All datasets should be organized as follows.
+This data loader can be used on several few-shot learning datasets, such as [mini-ImageNet](https://www.kaggle.com/datasets/arjunashok33/miniimagenet), tiered-ImageNet ([official dataset-generating tool](https://github.com/yaoyao-liu/tiered-imagenet-tools), [ready-to-download data](https://www.kaggle.com/datasets/arjun2000ashok/tieredimagenet)), and [Omniglot](https://github.com/brendenlake/omniglot), etc. All datasets should be organized as follows.
 
 <pre>
 └── root
