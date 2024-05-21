@@ -296,8 +296,7 @@ class protonet_loss:
 
 
     Reference:
-        Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical Networks for Few-shot Learning.
-        Advances in Neural Information Processing Systems, 30.
+        Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning. Advances in Neural Information Processing Systems, 30.
     """
 
     def __init__(

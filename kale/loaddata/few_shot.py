@@ -102,12 +102,12 @@ class NWayKShotDataset(Dataset):
         image_idx = np.random.choice(
             [i for (i, item) in enumerate(self.labels) if item == idx],
             self.num_support_samples + self.num_query_samples,
-            replace=False
+            replace=False,
         )
         return image_idx
 
     def _sample_data(self, image_idx):
-        # loading sampled images and applying transform 
+        # loading sampled images and applying transform
         images = [self.transform(self.images[index]) if self.transform else self.images[index] for index in image_idx]
         return images
 
