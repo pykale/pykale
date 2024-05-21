@@ -1,5 +1,5 @@
 """
-This example tests performance of prototypical networks under N-Way-K-Shot settings.
+This example tests the performance of prototypical networks under N-Way-K-Shot settings.
 
 Reference:
     Snell, J., Swersky, K. and Zemel, R., 2017. 
@@ -70,7 +70,7 @@ def main():
         mode="max",
         save_top_k=cfg.OUTPUT.SAVE_TOP_K,
         save_last=cfg.OUTPUT.SAVE_LAST,
-        verbose=True,
+        verbose=True
     )
 
     # ---- set trainer ----
@@ -80,8 +80,7 @@ def main():
         logger=logger,
         callbacks=[model_checkpoint],
         accelerator="gpu" if args.gpus > 0 else "cpu",
-        log_every_n_steps=cfg.OUTPUT.SAVE_FREQ,
-        # resume_from_checkpoint=args.ckpt,
+        log_every_n_steps=cfg.OUTPUT.SAVE_FREQ
     )
 
     # ---- test ----

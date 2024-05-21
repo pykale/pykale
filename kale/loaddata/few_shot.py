@@ -17,7 +17,7 @@ class NWayKShotDataset(Dataset):
     """
     It loads data for few-shot learning problems under N-way-K-shot settings.
 
-    - N-way: This refers to the number of different classes or categories in one iteration in evaluation. For example, in a 5-way setting, the model is fed with instances from 5 different classes for every iteration.
+    - N-way: This refers to the number of classes or categories in one iteration in evaluation. For example, in a 5-way setting, the model is fed with instances from 5 different classes for every iteration.
 
     - K-shot: It is the number of samples (or "shots") from each class in training and evaluation. In a 1-shot learning task, the model gets only one sample per class, while in a 3-shot task, it gets three samples per class.
 

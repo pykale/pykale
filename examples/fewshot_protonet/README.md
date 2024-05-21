@@ -4,9 +4,9 @@
 
 This demo implements [Prototypical Networks for Few-shot Learning](https://github.com/jakesnell/prototypical-networks) within the `PyKale` framework.
 
-ProtoNet is for few-shot learning under $N$-Way $K$-Shot settings:
+ProtoNet is for few-shot learning problems under $N$-Way $K$-Shot settings:
 
-$N$-way: It means the number of classes or categories in one iteration in evaluation. For instance, in a 5-way scenario, data from five classes is fed into the model in an iteration in evaluation.
+$N$-way: It represents the number of classes or categories in one iteration in evaluation. For instance, in a 5-way scenario, data from five classes is fed into the model in an iteration in evaluation.
 
 $K$-shot: This is the number of support samples (referred to as "shots") from each class in both training and evaluation. A 1-shot learning task indicates only one support sample per class, while a 3-shot task has three support samples per class.
 
@@ -55,7 +55,7 @@ This data loader can be used on several few-shot learning datasets, such as mini
 
 #### Single GPU training:
 
-Example - Training ResNet18 on Omniglot in under 5-way-5-shot setting
+Example - Training ResNet18 on Omniglot under a 5-way-5-shot setting
 
 `python main.py --cfg configs/demo.yaml --gpus 1`
 
