@@ -28,11 +28,11 @@ class ProtoNetTrainer(pl.LightningModule):
     Args:
         net (torch.nn.Module): A feature extractor without any task-specific heads. It outputs a 1-D feature vector.
         train_num_classes (int): Number of classes in training. It could be different from N under N-way-K-shot settings. Default: 30.
-        train_num_support_samples (int): Number of support samples per class in training. It corresponds to K under N-way-K-shot settings. Default: 5.
-        train_num_query_samples (int): Number of query samples per class in training. Default: 15.
+        train_num_support_samples (int): Number of samples per class in support set in training. It corresponds to K under N-way-K-shot settings. Default: 5.
+        train_num_query_samples (int): Number of samples per class in query set in training. Default: 15.
         val_num_classes (int): Number of classes in validation. It corresponds to N under N-way-K-shot settings. Default: 5.
-        val_num_support_samples (int): Number of support samples per class in validation. It corresponds to K under N-way-K-shot settings. Default: 5.
-        val_num_query_samples (int): Number of query samples per class in validation. Default: 15.
+        val_num_support_samples (int): Number of samples per class in support set in validation. It corresponds to K under N-way-K-shot settings. Default: 5.
+        val_num_query_samples (int): Number of samples per class in query set in validation. Default: 15.
         devices (str): Devices used for training. Default: "cuda".
         optimizer (str): Optimizer used for training. Default: "SGD".
         lr (float): Learning rate. Default: 0.001.

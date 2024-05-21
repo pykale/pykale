@@ -15,11 +15,11 @@ from torch.utils.data import Dataset
 
 class NWayKShotDataset(Dataset):
     """
-    It loads data for few-shot learning problems under N-way-K-shot settings.
+    This Dataset class loads data for few-shot learning problems under N-way-K-shot settings.
 
-    - N-way: This refers to the number of classes or categories in one iteration in evaluation. For example, in a 5-way setting, the model is fed with instances from 5 different classes for every iteration.
+    - N-way: The number of classes involved in a particular few-shot learning problem. It is only functional in meta-testing stage. Essentially, it defines the breadth of the classification task. For example. 5-way means the model has to distinguish between 5 different classes. In the context of few-shot learning, the model is presented with examples from these N classes and needs to learn to differentiate between them.
 
-    - K-shot: It is the number of samples (or "shots") from each class in training and evaluation. In a 1-shot learning task, the model gets only one sample per class, while in a 3-shot task, it gets three samples per class.
+    - K-shot: The number of samples (referred to as "shots") from each class in support set. It should be the same in meta-training and meta-testing. It defines the depth of the learning task, i.e., how many instances the model has for learning each class. A 1-shot learning task indicates only one support sample per class, while a 3-shot task has three support samples per class.
 
     Note:
         The dataset should be organized as:
@@ -59,8 +59,8 @@ class NWayKShotDataset(Dataset):
     Args:
         path (string): The root directory of the data.
         mode (string): The mode of the type of dataset. It can be "train", "val", or "test". Default: "train".
-        num_support_samples (int): Number of support samples per class in each iteration. It corresponds to K in the N-way-K-shot setting. Default: 5.
-        num_query_samples (int): Number of query samples per class in each iteration. Default: 15.
+        num_support_samples (int): Number of samples per class in support set. It corresponds to K in the N-way-K-shot setting. Default: 5.
+        num_query_samples (int): Number of samples per class in query set. Default: 15.
         transform (callable, optional): Optional transform to be applied on images. Default: None.
     """
 

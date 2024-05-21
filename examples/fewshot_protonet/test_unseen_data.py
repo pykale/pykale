@@ -1,5 +1,6 @@
 """
-This example tests the performance of prototypical networks under N-Way-K-Shot settings.
+This example tests the performance of prototypical networks under N-Way-K-Shot settings on unseen data.
+Users can apply this script to evaluate their trained models on unseen data without re-training.
 
 Reference:
     Snell, J., Swersky, K. and Zemel, R., 2017. 

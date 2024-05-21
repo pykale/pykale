@@ -287,7 +287,7 @@ class protonet_loss:
 
     Args:
         num_classes (int): Number of classes in a task. Default: 5
-        num_query_samples (int): Number of query samples per class. Default: 15
+        num_query_samples (int): Number of samples per class in query set. Default: 15
         device (torch.device): The desired device of returned tensor. Default: torch.device("cuda")
 
     Examples:

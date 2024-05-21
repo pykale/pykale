@@ -1,9 +1,9 @@
 """
 This demo trains a prototypical network model for few-shot learning problems under N-way-K-shot settings.
 
-- N-way: This refers to the number of classes or categories in every iteration in evaluation. For example, in a 5-way setting, the model is presented with instances from 5 different classes.
+- N-way: The number of classes involved in a particular few-shot learning problem. It is only functional in meta-testing stage. Essentially, it defines the breadth of the classification task. For example. 5-way means the model has to distinguish between 5 different classes. In the context of few-shot learning, the model is presented with examples from these N classes and needs to learn to differentiate between them.
 
-- K-shot: This indicates the number of support samples (or "shots") from each class that the model has access to in training and evaluation. In a 1-shot learning task, the model gets only one support sample per class, while in a 3-shot task, it gets three support samples per class.
+- K-shot: The number of samples (referred to as "shots") from each class in support set. It should be the same in meta-training and meta-testing. It defines the depth of the learning task, i.e., how many instances the model has for learning each class. A 1-shot learning task indicates only one support sample per class, while a 3-shot task has three support samples per class.
 
 By default, this example uses the Omniglot dataset, which can be downloaded from https://github.com/brendenlake/omniglot.
 
