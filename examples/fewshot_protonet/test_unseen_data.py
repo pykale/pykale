@@ -15,9 +15,6 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.models import *
 
-import sys
-sys.path.append("/Users/winslowfan/pykale")
-
 from kale.embed.image_cnn import *
 from kale.loaddata.few_shot import NWayKShotDataset
 from kale.pipeline.fewshot_trainer import ProtoNetTrainer
