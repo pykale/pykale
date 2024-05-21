@@ -58,7 +58,7 @@ class NWayKShotDataset(Dataset):
 
     Args:
         path (string): The root directory of the data.
-        mode (string): The mode of the dataset. It can be "train", "val", or "test". Default: "train".
+        mode (string): The mode of the type of dataset. It can be "train", "val", or "test". Default: "train".
         num_support_samples (int): Number of support samples per class in each iteration. It corresponds to K in the N-way-K-shot setting. Default: 5.
         num_query_samples (int): Number of query samples per class in each iteration. Default: 15.
         transform (callable, optional): Optional transform to be applied on images. Default: None.
@@ -100,7 +100,7 @@ class NWayKShotDataset(Dataset):
         image_idx = np.random.choice(
             [i for (i, item) in enumerate(self.labels) if item == idx],
             self.num_support_samples + self.num_query_samples,
-            replace=False,
+            replace=False
         )
         return image_idx
 
