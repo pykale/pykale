@@ -17,9 +17,11 @@ class NWayKShotDataset(Dataset):
     """
     This Dataset class loads data for few-shot learning problems under N-way-K-shot settings.
 
-    - N-way: The number of classes involved in a particular few-shot learning problem. It is only functional in meta-testing stage. Essentially, it defines the breadth of the classification task. For example. 5-way means the model has to distinguish between 5 different classes. In the context of few-shot learning, the model is presented with examples from these N classes and needs to learn to differentiate between them.
+    - N-way: The number of classes under a particular setting. The model is presented with samples from these N classes and needs to differentiate between them. For example, 3-way means the model has to distinguish between 3 different classes.
 
-    - K-shot: The number of samples (referred to as "shots") from each class in support set. It should be the same in meta-training and meta-testing. It defines the depth of the learning task, i.e., how many instances the model has for learning each class. A 1-shot learning task indicates only one support sample per class, while a 3-shot task has three support samples per class.
+    - K-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
+
+    In this class, __getitem__() returns a batch of images for one class. When defining the dataloaders, the batch size should be the number of classes (N-way). Therefore, __len__() returns the number of classes in the datasets.
 
     Note:
         The dataset should be organized as:
@@ -59,9 +61,9 @@ class NWayKShotDataset(Dataset):
     Args:
         path (string): The root directory of the data.
         mode (string): The mode of the type of dataset. It can be "train", "val", or "test". Default: "train".
-        num_support_samples (int): Number of samples per class in support set. It corresponds to K in the N-way-K-shot setting. Default: 5.
-        num_query_samples (int): Number of samples per class in query set. Default: 15.
-        transform (callable, optional): Optional transform to be applied on images. Default: None.
+        num_support_samples (int): Number of samples per class in the support set. It corresponds to K in the N-way-K-shot setting. Default: 5.
+        num_query_samples (int): Number of samples per class in the query set. Default: 15.
+        transform (callable, optional): Optional transform to be applied to images. Default: None.
     """
 
     def __init__(
@@ -84,7 +86,7 @@ class NWayKShotDataset(Dataset):
         self._load_data()
 
     def __len__(self):
-        # the length of the dataset is the number of classes
+        # the length of the dataset is the number of classes in the dataset
         return len(self.classes)
 
     def __getitem__(self, idx):

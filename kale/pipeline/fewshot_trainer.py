@@ -8,7 +8,7 @@ This module contains the ProtoNet trainer class and related functions. It trains
 
 This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>` to standardize the workflow.
 
-This is a modified version of the original prototypical neural networks for few-shot learning implementation from https://github.com/jakesnell/prototypical-networks.
+This is a modified version of the original implementation <https://github.com/jakesnell/prototypical-networks> of Prototypical Networks for Few-shot Learning <https://arxiv.org/abs/1703.05175>.
 """
 
 from typing import Any
@@ -27,12 +27,12 @@ class ProtoNetTrainer(pl.LightningModule):
 
     Args:
         net (torch.nn.Module): A feature extractor without any task-specific heads. It outputs a 1-D feature vector.
-        train_num_classes (int): Number of classes in training. It could be different from N under N-way-K-shot settings. Default: 30.
-        train_num_support_samples (int): Number of samples per class in support set in training. It corresponds to K under N-way-K-shot settings. Default: 5.
-        train_num_query_samples (int): Number of samples per class in query set in training. Default: 15.
+        train_num_classes (int): Number of classes in training. It could be different from N under N-way-K-shot settings in training ProtoNet. Default: 30.
+        train_num_support_samples (int): Number of samples per class in the support set in training. It corresponds to K under N-way-K-shot settings. Default: 5.
+        train_num_query_samples (int): Number of samples per class in the query set in training. Default: 15.
         val_num_classes (int): Number of classes in validation. It corresponds to N under N-way-K-shot settings. Default: 5.
-        val_num_support_samples (int): Number of samples per class in support set in validation. It corresponds to K under N-way-K-shot settings. Default: 5.
-        val_num_query_samples (int): Number of samples per class in query set in validation. Default: 15.
+        val_num_support_samples (int): Number of samples per class in the support set in validation. It corresponds to K under N-way-K-shot settings. Default: 5.
+        val_num_query_samples (int): Number of samples per class in the query set in validation. Default: 15.
         devices (str): Devices used for training. Default: "cuda".
         optimizer (str): Optimizer used for training. Default: "SGD".
         lr (float): Learning rate. Default: 0.001.
