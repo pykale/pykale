@@ -2,8 +2,8 @@
 # Users can modify the dataset and output paths to train their own model.
 # For more adjustable hyperparameters, please refer to template.yaml.
 DATASET:
-  ROOT: 'data/omniglot'
+  ROOT: "data/omniglot"
 OUTPUT:
-  OUT_DIR: 'outputs/'
-  LOG_DIR: 'logs'
-  WEIGHT_DIR: 'weights'
+  OUT_DIR: "outputs/"
+  LOG_DIR: "logs"
+  WEIGHT_DIR: "weights"

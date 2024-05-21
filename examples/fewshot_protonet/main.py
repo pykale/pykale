@@ -1,7 +1,7 @@
 """
-This demo trains a prototypical network model for few-shot learning problems under N-way-K-shot settings
+This demo trains a prototypical network model for few-shot learning problems under N-way-K-shot settings.
 
-- N-way: This refers to the number of different classes or categories involved in evaluation. For example, in a 5-way problem, the model is presented with instances from 5 different classes.
+- N-way: This refers to the number of different classes or categories involved in evaluation. For example, in a 5-way setting, the model is presented with instances from 5 different classes.
 
 - K-shot: This indicates the number of examples (or "shots") from each class that the model has access to in training and evaluation. In a 1-shot learning task, the model gets only one example per class, while in a 3-shot task, it gets three examples per class.
 
@@ -119,6 +119,8 @@ def main():
 
     # ---- training ----
     trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader, ckpt_path=args.ckpt)
+
+    # ---- testing ----
     trainer.test(model=model, dataloaders=test_dataloader, ckpt_path="best")
 
 

@@ -1,10 +1,10 @@
 """
-This example is about testing prototypical networks to perform N-Way-K-Shot problems.
+This example tests performance of prototypical networks under N-Way-K-Shot settings.
 
 Reference:
-    Snell, J., Swersky, K. and Zemel, R., 2017.
-    Prototypical networks for few-shot learning.
-    Advances in neural information processing systems, 30.
+    Snell, J., Swersky, K. and Zemel, R., 2017. 
+    Prototypical Networks for Few-shot Learning. 
+    Advances in Neural Information Processing Systems, 30.
 """
 import argparse
 import os
@@ -54,7 +54,7 @@ def main():
     test_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT, mode="test", k_shot=cfg.VAL.K_SHOTS, query_samples=cfg.VAL.K_QUERIES, transform=transform
     )
-    test_dataloader = DataLoader(test_set, batch_size=cfg.VAL.N_WAYS, num_workers=30, drop_last=True)  # must be True
+    test_dataloader = DataLoader(test_set, batch_size=cfg.VAL.N_WAYS, drop_last=True)  # must be True
 
     # ---- set logger ----
     experiment_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")

@@ -280,15 +280,15 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
 class protonet_loss:
     """
     ProtoNet loss function.
-    This is a loss function for prototypical networks and N-way-K-shot problems. It computes the loss and
-    accuracy of the model by measuring the Euclidean distance between features of support samples and query samples.
+    This is a loss function for prototypical networks. It computes the loss and accuracy of the model by measuring
+     the Euclidean distance between features of support samples and query samples.
 
     Because the loss requests some constant hyperparameters, it is not a general function but defined as a class.
 
     Args:
-        num_classes (int): Number of classes in a task
-        num_query_samples (int): Number of query samples per class
-        device (torch.device): The desired device of returned tensor
+        num_classes (int): Number of classes in a task. Default: 5
+        num_query_samples (int): Number of query samples per class. Default: 15
+        device (torch.device): The desired device of returned tensor. Default: torch.device("cuda")
 
     Examples:
         >>> loss_fn = protonet_loss(num_classes=5, num_query_samples=15, device=torch.device("cuda"))
@@ -301,7 +301,7 @@ class protonet_loss:
     """
 
     def __init__(
-        self, num_classes: int = 5, num_query_samples: int = 15, device: torch.device = torch.device("cpu")
+        self, num_classes: int = 5, num_query_samples: int = 15, device: torch.device = torch.device("cuda")
     ) -> None:
         super().__init__()
         self.num_classes = num_classes

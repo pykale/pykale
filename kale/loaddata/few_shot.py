@@ -1,5 +1,5 @@
 """
-Dataset for N-way-K-shot setting in few-shot problems.
+Dataset class to load data for few-shot learning problems under N-way-K-shot settings.
 Author: Wenrui Fan
 Email: winslow.fan@outlook.com
 """
@@ -15,11 +15,11 @@ from torch.utils.data import Dataset
 
 class NWayKShotDataset(Dataset):
     """
-    It loads data for N-way K-shot problems in few-shot learning.
+    It loads data for few-shot learning problems under N-way-K-shot settings.
 
-    - N-way: This refers to the number of different classes or categories in one epoch in evaluation. For example, in a 5-way problem, the model is fed with instances from 5 different classes for every epoch.
+    - N-way: This refers to the number of different classes or categories in one iteration in evaluation. For example, in a 5-way setting, the model is fed with instances from 5 different classes for every iteration.
 
-    - K-shot: It is the number of examples (or "shots") from each class in training and evaluation. In a 1-shot learning task, the model gets only one example per class, while in a 3-shot task, it gets three examples per class.
+    - K-shot: It is the number of samples (or "shots") from each class in training and evaluation. In a 1-shot learning task, the model gets only one sample per class, while in a 3-shot task, it gets three samples per class.
 
     Note:
         The dataset should be organized as:
@@ -45,7 +45,7 @@ class NWayKShotDataset(Dataset):
                     - yyy.png
                     - ...
                 - ...
-            - test (optional)
+            - test
                 - class_name 1
                     - xxx.png
                     - yyy.png
@@ -58,10 +58,10 @@ class NWayKShotDataset(Dataset):
 
     Args:
         path (string): The root directory of the data.
-        mode (string): The mode of the dataset. It can be 'train', 'val', or 'test'. Default: 'train'.
-        num_support_samples (int): Number of support examples per class in each iteration. It corresponds to K in the N-way-K-shot setting. Default: 5.
-        num_query_samples (int): Number of query examples per class in each iteration. Default: 15.
-        transform (callable, optional): Optional transform to be applied on a sample. Default: None.
+        mode (string): The mode of the dataset. It can be "train", "val", or "test". Default: "train".
+        num_support_samples (int): Number of support samples per class in each iteration. It corresponds to K in the N-way-K-shot setting. Default: 5.
+        num_query_samples (int): Number of query samples per class in each iteration. Default: 15.
+        transform (callable, optional): Optional transform to be applied on images. Default: None.
     """
 
     def __init__(
@@ -88,7 +88,7 @@ class NWayKShotDataset(Dataset):
         return len(self.classes)
 
     def __getitem__(self, idx):
-        # sampling data for one class
+        # sampling images from one class
         image_idx = self._get_idx(idx)
         images = self._sample_data(image_idx)
         assert isinstance(images, list)
@@ -105,12 +105,12 @@ class NWayKShotDataset(Dataset):
         return image_idx
 
     def _sample_data(self, image_idx):
-        # sampling data for one class
+        # loading sampled images and applying transform 
         images = [self.transform(self.images[index]) if self.transform else self.images[index] for index in image_idx]
         return images
 
     def _load_data(self):
-        # loading data from the root directory
+        # loading image list from the root directory
         data_path = os.path.join(self.root, self.mode)
         classes = os.listdir(data_path)
         classes.sort()
