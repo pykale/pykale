@@ -8,7 +8,7 @@ This demo trains a prototypical network model for few-shot learning problems und
 By default, this example uses the Omniglot dataset, which can be downloaded from https://github.com/brendenlake/omniglot.
 
 Reference:
-    Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical Networks for Few-shot Learning. Advances in Neural Information Processing Systems, 30.
+    Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning. Advances in Neural Information Processing Systems, 30.
 """
 import argparse
 import os
