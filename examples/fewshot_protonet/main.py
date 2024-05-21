@@ -20,10 +20,15 @@ from config import get_cfg_defaults
 from torch.utils.data import DataLoader
 from torchvision.models import *
 
+import sys
+sys.path.append("/Users/winslowfan/pykale")
+
 from kale.embed.image_cnn import *
 from kale.loaddata.few_shot import NWayKShotDataset
 from kale.pipeline.fewshot_trainer import ProtoNetTrainer
 from kale.prepdata.image_transform import get_transform
+
+
 
 
 def arg_parse():
