@@ -84,11 +84,11 @@ The test hyperparameters are the same as the `VAL` section of the config file.
 
 If no `test` folder in the custom dataset, choose one of the following options:
 - Use the `val` set as the test set. Copy and paste the `val` set and rename it as `test`.
-- Change the `mode` in defining the `test_set` part in `test_unseen_data.py` to `val`.
+- Change the `mode` in `test_set = NWayKShotDataset(path=cfg.DATASET.ROOT, mode="test", k_shot=cfg.VAL.K_SHOTS, query_samples=cfg.VAL.K_QUERIES, transform=transform)` in `test_unseen_data.py` to `val`.
 
 ## 3. Related `kale` API
 
-- `kale.loaddata.few_shot`: Dataset class for $N$-way $K$-shot problems.
+- `kale.loaddata.few_shot`: Dataset class for few-shot learning problems under $N$-way $K$-shot settings.
 - `kale.embed.image_cnn`: ResNet feature extractors.
 - `kale.pipeline.fewshot_trainer`: ProtoNet trainer in `pl.LightningModule` class.
 - `kale.predict.losses.proto_loss`: Compute the loss and accuracy for ProtoNet.
