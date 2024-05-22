@@ -4,7 +4,7 @@ Default configurations for prototypical networks
 from yacs.config import CfgNode
 
 # ---------------------------------------------------------------------------- #
-# Config definition
+# Environment
 # ---------------------------------------------------------------------------- #
 _C = CfgNode()
 _C.SEED = 1397

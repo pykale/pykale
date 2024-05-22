@@ -8,6 +8,7 @@ Reference:
 import argparse
 import os
 from datetime import datetime
+from typing import Optional
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
@@ -25,7 +26,7 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="Args of ProtoNet")
     parser.add_argument("--cfg", default="configs/demo.yaml", type=str)
     parser.add_argument("--devices", default=1, type=int)
-    parser.add_argument("--ckpt", default=None)
+    parser.add_argument("--ckpt", default=None, help="Path to the checkpoint file")
     args = parser.parse_args()
     return args
 
@@ -64,24 +65,11 @@ def main():
     logger = pl.loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name=experiment_time)
     logger.log_hyperparams(cfg)
 
-    # ---- set callbacks ----
-    dirpath = os.path.join(cfg.OUTPUT.OUT_DIR, experiment_time, cfg.OUTPUT.WEIGHT_DIR)
-    model_checkpoint = pl.callbacks.ModelCheckpoint(
-        dirpath=dirpath,
-        filename="{epoch}-{val_acc:.2f}",
-        monitor="val_acc",
-        mode="max",
-        save_top_k=cfg.OUTPUT.SAVE_TOP_K,
-        save_last=cfg.OUTPUT.SAVE_LAST,
-        verbose=True,
-    )
-
     # ---- set trainer ----
     trainer = pl.Trainer(
         devices=args.devices,
         max_epochs=cfg.TRAIN.EPOCHS,
         logger=logger,
-        callbacks=[model_checkpoint],
         accelerator="gpu" if args.devices > 0 else "cpu",
         log_every_n_steps=cfg.OUTPUT.SAVE_FREQ,
     )

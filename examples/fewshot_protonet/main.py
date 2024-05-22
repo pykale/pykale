@@ -28,9 +28,9 @@ from kale.prepdata.image_transform import get_transform
 
 def arg_parse():
     parser = argparse.ArgumentParser(description="Args of ProtoNet")
-    parser.add_argument("--cfg", default="configs/demo.yaml", type=str)
-    parser.add_argument("--devices", default=1, type=int)
-    parser.add_argument("--ckpt", default=None, type=Optional[str])
+    parser.add_argument("--cfg", default="configs/demo.yaml", type=str, help="Path to the configuration file")
+    parser.add_argument("--devices", default=1, type=int, help="Number of devices to use, 0 for CPU and >0 for GPU")
+    parser.add_argument("--ckpt", default=None, type=Optional[str], help="Path to the checkpoint file")
     args = parser.parse_args()
     return args
 
