@@ -65,6 +65,7 @@ def main():
 
     # ---- set data loader ----
     transform = get_transform(kind="few-shot", augment=False)
+
     train_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="train",
@@ -73,6 +74,7 @@ def main():
         transform=transform,
     )
     train_dataloader = DataLoader(train_set, batch_size=cfg.TRAIN.NUM_CLASSES, shuffle=True, drop_last=True)
+
     val_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="val",
@@ -81,6 +83,7 @@ def main():
         transform=transform,
     )
     val_dataloader = DataLoader(val_set, batch_size=cfg.VAL.NUM_CLASSES, drop_last=True)
+    
     test_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="test",

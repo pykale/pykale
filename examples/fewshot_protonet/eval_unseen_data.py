@@ -74,7 +74,7 @@ def main():
         log_every_n_steps=cfg.OUTPUT.SAVE_FREQ,
     )
 
-    # ---- test ----
+    # ---- testing on unseen data ----
     trainer.test(model=model, dataloaders=test_dataloader, ckpt_path=args.ckpt)
 
 
