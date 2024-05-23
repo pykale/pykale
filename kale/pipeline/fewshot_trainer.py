@@ -6,9 +6,7 @@
 
 This module contains the ProtoNet trainer class and related functions. It trains a prototypical network model for few-shot learning problems under N-way-K-shot settings.
 
-This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>` to standardize the workflow.
-
-This is a modified version of the original implementation <https://github.com/jakesnell/prototypical-networks> of Prototypical Networks for Few-shot Learning <https://arxiv.org/abs/1703.05175>.
+This is a `PyTorch Lightning <https://github.com/Lightning-AI/lightning>` version of the original implementation <https://github.com/jakesnell/prototypical-networks> of Prototypical Networks for Few-shot Learning <https://arxiv.org/abs/1703.05175>.
 """
 
 from typing import Any
@@ -21,18 +19,18 @@ from kale.predict.losses import protonet_loss
 
 class ProtoNetTrainer(pl.LightningModule):
     """ProtoNet trainer class
-    This class trains the ProtoNet model for few-shot learning problems under N-way-K-shot settings.
-    It uses `PyTorch Lightning` to standardize the workflow.
-    Updating other functions except `kale.predict.losses.protonet_loss` will not affect this trainer.
+    This class trains a ProtoNet model for few-shot learning problems under N-way-K-shot settings.
+    It uses `pl.LightningModule` class of `PyTorch Lightning` to standardize the workflow.
+    Updating other modules except `kale.predict.losses.protonet_loss` and `kale.embed.image_cnn` will not affect this trainer.
 
     Args:
         net (torch.nn.Module): A feature extractor without any task-specific heads. It outputs a 1-D feature vector.
-        train_num_classes (int): Number of classes in training. It could be different from N under N-way-K-shot settings in training ProtoNet. Default: 30.
+        train_num_classes (int): Number of classes in training. It could be different from N under N-way-K-shot settings in ProtoNet. Default: 30.
         train_num_support_samples (int): Number of samples per class in the support set in training. It corresponds to K under N-way-K-shot settings. Default: 5.
         train_num_query_samples (int): Number of samples per class in the query set in training. Default: 15.
-        val_num_classes (int): Number of classes in validation. It corresponds to N under N-way-K-shot settings. Default: 5.
-        val_num_support_samples (int): Number of samples per class in the support set in validation. It corresponds to K under N-way-K-shot settings. Default: 5.
-        val_num_query_samples (int): Number of samples per class in the query set in validation. Default: 15.
+        val_num_classes (int): Number of classes in validation and testing. It corresponds to N under N-way-K-shot settings. Default: 5.
+        val_num_support_samples (int): Number of samples per class in the support set in validation and testing. It corresponds to K under N-way-K-shot settings. Default: 5.
+        val_num_query_samples (int): Number of samples per class in the query set in validation and testing. Default: 15.
         devices (str): Devices used for training. Default: "cuda".
         optimizer (str): Optimizer used for training. Default: "SGD".
         lr (float): Learning rate. Default: 0.001.

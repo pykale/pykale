@@ -1,19 +1,16 @@
 """
-This example tests the performance of prototypical networks under N-Way-K-Shot settings on unseen data.
-Users can apply this script to evaluate their trained models on unseen data without re-training.
+This demo tests the performance of a pretrained prototypical network on unseen data.
+Users can apply this script to evaluate their pretrained models on unseen data without re-training.
 
 Reference:
     Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning. Advances in Neural Information Processing Systems, 30.
 """
 import argparse
-import os
 from datetime import datetime
-from typing import Optional
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
 from torch.utils.data import DataLoader
-from torchvision import transforms
 from torchvision.models import *
 
 from kale.embed.image_cnn import *
@@ -24,8 +21,7 @@ from kale.prepdata.image_transform import get_transform
 
 def arg_parse():
     parser = argparse.ArgumentParser(description="Args of ProtoNet")
-    parser.add_argument("--cfg", default="configs/demo.yaml", type=str)
-    parser.add_argument("--devices", default=1, type=int)
+    parser.add_argument("--cfg", default="configs/demo.yaml", type=str, help="Path to the configuration file")
     parser.add_argument("--ckpt", default=None, help="Path to the checkpoint file")
     args = parser.parse_args()
     return args
@@ -46,11 +42,10 @@ def main():
     net = eval(f"{cfg.MODEL.BACKBONE}(weights={cfg.MODEL.PRETRAIN_WEIGHTS})")
     if cfg.MODEL.BACKBONE.startswith("resnet"):
         net.fc = Flatten()
-    model = ProtoNetTrainer(net=net)
+    model = ProtoNetTrainer(net=net, devices="cuda" if cfg.GPUS > 0 else "cpu")
 
     # ---- set data loader ----
     transform = get_transform(kind="few-shot", augment=False)
-
     test_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="test",
@@ -67,10 +62,10 @@ def main():
 
     # ---- set trainer ----
     trainer = pl.Trainer(
-        devices=args.devices,
+        devices=cfg.GPUS,
         max_epochs=cfg.TRAIN.EPOCHS,
         logger=logger,
-        accelerator="gpu" if args.devices > 0 else "cpu",
+        accelerator="gpu" if cfg.GPUS > 0 else "cpu",
         log_every_n_steps=cfg.OUTPUT.SAVE_FREQ,
     )
 

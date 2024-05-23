@@ -10,9 +10,9 @@ ProtoNet is for few-shot learning problems under $N$-Way $K$-Shot settings:
 
 **$K$-shot**: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
 
-**Support set**: It is a small, labeled dataset used to train the model on a few samples of each class. The support set consists of $N$ classes ($N$-way), with $K$ samples ($K$-shot) for each class. For example, under a 3-way-2-shot setting, the support set would include 3 classes with 2 samples per class, totaling 6 samples.
+**Support set**: It is a small, labeled dataset used to train the model on a few samples of each class. The support set consists of $N$ classes ($N$-way), with $K$ samples ($K$-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
 
-**Query set**: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same $N$ classes but does not include the samples from the support set. Continuing with the 3-way 2-shot sample, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
+**Query set**: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same $N$ classes but does not included the support set. Continuing with the 3-way 2-shot sample, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
 
 ## 2. Usage
 
@@ -72,7 +72,7 @@ Customized running
 
 #### Test
 
-Example - Testing ResNet18 on unseen classes in Omniglot under a 5-way-5-shot setting
+Example - Testing trained ResNet18 on unseen classes in Omniglot under a 5-way-5-shot setting
 
 `python eval_unseen_data.py --cfg configs/demo.yaml --gpus 1 --ckpt {path to ckpt file}`
 
@@ -82,22 +82,23 @@ Customized running
 
 The test hyperparameters are the same as the `VAL` section of the config file.
 
-If no `test` folder in the custom dataset, choose one of the following options:
+##### Note
+If no `test` folder in the dataset, choose one of the following options:
 - Use the `val` set as the test set. Copy and paste the `val` set and rename it as `test`.
-- Change the `mode` in `test_set = NWayKShotDataset(path=cfg.DATASET.ROOT, mode="test", k_shot=cfg.VAL.K_SHOTS, query_samples=cfg.VAL.K_QUERIES, transform=transform)` in `eval_unseen_data.py` to `val`.
+- Change the `mode` in `test_set = NWayKShotDataset(..., mode="test", ...)` in `eval_unseen_data.py` or `main.py` to `val`.
 
 ## 3. Related `kale` API
 
 - `kale.loaddata.few_shot`: Dataset class for few-shot learning problems under $N$-way $K$-shot settings.
 - `kale.embed.image_cnn`: ResNet feature extractors.
-- `kale.pipeline.fewshot_trainer`: ProtoNet trainer in `pl.LightningModule` class.
-- `kale.predict.losses.proto_loss`: Compute the loss and accuracy for ProtoNet.
+- `kale.pipeline.fewshot_trainer`: ProtoNet trainer in `pl.LightningModule` style.
+- `kale.predict.losses.proto_loss`: Computing the loss and accuracy for ProtoNet.
 
 ## Reference
 [Prototypical Networks for Few-shot Learning](https://arxiv.org/abs/1703.05175)
 ```
 @inproceedings{snell2017prototypical,
-  title={Prototypical Networks for Few-shot Learning},
+  title={Prototypical networks for few-shot learning},
   author={Snell, Jake and Swersky, Kevin and Zemel, Richard},
   booktitle={Advances in Neural Information Processing Systems},
   year={2017}

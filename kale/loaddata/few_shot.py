@@ -17,11 +17,11 @@ class NWayKShotDataset(Dataset):
     """
     This Dataset class loads data for few-shot learning problems under N-way-K-shot settings.
 
-    - N-way: The number of classes under a particular setting. The model is presented with samples from these N classes and needs to differentiate between them. For example, 3-way means the model has to distinguish between 3 different classes.
+    - N-way: The number of classes under a particular setting. The model is presented with samples from these N classes and has to classify them. For example, 3-way means the model has to distinguish between 3 different classes.
 
     - K-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
 
-    In this class, __getitem__() returns a batch of images for one class. When defining the dataloaders, the batch size should be the number of classes (N-way). Therefore, __len__() returns the number of classes in the datasets.
+    In this class, __getitem__() returns a batch of images and labels for one class. When defining the dataloaders in training scripts, the batch size should be the number of classes (config.TRAIN.NUM_CLASSES). Therefore, __len__() returns the total number of classes in the dataset.
 
     Note:
         The dataset should be organized as:
@@ -38,21 +38,21 @@ class NWayKShotDataset(Dataset):
                     - ...
                 - ...
             - val
-                - class_name 1
+                - class_name m
                     - xxx.png
                     - yyy.png
                     - ...
-                - class_name 2
+                - class_name m+1
                     - xxx.png
                     - yyy.png
                     - ...
                 - ...
             - test
-                - class_name 1
+                - class_name n
                     - xxx.png
                     - yyy.png
                     - ...
-                - class_name 2
+                - class_name n+1
                     - xxx.png
                     - yyy.png
                     - ...
@@ -63,7 +63,7 @@ class NWayKShotDataset(Dataset):
         mode (string): The mode of the type of dataset. It can be "train", "val", or "test". Default: "train".
         num_support_samples (int): Number of samples per class in the support set. It corresponds to K in the N-way-K-shot setting. Default: 5.
         num_query_samples (int): Number of samples per class in the query set. Default: 15.
-        transform (callable, optional): Optional transform to be applied to images. Default: None.
+        transform (callable, optional): Transform of images. Default: None.
     """
 
     def __init__(
@@ -86,11 +86,11 @@ class NWayKShotDataset(Dataset):
         self._load_data()
 
     def __len__(self):
-        # the length of the dataset is the number of classes in the dataset
+        # returning the number of classes in the datasets
         return len(self.classes)
 
     def __getitem__(self, idx):
-        # sampling images from one class
+        # sampling images and labels from one class
         image_idx = self._get_idx(idx)
         images = self._sample_data(image_idx)
         assert isinstance(images, list)

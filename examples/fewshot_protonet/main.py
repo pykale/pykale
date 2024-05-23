@@ -1,11 +1,11 @@
 """
 This demo trains a prototypical network model for few-shot learning problems under N-way-K-shot settings.
 
-- N-way: The number of classes under a particular setting. The model is presented with samples from these N classes and needs to differentiate between them. For example, 3-way means the model has to distinguish between 3 different classes.
+- N-way: The number of classes under a particular setting. The model is presented with samples from these N classes and has to classify them. For example, 3-way means the model has to distinguish between 3 different classes.
 
 - K-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
 
-By default, this example uses the Omniglot dataset, which can be downloaded from https://github.com/brendenlake/omniglot.
+By default, this demo uses the Omniglot dataset, which can be downloaded from https://github.com/brendenlake/omniglot.
 
 Reference:
     Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning. Advances in Neural Information Processing Systems, 30.
@@ -29,7 +29,6 @@ from kale.prepdata.image_transform import get_transform
 def arg_parse():
     parser = argparse.ArgumentParser(description="Args of ProtoNet")
     parser.add_argument("--cfg", default="configs/demo.yaml", type=str, help="Path to the configuration file")
-    parser.add_argument("--devices", default=1, type=int, help="Number of devices to use, 0 for CPU and >0 for GPU")
     parser.add_argument("--ckpt", default=None, type=Optional[str], help="Path to the checkpoint file")
     args = parser.parse_args()
     return args
@@ -58,7 +57,7 @@ def main():
         val_num_classes=cfg.VAL.NUM_CLASSES,
         val_num_support_samples=cfg.VAL.NUM_SUPPORT_SAMPLES,
         val_num_query_samples=cfg.VAL.NUM_QUERY_SAMPLES,
-        devices=cfg.DEVICE,
+        devices="cuda" if cfg.GPUS > 0 else "cpu",
         optimizer=cfg.TRAIN.OPTIMIZER,
         lr=cfg.TRAIN.LEARNING_RATE,
     )
@@ -83,7 +82,7 @@ def main():
         transform=transform,
     )
     val_dataloader = DataLoader(val_set, batch_size=cfg.VAL.NUM_CLASSES, drop_last=True)
-    
+
     test_set = NWayKShotDataset(
         path=cfg.DATASET.ROOT,
         mode="test",
@@ -112,11 +111,11 @@ def main():
 
     # ---- set trainer ----
     trainer = pl.Trainer(
-        devices=args.devices,
+        devices=cfg.GPUS,
         max_epochs=cfg.TRAIN.EPOCHS,
         logger=logger,
         callbacks=[model_checkpoint],
-        accelerator="gpu" if args.devices > 0 else "cpu",
+        accelerator="gpu" if cfg.GPUS > 0 else "cpu",
         log_every_n_steps=cfg.OUTPUT.SAVE_FREQ,
     )
 
