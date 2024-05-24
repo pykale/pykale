@@ -1,7 +1,7 @@
 """
 This demo trains a prototypical network model for few-shot learning problems under N-way-K-shot settings.
 
-- N-way: The number of classes under a particular setting. The model is presented with samples from these N classes and has to classify them. For example, 3-way means the model has to distinguish between 3 different classes.
+- N-way: The number of classes under a particular setting. The model is presented with samples from these N classes and has to classify them. For example, 3-way means the model has to classify 3 different classes.
 
 - K-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
 

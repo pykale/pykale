@@ -4,6 +4,6 @@
 DATASET:
   ROOT: "data/omniglot"
 OUTPUT:
-  OUT_DIR: "outputs/"
+  OUT_DIR: "outputs"
   LOG_DIR: "logs"
   WEIGHT_DIR: "weights"

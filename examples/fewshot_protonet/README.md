@@ -6,19 +6,19 @@ This demo implements [Prototypical Networks for Few-shot Learning](https://githu
 
 ProtoNet is for few-shot learning problems under $N$-Way $K$-Shot settings:
 
-**$N$-way**: The number of classes under a particular setting. The model is presented with samples from these $N$ classes and needs to differentiate between them. For example, 3-way means the model has to distinguish between 3 different classes.
+**$N$-way**: The number of classes under a particular setting. The model is presented with samples from these $N$ classes and needs to classify them. For example, 3-way means the model has to classify 3 different classes.
 
 **$K$-shot**: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
 
 **Support set**: It is a small, labeled dataset used to train the model with a few samples of each class. The support set consists of $N$ classes ($N$-way), with $K$ samples ($K$-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
 
-**Query set**: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same $N$ classes but does not included the support set. Continuing with the 3-way 2-shot sample, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
+**Query set**: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same $N$ classes but not included in the support set. Continuing with the 3-way 2-shot example, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
 
 ## 2. Usage
 
 ### Datasets
 
-This data loader can be used on several few-shot learning datasets, such as mini-ImageNet ([official image list](https://drive.google.com/file/d/1iBu_Iqt49opXHSUNcTRU2WQas1WICLwQ/view)/[ready-to-download data on Kaggle](https://www.kaggle.com/datasets/arjunashok33/miniimagenet)), tiered-ImageNet ([official dataset-generating tool](https://github.com/yaoyao-liu/tiered-imagenet-tools)/[ready-to-download data on Kaggle](https://www.kaggle.com/datasets/arjun2000ashok/tieredimagenet)), and Omniglot ([official downloading code](https://github.com/brendenlake/omniglot)/[ready-to-download data on Kaggle](https://www.kaggle.com/datasets/watesoyan/omniglot)), etc. All datasets should be organized as follows.
+This model can be used on several few-shot learning datasets, such as mini-ImageNet ([official image list](https://drive.google.com/file/d/1iBu_Iqt49opXHSUNcTRU2WQas1WICLwQ/view)/[ready-to-download data on Kaggle](https://www.kaggle.com/datasets/arjunashok33/miniimagenet)), tiered-ImageNet ([official dataset-generating tool](https://github.com/yaoyao-liu/tiered-imagenet-tools)/[ready-to-download data on Kaggle](https://www.kaggle.com/datasets/arjun2000ashok/tieredimagenet)), and Omniglot ([official downloading code](https://github.com/brendenlake/omniglot)/[ready-to-download data on Kaggle](https://www.kaggle.com/datasets/watesoyan/omniglot)), etc. All datasets should be organized as follows.
 
 <pre>
 └── root
@@ -58,7 +58,7 @@ This data loader can be used on several few-shot learning datasets, such as mini
 
 #### Single GPU training:
 
-Example - Training ResNet18 on Omniglot under a 5-way-5-shot setting
+Example - Training a ResNet18-based ProtoNet on Omniglot under a 5-way-5-shot setting
 
 `python main.py --cfg configs/demo.yaml --gpus 1`
 
@@ -72,7 +72,7 @@ Customized running
 
 #### Test
 
-Example - Testing trained ResNet18 on unseen classes in Omniglot under a 5-way-5-shot setting
+Example - Testing the pretrained ResNet18-based ProtoNet on unseen classes in Omniglot under a 5-way-5-shot setting
 
 `python eval_unseen_data.py --cfg configs/demo.yaml --gpus 1 --ckpt {path to ckpt file}`
 
@@ -84,7 +84,7 @@ The test hyperparameters are the same as the `VAL` section of the config file.
 
 ##### Note
 If no `test` folder in the dataset, choose one of the following options:
-- Use the `val` set as the test set. Copy and paste the `val` set and rename it as `test`.
+- Use the `val` set as the test set. Copy and paste the `val` folder and rename it as `test`.
 - Change the `mode` in `test_set = NWayKShotDataset(..., mode="test", ...)` in `eval_unseen_data.py` or `main.py` to `val`.
 
 ## 3. Related `kale` API
