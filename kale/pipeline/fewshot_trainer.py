@@ -34,7 +34,7 @@ class ProtoNetTrainer(pl.LightningModule):
 
     - Support set: It is a small, labeled dataset used to train the model with a few samples of each class. The support set consists of :math:`N` classes (:math:`N`-way), with :math:`K` samples (:math:`K`-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
 
-    - Query set: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same :math:`N` classes but not included in the support set. Continuing with the 3-way 2-shot example, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
+    - Query set: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same :math:`N` classes but not included in the support set. Continuing with the 3-way-2-shot example, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
 
     Args:
         net (torch.nn.Module): A feature extractor without any task-specific heads. It outputs a 1-D feature vector.
