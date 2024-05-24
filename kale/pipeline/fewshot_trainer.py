@@ -5,7 +5,7 @@
 """
 This module contains the ProtoNet trainer class and related functions. It trains a prototypical network model for few-shot learning problems under N-way-K-Shot settings.
 
-Although not naturally a clustering method in the traditional sense, ProtoNet is a few-shot learning method that can be considered a clustering method.
+ProtoNet is a few-shot learning method that can be considered a clustering method.
 It learns a feature space where samples from the same class are close to each other and samples from different classes are far apart.
 The prototypes can be seen as the cluster centers, and the feature space is learned to make the samples cluster around these prototypes.
 But note that ProtoNet operates in a supervised learning context, where the goal is to classify data points based on labeled training examples.
