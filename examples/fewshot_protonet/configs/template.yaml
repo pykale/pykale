@@ -1,0 +1,28 @@
+# This is a comprehensive config file for protonet.
+# Users can modify all changeable hyperparameters to train their own model.
+DATASET:
+  ROOT: "data/omniglot"
+  IMG_SIZE: 84
+MODEL:
+  BACKBONE: "resnet18"
+  PRETRAIN_WEIGHTS: None
+TRAIN:
+  EPOCHS: 100
+  OPTIMIZER: "Adam"
+  LEARNING_RATE: 0.001
+  NUM_CLASSES: 30
+  NUM_SUPPORT_SAMPLES: 5
+  NUM_QUERY_SAMPLES: 15
+VAL:
+  NUM_CLASSES: 5
+  NUM_SUPPORT_SAMPLES: 5
+  NUM_QUERY_SAMPLES: 15
+OUTPUT:
+  OUT_DIR: "outputs"
+  LOG_DIR: "logs"
+  WEIGHT_DIR: "weights"
+  SAVE_FREQ: 1
+  SAVE_TOP_K: 2
+  SAVE_LAST: True
+SEED: 1397
+GPUS: 1

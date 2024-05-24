@@ -126,6 +126,14 @@ kale.loaddata.videos module
    :exclude-members: VideoRecord
    :show-inheritance:
 
+kale.loaddata.few\_shot module
+---------------------------
+
+.. automodule:: kale.loaddata.few_shot
+   :members:
+   :exclude-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

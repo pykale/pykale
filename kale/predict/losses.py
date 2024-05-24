@@ -36,7 +36,7 @@ def topk_accuracy(output, target, topk=(1,)):
     """Computes the top-k accuracy for the specified values of k.
 
     Args:
-        output (Tensor): output (Tensor): The output of the last layer of the network, before softmax. Shape: (batch_size, class_count).
+        output (Tensor): The output of the last layer of the network, before softmax. Shape: (batch_size, class_count).
         target (Tensor): The ground truth label. Shape: (batch_size)
         topk (tuple(int)): Compute accuracy at top-k for the values of k specified in this parameter.
     Returns:
@@ -230,7 +230,8 @@ def hsic(kx, ky, device):
 
 
 def euclidean(x1, x2):
-    """Compute the Euclidean distance
+    """
+    Compute the Euclidean distance between two sets of variables.
 
     Args:
         x1 (torch.Tensor): variables set 1
@@ -274,3 +275,84 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
             moment_sum += euclidean(x_k_order[i], x_k_order[j])
             n_pair += 1
     return moment_sum / n_pair
+
+
+class protonet_loss:
+    """ProtoNet loss function.
+
+    This is a loss function for prototypical networks. It computes the loss and accuracy of the model by measuring the Euclidean distance between features of samples in support and query sets.
+    Because this loss requests some constant hyperparameters, it is not a general function but defined as a class.
+
+    - :math:`N`-way: The number of classes under a particular setting. The model is presented with samples from these :math:`N` classes and needs to classify them. For example, 3-way means the model has to classify 3 different classes.
+
+    - :math:`K`-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
+
+    - Support set: It is a small, labeled dataset used to train the model with a few samples of each class. The support set consists of :math:`N` classes (:math:`N`-way), with :math:`K` samples (:math:`K`-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
+
+    - Query set: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same :math:`N` classes but not included in the support set. Continuing with the 3-way-2-shot example, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
+
+    Args:
+        num_classes (int): Number of classes in a task. Default: 5
+        num_query_samples (int): Number of samples per class in the query set. Default: 15
+        device (torch.device): The device in computation. Default: torch.device("cuda")
+
+    Examples:
+        >>> loss_fn = protonet_loss(num_classes=5, num_query_samples=15, device=torch.device("cuda"))
+        >>> loss, acc = loss_fn(feature_support, feature_query)
+
+    Reference:
+        Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning. Advances in Neural Information Processing Systems, 30.
+    """
+
+    def __init__(
+        self, num_classes: int = 5, num_query_samples: int = 15, device: torch.device = torch.device("cuda")
+    ) -> None:
+        super().__init__()
+        self.num_classes = num_classes
+        self.num_query_samples = num_query_samples
+        self.device = device
+
+    def __call__(self, feature_support: torch.Tensor, feature_query: torch.Tensor) -> tuple:
+        """
+        Args:
+            feature_support (torch.Tensor): Feature vectors of support samples: (num_classes, k_shot, feature_dim)
+            feature_query (torch.Tensor): Feature vectors of query samples: (num_classes * num_query_samples, feature_dim)
+
+        Returns:
+            tuple: (loss, acc)
+            loss (torch.Tensor): Loss value
+            acc (torch.Tensor): Accuracy value
+        """
+        feature_support = feature_support.to(self.device)
+        feature_query = feature_query.to(self.device)
+        prototypes = feature_support.mean(dim=1)
+        dists = self.euclidean_dist_for_tensor_group(feature_query, prototypes)
+        log_p_y = F.log_softmax(-dists, dim=1)
+        log_p_y = log_p_y.view(self.num_classes, self.num_query_samples, -1)
+        labels = torch.arange(self.num_classes).to(self.device)
+        labels = labels.view(self.num_classes, 1, 1)
+        labels = labels.expand(self.num_classes, self.num_query_samples, 1).long()
+        loss = -log_p_y.gather(2, labels).squeeze().view(-1).mean()
+        _, y_hat = log_p_y.max(2)
+        acc = torch.eq(y_hat, labels.squeeze()).float().mean()
+        return loss, acc
+
+    def euclidean_dist_for_tensor_group(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        """
+        Compute the Euclidean distance between two batches.
+
+        Args:
+            x (torch.Tensor): Variables set 1: (N, D)
+            y (torch.Tensor): Variables set 2: (M, D)
+
+        Returns:
+            torch.Tensor: Euclidean distance: (N, M)
+        """
+        n = x.size(0)
+        m = y.size(0)
+        d = x.size(1)
+        if d != y.size(1):
+            raise Exception
+        x = x.unsqueeze(1).expand(n, m, d)
+        y = y.unsqueeze(0).expand(n, m, d)
+        return torch.pow(x - y, 2).sum(2)
