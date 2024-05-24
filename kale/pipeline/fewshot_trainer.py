@@ -3,7 +3,7 @@
 # ==============================================================================
 
 """
-This module contains the ProtoNet trainer class and related functions. It trains a prototypical network model for few-shot learning problems under N-way-K-Shot settings.
+This module contains the ProtoNet trainer class and related functions. It trains a prototypical network model for few-shot learning problems under :math:`N`-way-:math:`K`-shot settings.
 
 ProtoNet is a few-shot learning method that can be considered a clustering method.
 It learns a feature space where samples from the same class are close to each other and samples from different classes are far apart.
@@ -24,25 +24,25 @@ from kale.predict.losses import protonet_loss
 
 class ProtoNetTrainer(pl.LightningModule):
     """ProtoNet trainer class
-    This class trains a ProtoNet model for few-shot learning problems under N-way-K-Shot settings.
-    It uses `pl.LightningModule` class of `PyTorch Lightning` to standardize the workflow.
-    Updating other modules except `kale.predict.losses.protonet_loss` and `kale.embed.image_cnn` will not affect this trainer.
+    This class trains a ProtoNet model for few-shot learning problems under :math:`N`-way-:math:`K`-shot settings.
+    It uses ``pl.LightningModule`` class of ``PyTorch Lightning`` to standardize the workflow.
+    Updating other modules except ``kale.predict.losses.protonet_loss`` and ``kale.embed.image_cnn`` will not affect this trainer.
 
-    - N-way: The number of classes under a particular setting. The model is presented with samples from these N classes and needs to classify them. For example, 3-way means the model has to classify 3 different classes.
+    - :math:`N`-way: The number of classes under a particular setting. The model is presented with samples from these :math:`N` classes and needs to classify them. For example, 3-way means the model has to classify 3 different classes.
 
-    - K-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
+    - :math:`K`-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
 
-    - Support set: It is a small, labeled dataset used to train the model with a few samples of each class. The support set consists of N classes (N-way), with K samples (K-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
+    - Support set: It is a small, labeled dataset used to train the model with a few samples of each class. The support set consists of :math:`N` classes (:math:`N`-way), with :math:`K` samples (:math:`K`-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
 
-    - Query set: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same N classes but not included in the support set. Continuing with the 3-way 2-shot example, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
+    - Query set: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same :math:`N` classes but not included in the support set. Continuing with the 3-way 2-shot example, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
 
     Args:
         net (torch.nn.Module): A feature extractor without any task-specific heads. It outputs a 1-D feature vector.
-        train_num_classes (int): Number of classes in training. It could be different from N under N-way-K-Shot settings in ProtoNet. Default: 30.
-        train_num_support_samples (int): Number of samples per class in the support set in training. It corresponds to K under N-way-K-Shot settings. Default: 5.
+        train_num_classes (int): Number of classes in training. It could be different from :math:`N` under :math:`N`-way-:math:`K`-shot settings in ProtoNet. Default: 30.
+        train_num_support_samples (int): Number of samples per class in the support set in training. It corresponds to :math:`K` under :math:`N`-way-:math:`K`-shot settings. Default: 5.
         train_num_query_samples (int): Number of samples per class in the query set in training. Default: 15.
-        val_num_classes (int): Number of classes in validation and testing. It corresponds to N under N-way-K-Shot settings. Default: 5.
-        val_num_support_samples (int): Number of samples per class in the support set in validation and testing. It corresponds to K under N-way-K-Shot settings. Default: 5.
+        val_num_classes (int): Number of classes in validation and testing. It corresponds to :math:`N` under :math:`N`-way-:math:`K`-shot settings. Default: 5.
+        val_num_support_samples (int): Number of samples per class in the support set in validation and testing. It corresponds to :math:`K` under :math:`N`-way-:math:`K`-shot settings. Default: 5.
         val_num_query_samples (int): Number of samples per class in the query set in validation and testing. Default: 15.
         devices (str): Devices used for training. Default: "cuda".
         optimizer (str): Optimizer used for training. Default: "SGD".
@@ -115,9 +115,9 @@ class ProtoNetTrainer(pl.LightningModule):
 
     def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
         """
-        Training step. Compute loss and accuracy, and log them by `self.log_dict`. For training, log on each step and each
-         epoch. For validation and testing, only log on each epoch. This way can avoid using `on_training_epoch_end()`
-         and `on_validation_epoch_end()`.
+        Training step. Compute loss and accuracy, and log them by ``self.log_dict``. For training, log on each step and each
+         epoch. For validation and testing, only log on each epoch. This way can avoid using ``on_training_epoch_end()``
+         and ``on_validation_epoch_end()``.
         """
         images, _ = batch
         feature_support, feature_query = self.forward(images, self.train_num_support_samples, self.train_num_classes)
@@ -141,7 +141,7 @@ class ProtoNetTrainer(pl.LightningModule):
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         """
-        Configure optimizer for training. Can be modified to support different optimizers from `torch.optim`.
+        Configure optimizer for training. Can be modified to support different optimizers from ``torch.optim``.
         """
         optimizer = eval(f"torch.optim.{self.optimizer}")(self.model.parameters(), lr=self.lr)
         return optimizer

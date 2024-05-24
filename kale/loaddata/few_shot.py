@@ -1,5 +1,5 @@
 """
-Dataset class to load data for few-shot learning problems under N-way-K-Shot settings.
+Dataset class to load data for few-shot learning problems under :math:`N`-way-:math:`K`-shot settings.
 Author: Wenrui Fan
 Email: winslow.fan@outlook.com
 """
@@ -15,17 +15,17 @@ from torch.utils.data import Dataset
 
 class NWayKShotDataset(Dataset):
     """
-    This Dataset class loads data for few-shot learning problems under N-way-K-Shot settings.
+    This Dataset class loads data for few-shot learning problems under :math:`N`-way-:math:`K`-shot settings.
 
-    - N-way: The number of classes under a particular setting. The model is presented with samples from these N classes and needs to classify them. For example, 3-way means the model has to classify 3 different classes.
+    - :math:`N`-way: The number of classes under a particular setting. The model is presented with samples from these :math:`N` classes and needs to classify them. For example, 3-way means the model has to classify 3 different classes.
 
-    - K-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
+    - :math:`K`-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
 
-    - Support set: It is a small, labeled dataset used to train the model with a few samples of each class. The support set consists of N classes (N-way), with K samples (K-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
+    - Support set: It is a small, labeled dataset used to train the model with a few samples of each class. The support set consists of :math:`N` classes (:math:`N`-way), with :math:`K` samples (:math:`K`-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
 
-    - Query set: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same N classes but not included in the support set. Continuing with the 3-way 2-shot example, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
+    - Query set: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same :math:`N` classes but not included in the support set. Continuing with the 3-way 2-shot example, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
 
-    In this class, `__getitem__()` returns a batch of images and labels for one class. When defining the training/validation/testing dataloaders, the batch size should be the number of classes (`cfg.TRAIN.NUM_CLASSES`/`cfg.VAL.NUM_CLASSES`). Therefore, `__len__()` returns the total number of classes in the dataset.
+    In this class, ``__getitem__()`` returns a batch of images and labels for one class. When defining the ``training/validation/testing dataloaders``, the batch size should be the number of classes (``cfg.TRAIN.NUM_CLASSES``/``cfg.VAL.NUM_CLASSES``). Therefore, ``__len__()`` returns the total number of classes in the dataset.
 
     Note:
         The dataset should be organized as:
@@ -65,7 +65,7 @@ class NWayKShotDataset(Dataset):
     Args:
         path (string): The root directory of the data.
         mode (string): The mode of the type of dataset. It can be "train", "val", or "test". Default: "train".
-        num_support_samples (int): Number of samples per class in the support set. It corresponds to K in the N-way-K-Shot setting. Default: 5.
+        num_support_samples (int): Number of samples per class in the support set. It corresponds to :math:`K` in the :math:`N`-way-:math:`K`-shot setting. Default: 5.
         num_query_samples (int): Number of samples per class in the query set. Default: 15.
         transform (callable, optional): Transform of images. Default: None.
     """
