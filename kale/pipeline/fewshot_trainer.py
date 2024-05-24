@@ -11,7 +11,7 @@ The prototypes can be seen as the cluster centers, and the feature space is lear
 But note that ProtoNet operates in a supervised learning context, where the goal is to classify data points based on labeled training examples.
 Clustering is typically an unsupervised learning task, where the objective is to group data points into clusters without prior knowledge of labels.
 
-This is a `PyTorch Lightning <https://github.com/Lightning-AI/lightning>` version of the original implementation <https://github.com/jakesnell/prototypical-networks> of Prototypical Networks for Few-shot Learning <https://arxiv.org/abs/1703.05175>.
+This is a ``PyTorch Lightning <https://github.com/Lightning-AI/lightning>`` version of the original implementation <https://github.com/jakesnell/prototypical-networks> of Prototypical Networks for Few-shot Learning <https://arxiv.org/abs/1703.05175>.
 """
 
 from typing import Any
