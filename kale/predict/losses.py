@@ -280,20 +280,17 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
 class protonet_loss:
     """
     ProtoNet loss function.
-    This is a loss function for prototypical networks. It computes the loss and accuracy of the model by measuring
-     the Euclidean distance between features of support samples and query samples.
-
-    Because the loss requests some constant hyperparameters, it is not a general function but defined as a class.
+    This is a loss function for prototypical networks. It computes the loss and accuracy of the model by measuring the Euclidean distance between features of support samples and query samples.
+    Because this loss requests some constant hyperparameters, it is not a general function but defined as a class.
 
     Args:
         num_classes (int): Number of classes in a task. Default: 5
         num_query_samples (int): Number of samples per class in the query set. Default: 15
-        device (torch.device): The desired device of returned tensor. Default: torch.device("cuda")
+        device (torch.device): The device in computation. Default: torch.device("cuda")
 
     Examples:
         >>> loss_fn = protonet_loss(num_classes=5, num_query_samples=15, device=torch.device("cuda"))
         >>> loss, acc = loss_fn(feature_support, feature_query)
-
 
     Reference:
         Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning. Advances in Neural Information Processing Systems, 30.
@@ -310,13 +307,13 @@ class protonet_loss:
     def __call__(self, feature_support: torch.Tensor, feature_query: torch.Tensor) -> tuple:
         """
         Args:
-            feature_support (torch.Tensor): shape (num_classes, k_shot, feature_dim)
-            feature_query (torch.Tensor): shape (num_classes * num_query_samples, feature_dim)
+            feature_support (torch.Tensor): Feature vectors of support samples: (num_classes, k_shot, feature_dim)
+            feature_query (torch.Tensor): Feature vectors of query samples: (num_classes * num_query_samples, feature_dim)
 
         Returns:
             tuple: (loss, acc)
-            loss (torch.Tensor): loss value
-            acc (torch.Tensor): accuracy value
+            loss (torch.Tensor): Loss value
+            acc (torch.Tensor): Accuracy value
         """
         feature_support = feature_support.to(self.device)
         feature_query = feature_query.to(self.device)

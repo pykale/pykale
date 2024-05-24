@@ -21,7 +21,7 @@ class NWayKShotDataset(Dataset):
 
     - K-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
 
-    In this class, __getitem__() returns a batch of images and labels for one class. When defining the dataloaders in training scripts, the batch size should be the number of classes (config.TRAIN.NUM_CLASSES). Therefore, __len__() returns the total number of classes in the dataset.
+    In this class, __getitem__() returns a batch of images and labels for one class. When defining the dataloaders in training/validation/testing scripts, the batch size should be the number of classes (cfg.TRAIN.NUM_CLASSES/cfg.VAL.NUM_CLASSES). Therefore, __len__() returns the total number of classes in the dataset.
 
     Note:
         The dataset should be organized as:
