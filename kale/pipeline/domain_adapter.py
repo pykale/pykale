@@ -753,7 +753,7 @@ class WDGRLTrainerMod(WDGRLTrainer):
     Thirty-Second AAAI Conference on Artificial Intelligence. 2018.
     https://arxiv.org/pdf/1707.01217.pdf
 
-    This class also implements the asymmetric (:math:`\beta`) variant described in:
+    This class also implements the asymmetric ( :math:`\beta` ) variant described in:
     Wu, Yifan, et al.
     "Domain adaptation with asymmetrically-relaxed distribution alignment."
     ICML (2019)
