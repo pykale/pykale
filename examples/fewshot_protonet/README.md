@@ -58,11 +58,11 @@ This model can be used on several few-shot learning datasets, such as mini-Image
 
 #### Single GPU training:
 
-Example - Training a ResNet18-based ProtoNet on Omniglot under a 5-way-5-shot setting
+Example - Training a ResNet18-based ProtoNet on Omniglot under a 5-way-5-shot setting:
 
 `python main.py --cfg configs/demo.yaml --gpus 1`
 
-Customized running
+Customized running:
 
 `python main.py --cfg configs/template.yaml --gpus 1`
 
@@ -72,11 +72,11 @@ Customized running
 
 #### Test
 
-Example - Testing the pretrained ResNet18-based ProtoNet on unseen classes in Omniglot under a 5-way-5-shot setting
+Example - Testing the pretrained ResNet18-based ProtoNet on unseen classes in Omniglot under a 5-way-5-shot setting:
 
 `python eval_unseen_data.py --cfg configs/demo.yaml --gpus 1 --ckpt {path to ckpt file}`
 
-Customized running
+Customized running:
 
 `python eval_unseen_data.py --cfg configs/template.yaml --gpus 1 --ckpt {path to ckpt file}`
 
