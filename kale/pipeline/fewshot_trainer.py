@@ -23,7 +23,8 @@ from kale.predict.losses import protonet_loss
 
 
 class ProtoNetTrainer(pl.LightningModule):
-    """ProtoNet trainer class
+    """ProtoNet trainer class.
+
     This class trains a ProtoNet model for few-shot learning problems under :math:`N`-way-:math:`K`-shot settings.
     It uses ``pl.LightningModule`` class of ``PyTorch Lightning`` to standardize the workflow.
     Updating other modules except ``kale.predict.losses.protonet_loss`` and ``kale.embed.image_cnn`` will not affect this trainer.
@@ -97,8 +98,9 @@ class ProtoNetTrainer(pl.LightningModule):
         return feature_support, feature_query
 
     def compute_loss(self, feature_support, feature_query, mode="train") -> tuple:
-        """
-        Compute loss and accuracy. Here we use the same loss function for both training and validation, which is related to Euclidean distance.
+        """Compute loss and accuracy. 
+        
+        Here we use the same loss function for both training and validation, which is related to Euclidean distance.
 
         Args:
             feature_support (torch.Tensor): Support features.
@@ -114,8 +116,9 @@ class ProtoNetTrainer(pl.LightningModule):
         return loss, return_dict
 
     def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
-        """
-        Training step. Compute loss and accuracy, and log them by ``self.log_dict``. For training, log on each step and each
+        """Training step.
+        
+        Compute loss and accuracy, and log them by ``self.log_dict``. For training, log on each step and each
          epoch. For validation and testing, only log on each epoch. This way can avoid using ``on_training_epoch_end()``
          and ``on_validation_epoch_end()``.
         """

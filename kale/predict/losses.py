@@ -279,6 +279,7 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
 
 class protonet_loss:
     """ProtoNet loss function.
+    
     This is a loss function for prototypical networks. It computes the loss and accuracy of the model by measuring the Euclidean distance between features of samples in support and query sets.
     Because this loss requests some constant hyperparameters, it is not a general function but defined as a class.
 
