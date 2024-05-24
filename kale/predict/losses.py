@@ -286,17 +286,16 @@ class protonet_loss:
     Although not naturally a clustering method in the traditional sense, ProtoNet is a few-shot learning method that can be considered a clustering method. 
     It learns a feature space where samples from the same class are close to each other and samples from different classes are far apart. 
     The prototypes can be seen as the cluster centers, and the feature space is learned to make the samples cluster around these prototypes.
-    But note that ProtoNet operates in a supervised learning context, where the goal is to classify data points based on labeled training examples. Clustering is typically an unsupervised learning task, where the objective is to group data points into clusters without prior knowledge of labels.
+    But note that ProtoNet operates in a supervised learning context, where the goal is to classify data points based on labeled training examples. 
+    Clustering is typically an unsupervised learning task, where the objective is to group data points into clusters without prior knowledge of labels.
 
+    - $N$-way: The number of classes under a particular setting. The model is presented with samples from these $N$ classes and needs to classify them. For example, 3-way means the model has to classify 3 different classes.
 
-    - N-way: The number of classes under a particular setting. The model is presented with samples from these N classes and has to classify them. For example, 3-way means the model has to classify 3 different classes.
+    - $K$-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
 
-    - K-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
+    - Support set: It is a small, labeled dataset used to train the model with a few samples of each class. The support set consists of $N$ classes ($N$-way), with $K$ samples ($K$-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
 
-    - Support set: It is a small, labeled dataset used to train the model with a few samples of each class. The support set consists of N classes (N-way), with K samples (K-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
-
-    - Query set: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same N classes but not included in the support set. Continuing with the 3-way 2-shot example, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
-
+    - Query set: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same $N$ classes but not included in the support set. Continuing with the 3-way 2-shot example, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
 
     Args:
         num_classes (int): Number of classes in a task. Default: 5
