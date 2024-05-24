@@ -283,6 +283,12 @@ class protonet_loss:
     This is a loss function for prototypical networks. It computes the loss and accuracy of the model by measuring the Euclidean distance between features of samples in support and query sets.
     Because this loss requests some constant hyperparameters, it is not a general function but defined as a class.
 
+    Although not naturally a clustering method in the traditional sense, ProtoNet is a few-shot learning method that can be considered a clustering method. 
+    It learns a feature space where samples from the same class are close to each other and samples from different classes are far apart. 
+    The prototypes can be seen as the cluster centers, and the feature space is learned to make the samples cluster around these prototypes.
+    But note that ProtoNet operates in a supervised learning context, where the goal is to classify data points based on labeled training examples. Clustering is typically an unsupervised learning task, where the objective is to group data points into clusters without prior knowledge of labels.
+
+
     - N-way: The number of classes under a particular setting. The model is presented with samples from these N classes and has to classify them. For example, 3-way means the model has to classify 3 different classes.
 
     - K-shot: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
