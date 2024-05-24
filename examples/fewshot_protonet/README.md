@@ -10,7 +10,7 @@ ProtoNet is for few-shot learning problems under $N$-Way $K$-Shot settings:
 
 **$K$-shot**: The number of samples for each class in the support set. For example, in a 2-shot setting, two support samples are provided per class.
 
-**Support set**: It is a small, labeled dataset used to train the model on a few samples of each class. The support set consists of $N$ classes ($N$-way), with $K$ samples ($K$-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
+**Support set**: It is a small, labeled dataset used to train the model with a few samples of each class. The support set consists of $N$ classes ($N$-way), with $K$ samples ($K$-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
 
 **Query set**: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same $N$ classes but does not included the support set. Continuing with the 3-way 2-shot sample, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
 
