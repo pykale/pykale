@@ -2,8 +2,7 @@
 # Author: Wenrui Fan, winslow.fan@outlook.com
 # ==============================================================================
 
-"""ProtoNet Trainer (pipelines)
-
+"""
 This module contains the ProtoNet trainer class and related functions. It trains a prototypical network model for few-shot learning problems under N-way-K-shot settings.
 
 This is a `PyTorch Lightning <https://github.com/Lightning-AI/lightning>` version of the original implementation <https://github.com/jakesnell/prototypical-networks> of Prototypical Networks for Few-shot Learning <https://arxiv.org/abs/1703.05175>.
