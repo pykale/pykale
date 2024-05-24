@@ -6,12 +6,10 @@
 This module contains the ProtoNet trainer class and related functions. It trains a prototypical network model for few-shot learning problems under $N$-way $K$-shot settings.
 
 Although not naturally a clustering method in the traditional sense, ProtoNet is a few-shot learning method that can be considered a clustering method.
-
 It learns a feature space where samples from the same class are close to each other and samples from different classes are far apart.
-
 The prototypes can be seen as the cluster centers, and the feature space is learned to make the samples cluster around these prototypes.
-
-But note that ProtoNet operates in a supervised learning context, where the goal is to classify data points based on labeled training examples. Clustering is typically an unsupervised learning task, where the objective is to group data points into clusters without prior knowledge of labels.
+But note that ProtoNet operates in a supervised learning context, where the goal is to classify data points based on labeled training examples.
+Clustering is typically an unsupervised learning task, where the objective is to group data points into clusters without prior knowledge of labels.
 
 This is a `PyTorch Lightning <https://github.com/Lightning-AI/lightning>` version of the original implementation <https://github.com/jakesnell/prototypical-networks> of Prototypical Networks for Few-shot Learning <https://arxiv.org/abs/1703.05175>.
 """
