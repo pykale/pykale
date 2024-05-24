@@ -286,7 +286,7 @@ class protonet_loss:
     - Support set: It is a small, labeled dataset used to train the model with a few samples of each class. The support set consists of N classes (N-way), with K samples (K-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
 
     - Query set: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same N classes but not included in the support set. Continuing with the 3-way 2-shot example, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
-    
+
 
     Args:
         num_classes (int): Number of classes in a task. Default: 5

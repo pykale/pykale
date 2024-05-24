@@ -24,7 +24,7 @@ class NWayKShotDataset(Dataset):
     - Support set: It is a small, labeled dataset used to train the model with a few samples of each class. The support set consists of N classes (N-way), with K samples (K-shot) for each class. For example, under a 3-way-2-shot setting, the support set has 3 classes with 2 samples per class, totaling 6 samples.
 
     - Query set: It evaluates the model's ability to generalize what it has learned from the support set. It contains samples from the same N classes but not included in the support set. Continuing with the 3-way 2-shot example, the query set would include additional samples from the 3 classes, which the model must classify after learning from the support set.
-    
+
     In this class, __getitem__() returns a batch of images and labels for one class. When defining the training/validation/testing dataloaders, the batch size should be the number of classes (cfg.TRAIN.NUM_CLASSES/cfg.VAL.NUM_CLASSES). Therefore, __len__() returns the total number of classes in the dataset.
 
     Note:
