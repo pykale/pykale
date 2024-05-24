@@ -1,6 +1,6 @@
 """
-This demo tests the performance of a pretrained prototypical network on unseen data.
-Users can apply this script to evaluate their pretrained models on unseen data without re-training.
+This demo tests the performance of a pretrained prototypical network on unseen classes.
+Users can apply this script to evaluate their pretrained models on unseen classes without re-training.
 
 Reference:
     Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning. Advances in Neural Information Processing Systems, 30.
@@ -69,7 +69,7 @@ def main():
         log_every_n_steps=cfg.OUTPUT.SAVE_FREQ,
     )
 
-    # ---- testing on unseen data ----
+    # ---- testing on unseen classes ----
     trainer.test(model=model, dataloaders=test_dataloader, ckpt_path=args.ckpt)
 
 

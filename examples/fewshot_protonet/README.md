@@ -74,18 +74,18 @@ Customized running:
 
 Example - Testing the pretrained ResNet18-based ProtoNet on unseen classes in Omniglot under a 5-way-5-shot setting:
 
-`python eval_unseen_data.py --cfg configs/demo.yaml --gpus 1 --ckpt {path to ckpt file}`
+`python eval_unseen_classes.py --cfg configs/demo.yaml --gpus 1 --ckpt {path to ckpt file}`
 
 Customized running:
 
-`python eval_unseen_data.py --cfg configs/template.yaml --gpus 1 --ckpt {path to ckpt file}`
+`python eval_unseen_classes.py --cfg configs/template.yaml --gpus 1 --ckpt {path to ckpt file}`
 
 The test hyperparameters are the same as the `VAL` section of the config file.
 
 ##### Note
 If no `test` folder in the dataset, choose one of the following options:
 - Use the `val` set as the test set. Copy and paste the `val` folder and rename it as `test`.
-- Change the `mode` in `test_set = NWayKShotDataset(..., mode="test", ...)` in `eval_unseen_data.py` or `main.py` to `val`.
+- Change the `mode` in `test_set = NWayKShotDataset(..., mode="test", ...)` in `eval_unseen_classes.py` or `main.py` to `val`.
 
 ## 3. Related `kale` API
 
