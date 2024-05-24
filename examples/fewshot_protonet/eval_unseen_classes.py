@@ -2,13 +2,6 @@
 This demo tests the performance of a pretrained prototypical network on unseen classes.
 Users can apply this script to evaluate their pretrained models on unseen classes without re-training.
 
-Although not naturally a clustering method in the traditional sense, ProtoNet is a few-shot learning method that can be considered a clustering method.
-It learns a feature space where samples from the same class are close to each other and samples from different classes are far apart.
-The prototypes can be seen as the cluster centers, and the feature space is learned to make the samples cluster around these prototypes.
-But note that ProtoNet operates in a supervised learning context, where the goal is to classify data points based on labeled training examples.
-Clustering is typically an unsupervised learning task, where the objective is to group data points into clusters without prior knowledge of labels.
-
-
 Reference:
     Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning. Advances in Neural Information Processing Systems, 30.
 """
