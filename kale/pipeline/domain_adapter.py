@@ -791,28 +791,28 @@ class WDGRLTrainerMod(WDGRLTrainer):
 
     | Greek Letter  | Lowercase | Uppercase |
     | ------------- | --------- | --------- |
-    | Alpha         | :math:`\\alpha` | :math:`\Alpha` |
-    | Beta          | :math:`\\beta` | :math:`\Beta` |
+    | Alpha         | :math:`\\alpha` | :math:`\\Alpha` |
+    | Beta          | :math:`\\beta` | :math:`\\Beta` |
     | Gamma         | :math:`\\gamma` | :math:`\Gamma` |
     | Delta         | :math:`\\delta` | :math:`\Delta` |
-    | Epsilon       | :math:`\\epsilon` | :math:`\Epsilon` |
-    | Zeta          | :math:`\\zeta` | :math:`\Zeta` |
-    | Eta           | :math:`\\eta` | :math:`\Eta` |
+    | Epsilon       | :math:`\\epsilon` | :math:`\\Epsilon` |
+    | Zeta          | :math:`\\zeta` | :math:`\\Zeta` |
+    | Eta           | :math:`\\eta` | :math:`\\Eta` |
     | Theta         | :math:`\\theta` | :math:`\Theta` |
-    | Iota          | :math:`\\iota` | :math:`\Iota` |
-    | Kappa         | :math:`\\kappa` | :math:`\Kappa` |
+    | Iota          | :math:`\\iota` | :math:`\\Iota` |
+    | Kappa         | :math:`\\kappa` | :math:`\\Kappa` |
     | Lambda        | :math:`\\lambda` | :math:`\Lambda` |
-    | Mu            | :math:`\\mu` | :math:`\Mu` |
-    | Nu            | :math:`\\nu` | :math:`\Nu` |
+    | Mu            | :math:`\\mu` | :math:`\\Mu` |
+    | Nu            | :math:`\\nu` | :math:`\\Nu` |
     | Xi            | :math:`\\xi` | :math:`\Xi` |
-    | Omicron       | :math:`\\omicron` | :math:`\Omicron` |
+    | Omicron       | :math:`\\omicron` | :math:`\\Omicron` |
     | Pi            | :math:`\\pi` | :math:`\Pi` |
-    | Rho           | :math:`\\rho` | :math:`\Rho` |
+    | Rho           | :math:`\\rho` | :math:`\\Rho` |
     | Sigma         | :math:`\\sigma` | :math:`\Sigma` |
-    | Tau           | :math:`\\tau` | :math:`\Tau` |
+    | Tau           | :math:`\\tau` | :math:`\\Tau` |
     | Upsilon       | :math:`\\upsilon` | :math:`\Upsilon` |
     | Phi           | :math:`\\phi` | :math:`\Phi` |
-    | Chi           | :math:`\\chi` | :math:`\Chi` |
+    | Chi           | :math:`\\chi` | :math:`\\Chi` |
     | Psi           | :math:`\\psi` | :math:`\Psi` |
     | Omega         | :math:`\\omega` | :math:`\Omega` |
 
