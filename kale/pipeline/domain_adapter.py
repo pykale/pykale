@@ -601,20 +601,7 @@ class WDGRLTrainer(BaseDANNLike):
     Thirty-Second AAAI Conference on Artificial Intelligence. 2018.
     https://arxiv.org/pdf/1707.01217.pdf
 
-    (:math:`\\gamma`)    (:math:`\\Gamma`)
-    (:math:`\\alpha`)    (:math:`\\beta`)   (:math:`\\theta`)    (:math:`\\vartheta`)
-    (:math:`\\varepsilon`)   (:math:`\\epsilon`)    (:math:`\\zeta`)    (:math:`\\eta`)
-    (:math:`\\theta`)    (:math:`\\vartheta`)    (:math:`\\iota`)    (:math:`\\kappa`)
-    (:math:`\\lambda`)    (:math:`\\mu`)    (:math:`\\nu`)    (:math:`\\xi`)
-    (:math:`\\pi`)    (:math:`\\rho`)    (:math:`\\sigma`)    (:math:`\\tau`)
-    (:math:`\\upsilon`)    (:math:`\\phi`)    (:math:`\\chi`)    (:math:`\\psi`)    (:math:`\\omega`)
-    (:math:`\\Gamma`)    (:math:`\\Delta`)    (:math:`\\Theta`)    (:math:`\\Lambda`)
-    (:math:`\\Xi`)    (:math:`\\Pi`)    (:math:`\\Sigma`)    (:math:`\\Upsilon`)
-    (:math:`\\Phi`)    (:math:`\\Psi`)    (:math:`\\Omega`)
-
-
-
-    This class also implements the asymmetric (:math:`beta`) variant described in:
+    This class also implements the asymmetric (:math:`\\beta`) variant described in:
     Wu, Yifan, et al.
     "Domain adaptation with asymmetrically-relaxed distribution alignment."
     ICML (2019)
@@ -767,7 +754,7 @@ class WDGRLTrainerMod(WDGRLTrainer):
     Thirty-Second AAAI Conference on Artificial Intelligence. 2018.
     https://arxiv.org/pdf/1707.01217.pdf
 
-    This class also implements the asymmetric (:math:`beta`) variant described in:
+    This class also implements the asymmetric (:math:`\\beta`) variant described in:
     Wu, Yifan, et al.
     "Domain adaptation with asymmetrically-relaxed distribution alignment."
     ICML (2019)
