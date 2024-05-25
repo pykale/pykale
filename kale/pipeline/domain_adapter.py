@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Domain adaptation systems (pipelines) with three types of architectures
 
 This module takes individual modules as input and organises them into an architecture. This is taken directly from
@@ -600,55 +601,14 @@ class WDGRLTrainer(BaseDANNLike):
     Thirty-Second AAAI Conference on Artificial Intelligence. 2018.
     https://arxiv.org/pdf/1707.01217.pdf
 
+    (:math:`\alpha`)    (:math:`\beta`)
+
+    (:math:`\gamma`)    (:math:`\Gamma`)
     This class also implements the asymmetric (:math:`beta`) variant described in:
     Wu, Yifan, et al.
     "Domain adaptation with asymmetrically-relaxed distribution alignment."
     ICML (2019)
     https://arxiv.org/pdf/1903.01689.pdf
-
-    (:math:`\alpha`)
-    (:math:`\beta`)
-    (:math:`\gamma`)
-    (:math:`\Gamma`)
-    (:math:`\delta`)
-    (:math:`\Delta`)
-    (:math:`\epsilon`)
-    (:math:`\varepsilon`)
-    (:math:`\zeta`)
-    (:math:`\eta`)
-    (:math:`\theta`)
-    (:math:`\vartheta`)
-    (:math:`\Theta`)
-    (:math:`\iota`)
-    (:math:`\kappa`)
-    (:math:`\varkappa`)
-    (:math:`\Kappa`)
-    (:math:`\lambda`)
-    (:math:`\Lambda`)
-    (:math:`\mu`)
-    (:math:`\nu`)
-    (:math:`\xi`)
-    (:math:`\Xi`)
-    (:math:`\pi`)
-    (:math:`\varpi`)
-    (:math:`\Pi`)
-    (:math:`\rho`)
-    (:math:`\varrho`)
-    (:math:`\sigma`)
-    (:math:`\varsigma`)
-    (:math:`\Sigma`)
-    (:math:`\tau`)
-    (:math:`\upsilon`)
-    (:math:`\Upsilon`)
-    (:math:`\phi`)
-    (:math:`\varphi`)
-    (:math:`\Phi`)
-    (:math:`\chi`)
-    (:math:`\psi`)
-    (:math:`\Psi`)
-    (:math:`\omega`)
-    (:math:`\Omega`)
-
     """
 
     def __init__(
