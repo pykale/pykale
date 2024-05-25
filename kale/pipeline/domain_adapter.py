@@ -601,9 +601,9 @@ class WDGRLTrainer(BaseDANNLike):
     Thirty-Second AAAI Conference on Artificial Intelligence. 2018.
     https://arxiv.org/pdf/1707.01217.pdf
 
-    in line (:math:`\delta`)xxx    (:math:`\Delta`)    (:math:`\epsilon`)    (:math:`\varepsilon`)
-
-    (:math:`\zeta`)    (:math:`\eta`)    (:math:`\theta`)    (:math:`\vartheta`)
+    (:math:`\\gamma`)    (:math:`\\Gamma`)
+    (:math:`\\alpha`)    (:math:`\\beta`)   (:math:`\\theta`)    (:math:`\\vartheta`)
+    (:math:`\\varepsilon`)
 
 
     This class also implements the asymmetric (:math:`beta`) variant described in:
