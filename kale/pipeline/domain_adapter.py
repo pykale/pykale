@@ -604,6 +604,10 @@ class WDGRLTrainer(BaseDANNLike):
     (:math:`\alpha`)    (:math:`\beta`)
 
     (:math:`\gamma`)    (:math:`\Gamma`)
+    
+    (:math:`\delta`)    (:math:`\Delta`)    (:math:`\epsilon`)    (:math:`\varepsilon`)    (:math:`\zeta`)    (:math:`\eta`)    (:math:`\theta`)    (:math:`\vartheta`)    (:math:`\Theta`)    (:math:`\iota`)    (:math:`\kappa`)    (:math:`\varkappa`)    (:math:`\Kappa`)    (:math:`\lambda`)    (:math:`\Lambda`)    (:math:`\mu`)    (:math:`\nu`)    (:math:`\xi`)    (:math:`\Xi`)    (:math:`\pi`)    (:math:`\varpi`)    (:math:`\Pi`)    (:math:`\rho`)    (:math:`\varrho`)    (:math:`\sigma`)    (:math:`\varsigma`)    (:math:`\Sigma`)    (:math:`\tau`)    (:math:`\upsilon`)    (:math:`\Upsilon`)    (:math:`\phi`)    (:math:`\varphi`)    (:math:`\Phi`)    (:math:`\chi`)    (:math:`\psi`)    (:math:`\Psi`)    (:math:`\omega`)    (:math:`\Omega`)
+
+
     This class also implements the asymmetric (:math:`beta`) variant described in:
     Wu, Yifan, et al.
     "Domain adaptation with asymmetrically-relaxed distribution alignment."
