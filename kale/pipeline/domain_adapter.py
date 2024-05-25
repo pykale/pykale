@@ -789,6 +789,33 @@ class WDGRLTrainerMod(WDGRLTrainer):
     | Psi           | :math:`\\psi` | :math:`\\Psi` |
     | Omega         | :math:`\\omega` | :math:`\\Omega` |
 
+    | Greek Letter  | Lowercase | Uppercase |
+    | ------------- | --------- | --------- |
+    | Alpha         | :math:`\\alpha` | :math:`\Alpha` |
+    | Beta          | :math:`\\beta` | :math:`\Beta` |
+    | Gamma         | :math:`\\gamma` | :math:`\Gamma` |
+    | Delta         | :math:`\\delta` | :math:`\Delta` |
+    | Epsilon       | :math:`\\epsilon` | :math:`\Epsilon` |
+    | Zeta          | :math:`\\zeta` | :math:`\Zeta` |
+    | Eta           | :math:`\\eta` | :math:`\Eta` |
+    | Theta         | :math:`\\theta` | :math:`\Theta` |
+    | Iota          | :math:`\\iota` | :math:`\Iota` |
+    | Kappa         | :math:`\\kappa` | :math:`\Kappa` |
+    | Lambda        | :math:`\\lambda` | :math:`\Lambda` |
+    | Mu            | :math:`\\mu` | :math:`\Mu` |
+    | Nu            | :math:`\\nu` | :math:`\Nu` |
+    | Xi            | :math:`\\xi` | :math:`\Xi` |
+    | Omicron       | :math:`\\omicron` | :math:`\Omicron` |
+    | Pi            | :math:`\\pi` | :math:`\Pi` |
+    | Rho           | :math:`\\rho` | :math:`\Rho` |
+    | Sigma         | :math:`\\sigma` | :math:`\Sigma` |
+    | Tau           | :math:`\\tau` | :math:`\Tau` |
+    | Upsilon       | :math:`\\upsilon` | :math:`\Upsilon` |
+    | Phi           | :math:`\\phi` | :math:`\Phi` |
+    | Chi           | :math:`\\chi` | :math:`\Chi` |
+    | Psi           | :math:`\\psi` | :math:`\Psi` |
+    | Omega         | :math:`\\omega` | :math:`\Omega` |
+
     Using the pattern :math:`\\beta_p` to generate all Greek letters, including capital letters.
 
     | Greek Letter  | Lowercase | Uppercase |
@@ -817,6 +844,34 @@ class WDGRLTrainerMod(WDGRLTrainer):
     | Chi           | :math:`\\chi_p` | :math:`\\Chi_p` |
     | Psi           | :math:`\\psi_p` | :math:`\\Psi_p` |
     | Omega         | :math:`\\omega_p` | :math:`\\Omega_p` |
+
+    | Greek Letter  | Lowercase | Uppercase |
+    | ------------- | --------- | --------- |
+    | Alpha         | :math:`\\alpha(\cdot)` | :math:`\\Alpha(\cdot)` |
+    | Beta          | :math:`\\beta(\cdot)` | :math:`\\Beta(\cdot)` |
+    | Gamma         | :math:`\\gamma(\cdot)` | :math:`\\Gamma(\cdot)` |
+    | Delta         | :math:`\\delta(\cdot)` | :math:`\\Delta(\cdot)` |
+    | Epsilon       | :math:`\\epsilon(\cdot)` | :math:`\\Epsilon(\cdot)` |
+    | Zeta          | :math:`\\zeta(\cdot)` | :math:`\\Zeta(\cdot)` |
+    | Eta           | :math:`\\eta(\cdot)` | :math:`\\Eta(\cdot)` |
+    | Theta         | :math:`\\theta(\cdot)` | :math:`\\Theta(\cdot)` |
+    | Iota          | :math:`\\iota(\cdot)` | :math:`\\Iota(\cdot)` |
+    | Kappa         | :math:`\\kappa(\cdot)` | :math:`\\Kappa(\cdot)` |
+    | Lambda        | :math:`\\lambda(\cdot)` | :math:`\\Lambda(\cdot)` |
+    | Mu            | :math:`\\mu(\cdot)` | :math:`\\Mu(\cdot)` |
+    | Nu            | :math:`\\nu(\cdot)` | :math:`\\Nu(\cdot)` |
+    | Xi            | :math:`\\xi(\cdot)` | :math:`\\Xi(\cdot)` |
+    | Omicron       | :math:`\\omicron(\cdot)` | :math:`\\Omicron(\cdot)` |
+    | Pi            | :math:`\\pi(\cdot)` | :math:`\\Pi(\cdot)` |
+    | Rho           | :math:`\\rho(\cdot)` | :math:`\\Rho(\cdot)` |
+    | Sigma         | :math:`\\sigma(\cdot)` | :math:`\\Sigma(\cdot)` |
+    | Tau           | :math:`\\tau(\cdot)` | :math:`\\Tau(\cdot)` |
+    | Upsilon       | :math:`\\upsilon(\cdot)` | :math:`\\Upsilon(\cdot)` |
+    | Phi           | :math:`\\phi(\cdot)` | :math:`\\Phi(\cdot)` |
+    | Chi           | :math:`\\chi(\cdot)` | :math:`\\Chi(\cdot)` |
+    | Psi           | :math:`\\psi(\cdot)` | :math:`\\Psi(\cdot)` |
+    | Omega         | :math:`\\omega(\cdot)` | :math:`\\Omega(\cdot)` |
+
 
 
 
