@@ -36,7 +36,7 @@ class MogonetGCNConv(MessagePassing):
         H^{(l+1)}=f(H^{(l)}, A) = \sigma(AH^{(l)}W^{(l)})
 
     where :math:`\mathbf{H^{(l)}}` is the input of the :math:`l`-th layer and :math:`\mathbf{W^{(l)}}` is the weight
-    matrix of the :math:`l`-th layer. :math:`\\sigma(.)` denotes a non-linear activation function.
+    matrix of the :math:`l`-th layer. :math:`\sigma(.)` denotes a non-linear activation function.
 
     For more information please refer to the MOGONET paper.
 
