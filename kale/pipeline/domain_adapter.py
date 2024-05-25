@@ -760,7 +760,7 @@ class WDGRLTrainerMod(WDGRLTrainer):
     ICML (2019)
     https://arxiv.org/pdf/1903.01689.pdf
 
-    
+
 
     | Greek Letter  | Lowercase | Uppercase |
     | ------------- | --------- | --------- |
@@ -788,7 +788,37 @@ class WDGRLTrainerMod(WDGRLTrainer):
     | Chi           | :math:`\\chi` | :math:`\\Chi` |
     | Psi           | :math:`\\psi` | :math:`\\Psi` |
     | Omega         | :math:`\\omega` | :math:`\\Omega` |
-    
+
+    Using the pattern :math:`\\beta_p` to generate all Greek letters, including capital letters.
+
+    | Greek Letter  | Lowercase | Uppercase |
+    | ------------- | --------- | --------- |
+    | Alpha         | :math:`\\alpha_p` | :math:`\\Alpha_p` |
+    | Beta          | :math:`\\beta_p` | :math:`\\Beta_p` |
+    | Gamma         | :math:`\\gamma_p` | :math:`\\Gamma_p` |
+    | Delta         | :math:`\\delta_p` | :math:`\\Delta_p` |
+    | Epsilon       | :math:`\\epsilon_p` | :math:`\\Epsilon_p` |
+    | Zeta          | :math:`\\zeta_p` | :math:`\\Zeta_p` |
+    | Eta           | :math:`\\eta_p` | :math:`\\Eta_p` |
+    | Theta         | :math:`\\theta_p` | :math:`\\Theta_p` |
+    | Iota          | :math:`\\iota_p` | :math:`\\Iota_p` |
+    | Kappa         | :math:`\\kappa_p` | :math:`\\Kappa_p` |
+    | Lambda        | :math:`\\lambda_p` | :math:`\\Lambda_p` |
+    | Mu            | :math:`\\mu_p` | :math:`\\Mu_p` |
+    | Nu            | :math:`\\nu_p` | :math:`\\Nu_p` |
+    | Xi            | :math:`\\xi_p` | :math:`\\Xi_p` |
+    | Omicron       | :math:`\\omicron_p` | :math:`\\Omicron_p` |
+    | Pi            | :math:`\\pi_p` | :math:`\\Pi_p` |
+    | Rho           | :math:`\\rho_p` | :math:`\\Rho_p` |
+    | Sigma         | :math:`\\sigma_p` | :math:`\\Sigma_p` |
+    | Tau           | :math:`\\tau_p` | :math:`\\Tau_p` |
+    | Upsilon       | :math:`\\upsilon_p` | :math:`\\Upsilon_p` |
+    | Phi           | :math:`\\phi_p` | :math:`\\Phi_p` |
+    | Chi           | :math:`\\chi_p` | :math:`\\Chi_p` |
+    | Psi           | :math:`\\psi_p` | :math:`\\Psi_p` |
+    | Omega         | :math:`\\omega_p` | :math:`\\Omega_p` |
+
+
 
     """
 
