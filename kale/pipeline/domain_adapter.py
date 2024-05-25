@@ -601,11 +601,9 @@ class WDGRLTrainer(BaseDANNLike):
     Thirty-Second AAAI Conference on Artificial Intelligence. 2018.
     https://arxiv.org/pdf/1707.01217.pdf
 
-    (:math:`\alpha`)    (:math:`\beta`)
+    in line (:math:`\delta`)xxx    (:math:`\Delta`)    (:math:`\epsilon`)    (:math:`\varepsilon`)
 
-    (:math:`\gamma`)    (:math:`\Gamma`)
-    
-    (:math:`\delta`)    (:math:`\Delta`)    (:math:`\epsilon`)    (:math:`\varepsilon`)    (:math:`\zeta`)    (:math:`\eta`)    (:math:`\theta`)    (:math:`\vartheta`)    (:math:`\Theta`)    (:math:`\iota`)    (:math:`\kappa`)    (:math:`\varkappa`)    (:math:`\Kappa`)    (:math:`\lambda`)    (:math:`\Lambda`)    (:math:`\mu`)    (:math:`\nu`)    (:math:`\xi`)    (:math:`\Xi`)    (:math:`\pi`)    (:math:`\varpi`)    (:math:`\Pi`)    (:math:`\rho`)    (:math:`\varrho`)    (:math:`\sigma`)    (:math:`\varsigma`)    (:math:`\Sigma`)    (:math:`\tau`)    (:math:`\upsilon`)    (:math:`\Upsilon`)    (:math:`\phi`)    (:math:`\varphi`)    (:math:`\Phi`)    (:math:`\chi`)    (:math:`\psi`)    (:math:`\Psi`)    (:math:`\omega`)    (:math:`\Omega`)
+    (:math:`\zeta`)    (:math:`\eta`)    (:math:`\theta`)    (:math:`\vartheta`)
 
 
     This class also implements the asymmetric (:math:`beta`) variant described in:
