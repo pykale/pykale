@@ -184,9 +184,9 @@ class BaseAdaptTrainer(pl.LightningModule):
 
     :math:`\mathcal{L} = \mathcal{L}_c + \lambda \mathcal{L}_a`,
 
-    where :math:`\\lambda` will follow the schedule defined by the DANN paper:
+    where :math:`\lambda` will follow the schedule defined by the DANN paper:
 
-    :math:`\\lambda_p = \frac{2}{1 + \exp{(-\\gamma \cdot p)}} - 1` where :math:`p` the learning progress
+    :math:`\lambda_p = \frac{2}{1 + \exp{(-\gamma \cdot p)}} - 1` where :math:`p` the learning progress
     changes linearly from 0 to 1.
 
     Args:
@@ -759,6 +759,37 @@ class WDGRLTrainerMod(WDGRLTrainer):
     "Domain adaptation with asymmetrically-relaxed distribution alignment."
     ICML (2019)
     https://arxiv.org/pdf/1903.01689.pdf
+
+    
+
+    | Greek Letter  | Lowercase | Uppercase |
+    | ------------- | --------- | --------- |
+    | Alpha         | :math:`\\alpha` | :math:`\\Alpha` |
+    | Beta          | :math:`\\beta` | :math:`\\Beta` |
+    | Gamma         | :math:`\\gamma` | :math:`\\Gamma` |
+    | Delta         | :math:`\\delta` | :math:`\\Delta` |
+    | Epsilon       | :math:`\\epsilon` | :math:`\\Epsilon` |
+    | Zeta          | :math:`\\zeta` | :math:`\\Zeta` |
+    | Eta           | :math:`\\eta` | :math:`\\Eta` |
+    | Theta         | :math:`\\theta` | :math:`\\Theta` |
+    | Iota          | :math:`\\iota` | :math:`\\Iota` |
+    | Kappa         | :math:`\\kappa` | :math:`\\Kappa` |
+    | Lambda        | :math:`\\lambda` | :math:`\\Lambda` |
+    | Mu            | :math:`\\mu` | :math:`\\Mu` |
+    | Nu            | :math:`\\nu` | :math:`\\Nu` |
+    | Xi            | :math:`\\xi` | :math:`\\Xi` |
+    | Omicron       | :math:`\\omicron` | :math:`\\Omicron` |
+    | Pi            | :math:`\\pi` | :math:`\\Pi` |
+    | Rho           | :math:`\\rho` | :math:`\\Rho` |
+    | Sigma         | :math:`\\sigma` | :math:`\\Sigma` |
+    | Tau           | :math:`\\tau` | :math:`\\Tau` |
+    | Upsilon       | :math:`\\upsilon` | :math:`\\Upsilon` |
+    | Phi           | :math:`\\phi` | :math:`\\Phi` |
+    | Chi           | :math:`\\chi` | :math:`\\Chi` |
+    | Psi           | :math:`\\psi` | :math:`\\Psi` |
+    | Omega         | :math:`\\omega` | :math:`\\Omega` |
+    
+
     """
 
     def __init__(
