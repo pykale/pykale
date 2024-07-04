@@ -14,7 +14,7 @@ from numpy.linalg import multi_dot
 from scipy import linalg
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics.pairwise import pairwise_kernels
-from sklearn.preprocessing import KernelCenterer, LabelBinarizer
+from sklearn.preprocessing import KernelCenterer, LabelBinarizer, OneHotEncoder
 from sklearn.utils.validation import check_is_fitted
 from tensorly.base import fold, unfold
 from tensorly.tenalg import multi_mode_dot
@@ -272,7 +272,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         kernel (str): "linear", "rbf", or "poly". Kernel to use for MIDA. Defaults to "linear".
         mu (float): Hyperparameter of the l2 penalty. Defaults to 1.0.
         eta (float): Hyperparameter of the label dependence. Defaults to 1.0.
-        augmentation (bool): Whether using covariates as augment features. Defaults to False.
+        augmentation (bool): Whether using grouping factors as augment features. Defaults to False.
         kernel_params (dict or None): Parameters for the kernel. Defaults to None.
 
     References:
@@ -282,11 +282,11 @@ class MIDA(BaseEstimator, TransformerMixin):
 
     def __init__(
         self,
-        n_components,
+        n_components=None,
         kernel="linear",
-        lambda_=1.0,
         mu=1.0,
         eta=1.0,
+        fit_label=False,
         augmentation=False,
         kernel_params=None,
     ):
@@ -301,7 +301,9 @@ class MIDA(BaseEstimator, TransformerMixin):
             self.kernel_params = kernel_params
         self._label_binarizer = LabelBinarizer(pos_label=1, neg_label=-1)
         self._centerer = KernelCenterer()
+        self.fit_label = fit_label
         self.x_fit = None
+        self.enc = OneHotEncoder(handle_unknown="ignore")
 
     def _get_kernel(self, x, y=None):
         if self.kernel in ["linear", "rbf", "poly"]:
@@ -310,37 +312,43 @@ class MIDA(BaseEstimator, TransformerMixin):
             raise ValueError("Pre-computed kernel not supported")
         return pairwise_kernels(x, y, metric=self.kernel, filter_params=True, **params)
 
-    def fit(self, x, y=None, covariates=None):
+    def fit(self, x, y=None, groups=None):
         """
         Args:
             x : array-like. Input data, shape (n_samples, n_features)
-            y : array-like. Labels, shape (nl_samples,)
-            covariates : array-like. Domain co-variates, shape (n_samples, n_co-variates)
+            y : array-like. Labels, shape (n_labeled_samples,)
+            groups : array-like. Domain labels/grouping factors, shape (n_samples, )
 
         Note:
             Unsupervised MIDA is performed if y is None.
             Semi-supervised MIDA is performed is y is not None.
         """
-        if self.augmentation and isinstance(covariates, np.ndarray):
-            x = np.concatenate((x, covariates), axis=1)
+
+        if self.augmentation and isinstance(groups, np.ndarray):
+            x = np.concatenate((x, groups), axis=1)
+
+        groups = self.enc.fit_transform(groups.reshape(-1, 1)).toarray()
 
         # Kernel matrix
         kernel_x = self._get_kernel(x)
         kernel_x[np.isnan(kernel_x)] = 0
 
+        if self.n_components is None:
+            self.n_components = kernel_x.shape[0]
+
         # Solve the optimization problem
-        self._fit(kernel_x, y, covariates)
+        self._fit(kernel_x, y, groups)
         self.x_fit = x
 
         return self
 
-    def _fit(self, kernel_x, y, covariates=None):
+    def _fit(self, kernel_x, y=None, groups=None):
         """solve MIDA
 
         Args:
             kernel_x: array-like, kernel matrix of input data x, shape (n_samples, n_samples)
-            y: array-like. Labels, shape (nl_samples,)
-            covariates: array-like. Domain co-variates, shape (n_samples, n_covariates)
+            y: array-like. Labels, shape (n_labeled_samples,)
+            groups: array-like. Domain co-variates, shape (n_samples + nt_samples, n_groups)
 
         Returns:
             self
@@ -352,12 +360,12 @@ class MIDA(BaseEstimator, TransformerMixin):
         ctr_mat = unit_mat - 1.0 / n_samples * np.ones((n_samples, n_samples))
 
         kernel_x = self._centerer.fit_transform(kernel_x)
-        if isinstance(covariates, np.ndarray):
-            kernel_c = np.dot(covariates, covariates.T)
+        if isinstance(groups, np.ndarray):
+            kernel_c = np.dot(groups, groups.T)
         else:
             kernel_c = np.zeros((n_samples, n_samples))
 
-        if y is not None:
+        if y is not None and self.fit_label:
             n_labeled = y.shape[0]
             if n_labeled > n_samples:
                 raise ValueError("Number of labels exceeds number of samples")
@@ -386,31 +394,32 @@ class MIDA(BaseEstimator, TransformerMixin):
 
         return self
 
-    def fit_transform(self, x, y=None, covariates=None):
+    def fit_transform(self, x, y=None, groups=None):
         """
         Args:
             x : array-like, shape (n_samples, n_features)
-            y : array-like, shape (n_samples,)
-            covariates : array-like, shape (n_samples, n_covariates)
+            y : array-like, shape (n_labeled_samples,)
+            groups : array-like, shape (n_samples, )
 
         Returns:
             x_transformed : array-like, shape (n_samples, n_components)
         """
-        self.fit(x, y, covariates)
+        self.fit(x, y, groups)
 
-        return self.transform(x, covariates)
+        return self.transform(x, groups)
 
-    def transform(self, x, covariates=None):
+    def transform(self, x, groups=None):
         """
         Args:
             x : array-like, shape (n_samples, n_features)
-            covariates : array-like, augmentation features, shape (n_samples, n_covariates)
+            groups : array-like, augmentation features, shape (n_samples, )
         Returns:
             x_transformed : array-like, shape (n_samples, n_components)
         """
         check_is_fitted(self, "x_fit")
-        if isinstance(covariates, np.ndarray) and self.augmentation:
-            x = np.concatenate((x, covariates), axis=1)
+        if isinstance(groups, np.ndarray) and self.augmentation:
+            groups = self.enc.transform(groups.reshape(-1, 1)).toarray()
+            x = np.concatenate((x, groups), axis=1)
         kernel_x = self._centerer.transform(
             pairwise_kernels(x, self.x_fit, metric=self.kernel, filter_params=True, **self.kernel_params)
         )

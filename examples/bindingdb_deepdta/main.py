@@ -54,7 +54,7 @@ def main():
         logger=tb_logger,
         callbacks=[checkpoint_callback],
     )
-    trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=valid_loader)
+    trainer.fit(model)
     trainer.test(dataloaders=test_loader)
 
 

@@ -120,7 +120,7 @@ def main():
     )
 
     # ---- training ----
-    trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader, ckpt_path=args.ckpt)
+    trainer.fit()
 
     # ---- testing ----
     trainer.test(model=model, dataloaders=test_dataloader, ckpt_path="best")
