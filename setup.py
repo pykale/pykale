@@ -15,7 +15,7 @@ from setuptools import find_packages, setup
 
 # Core dependencies frequently used in PyKale Core API
 install_requires = [
-    "numpy>=1.18.0",  # sure
+    "numpy>=2.0.0",  # Numpy 2.0.0+ is supported
     "pandas",  # sure
     "pytorch-lightning>=2.0.0",  # in pipeline API only
     "scikit-learn>=0.23.2",  # sure
@@ -48,7 +48,7 @@ image_requires = [
 example_requires = [
     "ipykernel",
     "ipython<=8.12.0",  # IPython 8.13+ support Python 3.9+ only and IPython 8.0-8.12 supports Python 3.8+.
-    "matplotlib<=3.5.2",
+    "matplotlib",  # matplotlib 3.9.1+ is set to support numpy 2.0.0+
     "nilearn>=0.7.0",
     "Pillow",
     "PyTDC",
