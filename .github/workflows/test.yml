@@ -43,9 +43,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ matrix.path }}
-          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-20231130-${{ hashFiles('**/setup.py') }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-20240705-${{ hashFiles('**/setup.py') }}
           restore-keys: |
-            ${{ runner.os }}-python${{ matrix.python-version }}-pip-20231130-
+            ${{ runner.os }}-python${{ matrix.python-version }}-pip-20240705-
           # We have used a softer matching strategy for the full hash of setup.py, as recommended by GitHub.
           # See: https://github.com/davronaliyev/Cache-dependencies-in-GitHub-Actions/blob/main/examples.md#python---pip
           # This restores the cache first and then downloads any changed packages to avoid updating the cache with
