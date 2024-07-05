@@ -273,6 +273,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         mu (float): Hyperparameter of the l2 penalty. Defaults to 1.0.
         eta (float): Hyperparameter of the label dependence. Defaults to 1.0.
         augmentation (bool): Whether using grouping factors as augment features. Defaults to False.
+        fit_label (bool): Whether to fit the label for semi-supervised MIDA. Defaults to False.
         kernel_params (dict or None): Parameters for the kernel. Defaults to None.
 
     References:

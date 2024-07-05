@@ -85,12 +85,12 @@ class MIDATrainer(BaseEstimator, ClassifierMixin):
 
         x_transformed = self.best_transformer.transform(x)
         x_transformed = self.best_mida.fit_transform(x_transformed, y=y, groups=groups)
-        self.best_estimator.fit(x_transformed[y.shape[0]:, ], y)
+        self.best_estimator.fit(x_transformed[y.shape[0] :,], y)
 
         return self
 
     def _fit_mida(self, x_transformed, y, groups, transformer_params):
-        """ Fit MIDA and estimator with the given data x_transformed and labels
+        """Fit MIDA and estimator with the given data x_transformed and labels
         Args:
             x_transformed (array-like): Transformed data, shape (n_samples, n_features)
             y (array-like): data labels, shape (n_labeled_samples,)
@@ -107,7 +107,7 @@ class MIDATrainer(BaseEstimator, ClassifierMixin):
             x_transformed = mida.fit_transform(x_transformed, y=y, groups=groups)
             cv = 5
             if np.unique(groups).shape[0] > 2:
-                cv = LeaveOneGroupOut().split(x_transformed[y.shape[0]:], y, groups[y.shape[0]:])
+                cv = LeaveOneGroupOut().split(x_transformed[y.shape[0] :], y, groups[y.shape[0] :])
             self._fit_estimator(x_transformed, y, mida_params, transformer_params, cv=cv)
 
         return self
@@ -125,7 +125,7 @@ class MIDATrainer(BaseEstimator, ClassifierMixin):
         """
 
         clf = GridSearchCV(self.estimator, self.estimator_param_grid, cv=cv)
-        clf.fit(x_transformed[y.shape[0]:, ], y)
+        clf.fit(x_transformed[y.shape[0] :,], y)
         if self.best_score is None or clf.best_score_ > self.best_score:
             self.best_score = clf.best_score_
             self.best_estimator_params = clf.best_params_
