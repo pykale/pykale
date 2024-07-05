@@ -15,7 +15,7 @@ from setuptools import find_packages, setup
 
 # Core dependencies frequently used in PyKale Core API
 install_requires = [
-    "numpy",  # Numpy 2.0.0+ is need
+    "numpy>=2.0.0",  # Numpy 2.0.0+ is needed
     "pandas",  # sure
     "pytorch-lightning>=2.3.2",  # in pipeline API only
     "scikit-learn>=1.5.1",  # sure
