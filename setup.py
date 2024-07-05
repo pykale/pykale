@@ -17,9 +17,9 @@ from setuptools import find_packages, setup
 install_requires = [
     "numpy",  # Numpy 2.0.0+ is need
     "pandas",  # sure
-    "pytorch-lightning>=2.0.0",  # in pipeline API only
-    "scikit-learn>=0.23.2",  # sure
-    "scipy>=1.5.4",  # in factorization API only
+    "pytorch-lightning>=2.3.2",  # in pipeline API only
+    "scikit-learn>=1.5.1",  # sure
+    "scipy>=1.14.0",  # in factorization API only
     "tensorly>=0.5.1",  # in factorization and model_weights API only
     "torch>=2.0.0",  # sure
     "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
@@ -39,7 +39,7 @@ image_requires = [
     "pydicom",
     "pylibjpeg",
     "python-gdcm",
-    "scikit-image>=0.16.2",
+    "scikit-image>=0.24.0",
 ]
 
 # End application-specific dependencies
