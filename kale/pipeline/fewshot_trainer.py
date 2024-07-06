@@ -19,7 +19,7 @@ from typing import Any
 import pytorch_lightning as pl
 import torch
 
-from kale.predict.losses import protonet_loss
+from kale.evaluate.metrics import protonet_loss
 
 
 class ProtoNetTrainer(pl.LightningModule):
@@ -27,7 +27,7 @@ class ProtoNetTrainer(pl.LightningModule):
 
     This class trains a ProtoNet model for few-shot learning problems under :math:`N`-way-:math:`K`-shot settings.
     It uses ``pl.LightningModule`` class of ``PyTorch Lightning`` to standardize the workflow.
-    Updating other modules except ``kale.predict.losses.protonet_loss`` and ``kale.embed.image_cnn`` will not affect this trainer.
+    Updating other modules except ``kale.evaluate.metrics.protonet_loss`` and ``kale.embed.image_cnn`` will not affect this trainer.
 
     - :math:`N`-way: The number of classes under a particular setting. The model is presented with samples from these :math:`N` classes and needs to classify them. For example, 3-way means the model has to classify 3 different classes.
 
