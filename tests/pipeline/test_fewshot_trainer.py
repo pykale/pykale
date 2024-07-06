@@ -80,6 +80,6 @@ def test_fewshot_trainer(mode, testing_cfg, dataloader):
             break
 
         assert isinstance(model.configure_optimizers(), torch.optim.Optimizer)
-        trainer.fit(model)
+        trainer.fit(model, train_dataloaders=dataloader, val_dataloaders=dataloader)
     else:
         trainer.test(model, dataloaders=dataloader)

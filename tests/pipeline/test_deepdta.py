@@ -16,8 +16,8 @@ def test_deep_data(download_path):
     subset_indices = list(range(0, 32, 2))
     test_subset = torch.utils.data.Subset(test_dataset, subset_indices)
     test_dataloader = DataLoader(dataset=test_subset, shuffle=False, batch_size=8)
-    # valid_dataloader = DataLoader(dataset=test_subset, shuffle=True, batch_size=8)
-    # train_dataloader = DataLoader(dataset=test_subset, shuffle=True, batch_size=4)
+    valid_dataloader = DataLoader(dataset=test_subset, shuffle=True, batch_size=8)
+    train_dataloader = DataLoader(dataset=test_subset, shuffle=True, batch_size=4)
     test_batch = next(iter(test_dataloader))
 
     drug_encoder = CNNEncoder(num_embeddings=64, embedding_dim=128, sequence_length=85, num_kernels=32, kernel_length=8)
@@ -29,7 +29,7 @@ def test_deep_data(download_path):
     save_parameters = {"seed": 2020, "batch_size": 256}
     model = DeepDTATrainer(drug_encoder, target_encoder, decoder, lr=0.001, ci_metric=True, **save_parameters).eval()
     trainer = pl.Trainer(default_root_dir="./tests/outputs", accelerator="cpu", max_epochs=1, devices=1)
-    trainer.fit(model)
+    trainer.fit(model, train_dataloaders=train_dataloader, val_dataloaders=valid_dataloader)
     trainer.test(dataloaders=test_dataloader)
     assert isinstance(model.drug_encoder, CNNEncoder)
     assert isinstance(model.target_encoder, CNNEncoder)
