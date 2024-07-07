@@ -72,6 +72,7 @@ dev_requires = full_requires + [
     "isort",
     "m2r",
     "mypy",
+    "nbconvert",
     "nbmake>=0.8",
     "nbsphinx",
     "nbsphinx-link",
