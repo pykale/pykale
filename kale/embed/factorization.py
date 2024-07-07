@@ -324,11 +324,10 @@ class MIDA(BaseEstimator, TransformerMixin):
             Unsupervised MIDA is performed if y is None.
             Semi-supervised MIDA is performed is y is not None.
         """
+        groups = self.enc.fit_transform(groups.reshape(-1, 1)).toarray()
 
         if self.augmentation and isinstance(groups, np.ndarray):
             x = np.concatenate((x, groups), axis=1)
-
-        groups = self.enc.fit_transform(groups.reshape(-1, 1)).toarray()
 
         # Kernel matrix
         kernel_x = self._get_kernel(x)

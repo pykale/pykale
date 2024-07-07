@@ -134,40 +134,44 @@ class MIDATrainer(BaseEstimator, ClassifierMixin):
 
         return self
 
-    def predict(self, x):
+    def predict(self, x, groups=None):
         """Predict the labels for the given data x
 
         Args:
-            x (array-like tensor): input data, shape (n_samples, I_1, I_2, ..., I_N)
+            x (array-like tensor): input data, shape (n_samples, n_features)
+            groups (array-like, optional): group labels for the samples, shape (n_samples,)
 
         Returns:
             array-like: Predicted labels, shape (n_samples, )
         """
-        return self.best_estimator.predict(self.best_mida.transform(self.best_transformer.transform(x)))
+        return self.best_estimator.predict(self.transform(x, groups=groups))
 
-    def decision_function(self, x):
+    def decision_function(self, x, groups=None):
         """Decision scores of each class for the given data x
 
         Args:
-            x (array-like tensor): input data, shape (n_samples, I_1, I_2, ..., I_N)
+            x (array-like tensor): input data, shape (n_samples, n_features)
+            groups (array-like, optional): group labels for the samples, shape (n_samples,)
 
         Returns:
             array-like: decision scores, shape (n_samples,) for binary case, else (n_samples, n_class)
         """
-        return self.best_estimator.decision_function(self.best_mida.transform(self.best_transformer.transform(x)))
 
-    def predict_proba(self, x):
+        return self.best_estimator.decision_function(self.transform(x, groups=groups))
+
+    def predict_proba(self, x, groups=None):
         """Probability of each class for the given data x. Not supported by "linear_svc".
 
         Args:
-            x (array-like tensor): input data, shape (n_samples, I_1, I_2, ..., I_N)
+            x (array-like tensor): input data, shape (n_samples, n_features)
+            groups (array-like, optional): group labels for the samples, shape (n_samples,)
 
         Returns:
             array-like: probabilities, shape (n_samples, n_class)
         """
-        return self.best_estimator.predict_proba(self.best_mida.transform(self.best_transformer.transform(x)))
+        return self.best_estimator.predict_proba(self.transform(x, groups=groups))
 
-    def fit_transform(self, x, y, groups=None):
+    def transform(self, x, groups=None):
         """Fit a pipeline with the given data x and labels y
 
         Args:
@@ -178,8 +182,8 @@ class MIDATrainer(BaseEstimator, ClassifierMixin):
         Returns:
             array-like: Transformed data, shape (n_samples, n_features)
         """
-        self.fit(x, y, groups)
-        return self.best_mida.transform(self.best_transformer.transform(x))
+
+        return self.best_mida.transform(self.best_transformer.transform(x), groups=groups)
 
     def fit_predict(self, x, y, groups=None):
         """Fit a pipeline with the given data x and labels y
@@ -193,4 +197,4 @@ class MIDATrainer(BaseEstimator, ClassifierMixin):
             array-like: Predicted labels, shape (n_samples, )
         """
         self.fit(x, y, groups)
-        return self.predict(x)
+        return self.predict(x, groups=groups)

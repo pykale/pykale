@@ -27,9 +27,8 @@ def toy_data():
 
 @pytest.mark.parametrize("transformer", [None, MinMaxScaler()])
 @pytest.mark.parametrize("estimator_param_grid", [None, {"C": [0.1, 1.0]}])
-# @pytest.mark.parametrize("mida_param_grid", [None, {"eta": [0.1, 10.], "mu": [0.1, 10.]}])
-@pytest.mark.parametrize("mida_param_grid", [None])
-def test_mida_trainer_transformer(transformer, estimator_param_grid, mida_param_grid, toy_data):
+@pytest.mark.parametrize("mida_param_grid", [None, {"fit_label": [True], "augmentation": [True]}])
+def test_mida_trainer(transformer, estimator_param_grid, mida_param_grid, toy_data):
     """
 
     Args:
@@ -52,7 +51,10 @@ def test_mida_trainer_transformer(transformer, estimator_param_grid, mida_param_
         transformer_param_grid=transformer_param_grid,
         estimator_param_grid=estimator_param_grid,
     )
-    mida_trainer.fit(x, ys, groups=groups)
-
-    y_pred = mida_trainer.predict(xt)
-    testing.assert_equal(y_pred.shape, yt.shape)
+    n_samples = yt.shape[0] + ys.shape[0]
+    y_pred = mida_trainer.fit_predict(x, ys, groups=groups)
+    y_pred_proba = mida_trainer.predict_proba(x, groups=groups)
+    y_score = mida_trainer.decision_function(x, groups=groups)
+    testing.assert_equal(y_pred.shape[0], n_samples)
+    testing.assert_equal(y_pred_proba.shape[0], n_samples)
+    testing.assert_equal(y_score.shape[0], n_samples)
