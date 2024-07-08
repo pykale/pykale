@@ -42,7 +42,7 @@ jobs:
 
       - name: Cache pip dependencies
         id: cache_pip
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ matrix.path }}
           key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-20240705-${{ hashFiles('**/setup.py') }}
@@ -71,7 +71,7 @@ jobs:
 
       - name: Cache downloaded test data
         id: cache_data
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: tests/test_data
           key: ${{ runner.os }}-python${{ matrix.python-version }}-data-${{ hashFiles('tests/download_test_data.py') }}
