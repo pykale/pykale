@@ -97,4 +97,4 @@ jobs:
         shell: bash -l {0}
 
       - name: Report coverage
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
