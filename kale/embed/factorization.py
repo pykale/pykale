@@ -8,6 +8,7 @@
 """
 import logging
 import warnings
+from numbers import Integral, Real
 
 import numpy as np
 from numpy.linalg import multi_dot
@@ -15,6 +16,7 @@ from scipy import linalg
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.preprocessing import KernelCenterer, LabelBinarizer, OneHotEncoder
+from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.utils.validation import check_is_fitted
 from tensorly.base import fold, unfold
 from tensorly.tenalg import multi_mode_dot
@@ -270,9 +272,13 @@ class MIDA(BaseEstimator, TransformerMixin):
     Args:
         n_components (int): Number of components to keep.
         kernel (str): "linear", "rbf", or "poly". Kernel to use for MIDA. Defaults to "linear".
+        gamma_ (float): Kernel coefficient for rbf, poly and sigmoid kernels. Ignored by other kernels. If ``gamma`` is
+            ``None``, then it is set to ``1/n_features``., default=None.
+        degree (float): Degree for poly kernels. Ignored by other kernels., default=3
+        coef0 (float): Independent term in poly and sigmoid kernels.Ignored by other kernels. Default=1
         mu (float): Hyperparameter of the l2 penalty. Defaults to 1.0.
         eta (float): Hyperparameter of the label dependence. Defaults to 1.0.
-        augmentation (bool): Whether using grouping factors as augment features. Defaults to False.
+        augmentation (bool): Whether using domain/group labels as augment features. Defaults to False.
         fit_label (bool): Whether to fit the label for semi-supervised MIDA. Defaults to False.
         kernel_params (dict or None): Parameters for the kernel. Defaults to None.
 
@@ -281,18 +287,48 @@ class MIDA(BaseEstimator, TransformerMixin):
             independence maximization. IEEE transactions on cybernetics, 48(1), pp.288-299.
     """
 
+    _parameter_constraints: dict = {
+        "n_components": [
+            Interval(Integral, 1, None, closed="left"),
+            None,
+        ],
+        "kernel": [
+            StrOptions({"linear", "poly", "rbf", "sigmoid", "cosine", "precomputed"}),
+            callable,
+        ],
+        "gamma": [
+            Interval(Real, 0, None, closed="left"),
+            None,
+        ],
+        "degree": [Interval(Real, 0, None, closed="left")],
+        "coef0": [Interval(Real, None, None, closed="neither")],
+        "kernel_params": [dict, None],
+        "mu": [Real],
+        "eta": [Real],
+        "fit_label": ["boolean"],
+        "augmentation": ["boolean"],
+        "n_jobs": [None, Integral],
+    }
+
     def __init__(
         self,
         n_components=None,
         kernel="linear",
         mu=1.0,
         eta=1.0,
+        gamma=None,
+        degree=3,
+        coef0=1,
         fit_label=False,
         augmentation=False,
         kernel_params=None,
+        n_jobs=None,
     ):
         self.n_components = n_components
         self.kernel = kernel
+        self.gamma = gamma
+        self.degree = degree
+        self.coef0 = coef0
         self.mu = mu
         self.eta = eta
         self.augmentation = augmentation
@@ -300,35 +336,37 @@ class MIDA(BaseEstimator, TransformerMixin):
             self.kernel_params = {}
         else:
             self.kernel_params = kernel_params
-        self._label_binarizer = LabelBinarizer(pos_label=1, neg_label=-1)
-        self._centerer = KernelCenterer()
+        self._label_binarizer = None
+        self._centerer = None
         self.fit_label = fit_label
         self.x_fit = None
-        self.enc = OneHotEncoder(handle_unknown="ignore")
+        self._onehot = None
+        self.n_jobs = n_jobs
 
     def _get_kernel(self, x, y=None):
-        if self.kernel in ["linear", "rbf", "poly"]:
+        if callable(self.kernel):
             params = self.kernel_params or {}
         else:
-            raise ValueError("Pre-computed kernel not supported")
-        return pairwise_kernels(x, y, metric=self.kernel, filter_params=True, **params)
+            params = {"gamma": self.gamma, "degree": self.degree, "coef0": self.coef0}
+        return pairwise_kernels(x, y, metric=self.kernel, filter_params=True, n_jobs=self.n_jobs, **params)
 
     def fit(self, x, y=None, groups=None):
         """
         Args:
             x : array-like. Input data, shape (n_samples, n_features)
             y : array-like. Labels, shape (n_labeled_samples,)
-            groups : array-like. Domain labels/grouping factors, shape (n_samples, )
+            groups : array-like. Domain labels/grouping factors, shape (n_samples,)
 
         Note:
             Unsupervised MIDA is performed if y is None.
             Semi-supervised MIDA is performed is y is not None.
         """
-        groups = self.enc.fit_transform(groups.reshape(-1, 1)).toarray()
+        self._onehot = OneHotEncoder(handle_unknown="ignore")
+        groups = self._onehot.fit_transform(groups.reshape(-1, 1)).toarray()
 
         if self.augmentation and isinstance(groups, np.ndarray):
             x = np.concatenate((x, groups), axis=1)
-
+        self.gamma = 1 / x.shape[1] if self.gamma is None else self.gamma
         # Kernel matrix
         kernel_x = self._get_kernel(x)
         kernel_x[np.isnan(kernel_x)] = 0
@@ -347,8 +385,8 @@ class MIDA(BaseEstimator, TransformerMixin):
 
         Args:
             kernel_x: array-like, kernel matrix of input data x, shape (n_samples, n_samples)
-            y: array-like. Labels, shape (n_labeled_samples,)
-            groups: array-like. Domain co-variates, shape (n_samples + nt_samples, n_groups)
+            y: array-like. Labels, shape (n_labeled_samples,), default=None
+            groups: array-like. Onehot encoded group (domain) matrix, shape (n_samples, n_groups)
 
         Returns:
             self
@@ -358,7 +396,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         unit_mat = np.eye(n_samples)
         # Centering matrix
         ctr_mat = unit_mat - 1.0 / n_samples * np.ones((n_samples, n_samples))
-
+        self._centerer = KernelCenterer()
         kernel_x = self._centerer.fit_transform(kernel_x)
         if isinstance(groups, np.ndarray):
             kernel_c = np.dot(groups, groups.T)
@@ -369,6 +407,7 @@ class MIDA(BaseEstimator, TransformerMixin):
             n_labeled = y.shape[0]
             if n_labeled > n_samples:
                 raise ValueError("Number of labels exceeds number of samples")
+            self._label_binarizer = LabelBinarizer(pos_label=1, neg_label=-1)
             y_mat_ = self._label_binarizer.fit_transform(y)
             y_mat = np.zeros((n_samples, y_mat_.shape[1]))
             y_mat[:n_labeled, :] = y_mat_
@@ -399,7 +438,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         Args:
             x : array-like, shape (n_samples, n_features)
             y : array-like, shape (n_labeled_samples,)
-            groups : array-like, shape (n_samples, )
+            groups : array-like, shape (n_samples,)
 
         Returns:
             x_transformed : array-like, shape (n_samples, n_components)
@@ -411,14 +450,15 @@ class MIDA(BaseEstimator, TransformerMixin):
     def transform(self, x, groups=None):
         """
         Args:
-            x : array-like, shape (n_samples, n_features)
-            groups : array-like, augmentation features, shape (n_samples, )
+            x : array-like, data to transform, shape (n_samples, n_features)
+            groups : array-like, domain labels of x will be one-hot encoded as augmented features. Ignored if
+                augmentation = False, shape (n_samples,)
         Returns:
             x_transformed : array-like, shape (n_samples, n_components)
         """
         check_is_fitted(self, "x_fit")
         if isinstance(groups, np.ndarray) and self.augmentation:
-            groups = self.enc.transform(groups.reshape(-1, 1)).toarray()
+            groups = self._onehot.transform(groups.reshape(-1, 1)).toarray()
             x = np.concatenate((x, groups), axis=1)
         kernel_x = self._centerer.transform(
             pairwise_kernels(x, self.x_fit, metric=self.kernel, filter_params=True, **self.kernel_params)

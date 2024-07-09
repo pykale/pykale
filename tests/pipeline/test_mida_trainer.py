@@ -7,14 +7,13 @@ from sklearn.preprocessing import MinMaxScaler
 
 from kale.pipeline.mida_trainer import MIDATrainer
 
-N_SAMPLES = 200
-
 
 @pytest.fixture(scope="module")
 def toy_data():
+    """Generate two toy sets, shape (200, 3), from two distributions for testing."""
     np.random.seed(29118)
     # Generate toy data
-    n_samples = N_SAMPLES
+    n_samples = 200
 
     xs, ys = make_blobs(n_samples, n_features=3, centers=[[0, 0, 0], [0, 2, 1]], cluster_std=[0.3, 0.35])
     xt, yt = make_blobs(n_samples, n_features=3, centers=[[2, -2, 2], [2, 0.2, -1]], cluster_std=[0.35, 0.4])
@@ -25,18 +24,15 @@ def toy_data():
     return xs, ys, xt, yt, groups
 
 
-@pytest.mark.parametrize("transformer", [None, MinMaxScaler()])
-@pytest.mark.parametrize("estimator_param_grid", [None, {"C": [0.1, 1.0]}])
-@pytest.mark.parametrize("mida_param_grid", [None, {"fit_label": [True], "augmentation": [True]}])
+TRANSFORMER = [None, MinMaxScaler()]
+ESTIMATOR_PARAM_GRID = [None, {"C": [0.1, 1.0]}]
+MIDA_PARAM_GRID = [None, {"fit_label": [True], "augmentation": [True]}]
+
+
+@pytest.mark.parametrize("transformer", TRANSFORMER)
+@pytest.mark.parametrize("estimator_param_grid", ESTIMATOR_PARAM_GRID)
+@pytest.mark.parametrize("mida_param_grid", MIDA_PARAM_GRID)
 def test_mida_trainer(transformer, estimator_param_grid, mida_param_grid, toy_data):
-    """
-
-    Args:
-        toy_data:
-
-    Returns:
-
-    """
     estimator = LogisticRegression()
     xs, ys, xt, yt, groups = toy_data
     x = np.concatenate([xs, xt], axis=0)

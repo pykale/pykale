@@ -17,7 +17,7 @@ from ..embed.factorization import MIDA
 
 
 class MIDATrainer(BaseEstimator, ClassifierMixin):
-    """Trainer of pipeline: Transformer-> MIDA -> Estimator
+    """Trainer of pipeline: Transformer-> Maximum independence domain adaptation -> Estimator
 
     Args:
         estimator (BaseEstimator): Estimator object implementing 'fit'
@@ -91,6 +91,7 @@ class MIDATrainer(BaseEstimator, ClassifierMixin):
 
     def _fit_mida(self, x_transformed, y, groups, transformer_params):
         """Fit MIDA and estimator with the given data x_transformed and labels
+
         Args:
             x_transformed (array-like): Transformed data, shape (n_samples, n_features)
             y (array-like): data labels, shape (n_labeled_samples,)
@@ -114,6 +115,7 @@ class MIDATrainer(BaseEstimator, ClassifierMixin):
 
     def _fit_estimator(self, x_transformed, y, mida_params, transformer_params, cv=5):
         """Fit the estimator with the given data x_transformed and labels y
+
         Args:
             x_transformed (array-like): Transformed data, shape (n_samples, n_features)
             y (array-like): data labels, shape (n_labeled_samples,)
@@ -172,7 +174,7 @@ class MIDATrainer(BaseEstimator, ClassifierMixin):
         return self.best_estimator.predict_proba(self.transform(x, groups=groups))
 
     def transform(self, x, groups=None):
-        """Fit a pipeline with the given data x and labels y
+        """Transform the input data x
 
         Args:
             x (array-like tensor): input data, shape (n_samples, n_features)
@@ -186,7 +188,7 @@ class MIDATrainer(BaseEstimator, ClassifierMixin):
         return self.best_mida.transform(self.best_transformer.transform(x), groups=groups)
 
     def fit_predict(self, x, y, groups=None):
-        """Fit a pipeline with the given data x and labels y
+        """Fit a pipeline with the given data x, labels y, and group labels groups, and predict the labels for x
 
         Args:
             x (array-like tensor): input data, shape (n_samples, n_features)

@@ -33,7 +33,7 @@ kale.pipeline.domain\_adapter module
 kale.pipeline.mida\_trainer module
 ----------------------------------
 
-.. automodule:: kale.pipeline.mpca_trainer
+.. automodule:: kale.pipeline.mida_trainer
    :members:
    :undoc-members:
    :show-inheritance:
