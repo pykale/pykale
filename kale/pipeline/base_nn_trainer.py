@@ -28,7 +28,7 @@ import torch
 import torch.nn as nn
 from sklearn.metrics import accuracy_score
 
-from kale.predict import losses
+import kale.evaluate.metrics as losses
 
 
 class BaseNNTrainer(pl.LightningModule):

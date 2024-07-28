@@ -14,7 +14,7 @@ import pytorch_lightning as pl
 import torch
 from torch.autograd import Function
 
-import kale.predict.losses as losses
+import kale.evaluate.metrics as losses
 
 
 class GradReverse(Function):

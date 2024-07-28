@@ -12,7 +12,7 @@ from sklearn.preprocessing import LabelBinarizer
 from torch.linalg import multi_dot
 from torch.nn.functional import one_hot
 
-import kale.predict.losses as losses
+import kale.evaluate.metrics as losses
 from kale.embed.image_cnn import _Bottleneck
 from kale.pipeline.domain_adapter import BaseAdaptTrainer
 

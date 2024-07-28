@@ -9,7 +9,7 @@ Most are inherited from kale.pipeline.domain_adapter.
 
 import torch
 
-import kale.predict.losses as losses
+import kale.evaluate.metrics as losses
 from kale.loaddata.video_access import get_image_modality
 from kale.pipeline.domain_adapter import (
     BaseMMDLike,

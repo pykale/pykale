@@ -30,14 +30,6 @@ kale.predict.isonet module
    :undoc-members:
    :show-inheritance:
 
-kale.predict.losses module
---------------------------
-
-.. automodule:: kale.predict.losses
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 
 kale.predict.uncertainty\_binning
 ----------------------------------
