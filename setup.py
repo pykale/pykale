@@ -15,11 +15,11 @@ from setuptools import find_packages, setup
 
 # Core dependencies frequently used in PyKale Core API
 install_requires = [
-    "numpy<2.0.0",  # sure
+    "numpy>=2.0.0",  # Numpy 2.0.0+ is needed
     "pandas",  # sure
-    "pytorch-lightning>=2.0.0",  # in pipeline API only
-    "scikit-learn>=0.23.2",  # sure
-    "scipy>=1.5.4",  # in factorization API only
+    "pytorch-lightning>=2.3.2",  # in pipeline API only
+    "scikit-learn>=1.5.1",  # sure
+    "scipy>=1.13.0",  # scipy 1.14.0 supports python 3.10+
     "tensorly>=0.5.1",  # in factorization and model_weights API only
     "torch>=2.0.0",  # sure
     "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
@@ -39,7 +39,7 @@ image_requires = [
     "pydicom",
     "pylibjpeg",
     "python-gdcm",
-    "scikit-image>=0.16.2",
+    "scikit-image>=0.24.0",
 ]
 
 # End application-specific dependencies
@@ -47,8 +47,8 @@ image_requires = [
 # Dependencies for all examples and tutorials
 example_requires = [
     "ipykernel",
-    "ipython<=8.12.0",  # IPython 8.13+ support Python 3.9+ only and IPython 8.0-8.12 supports Python 3.8+.
-    "matplotlib<=3.5.2",
+    "ipython>=8.13.0",  # IPython 8.13+ support Python 3.9+ only and IPython 8.0-8.12 supports Python 3.8+.
+    "matplotlib",  # matplotlib 3.9.1+ is set to support numpy 2.0.0+
     "nilearn>=0.7.0",
     "Pillow",
     "PyTDC",
@@ -72,6 +72,7 @@ dev_requires = full_requires + [
     "isort",
     "m2r",
     "mypy",
+    "nbconvert",
     "nbmake>=0.8",
     "nbsphinx",
     "nbsphinx-link",
