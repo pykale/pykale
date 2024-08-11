@@ -26,8 +26,8 @@ jobs:
         include:
           - os: ubuntu-latest
             path: ~/.cache/pip
-          - os: windows-latest
-            path: ~\AppData\Local\pip\Cache
+#          - os: windows-latest
+#            path: ~\AppData\Local\pip\Cache
 
     steps:
       - uses: actions/checkout@v4
