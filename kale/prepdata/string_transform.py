@@ -17,5 +17,11 @@ def strip_for_bound(string_: str) -> list:
     bounds = []
     for entry in string_:
         entry = entry[1:-1]
-        bounds.append([float(i) for i in entry.split(",")])
+        # bounds.append([float(i) for i in entry.split(",")])
+        bounds.append(
+            [
+                float(i.replace("np.float64(", "").replace(")", "")) if "np.float64" in i else float(i)
+                for i in entry.split(",")
+            ]
+        )
     return bounds

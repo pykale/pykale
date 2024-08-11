@@ -524,7 +524,27 @@ def csv_equality_helper(array, csv_preamble, landmark):
         for inner_idx, inner_val in enumerate(val):
             if inner_idx == 0:
                 continue
-            assert str(inner_val) == str(array[idx][inner_idx])
+            import ast
+
+            inner_val = ast.literal_eval(inner_val) if isinstance(inner_val, str) else inner_val
+            inner_val = convert_to_float(inner_val)
+            assert inner_val == array[idx][inner_idx]
+
+
+def convert_to_float(val):
+    """
+    Recursively converts all elements within a list to floats. If the input is a nested list, each element is traversed
+    and converted. If the input is a singular value, it is directly converted to a float.
+
+    Parameters:
+    val (any): The input value which can be a single number, or a list/nested list of numbers.
+
+    Returns:
+    float or list: A float if the input was a single number, or a list of floats if the input was a list.
+    """
+    if isinstance(val, list):
+        return [convert_to_float(x) for x in val]
+    return float(val)
 
 
 def read_csv_landmark(csv_preamble, landmark):
