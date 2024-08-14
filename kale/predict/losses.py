@@ -53,8 +53,6 @@ def drugban_cross_entropy_logits(linear_output, label, weights=None):
     return n, loss
 
 
-
-
 def topk_accuracy(output, target, topk=(1,)):
     """Computes the top-k accuracy for the specified values of k.
 

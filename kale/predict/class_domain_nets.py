@@ -161,8 +161,6 @@ class Discriminator(DomainNetSmallImage):
         self.fc3 = nn.Linear(output_size, n_class)
 
 
-
-
 # For Video/Action Recognition, DataClassifier.
 class ClassNetVideo(nn.Module):
     """Regular classifier network for video input.

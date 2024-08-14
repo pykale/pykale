@@ -1,10 +1,12 @@
+import math
+
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch
-import math
 from dgllife.model.gnn import GCN
-from kale.embed.ban import BANLayer
 from torch.nn.utils.weight_norm import weight_norm
+
+from kale.embed.ban import BANLayer
 
 
 class DrugBAN(nn.Module):
@@ -23,14 +25,16 @@ class DrugBAN(nn.Module):
         protein_padding = config["PROTEIN"]["PADDING"]
         out_binary = config["DECODER"]["BINARY"]
         ban_heads = config["BCN"]["HEADS"]
-        self.drug_extractor = MolecularGCN(in_feats=drug_in_feats, dim_embedding=drug_embedding,
-                                           padding=drug_padding,
-                                           hidden_feats=drug_hidden_feats)
+        self.drug_extractor = MolecularGCN(
+            in_feats=drug_in_feats, dim_embedding=drug_embedding, padding=drug_padding, hidden_feats=drug_hidden_feats
+        )
         self.protein_extractor = ProteinCNN(protein_emb_dim, num_filters, kernel_size, protein_padding)
 
         self.bcn = weight_norm(
             BANLayer(v_dim=drug_hidden_feats[-1], q_dim=num_filters[-1], h_dim=mlp_in_dim, h_out=ban_heads),
-            name='h_mat', dim=None)
+            name="h_mat",
+            dim=None,
+        )
         self.mlp_classifier = MLPDecoder(mlp_in_dim, mlp_hidden_dim, mlp_out_dim, binary=out_binary)
 
     def forward(self, bg_d, v_p, mode="train"):
@@ -55,7 +59,7 @@ class MolecularGCN(nn.Module):
         self.output_feats = hidden_feats[-1]
 
     def forward(self, batch_graph):
-        node_feats = batch_graph.ndata.pop('h')
+        node_feats = batch_graph.ndata.pop("h")
         node_feats = self.init_transform(node_feats)
         node_feats = self.gnn(batch_graph, node_feats)
         batch_size = batch_graph.batch_size
@@ -116,7 +120,7 @@ class SimpleClassifier(nn.Module):
             weight_norm(nn.Linear(in_dim, hid_dim), dim=None),
             nn.ReLU(),
             nn.Dropout(dropout, inplace=True),
-            weight_norm(nn.Linear(hid_dim, out_dim), dim=None)
+            weight_norm(nn.Linear(hid_dim, out_dim), dim=None),
         ]
         self.main = nn.Sequential(*layers)
 

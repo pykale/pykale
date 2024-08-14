@@ -1,8 +1,9 @@
+import logging
 import os
+
+import dgl
 import numpy as np
 import torch
-import dgl
-import logging
 
 CHARPROTSET = {
     "A": 1,
@@ -31,7 +32,6 @@ CHARPROTSET = {
     "X": 24,
     "Z": 25,
 }
-
 
 
 def mkdir(path):
@@ -65,3 +65,7 @@ def integer_label_protein(sequence, max_length=1200):
                 f"character {letter} does not exists in sequence category encoding, skip and treat as " f"padding."
             )
     return encoding
+
+
+def float2str(x):
+    return "%0.4f" % x

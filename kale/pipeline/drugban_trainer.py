@@ -1,22 +1,44 @@
+import copy
+import logging
+import os
+
+import numpy as np
 import torch
 import torch.nn as nn
-import copy
-import os
-import numpy as np
-from sklearn.metrics import roc_auc_score, average_precision_score, roc_curve, confusion_matrix, precision_recall_curve, precision_score
 from prettytable import PrettyTable
+from sklearn.metrics import (
+    average_precision_score,
+    confusion_matrix,
+    precision_recall_curve,
+    precision_score,
+    roc_auc_score,
+    roc_curve,
+)
 from tqdm import tqdm
 
-from kale.predict.losses import (drugban_cross_entropy_logits as cross_entropy_logits,
-                                 binary_cross_entropy, entropy_logits)
 from kale.embed.drugban import RandomLayer
 from kale.pipeline.domain_adapter import GradReverse as ReverseLayerF
-
+from kale.predict.losses import binary_cross_entropy
+from kale.predict.losses import drugban_cross_entropy_logits as cross_entropy_logits
+from kale.predict.losses import entropy_logits
+from kale.utils.drugban_utils import float2str
 
 
 class Trainer(object):
-    def __init__(self, model, optim, device, train_dataloader, val_dataloader, test_dataloader, opt_da=None, discriminator=None,
-                 experiment=None, alpha=1, **config):
+    def __init__(
+        self,
+        model,
+        optim,
+        device,
+        train_dataloader,
+        val_dataloader,
+        test_dataloader,
+        opt_da=None,
+        discriminator=None,
+        experiment=None,
+        alpha=1,
+        **config,
+    ):
         self.model = model
         self.optim = optim
         self.device = device
@@ -34,8 +56,11 @@ class Trainer(object):
             self.da_method = config["DA"]["METHOD"]
             self.domain_dmm = discriminator
             if config["DA"]["RANDOM_LAYER"] and not config["DA"]["ORIGINAL_RANDOM"]:
-                self.random_layer = nn.Linear(in_features=config["DECODER"]["IN_DIM"]*self.n_class, out_features=config["DA"]
-                ["RANDOM_DIM"], bias=False).to(self.device)
+                self.random_layer = nn.Linear(
+                    in_features=config["DECODER"]["IN_DIM"] * self.n_class,
+                    out_features=config["DA"]["RANDOM_DIM"],
+                    bias=False,
+                ).to(self.device)
                 torch.nn.init.normal_(self.random_layer.weight, mean=0, std=1)
                 for param in self.random_layer.parameters():
                     param.requires_grad = False
@@ -66,8 +91,17 @@ class Trainer(object):
         self.output_dir = config["RESULT"]["OUTPUT_DIR"]
 
         valid_metric_header = ["# Epoch", "AUROC", "AUPRC", "Val_loss"]
-        test_metric_header = ["# Best Epoch", "AUROC", "AUPRC", "F1", "Sensitivity", "Specificity", "Accuracy",
-                              "Threshold", "Test_loss"]
+        test_metric_header = [
+            "# Best Epoch",
+            "AUROC",
+            "AUPRC",
+            "F1",
+            "Sensitivity",
+            "Specificity",
+            "Accuracy",
+            "Threshold",
+            "Test_loss",
+        ]
 
         if not self.is_da:
             train_metric_header = ["# Epoch", "Train_loss"]
@@ -82,14 +116,12 @@ class Trainer(object):
     def da_lambda_decay(self):
         delta_epoch = self.current_epoch - self.da_init_epoch
         non_init_epoch = self.epochs - self.da_init_epoch
-        p = (self.current_epoch + delta_epoch * self.nb_training) / (
-                non_init_epoch * self.nb_training
-        )
+        p = (self.current_epoch + delta_epoch * self.nb_training) / (non_init_epoch * self.nb_training)
         grow_fact = 2.0 / (1.0 + np.exp(-10 * p)) - 1
         return self.init_lamb_da * grow_fact
 
     def train(self):
-        float2str = lambda x: '%0.4f' % x
+        # float2str = lambda x: "%0.4f" % x
         for i in range(self.epochs):
             self.current_epoch += 1
             if not self.is_da:
@@ -99,8 +131,9 @@ class Trainer(object):
                     self.experiment.log_metric("train_epoch model loss", train_loss, epoch=self.current_epoch)
             else:
                 train_loss, model_loss, da_loss, epoch_lamb = self.train_da_epoch()
-                train_lst = ["epoch " + str(self.current_epoch)] + list(map(float2str, [train_loss, model_loss,
-                                                                                        epoch_lamb, da_loss]))
+                train_lst = ["epoch " + str(self.current_epoch)] + list(
+                    map(float2str, [train_loss, model_loss, epoch_lamb, da_loss])
+                )
                 self.train_model_loss_epoch.append(model_loss)
                 self.train_da_loss_epoch.append(da_loss)
                 if self.experiment:
@@ -123,15 +156,32 @@ class Trainer(object):
                 self.best_model = copy.deepcopy(self.model)
                 self.best_auroc = auroc
                 self.best_epoch = self.current_epoch
-            print('Validation at Epoch ' + str(self.current_epoch) + ' with validation loss ' + str(val_loss), " AUROC "
-                  + str(auroc) + " AUPRC " + str(auprc))
-        auroc, auprc, f1, sensitivity, specificity, accuracy, test_loss, thred_optim, precision = self.test(dataloader="test")
-        test_lst = ["epoch " + str(self.best_epoch)] + list(map(float2str, [auroc, auprc, f1, sensitivity, specificity,
-                                                                            accuracy, thred_optim, test_loss]))
+            logging.info(
+                "Validation at Epoch " + str(self.current_epoch) + " with validation loss " + str(val_loss),
+                " AUROC " + str(auroc) + " AUPRC " + str(auprc),
+            )
+        auroc, auprc, f1, sensitivity, specificity, accuracy, test_loss, thred_optim, precision = self.test(
+            dataloader="test"
+        )
+        test_lst = ["epoch " + str(self.best_epoch)] + list(
+            map(float2str, [auroc, auprc, f1, sensitivity, specificity, accuracy, thred_optim, test_loss])
+        )
         self.test_table.add_row(test_lst)
-        print('Test at Best Model of Epoch ' + str(self.best_epoch) + ' with test loss ' + str(test_loss), " AUROC "
-              + str(auroc) + " AUPRC " + str(auprc) + " Sensitivity " + str(sensitivity) + " Specificity " +
-              str(specificity) + " Accuracy " + str(accuracy) + " Thred_optim " + str(thred_optim))
+        logging.info(
+            "Test at Best Model of Epoch " + str(self.best_epoch) + " with test loss " + str(test_loss),
+            " AUROC "
+            + str(auroc)
+            + " AUPRC "
+            + str(auprc)
+            + " Sensitivity "
+            + str(sensitivity)
+            + " Specificity "
+            + str(specificity)
+            + " Accuracy "
+            + str(accuracy)
+            + " Thred_optim "
+            + str(thred_optim),
+        )
         self.test_metrics["auroc"] = auroc
         self.test_metrics["auprc"] = auprc
         self.test_metrics["test_loss"] = test_loss
@@ -158,27 +208,28 @@ class Trainer(object):
 
     def save_result(self):
         if self.config["RESULT"]["SAVE_MODEL"]:
-            torch.save(self.best_model.state_dict(),
-                       os.path.join(self.output_dir, f"best_model_epoch_{self.best_epoch}.pth"))
+            torch.save(
+                self.best_model.state_dict(), os.path.join(self.output_dir, f"best_model_epoch_{self.best_epoch}.pth")
+            )
             torch.save(self.model.state_dict(), os.path.join(self.output_dir, f"model_epoch_{self.current_epoch}.pth"))
         state = {
             "train_epoch_loss": self.train_loss_epoch,
             "val_epoch_loss": self.val_loss_epoch,
             "test_metrics": self.test_metrics,
-            "config": self.config
+            "config": self.config,
         }
         if self.is_da:
             state["train_model_loss"] = self.train_model_loss_epoch
             state["train_da_loss"] = self.train_da_loss_epoch
             state["da_init_epoch"] = self.da_init_epoch
-        torch.save(state, os.path.join(self.output_dir, f"result_metrics.pt"))
+        torch.save(state, os.path.join(self.output_dir, "result_metrics.pt"))
 
         val_prettytable_file = os.path.join(self.output_dir, "valid_markdowntable.txt")
         test_prettytable_file = os.path.join(self.output_dir, "test_markdowntable.txt")
         train_prettytable_file = os.path.join(self.output_dir, "train_markdowntable.txt")
-        with open(val_prettytable_file, 'w') as fp:
+        with open(val_prettytable_file, "w") as fp:
             fp.write(self.val_table.get_string())
-        with open(test_prettytable_file, 'w') as fp:
+        with open(test_prettytable_file, "w") as fp:
             fp.write(self.test_table.get_string())
         with open(train_prettytable_file, "w") as fp:
             fp.write(self.train_table.get_string())
@@ -208,7 +259,7 @@ class Trainer(object):
             if self.experiment:
                 self.experiment.log_metric("train_step model loss", loss.item(), step=self.step)
         loss_epoch = loss_epoch / num_batches
-        print('Training at Epoch ' + str(self.current_epoch) + ' with training loss ' + str(loss_epoch))
+        logging.info("Training at Epoch " + str(self.current_epoch) + " with training loss " + str(loss_epoch))
         return loss_epoch
 
     def train_da_epoch(self):
@@ -225,8 +276,11 @@ class Trainer(object):
         num_batches = len(self.train_dataloader)
         for i, (batch_s, batch_t) in enumerate(tqdm(self.train_dataloader)):
             self.step += 1
-            v_d, v_p, labels = batch_s[0].to(self.device), batch_s[1].to(self.device), batch_s[2].float().to(
-                self.device)
+            v_d, v_p, labels = (
+                batch_s[0].to(self.device),
+                batch_s[1].to(self.device),
+                batch_s[2].float().to(self.device),
+            )
             v_d_t, v_p_t = batch_t[0].to(self.device), batch_t[1].to(self.device)
             self.optim.zero_grad()
             self.optim_da.zero_grad()
@@ -279,10 +333,12 @@ class Trainer(object):
                         src_weight = None
                         tgt_weight = None
 
-                    n_src, loss_cdan_src = cross_entropy_logits(adv_output_src_score, torch.zeros(self.batch_size).to(self.device),
-                                                                src_weight)
-                    n_tgt, loss_cdan_tgt = cross_entropy_logits(adv_output_tgt_score, torch.ones(self.batch_size).to(self.device),
-                                                                tgt_weight)
+                    n_src, loss_cdan_src = cross_entropy_logits(
+                        adv_output_src_score, torch.zeros(self.batch_size).to(self.device), src_weight
+                    )
+                    n_tgt, loss_cdan_tgt = cross_entropy_logits(
+                        adv_output_tgt_score, torch.ones(self.batch_size).to(self.device), tgt_weight
+                    )
                     da_loss = loss_cdan_src + loss_cdan_tgt
                 else:
                     raise ValueError(f"The da method {self.da_method} is not supported")
@@ -305,11 +361,22 @@ class Trainer(object):
         model_loss_epoch = model_loss_epoch / num_batches
         da_loss_epoch = da_loss_epoch / num_batches
         if self.current_epoch < self.da_init_epoch:
-            print('Training at Epoch ' + str(self.current_epoch) + ' with model training loss ' + str(total_loss_epoch))
+            logging.info(
+                "Training at Epoch " + str(self.current_epoch) + " with model training loss " + str(total_loss_epoch)
+            )
         else:
-            print('Training at Epoch ' + str(self.current_epoch) + ' model training loss ' + str(model_loss_epoch)
-                  + ", da loss " + str(da_loss_epoch) + ", total training loss " + str(total_loss_epoch) + ", DA lambda " +
-                  str(epoch_lamb_da))
+            logging.info(
+                "Training at Epoch "
+                + str(self.current_epoch)
+                + " model training loss "
+                + str(model_loss_epoch)
+                + ", da loss "
+                + str(da_loss_epoch)
+                + ", total training loss "
+                + str(total_loss_epoch)
+                + ", DA lambda "
+                + str(epoch_lamb_da)
+            )
         return total_loss_epoch, model_loss_epoch, da_loss_epoch, epoch_lamb_da
 
     def test(self, dataloader="test"):
