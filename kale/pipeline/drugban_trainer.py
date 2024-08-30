@@ -207,6 +207,10 @@ class Trainer(object):
         return self.test_metrics
 
     def save_result(self):
+        """
+        Will be adapted to PyTorch Lightning standard and moved to a different place later
+
+        """
         if self.config["RESULT"]["SAVE_MODEL"]:
             torch.save(
                 self.best_model.state_dict(), os.path.join(self.output_dir, f"best_model_epoch_{self.best_epoch}.pth")
@@ -241,6 +245,9 @@ class Trainer(object):
         return entropy_w
 
     def train_epoch(self):
+        """
+        Make this to PyTorch Lightning format
+        """
         self.model.train()
         loss_epoch = 0
         num_batches = len(self.train_dataloader)
@@ -263,6 +270,9 @@ class Trainer(object):
         return loss_epoch
 
     def train_da_epoch(self):
+        """
+        Make this to PyTorch Lightning format
+        """
         self.model.train()
         total_loss_epoch = 0
         model_loss_epoch = 0
@@ -380,6 +390,8 @@ class Trainer(object):
         return total_loss_epoch, model_loss_epoch, da_loss_epoch, epoch_lamb_da
 
     def test(self, dataloader="test"):
+        """Also change to PyTorch Lightning format -- change the return """
+
         test_loss = 0
         y_label, y_pred = [], []
         if dataloader == "test":
