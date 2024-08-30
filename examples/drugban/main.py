@@ -13,27 +13,35 @@ sys.path.append("/home/jiang/Documents/repositories/pykale/")
 from configs import get_cfg_defaults
 
 from kale.embed.drugban import DrugBAN
-from kale.loaddata.drugban_datasets import DTIDataset, MultiDataLoader
+from kale.loaddata.drugban_datasets import DTIDataset, MultiDataLoader, graph_collate_func
 from kale.pipeline.drugban_trainer import Trainer
 from kale.predict.class_domain_nets import Discriminator
-from kale.utils.drugban_utils import graph_collate_func, mkdir
+from kale.utils.drugban_utils import mkdir
 from kale.utils.seed import set_seed
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-parser = argparse.ArgumentParser(description="DrugBAN for DTI prediction")
-parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-parser.add_argument("--data", required=True, type=str, metavar="TASK", help="dataset")
-parser.add_argument(
-    "--split", default="random", type=str, metavar="S", help="split task", choices=["random", "cold", "cluster"]
-)
-args = parser.parse_args()
+def arg_parse():
+    """Parsing arguments"""
+    parser = argparse.ArgumentParser(description="DrugBAN for DTI prediction")
+    parser.add_argument("--cfg", required=True, help="path to config file", type=str)
+    parser.add_argument("--data", required=True, type=str, metavar="TASK", help="dataset")
+    parser.add_argument(
+        "--split", default="random", type=str, metavar="S", help="split task", choices=["random", "cold", "cluster"]
+    )
+    args = parser.parse_args()
+    return args
 
 
 def main():
+    """The main for this DrugBAN example, showing the workflow"""
     torch.cuda.empty_cache()
     warnings.filterwarnings("ignore", message="invalid value encountered in divide")
 
+    # ---- get args ----
+    args = arg_parse()
+
+    # ---- setup configs ----
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
 
@@ -46,10 +54,17 @@ def main():
     print(f"Hyperparameters: {dict(cfg)}")
     print(f"Running on: {device}", end="\n\n")
 
+
+    # ---- setup dataset ----
     dataFolder = f"./datasets/{args.data}"
     dataFolder = os.path.join(dataFolder, str(args.split))
 
     if not cfg.DA.TASK:
+        '''
+        'cfg.DA.TASK = False' refers to 'in-domain' splitting strategy, where 
+        each experimental dataset is randomly divided into training, validation,
+        and test sets with a 7:1:2 ratio.
+        '''
         train_path = os.path.join(dataFolder, "train.csv")
         val_path = os.path.join(dataFolder, "val.csv")
         test_path = os.path.join(dataFolder, "test.csv")
@@ -62,6 +77,16 @@ def main():
         test_dataset = DTIDataset(df_test.index.values, df_test)
 
     else:
+        '''
+        'cfg.DA.TASK = True' refers to 'cross-domain' splitting strategy, where
+        we used the single-linkage algorithm to cluster drugs and proteins, and randomly
+        selected 60% of the drug clusters and 60% of the protein clusters. 
+        
+        All drug-protein pairs in the selected clusters are source domain data. The remaining drug-protein pairs are target domain data.
+        
+        In the setting of domain adaptation, all labelled source domain data and 80% unlabelled target domain data are used for training.
+        the remaining 20% labelled target domain data are used for testing.
+        '''
         train_source_path = os.path.join(dataFolder, "source_train.csv")
         train_target_path = os.path.join(dataFolder, "target_train.csv")
         test_target_path = os.path.join(dataFolder, "target_test.csv")
@@ -73,6 +98,7 @@ def main():
         train_target_dataset = DTIDataset(df_train_target.index.values, df_train_target)
         test_target_dataset = DTIDataset(df_test_target.index.values, df_test_target)
 
+    # ---- setup comet ----
     if cfg.COMET.USE and comet_support:
         experiment = Experiment(
             project_name=cfg.COMET.PROJECT_NAME,
@@ -105,6 +131,7 @@ def main():
             experiment.add_tag(cfg.COMET.TAG)
         experiment.set_name(f"{args.data}_{suffix}")
 
+    # ---- setup dataloader params ----
     params = {
         "batch_size": cfg.SOLVER.BATCH_SIZE,
         "shuffle": True,
@@ -113,44 +140,62 @@ def main():
         "collate_fn": graph_collate_func,
     }
 
+    # ---- setup dataloader ----
     if not cfg.DA.USE:
+        '''If domain adaptation is not used'''
         training_generator = DataLoader(train_dataset, **params)
         params["shuffle"] = False
         params["drop_last"] = False
         if not cfg.DA.TASK:
+            '''If in-domain splitting strategy is used'''
             val_generator = DataLoader(val_dataset, **params)
             test_generator = DataLoader(test_dataset, **params)
         else:
+            '''If cross-domain splitting strategy is used'''
             val_generator = DataLoader(test_target_dataset, **params)
             test_generator = DataLoader(test_target_dataset, **params)
     else:
+        '''If domain adaptation is used, and cross-domain splitting strategy is used'''
         source_generator = DataLoader(train_dataset, **params)
         target_generator = DataLoader(train_target_dataset, **params)
         n_batches = max(len(source_generator), len(target_generator))
         multi_generator = MultiDataLoader(dataloaders=[source_generator, target_generator], n_batches=n_batches)
+
         params["shuffle"] = False
         params["drop_last"] = False
         val_generator = DataLoader(test_target_dataset, **params)
         test_generator = DataLoader(test_target_dataset, **params)
 
+
+
+    # ---- setup model and optimizer----
     model = DrugBAN(**cfg).to(device)
 
     if cfg.DA.USE:
+        '''If domain adaptation is used'''
         if cfg["DA"]["RANDOM_LAYER"]:
+            # Initialize the Discriminator with an input size from the random dimension specified in the config
             domain_dmm = Discriminator(input_size=cfg["DA"]["RANDOM_DIM"], n_class=cfg["DECODER"]["BINARY"]).to(device)
         else:
+            # Initialize the Discriminator with an input size derived from the decoder's input dimension
             domain_dmm = Discriminator(
                 input_size=cfg["DECODER"]["IN_DIM"] * cfg["DECODER"]["BINARY"], n_class=cfg["DECODER"]["BINARY"]
             ).to(device)
         # params = list(model.parameters()) + list(domain_dmm.parameters())
+
+        # Initialize the optimizer for the DrugBAN model
         opt = torch.optim.Adam(model.parameters(), lr=cfg.SOLVER.LR)
+        # Initialize the optimizer for the Domain Discriminator model
         opt_da = torch.optim.Adam(domain_dmm.parameters(), lr=cfg.SOLVER.DA_LR)
     else:
+        '''If domain adaptation is not used, only initialize the optimizer for the DrugBAN model'''
         opt = torch.optim.Adam(model.parameters(), lr=cfg.SOLVER.LR)
 
     torch.backends.cudnn.benchmark = True
 
+    # ---- setup trainer ----
     if not cfg.DA.USE:
+        """If domain adaptation is not used"""
         trainer = Trainer(
             model,
             opt,
@@ -164,6 +209,7 @@ def main():
             **cfg,
         )
     else:
+        """If domain adaptation is used"""
         trainer = Trainer(
             model,
             opt,
@@ -176,8 +222,11 @@ def main():
             experiment=experiment,
             **cfg,
         )
+
+    # ---- train model ----
     result = trainer.train()
 
+    # ---- save model architecture and result ----
     with open(os.path.join(cfg.RESULT.OUTPUT_DIR, "model_architecture.txt"), "w") as wf:
         wf.write(str(model))
 
