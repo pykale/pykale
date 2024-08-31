@@ -25,6 +25,27 @@ from kale.utils.drugban_utils import float2str
 
 
 class Trainer(object):
+    """
+    DrugBAN Trainer class
+
+    The Trainer class encapsulates the logic for training a DrugBAN model, optionally with domain adaptation (DA),
+    and manages the optimization, logging, and saving of the best-performing model.
+
+    Args:
+        model (torch.nn.Module): The model to be trained.
+        optim (torch.optim.Optimizer): The optimizer for the model.
+        device (torch.device): The device to run the training on (e.g., GPU or CPU).
+        train_dataloader (DataLoader): DataLoader for training data.
+        val_dataloader (DataLoader): DataLoader for validation data.
+        test_dataloader (DataLoader): DataLoader for test data.
+        opt_da (torch.optim.Optimizer, optional): The optimizer for domain adaptation (DA) if used.
+        discriminator (nn.Module, optional): The domain discriminator used for DA if used.
+        experiment (CometExperiment, optional): An experiment logger for Comet ML to log metrics.
+        alpha (float): A coefficient for controlling the influence of the DA component.
+        config (dict): Configuration dictionary containing model, DA, and training settings.
+
+
+    """
     def __init__(
         self,
         model,
@@ -50,26 +71,34 @@ class Trainer(object):
         self.is_da = config["DA"]["USE"]
         self.alpha = alpha
         self.n_class = config["DECODER"]["BINARY"]
+
         if opt_da:
             self.optim_da = opt_da
         if self.is_da:
+            """If domain adaptation is used"""
             self.da_method = config["DA"]["METHOD"]
             self.domain_dmm = discriminator
+
             if config["DA"]["RANDOM_LAYER"] and not config["DA"]["ORIGINAL_RANDOM"]:
                 self.random_layer = nn.Linear(
                     in_features=config["DECODER"]["IN_DIM"] * self.n_class,
                     out_features=config["DA"]["RANDOM_DIM"],
                     bias=False,
                 ).to(self.device)
+
                 torch.nn.init.normal_(self.random_layer.weight, mean=0, std=1)
+
                 for param in self.random_layer.parameters():
                     param.requires_grad = False
+
             elif config["DA"]["RANDOM_LAYER"] and config["DA"]["ORIGINAL_RANDOM"]:
-                self.random_layer = RandomLayer([config["DECODER"]["IN_DIM"], self.n_class], config["DA"]["RANDOM_DIM"])
+                self.random_layer = RandomLayer([config["DECODER"]["IN_DIM"], self.n_class],
+                                                config["DA"]["RANDOM_DIM"])
                 if torch.cuda.is_available():
                     self.random_layer.cuda()
             else:
                 self.random_layer = False
+
         self.da_init_epoch = config["DA"]["INIT_EPOCH"]
         self.init_lamb_da = config["DA"]["LAMB_DA"]
         self.batch_size = config["SOLVER"]["BATCH_SIZE"]
@@ -208,13 +237,24 @@ class Trainer(object):
 
     def save_result(self):
         """
-        Will be adapted to PyTorch Lightning standard and moved to a different place later
+        Save the model's state_dict and training, validation and testing results.
 
+        This method saves the best model's state dictionary, the current model's state dictionary,
+        and various training metrics to files in the specified output directory. Additionally,
+        it writes the training, validation, and test results to markdown table files for easy
+        viewing.
+
+        Files saved:
+        - `best_model_epoch_{best_epoch}.pth`: Best model's state dictionary.
+        - `model_epoch_{current_epoch}.pth`: Current model's state dictionary.
+        - `result_metrics.pt`: A dictionary containing all relevant metrics and configurations.
+        - `valid_markdowntable.txt`: Validation metrics in markdown table format.
+        - `test_markdowntable.txt`: Test metrics in markdown table format.
+        - `train_markdowntable.txt`: Training metrics in markdown table format.
         """
+        # ---- save models ---
         if self.config["RESULT"]["SAVE_MODEL"]:
-            torch.save(
-                self.best_model.state_dict(), os.path.join(self.output_dir, f"best_model_epoch_{self.best_epoch}.pth")
-            )
+            torch.save(self.best_model.state_dict(), os.path.join(self.output_dir, f"best_model_epoch_{self.best_epoch}.pth"))
             torch.save(self.model.state_dict(), os.path.join(self.output_dir, f"model_epoch_{self.current_epoch}.pth"))
         state = {
             "train_epoch_loss": self.train_loss_epoch,
@@ -223,11 +263,13 @@ class Trainer(object):
             "config": self.config,
         }
         if self.is_da:
+            # If domain adaptation (DA) is used
             state["train_model_loss"] = self.train_model_loss_epoch
             state["train_da_loss"] = self.train_da_loss_epoch
             state["da_init_epoch"] = self.da_init_epoch
         torch.save(state, os.path.join(self.output_dir, "result_metrics.pt"))
 
+        # ---- save markdown tables ----
         val_prettytable_file = os.path.join(self.output_dir, "valid_markdowntable.txt")
         test_prettytable_file = os.path.join(self.output_dir, "test_markdowntable.txt")
         train_prettytable_file = os.path.join(self.output_dir, "train_markdowntable.txt")
@@ -239,6 +281,19 @@ class Trainer(object):
             fp.write(self.train_table.get_string())
 
     def _compute_entropy_weights(self, logits):
+        """
+        Compute entropy weights for domain adaptation.
+
+        This method computes weights based on the entropy of the logits. The entropy is first
+        calculated, then passed through a gradient reversal layer, and finally transformed
+        into weights.
+
+        Args:
+        logits (torch.Tensor): The logits output from the model.
+
+        Returns:
+        torch.Tensor: The computed entropy-based weights for each sample in the batch.
+        """
         entropy = entropy_logits(logits)
         entropy = ReverseLayerF.apply(entropy, self.alpha)
         entropy_w = 1.0 + torch.exp(-entropy)
