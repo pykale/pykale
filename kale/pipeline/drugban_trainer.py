@@ -21,7 +21,7 @@ from kale.pipeline.domain_adapter import GradReverse as ReverseLayerF
 from kale.predict.losses import binary_cross_entropy
 from kale.predict.losses import drugban_cross_entropy_logits as cross_entropy_logits
 from kale.predict.losses import entropy_logits
-from kale.utils.drugban_utils import float2str
+from kale.utils.misc_utils import float2str
 
 
 class Trainer(object):

@@ -4,7 +4,7 @@ import numpy as np
 import shutil
 import logging
 
-from kale.utils.drugban_utils import mkdir, integer_label_protein, float2str, CHARPROTSET  # Replace with the actual module name
+from kale.utils.misc_utils import mkdir, integer_label_protein, float2str, CHARPROTSET
 
 # Test mkdir function
 @pytest.fixture(scope="module")

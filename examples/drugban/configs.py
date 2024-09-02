@@ -7,11 +7,9 @@ _C = CfgNode()
 # ---------------------------------------------------------------------------- #
 _C.DRUG = CfgNode()
 _C.DRUG.NODE_IN_FEATS = 75
-
-_C.DRUG.PADDING = True
-
-_C.DRUG.HIDDEN_LAYERS = [128, 128, 128]
 _C.DRUG.NODE_IN_EMBEDDING = 128
+_C.DRUG.PADDING = True
+_C.DRUG.HIDDEN_LAYERS = [128, 128, 128]
 _C.DRUG.MAX_NODES = 290
 
 # ---------------------------------------------------------------------------- #

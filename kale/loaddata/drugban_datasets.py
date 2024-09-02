@@ -5,8 +5,7 @@ import torch
 from dgllife.utils import CanonicalAtomFeaturizer, CanonicalBondFeaturizer, smiles_to_bigraph
 from torch.utils.data import Dataset
 
-from kale.utils.drugban_utils import integer_label_protein
-import dgl
+from kale.prepdata.chem_transform import integer_label_protein
 import dgl
 
 def graph_collate_func(x):

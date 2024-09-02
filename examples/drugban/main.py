@@ -16,7 +16,7 @@ from kale.embed.drugban import DrugBAN
 from kale.loaddata.drugban_datasets import DTIDataset, MultiDataLoader, graph_collate_func
 from kale.pipeline.drugban_trainer import Trainer
 from kale.predict.class_domain_nets import Discriminator
-from kale.utils.drugban_utils import mkdir
+from kale.utils.misc_utils import mkdir
 from kale.utils.seed import set_seed
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
