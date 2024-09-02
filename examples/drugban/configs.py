@@ -59,9 +59,9 @@ _C.RESULT.SAVE_MODEL = True
 # Domain adaptation
 # ---------------------------------------------------------------------------- #
 _C.DA = CfgNode()
-_C.DA.TASK = False          # False: 'in-domain' splitting strategy, True: 'cross-domain' splitting strategy
+_C.DA.TASK = False  # False: 'in-domain' splitting strategy, True: 'cross-domain' splitting strategy
 _C.DA.METHOD = "CDAN"
-_C.DA.USE = False           # False: no domain adaptation, True: domain adaptation
+_C.DA.USE = False  # False: no domain adaptation, True: domain adaptation
 _C.DA.INIT_EPOCH = 10
 _C.DA.LAMB_DA = 1
 _C.DA.RANDOM_LAYER = False

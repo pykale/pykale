@@ -19,6 +19,7 @@ class DrugBAN(nn.Module):
     Args:
         config (dict): A dictionary containing the configuration parameters for the model.
     """
+
     def __init__(self, **config):
         super(DrugBAN, self).__init__()
         drug_in_feats = config["DRUG"]["NODE_IN_FEATS"]
@@ -34,7 +35,6 @@ class DrugBAN(nn.Module):
         protein_padding = config["PROTEIN"]["PADDING"]
         out_binary = config["DECODER"]["BINARY"]
         ban_heads = config["BCN"]["HEADS"]
-
 
         self.drug_extractor = MolecularGCN(
             in_feats=drug_in_feats, dim_embedding=drug_embedding, padding=drug_padding, hidden_feats=drug_hidden_feats
@@ -74,6 +74,7 @@ class MolecularGCN(nn.Module):
         hidden_feats (list of int): A list specifying the number of hidden units for each GCN layer.
         activation (callable, optional): Activation function to apply after each GCN layer.
     """
+
     def __init__(self, in_feats, dim_embedding=128, padding=True, hidden_feats=None, activation=None):
         super(MolecularGCN, self).__init__()
         self.init_transform = nn.Linear(in_feats, dim_embedding, bias=False)
@@ -108,6 +109,7 @@ class ProteinCNN(nn.Module):
         kernel_size (list of int): A list specifying the kernel size for each convolutional layer.
         padding (bool): Whether to apply padding to the embedding layer.
     """
+
     def __init__(self, embedding_dim, num_filters, kernel_size, padding=True):
         super(ProteinCNN, self).__init__()
         if padding:
@@ -136,20 +138,21 @@ class ProteinCNN(nn.Module):
 
 class MLPDecoder(nn.Module):
     """
-        A multilayer perceptron (MLP) decoder for processing feature vectors into output predictions.
+    A multilayer perceptron (MLP) decoder for processing feature vectors into output predictions.
 
-        The `MLPDecoder` class implements a four-layer fully connected neural network with batch normalization
-        and ReLU activations.
+    The `MLPDecoder` class implements a four-layer fully connected neural network with batch normalization
+    and ReLU activations.
 
-        Args:
-            in_dim (int): Dimensionality of the input feature vector.
-            hidden_dim (int): Dimensionality of the hidden layers.
-            out_dim (int): Dimensionality of the output from the third layer, which can be seen as the
-                           final hidden representation before the classification layer.
-            binary (int, optional): Number of output classes in the final classification layer.
-                                    Default is 1, which is typically used for binary classification.
+    Args:
+        in_dim (int): Dimensionality of the input feature vector.
+        hidden_dim (int): Dimensionality of the hidden layers.
+        out_dim (int): Dimensionality of the output from the third layer, which can be seen as the
+                       final hidden representation before the classification layer.
+        binary (int, optional): Number of output classes in the final classification layer.
+                                Default is 1, which is typically used for binary classification.
 
     """
+
     def __init__(self, in_dim, hidden_dim, out_dim, binary=1):
         super(MLPDecoder, self).__init__()
         self.fc1 = nn.Linear(in_dim, hidden_dim)
@@ -180,6 +183,7 @@ class RandomLayer(nn.Module):
         output_dim (int, optional): The dimensionality of the output tensor after the random transformations.
                                     Default is 256.
     """
+
     def __init__(self, input_dim_list, output_dim=256):
         super(RandomLayer, self).__init__()
         self.input_num = len(input_dim_list)
@@ -196,7 +200,6 @@ class RandomLayer(nn.Module):
     def cuda(self):
         super(RandomLayer, self).cuda()
         self.random_matrix = [val.cuda() for val in self.random_matrix]
-
 
 
 # class SimpleClassifier(nn.Module):
@@ -219,6 +222,7 @@ class RandomLayer(nn.Module):
 # -------------------------------- BAN LAYER --------------------------------- #
 # ---------------------------------------------------------------------------- #
 
+
 class BANLayer(nn.Module):
     """
     The bilinear Attention Network (BAN) layer is designed to apply bilinear attention between two feature sets (`v` and `q`),
@@ -238,6 +242,7 @@ class BANLayer(nn.Module):
                                    Default is 0.2.
         k (int, optional): Number of attention maps to generate (used in pooling). Default is 3.
     """
+
     def __init__(self, v_dim, q_dim, h_dim, h_out, act="ReLU", dropout=0.2, k=3):
         super(BANLayer, self).__init__()
 

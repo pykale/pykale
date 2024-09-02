@@ -2,7 +2,9 @@ import pytest
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
+
 from kale.pipeline.drugban_trainer import Trainer
+
 
 @pytest.fixture
 def mock_data():
@@ -45,7 +47,14 @@ def trainer(mock_model, dataloaders):
     train_loader, val_loader, test_loader = dataloaders
     config = {
         "SOLVER": {"MAX_EPOCH": 2, "BATCH_SIZE": 4},
-        "DA": {"USE": False, "METHOD": "CDAN", "RANDOM_LAYER": False, "ORIGINAL_RANDOM": False, "INIT_EPOCH": 1, "LAMB_DA": 0.1},
+        "DA": {
+            "USE": False,
+            "METHOD": "CDAN",
+            "RANDOM_LAYER": False,
+            "ORIGINAL_RANDOM": False,
+            "INIT_EPOCH": 1,
+            "LAMB_DA": 0.1,
+        },
         "DECODER": {"BINARY": 1, "IN_DIM": 5},
         "RESULT": {"OUTPUT_DIR": "./", "SAVE_MODEL": False},
     }
@@ -100,7 +109,14 @@ class TestTrainerWithDA:
         train_loader, val_loader, test_loader = dataloaders
         config = {
             "SOLVER": {"MAX_EPOCH": 2, "BATCH_SIZE": 4},
-            "DA": {"USE": True, "METHOD": "CDAN", "RANDOM_LAYER": False, "ORIGINAL_RANDOM": False, "INIT_EPOCH": 1, "LAMB_DA": 0.1},
+            "DA": {
+                "USE": True,
+                "METHOD": "CDAN",
+                "RANDOM_LAYER": False,
+                "ORIGINAL_RANDOM": False,
+                "INIT_EPOCH": 1,
+                "LAMB_DA": 0.1,
+            },
             "DECODER": {"BINARY": 1, "IN_DIM": 5},
             "RESULT": {"OUTPUT_DIR": "./", "SAVE_MODEL": False},
         }

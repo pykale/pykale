@@ -159,6 +159,7 @@ class Discriminator(DomainNetSmallImage):
         bigger_discrim (bool, optional): Determines whether to use a larger discriminator architecture. Default is True.
 
     """
+
     def __init__(self, input_size=128, n_class=1, bigger_discrim=True):
         """
         Initializes the Discriminator model.
@@ -180,7 +181,6 @@ class Discriminator(DomainNetSmallImage):
         self.bn2 = nn.BatchNorm1d(output_size)
         self.relu2 = nn.ReLU()
         self.fc3 = nn.Linear(output_size, n_class)
-
 
 
 # For Video/Action Recognition, DataClassifier.

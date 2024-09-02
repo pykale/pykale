@@ -1,12 +1,13 @@
 from functools import partial
 
+import dgl
 import numpy as np
 import torch
 from dgllife.utils import CanonicalAtomFeaturizer, CanonicalBondFeaturizer, smiles_to_bigraph
 from torch.utils.data import Dataset
 
 from kale.prepdata.chem_transform import integer_label_protein
-import dgl
+
 
 def graph_collate_func(x):
     """
@@ -61,21 +62,22 @@ class DTIDataset(Dataset):
         A partially applied function (`smiles_to_bigraph`) that converts SMILES strings to molecular
         graphs with additional processing (like adding self-loops).
     """
+
     def __init__(self, list_IDs, df, max_drug_nodes=290):
         """
-         Initializes the DTIDataset.
+        Initializes the DTIDataset.
 
-         Parameters:
-         -----------
-         list_IDs : list
-             List of indices corresponding to the rows in the DataFrame `df` that will be used by the dataset.
+        Parameters:
+        -----------
+        list_IDs : list
+            List of indices corresponding to the rows in the DataFrame `df` that will be used by the dataset.
 
-         df : pandas.DataFrame
-             The DataFrame containing the drug-target interaction data.
+        df : pandas.DataFrame
+            The DataFrame containing the drug-target interaction data.
 
-         max_drug_nodes : int, optional
-             Maximum number of nodes for the drug molecular graphs. Default is 290.
-         """
+        max_drug_nodes : int, optional
+            Maximum number of nodes for the drug molecular graphs. Default is 290.
+        """
         self.list_IDs = list_IDs
         self.df = df
         self.max_drug_nodes = max_drug_nodes
@@ -133,7 +135,7 @@ class DTIDataset(Dataset):
         virtual_node_bit = torch.zeros([num_actual_nodes, 1])
         actual_node_feats = torch.cat((actual_node_feats, virtual_node_bit), 1)
         # Assign the updated node features back to the graph
-        v_d.ndata["h"] = actual_node_feats # This is a tensor
+        v_d.ndata["h"] = actual_node_feats  # This is a tensor
 
         # Create features for virtual nodes
         virtual_node_feat = torch.cat((torch.zeros(num_virtual_nodes, 74), torch.ones(num_virtual_nodes, 1)), 1)
@@ -163,8 +165,9 @@ class MultiDataLoader(object):
         _iterators (list): A list of iterators corresponding to the DataLoaders.
 
     """
+
     def __init__(self, dataloaders, n_batches):
-        """ Initialise the MultiDataLoader
+        """Initialise the MultiDataLoader
 
         Args:
             dataloaders (list): A list of DataLoader objects to iterate over.

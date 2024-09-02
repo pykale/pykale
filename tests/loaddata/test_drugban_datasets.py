@@ -1,9 +1,9 @@
+import dgl
+import pandas as pd
 import pytest
 import torch
-import pandas as pd
-from torch.utils.data import DataLoader
-import dgl
 from dgl import DGLGraph
+from torch.utils.data import DataLoader
 
 from kale.loaddata.drugban_datasets import DTIDataset, graph_collate_func, MultiDataLoader
 
@@ -101,4 +101,3 @@ def test_multidataloader_with_zero_batches():
     # Test MultiDataLoader initialization with zero batches, expecting an exception
     with pytest.raises(ValueError, match="n_batches should be > 0"):
         MultiDataLoader(dataloaders=[], n_batches=0)
-
