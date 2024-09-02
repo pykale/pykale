@@ -46,6 +46,7 @@ class Trainer(object):
 
 
     """
+
     def __init__(
         self,
         model,
@@ -92,8 +93,7 @@ class Trainer(object):
                     param.requires_grad = False
 
             elif config["DA"]["RANDOM_LAYER"] and config["DA"]["ORIGINAL_RANDOM"]:
-                self.random_layer = RandomLayer([config["DECODER"]["IN_DIM"], self.n_class],
-                                                config["DA"]["RANDOM_DIM"])
+                self.random_layer = RandomLayer([config["DECODER"]["IN_DIM"], self.n_class], config["DA"]["RANDOM_DIM"])
                 if torch.cuda.is_available():
                     self.random_layer.cuda()
             else:
@@ -157,6 +157,20 @@ class Trainer(object):
     #     return self.init_lamb_da * grow_fact
 
     def train(self):
+        """
+        Train the DrugBAN model across multiple epochs, optionally including domain adaptation (DA).
+
+        This method manages the training loop, handling both standard and domain adaptation (DA) training. It logs
+        metrics after each epoch, including training loss, validation metrics (AUROC, AUPRC, loss), and updates the
+        best-performing model based on validation AUROC. The method also saves training progress and the best model
+        to the specified output directory.
+
+        During each epoch:
+        - If DA is not used, the method calls `train_epoch` to train the model normally.
+        - If DA is used, the method calls `train_da_epoch` to include domain adaptation components in training.
+        - After each epoch, validation metrics are computed and logged.
+        - At the end of training, the method evaluates the model on the test dataset and logs the results.
+        """
         # float2str = lambda x: "%0.4f" % x
         for i in range(self.epochs):
             self.current_epoch += 1
@@ -261,7 +275,9 @@ class Trainer(object):
         """
         # ---- save models ---
         if self.config["RESULT"]["SAVE_MODEL"]:
-            torch.save(self.best_model.state_dict(), os.path.join(self.output_dir, f"best_model_epoch_{self.best_epoch}.pth"))
+            torch.save(
+                self.best_model.state_dict(), os.path.join(self.output_dir, f"best_model_epoch_{self.best_epoch}.pth")
+            )
             torch.save(self.model.state_dict(), os.path.join(self.output_dir, f"model_epoch_{self.current_epoch}.pth"))
         state = {
             "train_epoch_loss": self.train_loss_epoch,
@@ -463,8 +479,17 @@ class Trainer(object):
         return total_loss_epoch, model_loss_epoch, da_loss_epoch, epoch_lamb_da
 
     def test(self, dataloader="test"):
-        """Also change to PyTorch Lightning format -- change the return """
+        """
+        Evaluate the model on the validation or test dataset.
 
+        It handles both binary and multi-class classification scenarios and supports logging of ROC and precision-recall curves if a Comet experiment is provided.
+
+        Args:
+            dataloader (str, optional): Specifies which dataset to use for evaluation.
+                                        - "test": Uses the test dataset.
+                                        - "val": Uses the validation dataset.
+                                        Default is "test".
+        """
         test_loss = 0
         y_label, y_pred = [], []
         if dataloader == "test":
