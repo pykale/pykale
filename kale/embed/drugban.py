@@ -8,6 +8,17 @@ from torch.nn.utils.weight_norm import weight_norm
 
 
 class DrugBAN(nn.Module):
+    """
+    A neural network model for predicting drug-protein interactions.
+
+    The DrugBAN model integrates a Graph Convolutional Network (GCN) for extracting features
+    from molecular graphs (drugs) and a Convolutional Neural Network (CNN) for extracting
+    features from protein sequences. These features are then fused using a Bilinear Attention
+    Network (BAN) layer and passed through an MLP classifier to predict interactions.
+
+    Args:
+        config (dict): A dictionary containing the configuration parameters for the model.
+    """
     def __init__(self, **config):
         super(DrugBAN, self).__init__()
         drug_in_feats = config["DRUG"]["NODE_IN_FEATS"]
@@ -124,6 +135,21 @@ class ProteinCNN(nn.Module):
 
 
 class MLPDecoder(nn.Module):
+    """
+        A multilayer perceptron (MLP) decoder for processing feature vectors into output predictions.
+
+        The `MLPDecoder` class implements a four-layer fully connected neural network with batch normalization
+        and ReLU activations.
+
+        Args:
+            in_dim (int): Dimensionality of the input feature vector.
+            hidden_dim (int): Dimensionality of the hidden layers.
+            out_dim (int): Dimensionality of the output from the third layer, which can be seen as the
+                           final hidden representation before the classification layer.
+            binary (int, optional): Number of output classes in the final classification layer.
+                                    Default is 1, which is typically used for binary classification.
+
+    """
     def __init__(self, in_dim, hidden_dim, out_dim, binary=1):
         super(MLPDecoder, self).__init__()
         self.fc1 = nn.Linear(in_dim, hidden_dim)
@@ -142,23 +168,18 @@ class MLPDecoder(nn.Module):
         return x
 
 
-class SimpleClassifier(nn.Module):
-    def __init__(self, in_dim, hid_dim, out_dim, dropout):
-        super(SimpleClassifier, self).__init__()
-        layers = [
-            weight_norm(nn.Linear(in_dim, hid_dim), dim=None),
-            nn.ReLU(),
-            nn.Dropout(dropout, inplace=True),
-            weight_norm(nn.Linear(hid_dim, out_dim), dim=None),
-        ]
-        self.main = nn.Sequential(*layers)
-
-    def forward(self, x):
-        logits = self.main(x)
-        return logits
-
-
 class RandomLayer(nn.Module):
+    """
+    The `RandomLayer` is designed to apply random matrix multiplications to a list of input tensors. Each input tensor
+    is multiplied by a randomly initialized matrix, and the results are combined through element-wise multiplication.
+
+    Args:
+        input_dim_list (list of int): A list of integers representing the dimensionality of each input tensor.
+                                      The length of this list determines how many input tensors the layer expects.
+
+        output_dim (int, optional): The dimensionality of the output tensor after the random transformations.
+                                    Default is 256.
+    """
     def __init__(self, input_dim_list, output_dim=256):
         super(RandomLayer, self).__init__()
         self.input_num = len(input_dim_list)
@@ -178,12 +199,45 @@ class RandomLayer(nn.Module):
 
 
 
+# class SimpleClassifier(nn.Module):
+#     def __init__(self, in_dim, hid_dim, out_dim, dropout):
+#         super(SimpleClassifier, self).__init__()
+#         layers = [
+#             weight_norm(nn.Linear(in_dim, hid_dim), dim=None),
+#             nn.ReLU(),
+#             nn.Dropout(dropout, inplace=True),
+#             weight_norm(nn.Linear(hid_dim, out_dim), dim=None),
+#         ]
+#         self.main = nn.Sequential(*layers)
+#
+#     def forward(self, x):
+#         logits = self.main(x)
+#         return logits
+
 
 # ---------------------------------------------------------------------------- #
 # -------------------------------- BAN LAYER --------------------------------- #
 # ---------------------------------------------------------------------------- #
 
 class BANLayer(nn.Module):
+    """
+    The bilinear Attention Network (BAN) layer is designed to apply bilinear attention between two feature sets (`v` and `q`),
+    which could represent features extracted from drugs and proteins, respectively. This layer
+    enables the interaction between these two sets of features, allowing the model to learn
+    joint representations that can be used for downstream tasks like predicting drug-protein
+    interactions.
+
+    Args:
+        v_dim (int): Dimensionality of the first input feature set (`v`).
+        q_dim (int): Dimensionality of the second input feature set (`q`).
+        h_dim (int): Dimensionality of the hidden layer used in the bilinear attention mechanism.
+        h_out (int): Number of output heads in the bilinear attention mechanism.
+        act (str, optional): Activation function to use in the fully connected networks for `v` and `q`.
+                             Default is "ReLU".
+        dropout (float, optional): Dropout rate to apply after each layer in the fully connected networks.
+                                   Default is 0.2.
+        k (int, optional): Number of attention maps to generate (used in pooling). Default is 3.
+    """
     def __init__(self, v_dim, q_dim, h_dim, h_out, act="ReLU", dropout=0.2, k=3):
         super(BANLayer, self).__init__()
 
@@ -240,8 +294,22 @@ class BANLayer(nn.Module):
 
 
 class FCNet(nn.Module):
-    """Simple class for non-linear fully connect network
+    """
+    A simple class for non-linear fully connect network
+
     Modified from https://github.com/jnhwkim/ban-vqa/blob/master/fc.py
+
+
+    This class creates a fully connected neural network with optional dropout and activation
+    functions. Weight normalization is applied to each linear layer.
+
+    Args:
+        dims (list of int): A list specifying the input and output dimensions of each layer.
+                            For example, [input_dim, hidden_dim1, hidden_dim2, ..., output_dim].
+        act (str, optional): The name of the activation function to use (e.g., 'ReLU', 'Tanh').
+                             Default is 'ReLU'. If an empty string is provided, no activation is applied.
+        dropout (float, optional): Dropout probability to apply after each layer. Default is 0 (no dropout).
+
     """
 
     def __init__(self, dims, act="ReLU", dropout=0):
@@ -268,63 +336,63 @@ class FCNet(nn.Module):
         return self.main(x)
 
 
-class BCNet(nn.Module):
-    """Simple class for non-linear bilinear connect network
-    Modified from https://github.com/jnhwkim/ban-vqa/blob/master/bc.py
-    """
-
-    def __init__(self, v_dim, q_dim, h_dim, h_out, act="ReLU", dropout=[0.2, 0.5], k=3):
-        super(BCNet, self).__init__()
-
-        self.c = 32
-        self.k = k
-        self.v_dim = v_dim
-        self.q_dim = q_dim
-        self.h_dim = h_dim
-        self.h_out = h_out
-
-        self.v_net = FCNet([v_dim, h_dim * self.k], act=act, dropout=dropout[0])
-        self.q_net = FCNet([q_dim, h_dim * self.k], act=act, dropout=dropout[0])
-        self.dropout = nn.Dropout(dropout[1])  # attention
-        if 1 < k:
-            self.p_net = nn.AvgPool1d(self.k, stride=self.k)
-
-        if h_out is None:
-            pass
-        elif h_out <= self.c:
-            self.h_mat = nn.Parameter(torch.Tensor(1, h_out, 1, h_dim * self.k).normal_())
-            self.h_bias = nn.Parameter(torch.Tensor(1, h_out, 1, 1).normal_())
-        else:
-            self.h_net = weight_norm(nn.Linear(h_dim * self.k, h_out), dim=None)
-
-    def forward(self, v, q):
-        if self.h_out is None:
-            v_ = self.v_net(v)
-            q_ = self.q_net(q)
-            logits = torch.einsum("bvk,bqk->bvqk", (v_, q_))
-            return logits
-
-        # low-rank bilinear pooling using einsum
-        elif self.h_out <= self.c:
-            v_ = self.dropout(self.v_net(v))
-            q_ = self.q_net(q)
-            logits = torch.einsum("xhyk,bvk,bqk->bhvq", (self.h_mat, v_, q_)) + self.h_bias
-            return logits  # b x h_out x v x q
-
-        # batch outer product, linear projection
-        # memory efficient but slow computation
-        else:
-            v_ = self.dropout(self.v_net(v)).transpose(1, 2).unsqueeze(3)
-            q_ = self.q_net(q).transpose(1, 2).unsqueeze(2)
-            d_ = torch.matmul(v_, q_)  # b x h_dim x v x q
-            logits = self.h_net(d_.transpose(1, 2).transpose(2, 3))  # b x v x q x h_out
-            return logits.transpose(2, 3).transpose(1, 2)  # b x h_out x v x q
-
-    def forward_with_weights(self, v, q, w):
-        v_ = self.v_net(v)  # b x v x d
-        q_ = self.q_net(q)  # b x q x d
-        logits = torch.einsum("bvk,bvq,bqk->bk", (v_, w, q_))
-        if 1 < self.k:
-            logits = logits.unsqueeze(1)  # b x 1 x d
-            logits = self.p_net(logits).squeeze(1) * self.k  # sum-pooling
-        return logits
+# class BCNet(nn.Module):
+#     """Simple class for non-linear bilinear connect network
+#     Modified from https://github.com/jnhwkim/ban-vqa/blob/master/bc.py
+#     """
+#
+#     def __init__(self, v_dim, q_dim, h_dim, h_out, act="ReLU", dropout=[0.2, 0.5], k=3):
+#         super(BCNet, self).__init__()
+#
+#         self.c = 32
+#         self.k = k
+#         self.v_dim = v_dim
+#         self.q_dim = q_dim
+#         self.h_dim = h_dim
+#         self.h_out = h_out
+#
+#         self.v_net = FCNet([v_dim, h_dim * self.k], act=act, dropout=dropout[0])
+#         self.q_net = FCNet([q_dim, h_dim * self.k], act=act, dropout=dropout[0])
+#         self.dropout = nn.Dropout(dropout[1])  # attention
+#         if 1 < k:
+#             self.p_net = nn.AvgPool1d(self.k, stride=self.k)
+#
+#         if h_out is None:
+#             pass
+#         elif h_out <= self.c:
+#             self.h_mat = nn.Parameter(torch.Tensor(1, h_out, 1, h_dim * self.k).normal_())
+#             self.h_bias = nn.Parameter(torch.Tensor(1, h_out, 1, 1).normal_())
+#         else:
+#             self.h_net = weight_norm(nn.Linear(h_dim * self.k, h_out), dim=None)
+#
+#     def forward(self, v, q):
+#         if self.h_out is None:
+#             v_ = self.v_net(v)
+#             q_ = self.q_net(q)
+#             logits = torch.einsum("bvk,bqk->bvqk", (v_, q_))
+#             return logits
+#
+#         # low-rank bilinear pooling using einsum
+#         elif self.h_out <= self.c:
+#             v_ = self.dropout(self.v_net(v))
+#             q_ = self.q_net(q)
+#             logits = torch.einsum("xhyk,bvk,bqk->bhvq", (self.h_mat, v_, q_)) + self.h_bias
+#             return logits  # b x h_out x v x q
+#
+#         # batch outer product, linear projection
+#         # memory efficient but slow computation
+#         else:
+#             v_ = self.dropout(self.v_net(v)).transpose(1, 2).unsqueeze(3)
+#             q_ = self.q_net(q).transpose(1, 2).unsqueeze(2)
+#             d_ = torch.matmul(v_, q_)  # b x h_dim x v x q
+#             logits = self.h_net(d_.transpose(1, 2).transpose(2, 3))  # b x v x q x h_out
+#             return logits.transpose(2, 3).transpose(1, 2)  # b x h_out x v x q
+#
+#     def forward_with_weights(self, v, q, w):
+#         v_ = self.v_net(v)  # b x v x d
+#         q_ = self.q_net(q)  # b x q x d
+#         logits = torch.einsum("bvk,bvq,bqk->bk", (v_, w, q_))
+#         if 1 < self.k:
+#             logits = logits.unsqueeze(1)  # b x 1 x d
+#             logits = self.p_net(logits).squeeze(1) * self.k  # sum-pooling
+#         return logits
