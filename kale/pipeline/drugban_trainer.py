@@ -142,12 +142,19 @@ class Trainer(object):
 
         self.original_random = config["DA"]["ORIGINAL_RANDOM"]
 
-    def da_lambda_decay(self):
-        delta_epoch = self.current_epoch - self.da_init_epoch
-        non_init_epoch = self.epochs - self.da_init_epoch
-        p = (self.current_epoch + delta_epoch * self.nb_training) / (non_init_epoch * self.nb_training)
-        grow_fact = 2.0 / (1.0 + np.exp(-10 * p)) - 1
-        return self.init_lamb_da * grow_fact
+    # def da_lambda_decay(self):
+    #     """
+    #
+    #     Calculate the lambda value for domain adaptation (DA).
+    #
+    #     The lambda value grows from 0 to 1 as training processes, defined by a sigmoid function.
+    #
+    #     """
+    #     delta_epoch = self.current_epoch - self.da_init_epoch
+    #     non_init_epoch = self.epochs - self.da_init_epoch
+    #     p = (self.current_epoch + delta_epoch * self.nb_training) / (non_init_epoch * self.nb_training)
+    #     grow_fact = 2.0 / (1.0 + np.exp(-10 * p)) - 1
+    #     return self.init_lamb_da * grow_fact
 
     def train(self):
         # float2str = lambda x: "%0.4f" % x
@@ -301,7 +308,9 @@ class Trainer(object):
 
     def train_epoch(self):
         """
-        Make this to PyTorch Lightning format
+        Perform a single epoch of training.
+
+        This method trains the model for one full pass (epoch) over the training dataset.
         """
         self.model.train()
         loss_epoch = 0
@@ -326,18 +335,23 @@ class Trainer(object):
 
     def train_da_epoch(self):
         """
-        Make this to PyTorch Lightning format
+        Perform a single epoch of training with Domain Adaptation (DA).
+
+        This method trains the model for one full pass (epoch) over the training dataset, with an emphasis on CDAN.
         """
         self.model.train()
         total_loss_epoch = 0
         model_loss_epoch = 0
         da_loss_epoch = 0
         epoch_lamb_da = 0
+
+        # ----- Update epoch_lamb_da if in the DA phase -----
         if self.current_epoch >= self.da_init_epoch:
             # epoch_lamb_da = self.da_lambda_decay()
             epoch_lamb_da = 1
             if self.experiment:
                 self.experiment.log_metric("DA loss lambda", epoch_lamb_da, epoch=self.current_epoch)
+
         num_batches = len(self.train_dataloader)
         for i, (batch_s, batch_t) in enumerate(tqdm(self.train_dataloader)):
             self.step += 1
@@ -346,14 +360,18 @@ class Trainer(object):
                 batch_s[1].to(self.device),
                 batch_s[2].float().to(self.device),
             )
+
             v_d_t, v_p_t = batch_t[0].to(self.device), batch_t[1].to(self.device)
             self.optim.zero_grad()
             self.optim_da.zero_grad()
             v_d, v_p, f, score = self.model(v_d, v_p)
+
             if self.n_class == 1:
                 n, model_loss = binary_cross_entropy(score, labels)
+
             else:
                 n, model_loss = cross_entropy_logits(score, labels)
+
             if self.current_epoch >= self.da_init_epoch:
                 v_d_t, v_p_t, f_t, t_score = self.model(v_d_t, v_p_t)
                 if self.da_method == "CDAN":
