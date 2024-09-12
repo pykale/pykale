@@ -40,19 +40,6 @@ def binary_cross_entropy(pred_output, labels):
     return n, loss
 
 
-def drugban_cross_entropy_logits(linear_output, label, weights=None):
-    class_output = F.log_softmax(linear_output, dim=1)
-    n = F.softmax(linear_output, dim=1)[:, 1]
-    max_class = class_output.max(1)
-    y_hat = max_class[1]  # get the index of the max log-probability
-    if weights is None:
-        loss = nn.NLLLoss()(class_output, label.type_as(y_hat).view(label.size(0)))
-    else:
-        losses = nn.NLLLoss(reduction="none")(class_output, label.type_as(y_hat).view(label.size(0)))
-        loss = torch.sum(weights * losses) / torch.sum(weights)
-    return n, loss
-
-
 def topk_accuracy(output, target, topk=(1,)):
     """Computes the top-k accuracy for the specified values of k.
 

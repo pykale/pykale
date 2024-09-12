@@ -14,13 +14,12 @@ from sklearn.metrics import (
     roc_auc_score,
     roc_curve,
 )
+from torch.nn import functional as F
 from tqdm import tqdm
 
 from kale.embed.drugban import RandomLayer
 from kale.pipeline.domain_adapter import GradReverse as ReverseLayerF
-from kale.predict.losses import binary_cross_entropy
-from kale.predict.losses import drugban_cross_entropy_logits as cross_entropy_logits
-from kale.predict.losses import entropy_logits
+from kale.predict.losses import binary_cross_entropy, cross_entropy_logits, entropy_logits
 from kale.utils.misc_utils import float2str
 
 
@@ -339,7 +338,8 @@ class Trainer(object):
             if self.n_class == 1:
                 n, loss = binary_cross_entropy(score, labels)
             else:
-                n, loss = cross_entropy_logits(score, labels)
+                # n = F.softmax(score, dim=1)[:, 1]
+                loss, _ = cross_entropy_logits(score, labels)
             loss.backward()
             self.optim.step()
             loss_epoch += loss.item()
@@ -386,7 +386,8 @@ class Trainer(object):
                 n, model_loss = binary_cross_entropy(score, labels)
 
             else:
-                n, model_loss = cross_entropy_logits(score, labels)
+                # n = F.softmax(score, dim=1)[:, 1]
+                model_loss, _ = cross_entropy_logits(score, labels)
 
             if self.current_epoch >= self.da_init_epoch:
                 v_d_t, v_p_t, f_t, t_score = self.model(v_d_t, v_p_t)
@@ -432,12 +433,16 @@ class Trainer(object):
                         src_weight = None
                         tgt_weight = None
 
-                    n_src, loss_cdan_src = cross_entropy_logits(
-                        adv_output_src_score, torch.zeros(self.batch_size).to(self.device), src_weight
+                    # n_src = F.softmax(adv_output_src_score, dim=1)[:, 1]
+                    loss_cdan_src, _ = cross_entropy_logits(
+                        adv_output_src_score, torch.zeros(self.batch_size).to(self.device), weights=src_weight
                     )
-                    n_tgt, loss_cdan_tgt = cross_entropy_logits(
-                        adv_output_tgt_score, torch.ones(self.batch_size).to(self.device), tgt_weight
+
+                    # n_tgt = F.softmax(adv_output_tgt_score, dim=1)[:, 1]
+                    loss_cdan_tgt, _ = cross_entropy_logits(
+                        adv_output_tgt_score, torch.ones(self.batch_size).to(self.device), weights=tgt_weight
                     )
+
                     da_loss = loss_cdan_src + loss_cdan_tgt
                 else:
                     raise ValueError(f"The da method {self.da_method} is not supported")
@@ -510,7 +515,8 @@ class Trainer(object):
                 if self.n_class == 1:
                     n, loss = binary_cross_entropy(score, labels)
                 else:
-                    n, loss = cross_entropy_logits(score, labels)
+                    n = F.softmax(score, dim=1)[:, 1]
+                    loss, _ = cross_entropy_logits(score, labels)
                 test_loss += loss.item()
                 y_label = y_label + labels.to("cpu").tolist()
                 y_pred = y_pred + n.to("cpu").tolist()
