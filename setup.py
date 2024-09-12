@@ -31,6 +31,8 @@ install_requires = [
 graph_requires = [
     "networkx",
     "PyTDC<=0.3.6",
+    "dgl==2.3.0",
+    "dgllife==0.3.2",
 ]
 
 # Dependencies for image analysis
