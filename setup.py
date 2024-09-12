@@ -21,7 +21,7 @@ install_requires = [
     "scikit-learn>=0.23.2",  # sure
     "scipy>=1.5.4",  # in factorization API only
     "tensorly>=0.5.1",  # in factorization and model_weights API only
-    "torch==2.0.0",  # sure
+    "torch==2.0.0",  # also change the version in the test.yaml when changing this next time
     "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
 ]
 
