@@ -32,9 +32,9 @@ jobs:
             path: ~\AppData\Local\pip\Cache
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up Python using Miniconda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
@@ -42,7 +42,7 @@ jobs:
 
       - name: Cache pip dependencies
         id: cache_pip
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ matrix.path }}
           key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-20240705-${{ hashFiles('**/setup.py') }}
@@ -62,16 +62,16 @@ jobs:
           pip install torch==2.0.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torchvision==0.15.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torch_scatter==2.1.1 -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
-          pip install torch_sparse==0.6.17 -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
-          pip install torch_cluster==1.6.1 -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
-          pip install torch_spline_conv==1.2.2 -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
+          pip install torch_sparse==0.6.18 -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
+          pip install torch_cluster==1.6.3 -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
+          pip install torch_spline_conv==1.2.2 -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
           pip install torch_geometric==2.3.0
           pip install -e .[dev]
         shell: bash -l {0}
 
       - name: Cache downloaded test data
         id: cache_data
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: tests/test_data
           key: ${{ runner.os }}-python${{ matrix.python-version }}-data-${{ hashFiles('tests/download_test_data.py') }}
@@ -97,4 +97,4 @@ jobs:
         shell: bash -l {0}
 
       - name: Report coverage
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
