@@ -15,13 +15,13 @@ from setuptools import find_packages, setup
 
 # Core dependencies frequently used in PyKale Core API
 install_requires = [
-    "numpy>=1.18.0",  # sure
+    "numpy<2.0.0",  # sure
     "pandas",  # sure
     "pytorch-lightning>=2.0.0",  # in pipeline API only
     "scikit-learn>=0.23.2",  # sure
     "scipy>=1.5.4",  # in factorization API only
     "tensorly>=0.5.1",  # in factorization and model_weights API only
-    "torch>=2.0.0",  # sure
+    "torch==2.0.0",  # also change the version in the test.yaml when changing this next time
     "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
 ]
 

@@ -62,6 +62,14 @@ kale.pipeline.video\_domain\_adapter module
    :undoc-members:
    :show-inheritance:
 
+kale.pipeline.fewshot\_trainer module
+-------------------------------------------
+
+.. automodule:: kale.pipeline.fewshot_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

@@ -43,13 +43,14 @@ docs/source/backup
 cov*.xml
 collect_env.py
 tests/test_data
-tests/loaddata/tests
-tests/pipeline/tests
+tests/*/tests
+
 
 # Lightning
 lightning_logs
 tb_logs
 outputs
+
 
 # Jupyter Notebook Checkpoints
 *-checkpoint.ipynb
