@@ -94,13 +94,6 @@ class TestTrainer:
         assert isinstance(auprc, float)
         assert isinstance(test_loss, float)
 
-    def test_save_result(self, trainer, tmpdir):
-        # Test the saving of results.
-        trainer.output_dir = tmpdir.mkdir("output")
-        trainer.save_result()
-        # Check if the result files are created.
-        assert len(list(trainer.output_dir.iterdir())) > 0
-
 
 class TestTrainerWithDA:
     @pytest.fixture

@@ -16,7 +16,6 @@ from kale.embed.drugban import DrugBAN
 from kale.loaddata.drugban_datasets import DTIDataset, graph_collate_func, MultiDataLoader
 from kale.pipeline.drugban_trainer import Trainer
 from kale.predict.class_domain_nets import Discriminator
-from kale.utils.misc_utils import mkdir
 from kale.utils.seed import set_seed
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -48,7 +47,13 @@ def main():
 
     set_seed(cfg.SOLVER.SEED)
     suffix = str(int(time() * 1000))[6:]
-    mkdir(cfg.RESULT.OUTPUT_DIR)
+
+    # ---- setup output directory ----
+    path = cfg.RESULT.OUTPUT_DIR
+    path = path.strip().rstrip("\\")
+    is_exists = os.path.exists(path)
+    if not is_exists:
+        os.makedirs(path)
 
     experiment = None
     print(f"Config yaml: {args.cfg}")

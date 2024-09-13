@@ -20,7 +20,6 @@ from tqdm import tqdm
 from kale.embed.drugban import RandomLayer
 from kale.pipeline.domain_adapter import GradReverse as ReverseLayerF
 from kale.predict.losses import binary_cross_entropy, cross_entropy_logits, entropy_logits
-from kale.utils.misc_utils import float2str
 
 
 class Trainer(object):
@@ -175,14 +174,14 @@ class Trainer(object):
             self.current_epoch += 1
             if not self.is_da:
                 train_loss = self.train_epoch()
-                train_lst = ["epoch " + str(self.current_epoch)] + list(map(float2str, [train_loss]))
+                train_lst = ["epoch " + str(self.current_epoch)] + [f"{train_loss:.4f}"]
                 if self.experiment:
                     self.experiment.log_metric("train_epoch model loss", train_loss, epoch=self.current_epoch)
             else:
                 train_loss, model_loss, da_loss, epoch_lamb = self.train_da_epoch()
-                train_lst = ["epoch " + str(self.current_epoch)] + list(
-                    map(float2str, [train_loss, model_loss, epoch_lamb, da_loss])
-                )
+                train_lst = ["epoch " + str(self.current_epoch)] + [
+                    f"{x:.4f}" for x in [train_loss, model_loss, epoch_lamb, da_loss]
+                ]
                 self.train_model_loss_epoch.append(model_loss)
                 self.train_da_loss_epoch.append(da_loss)
                 if self.experiment:
@@ -197,7 +196,7 @@ class Trainer(object):
                 self.experiment.log_metric("valid_epoch model loss", val_loss, epoch=self.current_epoch)
                 self.experiment.log_metric("valid_epoch auroc", auroc, epoch=self.current_epoch)
                 self.experiment.log_metric("valid_epoch auprc", auprc, epoch=self.current_epoch)
-            val_lst = ["epoch " + str(self.current_epoch)] + list(map(float2str, [auroc, auprc, val_loss]))
+            val_lst = ["epoch " + str(self.current_epoch)] + [f"{x:.4f}" for x in [auroc, auprc, val_loss]]
             self.val_table.add_row(val_lst)
             self.val_loss_epoch.append(val_loss)
             self.val_auroc_epoch.append(auroc)
@@ -212,9 +211,10 @@ class Trainer(object):
         auroc, auprc, f1, sensitivity, specificity, accuracy, test_loss, thred_optim, precision = self.test(
             dataloader="test"
         )
-        test_lst = ["epoch " + str(self.best_epoch)] + list(
-            map(float2str, [auroc, auprc, f1, sensitivity, specificity, accuracy, thred_optim, test_loss])
-        )
+
+        test_lst = [f"epoch {self.best_epoch}"] + [
+            f"{x:.4f}" for x in [auroc, auprc, f1, sensitivity, specificity, accuracy, thred_optim, test_loss]
+        ]
         self.test_table.add_row(test_lst)
         logging.info(
             "Test at Best Model of Epoch " + str(self.best_epoch) + " with test loss " + str(test_loss),
