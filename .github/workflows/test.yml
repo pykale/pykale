@@ -132,4 +132,3 @@ jobs:
       - name: Report coverage
         if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'false'
         uses: codecov/codecov-action@v4
-
