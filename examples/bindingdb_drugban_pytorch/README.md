@@ -6,6 +6,56 @@ This example is constructed by refactoring the [Interpretable bilinear attention
 
 ### 2. Usage
 
+### Datasets
+For downloading the datasets, please refer to the following links: https://github.com/pykale/data/blob/add-drugban-data/molecular/README.md
+
+We have three datasets in this collection:
+- [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp)
+- [BioSNAP](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets)
+- [Human](https://github.com/lifanchen-simm/transformerCPI?tab=readme-ov-file#data-sets)
+
+where BindingDB and BioSNAP are split into random and cluster splits, while Human is split into cold and random splits. The full dataset is also provided for each dataset.
+
+All datasets should be organised as follows:
+
+```sh
+└───root
+    ├───datasets
+    │   ├───bindingdb
+    │   │   ├───cluster
+    │   │   │   ├───source_train.csv
+    │   │   │   ├───target_train.csv
+    │   │   │   ├───target_test.csv
+    │   │   ├───random
+    │   │   │   ├───test.csv
+    │   │   │   ├───train.csv
+    │   │   │   ├───val.csv
+    │   │   ├───full.csv
+    │   ├───biosnap
+    │   │   ├───cluster
+    │   │   │   ├───source_train.csv
+    │   │   │   ├───target_train.csv
+    │   │   │   ├───target_test.csv
+    │   │   ├───random
+    │   │   │   ├───test.csv
+    │   │   │   ├───train.csv
+    │   │   │   ├───val.csv
+    │   │   ├───full.csv
+    │   ├───human
+    │   │   ├───cold
+    │   │   │   ├───test.csv
+    │   │   │   ├───train.csv
+    │   │   │   ├───val.csv
+    │   │   ├───random
+    │   │   │   ├───test.csv
+    │   │   │   ├───train.csv
+    │   │   │   ├───val.csv
+    │   │   ├───full.csv
+```
+
+
+### Examples
+
 * Dataset: [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp), [BioSNAP](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets) or [Human](https://github.com/lifanchen-simm/transformerCPI?tab=readme-ov-file#data-sets)
 * Data Split: random or cold
 * Algorithm: DrugBAN
