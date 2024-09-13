@@ -17,7 +17,7 @@ from sklearn.metrics import (
 from torch.nn import functional as F
 from tqdm import tqdm
 
-from kale.embed.drugban import RandomLayer
+from kale.embed.ban import RandomLayer
 from kale.pipeline.domain_adapter import GradReverse as ReverseLayerF
 from kale.predict.losses import binary_cross_entropy, cross_entropy_logits, entropy_logits
 

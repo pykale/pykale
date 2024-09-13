@@ -12,7 +12,7 @@ sys.path.append("/home/jiang/Documents/repositories/pykale/")
 
 from configs import get_cfg_defaults
 
-from kale.embed.drugban import DrugBAN
+from kale.embed.ban import DrugBAN
 from kale.loaddata.drugban_datasets import DTIDataset, graph_collate_func, MultiDataLoader
 from kale.pipeline.drugban_trainer import Trainer
 from kale.predict.class_domain_nets import Discriminator

@@ -1,6 +1,6 @@
 import torch
 
-from kale.embed.drugban import BANLayer, DrugBAN, FCNet, MLPDecoder, MolecularGCN, ProteinCNN, RandomLayer
+from kale.embed.ban import BANLayer, DrugBAN, FCNet, MLPDecoder, MolecularGCN, ProteinCNN, RandomLayer
 
 BATCH_SIZE = 64
 
