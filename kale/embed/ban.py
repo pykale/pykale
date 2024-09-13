@@ -1,3 +1,18 @@
+# =============================================================================
+# Author: Jiayang Zhang, jiayang.zhang@sheffield.ac.uk
+# =============================================================================
+
+"""
+Python implementation of DrugBAN model for predicting drug-protein interactions using PyTorch.
+
+This includes a Graph Convolutional Network (GCN) for extracting features from molecular graphs (drugs),
+and a Convolutional Neural Network (CNN) for extracting features from protein sequences.
+
+These features are fused using a Bilinear Attention Network (BAN) layer and passed through an MLP classifier
+to predict interactions.
+"""
+
+
 import math
 
 import torch

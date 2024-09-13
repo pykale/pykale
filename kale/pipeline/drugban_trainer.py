@@ -1,3 +1,14 @@
+# =============================================================================
+# Author: Jiayang Zhang, jiayang.zhang@sheffield.ac.uk
+# =============================================================================
+
+"""
+This module contains the DrugBAN trainer class and related functions. It trains a Interpretable bilinear attention
+network with or without domain adaptation model for drug-target interaction prediction.
+
+This is refactored from: https://github.com/peizhenbai/DrugBAN/blob/main/trainer.py
+"""
+
 import copy
 import logging
 import os
@@ -139,20 +150,6 @@ class Trainer(object):
         self.train_table = PrettyTable(train_metric_header)
 
         self.original_random = config["DA"]["ORIGINAL_RANDOM"]
-
-    # def da_lambda_decay(self):
-    #     """
-    #
-    #     Calculate the lambda value for domain adaptation (DA).
-    #
-    #     The lambda value grows from 0 to 1 as training processes, defined by a sigmoid function.
-    #
-    #     """
-    #     delta_epoch = self.current_epoch - self.da_init_epoch
-    #     non_init_epoch = self.epochs - self.da_init_epoch
-    #     p = (self.current_epoch + delta_epoch * self.nb_training) / (non_init_epoch * self.nb_training)
-    #     grow_fact = 2.0 / (1.0 + np.exp(-10 * p)) - 1
-    #     return self.init_lamb_da * grow_fact
 
     def train(self):
         """

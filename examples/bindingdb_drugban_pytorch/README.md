@@ -2,8 +2,7 @@
 
 ### 1. Description
 
-This example is constructed by refactoring the [Interpretable bilinear attention network with domain adaptation improves drug-target prediction repository](https://github.com/peizhenbai/DrugBAN)
-for a [Nature Machine Intelligence 2023 paper](https://www.nature.com/articles/s42256-022-00605-1).
+This example is constructed by refactoring the [Interpretable bilinear attention network with domain adaptation improves drug-target prediction repository](https://github.com/peizhenbai/DrugBAN) for a [Nature Machine Intelligence 2023 paper](https://www.nature.com/articles/s42256-022-00605-1).
 
 ### 2. Usage
 

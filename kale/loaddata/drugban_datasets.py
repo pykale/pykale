@@ -1,3 +1,12 @@
+# =============================================================================
+# Author: Jiayang Zhang, jiayang.zhang@sheffield.ac.uk
+# =============================================================================
+
+"""
+Dataset setting and data loader for BindingDB, BioSNAP and Human datasets,
+by refactoring  https://github.com/peizhenbai/DrugBAN/blob/main/dataloader.py
+"""
+
 from functools import partial
 
 import dgl
@@ -76,7 +85,7 @@ class DTIDataset(Dataset):
             The DataFrame containing the drug-target interaction data.
 
         max_drug_nodes : int, optional
-            Maximum number of nodes for the drug molecular graphs. Default is 290.
+            Maximum number of nodes for the molecular graphs. Default is 290.
         """
         self.list_IDs = list_IDs
         self.df = df
