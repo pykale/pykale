@@ -59,6 +59,11 @@ example_requires = [
     "yacs>=0.1.7",
     "pwlf",
     "xlsxwriter",
+    "pydantic",
+    "prettytable",
+    "python-rle",
+    "pylibjpeg-libjpeg",
+    "pylibjpeg-openjpeg",
 ]
 
 # Full dependencies except for development
