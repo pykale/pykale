@@ -73,11 +73,10 @@ _C.DA.USE_ENTROPY = True
 # Comet config, ignore it If not installed.
 # ---------------------------------------------------------------------------- #
 _C.COMET = CfgNode()
-# Please change to your own workspace name on comet.
-_C.COMET.WORKSPACE = "pz-white"
-_C.COMET.PROJECT_NAME = "DrugBAN"
 _C.COMET.USE = False
+_C.COMET.PROJECT_NAME = None
 _C.COMET.TAG = None
+_C.COMET.API_KEY = ""  # Your Comet API key
 
 
 def get_cfg_defaults():
