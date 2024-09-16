@@ -31,7 +31,7 @@ install_requires = [
 graph_requires = [
     "networkx",
     "PyTDC<=0.3.6",
-    "dgl==2.1.0",
+    "dgl",
     "dgllife==0.3.2",
 ]
 
