@@ -21,7 +21,7 @@ install_requires = [
     "scikit-learn>=0.23.2",  # sure
     "scipy>=1.5.4",  # in factorization API only
     "tensorly>=0.5.1",  # in factorization and model_weights API only
-    "torch==2.3.0",  # also change the version in the test.yaml when changing this next time, and update the pytorch version in the bindingdb_deepdta tutorial notebook
+    "torch==2.2.0",  # also change the version in the test.yaml when changing this next time, and update the pytorch version in the bindingdb_deepdta tutorial notebook
     "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
 ]
 
@@ -32,7 +32,7 @@ graph_requires = [
     "networkx",
     "PyTDC<=0.3.6",
     "dgl",
-    "dgllife==0.3.2",
+    "dgllife",
 ]
 
 # Dependencies for image analysis
