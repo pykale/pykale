@@ -62,8 +62,10 @@ example_requires = [
     "pydantic",
     "prettytable",
     "python-rle",
+    "pylibjpeg"
     "pylibjpeg-libjpeg",
     "pylibjpeg-openjpeg",
+    "pylibjpeg-rle"
 ]
 
 # Full dependencies except for development
