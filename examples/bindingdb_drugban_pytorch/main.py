@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 
 sys.path.append("/home/jiang/Documents/repositories/pykale/")
 
+from comet_ml import Experiment
 from configs import get_cfg_defaults
 
 from kale.embed.ban import DrugBAN
@@ -17,7 +18,7 @@ from kale.loaddata.drugban_datasets import DTIDataset, graph_collate_func, Multi
 from kale.pipeline.drugban_trainer import Trainer
 from kale.predict.class_domain_nets import Discriminator
 from kale.utils.seed import set_seed
-from comet_ml import Experiment
+
 
 def arg_parse():
     """Parsing arguments"""
@@ -94,10 +95,10 @@ def main():
         we used the single-linkage algorithm to cluster drugs and proteins, and randomly
         selected 60% of the drug clusters and 60% of the protein clusters.
 
-        All drug-protein pairs in the selected clusters are source domain data. 
+        All drug-protein pairs in the selected clusters are source domain data.
         The remaining drug-protein pairs are target domain data.
 
-        In the setting of domain adaptation, all labelled source domain data and 80% unlabelled 
+        In the setting of domain adaptation, all labelled source domain data and 80% unlabelled
         target domain data are used for training. The remaining 20% labelled target domain data are used for testing.
         """
         train_source_path = os.path.join(dataFolder, "source_train.csv")

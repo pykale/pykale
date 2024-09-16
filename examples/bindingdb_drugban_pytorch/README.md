@@ -89,7 +89,7 @@ All datasets should be organised as follows:
 
 `kale.predict.class_domain_nets`: Classifier for domain.
 
-`kale.prepdata.chem_transform`: Transforms for protein sequences.
+`kale.prepdata.chem_transform`: Encode protein sequences.
 
 `kale.pipeline.domain_adapter`: Gradient reversal layer (GRL) for domain adaptation.
 
