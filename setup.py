@@ -31,7 +31,7 @@ install_requires = [
 graph_requires = [
     "networkx",
     "PyTDC<=0.3.6",
-    "dgl",
+    "dgl==2.1.0",
     "dgllife==0.3.2",
 ]
 
@@ -62,6 +62,7 @@ example_requires = [
     "pydantic",
     "prettytable",
     "python-rle",
+    "pyjpegls",
     "pylibjpeg",
     "pylibjpeg-libjpeg",
     "pylibjpeg-openjpeg",
