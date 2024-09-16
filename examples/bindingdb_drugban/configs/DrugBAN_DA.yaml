@@ -1,6 +1,6 @@
 SOLVER:
   BATCH_SIZE: 32
-  MAX_EPOCH: 100
+  MAX_EPOCH: 2
   LR: 1e-4
   DA_LR: 5e-5
   SEED: 42

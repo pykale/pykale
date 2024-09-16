@@ -23,7 +23,7 @@ install_requires = [
     "tensorly>=0.5.1",  # in factorization and model_weights API only
     "torch==2.2.0",  # also change the version in the test.yaml when changing this next time, and update the pytorch version in the bindingdb_deepdta tutorial notebook
     "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
-    "torchdata"
+    "torchdata==0.7.0",
 ]
 
 # Application-specific dependencies sorted alphabetically below
