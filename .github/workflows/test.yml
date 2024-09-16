@@ -59,12 +59,12 @@ jobs:
         run: |
           pip install rdkit
           pip install pyparsing==3.0.9
-          pip install torch==2.2.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-          pip install torchvision==0.17.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-          pip install torch_scatter==2.1.2 -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
-          pip install torch_sparse==0.6.18 -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
-          pip install torch_cluster==1.6.3 -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
-          pip install torch_spline_conv==1.2.2 -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
+          pip install torch==2.1.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+          pip install torchvision==0.16.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+          pip install torch_scatter==2.1.2 -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
+          pip install torch_sparse==0.6.18 -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
+          pip install torch_cluster==1.6.2 -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
+          pip install torch_spline_conv==1.2.2 -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
           pip install torch_geometric==2.3.0
           pip install -e .[dev]
         shell: bash -l {0}
