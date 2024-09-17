@@ -1,5 +1,6 @@
-import torch
 import dgl
+import torch
+
 from kale.embed.ban import BANLayer, DrugBAN, FCNet, MLPDecoder, MolecularGCN, ProteinCNN, RandomLayer
 
 BATCH_SIZE = 64
@@ -41,9 +42,10 @@ def create_mock_dgl_graph(batch_size, node_feats_dim):
     graph.add_edges(src, dst)
 
     # Assign random node features
-    graph.ndata['h'] = torch.randn(batch_size, node_feats_dim)
+    graph.ndata["h"] = torch.randn(batch_size, node_feats_dim)
 
     return graph
+
 
 # Mock Protein Input (protein sequence data)
 def create_mock_protein_input(batch_size, sequence_length):
@@ -62,7 +64,6 @@ def test_drugban_forward_train():
     model.eval()
 
     batch_size = 64
-    num_nodes = 100  # Number of nodes in the graph
     sequence_length = 200  # Protein sequence length
 
     # Create mock inputs
