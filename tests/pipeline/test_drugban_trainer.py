@@ -2,8 +2,9 @@ import pytest
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
-from kale.pipeline.drugban_trainer import Trainer
 from yacs.config import CfgNode as CfgNode
+
+from kale.pipeline.drugban_trainer import Trainer
 
 
 @pytest.fixture
@@ -24,7 +25,6 @@ def dataloaders(mock_data):
     return train_loader, val_loader, test_loader
 
 
-
 @pytest.fixture
 def mock_model():
     # Create a simple mock model for testing.
@@ -41,10 +41,12 @@ def mock_model():
 
     return MockModel()
 
+
 @pytest.fixture
 def optimiser(mock_model):
     # Create a simple optimiser for testing
     return torch.optim.Adam(mock_model.parameters(), lr=0.01)
+
 
 @pytest.fixture
 def testing_cfg():
@@ -59,7 +61,7 @@ def testing_cfg():
     _C.DECODER.HIDDEN_DIM = 512
     _C.DECODER.OUT_DIM = 128
     _C.DECODER.BINARY = 1
-    
+
     # ---------------------------------------------------------------------------- #
     # SOLVER
     # ---------------------------------------------------------------------------- #
@@ -143,6 +145,7 @@ def testing_DA_cfg():
 
     yield _C.clone()
 
+
 @pytest.fixture
 def trainer(mock_model, optimiser, dataloaders, testing_cfg):
     # Create a Trainer instance for testing.
@@ -165,11 +168,9 @@ class TestTrainer:
         assert isinstance(train_loss, float)
         assert train_loss >= 0
 
-
     def test_test(self, trainer):
         # Test the model evaluation function.
         auroc, auprc, test_loss = trainer.test(dataloader="val")
         assert isinstance(auroc, float)
         assert isinstance(auprc, float)
         assert isinstance(test_loss, float)
-        

@@ -1,10 +1,11 @@
 import dgl
+import numpy as np
 import pandas as pd
 import pytest
 import torch
 from dgl import DGLGraph
 from torch.utils.data import DataLoader
-import numpy as np
+
 from kale.loaddata.drugban_datasets import DTIDataset, graph_collate_func, MultiDataLoader
 
 
