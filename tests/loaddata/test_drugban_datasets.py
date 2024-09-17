@@ -4,7 +4,7 @@ import pytest
 import torch
 from dgl import DGLGraph
 from torch.utils.data import DataLoader
-
+import numpy as np
 from kale.loaddata.drugban_datasets import DTIDataset, graph_collate_func, MultiDataLoader
 
 
@@ -49,7 +49,7 @@ def test_dataset_item(dataset):
     v_d, v_p, y = dataset[0]
 
     assert isinstance(v_d, DGLGraph)  # The drug representation should be a DGLGraph
-    assert isinstance(v_p, torch.Tensor)  # The protein should be a torch.Tensor
+    assert isinstance(v_p, np.ndarray)  # The protein sequence should be a numpy array
     assert isinstance(y, float)  # The label should be a float
 
     # Check if the DGLGraph has the expected number of nodes

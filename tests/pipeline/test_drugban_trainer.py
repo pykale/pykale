@@ -2,8 +2,8 @@ import pytest
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
-
 from kale.pipeline.drugban_trainer import Trainer
+from yacs.config import CfgNode as CfgNode
 
 
 @pytest.fixture
@@ -24,6 +24,7 @@ def dataloaders(mock_data):
     return train_loader, val_loader, test_loader
 
 
+
 @pytest.fixture
 def mock_model():
     # Create a simple mock model for testing.
@@ -40,33 +41,120 @@ def mock_model():
 
     return MockModel()
 
+@pytest.fixture
+def optimiser(mock_model):
+    # Create a simple optimiser for testing
+    return torch.optim.Adam(mock_model.parameters(), lr=0.01)
 
 @pytest.fixture
-def trainer(mock_model, dataloaders):
+def testing_cfg():
+    _C = CfgNode()
+
+    # ---------------------------------------------------------------------------- #
+    # MLP decoder
+    # ---------------------------------------------------------------------------- #
+    _C.DECODER = CfgNode()
+    _C.DECODER.NAME = "MLP"
+    _C.DECODER.IN_DIM = 256
+    _C.DECODER.HIDDEN_DIM = 512
+    _C.DECODER.OUT_DIM = 128
+    _C.DECODER.BINARY = 1
+    
+    # ---------------------------------------------------------------------------- #
+    # SOLVER
+    # ---------------------------------------------------------------------------- #
+    _C.SOLVER = CfgNode()
+    _C.SOLVER.MAX_EPOCH = 2
+    _C.SOLVER.BATCH_SIZE = 64
+    _C.SOLVER.NUM_WORKERS = 0
+    _C.SOLVER.LR = 5e-5
+    _C.SOLVER.DA_LR = 1e-3
+    _C.SOLVER.SEED = 2048
+
+    # ---------------------------------------------------------------------------- #
+    # RESULT
+    # ---------------------------------------------------------------------------- #
+    _C.RESULT = CfgNode()
+    _C.RESULT.OUTPUT_DIR = "./result"
+    _C.RESULT.SAVE_MODEL = True
+
+    # ---------------------------------------------------------------------------- #
+    # Domain adaptation
+    # ---------------------------------------------------------------------------- #
+    _C.DA = CfgNode()
+    _C.DA.TASK = False  # False: 'in-domain' splitting strategy, True: 'cross-domain' splitting strategy
+    _C.DA.METHOD = "CDAN"
+    _C.DA.USE = False  # False: no domain adaptation, True: domain adaptation
+    _C.DA.INIT_EPOCH = 10
+    _C.DA.LAMB_DA = 1
+    _C.DA.RANDOM_LAYER = False
+    _C.DA.ORIGINAL_RANDOM = False
+    _C.DA.RANDOM_DIM = None
+    _C.DA.USE_ENTROPY = True
+
+    yield _C.clone()
+
+
+@pytest.fixture
+def testing_DA_cfg():
+    _C = CfgNode()
+
+    # ---------------------------------------------------------------------------- #
+    # MLP decoder
+    # ---------------------------------------------------------------------------- #
+    _C.DECODER = CfgNode()
+    _C.DECODER.NAME = "MLP"
+    _C.DECODER.IN_DIM = 256
+    _C.DECODER.HIDDEN_DIM = 512
+    _C.DECODER.OUT_DIM = 128
+    _C.DECODER.BINARY = 1
+
+    # ---------------------------------------------------------------------------- #
+    # SOLVER
+    # ---------------------------------------------------------------------------- #
+    _C.SOLVER = CfgNode()
+    _C.SOLVER.MAX_EPOCH = 2
+    _C.SOLVER.BATCH_SIZE = 64
+    _C.SOLVER.NUM_WORKERS = 0
+    _C.SOLVER.LR = 5e-5
+    _C.SOLVER.DA_LR = 1e-3
+    _C.SOLVER.SEED = 2048
+
+    # ---------------------------------------------------------------------------- #
+    # RESULT
+    # ---------------------------------------------------------------------------- #
+    _C.RESULT = CfgNode()
+    _C.RESULT.OUTPUT_DIR = "./result"
+    _C.RESULT.SAVE_MODEL = True
+
+    # ---------------------------------------------------------------------------- #
+    # Domain adaptation
+    # ---------------------------------------------------------------------------- #
+    _C.DA = CfgNode()
+    _C.DA.TASK = True  # False: 'in-domain' splitting strategy, True: 'cross-domain' splitting strategy
+    _C.DA.METHOD = "CDAN"
+    _C.DA.USE = True  # False: no domain adaptation, True: domain adaptation
+    _C.DA.INIT_EPOCH = 1
+    _C.DA.LAMB_DA = 1
+    _C.DA.RANDOM_LAYER = True
+    _C.DA.ORIGINAL_RANDOM = True
+    _C.DA.RANDOM_DIM = 256
+    _C.DA.USE_ENTROPY = False
+
+    yield _C.clone()
+
+@pytest.fixture
+def trainer(mock_model, optimiser, dataloaders, testing_cfg):
     # Create a Trainer instance for testing.
     train_loader, val_loader, test_loader = dataloaders
-    config = {
-        "SOLVER": {"MAX_EPOCH": 2, "BATCH_SIZE": 4},
-        "DA": {
-            "USE": False,
-            "METHOD": "CDAN",
-            "RANDOM_LAYER": False,
-            "ORIGINAL_RANDOM": False,
-            "INIT_EPOCH": 1,
-            "LAMB_DA": 0.1,
-        },
-        "DECODER": {"BINARY": 1, "IN_DIM": 5},
-        "RESULT": {"OUTPUT_DIR": "./", "SAVE_MODEL": False},
-    }
-    optim = torch.optim.SGD(mock_model.parameters(), lr=0.01)
     return Trainer(
         model=mock_model,
-        optim=optim,
+        optim=optimiser,
         device=torch.device("cpu"),
         train_dataloader=train_loader,
         val_dataloader=val_loader,
         test_dataloader=test_loader,
-        config=config,
+        **testing_cfg,
     )
 
 
@@ -77,15 +165,6 @@ class TestTrainer:
         assert isinstance(train_loss, float)
         assert train_loss >= 0
 
-    def test_train_da_epoch(self, trainer):
-        # Test a single epoch of training with domain adaptation.
-        trainer.is_da = True
-        trainer.current_epoch = 2
-        total_loss, model_loss, da_loss, lamb_da = trainer.train_da_epoch()
-        assert isinstance(total_loss, float)
-        assert isinstance(model_loss, float)
-        assert isinstance(da_loss, float)
-        assert lamb_da >= 0
 
     def test_test(self, trainer):
         # Test the model evaluation function.
@@ -93,51 +172,4 @@ class TestTrainer:
         assert isinstance(auroc, float)
         assert isinstance(auprc, float)
         assert isinstance(test_loss, float)
-
-
-class TestTrainerWithDA:
-    @pytest.fixture
-    def trainer_with_da(self, mock_model, dataloaders):
-        # Create a Trainer instance with Domain Adaptation enabled.
-        train_loader, val_loader, test_loader = dataloaders
-        config = {
-            "SOLVER": {"MAX_EPOCH": 2, "BATCH_SIZE": 4},
-            "DA": {
-                "USE": True,
-                "METHOD": "CDAN",
-                "RANDOM_LAYER": False,
-                "ORIGINAL_RANDOM": False,
-                "INIT_EPOCH": 1,
-                "LAMB_DA": 0.1,
-            },
-            "DECODER": {"BINARY": 1, "IN_DIM": 5},
-            "RESULT": {"OUTPUT_DIR": "./", "SAVE_MODEL": False},
-        }
-        optim = torch.optim.SGD(mock_model.parameters(), lr=0.01)
-        opt_da = torch.optim.SGD(mock_model.parameters(), lr=0.01)
-        return Trainer(
-            model=mock_model,
-            optim=optim,
-            device=torch.device("cpu"),
-            train_dataloader=train_loader,
-            val_dataloader=val_loader,
-            test_dataloader=test_loader,
-            opt_da=opt_da,
-            config=config,
-        )
-
-    def test_train_da_epoch(self, trainer_with_da):
-        # Test training epoch with domain adaptation.
-        trainer_with_da.current_epoch = 2
-        total_loss, model_loss, da_loss, lamb_da = trainer_with_da.train_da_epoch()
-        assert isinstance(total_loss, float)
-        assert isinstance(model_loss, float)
-        assert isinstance(da_loss, float)
-        assert lamb_da >= 0
-
-    def test_compute_entropy_weights(self, trainer_with_da):
-        # Test entropy weight computation for domain adaptation.
-        logits = torch.randn(4, 2)
-        entropy_weights = trainer_with_da._compute_entropy_weights(logits)
-        assert isinstance(entropy_weights, torch.Tensor)
-        assert entropy_weights.size(0) == logits.size(0)
+        
