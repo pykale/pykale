@@ -102,7 +102,7 @@ class MolecularGCN(nn.Module):
 
     def forward(self, batch_graph):
         # Extract node features from the batch of graphs
-        node_feats = batch_graph.ndata.pop("h")
+        node_feats = batch_graph.ndata['h']
         node_feats = self.init_transform(node_feats)
         node_feats = self.gnn(batch_graph, node_feats)
         batch_size = batch_graph.batch_size
