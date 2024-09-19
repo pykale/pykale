@@ -1,3 +1,15 @@
+# =============================================================================
+# Author: Jiayang Zhang, jiayang.zhang@sheffield.ac.uk
+# =============================================================================
+
+"""
+DrugBAN on BindingDB/BioSNAP/Human drug-protein interaction prediction
+
+This is a `PyTorch Lightning <https://github.com/Lightning-AI/lightning>`
+version of the original implementation <https://github.com/peizhenbai/DrugBAN/blob/main/trainer.py>
+of DrugBAN: Interpretable Bilinear Attention Networks for Drug-Target Interaction Prediction.
+"""
+
 import argparse
 import os
 import sys

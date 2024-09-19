@@ -26,7 +26,7 @@ from kale.predict.losses import binary_cross_entropy, cross_entropy_logits
 
 class DrugbanTrainer(pl.LightningModule):
     """
-    Pytorch Lightning Trainer class for DrugBAN model with domain adaptation.
+    Pytorch Lightning Trainer class for DrugBAN model with (or without) domain adaptation (DA).
 
     Args:
         model (torch.nn.Module): The DrugBAN model to be trained.
@@ -102,6 +102,10 @@ class DrugbanTrainer(pl.LightningModule):
         self.test_metrics = metrics.clone(prefix="test_")
 
     def configure_optimizers(self):
+        """
+        Configure the optimizers for the DrugBAN model and the Domain Discriminator model if DA is used.
+
+        """
         if not self.da_use:  # If domain adaptation is not used
             # Initialize the optimizer for the DrugBAN model
             opt = torch.optim.Adam(self.model.parameters(), lr=self.solver_lr)
@@ -115,12 +119,18 @@ class DrugbanTrainer(pl.LightningModule):
             return opt, opt_da
 
     def on_train_epoch_start(self):
+        """
+        Update the epoch_lamb_da if in the DA phase.
+        """
         # ----- Update epoch_lamb_da if in the DA phase -----
         if self.current_epoch >= self.da_init_epoch:
             self.epoch_lamb_da = 1
         self.log("DA loss lambda", self.epoch_lamb_da, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
     def training_step(self, train_batch, batch_idx):
+        """
+        Training step for the DrugBAN model with or without domain adaptation.
+        """
         if not self.da_use:
             # ---- optimisers ----
             opt = self.optimizers()
@@ -246,6 +256,9 @@ class DrugbanTrainer(pl.LightningModule):
             return loss
 
     def validation_step(self, val_batch, batch_idx):
+        """
+        Validation step for the DrugBAN model.
+        """
         v_d, v_p, labels = val_batch
         labels = labels.float()
         v_d, v_p, f, score = self.model(v_d, v_p)
@@ -264,11 +277,17 @@ class DrugbanTrainer(pl.LightningModule):
         return
 
     def on_validation_epoch_end(self):
+        """
+        At the end of the validation epoch, compute and log the validation metrics, and reset the validation metrics.
+        """
         output = self.valid_metrics.compute()
         self.log_dict(output)
         self.valid_metrics.reset()
 
     def test_step(self, test_batch, batch_idx):
+        """
+        Test step for the DrugBAN model.
+"""
         v_d, v_p, labels = test_batch
         labels = labels.float()
         v_d, v_p, f, score = self.model(v_d, v_p)
@@ -285,6 +304,9 @@ class DrugbanTrainer(pl.LightningModule):
         self.log("test_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
     def on_test_epoch_end(self):
+        """
+        At the end of the test epoch, compute and log the test metrics, and reset the test metrics.
+        """
         output = self.test_metrics.compute()
         self.log_dict(output)
         self.test_metrics.reset()
