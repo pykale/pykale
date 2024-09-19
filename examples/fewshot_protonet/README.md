@@ -95,7 +95,7 @@ If no `test` folder in the dataset, choose one of the following options:
 - `kale.loaddata.few_shot`: Dataset class for few-shot learning problems under $N$-way $K$-shot settings.
 - `kale.embed.image_cnn`: ResNet feature extractors.
 - `kale.pipeline.fewshot_trainer`: ProtoNet trainer in `pl.LightningModule` style.
-- `kale.evaluate.metrics.proto_loss`: Computing the loss and accuracy for ProtoNet.
+- `kale.evaluate.metrics.protonet_loss`: Computing the loss and accuracy for ProtoNet.
 
 ## Reference
 [Prototypical Networks for Few-shot Learning](https://arxiv.org/abs/1703.05175)
