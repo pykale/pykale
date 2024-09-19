@@ -1,3 +1,13 @@
+# =============================================================================
+# Author: Jiayang Zhang, jiayang.zhang@sheffield.ac.uk
+# =============================================================================
+
+"""
+DrugBAN on BindingDB/BioSNAP/Human drug-protein interaction prediction
+
+Reference: https://github.com/peizhenbai/DrugBAN/blob/main/main.py
+"""
+
 import argparse
 import os
 import sys
@@ -8,7 +18,7 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 
-sys.path.append("/home/jiang/Documents/repositories/pykale/")
+sys.path.append("/home/jiang/PycharmProjects/pykale/")
 
 from comet_ml import Experiment
 from configs import get_cfg_defaults

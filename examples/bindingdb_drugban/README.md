@@ -7,7 +7,7 @@ This example is constructed by refactoring the [Interpretable bilinear attention
 ### 2. Usage
 
 ### Datasets
-For downloading the datasets, please refer to the following links: https://github.com/pykale/data/blob/add-drugban-data/molecular/README.md
+For downloading the datasets, please refer to the following links: https://github.com/pykale/data/blob/main/molecular/README.md
 
 We have three datasets in this collection:
 - [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp)
