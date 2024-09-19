@@ -18,7 +18,7 @@ from pytorch_lightning.loggers import CometLogger, TensorBoardLogger
 
 from kale.embed.ban import DrugBAN
 from kale.loaddata.drugban_datasets import DTIDataset, graph_collate_func, MultiDataLoader
-from kale.pipeline.drugban_trainer import DrugbanDATrainer, DrugbanTrainer
+from kale.pipeline.drugban_trainer_lightning import DrugbanTrainer
 from kale.predict.class_domain_nets import Discriminator
 from kale.utils.seed import set_seed
 
@@ -158,7 +158,7 @@ def main():
         trainer.fit(model, train_dataloaders=training_generator, val_dataloaders=val_generator)
         trainer.test(model, dataloaders=test_generator)
     else:
-        model = DrugbanDATrainer(model=DrugBAN(**cfg), discriminator=Discriminator, **cfg)
+        model = DrugbanTrainer(model=DrugBAN(**cfg), discriminator=Discriminator, **cfg)
         trainer = pl.Trainer(
             devices="auto",
             accelerator="gpu" if torch.cuda.is_available() else "cpu",
