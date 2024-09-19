@@ -286,8 +286,7 @@ class DrugbanTrainer(pl.LightningModule):
 
     def test_step(self, test_batch, batch_idx):
         """
-        Test step for the DrugBAN model.
-"""
+        Test step for the DrugBAN model."""
         v_d, v_p, labels = test_batch
         labels = labels.float()
         v_d, v_p, f, score = self.model(v_d, v_p)
