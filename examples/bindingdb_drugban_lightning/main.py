@@ -18,8 +18,7 @@ from pytorch_lightning.loggers import CometLogger, TensorBoardLogger
 
 from kale.embed.ban import DrugBAN
 from kale.loaddata.drugban_datasets import DTIDataset, graph_collate_func, MultiDataLoader
-from kale.pipeline.drugban_trainer_lightning import DrugbanTrainer
-from kale.pipeline.drugban_da_trainer_lightning import DrugbanDATrainer
+from kale.pipeline.drugban_trainer_lightning import DrugbanDATrainer, DrugbanTrainer
 from kale.predict.class_domain_nets import Discriminator
 from kale.utils.seed import set_seed
 
