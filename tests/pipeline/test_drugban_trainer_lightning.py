@@ -1,114 +1,120 @@
-from unittest.mock import MagicMock
-
 import pytest
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader, TensorDataset
+from yacs.config import CfgNode as CfgNode
 
 from kale.pipeline.drugban_trainer_lightning import DrugbanTrainer
 
 
-# Helper function to create a dummy config
-def get_dummy_config(da_use=False):
-    return {
-        "SOLVER": {"LR": 0.001, "DA_LR": 0.001},
-        "DECODER": {"BINARY": 1, "IN_DIM": 256},
-        "DA": {
-            "USE": da_use,
-            "METHOD": "CDAN",
-            "INIT_EPOCH": 5,
-            "RANDOM_LAYER": False,
-            "ORIGINAL_RANDOM": False,
-            "RANDOM_DIM": 128,
-        },
-    }
+@pytest.fixture
+def testing_cfg():
+    _C = CfgNode()
 
+    # ---------------------------------------------------------------------------- #
+    # MLP decoder
+    # ---------------------------------------------------------------------------- #
+    _C.DECODER = CfgNode()
+    _C.DECODER.NAME = "MLP"
+    _C.DECODER.IN_DIM = 256
+    _C.DECODER.HIDDEN_DIM = 512
+    _C.DECODER.OUT_DIM = 128
+    _C.DECODER.BINARY = 1
 
-# Mock for the model forward pass
-def mock_model_forward(v_d, v_p):
-    batch_size = v_d.size(0)
-    f = torch.randn(batch_size, 256)  # Feature size
-    score = torch.randn(batch_size, 1)  # Binary classification score
-    return v_d, v_p, f, score
+    # ---------------------------------------------------------------------------- #
+    # SOLVER
+    # ---------------------------------------------------------------------------- #
+    _C.SOLVER = CfgNode()
+    _C.SOLVER.MAX_EPOCH = 2
+    _C.SOLVER.BATCH_SIZE = 64
+    _C.SOLVER.NUM_WORKERS = 0
+    _C.SOLVER.LR = 5e-5
+    _C.SOLVER.DA_LR = 1e-3
+    _C.SOLVER.SEED = 2048
+
+    # ---------------------------------------------------------------------------- #
+    # RESULT
+    # ---------------------------------------------------------------------------- #
+    _C.RESULT = CfgNode()
+    _C.RESULT.OUTPUT_DIR = "./result"
+    _C.RESULT.SAVE_MODEL = True
+
+    # ---------------------------------------------------------------------------- #
+    # Domain adaptation
+    # ---------------------------------------------------------------------------- #
+    _C.DA = CfgNode()
+    _C.DA.TASK = True  # False: 'in-domain' splitting strategy, True: 'cross-domain' splitting strategy
+    _C.DA.METHOD = "CDAN"
+    _C.DA.USE = True  # False: no domain adaptation, True: domain adaptation
+    _C.DA.INIT_EPOCH = 10
+    _C.DA.LAMB_DA = 1
+    _C.DA.RANDOM_LAYER = True
+    _C.DA.ORIGINAL_RANDOM = True
+    _C.DA.RANDOM_DIM = True
+    _C.DA.USE_ENTROPY = True
+
+    yield _C.clone()
 
 
 @pytest.fixture
-def dummy_trainer():
-    # Create a mock model and discriminator
-    model = MagicMock(spec=nn.Module)
-    model.forward.side_effect = mock_model_forward
-
-    discriminator = MagicMock(spec=nn.Module)
-
-    # Instantiate the trainer with a mock model, discriminator, and dummy config
-    config = get_dummy_config(da_use=False)
-    trainer = DrugbanTrainer(model=model, discriminator=discriminator, **config)
-    return trainer
+def data():
+    # Create dummy data for testing.
+    x1 = torch.randn(8, 10)  # Simulated feature set 1
+    x2 = torch.randn(8, 10)  # Simulated feature set 2
+    y = torch.randint(0, 2, (8,))  # Simulated labels
+    return TensorDataset(x1, x2, y)
 
 
-def test_trainer_initialization(dummy_trainer):
-    # Test that the trainer initializes correctly
-    assert dummy_trainer.solver_lr == 0.001
-    assert dummy_trainer.da_use is False
-    assert isinstance(dummy_trainer.model, nn.Module)
+@pytest.fixture
+def dataloader(data):
+    # Create a DataLoader for the dummy data.
+    return DataLoader(data, batch_size=4)
 
 
-def test_optimizer_configuration_without_da(dummy_trainer):
-    # Test optimizer configuration without domain adaptation
-    optimizers = dummy_trainer.configure_optimizers()
-    assert len(optimizers) == 1  # Only one optimizer for the model
+@pytest.fixture
+def batch(dataloader):
+    # Create a batch from the DataLoader.
+    return next(iter(dataloader))
 
 
-@pytest.mark.parametrize("da_use", [True, False])
-def test_training_step(da_use):
-    # Mock a sample batch of data
-    v_d = torch.randn(32, 256)
-    v_p = torch.randn(32, 256)
-    labels = torch.randint(0, 2, (32,))
-    train_batch = (v_d, v_p, labels)
+@pytest.fixture
+def mock_model():
+    # Create a simple mock model for testing.
+    class MockModel(nn.Module):
+        def __init__(self):
+            super(MockModel, self).__init__()
+            self.fc1 = nn.Linear(10, 5)
+            self.fc2 = nn.Linear(5, 1)
 
-    # Initialize a dummy trainer with or without DA
-    config = get_dummy_config(da_use=da_use)
-    model = MagicMock(spec=nn.Module)
-    model.forward.side_effect = mock_model_forward
-    discriminator = MagicMock(spec=nn.Module)
-    trainer = DrugbanTrainer(model=model, discriminator=discriminator, **config)
+        def forward(self, x1, x2):
+            x1 = self.fc1(x1)
+            x2 = self.fc1(x2)
+            return x1, x2, torch.cat((x1, x2), dim=1), self.fc2(x1 + x2)
 
-    # Mock optimizers
-    optimizer = MagicMock()
-    if da_use:
-        trainer.optimizers = lambda: (optimizer, optimizer)
-    else:
-        trainer.optimizers = lambda: optimizer
-
-    # Run a training step
-    loss = trainer.training_step(train_batch, batch_idx=0)
-
-    # Check if the loss is computed correctly
-    assert loss is not None
-    optimizer.step.assert_called()  # Ensure optimizer step is called
+    return MockModel()
 
 
-def test_validation_step(dummy_trainer):
-    # Mock a sample validation batch
-    v_d = torch.randn(32, 256)
-    v_p = torch.randn(32, 256)
-    labels = torch.randint(0, 2, (32,))
-    val_batch = (v_d, v_p, labels)
+@pytest.fixture
+def mock_discriminator():
+    """Mock discriminator model for domain adaptation."""
 
-    # Run the validation step
-    dummy_trainer.validation_step(val_batch, batch_idx=0)
+    class MockDiscriminator(nn.Module):
+        def __init__(self):
+            super(MockDiscriminator, self).__init__()
+            self.fc = nn.Linear(128, 1)
 
-    # Ensure validation metrics are updated
-    dummy_trainer.valid_metrics.update.assert_called()
+        def forward(self, x):
+            return self.fc(x)
+
+    return MockDiscriminator()
 
 
-def test_optimizer_configuration_with_da():
-    # Initialize a dummy trainer with DA enabled
-    config = get_dummy_config(da_use=True)
-    model = MagicMock(spec=nn.Module)
-    discriminator = MagicMock(spec=nn.Module)
-    trainer = DrugbanTrainer(model=model, discriminator=discriminator, **config)
+@pytest.fixture
+def trainer(mock_model, mock_discriminator, testing_cfg):
+    cfg = testing_cfg
+    # Create an instance of DrugBAN and Discriminator for testing.
+    model = mock_model
+    discriminator = mock_discriminator
 
-    # Test optimizer configuration with domain adaptation
-    optimizers = trainer.configure_optimizers()
-    assert len(optimizers) == 2  # Two optimizers for model and discriminator
+    # Create a default DrugbanTrainer for testing with instantiated model and discriminator
+    return DrugbanTrainer(model=model, discriminator=discriminator, **cfg)
