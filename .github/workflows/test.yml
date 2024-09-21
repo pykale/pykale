@@ -58,6 +58,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install rdkit
+          pip install gdown
           pip install pyparsing==3.0.9
           pip install torch==2.3.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torchvision==0.18.0+cpu -f https://download.pytorch.org/whl/torch_stable.html

@@ -69,7 +69,7 @@ def test_multitask_topk_accuracy():
     assert top5_value.cpu() == pytest.approx(3 / 5)
 
 
-def test_proto_loss():
+def test_protonet_loss():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     num_classes = random.randint(1, 10)
     num_support_samples = random.randint(1, 10)
