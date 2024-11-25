@@ -226,6 +226,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         nb_init_epochs: int = 10,
         nb_adapt_epochs: int = 50,
         batch_size: int = 32,
+        num_workers: int = 1,
         init_lr: float = 1e-3,
         optimizer: Optional[dict] = None,
     ):
@@ -241,6 +242,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._non_init_epochs = nb_adapt_epochs - self._init_epochs
         assert self._non_init_epochs > 0
         self._batch_size = batch_size
+        self._num_workers = num_workers
         self._init_lr = init_lr
         self._lr_fact = 1.0
         self._grow_fact = 0.0
@@ -384,15 +386,21 @@ class BaseAdaptTrainer(pl.LightningModule):
         return self._configure_optimizer(self.parameters())
 
     def train_dataloader(self):
-        dataloader = self._dataset.get_domain_loaders(split="train", batch_size=self._batch_size)
+        dataloader = self._dataset.get_domain_loaders(
+            split="train", batch_size=self._batch_size, num_workers=self._num_workers
+        )
         self._nb_training_batches = len(dataloader)
         return dataloader
 
     def val_dataloader(self):
-        return self._dataset.get_domain_loaders(split="valid", batch_size=self._batch_size)
+        return self._dataset.get_domain_loaders(
+            split="valid", batch_size=self._batch_size, num_workers=self._num_workers
+        )
 
     def test_dataloader(self):
-        return self._dataset.get_domain_loaders(split="test", batch_size=self._batch_size)
+        return self._dataset.get_domain_loaders(
+            split="test", batch_size=self._batch_size, num_workers=self._num_workers
+        )
 
 
 class BaseDANNLike(BaseAdaptTrainer):

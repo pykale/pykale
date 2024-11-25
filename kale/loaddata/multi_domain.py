@@ -174,14 +174,14 @@ class MultiDomainDatasets(DomainsDatasetBase):
                     self._target_by_split[part],
                 ) = _split_dataset_few_shot(self._target_by_split[part], self._n_fewshot)
 
-    def get_domain_loaders(self, split="train", batch_size=32):
+    def get_domain_loaders(self, split="train", batch_size=32, num_workers=1):
         source_ds = self._source_by_split[split]
-        source_loader = self._source_sampling_config.create_loader(source_ds, batch_size)
+        source_loader = self._source_sampling_config.create_loader(source_ds, batch_size, num_workers)
         target_ds = self._target_by_split[split]
 
         if self._labeled_target_by_split is None:
             # unsupervised target domain
-            target_loader = self._target_sampling_config.create_loader(target_ds, batch_size)
+            target_loader = self._target_sampling_config.create_loader(target_ds, batch_size, num_workers)
             n_dataset = DatasetSizeType.get_size(self._size_type, source_ds, target_ds)
             return MultiDataLoader(
                 dataloaders=[source_loader, target_loader],
@@ -193,9 +193,11 @@ class MultiDomainDatasets(DomainsDatasetBase):
             target_unlabeled_ds = target_ds
             # label domain: always balanced
             target_labeled_loader = SamplingConfig(balance=True, class_weights=None).create_loader(
-                target_labeled_ds, batch_size=min(len(target_labeled_ds), batch_size)
+                target_labeled_ds, batch_size=min(len(target_labeled_ds), batch_size, num_workers)
             )
-            target_unlabeled_loader = self._target_sampling_config.create_loader(target_unlabeled_ds, batch_size)
+            target_unlabeled_loader = self._target_sampling_config.create_loader(
+                target_unlabeled_ds, batch_size, num_workers
+            )
             n_dataset = DatasetSizeType.get_size(self._size_type, source_ds, target_labeled_ds, target_unlabeled_ds)
             return MultiDataLoader(
                 dataloaders=[source_loader, target_labeled_loader, target_unlabeled_loader],
@@ -588,8 +590,8 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
                 self._valid_split_ratio
             )
 
-    def get_domain_loaders(self, split="train", batch_size=32):
-        return self._sampling_config.create_loader(self._sample_by_split[split], batch_size)
+    def get_domain_loaders(self, split="train", batch_size=32, num_workers=1):
+        return self._sampling_config.create_loader(self._sample_by_split[split], batch_size, num_workers)
 
     def __len__(self):
         return len(self.data_access)

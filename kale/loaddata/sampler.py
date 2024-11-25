@@ -3,11 +3,17 @@ from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/datas
 """
 
 import logging
+import os
 
 import numpy as np
 import torch.utils.data
 import torchvision
 from torch.utils.data.sampler import BatchSampler, RandomSampler
+
+
+def get_auto_num_workers():
+    total_cores = os.cpu_count()
+    return max(1, int(total_cores * 0.75))  # Use 75% of available cores
 
 
 class SamplingConfig:
@@ -29,14 +35,12 @@ class SamplingConfig:
         self._class_weights = class_weights
         self._balance_domain = balance_domain
 
-    def create_loader(self, dataset, batch_size):
-        """Create the data loader
-
-        Reference: https://pytorch.org/docs/stable/data.html#torch.utils.data.Sampler
+    def create_sampler(self, dataset, batch_size):
+        """Create the sampler
 
         Args:
             dataset (Dataset): dataset from which to load the data.
-            batch_size (int): how many samples per batch to load
+            batch_size (int): how many samples per batch to load.
         """
         if self._balance:
             sampler = BalancedBatchSampler(dataset, batch_size=batch_size)
@@ -50,7 +54,29 @@ class SamplingConfig:
             else:
                 sub_sampler = RandomSampler(dataset)
             sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=True)
-        return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler)
+
+        return sampler
+
+    def create_loader(self, dataset, batch_size, num_workers=0):
+        """Create the data loader
+
+        Reference: https://pytorch.org/docs/stable/data.html#torch.utils.data.Sampler
+
+        Args:
+            dataset (Dataset): dataset from which to load the data.
+            batch_size (int): how many samples per batch to load.
+            num_workers (int or "auto", optional): how many subprocesses to use for data loading.
+                0 means that the data will be loaded in the main process, and "auto" for using 75%
+                of available cores. Defaults to 0.
+        """
+        sampler = self.create_sampler(dataset, batch_size)
+
+        if num_workers == "auto":
+            num_workers = get_auto_num_workers()
+        else:
+            num_workers = int(num_workers)
+
+        return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler, num_workers=num_workers)
 
 
 class FixedSeedSamplingConfig(SamplingConfig):
@@ -59,7 +85,7 @@ class FixedSeedSamplingConfig(SamplingConfig):
         super(FixedSeedSamplingConfig, self).__init__(balance, class_weights, balance_domain)
         self._seed = seed
 
-    def create_loader(self, dataset, batch_size):
+    def create_sampler(self, dataset, batch_size):
         """Create the data loader with fixed seed."""
         if self._balance:
             sampler = BalancedBatchSampler(dataset, batch_size=batch_size)
@@ -78,7 +104,8 @@ class FixedSeedSamplingConfig(SamplingConfig):
             else:
                 sub_sampler = RandomSampler(dataset, generator=torch.Generator().manual_seed(self._seed))
             sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=True)
-        return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler)
+
+        return sampler
 
 
 # TODO: deterministic shuffle?
