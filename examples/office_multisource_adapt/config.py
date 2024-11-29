@@ -34,7 +34,7 @@ _C.DATASET.SIZE_TYPE = "source"
 # Solver
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CfgNode()
-_C.SOLVER.SEED = 2021
+_C.SOLVER.SEED = 2025
 _C.SOLVER.BASE_LR = 0.001  # Initial learning rate
 _C.SOLVER.MOMENTUM = 0.9
 _C.SOLVER.WEIGHT_DECAY = 0.0005  # 1e-4
@@ -46,6 +46,8 @@ _C.SOLVER.MAX_EPOCHS = 120  # "nb_adapt_epochs": 100,
 _C.SOLVER.MIN_EPOCHS = 20  # "nb_init_epochs": 20,
 _C.SOLVER.TRAIN_BATCH_SIZE = 100
 _C.SOLVER.TEST_BATCH_SIZE = 100
+_C.SOLVER.LOG_EVERY_N_STEPS = 10
+_C.SOLVER.NUM_WORKERS = 1
 
 # Adaptation-specific solver config
 _C.SOLVER.AD_LAMBDA = True

@@ -31,7 +31,7 @@ _C.DATASET.VALID_SPLIT_RATIO = 0.1  # Ratio of validation set to the training da
 # Solver
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CfgNode()
-_C.SOLVER.SEED = 2020
+_C.SOLVER.SEED = 2025
 _C.SOLVER.BASE_LR = 0.001
 _C.SOLVER.MOMENTUM = 0.9
 _C.SOLVER.WEIGHT_DECAY = 0.0005
@@ -44,6 +44,7 @@ _C.SOLVER.MIN_EPOCHS = 20
 _C.SOLVER.NUM_WORKERS = 1
 _C.SOLVER.TRAIN_BATCH_SIZE = 150
 _C.SOLVER.TEST_BATCH_SIZE = 200  # No difference in ADA
+_C.SOLVER.LOG_EVERY_N_STEPS = 10
 
 # Adaptation-specific solver config
 _C.SOLVER.AD_LAMBDA = True  # Set True to use adaptive lambda
@@ -64,7 +65,7 @@ _C.DAN.RANDOM_DIM = 1024
 _C.OUTPUT = CfgNode()
 _C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
 _C.OUTPUT.PB_FRESH = 0  # Number of steps before a new progress bar is printed. Set 0 to disable the progress bar
-_C.OUTPUT.OUT_DIR = os.path.join("outputs", _C.DATASET.SOURCE + "2" + _C.DATASET.TARGET)
+_C.OUTPUT.OUT_DIR = "outputs"
 
 # -----------------------------------------------------------------------------
 # Comet Logger (optional) - https://www.comet.ml/site/

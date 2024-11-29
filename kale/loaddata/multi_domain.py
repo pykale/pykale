@@ -257,7 +257,7 @@ def _domain_stratified_split(domain_labels, n_partitions, split_ratios):
         [list]: Indices for different splits.
     """
     domains = np.unique(domain_labels)
-    subset_idx = [[] for i in range(n_partitions)]
+    subset_idx = [[] for _ in range(n_partitions)]
     for domain_label_ in domains:
         domain_idx = np.where(domain_labels == domain_label_)[0]
         subsets = split_by_ratios(torch.from_numpy(domain_idx), split_ratios)

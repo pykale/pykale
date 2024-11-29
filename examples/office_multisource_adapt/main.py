@@ -86,6 +86,7 @@ def main():
             logger=tb_logger,  # logger,
             # weights_summary='full',
             fast_dev_run=False,  # True,
+            log_every_n_steps=cfg.SOLVER.LOG_EVERY_N_STEPS,
         )
 
         trainer.fit(model)

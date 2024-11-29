@@ -1,12 +1,12 @@
 # Image Classification: Domain Adaptation on Digits with Lightning
 
-### 1. Description
+## 1. Description
 
 This example is constructed by refactoring the [ADA: (Yet) Another Domain Adaptation library](https://github.com/criteo-research/pytorch-ada), with many domain adaptation algorithms included.
 
-### 2. Usage
+## 2. Usage
 
-* Datasets: MNIST, Modified MNIST (MNISTM), UPSP, SVHN
+* Datasets: MNIST, Modified MNIST (MNISTM), UPSP
 * Algorithms: DANN, CDAN, CDAN+E, ...
 * Example: MNIST (source) to UPSP (target) using CDAN and DANN
 
@@ -14,13 +14,13 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 
 `python main.py --cfg configs/MN2UP-DANN.yaml --devices 1`
 
-### 3. Related `kale` API
+## 3. Related `kale` API
 
 `kale.embed.image_cnn`: Extract features from small-size (32x32) images using CNN.
 
 `kale.loaddata.image_access`: Data loaders for digits datasets.
 
-`kale.loaddata.mnistm`: Data loader for the [modified MNIST] data](https://github.com/zumpchke/keras_mnistm).
+`kale.loaddata.mnistm`: Data loader for the [modified MNIST data](https://github.com/zumpchke/keras_mnistm).
 
 `kale.loaddata.multi_domain`: Construct the dataset for (multiple) source and target domains.
 
@@ -31,7 +31,6 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 `kale.predict.class_domain_nets`: Classifiers for data or domain.
 
 `kale.prepdata.image_transform`: Transforms for image data.
-
 
 ## 4. *Sample* output CSV of 10 runs for reference
 
