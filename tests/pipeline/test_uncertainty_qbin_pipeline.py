@@ -1,4 +1,5 @@
 import os
+from numbers import Number
 from typing import Any
 
 import numpy as np
@@ -520,11 +521,45 @@ def csv_equality_helper(array, csv_preamble, landmark):
     # Convert the DataFrame to a numpy array
     read_array = read_csv_landmark(csv_preamble, landmark)
 
-    for idx, val in enumerate(read_array):
-        for inner_idx, inner_val in enumerate(val):
-            if inner_idx == 0:
+    # Check if the lengths of the arrays are the same
+    n_array = len(array)
+    n_read_array = len(read_array)
+    assert n_array == n_read_array, f"Array lengths do not match. array={len(array)}, read_array={len(read_array)}"
+
+    for i, (a, b) in enumerate(zip(array, read_array)):
+
+        # Check if the content's of the two arrays are the same
+        # We can say that the outputs are not equal when they're different
+        assert len(a) == len(b), f"Array lengths do not match. array[{i}]={len(a)}, read_array[{i}]={len(b)}"
+
+        for a_i, b_i in zip(a, b):
+
+            # Assuming that a_i and b_i has the same value
+            # but a_i is a numpy array and b_i is a string
+            # so b_i must be converted to a numpy array
+            # do note that we also assume that the contents
+            # are numerical values
+            is_array = isinstance(a_i, list)
+            if is_array:
+                a_i = np.asarray(a_i).ravel()
+
+                # Generate parseable string for np.fromstring
+                b_i = b_i.strip("[]").replace(",", "")
+                for ch in "[],":
+                    b_i = b_i.replace(ch, "")
+
+                b_i = np.fromstring(b_i, sep=" ", like=a_i)
+
+            # Use all close when comparing numerical values
+            # still work with integer values since the error
+            # will be zero if the values are the same
+            if is_array or isinstance(a_i, Number):
+                np.testing.assert_allclose(a_i, b_i)
                 continue
-            assert str(inner_val) == str(array[idx][inner_idx])
+
+            # If the values are not numerical
+            # compare them directly
+            assert a_i == b_i
 
 
 def read_csv_landmark(csv_preamble, landmark):

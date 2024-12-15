@@ -79,16 +79,31 @@ def test_coirls(kernel, office_caltech_access):
     tgt_idx = torch.where(z == 0)
     src_idx = torch.where(z != 0)
 
-    x_feat = feature_network(x)
-    z_one_hot = one_hot(z)
-    clf = CoIRLS(kernel=kernel, alpha=1.0)
+    # avoid saving computational graph to save memory
+    with torch.no_grad():
+        x_feat = feature_network(x)
+        z_one_hot = one_hot(z)
+        clf = CoIRLS(kernel=kernel, alpha=1.0)
 
     x_train = torch.cat((x_feat[src_idx], x_feat[tgt_idx]))
     y_train = y[src_idx]
     z_train = torch.cat((z_one_hot[src_idx], z_one_hot[tgt_idx]))
+
+    # casting to numpy is an ad-hoc fix at the moment
+    # to fix device allocation issue with torch.Tensor
+    # where the device is set to cpu for both model and data
+    # but will remain to raise error when using sklearn
+    # functions
+    x_train = x_train.numpy()
+    y_train = y_train.numpy()
+    z_train = z_train.numpy()
+
+    x_feat_tgt = x_feat[tgt_idx].numpy()
+    y_tgt = y[tgt_idx].numpy()
+
     clf.fit(x_train, y_train, z_train)
-    y_pred = clf.predict(x_feat[tgt_idx])
-    acc = accuracy_score(y[tgt_idx], y_pred)
+    y_pred = clf.predict(x_feat_tgt)
+    acc = accuracy_score(y_tgt, y_pred)
 
     assert 0 <= acc <= 1
 
