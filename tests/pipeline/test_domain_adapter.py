@@ -17,7 +17,7 @@ DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN", "FSDA
 WEIGHT_TYPE = "natural"
 DATASIZE_TYPE = "source"
 NUM_CLASSES = 10
-FEW_SHOT = [None, 2]
+FEW_SHOT = [None, 20]
 # Not checking values so seed is not needed. If seed, move all seeds to conftest later
 # seed = 36
 # set_seed(seed)
@@ -34,6 +34,7 @@ def testing_cfg(download_path):
             "nb_init_epochs": 1,
             "init_lr": 0.001,
             "batch_size": 10,
+            "num_workers": 1,
             "optimizer": {"type": "SGD", "optim_params": {"momentum": 0.9, "weight_decay": 0.0005, "nesterov": True}},
         }
     }
