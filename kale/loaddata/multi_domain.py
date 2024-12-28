@@ -193,11 +193,9 @@ class MultiDomainDatasets(DomainsDatasetBase):
             target_unlabeled_ds = target_ds
             # label domain: always balanced
             target_labeled_loader = SamplingConfig(balance=True, class_weights=None).create_loader(
-                target_labeled_ds, batch_size=min(len(target_labeled_ds), batch_size, num_workers)
+                target_labeled_ds, batch_size=min(len(target_labeled_ds), batch_size)
             )
-            target_unlabeled_loader = self._target_sampling_config.create_loader(
-                target_unlabeled_ds, batch_size, num_workers
-            )
+            target_unlabeled_loader = self._target_sampling_config.create_loader(target_unlabeled_ds, batch_size)
             n_dataset = DatasetSizeType.get_size(self._size_type, source_ds, target_labeled_ds, target_unlabeled_ds)
             return MultiDataLoader(
                 dataloaders=[source_loader, target_labeled_loader, target_unlabeled_loader],

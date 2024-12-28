@@ -925,16 +925,15 @@ class FewShotDANNTrainer(BaseDANNLike):
         super().__init__(dataset, feature_extractor, task_classifier, critic, **base_params)
         self._method = Method(method)
 
-    # Comment out duplicate forward method in BaseDANNLike
-    # def forward(self, x):
-    #     if self.feat is not None:
-    #         x = self.feat(x)
-    #     x = x.view(x.size(0), -1)
-    #
-    #     reverse_feature = GradReverse.apply(x, self.alpha)
-    #     class_output = self.classifier(x)
-    #     adversarial_output = self.domain_classifier(reverse_feature)
-    #     return x, class_output, adversarial_output
+    def forward(self, x):
+        if self.feat is not None:
+            x = self.feat(x)
+        x = x.view(x.size(0), -1)
+
+        reverse_feature = GradReverse.apply(x, self.alpha)
+        class_output = self.classifier(x)
+        adversarial_output = self.domain_classifier(reverse_feature)
+        return x, class_output, adversarial_output
 
     def compute_loss(self, batch, split_name="valid"):
         assert len(batch) == 3
