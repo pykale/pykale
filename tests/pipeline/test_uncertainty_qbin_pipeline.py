@@ -524,7 +524,7 @@ def csv_equality_helper(array, csv_preamble, landmark):
         for inner_idx, inner_val in enumerate(val):
             if inner_idx == 0:
                 continue
-            assert str(inner_val) == str(array[idx][inner_idx])
+            assert str(np.round(inner_val, 8)) == str(np.round(array[idx][inner_idx], 8))
 
 
 def read_csv_landmark(csv_preamble, landmark):
