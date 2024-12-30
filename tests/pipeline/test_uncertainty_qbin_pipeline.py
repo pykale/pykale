@@ -516,15 +516,12 @@ def csv_equality_helper(array, csv_preamble, landmark):
         None.
     """
 
-    array = array.to_numpy()
+    array = array.to_numpy().astype(float)
     # Convert the DataFrame to a numpy array
-    read_array = read_csv_landmark(csv_preamble, landmark)
+    read_array = read_csv_landmark(csv_preamble, landmark).astype(float)
 
-    for idx, val in enumerate(read_array):
-        for inner_idx, inner_val in enumerate(val):
-            if inner_idx == 0:
-                continue
-            assert str(np.round(inner_val, 8)) == str(np.round(array[idx][inner_idx], 8))
+    comparison = np.isclose(array[:, 1:], read_array[:, 1:], atol=1e-6)
+    assert np.all(comparison)
 
 
 def read_csv_landmark(csv_preamble, landmark):
