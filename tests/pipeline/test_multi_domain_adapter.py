@@ -89,15 +89,11 @@ def test_coirls(kernel, office_caltech_access):
     y_train = y[src_idx]
     z_train = torch.cat((z_one_hot[src_idx], z_one_hot[tgt_idx]))
 
-    # casting to numpy is an ad-hoc fix at the moment
-    # to fix device allocation issue with torch.Tensor
-    # where the device is set to cpu for both model and data
-    # but will remain to raise error when using sklearn
-    # functions
+    # Convert torch.Tensor to numpy array to fix device allocation issue with torch.Tensor, where the device is set to cpu for both model and data.
+    # It may raise error when using sklearn functions.
     x_train = x_train.numpy()
     y_train = y_train.numpy()
     z_train = z_train.numpy()
-
     x_feat_tgt = x_feat[tgt_idx].numpy()
     y_tgt = y[tgt_idx].numpy()
 
