@@ -4,7 +4,11 @@
 # Required. Represents Configuration file v2.
 version: 2
 
-# Set the OS, Python version and other tools.
+# Required by readthedocs to include an explicit Sphinx configuration in the configuration file.
+sphinx:
+  configuration: docs/source/conf.py
+
+# Set the OS, Python version and other tools.a
 build:
   os: ubuntu-22.04
   tools:
