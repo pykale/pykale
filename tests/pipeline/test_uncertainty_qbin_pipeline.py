@@ -524,40 +524,37 @@ def csv_equality_helper(array, csv_preamble, landmark):
     # Check if the lengths of the arrays are the same
     n_array = len(array)
     n_read_array = len(read_array)
-    assert n_array == n_read_array, f"Array lengths do not match. array={len(array)}, read_array={len(read_array)}"
+    assert n_array == n_read_array, f"Length mismatch: array={len(array)}, read_array={len(read_array)}"
 
-    for i, (a, b) in enumerate(zip(array, read_array)):
-        # Check if the content's of the two arrays are the same
-        # We can say that the outputs are not equal when they're different
-        assert len(a) == len(b), f"Array lengths do not match. array[{i}]={len(a)}, read_array[{i}]={len(b)}"
+    for i, (orig_list, read_list) in enumerate(zip(array, read_array)):
+        # Check if the two arrays have the same length
+        assert len(orig_list) == len(
+            read_list
+        ), f"Length mismatch: array[{i}]={len(orig_list)}, read_array[{i}]={len(read_list)}"
 
-        for a_i, b_i in zip(a, b):
-            # Assuming that a_i and b_i has the same value
-            # but a_i is a numpy array and b_i is a string
-            # so b_i must be converted to a numpy array
-            # do note that we also assume that the contents
-            # are numerical values
-            is_array = isinstance(a_i, list)
+        for orig_value, read_value in zip(orig_list, read_list):
+            # If the original value is a list, convert it to a flattened NumPy array.
+            is_array = isinstance(orig_value, list)
             if is_array:
-                a_i = np.asarray(a_i).ravel()
+                orig_value = np.asarray(orig_value).ravel()
 
-                # Generate parseable string for np.fromstring
-                b_i = b_i.strip("[]").replace(",", "")
+                # Convert read value to a Numpy array
+                # remove brackets and commas
+                read_value = read_value.strip("[]").replace(",", "")
+
+                # Use np.fromstring to parse the numerical values, matching the type of original value
                 for ch in "[],":
-                    b_i = b_i.replace(ch, "")
+                    read_value = read_value.replace(ch, "")
 
-                b_i = np.fromstring(b_i, sep=" ", like=a_i)
+                read_value = np.fromstring(read_value, sep=" ", like=orig_value)
 
-            # Use all close when comparing numerical values
-            # still work with integer values since the error
-            # will be zero if the values are the same
-            if is_array or isinstance(a_i, Number):
-                np.testing.assert_allclose(a_i, b_i)
+            # For numerical (either a NumPy array or a Number) values, compare numerically.
+            if is_array or isinstance(orig_value, Number):
+                np.testing.assert_allclose(orig_value, read_value)
                 continue
 
-            # If the values are not numerical
-            # compare them directly
-            assert a_i == b_i
+            # For non-numerical values, compare directly.
+            assert orig_value == read_value
 
 
 def read_csv_landmark(csv_preamble, landmark):
