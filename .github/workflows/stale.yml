@@ -21,7 +21,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           days-before-issue-stale: 30
-          days-before-issue-close: 7
+          days-before-issue-close: -1
           days-before-pr-stale: 45
           days-before-pr-close: -1
           stale-issue-message: "This issue has been automatically marked as stale due to lack of activity. It will be closed if no further activity occurs. Thank you!"
