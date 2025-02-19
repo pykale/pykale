@@ -527,13 +527,11 @@ def csv_equality_helper(array, csv_preamble, landmark):
     assert n_array == n_read_array, f"Array lengths do not match. array={len(array)}, read_array={len(read_array)}"
 
     for i, (a, b) in enumerate(zip(array, read_array)):
-
         # Check if the content's of the two arrays are the same
         # We can say that the outputs are not equal when they're different
         assert len(a) == len(b), f"Array lengths do not match. array[{i}]={len(a)}, read_array[{i}]={len(b)}"
 
         for a_i, b_i in zip(a, b):
-
             # Assuming that a_i and b_i has the same value
             # but a_i is a numpy array and b_i is a string
             # so b_i must be converted to a numpy array
