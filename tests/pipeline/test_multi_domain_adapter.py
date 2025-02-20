@@ -79,7 +79,7 @@ def test_coirls(kernel, office_caltech_access):
     tgt_idx = torch.where(z == 0)
     src_idx = torch.where(z != 0)
 
-    # avoid saving computational graph to save memory
+    # Avoid saving computational graph to save memory
     with torch.no_grad():
         x_feat = feature_network(x)
         z_one_hot = one_hot(z)
@@ -90,7 +90,7 @@ def test_coirls(kernel, office_caltech_access):
     z_train = torch.cat((z_one_hot[src_idx], z_one_hot[tgt_idx]))
 
     # Convert torch.Tensor to numpy array to fix device allocation issue with torch.Tensor, where the device is set to cpu for both model and data.
-    # It may raise error when using sklearn functions.
+    # Please note: This solution may raise errors when using sklearn functions.
     x_train = x_train.numpy()
     y_train = y_train.numpy()
     z_train = z_train.numpy()

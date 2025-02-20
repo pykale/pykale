@@ -538,11 +538,11 @@ def csv_equality_helper(array, csv_preamble, landmark):
             if is_array:
                 orig_value = np.asarray(orig_value).ravel()
 
-                # Convert read value to a Numpy array
-                # remove brackets and commas
+                # Convert the read value to a Numpy array in two steps
+                # Step 1: Remove brackets and commas
                 read_value = read_value.strip("[]").replace(",", "")
 
-                # Use np.fromstring to parse the numerical values, matching the type of original value
+                # Step 2: Use np.fromstring to parse the numerical values, matching the type of original value
                 for ch in "[],":
                     read_value = read_value.replace(ch, "")
 
