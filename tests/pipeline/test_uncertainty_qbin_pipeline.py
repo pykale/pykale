@@ -522,9 +522,7 @@ def csv_equality_helper(array, csv_preamble, landmark):
     read_array = read_csv_landmark(csv_preamble, landmark)
 
     # Check if the lengths of the arrays are the same
-    n_array = len(array)
-    n_read_array = len(read_array)
-    assert n_array == n_read_array, f"Length mismatch: array={len(array)}, read_array={len(read_array)}"
+    assert len(array) == len(read_array), f"Length mismatch: array={len(array)}, read_array={len(read_array)}"
 
     for i, (orig_list, read_list) in enumerate(zip(array, read_array)):
         # Check if the two arrays have the same length
