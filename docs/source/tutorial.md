@@ -57,6 +57,6 @@ PyKale supports modules from the following areas of machine learning
 
 PyKale includes example application from three areas below
 
-- Image/video recognition: imaging recognition with CIFAR10/100, digits (MNIST, USPS, SVHN), action videos (EPIC Kitchen)
+- Image/video recognition: imaging recognition with CIFAR10/100, digits (MNIST, USPS), action videos (EPIC Kitchen)
 - Bioinformatics/graph analysis: link prediction problems in BindingDB and knowledge graphs
 - Medical imaging: cardiac MRI classification

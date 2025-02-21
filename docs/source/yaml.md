@@ -16,7 +16,7 @@ DAN:
 
 DATASET:
   NUM_REPEAT: 1
-  SOURCE: "svhn"
+  SOURCE: "mnist"
   VALID_SPLIT_RATIO: 0.5
 
 SOLVER:

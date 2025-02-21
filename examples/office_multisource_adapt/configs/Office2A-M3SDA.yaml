@@ -7,7 +7,7 @@ DATASET:
   TARGET: "amazon"
   NUM_REPEAT: 5
 SOLVER:
-  TRAIN_BATCH_SIZE: 100
-  TEST_BATCH_SIZE: 100
+  TRAIN_BATCH_SIZE: 40
+  TEST_BATCH_SIZE: 40
 OUTPUT:
   OUT_DIR: "outputs/office_caltech/M3SDA/Tgt_amazon"

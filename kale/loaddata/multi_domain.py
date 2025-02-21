@@ -174,14 +174,14 @@ class MultiDomainDatasets(DomainsDatasetBase):
                     self._target_by_split[part],
                 ) = _split_dataset_few_shot(self._target_by_split[part], self._n_fewshot)
 
-    def get_domain_loaders(self, split="train", batch_size=32):
+    def get_domain_loaders(self, split="train", batch_size=32, num_workers=1):
         source_ds = self._source_by_split[split]
-        source_loader = self._source_sampling_config.create_loader(source_ds, batch_size)
+        source_loader = self._source_sampling_config.create_loader(source_ds, batch_size, num_workers)
         target_ds = self._target_by_split[split]
 
         if self._labeled_target_by_split is None:
             # unsupervised target domain
-            target_loader = self._target_sampling_config.create_loader(target_ds, batch_size)
+            target_loader = self._target_sampling_config.create_loader(target_ds, batch_size, num_workers)
             n_dataset = DatasetSizeType.get_size(self._size_type, source_ds, target_ds)
             return MultiDataLoader(
                 dataloaders=[source_loader, target_loader],
@@ -255,7 +255,7 @@ def _domain_stratified_split(domain_labels, n_partitions, split_ratios):
         [list]: Indices for different splits.
     """
     domains = np.unique(domain_labels)
-    subset_idx = [[] for i in range(n_partitions)]
+    subset_idx = [[] for _ in range(n_partitions)]
     for domain_label_ in domains:
         domain_idx = np.where(domain_labels == domain_label_)[0]
         subsets = split_by_ratios(torch.from_numpy(domain_idx), split_ratios)
@@ -588,8 +588,8 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
                 self._valid_split_ratio
             )
 
-    def get_domain_loaders(self, split="train", batch_size=32):
-        return self._sampling_config.create_loader(self._sample_by_split[split], batch_size)
+    def get_domain_loaders(self, split="train", batch_size=32, num_workers=1):
+        return self._sampling_config.create_loader(self._sample_by_split[split], batch_size, num_workers)
 
     def __len__(self):
         return len(self.data_access)
