@@ -517,9 +517,9 @@ def csv_equality_helper(array, csv_preamble, landmark):
         None.
     """
 
-    array = array.to_numpy().astype(float)
+    array = array.to_numpy()
     # Convert the DataFrame to a numpy array
-    read_array = read_csv_landmark(csv_preamble, landmark).astype(float)
+    read_array = read_csv_landmark(csv_preamble, landmark)
 
     # Check if the lengths of the arrays are the same
     assert len(array) == len(read_array), f"Length mismatch: array={len(array)}, read_array={len(read_array)}"
