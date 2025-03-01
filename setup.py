@@ -47,8 +47,8 @@ image_requires = [
 # Dependencies for all examples and tutorials
 example_requires = [
     "ipykernel",
-    "ipython<=8.12.0",  # IPython 8.13+ support Python 3.9+ only and IPython 8.0-8.12 supports Python 3.8+.
-    "matplotlib<=3.5.2",
+    "ipython",
+    "matplotlib<=3.10.0",
     "nilearn>=0.7.0",
     "Pillow",
     "PyTDC",

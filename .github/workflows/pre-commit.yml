@@ -14,15 +14,15 @@ jobs:
     name: Pre-commit checks including linting
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: "3.8"
-    - name: Install dependencies
-      run: |
-        pip install pre-commit isort
-        pre-commit install
-    - name: Run pre-commit checks including linting
-      run: |
-        pre-commit run --all-files
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          pip install pre-commit isort
+          pre-commit install
+      - name: Run pre-commit checks including linting
+        run: |
+          pre-commit run --all-files
