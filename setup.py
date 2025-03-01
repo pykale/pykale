@@ -127,7 +127,7 @@ setup(
         "full": full_requires,
         "dev": dev_requires,
     },
-    setup_requires=["setuptools==59.5.0"],
+    setup_requires=["setuptools==74.1.0"],
     license="MIT",
     keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
     classifiers=[
