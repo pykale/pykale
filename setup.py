@@ -48,7 +48,7 @@ image_requires = [
 example_requires = [
     "ipykernel",
     "ipython",
-    "matplotlib<=3.10.0",
+    "matplotlib<=3.10.0",  # matplotlib 3.10.1 will cause "Building wheel for matplotlib (setup.py): finished with status 'error'" for tests
     "nilearn>=0.7.0",
     "Pillow",
     "PyTDC",
