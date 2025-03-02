@@ -7,7 +7,7 @@ cython  # C-extensions for Python
 https://data.pyg.org/whl/torch-2.3.0%2Bcpu/torch_scatter-2.1.2%2Bpt23cpu-cp311-cp311-linux_x86_64.whl
 https://data.pyg.org/whl/torch-2.3.0%2Bcpu/torch_sparse-0.6.18%2Bpt23cpu-cp311-cp311-linux_x86_64.whl
 https://download.pytorch.org/whl/cpu/torch-2.3.0%2Bcpu-cp311-cp311-linux_x86_64.whl
-https://download.pytorch.org/whl/cpu/torchvision-0.18.0%2Bcpu-cp311-cp311-linux_x86_64.whl
+# https://download.pytorch.org/whl/cpu/torchvision-0.18.0%2Bcpu-cp311-cp311-linux_x86_64.whl
 
 ipython
 
@@ -33,6 +33,6 @@ tensorly
 torch-geometric
 
 torchsummary>=1.5.0
-# torchvision
+torchvision
 urllib3<2.0
 yacs>=0.1.7
