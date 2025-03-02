@@ -1,11 +1,15 @@
 # Efficient Video Dataset Loading, Preprocessing, and Augmentation
+
 Author: [Raivo Koot](https://github.com/RaivoKoot)
 
 If you are completely unfamiliar with loading datasets in PyTorch using `torch.utils.data.Dataset` and `torch.utils.data.DataLoader`, I recommend
 getting familiar with these first through [PyTorch data loading tutorial](https://pytorch.org/tutorials/beginner/data_loading_tutorial.html) or
 [PyTorch dataloading examples](https://github.com/utkuozbulak/pytorch-custom-dataset-examples).
-### Overview: This example demonstrates the use of `kale.loaddata.videos.VideoFrameDataset`
+
+## Overview: This example demonstrates the use of `kale.loaddata.videos.VideoFrameDataset`
+
 The VideoFrameDataset class serves to `easily`, `efficiently` and `effectively` load video samples from video datasets in PyTorch.
+
 1) Easily because this dataset class can be used with custom datasets with minimum effort and no modification. The class merely expects the
 video dataset to have a certain structure on disk and expects a .txt annotation file that enumerates each video sample. Details on this
 can be found at `https://pykale.readthedocs.io/en/latest/kale.loaddata.html#kale-loaddata-videos-module`.
@@ -20,7 +24,9 @@ This approach has shown to be very effective and is taken from
 In conjunction with PyTorch's DataLoader, the VideoFrameDataset class returns video batch tensors of size `BATCH x FRAMES x CHANNELS x HEIGHT x WIDTH`.
 
 For a demo, visit `main.py`.
-### QuickDemo (main.py)
+
+## QuickDemo (main.py)
+
 ```python
 root = os.path.join(os.getcwd(), 'demo_dataset')  # Folder in which all videos lie in a specific structure
 annotation_file = os.path.join(root, 'annotations.txt')  # A row for each video sample as: (VIDEO_PATH START_FRAME END_FRAME CLASS_INDEX)
@@ -47,12 +53,15 @@ for image in frames:
     plt.show()
     plt.pause(1)
 ```
+
 ![alt text](https://github.com/RaivoKoot/images/blob/main/Action_Video.jpg "Action Video")
-# Table of Contents
+
+## Table of Contents
+
 - [Efficient Video Dataset Loading, Preprocessing, and Augmentation](#efficient-video-dataset-loading-preprocessing-and-augmentation)
-    - [Overview: This example demonstrates the use of `kale.loaddata.videos.VideoFrameDataset`](#overview-this-example-demonstrates-the-use-of-kaleloaddatavideosvideoframedataset)
-    - [QuickDemo (main.py)](#quickdemo-mainpy)
-- [Table of Contents](#table-of-contents)
+  - [Overview: This example demonstrates the use of `kale.loaddata.videos.VideoFrameDataset`](#overview-this-example-demonstrates-the-use-of-kaleloaddatavideosvideoframedataset)
+  - [QuickDemo (main.py)](#quickdemo-mainpy)
+  - [Table of Contents](#table-of-contents)
     - [1. Requirements](#1-requirements)
     - [2. Custom Dataset](#2-custom-dataset)
     - [3. Video Frame Sampling Method](#3-video-frame-sampling-method)
@@ -63,11 +72,12 @@ for image in frames:
     - [8. Acknowledgements](#8-acknowledgements)
 
 ### 1. Requirements
+
 ```
 # Without these three, VideoFrameDataset will not work.
 torchvision >= 0.10.0
 torch >= 1.9.0
-python >= 3.8,<3.11
+python >= 3.9,<3.12
 ```
 
 ### 2. Custom Dataset
