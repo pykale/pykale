@@ -24,7 +24,7 @@ rdkit
 recommonmark
 scikit-image
 scikit-learn
-sphinx==8.1.3
+sphinx==8.1.3 # 8.1.3 works with nbsphinx, should be updated when nbsphinx is updated
 sphinx-markdown-tables
 sphinx-rtd-theme
 tensorly
