@@ -2,4 +2,4 @@ DAN:
   METHOD: "DANN"
 
 DATASET:
-  SOURCE: "svhn"
+  SOURCE: "mnist"
