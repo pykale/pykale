@@ -1,4 +1,5 @@
 import os
+from numbers import Number
 from typing import Any
 
 import numpy as np
@@ -520,31 +521,38 @@ def csv_equality_helper(array, csv_preamble, landmark):
     # Convert the DataFrame to a numpy array
     read_array = read_csv_landmark(csv_preamble, landmark)
 
-    for idx, val in enumerate(read_array):
-        for inner_idx, inner_val in enumerate(val):
-            if inner_idx == 0:
+    # Check if the lengths of the arrays are the same
+    assert len(array) == len(read_array), f"Length mismatch: array={len(array)}, read_array={len(read_array)}"
+
+    for i, (orig_list, read_list) in enumerate(zip(array, read_array)):
+        # Check if the two arrays have the same length
+        assert len(orig_list) == len(
+            read_list
+        ), f"Length mismatch: array[{i}]={len(orig_list)}, read_array[{i}]={len(read_list)}"
+
+        for orig_value, read_value in zip(orig_list, read_list):
+            # If the original value is a list, convert it to a flattened NumPy array.
+            is_array = isinstance(orig_value, list)
+            if is_array:
+                orig_value = np.asarray(orig_value).ravel()
+
+                # Convert the read value to a Numpy array in two steps
+                # Step 1: Remove brackets and commas
+                read_value = read_value.strip("[]").replace(",", "")
+
+                # Step 2: Use np.fromstring to parse the numerical values, matching the type of original value
+                for ch in "[],":
+                    read_value = read_value.replace(ch, "")
+
+                read_value = np.fromstring(read_value, sep=" ", like=orig_value)
+
+            # For numerical (either a NumPy array or a Number) values, compare numerically.
+            if is_array or isinstance(orig_value, Number):
+                np.testing.assert_allclose(orig_value, read_value)
                 continue
-            import ast
 
-            inner_val = ast.literal_eval(inner_val) if isinstance(inner_val, str) else inner_val
-            inner_val = convert_to_float(inner_val)
-            assert inner_val == array[idx][inner_idx]
-
-
-def convert_to_float(val):
-    """
-    Recursively converts all elements within a list to floats. If the input is a nested list, each element is traversed
-    and converted. If the input is a singular value, it is directly converted to a float.
-
-    Parameters:
-    val (any): The input value which can be a single number, or a list/nested list of numbers.
-
-    Returns:
-    float or list: A float if the input was a single number, or a list of floats if the input was a list.
-    """
-    if isinstance(val, list):
-        return [convert_to_float(x) for x in val]
-    return float(val)
+            # For non-numerical values, compare directly.
+            assert orig_value == read_value
 
 
 def read_csv_landmark(csv_preamble, landmark):
