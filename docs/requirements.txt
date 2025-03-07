@@ -3,12 +3,12 @@
 
 # Learn from https://github.com/rusty1s/pytorch_geometric/blob/master/docs/requirements.txt
 # Remove if switching to DGL
-cython
-https://data.pyg.org/whl/torch-2.0.0%2Bcpu/torch_scatter-2.1.1%2Bpt20cpu-cp310-cp310-linux_x86_64.whl
-https://data.pyg.org/whl/torch-2.0.0%2Bcpu/torch_sparse-0.6.17%2Bpt20cpu-cp310-cp310-linux_x86_64.whl
-https://download.pytorch.org/whl/cpu/torch-2.0.0%2Bcpu-cp310-cp310-linux_x86_64.whl
+cython  # C-extensions for Python
+https://data.pyg.org/whl/torch-2.3.0%2Bcpu/torch_scatter-2.1.2%2Bpt23cpu-cp311-cp311-linux_x86_64.whl
+https://data.pyg.org/whl/torch-2.3.0%2Bcpu/torch_sparse-0.6.18%2Bpt23cpu-cp311-cp311-linux_x86_64.whl
+https://download.pytorch.org/whl/cpu/torch-2.3.0%2Bcpu-cp311-cp311-linux_x86_64.whl
 
-ipython<=8.12.0
+ipython
 
 nbsphinx
 nbsphinx-link
@@ -24,6 +24,7 @@ rdkit
 recommonmark
 scikit-image
 scikit-learn
+sphinx==8.1.3 # 8.1.3 works with nbsphinx and should be updated when nbsphinx is updated.
 sphinx-markdown-tables
 sphinx-rtd-theme
 tensorly
