@@ -5,6 +5,7 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 
 import argparse
 import logging
+import os
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
@@ -45,6 +46,11 @@ def main():
     # ---- setup output ----
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
+    outdir = os.path.join(
+        cfg.OUTPUT.OUT_DIR,
+        cfg.DATASET.NAME + "2" + cfg.DATASET.TARGET + "_" + cfg.DAN.METHOD,
+    )
+
     # ---- setup dataset ----
     if type(cfg.DATASET.SOURCE) == list:
         sub_domain_set = cfg.DATASET.SOURCE + [cfg.DATASET.TARGET]
@@ -69,7 +75,7 @@ def main():
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, num_channels)
 
-        tb_logger = TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
+        tb_logger = TensorBoardLogger(outdir, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
             filename="{epoch}-{step}-{valid_loss:.4f}",
             monitor="valid_loss",

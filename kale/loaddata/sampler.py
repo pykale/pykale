@@ -6,8 +6,9 @@ import logging
 import os
 
 import numpy as np
-import torch.utils.data
+import torch
 import torchvision
+from torch.utils.data import DataLoader, Subset
 from torch.utils.data.sampler import BatchSampler, RandomSampler
 
 
@@ -76,7 +77,7 @@ class SamplingConfig:
         else:
             num_workers = int(num_workers)
 
-        return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler, num_workers=num_workers)
+        return DataLoader(dataset=dataset, batch_sampler=sampler, num_workers=num_workers)
 
 
 class FixedSeedSamplingConfig(SamplingConfig):
@@ -147,7 +148,7 @@ class MultiDataLoader:
         return self._n_batches
 
 
-class BalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
+class BalancedBatchSampler(BatchSampler):
     """
     BatchSampler - from a MNIST-like dataset, samples n_samples for each of the n_classes.
     Returns batches of size n_classes * (batch_size // n_classes)
@@ -187,7 +188,7 @@ class BalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
         return self._n_batches
 
 
-class ReweightedBatchSampler(torch.utils.data.sampler.BatchSampler):
+class ReweightedBatchSampler(BatchSampler):
     """
     BatchSampler - from a MNIST-like dataset, samples batch_size according to given input distribution
     assuming multi-class labels
@@ -268,7 +269,7 @@ def get_labels(dataset):
         return np.array(dataset.targets)
 
     # Handle subset, recurses into non-subset version
-    if dataset_type is torch.utils.data.Subset:
+    if dataset_type is Subset:
         indices = dataset.indices
         all_labels = get_labels(dataset.dataset)
         logging.debug(f"data subset of len {len(indices)} from {len(all_labels)}")
@@ -331,7 +332,7 @@ class DomainBalancedBatchSampler(BalancedBatchSampler):
     def __init__(self, dataset, batch_size):
         # call to __init__ of super class will generate class balanced sampler, do not do it here
         dataset_type = type(dataset)
-        if dataset_type is torch.utils.data.Subset:
+        if dataset_type is Subset:
             domain_labels = np.asarray(dataset.dataset.domain_labels)[dataset.indices]
             domains = list(dataset.dataset.domain_to_idx.values())
         else:

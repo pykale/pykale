@@ -9,8 +9,4 @@ DATASET:
   NUM_REPEAT: 1
 SOLVER:
   TYPE: "SGD"
-  TRAIN_BATCH_SIZE: 40
-  TEST_BATCH_SIZE: 40
   NUM_WORKERS: 4
-OUTPUT:
-  OUT_DIR: "outputs/office_caltech/M3SDA/Tgt_amazon"

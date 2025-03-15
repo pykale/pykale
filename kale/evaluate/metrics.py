@@ -26,7 +26,7 @@ def cross_entropy_logits(output, target, weights=None):
 
     Returns:
         loss (Tensor): The computed loss value.
-        is_correct (Tensor): A tensor of Boolean values. . Each True in is_correct indicates a correctly predicted
+        is_correct (Tensor): A tensor of Boolean values. Each True in is_correct indicates a correctly predicted
             label, while each False indicates an incorrect prediction.
 
     Examples:

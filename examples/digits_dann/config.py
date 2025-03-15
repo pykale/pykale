@@ -43,7 +43,7 @@ _C.SOLVER.MAX_EPOCHS = 120
 _C.SOLVER.MIN_EPOCHS = 20
 _C.SOLVER.NUM_WORKERS = 1
 _C.SOLVER.TRAIN_BATCH_SIZE = 150
-_C.SOLVER.TEST_BATCH_SIZE = 200  # No difference in ADA
+_C.SOLVER.TEST_BATCH_SIZE = 200
 _C.SOLVER.LOG_EVERY_N_STEPS = 10
 
 # Adaptation-specific solver config
@@ -63,9 +63,11 @@ _C.DAN.RANDOM_DIM = 1024
 # Misc options
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CfgNode()
-_C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
+_C.OUTPUT.VERBOSE = False
 _C.OUTPUT.PB_FRESH = 0  # Number of steps before a new progress bar is printed. Set 0 to disable the progress bar
-_C.OUTPUT.OUT_DIR = "outputs"
+_C.OUTPUT.OUT_DIR = (
+    "outputs"  # Output directory for the experiment results and logs, it will be created if it does not exist
+)
 
 # -----------------------------------------------------------------------------
 # Comet Logger (optional) - https://www.comet.ml/site/

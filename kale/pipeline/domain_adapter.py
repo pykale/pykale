@@ -266,13 +266,11 @@ class BaseAdaptTrainer(pl.LightningModule):
             self._grow_fact = 2.0 / (1.0 + np.exp(-10 * p)) - 1
 
             if self._adapt_lr:
-                # Apply a decay to the learning rate factor as training progresses,
-                # based on 'p' with an exponential decay power of 0.75
+                # Apply a decay to the learning rate factor as training progresses, based on 'p' with an exponential decay power of 0.75
                 self._lr_fact = 1.0 / ((1.0 + 10 * p) ** 0.75)
 
         if self._adapt_lambda:
-            # Scale lambda (self.lamb_da) by the growth factor
-            # to control the regularization for domain adaptation effect
+            # Scale lambda (self.lamb_da) by the growth factor to control the regularization for domain adaptation effect
             self.lamb_da = self._init_lambda * self._grow_fact
 
     def forward(self, x):
@@ -652,8 +650,6 @@ class WDGRLTrainer(BaseDANNLike):
         self._k_critic = k_critic
         self._beta_ratio = beta_ratio
         self._gamma = gamma
-        # self.critic_opt = None
-        # self.critic_sched = None
 
     def forward(self, x):
         if self.feat is not None:
