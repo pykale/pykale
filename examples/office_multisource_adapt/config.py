@@ -1,8 +1,6 @@
 """
 Default configurations for multi-source domain adapation
 """
-import os
-
 from yacs.config import CfgNode
 
 # -----------------------------------------------------------------------------

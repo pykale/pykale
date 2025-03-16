@@ -8,5 +8,4 @@ DATASET:
   SOURCE: ["webcam", "dslr"]
   NUM_REPEAT: 1
 SOLVER:
-  TYPE: "SGD"
   NUM_WORKERS: 4

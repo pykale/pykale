@@ -7,9 +7,9 @@ import os
 
 import numpy as np
 import torch
-import torchvision
 from torch.utils.data import DataLoader, Subset
 from torch.utils.data.sampler import BatchSampler, RandomSampler
+from torchvision import datasets
 
 
 def get_auto_num_workers():
@@ -263,9 +263,9 @@ def get_labels(dataset):
     """
 
     dataset_type = type(dataset)
-    if dataset_type is torchvision.datasets.SVHN:
+    if dataset_type is datasets.SVHN:
         return dataset.labels
-    if dataset_type is torchvision.datasets.ImageFolder:
+    if dataset_type is datasets.ImageFolder:
         return np.array(dataset.targets)
 
     # Handle subset, recurses into non-subset version

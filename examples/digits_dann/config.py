@@ -1,9 +1,6 @@
 """
 Default configurations for domain adaptation
 """
-
-import os
-
 from yacs.config import CfgNode
 
 # -----------------------------------------------------------------------------
