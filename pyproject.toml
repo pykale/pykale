@@ -1,13 +1,13 @@
 [build-system]
 requires = [
-    "setuptools==59.5.0",
+    "setuptools==74.1.0",
     "wheel",
 ]
 
 [tool.black]
 # https://github.com/psf/black
 line-length = 120
-target-version = ["py38"]
+target-version = ["py311"]
 
 [tool.isort]
 known_first_party = [
@@ -17,9 +17,9 @@ known_first_party = [
     "tests",
 ]
 known_third_party = [
-    "matplotlib",
-    "numpy==1.26.4",
-    "setuptools==59.5.0",
+    "matplotlib<=3.10.0",  # matplotlib 3.10.1 will cause "Building wheel for matplotlib (setup.py): finished with status 'error'" for tests
+    "numpy",
+    "setuptools==74.1.0",
     "sphinx_rtd_theme",
     "torch",
 ]
