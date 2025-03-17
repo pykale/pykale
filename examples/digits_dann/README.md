@@ -7,7 +7,7 @@ This example is constructed by refactoring the [ADA: (Yet) Another Domain Adapta
 ## 2. Usage
 
 * Datasets: MNIST, Modified MNIST (MNISTM), UPSP
-* Algorithms: See the [PyKale docs](https://pykale.readthedocs.io/en/latest/) for available algorithms, e.g., DANN and CDAN.
+* Algorithms: DAN, JAN, DANN, CDAN, WDGRL, FewShotDANN, MME, and more. See the [PyKale docs](https://pykale.readthedocs.io/en/latest/kale.pipeline.html#kale.pipeline.domain_adapter.Method) for more details.
 * Example: MNIST (source) to UPSP (target) using CDAN and DANN
 
 `python main.py --cfg configs/MN2UP-CDAN.yaml --devices 1`

@@ -52,7 +52,7 @@ _C.SOLVER.INIT_LAMBDA = 1.0  # Initial value of lambda
 # Domain Adaptation Net (DAN) configs
 # ---------------------------------------------------------------------------- #
 _C.DAN = CfgNode()
-_C.DAN.METHOD = "CDAN"  # choices=['CDAN', 'CDAN-E', 'DANN', 'DAN', 'JAN']
+_C.DAN.METHOD = "CDAN"  # choices=['DAN', 'JAN', 'DANN', 'CDAN', 'CDAN-E', 'FSDANN', 'MME', 'WDGRL', 'WDGRLMod']
 _C.DAN.USERANDOM = False
 _C.DAN.RANDOM_DIM = 1024
 
