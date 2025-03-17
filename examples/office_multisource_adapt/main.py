@@ -46,6 +46,7 @@ def main():
     # ---- setup output ----
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
+
     outdir = os.path.join(
         cfg.OUTPUT.OUT_DIR,
         cfg.DATASET.NAME + "2" + cfg.DATASET.TARGET + "_" + cfg.DAN.METHOD,
@@ -89,9 +90,9 @@ def main():
             callbacks=[checkpoint_callback, progress_bar],
             accelerator="gpu" if args.devices != 0 else "cpu",
             devices=args.devices if args.devices != 0 else "auto",
-            logger=tb_logger,  # logger,
+            logger=tb_logger,
             # weights_summary='full',
-            fast_dev_run=False,  # True,
+            fast_dev_run=False,
             log_every_n_steps=cfg.SOLVER.LOG_EVERY_N_STEPS,
         )
 
