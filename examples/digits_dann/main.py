@@ -5,6 +5,7 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 
 import argparse
 import logging
+import os
 import time
 
 import pytorch_lightning as pl
@@ -46,6 +47,11 @@ def main():
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
 
+    outdir = os.path.join(
+        cfg.OUTPUT.OUT_DIR,
+        cfg.DATASET.SOURCE + "2" + cfg.DATASET.TARGET + "_" + cfg.DAN.METHOD,
+    )
+
     # ---- setup dataset ----
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(cfg.DATASET.SOURCE.upper()), DigitDataset(cfg.DATASET.TARGET.upper()), cfg.DATASET.ROOT
@@ -74,11 +80,11 @@ def main():
             logger = pl_loggers.CometLogger(
                 api_key=cfg.COMET.API_KEY,
                 project_name=cfg.COMET.PROJECT_NAME,
-                save_dir=cfg.OUTPUT.OUT_DIR,
+                save_dir=outdir,
                 experiment_name="{}_{}".format(cfg.COMET.EXPERIMENT_NAME, suffix),
             )
         else:
-            logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
+            logger = pl_loggers.TensorBoardLogger(outdir, name="seed{}".format(seed))
 
         # ---- setup callbacks ----
         # setup checkpoint callback
@@ -99,6 +105,7 @@ def main():
             devices=args.devices if args.devices != 0 else "auto",
             callbacks=[checkpoint_callback, progress_bar],
             logger=logger,
+            log_every_n_steps=cfg.SOLVER.LOG_EVERY_N_STEPS,
         )
 
         # ---- start training ----

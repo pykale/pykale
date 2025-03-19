@@ -15,12 +15,13 @@ import torch
 from torch.autograd import Function
 
 import kale.evaluate.metrics as losses
+from kale.utils.validate import validate_kwargs
 
 
 class GradReverse(Function):
     """The gradient reversal layer (GRL)
 
-    This is defined in the DANN paper http://jmlr.org/papers/volume17/15-239/15-239.pdf
+    This is defined in the DANN paper https://jmlr.org/papers/volume17/15-239/15-239.pdf
 
     Forward pass: identity transformation.
     Backward propagation: flip the sign of the gradient.
@@ -189,7 +190,8 @@ class BaseAdaptTrainer(pl.LightningModule):
     changes linearly from 0 to 1.
 
     Args:
-        dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used for train, validation, and tests.
+        dataset (kale.loaddata.multi_domain.MultiDomainDatasets): the multi-domain datasets to be used for train,
+            validation, and tests.
         feature_extractor (torch.nn.Module): the feature extractor network (mapping inputs :math:`x\in\mathcal{X}`
             to a latent space :math:`\mathcal{Z}`,).
         task_classifier (torch.nn.Module): the task classifier network that learns to predict labels
@@ -224,6 +226,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         nb_init_epochs: int = 10,
         nb_adapt_epochs: int = 50,
         batch_size: int = 32,
+        num_workers: int = 1,
         init_lr: float = 1e-3,
         optimizer: Optional[dict] = None,
     ):
@@ -239,6 +242,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._non_init_epochs = nb_adapt_epochs - self._init_epochs
         assert self._non_init_epochs > 0
         self._batch_size = batch_size
+        self._num_workers = num_workers
         self._init_lr = init_lr
         self._lr_fact = 1.0
         self._grow_fact = 0.0
@@ -262,9 +266,11 @@ class BaseAdaptTrainer(pl.LightningModule):
             self._grow_fact = 2.0 / (1.0 + np.exp(-10 * p)) - 1
 
             if self._adapt_lr:
+                # Apply a decay to the learning rate factor as training progresses, based on 'p' with an exponential decay power of 0.75
                 self._lr_fact = 1.0 / ((1.0 + 10 * p) ** 0.75)
 
         if self._adapt_lambda:
+            # Scale lambda (self.lamb_da) by the growth factor to control the regularization for domain adaptation effect
             self.lamb_da = self._init_lambda * self._grow_fact
 
     def forward(self, x):
@@ -297,7 +303,8 @@ class BaseAdaptTrainer(pl.LightningModule):
         Args:
             batch (tuple): the batch as returned by the MultiDomainLoader dataloader iterator:
                 2 tuples: (x_source, y_source), (x_target, y_target) in the unsupervised setting
-                3 tuples: (x_source, y_source), (x_target_labeled, y_target_labeled), (x_target_unlabeled, y_target_unlabeled) in the semi-supervised setting
+                3 tuples: (x_source, y_source), (x_target_labeled, y_target_labeled), (x_target_unlabeled,
+                    y_target_unlabeled) in the semi-supervised setting
             batch_nb (int): id of the current batch.
 
         Returns:
@@ -352,17 +359,19 @@ class BaseAdaptTrainer(pl.LightningModule):
             )
             return [optimizer]
         if self._optimizer_params["type"] == "Adam":
+            valid_optim_params = validate_kwargs(torch.optim.Adam, self._optimizer_params["optim_params"])
             optimizer = torch.optim.Adam(
                 parameters,
                 lr=self._init_lr,
-                **self._optimizer_params["optim_params"],
+                **valid_optim_params,
             )
             return [optimizer]
         if self._optimizer_params["type"] == "SGD":
+            valid_optim_params = validate_kwargs(torch.optim.SGD, self._optimizer_params["optim_params"])
             optimizer = torch.optim.SGD(
                 parameters,
                 lr=self._init_lr,
-                **self._optimizer_params["optim_params"],
+                **valid_optim_params,
             )
 
             if self._adapt_lr:
@@ -375,15 +384,21 @@ class BaseAdaptTrainer(pl.LightningModule):
         return self._configure_optimizer(self.parameters())
 
     def train_dataloader(self):
-        dataloader = self._dataset.get_domain_loaders(split="train", batch_size=self._batch_size)
+        dataloader = self._dataset.get_domain_loaders(
+            split="train", batch_size=self._batch_size, num_workers=self._num_workers
+        )
         self._nb_training_batches = len(dataloader)
         return dataloader
 
     def val_dataloader(self):
-        return self._dataset.get_domain_loaders(split="valid", batch_size=self._batch_size)
+        return self._dataset.get_domain_loaders(
+            split="valid", batch_size=self._batch_size, num_workers=self._num_workers
+        )
 
     def test_dataloader(self):
-        return self._dataset.get_domain_loaders(split="test", batch_size=self._batch_size)
+        return self._dataset.get_domain_loaders(
+            split="test", batch_size=self._batch_size, num_workers=self._num_workers
+        )
 
 
 class BaseDANNLike(BaseAdaptTrainer):
@@ -419,12 +434,20 @@ class BaseDANNLike(BaseAdaptTrainer):
         if self._adapt_reg:
             self._entropy_reg = self._entropy_reg_init * self._grow_fact
 
-    def compute_loss(self, batch, split_name="valid"):
-        if len(batch) == 3:
-            raise NotImplementedError("DANN does not support semi-supervised setting.")
-        (x_s, y_s), (x_tu, y_tu) = batch
-        batch_size = len(y_s)
+    def _uda_batch_forward(self, batch):
+        """
+        Perform a forward pass for a batch in the unsupervised domain adaptation setting.
 
+        Returns:
+            y_hat (Tensor): predictions on the source domain data.
+            y_t_hat (Tensor): predictions on the target domain data.
+            d_hat (Tensor): predictions of the domain classifier on the source domain data.
+            d_t_hat (Tensor): predictions of the domain classifier on the target domain data.
+            loss_cls (Tensor): classification loss on the source domain data.
+            ok_src (Tensor): a boolean Tensor indicating accuracy for each sample of the source domain.
+            ok_tgt (Tensor): a boolean Tensor indicating accuracy for each sample of the target domain.
+        """
+        (x_s, y_s), (x_tu, y_tu) = batch
         _, y_hat, d_hat = self.forward(x_s)
         _, y_t_hat, d_t_hat = self.forward(x_tu)
 
@@ -432,6 +455,14 @@ class BaseDANNLike(BaseAdaptTrainer):
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
         ok_src = ok_src.double().mean()
         ok_tgt = ok_tgt.double().mean()
+
+        return y_hat, y_t_hat, d_hat, d_t_hat, loss_cls, ok_src, ok_tgt
+
+    def compute_loss(self, batch, split_name="valid"):
+        if len(batch) == 3:
+            raise NotImplementedError("DANN does not support semi-supervised setting.")
+        batch_size = len(batch[0][1])
+        y_hat, y_t_hat, d_hat, d_t_hat, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
 
         loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
         loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
@@ -458,7 +489,7 @@ class DANNTrainer(BaseDANNLike):
     This class implements the DANN architecture from
     Ganin, Yaroslav, et al.
     "Domain-adversarial training of neural networks."
-    The Journal of Machine Learning Research (2016)
+    The Journal of Machine Learning Research (2016)
     https://arxiv.org/abs/1505.07818
 
     """
@@ -552,16 +583,8 @@ class CDANTrainer(BaseDANNLike):
     def compute_loss(self, batch, split_name="valid"):
         if len(batch) == 3:
             raise NotImplementedError("CDAN does not support semi-supervised setting.")
-        (x_s, y_s), (x_tu, y_tu) = batch
-        batch_size = len(y_s)
-
-        _, y_hat, d_hat = self.forward(x_s)
-        _, y_t_hat, d_t_hat = self.forward(x_tu)
-
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-        ok_src = ok_src.double().mean()
-        ok_tgt = ok_tgt.double().mean()
+        batch_size = len(batch[0][1])
+        y_hat, y_t_hat, d_hat, d_t_hat, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
 
         if self.entropy:
             e_s = self._compute_entropy_weights(y_hat)
@@ -640,16 +663,9 @@ class WDGRLTrainer(BaseDANNLike):
     def compute_loss(self, batch, split_name="valid"):
         if len(batch) == 3:
             raise NotImplementedError("WDGRL does not support semi-supervised setting.")
-        (x_s, y_s), (x_tu, y_tu) = batch
-        batch_size = len(y_s)
 
-        _, y_hat, d_hat = self.forward(x_s)
-        _, y_t_hat, d_t_hat = self.forward(x_tu)
-
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-        ok_src = ok_src.double().mean()
-        ok_tgt = ok_tgt.double().mean()
+        batch_size = len(batch[0][1])
+        y_hat, y_t_hat, d_hat, d_t_hat, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
 
         _, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
         _, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)))
@@ -725,7 +741,7 @@ class WDGRLTrainer(BaseDANNLike):
 
         return loss  # required, for backward pass
 
-    def configure_optimizers(self):
+    def configure_optimizers(self):  # no usage?
         nets = [self.feat, self.classifier]
         parameters = set()
         for net in nets:
@@ -1019,7 +1035,7 @@ class DANTrainer(BaseMMDLike):
     Long, Mingsheng, et al.
     "Learning Transferable Features with Deep Adaptation Networks."
     International Conference on Machine Learning. 2015.
-    http://proceedings.mlr.press/v37/long15.pdf
+    https://proceedings.mlr.press/v37/long15.pdf
     code based on https://github.com/thuml/Xlearn.
     """
 

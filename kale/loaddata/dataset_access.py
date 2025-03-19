@@ -24,7 +24,6 @@ class DatasetAccess:
     def get_train(self):
         """
         Returns: a torch.utils.data.Dataset
-            Dataset: a torch.utils.data.Dataset
         """
         raise NotImplementedError()
 
@@ -36,7 +35,7 @@ class DatasetAccess:
             valid_ratio (float): the ratio for validation set
 
         Returns:
-            Dataset: a torch.utils.data.Dataset
+            dataset: a torch.utils.data.Dataset
         """
         train_dataset = self.get_train()
 
@@ -54,8 +53,8 @@ def get_class_subset(dataset, class_ids):
     Args:
         dataset: a torch.utils.data.Dataset
         class_ids (list, optional): List of chosen subset of class ids.
-    Returns: a torch.utils.data.Dataset
-        Dataset: a torch.utils.data.Dataset with only classes in class_ids
+    Returns:
+        dataset: a torch.utils.data.Dataset
     """
     sub_indices = [i for i in range(0, len(dataset)) if dataset[i][1] in class_ids]
     return torch.utils.data.Subset(dataset, sub_indices)
