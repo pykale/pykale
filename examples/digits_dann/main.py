@@ -47,6 +47,11 @@ def main():
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
 
+    outdir = os.path.join(
+        cfg.OUTPUT.OUT_DIR,
+        cfg.DATASET.SOURCE + "2" + cfg.DATASET.TARGET + "_" + cfg.DAN.METHOD,
+    )
+
     # ---- setup dataset ----
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(cfg.DATASET.SOURCE.upper()), DigitDataset(cfg.DATASET.TARGET.upper()), cfg.DATASET.ROOT
@@ -68,11 +73,6 @@ def main():
 
         # ---- setup model ----
         model, train_params = get_model(cfg, dataset, num_channels)
-
-        outdir = os.path.join(
-            cfg.OUTPUT.OUT_DIR,
-            cfg.DATASET.SOURCE + "2" + cfg.DATASET.TARGET + "_" + cfg.DAN.METHOD,
-        )
 
         # ---- setup logger ----
         if cfg.COMET.ENABLE:

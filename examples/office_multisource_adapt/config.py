@@ -1,8 +1,6 @@
 """
 Default configurations for multi-source domain adapation
 """
-import os
-
 from yacs.config import CfgNode
 
 # -----------------------------------------------------------------------------
@@ -66,10 +64,9 @@ _C.DAN.RANDOM_DIM = 1024
 # Misc options
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CfgNode()
-_C.OUTPUT.OUT_DIR = "./outputs"  # output_dir
-_C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
-_C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
-_C.OUTPUT.OUT_DIR = os.path.join("outputs", "Tgt" + _C.DATASET.TARGET)
+_C.OUTPUT.OUT_DIR = "./outputs"  # Output directory for experiment results and logs, auto-created if missing
+_C.OUTPUT.VERBOSE = False
+_C.OUTPUT.PB_FRESH = 0  # Number of steps before a new progress bar is printed. Set 0 to disable the progress bar
 
 
 def get_cfg_defaults():

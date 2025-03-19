@@ -37,7 +37,7 @@ version = find_version("kale", "__init__.py")
 # -- Project information -----------------------------------------------------
 
 project = "PyKale"
-copyright = "2020 - 2021 PyKale Contributors"
+copyright = "2020 - 2025 PyKale Contributors"
 author = "PyKale Contributors"
 
 # The full version, including alpha/beta/rc tags
