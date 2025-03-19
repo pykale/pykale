@@ -8,13 +8,15 @@
 """
 import logging
 import warnings
+from numbers import Integral, Real
 
 import numpy as np
 from numpy.linalg import multi_dot
 from scipy import linalg
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics.pairwise import pairwise_kernels
-from sklearn.preprocessing import KernelCenterer, LabelBinarizer
+from sklearn.preprocessing import KernelCenterer, LabelBinarizer, OneHotEncoder
+from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.utils.validation import check_is_fitted
 from tensorly.base import fold, unfold
 from tensorly.tenalg import multi_mode_dot
@@ -267,12 +269,18 @@ class MPCA(BaseEstimator, TransformerMixin):
 
 class MIDA(BaseEstimator, TransformerMixin):
     """Maximum independence domain adaptation
+
     Args:
         n_components (int): Number of components to keep.
-        kernel (str): "linear", "rbf", or "poly". Kernel to use for MIDA. Defaults to "linear".
+        kernel (str): Kernel to use for MIDA. Defaults to "linear".
+        gamma (float): Kernel coefficient for rbf, poly and sigmoid kernels. Ignored by other kernels. If ``gamma`` is
+            ``None``, then it is set to ``1/n_features``., default=None.
+        degree (float): Degree for poly kernels. Ignored by other kernels., default=3
+        coef0 (float): Independent term in poly and sigmoid kernels.Ignored by other kernels. Default=1
         mu (float): Hyperparameter of the l2 penalty. Defaults to 1.0.
         eta (float): Hyperparameter of the label dependence. Defaults to 1.0.
-        augmentation (bool): Whether using covariates as augment features. Defaults to False.
+        augmentation (bool): Whether using domain/group labels as augment features. Defaults to False.
+        fit_label (bool): Whether to fit the label for semi-supervised MIDA. Defaults to False.
         kernel_params (dict or None): Parameters for the kernel. Defaults to None.
 
     References:
@@ -280,67 +288,104 @@ class MIDA(BaseEstimator, TransformerMixin):
             independence maximization. IEEE transactions on cybernetics, 48(1), pp.288-299.
     """
 
+    _parameter_constraints: dict = {
+        "n_components": [
+            Interval(Integral, 1, None, closed="left"),
+            None,
+        ],
+        "kernel": [
+            StrOptions({"linear", "poly", "rbf", "sigmoid", "cosine", "precomputed"}),
+            callable,
+        ],
+        "gamma": [
+            Interval(Real, 0, None, closed="left"),
+            None,
+        ],
+        "degree": [Interval(Real, 0, None, closed="left")],
+        "coef0": [Interval(Real, None, None, closed="neither")],
+        "kernel_params": [dict, None],
+        "mu": [Real],
+        "eta": [Real],
+        "fit_label": ["boolean"],
+        "augmentation": ["boolean"],
+        "n_jobs": [None, Integral],
+    }
+
     def __init__(
         self,
-        n_components,
+        n_components=None,
         kernel="linear",
-        lambda_=1.0,
         mu=1.0,
         eta=1.0,
+        gamma=None,
+        degree=3,
+        coef0=1,
+        fit_label=False,
         augmentation=False,
         kernel_params=None,
+        n_jobs=None,
     ):
         self.n_components = n_components
         self.kernel = kernel
+        self.gamma = gamma
+        self.degree = degree
+        self.coef0 = coef0
         self.mu = mu
         self.eta = eta
         self.augmentation = augmentation
-        if kernel_params is None:
-            self.kernel_params = {}
-        else:
-            self.kernel_params = kernel_params
-        self._label_binarizer = LabelBinarizer(pos_label=1, neg_label=-1)
-        self._centerer = KernelCenterer()
+        self.kernel_params = kernel_params
+        self.fit_label = fit_label
         self.x_fit = None
+        self._label_binarizer = None
+        self._centerer = None
+        self._onehot = None
+        self.n_jobs = n_jobs
 
     def _get_kernel(self, x, y=None):
-        if self.kernel in ["linear", "rbf", "poly"]:
+        if callable(self.kernel):
             params = self.kernel_params or {}
         else:
-            raise ValueError("Pre-computed kernel not supported")
-        return pairwise_kernels(x, y, metric=self.kernel, filter_params=True, **params)
+            self.gamma = 1 / x.shape[1] if self.gamma is None else self.gamma
+            params = {"gamma": self.gamma, "degree": self.degree, "coef0": self.coef0}
+        return pairwise_kernels(x, y, metric=self.kernel, filter_params=True, n_jobs=self.n_jobs, **params)
 
-    def fit(self, x, y=None, covariates=None):
+    def fit(self, x, y=None, groups=None):
         """
         Args:
-            x : array-like. Input data, shape (n_samples, n_features)
-            y : array-like. Labels, shape (nl_samples,)
-            covariates : array-like. Domain co-variates, shape (n_samples, n_co-variates)
+            x (array-like): Input data, shape (n_samples, n_features)
+            y (array-like): Labels, shape (n_labeled_samples,)
+            groups (array-like): Domain/group labels, shape (n_samples,)
 
         Note:
-            Unsupervised MIDA is performed if y is None.
-            Semi-supervised MIDA is performed is y is not None.
+            Unsupervised MIDA is performed if y is None or fit_label=False.
+            Semi-supervised MIDA is performed is y is not None and fit_label=True.
         """
-        if self.augmentation and isinstance(covariates, np.ndarray):
-            x = np.concatenate((x, covariates), axis=1)
+        if groups is None:
+            groups = np.zeros(x.shape[0]).reshape(-1, 1)
+        else:
+            self._onehot = OneHotEncoder(handle_unknown="ignore")
+            groups = self._onehot.fit_transform(groups.reshape(-1, 1)).toarray()
+
+        if self.augmentation and isinstance(groups, np.ndarray):
+            x = np.concatenate((x, groups), axis=1)
 
         # Kernel matrix
         kernel_x = self._get_kernel(x)
         kernel_x[np.isnan(kernel_x)] = 0
 
         # Solve the optimization problem
-        self._fit(kernel_x, y, covariates)
-        self.x_fit = x
+        self._fit(kernel_x, y, groups)
+        self.x_fit = x.copy()
 
         return self
 
-    def _fit(self, kernel_x, y, covariates=None):
+    def _fit(self, kernel_x, y=None, groups=None):
         """solve MIDA
 
         Args:
-            kernel_x: array-like, kernel matrix of input data x, shape (n_samples, n_samples)
-            y: array-like. Labels, shape (nl_samples,)
-            covariates: array-like. Domain co-variates, shape (n_samples, n_covariates)
+            kernel_x (array-like): Kernel matrix of input data x, shape (n_samples, n_samples)
+            y (array-like): Labels, shape (n_labeled_samples,), default=None
+            groups (array-like): Onehot encoded group (domain) matrix, shape (n_samples, n_groups)
 
         Returns:
             self
@@ -350,17 +395,23 @@ class MIDA(BaseEstimator, TransformerMixin):
         unit_mat = np.eye(n_samples)
         # Centering matrix
         ctr_mat = unit_mat - 1.0 / n_samples * np.ones((n_samples, n_samples))
-
+        self._centerer = KernelCenterer().set_output(transform="default")
         kernel_x = self._centerer.fit_transform(kernel_x)
-        if isinstance(covariates, np.ndarray):
-            kernel_c = np.dot(covariates, covariates.T)
+        if self.n_components is None:
+            n_components = kernel_x.shape[0]
+        else:
+            n_components = min(kernel_x.shape[0], self.n_components)
+
+        if isinstance(groups, np.ndarray):
+            kernel_c = np.dot(groups, groups.T)
         else:
             kernel_c = np.zeros((n_samples, n_samples))
 
-        if y is not None:
+        if y is not None and self.fit_label:
             n_labeled = y.shape[0]
             if n_labeled > n_samples:
                 raise ValueError("Number of labels exceeds number of samples")
+            self._label_binarizer = LabelBinarizer(pos_label=1, neg_label=-1)
             y_mat_ = self._label_binarizer.fit_transform(y)
             y_mat = np.zeros((n_samples, y_mat_.shape[1]))
             y_mat[:n_labeled, :] = y_mat_
@@ -377,7 +428,7 @@ class MIDA(BaseEstimator, TransformerMixin):
         else:
             obj = multi_dot([kernel_x, self.mu * ctr_mat - multi_dot([ctr_mat, kernel_c, ctr_mat]), kernel_x.T])
 
-        eig_values, eig_vectors = linalg.eigh(obj, subset_by_index=[n_samples - self.n_components, n_samples - 1])
+        eig_values, eig_vectors = linalg.eigh(obj, subset_by_index=[n_samples - n_components, n_samples - 1])
         idx_sorted = eig_values.argsort()[::-1]
 
         self.eig_values_ = eig_values[idx_sorted]
@@ -386,33 +437,33 @@ class MIDA(BaseEstimator, TransformerMixin):
 
         return self
 
-    def fit_transform(self, x, y=None, covariates=None):
+    def fit_transform(self, x, y=None, groups=None):
         """
         Args:
-            x : array-like, shape (n_samples, n_features)
-            y : array-like, shape (n_samples,)
-            covariates : array-like, shape (n_samples, n_covariates)
+            x (array-like): Input data, shape (n_samples, n_features)
+            y (array-like): Labels, shape (n_labeled_samples,)
+            groups (array-like): Domain/group labels, shape (n_samples,)
 
         Returns:
-            x_transformed : array-like, shape (n_samples, n_components)
+            x_transformed (array-like): Transformed data, shape (n_samples, n_components)
         """
-        self.fit(x, y, covariates)
+        self.fit(x, y, groups)
 
-        return self.transform(x, covariates)
+        return self.transform(x, groups)
 
-    def transform(self, x, covariates=None):
+    def transform(self, x, groups=None):
         """
         Args:
-            x : array-like, shape (n_samples, n_features)
-            covariates : array-like, augmentation features, shape (n_samples, n_covariates)
+            x (array-like): Data to transform, shape (n_samples, n_features)
+            groups (array-like): Domain labels of x will be one-hot encoded as augmented features. Ignored if
+                augmentation = False, shape (n_samples,).
         Returns:
-            x_transformed : array-like, shape (n_samples, n_components)
+            x_transformed (array-like): Transformed data, shape (n_samples, n_components)
         """
         check_is_fitted(self, "x_fit")
-        if isinstance(covariates, np.ndarray) and self.augmentation:
-            x = np.concatenate((x, covariates), axis=1)
-        kernel_x = self._centerer.transform(
-            pairwise_kernels(x, self.x_fit, metric=self.kernel, filter_params=True, **self.kernel_params)
-        )
+        if isinstance(groups, np.ndarray) and self.augmentation:
+            groups = self._onehot.transform(groups.reshape(-1, 1)).toarray()
+            x = np.concatenate((x, groups), axis=1)
+        kernel_x = self._centerer.transform(self._get_kernel(x, self.x_fit))
 
         return np.dot(kernel_x, self.U)

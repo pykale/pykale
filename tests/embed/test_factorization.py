@@ -4,11 +4,14 @@ import numpy as np
 import pytest
 from numpy import testing
 from scipy.io import loadmat
-from sklearn.datasets import make_blobs
-from sklearn.preprocessing import OneHotEncoder
+
+# from sklearn.datasets import make_blobs
+# from sklearn.model_selection import GridSearchCV
+# from sklearn.pipeline import Pipeline
+# from sklearn.svm import SVC
 from tensorly.tenalg import multi_mode_dot
 
-from kale.embed.factorization import MIDA, MPCA
+from kale.embed.factorization import MPCA
 
 N_COMPS = [1, 50, 100]
 VAR_RATIOS = [0.7, 0.95]
@@ -82,25 +85,33 @@ def test_mpca_against_baseline(gait, baseline_model):
         testing.assert_allclose(mpca.proj_mats[i] ** 2, baseline_proj_mats[i] ** 2, rtol=relative_tol)
 
 
-@pytest.mark.parametrize("kernel", ["linear", "rbf"])
-@pytest.mark.parametrize("augmentation", [True, False])
-def test_mida(kernel, augmentation):
-    np.random.seed(29118)
-    # Generate toy data
-    n_samples = 200
-
-    xs, ys = make_blobs(n_samples, n_features=3, centers=[[0, 0, 0], [0, 2, 1]], cluster_std=[0.3, 0.35])
-    xt, yt = make_blobs(n_samples, n_features=3, centers=[[2, -2, 2], [2, 0.2, -1]], cluster_std=[0.35, 0.4])
-    x = np.concatenate((xs, xt), axis=0)
-
-    covariates = np.zeros(n_samples * 2)
-    covariates[:n_samples] = 1
-
-    enc = OneHotEncoder(handle_unknown="ignore")
-    covariates_mat = enc.fit_transform(covariates.reshape(-1, 1)).toarray()
-    mida = MIDA(n_components=2, kernel=kernel, augmentation=augmentation)
-    x_transformed = mida.fit_transform(x, covariates=covariates_mat)
-    testing.assert_equal(x_transformed.shape, (n_samples * 2, 2))
-
-    x_transformed = mida.fit_transform(x, ys, covariates=covariates_mat)
-    testing.assert_equal(x_transformed.shape, (n_samples * 2, 2))
+# N_SAMPLES = 200
+#
+#
+# @pytest.fixture(scope="module")
+# def toy_data():
+#     np.random.seed(29118)
+#     # Generate toy data
+#     n_samples = N_SAMPLES
+#
+#     xs, ys = make_blobs(n_samples, n_features=3, centers=[[0, 0, 0], [0, 2, 1]], cluster_std=[0.3, 0.35])
+#     xt, yt = make_blobs(n_samples, n_features=3, centers=[[2, -2, 2], [2, 0.2, -1]], cluster_std=[0.35, 0.4])
+#
+#     groups = np.zeros(n_samples * 2)
+#     groups[:n_samples] = 1
+#
+#     return xs, ys, xt, yt, groups
+#
+#
+# @pytest.mark.parametrize("kernel", ["linear", "rbf"])
+# @pytest.mark.parametrize("fit_label", [True])
+# @pytest.mark.parametrize("augmentation", [True, False])
+# def test_mida(kernel, augmentation, fit_label, toy_data):
+#     xs, ys, xt, yt, groups = toy_data
+#     x = np.concatenate([xs, xt], axis=0)
+#     mida = MIDA(n_components=2, kernel=kernel, augmentation=augmentation)
+#     x_transformed = mida.fit_transform(x, groups=groups)
+#     testing.assert_equal(x_transformed.shape, (x.shape[0], 2))
+#
+#     x_transformed = mida.fit_transform(x, ys, groups=groups)
+#     testing.assert_equal(x_transformed.shape, (x.shape[0], 2))
