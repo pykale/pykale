@@ -1,8 +1,6 @@
 """
 Default configurations for multi-source domain adapation
 """
-import os
-
 from yacs.config import CfgNode
 
 # -----------------------------------------------------------------------------
@@ -34,7 +32,7 @@ _C.DATASET.SIZE_TYPE = "source"
 # Solver
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CfgNode()
-_C.SOLVER.SEED = 2021
+_C.SOLVER.SEED = 2025
 _C.SOLVER.BASE_LR = 0.001  # Initial learning rate
 _C.SOLVER.MOMENTUM = 0.9
 _C.SOLVER.WEIGHT_DECAY = 0.0005  # 1e-4
@@ -46,6 +44,8 @@ _C.SOLVER.MAX_EPOCHS = 120  # "nb_adapt_epochs": 100,
 _C.SOLVER.MIN_EPOCHS = 20  # "nb_init_epochs": 20,
 _C.SOLVER.TRAIN_BATCH_SIZE = 100
 _C.SOLVER.TEST_BATCH_SIZE = 100
+_C.SOLVER.LOG_EVERY_N_STEPS = 10
+_C.SOLVER.NUM_WORKERS = 1
 
 # Adaptation-specific solver config
 _C.SOLVER.AD_LAMBDA = True
@@ -64,10 +64,9 @@ _C.DAN.RANDOM_DIM = 1024
 # Misc options
 # ---------------------------------------------------------------------------- #
 _C.OUTPUT = CfgNode()
-_C.OUTPUT.OUT_DIR = "./outputs"  # output_dir
-_C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
-_C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
-_C.OUTPUT.OUT_DIR = os.path.join("outputs", "Tgt" + _C.DATASET.TARGET)
+_C.OUTPUT.OUT_DIR = "./outputs"  # Output directory for experiment results and logs, auto-created if missing
+_C.OUTPUT.VERBOSE = False
+_C.OUTPUT.PB_FRESH = 0  # Number of steps before a new progress bar is printed. Set 0 to disable the progress bar
 
 
 def get_cfg_defaults():

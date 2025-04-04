@@ -27,6 +27,7 @@ def get_config(cfg):
             "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
             "init_lr": cfg.SOLVER.BASE_LR,
             "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
+            "num_workers": cfg.SOLVER.NUM_WORKERS,
             "optimizer": {
                 "type": cfg.SOLVER.TYPE,
                 "optim_params": {
