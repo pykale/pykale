@@ -2,13 +2,10 @@ DAN:
   METHOD: "M3SDA"
 DATASET:
   NAME: "office"
-  NUM_CLASSES: 10
+  NUM_CLASSES: 31
   ROOT: "../data/Office"
   TARGET: "amazon"
-  SOURCE: ["dslr", "webcam"]
+  SOURCE: ["webcam", "dslr"]
   NUM_REPEAT: 1
 SOLVER:
-  TRAIN_BATCH_SIZE: 100
-  TEST_BATCH_SIZE: 100
-OUTPUT:
-  OUT_DIR: "outputs/office_caltech/M3SDA/Tgt_amazon"
+  NUM_WORKERS: 4

@@ -10,7 +10,7 @@ on:
     branches: [main]
   schedule:
     # * is a special character in YAML, so you have to quote this string
-    - cron:  '0 0 * * *' # every midnight
+    - cron: "0 0 * * *" # every midnight
 
 jobs:
   test:
@@ -19,12 +19,12 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.8", "3.9", "3.10"] # list of Python versions to test
+        python-version: ["3.9", "3.10", "3.11"] # list of Python versions to test
         exclude:
           - os: windows-latest
-            python-version: "3.8"
-          - os: windows-latest
             python-version: "3.9"
+          - os: windows-latest
+            python-version: "3.10"
         include:
           - os: ubuntu-latest
             path: ~/.cache/pip
@@ -45,9 +45,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ matrix.path }}
-          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-20240705-${{ hashFiles('**/setup.py') }}
+          key: ${{ runner.os }}-python${{ matrix.python-version }}-pip-20250302-${{ hashFiles('**/setup.py') }}
           restore-keys: |
-            ${{ runner.os }}-python${{ matrix.python-version }}-pip-20240705-
+            ${{ runner.os }}-python${{ matrix.python-version }}-pip-20250302-
           # We have used a softer matching strategy for the full hash of setup.py, as recommended by GitHub.
           # See: https://github.com/davronaliyev/Cache-dependencies-in-GitHub-Actions/blob/main/examples.md#python---pip
           # This restores the cache first and then downloads any changed packages to avoid updating the cache with
@@ -58,6 +58,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install rdkit
+          pip install gdown
           pip install pyparsing==3.0.9
           pip install torch==2.1.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torchvision==0.16.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
@@ -81,7 +82,7 @@ jobs:
 
       - name: Download test data
         if: steps.cache_data.outputs.cache-hit != 'true'
-        run : |
+        run: |
           python tests/download_test_data.py
         shell: bash -l {0}
 

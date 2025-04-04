@@ -50,8 +50,8 @@ image_requires = [
 # Dependencies for all examples and tutorials
 example_requires = [
     "ipykernel",
-    "ipython<=8.12.0",  # IPython 8.13+ support Python 3.9+ only and IPython 8.0-8.12 supports Python 3.8+.
-    "matplotlib<=3.5.2",
+    "ipython",
+    "matplotlib<=3.10.0",  # matplotlib 3.10.1 will cause "Building wheel for matplotlib (setup.py): finished with status 'error'" for tests
     "nilearn>=0.7.0",
     "Pillow",
     "PyTDC",
@@ -129,7 +129,7 @@ setup(
         "Source": "https://github.com/pykale/pykale",
     },
     packages=find_packages(exclude=("docs", "examples", "tests")),
-    python_requires=">=3.8,<3.11",
+    python_requires=">=3.9,<3.12",
     install_requires=install_requires,
     extras_require={
         "graph": graph_requires,
@@ -138,7 +138,7 @@ setup(
         "full": full_requires,
         "dev": dev_requires,
     },
-    setup_requires=["setuptools==59.5.0"],
+    setup_requires=["setuptools==74.1.0"],
     license="MIT",
     keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
     classifiers=[
