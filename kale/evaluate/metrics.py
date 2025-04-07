@@ -45,6 +45,14 @@ def cross_entropy_logits(output, target, weights=None):
     return loss, is_correct
 
 
+def binary_cross_entropy(pred_output, labels):
+    loss_fct = torch.nn.BCELoss()
+    m = nn.Sigmoid()
+    n = torch.squeeze(m(pred_output), 1)
+    loss = loss_fct(n, labels)
+    return n, loss
+
+
 def topk_accuracy(output, target, topk=(1,)):
     """Computes the top-k accuracy for the specified values of k.
 

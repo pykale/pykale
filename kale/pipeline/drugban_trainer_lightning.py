@@ -20,8 +20,8 @@ from torch.nn import functional as F
 from torchmetrics import AUROC, AveragePrecision, MetricCollection
 
 from kale.embed.ban import RandomLayer
+from kale.evaluate.metrics import binary_cross_entropy, cross_entropy_logits
 from kale.pipeline.domain_adapter import GradReverse as ReverseLayerF
-from kale.predict.losses import binary_cross_entropy, cross_entropy_logits
 
 
 class DrugbanTrainer(pl.LightningModule):
