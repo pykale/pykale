@@ -16,12 +16,9 @@ from time import time
 
 import pandas as pd
 import torch
-from torch.utils.data import DataLoader
-
-sys.path.append("/home/jiang/PycharmProjects/pykale/")
-
 from comet_ml import Experiment
 from configs import get_cfg_defaults
+from torch.utils.data import DataLoader
 
 from kale.embed.ban import DrugBAN
 from kale.loaddata.drugban_datasets import DTIDataset, graph_collate_func, MultiDataLoader
