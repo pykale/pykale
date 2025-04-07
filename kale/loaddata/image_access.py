@@ -5,7 +5,7 @@ from enum import Enum
 
 import numpy as np
 import pydicom
-import torch
+from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 from kale.loaddata.dataset_access import DatasetAccess
@@ -194,7 +194,7 @@ class OfficeAccess(MultiDomainImageFolder, DatasetAccess):
     def download(path):
         """Download dataset.
         Office-31 source: https://www.cc.gatech.edu/~judy/domainadapt/#datasets_code
-        Caltech-256 source: http://www.vision.caltech.edu/Image_Datasets/Caltech256/
+        Caltech-256 source: https://data.caltech.edu/records/nyy15-4j048
         Data with this library is adapted from: http://www.stat.ucla.edu/~jxie/iFRAME/code/imageClassification.rar
         """
         url = "https://github.com/pykale/data/raw/main/images/office"
@@ -329,7 +329,7 @@ def get_cifar(cfg):
     else:
         raise NotImplementedError
 
-    train_loader = torch.utils.data.DataLoader(
+    train_loader = DataLoader(
         train_set,
         batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE,
         shuffle=True,
@@ -337,7 +337,7 @@ def get_cifar(cfg):
         pin_memory=True,
         drop_last=True,
     )
-    valid_loader = torch.utils.data.DataLoader(
+    valid_loader = DataLoader(
         valid_set,
         batch_size=cfg.SOLVER.TEST_BATCH_SIZE,
         shuffle=False,

@@ -24,6 +24,11 @@ def cross_entropy_logits(output, target, weights=None):
         target (Tensor): The ground truth label.
         weights (Tensor, optional): The weight of each sample. Defaults to None.
 
+    Returns:
+        loss (Tensor): The computed loss value.
+        is_correct (Tensor): A tensor of Boolean values. Each True in is_correct indicates a correctly predicted
+            label, while each False indicates an incorrect prediction.
+
     Examples:
         See DANN, WDGRL, and MMD trainers in kale.pipeline.domain_adapter
     """
@@ -31,13 +36,13 @@ def cross_entropy_logits(output, target, weights=None):
     class_output = F.log_softmax(output, dim=1)
     max_class = class_output.max(1)
     y_hat = max_class[1]  # get the index of the max log-probability
-    correct = y_hat.eq(target.view(target.size(0)).type_as(y_hat))
+    is_correct = y_hat.eq(target.view(target.size(0)).type_as(y_hat))
     if weights is None:
         loss = nn.NLLLoss()(class_output, target.type_as(y_hat).view(target.size(0)))
     else:
         losses = nn.NLLLoss(reduction="none")(class_output, target.type_as(y_hat).view(target.size(0)))
         loss = torch.sum(weights * losses) / torch.sum(weights)
-    return loss, correct
+    return loss, is_correct
 
 
 def binary_cross_entropy(output, target):
