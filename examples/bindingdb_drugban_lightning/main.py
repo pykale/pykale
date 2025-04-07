@@ -14,19 +14,16 @@ import argparse
 import os
 import sys
 import warnings
+from datetime import datetime
 from time import time
 
 import comet_ml
 import pandas as pd
-import torch
-from torch.utils.data import DataLoader
-
-sys.path.append("/home/jiang/PycharmProjects/pykale/")
-from datetime import datetime
-
 import pytorch_lightning as pl
+import torch
 from configs import get_cfg_defaults
 from pytorch_lightning.loggers import CometLogger, TensorBoardLogger
+from torch.utils.data import DataLoader
 
 from kale.embed.ban import DrugBAN
 from kale.loaddata.drugban_datasets import DTIDataset, graph_collate_func, MultiDataLoader

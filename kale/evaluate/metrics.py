@@ -46,6 +46,20 @@ def cross_entropy_logits(output, target, weights=None):
 
 
 def binary_cross_entropy(pred_output, labels):
+    """
+    Computes binary cross entropy loss from logits.
+
+    Args:
+        pred_output (Tensor): The output (logits) of the last layer of the network, before sigmoid.
+        labels (Tensor): The ground truth binary labels (0 or 1), of the same shape as the predictions.
+
+    Returns:
+        n (Tensor): The sigmoid output of the predictions.
+        loss (Tensor): The computed binary cross entropy loss.
+
+    Examples:
+        See DrugBANTrainer in kale.pipeline.drugban_trainer
+    """
     loss_fct = torch.nn.BCELoss()
     m = nn.Sigmoid()
     n = torch.squeeze(m(pred_output), 1)
