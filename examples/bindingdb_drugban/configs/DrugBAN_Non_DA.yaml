@@ -1,0 +1,17 @@
+SOLVER:
+  BATCH_SIZE: 32
+  MAX_EPOCH: 100
+  LR: 5e-5
+  SEED: 42
+
+DA:
+  TASK: True
+  USE: False
+
+DECODER:
+  BINARY: 2
+
+# Config below only when you use comet
+COMET:
+  PROJECT_NAME: "DrugBAN_Vanilla"
+  TAG: "Non_DA"

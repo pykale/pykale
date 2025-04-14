@@ -146,6 +146,43 @@ class DomainNetSmallImage(nn.Module):
         return x
 
 
+class Discriminator(DomainNetSmallImage):
+    """
+    A neural network discriminator model for distinguishing between source and target data.
+
+    This class inherits from the `DomainNetSmallImage` base class and is designed for use in adversarial networks.
+    The discriminator can be configured with a larger or smaller architecture depending on the `bigger_discrim` flag.
+
+    Args:
+        input_size (int, optional): The size of the input features. Default is 128.
+        n_class (int, optional): The number of output classes. Default is 1.
+        bigger_discrim (bool, optional): Determines whether to use a larger discriminator architecture. Default is True.
+
+    """
+
+    def __init__(self, input_size=128, n_class=1, bigger_discrim=True):
+        """
+        Initializes the Discriminator model.
+        """
+        super(Discriminator, self).__init__()
+
+        # Determine the output_size based on whether a larger discriminator is desired
+        output_size = 256 if bigger_discrim else 128
+
+        self.bigger_discrim = bigger_discrim
+
+        self.fc1 = nn.Linear(input_size, output_size)
+        self.bn1 = nn.BatchNorm1d(output_size)
+        self.relu1 = nn.ReLU()
+
+        # If bigger_discrim is True, maps output_size to output_size
+        # If False, maps output_size directly to the number of classes (n_class)
+        self.fc2 = nn.Linear(output_size, output_size) if bigger_discrim else nn.Linear(output_size, n_class)
+        self.bn2 = nn.BatchNorm1d(output_size)
+        self.relu2 = nn.ReLU()
+        self.fc3 = nn.Linear(output_size, n_class)
+
+
 # For Video/Action Recognition, DataClassifier.
 class ClassNetVideo(nn.Module):
     """Regular classifier network for video input.
