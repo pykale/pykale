@@ -19,12 +19,46 @@ from kale.prepdata.chem_transform import integer_label_protein
 
 
 def graph_collate_func(x):
+    """
+    Collate function for batching a list of samples (graph, protein, label).
+
+    Parameters
+    ----------
+    x : list of tuples
+        Each tuple contains (graph, protein_tensor, label).
+
+    Returns
+    -------
+    tuple
+        A tuple of:
+        - Batched graph as torch_geometric.data.Batch
+        - Tensor of protein sequences (batch_size, sequence_length)
+        - Tensor of labels (batch_size,)
+    """
     d, p, y = zip(*x)
     d = Batch.from_data_list(d)
     return d, torch.tensor(np.array(p)), torch.tensor(y)
 
 
 def smiles_to_graph(smiles, max_drug_nodes):
+    """
+    Converts a SMILES string into a PyG graph with atom and bond features,
+    and pads the graph to a fixed number of nodes.
+
+    Parameters
+    ----------
+    smiles : str
+        SMILES string representing a drug molecule.
+
+    max_drug_nodes : int
+        Maximum number of nodes for graph padding.
+
+    Returns
+    -------
+    graph : torch_geometric.data.Data
+        A graph object with atom features `x`, edge index `edge_index`,
+        edge attributes `edge_attr`, and fixed `num_nodes`.
+    """
     mol = Chem.MolFromSmiles(smiles)
 
     atom_features = []  # shape: (num_atoms, num_atom_features)
@@ -124,8 +158,7 @@ class DTIDataset(Dataset):
 
         Returns:
         --------
-        v_d : DGLGraph
-            A tensor representing the drug molecule, with node features and optional virtual nodes.
+        v_d : torch_geometric.data.Data
 
         v_p : torch.Tensor
             A tensor representing the encoded protein sequence.
