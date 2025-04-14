@@ -57,6 +57,7 @@ example_requires = [
     "yacs>=0.1.7",
     "pwlf",
     "xlsxwriter",
+    "prettytable",
 ]
 
 # Full dependencies except for development
