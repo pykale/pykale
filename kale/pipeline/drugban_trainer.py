@@ -45,7 +45,7 @@ class Trainer(object):
         optim (torch.optim.Optimizer): The optimizer for the model.
         device (torch.device): The device to run the training on (e.g., GPU or CPU).
         train_dataloader (DataLoader): DataLoader for training data.
-        val_dataloader (DataLoader): DataLoader for validation data.
+        valid_dataloader (DataLoader): DataLoader for validation data.
         test_dataloader (DataLoader): DataLoader for test data.
         opt_da (torch.optim.Optimizer, optional): The optimizer for domain adaptation (DA) if used.
         discriminator (nn.Module, optional): The domain discriminator used for DA if used.
@@ -62,7 +62,7 @@ class Trainer(object):
         optim,
         device,
         train_dataloader,
-        val_dataloader,
+        valid_dataloader,
         test_dataloader,
         opt_da=None,
         discriminator=None,
@@ -76,7 +76,7 @@ class Trainer(object):
         self.epochs = config["SOLVER"]["MAX_EPOCH"]
         self.current_epoch = 0
         self.train_dataloader = train_dataloader
-        self.val_dataloader = val_dataloader
+        self.valid_dataloader = valid_dataloader
         self.test_dataloader = test_dataloader
         self.is_da = config["DA"]["USE"]
         self.alpha = alpha
@@ -123,12 +123,12 @@ class Trainer(object):
         self.train_loss_epoch = []
         self.train_model_loss_epoch = []
         self.train_da_loss_epoch = []
-        self.val_loss_epoch, self.val_auroc_epoch = [], []
+        self.valid_loss_epoch, self.valid_auroc_epoch = [], []
         self.test_metrics = {}
         self.config = config
         self.output_dir = config["RESULT"]["OUTPUT_DIR"]
 
-        valid_metric_header = ["# Epoch", "AUROC", "AUPRC", "Val_loss"]
+        valid_metric_header = ["# Epoch", "AUROC", "AUPRC", "Valid_loss"]
         test_metric_header = [
             "# Best Epoch",
             "AUROC",
@@ -145,7 +145,7 @@ class Trainer(object):
             train_metric_header = ["# Epoch", "Train_loss"]
         else:
             train_metric_header = ["# Epoch", "Train_loss", "Model_loss", "epoch_lamb_da", "da_loss"]
-        self.val_table = PrettyTable(valid_metric_header)
+        self.valid_table = PrettyTable(valid_metric_header)
         self.test_table = PrettyTable(test_metric_header)
         self.train_table = PrettyTable(train_metric_header)
 
@@ -188,21 +188,21 @@ class Trainer(object):
                         self.experiment.log_metric("train_epoch da loss", da_loss, epoch=self.current_epoch)
             self.train_table.add_row(train_lst)
             self.train_loss_epoch.append(train_loss)
-            auroc, auprc, val_loss = self.test(dataloader="val")
+            auroc, auprc, valid_loss = self.test(dataloader="valid")
             if self.experiment:
-                self.experiment.log_metric("valid_epoch model loss", val_loss, epoch=self.current_epoch)
+                self.experiment.log_metric("valid_epoch model loss", valid_loss, epoch=self.current_epoch)
                 self.experiment.log_metric("valid_epoch auroc", auroc, epoch=self.current_epoch)
                 self.experiment.log_metric("valid_epoch auprc", auprc, epoch=self.current_epoch)
-            val_lst = ["epoch " + str(self.current_epoch)] + [f"{x:.4f}" for x in [auroc, auprc, val_loss]]
-            self.val_table.add_row(val_lst)
-            self.val_loss_epoch.append(val_loss)
-            self.val_auroc_epoch.append(auroc)
+            valid_lst = ["epoch " + str(self.current_epoch)] + [f"{x:.4f}" for x in [auroc, auprc, valid_loss]]
+            self.valid_table.add_row(valid_lst)
+            self.valid_loss_epoch.append(valid_loss)
+            self.valid_auroc_epoch.append(auroc)
             if auroc >= self.best_auroc:
                 self.best_model = copy.deepcopy(self.model)
                 self.best_auroc = auroc
                 self.best_epoch = self.current_epoch
             logging.info(
-                "Validation at Epoch " + str(self.current_epoch) + " with validation loss " + str(val_loss),
+                "Validation at Epoch " + str(self.current_epoch) + " with validation loss " + str(valid_loss),
                 " AUROC " + str(auroc) + " AUPRC " + str(auprc),
             )
         auroc, auprc, f1, sensitivity, specificity, accuracy, test_loss, thred_optim, precision = self.test(
@@ -277,7 +277,7 @@ class Trainer(object):
             torch.save(self.model.state_dict(), os.path.join(self.output_dir, f"model_epoch_{self.current_epoch}.pth"))
         state = {
             "train_epoch_loss": self.train_loss_epoch,
-            "val_epoch_loss": self.val_loss_epoch,
+            "valid_epoch_loss": self.valid_loss_epoch,
             "test_metrics": self.test_metrics,
             "config": self.config,
         }
@@ -289,11 +289,11 @@ class Trainer(object):
         torch.save(state, os.path.join(self.output_dir, "result_metrics.pt"))
 
         # ---- save markdown tables ----
-        val_prettytable_file = os.path.join(self.output_dir, "valid_markdowntable.txt")
+        valid_prettytable_file = os.path.join(self.output_dir, "valid_markdowntable.txt")
         test_prettytable_file = os.path.join(self.output_dir, "test_markdowntable.txt")
         train_prettytable_file = os.path.join(self.output_dir, "train_markdowntable.txt")
-        with open(val_prettytable_file, "w") as fp:
-            fp.write(self.val_table.get_string())
+        with open(valid_prettytable_file, "w") as fp:
+            fp.write(self.valid_table.get_string())
         with open(test_prettytable_file, "w") as fp:
             fp.write(self.test_table.get_string())
         with open(train_prettytable_file, "w") as fp:
@@ -327,11 +327,11 @@ class Trainer(object):
         self.model.train()
         loss_epoch = 0
         num_batches = len(self.train_dataloader)
-        for i, (v_d, v_p, labels) in enumerate(tqdm(self.train_dataloader)):
+        for i, (v_drug, v_protein, labels) in enumerate(tqdm(self.train_dataloader)):
             self.step += 1
-            v_d, v_p, labels = v_d.to(self.device), v_p.to(self.device), labels.float().to(self.device)
+            v_drug, v_protein, labels = v_drug.to(self.device), v_protein.to(self.device), labels.float().to(self.device)
             self.optim.zero_grad()
-            v_d, v_p, f, score = self.model(v_d, v_p)
+            v_drug, v_protein, f, score = self.model(v_drug, v_protein)
             if self.n_class == 1:
                 n, loss = binary_cross_entropy(score, labels)
             else:
@@ -368,16 +368,16 @@ class Trainer(object):
         num_batches = len(self.train_dataloader)
         for i, (batch_s, batch_t) in enumerate(tqdm(self.train_dataloader)):
             self.step += 1
-            v_d, v_p, labels = (
+            v_drug, v_protein, labels = (
                 batch_s[0].to(self.device),
                 batch_s[1].to(self.device),
                 batch_s[2].float().to(self.device),
             )
 
-            v_d_t, v_p_t = batch_t[0].to(self.device), batch_t[1].to(self.device)
+            v_drug_t, v_protein_t = batch_t[0].to(self.device), batch_t[1].to(self.device)
             self.optim.zero_grad()
             self.optim_da.zero_grad()
-            v_d, v_p, f, score = self.model(v_d, v_p)
+            v_drug, v_protein, f, score = self.model(v_drug, v_protein)
 
             if self.n_class == 1:
                 n, model_loss = binary_cross_entropy(score, labels)
@@ -387,7 +387,7 @@ class Trainer(object):
                 model_loss, _ = cross_entropy_logits(score, labels)
 
             if self.current_epoch >= self.da_init_epoch:
-                v_d_t, v_p_t, f_t, t_score = self.model(v_d_t, v_p_t)
+                v_drug_t, v_protein_t, f_t, t_score = self.model(v_drug_t, v_protein_t)
                 if self.da_method == "CDAN":
                     reverse_f = ReverseLayerF.apply(f, self.alpha)
                     softmax_output = torch.nn.Softmax(dim=1)(score)
@@ -489,26 +489,26 @@ class Trainer(object):
         Args:
             dataloader (str, optional): Specifies which dataset to use for evaluation.
                                         - "test": Uses the test dataset.
-                                        - "val": Uses the validation dataset.
+                                        - "valid": Uses the validation dataset.
                                         Default is "test".
         """
         test_loss = 0
         y_label, y_pred = [], []
         if dataloader == "test":
             data_loader = self.test_dataloader
-        elif dataloader == "val":
-            data_loader = self.val_dataloader
+        elif dataloader == "valid":
+            data_loader = self.valid_dataloader
         else:
             raise ValueError(f"Error key value {dataloader}")
         num_batches = len(data_loader)
         with torch.no_grad():
             self.model.eval()
-            for i, (v_d, v_p, labels) in enumerate(data_loader):
-                v_d, v_p, labels = v_d.to(self.device), v_p.to(self.device), labels.float().to(self.device)
-                if dataloader == "val":
-                    v_d, v_p, f, score = self.model(v_d, v_p)
+            for i, (v_drug, v_protein, labels) in enumerate(data_loader):
+                v_drug, v_protein, labels = v_drug.to(self.device), v_protein.to(self.device), labels.float().to(self.device)
+                if dataloader == "valid":
+                    v_drug, v_protein, f, score = self.model(v_drug, v_protein)
                 elif dataloader == "test":
-                    v_d, v_p, f, score = self.best_model(v_d, v_p)
+                    v_drug, v_protein, f, score = self.best_model(v_drug, v_protein)
                 if self.n_class == 1:
                     n, loss = binary_cross_entropy(score, labels)
                 else:

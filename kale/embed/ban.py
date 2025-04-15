@@ -67,15 +67,15 @@ class DrugBAN(nn.Module):
         )
         self.mlp_classifier = MLPDecoder(mlp_in_dim, mlp_hidden_dim, mlp_out_dim, binary=out_binary)
 
-    def forward(self, bg_d, v_p, mode="train"):
-        v_d = self.drug_extractor(bg_d)
-        v_p = self.protein_extractor(v_p)
-        f, att = self.bcn(v_d, v_p)
+    def forward(self, bg_d, v_protein, mode="train"):
+        v_drug = self.drug_extractor(bg_d)
+        v_protein = self.protein_extractor(v_protein)
+        f, att = self.bcn(v_drug, v_protein)
         score = self.mlp_classifier(f)
         if mode == "train":
-            return v_d, v_p, f, score
+            return v_drug, v_protein, f, score
         elif mode == "eval":
-            return v_d, v_p, score, att
+            return v_drug, v_protein, score, att
 
 
 class MolecularGCN(nn.Module):

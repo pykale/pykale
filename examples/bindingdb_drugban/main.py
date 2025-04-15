@@ -84,14 +84,14 @@ def main():
         and test sets with a 7:1:2 ratio.
         """
         train_path = os.path.join(dataFolder, "train.csv")
-        val_path = os.path.join(dataFolder, "val.csv")
+        valid_path = os.path.join(dataFolder, "val.csv")
         test_path = os.path.join(dataFolder, "test.csv")
         df_train = pd.read_csv(train_path)
-        df_val = pd.read_csv(val_path)
+        df_valid = pd.read_csv(valid_path)
         df_test = pd.read_csv(test_path)
 
         train_dataset = DTIDataset(df_train.index.values, df_train)
-        val_dataset = DTIDataset(df_val.index.values, df_val)
+        valid_dataset = DTIDataset(df_valid.index.values, df_valid)
         test_dataset = DTIDataset(df_test.index.values, df_test)
 
     else:
@@ -167,11 +167,11 @@ def main():
         params["drop_last"] = False
         if not cfg.DA.TASK:
             # If in-domain splitting strategy is used
-            val_generator = DataLoader(val_dataset, **params)
+            valid_generator = DataLoader(valid_dataset, **params)
             test_generator = DataLoader(test_dataset, **params)
         else:
             # If cross-domain splitting strategy is used
-            val_generator = DataLoader(test_target_dataset, **params)
+            valid_generator = DataLoader(test_target_dataset, **params)
             test_generator = DataLoader(test_target_dataset, **params)
     else:
         # If domain adaptation is used, and cross-domain splitting strategy is used
@@ -182,7 +182,7 @@ def main():
 
         params["shuffle"] = False
         params["drop_last"] = False
-        val_generator = DataLoader(test_target_dataset, **params)
+        valid_generator = DataLoader(test_target_dataset, **params)
         test_generator = DataLoader(test_target_dataset, **params)
 
     # ---- setup model and optimizer----
@@ -218,7 +218,7 @@ def main():
             opt,
             device,
             training_generator,
-            val_generator,
+            valid_generator,
             test_generator,
             opt_da=None,
             discriminator=None,
@@ -232,7 +232,7 @@ def main():
             opt,
             device,
             multi_generator,
-            val_generator,
+            valid_generator,
             test_generator,
             opt_da=opt_da,
             discriminator=domain_dmm,

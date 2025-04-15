@@ -56,41 +56,49 @@ All datasets should be organised as follows:
 
 ### Examples
 
-* Dataset: [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp), [BioSNAP](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets) or [Human](https://github.com/lifanchen-simm/transformerCPI?tab=readme-ov-file#data-sets)
-* Data Split: random or cold
-* Algorithm: DrugBAN
-* Example: BindingDB with random splitting using DrugBAN
+For in-domain prediction tasks using DrugBAN without domain adaptation, run the following command:
 
-`python main.py --cfg "configs/DrugBAN.yaml" --data bindingdb --split random`
+`python main.py --cfg "configs/non_DA_in_domain.yaml"`
 
+* `non_DA_in_domain.yaml` is a configuration file, and contains all changeable hyperparameters. It allows users to customize the model accordingly.
+* Change `DATA.DATASET` to fit your dataset directory. Available dataset examples are [`bindingdb`](https://www.bindingdb.org/rwd/bind/index.jsp), [`biosnap`](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets) and [`human`](https://github.com/lifanchen-simm/transformerCPI?tab=readme-ov-file#data-sets).
+* Change `DATA.SPLIT` to fit your data splitting strategy. 
 
-* Dataset: [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp) or [BioSNAP](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets)
-* Data Split: cluster
-* Algorithm: DrugBAN
-* Example: BindingDB with cluster splitting using DrugBAN
+<br>
 
-`python main.py --cfg "configs/DrugBAN_Non_DA.yaml" --data "bindingdb" --split "cluster"`
+For cross-domain prediction tasks using DrugBAN without domain adaptation, run the following command:
 
+`python main.py --cfg "configs/non_DA_cross_domain.yaml"`
 
-* Dataset: [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp) or [BioSNAP](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets)
-* Data Split: cluster
-* Algorithm: DrugBAN with CDAN
-* Example: BindingDB with cluster splitting using DrugBAN with CDAN
+* `non_DA_in_domain.yaml` is a configuration file, and contains all changeable hyperparameters. It allows users to customize the model accordingly.
+* Change `DATA.DATASET` to fit your dataset directory. Available dataset examples are [`bindingdb`](https://www.bindingdb.org/rwd/bind/index.jsp), [`biosnap`](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets).
 
-`python main.py --cfg "configs/DrugBAN_DA.yaml" --data "bindingdb" --split "cluster"`
+<br>
+
+For cross-domain prediction tasks using DrugBAN with domain adaptation, run the following command:
+
+`python main.py --cfg "configs/DA_cross_domain.yaml"`
+
+* `DA_cross_domain.yaml` is a configuration file, and contains all changeable hyperparameters. It allows users to customize the model accordingly.
+* Change `DATA.DATASET` to fit your dataset directory. Available dataset examples are [`bindingdb`](https://www.bindingdb.org/rwd/bind/index.jsp), [`biosnap`](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets).
+
 
 ### 3. Related `kale` API
 
 `kale.embed.ban`: Extract features from drugs using GCN and proteins using CNN, fuse them with bilinear attention, and predict interactions.
 
-`kale.loaddata.drugban_datasets`: Data loaders for DrugBAN datasets.
+`kale.loaddata.molecular_datasets.py`: Data loaders for DrugBAN datasets.
 
-`kale.pipeline.drugban_trainer`: Pipelines for drug-target interaction prediction.
-
-`kale.predict.class_domain_nets`: Classifier for domain.
-
-`kale.prepdata.chem_transform`: Encode protein sequences.
+`kale.pipeline.drugban_trainer`: Pipelines for drug-target interaction prediction. Conditional domain adversarial network (CDAN) can be applied for cross-domain prediction tasks.
 
 `kale.pipeline.domain_adapter`: Gradient reversal layer (GRL) for domain adaptation.
 
+`kale.predict.class_domain_nets`: Classifier for domain.
+
 `kale.predict.losses`: Compute different types of loss functions for neural network outputs.
+
+`kale.prepdata.chem_transform`: Encode protein sequences.
+
+
+
+

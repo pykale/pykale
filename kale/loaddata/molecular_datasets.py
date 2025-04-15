@@ -124,10 +124,10 @@ class DTIDataset(Dataset):
 
         Returns:
         --------
-        v_d : DGLGraph
+        v_drug : DGLGraph
             A tensor representing the drug molecule, with node features and optional virtual nodes.
 
-        v_p : torch.Tensor
+        v_protein : torch.Tensor
             A tensor representing the encoded protein sequence.
 
         y : float
@@ -138,14 +138,14 @@ class DTIDataset(Dataset):
         index = self.list_IDs[index]
 
         # Get SMILES
-        v_d = self.df.iloc[index]["SMILES"]
-        v_d = smiles_to_graph(smiles=v_d, max_drug_nodes=self.max_drug_nodes)
+        v_drug = self.df.iloc[index]["SMILES"]
+        v_drug = smiles_to_graph(smiles=v_drug, max_drug_nodes=self.max_drug_nodes)
 
         # Extract the protein sequence and convert it to a tensor of integers
-        v_p = self.df.iloc[index]["Protein"]
-        v_p = integer_label_protein(v_p)
+        v_protein = self.df.iloc[index]["Protein"]
+        v_protein = integer_label_protein(v_protein)
 
         # Extract the label
         y = self.df.iloc[index]["Y"]
 
-        return v_d, v_p, y
+        return v_drug, v_protein, y
