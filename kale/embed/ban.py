@@ -33,6 +33,10 @@ class DrugBAN(nn.Module):
 
     Args:
         config (dict): A dictionary containing the configuration parameters for the model.
+
+    Reference:
+    Bai, P., Miljković, F., John, B. et al. Interpretable bilinear attention network with domain
+    adaptation improves drug–target prediction. Nat Mach Intell 5, 126–136 (2023).
     """
 
     def __init__(self, **config):

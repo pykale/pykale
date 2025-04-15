@@ -1,7 +1,13 @@
+# This is for in-domain experiments using DrugBAN without domain adaptation.
+
+DATA:
+  DATASET: "bindingdb"  # bindingdb, biosnap, human
+  SPLIT: "random"       # random, cold
+
 SOLVER:
   BATCH_SIZE: 64
   MAX_EPOCH: 100
-  LR: 5e-5
+  LEARNING_RATE: 5e-5
   SEED: 42
 
 DA:

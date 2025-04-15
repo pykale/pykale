@@ -22,7 +22,8 @@ from torch.utils.data import DataLoader
 
 sys.path.append("/home/jiang/PycharmProjects/pykale")
 from kale.embed.ban import DrugBAN
-from kale.loaddata.drugban_datasets import DTIDataset, graph_collate_func, MultiDataLoader
+from kale.loaddata.molecular_datasets import DTIDataset, graph_collate_func
+from kale.loaddata.sampler import MultiDataLoader
 from kale.pipeline.drugban_trainer import Trainer
 from kale.predict.class_domain_nets import Discriminator
 from kale.utils.seed import set_seed
@@ -32,10 +33,6 @@ def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="DrugBAN for DTI prediction")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    parser.add_argument("--data", required=True, type=str, metavar="TASK", help="dataset")
-    parser.add_argument(
-        "--split", default="random", type=str, metavar="S", help="split task", choices=["random", "cold", "cluster"]
-    )
     args = parser.parse_args()
     return args
 
@@ -77,8 +74,8 @@ def main():
     print(f"Running on: {device}", end="\n\n")
 
     # ---- setup dataset ----
-    dataFolder = f"./datasets/{args.data}"
-    dataFolder = os.path.join(dataFolder, str(args.split))
+    dataFolder = f"./datasets/{cfg.DATA.DATASET}"
+    dataFolder = os.path.join(dataFolder, str(cfg.DATA.SPLIT))
 
     if not cfg.DA.TASK:
         """
@@ -134,7 +131,7 @@ def main():
             auto_metric_logging=False,
         )
         hyper_params = {
-            "LR": cfg.SOLVER.LR,
+            "LR": cfg.SOLVER.LEARNING_RATE,
             "Output_dir": cfg.RESULT.OUTPUT_DIR,
             "DA_use": cfg.DA.USE,
             "DA_task": cfg.DA.TASK,
@@ -145,13 +142,13 @@ def main():
                 "Use_DA_entropy": cfg.DA.USE_ENTROPY,
                 "Random_layer": cfg.DA.RANDOM_LAYER,
                 "Original_random": cfg.DA.ORIGINAL_RANDOM,
-                "DA_optim_lr": cfg.SOLVER.DA_LR,
+                "DA_optim_lr": cfg.SOLVER.DA_LEARNING_RATE,
             }
             hyper_params.update(da_hyper_params)
         experiment.log_parameters(hyper_params)
         if cfg.COMET.TAG is not None:
             experiment.add_tag(cfg.COMET.TAG)
-        experiment.set_name(f"{args.data}_{suffix}")
+        experiment.set_name(f"{cfg.DATA.DATASET}_{suffix}")
 
     # ---- setup dataloader params ----
     params = {
@@ -204,12 +201,12 @@ def main():
         # params = list(model.parameters()) + list(domain_dmm.parameters())
 
         # Initialize the optimizer for the DrugBAN model
-        opt = torch.optim.Adam(model.parameters(), lr=cfg.SOLVER.LR)
+        opt = torch.optim.Adam(model.parameters(), lr=cfg.SOLVER.LEARNING_RATE)
         # Initialize the optimizer for the Domain Discriminator model
-        opt_da = torch.optim.Adam(domain_dmm.parameters(), lr=cfg.SOLVER.DA_LR)
+        opt_da = torch.optim.Adam(domain_dmm.parameters(), lr=cfg.SOLVER.DA_LEARNING_RATE)
     else:
         # If domain adaptation is not used, only initialize the optimizer for the DrugBAN model
-        opt = torch.optim.Adam(model.parameters(), lr=cfg.SOLVER.LR)
+        opt = torch.optim.Adam(model.parameters(), lr=cfg.SOLVER.LEARNING_RATE)
 
     torch.backends.cudnn.benchmark = True
 

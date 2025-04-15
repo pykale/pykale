@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch_geometric.data import Batch, Data
 
-from kale.loaddata.drugban_datasets import DTIDataset, graph_collate_func, MultiDataLoader
+from kale.loaddata.molecular_datasets import DTIDataset, graph_collate_func
 
 
 @pytest.fixture(scope="module")
@@ -28,11 +28,6 @@ def dataset(sample_data):
 @pytest.fixture
 def dataloader(dataset):
     return DataLoader(dataset, batch_size=2, shuffle=True, collate_fn=graph_collate_func)
-
-
-@pytest.fixture
-def multidataloader(dataloader):
-    return MultiDataLoader(dataloaders=[dataloader, dataloader], n_batches=2)
 
 
 def test_dataset_length(dataset):
@@ -63,23 +58,3 @@ def test_graph_collate_func(dataloader):
         assert proteins.shape[0] == 2
         assert labels.shape[0] == 2
         break
-
-
-def test_multidataloader_length(multidataloader):
-    assert len(multidataloader) == 2
-
-
-def test_multidataloader_iteration(multidataloader):
-    for batch_group in multidataloader:
-        assert len(batch_group) == 2
-
-        for graph, protein, label in batch_group:
-            assert isinstance(graph, Batch)
-            assert isinstance(protein, torch.Tensor)
-            assert isinstance(label, torch.Tensor)
-        break
-
-
-def test_multidataloader_with_zero_batches():
-    with pytest.raises(ValueError, match="n_batches should be > 0"):
-        MultiDataLoader(dataloaders=[], n_batches=0)

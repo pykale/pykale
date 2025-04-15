@@ -19,46 +19,12 @@ from kale.prepdata.chem_transform import integer_label_protein
 
 
 def graph_collate_func(x):
-    """
-    Collate function for batching a list of samples (graph, protein, label).
-
-    Parameters
-    ----------
-    x : list of tuples
-        Each tuple contains (graph, protein_tensor, label).
-
-    Returns
-    -------
-    tuple
-        A tuple of:
-        - Batched graph as torch_geometric.data.Batch
-        - Tensor of protein sequences (batch_size, sequence_length)
-        - Tensor of labels (batch_size,)
-    """
     d, p, y = zip(*x)
     d = Batch.from_data_list(d)
     return d, torch.tensor(np.array(p)), torch.tensor(y)
 
 
 def smiles_to_graph(smiles, max_drug_nodes):
-    """
-    Converts a SMILES string into a PyG graph with atom and bond features,
-    and pads the graph to a fixed number of nodes.
-
-    Parameters
-    ----------
-    smiles : str
-        SMILES string representing a drug molecule.
-
-    max_drug_nodes : int
-        Maximum number of nodes for graph padding.
-
-    Returns
-    -------
-    graph : torch_geometric.data.Data
-        A graph object with atom features `x`, edge index `edge_index`,
-        edge attributes `edge_attr`, and fixed `num_nodes`.
-    """
     mol = Chem.MolFromSmiles(smiles)
 
     atom_features = []  # shape: (num_atoms, num_atom_features)
@@ -158,7 +124,8 @@ class DTIDataset(Dataset):
 
         Returns:
         --------
-        v_d : torch_geometric.data.Data
+        v_d : DGLGraph
+            A tensor representing the drug molecule, with node features and optional virtual nodes.
 
         v_p : torch.Tensor
             A tensor representing the encoded protein sequence.
@@ -182,69 +149,3 @@ class DTIDataset(Dataset):
         y = self.df.iloc[index]["Y"]
 
         return v_d, v_p, y
-
-
-# train_path = os.path.join("/home/jiang/PycharmProjects/pykale/examples/bindingdb_drugban/datasets/biosnap/random", "train.csv")
-# df_train = pd.read_csv(train_path)
-# train_dataset = DTIDataset(df_train.index.values, df_train).__getitem__(index=1)
-
-
-class MultiDataLoader(object):
-    """
-     A class to iterate over multiple DataLoader objects in parallel.
-
-
-    Args:
-        _dataloaders (list): A list of DataLoader objects.
-        _n_batches (int): The number of batches to iterate over.
-        _iterators (list): A list of iterators corresponding to the DataLoaders.
-
-    """
-
-    def __init__(self, dataloaders, n_batches):
-        """Initialise the MultiDataLoader
-
-        Args:
-            dataloaders (list): A list of DataLoader objects to iterate over.
-            n_batches (int): The number of batches to iterate. Must be greater than 0.
-
-        Raises:
-            ValueError: If n_batches is less than or equal to 0.
-        """
-        if n_batches <= 0:
-            raise ValueError("n_batches should be > 0")
-        self._dataloaders = dataloaders
-        self._n_batches = np.maximum(1, n_batches)
-        self._init_iterators()
-
-    def _init_iterators(self):
-        """Initializes iterators for each DataLoader."""
-        self._iterators = [iter(dl) for dl in self._dataloaders]
-
-    def _get_nexts(self):
-        """Get the next batch from each DataLoader."""
-
-        def _get_next_dl_batch(di, dl):
-            try:
-                batch = next(dl)
-            except StopIteration:
-                new_dl = iter(self._dataloaders[di])
-                self._iterators[di] = new_dl
-                batch = next(new_dl)
-            return batch
-
-        return [_get_next_dl_batch(di, dl) for di, dl in enumerate(self._iterators)]
-
-    def __iter__(self):
-        """Iterates over the DataLoader objects
-
-        Yields:
-            list: A list of batches, one from each DataLoader, in each iteration.
-        """
-        for _ in range(self._n_batches):
-            yield self._get_nexts()
-        self._init_iterators()
-
-    def __len__(self):
-        """Returns the number of batches"""
-        return self._n_batches
