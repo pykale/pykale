@@ -63,8 +63,6 @@ def smiles_to_graph(smiles, max_drug_nodes):
     if edge_features.ndim == 1:
         edge_features = edge_features.unsqueeze(-1)
 
-    # Note: one-hot encoding is used for atom and bond features in dgl, while pyG uses float
-
     # ======== Padding: Add virtual nodes ===========
     num_actual_nodes = atom_features.size(0)
     if num_actual_nodes < max_drug_nodes:
@@ -124,8 +122,8 @@ class DTIDataset(Dataset):
 
         Returns:
         --------
-        v_drug : DGLGraph
-            A tensor representing the drug molecule, with node features and optional virtual nodes.
+        v_drug : torch_geometric.data.Data
+            A PyG Data object representing the drug molecule, with node features and optional virtual nodes.
 
         v_protein : torch.Tensor
             A tensor representing the encoded protein sequence.
