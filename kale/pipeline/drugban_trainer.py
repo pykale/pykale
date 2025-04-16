@@ -329,7 +329,11 @@ class Trainer(object):
         num_batches = len(self.train_dataloader)
         for i, (v_drug, v_protein, labels) in enumerate(tqdm(self.train_dataloader)):
             self.step += 1
-            v_drug, v_protein, labels = v_drug.to(self.device), v_protein.to(self.device), labels.float().to(self.device)
+            v_drug, v_protein, labels = (
+                v_drug.to(self.device),
+                v_protein.to(self.device),
+                labels.float().to(self.device),
+            )
             self.optim.zero_grad()
             v_drug, v_protein, f, score = self.model(v_drug, v_protein)
             if self.n_class == 1:
@@ -504,7 +508,11 @@ class Trainer(object):
         with torch.no_grad():
             self.model.eval()
             for i, (v_drug, v_protein, labels) in enumerate(data_loader):
-                v_drug, v_protein, labels = v_drug.to(self.device), v_protein.to(self.device), labels.float().to(self.device)
+                v_drug, v_protein, labels = (
+                    v_drug.to(self.device),
+                    v_protein.to(self.device),
+                    labels.float().to(self.device),
+                )
                 if dataloader == "valid":
                     v_drug, v_protein, f, score = self.model(v_drug, v_protein)
                 elif dataloader == "test":
