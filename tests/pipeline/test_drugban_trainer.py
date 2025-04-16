@@ -20,9 +20,9 @@ def mock_data():
 def dataloaders(mock_data):
     # Create DataLoaders for train, validation, and test sets.
     train_loader = DataLoader(mock_data, batch_size=4)
-    val_loader = DataLoader(mock_data, batch_size=4)
+    valid_loader = DataLoader(mock_data, batch_size=4)
     test_loader = DataLoader(mock_data, batch_size=4)
-    return train_loader, val_loader, test_loader
+    return train_loader, valid_loader, test_loader
 
 
 @pytest.fixture
@@ -149,13 +149,13 @@ def testing_DA_cfg():
 @pytest.fixture
 def trainer(mock_model, optimiser, dataloaders, testing_cfg):
     # Create a Trainer instance for testing.
-    train_loader, val_loader, test_loader = dataloaders
+    train_loader, valid_loader, test_loader = dataloaders
     return Trainer(
         model=mock_model,
         optim=optimiser,
         device=torch.device("cpu"),
         train_dataloader=train_loader,
-        val_dataloader=val_loader,
+        valid_dataloader=valid_loader,
         test_dataloader=test_loader,
         **testing_cfg,
     )
@@ -170,7 +170,7 @@ class TestTrainer:
 
     def test_test(self, trainer):
         # Test the model evaluation function.
-        auroc, auprc, test_loss = trainer.test(dataloader="val")
+        auroc, auprc, test_loss = trainer.test(dataloader="valid")
         assert isinstance(auroc, float)
         assert isinstance(auprc, float)
         assert isinstance(test_loss, float)
