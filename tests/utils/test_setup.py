@@ -1,6 +1,8 @@
+from unittest.mock import MagicMock, patch
+
 import torch
-from unittest.mock import patch, MagicMock
-from kale.utils.setup import setup_device, setup_comet
+
+from kale.utils.setup import setup_comet, setup_device
 
 
 def test_setup_device_cpu(monkeypatch):
@@ -38,7 +40,7 @@ def test_setup_comet_with_params(mock_experiment_cls):
         workspace="test_user",
         log_params={"lr": 0.01},
         experiment_tag="unit-test",
-        experiment_name="Test Experiment"
+        experiment_name="Test Experiment",
     )
 
     mock_experiment_cls.assert_called_once_with(api_key="dummy", project_name="test", workspace="test_user")

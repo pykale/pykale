@@ -19,12 +19,60 @@ from kale.prepdata.chem_transform import integer_label_protein
 
 
 def graph_collate_func(x):
-    d, p, y = zip(*x)
-    d = Batch.from_data_list(d)
-    return d, torch.tensor(np.array(p)), torch.tensor(y)
+    """
+    Custom collate function for PyTorch DataLoader to batch drug-protein interaction samples.
+
+    Each sample in the input list `x` is a tuple containing:
+        - a PyTorch Geometric `Data` object representing a drug molecular graph,
+        - a protein sequence represented as a tensor or array,
+        - a label (e.g., interaction score or binary classification target).
+
+    This function:
+        - batches the molecular graphs using `Batch.from_data_list`,
+        - stacks the protein tensors into a single tensor,
+        - stacks the labels into a single tensor.
+
+    Parameters:
+    -----------
+    x : list of tuples
+        Each tuple contains (drug_graph, protein_tensor, label).
+
+    Returns:
+    --------
+    drug : torch_geometric.data.Batch
+        A batched PyTorch Geometric Batch object of drug molecular graphs.
+
+    protein : torch.Tensor
+        A 2D tensor of protein sequence features, shape (batch_size, sequence_length).
+
+    label : torch.Tensor
+        A 1D or 2D tensor of labels, depending on the task.
+    """
+    drug, protein, label = zip(*x)
+    drug = Batch.from_data_list(drug)
+    return drug, torch.tensor(np.array(protein)), torch.tensor(label)
 
 
 def smiles_to_graph(smiles, max_drug_nodes):
+    """
+    Converts a SMILES string into a padded PyTorch Geometric molecular graph.
+
+    Parameters
+    ----------
+    smiles : str
+        SMILES representation of a molecule.
+    max_drug_nodes : int
+        Maximum number of nodes in the graph. If the actual number is smaller, virtual (zero-feature) nodes are added.
+
+    Returns
+    -------
+    Data
+        A PyTorch Geometric `Data` object containing:
+        - x: Node feature matrix
+        - edge_index: Edge connectivity
+        - edge_attr: Edge feature matrix
+        - num_nodes: Total number of nodes (including virtual nodes)
+    """
     mol = Chem.MolFromSmiles(smiles)
 
     atom_features = []  # shape: (num_atoms, num_atom_features)

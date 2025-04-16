@@ -3,12 +3,44 @@ from comet_ml import Experiment
 
 
 def setup_device():
+    """
+    Sets up the computing device for PyTorch operations.
+
+    Returns
+    -------
+    torch.device
+        A CUDA device if available, otherwise CPU.
+
+    Notes
+    -----
+    Also calls `torch.cuda.empty_cache()` to clear any cached GPU memory.
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.cuda.empty_cache()
     return device
 
 
 def setup_comet(**params):
+    """
+    Initializes and configures a Comet ML Experiment for logging.
+
+    Parameters
+    ----------
+    **params : dict
+        Keyword arguments for creating the `Experiment` object.
+        Special keys:
+        - 'log_params' : dict, optional
+            Hyperparameters or settings to log to the experiment.
+        - 'experiment_tag' : str, optional
+            Tag to assign to the experiment.
+        - 'experiment_name' : str, optional
+            Name to assign to the experiment.
+
+    Returns
+    -------
+    comet_ml.Experiment
+        A configured Comet ML Experiment object, ready for logging.
+    """
     log_params = params.pop("log_params", None)
     experiment_tag = params.pop("experiment_tag", None)
     experiment_name = params.pop("experiment_name", None)
