@@ -45,7 +45,15 @@ def setup_comet(**params):
     experiment_tag = params.pop("experiment_tag", None)
     experiment_name = params.pop("experiment_name", None)
 
-    experiment = Experiment(**params)
+    experiment = Experiment(
+        auto_output_logging="simple",
+        log_code=False,
+        log_git_metadata=False,
+        log_git_patch=False,
+        auto_param_logging=False,
+        auto_metric_logging=False,
+        **params,
+    )
 
     if log_params:
         experiment.log_parameters(log_params)

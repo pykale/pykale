@@ -31,6 +31,7 @@ from tqdm import tqdm
 from kale.embed.ban import RandomLayer
 from kale.evaluate.metrics import binary_cross_entropy, cross_entropy_logits, entropy_logits
 from kale.pipeline.domain_adapter import GradReverse as ReverseLayerF
+from kale.predict.class_domain_nets import Discriminator
 
 
 class Trainer(object):
@@ -42,13 +43,10 @@ class Trainer(object):
 
     Args:
         model (torch.nn.Module): The model to be trained.
-        optim (torch.optim.Optimizer): The optimizer for the model.
         device (torch.device): The device to run the training on (e.g., GPU or CPU).
         train_dataloader (DataLoader): DataLoader for training data.
         valid_dataloader (DataLoader): DataLoader for validation data.
         test_dataloader (DataLoader): DataLoader for test data.
-        opt_da (torch.optim.Optimizer, optional): The optimizer for domain adaptation (DA) if used.
-        discriminator (nn.Module, optional): The domain discriminator used for DA if used.
         experiment (CometExperiment, optional): An experiment logger for Comet ML to log metrics.
         alpha (float): A coefficient for controlling the influence of the DA component.
         config (dict): Configuration dictionary containing model, DA, and training settings.
@@ -59,19 +57,17 @@ class Trainer(object):
     def __init__(
         self,
         model,
-        optim,
         device,
         train_dataloader,
         valid_dataloader,
         test_dataloader,
-        opt_da=None,
-        discriminator=None,
         experiment=None,
         alpha=1,
         **config,
     ):
         self.model = model
-        self.optim = optim
+        self.optim = None
+        self.optim_da = None
         self.device = device
         self.epochs = config["SOLVER"]["MAX_EPOCH"]
         self.current_epoch = 0
@@ -82,12 +78,37 @@ class Trainer(object):
         self.alpha = alpha
         self.n_class = config["DECODER"]["BINARY"]
 
-        if opt_da:
-            self.optim_da = opt_da
+        # ---- setup domain adaption model and optimizer ----
+        if self.is_da:  # If domain adaptation is used
+            if config["DA"]["RANDOM_LAYER"]:
+                domain_dmm = Discriminator(
+                    input_size=config["DA"]["RANDOM_DIM"], n_class=config["DECODER"]["BINARY"]
+                ).to(
+                    device
+                )  # Initialize the Discriminator with an input size from the random dimension specified in the config
+            else:
+                domain_dmm = Discriminator(
+                    input_size=config["DECODER"]["IN_DIM"] * config["DECODER"]["BINARY"],
+                    n_class=config["DECODER"]["BINARY"],
+                ).to(
+                    device
+                )  # Initialize the Discriminator with an input size derived from the decoder's input dimension
+            self.optim = torch.optim.Adam(
+                model.parameters(), lr=config["SOLVER"]["LEARNING_RATE"]
+            )  # Initialize the optimizer for the DrugBAN model
+            self.optim_da = torch.optim.Adam(
+                domain_dmm.parameters(), lr=config["SOLVER"]["DA_LEARNING_RATE"]
+            )  # Initialize the optimizer for the Domain Discriminator model
+        else:
+            self.optim = torch.optim.Adam(
+                model.parameters(), lr=config["SOLVER"]["LEARNING_RATE"]
+            )  # If domain adaptation is not used, only initialize the optimizer for the DrugBAN model
+
+        # ----- setup random layer in domain adapation model -----
         if self.is_da:
             """If domain adaptation is used"""
             self.da_method = config["DA"]["METHOD"]
-            self.domain_dmm = discriminator
+            self.domain_dmm = domain_dmm
 
             if config["DA"]["RANDOM_LAYER"] and not config["DA"]["ORIGINAL_RANDOM"]:
                 self.random_layer = nn.Linear(

@@ -16,6 +16,7 @@ from time import time
 
 import pandas as pd
 import torch
+from comet_ml.config import experiment
 from configs import get_cfg_defaults
 from torch.utils.data import DataLoader
 
@@ -23,7 +24,6 @@ from kale.embed.ban import DrugBAN
 from kale.loaddata.molecular_datasets import DTIDataset, graph_collate_func
 from kale.loaddata.sampler import MultiDataLoader
 from kale.pipeline.drugban_trainer import Trainer
-from kale.predict.class_domain_nets import Discriminator
 from kale.utils.seed import set_seed
 from kale.utils.setup import setup_comet, setup_device
 
@@ -58,24 +58,15 @@ def main():
 
     # ---- setup dataset ----
     dataFolder = os.path.join(f"./datasets/{cfg.DATA.DATASET}", str(cfg.DATA.SPLIT))
+    names = ["train", "val", "test"] if not cfg.DA.TASK else ["source_train", "target_train", "target_test"]
+    datasets = [DTIDataset(df.index, df) for df in [pd.read_csv(os.path.join(dataFolder, f"{n}.csv")) for n in names]]
     if not cfg.DA.TASK:
-        df_train = pd.read_csv(os.path.join(dataFolder, "train.csv"))
-        df_valid = pd.read_csv(os.path.join(dataFolder, "val.csv"))
-        df_test = pd.read_csv(os.path.join(dataFolder, "test.csv"))
-
-        train_dataset = DTIDataset(df_train.index.values, df_train)
-        valid_dataset = DTIDataset(df_valid.index.values, df_valid)
-        test_dataset = DTIDataset(df_test.index.values, df_test)
+        train_dataset, valid_dataset, test_dataset = datasets
     else:
-        df_train_source = pd.read_csv(os.path.join(dataFolder, "source_train.csv"))
-        df_train_target = pd.read_csv(os.path.join(dataFolder, "target_train.csv"))
-        df_test_target = pd.read_csv(os.path.join(dataFolder, "target_test.csv"))
-
-        train_dataset = DTIDataset(df_train_source.index.values, df_train_source)
-        train_target_dataset = DTIDataset(df_train_target.index.values, df_train_target)
-        test_target_dataset = DTIDataset(df_test_target.index.values, df_test_target)
+        train_dataset, train_target_dataset, test_target_dataset = datasets
 
     # ---- setup comet ----
+    experiment = None
     if cfg.COMET.USE:
         hyper_params = {
             "LR": cfg.SOLVER.LEARNING_RATE,
@@ -97,18 +88,12 @@ def main():
         experiment = setup_comet(
             api_key=cfg.COMET.API_KEY,
             project_name=cfg.COMET.PROJECT_NAME,
-            auto_output_logging="simple",
-            log_code=False,
-            log_git_metadata=False,
-            log_git_patch=False,
-            auto_param_logging=False,
-            auto_metric_logging=False,
             log_params=hyper_params,
             experiment_tag=cfg.COMET.TAG,
             experiment_name=f"{cfg.DATA.DATASET}_{suffix}",
         )
 
-    # ---- setup dataloader params ----
+    # ---- setup dataloader ----
     params = {
         "batch_size": cfg.SOLVER.BATCH_SIZE,
         "shuffle": True,
@@ -117,81 +102,44 @@ def main():
         "collate_fn": graph_collate_func,
     }
 
-    # ---- setup dataloader ----
     if not cfg.DA.USE:  # If domain adaptation is not used
         training_generator = DataLoader(train_dataset, **params)
-        params["shuffle"] = False
-        params["drop_last"] = False
-        if not cfg.DA.TASK:  # If in-domain splitting strategy is used
-            valid_generator = DataLoader(valid_dataset, **params)
-            test_generator = DataLoader(test_dataset, **params)
-        else:  # If cross-domain splitting strategy is used
-            valid_generator = DataLoader(test_target_dataset, **params)
-            test_generator = DataLoader(test_target_dataset, **params)
+        params.update(shuffle=False, drop_last=False)
+        data = (valid_dataset, test_dataset) if not cfg.DA.TASK else (test_target_dataset, test_target_dataset)
+        valid_generator, test_generator = [DataLoader(d, **params) for d in data]
     else:  # If domain adaptation is used, and cross-domain splitting strategy is used
         source_generator = DataLoader(train_dataset, **params)
         target_generator = DataLoader(train_target_dataset, **params)
-        n_batches = max(len(source_generator), len(target_generator))
-        multi_generator = MultiDataLoader(dataloaders=[source_generator, target_generator], n_batches=n_batches)
-
-        params["shuffle"] = False
-        params["drop_last"] = False
-        valid_generator = DataLoader(test_target_dataset, **params)
-        test_generator = DataLoader(test_target_dataset, **params)
+        multi_generator = MultiDataLoader(
+            dataloaders=[source_generator, target_generator],
+            n_batches=max(len(source_generator), len(target_generator)),
+        )
+        params.update(shuffle=False, drop_last=False)
+        valid_generator = test_generator = DataLoader(test_target_dataset, **params)
 
     # ---- setup model and optimizer----
     model = DrugBAN(**cfg).to(device)
 
-    if cfg.DA.USE:  # If domain adaptation is used
-        if cfg["DA"]["RANDOM_LAYER"]:
-            domain_dmm = Discriminator(input_size=cfg["DA"]["RANDOM_DIM"], n_class=cfg["DECODER"]["BINARY"]).to(
-                device
-            )  # Initialize the Discriminator with an input size from the random dimension specified in the config
-        else:
-            domain_dmm = Discriminator(
-                input_size=cfg["DECODER"]["IN_DIM"] * cfg["DECODER"]["BINARY"], n_class=cfg["DECODER"]["BINARY"]
-            ).to(
-                device
-            )  # Initialize the Discriminator with an input size derived from the decoder's input dimension
-        opt = torch.optim.Adam(
-            model.parameters(), lr=cfg.SOLVER.LEARNING_RATE
-        )  # Initialize the optimizer for the DrugBAN model
-        opt_da = torch.optim.Adam(
-            domain_dmm.parameters(), lr=cfg.SOLVER.DA_LEARNING_RATE
-        )  # Initialize the optimizer for the Domain Discriminator model
-    else:
-        opt = torch.optim.Adam(
-            model.parameters(), lr=cfg.SOLVER.LEARNING_RATE
-        )  # If domain adaptation is not used, only initialize the optimizer for the DrugBAN model
-
     torch.backends.cudnn.benchmark = True
 
     # ---- setup trainer ----
-    if not cfg.DA.USE:
-        # If domain adaptation is not used
+    if not cfg.DA.USE:  # If domain adaptation is not used
         trainer = Trainer(
             model,
-            opt,
             device,
             training_generator,
             valid_generator,
             test_generator,
-            opt_da=None,
-            discriminator=None,
             experiment=experiment,
             **cfg,
         )
-    else:
-        # If domain adaptation is used
+    else:  # If domain adaptation is used
         trainer = Trainer(
             model,
-            opt,
             device,
             multi_generator,
             valid_generator,
             test_generator,
-            opt_da=opt_da,
-            discriminator=domain_dmm,
             experiment=experiment,
             **cfg,
         )

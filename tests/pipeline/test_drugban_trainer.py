@@ -43,18 +43,9 @@ def mock_model():
 
 
 @pytest.fixture
-def optimiser(mock_model):
-    # Create a simple optimiser for testing
-    return torch.optim.Adam(mock_model.parameters(), lr=0.01)
-
-
-@pytest.fixture
 def testing_cfg():
     _C = CfgNode()
 
-    # ---------------------------------------------------------------------------- #
-    # MLP decoder
-    # ---------------------------------------------------------------------------- #
     _C.DECODER = CfgNode()
     _C.DECODER.NAME = "MLP"
     _C.DECODER.IN_DIM = 256
@@ -62,48 +53,36 @@ def testing_cfg():
     _C.DECODER.OUT_DIM = 128
     _C.DECODER.BINARY = 1
 
-    # ---------------------------------------------------------------------------- #
-    # SOLVER
-    # ---------------------------------------------------------------------------- #
     _C.SOLVER = CfgNode()
     _C.SOLVER.MAX_EPOCH = 2
-    _C.SOLVER.BATCH_SIZE = 64
+    _C.SOLVER.BATCH_SIZE = 4
     _C.SOLVER.NUM_WORKERS = 0
-    _C.SOLVER.LR = 5e-5
-    _C.SOLVER.DA_LR = 1e-3
+    _C.SOLVER.LEARNING_RATE = 5e-5
+    _C.SOLVER.DA_LEARNING_RATE = 1e-3
     _C.SOLVER.SEED = 2048
 
-    # ---------------------------------------------------------------------------- #
-    # RESULT
-    # ---------------------------------------------------------------------------- #
     _C.RESULT = CfgNode()
     _C.RESULT.OUTPUT_DIR = "./result"
-    _C.RESULT.SAVE_MODEL = True
+    _C.RESULT.SAVE_MODEL = False
 
-    # ---------------------------------------------------------------------------- #
-    # Domain adaptation
-    # ---------------------------------------------------------------------------- #
     _C.DA = CfgNode()
-    _C.DA.TASK = False  # False: 'in-domain' splitting strategy, True: 'cross-domain' splitting strategy
+    _C.DA.TASK = False
     _C.DA.METHOD = "CDAN"
-    _C.DA.USE = False  # False: no domain adaptation, True: domain adaptation
-    _C.DA.INIT_EPOCH = 10
+    _C.DA.USE = False
+    _C.DA.INIT_EPOCH = 1
     _C.DA.LAMB_DA = 1
     _C.DA.RANDOM_LAYER = False
     _C.DA.ORIGINAL_RANDOM = False
     _C.DA.RANDOM_DIM = None
-    _C.DA.USE_ENTROPY = True
+    _C.DA.USE_ENTROPY = False
 
-    yield _C.clone()
+    return _C.clone()
 
 
 @pytest.fixture
 def testing_DA_cfg():
     _C = CfgNode()
 
-    # ---------------------------------------------------------------------------- #
-    # MLP decoder
-    # ---------------------------------------------------------------------------- #
     _C.DECODER = CfgNode()
     _C.DECODER.NAME = "MLP"
     _C.DECODER.IN_DIM = 256
@@ -111,66 +90,78 @@ def testing_DA_cfg():
     _C.DECODER.OUT_DIM = 128
     _C.DECODER.BINARY = 1
 
-    # ---------------------------------------------------------------------------- #
-    # SOLVER
-    # ---------------------------------------------------------------------------- #
     _C.SOLVER = CfgNode()
     _C.SOLVER.MAX_EPOCH = 2
-    _C.SOLVER.BATCH_SIZE = 64
+    _C.SOLVER.BATCH_SIZE = 4
     _C.SOLVER.NUM_WORKERS = 0
-    _C.SOLVER.LR = 5e-5
-    _C.SOLVER.DA_LR = 1e-3
+    _C.SOLVER.LEARNING_RATE = 5e-5
+    _C.SOLVER.DA_LEARNING_RATE = 1e-3
     _C.SOLVER.SEED = 2048
 
-    # ---------------------------------------------------------------------------- #
-    # RESULT
-    # ---------------------------------------------------------------------------- #
     _C.RESULT = CfgNode()
     _C.RESULT.OUTPUT_DIR = "./result"
-    _C.RESULT.SAVE_MODEL = True
+    _C.RESULT.SAVE_MODEL = False
 
-    # ---------------------------------------------------------------------------- #
-    # Domain adaptation
-    # ---------------------------------------------------------------------------- #
     _C.DA = CfgNode()
-    _C.DA.TASK = True  # False: 'in-domain' splitting strategy, True: 'cross-domain' splitting strategy
+    _C.DA.TASK = True
     _C.DA.METHOD = "CDAN"
-    _C.DA.USE = True  # False: no domain adaptation, True: domain adaptation
+    _C.DA.USE = True
     _C.DA.INIT_EPOCH = 1
     _C.DA.LAMB_DA = 1
-    _C.DA.RANDOM_LAYER = True
-    _C.DA.ORIGINAL_RANDOM = True
-    _C.DA.RANDOM_DIM = 256
+    _C.DA.RANDOM_LAYER = False
+    _C.DA.ORIGINAL_RANDOM = False
+    _C.DA.RANDOM_DIM = 128
     _C.DA.USE_ENTROPY = False
 
-    yield _C.clone()
+    return _C.clone()
 
 
 @pytest.fixture
-def trainer(mock_model, optimiser, dataloaders, testing_cfg):
-    # Create a Trainer instance for testing.
+def trainer(mock_model, dataloaders, testing_cfg):
     train_loader, valid_loader, test_loader = dataloaders
     return Trainer(
         model=mock_model,
-        optim=optimiser,
         device=torch.device("cpu"),
         train_dataloader=train_loader,
         valid_dataloader=valid_loader,
         test_dataloader=test_loader,
+        experiment=None,
+        alpha=1.0,
+        config=testing_cfg,
         **testing_cfg,
+    )
+
+
+@pytest.fixture
+def da_trainer(mock_model, dataloaders, testing_DA_cfg):
+    train_loader, valid_loader, test_loader = dataloaders
+    return Trainer(
+        model=mock_model,
+        device=torch.device("cpu"),
+        train_dataloader=train_loader,
+        valid_dataloader=valid_loader,
+        test_dataloader=test_loader,
+        experiment=None,
+        alpha=1.0,
+        config=testing_DA_cfg,
+        **testing_DA_cfg,
     )
 
 
 class TestTrainer:
     def test_train_epoch(self, trainer):
-        # Test a single epoch of training.
         train_loss = trainer.train_epoch()
         assert isinstance(train_loss, float)
         assert train_loss >= 0
 
-    def test_test(self, trainer):
-        # Test the model evaluation function.
+    def test_test_valid(self, trainer):
         auroc, auprc, test_loss = trainer.test(dataloader="valid")
         assert isinstance(auroc, float)
         assert isinstance(auprc, float)
         assert isinstance(test_loss, float)
+
+    def test_da_train_epoch(self, da_trainer):
+        da_trainer.current_epoch = da_trainer.da_init_epoch  # Ensure DA logic is triggered
+        loss, model_loss, da_loss, lamb = da_trainer.train_da_epoch()
+        assert all(isinstance(x, float) for x in [loss, model_loss, da_loss, lamb])
+        assert loss >= 0
