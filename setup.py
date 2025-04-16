@@ -58,7 +58,7 @@ example_requires = [
     "pwlf",
     "xlsxwriter",
     "prettytable",
-    "comet_ml"
+    "comet_ml",
 ]
 
 # Full dependencies except for development
