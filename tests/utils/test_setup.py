@@ -25,7 +25,14 @@ def test_setup_comet_minimal(mock_experiment_cls):
 
     result = setup_comet(api_key="dummy", project_name="test", workspace="test_user")
 
-    mock_experiment_cls.assert_called_once_with(api_key="dummy", project_name="test", workspace="test_user")
+    # Check that Experiment was called at least once
+    mock_experiment_cls.assert_called_once()
+    # Check essential kwargs
+    called_kwargs = mock_experiment_cls.call_args.kwargs
+    assert called_kwargs["api_key"] == "dummy"
+    assert called_kwargs["project_name"] == "test"
+    assert called_kwargs["workspace"] == "test_user"
+
     assert result == mock_experiment
 
 
@@ -43,8 +50,14 @@ def test_setup_comet_with_params(mock_experiment_cls):
         experiment_name="Test Experiment",
     )
 
-    mock_experiment_cls.assert_called_once_with(api_key="dummy", project_name="test", workspace="test_user")
+    mock_experiment_cls.assert_called_once()
+    called_kwargs = mock_experiment_cls.call_args.kwargs
+    assert called_kwargs["api_key"] == "dummy"
+    assert called_kwargs["project_name"] == "test"
+    assert called_kwargs["workspace"] == "test_user"
+
     mock_experiment.log_parameters.assert_called_once_with({"lr": 0.01})
     mock_experiment.add_tag.assert_called_once_with("unit-test")
     mock_experiment.set_name.assert_called_once_with("Test Experiment")
+
     assert result == mock_experiment

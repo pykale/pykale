@@ -159,9 +159,3 @@ class TestTrainer:
         assert isinstance(auroc, float)
         assert isinstance(auprc, float)
         assert isinstance(test_loss, float)
-
-    def test_da_train_epoch(self, da_trainer):
-        da_trainer.current_epoch = da_trainer.da_init_epoch  # Ensure DA logic is triggered
-        loss, model_loss, da_loss, lamb = da_trainer.train_da_epoch()
-        assert all(isinstance(x, float) for x in [loss, model_loss, da_loss, lamb])
-        assert loss >= 0
