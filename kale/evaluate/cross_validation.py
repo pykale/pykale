@@ -5,11 +5,13 @@ for assessing model fitness.
 
 import time
 from numbers import Integral, Number, Real
+from traceback import format_exc
 
 import numpy as np
 from sklearn import __version__ as sk_version
 from sklearn.base import clone, is_classifier
 from sklearn.metrics import accuracy_score, check_scoring, get_scorer_names
+from sklearn.metrics._scorer import _MultimetricScorer
 from sklearn.model_selection import check_cv, LeaveOneGroupOut
 from sklearn.model_selection._validation import (
     _aggregate_score_dicts,
@@ -170,18 +172,19 @@ def _fit_and_score(
         X_train = domain_adapter.transform(X_train, factors_train)
         X_test = domain_adapter.transform(X_test, factors_test)
 
-    if y is not None and y_type != "continuous":
+    if y is not None and any([y_type.startswith(key) for key in ["binary", "multiclass"]]):
         train_labeled = y_train != -1
         train = _safe_indexing(train, train_labeled)
         X_train = _safe_indexing(X_train, train_labeled)
         y_train = _safe_indexing(y_train, train_labeled)
-        fit_args_labeled = _check_method_params(X_train, fit_args, train_labeled)
+        fit_args = _check_method_params(X_train, fit_args, train_labeled)
 
     if parameters is not None:
         estimator = estimator.set_params(**clone(parameters, safe=False))
 
     result = {}
     try:
+        print("test", X_test.shape)
         if y_train is None:
             estimator.fit(X_train, **fit_args)
         else:
@@ -193,7 +196,7 @@ def _fit_and_score(
         score_time = 0.0
         if error_score == "raise":
             raise
-        elif isinstance(error_score, numbers.Number):
+        elif isinstance(error_score, Number):
             if isinstance(scorer, _MultimetricScorer):
                 test_scores = {name: error_score for name in scorer._scorers}
                 if return_train_score:
@@ -401,6 +404,7 @@ def cross_validate(
             clone(estimator),
             X,
             y,
+            transformer=clone(transformer) if transformer else None,
             domain_adapter=clone(domain_adapter) if domain_adapter else None,
             factors=factors,
             scorer=scorers,
