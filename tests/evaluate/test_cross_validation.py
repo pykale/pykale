@@ -67,7 +67,12 @@ def test_leave_one_group_out_with_domain_adaptation(sample_data):
 @pytest.mark.parametrize("estimator", [DummyClassifier(), LogisticRegression()])
 @pytest.mark.parametrize("transformer", [None, StandardScaler(), PCA()])
 @pytest.mark.parametrize("scoring", ["accuracy", "f1", "roc_auc", ["accuracy", "f1", "roc_auc"]])
-def test_cross_validate(sample_data, cv, estimator, transformer, scoring):
+@pytest.mark.parametrize("return_indices", [True, False])
+@pytest.mark.parametrize("return_train_score", [True, False])
+@pytest.mark.parametrize("return_estimator", [True, False])
+def test_cross_validate(
+    sample_data, cv, estimator, transformer, scoring, return_indices, return_train_score, return_estimator
+):
     X, y, groups = sample_data
 
     factors = OneHotEncoder(sparse_output=False).fit_transform(groups.reshape(-1, 1))
@@ -86,7 +91,20 @@ def test_cross_validate(sample_data, cv, estimator, transformer, scoring):
         factors=factors,
         scoring=scoring,
         fit_args=fit_args,
+        return_indices=return_indices,
+        return_train_score=return_train_score,
         error_score="raise",
+        return_estimator=return_estimator,
     )
 
-    print(results)
+    if isinstance(scoring, str):
+        scoring = ["score"]
+
+    assert "fit_time" in results, "fit_time not in results"
+    assert "score_time" in results, "score_time not in results"
+    assert "indices" in results if return_indices else True, "indices not in results"
+    assert any(f"test_{score}" in results for score in scoring), f"Expected at least one of {scoring} in results"
+    assert (
+        any(f"train_{score}" in results for score in scoring) if return_train_score else True
+    ), "train_score not in results"
+    assert "estimator" in results if return_estimator else True, "estimator not in results"
