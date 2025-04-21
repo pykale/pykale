@@ -1,13 +1,14 @@
 import numpy as np
 import pytest
+from sklearn.decomposition import PCA
 from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import LeaveOneGroupOut
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from kale.evaluate import cross_validation
 from kale.pipeline.multi_domain_adapter import CoIRLS
-from sklearn.model_selection import LeaveOneGroupOut, StratifiedGroupKFold
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.decomposition import PCA
+
 from ..helpers.toy_dataset import make_domain_shifted_dataset
 
 
