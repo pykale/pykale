@@ -184,7 +184,6 @@ def _fit_and_score(
 
     result = {}
     try:
-        print("test", X_test.shape)
         if y_train is None:
             estimator.fit(X_train, **fit_args)
         else:
