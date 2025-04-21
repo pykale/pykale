@@ -82,6 +82,7 @@ def test_cross_validate(sample_data, cv, estimator, transformer, scoring):
         groups=groups,
         cv=cv,
         transformer=transformer,
+        factors=factors,
         scoring=scoring,
         fit_args=fit_args,
         error_score="raise",
