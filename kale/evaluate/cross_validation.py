@@ -328,6 +328,7 @@ def leave_one_group_out(x, y, groups, estimator, use_domain_adaptation=False) ->
         "return_train_score": ["boolean"],
         "return_estimator": ["boolean"],
         "return_indices": ["boolean"],
+        "error_score": [StrOptions({"raise"}), Real],
     },
     prefer_skip_nested_validation=False,  # estimator is not validated yet
 )
