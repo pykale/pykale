@@ -64,7 +64,7 @@ def _fit_and_score(
         estimator (sklearn.base.BaseEstimator): A scikit-learn estimator implementing fit and predict methods.
         X (array-like): Input data for training and evaluation [n_samples, n_features].
         y (array-like): Target variable for supervised learning [n_samples] or [n_samples, n_targets].
-        transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods.
+        transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods applied before domain adaptation.
         domain_adapter (sklearn.base.BaseEstimator, optional): A domain adapter implementing fit and transform methods.
         factors (array-like, optional): Factors to reduce their influence on the data for domain adaptation [n_samples, n_factors].
         scorer (callable): A scoring function to evaluate the estimator's performance.
@@ -364,7 +364,7 @@ def cross_validate(
         X (array-like): Input data for training and evaluation [n_samples, n_features].
         y (array-like): Target variable for supervised learning [n_samples] or [n_samples, n_targets].
         groups (array-like, optional): Group labels for the samples used while splitting the dataset into train/test sets.
-        transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods.
+        transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods applied before domain adaptation.
         domain_adapter (sklearn.base.BaseEstimator, optional): A domain adapter implementing fit and transform methods.
         factors (array-like, optional): Factors to reduce their influence on the data during domain adaptation [n_samples, n_factors].
         scoring (callable, list, tuple, dict, optional): A scoring function or a list of scoring functions to evaluate the estimator's performance.
