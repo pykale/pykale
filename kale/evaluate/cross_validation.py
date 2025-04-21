@@ -8,20 +8,21 @@ from numbers import Integral, Number, Real
 from traceback import format_exc
 
 import numpy as np
-from sklearn import __version__ as sk_version
+from joblib import logger
 from sklearn.base import clone, is_classifier
 from sklearn.metrics import accuracy_score, check_scoring, get_scorer_names
 from sklearn.metrics._scorer import _MultimetricScorer
 from sklearn.model_selection import check_cv, LeaveOneGroupOut
 from sklearn.model_selection._validation import (
     _aggregate_score_dicts,
+    _insert_error_scores,
     _normalize_score_results,
     _score,
     _warn_or_raise_about_fit_failures,
 )
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils._array_api import device, get_namespace
-from sklearn.utils._indexing import _safe_assign, _safe_indexing
+from sklearn.utils._indexing import _safe_indexing
 from sklearn.utils._param_validation import HasMethods, StrOptions, validate_params
 from sklearn.utils.fixes import parse_version
 from sklearn.utils.metaestimators import _safe_split
