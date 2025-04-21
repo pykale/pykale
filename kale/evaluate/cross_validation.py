@@ -24,7 +24,6 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils._array_api import device, get_namespace
 from sklearn.utils._indexing import _safe_indexing
 from sklearn.utils._param_validation import HasMethods, StrOptions, validate_params
-from sklearn.utils.fixes import parse_version
 from sklearn.utils.metaestimators import _safe_split
 from sklearn.utils.multiclass import type_of_target
 from sklearn.utils.parallel import delayed, Parallel
