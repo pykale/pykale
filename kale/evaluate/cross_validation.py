@@ -107,7 +107,7 @@ def _fit_and_score(
 
     progress_msg = ""
     if verbose > 0:
-        lgr = logger.logging.getLogger("pykale")
+        lgr = logger.logging.getLogger("fit_and_score")
         lgr.setLevel(logger.logging.INFO)
 
     if verbose > 2:
