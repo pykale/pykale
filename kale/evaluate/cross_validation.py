@@ -106,6 +106,10 @@ def _fit_and_score(
         )
 
     progress_msg = ""
+    if verbose > 0:
+        lgr = logger.logging.getLogger("pykale")
+        lgr.setLevel(logger.logging.INFO)
+
     if verbose > 2:
         if split_progress is not None:
             progress_msg = f" {split_progress[0]+1}/{split_progress[1]}"
@@ -120,7 +124,7 @@ def _fit_and_score(
             params_msg = ", ".join(f"{k}={parameters[k]}" for k in sorted_keys)
     if verbose > 9:
         start_msg = f"[CV{progress_msg}] START {params_msg}"
-        print(f"{start_msg}{(80 - len(start_msg)) * '.'}")
+        lgr.info(f"{start_msg}{(80 - len(start_msg)) * '.'}")
 
     start_time = time.time()
 
@@ -237,7 +241,7 @@ def _fit_and_score(
         # Right align the result_msg
         end_msg += "." * (80 - len(end_msg) - len(result_msg))
         end_msg += result_msg
-        print(end_msg)
+        lgr.info(end_msg)
 
     result["test_scores"] = test_scores
     if return_train_score:
