@@ -18,7 +18,7 @@ install_requires = [
     "numpy<2.0.0",  # sure
     "pandas",  # sure
     "pytorch-lightning>=2.0.0",  # in pipeline API only
-    "scikit-learn>=1.6.1",  # sure
+    "scikit-learn>=1.6.1",
     "scipy>=1.5.4",  # in factorization API only
     "tensorly>=0.5.1",  # in factorization and model_weights API only
     "torch==2.3.0",  # also change the version in the test.yaml when changing this next time, and update the pytorch version in the bindingdb_deepdta tutorial notebook
