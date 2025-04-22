@@ -351,7 +351,7 @@ def cross_validate(
     parameters=None,
     fit_args=None,
     score_args=None,
-    pre_dispatch="2*num_jobs",
+    pre_dispatch="2*n_jobs",
     return_train_score=False,
     return_estimator=False,
     return_indices=False,
