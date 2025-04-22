@@ -46,7 +46,7 @@ def _fit_and_score(
     score_args,
     return_train_score=False,
     return_parameters=False,
-    return_n_test_samples=False,
+    return_num_test_samples=False,
     return_times=False,
     return_estimator=False,
     split_progress=None,
@@ -61,11 +61,11 @@ def _fit_and_score(
 
     Args:
         estimator (sklearn.base.BaseEstimator): A scikit-learn estimator implementing fit and predict methods.
-        x (array-like): Input data for training and evaluation [n_samples, n_features].
-        y (array-like): Target variable for supervised learning [n_samples] or [n_samples, n_targets].
+        x (array-like): Input data for training and evaluation [num_samples, num_features].
+        y (array-like): Target variable for supervised learning [num_samples] or [num_samples, num_targets].
         transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods applied before domain adaptation.
         domain_adapter (sklearn.base.BaseEstimator, optional): A domain adapter implementing fit and transform methods.
-        factors (array-like, optional): Factors to reduce their influence on the data for domain adaptation [n_samples, n_factors].
+        factors (array-like, optional): Factors to reduce their influence on the data for domain adaptation [num_samples, num_factors].
         scorer (callable): A scoring function to evaluate the estimator's performance.
         train (array-like): Indices of training samples.
         test (array-like): Indices of testing samples.
@@ -75,7 +75,7 @@ def _fit_and_score(
         score_args (dict, optional): Additional arguments for the scorer's score method.
         return_train_score (bool): Flag to include training scores in the results.
         return_parameters (bool): Flag to include the estimator's parameters in the results.
-        return_n_test_samples (bool): Flag to include the number of test samples in the results.
+        return_num_test_samples (bool): Flag to include the number of test samples in the results.
         return_times (bool): Flag to include fit and score times in the results.
         return_estimator (bool): Flag to include the fitted estimator in the results.
         split_progress (tuple, optional): Progression value for the current split containing `(current_split, total_splits)`.
@@ -85,7 +85,7 @@ def _fit_and_score(
         dict: A dictionary containing the results of fitting and scoring, including:
             - "train_scores" (dict, optional): Scores on training set, if `return_train_score=True`.
             - "test_scores" (dict): Scores on testing set.
-            - "n_test_samples" (int, optional): Number of test samples, if `return_n_test_samples=True`.
+            - "num_test_samples" (int, optional): Number of test samples, if `return_num_test_samples=True`.
             - "fit_time" (float, optional): Time taken to fit the estimator, if `return_times=True`.
             - "score_time" (float): Time taken to score the estimator.
             - "parameters" (dict, optional): estimator parameters, if `return_parameters=True`.
@@ -247,8 +247,8 @@ def _fit_and_score(
     result["test_scores"] = test_scores
     if return_train_score:
         result["train_scores"] = train_scores
-    if return_n_test_samples:
-        result["n_test_samples"] = _num_samples(x_test)
+    if return_num_test_samples:
+        result["num_test_samples"] = _num_samples(x_test)
     if return_times:
         result["fit_time"] = fit_time
         result["score_time"] = score_time
@@ -264,9 +264,9 @@ def leave_one_group_out(x, y, groups, estimator, use_domain_adaptation=False) ->
     Perform leave one group out cross validation for a given estimator.
 
     Args:
-        x (np.ndarray or torch.tensor): Input data [n_samples, n_features].
-        y (np.ndarray or torch.tensor): Target labels [n_samples].
-        groups (np.ndarray or torch.tensor): Group labels to be left out [n_samples].
+        x (np.ndarray or torch.tensor): Input data [num_samples, num_features].
+        y (np.ndarray or torch.tensor): Target labels [num_samples].
+        groups (np.ndarray or torch.tensor): Group labels to be left out [num_samples].
         estimator (estimator object): Machine learning estimator to be evaluated from kale or scikit-learn.
         use_domain_adaptation (bool): Whether to use domain adaptation, i.e., leveraging test data, during training.
 
@@ -325,7 +325,7 @@ def leave_one_group_out(x, y, groups, estimator, use_domain_adaptation=False) ->
             None,
         ],
         "cv": ["cv_object"],
-        "n_jobs": [Integral, None],
+        "num_jobs": [Integral, None],
         "verbose": ["verbose"],
         "params": [dict, None],
         "pre_dispatch": [Integral, str],
@@ -346,12 +346,12 @@ def cross_validate(
     factors=None,
     scoring=None,
     cv=None,
-    n_jobs=None,
+    num_jobs=None,
     verbose=0,
     parameters=None,
     fit_args=None,
     score_args=None,
-    pre_dispatch="2*n_jobs",
+    pre_dispatch="2*num_jobs",
     return_train_score=False,
     return_estimator=False,
     return_indices=False,
@@ -361,15 +361,15 @@ def cross_validate(
 
     Args:
         estimator (sklearn.base.BaseEstimator): A scikit-learn estimator implementing fit and predict methods.
-        x (array-like): Input data for training and evaluation [n_samples, n_features].
-        y (array-like): Target variable for supervised learning [n_samples] or [n_samples, n_targets].
+        x (array-like): Input data for training and evaluation [num_samples, num_features].
+        y (array-like): Target variable for supervised learning [num_samples] or [num_samples, num_targets].
         groups (array-like, optional): Group labels for the samples used while splitting the dataset into train/test sets.
         transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods applied before domain adaptation.
         domain_adapter (sklearn.base.BaseEstimator, optional): A domain adapter implementing fit and transform methods.
-        factors (array-like, optional): Factors to reduce their influence on the data during domain adaptation [n_samples, n_factors].
+        factors (array-like, optional): Factors to reduce their influence on the data during domain adaptation [num_samples, num_factors].
         scoring (callable, list, tuple, dict, optional): A scoring function or a list of scoring functions to evaluate the estimator's performance.
         cv (cv_object, optional): Cross-validation splitting strategy.
-        n_jobs (int, optional): Number of jobs to run in parallel.
+        num_jobs (int, optional): Number of jobs to run in parallel.
         verbose (int): Level of verbosity for logging.
         parameters (dict, optional): Parameters to configure the estimator.
         fit_args (dict, optional): Additional arguments for the estimator's fit method.
@@ -401,7 +401,7 @@ def cross_validate(
     if return_indices:
         indices = list(indices)
 
-    parallel = Parallel(n_jobs, verbose=verbose, pre_dispatch=pre_dispatch)
+    parallel = Parallel(num_jobs, verbose=verbose, pre_dispatch=pre_dispatch)
 
     results = parallel(
         delayed(_fit_and_score)(
