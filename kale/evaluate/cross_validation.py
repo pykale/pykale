@@ -32,9 +32,8 @@ from sklearn.utils.validation import _check_method_params, _num_samples, indexab
 
 def _fit_and_score(
     estimator,
-    X,
+    x,
     y,
-    *,
     transformer,
     domain_adapter,
     factors,
@@ -62,7 +61,7 @@ def _fit_and_score(
 
     Args:
         estimator (sklearn.base.BaseEstimator): A scikit-learn estimator implementing fit and predict methods.
-        X (array-like): Input data for training and evaluation [n_samples, n_features].
+        x (array-like): Input data for training and evaluation [n_samples, n_features].
         y (array-like): Target variable for supervised learning [n_samples] or [n_samples, n_targets].
         transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods applied before domain adaptation.
         domain_adapter (sklearn.base.BaseEstimator, optional): A domain adapter implementing fit and transform methods.
@@ -93,10 +92,10 @@ def _fit_and_score(
             - "estimator" (object, optional): The fitted estimator, if `return_estimator=True`.
             - "fit_error" (str, optional): Error message if fitting fails.
     """
-    xp, _ = get_namespace(X)
-    X_device = device(X)
+    xp, _ = get_namespace(x)
+    x_device = device(x)
 
-    train, test = xp.asarray(train, device=X_device), xp.asarray(test, device=X_device)
+    train, test = xp.asarray(train, device=x_device), xp.asarray(test, device=x_device)
 
     if not isinstance(error_score, Number) and error_score != "raise":
         raise ValueError(
@@ -129,26 +128,26 @@ def _fit_and_score(
     start_time = time.time()
 
     y_type = type_of_target(y) if y is not None else "unknown"
-    X_train, y_train = _safe_split(estimator, X, y, train)
-    X_test, y_test = _safe_split(estimator, X, y, test)
+    x_train, y_train = _safe_split(estimator, x, y, train)
+    x_test, y_test = _safe_split(estimator, x, y, test)
 
     # Adjust length of sample weights
     fit_args = fit_args if fit_args is not None else {}
-    fit_args = _check_method_params(X, fit_args, train)
+    fit_args = _check_method_params(x, fit_args, train)
     score_args = score_args if score_args is not None else {}
-    score_args_train = _check_method_params(X, score_args, train)
-    score_args_test = _check_method_params(X, score_args, test)
+    score_args_train = _check_method_params(x, score_args, train)
+    score_args_test = _check_method_params(x, score_args, test)
 
     if transformer is not None or domain_adapter is not None:
-        X_sampled = xp.concatenate([X_train, X_test], axis=0)
+        x_sampled = xp.concatenate([x_train, x_test], axis=0)
         y_sampled = xp.concatenate([y_train, y_test], axis=0)
 
         # Mask the labels for the test set to avoid leakage
         if any([y_type.startswith(key) for key in ["binary", "multiclass"]]):
-            y_sampled[_num_samples(X_train) - 1 :] = -1
+            y_sampled[_num_samples(x_train) - 1 :] = -1
         else:
             raise ValueError("Domain adaptation is only supported for 'binary' or 'multiclass' y.")
-        y_sampled = xp.asarray(y_sampled, device=X_device)
+        y_sampled = xp.asarray(y_sampled, device=x_device)
 
     if transformer is not None:
         if parameters is not None:
@@ -157,8 +156,8 @@ def _fit_and_score(
             transformer.set_params(**clone(transformer_parameters, safe=False))
 
         # For now, only unsupervised transformers are supported
-        transformer.fit(X_sampled)
-        X_sampled = transformer.transform(X_sampled)
+        transformer.fit(x_sampled)
+        x_sampled = transformer.transform(x_sampled)
 
     if domain_adapter is not None:
         factors_sampled, factors_train, factors_test = [None] * 3
@@ -172,16 +171,16 @@ def _fit_and_score(
             da_parameters = {k.replace("domain_adapter__", ""): parameters.pop(k) for k in keys}
             domain_adapter.set_params(**clone(da_parameters, safe=False))
 
-        domain_adapter.fit(X_sampled, y_sampled, factors_sampled)
-        X_train = domain_adapter.transform(X_train, factors_train)
-        X_test = domain_adapter.transform(X_test, factors_test)
+        domain_adapter.fit(x_sampled, y_sampled, factors_sampled)
+        x_train = domain_adapter.transform(x_train, factors_train)
+        x_test = domain_adapter.transform(x_test, factors_test)
 
     if y is not None and any([y_type.startswith(key) for key in ["binary", "multiclass"]]):
         train_labeled = y_train != -1
         train = _safe_indexing(train, train_labeled)
-        X_train = _safe_indexing(X_train, train_labeled)
+        x_train = _safe_indexing(x_train, train_labeled)
         y_train = _safe_indexing(y_train, train_labeled)
-        fit_args = _check_method_params(X_train, fit_args, train_labeled)
+        fit_args = _check_method_params(x_train, fit_args, train_labeled)
 
     if parameters is not None:
         estimator = estimator.set_params(**clone(parameters, safe=False))
@@ -189,9 +188,9 @@ def _fit_and_score(
     result = {}
     try:
         if y_train is None:
-            estimator.fit(X_train, **fit_args)
+            estimator.fit(x_train, **fit_args)
         else:
-            estimator.fit(X_train, y_train, **fit_args)
+            estimator.fit(x_train, y_train, **fit_args)
 
     except Exception:
         # Note fit time as time until error
@@ -213,10 +212,10 @@ def _fit_and_score(
         result["fit_error"] = None
 
         fit_time = time.time() - start_time
-        test_scores = _score(estimator, X_test, y_test, scorer, score_args_test, error_score)
+        test_scores = _score(estimator, x_test, y_test, scorer, score_args_test, error_score)
         score_time = time.time() - start_time - fit_time
         if return_train_score:
-            train_scores = _score(estimator, X_train, y_train, scorer, score_args_train, error_score)
+            train_scores = _score(estimator, x_train, y_train, scorer, score_args_train, error_score)
 
     if verbose > 1:
         total_time = score_time + fit_time
@@ -247,7 +246,7 @@ def _fit_and_score(
     if return_train_score:
         result["train_scores"] = train_scores
     if return_n_test_samples:
-        result["n_test_samples"] = _num_samples(X_test)
+        result["n_test_samples"] = _num_samples(x_test)
     if return_times:
         result["fit_time"] = fit_time
         result["score_time"] = score_time
@@ -309,7 +308,7 @@ def leave_one_group_out(x, y, groups, estimator, use_domain_adaptation=False) ->
 @validate_params(
     {
         "estimator": [HasMethods(["fit", "predict", "score"])],
-        "X": ["array-like", "sparse matrix"],
+        "x": ["array-like", "sparse matrix"],
         "y": ["array-like", None],
         "groups": ["array-like", None],
         "transformer": [HasMethods(["fit", "transform"]), None],
@@ -337,9 +336,8 @@ def leave_one_group_out(x, y, groups, estimator, use_domain_adaptation=False) ->
 )
 def cross_validate(
     estimator,
-    X,
+    x,
     y=None,
-    *,
     groups=None,
     transformer=None,
     domain_adapter=None,
@@ -361,7 +359,7 @@ def cross_validate(
 
     Args:
         estimator (sklearn.base.BaseEstimator): A scikit-learn estimator implementing fit and predict methods.
-        X (array-like): Input data for training and evaluation [n_samples, n_features].
+        x (array-like): Input data for training and evaluation [n_samples, n_features].
         y (array-like): Target variable for supervised learning [n_samples] or [n_samples, n_targets].
         groups (array-like, optional): Group labels for the samples used while splitting the dataset into train/test sets.
         transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods applied before domain adaptation.
@@ -388,7 +386,7 @@ def cross_validate(
             - "estimator" (object, optional): The fitted estimator, if `return_estimator=True`.
             - "indices" (dict, optional): Indices of the training and testing sets, if `return_indices=True`.
     """
-    X, y, groups, factors = indexable(X, y, groups, factors)
+    x, y, groups, factors = indexable(x, y, groups, factors)
     cv = check_cv(cv, y, classifier=is_classifier(estimator))
 
     parameters = {} if parameters is None else parameters
@@ -397,7 +395,7 @@ def cross_validate(
 
     scorers = check_scoring(estimator, scoring, raise_exc=(error_score == "raise"))
 
-    indices = cv.split(X, y, groups)
+    indices = cv.split(x, y, groups)
     if return_indices:
         indices = list(indices)
 
@@ -406,7 +404,7 @@ def cross_validate(
     results = parallel(
         delayed(_fit_and_score)(
             clone(estimator),
-            X,
+            x,
             y,
             transformer=clone(transformer) if transformer else None,
             domain_adapter=clone(domain_adapter) if domain_adapter else None,
@@ -436,25 +434,25 @@ def cross_validate(
 
     results = _aggregate_score_dicts(results)
 
-    ret = {}
-    ret["fit_time"] = results["fit_time"]
-    ret["score_time"] = results["score_time"]
+    aggregated_results = {}
+    aggregated_results["fit_time"] = results["fit_time"]
+    aggregated_results["score_time"] = results["score_time"]
 
     if return_estimator:
-        ret["estimator"] = results["estimator"]
+        aggregated_results["estimator"] = results["estimator"]
 
     if return_indices:
-        ret["indices"] = {}
-        ret["indices"]["train"], ret["indices"]["test"] = zip(*indices)
+        aggregated_results["indices"] = {}
+        aggregated_results["indices"]["train"], aggregated_results["indices"]["test"] = zip(*indices)
 
     test_scores_dict = _normalize_score_results(results["test_scores"])
     if return_train_score:
         train_scores_dict = _normalize_score_results(results["train_scores"])
 
     for name in test_scores_dict:
-        ret["test_%s" % name] = test_scores_dict[name]
+        aggregated_results["test_%s" % name] = test_scores_dict[name]
         if return_train_score:
             key = "train_%s" % name
-            ret[key] = train_scores_dict[name]
+            aggregated_results[key] = train_scores_dict[name]
 
-    return ret
+    return aggregated_results
