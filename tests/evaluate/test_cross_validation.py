@@ -16,9 +16,9 @@ from ..helpers.toy_dataset import make_domain_shifted_dataset
 def sample_data():
     # Sample data for testing
     x, y, groups = make_domain_shifted_dataset(
-        n_domains=2,
-        n_samples_per_class=100,
-        n_features=40,
+        num_domains=2,
+        num_samples_per_class=100,
+        num_features=40,
         class_sep=1.0,
         centroid_shift_scale=5.0,
         random_state=0,
