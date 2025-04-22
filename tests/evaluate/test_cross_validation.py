@@ -15,7 +15,7 @@ from ..helpers.toy_dataset import make_domain_shifted_dataset
 @pytest.fixture(scope="module")
 def sample_data():
     # Sample data for testing
-    X, y, groups = make_domain_shifted_dataset(
+    x, y, groups = make_domain_shifted_dataset(
         n_domains=2,
         n_samples_per_class=100,
         n_features=40,
@@ -26,7 +26,7 @@ def sample_data():
 
     # Convert labels to strings for testing
     groups = np.where(groups == 0, "A", "B")
-    return X, y, groups
+    return x, y, groups
 
 
 # Checks leave-one-group-out results for above sample data
