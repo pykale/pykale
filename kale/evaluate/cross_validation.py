@@ -92,6 +92,8 @@ def _fit_and_score(
             - "estimator" (object, optional): The fitted estimator, if `return_estimator=True`.
             - "fit_error" (str, optional): Error message if fitting fails.
     """
+    # xp is a drop-in replacement for numpy to be compatible with other libraries
+    # like numpy cupy, torch, etc.
     xp, _ = get_namespace(x)
     x_device = device(x)
 
