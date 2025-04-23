@@ -369,12 +369,12 @@ def cross_validate(
         factors (array-like, optional): Factors to reduce their influence on the data during domain adaptation [num_samples, num_factors].
         scoring (callable, list, tuple, dict, optional): A scoring function or a list of scoring functions to evaluate the estimator's performance.
         cv (cv_object, optional): Cross-validation splitting strategy.
-        num_jobs (int, optional): Number of jobs to run in parallel.
+        num_jobs (int, optional): Number of jobs to run cross-validation in parallel using joblib.Parallel.
         verbose (int): Level of verbosity for logging.
         parameters (dict, optional): Parameters to configure the estimator.
         fit_args (dict, optional): Additional arguments for the estimator's fit method.
         score_args (dict, optional): Additional arguments for the scorer's score method.
-        pre_dispatch (int, str): Controls the number of jobs that get dispatched during parallel execution.
+        pre_dispatch (int, str): Controls the number of jobs that get dispatched during parallel execution for joblib.Parallel.
         return_train_score (bool): Whether to include training scores in the results.
         return_estimator (bool): Whether to include the fitted estimator in the results.
         return_indices (bool): Whether to include the indices of the training and testing sets in the results.
