@@ -1,8 +1,7 @@
 import numpy as np
 import pytest
-from sklearn.decomposition import PCA
+
 from sklearn.dummy import DummyClassifier
-from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
