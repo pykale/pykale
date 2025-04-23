@@ -8,7 +8,7 @@ from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
 
 from kale.embed.factorization import MIDA, MPCA
-from tests.helpers.toy_dataset import make_domain_shifted_dataset
+from ..helpers.toy_dataset import make_domain_shifted_dataset
 
 N_COMPS = [1, 50, 100]
 VAR_RATIOS = [0.7, 0.95]
