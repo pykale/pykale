@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 from numpy import testing
 from scipy.io import loadmat
-from sklearn.datasets import make_blobs
 from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
 
