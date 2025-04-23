@@ -72,7 +72,7 @@ def test_leave_one_group_out_with_domain_adaptation(sample_data):
 def test_cross_validate(sample_data, cv, transformer, scoring, return_indices, return_train_score, return_estimator):
     estimator = DummyClassifier()
 
-    X, y, groups = sample_data
+    x, y, groups = sample_data
 
     factors = OneHotEncoder(sparse_output=False).fit_transform(groups.reshape(-1, 1))
 
@@ -82,7 +82,7 @@ def test_cross_validate(sample_data, cv, transformer, scoring, return_indices, r
 
     results = cross_validation.cross_validate(
         estimator,
-        X,
+        x,
         y,
         groups=groups,
         cv=cv,
