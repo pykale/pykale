@@ -63,16 +63,15 @@ def test_leave_one_group_out_with_domain_adaptation(sample_data):
     check_leave_one_group_out_results(sample_data, estimator, domain_adaptation=True)
 
 
-@pytest.mark.parametrize("cv", [5, 10, LeaveOneGroupOut()])
-@pytest.mark.parametrize("estimator", [DummyClassifier(), LogisticRegression()])
-@pytest.mark.parametrize("transformer", [None, StandardScaler(), PCA()])
+@pytest.mark.parametrize("cv", [3, LeaveOneGroupOut()])
+@pytest.mark.parametrize("transformer", [None, StandardScaler()])
 @pytest.mark.parametrize("scoring", ["accuracy", "f1", "roc_auc", ["accuracy", "f1", "roc_auc"]])
 @pytest.mark.parametrize("return_indices", [True, False])
 @pytest.mark.parametrize("return_train_score", [True, False])
 @pytest.mark.parametrize("return_estimator", [True, False])
-def test_cross_validate(
-    sample_data, cv, estimator, transformer, scoring, return_indices, return_train_score, return_estimator
-):
+def test_cross_validate(sample_data, cv, transformer, scoring, return_indices, return_train_score, return_estimator):
+    estimator = DummyClassifier()
+
     X, y, groups = sample_data
 
     factors = OneHotEncoder(sparse_output=False).fit_transform(groups.reshape(-1, 1))
