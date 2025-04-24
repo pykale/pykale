@@ -95,8 +95,8 @@ def test_mida(kernel, augmentation):
         random_state=0,
     )
 
-    enc = OneHotEncoder(handle_unknown="ignore")
-    covariates_mat = enc.fit_transform(domains.reshape(-1, 1)).toarray()
+    # enc = OneHotEncoder(handle_unknown="ignore")
+    # covariates_mat = enc.fit_transform(domains.reshape(-1, 1)).toarray()
     mida = MIDA(n_components=2, kernel=kernel, augmentation=augmentation)
     x_transformed = mida.fit_transform(x, groups=domains)
     testing.assert_equal(x_transformed.shape, (len(x), 2))
