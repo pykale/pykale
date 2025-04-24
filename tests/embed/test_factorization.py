@@ -98,8 +98,8 @@ def test_mida(kernel, augmentation):
     enc = OneHotEncoder(handle_unknown="ignore")
     covariates_mat = enc.fit_transform(domains.reshape(-1, 1)).toarray()
     mida = MIDA(n_components=2, kernel=kernel, augmentation=augmentation)
-    x_transformed = mida.fit_transform(x, covariates=covariates_mat)
+    x_transformed = mida.fit_transform(x, groups=domains)
     testing.assert_equal(x_transformed.shape, (len(x), 2))
 
-    x_transformed = mida.fit_transform(x, y, covariates=covariates_mat)
+    x_transformed = mida.fit_transform(x, y, groups=domains)
     testing.assert_equal(x_transformed.shape, (len(x), 2))
