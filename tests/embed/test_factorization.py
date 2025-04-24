@@ -4,11 +4,12 @@ import numpy as np
 import pytest
 from numpy import testing
 from scipy.io import loadmat
-from sklearn.datasets import make_blobs
 from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
 
 from kale.embed.factorization import MIDA, MPCA
+
+from ..helpers.toy_dataset import make_domain_shifted_dataset
 
 N_COMPS = [1, 50, 100]
 VAR_RATIOS = [0.7, 0.95]
@@ -85,22 +86,20 @@ def test_mpca_against_baseline(gait, baseline_model):
 @pytest.mark.parametrize("kernel", ["linear", "rbf"])
 @pytest.mark.parametrize("augmentation", [True, False])
 def test_mida(kernel, augmentation):
-    np.random.seed(29118)
-    # Generate toy data
-    n_samples = 200
-
-    xs, ys = make_blobs(n_samples, n_features=3, centers=[[0, 0, 0], [0, 2, 1]], cluster_std=[0.3, 0.35])
-    xt, yt = make_blobs(n_samples, n_features=3, centers=[[2, -2, 2], [2, 0.2, -1]], cluster_std=[0.35, 0.4])
-    x = np.concatenate((xs, xt), axis=0)
-
-    covariates = np.zeros(n_samples * 2)
-    covariates[:n_samples] = 1
+    x, y, domains = make_domain_shifted_dataset(
+        num_domains=2,
+        num_samples_per_class=50,
+        num_features=50,
+        class_sep=1.0,
+        centroid_shift_scale=5.0,
+        random_state=0,
+    )
 
     enc = OneHotEncoder(handle_unknown="ignore")
-    covariates_mat = enc.fit_transform(covariates.reshape(-1, 1)).toarray()
+    covariates_mat = enc.fit_transform(domains.reshape(-1, 1)).toarray()
     mida = MIDA(n_components=2, kernel=kernel, augmentation=augmentation)
     x_transformed = mida.fit_transform(x, covariates=covariates_mat)
-    testing.assert_equal(x_transformed.shape, (n_samples * 2, 2))
+    testing.assert_equal(x_transformed.shape, (len(x), 2))
 
-    x_transformed = mida.fit_transform(x, ys, covariates=covariates_mat)
-    testing.assert_equal(x_transformed.shape, (n_samples * 2, 2))
+    x_transformed = mida.fit_transform(x, y, covariates=covariates_mat)
+    testing.assert_equal(x_transformed.shape, (len(x), 2))
