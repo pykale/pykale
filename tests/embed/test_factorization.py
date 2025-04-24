@@ -7,7 +7,7 @@ from scipy.io import loadmat
 from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
 
-from kale.embed.factorization import MPCA
+from kale.embed.factorization import MPCA, MIDA
 
 from ..helpers.toy_dataset import make_domain_shifted_dataset
 
