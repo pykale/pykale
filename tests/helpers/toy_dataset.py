@@ -16,7 +16,7 @@ def make_domain_shifted_dataset(
     w = random_state.randn(num_features)
     w = w / np.linalg.norm(w)
 
-    X_all = []
+    x_all = []
     y_all = []
     domain_all = []
 
@@ -26,15 +26,15 @@ def make_domain_shifted_dataset(
         for label in [0, 1]:
             class_mean = (label - 0.5) * class_sep * w + domain_shift
             cov = np.eye(num_features)
-            X_class = random_state.multivariate_normal(class_mean, cov, num_samples_per_class)
+            x_class = random_state.multivariate_normal(class_mean, cov, num_samples_per_class)
             y_class = np.full(num_samples_per_class, label)
             domain_class = np.full(num_samples_per_class, i_domain)
 
-            X_all.append(X_class)
+            x_all.append(x_class)
             y_all.append(y_class)
             domain_all.append(domain_class)
 
-    x = np.vstack(X_all)
+    x = np.vstack(x_all)
     y = np.concatenate(y_all)
     domains = np.concatenate(domain_all)
 
