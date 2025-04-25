@@ -8,194 +8,443 @@ References:
     [1] Yan, K., Kou, L. and Zhang, D., 2018. Learning domain-invariant subspace using domain features and
         independence maximization. IEEE transactions on cybernetics, 48(1), pp.288-299.
 """
+import logging
+import time
+from collections import defaultdict
+from itertools import product
+
 import numpy as np
-from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.model_selection import GridSearchCV, LeaveOneGroupOut, ParameterGrid
-from sklearn.preprocessing import FunctionTransformer
+from sklearn.base import _fit_context, clone, is_classifier
+from sklearn.metrics._scorer import _MultimetricScorer
+from sklearn.model_selection import check_cv, ParameterGrid, ParameterSampler
+from sklearn.model_selection._search import _insert_error_scores, _warn_or_raise_about_fit_failures, BaseSearchCV
+from sklearn.utils._param_validation import HasMethods, Integral, Interval, StrOptions
+from sklearn.utils.parallel import delayed, Parallel
+from sklearn.utils.validation import _check_method_params, check_is_fitted, indexable
 
 from ..embed.factorization import MIDA
+from ..evaluate.cross_validation import _fit_and_score
 
 
-class MIDATrainer(BaseEstimator, ClassifierMixin):
-    """Trainer of pipeline: Transformer (optional) -> Maximum independence domain adaptation -> Estimator
+class MIDATrainer(BaseSearchCV):
+    """Trainer for estimator with maximum independence domain adaptation (MIDA) incorporated.
+    The pipeline has a processing order of: `transformer` (optional) -> `MIDA` -> `estimator`.
+    The `transformer` must be an unsupervised ones, like `StandardScaler` or `PCA`,
+    as its fit method is called on the merged training and test data. To set parameters
+    for both `transformer` and `MIDA`, use the prefixes `transformer__` and `domain_adapter__`, respectively.
 
     Args:
-        estimator (BaseEstimator): Estimator object implementing 'fit'
-        estimator_param_grid (dict, optional): Grids for searching the optimal hyperparameters of the estimator.
-            Defaults to None.
-        transformer (BaseEstimator, optional): Transformer object implementing 'fit_transform'. Defaults to None.
-        mida_param_grid (dict, optional): Grids for searching the optimal hyperparameters of MIDA. Defaults to None.
-        transformer_param_grid (dict, optional): Grids for searching the optimal hyperparameters of the transformer.
-            Defaults to None.
+        estimator (sklearn.base.BaseEstimator): The base estimator to be trained.
+        param_grid (dict or list): The parameter grid to search over. Use 'transformer__' and 'domain_adapter__' as prefixes for the transformer and MIDA parameters, respectively.
+        transformer (sklearn.base.BaseEstimator, optional): The transformer to be applied before MIDA. Default is None.
+        search_strategy ("grid" or "random"): The search strategy to use. Can be "grid" or "random". Default is "grid".
+        num_iter (int): The number of iterations for random search. Default is None.
+        scoring (str or callable or list or tuple or dict, optional): The scoring metric(s) to use. Default is None.
+        n_jobs (int): The number of jobs to run in parallel for joblib.Parallel. Default is None.
+        pre_dispatch (int or str): Controls the number of jobs that get dispatched during parallel execution. Default is "2*n_jobs".
+        refit (bool): Whether to refit the best estimator. Default is True.
+        cv (int or cv-object or iterable): The cross-validation splitting strategy. Default is None.
+        verbose (int): Controls the verbosity of the output. Default is 0.
+        random_state (int or np.random.RandomState, optional): Controls the randomness of the estimator. Default is None.
+        error_score ('raise' or numeric): Value to assign to the score if an error occurs. Default is np.nan.
+        return_train_score (bool): Whether to include training scores in the results. Default is False.
+    Examples:
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.ensemble import RandomForestClassifier
+        >>> from sklearn.model_selection import train_test_split
+        >>> from kale.pipeline.mida_trainer import MIDATrainer
+        >>> from sklearn.preprocessing import StandardScaler
+        >>> from sklearn.metrics import accuracy_score
+        >>> # Generate synthetic data
+        >>> X, y = make_classification(n_samples=1000, n_features=20, random_state=42)
+        >>> # Generate domain labels
+        >>> factors = np.random.randint(0, 2, size=(X_train.shape[0], 1))
+        >>> # Define the base estimator and parameter grid
+        >>> estimator = RandomForestClassifier(random_state=42)
+        >>> param_grid = {
+                "num_estimators": [50, 100],
+                "max_depth": [None, 10, 20],
+                "transformer__with_mean": [True, False],
+                "domain_adapter__num_components": [2, 5],
+            }
+        >>> transformer = StandardScaler()
+        >>> trainer = MIDATrainer(
+                estimator=estimator,
+                param_grid=param_grid,
+                transformer=transformer,
+                search_strategy="grid",
+                scoring="accuracy",
+                n_jobs=-1,
+                cv=5,
+                verbose=1,
+            )
+        >>> # Fit the trainer
+        >>> trainer.fit(X, y, factors=factors)
+        >>> # Get cross-validation results
+        >>> cv_results = trainer.cv_results_
     """
+
+    _parameter_constraints = {
+        **BaseSearchCV._parameter_constraints,
+        "param_grid": [dict, list],
+        "transformer": [HasMethods(["fit", "transform"]), None],
+        "search_strategy": [StrOptions({"grid", "random"})],
+        "num_iter": [Interval(Integral, 1, None, closed="left")],
+        "random_state": ["random_state"],
+    }
 
     def __init__(
         self,
         estimator,
-        estimator_param_grid=None,
+        param_grid,
         transformer=None,
-        mida_param_grid=None,
-        transformer_param_grid=None,
+        search_strategy="grid",
+        num_iter=None,
+        scoring=None,
+        # n_jobs can't be changed to num_jobs since it is used in the parent class
+        n_jobs=None,
+        pre_dispatch="2*n_jobs",
+        refit=True,
+        cv=None,
+        verbose=0,
+        random_state=None,
+        error_score=np.nan,
+        return_train_score=False,
     ):
-        self.estimator = estimator
+        super().__init__(
+            estimator=estimator,
+            scoring=scoring,
+            n_jobs=n_jobs,
+            pre_dispatch=pre_dispatch,
+            refit=refit,
+            cv=cv,
+            verbose=verbose,
+            error_score=error_score,
+            return_train_score=return_train_score,
+        )
+
         self.transformer = transformer
-        self.mida_param_grid = mida_param_grid
-        self.transformer_param_grid = transformer_param_grid
-        self.estimator_param_grid = estimator_param_grid
-        self.best_transformer = None
-        self.best_transformer_params = None
-        self.best_mida = None
-        self.best_mida_params = None
-        self.best_estimator = None
-        self.best_estimator_params = None
-        self.best_score = None
+        self.param_grid = param_grid
+        self.search_strategy = search_strategy
+        self.num_iter = num_iter
+        self.random_state = random_state
 
-    def fit(self, x, y, groups=None):
-        """Fit a Transformer -> Maximum independence domain adaptation -> Estimator pipeline with the given data x ,
-            labels y, and group labels groups
+    def adapt(self, x, factors=None):
+        """Adapt the estimator to the given data.
 
         Args:
-            x (array-like): Training input data matrix, shape (n_samples, n_features)
-            y (array-like): Labels, shape (n_labeled_samples,)
-            groups (array-like, optional): Domain/group labels of x, shape (n_samples,)
-
+            x (array-like): The input data.
+            factors (array-like, optional): The factors influencing the input data.
         Returns:
-            self
+            self: The adapted trainer.
         """
-        if self.transformer is None:
-            self.transformer = FunctionTransformer()
-        if self.transformer_param_grid is None:
-            self.transformer_param_grid = {key: [val] for key, val in self.transformer.get_params().items()}
-        transformer_grid = ParameterGrid(self.transformer_param_grid)
-        for transformer_params in transformer_grid:
-            self.transformer.set_params(**transformer_params)
-            x_transformed = self.transformer.fit_transform(x)
-            self._fit_mida(x_transformed, y, groups, transformer_params)
+        check_is_fitted(self)
+        if self.transformer is not None:
+            x = self.best_transformer_.transform(x)
+        return self.best_mida_.transform(x, factors)
 
-        self.best_transformer = self.transformer.set_params(**self.best_transformer_params)
-        self.best_mida = MIDA(**self.best_mida_params)
-        self.best_estimator = self.estimator.set_params(**self.best_estimator_params)
+    def score(self, x, y=None, factors=None, **params):
+        """Compute the score of the estimator on the given data.
 
-        x_transformed = self.best_transformer.transform(x)
-        x_transformed = self.best_mida.fit_transform(x_transformed, y=y, groups=groups)
-        self.best_estimator.fit(x_transformed[y.shape[0] :,], y)
+        Args:
+            x (array-like): The input data.
+            y (array-like): The target values.
+            factors (array-like, optional): The factors influencing the input data.
+            **params: Additional parameters for the estimator.
+        Returns:
+            float: The score of the estimator.
+        """
+        check_is_fitted(self)
+        x = self.adapt(x, factors)
+        return super().score(x, y, **params)
+
+    def score_samples(self, x, factors=None):
+        """Compute the log-likelihood of the samples.
+
+        Args:
+            x (array-like): The input data.
+            factors (array-like, optional): The factors influencing the input data.
+        Returns:
+            array-like: The log-likelihood of the samples.
+        """
+        x = self.adapt(x, factors)
+        return super().score_samples(x)
+
+    def predict(self, x, factors=None):
+        """Predict using the best pipeline.
+
+        Args:
+            x (array-like): The input data.
+            factors (array-like, optional): The factors influencing the input data.
+        Returns:
+            array-like: The predicted target.
+        """
+        x = self.adapt(x, factors)
+        return super().predict(x)
+
+    def predict_proba(self, x, factors=None):
+        """Predict class probabilities using the best pipeline.
+
+        Args:
+            x (array-like): The input data.
+            factors (array-like, optional): The factors influencing the input data.
+        Returns:
+            array-like: The predicted class probabilities.
+        """
+        x = self.adapt(x, factors)
+        return super().predict_proba(x)
+
+    def predict_log_proba(self, x, factors=None):
+        """Predict log class probabilities using the best pipeline.
+
+        Args:
+            x (array-like): The input data.
+            factors (array-like, optional): The factors influencing the input data.
+        Returns:
+            array-like: The predicted log class probabilities.
+        """
+        x = self.adapt(x, factors)
+        return super().predict_log_proba(x)
+
+    def decision_function(self, x, factors=None):
+        """Compute the decision function using the best pipeline."""
+        x = self.adapt(x, factors)
+        return super().decision_function(x)
+
+    def transform(self, x, factors=None):
+        """Transform the data using the best pipeline."""
+        x = self.adapt(x, factors)
+        return super().transform(x)
+
+    def inverse_transform(self, x):
+        """Inverse transform the data using the best pipeline.
+        Note that this method is not compatible for MIDA when `augment=True`.
+
+        Args:
+            x (array-like): The input data.
+        Returns:
+            array-like: The inverse transformed data.
+        """
+        check_is_fitted(self)
+        x = super().inverse_transform(x)
+
+        if hasattr(self.best_mida_, "inverse_transform"):
+            x = self.best_mida_.inverse_transform(x)
+
+        if self.transformer is not None and hasattr(self.transformer_, "inverse_transform"):
+            x = self.best_transformer_.inverse_transform(x)
+
+        return x
+
+    @property
+    def n_features_in_(self):
+        """Number of features seen during `fit`."""
+
+        # Can't be replace since it is used to validate the input data
+        # by scikit-learn, default across all estimators
+
+        # Trick to call the try exception block of the parent class
+        super().n_features_in_
+        if self.transformer is not None:
+            return self.best_transformer_.n_features_in_
+        return self.best_mida_.n_features_in_
+
+    @_fit_context(prefer_skip_nested_validation=True)
+    def fit(self, x, y=None, factors=None, **params):
+        """Fit and tune the pipeline with the given data.
+
+        Args:
+            x (array-like): The input data.
+            y (array-like): The target values.
+            factors (array-like, optional): The factors influencing the input data.
+            **params: Additional parameters for the estimator.
+        Returns:
+            self: The fitted trainer.
+        """
+
+        estimator = self.estimator
+        transformer = self.transformer
+        mida = MIDA()
+        scorers, refit_metric = self._get_scorers()
+
+        x, y, factors = indexable(x, y, factors)
+        params = _check_method_params(x, params)
+        routed_params = self._get_routed_params_for_fit(params)
+
+        cv_orig = check_cv(self.cv, y, classifier=is_classifier(estimator))
+        n_splits = cv_orig.get_n_splits(x, y, **routed_params.splitter.split)
+
+        base_estimator = clone(estimator)
+        base_transformer = clone(transformer) if transformer else None
+        base_mida = clone(mida)
+
+        parallel = Parallel(self.n_jobs, pre_dispatch=self.pre_dispatch)
+
+        fit_and_score_kwargs = dict(
+            scorer=scorers,
+            fit_args=routed_params.estimator.fit,
+            score_args=routed_params.scorer.score,
+            return_train_score=self.return_train_score,
+            return_num_test_samples=True,
+            return_times=True,
+            return_parameters=False,
+            error_score=self.error_score,
+            verbose=self.verbose,
+        )
+        results = {}
+        with parallel:
+            all_candidate_params = []
+            all_out = []
+            all_more_results = defaultdict(list)
+
+            def evaluate_candidates(candidate_params, cv=None, more_results=None):
+                cv = cv or cv_orig
+                candidate_params = list(candidate_params)
+                n_candidates = len(candidate_params)
+
+                if self.verbose > 0:
+                    logger = logging.getLogger("MIDATrainer.fit")
+                    logger.setLevel(logging.INFO)
+                    logger.info(
+                        "Fitting {0} folds for each of {1} candidates,"
+                        " totalling {2} fits".format(n_splits, n_candidates, n_candidates * n_splits)
+                    )
+
+                out = parallel(
+                    delayed(_fit_and_score)(
+                        clone(base_estimator),
+                        x,
+                        y,
+                        transformer=base_transformer,
+                        domain_adapter=base_mida,
+                        factors=factors,
+                        train=train,
+                        test=test,
+                        parameters=parameters,
+                        split_progress=(split_idx, n_splits),
+                        candidate_progress=(cand_idx, n_candidates),
+                        **fit_and_score_kwargs,
+                    )
+                    for (cand_idx, parameters), (split_idx, (train, test)) in product(
+                        enumerate(candidate_params),
+                        enumerate(cv.split(x, y, **routed_params.splitter.split)),
+                    )
+                )
+
+                if len(out) < 1:
+                    raise ValueError(
+                        "No fits were performed. " "Was the CV iterator empty? " "Were there no candidates?"
+                    )
+                elif len(out) != n_candidates * n_splits:
+                    raise ValueError(
+                        "cv.split and cv.get_n_splits returned "
+                        "inconsistent results. Expected {} "
+                        "splits, got {}".format(n_splits, len(out) // n_candidates)
+                    )
+
+                _warn_or_raise_about_fit_failures(out, self.error_score)
+
+                # For callable self.scoring, the return type is only know after
+                # calling. If the return type is a dictionary, the error scores
+                # can now be inserted with the correct key. The type checking
+                # of out will be done in `_insert_error_scores`.
+                if callable(self.scoring):
+                    _insert_error_scores(out, self.error_score)
+
+                all_candidate_params.extend(candidate_params)
+                all_out.extend(out)
+
+                if more_results is not None:
+                    for key, value in more_results.items():
+                        all_more_results[key].extend(value)
+
+                nonlocal results
+                results = self._format_results(all_candidate_params, n_splits, all_out, all_more_results)
+
+                return results
+
+            self._run_search(evaluate_candidates)
+
+            # multimetric is determined here because in the case of a callable
+            # self.scoring the return type is only known after calling
+            first_test_score = all_out[0]["test_scores"]
+            self.multimetric_ = isinstance(first_test_score, dict)
+
+            # check refit_metric now for a callable scorer that is multimetric
+            if callable(self.scoring) and self.multimetric_:
+                self._check_refit_for_multimetric(first_test_score)
+                refit_metric = self.refit
+
+        # For multi-metric evaluation, store the best_index_, best_params_ and
+        # best_score_ iff refit is one of the scorer names
+        # In single metric evaluation, refit_metric is "score"
+        if self.refit or not self.multimetric_:
+            self.best_index_ = self._select_best_index(self.refit, refit_metric, results)
+            if not callable(self.refit):
+                # With a non-custom callable, we can select the best score
+                # based on the best index
+                self.best_score_ = results[f"mean_test_{refit_metric}"][self.best_index_]
+            self.best_params_ = results["params"][self.best_index_]
+
+        if self.refit:
+            # here we clone the estimator as well as the parameters, since
+            # sometimes the parameters themselves might be estimators, e.g.
+            # when we search over different estimators in a pipeline.
+            # ref: https://github.com/scikit-learn/scikit-learn/pull/26786
+
+            # Temporary workaround to make domain adaptation work.
+            # The ideal scenario is to allow set params to work with all
+            # estimators simultaneously
+            best_params = clone(self.best_params_, safe=False)
+            transformer_keys = [k for k in best_params if k.startswith("transformer__")]
+            best_transformer_params = {k.replace("transformer__", ""): best_params.pop(k) for k in transformer_keys}
+
+            mida_keys = [k for k in best_params if k.startswith("domain_adapter__")]
+            best_mida_params = {k.replace("domain_adapter__", ""): best_params.pop(k) for k in mida_keys}
+
+            if base_transformer is not None:
+                self.best_transformer_ = clone(base_transformer).set_params(
+                    **clone(best_transformer_params, safe=False)
+                )
+                x = self.best_transformer_.fit_transform(x)
+
+            self.best_mida_ = clone(base_mida).set_params(**clone(best_mida_params, safe=False))
+
+            self.best_estimator_ = clone(base_estimator).set_params(**clone(best_params, safe=False))
+
+            refit_start_time = time.time()
+            if y is not None:
+                x = self.best_mida_.fit_transform(x, y, factors)
+                self.best_estimator_.fit(x, y, **routed_params.estimator.fit)
+            else:
+                x = self.best_mida_.fit_transform(x, factors=factors)
+                self.best_estimator_.fit(x, **routed_params.estimator.fit)
+            refit_end_time = time.time()
+            self.refit_time_ = refit_end_time - refit_start_time
+
+            if hasattr(self.best_estimator_, "feature_names_in_"):
+                self.feature_names_in_ = self.best_estimator_.feature_names_in_
+
+        # Store the only scorer not as a dict for single metric evaluation
+        if isinstance(scorers, _MultimetricScorer):
+            self.scorer_ = scorers._scorers
+        else:
+            self.scorer_ = scorers
+
+        # n_splits_ is a parent attribute within BaseSearchCV
+        self.cv_results_ = results
+        self.n_splits_ = n_splits
 
         return self
 
-    def _fit_mida(self, x_transformed, y, groups, transformer_params):
-        """Fit MIDA and estimator with the given data x_transformed and labels
+    def _run_search(self, evaluate_candidates):
+        """Search hyperparameter candidates from param_distributions
 
         Args:
-            x_transformed (array-like): Transformed data, shape (n_samples, n_features)
-            y (array-like): Data labels, shape (n_labeled_samples,)
-            groups (array-like): Group labels for the samples, shape (n_samples,)
-            transformer_params (dict): Parameters of the transformer
-
-        Returns:
-            self
+            evaluate_candidates (callable): Function to evaluate candidates.
         """
-        self.best_mida = MIDA()
-        if self.mida_param_grid is None:
-            self.mida_param_grid = {key: [val] for key, val in self.best_mida.get_params().items()}
-        mida_grid = ParameterGrid(self.mida_param_grid)
-        for mida_params in mida_grid:
-            mida = MIDA(**mida_params)
-            x_transformed = mida.fit_transform(x_transformed, y=y, groups=groups)
-            cv = 5
-            if np.unique(groups).shape[0] > 2:
-                cv = LeaveOneGroupOut().split(x_transformed[y.shape[0] :], y, groups[y.shape[0] :])
-            self._fit_estimator(x_transformed, y, mida_params, transformer_params, cv=cv)
+        if self.search_strategy == "grid":
+            evaluate_candidates(ParameterGrid(self.param_grid))
+            return
 
-        return self
-
-    def _fit_estimator(self, x_transformed, y, mida_params, transformer_params, cv=5):
-        """Fit the estimator with the given data x_transformed and labels y
-
-        Args:
-            x_transformed (array-like): Transformed data, shape (n_samples, n_features)
-            y (array-like): Data labels, shape (n_labeled_samples,)
-            mida_params (dict): Hyperparameters of the MIDA
-            transformer_params (dict): Hyperparameters of the transformer
-
-        Returns:
-            self
-        """
-        if self.estimator_param_grid is None:
-            self.estimator_param_grid = {key: [val] for key, val in self.estimator.get_params().items()}
-
-        clf = GridSearchCV(self.estimator, self.estimator_param_grid, cv=cv)
-        clf.fit(x_transformed[y.shape[0] :,], y)
-        if self.best_score is None or clf.best_score_ > self.best_score:
-            self.best_score = clf.best_score_
-            self.best_estimator_params = clf.best_params_
-            self.best_mida_params = mida_params
-            self.best_transformer_params = transformer_params
-
-        return self
-
-    def predict(self, x, groups=None):
-        """Predict the labels for the given data x
-
-        Args:
-            x (array-like tensor): The data matrix for which we want to get the predictions,
-                shape (n_samples, n_features).
-            groups (array-like, optional): Group labels of x, shape (n_samples,)
-
-        Returns:
-            array-like: Predicted labels, shape (n_samples,)
-        """
-        return self.best_estimator.predict(self.transform(x, groups=groups))
-
-    def decision_function(self, x, groups=None):
-        """Decision scores of each class for the given data x
-
-        Args:
-            x (array-like tensor): The data matrix for which we want to get the decision scores,
-                shape (n_samples, n_features).
-            groups (array-like, optional): Group labels for the samples, shape (n_samples,)
-
-        Returns:
-            array-like: Decision scores, shape (n_samples,) for binary case, else (n_samples, n_class)
-        """
-
-        return self.best_estimator.decision_function(self.transform(x, groups=groups))
-
-    def predict_proba(self, x, groups=None):
-        """Probability of each class for the given data x. Not supported by "linear_svc".
-
-        Args:
-            x (array-like tensor): The data matrix for which we want to get the predictions probabilities,
-                shape (n_samples, n_features)
-            groups (array-like, optional): Group labels of x, shape (n_samples,)
-
-        Returns:
-            array-like: Prediction probabilities, shape (n_samples, n_class)
-        """
-        return self.best_estimator.predict_proba(self.transform(x, groups=groups))
-
-    def transform(self, x, groups=None):
-        """Transform the input data x
-
-        Args:
-            x (array-like tensor): Data matrix to get the transformed data, shape (n_samples, n_features)
-            groups (array-like, optional): Group labels of x, shape (n_samples,)
-
-        Returns:
-            array-like: Transformed data, shape (n_samples, n_features)
-        """
-
-        return self.best_mida.transform(self.best_transformer.transform(x), groups=groups)
-
-    def fit_predict(self, x, y, groups=None):
-        """Fit a pipeline with the given data x, labels y, and group labels groups, and predict the labels for x
-
-        Args:
-            x (array-like): Training input data matrix, shape (n_samples, n_features)
-            y (array-like): Labels, shape (n_labeled_samples,)
-            groups (array-like, optional): Domain/group labels of x, shape (n_samples,)
-
-        Returns:
-            array-like: Predicted labels, shape (n_samples,)
-        """
-        self.fit(x, y, groups)
-        return self.predict(x, groups=groups)
+        evaluate_candidates(ParameterSampler(self.param_grid, self.num_iter, random_state=self.random_state))
