@@ -89,12 +89,13 @@ def test_mpca_against_baseline(gait, baseline_model):
 @pytest.mark.parametrize("kernel", ["linear", "rbf"])
 @pytest.mark.parametrize("augment", [True, False])
 def test_mida(num_components, kernel, augment):
+    # Test an extreme case of domain shift
+    # yet the data's manifold is linearly separable
     x, y, domains = make_domain_shifted_dataset(
-        num_domains=20,
-        num_samples_per_class=10,
-        num_features=40,
-        class_sep=0.5,
-        centroid_shift_scale=4,
+        num_domains=10,
+        num_samples_per_class=2,
+        num_features=20,
+        centroid_shift_scale=32768,
         random_state=0,
     )
 
@@ -107,15 +108,20 @@ def test_mida(num_components, kernel, augment):
     mida_unsupervised.set_params(**mida.get_params())
     mida_semi_supervised.set_params(**mida.get_params())
 
+    (source_mask,) = np.where(domains != 0)
+
+    # Mask the target domain labels
+    y_masked = np.copy(y)
+    y_masked[~source_mask] = -1
+
     mida_unsupervised.fit(x, factors=factors)
-    mida_semi_supervised.fit(x, y, factors=factors)
+    mida_semi_supervised.fit(x, y_masked, factors=factors)
 
     # Transform the whole data
     z_unsupervised = mida_unsupervised.transform(x, factors=factors)
     z_semi_supervised = mida_semi_supervised.transform(x, factors=factors)
 
     # Transform the source and target domain data separately
-    (source_mask,) = np.where(domains != 0)
     z_src_unsupervised = mida_unsupervised.transform(x[source_mask], factors=factors[source_mask])
     z_src_semi_supervised = mida_semi_supervised.transform(x[source_mask], factors=factors[source_mask])
     z_tgt_unsupervised = mida_unsupervised.transform(x[~source_mask], factors=factors[~source_mask])
@@ -127,9 +133,9 @@ def test_mida(num_components, kernel, augment):
     testing.assert_allclose(z_tgt_unsupervised, z_unsupervised[~source_mask])
     testing.assert_allclose(z_tgt_semi_supervised, z_semi_supervised[~source_mask])
 
-    # We only test when num_components is not None since it can vary
-    # given the eigenvalues.
     if num_components is not None:
+        # We only test when num_components is not None since it can vary
+        # given the eigenvalues.
         testing.assert_equal(z_unsupervised.shape, (len(x), num_components))
         testing.assert_equal(z_semi_supervised.shape, (len(x), num_components))
     else:
@@ -156,7 +162,7 @@ def test_mida(num_components, kernel, augment):
 
         assert (
             score_tgt_unsupervised > score_tgt
-        ), f"MIDA did not improve target domain performance {score_tgt_unsupervised:.4f} > {score_tgt:.4f}"
+        ), f"MIDA did not improve target domain performance MIDA ({score_tgt_unsupervised:.4f}) > Baseline ({score_tgt:.4f})"
         assert (
             score_tgt_semi_supervised > score_tgt
-        ), f"SMIDA did not improve target domain performance {score_tgt_semi_supervised:.4f} > {score_tgt:.4f}"
+        ), f"SMIDA did not improve target domain performance SMIDA ({score_tgt_semi_supervised:.4f}) > Baseline ({score_tgt:.4f})"
