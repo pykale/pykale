@@ -4,6 +4,8 @@ import numpy as np
 import pytest
 from numpy import testing
 from scipy.io import loadmat
+from sklearn.base import clone
+from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
 
@@ -83,23 +85,78 @@ def test_mpca_against_baseline(gait, baseline_model):
         testing.assert_allclose(mpca.proj_mats[i] ** 2, baseline_proj_mats[i] ** 2, rtol=relative_tol)
 
 
+@pytest.mark.parametrize("num_components", [2, None])
 @pytest.mark.parametrize("kernel", ["linear", "rbf"])
-@pytest.mark.parametrize("augmentation", [True, False])
-def test_mida(kernel, augmentation):
+@pytest.mark.parametrize("augment", [True, False])
+def test_mida(num_components, kernel, augment):
     x, y, domains = make_domain_shifted_dataset(
-        num_domains=2,
-        num_samples_per_class=50,
-        num_features=50,
-        class_sep=1.0,
-        centroid_shift_scale=5.0,
+        num_domains=20,
+        num_samples_per_class=10,
+        num_features=40,
+        class_sep=0.5,
+        centroid_shift_scale=4,
         random_state=0,
     )
 
-    # enc = OneHotEncoder(handle_unknown="ignore")
-    # covariates_mat = enc.fit_transform(domains.reshape(-1, 1)).toarray()
-    mida = MIDA(n_components=2, kernel=kernel, augmentation=augmentation)
-    x_transformed = mida.fit_transform(x, groups=domains)
-    testing.assert_equal(x_transformed.shape, (len(x), 2))
+    enc = OneHotEncoder(handle_unknown="ignore")
+    factors = enc.fit_transform(domains.reshape(-1, 1)).toarray()
+    mida = MIDA(num_components=num_components, kernel=kernel, augment=augment)
+    mida_unsupervised = clone(mida)
+    mida_semi_supervised = clone(mida)
 
-    x_transformed = mida.fit_transform(x, y, groups=domains)
-    testing.assert_equal(x_transformed.shape, (len(x), 2))
+    mida_unsupervised.set_params(**mida.get_params())
+    mida_semi_supervised.set_params(**mida.get_params())
+
+    mida_unsupervised.fit(x, factors=factors)
+    mida_semi_supervised.fit(x, y, factors=factors)
+
+    # Transform the whole data
+    z_unsupervised = mida_unsupervised.transform(x, factors=factors)
+    z_semi_supervised = mida_semi_supervised.transform(x, factors=factors)
+
+    # Transform the source and target domain data separately
+    (source_mask,) = np.where(domains != 0)
+    z_src_unsupervised = mida_unsupervised.transform(x[source_mask], factors=factors[source_mask])
+    z_src_semi_supervised = mida_semi_supervised.transform(x[source_mask], factors=factors[source_mask])
+    z_tgt_unsupervised = mida_unsupervised.transform(x[~source_mask], factors=factors[~source_mask])
+    z_tgt_semi_supervised = mida_semi_supervised.transform(x[~source_mask], factors=factors[~source_mask])
+
+    # Check if transformations are consistent with separate domains
+    testing.assert_allclose(z_src_unsupervised, z_unsupervised[source_mask])
+    testing.assert_allclose(z_src_semi_supervised, z_semi_supervised[source_mask])
+    testing.assert_allclose(z_tgt_unsupervised, z_unsupervised[~source_mask])
+    testing.assert_allclose(z_tgt_semi_supervised, z_semi_supervised[~source_mask])
+
+    # We only test when num_components is not None since it can vary
+    # given the eigenvalues.
+    if num_components is not None:
+        testing.assert_equal(z_unsupervised.shape, (len(x), num_components))
+        testing.assert_equal(z_semi_supervised.shape, (len(x), num_components))
+    else:
+        # We only test for prediction performance when we can leverage all the components
+        # Expect the domain shifted dataset to perform better when mida applied
+
+        # Logistic regression is used since it is a linearly separable classifier
+        # and the dataset is linearly separable
+
+        # Train on the source domain, score on the target domain
+        classifier = LogisticRegression(random_state=0, max_iter=10)
+        classifier.fit(x[source_mask], y[source_mask])
+        score_tgt = classifier.score(x[~source_mask], y[~source_mask])
+
+        # Train on the source domain, score on the target domain
+        # using MIDA-transformed data
+        classifier.fit(z_src_unsupervised, y[source_mask])
+        score_tgt_unsupervised = classifier.score(z_tgt_unsupervised, y[~source_mask])
+
+        # Train on the source domain, score on the target domain
+        # using SMIDA-transformed data
+        classifier.fit(z_src_semi_supervised, y[source_mask])
+        score_tgt_semi_supervised = classifier.score(z_tgt_semi_supervised, y[~source_mask])
+
+        assert (
+            score_tgt_unsupervised > score_tgt
+        ), f"MIDA did not improve target domain performance {score_tgt_unsupervised:.4f} > {score_tgt:.4f}"
+        assert (
+            score_tgt_semi_supervised > score_tgt
+        ), f"SMIDA did not improve target domain performance {score_tgt_semi_supervised:.4f} > {score_tgt:.4f}"
