@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 from numpy import testing
 from scipy.io import loadmat
-from sklearn.base import clone
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
@@ -22,6 +21,23 @@ baseline_url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baselin
 @pytest.fixture(scope="module")
 def baseline_model(download_path):
     return loadmat(os.path.join(download_path, "baseline.mat"))
+
+
+@pytest.fixture(scope="module")
+def sample_data():
+    # Test an extreme case of domain shift
+    # yet the data's manifold is linearly separable
+    x, y, domains = make_domain_shifted_dataset(
+        num_domains=10,
+        num_samples_per_class=2,
+        num_features=20,
+        centroid_shift_scale=32768,
+        random_state=0,
+    )
+
+    factors = OneHotEncoder(handle_unknown="ignore").fit_transform(domains.reshape(-1, 1)).toarray()
+
+    return x, y, domains, factors
 
 
 @pytest.mark.parametrize("n_components", N_COMPS)
@@ -86,27 +102,70 @@ def test_mpca_against_baseline(gait, baseline_model):
 
 
 @pytest.mark.parametrize("num_components", [2, None])
+def test_mida_shape_consistency(sample_data, num_components):
+    x, y, domains, factors = sample_data
+
+    mida = MIDA(num_components=num_components)
+    mida.set_params(**mida.get_params())
+    mida.fit(x, factors=factors)
+
+    # Transform the whole data
+    z = mida.transform(x, factors=factors)
+
+    # If num_components is not None, check the shape of the transformed data
+    if num_components is not None:
+        testing.assert_equal(z.shape, (len(x), num_components))
+
+    # Transform the source and target domain data separately
+    (source_mask,) = np.where(domains != 0)
+    z_src = mida.transform(x[source_mask], factors=factors[source_mask])
+    z_tgt = mida.transform(x[~source_mask], factors=factors[~source_mask])
+    # Check if transformations are consistent with separate domains
+    testing.assert_allclose(z_src, z[source_mask])
+    testing.assert_allclose(z_tgt, z[~source_mask])
+
+    orig_coef_dim = mida.orig_coef_.shape[0]
+    feature_dim = x.shape[1]
+    assert mida.orig_coef_ is not None, "MIDA must have `orig_coef_` after fitting when kernel='linear'"
+    assert orig_coef_dim == feature_dim, f"orig_coef_ shape mismatch: {orig_coef_dim} != {feature_dim}"
+
+
+def test_mida_inverse_transform(sample_data):
+    x, y, domains, factors = sample_data
+
+    mida = MIDA(fit_inverse_transform=True)
+    mida.fit(x, factors=factors)
+
+    # Transform the whole data
+    z = mida.transform(x, factors=factors)
+    # Inverse transform the data
+    x_rec = mida.inverse_transform(z)
+
+    # We don't check whether the inverse transform is exactly equal to the original data
+    # in terms of value since it is expected to be different due to the domain adaptation effect.
+    # We only check the shape and dimensionality.
+    assert len(x_rec) == len(x), f"Inverse transform failed: {len(x_rec)} != {len(x)}"
+    assert x_rec.ndim == x.ndim, f"Inverse transform failed: {x_rec.ndim} != {x.ndim}"
+    testing.assert_equal(x_rec.shape, x.shape)
+
+
 @pytest.mark.parametrize("kernel", ["linear", "rbf"])
 @pytest.mark.parametrize("augment", [True, False])
-def test_mida(num_components, kernel, augment):
-    # Test an extreme case of domain shift
-    # yet the data's manifold is linearly separable
-    x, y, domains = make_domain_shifted_dataset(
-        num_domains=10,
-        num_samples_per_class=2,
-        num_features=20,
-        centroid_shift_scale=32768,
-        random_state=0,
+@pytest.mark.parametrize("ignore_y", [True, False])
+@pytest.mark.parametrize("eigen_solver", ["auto", "dense", "arpack", "randomized"])
+@pytest.mark.parametrize("scale_components", [True, False])
+def test_mida_performance(sample_data, kernel, augment, ignore_y, eigen_solver, scale_components):
+    x, y, domains, factors = sample_data
+
+    mida = MIDA(
+        num_components=None,
+        kernel=kernel,
+        augment=augment,
+        ignore_y=ignore_y,
+        eigen_solver=eigen_solver,
+        random_state=0 if eigen_solver in ["arpack", "randomized"] else None,
+        scale_components=scale_components,
     )
-
-    enc = OneHotEncoder(handle_unknown="ignore")
-    factors = enc.fit_transform(domains.reshape(-1, 1)).toarray()
-    mida = MIDA(num_components=num_components, kernel=kernel, augment=augment)
-    mida_unsupervised = clone(mida)
-    mida_semi_supervised = clone(mida)
-
-    mida_unsupervised.set_params(**mida.get_params())
-    mida_semi_supervised.set_params(**mida.get_params())
 
     (source_mask,) = np.where(domains != 0)
 
@@ -114,55 +173,22 @@ def test_mida(num_components, kernel, augment):
     y_masked = np.copy(y)
     y_masked[~source_mask] = -1
 
-    mida_unsupervised.fit(x, factors=factors)
-    mida_semi_supervised.fit(x, y_masked, factors=factors)
+    mida.fit(x, y_masked, factors=factors)
 
-    # Transform the whole data
-    z_unsupervised = mida_unsupervised.transform(x, factors=factors)
-    z_semi_supervised = mida_semi_supervised.transform(x, factors=factors)
+    # Transform separately
+    x_src, x_tgt, y_src, y_tgt = x[source_mask], x[~source_mask], y[source_mask], y[~source_mask]
 
-    # Transform the source and target domain data separately
-    z_src_unsupervised = mida_unsupervised.transform(x[source_mask], factors=factors[source_mask])
-    z_src_semi_supervised = mida_semi_supervised.transform(x[source_mask], factors=factors[source_mask])
-    z_tgt_unsupervised = mida_unsupervised.transform(x[~source_mask], factors=factors[~source_mask])
-    z_tgt_semi_supervised = mida_semi_supervised.transform(x[~source_mask], factors=factors[~source_mask])
-
-    # Check if transformations are consistent with separate domains
-    testing.assert_allclose(z_src_unsupervised, z_unsupervised[source_mask])
-    testing.assert_allclose(z_src_semi_supervised, z_semi_supervised[source_mask])
-    testing.assert_allclose(z_tgt_unsupervised, z_unsupervised[~source_mask])
-    testing.assert_allclose(z_tgt_semi_supervised, z_semi_supervised[~source_mask])
-
-    if num_components is not None:
-        # We only test when num_components is not None since it can vary
-        # given the eigenvalues.
-        testing.assert_equal(z_unsupervised.shape, (len(x), num_components))
-        testing.assert_equal(z_semi_supervised.shape, (len(x), num_components))
-    else:
-        # We only test for prediction performance when we can leverage all the components
-        # Expect the domain shifted dataset to perform better when mida applied
-
-        # Logistic regression is used since it is a linearly separable classifier
-        # and the dataset is linearly separable
-
-        # Train on the source domain, score on the target domain
-        classifier = LogisticRegression(random_state=0, max_iter=10)
-        classifier.fit(x[source_mask], y[source_mask])
-        score_tgt = classifier.score(x[~source_mask], y[~source_mask])
-
-        # Train on the source domain, score on the target domain
-        # using MIDA-transformed data
-        classifier.fit(z_src_unsupervised, y[source_mask])
-        score_tgt_unsupervised = classifier.score(z_tgt_unsupervised, y[~source_mask])
-
-        # Train on the source domain, score on the target domain
-        # using SMIDA-transformed data
-        classifier.fit(z_src_semi_supervised, y[source_mask])
-        score_tgt_semi_supervised = classifier.score(z_tgt_semi_supervised, y[~source_mask])
-
-        assert (
-            score_tgt_unsupervised > score_tgt
-        ), f"MIDA did not improve target domain performance MIDA ({score_tgt_unsupervised:.4f}) > Baseline ({score_tgt:.4f})"
-        assert (
-            score_tgt_semi_supervised > score_tgt
-        ), f"SMIDA did not improve target domain performance SMIDA ({score_tgt_semi_supervised:.4f}) > Baseline ({score_tgt:.4f})"
+    classifier = LogisticRegression(random_state=0, max_iter=10)
+    # Train on the source domain, score on the target domain
+    classifier.fit(x_src, y_src)
+    score_tgt = classifier.score(x_tgt, y_tgt)
+    # Train on the source domain, score on the target domain
+    # using MIDA-transformed data
+    z_src = mida.transform(x_src, factors=factors[source_mask])
+    z_tgt = mida.transform(x_tgt, factors=factors[~source_mask])
+    classifier.fit(z_src, y_src)
+    score_tgt_mida = classifier.score(z_tgt, y_tgt)
+    # Check if MIDA improved the target domain performance
+    assert (
+        score_tgt_mida > score_tgt
+    ), f"MIDA did not improve target domain performance MIDA ({score_tgt_mida:.4f}) > Baseline ({score_tgt:.4f})"
