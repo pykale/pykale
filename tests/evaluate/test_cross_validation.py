@@ -4,6 +4,7 @@ from sklearn.dummy import DummyClassifier
 from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
+from kale.embed.factorization import MIDA
 from kale.evaluate import cross_validation
 from kale.pipeline.multi_domain_adapter import CoIRLS
 
@@ -24,12 +25,14 @@ def sample_data():
 
     # Convert labels to strings for testing
     groups = np.where(groups == 0, "A", "B")
-    return x, y, groups
+    factors = OneHotEncoder(sparse_output=False).fit_transform(groups.reshape(-1, 1))
+
+    return x, y, groups, factors
 
 
 # Checks leave-one-group-out results for above sample data
 def check_leave_one_group_out_results(sample_data, estimator, domain_adaptation=False):
-    x, y, groups = sample_data
+    x, y, groups, _ = sample_data
     results = cross_validation.leave_one_group_out(x, y, groups, estimator, domain_adaptation)
 
     # Check if all keys are present in the result dictionary
@@ -63,16 +66,24 @@ def test_leave_one_group_out_with_domain_adaptation(sample_data):
 
 @pytest.mark.parametrize("cv", [3, LeaveOneGroupOut()])
 @pytest.mark.parametrize("transformer", [None, StandardScaler()])
+@pytest.mark.parametrize("domain_adapter", [None, MIDA()])
 @pytest.mark.parametrize("scoring", ["accuracy", "f1", "roc_auc", ["accuracy", "f1", "roc_auc"]])
 @pytest.mark.parametrize("return_indices", [True, False])
 @pytest.mark.parametrize("return_train_score", [True, False])
 @pytest.mark.parametrize("return_estimator", [True, False])
-def test_cross_validate(sample_data, cv, transformer, scoring, return_indices, return_train_score, return_estimator):
+def test_cross_validate(
+    sample_data,
+    cv,
+    transformer,
+    domain_adapter,
+    scoring,
+    return_indices,
+    return_train_score,
+    return_estimator,
+):
     estimator = DummyClassifier()
 
-    x, y, groups = sample_data
-
-    factors = OneHotEncoder(sparse_output=False).fit_transform(groups.reshape(-1, 1))
+    x, y, groups, factors = sample_data
 
     fit_args = None
     if isinstance(estimator, CoIRLS):
@@ -85,6 +96,7 @@ def test_cross_validate(sample_data, cv, transformer, scoring, return_indices, r
         groups=groups,
         cv=cv,
         transformer=transformer,
+        domain_adapter=domain_adapter,
         factors=factors,
         scoring=scoring,
         fit_args=fit_args,
