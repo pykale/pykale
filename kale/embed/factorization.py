@@ -11,8 +11,8 @@ import warnings
 from numbers import Integral, Real
 
 import numpy as np
-import numpy.linalg as la
-from scipy.linalg import eigh
+import scipy.linalg as la
+from numpy.linalg import multi_dot
 from scipy.sparse.linalg import eigsh
 from sklearn.base import _fit_context, BaseEstimator, ClassNamePrefixFeaturesOutMixin, TransformerMixin
 from sklearn.metrics.pairwise import PAIRWISE_KERNEL_FUNCTIONS, pairwise_kernels
@@ -21,7 +21,14 @@ from sklearn.utils._arpack import _init_arpack_v0
 from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.utils.extmath import _randomized_eigsh, safe_sparse_dot, svd_flip
 from sklearn.utils.multiclass import type_of_target
-from sklearn.utils.validation import _check_psd_eigenvalues, _num_features, _num_samples, check_is_fitted, validate_data
+from sklearn.utils.validation import (
+    _check_psd_eigenvalues,
+    _num_features,
+    _num_samples,
+    check_is_fitted,
+    NotFittedError,
+    validate_data,
+)
 from tensorly.base import fold, unfold
 from tensorly.tenalg import multi_mode_dot
 
@@ -115,7 +122,7 @@ def _check_solver(k, num_components, solver):
     """
     k_size = _num_features(k)
 
-    if solver == "auto" and k_size > 200 and k_size < 10:
+    if solver == "auto" and k_size > 200 and num_components < 10:
         solver = "arpack"
     elif solver == "auto":
         solver = "dense"
@@ -171,7 +178,7 @@ def _eigendecompose(
 
         return _randomized_eigsh(
             a,
-            num_components=num_components,
+            n_components=num_components,
             n_iter=iterated_power,
             random_state=random_state,
             selection="module",
@@ -180,7 +187,7 @@ def _eigendecompose(
     # If solver is 'dense', use standard scipy.linalg.eigh
     # Note: subset_by_index specifies the indices of smallest/largest to return
     index = (_num_features(a) - num_components, _num_features(a) - 1)
-    return eigh(a, b, subset_by_index=index)
+    return la.eigh(a, b, subset_by_index=index)
 
 
 # Postprocess eignevalues and eigenvectors
@@ -785,15 +792,23 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
 
         return safe_sparse_dot(k_x, w)
 
-    def inverse_transform(self, Z):
-        """Inverse transform the transformed data `Z` back to the original space.
+    def inverse_transform(self, z):
+        """Inverse transform the transformed data `z` back to the original space.
         Args:
-            Z (array-like): The transformed data.
+            z (array-like): The transformed data.
         Returns:
             array-like: The inverse transformed data.
         """
         check_is_fitted(self)
-        return super().inverse_transform(Z)
+        if not self.fit_inverse_transform:
+            raise NotFittedError(
+                "The fit_inverse_transform parameter was not"
+                " set to True when instantiating and hence "
+                "the inverse transform is not available."
+            )
+
+        k_z = self._get_kernel(z, self.x_transformed_fit_)
+        return safe_sparse_dot(k_z, self.dual_coef_)
 
     def fit_transform(self, x, y=None, factors=None, **fit_params):
         """Fit the model to the data `x` and target variable `y` and remove
@@ -936,6 +951,6 @@ class MIDA(BaseKernelDomainAdapter):
         k_y = centerer.fit_transform(k_y)
         k_f = centerer.fit_transform(k_f)
 
-        k_solution = la.multi_dot((k_x, self.mu * h + self.eta * k_y - k_f, k_x))
+        k_solution = multi_dot((k_x, self.mu * h + self.eta * k_y - k_f, k_x))
 
         return k_solution
