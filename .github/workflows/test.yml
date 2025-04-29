@@ -1,5 +1,7 @@
-# This workflow will install Python dependencies, run tests, and report the coverage with a variety of Python versions and OSs.
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+# This workflow manages two actions: running all tests or only those on changed parts. It uses action cache to store and
+# restore downloaded pip data and .testmondata data. This workflow will install Python dependencies, run tests, and
+# report the coverage with a variety of Python versions and OSs. For more information
+# see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions.
 
 name: test
 
@@ -86,18 +88,50 @@ jobs:
           python tests/download_test_data.py
         shell: bash -l {0}
 
-      - name: Run tests
-        id: run_tests
+      # Push and Schedule
+      # Generate pytest testmon cache if the event is push to main or schedule
+      - name: Run tests (test the changed)
+        id: run_tests_changed
+        if: github.event_name == 'push' || github.event_name == 'schedule'
+        run: |
+          pytest --testmon
+        shell: bash -l {0}
+
+      # Run the whole test if the event is push to main or schedule
+      - name: Run tests (test all)
+        id: run_tests_all
+        if: github.event_name == 'push' || github.event_name == 'schedule'
+        run: |
+          pytest --nbmake --nbmake-timeout=3000 --cov=kale
+        shell: bash -l {0}
+
+      # Pull Request
+      # Restore pytest-testmon cache without generating new cache if the event is pull request and the label is 'enable-test-changed-only'
+      - name: Run tests (test the changed in pull request)
+        id: run_tests_changed_pull_request
+        if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'true'
+        run: |
+          pytest --testmon-nocollect --nbmake --nbmake-timeout=3000 --cov=kale
+#          pytest --testmon --nbmake --nbmake-timeout=3000 --cov=kale
+        shell: bash -l {0}
+
+      # Run the whole test if the event is pull request and the label is not 'enable-test-changed-only'
+      - name: Run tests (test all in pull request)
+        id: run_tests_all_pull_request
+        if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'false'
         run: |
           pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
       - name: Determine coverage
+        id: coverage
+        if: steps.check_enabled_label.outputs.has_enabled_label == 'false'
         run: |
           coverage xml
         shell: bash -l {0}
 
       - name: Report coverage
+        if: github.event_name == 'pull_request' && steps.check_enabled_label.outputs.has_enabled_label == 'false'
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
