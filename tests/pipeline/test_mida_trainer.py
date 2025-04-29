@@ -164,6 +164,10 @@ def test_mida_trainer_fit_and_methods(toy_data):
 
     trainer.fit(x, y, factors=factors, groups=domains)
 
+    # check n_features_in_
+    assert hasattr(trainer, "n_features_in_"), "n_features_in_ should be set"
+    assert trainer.n_features_in_ == x.shape[1], f"n_features_in_ should be {x.shape[1]}, got {trainer.n_features_in_}"
+
     # test adaptation (excluding estimator)
     x_transformed = trainer.adapt(x, factors=factors)
     testing.assert_array_equal((len(x), 10), x_transformed.shape)
@@ -189,7 +193,9 @@ def test_mida_trainer_fit_and_methods(toy_data):
     assert isinstance(score, float), f"Score should be a float, got '{type(score)}' instead"
 
     # test unsupervised models
-    trainer = trainer.set_params(estimator=PCA(n_components=2, random_state=0), param_grid={})
+    trainer = trainer.set_params(
+        estimator=PCA(n_components=2, random_state=0), param_grid={"domain_adapter__fit_inverse_transform": [True]}
+    )
     trainer.fit(x, factors=factors, groups=domains)
 
     # test score_sample
@@ -199,6 +205,10 @@ def test_mida_trainer_fit_and_methods(toy_data):
     # test transform
     transform = trainer.transform(x, factors=factors)
     testing.assert_array_equal((len(x), 2), transform.shape)
+
+    # test inverse_transform
+    inv_transform = trainer.inverse_transform(transform)
+    testing.assert_array_equal((len(x), 20), inv_transform.shape)
 
 
 def test_mida_trainer_performance(toy_data):
