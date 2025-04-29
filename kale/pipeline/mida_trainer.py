@@ -99,7 +99,7 @@ class MIDATrainer(BaseSearchCV):
         param_grid,
         transformer=None,
         search_strategy="grid",
-        num_iter=None,
+        num_iter=10,
         scoring=None,
         # n_jobs can't be changed to num_jobs since it is used in the parent class
         n_jobs=None,
@@ -320,7 +320,7 @@ class MIDATrainer(BaseSearchCV):
                         factors=factors,
                         train=train,
                         test=test,
-                        parameters=parameters,
+                        parameters=clone(parameters, safe=False),
                         split_progress=(split_idx, n_splits),
                         candidate_progress=(cand_idx, n_candidates),
                         **fit_and_score_kwargs,
@@ -396,6 +396,7 @@ class MIDATrainer(BaseSearchCV):
             # The ideal scenario is to allow set params to work with all
             # estimators simultaneously
             best_params = clone(self.best_params_, safe=False)
+
             transformer_keys = [k for k in best_params if k.startswith("transformer__")]
             best_transformer_params = {k.replace("transformer__", ""): best_params.pop(k) for k in transformer_keys}
 
