@@ -48,7 +48,7 @@ def toy_data():
 
 @pytest.mark.parametrize("transformer", TRANSFORMER)
 @pytest.mark.parametrize("param_grid", PARAM_GRID)
-def test_params_consistency_mida_trainer(toy_data, transformer, param_grid):
+def test_mida_trainer_params_consistency(toy_data, transformer, param_grid):
     x, y, domains, factors = toy_data
 
     param_grid = clone(param_grid, safe=False)
@@ -78,11 +78,11 @@ def test_params_consistency_mida_trainer(toy_data, transformer, param_grid):
     missing_param_keys = set(trainer.best_params_.keys()) - param_keys
 
     assert "params" in trainer.cv_results_, "Missing 'params' in cv_results_"
-    assert len(missing_param_keys) <= 0, f"Missing {missing_param_keys} in best_params_"
+    assert len(missing_param_keys) == 0, f"Missing {missing_param_keys} in best_params_"
 
 
 @pytest.mark.parametrize("scoring", [None, "f1", "roc_auc", ["accuracy", "f1", "roc_auc"]])
-def test_scoring_support_mida_trainer(toy_data, scoring):
+def test_mida_trainer_scoring_support(toy_data, scoring):
     x, y, domains, factors = toy_data
 
     refit = True
@@ -109,7 +109,7 @@ def test_scoring_support_mida_trainer(toy_data, scoring):
 
 
 @pytest.mark.parametrize("cv", [None, 3, LeaveOneGroupOut()])
-def test_cv_support_mida_trainer(toy_data, cv):
+def test_mida_trainer_cv_support(toy_data, cv):
     x, y, domains, factors = toy_data
 
     trainer = MIDATrainer(
@@ -129,7 +129,7 @@ def test_cv_support_mida_trainer(toy_data, cv):
 
 
 @pytest.mark.parametrize("search_strategy", ["random", "grid"])
-def test_search_strategy_support_mida_trainer(toy_data, search_strategy):
+def test_mida_trainer_search_strategy_support(toy_data, search_strategy):
     x, y, domains, factors = toy_data
 
     trainer = MIDATrainer(
@@ -143,7 +143,7 @@ def test_search_strategy_support_mida_trainer(toy_data, search_strategy):
     # assert len(trainer.)
 
 
-def test_fit_and_methods_mida_trainer(toy_data):
+def test_mida_trainer_fit_and_methods(toy_data):
     x, y, domains, factors = toy_data
 
     param_grid = clone(PARAM_GRID[1], safe=False)
@@ -201,7 +201,7 @@ def test_fit_and_methods_mida_trainer(toy_data):
     testing.assert_array_equal((len(x), 2), transform.shape)
 
 
-def test_performance_mida_trainer(toy_data):
+def test_mida_trainer_performance(toy_data):
     x, y, domains, factors = toy_data
 
     baseline_trainer = GridSearchCV(
