@@ -142,14 +142,19 @@ def _fit_and_score(
 
     if transformer is not None or domain_adapter is not None:
         x_sampled = xp.concatenate([x_train, x_test], axis=0)
-        y_sampled = xp.concatenate([y_train, y_test], axis=0)
+
+        y_sampled = None
+        if y is not None:
+            y_sampled = xp.concatenate([y_train, y_test], axis=0)
+            y_sampled = xp.asarray(y_sampled, device=x_device)
+
+        is_supported_target = any([y_type.startswith(key) for key in ["binary", "multiclass"]])
 
         # Mask the labels for the test set to avoid leakage
-        if any([y_type.startswith(key) for key in ["binary", "multiclass"]]):
+        if is_supported_target and y is not None:
             y_sampled[_num_samples(x_train) - 1 :] = -1
-        else:
+        elif y is not None and not is_supported_target:
             raise ValueError("Domain adaptation is only supported for 'binary' or 'multiclass' y.")
-        y_sampled = xp.asarray(y_sampled, device=x_device)
 
     if transformer is not None:
         if parameters is not None:
