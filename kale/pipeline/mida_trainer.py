@@ -231,7 +231,7 @@ class MIDATrainer(BaseSearchCV):
         if hasattr(self.best_mida_, "inverse_transform"):
             x = self.best_mida_.inverse_transform(x)
 
-        if self.transformer is not None and hasattr(self.transformer_, "inverse_transform"):
+        if self.transformer is not None and hasattr(self.best_transformer_, "inverse_transform"):
             x = self.best_transformer_.inverse_transform(x)
 
         return x
