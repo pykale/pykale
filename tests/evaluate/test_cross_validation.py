@@ -231,3 +231,37 @@ def test_cross_validate_return_estimator(sample_data, return_estimator):
         return
 
     assert "estimator" not in results, "Did not expect 'estimator' in results"
+
+
+@pytest.mark.parametrize("error_score", [np.nan, "raise", -1])
+def test_cross_validate_error_score(sample_data, error_score):
+    x, y, groups, factors = sample_data
+    # Ensure y is float to cause an error
+    y = np.random.normal(size=y.shape).astype(float)
+
+    estimator = DummyClassifier()
+
+    try:
+        results = cross_validation.cross_validate(
+            estimator,
+            x,
+            y,
+            groups=groups,
+            transformer=None,
+            domain_adapter=None,
+            factors=factors,
+            scoring=None,
+            fit_args=None,
+            return_indices=False,
+            return_train_score=False,
+            error_score=error_score,
+            return_estimator=False,
+        )
+
+        if np.isnan(error_score):
+            assert np.all(np.isnan(results["test_score"])), "Expected all NaN in test_score"
+        else:
+            assert np.all(results["test_score"] == error_score), "Expected all -1 in test_score"
+
+    except ValueError as e:
+        assert len(e.args) == 1, "Expected raise when error_score='raise'"
