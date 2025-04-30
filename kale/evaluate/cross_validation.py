@@ -65,7 +65,8 @@ def _fit_and_score(
         y (array-like): Target variable for supervised learning [num_samples] or [num_samples, num_targets].
         transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods applied before domain adaptation.
         domain_adapter (sklearn.base.BaseEstimator, optional): A domain adapter implementing fit and transform methods.
-        factors (array-like, optional): Factors to reduce their influence on the data for domain adaptation [num_samples, num_factors].
+        factors (array-like): The factors for adaptation with shape (num_samples, num_factors). Please preprocess the factors before domain adaptation
+                            (e.g. one-hot encode domain, gender, or standardize age).
         scorer (callable): A scoring function to evaluate the estimator's performance.
         train (array-like): Indices of training samples.
         test (array-like): Indices of testing samples.
@@ -371,7 +372,8 @@ def cross_validate(
         groups (array-like, optional): Group labels for the samples used while splitting the dataset into train/test sets.
         transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods applied before domain adaptation.
         domain_adapter (sklearn.base.BaseEstimator, optional): A domain adapter implementing fit and transform methods.
-        factors (array-like, optional): Factors to reduce their influence on the data during domain adaptation [num_samples, num_factors].
+        factors (array-like): The factors for adaptation with shape (num_samples, num_factors). Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age).
         scoring (callable, list, tuple, dict, optional): A scoring function or a list of scoring functions to evaluate the estimator's performance.
         cv (cv_object, optional): Cross-validation splitting strategy.
         num_jobs (int, optional): Number of jobs to run cross-validation in parallel using joblib.Parallel.

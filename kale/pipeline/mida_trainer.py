@@ -134,7 +134,9 @@ class MIDATrainer(BaseSearchCV):
 
         Args:
             x (array-like): The input data.
-            factors (array-like, optional): The factors influencing the input data.
+            factors (array-like): The factors for adaptation with shape (num_samples, num_factors).
+                                Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age).
         Returns:
             self: The adapted trainer.
         """
@@ -149,7 +151,9 @@ class MIDATrainer(BaseSearchCV):
         Args:
             x (array-like): The input data.
             y (array-like): The target values.
-            factors (array-like, optional): The factors influencing the input data.
+            factors (array-like): The factors for adaptation with shape (num_samples, num_factors).
+                                Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age).
             **params: Additional parameters for the estimator.
         Returns:
             float: The score of the estimator.
@@ -163,7 +167,9 @@ class MIDATrainer(BaseSearchCV):
 
         Args:
             x (array-like): The input data.
-            factors (array-like, optional): The factors influencing the input data.
+            factors (array-like): The factors for adaptation with shape (num_samples, num_factors).
+                                Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age).
         Returns:
             array-like: The log-likelihood of the samples.
         """
@@ -175,7 +181,9 @@ class MIDATrainer(BaseSearchCV):
 
         Args:
             x (array-like): The input data.
-            factors (array-like, optional): The factors influencing the input data.
+            factors (array-like): The factors for adaptation with shape (num_samples, num_factors).
+                                Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age).
         Returns:
             array-like: The predicted target.
         """
@@ -187,7 +195,9 @@ class MIDATrainer(BaseSearchCV):
 
         Args:
             x (array-like): The input data.
-            factors (array-like, optional): The factors influencing the input data.
+            factors (array-like): The factors for adaptation with shape (num_samples, num_factors).
+                                Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age).
         Returns:
             array-like: The predicted class probabilities.
         """
@@ -199,7 +209,9 @@ class MIDATrainer(BaseSearchCV):
 
         Args:
             x (array-like): The input data.
-            factors (array-like, optional): The factors influencing the input data.
+            factors (array-like): The factors for adaptation with shape (num_samples, num_factors).
+                                Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age).
         Returns:
             array-like: The predicted log class probabilities.
         """
@@ -256,7 +268,9 @@ class MIDATrainer(BaseSearchCV):
         Args:
             x (array-like): The input data.
             y (array-like): The target values.
-            factors (array-like, optional): The factors influencing the input data.
+            factors (array-like): The factors for adaptation with shape (num_samples, num_factors).
+                                Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age).
             **params: Additional parameters for the estimator.
         Returns:
             self: The fitted trainer.
