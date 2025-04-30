@@ -745,6 +745,8 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
             ohe = OneHotEncoder(sparse_output=False, drop=drop)
             y_ohe = ohe.fit_transform(np.expand_dims(y, 1))
 
+            self.classes_ = ohe.categories_[0]
+
         if factors is None:
             raise ValueError(f"Factors must be provided for `{self.__class__.__name__}` during `fit`.")
 
