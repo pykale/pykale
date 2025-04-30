@@ -233,6 +233,6 @@ def test_mida_scale_components(sample_data, scale_components):
     z = mida.transform(x, factors=factors)
 
     # Expect the scale_components to have consistent number of components
-    # the behavior expected is the non-zero eigenvalues is masked not to be indexed
+    # the behavior expected is the zero eigenvalues component is masked, not indexed
     assert mida._n_features_out == 8, f"Expected 8 components, got {mida.n_components_}"
     assert z.shape[1] == mida._n_features_out, f"Expected {x.shape[1]} features, got {mida._n_features_out}"
