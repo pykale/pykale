@@ -173,6 +173,10 @@ def _eigendecompose(
         )
 
     if solver == "randomized":
+        # To support methods that require generalized eigendecomposition,
+        # for randomized solver that doesn't support it by default.
+        # We use the inverse of b to transform a to obtain an equivalent
+        # formulation using regular eigendecomposition.
         if b is not None:
             a = la.inv(b) @ a
 
@@ -198,7 +202,12 @@ def _postprocess_eigencomponents(eigenvalues, eigenvectors, steps, num_component
     Args:
         eigenvalues (array-like): The eigenvalues of the kernel matrix.
         eigenvectors (array-like): The eigenvectors of the kernel matrix.
-        steps (list): The steps to perform in postprocessing.
+        steps (list): The steps to perform in postprocessing, including:
+                        - "remove_significant_negative_eigenvalues"
+                        - "check_psd_eigenvalues"
+                        - "svd_flip"
+                        - "sort_eigencomponents"
+                        - "keep_positive_eigenvalues"
         num_components (int, optional): The number of components to keep. If None, all components are kept.
         remove_zero_eig (bool, optional): Whether to remove zero eigenvalues.
     Returns:
@@ -689,14 +698,16 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         self.eigenvalues_ = eigenvalues
         self.eigenvectors_ = eigenvectors
 
-    def _make_solution_kernel(self, k_x, y, factors):
-        """Create the solution kernel for the eigendecomposition.
+    def _make_objective_kernel(self, k_x, y, factors):
+        """Create the objective kernel for the eigendecomposition.
         Args:
             k_x (array-like): The kernel matrix.
-            y (array-like): The target variable.
-            factors (array-like): The factors for adaptation.
+            y (array-like): The target variable (binary or multiclass classification label) with shape (num_samples).
+            factors (array-like): The factors for adaptation with shape (num_samples, num_factors).
+                                Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age).
         Returns:
-            array-like: The solution kernel.
+            array-like: The objective kernel.
         """
         return k_x
 
@@ -704,9 +715,12 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
     def fit(self, x, y=None, factors=None, **fit_params):
         """Fit the model to the data `x` and target variable `y`.
         Args:
-            x (array-like): The input data.
-            y (array-like, optional): The target variable. Default is None.
-            factors (array-like, optional): The factors for adaptation. Default is None.
+            x (array-like): The input data with shape (num_samples, num_features).
+            y (array-like, optional): The target variable (binary or multiclass classification label) with shape (num_samples).
+                                    Set -1 for unknown labels for semi-supervised MIDA. Default is None.
+            factors (array-like, optional): The factors for adaptation with shape (num_samples, num_factors).
+                                Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age). Default is None.
             **fit_params: Additional parameters for fitting.
         Returns:
             self: The fitted model.
@@ -734,7 +748,7 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         if factors is None:
             raise ValueError(f"Factors must be provided for `{self.__class__.__name__}` during `fit`.")
 
-        # k_solution workaround to validate the factors' shape
+        # k_objective workaround to validate the factors' shape
         factor_validator = FunctionTransformer()
         factor_validator.fit(factors, x)
         factors = factor_validator.transform(factors)
@@ -754,10 +768,10 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         k_x = self._get_kernel(self.x_fit_)
         k_x = self._centerer.fit_transform(k_x)
 
-        k_solution = self._make_solution_kernel(k_x, y_ohe, factors)
+        k_objective = self._make_objective_kernel(k_x, y_ohe, factors)
 
         # Fit the transformation and inverse transformation for the kernel matrix
-        self._fit_transform_in_place(k_solution)
+        self._fit_transform_in_place(k_objective)
         if self.fit_inverse_transform:
             x_transformed = self.transform(x, factors)
             self._fit_inverse_transform(x_transformed, x)
@@ -768,10 +782,12 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         """Transform the input data `x` to factor-independent feature space using the fitted
         domain adapter.
         Args:
-            x (array-like): The input data.
-            factors (array-like, optional): The factors for adaptation. Default is None.
+            x (array-like): The input data with shape (num_samples, num_features).
+            factors (array-like, optional): The factors for adaptation with shape (num_samples, num_factors).
+                                Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age). Default is None.
         Returns:
-            array-like: The transformed data.
+            array-like: The transformed data with shape (num_samples, num_components).
         """
         check_is_fitted(self)
         accept_sparse = False if self.fit_inverse_transform else "csr"
@@ -795,9 +811,10 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
     def inverse_transform(self, z):
         """Inverse transform the transformed data `z` back to the original space.
         Args:
-            z (array-like): The transformed data.
+            z (array-like): The transformed data with shape (num_samples, num_components).
         Returns:
-            array-like: The inverse transformed data.
+            array-like: The inverse transformed data with shape (num_samples, num_features)
+                        or (num_samples, num_features + num_factors) if `augment=True`.
         """
         check_is_fitted(self)
         if not self.fit_inverse_transform:
@@ -814,9 +831,12 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         """Fit the model to the data `x` and target variable `y` and remove
         the effect of `factors`, and transform `x`.
         Args:
-            x (array-like): The input data.
-            y (array-like, optional): The target variable. Default is None.
-            factors (array-like, optional): The factors for adaptation. Default is None.
+            x (array-like): The input data with shape (num_samples, num_features).
+            y (array-like, optional): The target variable (binary or multiclass classification label) with shape (num_samples).
+                                    Set -1 for unknown labels for semi-supervised MIDA. Default is None.
+            factors (array-like, optional): The factors for adaptation with shape (num_samples, num_factors).
+                                Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age). Default is None.
             **fit_params: Additional parameters for fitting.
         Returns:
             array-like: The transformed data.
@@ -942,8 +962,10 @@ class MIDA(BaseKernelDomainAdapter):
             num_jobs=num_jobs,
         )
 
-    def _make_solution_kernel(self, k_x, y, factors):
+    def _make_objective_kernel(self, k_x, y, factors):
+        # equivalent to `H` in the original paper
         h = _centering_kernel(_num_features(k_x), k_x.dtype)
+        # linear kernel used for the label and factors
         k_y = pairwise_kernels(y, n_jobs=self.num_jobs)
         k_f = pairwise_kernels(factors, n_jobs=self.num_jobs)
 
@@ -951,6 +973,6 @@ class MIDA(BaseKernelDomainAdapter):
         k_y = centerer.fit_transform(k_y)
         k_f = centerer.fit_transform(k_f)
 
-        k_solution = multi_dot((k_x, self.mu * h + self.eta * k_y - k_f, k_x))
+        k_objective = multi_dot((k_x, self.mu * h + self.eta * k_y - k_f, k_x))
 
-        return k_solution
+        return k_objective
