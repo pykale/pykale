@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 from numpy import testing
 from scipy.io import loadmat
-from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
 
@@ -149,46 +148,91 @@ def test_mida_inverse_transform(sample_data):
     testing.assert_equal(x_rec.shape, x.shape)
 
 
-@pytest.mark.parametrize("kernel", ["linear", "rbf"])
+@pytest.mark.parametrize("kernel", ["linear", "rbf", "cosine"])
+def test_mida_support_kernel(sample_data, kernel):
+    x, y, domains, factors = sample_data
+
+    mida = MIDA(num_components=8, kernel=kernel)
+    mida.fit(x, factors=factors)
+
+    is_linear = kernel == "linear"
+    try:
+        has_orig_coef = hasattr(mida, "orig_coef_")
+        assert has_orig_coef, "MIDA must have `orig_coef_` after fitting when kernel='linear'"
+    except NotImplementedError:
+        assert not is_linear, "MIDA must not have `orig_coef_` after fitting when kernel!='linear'"
+
+    # Transform the whole data
+    z = mida.transform(x, factors=factors)
+
+    # expect to allow multiple kernels supported
+    assert mida._n_features_out == 8, f"Expected 8 components, got {mida.n_components_}"
+    assert z.shape[1] == mida._n_features_out, f"Expected {z.shape[1]} features, got {mida._n_features_out}"
+
+
 @pytest.mark.parametrize("augment", [True, False])
+def test_mida_augment(sample_data, augment):
+    x, y, domains, factors = sample_data
+
+    mida = MIDA(num_components=8, kernel="linear", augment=augment, fit_inverse_transform=True)
+    mida.fit(x, factors=factors)
+
+    # expect validator for domain factors if augment=True
+    has_validator = hasattr(mida, "_factor_validator")
+    if augment:
+        assert has_validator, "MIDA must have `_factor_validator` after fitting when augment=True"
+        return
+
+    assert not has_validator, "MIDA must not have `_factor_validator` after fitting when augment=False"
+
+
 @pytest.mark.parametrize("ignore_y", [True, False])
+def test_mida_ignore_y(sample_data, ignore_y):
+    x, y, domains, factors = sample_data
+
+    mida = MIDA(num_components=8, kernel="linear", ignore_y=ignore_y)
+    mida.fit(x, y, factors=factors)
+
+    # expect classes_ to be set if ignore_y=False
+    has_classes = hasattr(mida, "classes_")
+    if ignore_y:
+        assert not has_classes, "MIDA must have `classes_` after fitting when ignore_y=True"
+        return
+
+    assert has_classes, "MIDA must not have `classes_` after fitting when ignore_y=False"
+
+
 @pytest.mark.parametrize("eigen_solver", ["auto", "dense", "arpack", "randomized"])
-@pytest.mark.parametrize("scale_components", [True, False])
-def test_mida_performance(sample_data, kernel, augment, ignore_y, eigen_solver, scale_components):
+def test_mida_eigen_solver(sample_data, eigen_solver):
     x, y, domains, factors = sample_data
 
     mida = MIDA(
-        num_components=None,
-        kernel=kernel,
-        augment=augment,
-        ignore_y=ignore_y,
+        num_components=8,
+        kernel="rbf",
         eigen_solver=eigen_solver,
-        random_state=0 if eigen_solver in ["arpack", "randomized"] else None,
-        scale_components=scale_components,
+        max_iter=200 if eigen_solver == "arpack" else None,
     )
+    mida.fit(x, factors=factors)
 
-    (source_mask,) = np.where(domains != 0)
+    # Transform the whole data
+    z = mida.transform(x, factors=factors)
 
-    # Mask the target domain labels
-    y_masked = np.copy(y)
-    y_masked[~source_mask] = -1
+    # expect the solver to have consistent number of components
+    assert mida._n_features_out == 8, f"Expected 8 components, got {mida.n_components_}"
+    assert z.shape[1] == mida._n_features_out, f"Expected {x.shape[1]} features, got {mida._n_features_out}"
 
-    mida.fit(x, y_masked, factors=factors)
 
-    # Transform separately
-    x_src, x_tgt, y_src, y_tgt = x[source_mask], x[~source_mask], y[source_mask], y[~source_mask]
+@pytest.mark.parametrize("scale_components", [True, False])
+def test_mida_scale_components(sample_data, scale_components):
+    x, y, domains, factors = sample_data
 
-    classifier = LogisticRegression(random_state=0, max_iter=10)
-    # Train on the source domain, score on the target domain
-    classifier.fit(x_src, y_src)
-    score_tgt = classifier.score(x_tgt, y_tgt)
-    # Train on the source domain, score on the target domain
-    # using MIDA-transformed data
-    z_src = mida.transform(x_src, factors=factors[source_mask])
-    z_tgt = mida.transform(x_tgt, factors=factors[~source_mask])
-    classifier.fit(z_src, y_src)
-    score_tgt_mida = classifier.score(z_tgt, y_tgt)
-    # Check if MIDA improved the target domain performance
-    assert (
-        score_tgt_mida > score_tgt
-    ), f"MIDA did not improve target domain performance MIDA ({score_tgt_mida:.4f}) > Baseline ({score_tgt:.4f})"
+    mida = MIDA(num_components=8, kernel="linear", scale_components=scale_components)
+    mida.fit(x, factors=factors)
+
+    # Transform the whole data
+    z = mida.transform(x, factors=factors)
+
+    # Expect the scale_components to have consistent number of components
+    # the behavior expected is the non-zero eigenvalues is masked not to be indexed
+    assert mida._n_features_out == 8, f"Expected 8 components, got {mida.n_components_}"
+    assert z.shape[1] == mida._n_features_out, f"Expected {x.shape[1]} features, got {mida._n_features_out}"

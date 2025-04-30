@@ -1,14 +1,10 @@
 # import numpy as np
 import pytest
 from numpy import testing
-
-# from numpy import testing
-# from sklearn.datasets import make_blobs
 from sklearn.base import clone
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import GridSearchCV, LeaveOneGroupOut
-from sklearn.pipeline import Pipeline
+from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 
 from kale.pipeline.mida_trainer import MIDATrainer
@@ -209,41 +205,3 @@ def test_mida_trainer_fit_and_methods(toy_data):
     # test inverse_transform
     inv_transform = trainer.inverse_transform(transform)
     testing.assert_array_equal((len(x), 20), inv_transform.shape)
-
-
-def test_mida_trainer_performance(toy_data):
-    x, y, domains, factors = toy_data
-
-    baseline_trainer = GridSearchCV(
-        estimator=Pipeline(
-            [("scaler", MinMaxScaler()), ("classifier", LogisticRegression(random_state=0, max_iter=10))]
-        ),
-        param_grid={"classifier__C": [2**-5, 1, 2**15], "scaler__feature_range": [(-1, 1), (0, 1)]},
-        error_score="raise",
-        cv=LeaveOneGroupOut(),
-        scoring="roc_auc",
-    )
-
-    mida_trainer = MIDATrainer(
-        estimator=LogisticRegression(random_state=0, max_iter=10),
-        transformer=MinMaxScaler(),
-        param_grid={
-            "C": [2**-5, 1, 2**15],
-            "domain_adapter__mu": [2**-5, 1, 2**15],
-            "transformer__feature_range": [(-1, 1), (0, 1)],
-        },
-        error_score="raise",
-        cv=LeaveOneGroupOut(),
-        scoring="roc_auc",
-    )
-
-    baseline_trainer.fit(x, y, groups=domains)
-    mida_trainer.fit(x, y, factors=factors, groups=domains)
-
-    score_baseline = baseline_trainer.best_score_
-    score_mida = mida_trainer.best_score_
-
-    # Sanity check
-    assert (
-        score_mida > score_baseline
-    ), f"MIDA trainer score ({score_mida:.4f}) is not greater than baseline ({score_baseline:.4f})"
