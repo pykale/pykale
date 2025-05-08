@@ -17,7 +17,8 @@ All data in examples are from the public domain so they will be downloaded into 
   - [Action recognition via domain adaptation](https://github.com/pykale/pykale/tree/master/examples/action_dann)
   - [Video loading](https://github.com/pykale/pykale/tree/master/examples/video_loading)
 - Bioinformatics data analysis
-  - [Drug-target interaction prediction](https://github.com/pykale/pykale/tree/master/examples/bindingdb_deepdta)
+  - [Drug-target interaction prediction (with Deepdta)](https://github.com/pykale/pykale/tree/master/examples/bindingdb_deepdta)
+  - [Drug-target interaction prediction (with DrugBAN)](https://github.com/pykale/pykale/tree/master/examples/bindingdb_drugban_pytorch)
   - [Polypharmacy side effect prediction](https://github.com/pykale/pykale/tree/master/examples/polypharmacy_gripnet)
 - Medical image analysis
   - [Cardiac MRI diagnosis](https://github.com/pykale/pykale/tree/master/examples/cmri_mpca)
