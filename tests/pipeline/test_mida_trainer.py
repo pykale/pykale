@@ -247,7 +247,7 @@ def test_auto_mida_trainer_basic(toy_data, search_strategy, monkeypatch):
     )
     trainer.fit(x, y, factors=factors)
 
-    assert hasattr(trainer, "best_estimator_")
+    assert hasattr(trainer, "best_classifier_")
     assert hasattr(trainer, "best_score_")
     assert isinstance(trainer.predict(x, factors=factors), np.ndarray)
 
@@ -276,7 +276,7 @@ def test_auto_mida_trainer_classifier_selection(toy_data, classifier, monkeypatc
         random_state=0,
     )
     trainer.fit(x, y, factors=factors)
-    assert trainer.best_estimator_ is not None
+    assert trainer.best_classifier_ is not None
     assert trainer.best_params_ is not None
 
 
@@ -301,7 +301,7 @@ def test_auto_mida_trainer_property_accessors(toy_data, transformer, use_mida, m
     trainer.fit(x, y, factors=factors)
 
     # Always expected
-    _ = trainer.best_estimator_
+    _ = trainer.best_classifier_
     _ = trainer.best_score_
     _ = trainer.best_params_
     _ = trainer.best_index_
@@ -342,7 +342,7 @@ def test_auto_mida_trainer_nonlinear_enabled(toy_data, monkeypatch):
     )
     trainer.fit(x, y, factors=factors)
 
-    assert trainer.best_estimator_ is not None
+    assert trainer.best_classifier_ is not None
     assert trainer.best_params_ is not None
     assert trainer.best_score_ is not None
 
@@ -368,6 +368,6 @@ def test_auto_mida_trainer_classifier_auto(toy_data, monkeypatch):
     )
     trainer.fit(x, y, factors=factors)
 
-    assert trainer.best_estimator_ is not None
+    assert trainer.best_classifier_ is not None
     assert trainer.best_params_ is not None
     assert trainer.best_score_ is not None
