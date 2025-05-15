@@ -509,32 +509,34 @@ class MPCA(BaseEstimator, TransformerMixin):
 class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin, BaseEstimator):
     """Base class for kernel domain adaptation methods. Extendable to support different
     kernel-based domain adaptation methods (e.g., MIDA, TCA, SCA).
+
     Args:
-        num_components (int, optional): Number of components to keep. Defaults to None.
-        ignore_y (bool): Whether to ignore the target variable y. Defaults to True.
-        augment (bool): Whether to augment the input data with factors. Defaults to False.
-        kernel (str or callable): Kernel function to use. Defaults to "linear".
-        gamma (float, optional): Kernel coefficient for "rbf", "poly", and "sigmoid". Defaults to None.
-        degree (int): Degree of the polynomial kernel. Defaults to 3.
-        coef0 (float): Independent term in the polynomial kernel. Defaults to 1.
-        kernel_params (dict, optional): Additional kernel parameters. Defaults to None.
-        alpha (float): Regularization parameter for the kernel. Defaults to 1.0.
-        fit_inverse_transform (bool): Whether to fit the inverse transform. Defaults to False.
-        eigen_solver (str): Eigenvalue solver to use. Defaults to "auto".
-        tol (float): Tolerance for convergence. Defaults to 0.
-        max_iter (int, optional): Maximum number of iterations for the solver. Defaults to None.
-        iterated_power (int or str): Number of iterations for randomized solver. Defaults to "auto".
-        remove_zero_eig (bool): Whether to remove zero eigenvalues. Defaults to False.
-        scale_components (bool): Whether to scale the components. Defaults to False.
-        random_state (int or np.random.RandomState, optional): Random seed for reproducibility. Defaults to None.
-        copy (bool): Whether to copy the input data. Defaults to True.
-        num_jobs (int or None): Number of jobs to run in parallel. Defaults to None.
+        num_components (int, optional): Number of components to keep. If None, all components are kept. Defaults to None.
+        ignore_y (bool, optional): Whether to ignore the target variable `y` during fitting. Defaults to False.
+        augment (str, optional): Whether to augment the input data with factors. Can be "pre" (prepend factors),
+            "post" (append factors), or None (no augmentation). Defaults to None.
+        kernel (str or callable, optional): Kernel function to use. Can be "linear", "rbf", "poly", "sigmoid", or a callable. Defaults to "linear".
+        gamma (float, optional): Kernel coefficient for "rbf", "poly", and "sigmoid" kernels. If None, defaults to 1 / num_features. Defaults to None.
+        degree (int, optional): Degree of the polynomial kernel. Ignored by other kernels. Defaults to 3.
+        coef0 (float, optional): Independent term in the polynomial and sigmoid kernels. Ignored by other kernels. Defaults to 1.
+        kernel_params (dict, optional): Additional parameters for the kernel function. Defaults to None.
+        alpha (float, optional): Regularization parameter for the kernel. Defaults to 1.0.
+        fit_inverse_transform (bool, optional): Whether to fit the inverse transform for reconstruction. Defaults to False.
+        eigen_solver (str, optional): Eigenvalue solver to use. Can be "auto", "dense", "arpack", or "randomized". Defaults to "auto".
+        tol (float, optional): Tolerance for convergence of the eigenvalue solver. Defaults to 0.
+        max_iter (int, optional): Maximum number of iterations for the eigenvalue solver. If None, no limit is applied. Defaults to None.
+        iterated_power (int or str, optional): Number of iterations for the randomized solver. Can be an integer or "auto". Defaults to "auto".
+        remove_zero_eig (bool, optional): Whether to remove zero eigenvalues during postprocessing. Defaults to False.
+        scale_components (bool, optional): Whether to scale the components by the square root of their eigenvalues. Defaults to False.
+        random_state (int, np.random.RandomState, or None, optional): Random seed for reproducibility. Defaults to None.
+        copy (bool, optional): Whether to copy the input data during validation. Defaults to True.
+        num_jobs (int or None, optional): Number of jobs to run in parallel for pairwise kernel computations. Defaults to None.
     """
 
     _parameter_constraints: dict = {
         "num_components": [Interval(Integral, 1, None, closed="left"), None],
         "ignore_y": ["boolean"],
-        "augment": ["boolean"],
+        "augment": [StrOptions({"pre", "post"}), None],
         "kernel": [
             StrOptions(set(PAIRWISE_KERNEL_FUNCTIONS) | {"precomputed"}),
             callable,
@@ -570,8 +572,8 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
     def __init__(
         self,
         num_components=None,
-        ignore_y=True,
-        augment=False,
+        ignore_y=False,
+        augment=None,
         kernel="linear",
         gamma=None,
         degree=3,
@@ -759,6 +761,8 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         x_aug = x
         if self.augment:
             self._factor_validator = factor_validator
+
+        if self.augment == "pre":
             x_aug = np.hstack((x, factors))
 
         # To avoid having duplicate variables, x_fit_ cannot be renamed
@@ -795,11 +799,14 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         accept_sparse = False if self.fit_inverse_transform else "csr"
         x = validate_data(self, x, accept_sparse=accept_sparse, reset=False)
 
-        if factors is not None and self.augment:
-            factors = self._factor_validator.transform(factors)
-            x = np.hstack((x, factors))
-        elif factors is None and self.augment:
+        if factors is None and self.augment:
             raise ValueError("Factors must be provided for transform when `augment=True`.")
+
+        if self.augment:
+            factors = self._factor_validator.transform(factors)
+
+        if self.augment == "pre":
+            x = np.hstack((x, factors))
 
         k_x = self._get_kernel(x, self.x_fit_)
         k_x = self._centerer.transform(k_x)
@@ -808,7 +815,12 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         if self.scale_components:
             w = _scale_eigenvectors(self.eigenvalues_, w)
 
-        return safe_sparse_dot(k_x, w)
+        z = safe_sparse_dot(k_x, w)
+
+        if self.augment == "post":
+            z = np.hstack((z, factors))
+
+        return z
 
     def inverse_transform(self, z):
         """Inverse transform the transformed data `z` back to the original space.
@@ -866,7 +878,8 @@ class MIDA(BaseKernelDomainAdapter):
         mu (float, optional): L2 kernel regularization coefficient. Default is 1.0.
         eta (float, optional): Class-dependency regularization coefficient. Default is 1.0.
         ignore_y (bool, optional): Whether to ignore the target variable `y` during fitting. Default is False.
-        augment (bool, optional): Whether to augment the input data with factors. Default is False.
+        augment (str, optional): Whether to augment the input data with factors. Can be "pre" (prepend factors),
+            "post" (append factors), or None (no augmentation). Defaults to None.
         kernel (str, optional): Kernel type to be used. Default is 'linear'.
         gamma (float, optional): Kernel coefficient for 'rbf', 'poly', and 'sigmoid' kernels. Default is None.
         degree (int, optional): Degree of the polynomial kernel. Default is 3.
@@ -918,7 +931,7 @@ class MIDA(BaseKernelDomainAdapter):
         mu=1.0,
         eta=1.0,
         ignore_y=False,
-        augment=False,
+        augment=None,
         kernel="linear",
         gamma=None,
         degree=3,

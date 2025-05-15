@@ -170,7 +170,7 @@ def test_mida_support_kernel(sample_data, kernel):
     assert z.shape[1] == mida._n_features_out, f"Expected {z.shape[1]} features, got {mida._n_features_out}"
 
 
-@pytest.mark.parametrize("augment", [True, False])
+@pytest.mark.parametrize("augment", ["pre", "post", None])
 def test_mida_augment(sample_data, augment):
     x, y, domains, factors = sample_data
 
@@ -184,6 +184,10 @@ def test_mida_augment(sample_data, augment):
         return
 
     assert not has_validator, "MIDA must not have `_factor_validator` after fitting when augment=False"
+
+    if augment == "post":
+        z = mida.transform(x, factors=factors)
+        assert z.shape[1] == 8 + factors.shape[-1], f"Expected {x.shape[1]} features, got {8 + factors.shape[-1]}"
 
 
 @pytest.mark.parametrize("ignore_y", [True, False])
