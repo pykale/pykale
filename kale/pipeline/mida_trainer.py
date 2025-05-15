@@ -613,7 +613,7 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         return self.trainer_.cv_results_
 
     @property
-    def best_estimator_(self):
+    def best_classifier_(self):
         """Best estimator found by the search."""
         check_is_fitted(self)
         return self.trainer_.best_estimator_
