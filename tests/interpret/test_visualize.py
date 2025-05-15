@@ -90,7 +90,7 @@ def test_visualize_connectome(monkeypatch):
     monkeypatch.setattr(
         visualize,
         "get_top_symmetric_weight",
-        lambda weights, labels, coords, p: (np.ones(n_rois * (n_rois) // 2), labels, coords),
+        lambda weights, labels, coords, p: (np.ones([n_rois] * 2), labels, coords),
     )
 
     proj = visualize.visualize_connectome(weights, labels, coords, p=0.5)
