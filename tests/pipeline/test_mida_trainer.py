@@ -104,6 +104,25 @@ def test_mida_trainer_scoring_support(toy_data, scoring):
         assert f"rank_test_{score}" in trainer.cv_results_, f"Missing rank_test_{score} in cv_results_"
 
 
+@pytest.mark.parametrize("use_mida", [True, False])
+def test_mida_trainer_use_mida(toy_data, use_mida):
+    x, y, domains, factors = toy_data
+
+    trainer = MIDATrainer(
+        estimator=LogisticRegression(random_state=0, max_iter=10),
+        param_grid=PARAM_GRID[0],
+        use_mida=use_mida,
+        error_score="raise",
+    )
+
+    trainer.fit(x, y, factors=factors, groups=domains)
+
+    if use_mida:
+        assert hasattr(trainer, "best_mida_"), "MIDA should be set"
+    else:
+        assert not hasattr(trainer, "best_mida_"), "MIDA should not be set"
+
+
 @pytest.mark.parametrize("cv", [None, 3, LeaveOneGroupOut()])
 def test_mida_trainer_cv_support(toy_data, cv):
     x, y, domains, factors = toy_data

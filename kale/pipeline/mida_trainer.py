@@ -86,6 +86,7 @@ class MIDATrainer(BaseSearchCV):
 
     _parameter_constraints = {
         **BaseSearchCV._parameter_constraints,
+        "use_mida": ["boolean"],
         "param_grid": [dict, list],
         "transformer": [HasMethods(["fit", "transform"]), None],
         "search_strategy": [StrOptions({"grid", "random"})],
@@ -97,6 +98,7 @@ class MIDATrainer(BaseSearchCV):
         self,
         estimator,
         param_grid,
+        use_mida=True,
         transformer=None,
         search_strategy="grid",
         num_iter=10,
@@ -123,6 +125,7 @@ class MIDATrainer(BaseSearchCV):
             return_train_score=return_train_score,
         )
 
+        self.use_mida = use_mida
         self.transformer = transformer
         self.param_grid = param_grid
         self.search_strategy = search_strategy
@@ -138,12 +141,16 @@ class MIDATrainer(BaseSearchCV):
                                 Please preprocess the factors before domain adaptation
                                 (e.g. one-hot encode domain, gender, or standardize age).
         Returns:
-            self: The adapted trainer.
+            array-like: The transformed or adapted data.
         """
         check_is_fitted(self)
         if self.transformer is not None:
             x = self.best_transformer_.transform(x)
-        return self.best_mida_.transform(x, factors)
+
+        if self.use_mida:
+            x = self.best_mida_.transform(x, factors)
+
+        return x
 
     def score(self, x, y=None, factors=None, **params):
         """Compute the score of the estimator on the given data.
@@ -278,7 +285,7 @@ class MIDATrainer(BaseSearchCV):
 
         estimator = self.estimator
         transformer = self.transformer
-        mida = MIDA()
+        mida = MIDA() if self.use_mida else None
         scorers, refit_metric = self._get_scorers()
 
         x, y, factors = indexable(x, y, factors)
@@ -290,7 +297,7 @@ class MIDATrainer(BaseSearchCV):
 
         base_estimator = clone(estimator)
         base_transformer = clone(transformer) if transformer else None
-        base_mida = clone(mida)
+        base_mida = clone(mida) if self.use_mida else None
 
         parallel = Parallel(self.n_jobs, pre_dispatch=self.pre_dispatch)
 
@@ -418,21 +425,27 @@ class MIDATrainer(BaseSearchCV):
             best_mida_params = {k.replace("domain_adapter__", ""): best_params.pop(k) for k in mida_keys}
 
             if base_transformer is not None:
-                self.best_transformer_ = clone(base_transformer).set_params(
-                    **clone(best_transformer_params, safe=False)
-                )
+                self.best_transformer_ = clone(base_transformer)
+                self.best_transformer_.set_params(**clone(best_transformer_params, safe=False))
                 x = self.best_transformer_.fit_transform(x)
 
-            self.best_mida_ = clone(base_mida).set_params(**clone(best_mida_params, safe=False))
+            if self.use_mida:
+                self.best_mida_ = clone(base_mida)
+                self.best_mida_.set_params(**clone(best_mida_params, safe=False))
 
-            self.best_estimator_ = clone(base_estimator).set_params(**clone(best_params, safe=False))
+            self.best_estimator_ = clone(base_estimator)
+            self.best_estimator_.set_params(**clone(best_params, safe=False))
 
             refit_start_time = time.time()
-            if y is not None:
+
+            if y is not None and self.use_mida:
                 x = self.best_mida_.fit_transform(x, y, factors)
+            elif self.use_mida:
+                x = self.best_mida_.fit_transform(x, factors=factors)
+
+            if y is not None:
                 self.best_estimator_.fit(x, y, **routed_params.estimator.fit)
             else:
-                x = self.best_mida_.fit_transform(x, factors=factors)
                 self.best_estimator_.fit(x, **routed_params.estimator.fit)
             refit_end_time = time.time()
             self.refit_time_ = refit_end_time - refit_start_time
