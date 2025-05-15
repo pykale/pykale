@@ -427,7 +427,6 @@ class MIDATrainer(BaseSearchCV):
             if base_transformer is not None:
                 self.best_transformer_ = clone(base_transformer)
                 self.best_transformer_.set_params(**clone(best_transformer_params, safe=False))
-                x = self.best_transformer_.fit_transform(x)
 
             if self.use_mida:
                 self.best_mida_ = clone(base_mida)
@@ -437,6 +436,9 @@ class MIDATrainer(BaseSearchCV):
             self.best_estimator_.set_params(**clone(best_params, safe=False))
 
             refit_start_time = time.time()
+
+            if self.transformer is not None:
+                x = self.best_transformer_.fit_transform(x)
 
             if y is not None and self.use_mida:
                 x = self.best_mida_.fit_transform(x, y, factors)
