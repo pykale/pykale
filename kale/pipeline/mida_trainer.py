@@ -737,25 +737,25 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         base_classifier = clone(CLASSIFIERS.get(self.classifier, LogisticRegression()))
         base_classifier.set_params(max_iter=self.num_solver_iter, random_state=self.random_state)
 
+        if self.classifier != "auto":
+            return base_classifier, CLASSIFIER_PARAMS[self.classifier]
+
         # Workaround to allow classifier selection
-        if self.classifier == "auto":
-            base_classifier = Pipeline([("classifier", base_classifier)])
-            param_grid = []
+        base_classifier = Pipeline([("classifier", base_classifier)])
+        param_grid = []
 
-            for name, classifier in CLASSIFIERS.items():
-                classifier = clone(classifier)
-                classifier.set_params(max_iter=self.num_solver_iter)
-                grid = {"classifier": [classifier]}
-                grid.update({f"classifier__{param}": value for param, value in CLASSIFIER_PARAMS[name].items()})
+        for name, classifier in CLASSIFIERS.items():
+            classifier = clone(classifier)
+            classifier.set_params(max_iter=self.num_solver_iter)
+            grid = {"classifier": [classifier]}
+            grid.update({f"classifier__{param}": value for param, value in CLASSIFIER_PARAMS[name].items()})
 
-                if self.nonlinear and name == "svm":
-                    grid["classifier__kernel"] = ["linear", "rbf"]
+            if self.nonlinear and name == "svm":
+                grid["classifier__kernel"] = ["linear", "rbf"]
 
-                param_grid.append(grid)
+            param_grid.append(grid)
 
-            return base_classifier, param_grid
-
-        return base_classifier, CLASSIFIER_PARAMS[self.classifier]
+        return base_classifier, param_grid
 
     def _get_mida_and_grid(self):
         """Get the MIDA component and parameter grid for MIDA.
