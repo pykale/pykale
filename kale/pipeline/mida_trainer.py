@@ -633,7 +633,6 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
             # Dot product the MIDA coefficients with the original coefficients
             # then concatenate with the factor coefficients
             coef = np.concatenate((mida_clf_coef @ mida_coef, factor_coef), axis=1)
-
         elif self.use_mida:
             # Dot product the MIDA coefficients with the original coefficients
             # then concatenate with the factor coefficients
