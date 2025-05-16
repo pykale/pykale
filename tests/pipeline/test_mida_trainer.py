@@ -322,6 +322,38 @@ def test_auto_mida_trainer_property_accessors(toy_data, transformer, use_mida, m
         _ = trainer.best_mida_
 
 
+@pytest.mark.parametrize("use_mida", [True, False])
+@pytest.mark.parametrize("classifier", CLASSIFIER_PARAMS.keys())
+@pytest.mark.parametrize("augment", ["pre", "post", None])
+def test_auto_mida_trainer_coef_shape(toy_data, use_mida, classifier, augment, monkeypatch):
+    x, y, domains, factors = toy_data
+
+    monkeypatch.setitem(CLASSIFIER_PARAMS["lr"], "C", [1])
+    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__mu", [1])
+    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__augment", [augment])
+    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__ignore_y", [True])
+
+    trainer = AutoMIDAClassificationTrainer(
+        classifier="lr",
+        use_mida=True,
+        search_strategy="grid",
+        scoring="accuracy",
+        num_solver_iter=10,
+        cv=2,
+        error_score="raise",
+        random_state=0,
+    )
+    trainer.fit(x, y, factors=factors)
+
+    coef = trainer.coef_
+
+    feature_dim = x.shape[1]
+    if augment:
+        feature_dim += factors.shape[1]
+
+    assert coef.shape == (1, feature_dim), f"Expected shape (1, {feature_dim}), got {coef.shape}"
+
+
 # Test nonlinear=True with a fixed classifier ("svm")
 def test_auto_mida_trainer_nonlinear_enabled(toy_data, monkeypatch):
     x, y, domains, factors = toy_data
@@ -345,6 +377,8 @@ def test_auto_mida_trainer_nonlinear_enabled(toy_data, monkeypatch):
     assert trainer.best_classifier_ is not None
     assert trainer.best_params_ is not None
     assert trainer.best_score_ is not None
+    with pytest.raises(ValueError, match="coef_ is not available when `nonlinear=True`."):
+        _ = trainer.coef_
 
 
 # Test classifier="auto" without nonlinear

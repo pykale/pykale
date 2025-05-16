@@ -607,6 +607,40 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         self.return_train_score = return_train_score
 
     @property
+    def coef_(self):
+        """Original coefficients of the best estimator in original feature space.
+        Returns original feature space coefficients with shape (n_classes, n_features).
+        If MIDA is used, the coefficients are transformed to the original feature space.
+        Only available when `nonlinear=False`.
+        """
+        check_is_fitted(self)
+
+        if self.nonlinear:
+            raise ValueError("coef_ is not available when `nonlinear=True`.")
+
+        augment = self.trainer_.best_mida_.augment
+        coef = self.trainer_.best_estimator_.coef_
+
+        if self.use_mida:
+            mida_coef = self.trainer_.best_mida_.orig_coef_
+
+        if self.use_mida and augment == "post":
+            # Split the coefficients for MIDA features and factors
+            n_out = self.trainer_.best_mida_._n_features_out
+            mida_clf_coef, factor_coef = np.split(coef, [n_out], axis=1)
+
+            # Dot product the MIDA coefficients with the original coefficients
+            # then concatenate with the factor coefficients
+            coef = np.concatenate((mida_clf_coef @ mida_coef, factor_coef), axis=1)
+
+        elif self.use_mida:
+            # Dot product the MIDA coefficients with the original coefficients
+            # then concatenate with the factor coefficients
+            coef = coef @ mida_coef
+
+        return coef
+
+    @property
     def cv_results_(self):
         """Results from cross-validation. A dict with keys as column headers and values as sequences."""
         check_is_fitted(self)
