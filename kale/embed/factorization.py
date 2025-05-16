@@ -664,7 +664,7 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
     @property
     def orig_coef_(self):
         """Coefficients projected to the original feature space
-        with shape (n_features, num_components).
+        with shape (num_components, num_features).
         """
         check_is_fitted(self)
         if self.kernel != "linear":
@@ -672,7 +672,7 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         w = self.eigenvectors_
         if self.scale_components:
             w = _scale_eigenvectors(self.eigenvalues_, w)
-        return safe_sparse_dot(self.x_fit_.T, w)
+        return safe_sparse_dot(self.x_fit_.T, w).T
 
     def _fit_transform_in_place(self, k_x):
         """Fit the model to the kernel matrix `k_x` and perform eigendecomposition in place.
