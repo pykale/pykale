@@ -528,7 +528,7 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
     domain adaptation and optional transformation steps.
 
     Args:
-        classifier (str or sklearn.base.BaseEstimator, optional): Classifier type or "auto" to automatically select one.
+        classifier (str, optional): Classifier type or "auto" to automatically select one.
             Supported strings include {"lr", "linear_svm", "svm", "ridge"}. Default is "auto".
         use_mida (bool, optional): Whether to use MIDA for domain adaptation. Default is True.
         nonlinear (bool, optional): Whether to enable nonlinear MIDA. Default is False.
@@ -549,10 +549,7 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
     """
 
     _parameter_constraints = {
-        "classifier": [
-            *MIDATrainer._parameter_constraints["estimator"],
-            StrOptions({"auto"} | set(CLASSIFIERS)),
-        ],
+        "classifier": [StrOptions({"auto"} | set(CLASSIFIERS))],
         "use_mida": ["boolean"],
         "nonlinear": ["boolean"],
         "transformer": [HasMethods(["fit", "transform"]), None],
