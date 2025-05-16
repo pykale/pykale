@@ -672,7 +672,7 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         w = self.eigenvectors_
         if self.scale_components:
             w = _scale_eigenvectors(self.eigenvalues_, w)
-        return safe_sparse_dot(self.x_fit_.T, w).T
+        return safe_sparse_dot(w.T, self.x_fit_)
 
     def _fit_transform_in_place(self, k_x):
         """Fit the model to the kernel matrix `k_x` and perform eigendecomposition in place.
