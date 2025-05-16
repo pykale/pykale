@@ -50,7 +50,6 @@ MIDA_PARAMS = {
     "ignore_y": [True, False],
     "augment": ["pre", "post", None],
 }
-MIDA_PARAMS = {f"domain_adapter__{key}": value for key, value in MIDA_PARAMS.items()}
 
 
 class MIDATrainer(BaseSearchCV):
