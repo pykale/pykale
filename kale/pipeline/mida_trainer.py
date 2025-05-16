@@ -618,15 +618,16 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         if self.nonlinear:
             raise ValueError("coef_ is not available when `nonlinear=True`.")
 
-        augment = self.trainer_.best_mida_.augment
-        coef = self.trainer_.best_estimator_.coef_
+        augment = None
+        coef = self.best_classifier_.coef_
 
         if self.use_mida:
-            mida_coef = self.trainer_.best_mida_.orig_coef_
+            augment = self.best_mida_.augment
+            mida_coef = self.best_mida_.orig_coef_
 
         if self.use_mida and augment == "post":
             # Split the coefficients for MIDA features and factors
-            n_out = self.trainer_.best_mida_._n_features_out
+            n_out = self.best_mida_._n_features_out
             mida_clf_coef, factor_coef = np.split(coef, [n_out], axis=1)
 
             # Dot product the MIDA coefficients with the original coefficients
