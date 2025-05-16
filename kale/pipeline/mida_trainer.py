@@ -595,7 +595,7 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         self.transformer = transformer
         self.search_strategy = search_strategy
         self.num_search_iter = num_search_iter
-        self.num_solver_iter = num_search_iter
+        self.num_solver_iter = num_solver_iter
         self.scoring = scoring
         self.n_jobs = n_jobs
         self.pre_dispatch = pre_dispatch
