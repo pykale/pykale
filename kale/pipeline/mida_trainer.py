@@ -794,7 +794,7 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         mida_grid = self._get_mida_and_grid()
 
         # Aggregate parameter grids
-        if isinstance(classifier_grid, list):
+        if self.classifier == "auto":
             param_grid = [{**grid, **mida_grid} for grid in classifier_grid]
         else:
             param_grid = {**classifier_grid, **mida_grid}
