@@ -123,7 +123,7 @@ def test_mida_shape_consistency(sample_data, num_components):
     testing.assert_allclose(z_src, z[source_mask])
     testing.assert_allclose(z_tgt, z[~source_mask])
 
-    orig_coef_dim = mida.orig_coef_.shape[0]
+    orig_coef_dim = mida.orig_coef_.shape[1]
     feature_dim = x.shape[1]
     assert mida.orig_coef_ is not None, "MIDA must have `orig_coef_` after fitting when kernel='linear'"
     assert orig_coef_dim == feature_dim, f"orig_coef_ shape mismatch: {orig_coef_dim} != {feature_dim}"
