@@ -650,6 +650,11 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
     def best_classifier_(self):
         """Best estimator found by the search."""
         check_is_fitted(self)
+
+        if self.classifier == "auto":
+            # If the classifier is auto, we need to extract the classifier from the pipeline
+            return self.trainer_.best_estimator_["classifier"]
+
         return self.trainer_.best_estimator_
 
     @property
