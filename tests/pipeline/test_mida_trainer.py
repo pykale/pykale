@@ -1,4 +1,4 @@
-# import numpy as np
+import numpy as np
 import pytest
 from numpy import testing
 from sklearn.base import clone
@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 
-from kale.pipeline.mida_trainer import MIDATrainer
+from kale.pipeline.mida_trainer import AutoMIDAClassificationTrainer, CLASSIFIER_PARAMS, MIDA_PARAMS, MIDATrainer
 
 from ..helpers.toy_dataset import make_domain_shifted_dataset
 
@@ -102,6 +102,25 @@ def test_mida_trainer_scoring_support(toy_data, scoring):
         assert f"mean_test_{score}" in trainer.cv_results_, f"Missing mean_test_{score} in cv_results_"
         assert f"std_test_{score}" in trainer.cv_results_, f"Missing std_test_{score} in cv_results_"
         assert f"rank_test_{score}" in trainer.cv_results_, f"Missing rank_test_{score} in cv_results_"
+
+
+@pytest.mark.parametrize("use_mida", [True, False])
+def test_mida_trainer_use_mida(toy_data, use_mida):
+    x, y, domains, factors = toy_data
+
+    trainer = MIDATrainer(
+        estimator=LogisticRegression(random_state=0, max_iter=10),
+        param_grid=PARAM_GRID[0],
+        use_mida=use_mida,
+        error_score="raise",
+    )
+
+    trainer.fit(x, y, factors=factors, groups=domains)
+
+    if use_mida:
+        assert hasattr(trainer, "best_mida_"), "MIDA should be set"
+    else:
+        assert not hasattr(trainer, "best_mida_"), "MIDA should not be set"
 
 
 @pytest.mark.parametrize("cv", [None, 3, LeaveOneGroupOut()])
@@ -205,3 +224,184 @@ def test_mida_trainer_fit_and_methods(toy_data):
     # test inverse_transform
     inv_transform = trainer.inverse_transform(transform)
     testing.assert_array_equal((len(x), 20), inv_transform.shape)
+
+
+@pytest.mark.parametrize("search_strategy", ["grid", "random"])
+def test_auto_mida_trainer_basic(toy_data, search_strategy, monkeypatch):
+    x, y, domains, factors = toy_data
+
+    if search_strategy == "grid":
+        # Monkeypatch classifier params to limit the grid
+        monkeypatch.setitem(CLASSIFIER_PARAMS["lr"], "C", [1])
+        monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__mu", [1])
+
+    trainer = AutoMIDAClassificationTrainer(
+        classifier="lr",
+        search_strategy=search_strategy,
+        scoring="accuracy",
+        num_search_iter=2,
+        num_solver_iter=10,
+        cv=2,
+        error_score="raise",
+        random_state=0,
+    )
+    trainer.fit(x, y, factors=factors)
+
+    assert hasattr(trainer, "best_classifier_")
+    assert hasattr(trainer, "best_score_")
+    assert isinstance(trainer.predict(x, factors=factors), np.ndarray)
+
+    # Check delegation
+    assert trainer.score(x, y, factors) > 0
+    assert trainer.predict_proba(x, factors).shape == (len(x), 2)
+    assert trainer.adapt(x, factors).shape[1] <= x.shape[1]
+
+
+@pytest.mark.parametrize("classifier", ["lr", "linear_svm", "svm", "ridge"])
+def test_auto_mida_trainer_classifier_selection(toy_data, classifier, monkeypatch):
+    x, y, domains, factors = toy_data
+
+    # Monkeypatch classifier param grid to limit to a single value for speed
+    classifier_param = list(CLASSIFIER_PARAMS[classifier].keys())[0]
+    monkeypatch.setitem(CLASSIFIER_PARAMS[classifier], classifier_param, [1])
+
+    trainer = AutoMIDAClassificationTrainer(
+        classifier=classifier,
+        search_strategy="grid",
+        scoring="accuracy",
+        num_search_iter=1,
+        num_solver_iter=10,
+        cv=2,
+        error_score="raise",
+        random_state=0,
+    )
+    trainer.fit(x, y, factors=factors)
+    assert trainer.best_classifier_ is not None
+    assert trainer.best_params_ is not None
+
+
+@pytest.mark.parametrize("transformer", [MinMaxScaler(), None])
+@pytest.mark.parametrize("use_mida", [True, False])
+def test_auto_mida_trainer_property_accessors(toy_data, transformer, use_mida, monkeypatch):
+    x, y, domains, factors = toy_data
+
+    monkeypatch.setitem(CLASSIFIER_PARAMS["lr"], "C", [1])
+    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__mu", [1])
+
+    trainer = AutoMIDAClassificationTrainer(
+        classifier="lr",
+        transformer=transformer,
+        use_mida=use_mida,
+        search_strategy="grid",
+        num_solver_iter=10,
+        cv=2,
+        error_score="raise",
+        random_state=0,
+    )
+    trainer.fit(x, y, factors=factors)
+
+    # Always expected
+    _ = trainer.best_classifier_
+    _ = trainer.best_score_
+    _ = trainer.best_params_
+    _ = trainer.best_index_
+    _ = trainer.cv_results_
+    _ = trainer.scorer_
+    _ = trainer.n_splits_
+    _ = trainer.refit_time_
+    _ = trainer.multimetric_
+    _ = trainer.n_features_in_
+
+    if hasattr(trainer.trainer_, "feature_names_in_"):
+        _ = trainer.trainer_.feature_names_in_
+
+    if transformer is not None:
+        _ = trainer.best_transformer_
+
+    if use_mida:
+        _ = trainer.best_mida_
+
+
+@pytest.mark.parametrize("use_mida", [True, False])
+@pytest.mark.parametrize("classifier", CLASSIFIER_PARAMS.keys())
+@pytest.mark.parametrize("augment", ["pre", "post", None])
+def test_auto_mida_trainer_coef_shape(toy_data, use_mida, classifier, augment, monkeypatch):
+    x, y, domains, factors = toy_data
+
+    monkeypatch.setitem(CLASSIFIER_PARAMS["lr"], "C", [1])
+    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__mu", [1])
+    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__augment", [augment])
+    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__ignore_y", [True])
+
+    trainer = AutoMIDAClassificationTrainer(
+        classifier="lr",
+        use_mida=True,
+        search_strategy="grid",
+        scoring="accuracy",
+        num_solver_iter=10,
+        cv=2,
+        error_score="raise",
+        random_state=0,
+    )
+    trainer.fit(x, y, factors=factors)
+
+    coef = trainer.coef_
+
+    feature_dim = x.shape[1]
+    if augment:
+        feature_dim += factors.shape[1]
+
+    assert coef.shape == (1, feature_dim), f"Expected shape (1, {feature_dim}), got {coef.shape}"
+
+
+# Test nonlinear=True with a fixed classifier ("svm")
+def test_auto_mida_trainer_nonlinear_enabled(toy_data, monkeypatch):
+    x, y, domains, factors = toy_data
+
+    monkeypatch.setitem(CLASSIFIER_PARAMS["svm"], "C", [1])
+    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__mu", [1])
+    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__kernel", ["linear", "rbf"])
+
+    trainer = AutoMIDAClassificationTrainer(
+        classifier="svm",
+        nonlinear=True,
+        search_strategy="grid",
+        scoring="accuracy",
+        num_solver_iter=10,
+        cv=2,
+        error_score="raise",
+        random_state=0,
+    )
+    trainer.fit(x, y, factors=factors)
+
+    assert trainer.best_classifier_ is not None
+    assert trainer.best_params_ is not None
+    assert trainer.best_score_ is not None
+    with pytest.raises(ValueError, match="coef_ is not available when `nonlinear=True`."):
+        _ = trainer.coef_
+
+
+# Test classifier="auto" without nonlinear
+def test_auto_mida_trainer_classifier_auto(toy_data, monkeypatch):
+    x, y, domains, factors = toy_data
+
+    for name in CLASSIFIER_PARAMS:
+        param_name = list(CLASSIFIER_PARAMS[name].keys())[0]
+        monkeypatch.setitem(CLASSIFIER_PARAMS[name], param_name, [1])
+
+    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__mu", [1])
+
+    trainer = AutoMIDAClassificationTrainer(
+        classifier="auto",
+        search_strategy="grid",
+        scoring="accuracy",
+        num_solver_iter=10,
+        cv=2,
+        error_score="raise",
+        random_state=0,
+    )
+    trainer.fit(x, y, factors=factors)
+
+    assert trainer.best_classifier_ is not None
+    assert trainer.best_params_ is not None
+    assert trainer.best_score_ is not None
