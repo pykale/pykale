@@ -624,6 +624,13 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         # Additional adaptation parameters
         self.augment = augment
 
+        # init additional attributes
+        self.classes_ = None
+        self.gamma_ = None
+        self.x_fit_ = None
+        self._factor_validator = None
+        self._centerer = None
+
     def _fit_inverse_transform(self, x_transformed, x):
         if hasattr(x, "tocsr"):
             raise NotImplementedError("Inverse transform not implemented for sparse matrices!")
@@ -759,7 +766,7 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
 
         # Append the factors/phenotypes to the input data if augment=True
         x_aug = x
-        if self.augment:
+        if self.augment is not None:
             self._factor_validator = factor_validator
 
         if self.augment == "pre":
@@ -799,11 +806,8 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         accept_sparse = False if self.fit_inverse_transform else "csr"
         x = validate_data(self, x, accept_sparse=accept_sparse, reset=False)
 
-        if factors is None and self.augment:
-            raise ValueError("Factors must be provided for transform when `augment=True`.")
-
-        if self.augment:
-            factors = self._factor_validator.transform(factors)
+        if factors is None and self.augment in {"pre", "post"}:
+            raise ValueError("Factors must be provided for transform when `augment` is 'pre' or 'post'.")
 
         if self.augment == "pre":
             x = np.hstack((x, factors))
