@@ -34,7 +34,7 @@ from tensorly.tenalg import multi_mode_dot
 
 
 def _check_n_dim(x, n_dims):
-    """Raise error if the number of dimensions of the input data is not consistent with the expected value.
+    """Raise error if the dimension of the input data is inconsistent with the expected value.
 
     Args:
         x (array-like tensor): input data, shape (n_samples, I_1, I_2, ..., I_N)
@@ -561,13 +561,13 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         "num_jobs": [None, Integral],
     }
 
-    _eigen_preprocess_steps = (
+    _eigen_preprocess_steps = [
         "remove_significant_negative_eigenvalues",
         "check_psd_eigenvalues",
         "svd_flip",
         "sort_eigencomponents",
         "keep_positive_eigenvalues",
-    )
+    ]
 
     def __init__(
         self,
