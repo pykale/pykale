@@ -4,11 +4,12 @@ import numpy as np
 import pytest
 from numpy import testing
 from scipy.io import loadmat
-from sklearn.datasets import make_blobs
 from sklearn.preprocessing import OneHotEncoder
 from tensorly.tenalg import multi_mode_dot
 
 from kale.embed.factorization import MIDA, MPCA
+
+from ..helpers.toy_dataset import make_domain_shifted_dataset
 
 N_COMPS = [1, 50, 100]
 VAR_RATIOS = [0.7, 0.95]
@@ -19,6 +20,23 @@ baseline_url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baselin
 @pytest.fixture(scope="module")
 def baseline_model(download_path):
     return loadmat(os.path.join(download_path, "baseline.mat"))
+
+
+@pytest.fixture(scope="module")
+def sample_data():
+    # Test an extreme case of domain shift
+    # yet the data's manifold is linearly separable
+    x, y, domains = make_domain_shifted_dataset(
+        num_domains=10,
+        num_samples_per_class=2,
+        num_features=20,
+        centroid_shift_scale=32768,
+        random_state=0,
+    )
+
+    factors = OneHotEncoder(handle_unknown="ignore").fit_transform(domains.reshape(-1, 1)).toarray()
+
+    return x, y, domains, factors
 
 
 @pytest.mark.parametrize("n_components", N_COMPS)
@@ -82,25 +100,139 @@ def test_mpca_against_baseline(gait, baseline_model):
         testing.assert_allclose(mpca.proj_mats[i] ** 2, baseline_proj_mats[i] ** 2, rtol=relative_tol)
 
 
-@pytest.mark.parametrize("kernel", ["linear", "rbf"])
-@pytest.mark.parametrize("augmentation", [True, False])
-def test_mida(kernel, augmentation):
-    np.random.seed(29118)
-    # Generate toy data
-    n_samples = 200
+@pytest.mark.parametrize("num_components", [2, None])
+def test_mida_shape_consistency(sample_data, num_components):
+    x, y, domains, factors = sample_data
 
-    xs, ys = make_blobs(n_samples, n_features=3, centers=[[0, 0, 0], [0, 2, 1]], cluster_std=[0.3, 0.35])
-    xt, yt = make_blobs(n_samples, n_features=3, centers=[[2, -2, 2], [2, 0.2, -1]], cluster_std=[0.35, 0.4])
-    x = np.concatenate((xs, xt), axis=0)
+    mida = MIDA(num_components=num_components)
+    mida.set_params(**mida.get_params())
+    mida.fit(x, factors=factors)
 
-    covariates = np.zeros(n_samples * 2)
-    covariates[:n_samples] = 1
+    # Transform the whole data
+    z = mida.transform(x, factors=factors)
 
-    enc = OneHotEncoder(handle_unknown="ignore")
-    covariates_mat = enc.fit_transform(covariates.reshape(-1, 1)).toarray()
-    mida = MIDA(n_components=2, kernel=kernel, augmentation=augmentation)
-    x_transformed = mida.fit_transform(x, covariates=covariates_mat)
-    testing.assert_equal(x_transformed.shape, (n_samples * 2, 2))
+    # If num_components is not None, check the shape of the transformed data
+    if num_components is not None:
+        testing.assert_equal(z.shape, (len(x), num_components))
 
-    x_transformed = mida.fit_transform(x, ys, covariates=covariates_mat)
-    testing.assert_equal(x_transformed.shape, (n_samples * 2, 2))
+    # Transform the source and target domain data separately
+    (source_mask,) = np.where(domains != 0)
+    z_src = mida.transform(x[source_mask], factors=factors[source_mask])
+    z_tgt = mida.transform(x[~source_mask], factors=factors[~source_mask])
+    # Check if transformations are consistent with separate domains
+    testing.assert_allclose(z_src, z[source_mask])
+    testing.assert_allclose(z_tgt, z[~source_mask])
+
+    orig_coef_dim = mida.orig_coef_.shape[0]
+    feature_dim = x.shape[1]
+    assert mida.orig_coef_ is not None, "MIDA must have `orig_coef_` after fitting when kernel='linear'"
+    assert orig_coef_dim == feature_dim, f"orig_coef_ shape mismatch: {orig_coef_dim} != {feature_dim}"
+
+
+def test_mida_inverse_transform(sample_data):
+    x, y, domains, factors = sample_data
+
+    mida = MIDA(fit_inverse_transform=True)
+    mida.fit(x, factors=factors)
+
+    # Transform the whole data
+    z = mida.transform(x, factors=factors)
+    # Inverse transform the data
+    x_rec = mida.inverse_transform(z)
+
+    # We don't check whether the inverse transform is exactly equal to the original data
+    # in terms of value since it is expected to be different due to the domain adaptation effect.
+    # We only check the shape and dimensionality.
+    assert len(x_rec) == len(x), f"Inverse transform failed: {len(x_rec)} != {len(x)}"
+    assert x_rec.ndim == x.ndim, f"Inverse transform failed: {x_rec.ndim} != {x.ndim}"
+    testing.assert_equal(x_rec.shape, x.shape)
+
+
+@pytest.mark.parametrize("kernel", ["linear", "rbf", "cosine"])
+def test_mida_support_kernel(sample_data, kernel):
+    x, y, domains, factors = sample_data
+
+    mida = MIDA(num_components=8, kernel=kernel)
+    mida.fit(x, factors=factors)
+
+    is_linear = kernel == "linear"
+    try:
+        has_orig_coef = hasattr(mida, "orig_coef_")
+        assert has_orig_coef, "MIDA must have `orig_coef_` after fitting when kernel='linear'"
+    except NotImplementedError:
+        assert not is_linear, "MIDA must not have `orig_coef_` after fitting when kernel!='linear'"
+
+    # Transform the whole data
+    z = mida.transform(x, factors=factors)
+
+    # expect to allow multiple kernels supported
+    assert mida._n_features_out == 8, f"Expected 8 components, got {mida.n_components_}"
+    assert z.shape[1] == mida._n_features_out, f"Expected {z.shape[1]} features, got {mida._n_features_out}"
+
+
+@pytest.mark.parametrize("augment", [True, False])
+def test_mida_augment(sample_data, augment):
+    x, y, domains, factors = sample_data
+
+    mida = MIDA(num_components=8, kernel="linear", augment=augment, fit_inverse_transform=True)
+    mida.fit(x, factors=factors)
+
+    # expect validator for domain factors if augment=True
+    has_validator = hasattr(mida, "_factor_validator")
+    if augment:
+        assert has_validator, "MIDA must have `_factor_validator` after fitting when augment=True"
+        return
+
+    assert not has_validator, "MIDA must not have `_factor_validator` after fitting when augment=False"
+
+
+@pytest.mark.parametrize("ignore_y", [True, False])
+def test_mida_ignore_y(sample_data, ignore_y):
+    x, y, domains, factors = sample_data
+
+    mida = MIDA(num_components=8, kernel="linear", ignore_y=ignore_y)
+    mida.fit(x, y, factors=factors)
+
+    # expect classes_ to be set if ignore_y=False
+    has_classes = hasattr(mida, "classes_")
+    if ignore_y:
+        assert not has_classes, "MIDA must have `classes_` after fitting when ignore_y=True"
+        return
+
+    assert has_classes, "MIDA must not have `classes_` after fitting when ignore_y=False"
+
+
+@pytest.mark.parametrize("eigen_solver", ["auto", "dense", "arpack", "randomized"])
+def test_mida_eigen_solver(sample_data, eigen_solver):
+    x, y, domains, factors = sample_data
+
+    mida = MIDA(
+        num_components=8,
+        kernel="rbf",
+        eigen_solver=eigen_solver,
+        max_iter=200 if eigen_solver == "arpack" else None,
+    )
+    mida.fit(x, factors=factors)
+
+    # Transform the whole data
+    z = mida.transform(x, factors=factors)
+
+    # expect the solver to have consistent number of components
+    assert mida._n_features_out == 8, f"Expected 8 components, got {mida.n_components_}"
+    assert z.shape[1] == mida._n_features_out, f"Expected {x.shape[1]} features, got {mida._n_features_out}"
+
+
+@pytest.mark.parametrize("scale_components", [True, False])
+def test_mida_scale_components(sample_data, scale_components):
+    x, y, domains, factors = sample_data
+
+    mida = MIDA(num_components=8, kernel="linear", scale_components=scale_components)
+    mida.fit(x, factors=factors)
+
+    # Transform the whole data
+    z = mida.transform(x, factors=factors)
+
+    # Expect the scale_components to have consistent number of components
+    # the behavior expected is the zero eigenvalues component is masked, not indexed
+    assert mida._n_features_out == 8, f"Expected 8 components, got {mida.n_components_}"
+    assert z.shape[1] == mida._n_features_out, f"Expected {x.shape[1]} features, got {mida._n_features_out}"
