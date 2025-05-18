@@ -15,6 +15,7 @@ N_COMPS = [1, 50, 100]
 VAR_RATIOS = [0.7, 0.95]
 relative_tol = 0.00001
 baseline_url = "https://github.com/pykale/data/raw/main/videos/gait/mpca_baseline.mat"
+N_COMP_CONSTANT = 8
 
 
 @pytest.fixture(scope="module")
@@ -123,7 +124,7 @@ def test_mida_shape_consistency(sample_data, num_components):
     testing.assert_allclose(z_src, z[source_mask])
     testing.assert_allclose(z_tgt, z[~source_mask])
 
-    orig_coef_dim = mida.orig_coef_.shape[0]
+    orig_coef_dim = mida.orig_coef_.shape[1]
     feature_dim = x.shape[1]
     assert mida.orig_coef_ is not None, "MIDA must have `orig_coef_` after fitting when kernel='linear'"
     assert orig_coef_dim == feature_dim, f"orig_coef_ shape mismatch: {orig_coef_dim} != {feature_dim}"
@@ -152,7 +153,7 @@ def test_mida_inverse_transform(sample_data):
 def test_mida_support_kernel(sample_data, kernel):
     x, y, domains, factors = sample_data
 
-    mida = MIDA(num_components=8, kernel=kernel)
+    mida = MIDA(num_components=N_COMP_CONSTANT, kernel=kernel)
     mida.fit(x, factors=factors)
 
     is_linear = kernel == "linear"
@@ -166,40 +167,46 @@ def test_mida_support_kernel(sample_data, kernel):
     z = mida.transform(x, factors=factors)
 
     # expect to allow multiple kernels supported
-    assert mida._n_features_out == 8, f"Expected 8 components, got {mida.n_components_}"
+    assert mida._n_features_out == N_COMP_CONSTANT, f"Expected {N_COMP_CONSTANT} components, got {mida._n_features_out}"
     assert z.shape[1] == mida._n_features_out, f"Expected {z.shape[1]} features, got {mida._n_features_out}"
 
 
-@pytest.mark.parametrize("augment", [True, False])
+@pytest.mark.parametrize("augment", ["pre", "post", None])
 def test_mida_augment(sample_data, augment):
     x, y, domains, factors = sample_data
 
-    mida = MIDA(num_components=8, kernel="linear", augment=augment, fit_inverse_transform=True)
+    mida = MIDA(num_components=N_COMP_CONSTANT, kernel="linear", augment=augment, fit_inverse_transform=True)
     mida.fit(x, factors=factors)
 
     # expect validator for domain factors if augment=True
-    has_validator = hasattr(mida, "_factor_validator")
+    # has_validator = hasattr(mida, "_factor_validator")
     if augment:
-        assert has_validator, "MIDA must have `_factor_validator` after fitting when augment=True"
+        assert mida._factor_validator is not None, "MIDA must have `_factor_validator` after fitting when augment=True"
         return
 
-    assert not has_validator, "MIDA must not have `_factor_validator` after fitting when augment=False"
+    assert mida._factor_validator is None, "MIDA must not have `_factor_validator` after fitting when augment=False"
+
+    if augment == "post":
+        z = mida.transform(x, factors=factors)
+        assert (
+            z.shape[1] == N_COMP_CONSTANT + factors.shape[-1]
+        ), f"Expected {x.shape[1]} features, got {N_COMP_CONSTANT + factors.shape[-1]}"
 
 
 @pytest.mark.parametrize("ignore_y", [True, False])
 def test_mida_ignore_y(sample_data, ignore_y):
     x, y, domains, factors = sample_data
 
-    mida = MIDA(num_components=8, kernel="linear", ignore_y=ignore_y)
+    mida = MIDA(num_components=N_COMP_CONSTANT, kernel="linear", ignore_y=ignore_y)
     mida.fit(x, y, factors=factors)
 
     # expect classes_ to be set if ignore_y=False
-    has_classes = hasattr(mida, "classes_")
+    # has_classes = hasattr(mida, "classes_")
     if ignore_y:
-        assert not has_classes, "MIDA must have `classes_` after fitting when ignore_y=True"
+        assert mida.classes_ is None, "MIDA must not have `classes_` after fitting when ignore_y=True"
         return
 
-    assert has_classes, "MIDA must not have `classes_` after fitting when ignore_y=False"
+    assert mida.classes_ is not None, "MIDA must have `classes_` after fitting when ignore_y=False"
 
 
 @pytest.mark.parametrize("eigen_solver", ["auto", "dense", "arpack", "randomized"])
@@ -207,7 +214,7 @@ def test_mida_eigen_solver(sample_data, eigen_solver):
     x, y, domains, factors = sample_data
 
     mida = MIDA(
-        num_components=8,
+        num_components=N_COMP_CONSTANT,
         kernel="rbf",
         eigen_solver=eigen_solver,
         max_iter=200 if eigen_solver == "arpack" else None,
@@ -217,8 +224,8 @@ def test_mida_eigen_solver(sample_data, eigen_solver):
     # Transform the whole data
     z = mida.transform(x, factors=factors)
 
-    # expect the solver to have consistent number of components
-    assert mida._n_features_out == 8, f"Expected 8 components, got {mida.n_components_}"
+    # expect the solver to have a consistent number of components
+    assert mida._n_features_out == N_COMP_CONSTANT, f"Expected {N_COMP_CONSTANT} components, got {mida._n_features_out}"
     assert z.shape[1] == mida._n_features_out, f"Expected {x.shape[1]} features, got {mida._n_features_out}"
 
 
@@ -226,13 +233,13 @@ def test_mida_eigen_solver(sample_data, eigen_solver):
 def test_mida_scale_components(sample_data, scale_components):
     x, y, domains, factors = sample_data
 
-    mida = MIDA(num_components=8, kernel="linear", scale_components=scale_components)
+    mida = MIDA(num_components=N_COMP_CONSTANT, kernel="linear", scale_components=scale_components)
     mida.fit(x, factors=factors)
 
     # Transform the whole data
     z = mida.transform(x, factors=factors)
 
-    # Expect the scale_components to have consistent number of components
+    # Expect the scale_components to have a consistent number of components
     # the behavior expected is the zero eigenvalues component is masked, not indexed
-    assert mida._n_features_out == 8, f"Expected 8 components, got {mida.n_components_}"
+    assert mida._n_features_out == N_COMP_CONSTANT, f"Expected {N_COMP_CONSTANT} components, got {mida._n_features_out}"
     assert z.shape[1] == mida._n_features_out, f"Expected {x.shape[1]} features, got {mida._n_features_out}"
