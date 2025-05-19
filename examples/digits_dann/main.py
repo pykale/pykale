@@ -15,7 +15,7 @@ from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar
 
 from kale.loaddata.image_access import DigitDataset
-from kale.loaddata.multi_domain import MultiDomainDatasets
+from kale.loaddata.multi_domain import BinaryDomainDatasets
 from kale.utils.seed import set_seed
 
 
@@ -56,7 +56,7 @@ def main():
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(cfg.DATASET.SOURCE.upper()), DigitDataset(cfg.DATASET.TARGET.upper()), cfg.DATASET.ROOT
     )
-    dataset = MultiDomainDatasets(
+    dataset = BinaryDomainDatasets(
         source,
         target,
         config_weight_type=cfg.DATASET.WEIGHT_TYPE,

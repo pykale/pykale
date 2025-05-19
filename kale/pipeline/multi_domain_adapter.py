@@ -22,7 +22,7 @@ def create_ms_adapt_trainer(method: str, dataset, feature_extractor, task_classi
 
     Args:
         method (str): Multi-source domain adaptation method, M3SDA or MFSAN
-        dataset (kale.loaddata.multi_domain.MultiDomainAdapDataset): the multi-domain datasets to be used for train,
+        dataset (kale.loaddata.multi_domain.MultiDomainDataset): the multi-domain datasets to be used for train,
             validation, and tests.
         feature_extractor (torch.nn.Module): feature extractor network
         task_classifier (torch.nn.Module): task classifier network
@@ -48,7 +48,7 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
     """Base class for all domain adaptation architectures
 
     Args:
-        dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used for train, validation, and tests.
+        dataset (kale.loaddata.multi_domain.MultiDomainDataset): the multi-domain datasets to be used for train, validation, and tests.
         feature_extractor (torch.nn.Module): the feature extractor network
         task_classifier (torch.nn.Module): the task classifier network
         n_classes (int): number of classes

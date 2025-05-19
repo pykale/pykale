@@ -3,7 +3,7 @@ import pytest
 import kale.pipeline.domain_adapter as domain_adapter
 from kale.embed.image_cnn import SmallCNNFeature
 from kale.loaddata.image_access import DigitDataset
-from kale.loaddata.multi_domain import MultiDomainDatasets
+from kale.loaddata.multi_domain import BinaryDomainDatasets
 from kale.predict.class_domain_nets import ClassNetSmallImage, DomainNetSmallImage
 from tests.helpers.pipe_test_helper import ModelTestHelper
 
@@ -54,7 +54,7 @@ def test_domain_adaptor(da_method, n_fewshot, download_path, testing_cfg):
     source, target, num_channels = DigitDataset.get_source_target(
         DigitDataset(SOURCE), DigitDataset(TARGET), download_path
     )
-    dataset = MultiDomainDatasets(
+    dataset = BinaryDomainDatasets(
         source, target, config_weight_type=WEIGHT_TYPE, config_size_type=DATASIZE_TYPE, n_fewshot=n_fewshot
     )
 

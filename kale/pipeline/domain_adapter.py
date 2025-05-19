@@ -1,6 +1,6 @@
 """Domain adaptation systems (pipelines) with three types of architectures
 
-This module takes individual modules as input and organises them into an architecture. This is taken directly from
+This module takes individual modules as input and organizes them into an architecture. This is taken directly from
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/architectures.py with minor changes.
 
 This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>`_ to standardize the flow.
@@ -84,11 +84,9 @@ class Method(Enum):
 
 def create_mmd_based(method: Method, dataset, feature_extractor, task_classifier, **train_params):
     """MMD-based deep learning methods for domain adaptation: DAN and JAN"""
-    if not method.is_mmd_method():
-        raise ValueError(f"Unsupported MMD method: {method}")
     if method is Method.DAN:
         return DANTrainer(dataset, feature_extractor, task_classifier, method=method, **train_params)
-    if method is Method.JAN:
+    elif method is Method.JAN:
         return JANTrainer(
             dataset,
             feature_extractor,
@@ -98,6 +96,8 @@ def create_mmd_based(method: Method, dataset, feature_extractor, task_classifier
             kernel_num=[5, 1],
             **train_params,
         )
+    else:
+        raise ValueError(f"Unsupported MMD method: {method}")
 
 
 def create_dann_like(method: Method, dataset, feature_extractor, task_classifier, critic, **train_params):
@@ -190,7 +190,7 @@ class BaseAdaptTrainer(pl.LightningModule):
     changes linearly from 0 to 1.
 
     Args:
-        dataset (kale.loaddata.multi_domain.MultiDomainDatasets): the multi-domain datasets to be used for train,
+        dataset (kale.loaddata.multi_domain.BinaryDomainDatasets): the multi-domain datasets to be used for train,
             validation, and tests.
         feature_extractor (torch.nn.Module): the feature extractor network (mapping inputs :math:`x\in\mathcal{X}`
             to a latent space :math:`\mathcal{Z}`,).
@@ -266,7 +266,7 @@ class BaseAdaptTrainer(pl.LightningModule):
             self._grow_fact = 2.0 / (1.0 + np.exp(-10 * p)) - 1
 
             if self._adapt_lr:
-                # Apply a decay to the learning rate factor as training progresses, based on 'p' with an exponential decay power of 0.75
+                # Apply decay to the learning rate factor as training progresses, based on 'p' with an exponential decay power of 0.75
                 self._lr_fact = 1.0 / ((1.0 + 10 * p) ** 0.75)
 
         if self._adapt_lambda:
@@ -290,7 +290,7 @@ class BaseAdaptTrainer(pl.LightningModule):
             log_metrics should be a dictionary.
 
         Raises:
-            NotImplementedError: children of this classes should implement this method.
+            NotImplementedError: children of this class should implement this method.
         """
         raise NotImplementedError("Loss needs to be defined.")
 
@@ -824,7 +824,7 @@ class WDGRLTrainerMod(WDGRLTrainer):
     def training_step(self, batch, batch_id):
         # optimizer_step is not used in the new version of PyTorch Lightning,
         # so we need to implement staged optimizer in training_step.
-        # This may casue the implementation to be a little different from the old version.
+        # This may cause the implementation to be a little different from the old version.
 
         self._update_batch_epoch_factors(batch_id)
 

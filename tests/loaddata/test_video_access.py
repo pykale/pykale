@@ -7,7 +7,7 @@ from yacs.config import CfgNode
 from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.multi_domain import DomainsDatasetBase
 from kale.loaddata.video_access import get_image_modality, VideoDataset, VideoDatasetAccess
-from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
+from kale.loaddata.video_multi_domain import VideoBinaryDomainDatasets
 from kale.utils.seed import set_seed
 
 SOURCES = [
@@ -99,7 +99,7 @@ def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, dat
     assert isinstance(train_valid[1], torch.utils.data.Dataset)
 
     # test action_multi_domain_datasets
-    dataset = VideoMultiDomainDatasets(
+    dataset = VideoBinaryDomainDatasets(
         source,
         target,
         image_modality=cfg.DATASET.IMAGE_MODALITY,
@@ -111,7 +111,7 @@ def test_get_source_target(source_cfg, target_cfg, valid_ratio, weight_type, dat
 
     # test class subsets
     if source_cfg == SOURCES[1] and target_cfg == TARGETS[0]:
-        dataset_subset = VideoMultiDomainDatasets(
+        dataset_subset = VideoBinaryDomainDatasets(
             source,
             target,
             image_modality="rgb",

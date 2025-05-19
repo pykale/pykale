@@ -11,12 +11,12 @@ import numpy as np
 from sklearn.utils import check_random_state
 
 from kale.loaddata.dataset_access import get_class_subset
-from kale.loaddata.multi_domain import DatasetSizeType, MultiDomainDatasets, WeightingType
+from kale.loaddata.multi_domain import DatasetSizeType, BinaryDomainDatasets, WeightingType
 from kale.loaddata.sampler import FixedSeedSamplingConfig, MultiDataLoader
 from kale.loaddata.video_access import get_image_modality
 
 
-class VideoMultiDomainDatasets(MultiDomainDatasets):
+class VideoBinaryDomainDatasets(BinaryDomainDatasets):
     def __init__(
         self,
         source_access_dict,
@@ -33,7 +33,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         class_ids=None,
     ):
         """The class controlling how the source and target domains are iterated over when the input is joint.
-            Inherited from MultiDomainDatasets.
+            Inherited from BinaryDomainDatasets.
         Args:
             source_access_dict (dictionary): dictionary of source RGB and flow dataset accessors
             target_access_dict (dictionary): dictionary of target RGB and flow dataset accessors

@@ -60,7 +60,7 @@ class DomainsDatasetBase:
         raise NotImplementedError()
 
 
-class MultiDomainDatasets(DomainsDatasetBase):
+class BinaryDomainDatasets(DomainsDatasetBase):
     def __init__(
         self,
         source_access: DatasetAccess,
@@ -94,7 +94,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
                 selection. Defaults to None.
             class_ids (list, optional): List of chosen subset of class ids. Defaults to None (=> All Classes).
         Examples::
-            >>> dataset = MultiDomainDatasets(source_access, target_access)
+            >>> dataset = BinaryDomainDatasets(source_access, target_access)
         """
         weight_type = WeightingType(config_weight_type)
         size_type = DatasetSizeType(config_size_type)
@@ -541,7 +541,7 @@ class MultiDomainAccess(DatasetAccess):
         return len(self.get_train()) + len(self.get_test())
 
 
-class MultiDomainAdapDataset(DomainsDatasetBase):
+class MultiDomainDataset(DomainsDatasetBase):
     """The class controlling how the multiple domains are iterated over.
 
     Args:

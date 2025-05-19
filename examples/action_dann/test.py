@@ -12,7 +12,7 @@ from config import get_cfg_defaults
 from model import get_model
 
 from kale.loaddata.video_access import VideoDataset
-from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
+from kale.loaddata.video_multi_domain import VideoBinaryDomainDatasets
 
 
 def arg_parse():
@@ -57,7 +57,7 @@ def main():
     source, target, num_classes = VideoDataset.get_source_target(
         VideoDataset(cfg.DATASET.SOURCE.upper()), VideoDataset(cfg.DATASET.TARGET.upper()), seed, cfg
     )
-    dataset = VideoMultiDomainDatasets(
+    dataset = VideoBinaryDomainDatasets(
         source,
         target,
         image_modality=cfg.DATASET.IMAGE_MODALITY,
