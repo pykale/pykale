@@ -721,13 +721,13 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         return k_x
 
     @_fit_context(prefer_skip_nested_validation=True)
-    def fit(self, x, y=None, factors=None, **fit_params):
+    def fit(self, x, y=None, group_labels=None, **fit_params):
         """Fit the model to the data `x` and target variable `y`.
         Args:
             x (array-like): The input data with shape (num_samples, num_features).
             y (array-like, optional): The target variable (binary or multiclass classification label) with shape (num_samples).
                                     Set -1 for unknown labels for semi-supervised MIDA. Default is None.
-            factors (array-like, optional): The factors for adaptation with shape (num_samples, num_factors).
+            group_labels (array-like, optional): The factors for adaptation with shape (num_samples, num_factors).
                                 Please preprocess the factors before domain adaptation
                                 (e.g. one-hot encode domain, gender, or standardize age). Default is None.
             **fit_params: Additional parameters for fitting.
@@ -756,13 +756,13 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
 
             self.classes_ = ohe.categories_[0]
 
-        if factors is None:
+        if group_labels is None:
             raise ValueError(f"Factors must be provided for `{self.__class__.__name__}` during `fit`.")
 
         # k_objective workaround to validate the factors' shape
         factor_validator = FunctionTransformer()
-        factor_validator.fit(factors, x)
-        factors = factor_validator.transform(factors)
+        factor_validator.fit(group_labels, x)
+        group_labels = factor_validator.transform(group_labels)
 
         # Append the factors/phenotypes to the input data if augment=True
         x_aug = x
@@ -770,7 +770,7 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
             self._factor_validator = factor_validator
 
         if self.augment == "pre":
-            x_aug = np.hstack((x, factors))
+            x_aug = np.hstack((x, group_labels))
 
         # To avoid having duplicate variables, x_fit_ cannot be renamed
         # to x_fit_ as it is predefined in KernelPCA's implementation
@@ -781,22 +781,22 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         k_x = self._get_kernel(self.x_fit_)
         k_x = self._centerer.fit_transform(k_x)
 
-        k_objective = self._make_objective_kernel(k_x, y_ohe, factors)
+        k_objective = self._make_objective_kernel(k_x, y_ohe, group_labels)
 
         # Fit the transformation and inverse transformation for the kernel matrix
         self._fit_transform_in_place(k_objective)
         if self.fit_inverse_transform:
-            x_transformed = self.transform(x, factors)
+            x_transformed = self.transform(x, group_labels)
             self._fit_inverse_transform(x_transformed, x)
 
         return self
 
-    def transform(self, x, factors=None):
+    def transform(self, x, group_labels=None):
         """Transform the input data `x` to factor-independent feature space using the fitted
         domain adapter.
         Args:
             x (array-like): The input data with shape (num_samples, num_features).
-            factors (array-like, optional): The factors for adaptation with shape (num_samples, num_factors).
+            group_labels (array-like, optional): The factors for adaptation with shape (num_samples, num_factors).
                                 Please preprocess the factors before domain adaptation
                                 (e.g. one-hot encode domain, gender, or standardize age). Default is None.
         Returns:
@@ -806,11 +806,11 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         accept_sparse = False if self.fit_inverse_transform else "csr"
         x = validate_data(self, x, accept_sparse=accept_sparse, reset=False)
 
-        if factors is None and self.augment in {"pre", "post"}:
+        if group_labels is None and self.augment in {"pre", "post"}:
             raise ValueError("Factors must be provided for transform when `augment` is 'pre' or 'post'.")
 
         if self.augment == "pre":
-            x = np.hstack((x, factors))
+            x = np.hstack((x, group_labels))
 
         k_x = self._get_kernel(x, self.x_fit_)
         k_x = self._centerer.transform(k_x)
@@ -822,7 +822,7 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         z = safe_sparse_dot(k_x, w)
 
         if self.augment == "post":
-            z = np.hstack((z, factors))
+            z = np.hstack((z, group_labels))
 
         return z
 
@@ -845,14 +845,14 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         k_z = self._get_kernel(z, self.x_transformed_fit_)
         return safe_sparse_dot(k_z, self.dual_coef_)
 
-    def fit_transform(self, x, y=None, factors=None, **fit_params):
+    def fit_transform(self, x, y=None, group_labels=None, **fit_params):
         """Fit the model to the data `x` and target variable `y` and remove
         the effect of `factors`, and transform `x`.
         Args:
             x (array-like): The input data with shape (num_samples, num_features).
             y (array-like, optional): The target variable (binary or multiclass classification label) with shape (num_samples).
                                     Set -1 for unknown labels for semi-supervised MIDA. Default is None.
-            factors (array-like, optional): The factors for adaptation with shape (num_samples, num_factors).
+            group_labels (array-like, optional): The factors for adaptation with shape (num_samples, num_factors).
                                 Please preprocess the factors before domain adaptation
                                 (e.g. one-hot encode domain, gender, or standardize age). Default is None.
             **fit_params: Additional parameters for fitting.
@@ -861,12 +861,12 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         """
         if y is None:
             # fit method of arity 1 (unsupervised transformation)
-            self.fit(x, factors=factors, **fit_params)
+            self.fit(x, group_labels=group_labels, **fit_params)
         else:
             # fit method of arity 2 (supervised transformation)
-            self.fit(x, y, factors, **fit_params)
+            self.fit(x, y, group_labels, **fit_params)
 
-        return self.transform(x, factors)
+        return self.transform(x, group_labels)
 
 
 class MIDA(BaseKernelDomainAdapter):
@@ -918,7 +918,7 @@ class MIDA(BaseKernelDomainAdapter):
         >>> # Create factors (e.g., one-hot encoded domain labels)
         >>> factors = np.concatenate((np.zeros((20, 1)), np.ones((20, 1))), axis=0)
         >>> mida = MIDA()
-        >>> x_projected = mida.fit_transform(x, y, factors=factors)
+        >>> x_projected = mida.fit_transform(x,y,group_labels=factors)
         >>> x_projected.shape
         (40, 18)
     """
@@ -981,12 +981,12 @@ class MIDA(BaseKernelDomainAdapter):
             num_jobs=num_jobs,
         )
 
-    def _make_objective_kernel(self, k_x, y, factors):
+    def _make_objective_kernel(self, k_x, y, group_labels):
         # equivalent to `H` in the original paper
         h = _centering_kernel(_num_features(k_x), k_x.dtype)
         # linear kernel used for the label and factors
         k_y = pairwise_kernels(y, n_jobs=self.num_jobs)
-        k_f = pairwise_kernels(factors, n_jobs=self.num_jobs)
+        k_f = pairwise_kernels(group_labels, n_jobs=self.num_jobs)
 
         centerer = KernelCenterer()
         k_y = centerer.fit_transform(k_y)
