@@ -29,6 +29,7 @@ PARAM_GRID = [
 SEARCH_STRATEGY = ["random", "grid"]
 SCORING = [None, "f1", "roc_auc", ["accuracy", "f1", "roc_auc"]]
 CV = [None, 3, LeaveOneGroupOut()]
+NUM_DOMAINS = 4
 
 
 @pytest.fixture(scope="module")
@@ -36,7 +37,7 @@ def toy_data():
     # Test an extreme case of domain shift
     # yet the data's manifold is linearly separable
     x, y, domains = make_domain_shifted_dataset(
-        num_domains=4,
+        num_domains=NUM_DOMAINS,
         num_samples_per_class=4,
         num_features=20,
         centroid_shift_scale=32768,
@@ -71,7 +72,7 @@ def test_mida_trainer_params_consistency(toy_data, transformer, param_grid):
 
     trainer.fit(x, y, group_labels=domains)
 
-    # gather keys from list of param_grid
+    # gather keys from a list of param_grid
     if isinstance(param_grid, list):
         param_keys = set(k for d in param_grid for k in d.keys())
     else:
@@ -99,7 +100,7 @@ def test_mida_trainer_scoring_support(toy_data, scoring):
         error_score="raise",
     )
 
-    trainer.fit(x, y, group_labels=factors, groups=domains)
+    trainer.fit(x, y, group_labels=domains)
 
     if scoring is None or isinstance(scoring, str):
         scoring = ["score"]
@@ -137,12 +138,12 @@ def test_mida_trainer_cv_support(toy_data, cv):
         LogisticRegression(random_state=0, max_iter=10), param_grid=PARAM_GRID[0], cv=cv, error_score="raise"
     )
 
-    trainer.fit(x, y, group_labels=factors, groups=domains)
+    trainer.fit(x, y, group_labels=domains)
 
     if cv is None:
         cv = 5
     elif isinstance(cv, LeaveOneGroupOut):
-        cv = 10
+        cv = NUM_DOMAINS
 
     assert any(
         key.startswith(f"split{cv - 1}") for key in trainer.cv_results_.keys()
@@ -191,7 +192,7 @@ def test_mida_trainer_fit_and_methods(toy_data):
 
     # test adaptation (excluding estimator)
     x_transformed = trainer.adapt(x, group_labels=domains)
-    testing.assert_array_equal((len(x), 10), x_transformed.shape)
+    testing.assert_array_equal((len(x), 4), x_transformed.shape)
 
     # test predict
     y_pred = trainer.predict(x)

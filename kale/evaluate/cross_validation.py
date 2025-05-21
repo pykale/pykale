@@ -56,7 +56,7 @@ def _fit_and_score(
     """Train the estimator (optionally with a domain adapter) and evaluate its performance.
     The implementation is a modification of the `scikit-learn`'s _fit_and_score function to accommodate
     domain adaptation and pre-domain adaptation transformation. Do not use this function with classification
-    labels that has -1 as a label, as it will be treated as an unlabeled sample. This is a limitation of the
+    labels that have -1 as a label, as it will be treated as an unlabeled sample. This is a limitation of the
     current implementation.
 
     Args:
@@ -134,7 +134,7 @@ def _fit_and_score(
     x_train, y_train = _safe_split(estimator, x, y, train)
     x_test, y_test = _safe_split(estimator, x, y, test)
 
-    # Adjust length of sample weights
+    # Adjust the length of sample weights
     fit_args = fit_args if fit_args is not None else {}
     fit_args = _check_method_params(x, fit_args, train)
     score_args = score_args if score_args is not None else {}
@@ -349,7 +349,7 @@ def cross_validate(
     groups=None,
     transformer=None,
     domain_adapter=None,
-    factors=None,
+    group_labels=None,
     scoring=None,
     cv=None,
     num_jobs=None,
@@ -372,7 +372,7 @@ def cross_validate(
         groups (array-like, optional): Group labels for the samples used while splitting the dataset into train/test sets.
         transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods applied before domain adaptation.
         domain_adapter (sklearn.base.BaseEstimator, optional): A domain adapter implementing fit and transform methods.
-        factors (array-like): The factors for adaptation with shape (num_samples, num_factors). Please preprocess the factors before domain adaptation
+        group_labels (array-like): The factors for adaptation with shape (num_samples, num_factors). Please preprocess the factors before domain adaptation
                                 (e.g. one-hot encode domain, gender, or standardize age).
         scoring (callable, list, tuple, dict, optional): A scoring function or a list of scoring functions to evaluate the estimator's performance.
         cv (cv_object, optional): Cross-validation splitting strategy.
@@ -395,7 +395,7 @@ def cross_validate(
             - "estimator" (object, optional): The fitted estimator, if `return_estimator=True`.
             - "indices" (dict, optional): Indices of the training and testing sets, if `return_indices=True`.
     """
-    x, y, groups, factors = indexable(x, y, groups, factors)
+    x, y, groups, group_labels = indexable(x, y, groups, group_labels)
     cv = check_cv(cv, y, classifier=is_classifier(estimator))
 
     parameters = {} if parameters is None else parameters
@@ -417,7 +417,7 @@ def cross_validate(
             y,
             transformer=clone(transformer) if transformer else None,
             domain_adapter=clone(domain_adapter) if domain_adapter else None,
-            factors=factors,
+            group_labels=group_labels,
             scorer=scorers,
             train=train,
             test=test,

@@ -74,14 +74,14 @@ def test_cross_validate_cv_supports(sample_data, cv):
         x,
         y,
         groups=groups,
-        cv=cv,
         transformer=None,
         domain_adapter=None,
-        factors=factors,
+        group_labels=factors,
         scoring=None,
+        cv=cv,
         fit_args=None,
-        return_indices=False,
         return_train_score=False,
+        return_indices=False,
         error_score="raise",
     )
 
@@ -107,13 +107,13 @@ def test_cross_validate_with_transformer_and_domain_adaptation(sample_data, tran
         groups=groups,
         transformer=transformer,
         domain_adapter=domain_adapter,
-        factors=factors,
+        group_labels=factors,
         scoring=None,
         fit_args=None,
-        return_indices=False,
         return_train_score=False,
-        error_score="raise",
         return_estimator=False,
+        return_indices=False,
+        error_score="raise",
     )
 
     assert "fit_time" in results, "fit_time not in results"
@@ -133,13 +133,12 @@ def test_cross_validate_scoring_support(sample_data, scoring):
         groups=groups,
         transformer=None,
         domain_adapter=None,
-        factors=factors,
         scoring=scoring,
         fit_args=None,
-        return_indices=False,
         return_train_score=False,
-        error_score="raise",
         return_estimator=False,
+        return_indices=False,
+        error_score="raise",
     )
 
     if scoring is None or isinstance(scoring, str):
@@ -161,13 +160,12 @@ def test_cross_validate_return_indices(sample_data, return_indices):
         groups=groups,
         transformer=None,
         domain_adapter=None,
-        factors=factors,
         scoring=None,
         fit_args=None,
-        return_indices=return_indices,
         return_train_score=False,
-        error_score="raise",
         return_estimator=False,
+        return_indices=return_indices,
+        error_score="raise",
     )
 
     if return_indices:
@@ -189,13 +187,13 @@ def test_cross_validate_return_train_score(sample_data, return_train_score):
         groups=groups,
         transformer=None,
         domain_adapter=None,
-        factors=factors,
+        group_labels=factors,
         scoring=None,
         fit_args=None,
-        return_indices=False,
         return_train_score=return_train_score,
-        error_score="raise",
         return_estimator=False,
+        return_indices=False,
+        error_score="raise",
     )
 
     if return_train_score:
@@ -217,13 +215,13 @@ def test_cross_validate_return_estimator(sample_data, return_estimator):
         groups=groups,
         transformer=None,
         domain_adapter=None,
-        factors=factors,
+        group_labels=factors,
         scoring=None,
         fit_args=None,
-        return_indices=False,
         return_train_score=False,
-        error_score="raise",
         return_estimator=return_estimator,
+        return_indices=False,
+        error_score="raise",
     )
 
     if return_estimator:
@@ -249,13 +247,13 @@ def test_cross_validate_error_score(sample_data, error_score):
             groups=groups,
             transformer=None,
             domain_adapter=None,
-            factors=factors,
+            group_labels=factors,
             scoring=None,
             fit_args=None,
-            return_indices=False,
             return_train_score=False,
-            error_score=error_score,
             return_estimator=False,
+            return_indices=False,
+            error_score=error_score,
         )
 
         if np.isnan(error_score):

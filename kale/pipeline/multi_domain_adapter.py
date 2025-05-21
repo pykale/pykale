@@ -777,6 +777,7 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         mida = MIDA() if self.use_mida else None
         scorers, refit_metric = self._get_scorers()
         if (1 in group_labels.shape and group_labels.ndim == 2) or (group_labels.ndim == 1):
+            params["groups"] = group_labels.copy()
             self.group_labels_encoder = OneHotEncoder(sparse_output=False)
             group_labels = self.group_labels_encoder.fit_transform(group_labels.reshape(-1, 1))
 
