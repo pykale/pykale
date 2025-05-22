@@ -23,6 +23,7 @@ install_requires = [
     "tensorly>=0.5.1",  # in factorization and model_weights API only
     "torch==2.3.0",  # also change the version in the test.yaml when changing this next time, and update the pytorch version in the bindingdb_deepdta tutorial notebook
     "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
+    "torchdata==0.8.0",
 ]
 
 # Application-specific dependencies sorted alphabetically below
@@ -31,6 +32,8 @@ install_requires = [
 graph_requires = [
     "networkx",
     "PyTDC<=0.3.6",
+    "dgl==2.3.0+cu121",
+    "dgllife",
 ]
 
 # Dependencies for image analysis
@@ -57,6 +60,14 @@ example_requires = [
     "yacs>=0.1.7",
     "pwlf",
     "xlsxwriter",
+    "pydantic",
+    "prettytable",
+    "python-rle",
+    "pyjpegls",
+    "pylibjpeg",
+    "pylibjpeg-libjpeg",
+    "pylibjpeg-openjpeg",
+    "pylibjpeg-rle",
 ]
 
 # Full dependencies except for development
