@@ -639,11 +639,9 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         """Compute the score of the estimator on the given data.
 
         Args:
-            x (array-like): The input data.
+            x (array-like): The data matrix to be socred, shape (num_samples, num_features).
             y (array-like): The target values.
-            group_labels (array-like): Categorical variables representing domain or grouping factors with shape
-                (num_samples, num_factors). Preprocessing (e.g., one-hot encode domain, gender, or age groups)
-                must be applied in advance.
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
             **params: Additional parameters for the estimator.
         Returns:
             float: The score of the estimator.
@@ -656,7 +654,7 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         """Compute the log-likelihood of the samples.
 
         Args:
-            x (array-like): The input data.
+            x (array-like): The data matrix to be socred, shape (num_samples, num_features).
             group_labels (array-like): Categorical variables representing domain or grouping factors with shape
                 (num_samples, num_factors). Preprocessing (e.g., one-hot encode domain, gender, or age groups)
                 must be applied in advance.
@@ -670,10 +668,8 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         """Predict using the best pipeline.
 
         Args:
-            x (array-like): The input data.
-            group_labels (array-like): Categorical variables representing domain or grouping factors with shape
-                (num_samples, num_factors). Preprocessing (e.g., one-hot encode domain, gender, or age groups)
-                must be applied in advance.
+            x (array-like): The data matrix for which we want to get the predictions, shape (num_samples, num_features).
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
         Returns:
             array-like: The predicted target.
         """
@@ -684,10 +680,9 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         """Predict class probabilities using the best pipeline.
 
         Args:
-            x (array-like): The input data.
-            group_labels (array-like): Categorical variables representing domain or grouping factors with shape
-                (num_samples, num_factors). Preprocessing (e.g., one-hot encode domain, gender, or age groups)
-                must be applied in advance.
+            x (array-like): The data matrix for which we want to get the probability of the predictions,
+                shape (num_samples, num_features).
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
         Returns:
             array-like: The predicted class probabilities.
         """
@@ -698,10 +693,9 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         """Predict log class probabilities using the best pipeline.
 
         Args:
-            x (array-like): The input data.
-            group_labels (array-like): Categorical variables representing domain or grouping factors with shape
-                (num_samples, num_factors). Preprocessing (e.g., one-hot encode domain, gender, or age groups)
-                must be applied in advance.
+            x (array-like): The data matrix for which we want to get the log probability of the predictions,
+                shape (num_samples, num_features).
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
         Returns:
             array-like: The predicted log class probabilities.
         """
@@ -723,7 +717,7 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         Note that this method is not compatible for MIDA when `augment=True`.
 
         Args:
-            x (array-like): The input data.
+            x (array-like): The data matrix to be reverted.
         Returns:
             array-like: The inverse transformed data.
         """
@@ -764,9 +758,7 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         Args:
             x (array-like): The input data.
             y (array-like): The target values.
-            group_labels (array-like): Categorical variables representing domain or grouping factors with shape
-                (num_samples, num_factors). Preprocessing (e.g., one-hot encode domain, gender, or age groups)
-                must be applied in advance.
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
             **params: Additional parameters for the estimator.
         Returns:
             self: The fitted trainer.
@@ -1238,10 +1230,9 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         Internally configures MIDATrainer with selected estimator, transformer, and domain adapter.
 
         Args:
-            x (array-like): Feature matrix.
-            y (array-like): Target labels.
-            group_labels (array-like): Categorical variables representing domain or grouping factors. Preprocessing
-                (e.g., one-hot encoding) must be applied in advance.
+            x (array-like): Input data matrix, shape (num_samples, num_features).
+            y (array-like): Target labels, shape (num_samples,).
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
             **params: Additional parameters forwarded to the MIDATrainer.
 
         Returns:
@@ -1290,9 +1281,8 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         to the input features, producing domain-adapted representations.
 
         Args:
-            x (array-like): Input features to transform.
-            group_labels (array-like): Categorical variables representing domain or grouping factors. Preprocessing
-                (e.g., one-hot encoding) must be applied in advance.
+            x (array-like): Input data to transform, shape (num_samples, num_features).
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
 
         Returns:
             array-like: Adapted feature matrix.
@@ -1307,9 +1297,8 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         This applies domain adaptation (transformer + MIDA) before calling the classifier.
 
         Args:
-            x (array-like): Input features to classify.
-            group_labels (array-like): Categorical variables representing domain or grouping factors. Preprocessing
-                (e.g., one-hot encoding) must be applied in advance.
+            x (array-like): The data matrix for which we want to get the predictions, shape (num_samples, num_features).
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
 
         Returns:
             array-like: Predicted class labels.
@@ -1324,9 +1313,9 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         This applies domain adaptation before computing probabilities from the classifier.
 
         Args:
-            x (array-like): Input features to classify.
-            group_labels (array-like): Categorical variables representing domain or grouping factors. Preprocessing
-                (e.g., one-hot encoding) must be applied in advance.
+            x (array-like): The data matrix for which we want to get the probability of the predictions,
+                shape (num_samples, num_features).
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
 
         Returns:
             array-like: Class probability estimates.
@@ -1341,9 +1330,9 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         This applies domain adaptation before computing log probabilities.
 
         Args:
-            x (array-like): Input features.
-            group_labels (array-like): Categorical variables representing domain or grouping factors. Preprocessing
-                (e.g., one-hot encoding) must be applied in advance.
+            x (array-like): The data matrix for which we want to get the log probability of the predictions,
+                shape (num_samples, num_features).
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
 
         Returns:
             array-like: Log probability estimates.
@@ -1358,9 +1347,8 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         This applies domain adaptation before computing decision values from the classifier.
 
         Args:
-            x (array-like): Input features.
-            group_labels (array-like): Categorical variables representing domain or grouping factors. Preprocessing
-                (e.g., one-hot encoding) must be applied in advance.
+            x (array-like): The data matrix for which we want to get the decision scores, shape (num_samples, num_features).
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
 
         Returns:
             array-like: Confidence scores for each input.
@@ -1375,10 +1363,9 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         This applies domain adaptation before scoring with the estimator.
 
         Args:
-            x (array-like): Input features.
-            y (array-like): True labels.
-            group_labels (array-like): Categorical variables representing domain or grouping factors. Preprocessing
-                (e.g., one-hot encoding) must be applied in advance.
+            x (array-like): The data matrix to be socred, shape (num_samples, num_features).
+            y (array-like): True labels, shape (num_samples,).
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
             **params: Additional scoring parameters.
 
         Returns:
@@ -1394,9 +1381,8 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         This applies domain adaptation before estimating sample likelihoods.
 
         Args:
-            x (array-like): Input features.
-            group_labels (array-like): Categorical variables representing domain or grouping factors. Preprocessing
-                (e.g., one-hot encoding) must be applied in advance.
+            x (array-like): The data matrix to be socred, shape (num_samples, num_features).
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
 
         Returns:
             array-like: Log-likelihood scores.
@@ -1411,9 +1397,8 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         Applies transformer and MIDA components in sequence.
 
         Args:
-            x (array-like): Input features.
-            group_labels (array-like): Categorical variables representing domain or grouping factors. Preprocessing
-                (e.g., one-hot encoding) must be applied in advance.
+            x (array-like): The data matrix to be transformed, shape (num_samples, num_features).
+            group_labels (array-like): Categorical variables representing domain or grouping factors, shape (num_samples,).
 
         Returns:
             array-like: Transformed features.
@@ -1428,7 +1413,7 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         Applies inverse transformations from MIDA and transformer if supported.
 
         Args:
-            x (array-like): Adapted features to revert.
+            x (array-like): The data matrix to be reverted.
 
         Returns:
             array-like: Reconstructed input features.

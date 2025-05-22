@@ -727,9 +727,9 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
             x (array-like): The input data with shape (num_samples, num_features).
             y (array-like, optional): The target variable (binary or multiclass classification label) with shape (num_samples).
                                     Set -1 for unknown labels for semi-supervised MIDA. Default is None.
-            group_labels (array-like, optional): The factors for adaptation with shape (num_samples, num_factors).
-                                Please preprocess the factors before domain adaptation
-                                (e.g. one-hot encode domain, gender, or standardize age). Default is None.
+            group_labels (array-like, optional): Categorical variables representing domain or grouping factors with shape
+                (num_samples, num_factors). Preprocessing (e.g., one-hot encode domain, gender, or age groups)
+                must be applied in advance. Default is None.
             **fit_params: Additional parameters for fitting.
         Returns:
             self: The fitted model.
@@ -757,9 +757,9 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
             self.classes_ = ohe.categories_[0]
 
         if group_labels is None:
-            raise ValueError(f"Factors must be provided for `{self.__class__.__name__}` during `fit`.")
+            raise ValueError(f"Group labels must be provided for `{self.__class__.__name__}` during `fit`.")
 
-        # k_objective workaround to validate the factors' shape
+        # k_objective workaround to validate the group_labels' shape
         factor_validator = FunctionTransformer()
         factor_validator.fit(group_labels, x)
         group_labels = factor_validator.transform(group_labels)
@@ -796,9 +796,9 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
         domain adapter.
         Args:
             x (array-like): The input data with shape (num_samples, num_features).
-            group_labels (array-like, optional): The factors for adaptation with shape (num_samples, num_factors).
-                                Please preprocess the factors before domain adaptation
-                                (e.g. one-hot encode domain, gender, or standardize age). Default is None.
+            group_labels (array-like, optional): Categorical variables representing domain or grouping factors with
+                shape (num_samples, num_factors). Preprocessing (e.g., one-hot encode domain, gender, or age groups)
+                must be applied in advance. Default is None.
         Returns:
             array-like: The transformed data with shape (num_samples, num_components).
         """
@@ -852,9 +852,9 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
             x (array-like): The input data with shape (num_samples, num_features).
             y (array-like, optional): The target variable (binary or multiclass classification label) with shape (num_samples).
                                     Set -1 for unknown labels for semi-supervised MIDA. Default is None.
-            group_labels (array-like, optional): The factors for adaptation with shape (num_samples, num_factors).
-                                Please preprocess the factors before domain adaptation
-                                (e.g. one-hot encode domain, gender, or standardize age). Default is None.
+            group_labels (array-like, optional): Categorical variables representing domain or grouping factors with
+                shape (num_samples, num_factors). Preprocessing (e.g., one-hot encode domain, gender, or age groups)
+                must be applied in advance. Default is None.
             **fit_params: Additional parameters for fitting.
         Returns:
             array-like: The transformed data.
@@ -918,7 +918,7 @@ class MIDA(BaseKernelDomainAdapter):
         >>> # Create factors (e.g., one-hot encoded domain labels)
         >>> factors = np.concatenate((np.zeros((20, 1)), np.ones((20, 1))), axis=0)
         >>> mida = MIDA()
-        >>> x_projected = mida.fit_transform(x,y,group_labels=factors)
+        >>> x_projected = mida.fit_transform(x, y, group_labels=factors)
         >>> x_projected.shape
         (40, 18)
     """

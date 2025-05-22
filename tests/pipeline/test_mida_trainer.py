@@ -1,8 +1,6 @@
 import numpy as np
 import pytest
 from numpy import testing
-
-# from sklearn.base import clone
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import LeaveOneGroupOut
@@ -262,7 +260,7 @@ def test_auto_mida_trainer_basic(toy_data, search_strategy, monkeypatch):
     assert isinstance(trainer.predict(x, group_labels=domains), np.ndarray)
 
     # Check delegation
-    assert trainer.score(x, y, domains) > 0
+    assert trainer.score(x, y, group_labels=domains) > 0
     assert trainer.predict_proba(x, domains).shape == (len(x), 2)
     assert trainer.adapt(x, domains).shape[1] <= (x.shape[1] + factors.shape[1])
 
