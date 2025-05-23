@@ -179,12 +179,12 @@ def test_mida_augment(sample_data, augment):
     mida.fit(x, group_labels=factors)
 
     # expect validator for domain factors if augment=True
-    # has_validator = hasattr(mida, "_factor_validator")
+    has_validator = hasattr(mida, "_factor_validator")
     if augment:
-        assert mida._factor_validator is not None, "MIDA must have `_factor_validator` after fitting when augment=True"
+        assert has_validator, "MIDA must have `_factor_validator` after fitting when augment=True"
         return
 
-    assert mida._factor_validator is None, "MIDA must not have `_factor_validator` after fitting when augment=False"
+    assert not has_validator, "MIDA must not have `_factor_validator` after fitting when augment=False"
 
     if augment == "post":
         z = mida.transform(x, group_labels=factors)
@@ -201,12 +201,12 @@ def test_mida_ignore_y(sample_data, ignore_y):
     mida.fit(x, y, group_labels=factors)
 
     # expect classes_ to be set if ignore_y=False
-    # has_classes = hasattr(mida, "classes_")
+    has_classes = hasattr(mida, "classes_")
     if ignore_y:
-        assert mida.classes_ is None, "MIDA must not have `classes_` after fitting when ignore_y=True"
+        assert not has_classes, "MIDA must not have `classes_` after fitting when ignore_y=True"
         return
 
-    assert mida.classes_ is not None, "MIDA must have `classes_` after fitting when ignore_y=False"
+    assert has_classes, "MIDA must have `classes_` after fitting when ignore_y=False"
 
 
 @pytest.mark.parametrize("eigen_solver", ["auto", "dense", "arpack", "randomized"])

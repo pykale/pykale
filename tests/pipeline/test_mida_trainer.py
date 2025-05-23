@@ -226,7 +226,7 @@ def test_mida_trainer_fit_and_methods(toy_data):
     testing.assert_array_equal((len(x),), score.shape)
 
     # test transform
-    transform = trainer.transform(x)
+    transform = trainer.transform(x, group_labels=domains)
     testing.assert_array_equal((len(x), 2), transform.shape)
 
     # test inverse_transform
@@ -319,6 +319,7 @@ def test_auto_mida_trainer_property_accessors(toy_data, transformer, use_mida, m
     _ = trainer.refit_time_
     _ = trainer.multimetric_
     _ = trainer.n_features_in_
+    _ = trainer.groups_
 
     if hasattr(trainer.trainer_, "feature_names_in_"):
         _ = trainer.trainer_.feature_names_in_
@@ -360,8 +361,15 @@ def test_auto_mida_trainer_coef_shape(toy_data, augment, monkeypatch):
     feature_dim = x.shape[1]
     if augment is not None:
         feature_dim += factors.shape[1]
+    # else:
+    #     x_transformed = trainer.transform(x, group_labels=domains)
+    #     _ = trainer.inverse_transform(x_transformed)
+    #     assert x_transformed.shape[1] <= x.shape[1] + factors.shape[1], "Transformed shape is incorrect"
 
     assert coef.shape == (1, feature_dim), f"Expected shape (1, {feature_dim}), got {coef.shape}"
+
+    _ = trainer.predict_proba(x, group_labels=domains)
+    _ = trainer.decision_function(x, group_labels=domains)
 
 
 # Test nonlinear=True with a fixed classifier ("svm")
@@ -410,8 +418,33 @@ def test_auto_mida_trainer_classifier_auto(toy_data, monkeypatch):
         error_score="raise",
         random_state=0,
     )
-    trainer.fit(x, y, group_labels=factors)
+    trainer.fit(x, y, group_labels=domains)
 
     assert trainer.best_classifier_ is not None
     assert trainer.best_params_ is not None
     assert trainer.best_score_ is not None
+
+
+@pytest.mark.parametrize("verbose", [2, 3, 10])
+def test_auto_mida_trainer_classifier_verbose(toy_data, verbose):
+    x, y, domains, factors = toy_data
+    trainer = AutoMIDAClassificationTrainer(
+        classifier="auto",
+        search_strategy="random",
+        scoring="accuracy",
+        num_solver_iter=10,
+        cv=2,
+        error_score="raise",
+        verbose=verbose,
+        random_state=0,
+    )
+    trainer.fit(x, y, group_labels=domains)
+
+    assert trainer.best_score_ is not None
+
+    # _ = trainer.predict_proba(x, group_labels=domains)
+    # _ = trainer.decision_function(y, group_labels=domains)
+    # _ = trainer.score_samples(y, group_labels=domains)
+    # x_transformed = trainer.transform(x, group_labels=domains)
+    # _ = trainer.inverse_transform(x_transformed)
+    # assert x_transformed.shape[1] <= x.shape[1] + factors.shape[1], "Transformed shape is incorrect"

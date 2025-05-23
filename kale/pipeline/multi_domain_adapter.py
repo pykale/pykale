@@ -27,7 +27,7 @@ from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.model_selection import check_cv, ParameterGrid, ParameterSampler
 from sklearn.model_selection._search import _insert_error_scores, _warn_or_raise_about_fit_failures, BaseSearchCV
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import LabelBinarizer, OneHotEncoder
+from sklearn.preprocessing import LabelBinarizer
 from sklearn.svm import LinearSVC, SVC
 from sklearn.utils._param_validation import HasMethods, Integral, Interval, StrOptions
 from sklearn.utils.parallel import delayed, Parallel
@@ -611,7 +611,7 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         self.search_strategy = search_strategy
         self.num_iter = num_iter
         self.random_state = random_state
-        self.group_labels_encoder = None
+        self._group_label_encoder = None
 
     def adapt(self, x, group_labels=None):
         """Adapt the estimator to the given data.
@@ -624,9 +624,9 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
             array-like: The transformed or adapted data.
         """
         check_is_fitted(self)
-        if group_labels is not None and self.group_labels_encoder is not None:
+        if group_labels is not None and self._group_label_encoder is not None:
             if (1 in group_labels.shape and group_labels.ndim == 2) or (group_labels.ndim == 1):
-                group_labels = self.group_labels_encoder.transform(group_labels.reshape(-1, 1))
+                group_labels = self._group_label_encoder.transform(group_labels.reshape(-1, 1))
         if self.transformer is not None:
             x = self.best_transformer_.transform(x)
 
@@ -709,8 +709,7 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
 
     def transform(self, x, group_labels=None):
         """Transform the data using the best pipeline."""
-        x = self.adapt(x, group_labels)
-        return super().transform(x)
+        return self.adapt(x, group_labels)
 
     def inverse_transform(self, x):
         """Inverse transform the data using the best pipeline.
@@ -722,7 +721,6 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
             array-like: The inverse transformed data.
         """
         check_is_fitted(self)
-        x = super().inverse_transform(x)
 
         if hasattr(self.best_mida_, "inverse_transform"):
             x = self.best_mida_.inverse_transform(x)
@@ -751,6 +749,10 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         # Still need to call on the first part to do validation
         return super().n_features_in_
 
+    @property
+    def groups_(self):
+        return self._group_label_encoder.classes_
+
     @_fit_context(prefer_skip_nested_validation=True)
     def fit(self, x, y=None, group_labels=None, **params):
         """Fit and tune the pipeline with the given data.
@@ -770,8 +772,8 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         scorers, refit_metric = self._get_scorers()
         if (1 in group_labels.shape and group_labels.ndim == 2) or (group_labels.ndim == 1):
             params["groups"] = group_labels.copy()
-            self.group_labels_encoder = OneHotEncoder(sparse_output=False)
-            group_labels = self.group_labels_encoder.fit_transform(group_labels.reshape(-1, 1))
+            self._group_label_encoder = LabelBinarizer(sparse_output=False)
+            group_labels = self._group_label_encoder.fit_transform(group_labels.reshape(-1, 1))
 
         x, y, group_labels = indexable(x, y, group_labels)
         params = _check_method_params(x, params)
@@ -1174,6 +1176,10 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         """Names of features seen during `fit`."""
         check_is_fitted(self)
         return self.trainer_.feature_names_in_
+
+    @property
+    def groups_(self):
+        return self.trainer_.groups_
 
     def _get_classifier_and_grid(self):
         """Get the classifier and parameter grid for the selected classifier.

@@ -1,6 +1,7 @@
 # =============================================================================
-# Author: Shuo Zhou, shuo.zhou@sheffield.ac.uk
-#         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+# Authors: Shuo Zhou, shuo.zhou@sheffield.ac.uk
+#          Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
+#          Lalu Muhammad Riza Rizky, l.m.rizky@sheffield.ac.uk
 # =============================================================================
 
 """Python implementation of a tensor factorization algorithm Multilinear Principal Component Analysis (MPCA)
@@ -63,7 +64,7 @@ def _check_shape(x, shape_):
 
 
 def _check_tensor_dim_shape(x, n_dims, shape_):
-    """Check whether the number of dimensions of the input data and the shape for each sample are consistent with
+    """Check whether the number of the input data dimensions and the shape for each sample are consistent with
         expected values
 
     Args:
@@ -623,13 +624,6 @@ class BaseKernelDomainAdapter(ClassNamePrefixFeaturesOutMixin, TransformerMixin,
 
         # Additional adaptation parameters
         self.augment = augment
-
-        # init additional attributes
-        self.classes_ = None
-        self.gamma_ = None
-        self.x_fit_ = None
-        self._factor_validator = None
-        self._centerer = None
 
     def _fit_inverse_transform(self, x_transformed, x):
         if hasattr(x, "tocsr"):
