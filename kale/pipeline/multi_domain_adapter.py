@@ -708,8 +708,9 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         return super().decision_function(x)
 
     def transform(self, x, group_labels=None):
-        """Transform the data using the best pipeline."""
-        return self.adapt(x, group_labels)
+        """Transform the data using the best pipeline, equivalent to self.best_estimator_.inverse_transform(x)."""
+        x = self.adapt(x, group_labels)
+        return super().transform(x)
 
     def inverse_transform(self, x):
         """Inverse transform the data using the best pipeline.
@@ -721,6 +722,7 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
             array-like: The inverse transformed data.
         """
         check_is_fitted(self)
+        x = super().inverse_transform(x)  # equivalent to self.best_estimator_.inverse_transform(x)
 
         if hasattr(self.best_mida_, "inverse_transform"):
             x = self.best_mida_.inverse_transform(x)
