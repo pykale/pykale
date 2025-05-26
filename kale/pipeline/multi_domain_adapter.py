@@ -21,6 +21,7 @@ from sklearn.base import (
     MetaEstimatorMixin,
     TransformerMixin,
 )
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.linear_model import LogisticRegression, RidgeClassifier
 from sklearn.metrics._scorer import _MultimetricScorer
 from sklearn.metrics.pairwise import pairwise_kernels
@@ -491,6 +492,7 @@ class CoIRLS(BaseEstimator, ClassifierMixin):
 INV_REG_COEF = np.logspace(start=-15, stop=15, num=30 + 1, base=2)
 
 CLASSIFIERS = {
+    "lda": LinearDiscriminantAnalysis(),
     "lr": LogisticRegression(),
     "linear_svm": LinearSVC(),
     "svm": SVC(),
@@ -498,6 +500,7 @@ CLASSIFIERS = {
 }
 
 CLASSIFIER_PARAMS = {
+    "lda": {"solver": ["svd"]},
     "lr": {"C": INV_REG_COEF},
     "linear_svm": {"C": INV_REG_COEF},
     "svm": {"C": INV_REG_COEF},
@@ -1192,7 +1195,8 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
                 - param_grid: The parameter grid for the classifier.
         """
         base_classifier = clone(CLASSIFIERS.get(self.classifier, LogisticRegression()))
-        base_classifier.set_params(max_iter=self.num_solver_iter, random_state=self.random_state)
+        if hasattr(base_classifier, "max_iter"):
+            base_classifier.set_params(max_iter=self.num_solver_iter, random_state=self.random_state)
 
         if self.classifier != "auto":
             return base_classifier, CLASSIFIER_PARAMS[self.classifier]
@@ -1203,7 +1207,8 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
 
         for name, classifier in CLASSIFIERS.items():
             classifier = clone(classifier)
-            classifier.set_params(max_iter=self.num_solver_iter)
+            if hasattr(classifier, "max_iter"):
+                classifier.set_params(max_iter=self.num_solver_iter)
             grid = {"classifier": [classifier]}
             grid.update({f"classifier__{param}": value for param, value in CLASSIFIER_PARAMS[name].items()})
 

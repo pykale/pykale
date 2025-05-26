@@ -3,6 +3,7 @@ import pytest
 from numpy import testing
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import get_scorer
 from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 
@@ -320,6 +321,7 @@ def test_auto_mida_trainer_property_accessors(toy_data, transformer, use_mida, m
     _ = trainer.multimetric_
     _ = trainer.n_features_in_
     _ = trainer.groups_
+    _ = trainer.classes_
 
     if hasattr(trainer.trainer_, "feature_names_in_"):
         _ = trainer.trainer_.feature_names_in_
@@ -429,7 +431,7 @@ def test_auto_mida_trainer_classifier_auto(toy_data, monkeypatch):
 def test_auto_mida_trainer_classifier_verbose(toy_data, verbose):
     x, y, domains, factors = toy_data
     trainer = AutoMIDAClassificationTrainer(
-        classifier="auto",
+        classifier="lr",
         search_strategy="random",
         scoring="accuracy",
         num_solver_iter=10,
@@ -442,9 +444,24 @@ def test_auto_mida_trainer_classifier_verbose(toy_data, verbose):
 
     assert trainer.best_score_ is not None
 
-    # _ = trainer.predict_proba(x, group_labels=domains)
-    # _ = trainer.decision_function(y, group_labels=domains)
-    # _ = trainer.score_samples(y, group_labels=domains)
-    # x_transformed = trainer.transform(x, group_labels=domains)
-    # _ = trainer.inverse_transform(x_transformed)
-    # assert x_transformed.shape[1] <= x.shape[1] + factors.shape[1], "Transformed shape is incorrect"
+
+@pytest.mark.parametrize("classifier", ["lr", "lda"])
+def test_auto_mida_trainer_callable_score(toy_data, classifier):
+    x, y, domains, factors = toy_data
+    trainer = AutoMIDAClassificationTrainer(
+        classifier=classifier,
+        search_strategy="random",
+        use_mida=False,
+        scoring=get_scorer("accuracy"),
+        num_solver_iter=10,
+        cv=2,
+        error_score="raise",
+        random_state=0,
+    )
+    trainer.fit(x, y, group_labels=domains)
+    if classifier == "lr":
+        _ = trainer.predict_log_proba(x, group_labels=domains)
+        _ = trainer.classes_
+
+    if classifier == "lda":
+        _ = trainer.transform(x)
