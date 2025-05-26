@@ -614,7 +614,6 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         self.search_strategy = search_strategy
         self.num_iter = num_iter
         self.random_state = random_state
-        self._group_label_encoder = None
 
     def adapt(self, x, group_labels=None):
         """Adapt the estimator to the given data.
@@ -627,7 +626,7 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
             array-like: The transformed or adapted data.
         """
         check_is_fitted(self)
-        if group_labels is not None and self._group_label_encoder is not None:
+        if group_labels is not None and hasattr(self, "_group_label_encoder"):
             if (1 in group_labels.shape and group_labels.ndim == 2) or (group_labels.ndim == 1):
                 group_labels = self._group_label_encoder.transform(group_labels.reshape(-1, 1))
         if self.transformer is not None:
@@ -756,7 +755,14 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
 
     @property
     def groups_(self):
-        return self._group_label_encoder.classes_
+        if hasattr(self, "_group_label_encoder"):
+            check_is_fitted(self._group_label_encoder)
+            return self._group_label_encoder.classes_
+        else:
+            raise AttributeError(
+                "The groups_ attribute is only available if group_labels were provided during fit. "
+                "Please provide group_labels when calling fit."
+            )
 
     @_fit_context(prefer_skip_nested_validation=True)
     def fit(self, x, y=None, group_labels=None, **params):
@@ -775,10 +781,11 @@ class MIDATrainer(BaseSearchCV, TransformerMixin):
         transformer = self.transformer
         mida = MIDA() if self.use_mida else None
         scorers, refit_metric = self._get_scorers()
-        if (1 in group_labels.shape and group_labels.ndim == 2) or (group_labels.ndim == 1):
-            params["groups"] = group_labels.copy()
-            self._group_label_encoder = LabelBinarizer(sparse_output=False)
-            group_labels = self._group_label_encoder.fit_transform(group_labels.reshape(-1, 1))
+        if group_labels is not None:
+            if (1 in group_labels.shape and group_labels.ndim == 2) or (group_labels.ndim == 1):
+                params["groups"] = group_labels.copy()
+                self._group_label_encoder = LabelBinarizer(sparse_output=False)
+                group_labels = self._group_label_encoder.fit_transform(group_labels.reshape(-1, 1))
 
         x, y, group_labels = indexable(x, y, group_labels)
         params = _check_method_params(x, params)
@@ -1057,7 +1064,6 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         self.random_state = random_state
         self.error_score = error_score
         self.return_train_score = return_train_score
-        self.group_labels_encoder = None
 
     @property
     def coef_(self):

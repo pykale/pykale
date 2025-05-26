@@ -458,10 +458,18 @@ def test_auto_mida_trainer_callable_score(toy_data, classifier):
         error_score="raise",
         random_state=0,
     )
-    trainer.fit(x, y, group_labels=domains)
+    trainer.fit(x, y)
     if classifier == "lr":
         _ = trainer.predict_log_proba(x, group_labels=domains)
         _ = trainer.classes_
 
     if classifier == "lda":
         _ = trainer.transform(x)
+
+    # assert raise error
+    with pytest.raises(
+        AttributeError,
+        match="The groups_ attribute is only available if group_labels were provided during fit. "
+        "Please provide group_labels when calling fit.",
+    ):
+        _ = trainer.groups_
