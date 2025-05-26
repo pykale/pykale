@@ -489,7 +489,7 @@ class CoIRLS(BaseEstimator, ClassifierMixin):
 ########################################################################################################################
 
 
-INV_REG_COEF = np.logspace(start=-15, stop=15, num=30 + 1, base=2)
+INV_REG_COEF = np.logspace(start=-15, stop=15, num=10 + 1, base=2)
 
 CLASSIFIERS = {
     "lda": LinearDiscriminantAnalysis(),
@@ -500,7 +500,7 @@ CLASSIFIERS = {
 }
 
 CLASSIFIER_PARAMS = {
-    "lda": {"solver": ["svd"]},
+    "lda": {"tol": np.array([0.00001, 0.0001, 0.001])},
     "lr": {"C": INV_REG_COEF},
     "linear_svm": {"C": INV_REG_COEF},
     "svm": {"C": INV_REG_COEF},
