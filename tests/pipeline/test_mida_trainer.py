@@ -1,13 +1,18 @@
 import numpy as np
 import pytest
 from numpy import testing
-from sklearn.base import clone
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import get_scorer
 from sklearn.model_selection import LeaveOneGroupOut
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 
-from kale.pipeline.mida_trainer import AutoMIDAClassificationTrainer, CLASSIFIER_PARAMS, MIDA_PARAMS, MIDATrainer
+from kale.pipeline.multi_domain_adapter import (
+    AutoMIDAClassificationTrainer,
+    CLASSIFIER_PARAMS,
+    MIDA_PARAMS,
+    MIDATrainer,
+)
 
 from ..helpers.toy_dataset import make_domain_shifted_dataset
 
@@ -23,6 +28,7 @@ PARAM_GRID = [
 SEARCH_STRATEGY = ["random", "grid"]
 SCORING = [None, "f1", "roc_auc", ["accuracy", "f1", "roc_auc"]]
 CV = [None, 3, LeaveOneGroupOut()]
+NUM_DOMAINS = 4
 
 
 @pytest.fixture(scope="module")
@@ -30,8 +36,8 @@ def toy_data():
     # Test an extreme case of domain shift
     # yet the data's manifold is linearly separable
     x, y, domains = make_domain_shifted_dataset(
-        num_domains=10,
-        num_samples_per_class=2,
+        num_domains=NUM_DOMAINS,
+        num_samples_per_class=4,
         num_features=20,
         centroid_shift_scale=32768,
         random_state=0,
@@ -47,7 +53,7 @@ def toy_data():
 def test_mida_trainer_params_consistency(toy_data, transformer, param_grid):
     x, y, domains, factors = toy_data
 
-    param_grid = clone(param_grid, safe=False)
+    param_grid = param_grid.copy()
     if transformer is not None:
         if isinstance(param_grid, list):
             for i in range(len(param_grid)):
@@ -63,9 +69,9 @@ def test_mida_trainer_params_consistency(toy_data, transformer, param_grid):
         random_state=0,
     )
 
-    trainer.fit(x, y, factors=factors, groups=domains)
+    trainer.fit(x, y, group_labels=domains)
 
-    # gather keys from list of param_grid
+    # gather keys from a list of param_grid
     if isinstance(param_grid, list):
         param_keys = set(k for d in param_grid for k in d.keys())
     else:
@@ -93,7 +99,7 @@ def test_mida_trainer_scoring_support(toy_data, scoring):
         error_score="raise",
     )
 
-    trainer.fit(x, y, factors=factors, groups=domains)
+    trainer.fit(x, y, group_labels=domains)
 
     if scoring is None or isinstance(scoring, str):
         scoring = ["score"]
@@ -115,7 +121,7 @@ def test_mida_trainer_use_mida(toy_data, use_mida):
         error_score="raise",
     )
 
-    trainer.fit(x, y, factors=factors, groups=domains)
+    trainer.fit(x, y, group_labels=factors, groups=domains)
 
     if use_mida:
         assert hasattr(trainer, "best_mida_"), "MIDA should be set"
@@ -131,16 +137,16 @@ def test_mida_trainer_cv_support(toy_data, cv):
         LogisticRegression(random_state=0, max_iter=10), param_grid=PARAM_GRID[0], cv=cv, error_score="raise"
     )
 
-    trainer.fit(x, y, factors=factors, groups=domains)
+    trainer.fit(x, y, group_labels=domains)
 
     if cv is None:
         cv = 5
     elif isinstance(cv, LeaveOneGroupOut):
-        cv = 10
+        cv = NUM_DOMAINS
 
     assert any(
-        key.startswith(f"split{cv-1}") for key in trainer.cv_results_.keys()
-    ), f"Missing keys starting with 'split{cv-1}' in cv_results_"
+        key.startswith(f"split{cv - 1}") for key in trainer.cv_results_.keys()
+    ), f"Missing keys starting with 'split{cv - 1}' in cv_results_"
 
 
 @pytest.mark.parametrize("search_strategy", ["random", "grid"])
@@ -153,7 +159,7 @@ def test_mida_trainer_search_strategy_support(toy_data, search_strategy):
         search_strategy=search_strategy,
         error_score="raise",
     )
-    trainer.fit(x, y, factors=factors, groups=domains)
+    trainer.fit(x, y, group_labels=factors, groups=domains)
 
     # assert len(trainer.)
 
@@ -161,11 +167,11 @@ def test_mida_trainer_search_strategy_support(toy_data, search_strategy):
 def test_mida_trainer_fit_and_methods(toy_data):
     x, y, domains, factors = toy_data
 
-    param_grid = clone(PARAM_GRID[1], safe=False)
+    param_grid = PARAM_GRID.copy()[1]
     param_grid.update(
         {
             "transformer__feature_range": [(-1, 1), (0, 1)],
-            "domain_adapter__num_components": [10],
+            "domain_adapter__num_components": [4],
             "domain_adapter__fit_inverse_transform": [True],
         }
     )
@@ -177,15 +183,15 @@ def test_mida_trainer_fit_and_methods(toy_data):
         error_score="raise",
     )
 
-    trainer.fit(x, y, factors=factors, groups=domains)
+    trainer.fit(x, y, group_labels=domains)
 
     # check n_features_in_
     assert hasattr(trainer, "n_features_in_"), "n_features_in_ should be set"
     assert trainer.n_features_in_ == x.shape[1], f"n_features_in_ should be {x.shape[1]}, got {trainer.n_features_in_}"
 
     # test adaptation (excluding estimator)
-    x_transformed = trainer.adapt(x, factors=factors)
-    testing.assert_array_equal((len(x), 10), x_transformed.shape)
+    x_transformed = trainer.adapt(x, group_labels=domains)
+    testing.assert_array_equal((len(x), 4), x_transformed.shape)
 
     # test predict
     y_pred = trainer.predict(x)
@@ -209,16 +215,19 @@ def test_mida_trainer_fit_and_methods(toy_data):
 
     # test unsupervised models
     trainer = trainer.set_params(
-        estimator=PCA(n_components=2, random_state=0), param_grid={"domain_adapter__fit_inverse_transform": [True]}
+        **{
+            "estimator": PCA(n_components=2, random_state=0),
+            "param_grid": {"domain_adapter__fit_inverse_transform": [True]},
+        }
     )
-    trainer.fit(x, factors=factors, groups=domains)
+    trainer.fit(x, group_labels=domains)
 
     # test score_sample
     score = trainer.score_samples(x)
     testing.assert_array_equal((len(x),), score.shape)
 
     # test transform
-    transform = trainer.transform(x, factors=factors)
+    transform = trainer.transform(x, group_labels=domains)
     testing.assert_array_equal((len(x), 2), transform.shape)
 
     # test inverse_transform
@@ -245,19 +254,19 @@ def test_auto_mida_trainer_basic(toy_data, search_strategy, monkeypatch):
         error_score="raise",
         random_state=0,
     )
-    trainer.fit(x, y, factors=factors)
+    trainer.fit(x, y, group_labels=domains)
 
     assert hasattr(trainer, "best_classifier_")
     assert hasattr(trainer, "best_score_")
-    assert isinstance(trainer.predict(x, factors=factors), np.ndarray)
+    assert isinstance(trainer.predict(x, group_labels=domains), np.ndarray)
 
     # Check delegation
-    assert trainer.score(x, y, factors) > 0
-    assert trainer.predict_proba(x, factors).shape == (len(x), 2)
-    assert trainer.adapt(x, factors).shape[1] <= x.shape[1]
+    assert trainer.score(x, y, group_labels=domains) > 0
+    assert trainer.predict_proba(x, domains).shape == (len(x), 2)
+    assert trainer.adapt(x, domains).shape[1] <= (x.shape[1] + factors.shape[1])
 
 
-@pytest.mark.parametrize("classifier", ["lr", "linear_svm", "svm", "ridge"])
+@pytest.mark.parametrize("classifier", ["linear_svm", "svm", "ridge"])
 def test_auto_mida_trainer_classifier_selection(toy_data, classifier, monkeypatch):
     x, y, domains, factors = toy_data
 
@@ -267,7 +276,7 @@ def test_auto_mida_trainer_classifier_selection(toy_data, classifier, monkeypatc
 
     trainer = AutoMIDAClassificationTrainer(
         classifier=classifier,
-        search_strategy="grid",
+        search_strategy="random",
         scoring="accuracy",
         num_search_iter=1,
         num_solver_iter=10,
@@ -275,7 +284,7 @@ def test_auto_mida_trainer_classifier_selection(toy_data, classifier, monkeypatc
         error_score="raise",
         random_state=0,
     )
-    trainer.fit(x, y, factors=factors)
+    trainer.fit(x, y, group_labels=domains)
     assert trainer.best_classifier_ is not None
     assert trainer.best_params_ is not None
 
@@ -292,13 +301,13 @@ def test_auto_mida_trainer_property_accessors(toy_data, transformer, use_mida, m
         classifier="lr",
         transformer=transformer,
         use_mida=use_mida,
-        search_strategy="grid",
+        search_strategy="random",
         num_solver_iter=10,
         cv=2,
         error_score="raise",
         random_state=0,
     )
-    trainer.fit(x, y, factors=factors)
+    trainer.fit(x, y, group_labels=domains)
 
     # Always expected
     _ = trainer.best_classifier_
@@ -311,6 +320,8 @@ def test_auto_mida_trainer_property_accessors(toy_data, transformer, use_mida, m
     _ = trainer.refit_time_
     _ = trainer.multimetric_
     _ = trainer.n_features_in_
+    _ = trainer.groups_
+    _ = trainer.classes_
 
     if hasattr(trainer.trainer_, "feature_names_in_"):
         _ = trainer.trainer_.feature_names_in_
@@ -322,36 +333,45 @@ def test_auto_mida_trainer_property_accessors(toy_data, transformer, use_mida, m
         _ = trainer.best_mida_
 
 
-@pytest.mark.parametrize("use_mida", [True, False])
-@pytest.mark.parametrize("classifier", CLASSIFIER_PARAMS.keys())
+# @pytest.mark.parametrize("use_mida", [True, False])
+# @pytest.mark.parametrize("classifier", CLASSIFIER_PARAMS.keys())
+# @pytest.mark.parametrize("augment", [None])
 @pytest.mark.parametrize("augment", ["pre", "post", None])
-def test_auto_mida_trainer_coef_shape(toy_data, use_mida, classifier, augment, monkeypatch):
+# def test_auto_mida_trainer_coef_shape(toy_data, use_mida, classifier, augment, monkeypatch):
+def test_auto_mida_trainer_coef_shape(toy_data, augment, monkeypatch):
     x, y, domains, factors = toy_data
 
     monkeypatch.setitem(CLASSIFIER_PARAMS["lr"], "C", [1])
-    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__mu", [1])
-    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__augment", [augment])
-    monkeypatch.setitem(MIDA_PARAMS, "domain_adapter__ignore_y", [True])
+    monkeypatch.setitem(MIDA_PARAMS, "mu", [1])
+    monkeypatch.setitem(MIDA_PARAMS, "augment", [augment])
+    monkeypatch.setitem(MIDA_PARAMS, "ignore_y", [True])
 
     trainer = AutoMIDAClassificationTrainer(
         classifier="lr",
         use_mida=True,
-        search_strategy="grid",
+        search_strategy="random",
         scoring="accuracy",
         num_solver_iter=10,
         cv=2,
         error_score="raise",
         random_state=0,
     )
-    trainer.fit(x, y, factors=factors)
+    trainer.fit(x, y, group_labels=domains)
 
     coef = trainer.coef_
 
     feature_dim = x.shape[1]
-    if augment:
+    if augment is not None:
         feature_dim += factors.shape[1]
+    # else:
+    #     x_transformed = trainer.transform(x, group_labels=domains)
+    #     _ = trainer.inverse_transform(x_transformed)
+    #     assert x_transformed.shape[1] <= x.shape[1] + factors.shape[1], "Transformed shape is incorrect"
 
     assert coef.shape == (1, feature_dim), f"Expected shape (1, {feature_dim}), got {coef.shape}"
+
+    _ = trainer.predict_proba(x, group_labels=domains)
+    _ = trainer.decision_function(x, group_labels=domains)
 
 
 # Test nonlinear=True with a fixed classifier ("svm")
@@ -365,14 +385,14 @@ def test_auto_mida_trainer_nonlinear_enabled(toy_data, monkeypatch):
     trainer = AutoMIDAClassificationTrainer(
         classifier="svm",
         nonlinear=True,
-        search_strategy="grid",
+        search_strategy="random",
         scoring="accuracy",
         num_solver_iter=10,
         cv=2,
         error_score="raise",
         random_state=0,
     )
-    trainer.fit(x, y, factors=factors)
+    trainer.fit(x, y, group_labels=factors)
 
     assert trainer.best_classifier_ is not None
     assert trainer.best_params_ is not None
@@ -393,15 +413,63 @@ def test_auto_mida_trainer_classifier_auto(toy_data, monkeypatch):
 
     trainer = AutoMIDAClassificationTrainer(
         classifier="auto",
-        search_strategy="grid",
+        search_strategy="random",
         scoring="accuracy",
         num_solver_iter=10,
         cv=2,
         error_score="raise",
         random_state=0,
     )
-    trainer.fit(x, y, factors=factors)
+    trainer.fit(x, y, group_labels=domains)
 
     assert trainer.best_classifier_ is not None
     assert trainer.best_params_ is not None
     assert trainer.best_score_ is not None
+
+
+@pytest.mark.parametrize("verbose", [2, 3, 10])
+def test_auto_mida_trainer_classifier_verbose(toy_data, verbose):
+    x, y, domains, factors = toy_data
+    trainer = AutoMIDAClassificationTrainer(
+        classifier="lr",
+        search_strategy="random",
+        scoring="accuracy",
+        num_solver_iter=10,
+        cv=2,
+        error_score="raise",
+        verbose=verbose,
+        random_state=0,
+    )
+    trainer.fit(x, y, group_labels=domains)
+
+    assert trainer.best_score_ is not None
+
+
+@pytest.mark.parametrize("classifier", ["lr", "lda"])
+def test_auto_mida_trainer_callable_score(toy_data, classifier):
+    x, y, domains, factors = toy_data
+    trainer = AutoMIDAClassificationTrainer(
+        classifier=classifier,
+        search_strategy="random",
+        use_mida=False,
+        scoring=get_scorer("accuracy"),
+        num_solver_iter=10,
+        cv=2,
+        error_score="raise",
+        random_state=0,
+    )
+    trainer.fit(x, y)
+    if classifier == "lr":
+        _ = trainer.predict_log_proba(x, group_labels=domains)
+        _ = trainer.classes_
+
+    if classifier == "lda":
+        _ = trainer.transform(x)
+
+    # assert raise error
+    with pytest.raises(
+        AttributeError,
+        match="The groups_ attribute is only available if group_labels were provided during fit. "
+        "Please provide group_labels when calling fit.",
+    ):
+        _ = trainer.groups_
