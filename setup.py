@@ -15,8 +15,11 @@ from setuptools import find_packages, setup
 
 # Core dependencies frequently used in PyKale Core API
 install_requires = [
-    "numpy<2.0.0",  # sure
+    "numpy>=2.0.0",  # Numpy 2.0.0+ is needed
     "pandas",  # sure
+    "pytorch-lightning==2.3.2",  # in pipeline API only
+    "scikit-learn>=1.5.1",  # sure
+    "scipy>=1.13.0",  # scipy 1.14.0 supports python 3.10+
     "pytorch-lightning>=2.0.0",  # in pipeline API only
     "scikit-learn>=1.6.1",
     "scipy>=1.5.4",  # in factorization API only
@@ -39,7 +42,7 @@ image_requires = [
     "pydicom",
     "pylibjpeg",
     "python-gdcm",
-    "scikit-image>=0.16.2",
+    "scikit-image>=0.24.0",
 ]
 
 # End application-specific dependencies
@@ -72,6 +75,7 @@ dev_requires = full_requires + [
     "isort",
     "m2r",
     "mypy",
+    "nbconvert",
     "nbmake>=0.8",
     "nbsphinx",
     "nbsphinx-link",
