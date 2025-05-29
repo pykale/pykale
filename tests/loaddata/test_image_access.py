@@ -128,7 +128,7 @@ def test_class_subsets(class_subset, valid_ratio, download_path):
 
 def test_multi_domain_digits(download_path):
     data_access = ImageAccess.get_multi_domain_images(
-        "DIGITS", download_path, sub_domain_set=["SVHN", "USPS_RGB"], return_domain_label=True
+        "DIGITS", download_path, sub_domain_set=["SVHN", "USPS_RGB", "MNISTM"], return_domain_label=True
     )
     dataset = MultiDomainAdapDataset(data_access)
     dataset.prepare_data_loaders()

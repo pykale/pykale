@@ -1,3 +1,4 @@
+import pytest
 import torch
 
 from kale.embed.feature_fusion import BimodalInteractionFusion, Concat, LowRankTensorFusion
@@ -11,24 +12,16 @@ def test_concat():
     assert output.shape == (4, 5 * (3 + 2))
 
 
-def bimodal_interaction_fusion():
-    mi2m_vector = BimodalInteractionFusion(input_dims=(10, 20), output_dim=30, output="vector")
+@pytest.mark.parametrize("output_type", ["vector", "matrix", "scalar"])
+def test_bimodal_interaction_fusion(output_type: str):
+    mi2m_vector = BimodalInteractionFusion(input_dims=(10, 20), output_dim=30, output=output_type)
     m1 = torch.randn(4, 10)
     m2 = torch.randn(4, 20)
     output = mi2m_vector([m1, m2])
-    assert output.shape == (4, 20)
-
-    mi2m_matrix = BimodalInteractionFusion(input_dims=(10, 20), output_dim=30, output="matrix")
-    m1 = torch.randn(4, 10)
-    m2 = torch.randn(4, 20)
-    output = mi2m_matrix([m1, m2])
-    assert output.shape == (4, 30)
-
-    mi2m_scalar = BimodalInteractionFusion(input_dims=(10, 20), output_dim=30, output="scalar")
-    m1 = torch.randn(4, 10)
-    m2 = torch.randn(4, 20)
-    output = mi2m_scalar([m1, m2])
-    assert output.shape == (4, 20)
+    if output_type == "matrix":
+        assert output.shape == (4, 30)
+    else:
+        assert output.shape == (4, 20)
 
 
 def test_low_rank_tensor_fusion():
