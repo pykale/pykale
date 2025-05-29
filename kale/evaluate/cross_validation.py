@@ -36,7 +36,7 @@ def _fit_and_score(
     y,
     transformer,
     domain_adapter,
-    factors,
+    group_labels,
     scorer,
     train,
     test,
@@ -54,9 +54,9 @@ def _fit_and_score(
     error_score=np.nan,
 ):
     """Train the estimator (optionally with a domain adapter) and evaluate its performance.
-    The implementation is a modification of the `scikit-learn`'s _fit_and_score function to accomodate
+    The implementation is a modification of the `scikit-learn`'s _fit_and_score function to accommodate
     domain adaptation and pre-domain adaptation transformation. Do not use this function with classification
-    labels that has -1 as a label, as it will be treated as an unlabeled sample. This is a limitation of the
+    labels that have -1 as a label, as it will be treated as an unlabeled sample. This is a limitation of the
     current implementation.
 
     Args:
@@ -65,7 +65,8 @@ def _fit_and_score(
         y (array-like): Target variable for supervised learning [num_samples] or [num_samples, num_targets].
         transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods applied before domain adaptation.
         domain_adapter (sklearn.base.BaseEstimator, optional): A domain adapter implementing fit and transform methods.
-        factors (array-like, optional): Factors to reduce their influence on the data for domain adaptation [num_samples, num_factors].
+        group_labels (array-like): Categorical variables representing domain or grouping factors with shape
+            (num_samples, num_factors).
         scorer (callable): A scoring function to evaluate the estimator's performance.
         train (array-like): Indices of training samples.
         test (array-like): Indices of testing samples.
@@ -113,9 +114,9 @@ def _fit_and_score(
 
     if verbose > 2:
         if split_progress is not None:
-            progress_msg = f" {split_progress[0]+1}/{split_progress[1]}"
+            progress_msg = f" {split_progress[0] + 1}/{split_progress[1]}"
         if candidate_progress and verbose > 9:
-            progress_msg += f"; {candidate_progress[0]+1}/{candidate_progress[1]}"
+            progress_msg += f"; {candidate_progress[0] + 1}/{candidate_progress[1]}"
 
     if verbose > 1:
         if parameters is None:
@@ -133,7 +134,7 @@ def _fit_and_score(
     x_train, y_train = _safe_split(estimator, x, y, train)
     x_test, y_test = _safe_split(estimator, x, y, test)
 
-    # Adjust length of sample weights
+    # Adjust the length of sample weights
     fit_args = fit_args if fit_args is not None else {}
     fit_args = _check_method_params(x, fit_args, train)
     score_args = score_args if score_args is not None else {}
@@ -142,14 +143,19 @@ def _fit_and_score(
 
     if transformer is not None or domain_adapter is not None:
         x_sampled = xp.concatenate([x_train, x_test], axis=0)
-        y_sampled = xp.concatenate([y_train, y_test], axis=0)
+
+        y_sampled = None
+        if y is not None:
+            y_sampled = xp.concatenate([y_train, y_test], axis=0)
+            y_sampled = xp.asarray(y_sampled, device=x_device)
+
+        is_supported_target = any([y_type.startswith(key) for key in ["binary", "multiclass"]])
 
         # Mask the labels for the test set to avoid leakage
-        if any([y_type.startswith(key) for key in ["binary", "multiclass"]]):
+        if is_supported_target and y is not None:
             y_sampled[_num_samples(x_train) - 1 :] = -1
-        else:
+        elif y is not None and not is_supported_target:
             raise ValueError("Domain adaptation is only supported for 'binary' or 'multiclass' y.")
-        y_sampled = xp.asarray(y_sampled, device=x_device)
 
     if transformer is not None:
         if parameters is not None:
@@ -163,9 +169,9 @@ def _fit_and_score(
 
     if domain_adapter is not None:
         factors_sampled, factors_train, factors_test = [None] * 3
-        if factors is not None:
-            factors_train = _safe_indexing(factors, train)
-            factors_test = _safe_indexing(factors, test)
+        if group_labels is not None:
+            factors_train = _safe_indexing(group_labels, train)
+            factors_test = _safe_indexing(group_labels, test)
             factors_sampled = xp.concatenate([factors_train, factors_test], axis=0)
 
         if parameters is not None:
@@ -343,7 +349,7 @@ def cross_validate(
     groups=None,
     transformer=None,
     domain_adapter=None,
-    factors=None,
+    group_labels=None,
     scoring=None,
     cv=None,
     num_jobs=None,
@@ -366,7 +372,8 @@ def cross_validate(
         groups (array-like, optional): Group labels for the samples used while splitting the dataset into train/test sets.
         transformer (sklearn.base.BaseEstimator, optional): An unsupervised transformer implementing fit and transform methods applied before domain adaptation.
         domain_adapter (sklearn.base.BaseEstimator, optional): A domain adapter implementing fit and transform methods.
-        factors (array-like, optional): Factors to reduce their influence on the data during domain adaptation [num_samples, num_factors].
+        group_labels (array-like): The factors for adaptation with shape (num_samples, num_factors). Please preprocess the factors before domain adaptation
+                                (e.g. one-hot encode domain, gender, or standardize age).
         scoring (callable, list, tuple, dict, optional): A scoring function or a list of scoring functions to evaluate the estimator's performance.
         cv (cv_object, optional): Cross-validation splitting strategy.
         num_jobs (int, optional): Number of jobs to run cross-validation in parallel using joblib.Parallel.
@@ -388,7 +395,7 @@ def cross_validate(
             - "estimator" (object, optional): The fitted estimator, if `return_estimator=True`.
             - "indices" (dict, optional): Indices of the training and testing sets, if `return_indices=True`.
     """
-    x, y, groups, factors = indexable(x, y, groups, factors)
+    x, y, groups, group_labels = indexable(x, y, groups, group_labels)
     cv = check_cv(cv, y, classifier=is_classifier(estimator))
 
     parameters = {} if parameters is None else parameters
@@ -410,7 +417,7 @@ def cross_validate(
             y,
             transformer=clone(transformer) if transformer else None,
             domain_adapter=clone(domain_adapter) if domain_adapter else None,
-            factors=factors,
+            group_labels=group_labels,
             scorer=scorers,
             train=train,
             test=test,
