@@ -1,161 +1,120 @@
 import pytest
 import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
-from yacs.config import CfgNode as CfgNode
+from unittest.mock import MagicMock
 
-from kale.pipeline.drugban_trainer import Trainer
+from kale.pipeline.drugban_trainer import DrugbanTrainer
+from kale.embed.ban import DrugBAN
+
+@pytest.fixture
+def dummy_config():
+    return {
+        "solver_lr": 1e-3,
+        "num_classes": 2,
+        "batch_size": 4,
+        "is_da": False,
+        "solver_da_lr": 1e-3,
+        "da_init_epoch": 1,
+        "da_method": "CDAN",
+        "original_random": False,
+        "use_da_entropy": True,
+        "da_random_layer": True,
+        "da_random_dim": 64,
+        "decoder_in_dim": 128,
+    }
 
 
 @pytest.fixture
-def mock_data():
-    # Create dummy data for testing.
-    x1 = torch.randn(8, 10)  # Simulated feature set 1
-    x2 = torch.randn(8, 10)  # Simulated feature set 2
-    y = torch.randint(0, 2, (8,))  # Simulated labels
-    return TensorDataset(x1, x2, y)
+def dummy_model():
+    model = MagicMock()
+    # Forward returns: vec_drug, vec_protein, f, score
+    model.return_value = (torch.rand(4, 10), torch.rand(4, 10), torch.rand(4, 10), torch.rand(4, 1))
+    return model
 
 
 @pytest.fixture
-def dataloaders(mock_data):
-    # Create DataLoaders for train, validation, and test sets.
-    train_loader = DataLoader(mock_data, batch_size=4)
-    valid_loader = DataLoader(mock_data, batch_size=4)
-    test_loader = DataLoader(mock_data, batch_size=4)
-    return train_loader, valid_loader, test_loader
+def dummy_batch():
+    # Simulate a batch: drug, protein, labels
+    return (torch.rand(4, 10), torch.rand(4, 10), torch.randint(0, 2, (4,)))
 
 
 @pytest.fixture
-def mock_model():
-    # Create a simple mock model for testing.
-    class MockModel(nn.Module):
-        def __init__(self):
-            super(MockModel, self).__init__()
-            self.fc1 = nn.Linear(10, 5)
-            self.fc2 = nn.Linear(5, 1)
-
-        def forward(self, x1, x2):
-            x1 = self.fc1(x1)
-            x2 = self.fc1(x2)
-            return x1, x2, torch.cat((x1, x2), dim=1), self.fc2(x1 + x2)
-
-    return MockModel()
+def dummy_da_batch():
+    source = (torch.rand(4, 10), torch.rand(4, 10), torch.randint(0, 2, (4,)))
+    target = (torch.rand(4, 10), torch.rand(4, 10))
+    return (source, target)
 
 
-@pytest.fixture
-def testing_cfg():
-    _C = CfgNode()
-
-    _C.DECODER = CfgNode()
-    _C.DECODER.NAME = "MLP"
-    _C.DECODER.IN_DIM = 256
-    _C.DECODER.HIDDEN_DIM = 512
-    _C.DECODER.OUT_DIM = 128
-    _C.DECODER.BINARY = 1
-
-    _C.SOLVER = CfgNode()
-    _C.SOLVER.MAX_EPOCH = 2
-    _C.SOLVER.BATCH_SIZE = 4
-    _C.SOLVER.NUM_WORKERS = 0
-    _C.SOLVER.LEARNING_RATE = 5e-5
-    _C.SOLVER.DA_LEARNING_RATE = 1e-3
-    _C.SOLVER.SEED = 2048
-
-    _C.RESULT = CfgNode()
-    _C.RESULT.OUTPUT_DIR = "./result"
-    _C.RESULT.SAVE_MODEL = False
-
-    _C.DA = CfgNode()
-    _C.DA.TASK = False
-    _C.DA.METHOD = "CDAN"
-    _C.DA.USE = False
-    _C.DA.INIT_EPOCH = 1
-    _C.DA.LAMB_DA = 1
-    _C.DA.RANDOM_LAYER = False
-    _C.DA.ORIGINAL_RANDOM = False
-    _C.DA.RANDOM_DIM = None
-    _C.DA.USE_ENTROPY = False
-
-    return _C.clone()
+def test_init_no_da(dummy_model, dummy_config):
+    trainer = DrugbanTrainer(model=dummy_model, **{**dummy_config, "is_da": False})
+    assert trainer.model == dummy_model
+    assert trainer.is_da is False
 
 
-@pytest.fixture
-def testing_DA_cfg():
-    _C = CfgNode()
-
-    _C.DECODER = CfgNode()
-    _C.DECODER.NAME = "MLP"
-    _C.DECODER.IN_DIM = 256
-    _C.DECODER.HIDDEN_DIM = 512
-    _C.DECODER.OUT_DIM = 128
-    _C.DECODER.BINARY = 1
-
-    _C.SOLVER = CfgNode()
-    _C.SOLVER.MAX_EPOCH = 2
-    _C.SOLVER.BATCH_SIZE = 4
-    _C.SOLVER.NUM_WORKERS = 0
-    _C.SOLVER.LEARNING_RATE = 5e-5
-    _C.SOLVER.DA_LEARNING_RATE = 1e-3
-    _C.SOLVER.SEED = 2048
-
-    _C.RESULT = CfgNode()
-    _C.RESULT.OUTPUT_DIR = "./result"
-    _C.RESULT.SAVE_MODEL = False
-
-    _C.DA = CfgNode()
-    _C.DA.TASK = True
-    _C.DA.METHOD = "CDAN"
-    _C.DA.USE = True
-    _C.DA.INIT_EPOCH = 1
-    _C.DA.LAMB_DA = 1
-    _C.DA.RANDOM_LAYER = False
-    _C.DA.ORIGINAL_RANDOM = False
-    _C.DA.RANDOM_DIM = 128
-    _C.DA.USE_ENTROPY = False
-
-    return _C.clone()
+def test_init_with_da(dummy_model, dummy_config):
+    trainer = DrugbanTrainer(model=dummy_model, **{**dummy_config, "is_da": True})
+    assert trainer.is_da is True
 
 
-@pytest.fixture
-def trainer(mock_model, dataloaders, testing_cfg):
-    train_loader, valid_loader, test_loader = dataloaders
-    return Trainer(
-        model=mock_model,
-        device=torch.device("cpu"),
-        train_dataloader=train_loader,
-        valid_dataloader=valid_loader,
-        test_dataloader=test_loader,
-        experiment=None,
-        alpha=1.0,
-        config=testing_cfg,
-        **testing_cfg,
-    )
+def test_configure_optimizers_no_da(dummy_model, dummy_config):
+    trainer = DrugbanTrainer(model=dummy_model, **{**dummy_config, "is_da": False})
+    opt = trainer.configure_optimizers()
+    assert isinstance(opt, torch.optim.Optimizer)
 
 
-@pytest.fixture
-def da_trainer(mock_model, dataloaders, testing_DA_cfg):
-    train_loader, valid_loader, test_loader = dataloaders
-    return Trainer(
-        model=mock_model,
-        device=torch.device("cpu"),
-        train_dataloader=train_loader,
-        valid_dataloader=valid_loader,
-        test_dataloader=test_loader,
-        experiment=None,
-        alpha=1.0,
-        config=testing_DA_cfg,
-        **testing_DA_cfg,
-    )
+def test_configure_optimizers_with_da(dummy_model, dummy_config):
+    trainer = DrugbanTrainer(model=dummy_model, **{**dummy_config, "is_da": True})
+    opt = trainer.configure_optimizers()
+    assert isinstance(opt, (list, tuple)) and all(isinstance(o, torch.optim.Optimizer) for o in opt)
 
 
-class TestTrainer:
-    def test_train_epoch(self, trainer):
-        train_loss = trainer.train_epoch()
-        assert isinstance(train_loss, float)
-        assert train_loss >= 0
+def test_training_step_no_da(dummy_model, dummy_config, dummy_batch):
+    trainer = DrugbanTrainer(model=dummy_model, **{**dummy_config, "is_da": False})
+    trainer.optimizers = lambda: torch.optim.SGD(trainer.parameters(), lr=1e-3)
+    loss = trainer.training_step(dummy_batch, 0)
+    assert loss is not None
 
-    def test_test_valid(self, trainer):
-        auroc, auprc, test_loss = trainer.test(dataloader="valid")
-        assert isinstance(auroc, float)
-        assert isinstance(auprc, float)
-        assert isinstance(test_loss, float)
+
+def test_training_step_with_da(dummy_model, dummy_config, dummy_da_batch):
+    dummy_config["is_da"] = True
+    trainer = DrugbanTrainer(model=dummy_model, **dummy_config)
+    trainer.optimizers = lambda: [torch.optim.SGD(trainer.parameters(), lr=1e-3),
+                                  torch.optim.SGD(trainer.parameters(), lr=1e-3)]
+    trainer.current_epoch = 2  # Trigger DA phase
+    loss = trainer.training_step(dummy_da_batch, 0)
+    assert loss is not None
+
+
+def test_validation_step(dummy_model, dummy_config, dummy_batch):
+    trainer = DrugbanTrainer(model=dummy_model, **{**dummy_config, "is_da": False})
+    trainer.validation_step(dummy_batch, 0)
+    # Metrics and log called (no assertion)
+
+
+def test_test_step(dummy_model, dummy_config, dummy_batch):
+    trainer = DrugbanTrainer(model=dummy_model, **{**dummy_config, "is_da": False})
+    trainer.test_step(dummy_batch, 0)
+    # Metrics and log called (no assertion)
+
+
+def test_on_validation_epoch_end(dummy_model, dummy_config):
+    trainer = DrugbanTrainer(model=dummy_model, **{**dummy_config, "is_da": False})
+    trainer.valid_metrics = MagicMock()
+    trainer.valid_metrics.compute.return_value = {"val_acc": 0.9}
+    trainer.valid_metrics.reset = MagicMock()
+    trainer.on_validation_epoch_end()
+
+
+def test_on_test_epoch_end(dummy_model, dummy_config):
+    trainer = DrugbanTrainer(model=dummy_model, **{**dummy_config, "is_da": False})
+    trainer.test_metrics = MagicMock()
+    trainer.test_metrics.compute.return_value = {"test_acc": 0.9}
+    trainer.test_metrics.reset = MagicMock()
+    trainer.on_test_epoch_end()
+
+
+def test_compute_entropy_weights(dummy_model, dummy_config):
+    trainer = DrugbanTrainer(model=dummy_model, **{**dummy_config, "is_da": False})
+    logits = torch.rand(4, 1)
+    weights = trainer._compute_entropy_weights(logits)
+    assert weights.shape == logits.shape

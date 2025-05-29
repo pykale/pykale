@@ -1,4 +1,4 @@
-# Drug-target Interaction Prediction: Interpretable bilinear attention network with domain adaptation on BindingDB/BioSNAP/Human dataset
+# Drug-target Interaction Prediction: Interpretable bilinear attention network with domain adaptation on BindingDB/BioSNAP dataset
 
 ### 1. Description
 
@@ -12,9 +12,8 @@ For downloading the datasets, please refer to the following links: https://githu
 We have three datasets in this collection:
 - [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp)
 - [BioSNAP](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets)
-- [Human](https://github.com/lifanchen-simm/transformerCPI?tab=readme-ov-file#data-sets)
 
-where BindingDB and BioSNAP are split into random and cluster splits, while Human is split into cold and random splits. The full dataset is also provided for each dataset.
+where BindingDB and BioSNAP are split into random and cluster splits. The full dataset is also provided for each dataset.
 
 All datasets should be organised as follows:
 
@@ -41,16 +40,7 @@ All datasets should be organised as follows:
     │   │   │   ├───train.csv
     │   │   │   ├───val.csv
     │   │   ├───full.csv
-    │   ├───human
-    │   │   ├───cold
-    │   │   │   ├───test.csv
-    │   │   │   ├───train.csv
-    │   │   │   ├───val.csv
-    │   │   ├───random
-    │   │   │   ├───test.csv
-    │   │   │   ├───train.csv
-    │   │   │   ├───val.csv
-    │   │   ├───full.csv
+
 ```
 
 
@@ -61,7 +51,7 @@ For in-domain prediction tasks using DrugBAN without domain adaptation, run the 
 `python main.py --cfg "configs/non_DA_in_domain.yaml"`
 
 * `non_DA_in_domain.yaml` is a configuration file, and contains all changeable hyperparameters. It allows users to customize the model accordingly.
-* Change `DATA.DATASET` to fit your dataset directory. Available dataset examples are [`bindingdb`](https://www.bindingdb.org/rwd/bind/index.jsp), [`biosnap`](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets) and [`human`](https://github.com/lifanchen-simm/transformerCPI?tab=readme-ov-file#data-sets).
+* Change `DATA.DATASET` to fit your dataset directory. Available dataset examples are [`bindingdb`](https://www.bindingdb.org/rwd/bind/index.jsp) and [`biosnap`](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets).
 * Change `DATA.SPLIT` to fit your data splitting strategy.
 
 <br>

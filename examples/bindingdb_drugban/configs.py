@@ -59,7 +59,6 @@ _C.SOLVER.SEED = 2048  # Random seed for reproducibility
 # RESULT
 # ---------------------------------------------------------------------------- #
 _C.RESULT = CfgNode()
-_C.RESULT.OUTPUT_DIR = "./result"  # Directory to save logs, metrics, and models
 _C.RESULT.SAVE_MODEL = True  # Whether to save model checkpoints during training
 
 # ---------------------------------------------------------------------------- #
@@ -80,10 +79,11 @@ _C.DA.USE_ENTROPY = True  # Whether to use entropy-based weighting when computin
 # Comet config, ignore it If not installed.
 # ---------------------------------------------------------------------------- #
 _C.COMET = CfgNode()
-_C.COMET.USE = False  # Enable Comet logging (set True if Comet is installed and configured)
-_C.COMET.PROJECT_NAME = ""  # Comet project name (if applicable)
-_C.COMET.TAG = None  # Optional experiment tag (e.g., 'drugban-run-1')
-_C.COMET.API_KEY = ""  # Comet API key (leave blank if unused)
+_C.COMET.USE = True  # Enable Comet logging (set True if Comet is installed and configured)
+_C.COMET.PROJECT_NAME = "drugban-23-May"  # Comet project name (if applicable)
+_C.COMET.EXPERIMENT_NAME = None  # Optional experiment name (e.g., 'drugban-run-1')
+_C.COMET.TAG = None  # Comet tags (optional)
+_C.COMET.API_KEY = "InDQ1UsqJt7QMiANWg55Ulebe"  # Comet API key (leave blank if unused)
 
 
 # ---------------------------------------------------------------------------- #

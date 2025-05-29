@@ -67,15 +67,15 @@ class DrugBAN(nn.Module):
         )
         self.mlp_classifier = MLPDecoder(mlp_in_dim, mlp_hidden_dim, mlp_out_dim, binary=out_binary)
 
-    def forward(self, bg_d, v_protein, mode="train"):
-        v_drug = self.drug_extractor(bg_d)
-        v_protein = self.protein_extractor(v_protein)
-        f, att = self.bcn(v_drug, v_protein)
+    def forward(self, bg_d, vec_protein, mode="train"):
+        vec_drug = self.drug_extractor(bg_d)
+        vec_protein = self.protein_extractor(vec_protein)
+        f, att = self.bcn(vec_drug, vec_protein)
         score = self.mlp_classifier(f)
         if mode == "train":
-            return v_drug, v_protein, f, score
+            return vec_drug, vec_protein, f, score
         elif mode == "eval":
-            return v_drug, v_protein, score, att
+            return vec_drug, vec_protein, score, att
 
 
 class MolecularGCN(nn.Module):
@@ -221,7 +221,10 @@ class RandomLayer(nn.Module):
         super(RandomLayer, self).__init__()
         self.input_num = len(input_dim_list)
         self.output_dim = output_dim
-        self.random_matrix = [torch.randn(input_dim_list[i], output_dim) for i in range(self.input_num)]
+
+        self.random_matrix = nn.ParameterList(
+            nn.Parameter(torch.randn(input_dim_list[i], output_dim)) for i in range(self.input_num)
+        )
 
     def forward(self, input_list):
         return_list = [torch.mm(input_list[i], self.random_matrix[i]) for i in range(self.input_num)]
@@ -229,10 +232,6 @@ class RandomLayer(nn.Module):
         for single in return_list[1:]:
             return_tensor = torch.mul(return_tensor, single)
         return return_tensor
-
-    def cuda(self):
-        super(RandomLayer, self).cuda()
-        self.random_matrix = [val.cuda() for val in self.random_matrix]
 
 
 class BANLayer(nn.Module):

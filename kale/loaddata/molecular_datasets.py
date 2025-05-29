@@ -129,13 +129,13 @@ def smiles_to_graph(smiles, max_drug_nodes):
 
 
 class DTIDataset(Dataset):
-    def __init__(self, list_IDs, df, max_drug_nodes=290):
+    def __init__(self, list_ids, df, max_drug_nodes=290):
         """
         Initializes the DTIDataset.
 
         Parameters:
         -----------
-        list_IDs : list
+        list_ids : list
             List of indices corresponding to the rows in the DataFrame `df` that will be used by the dataset.
 
         df : pandas.DataFrame
@@ -144,7 +144,7 @@ class DTIDataset(Dataset):
         max_drug_nodes : int, optional
             Maximum number of nodes for the molecular graphs. Default is 290.
         """
-        self.list_IDs = list_IDs
+        self.list_ids = list_ids
         self.df = df
         self.max_drug_nodes = max_drug_nodes
 
@@ -157,7 +157,7 @@ class DTIDataset(Dataset):
         int
             The total number of samples.
         """
-        return len(self.list_IDs)
+        return len(self.list_ids)
 
     def __getitem__(self, index):
         """
@@ -170,28 +170,28 @@ class DTIDataset(Dataset):
 
         Returns:
         --------
-        v_drug : torch_geometric.data.Data
+        vec_drug : torch_geometric.data.Data
             A PyG Data object representing the drug molecule, with node features and optional virtual nodes.
 
-        v_protein : torch.Tensor
+        vec_protein : torch.Tensor
             A tensor representing the encoded protein sequence.
 
         y : float
             The label for this drug-protein pair.
         """
 
-        # Retrieve the actual index in the DataFrame from the list of IDs
-        index = self.list_IDs[index]
+        # Retrieve the actual index in the DataFrame from the list of ids
+        index = self.list_ids[index]
 
         # Get SMILES
-        v_drug = self.df.iloc[index]["SMILES"]
-        v_drug = smiles_to_graph(smiles=v_drug, max_drug_nodes=self.max_drug_nodes)
+        vec_drug = self.df.iloc[index]["SMILES"]
+        vec_drug = smiles_to_graph(smiles=vec_drug, max_drug_nodes=self.max_drug_nodes)
 
         # Extract the protein sequence and convert it to a tensor of integers
-        v_protein = self.df.iloc[index]["Protein"]
-        v_protein = integer_label_protein(v_protein)
+        vec_protein = self.df.iloc[index]["Protein"]
+        vec_protein = integer_label_protein(vec_protein)
 
         # Extract the label
         y = self.df.iloc[index]["Y"]
 
-        return v_drug, v_protein, y
+        return vec_drug, vec_protein, y
