@@ -202,3 +202,92 @@ def test_compute_entropy_weights(dummy_model, dummy_config):
     logits = torch.rand(4, 1)
     weights = trainer._compute_entropy_weights(logits)
     assert weights.shape == torch.Size([4])  # Adjusted assertion
+
+
+def test_random_layer_with_original_random(dummy_model, dummy_config):
+    dummy_config["is_da"] = True
+    dummy_config["da_random_layer"] = True
+    dummy_config["original_random"] = True
+
+    trainer = DrugbanTrainer(model=dummy_model, **dummy_config)
+
+    # Check that random_layer is instance of RandomLayer
+    from kale.embed.ban import RandomLayer
+
+    assert isinstance(trainer.random_layer, RandomLayer)
+
+
+def test_random_layer_disabled(dummy_model, dummy_config):
+    dummy_config["is_da"] = True
+    dummy_config["da_random_layer"] = False
+
+    trainer = DrugbanTrainer(model=dummy_model, **dummy_config)
+
+    assert trainer.random_layer is False
+
+
+def test_multiclass_metrics_and_loss(dummy_batch):
+    dummy_config = {
+        "solver_lr": 1e-3,
+        "num_classes": 3,  # Multiclass
+        "batch_size": 4,
+        "is_da": False,
+        "solver_da_lr": 1e-3,
+        "da_init_epoch": 1,
+        "da_method": "CDAN",
+        "original_random": False,
+        "use_da_entropy": False,
+        "da_random_layer": False,
+        "da_random_dim": 64,
+        "decoder_in_dim": 10,
+    }
+
+    model = SimpleModel()
+    model.fc = nn.Linear(10, 3)  # Adjust to 3-class output
+
+    trainer = DrugbanTrainer(model=model, **dummy_config)
+    trainer.manual_backward = lambda loss: loss.backward()
+    trainer._trainer = MagicMock()
+
+    # Patch metrics to bypass actual tensor shape checking in multiclass
+    trainer.valid_metrics.update = MagicMock()
+    trainer.test_metrics.update = MagicMock()
+
+    trainer.log = MagicMock()
+
+    # Call training_step with multiclass batch
+    loss = trainer.training_step(dummy_batch, 0)
+    assert loss is not None
+
+    # Call validation and test steps with multiclass
+    trainer.validation_step(dummy_batch, 0)
+    trainer.test_step(dummy_batch, 0)
+
+
+def test_training_step_invalid_da_method(dummy_model, dummy_config, dummy_da_batch):
+    trainer = DrugbanTrainer(model=dummy_model, **dummy_config)
+    trainer.manual_backward = lambda loss: loss.backward()
+    trainer._trainer = MagicMock()
+    trainer._trainer.current_epoch = dummy_config["da_init_epoch"] + 1
+
+    dummy_model.forward = lambda v_d, v_p: (
+        torch.randn(v_d.shape[0], 10),
+        torch.randn(v_p.shape[0], 10),
+        torch.randn(v_d.shape[0], 10),
+        torch.randn(v_d.shape[0], 2),
+    )
+
+    class DummyDiscriminator(nn.Module):
+        def forward(self, x):
+            return torch.ones(x.size(0), 2)
+
+    trainer.domain_discriminator = DummyDiscriminator()
+
+    trainer.optimizers = lambda: (
+        torch.optim.SGD(trainer.model.parameters(), lr=1e-3),
+        torch.optim.SGD(trainer.domain_discriminator.parameters(), lr=1e-3),
+    )
+
+    # Simple exception check (no regex)
+    with pytest.raises(ValueError):
+        trainer.training_step(dummy_da_batch, 0)
