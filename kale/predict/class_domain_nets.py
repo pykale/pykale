@@ -119,7 +119,7 @@ class DomainNetSmallImage(nn.Module):
     """Domain classifier network for small-size images
 
     Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
+        input_size (int, optional): Size of the input feature vector (i.e., number of input features). Defaults to 128.
         hidden_size (int, optional): Size of the hidden layer. Used if bigger_discrim is False. Defaults to 100.
         deep_hidden_size (int, optional): Size of the first hidden layer when using the deeper (bigger_discrim=True)
             network configuration. Defaults to 500.
