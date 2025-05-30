@@ -1,8 +1,8 @@
 # This is for in-domain experiments using DrugBAN without domain adaptation.
 
 DATA:
-  DATASET: "human"  # bindingdb, biosnap
-  SPLIT: "cold"       # random
+  DATASET: "bindingdb"  # bindingdb, biosnap
+  SPLIT: "random"       # random
 
 SOLVER:
   BATCH_SIZE: 64

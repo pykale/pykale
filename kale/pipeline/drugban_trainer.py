@@ -19,7 +19,7 @@ from torchmetrics import Accuracy, AUROC, F1Score, MetricCollection, Recall, Spe
 from kale.embed.ban import RandomLayer
 from kale.evaluate.metrics import binary_cross_entropy, cross_entropy_logits, entropy_logits
 from kale.pipeline.domain_adapter import GradReverse as ReverseLayerF
-from kale.predict.class_domain_nets import Discriminator
+from kale.predict.class_domain_nets import DomainNetSmallImage
 
 
 class DrugbanTrainer(pl.LightningModule):
@@ -73,11 +73,23 @@ class DrugbanTrainer(pl.LightningModule):
             # set up discriminator
             if da_random_layer:
                 # Initialize the Discriminator with an input size from the random dimension specified in the config
-                self.domain_discriminator = Discriminator(input_size=da_random_dim, n_class=self.num_classes)
+                # self.domain_discriminator = Discriminator(input_size=da_random_dim, n_class=self.num_classes)
+                self.domain_discriminator = DomainNetSmallImage(
+                    input_size=da_random_dim,
+                    bigger_discrim=True,
+                    hidden_size=256,
+                    deep_hidden_size=256,
+                    num_classes=self.num_classes,
+                )
             else:
                 # Initialize the Discriminator with an input size derived from the decoder's input dimension
-                self.domain_discriminator = Discriminator(
-                    input_size=decoder_in_dim * self.num_classes, n_class=self.num_classes
+                # self.domain_discriminator = Discriminator(input_size=decoder_in_dim * self.num_classes, n_class=self.num_classes)
+                self.domain_discriminator = DomainNetSmallImage(
+                    input_size=decoder_in_dim * self.num_classes,
+                    bigger_discrim=True,
+                    hidden_size=256,
+                    deep_hidden_size=256,
+                    num_classes=self.num_classes,
                 )
 
             # setup random layer
