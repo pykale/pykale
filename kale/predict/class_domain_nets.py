@@ -108,8 +108,8 @@ class ClassNetSmallImage(nn.Module):
     def n_classes(self):
         return self._n_classes
 
-    def forward(self, input):
-        x = self.dp1(self.relu1(self.bn1(self.fc1(input))))
+    def forward(self, x):
+        x = self.dp1(self.relu1(self.bn1(self.fc1(x))))
         x = self.relu2(self.bn2(self.fc2(x)))
         x = self.fc3(x)
         return x
@@ -119,25 +119,35 @@ class DomainNetSmallImage(nn.Module):
     """Domain classifier network for small-size images
 
     Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
+        input_size (int, optional): Size of the input feature vector (i.e., number of input features). Defaults to 128.
+        hidden_size (int, optional): Size of the hidden layer. Used if bigger_discrim is False. Defaults to 100.
+        deep_hidden_size (int, optional): Size of the first hidden layer when using the deeper (bigger_discrim=True)
+            network configuration. Defaults to 500.
+        num_classes (int, optional): Size of the final output layer. Defaults to 2 (e.g., binary domain classification).
         bigger_discrim (bool, optional): whether to use deeper network. Defaults to False.
     """
 
-    def __init__(self, input_size=128, bigger_discrim=False):
-        super(DomainNetSmallImage, self).__init__()
-        output_size = 500 if bigger_discrim else 100
-
+    def __init__(self, input_size=128, hidden_size=100, deep_hidden_size=500, num_classes=2, bigger_discrim=False):
+        super().__init__()
         self.bigger_discrim = bigger_discrim
-        self.fc1 = nn.Linear(input_size, output_size)
-        self.bn1 = nn.BatchNorm1d(output_size)
-        self.relu1 = nn.ReLU()
-        self.fc2 = nn.Linear(output_size, 100) if bigger_discrim else nn.Linear(output_size, 2)
-        self.bn2 = nn.BatchNorm1d(100)
-        self.relu2 = nn.ReLU()
-        self.fc3 = nn.Linear(100, 2)
 
-    def forward(self, input):
-        x = self.relu1(self.bn1(self.fc1(input)))
+        # First layer
+        inter_size = deep_hidden_size if bigger_discrim else hidden_size
+        self.fc1 = nn.Linear(input_size, inter_size)
+        self.bn1 = nn.BatchNorm1d(inter_size)
+        self.relu1 = nn.ReLU()
+
+        # Second and third layer
+        if bigger_discrim:
+            self.fc2 = nn.Linear(inter_size, hidden_size)
+            self.bn2 = nn.BatchNorm1d(hidden_size)
+            self.relu2 = nn.ReLU()
+            self.fc3 = nn.Linear(hidden_size, num_classes)
+        else:
+            self.fc2 = nn.Linear(inter_size, num_classes)
+
+    def forward(self, x):
+        x = self.relu1(self.bn1(self.fc1(x)))
         if self.bigger_discrim:
             x = self.relu2(self.bn2(self.fc2(x)))
             x = self.fc3(x)
