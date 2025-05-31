@@ -36,7 +36,7 @@ class BimodalInteractionFusion(nn.Module):
     hypernetwork-based interaction mechanism. The 'input_dims' argument specifies the input dimensions of the two
     modalities. The 'output_dim' argument specifies the output dimension after the fusion. The 'output' argument
     defines the type of bimodal matrix interactions to be performed, which can be 'matrix', 'vector', or 'scalar'.
-        This fusion method  supports three types of bimodal interactions:
+        This fusion method supports three types of bimodal interactions:
             - Matrix: It implements a general hypernetwork mechanism where the interaction is multiplicative. It uses
             separate weight matrices and biases for the two modalities.
             - Vector: It uses diagonal forms and gating mechanisms, applying element-wise multiplication to combine the
@@ -48,7 +48,7 @@ class BimodalInteractionFusion(nn.Module):
         This fusion approach allows for complex interactions between the modalities and is well-suited for tasks that
         require the integration of heterogeneous data.
     Args:
-        input_dims (int): list or tuple of 2 integers indicating input dimensions of the 2 modalities
+        input_dims (list or tuple): list or tuple of 2 integers indicating input dimensions of the 2 modalities
         output_dim (int): output dimension after the fusion
         output (str): type of BimodalMatrix Interactions, options from 'matrix','vector','scalar'
         flatten (bool): whether we need to flatten the input modalities
@@ -156,7 +156,7 @@ class LowRankTensorFusion(nn.Module):
        This approach provides an efficient and compact representation for capturing interactions among multiple
        modalities, making it suitable for tasks involving high-dimensional multimodal data.
     Args:
-        input_dims (int): A list or tuple of integers indicating input dimensions of the modalities.
+        input_dims (list or tuple): A list or tuple of integers indicating input dimensions of the modalities.
         output_dim (int): output dimension after the fusion.
         rank (int): A hyperparameter specifying the rank for the low-rank tensor decomposition.
         flatten (bool): Boolean to dictate if output should be flattened or not. Default: True
