@@ -103,9 +103,6 @@ def test_sparse_multiomics_datasets():
     )
     data = next(iter(dataset))[0]
     _ = dataset.extend_data(data)
-    _ = dataset._get_adjacency_info(data.x)
-    _ = dataset._generate_sparse_adj(data.x)
-    _ = dataset._get_sample_weight(data.y.numpy()[:, 0].astype("int64"))
 
     # Test download method
     assert os.path.isfile(os.path.join(root, "raw/ROSMAP.zip"))

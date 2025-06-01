@@ -12,16 +12,20 @@ def test_concat():
     assert output.shape == (4, 5 * (3 + 2))
 
 
-@pytest.mark.parametrize("output_type", ["vector", "matrix", "scalar"])
-def test_bimodal_interaction_fusion(output_type: str):
+@pytest.mark.parametrize(
+    "output_type, expected_shape",
+    [
+        ("vector", (4, 20)),
+        ("matrix", (4, 30)),
+        ("scalar", (4, 20)),
+    ],
+)
+def test_bimodal_interaction_fusion(output_type: str, expected_shape: tuple):
     mi2m_vector = BimodalInteractionFusion(input_dims=(10, 20), output_dim=30, output=output_type)
     m1 = torch.randn(4, 10)
     m2 = torch.randn(4, 20)
     output = mi2m_vector([m1, m2])
-    if output_type == "matrix":
-        assert output.shape == (4, 30)
-    else:
-        assert output.shape == (4, 20)
+    assert output.shape == expected_shape
 
 
 def test_low_rank_tensor_fusion():
