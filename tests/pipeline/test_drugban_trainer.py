@@ -1,11 +1,13 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch, PropertyMock
 
 import pytest
 import torch
 from torch import nn
 from torchmetrics import Accuracy, AUROC, F1Score, MetricCollection, Recall, Specificity
 
+from kale.embed.ban import RandomLayer
 from kale.pipeline.drugban_trainer import DrugbanTrainer
+from kale.predict.class_domain_nets import DomainNetSmallImage
 
 
 # Dummy simple model for tests
@@ -212,8 +214,6 @@ def test_random_layer_with_original_random(dummy_model, dummy_config):
     trainer = DrugbanTrainer(model=dummy_model, **dummy_config)
 
     # Check that random_layer is instance of RandomLayer
-    from kale.embed.ban import RandomLayer
-
     assert isinstance(trainer.random_layer, RandomLayer)
 
 
@@ -291,3 +291,196 @@ def test_training_step_invalid_da_method(dummy_model, dummy_config, dummy_da_bat
     # Simple exception check (no regex)
     with pytest.raises(ValueError):
         trainer.training_step(dummy_da_batch, 0)
+
+
+def test_on_train_epoch_start(dummy_model, dummy_config):
+    trainer = DrugbanTrainer(model=dummy_model, **dummy_config)
+    trainer.log = MagicMock()
+
+    # Case 1: current_epoch < da_init_epoch
+    with patch.object(DrugbanTrainer, "current_epoch", new_callable=PropertyMock) as mock_epoch:
+        mock_epoch.return_value = 0
+        trainer.da_init_epoch = 1
+        trainer.epoch_lamb_da = 0
+        trainer.on_train_epoch_start()
+        trainer.log.assert_called_with(
+            "DA loss lambda", trainer.epoch_lamb_da, on_step=False, on_epoch=True, prog_bar=True, logger=True
+        )
+        assert trainer.epoch_lamb_da == 0
+
+    # Case 2: current_epoch >= da_init_epoch
+    with patch.object(DrugbanTrainer, "current_epoch", new_callable=PropertyMock) as mock_epoch:
+        mock_epoch.return_value = 2
+        trainer.on_train_epoch_start()
+        trainer.log.assert_called_with(
+            "DA loss lambda", trainer.epoch_lamb_da, on_step=False, on_epoch=True, prog_bar=True, logger=True
+        )
+        assert trainer.epoch_lamb_da == 1
+
+
+def test_domain_discriminator_and_random_layer_branches(dummy_model, dummy_config):
+    # da_random_layer=True, original_random=False
+    config = dummy_config.copy()
+    config["is_da"] = True
+    config["da_random_layer"] = True
+    config["original_random"] = False
+    trainer = DrugbanTrainer(model=dummy_model, **config)
+    assert isinstance(trainer.domain_discriminator, DomainNetSmallImage)
+    assert isinstance(trainer.random_layer, torch.nn.Linear)
+    assert trainer.random_layer.in_features == config["decoder_in_dim"] * config["num_classes"]
+    assert trainer.random_layer.out_features == config["da_random_dim"]
+    # All params require_grad should be False
+    for param in trainer.random_layer.parameters():
+        assert not param.requires_grad
+
+    # da_random_layer=True, original_random=True
+    config = dummy_config.copy()
+    config["is_da"] = True
+    config["da_random_layer"] = True
+    config["original_random"] = True
+    trainer = DrugbanTrainer(model=dummy_model, **config)
+    assert isinstance(trainer.domain_discriminator, DomainNetSmallImage)
+    assert isinstance(trainer.random_layer, RandomLayer)
+
+    # da_random_layer=False
+    config = dummy_config.copy()
+    config["is_da"] = True
+    config["da_random_layer"] = False
+    trainer = DrugbanTrainer(model=dummy_model, **config)
+    assert isinstance(trainer.domain_discriminator, DomainNetSmallImage)
+    assert trainer.random_layer is False
+
+
+def test_training_step_with_da_entropy(dummy_model, dummy_config, dummy_da_batch):
+    # Setup config for DA with entropy
+    config = dummy_config.copy()
+    config["is_da"] = True
+    config["da_random_layer"] = False
+    config["use_da_entropy"] = True
+
+    trainer = DrugbanTrainer(model=dummy_model, **config)
+    trainer.manual_backward = lambda loss: loss.backward()
+    trainer._trainer = MagicMock()
+
+    # Patch current_epoch to be in DA phase
+    with patch.object(DrugbanTrainer, "current_epoch", new_callable=PropertyMock) as mock_epoch:
+        mock_epoch.return_value = config["da_init_epoch"]
+
+        # Mock model forward to return correct shapes
+        batch_size = config["batch_size"]
+        num_classes = config["num_classes"]
+        dummy_model.forward = lambda v_d, v_p: (
+            torch.randn(batch_size, 10),  # vec_drug
+            torch.randn(batch_size, 10),  # vec_protein
+            torch.randn(batch_size, 10),  # f
+            torch.randn(batch_size, num_classes),  # score
+        )
+
+        # Patch domain_discriminator to accept correct input
+        class DummyDiscriminator(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.fc = nn.Linear(20, num_classes)
+
+            def forward(self, x):
+                return self.fc(x)
+
+        trainer.domain_discriminator = DummyDiscriminator()
+
+        # Patch optimizers
+        trainer.optimizers = lambda: (
+            torch.optim.SGD(trainer.model.parameters(), lr=1e-3),
+            torch.optim.SGD(trainer.domain_discriminator.parameters(), lr=1e-3),
+        )
+
+        # Should run without error and return a loss
+        loss = trainer.training_step(dummy_da_batch, 0)
+        assert loss is not None
+
+
+def test_training_step_da_target_branch_original_random(dummy_model, dummy_config, dummy_da_batch):
+    # DA config with original_random True
+    config = dummy_config.copy()
+    config["is_da"] = True
+    config["da_random_layer"] = True
+    config["original_random"] = True
+
+    trainer = DrugbanTrainer(model=dummy_model, **config)
+    trainer.manual_backward = lambda loss: loss.backward()
+    trainer._trainer = MagicMock()
+
+    with patch.object(DrugbanTrainer, "current_epoch", new_callable=PropertyMock) as mock_epoch:
+        mock_epoch.return_value = config["da_init_epoch"]
+        batch_size = config["batch_size"]
+        num_classes = config["num_classes"]
+        # Mock model forward to return correct shapes
+        dummy_model.forward = lambda v_d, v_p: (
+            torch.randn(batch_size, 10),  # vec_drug
+            torch.randn(batch_size, 10),  # vec_protein
+            torch.randn(batch_size, 10),  # f
+            torch.randn(batch_size, num_classes),  # score
+        )
+
+        # Patch domain_discriminator to accept correct input
+        class DummyDiscriminator(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.fc = nn.Linear(config["da_random_dim"], num_classes)
+
+            def forward(self, x):
+                return self.fc(x)
+
+        trainer.domain_discriminator = DummyDiscriminator()
+        # Patch optimizers to always have a parameter
+        dummy_param = torch.zeros(1, requires_grad=True)
+        trainer.optimizers = lambda: (
+            torch.optim.SGD([dummy_param], lr=1e-3),
+            torch.optim.SGD([dummy_param], lr=1e-3),
+        )
+        # Should run without error and return a loss
+        loss = trainer.training_step(dummy_da_batch, 0)
+        assert loss is not None
+
+
+def test_training_step_da_target_branch_random_layer(dummy_model, dummy_config, dummy_da_batch):
+    # DA config with original_random False and random_layer True
+    config = dummy_config.copy()
+    config["is_da"] = True
+    config["da_random_layer"] = True
+    config["original_random"] = False
+
+    trainer = DrugbanTrainer(model=dummy_model, **config)
+    trainer.manual_backward = lambda loss: loss.backward()
+    trainer._trainer = MagicMock()
+
+    with patch.object(DrugbanTrainer, "current_epoch", new_callable=PropertyMock) as mock_epoch:
+        mock_epoch.return_value = config["da_init_epoch"]
+        batch_size = config["batch_size"]
+        num_classes = config["num_classes"]
+        # Mock model forward to return correct shapes
+        dummy_model.forward = lambda v_d, v_p: (
+            torch.randn(batch_size, 10),  # vec_drug
+            torch.randn(batch_size, 10),  # vec_protein
+            torch.randn(batch_size, 10),  # f
+            torch.randn(batch_size, num_classes),  # score
+        )
+
+        # Patch domain_discriminator to accept correct input
+        class DummyDiscriminator(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.fc = nn.Linear(config["da_random_dim"], num_classes)
+
+            def forward(self, x):
+                return self.fc(x)
+
+        trainer.domain_discriminator = DummyDiscriminator()
+        # Patch optimizers to always have a parameter
+        dummy_param = torch.zeros(1, requires_grad=True)
+        trainer.optimizers = lambda: (
+            torch.optim.SGD([dummy_param], lr=1e-3),
+            torch.optim.SGD([dummy_param], lr=1e-3),
+        )
+        # Should run without error and return a loss
+        loss = trainer.training_step(dummy_da_batch, 0)
+        assert loss is not None
