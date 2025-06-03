@@ -50,6 +50,7 @@ def main():
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
     set_seed(cfg.SOLVER.SEED)
+    pl.seed_everything(cfg.SOLVER.SEED, workers=True)
 
     # ---- setup dataset ----
     dataFolder = os.path.join(f"./datasets/{cfg.DATA.DATASET}", str(cfg.DATA.SPLIT))
@@ -86,6 +87,7 @@ def main():
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
         max_epochs=cfg["SOLVER"]["MAX_EPOCH"],
         logger=logger,
+        deterministic=True,  # for reproducibility
     )
     trainer.fit(model, train_dataloaders=training_generator, val_dataloaders=valid_generator)
     trainer.test(model, dataloaders=test_generator)
