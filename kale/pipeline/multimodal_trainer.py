@@ -6,9 +6,13 @@ multimodal_trainer.py
 
 Contains all trainer classes for multimodal training, including MultimodalTriStreamVAETrainer for joint optimization and validation of tri-stream MVAE pre-training with image and signal modalities.
 """
-import torch
 import pytorch_lightning as pl
+import torch
+import torch.nn.functional as F
+from sklearn.metrics import accuracy_score, matthews_corrcoef, roc_auc_score
+
 from kale.evaluate.metrics import elbo_loss
+from kale.predict.decode import MultimodalClassifier
 
 
 class MultimodalTriStreamVAETrainer(pl.LightningModule):
@@ -33,17 +37,17 @@ class MultimodalTriStreamVAETrainer(pl.LightningModule):
     """
 
     def __init__(
-            self,
-            model,
-            train_dataset,
-            val_dataset,
-            batch_size=32,
-            num_workers=4,
-            lambda_image=1.0,
-            lambda_signal=10.0,
-            lr=1e-3,
-            annealing_epochs=50,
-            scale_factor=1e-4,
+        self,
+        model,
+        train_dataset,
+        val_dataset,
+        batch_size=32,
+        num_workers=4,
+        lambda_image=1.0,
+        lambda_signal=10.0,
+        lr=1e-3,
+        annealing_epochs=50,
+        scale_factor=1e-4,
     ):
         super().__init__()
         self.model = model
@@ -56,7 +60,7 @@ class MultimodalTriStreamVAETrainer(pl.LightningModule):
         self.lr = lr
         self.annealing_epochs = annealing_epochs
         self.scale_factor = scale_factor
-        self.save_hyperparameters(ignore=['model', 'train_dataset', 'val_dataset'])
+        self.save_hyperparameters(ignore=["model", "train_dataset", "val_dataset"])
 
     def forward(self, image=None, signal=None):
         """
@@ -92,16 +96,40 @@ class MultimodalTriStreamVAETrainer(pl.LightningModule):
         _, recon_signal_only, mu_signal, logvar_signal = self.model(signal=signal)
         batch_size = signal.size(0)
         joint_loss = elbo_loss(
-            recon_image_joint, image, recon_signal_joint, signal, mu_joint, logvar_joint,
-            self.lambda_image, self.lambda_signal, annealing_factor, self.scale_factor
+            recon_image_joint,
+            image,
+            recon_signal_joint,
+            signal,
+            mu_joint,
+            logvar_joint,
+            self.lambda_image,
+            self.lambda_signal,
+            annealing_factor,
+            self.scale_factor,
         )
         image_loss = elbo_loss(
-            recon_image_only, image, None, None, mu_image, logvar_image,
-            self.lambda_image, self.lambda_signal, annealing_factor, self.scale_factor
+            recon_image_only,
+            image,
+            None,
+            None,
+            mu_image,
+            logvar_image,
+            self.lambda_image,
+            self.lambda_signal,
+            annealing_factor,
+            self.scale_factor,
         )
         signal_loss = elbo_loss(
-            None, None, recon_signal_only, signal, mu_signal, logvar_signal,
-            self.lambda_image, self.lambda_signal, annealing_factor, self.scale_factor
+            None,
+            None,
+            recon_signal_only,
+            signal,
+            mu_signal,
+            logvar_signal,
+            self.lambda_image,
+            self.lambda_signal,
+            annealing_factor,
+            self.scale_factor,
         )
         train_loss = (joint_loss + image_loss + signal_loss) / batch_size
         self.log("train_loss", train_loss, prog_bar=True, on_step=True, on_epoch=True)
@@ -128,16 +156,40 @@ class MultimodalTriStreamVAETrainer(pl.LightningModule):
         _, recon_signal_only, mu_signal, logvar_signal = self.model(signal=signal)
         batch_size = signal.size(0)
         joint_loss = elbo_loss(
-            recon_image_joint, image, recon_signal_joint, signal, mu_joint, logvar_joint,
-            self.lambda_image, self.lambda_signal, annealing_factor, self.scale_factor
+            recon_image_joint,
+            image,
+            recon_signal_joint,
+            signal,
+            mu_joint,
+            logvar_joint,
+            self.lambda_image,
+            self.lambda_signal,
+            annealing_factor,
+            self.scale_factor,
         )
         image_loss = elbo_loss(
-            recon_image_only, image, None, None, mu_image, logvar_image,
-            self.lambda_image, self.lambda_signal, annealing_factor, self.scale_factor
+            recon_image_only,
+            image,
+            None,
+            None,
+            mu_image,
+            logvar_image,
+            self.lambda_image,
+            self.lambda_signal,
+            annealing_factor,
+            self.scale_factor,
         )
         signal_loss = elbo_loss(
-            None, None, recon_signal_only, signal, mu_signal, logvar_signal,
-            self.lambda_image, self.lambda_signal, annealing_factor, self.scale_factor
+            None,
+            None,
+            recon_signal_only,
+            signal,
+            mu_signal,
+            logvar_signal,
+            self.lambda_image,
+            self.lambda_signal,
+            annealing_factor,
+            self.scale_factor,
         )
         val_loss = (joint_loss + image_loss + signal_loss) / batch_size
         self.log("val_loss", val_loss, prog_bar=True, on_epoch=True)
@@ -151,3 +203,119 @@ class MultimodalTriStreamVAETrainer(pl.LightningModule):
             torch.optim.Optimizer: The optimizer instance.
         """
         return torch.optim.Adam(self.model.parameters(), lr=self.lr)
+
+
+class MultimodalTrainer(pl.LightningModule):
+    """
+    MultimodalTrainer trains and validates a supervised classifier built on top of frozen encoders from a pre-trained multimodal model.
+
+    This LightningModule wraps a MultimodalClassifier (which fuses representations from image and signal modalities) and supports
+    cross-entropy loss optimization, as well as batch-aggregated computation of validation accuracy, ROC-AUC, and MCC.
+    It is compatible with any dataset yielding (image, signal, label) batches and is suitable for transfer learning scenarios
+    where the encoder weights are fixed.
+
+    Args:
+        pretrained_model (nn.Module): Pre-trained multimodal model providing `image_encoder` and `signal_encoder` attributes.
+        num_classes (int, optional): Number of classes for classification. Default is 2.
+        lr (float, optional): Learning rate for the optimizer. Default is 1e-3.
+
+    Forward Input:
+        image (Tensor): Image modality input.
+        signal (Tensor): Signal modality input.
+
+    Forward Output:
+        logits (Tensor): Raw classification scores before softmax.
+
+    Example:
+        model = MultimodalTrainer(pretrained_model, num_classes=3)
+        logits = model(images, signals)
+    """
+
+    def __init__(self, pretrained_model, num_classes=2, lr=1e-3):
+        super().__init__()
+        self.model = MultimodalClassifier(pretrained_model, num_classes)
+        self.lr = lr
+        self.num_classes = num_classes
+        self.validation_step_outputs = []
+        self.train_losses = []
+        self.val_losses = []
+
+    def forward(self, image, signal):
+        """
+        Forward pass through the underlying classifier.
+        """
+        return self.model(image, signal)
+
+    def training_step(self, batch, batch_idx):
+        """
+        Computes and logs the cross-entropy loss for a training batch.
+        """
+        image, signal, labels = batch
+        logits = self(image, signal)
+        loss = F.cross_entropy(logits, labels)
+        self.train_losses.append(loss.detach().cpu())
+        self.log("train_loss", loss)
+        return loss
+
+    def on_train_epoch_end(self):
+        """
+        Logs the average training loss at the end of each epoch.
+        """
+        if self.train_losses:
+            avg_loss = torch.stack(self.train_losses).mean().item()
+            self.log("train_loss_epoch", avg_loss, prog_bar=True, on_epoch=True)
+            self.train_losses.clear()
+
+    def validation_step(self, batch, batch_idx):
+        """
+        Collects predictions, probabilities, and ground truths for validation metrics computation.
+        """
+        image, signal, labels = batch
+        logits = self(image, signal)
+        loss = F.cross_entropy(logits, labels)
+        self.val_losses.append(loss.detach().cpu())
+        preds = torch.argmax(torch.softmax(logits, dim=1), dim=1)
+        probs = torch.softmax(logits, dim=1)[:, 1].detach().cpu()
+        labels_cpu = labels.detach().cpu()
+        preds_cpu = preds.detach().cpu()
+        self.validation_step_outputs.append((labels_cpu, preds_cpu, probs))
+
+    def on_validation_epoch_end(self):
+        """
+        Computes and logs validation loss, accuracy, ROC-AUC, and MCC at the end of each validation epoch.
+        """
+        if self.val_losses:
+            avg_loss = torch.stack(self.val_losses).mean().item()
+            self.log("val_loss", avg_loss, prog_bar=True, on_epoch=True)
+            self.val_losses.clear()
+
+        labels_all, preds_all, probs_all = [], [], []
+        for labels, preds, probs in self.validation_step_outputs:
+            labels_all.append(labels)
+            preds_all.append(preds)
+            probs_all.append(probs)
+
+        if labels_all:
+            labels_all = torch.cat(labels_all).numpy()
+            preds_all = torch.cat(preds_all).numpy()
+            probs_all = torch.cat(probs_all).numpy()
+            acc = accuracy_score(labels_all, preds_all)
+            try:
+                auc = roc_auc_score(labels_all, probs_all)
+            except Exception:
+                auc = float("nan")
+            try:
+                mcc = matthews_corrcoef(labels_all, preds_all)
+            except Exception:
+                mcc = float("nan")
+            self.log("val_acc", acc, prog_bar=True, on_epoch=True)
+            self.log("val_auc", auc, prog_bar=True, on_epoch=True)
+            self.log("val_mcc", mcc, prog_bar=True, on_epoch=True)
+
+        self.validation_step_outputs.clear()
+
+    def configure_optimizers(self):
+        """
+        Configures the Adam optimizer for training the classifier.
+        """
+        return torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=self.lr)
