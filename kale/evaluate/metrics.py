@@ -446,13 +446,18 @@ def calculate_distance(
 
     raise Exception("This metric is not still implemented")
 
+
 def elbo_loss(
-        recon_modality1, modality1,
-        recon_modality2, modality2,
-        mu, logvar,
-        lambda_modality1=1.0, lambda_modality2=1.0,
-        annealing_factor=1.0,
-        scale_factor=1e-4
+    recon_modality1,
+    modality1,
+    recon_modality2,
+    modality2,
+    mu,
+    logvar,
+    lambda_modality1=1.0,
+    lambda_modality2=1.0,
+    annealing_factor=1.0,
+    scale_factor=1e-4,
 ):
     """
     Computes the Evidence Lower Bound (ELBO) loss for a multimodal variational autoencoder (VAE) with two modalities.
@@ -482,12 +487,11 @@ def elbo_loss(
     modality1_mse, modality2_mse = 0.0, 0.0
     eps = 1e-8
     if recon_modality1 is not None and modality1 is not None:
-        modality1_mse = F.mse_loss(recon_modality1, modality1, reduction='sum')
+        modality1_mse = F.mse_loss(recon_modality1, modality1, reduction="sum")
     if recon_modality2 is not None and modality2 is not None:
-        modality2_mse = F.mse_loss(recon_modality2, modality2, reduction='sum')
+        modality2_mse = F.mse_loss(recon_modality2, modality2, reduction="sum")
     recon_loss = (lambda_modality1 * modality1_mse + lambda_modality2 * modality2_mse) * scale_factor
     logvar = torch.clamp(logvar, min=-10, max=10)
     kl_div = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp() + eps, dim=1)
     kl_div = kl_div.sum()
-    return (recon_loss + annealing_factor * kl_div)
-
+    return recon_loss + annealing_factor * kl_div

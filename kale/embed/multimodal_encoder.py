@@ -10,11 +10,12 @@ Contains multimodal encoder models, such as BimodalVAE, for joint representation
 
 import torch
 import torch.nn as nn
+
+from kale.embed.feature_fusion import ProductOfExperts
 from kale.embed.image_cnn import ImageVAEEncoder
 from kale.embed.signal_cnn import SignalVAEEncoder
-from kale.predict.decode import ImageVAEDecoder
-from kale.predict.decode import SignalVAEDecoder
-from kale.embed.feature_fusion import ProductOfExperts
+from kale.predict.decode import ImageVAEDecoder, SignalVAEDecoder
+
 
 class BimodalVAE(nn.Module):
     """
@@ -134,4 +135,3 @@ class BimodalVAE(nn.Module):
             logvar = torch.cat((logvar, signal_logvar.unsqueeze(0)), dim=0)
         mu, logvar = self.experts(mu, logvar)
         return mu, logvar
-

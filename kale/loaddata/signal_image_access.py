@@ -4,6 +4,7 @@
 
 from torch.utils.data import Dataset
 
+
 class SignalImageDataset(Dataset):
     """
     SignalImageDataset prepares paired signal (e.g., ECG) and image (e.g., CXR) features for multimodal deep learning tasks.
@@ -25,6 +26,7 @@ class SignalImageDataset(Dataset):
     Returns:
         Tuple: (signal_features, image_features) for the requested sample index.
     """
+
     def __init__(self, signal_features, image_features):
         self.signal_features = signal_features
         self.image_features = image_features
@@ -34,4 +36,3 @@ class SignalImageDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.signal_features[idx], self.image_features[idx]
-

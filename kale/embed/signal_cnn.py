@@ -7,6 +7,7 @@ This module provides CNN-based encoders for transforming 1D signals into latent 
 
 import torch.nn as nn
 
+
 class SignalVAEEncoder(nn.Module):
     """
     SignalVAEEncoder encodes 1D signals into a latent representation suitable for variational autoencoders (VAE).
@@ -30,6 +31,7 @@ class SignalVAEEncoder(nn.Module):
         encoder = SignalVAEEncoder(input_dim=60000, latent_dim=128)
         mu, logvar = encoder(signals)
     """
+
     def __init__(self, input_dim=60000, latent_dim=256):
         super().__init__()
         self.conv1 = nn.Conv1d(1, 16, kernel_size=3, stride=2, padding=1)

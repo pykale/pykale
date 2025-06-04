@@ -240,10 +240,11 @@ class ProductOfExperts(nn.Module):
         poe = ProductOfExperts()
         combined_mu, combined_logvar = poe(mu_experts, logvar_experts)
     """
+
     def forward(self, mu, logvar, eps=1e-8):
         var = torch.exp(logvar) + eps
-        T = 1. / (var + eps)
+        T = 1.0 / (var + eps)
         pd_mu = torch.sum(mu * T, dim=0) / torch.sum(T, dim=0)
-        pd_var = 1. / torch.sum(T, dim=0)
+        pd_var = 1.0 / torch.sum(T, dim=0)
         pd_logvar = torch.log(pd_var + eps)
         return pd_mu, pd_logvar

@@ -2,7 +2,6 @@
 ImageNet). The code is based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py,
  which is for domain adaptation.
 """
-import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from torchvision import models
@@ -15,10 +14,10 @@ class Flatten(nn.Module):
     the batch size.
 
     Examples:
-        >>> x = torch.randn(8, 3, 224, 224)
-        >>> x = Flatten()(x)
-        >>> print(x.shape)
-        >>> (8, 150528)
+        x = torch.randn(8, 3, 224, 224)
+        x = Flatten()(x)
+        print(x.shape)
+        (8, 150528)
     """
 
     def __init__(self):
@@ -34,10 +33,10 @@ class Identity(nn.Module):
     It returns the input tensor as the output.
 
     Examples:
-        >>> x = torch.randn(8, 3, 224, 224)
-        >>> x = Identity()(x)
-        >>> print(x.shape)
-        >>> (8, 3, 224, 224)
+        x = torch.randn(8, 3, 224, 224)
+        x = Identity()(x)
+        print(x.shape)
+        (8, 3, 224, 224)
     """
 
     def __init__(self):
@@ -57,7 +56,7 @@ class SmallCNNFeature(nn.Module):
         kernel_size (int): the size of the convolution kernel (default=5).
 
     Examples::
-        >>> feature_network = SmallCNNFeature(num_channels)
+        feature_network = SmallCNNFeature(num_channels)
     """
 
     def __init__(self, num_channels=3, kernel_size=5):
@@ -388,7 +387,6 @@ class LeNet(nn.Module):
             return output.squeeze()
         return output
 
-import torch.nn as nn
 
 class ImageVAEEncoder(nn.Module):
     """
@@ -414,6 +412,7 @@ class ImageVAEEncoder(nn.Module):
         encoder = ImageVAEEncoder(input_channels=1, latent_dim=128)
         mu, logvar = encoder(images)
     """
+
     def __init__(self, input_channels=1, latent_dim=256):
         super().__init__()
         self.conv1 = nn.Conv2d(input_channels, 16, kernel_size=3, stride=2, padding=1)
@@ -432,5 +431,3 @@ class ImageVAEEncoder(nn.Module):
         mu = self.fc_mu(x)
         logvar = self.fc_logvar(x)
         return mu, logvar
-
-
