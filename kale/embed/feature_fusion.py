@@ -1,7 +1,8 @@
-"""This module implements three different multimodal fusion methods:
+"""This module implements 4 different multimodal fusion methods:
 1. Concat
 2. BimodalInteractionFusion
 3. LowRankTensorFusion
+4. ProductOfExperts
 Each of these fusion methods are designed to work with input modalities as PyTorch tensors and perform different
 operations to combine and create a joint representation of the input data.
 Reference: https://github.com/pliang279/MultiBench/blob/main/fusions/common_fusions.py
@@ -211,3 +212,38 @@ class LowRankTensorFusion(nn.Module):
         output = torch.matmul(self.fusion_weights, fused_tensor.permute(1, 0, 2)).squeeze() + self.fusion_bias
         output = output.view(-1, self.output_dim)
         return output
+
+
+class ProductOfExperts(nn.Module):
+    """
+    ProductOfExperts combines multiple independent Gaussian distributions ("experts") into a single Gaussian
+    by computing their product in closed form. This is commonly used in multimodal variational autoencoders (VAE)
+    and probabilistic models to fuse information from different modalities or sources, yielding a consensus latent distribution.
+
+    For each expert, the inputs are mean (`mu`) and log-variance (`logvar`) tensors, and the output is the mean and log-variance
+    of the combined product Gaussian. This formulation enables principled uncertainty fusion and robust inference
+    in the presence of missing or noisy modalities.
+
+    Args:
+        None
+
+    Forward Inputs:
+        mu (Tensor): Mean values from all experts, shape (num_experts, batch_size, latent_dim)
+        logvar (Tensor): Log-variance values from all experts, shape (num_experts, batch_size, latent_dim)
+        eps (float, optional): Small value for numerical stability. Default is 1e-8.
+
+    Forward Outputs:
+        pd_mu (Tensor): Mean of the combined product Gaussian, shape (batch_size, latent_dim)
+        pd_logvar (Tensor): Log-variance of the combined product Gaussian, shape (batch_size, latent_dim)
+
+    Example:
+        poe = ProductOfExperts()
+        combined_mu, combined_logvar = poe(mu_experts, logvar_experts)
+    """
+    def forward(self, mu, logvar, eps=1e-8):
+        var = torch.exp(logvar) + eps
+        T = 1. / (var + eps)
+        pd_mu = torch.sum(mu * T, dim=0) / torch.sum(T, dim=0)
+        pd_var = 1. / torch.sum(T, dim=0)
+        pd_logvar = torch.log(pd_var + eps)
+        return pd_mu, pd_logvar
