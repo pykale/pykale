@@ -262,8 +262,6 @@ class VCDN(nn.Module):
         return output
 
 
-import torch.nn as nn
-
 class ImageVAEDecoder(nn.Module):
     """
     ImageVAEDecoder reconstructs 2D image data from a latent representation in a variational autoencoder (VAE) framework.
@@ -286,6 +284,7 @@ class ImageVAEDecoder(nn.Module):
         decoder = ImageVAEDecoder(latent_dim=128, output_channels=1)
         images_recon = decoder(z)
     """
+
     def __init__(self, latent_dim=256, output_channels=1):
         super().__init__()
         self.fc = nn.Linear(latent_dim, 64 * 28 * 28)
@@ -326,6 +325,7 @@ class SignalVAEDecoder(nn.Module):
         decoder = SignalVAEDecoder(latent_dim=128, output_dim=60000)
         signals_recon = decoder(z)
     """
+
     def __init__(self, latent_dim=256, output_dim=60000):
         super().__init__()
         self.fc = nn.Linear(latent_dim, 64 * (output_dim // 8))
@@ -342,3 +342,65 @@ class SignalVAEDecoder(nn.Module):
         z = self.relu(self.convtrans2(z))
         z = self.output_activation(self.convtrans3(z))
         return z
+
+
+class MultimodalClassifier(nn.Module):
+    """
+    MultimodalClassifier performs supervised classification using frozen encoders from a pre-trained multimodal model.
+
+    This classifier takes feature representations from both an image and a signal encoder (frozen from pre-training),
+    concatenates the mean latent vectors, and passes them through a fully-connected neural network for downstream
+    classification tasks. This approach leverages robust multimodal feature learning for scenarios such as medical imaging,
+    sensor fusion, or any paired data where both modalities are available at inference.
+
+    Args:
+        pretrained_model (nn.Module): Pre-trained multimodal model containing `image_encoder` and `signal_encoder`.
+        num_classes (int): Number of output classes for classification.
+
+    Forward Input:
+        image (Tensor): Image modality tensor, shape (batch_size, ...).
+        signal (Tensor): 1D signal modality tensor, shape (batch_size, ...).
+
+    Forward Output:
+        logits (Tensor): Unnormalized classification scores, shape (batch_size, num_classes).
+
+    Example:
+        model = MultimodalClassifier(pretrained_model, num_classes=3)
+        logits = model(images, signals)
+    """
+
+    def __init__(self, pretrained_model, num_classes):
+        super().__init__()
+        self.image_encoder = pretrained_model.image_encoder
+        self.signal_encoder = pretrained_model.signal_encoder
+
+        # Freeze the encoder weights
+        for param in self.image_encoder.parameters():
+            param.requires_grad = False
+        for param in self.signal_encoder.parameters():
+            param.requires_grad = False
+
+        combined_feature_dim = pretrained_model.n_latents * 2
+        self.classifier = nn.Sequential(
+            nn.Linear(combined_feature_dim, 128),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(128, num_classes),
+        )
+
+    def forward(self, image, signal):
+        """
+        Forward pass through the multimodal classifier.
+
+        Args:
+            image (Tensor): Batch of image data.
+            signal (Tensor): Batch of signal data.
+
+        Returns:
+            logits (Tensor): Classification outputs before softmax.
+        """
+        mu_image, _ = self.image_encoder(image)
+        mu_signal, _ = self.signal_encoder(signal)
+        combined_features = torch.cat((mu_image, mu_signal), dim=1)
+        logits = self.classifier(combined_features)
+        return logits
