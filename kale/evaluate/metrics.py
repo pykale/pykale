@@ -2,6 +2,7 @@
 # Author: Shuo Zhou, sz144@outlook.com
 #         Sina Tabakhi, sina.tabakhi@gmail.com
 #         Peizhen Bai, https://github.com/peizhenbai
+#         Mohammod Suvon, m.suvon@sheffield.ac.uk
 # =============================================================================
 
 """Commonly used metrics, losses, and distances, part from domain adaptation package
@@ -59,11 +60,11 @@ def topk_accuracy(output, target, topk=(1,)):
         The shape of tensor is batch_size, i.e. the number of predictions.
 
     Examples:
-        >>> output = torch.tensor(([0.3, 0.2, 0.1], [0.3, 0.2, 0.1]))
-        >>> target = torch.tensor((0, 1))
-        >>> top1, top2 = topk_accuracy(output, target, topk=(1, 2)) # get the boolean value
-        >>> top1_value = top1.double().mean() # get the top 1 accuracy score
-        >>> top2_value = top2.double().mean() # get the top 2 accuracy score
+        output = torch.tensor(([0.3, 0.2, 0.1], [0.3, 0.2, 0.1]))
+        target = torch.tensor((0, 1))
+        top1, top2 = topk_accuracy(output, target, topk=(1, 2)) # get the boolean value
+        top1_value = top1.double().mean() # get the top 1 accuracy score
+        top2_value = top2.double().mean() # get the top 2 accuracy score
     """
 
     maxk = max(topk)
@@ -96,15 +97,15 @@ def multitask_topk_accuracy(output, target, topk=(1,)):
         The shape of tensor is batch_size, i.e. the number of predictions.
 
         Examples:
-            >>> first_output = torch.tensor(([0.3, 0.2, 0.1], [0.3, 0.2, 0.1]))
-            >>> first_target = torch.tensor((0, 2))
-            >>> second_output = torch.tensor(([0.2, 0.1], [0.2, 0.1]))
-            >>> second_target = torch.tensor((0, 1))
-            >>> output = (first_output, second_output)
-            >>> target = (first_target, second_target)
-            >>> top1, top2 = multitask_topk_accuracy(output, target, topk=(1, 2)) # get the boolean value
-            >>> top1_value = top1.double().mean() # get the top 1 accuracy score
-            >>> top2_value = top2.double().mean() # get the top 2 accuracy score
+            first_output = torch.tensor(([0.3, 0.2, 0.1], [0.3, 0.2, 0.1]))
+            first_target = torch.tensor((0, 2))
+            second_output = torch.tensor(([0.2, 0.1], [0.2, 0.1]))
+            second_target = torch.tensor((0, 1))
+            output = (first_output, second_output)
+            target = (first_target, second_target)
+            top1, top2 = multitask_topk_accuracy(output, target, topk=(1, 2)) # get the boolean value
+            top1_value = top1.double().mean() # get the top 1 accuracy score
+            top2_value = top2.double().mean() # get the top 2 accuracy score
     """
 
     maxk = max(topk)
@@ -310,8 +311,8 @@ class protonet_loss:
         device (torch.device): The device in computation. Default: torch.device("cuda")
 
     Examples:
-        >>> loss_fn = protonet_loss(num_classes=5, num_query_samples=15, device=torch.device("cuda"))
-        >>> loss, acc = loss_fn(feature_support, feature_query)
+        loss_fn = protonet_loss(num_classes=5, num_query_samples=15, device=torch.device("cuda"))
+        loss, acc = loss_fn(feature_support, feature_query)
 
     Reference:
         Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning. Advances in Neural Information Processing Systems, 30.
@@ -444,3 +445,49 @@ def calculate_distance(
         return torch.mm(x1, x2.t()) / (w1 * w2.t()).clamp(min=eps)
 
     raise Exception("This metric is not still implemented")
+
+def elbo_loss(
+        recon_modality1, modality1,
+        recon_modality2, modality2,
+        mu, logvar,
+        lambda_modality1=1.0, lambda_modality2=1.0,
+        annealing_factor=1.0,
+        scale_factor=1e-4
+):
+    """
+    Computes the Evidence Lower Bound (ELBO) loss for a multimodal variational autoencoder (VAE) with two modalities.
+
+    The loss consists of reconstruction terms (mean squared error for each modality) and a KL-divergence regularizer,
+    which penalizes deviation of the learned latent distribution from the prior. This implementation is generic and supports
+    any two input/output modalities (e.g., image, signal, text).
+
+    Args:
+        recon_modality1 (Tensor or None): Reconstructed output of the first modality.
+        modality1 (Tensor or None): Ground truth input for the first modality.
+        recon_modality2 (Tensor or None): Reconstructed output of the second modality.
+        modality2 (Tensor or None): Ground truth input for the second modality.
+        mu (Tensor): Mean vector of the latent Gaussian, shape (batch_size, latent_dim).
+        logvar (Tensor): Log-variance vector of the latent Gaussian, shape (batch_size, latent_dim).
+        lambda_modality1 (float, optional): Weight for the first modality's reconstruction loss. Default is 1.0.
+        lambda_modality2 (float, optional): Weight for the second modality's reconstruction loss. Default is 1.0.
+        annealing_factor (float, optional): Scaling factor for the KL term (for annealing during training). Default is 1.0.
+        scale_factor (float, optional): Factor to scale the overall reconstruction loss (useful for balancing losses of different scale). Default is 1e-4.
+
+    Returns:
+        loss (Tensor): Total ELBO loss (scalar).
+
+    Example:
+        loss = elbo_loss(recon_img, img, recon_signal, signal, mu, logvar)
+    """
+    modality1_mse, modality2_mse = 0.0, 0.0
+    eps = 1e-8
+    if recon_modality1 is not None and modality1 is not None:
+        modality1_mse = F.mse_loss(recon_modality1, modality1, reduction='sum')
+    if recon_modality2 is not None and modality2 is not None:
+        modality2_mse = F.mse_loss(recon_modality2, modality2, reduction='sum')
+    recon_loss = (lambda_modality1 * modality1_mse + lambda_modality2 * modality2_mse) * scale_factor
+    logvar = torch.clamp(logvar, min=-10, max=10)
+    kl_div = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp() + eps, dim=1)
+    kl_div = kl_div.sum()
+    return (recon_loss + annealing_factor * kl_div)
+
