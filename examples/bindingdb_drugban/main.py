@@ -15,15 +15,14 @@ import warnings
 from datetime import datetime
 from time import time
 
-import pandas as pd
 import pytorch_lightning as pl
 import torch
-from comet_ml.config import experiment
 from configs import get_cfg_defaults
 from pytorch_lightning.loggers import CometLogger, TensorBoardLogger
 
 sys.path.append("../../../pykale/")
 from model import get_dataloader, get_dataset, get_model
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 from kale.loaddata.molecular_datasets import graph_collate_func
 from kale.utils.seed import set_seed
@@ -81,8 +80,15 @@ def main():
         logger = TensorBoardLogger(save_dir=cfg.RESULT.OUTPUT_DIR, name=experiment_time)
 
     # ---- setup trainer ----
+    checkpoint_callback = ModelCheckpoint(
+        filename="{epoch}-{step}-{val_BinaryAUROC:.4f}",
+        monitor="val_BinaryAUROC",
+        mode="max",
+    )
+
     model = get_model(cfg)
     trainer = pl.Trainer(
+        callbacks=[checkpoint_callback],
         devices="auto",
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
         max_epochs=cfg["SOLVER"]["MAX_EPOCH"],
@@ -90,7 +96,7 @@ def main():
         deterministic=True,  # for reproducibility
     )
     trainer.fit(model, train_dataloaders=training_generator, val_dataloaders=valid_generator)
-    trainer.test(model, dataloaders=test_generator)
+    trainer.test(model, dataloaders=test_generator, ckpt_path="best")
 
 
 if __name__ == "__main__":

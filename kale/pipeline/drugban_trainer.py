@@ -161,7 +161,7 @@ class DrugbanTrainer(pl.LightningModule):
         # ----- Update epoch_lamb_da if in the DA phase -----
         if self.current_epoch >= self.da_init_epoch:
             self.epoch_lamb_da = 1
-        self.log("DA loss lambda", self.epoch_lamb_da, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("DA loss lambda", self.epoch_lamb_da, on_step=False, on_epoch=True, prog_bar=False, logger=True)
 
     def _compute_entropy_weights(self, logits):
         entropy = entropy_logits(logits)
@@ -196,7 +196,7 @@ class DrugbanTrainer(pl.LightningModule):
             opt.step()
 
             # log the loss - lightning
-            self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+            self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=False, logger=True)
 
             return loss
 
@@ -291,11 +291,11 @@ class DrugbanTrainer(pl.LightningModule):
             opt_da.step()
 
             self.log(
-                "train_step model loss", model_loss.item(), on_step=True, on_epoch=True, prog_bar=True, logger=True
+                "train_step model loss", model_loss.item(), on_step=True, on_epoch=True, prog_bar=False, logger=True
             )
-            self.log("train_step total loss", loss.item(), on_step=True, on_epoch=True, prog_bar=True, logger=True)
+            self.log("train_step total loss", loss.item(), on_step=True, on_epoch=True, prog_bar=False, logger=True)
             if self.current_epoch >= self.da_init_epoch:
-                self.log("train_step da loss", da_loss.item(), on_step=True, on_epoch=True, prog_bar=True, logger=True)
+                self.log("train_step da loss", da_loss.item(), on_step=True, on_epoch=True, prog_bar=False, logger=True)
 
             return loss
 
@@ -313,7 +313,7 @@ class DrugbanTrainer(pl.LightningModule):
         self.valid_metrics.update(n, labels.long())
 
         # ---- log the loss ----
-        self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=False, logger=True)
 
         return
 
