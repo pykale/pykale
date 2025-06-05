@@ -6,6 +6,7 @@ import torch
 from kale.evaluate.metrics import (
     calculate_distance,
     DistanceMetric,
+    elbo_loss,
     multitask_topk_accuracy,
     protonet_loss,
     topk_accuracy,
@@ -117,3 +118,78 @@ def test_cosine_distance_eps(x1, x2):
 def test_unsupported_metric(x1, x2):
     with pytest.raises(Exception):
         calculate_distance(x1, x2, metric="unsupported_metric")
+
+
+@pytest.mark.parametrize(
+    "use_modality1, use_modality2",
+    [
+        (True, True),  # Both modalities present
+        (True, False),  # Only modality1 present
+        (False, True),  # Only modality2 present
+        (False, False),  # Neither modality present (degenerate case)
+    ],
+)
+def test_elbo_loss_branches(use_modality1, use_modality2):
+    batch_size = 4
+    latent_dim = 8
+    x_shape = (batch_size, 3, 2, 2)
+    y_shape = (batch_size, 1, 2, 2)
+
+    # Modality data (dummy)
+    recon_modality1 = torch.randn(x_shape) if use_modality1 else None
+    modality1 = torch.randn(x_shape) if use_modality1 else None
+    recon_modality2 = torch.randn(y_shape) if use_modality2 else None
+    modality2 = torch.randn(y_shape) if use_modality2 else None
+
+    mu = torch.zeros(batch_size, latent_dim)
+    logvar = torch.zeros(batch_size, latent_dim)
+
+    loss = elbo_loss(
+        recon_modality1,
+        modality1,
+        recon_modality2,
+        modality2,
+        mu,
+        logvar,
+        lambda_modality1=2.0,
+        lambda_modality2=3.0,
+        annealing_factor=0.7,
+        scale_factor=1e-3,
+    )
+
+    assert isinstance(loss, torch.Tensor)
+    assert loss.ndim == 0 or loss.numel() == 1  # Scalar loss
+
+    # Edge cases: loss must not be nan or inf
+    assert not torch.isnan(loss), "Loss should not be NaN"
+    assert not torch.isinf(loss), "Loss should not be Inf"
+
+
+def test_elbo_loss_values():
+    """Test elbo_loss with known values for a small example."""
+    batch_size = 2
+    latent_dim = 2
+    recon_modality1 = torch.zeros(batch_size, 2)
+    modality1 = torch.ones(batch_size, 2)
+    recon_modality2 = torch.zeros(batch_size, 2)
+    modality2 = torch.ones(batch_size, 2)
+    mu = torch.zeros(batch_size, latent_dim)
+    logvar = torch.zeros(batch_size, latent_dim)
+
+    # MSE = mean((0-1)^2) = 1 per element, 4 elements per modality
+    # Reduction='sum' = 4.0
+    expected_recon = (1.0 * 4 + 1.0 * 4) * 1e-4  # scale_factor
+
+    loss = elbo_loss(
+        recon_modality1,
+        modality1,
+        recon_modality2,
+        modality2,
+        mu,
+        logvar,
+        lambda_modality1=1.0,
+        lambda_modality2=1.0,
+        annealing_factor=1.0,
+        scale_factor=1e-4,
+    )
+    assert torch.isclose(loss, torch.tensor(expected_recon), atol=1e-6)
