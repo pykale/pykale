@@ -2,7 +2,6 @@
 ImageNet). The code is based on https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/modules.py,
  which is for domain adaptation.
 """
-
 import torch.nn as nn
 from torch.nn import functional as F
 from torchvision import models
@@ -15,10 +14,10 @@ class Flatten(nn.Module):
     the batch size.
 
     Examples:
-        >>> x = torch.randn(8, 3, 224, 224)
-        >>> x = Flatten()(x)
-        >>> print(x.shape)
-        >>> (8, 150528)
+        x = torch.randn(8, 3, 224, 224)
+        x = Flatten()(x)
+        print(x.shape)
+        (8, 150528)
     """
 
     def __init__(self):
@@ -34,10 +33,10 @@ class Identity(nn.Module):
     It returns the input tensor as the output.
 
     Examples:
-        >>> x = torch.randn(8, 3, 224, 224)
-        >>> x = Identity()(x)
-        >>> print(x.shape)
-        >>> (8, 3, 224, 224)
+        x = torch.randn(8, 3, 224, 224)
+        x = Identity()(x)
+        print(x.shape)
+        (8, 3, 224, 224)
     """
 
     def __init__(self):
@@ -57,7 +56,7 @@ class SmallCNNFeature(nn.Module):
         kernel_size (int): the size of the convolution kernel (default=5).
 
     Examples::
-        >>> feature_network = SmallCNNFeature(num_channels)
+        feature_network = SmallCNNFeature(num_channels)
     """
 
     def __init__(self, num_channels=3, kernel_size=5):
@@ -387,3 +386,48 @@ class LeNet(nn.Module):
         if self.squeeze_output:
             return output.squeeze()
         return output
+
+
+class ImageVAEEncoder(nn.Module):
+    """
+    ImageVAEEncoder encodes 2D image data into a latent representation for use in a Variational Autoencoder (VAE).
+
+    This encoder consists of a stack of convolutional layers followed by fully connected layers to produce the
+    mean and log-variance of the latent Gaussian distribution. It is suitable for compressing image modalities
+    (such as chest X-rays) into a lower-dimensional latent space, facilitating downstream tasks like reconstruction,
+    multimodal learning, or generative modelling.
+
+    Args:
+        input_channels (int, optional): Number of input channels in the image (e.g., 1 for grayscale, 3 for RGB). Default is 1.
+        latent_dim (int, optional): Dimensionality of the latent space representation. Default is 256.
+
+    Forward Input:
+        x (Tensor): Input image tensor of shape (batch_size, input_channels, H, W).
+
+    Forward Output:
+        mu (Tensor): Mean vector of the latent Gaussian distribution, shape (batch_size, latent_dim).
+        logvar (Tensor): Log-variance vector of the latent Gaussian, shape (batch_size, latent_dim).
+
+    Example:
+        encoder = ImageVAEEncoder(input_channels=1, latent_dim=128)
+        mu, logvar = encoder(images)
+    """
+
+    def __init__(self, input_channels=1, latent_dim=256):
+        super().__init__()
+        self.conv1 = nn.Conv2d(input_channels, 16, kernel_size=3, stride=2, padding=1)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1)
+        self.flatten = nn.Flatten()
+        self.fc_mu = nn.Linear(64 * 28 * 28, latent_dim)
+        self.fc_logvar = nn.Linear(64 * 28 * 28, latent_dim)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = self.relu(self.conv1(x))
+        x = self.relu(self.conv2(x))
+        x = self.relu(self.conv3(x))
+        x = self.flatten(x)
+        mu = self.fc_mu(x)
+        logvar = self.fc_logvar(x)
+        return mu, logvar
