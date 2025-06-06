@@ -304,7 +304,7 @@ def test_on_train_epoch_start(dummy_model, dummy_config):
         trainer.epoch_lamb_da = 0
         trainer.on_train_epoch_start()
         trainer.log.assert_called_with(
-            "DA loss lambda", trainer.epoch_lamb_da, on_step=False, on_epoch=True, prog_bar=True, logger=True
+            "DA loss lambda", trainer.epoch_lamb_da, on_step=False, on_epoch=True, prog_bar=False, logger=True
         )
         assert trainer.epoch_lamb_da == 0
 
@@ -313,7 +313,7 @@ def test_on_train_epoch_start(dummy_model, dummy_config):
         mock_epoch.return_value = 2
         trainer.on_train_epoch_start()
         trainer.log.assert_called_with(
-            "DA loss lambda", trainer.epoch_lamb_da, on_step=False, on_epoch=True, prog_bar=True, logger=True
+            "DA loss lambda", trainer.epoch_lamb_da, on_step=False, on_epoch=True, prog_bar=False, logger=True
         )
         assert trainer.epoch_lamb_da == 1
 
