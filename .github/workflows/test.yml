@@ -55,7 +55,7 @@ jobs:
           # We set a date tag to the cache key to show the updated date of the cache. We can update this date tag to
           # generate new cache after every major changes in setup.py.
 
-      - name: Install dependencies
+      - name: Install PyTorch + PyG
         run: |
           pip install rdkit
           pip install gdown
@@ -66,8 +66,12 @@ jobs:
           pip install torch_sparse==0.6.18 -f https://data.pyg.org/whl/torch-2.3.0+cpu.html
           pip install torch_cluster==1.6.3 -f https://data.pyg.org/whl/torch-2.3.0+cpu.html
           pip install torch_spline_conv==1.2.2 -f https://data.pyg.org/whl/torch-2.3.0+cpu.html
-          pip install torch_geometric==2.3.0
           pip install -e .[dev]
+        shell: bash -l {0}
+
+      - name: Install project and dev dependencies
+        run: |
+          pip install --no-build-isolation -e .[dev]
         shell: bash -l {0}
 
       - name: Cache downloaded test data

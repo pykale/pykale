@@ -18,9 +18,7 @@ install_requires = [
     "numpy>=2.0.0",  # Numpy 2.0.0+ is needed
     "pandas",  # sure
     "pytorch-lightning==2.3.2",  # in pipeline API only
-    "scikit-learn>=1.5.1",  # sure
     "scipy>=1.13.0",  # scipy 1.14.0 supports python 3.10+
-    "pytorch-lightning>=2.0.0",  # in pipeline API only
     "scikit-learn>=1.6.1",
     "scipy>=1.5.4",  # in factorization API only
     "tensorly>=0.5.1",  # in factorization and model_weights API only
@@ -54,7 +52,7 @@ example_requires = [
     "matplotlib<=3.10.0",  # matplotlib 3.10.1 will cause "Building wheel for matplotlib (setup.py): finished with status 'error'" for tests
     "nilearn>=0.7.0",
     "Pillow",
-    "PyTDC",
+    "PyTDC<=0.3.6",
     "seaborn",
     "torchsummary>=1.5.0",
     "yacs>=0.1.7",
@@ -131,7 +129,6 @@ setup(
         "full": full_requires,
         "dev": dev_requires,
     },
-    setup_requires=["setuptools==74.1.0"],
     license="MIT",
     keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
     classifiers=[
