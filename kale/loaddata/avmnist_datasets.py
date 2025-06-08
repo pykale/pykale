@@ -96,10 +96,10 @@ class AVMNISTDataset:
         )
 
     def get_train_loader(self, shuffle=True):
-        return DataLoader(self.train_data, shuffle=shuffle, num_workers=4, batch_size=self.batch_size)
+        return DataLoader(self.train_data, shuffle=shuffle, num_workers=0, batch_size=self.batch_size)
 
     def get_valid_loader(self, shuffle=False):
-        return DataLoader(self.valid_data, shuffle=shuffle, num_workers=4, batch_size=self.batch_size)
+        return DataLoader(self.valid_data, shuffle=shuffle, num_workers=0, batch_size=self.batch_size)
 
     def get_test_loader(self, shuffle=False):
-        return DataLoader(self.test_data, shuffle=shuffle, num_workers=4, batch_size=self.batch_size)
+        return DataLoader(self.test_data, shuffle=shuffle, num_workers=0, batch_size=self.batch_size)
