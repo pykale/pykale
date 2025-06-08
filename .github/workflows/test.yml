@@ -60,6 +60,7 @@ jobs:
           pip install rdkit
           pip install gdown
           pip install pyparsing==3.0.9
+          pip install numpy==2.3.0
           pip install torch==2.3.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torchvision==0.18.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torch_scatter==2.1.2 -f https://data.pyg.org/whl/torch-2.3.0+cpu.html
