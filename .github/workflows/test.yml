@@ -91,9 +91,12 @@ jobs:
           python tests/download_test_data.py
         shell: bash -l {0}
 
-      - name: Run tests
+      - name: Run tests with thread limits
         id: run_tests
         run: |
+          export OMP_NUM_THREADS=1
+          export MKL_NUM_THREADS=1
+          export NUMEXPR_NUM_THREADS=1
           pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
