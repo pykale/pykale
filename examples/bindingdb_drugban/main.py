@@ -26,7 +26,6 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 
 from kale.loaddata.molecular_datasets import graph_collate_func
 from kale.utils.seed import set_seed
-from kale.utils.setup import setup_device
 
 
 def arg_parse():
@@ -40,9 +39,6 @@ def arg_parse():
 def main():
     # ---- ignore warnings ----
     warnings.filterwarnings("ignore", message="invalid value encountered in divide")
-
-    # ---- setup device----
-    device = setup_device()
 
     # ---- setup configs ----
     args = arg_parse()
