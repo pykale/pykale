@@ -196,6 +196,9 @@ def test_on_test_epoch_end(dummy_model, dummy_config):
     trainer.test_metrics.compute = MagicMock(return_value={"test_acc": 0.85})
     trainer.test_metrics.reset = MagicMock()
     trainer.log_dict = MagicMock()
+    # Add enough dummy predictions and targets to avoid empty sequence errors
+    trainer.test_preds.append(torch.tensor([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]))
+    trainer.test_targets.append(torch.tensor([0, 1, 0, 1, 0, 1, 0, 1]))
     trainer.on_test_epoch_end()
 
 
@@ -484,3 +487,64 @@ def test_training_step_da_target_branch_random_layer(dummy_model, dummy_config, 
         # Should run without error and return a loss
         loss = trainer.training_step(dummy_da_batch, 0)
         assert loss is not None
+
+
+def test_configure_optimizers_with_da(dummy_model, dummy_config):
+    config = dummy_config.copy()
+    config["is_da"] = True
+    config["da_random_layer"] = False
+    trainer = DrugbanTrainer(model=dummy_model, **config)
+
+    # Patch domain_discriminator to have parameters
+    class DummyDiscriminator(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.fc = nn.Linear(20, 2)
+
+        def forward(self, x):
+            return self.fc(x)
+
+    trainer.domain_discriminator = DummyDiscriminator()
+    opt, opt_da = trainer.configure_optimizers()
+    assert isinstance(opt, torch.optim.Adam)
+    assert isinstance(opt_da, torch.optim.Adam)
+    assert opt.param_groups[0]["lr"] == config["solver_lr"]
+    assert opt_da.param_groups[0]["lr"] == config["solver_da_lr"]
+
+
+def test_training_step_binary_class():
+    # Set up config for binary classification (num_classes == 1)
+    dummy_config = {
+        "solver_lr": 1e-3,
+        "num_classes": 1,
+        "batch_size": 4,
+        "is_da": False,
+        "solver_da_lr": 1e-3,
+        "da_init_epoch": 1,
+        "da_method": "CDAN",
+        "original_random": False,
+        "use_da_entropy": False,
+        "da_random_layer": False,
+        "da_random_dim": 64,
+        "decoder_in_dim": 10,
+    }
+
+    class BinaryModel(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.fc = nn.Linear(10, 1)
+
+        def forward(self, v_d, v_p):
+            return v_d, v_p, torch.cat((v_d, v_p), dim=1), self.fc(v_d)  # shape [batch, 1]
+
+    model = BinaryModel()
+    # Create a batch with correct shapes
+    v_d = torch.rand(4, 10)
+    v_p = torch.rand(4, 10)
+    labels = torch.randint(0, 2, (4,)).float()
+    dummy_batch = (v_d, v_p, labels)
+    trainer = DrugbanTrainer(model=model, **dummy_config)
+    trainer.manual_backward = lambda loss: loss.backward()
+    trainer._trainer = MagicMock()
+    loss = trainer.training_step(dummy_batch, 0)
+    assert loss is not None

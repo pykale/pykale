@@ -10,15 +10,17 @@ This is refactored from: https://github.com/peizhenbai/DrugBAN/blob/main/trainer
 """
 
 
+import numpy as np
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
+from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_curve, roc_auc_score, roc_curve
 from torch.nn import functional as F
 from torchmetrics import Accuracy, AUROC, F1Score, MetricCollection, Recall, Specificity
 
 from kale.embed.ban import RandomLayer
 from kale.evaluate.metrics import binary_cross_entropy, cross_entropy_logits, entropy_logits
-from kale.pipeline.domain_adapter import GradReverse as ReverseLayerF
+from kale.pipeline.domain_adapter import GradReverse
 from kale.predict.class_domain_nets import DomainNetSmallImage
 
 
@@ -31,7 +33,19 @@ class DrugbanTrainer(pl.LightningModule):
 
     Args:
         model (torch.nn.Module): The model to be trained.
-        config (dict): Configuration dictionary containing model, DA, and training settings.
+        solver_lr (float): Learning rate for the main optimiser.
+        num_classes (int): Number of output classes.
+        batch_size (int): Batch size used during training and evaluation.
+        is_da (bool): Whether to use domain adaptation (True) or not (False).
+        solver_da_lr (float): Learning rate for the domain discriminator optimiser (if DA is enabled).
+        da_init_epoch (int): Epoch at which to start applying domain adaptation loss.
+        da_method (str): Domain adaptation method to use, e.g., "CDAN".
+        original_random (bool): Whether to use the original random layer from the CDAN implementation.
+        use_da_entropy (bool): Whether to weight domain adaptation loss using entropy-based sample weighting.
+        da_random_layer (bool): Whether to apply a random layer before the domain discriminator.
+        da_random_dim (int): Output dimensionality of the random layer (if used).
+        decoder_in_dim (int): Dimensionality of the feature vector input to the domain discriminator.
+        **kwargs: Additional keyword arguments (not used directly but allows for flexibility).
     """
 
     def __init__(
@@ -73,24 +87,17 @@ class DrugbanTrainer(pl.LightningModule):
             # set up discriminator
             if da_random_layer:
                 # Initialize the Discriminator with an input size from the random dimension specified in the config
-                # self.domain_discriminator = Discriminator(input_size=da_random_dim, n_class=self.num_classes)
-                self.domain_discriminator = DomainNetSmallImage(
-                    input_size=da_random_dim,
-                    bigger_discrim=True,
-                    hidden_size=256,
-                    deep_hidden_size=256,
-                    num_classes=self.num_classes,
-                )
+                input_size = da_random_dim
             else:
                 # Initialize the Discriminator with an input size derived from the decoder's input dimension
-                # self.domain_discriminator = Discriminator(input_size=decoder_in_dim * self.num_classes, n_class=self.num_classes)
-                self.domain_discriminator = DomainNetSmallImage(
-                    input_size=decoder_in_dim * self.num_classes,
-                    bigger_discrim=True,
-                    hidden_size=256,
-                    deep_hidden_size=256,
-                    num_classes=self.num_classes,
-                )
+                input_size = decoder_in_dim * self.num_classes
+            self.domain_discriminator = DomainNetSmallImage(
+                input_size=input_size,
+                bigger_discrim=True,
+                hidden_size=256,
+                deep_hidden_size=256,
+                num_classes=self.num_classes,
+            )
 
             # setup random layer
             if da_random_layer and not self.original_random:
@@ -137,6 +144,11 @@ class DrugbanTrainer(pl.LightningModule):
         self.valid_metrics = metrics.clone(prefix="val_")
         self.test_metrics = metrics.clone(prefix="test_")
 
+        # metrics with scikit-learn
+        self.test_preds = []
+        self.test_targets = []
+        self.test_results = []
+
     def configure_optimizers(self):
         """
         Configure the optimizers for the DrugBAN model and the Domain Discriminator model if DA is used.
@@ -165,7 +177,7 @@ class DrugbanTrainer(pl.LightningModule):
 
     def _compute_entropy_weights(self, logits):
         entropy = entropy_logits(logits)
-        entropy = ReverseLayerF.apply(entropy, self.alpha)
+        entropy = GradReverse.apply(entropy, self.alpha)
         entropy_w = 1.0 + torch.exp(-entropy)
         return entropy_w
 
@@ -225,7 +237,7 @@ class DrugbanTrainer(pl.LightningModule):
 
                 if self.da_method == "CDAN":
                     # ---- source----
-                    reverse_f = ReverseLayerF.apply(f, self.alpha)
+                    reverse_f = GradReverse.apply(f, self.alpha)
                     softmax_output = torch.nn.Softmax(dim=1)(score_src)
                     softmax_output = softmax_output.detach()
 
@@ -242,7 +254,7 @@ class DrugbanTrainer(pl.LightningModule):
                             adv_output_score_src = self.domain_discriminator(feature)
 
                     # ---- target ----
-                    reverse_f_t = ReverseLayerF.apply(f_t, self.alpha)
+                    reverse_f_t = GradReverse.apply(f_t, self.alpha)
                     softmax_output_t = torch.nn.Softmax(dim=1)(score_tgt)
                     softmax_output_t = softmax_output_t.detach()
 
@@ -335,6 +347,11 @@ class DrugbanTrainer(pl.LightningModule):
             n = F.softmax(score, dim=1)[:, 1]
             loss, _ = cross_entropy_logits(score, labels)
 
+        # f1 metrics with scikit-learn
+        preds = n.detach().cpu()  # sigmoid scores
+        self.test_preds.append(preds)
+        self.test_targets.append(labels.long().cpu())
+
         # ---- metrics update ----
         self.test_metrics.update(n, labels.long())
 
@@ -345,6 +362,51 @@ class DrugbanTrainer(pl.LightningModule):
         """
         At the end of the test epoch, compute and log the test metrics, and reset the test metrics.
         """
+        # # sklearn metrics with Peizhen's implementation
+        # # === Custom F1 with optimal threshold ===
+        y_pred = torch.cat(self.test_preds).cpu().numpy()
+        y_label = torch.cat(self.test_targets).cpu().numpy()
+
+        # === ROC and PR curve metrics ===
+        auroc = roc_auc_score(y_label, y_pred)
+
+        fpr, tpr, thresholds = roc_curve(y_label, y_pred)
+        prec, recall, _ = precision_recall_curve(y_label, y_pred)
+
+        # === Optimal F1 threshold ===
+        precision = tpr / (tpr + fpr)
+        f1_scores = 2 * precision * tpr / (tpr + precision + 0.00001)
+        thred_optim = thresholds[5:][np.argmax(f1_scores[5:])]
+
+        # optimal thresholding for F1
+        y_pred_bin = [1 if i else 0 for i in (y_pred >= thred_optim)]
+        # threshold = 0.5 for F1
+        # y_pred_bin = (y_pred >= 0.5).astype(int)
+
+        # === Global confusion matrix ===
+        cm1 = confusion_matrix(y_label, y_pred_bin)
+        accuracy = (cm1[0, 0] + cm1[1, 1]) / sum(sum(cm1))
+        sensitivity = cm1[0, 0] / (cm1[0, 0] + cm1[0, 1])
+        specificity = cm1[1, 1] / (cm1[1, 0] + cm1[1, 1])
+
+        # === Global metrics ===
+        auroc = roc_auc_score(y_label, y_pred)
+        f1 = np.max(f1_scores[5:])
+        accuracy = accuracy_score(y_label, y_pred_bin)
+
+        # === Log ====
+        self.log("test_auroc_sklearn", auroc, prog_bar=False)
+        self.log("test_accuracy_sklearn", accuracy, prog_bar=False)
+        self.log("test_f1_sklearn", f1, prog_bar=False)
+        self.log("test_sensitivity", sensitivity, prog_bar=False)
+        self.log("test_specificity", specificity, prog_bar=False)
+        self.log("test_optim_threshold", thred_optim)
+
+        # Clear
+        self.test_preds.clear()
+        self.test_targets.clear()
+
+        # torchmetrics
         output = self.test_metrics.compute()
         self.log_dict(output)
         self.test_metrics.reset()

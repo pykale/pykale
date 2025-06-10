@@ -48,8 +48,9 @@ def main():
     args = arg_parse()
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
-    set_seed(cfg.SOLVER.SEED)
-    pl.seed_everything(cfg.SOLVER.SEED, workers=True)
+    SEED = cfg.SOLVER.SEED
+    set_seed(SEED)
+    pl.seed_everything(SEED, workers=True)
 
     # ---- setup dataset ----
     dataFolder = os.path.join(f"./datasets/{cfg.DATA.DATASET}", str(cfg.DATA.SPLIT))
