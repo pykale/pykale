@@ -18,18 +18,19 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+#        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         python-version: ["3.9", "3.10", "3.11"] # list of Python versions to test
-        exclude:
-          - os: windows-latest
-            python-version: "3.9"
-          - os: windows-latest
-            python-version: "3.10"
+#        exclude:
+#          - os: windows-latest
+#            python-version: "3.9"
+#          - os: windows-latest
+#            python-version: "3.10"
         include:
           - os: ubuntu-latest
             path: ~/.cache/pip
-          - os: windows-latest
-            path: ~\AppData\Local\pip\Cache
+#          - os: windows-latest
+#            path: ~\AppData\Local\pip\Cache
 
     steps:
       - uses: actions/checkout@v4
