@@ -1,7 +1,7 @@
 # This is for cross-domain experiments using DrugBAN with domain adaptation.
 
 DATA:
-  DATASET: "biosnap" # bindingdb, biosnap
+  DATASET: "bindingdb" # bindingdb, biosnap
   SPLIT: "cluster"
 
 SOLVER:
@@ -9,7 +9,7 @@ SOLVER:
   MAX_EPOCH: 100
   LEARNING_RATE: 1e-4
   DA_LEARNING_RATE: 5e-5
-  SEED: 42
+  SEED: 20
 
 DA:
   TASK: True
