@@ -3,9 +3,16 @@
 #         Haiping Lu, h.lu@sheffield.ac.uk or hplu@ieee.org
 # =============================================================================
 
+
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from matplotlib.cm import get_cmap
+from nilearn.plotting import plot_connectome
+from sklearn.utils._param_validation import Interval, Real, validate_params
+from sklearn.utils.validation import indexable
+
+from .model_weights import get_top_symmetric_weight
 
 
 def _none2dict(kwarg):
@@ -192,3 +199,73 @@ def distplot_1d(
     plt.legend()
 
     return fig
+
+
+@validate_params(
+    {
+        "weights": ["array-like"],
+        "labels": ["array-like"],
+        "coords": ["array-like"],
+        "p": [Interval(Real, 0, 1, closed="neither")],
+        "cmap": [str],
+        "marker_size": [Real],
+        "legend_params": [dict],
+    },
+    prefer_skip_nested_validation=True,
+)
+def visualize_connectome(weights, labels, coords, p=1e-3, cmap="tab20", marker_size=100, legend_params={}):
+    """
+    Visualize the top-p weighted ROI connections as a symmetric connectome plot.
+
+    Selects the top `p` proportion of the largest (by absolute value) ROI pairwise weights,
+    builds a symmetric connectivity matrix, and plots the connectome using `nilearn.plotting.plot_connectome`.
+
+    Args:
+        weights (array-like):
+            1D array of edge weights corresponding to each unique ROI pair. Typically output from a model or analysis.
+        labels (array-like):
+            ROI names of shape (n_rois,). These correspond to region names in the brain atlas.
+        coords (array-like):
+            ROI coordinates of shape (n_rois, 3). Specifies 3D spatial locations of the ROIs.
+        p (float, optional):
+            Proportion of top-weighted connections to include (default: 1e-3). Must be in the open interval (0, 1).
+        cmap (str, optional):
+            Name of matplotlib colormap used for ROI node coloring (default: 'tab20').
+        marker_size (float, optional):
+            Size of node markers (default: 100).
+        legend_params (dict, optional):
+            Additional keyword arguments passed to the legend (e.g., `loc`, `fontsize`).
+
+    Returns:
+        nilearn.plotting.displays._projectors.ConnectivityProjection:
+            A `nilearn` projection object representing the plotted connectome. Supports further customization
+            such as saving or adding overlays.
+
+    Note:
+        - Assumes the weights are either symmetric or should be treated as symmetric.
+        - Useful for visualizing connectivity graphs derived from model interpretation or brain network analysis.
+    """
+    # Ensure same lengths for labels and coords
+    labels, coords = indexable(labels, coords)
+    marker_colors = get_cmap(cmap)(np.arange(len(labels)))
+    sym_weights, labels, coords = get_top_symmetric_weight(weights, labels, coords, p)
+
+    # Ensure same lengths for weights, labels, and coords
+    sym_weights, labels, coords = indexable(sym_weights, labels, coords)
+
+    # Visualize the connectome
+    proj = plot_connectome(sym_weights, coords, colorbar=True)
+
+    # Add markers for each ROI
+    for i in range(len(labels)):
+        proj.add_markers(
+            [coords[i]],
+            marker_color=marker_colors[i],
+            marker_size=marker_size,
+            label=labels[i],
+        )
+
+    # Set legend parameters
+    proj.axes[next(iter(proj.axes))].ax.legend(**legend_params)
+
+    return proj
