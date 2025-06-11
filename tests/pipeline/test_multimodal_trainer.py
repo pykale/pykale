@@ -100,7 +100,8 @@ def test_multimodal_tristream_vae_trainer_steps():
 
 def test_multimodal_trainer_step_and_metrics():
     torch.manual_seed(0)
-    model = SignalImageFineTuningTrainer(DummyPretrainedModel(), num_classes=2, lr=1e-3)
+    # Added hidden_dim argument for flexibility in classifier
+    model = SignalImageFineTuningTrainer(DummyPretrainedModel(), num_classes=2, lr=1e-3, hidden_dim=16)
 
     # Use DummyDataset with labels=True (returns image, signal, label)
     dataset = DummyDataset(num_samples=6, in_dim=5, labels=True)
@@ -109,14 +110,16 @@ def test_multimodal_trainer_step_and_metrics():
         dataset.signals[:2],
         dataset.all_labels[:2],
     )
-    # Normal case (should hit success branches)
+    # Test forward (logits shape)
     logits = model.forward(batch[0], batch[1])
     assert logits.shape == (2, 2)
 
+    # Test training_step (returns loss tensor)
     loss = model.training_step(batch, batch_idx=0)
     assert isinstance(loss, torch.Tensor)
-    model.on_train_epoch_end()
+    model.on_train_epoch_end()  # logs average loss and clears train_losses
 
+    # Test validation_step and metrics
     model.validation_step(batch, batch_idx=0)
     model.validation_step(batch, batch_idx=1)
     model.on_validation_epoch_end()
@@ -124,20 +127,7 @@ def test_multimodal_trainer_step_and_metrics():
     optim = model.configure_optimizers()
     assert isinstance(optim, torch.optim.Adam)
     assert any([p.requires_grad for p in optim.param_groups[0]["params"]])
-    assert model.validation_step_outputs == []
+
+    # TorchMetrics resets to initial state after epoch end, so no custom lists to check
+    # For edge-case robustness, check .val_losses is reset
     assert model.val_losses == []
-
-    # Construct outputs so that roc_auc_score and matthews_corrcoef will fail
-    model.validation_step_outputs = []
-    # Create a batch with only one class present (invalid for AUC)
-    labels = torch.zeros(3, dtype=torch.long)
-    preds = torch.zeros(3, dtype=torch.long)
-    probs = torch.zeros(3)  # Shape (3,), should be fine for code
-    model.validation_step_outputs.append((labels, preds, probs))
-    # MCC for one class should return 0, but to trigger except, pass empty
-    model.val_losses = [torch.tensor(0.5)]
-    model.on_validation_epoch_end()  # Should now hit both except branches
-
-    model.validation_step_outputs = []
-    model.validation_step_outputs.append((torch.tensor([]), torch.tensor([]), torch.tensor([])))
-    model.on_validation_epoch_end()

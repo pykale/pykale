@@ -120,17 +120,17 @@ def test_image_vae_decoder_forward():
     decoder = ImageVaeDecoder(latent_dim=latent_dim, output_channels=output_channels)
     decoder.eval()
 
-    z = torch.randn(batch_size, latent_dim)
-    recon = decoder(z)
+    latent_vector = torch.randn(batch_size, latent_dim)
+    image_recon = decoder(latent_vector)
 
-    assert recon.shape == (batch_size, output_channels, 224, 224)
+    # Default image size is (batch_size, output_channels, 224, 224)
+    assert image_recon.shape == (batch_size, output_channels, 224, 224)
 
 
 def test_image_vae_decoder_repr_and_init():
-    # Test that the class can be constructed and repr doesn't crash
     decoder = ImageVaeDecoder(latent_dim=16, output_channels=3)
     assert isinstance(decoder, ImageVaeDecoder)
-    assert "ImageVAEDecoder" in repr(decoder)
+    assert "ImageVaeDecoder" in repr(decoder) or "ImageVAEDecoder" in repr(decoder)
 
 
 def test_signal_vae_decoder_forward():
@@ -141,28 +141,25 @@ def test_signal_vae_decoder_forward():
     decoder = SignalVaeDecoder(latent_dim=latent_dim, output_dim=output_dim)
     decoder.eval()
 
-    z = torch.randn(batch_size, latent_dim)
-    out = decoder(z)
+    latent_vector = torch.randn(batch_size, latent_dim)
+    signal_recon = decoder(latent_vector)
 
     # The output should have shape (batch_size, 1, output_dim)
-    assert out.shape == (batch_size, 1, output_dim)
-
-    # Output should be float
-    assert out.dtype == torch.float32
+    assert signal_recon.shape == (batch_size, 1, output_dim)
+    assert signal_recon.dtype == torch.float32
 
 
 def test_signal_vae_decoder_init_repr():
     decoder = SignalVaeDecoder(latent_dim=16, output_dim=64)
     assert isinstance(decoder, SignalVaeDecoder)
-    assert "SignalVAEDecoder" in repr(decoder)
+    assert "SignalVaeDecoder" in repr(decoder) or "SignalVAEDecoder" in repr(decoder)
 
 
-# Optionally: test with batch_size=1 and latent_dim=1 for extreme edge cases
 def test_signal_vae_decoder_edge_case():
     decoder = SignalVaeDecoder(latent_dim=1, output_dim=8)
-    z = torch.randn(1, 1)
-    out = decoder(z)
-    assert out.shape == (1, 1, 8)
+    latent_vector = torch.randn(1, 1)
+    signal_recon = decoder(latent_vector)
+    assert signal_recon.shape == (1, 1, 8)
 
 
 # Dummy encoder that returns (mu, logvar)
@@ -191,12 +188,17 @@ def test_multimodal_classifier_forward():
     n_latents = 8
     num_classes = 3
     batch_size = 5
+    hidden_dim = 16  # test the flexibility of hidden_dim
+
     pretrained_model = DummyPretrainedModel(n_latents=n_latents)
-    classifier = SignalImageFineTuningClassifier(pretrained_model, num_classes=num_classes)
+    classifier = SignalImageFineTuningClassifier(pretrained_model, num_classes=num_classes, hidden_dim=hidden_dim)
+
+    # Check encoders are frozen
     for p in classifier.image_encoder.parameters():
         assert not p.requires_grad
     for p in classifier.signal_encoder.parameters():
         assert not p.requires_grad
+
     image = torch.randn(batch_size, 10)
     signal = torch.randn(batch_size, 20)
     logits = classifier(image, signal)

@@ -11,7 +11,7 @@ import torch
 import torch.nn.functional as F
 import torchmetrics
 
-from kale.evaluate.metrics import multimodal_elbo_loss
+from kale.evaluate.metrics import signal_image_elbo_loss
 from kale.predict.decode import SignalImageFineTuningClassifier
 
 
@@ -141,7 +141,7 @@ class SignalImageTriStreamVAETrainer(pl.LightningModule):
         total_loss = 0.0
         for mode in ["joint", "image_only", "signal_only"]:
             args = loss_args[mode]
-            total_loss += multimodal_elbo_loss(
+            total_loss += signal_image_elbo_loss(
                 args["recon_image"],
                 args["target_image"],
                 args["recon_signal"],
@@ -220,7 +220,7 @@ class SignalImageTriStreamVAETrainer(pl.LightningModule):
         total_loss = 0.0
         for mode in ["joint", "image_only", "signal_only"]:
             args = loss_args[mode]
-            total_loss += multimodal_elbo_loss(
+            total_loss += signal_image_elbo_loss(
                 args["recon_image"],
                 args["target_image"],
                 args["recon_signal"],

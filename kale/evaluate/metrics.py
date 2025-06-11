@@ -447,51 +447,33 @@ def calculate_distance(
     raise Exception("This metric is not still implemented")
 
 
-def multimodal_elbo_loss(
-    recon_modality1,
-    modality1,
-    recon_modality2,
-    modality2,
+def signal_image_elbo_loss(
+    recon_image,
+    target_image,
+    recon_signal,
+    target_signal,
     mu,
     logvar,
-    lambda_modality1=1.0,
-    lambda_modality2=1.0,
+    lambda_image=1.0,
+    lambda_signal=1.0,
     annealing_factor=1.0,
     scale_factor=1e-4,
 ):
     """
-    Computes the Evidence Lower Bound (ELBO) loss for a multimodal variational autoencoder (VAE) with two modalities.
-
-    The loss consists of reconstruction terms (mean squared error for each modality) and a KL-divergence regularizer,
-    which penalizes deviation of the learned latent distribution from the prior. This implementation is generic and supports
-    any two input/output modalities (e.g., image, signal, text).
-
-    Args:
-        recon_modality1 (Tensor or None): Reconstructed output of the first modality.
-        modality1 (Tensor or None): Ground truth input for the first modality.
-        recon_modality2 (Tensor or None): Reconstructed output of the second modality.
-        modality2 (Tensor or None): Ground truth input for the second modality.
-        mu (Tensor): Mean vector of the latent Gaussian, shape (batch_size, latent_dim).
-        logvar (Tensor): Log-variance vector of the latent Gaussian, shape (batch_size, latent_dim).
-        lambda_modality1 (float, optional): Weight for the first modality's reconstruction loss. Default is 1.0.
-        lambda_modality2 (float, optional): Weight for the second modality's reconstruction loss. Default is 1.0.
-        annealing_factor (float, optional): Scaling factor for the KL term (for annealing during training). Default is 1.0.
-        scale_factor (float, optional): Factor to scale the overall reconstruction loss (useful for balancing losses of different scale). Default is 1e-4.
-
-    Returns:
-        loss (Tensor): Total ELBO loss (scalar).
-
-    Example:
-        loss = elbo_loss(recon_img, img, recon_signal, signal, mu, logvar)
+    Computes a multimodal ELBO loss for VAE with image and signal modalities.
     """
-    modality1_mse, modality2_mse = 0.0, 0.0
     eps = 1e-8
-    if recon_modality1 is not None and modality1 is not None:
-        modality1_mse = F.mse_loss(recon_modality1, modality1, reduction="sum")
-    if recon_modality2 is not None and modality2 is not None:
-        modality2_mse = F.mse_loss(recon_modality2, modality2, reduction="sum")
-    recon_loss = (lambda_modality1 * modality1_mse + lambda_modality2 * modality2_mse) * scale_factor
+    image_mse = 0.0
+    signal_mse = 0.0
+
+    if recon_image is not None and target_image is not None:
+        image_mse = F.mse_loss(recon_image, target_image, reduction="sum") * lambda_image
+    if recon_signal is not None and target_signal is not None:
+        signal_mse = F.mse_loss(recon_signal, target_signal, reduction="sum") * lambda_signal
+
+    recon_loss = (image_mse + signal_mse) * scale_factor
     logvar = torch.clamp(logvar, min=-10, max=10)
     kl_div = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp() + eps, dim=1)
     kl_div = kl_div.sum()
-    return recon_loss + annealing_factor * kl_div
+    loss = recon_loss + annealing_factor * kl_div
+    return loss
