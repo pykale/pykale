@@ -130,6 +130,8 @@ class MultiomicsTrainer(pl.LightningModule):
             batch_idx (``int``): Integer displaying index of this batch.
         """
         optimizer = self.optimizers()
+        if not isinstance(optimizer, (list, tuple)):
+            optimizer = [optimizer]
 
         x = []
         adj_t = []
