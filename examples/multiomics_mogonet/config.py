@@ -28,7 +28,7 @@ _C.DATASET.NUM_CLASSES = 5
 # Solver
 # ---------------------------------------------------------
 _C.SOLVER = CfgNode()
-_C.SOLVER.SEED = 2023
+_C.SOLVER.SEED = 42
 _C.SOLVER.MAX_EPOCHS_PRETRAIN = 500
 _C.SOLVER.MAX_EPOCHS = 2500
 
