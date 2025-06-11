@@ -12,14 +12,14 @@ import torch
 import torch.nn as nn
 
 from kale.embed.feature_fusion import ProductOfExperts
-from kale.embed.image_cnn import ImageVAEEncoder
-from kale.embed.signal_cnn import SignalVAEEncoder
-from kale.predict.decode import ImageVAEDecoder, SignalVAEDecoder
+from kale.embed.image_cnn import ImageVaeEncoder
+from kale.embed.signal_cnn import SignalVaeEncoder
+from kale.predict.decode import ImageVaeDecoder, SignalVaeDecoder
 
 
-class BimodalVAE(nn.Module):
+class SignalImageVAE(nn.Module):
     """
-    BimodalVAE performs joint variational autoencoding for two input modalities (such as images and 1D signals).
+    SignalImageVAE performs joint variational autoencoding for two input modality image and signal).
 
     The architecture comprises separate encoders and decoders for each modality (e.g., an image encoder/decoder and a signal encoder/decoder),
     and uses a Product of Experts (PoE) mechanism to fuse the latent distributions from each modality as well as a universal prior expert.
@@ -44,16 +44,16 @@ class BimodalVAE(nn.Module):
         logvar (Tensor): Log-variance vector of the fused latent distribution (batch_size, latent_dim)
 
     Example:
-        model = MultimodalVAE(image_input_channels=1, signal_input_dim=60000, latent_dim=128)
+        model = SignalImageVAE(image_input_channels=1, signal_input_dim=60000, latent_dim=128)
         image_recon, signal_recon, mu, logvar = model(image=image_data, signal=signal_data)
     """
 
     def __init__(self, image_input_channels=1, signal_input_dim=60000, latent_dim=256):
         super().__init__()
-        self.image_encoder = ImageVAEEncoder(image_input_channels, latent_dim)
-        self.signal_encoder = SignalVAEEncoder(signal_input_dim, latent_dim)
-        self.image_decoder = ImageVAEDecoder(latent_dim, image_input_channels)
-        self.signal_decoder = SignalVAEDecoder(latent_dim, signal_input_dim)
+        self.image_encoder = ImageVaeEncoder(image_input_channels, latent_dim)
+        self.signal_encoder = SignalVaeEncoder(signal_input_dim, latent_dim)
+        self.image_decoder = ImageVaeDecoder(latent_dim, image_input_channels)
+        self.signal_decoder = SignalVaeDecoder(latent_dim, signal_input_dim)
         self.experts = ProductOfExperts()
         self.n_latents = latent_dim
 

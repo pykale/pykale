@@ -262,7 +262,7 @@ class VCDN(nn.Module):
         return output
 
 
-class ImageVAEDecoder(nn.Module):
+class ImageVaeDecoder(nn.Module):
     """
     ImageVAEDecoder reconstructs 2D image data from a latent representation in a variational autoencoder (VAE) framework.
 
@@ -274,15 +274,20 @@ class ImageVAEDecoder(nn.Module):
         latent_dim (int, optional): Dimensionality of the input latent vector. Default is 256.
         output_channels (int, optional): Number of channels in the output image (e.g., 1 for grayscale). Default is 1.
 
+        Note:
+            This decoder is specifically designed for reconstructing 224×224 resolution images. The latent-to-feature
+            projection and transposed convolutions are fixed to match this output size, consistent with a typical
+            encoder-decoder setup using 224×224 inputs.
+
     Forward Input:
-        z (Tensor): Latent vector of shape (batch_size, latent_dim).
+        latent_vector (Tensor): Latent vector of shape (batch_size, latent_dim).
 
     Forward Output:
-        x_recon (Tensor): Reconstructed image tensor of shape (batch_size, output_channels, H, W).
+        image_recon (Tensor): Reconstructed image tensor of shape (batch_size, output_channels, H, W).
 
     Example:
-        decoder = ImageVAEDecoder(latent_dim=128, output_channels=1)
-        images_recon = decoder(z)
+        decoder = ImageVaeDecoder(latent_dim=128, output_channels=1)
+        image_recon = decoder(latent_vector)
     """
 
     def __init__(self, latent_dim=256, output_channels=1):
@@ -294,16 +299,16 @@ class ImageVAEDecoder(nn.Module):
         self.relu = nn.ReLU()
         self.output_activation = nn.Sigmoid()
 
-    def forward(self, z):
-        z = self.fc(z)
-        z = z.view(-1, 64, 28, 28)
-        z = self.relu(self.convtrans1(z))
-        z = self.relu(self.convtrans2(z))
-        z = self.output_activation(self.convtrans3(z))
-        return z
+    def forward(self, latent_vector):
+        latent_vector = self.fc(latent_vector)
+        latent_vector = latent_vector.view(-1, 64, 28, 28)
+        latent_vector = self.relu(self.convtrans1(latent_vector))
+        latent_vector = self.relu(self.convtrans2(latent_vector))
+        image_recon = self.output_activation(self.convtrans3(latent_vector))
+        return image_recon
 
 
-class SignalVAEDecoder(nn.Module):
+class SignalVaeDecoder(nn.Module):
     """
     SignalVAEDecoder reconstructs 1D signal data from a latent representation in a variational autoencoder (VAE) framework.
 
@@ -315,16 +320,24 @@ class SignalVAEDecoder(nn.Module):
         latent_dim (int, optional): Dimensionality of the input latent vector. Default is 256.
         output_dim (int, optional): Length of the output 1D signal. Default is 60000.
 
+        Note:
+            This decoder is designed to reconstruct signals with a fixed output length of `output_dim`, which must be divisible by 8.
+            The latent vector is reshaped to a (64, output_dim // 8) feature map and passed through three transposed convolutional layers
+            that double the temporal resolution at each stage, resulting in the final signal length.
+
+            Suitable for use with preprocessed 12-lead ECG signals sampled at 500 Hz (i.e., over 2 minutes, resulting in 60,000 timepoints).
+
     Forward Input:
-        z (Tensor): Latent vector of shape (batch_size, latent_dim).
+        latent_vector (Tensor): Latent vector of shape (batch_size, latent_dim).
 
     Forward Output:
         signal_recon (Tensor): Reconstructed 1D signal tensor of shape (batch_size, 1, output_dim).
 
     Example:
-        decoder = SignalVAEDecoder(latent_dim=128, output_dim=60000)
-        signals_recon = decoder(z)
+        decoder = SignalVaeDecoder(latent_dim=128, output_dim=60000)
+        signal_recon = decoder(latent_vector)
     """
+
 
     def __init__(self, latent_dim=256, output_dim=60000):
         super().__init__()
@@ -335,16 +348,16 @@ class SignalVAEDecoder(nn.Module):
         self.relu = nn.ReLU()
         self.output_activation = nn.Identity()
 
-    def forward(self, z):
-        z = self.fc(z)
-        z = z.view(-1, 64, z.size(1) // 64)
-        z = self.relu(self.convtrans1(z))
-        z = self.relu(self.convtrans2(z))
-        z = self.output_activation(self.convtrans3(z))
-        return z
+    def forward(self, latent_vector):
+        latent_vector = self.fc(latent_vector)
+        latent_vector = latent_vector.view(-1, 64, latent_vector.size(1) // 64)
+        latent_vector = self.relu(self.convtrans1(latent_vector))
+        latent_vector = self.relu(self.convtrans2(latent_vector))
+        signal_recon = self.output_activation(self.convtrans3(latent_vector))
+        return signal_recon
 
 
-class MultimodalClassifier(nn.Module):
+class SignalImageFineTuningClassifier(nn.Module):
     """
     MultimodalClassifier performs supervised classification using frozen encoders from a pre-trained multimodal model.
 
@@ -354,12 +367,14 @@ class MultimodalClassifier(nn.Module):
     sensor fusion, or any paired data where both modalities are available at inference.
 
     Args:
-        pretrained_model (nn.Module): Pre-trained multimodal model containing `image_encoder` and `signal_encoder`.
-        num_classes (int): Number of output classes for classification.
+        pretrained_model (kale.embed.multimodal_encoder.SignalImageVAE): Pre-trained multimodal model.
+        num_classes (int): Number of output classes.
+        hidden_dim (int, optional): Number of hidden units in the classifier. Default is 128.
+
 
     Forward Input:
-        image (Tensor): Image modality tensor, shape (batch_size, ...).
-        signal (Tensor): 1D signal modality tensor, shape (batch_size, ...).
+        image (Tensor): Batch of image modality features, shape (batch_size, channels, height, width).
+        signal (Tensor): Batch of 1D signal modality features, shape (batch_size, channels, length).
 
     Forward Output:
         logits (Tensor): Unnormalized classification scores, shape (batch_size, num_classes).
@@ -369,7 +384,7 @@ class MultimodalClassifier(nn.Module):
         logits = model(images, signals)
     """
 
-    def __init__(self, pretrained_model, num_classes):
+    def __init__(self, pretrained_model, num_classes, hidden_dim=128):
         super().__init__()
         self.image_encoder = pretrained_model.image_encoder
         self.signal_encoder = pretrained_model.signal_encoder
@@ -382,10 +397,10 @@ class MultimodalClassifier(nn.Module):
 
         combined_feature_dim = pretrained_model.n_latents * 2
         self.classifier = nn.Sequential(
-            nn.Linear(combined_feature_dim, 128),
+            nn.Linear(combined_feature_dim, hidden_dim),
             nn.ReLU(),
             nn.Dropout(0.5),
-            nn.Linear(128, num_classes),
+            nn.Linear(hidden_dim, num_classes),
         )
 
     def forward(self, image, signal):

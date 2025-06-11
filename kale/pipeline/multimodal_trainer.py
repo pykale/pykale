@@ -9,13 +9,13 @@ Contains all trainer classes for multimodal training, including MultimodalTriStr
 import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
-from sklearn.metrics import accuracy_score, matthews_corrcoef, roc_auc_score
+import torchmetrics
 
-from kale.evaluate.metrics import elbo_loss
-from kale.predict.decode import MultimodalClassifier
+from kale.evaluate.metrics import multimodal_elbo_loss
+from kale.predict.decode import SignalImageFineTuningClassifier
 
 
-class MultimodalTriStreamVAETrainer(pl.LightningModule):
+class SignalImageTriStreamVAETrainer(pl.LightningModule):
     """
     PyTorch Lightning trainer for tri-stream multimodal variational autoencoders (MVAE) with image and 1D signal modalities.
 
@@ -89,49 +89,69 @@ class MultimodalTriStreamVAETrainer(pl.LightningModule):
         signal, image = batch
         signal = signal.to(self.device)
         image = image.to(self.device)
+
         epoch = self.current_epoch
         annealing_factor = min(epoch / self.annealing_epochs, 1.0)
-        recon_image_joint, recon_signal_joint, mu_joint, logvar_joint = self.model(image, signal)
-        recon_image_only, _, mu_image, logvar_image = self.model(image=image)
-        _, recon_signal_only, mu_signal, logvar_signal = self.model(signal=signal)
         batch_size = signal.size(0)
-        joint_loss = elbo_loss(
-            recon_image_joint,
-            image,
-            recon_signal_joint,
-            signal,
-            mu_joint,
-            logvar_joint,
-            self.lambda_image,
-            self.lambda_signal,
-            annealing_factor,
-            self.scale_factor,
-        )
-        image_loss = elbo_loss(
-            recon_image_only,
-            image,
-            None,
-            None,
-            mu_image,
-            logvar_image,
-            self.lambda_image,
-            self.lambda_signal,
-            annealing_factor,
-            self.scale_factor,
-        )
-        signal_loss = elbo_loss(
-            None,
-            None,
-            recon_signal_only,
-            signal,
-            mu_signal,
-            logvar_signal,
-            self.lambda_image,
-            self.lambda_signal,
-            annealing_factor,
-            self.scale_factor,
-        )
-        train_loss = (joint_loss + image_loss + signal_loss) / batch_size
+
+        # Forward passes for joint, image-only, and signal-only
+        outputs = {
+            "joint": self.model(image, signal),
+            "image_only": self.model(image=image),
+            "signal_only": self.model(signal=signal),
+        }
+
+        # Corresponding targets for each loss type
+        loss_args = {
+            "joint": {
+                "recon_image": outputs["joint"][0],
+                "target_image": image,
+                "recon_signal": outputs["joint"][1],
+                "target_signal": signal,
+                "mu": outputs["joint"][2],
+                "logvar": outputs["joint"][3],
+            },
+            "image_only": {
+                "recon_image": outputs["image_only"][0],
+                "target_image": image,
+                "recon_signal": None,
+                "target_signal": None,
+                "mu": outputs["image_only"][2],
+                "logvar": outputs["image_only"][3],
+            },
+            "signal_only": {
+                "recon_image": None,
+                "target_image": None,
+                "recon_signal": outputs["signal_only"][1],
+                "target_signal": signal,
+                "mu": outputs["signal_only"][2],
+                "logvar": outputs["signal_only"][3],
+            },
+        }
+
+        # Shared loss arguments
+        shared_kwargs = {
+            "lambda_image": self.lambda_image,
+            "lambda_signal": self.lambda_signal,
+            "annealing_factor": annealing_factor,
+            "scale_factor": self.scale_factor,
+        }
+
+        # Compute all three losses using a loop
+        total_loss = 0.0
+        for mode in ["joint", "image_only", "signal_only"]:
+            args = loss_args[mode]
+            total_loss += multimodal_elbo_loss(
+                args["recon_image"],
+                args["target_image"],
+                args["recon_signal"],
+                args["target_signal"],
+                args["mu"],
+                args["logvar"],
+                **shared_kwargs,
+            )
+
+        train_loss = total_loss / batch_size
         self.log("train_loss", train_loss, prog_bar=True, on_step=True, on_epoch=True)
         return train_loss
 
@@ -149,49 +169,68 @@ class MultimodalTriStreamVAETrainer(pl.LightningModule):
         signal, image = batch
         signal = signal.to(self.device)
         image = image.to(self.device)
+
         epoch = self.current_epoch
         annealing_factor = min(epoch / self.annealing_epochs, 1.0)
-        recon_image_joint, recon_signal_joint, mu_joint, logvar_joint = self.model(image, signal)
-        recon_image_only, _, mu_image, logvar_image = self.model(image=image)
-        _, recon_signal_only, mu_signal, logvar_signal = self.model(signal=signal)
         batch_size = signal.size(0)
-        joint_loss = elbo_loss(
-            recon_image_joint,
-            image,
-            recon_signal_joint,
-            signal,
-            mu_joint,
-            logvar_joint,
-            self.lambda_image,
-            self.lambda_signal,
-            annealing_factor,
-            self.scale_factor,
-        )
-        image_loss = elbo_loss(
-            recon_image_only,
-            image,
-            None,
-            None,
-            mu_image,
-            logvar_image,
-            self.lambda_image,
-            self.lambda_signal,
-            annealing_factor,
-            self.scale_factor,
-        )
-        signal_loss = elbo_loss(
-            None,
-            None,
-            recon_signal_only,
-            signal,
-            mu_signal,
-            logvar_signal,
-            self.lambda_image,
-            self.lambda_signal,
-            annealing_factor,
-            self.scale_factor,
-        )
-        val_loss = (joint_loss + image_loss + signal_loss) / batch_size
+
+        # Forward passes for joint, image-only, and signal-only
+        outputs = {
+            "joint": self.model(image, signal),
+            "image_only": self.model(image=image),
+            "signal_only": self.model(signal=signal),
+        }
+
+        # Prepare inputs for loss calculation
+        loss_args = {
+            "joint": {
+                "recon_image": outputs["joint"][0],
+                "target_image": image,
+                "recon_signal": outputs["joint"][1],
+                "target_signal": signal,
+                "mu": outputs["joint"][2],
+                "logvar": outputs["joint"][3],
+            },
+            "image_only": {
+                "recon_image": outputs["image_only"][0],
+                "target_image": image,
+                "recon_signal": None,
+                "target_signal": None,
+                "mu": outputs["image_only"][2],
+                "logvar": outputs["image_only"][3],
+            },
+            "signal_only": {
+                "recon_image": None,
+                "target_image": None,
+                "recon_signal": outputs["signal_only"][1],
+                "target_signal": signal,
+                "mu": outputs["signal_only"][2],
+                "logvar": outputs["signal_only"][3],
+            },
+        }
+
+        shared_kwargs = {
+            "lambda_image": self.lambda_image,
+            "lambda_signal": self.lambda_signal,
+            "annealing_factor": annealing_factor,
+            "scale_factor": self.scale_factor,
+        }
+
+        # Compute the three validation losses
+        total_loss = 0.0
+        for mode in ["joint", "image_only", "signal_only"]:
+            args = loss_args[mode]
+            total_loss += multimodal_elbo_loss(
+                args["recon_image"],
+                args["target_image"],
+                args["recon_signal"],
+                args["target_signal"],
+                args["mu"],
+                args["logvar"],
+                **shared_kwargs,
+            )
+
+        val_loss = total_loss / batch_size
         self.log("val_loss", val_loss, prog_bar=True, on_epoch=True)
         return val_loss
 
@@ -205,9 +244,10 @@ class MultimodalTriStreamVAETrainer(pl.LightningModule):
         return torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
 
-class MultimodalTrainer(pl.LightningModule):
+
+class SignalImageFineTuningTrainer(pl.LightningModule):
     """
-    MultimodalTrainer trains and validates a supervised classifier built on top of frozen encoders from a pre-trained multimodal model.
+    SignalImageFineTuningTrainer trains and validates a supervised classifier built on top of frozen encoders from a pre-trained multimodal model.
 
     This LightningModule wraps a MultimodalClassifier (which fuses representations from image and signal modalities) and supports
     cross-entropy loss optimization, as well as batch-aggregated computation of validation accuracy, ROC-AUC, and MCC.
@@ -215,7 +255,7 @@ class MultimodalTrainer(pl.LightningModule):
     where the encoder weights are fixed.
 
     Args:
-        pretrained_model (nn.Module): Pre-trained multimodal model providing `image_encoder` and `signal_encoder` attributes.
+        pretrained_model (kale.embed.multimodal_encoder.SignalImageVAE): Pre-trained multimodal model providing `image_encoder` and `signal_encoder` attributes.
         num_classes (int, optional): Number of classes for classification. Default is 2.
         lr (float, optional): Learning rate for the optimizer. Default is 1e-3.
 
@@ -227,29 +267,28 @@ class MultimodalTrainer(pl.LightningModule):
         logits (Tensor): Raw classification scores before softmax.
 
     Example:
-        model = MultimodalTrainer(pretrained_model, num_classes=3)
+        model = SignalImageFineTuningTrainer(pretrained_model, num_classes, hidden_dim)
         logits = model(images, signals)
     """
 
-    def __init__(self, pretrained_model, num_classes=2, lr=1e-3):
+    def __init__(self, pretrained_model, num_classes=2, lr=1e-3, hidden_dim=128):
         super().__init__()
-        self.model = MultimodalClassifier(pretrained_model, num_classes)
+        self.model = SignalImageFineTuningClassifier(pretrained_model, num_classes, hidden_dim)
         self.lr = lr
         self.num_classes = num_classes
         self.validation_step_outputs = []
         self.train_losses = []
         self.val_losses = []
 
+        # TorchMetrics (binary since num_classes == 2)
+        self.val_accuracy = torchmetrics.Accuracy(task="binary")
+        self.val_auc = torchmetrics.AUROC(task="binary")
+        self.val_mcc = torchmetrics.MatthewsCorrCoef(task="binary")
+
     def forward(self, image, signal):
-        """
-        Forward pass through the underlying classifier.
-        """
         return self.model(image, signal)
 
     def training_step(self, batch, batch_idx):
-        """
-        Computes and logs the cross-entropy loss for a training batch.
-        """
         image, signal, labels = batch
         logits = self(image, signal)
         loss = F.cross_entropy(logits, labels)
@@ -258,62 +297,37 @@ class MultimodalTrainer(pl.LightningModule):
         return loss
 
     def on_train_epoch_end(self):
-        """
-        Logs the average training loss at the end of each epoch.
-        """
         if self.train_losses:
             avg_loss = torch.stack(self.train_losses).mean().item()
             self.log("train_loss_epoch", avg_loss, prog_bar=True, on_epoch=True)
             self.train_losses.clear()
 
     def validation_step(self, batch, batch_idx):
-        """
-        Collects predictions, probabilities, and ground truths for validation metrics computation.
-        """
         image, signal, labels = batch
         logits = self(image, signal)
         loss = F.cross_entropy(logits, labels)
-        self.val_losses.append(loss.detach().cpu())
-        preds = torch.argmax(torch.softmax(logits, dim=1), dim=1)
-        probs = torch.softmax(logits, dim=1)[:, 1].detach().cpu()
-        labels_cpu = labels.detach().cpu()
-        preds_cpu = preds.detach().cpu()
-        self.validation_step_outputs.append((labels_cpu, preds_cpu, probs))
+        self.val_losses.append(loss.detach())
+
+        preds = torch.argmax(logits, dim=1)
+        probs = torch.softmax(logits, dim=1)[:, 1]
+
+        self.val_accuracy.update(preds, labels)
+        self.val_auc.update(probs, labels)
+        self.val_mcc.update(preds, labels)
 
     def on_validation_epoch_end(self):
-        """
-        Computes and logs validation loss, accuracy, ROC-AUC, and MCC at the end of each validation epoch.
-        """
         if self.val_losses:
             avg_loss = torch.stack(self.val_losses).mean().item()
             self.log("val_loss", avg_loss, prog_bar=True, on_epoch=True)
             self.val_losses.clear()
 
-        labels_all, preds_all, probs_all = [], [], []
-        for labels, preds, probs in self.validation_step_outputs:
-            labels_all.append(labels)
-            preds_all.append(preds)
-            probs_all.append(probs)
+        self.log("val_acc", self.val_accuracy.compute(), prog_bar=True, on_epoch=True)
+        self.log("val_auroc", self.val_auc.compute(), prog_bar=True, on_epoch=True)
+        self.log("val_mcc", self.val_mcc.compute(), prog_bar=True, on_epoch=True)
 
-        if labels_all:
-            labels_all = torch.cat(labels_all).numpy()
-            preds_all = torch.cat(preds_all).numpy()
-            probs_all = torch.cat(probs_all).numpy()
-            acc = accuracy_score(labels_all, preds_all)
-            try:
-                auc = roc_auc_score(labels_all, probs_all)
-            except Exception:
-                auc = float("nan")
-            try:
-                mcc = matthews_corrcoef(labels_all, preds_all)
-            except Exception:
-                mcc = float("nan")
-            self.log("val_acc", acc, prog_bar=True, on_epoch=True)
-            self.log("val_auc", auc, prog_bar=True, on_epoch=True)
-            self.log("val_mcc", mcc, prog_bar=True, on_epoch=True)
-
-        self.validation_step_outputs.clear()
-
+        self.val_accuracy.reset()
+        self.val_auc.reset()
+        self.val_mcc.reset()
     def configure_optimizers(self):
         """
         Configures the Adam optimizer for training the classifier.

@@ -8,9 +8,9 @@ This module provides CNN-based encoders for transforming 1D signals into latent 
 import torch.nn as nn
 
 
-class SignalVAEEncoder(nn.Module):
+class SignalVaeEncoder(nn.Module):
     """
-    SignalVAEEncoder encodes 1D signals into a latent representation suitable for variational autoencoders (VAE).
+    SignalVaeEncoder encodes 1D signals into a latent representation suitable for variational autoencoders (VAE).
 
     This encoder uses a series of 1D convolutional layers to extract hierarchical temporal features from generic 1D signals,
     followed by fully connected layers that output the mean and log-variance vectors for the latent Gaussian distribution.
@@ -28,7 +28,7 @@ class SignalVAEEncoder(nn.Module):
         logvar (Tensor): Log-variance vector of the latent Gaussian, shape (batch_size, latent_dim).
 
     Example:
-        encoder = SignalVAEEncoder(input_dim=60000, latent_dim=128)
+        encoder = SignalVaeEncoder(input_dim=60000, latent_dim=128)
         mu, logvar = encoder(signals)
     """
 

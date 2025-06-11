@@ -3,7 +3,7 @@
 # =============================================================================
 
 from torch.utils.data import Dataset
-
+import numpy as np
 
 class SignalImageDataset(Dataset):
     """
@@ -36,3 +36,41 @@ class SignalImageDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.signal_features[idx], self.image_features[idx]
+
+
+    @classmethod
+    def prepare_data_loaders(cls, signal_features, image_features, train_ratio=0.8, random_seed=None):
+        """
+        Splits the dataset into training and validation subsets.
+
+        Args:
+            signal_features (Tensor or ndarray): Tensor containing the signal features.
+            image_features (Tensor or ndarray): Tensor containing the image features.
+            train_ratio (float, optional): Ratio of the training set (e.g., 0.8 for 80% train, 20% val). Default is 0.8.
+            random_seed (int, optional): Seed for reproducibility.
+
+        Returns:
+            train_dataset (SignalImageDataset): Training subset.
+            val_dataset (SignalImageDataset): Validation subset.
+        """
+        assert len(signal_features) == len(image_features), "Mismatch in number of samples."
+
+        num_samples = len(signal_features)
+        indices = np.arange(num_samples)
+        if random_seed is not None:
+            np.random.seed(random_seed)
+        np.random.shuffle(indices)
+
+        train_size = int(train_ratio * num_samples)
+        train_indices = indices[:train_size]
+        val_indices = indices[train_size:]
+
+        train_signal = signal_features[train_indices]
+        train_image = image_features[train_indices]
+        val_signal = signal_features[val_indices]
+        val_image = image_features[val_indices]
+
+        return (
+            cls(train_signal, train_image),
+            cls(val_signal, val_image)
+        )

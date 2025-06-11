@@ -60,11 +60,11 @@ def topk_accuracy(output, target, topk=(1,)):
         The shape of tensor is batch_size, i.e. the number of predictions.
 
     Examples:
-        output = torch.tensor(([0.3, 0.2, 0.1], [0.3, 0.2, 0.1]))
-        target = torch.tensor((0, 1))
-        top1, top2 = topk_accuracy(output, target, topk=(1, 2)) # get the boolean value
-        top1_value = top1.double().mean() # get the top 1 accuracy score
-        top2_value = top2.double().mean() # get the top 2 accuracy score
+        >>> output = torch.tensor(([0.3, 0.2, 0.1], [0.3, 0.2, 0.1]))
+        >>> target = torch.tensor((0, 1))
+        >>> top1, top2 = topk_accuracy(output, target, topk=(1, 2)) # get the boolean value
+        >>> top1_value = top1.double().mean() # get the top 1 accuracy score
+        >>> top2_value = top2.double().mean() # get the top 2 accuracy score
     """
 
     maxk = max(topk)
@@ -97,15 +97,15 @@ def multitask_topk_accuracy(output, target, topk=(1,)):
         The shape of tensor is batch_size, i.e. the number of predictions.
 
         Examples:
-            first_output = torch.tensor(([0.3, 0.2, 0.1], [0.3, 0.2, 0.1]))
-            first_target = torch.tensor((0, 2))
-            second_output = torch.tensor(([0.2, 0.1], [0.2, 0.1]))
-            second_target = torch.tensor((0, 1))
-            output = (first_output, second_output)
-            target = (first_target, second_target)
-            top1, top2 = multitask_topk_accuracy(output, target, topk=(1, 2)) # get the boolean value
-            top1_value = top1.double().mean() # get the top 1 accuracy score
-            top2_value = top2.double().mean() # get the top 2 accuracy score
+            >>> first_output = torch.tensor(([0.3, 0.2, 0.1], [0.3, 0.2, 0.1]))
+            >>> first_target = torch.tensor((0, 2))
+            >>> second_output = torch.tensor(([0.2, 0.1], [0.2, 0.1]))
+            >>> second_target = torch.tensor((0, 1))
+            >>> output = (first_output, second_output)
+            >>> target = (first_target, second_target)
+            >>> top1, top2 = multitask_topk_accuracy(output, target, topk=(1, 2)) # get the boolean value
+            >>> top1_value = top1.double().mean() # get the top 1 accuracy score
+            >>> top2_value = top2.double().mean() # get the top 2 accuracy score
     """
 
     maxk = max(topk)
@@ -447,7 +447,7 @@ def calculate_distance(
     raise Exception("This metric is not still implemented")
 
 
-def elbo_loss(
+def multimodal_elbo_loss(
     recon_modality1,
     modality1,
     recon_modality2,
