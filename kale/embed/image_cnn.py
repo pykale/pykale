@@ -387,6 +387,7 @@ class LeNet(nn.Module):
             return output.squeeze()
         return output
 
+
 class ImageVaeEncoder(nn.Module):
     """
     ImageVaeEncoder encodes 2D image data into a latent representation for use in a Variational Autoencoder (VAE).

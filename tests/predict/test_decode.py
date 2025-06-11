@@ -3,11 +3,11 @@ import torch
 import torch.nn as nn
 
 from kale.predict.decode import (
-    ImageVAEDecoder,
+    ImageVaeDecoder,
     LinearClassifier,
     MLPDecoder,
-    MultimodalClassifier,
-    SignalVAEDecoder,
+    SignalImageFineTuningClassifier,
+    SignalVaeDecoder,
     VCDN,
 )
 from kale.utils.seed import set_seed
@@ -117,7 +117,7 @@ def test_image_vae_decoder_forward():
     output_channels = 2
     batch_size = 3
 
-    decoder = ImageVAEDecoder(latent_dim=latent_dim, output_channels=output_channels)
+    decoder = ImageVaeDecoder(latent_dim=latent_dim, output_channels=output_channels)
     decoder.eval()
 
     z = torch.randn(batch_size, latent_dim)
@@ -128,8 +128,8 @@ def test_image_vae_decoder_forward():
 
 def test_image_vae_decoder_repr_and_init():
     # Test that the class can be constructed and repr doesn't crash
-    decoder = ImageVAEDecoder(latent_dim=16, output_channels=3)
-    assert isinstance(decoder, ImageVAEDecoder)
+    decoder = ImageVaeDecoder(latent_dim=16, output_channels=3)
+    assert isinstance(decoder, ImageVaeDecoder)
     assert "ImageVAEDecoder" in repr(decoder)
 
 
@@ -138,7 +138,7 @@ def test_signal_vae_decoder_forward():
     output_dim = 32  # Small for test
     batch_size = 4
 
-    decoder = SignalVAEDecoder(latent_dim=latent_dim, output_dim=output_dim)
+    decoder = SignalVaeDecoder(latent_dim=latent_dim, output_dim=output_dim)
     decoder.eval()
 
     z = torch.randn(batch_size, latent_dim)
@@ -152,14 +152,14 @@ def test_signal_vae_decoder_forward():
 
 
 def test_signal_vae_decoder_init_repr():
-    decoder = SignalVAEDecoder(latent_dim=16, output_dim=64)
-    assert isinstance(decoder, SignalVAEDecoder)
+    decoder = SignalVaeDecoder(latent_dim=16, output_dim=64)
+    assert isinstance(decoder, SignalVaeDecoder)
     assert "SignalVAEDecoder" in repr(decoder)
 
 
 # Optionally: test with batch_size=1 and latent_dim=1 for extreme edge cases
 def test_signal_vae_decoder_edge_case():
-    decoder = SignalVAEDecoder(latent_dim=1, output_dim=8)
+    decoder = SignalVaeDecoder(latent_dim=1, output_dim=8)
     z = torch.randn(1, 1)
     out = decoder(z)
     assert out.shape == (1, 1, 8)
@@ -192,7 +192,7 @@ def test_multimodal_classifier_forward():
     num_classes = 3
     batch_size = 5
     pretrained_model = DummyPretrainedModel(n_latents=n_latents)
-    classifier = MultimodalClassifier(pretrained_model, num_classes=num_classes)
+    classifier = SignalImageFineTuningClassifier(pretrained_model, num_classes=num_classes)
     for p in classifier.image_encoder.parameters():
         assert not p.requires_grad
     for p in classifier.signal_encoder.parameters():

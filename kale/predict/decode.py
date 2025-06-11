@@ -338,7 +338,6 @@ class SignalVaeDecoder(nn.Module):
         signal_recon = decoder(latent_vector)
     """
 
-
     def __init__(self, latent_dim=256, output_dim=60000):
         super().__init__()
         self.fc = nn.Linear(latent_dim, 64 * (output_dim // 8))

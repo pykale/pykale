@@ -246,4 +246,3 @@ class ProductOfExperts(nn.Module):
         prod_var = 1.0 / torch.sum(precision, dim=0)
         prod_log_var = torch.log(prod_var + eps)
         return prod_mean, prod_log_var
-

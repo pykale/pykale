@@ -6,7 +6,7 @@ import torch
 from kale.evaluate.metrics import (
     calculate_distance,
     DistanceMetric,
-    elbo_loss,
+    multimodal_elbo_loss,
     multitask_topk_accuracy,
     protonet_loss,
     topk_accuracy,
@@ -144,7 +144,7 @@ def test_elbo_loss_branches(use_modality1, use_modality2):
     mu = torch.zeros(batch_size, latent_dim)
     logvar = torch.zeros(batch_size, latent_dim)
 
-    loss = elbo_loss(
+    loss = multimodal_elbo_loss(
         recon_modality1,
         modality1,
         recon_modality2,
@@ -180,7 +180,7 @@ def test_elbo_loss_values():
     # Reduction='sum' = 4.0
     expected_recon = (1.0 * 4 + 1.0 * 4) * 1e-4  # scale_factor
 
-    loss = elbo_loss(
+    loss = multimodal_elbo_loss(
         recon_modality1,
         modality1,
         recon_modality2,

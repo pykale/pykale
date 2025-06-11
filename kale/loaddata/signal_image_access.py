@@ -2,8 +2,9 @@
 # Author: Mohammod Suvon, m.suvon@sheffield.ac.uk
 # =============================================================================
 
-from torch.utils.data import Dataset
 import numpy as np
+from torch.utils.data import Dataset
+
 
 class SignalImageDataset(Dataset):
     """
@@ -37,7 +38,6 @@ class SignalImageDataset(Dataset):
     def __getitem__(self, idx):
         return self.signal_features[idx], self.image_features[idx]
 
-
     @classmethod
     def prepare_data_loaders(cls, signal_features, image_features, train_ratio=0.8, random_seed=None):
         """
@@ -70,7 +70,4 @@ class SignalImageDataset(Dataset):
         val_signal = signal_features[val_indices]
         val_image = image_features[val_indices]
 
-        return (
-            cls(train_signal, train_image),
-            cls(val_signal, val_image)
-        )
+        return (cls(train_signal, train_image), cls(val_signal, val_image))

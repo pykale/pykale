@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import torch
 
-from kale.embed.multimodal_encoder import BimodalVAE
+from kale.embed.multimodal_encoder import SignalImageVAE
 
 
 def test_bimodal_vae_full_coverage():
@@ -16,7 +16,7 @@ def test_bimodal_vae_full_coverage():
     image = torch.randn(batch_size, image_channels, image_size, image_size)
     signal = torch.randn(batch_size, 1, signal_length)
 
-    model = BimodalVAE(image_input_channels=image_channels, signal_input_dim=signal_length, latent_dim=latent_dim)
+    model = SignalImageVAE(image_input_channels=image_channels, signal_input_dim=signal_length, latent_dim=latent_dim)
 
     # --- Test prior_expert (cpu branch) ---
     mu, logvar = model.prior_expert((1, batch_size, latent_dim), use_cuda=False)

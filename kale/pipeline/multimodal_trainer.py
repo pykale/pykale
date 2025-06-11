@@ -244,7 +244,6 @@ class SignalImageTriStreamVAETrainer(pl.LightningModule):
         return torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
 
-
 class SignalImageFineTuningTrainer(pl.LightningModule):
     """
     SignalImageFineTuningTrainer trains and validates a supervised classifier built on top of frozen encoders from a pre-trained multimodal model.
@@ -328,6 +327,7 @@ class SignalImageFineTuningTrainer(pl.LightningModule):
         self.val_accuracy.reset()
         self.val_auc.reset()
         self.val_mcc.reset()
+
     def configure_optimizers(self):
         """
         Configures the Adam optimizer for training the classifier.

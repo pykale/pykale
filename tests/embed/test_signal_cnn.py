@@ -1,6 +1,6 @@
 import torch
 
-from kale.embed.signal_cnn import SignalVAEEncoder
+from kale.embed.signal_cnn import SignalVaeEncoder
 
 
 def test_signal_vae_encoder_forward():
@@ -13,7 +13,7 @@ def test_signal_vae_encoder_forward():
     x = torch.randn(batch_size, 1, input_dim)
 
     # Initialize encoder
-    encoder = SignalVAEEncoder(input_dim=input_dim, latent_dim=latent_dim)
+    encoder = SignalVaeEncoder(input_dim=input_dim, latent_dim=latent_dim)
 
     # Forward pass
     mu, logvar = encoder(x)

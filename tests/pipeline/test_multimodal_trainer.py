@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
 
-from kale.pipeline.multimodal_trainer import MultimodalTrainer, MultimodalTriStreamVAETrainer
+from kale.pipeline.multimodal_trainer import SignalImageFineTuningTrainer, SignalImageTriStreamVAETrainer
 
 
 class DummyMVAE(nn.Module):
@@ -65,7 +65,7 @@ def test_multimodal_tristream_vae_trainer_steps():
     model = DummyMVAE()
     train_ds = DummyDataset(num_samples=3, in_dim=10, labels=False)
     val_ds = DummyDataset(num_samples=2, in_dim=10, labels=False)
-    trainer_module = MultimodalTriStreamVAETrainer(
+    trainer_module = SignalImageTriStreamVAETrainer(
         model=model,
         train_dataset=train_ds,
         val_dataset=val_ds,
@@ -100,7 +100,7 @@ def test_multimodal_tristream_vae_trainer_steps():
 
 def test_multimodal_trainer_step_and_metrics():
     torch.manual_seed(0)
-    model = MultimodalTrainer(DummyPretrainedModel(), num_classes=2, lr=1e-3)
+    model = SignalImageFineTuningTrainer(DummyPretrainedModel(), num_classes=2, lr=1e-3)
 
     # Use DummyDataset with labels=True (returns image, signal, label)
     dataset = DummyDataset(num_samples=6, in_dim=5, labels=True)
