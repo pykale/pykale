@@ -4,6 +4,7 @@ import pytest
 import torch
 
 from kale.evaluate.metrics import (
+    binary_cross_entropy,
     calculate_distance,
     DistanceMetric,
     multitask_topk_accuracy,
@@ -190,3 +191,46 @@ def test_signal_image_elbo_loss_values():
         scale_factor=1e-4,
     )
     assert torch.isclose(loss, torch.tensor(expected_recon), atol=1e-6)
+
+
+@pytest.mark.parametrize(
+    "output,target",
+    [
+        # Standard case: binary classification with batch size 2
+        (torch.tensor([[0.5], [1.0]], dtype=torch.float32), torch.tensor([0.0, 1.0], dtype=torch.float32)),
+        # Edge case: outputs very close to 0 and 1
+        (torch.tensor([[10.0], [-10.0]], dtype=torch.float32), torch.tensor([1.0, 0.0], dtype=torch.float32)),
+        # Batch size 1
+        (torch.tensor([[0.7]], dtype=torch.float32), torch.tensor([1.0], dtype=torch.float32)),
+        # Batch size >1 with multi-dimensional output
+        (torch.tensor([[0.2], [0.8], [0.4]], dtype=torch.float32), torch.tensor([0.0, 1.0, 0.0], dtype=torch.float32)),
+    ],
+)
+def test_binary_cross_entropy(output, target):
+    n, loss = binary_cross_entropy(output, target)
+
+    # Assert output shape and value constraints
+    assert isinstance(n, torch.Tensor)
+    assert n.shape == target.shape
+    assert torch.all((0 <= n) & (n <= 1))  # Since sigmoid
+
+    # Assert loss is scalar and non-negative
+    assert isinstance(loss, torch.Tensor)
+    assert loss.ndim == 0
+    assert loss.item() >= 0
+
+
+def test_binary_cross_entropy_zero_output():
+    # Case where output tensor is all zeros
+    output = torch.tensor([[0.0], [0.0]], dtype=torch.float32)
+    target = torch.tensor([0.0, 1.0], dtype=torch.float32)
+    n, loss = binary_cross_entropy(output, target)
+    assert isinstance(loss, torch.Tensor)
+
+
+def test_binary_cross_entropy_target_mismatch_shape():
+    # Expect an error if target shape doesn't match input shape
+    output = torch.tensor([[0.5], [1.0]], dtype=torch.float32)
+    target = torch.tensor([[1.0, 0.0]])  # Incorrect shape
+    with pytest.raises(ValueError):  # Correct the expected exception type
+        binary_cross_entropy(output, target)

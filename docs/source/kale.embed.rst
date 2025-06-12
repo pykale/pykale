@@ -6,6 +6,14 @@ Embed
 Submodules
 ----------
 
+kale.embed.ban module
+--------------------------------
+
+.. automodule:: kale.embed.ban
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.embed.attention\_cnn module
 --------------------------------
 

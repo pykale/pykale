@@ -38,6 +38,14 @@ kale.loaddata.mnistm module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.molecular\_datasets module
+---------------------------
+
+.. automodule:: kale.loaddata.molecular_datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.multi\_domain module
 ----------------------------------
 
