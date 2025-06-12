@@ -87,6 +87,14 @@ kale.loaddata.tabular\_access module
    :show-inheritance:
 
 
+kale.loaddata.signal\_access module
+------------------------------------
+
+.. automodule:: kale.loaddata.signal_access
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.signal\_image\_access module
 ------------------------------------
 
