@@ -10,6 +10,7 @@ import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
 import torchmetrics
+from torch.utils.data import DataLoader
 
 from kale.evaluate.metrics import signal_image_elbo_loss
 from kale.predict.decode import SignalImageFineTuningClassifier
@@ -242,6 +243,33 @@ class SignalImageTriStreamVAETrainer(pl.LightningModule):
             torch.optim.Optimizer: The optimizer instance.
         """
         return torch.optim.Adam(self.model.parameters(), lr=self.lr)
+
+    def train_dataloader(self):
+        """
+        Returns a DataLoader for the training set.
+        """
+        return DataLoader(
+            self.train_dataset,
+            batch_size=self.batch_size,
+            shuffle=True,
+            num_workers=self.num_workers,
+            pin_memory=True,
+        )
+
+    def val_dataloader(self):
+        """
+        Returns a DataLoader for the validation set.
+        """
+        if self.val_dataset is not None:
+            return DataLoader(
+                self.val_dataset,
+                batch_size=self.batch_size,
+                shuffle=False,
+                num_workers=self.num_workers,
+                pin_memory=True,
+            )
+        else:
+            return None
 
 
 class SignalImageFineTuningTrainer(pl.LightningModule):

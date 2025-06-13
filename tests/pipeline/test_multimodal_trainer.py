@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 
 from kale.pipeline.multimodal_trainer import SignalImageFineTuningTrainer, SignalImageTriStreamVAETrainer
 
@@ -63,8 +63,8 @@ class DummyPretrainedModel(nn.Module):
 
 def test_multimodal_tristream_vae_trainer_steps():
     model = DummyMVAE()
-    train_ds = DummyDataset(num_samples=3, in_dim=10, labels=False)
-    val_ds = DummyDataset(num_samples=2, in_dim=10, labels=False)
+    train_ds = DummyDataset(num_samples=6, in_dim=10, labels=False)
+    val_ds = DummyDataset(num_samples=3, in_dim=10, labels=False)
     trainer_module = SignalImageTriStreamVAETrainer(
         model=model,
         train_dataset=train_ds,
@@ -78,7 +78,7 @@ def test_multimodal_tristream_vae_trainer_steps():
         scale_factor=1e-4,
     )
 
-    # Test forward
+    # Test forward pass
     dummy_signal = torch.randn(2, 10)
     dummy_image = torch.randn(2, 4, 4)
     out = trainer_module.forward(image=dummy_image, signal=dummy_signal)
@@ -96,6 +96,22 @@ def test_multimodal_tristream_vae_trainer_steps():
     optim = trainer_module.configure_optimizers()
     assert isinstance(optim, torch.optim.Adam)
     assert any([p.requires_grad for p in optim.param_groups[0]["params"]])
+
+    train_loader = trainer_module.train_dataloader()
+    val_loader = trainer_module.val_dataloader()
+
+    assert isinstance(train_loader, DataLoader)
+    assert isinstance(val_loader, DataLoader)
+    # Test if you can get a batch and it's the expected tuple format
+    train_batch = next(iter(train_loader))
+    val_batch = next(iter(val_loader))
+
+    # Each batch should be a tuple of (signal, image)
+    assert isinstance(train_batch, (tuple, list)) and len(train_batch) == 2
+    assert isinstance(val_batch, (tuple, list)) and len(val_batch) == 2
+    # Shape check: should match batch_size for first dimension
+    assert train_batch[0].shape[0] == trainer_module.batch_size or train_batch[0].shape[0] == len(train_ds)
+    assert val_batch[0].shape[0] <= trainer_module.batch_size
 
 
 def test_multimodal_trainer_step_and_metrics():
