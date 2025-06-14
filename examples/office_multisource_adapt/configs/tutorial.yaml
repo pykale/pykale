@@ -8,4 +8,4 @@ DATASET:
   SOURCE: ["webcam", "dslr"]
   NUM_REPEAT: 1
 SOLVER:
-  NUM_WORKERS: 4
+  NUM_WORKERS: 0
