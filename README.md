@@ -9,6 +9,7 @@
 -----------------------------------------
 
 <!-- Keep badges to just ONE line, i.e. only the most important badges! -->
+[![PyTorch Landscape](https://img.shields.io/badge/PyTorch%20Landscape-5699C6)](https://landscape.pytorch.org/?item=training--multimodal--pykale)
 [![tests](https://github.com/pykale/pykale/workflows/test/badge.svg)](https://github.com/pykale/pykale/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/pykale/pykale/branch/main/graph/badge.svg?token=jmIYPbA2le)](https://codecov.io/gh/pykale/pykale)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/pykale/pykale/blob/main/LICENSE)
