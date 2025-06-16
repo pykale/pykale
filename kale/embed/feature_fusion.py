@@ -1,7 +1,8 @@
-"""This module implements three different multimodal fusion methods:
+"""This module implements four different multimodal fusion methods:
 1. Concat
 2. BimodalInteractionFusion
 3. LowRankTensorFusion
+4. ProductOfExperts
 Each of these fusion methods are designed to work with input modalities as PyTorch tensors and perform different
 operations to combine and create a joint representation of the input data.
 Reference: https://github.com/pliang279/MultiBench/blob/main/fusions/common_fusions.py
@@ -211,3 +212,37 @@ class LowRankTensorFusion(nn.Module):
         output = torch.matmul(self.fusion_weights, fused_tensor.permute(1, 0, 2)).squeeze() + self.fusion_bias
         output = output.view(-1, self.output_dim)
         return output
+
+
+class ProductOfExperts(nn.Module):
+    """
+    ProductOfExperts combines multiple independent Gaussian distributions ("experts") into a single Gaussian
+    by computing their product in closed form. This is commonly used in multimodal variational autoencoders (VAE)
+    and probabilistic models to fuse information from different modalities or sources, yielding a consensus latent distribution.
+
+    For each expert, the inputs are mean (`mean`) and log-variance (`log_var`) tensors, and the output is the mean and log-variance
+    of the combined product Gaussian. This formulation enables principled uncertainty fusion and robust inference
+    in the presence of missing or noisy modalities.
+
+    Example:
+        poe = ProductOfExperts()
+        combined_mu, combined_log_var = poe(mu_experts, log_var_experts)
+    """
+
+    def forward(self, mean, log_var, eps=1e-8):
+        """
+        Args:
+            mean (Tensor): Mean values from all experts, shape (num_experts, batch_size, latent_dim)
+            log_var (Tensor): Log-variance values from all experts, shape (num_experts, batch_size, latent_dim)
+            eps (float, optional): Small value for numerical stability. Default is 1e-8.
+
+        Returns:
+            prod_mean (Tensor): Mean of the combined product Gaussian, shape (batch_size, latent_dim)
+            prod_log_var (Tensor): Log-variance of the combined product Gaussian, shape (batch_size, latent_dim)
+        """
+        var = torch.exp(log_var) + eps
+        precision = 1.0 / (var + eps)
+        prod_mean = torch.sum(mean * precision, dim=0) / torch.sum(precision, dim=0)
+        prod_var = 1.0 / torch.sum(precision, dim=0)
+        prod_log_var = torch.log(prod_var + eps)
+        return prod_mean, prod_log_var

@@ -4,7 +4,9 @@ import os
 from enum import Enum
 
 import numpy as np
+import pandas as pd
 import pydicom
+import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
@@ -12,7 +14,7 @@ from kale.loaddata.dataset_access import DatasetAccess
 from kale.loaddata.mnistm import MNISTM
 from kale.loaddata.multi_domain import MultiDomainAccess, MultiDomainImageFolder
 from kale.loaddata.usps import USPS
-from kale.prepdata.image_transform import get_transform
+from kale.prepdata.image_transform import get_transform, prepare_image_tensor
 from kale.utils.download import download_file_by_url
 
 
@@ -471,3 +473,28 @@ def dicom2arraylist(dicom_patient_list, return_patient_id=False):
         return image_list, patient_ids
     else:
         return image_list
+
+
+def load_images_from_dir(root, csv_file, resize_dim=(224, 224), channels=1):
+    """
+    Loads and preprocesses a batch of images listed in a CSV file, returning a 4D tensor.
+
+    Args:
+        root (str): Root directory containing the images and CSV.
+        csv_file (str): CSV file listing images with a column 'file_path'.
+        resize_dim (tuple, optional): Desired (height, width) for resizing. Default is (224, 224).
+        channels (int, optional): 1 for grayscale, 3 for RGB. Default is 1.
+
+    Returns:
+        Tensor: Batch of processed images, shape (N, channels, H, W).
+    """
+    cases = pd.read_csv(os.path.join(root, csv_file))
+    all_images = []
+
+    for idx, row in cases.iterrows():
+        image_path = os.path.join(root, row["file_path"])
+        image = prepare_image_tensor(image_path, resize_dim=resize_dim, channels=channels)
+        all_images.append(image)
+
+    all_images = torch.stack(all_images)
+    return all_images

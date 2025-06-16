@@ -65,6 +65,14 @@ kale.embed.image\_cnn module
    :undoc-members:
    :show-inheritance:
 
+kale.embed.signal\_cnn module
+----------------------------
+
+.. automodule:: kale.embed.signal_cnn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.embed.mogonet module
 -------------------------
 
@@ -73,6 +81,13 @@ kale.embed.mogonet module
     :undoc-members:
     :show-inheritance:
 
+kale.embed.multimodal\_encoder module
+-------------------------
+
+.. automodule:: kale.embed.multimodal_encoder
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 kale.embed.positional\_encoding module
 --------------------------------------
