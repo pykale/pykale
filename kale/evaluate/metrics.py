@@ -326,8 +326,8 @@ class protonet_loss:
         device (torch.device): The device in computation. Default: torch.device("cuda")
 
     Examples:
-        loss_fn = protonet_loss(num_classes=5, num_query_samples=15, device=torch.device("cuda"))
-        loss, acc = loss_fn(feature_support, feature_query)
+        >>> loss_fn = protonet_loss(num_classes=5, num_query_samples=15, device=torch.device("cuda"))
+        >>> loss, acc = loss_fn(feature_support, feature_query)
 
     Reference:
         Snell, J., Swersky, K. and Zemel, R., 2017. Prototypical networks for few-shot learning. Advances in Neural Information Processing Systems, 30.
@@ -467,8 +467,8 @@ def signal_image_elbo_loss(
     target_image,
     recon_signal,
     target_signal,
-    mu,
-    logvar,
+    mean,
+    log_var,
     lambda_image=1.0,
     lambda_signal=1.0,
     annealing_factor=1.0,
@@ -487,8 +487,8 @@ def signal_image_elbo_loss(
         signal_mse = F.mse_loss(recon_signal, target_signal, reduction="sum") * lambda_signal
 
     recon_loss = (image_mse + signal_mse) * scale_factor
-    logvar = torch.clamp(logvar, min=-10, max=10)
-    kl_div = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp() + eps, dim=1)
+    log_var = torch.clamp(log_var, min=-10, max=10)
+    kl_div = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp() + eps, dim=1)
     kl_div = kl_div.sum()
     loss = recon_loss + annealing_factor * kl_div
     return loss

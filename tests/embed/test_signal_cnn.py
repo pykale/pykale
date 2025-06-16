@@ -1,6 +1,6 @@
 import torch
 
-from kale.embed.signal_cnn import SignalVaeEncoder
+from kale.embed.signal_cnn import SignalVAEEncoder
 
 
 def test_signal_vae_encoder_forward():
@@ -13,13 +13,13 @@ def test_signal_vae_encoder_forward():
     x = torch.randn(batch_size, 1, input_dim)
 
     # Initialize encoder
-    encoder = SignalVaeEncoder(input_dim=input_dim, latent_dim=latent_dim)
+    encoder = SignalVAEEncoder(input_dim=input_dim, latent_dim=latent_dim)
 
     # Forward pass
-    mu, logvar = encoder(x)
+    mean, log_var = encoder(x)
 
     # Check output shapes
-    assert mu.shape == (batch_size, latent_dim)
-    assert logvar.shape == (batch_size, latent_dim)
-    assert isinstance(mu, torch.Tensor)
-    assert isinstance(logvar, torch.Tensor)
+    assert mean.shape == (batch_size, latent_dim)
+    assert log_var.shape == (batch_size, latent_dim)
+    assert isinstance(mean, torch.Tensor)
+    assert isinstance(log_var, torch.Tensor)

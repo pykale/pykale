@@ -8,23 +8,18 @@ from kale.pipeline.multimodal_trainer import SignalImageFineTuningTrainer, Signa
 class DummyMVAE(nn.Module):
     def __init__(self):
         super().__init__()
-        self.dummy_param = nn.Parameter(torch.zeros(1))  # <-- Fake parameter
+        self.dummy_param = nn.Parameter(torch.zeros(1))
 
     def forward(self, image=None, signal=None):
         batch_size = image.size(0) if image is not None else signal.size(0)
         recon_image = torch.zeros(batch_size, 4, 4)
         recon_signal = torch.zeros(batch_size, 10)
-        mu = torch.zeros(batch_size, 6)
-        logvar = torch.zeros(batch_size, 6)
-        return recon_image, recon_signal, mu, logvar
+        mean = torch.zeros(batch_size, 6)
+        log_var = torch.zeros(batch_size, 6)
+        return recon_image, recon_signal, mean, log_var
 
 
 class DummyDataset(Dataset):
-    """
-    Flexible dummy dataset for tests. If labels=True, returns (image, signal, label),
-    otherwise returns (signal, image).
-    """
-
     def __init__(self, num_samples=6, in_dim=5, num_classes=2, labels=False):
         self.num_samples = num_samples
         self.labels = labels
@@ -39,26 +34,7 @@ class DummyDataset(Dataset):
         if self.labels:
             return self.images[idx], self.signals[idx], self.all_labels[idx]
         else:
-            # For the VAE test, mimic (signal, image) tuple for compatibility.
             return self.signals[idx], self.images[idx]
-
-
-# Dummy pre-trained model with frozen encoders
-class DummyEncoder(nn.Module):
-    def __init__(self, latent_dim=4):
-        super().__init__()
-        self.linear = nn.Linear(5, latent_dim)
-
-    def forward(self, x):
-        return self.linear(x), torch.zeros(x.size(0), self.linear.out_features)
-
-
-class DummyPretrainedModel(nn.Module):
-    def __init__(self, latent_dim=4):
-        super().__init__()
-        self.image_encoder = DummyEncoder(latent_dim)
-        self.signal_encoder = DummyEncoder(latent_dim)
-        self.n_latents = latent_dim
 
 
 def test_multimodal_tristream_vae_trainer_steps():
@@ -78,40 +54,69 @@ def test_multimodal_tristream_vae_trainer_steps():
         scale_factor=1e-4,
     )
 
-    # Test forward pass
+    # -- Forward, train/val step, optimizer --
     dummy_signal = torch.randn(2, 10)
     dummy_image = torch.randn(2, 4, 4)
     out = trainer_module.forward(image=dummy_image, signal=dummy_signal)
     assert isinstance(out, tuple) and len(out) == 4
 
-    # Test training_step and validation_step
     batch = (torch.ones(2, 10), torch.ones(2, 4, 4))
     train_loss = trainer_module.training_step(batch, batch_idx=0)
     assert isinstance(train_loss, torch.Tensor)
     assert torch.isfinite(train_loss)
     val_loss = trainer_module.validation_step(batch, batch_idx=0)
-    assert val_loss is not None
+    assert isinstance(val_loss, torch.Tensor)
 
-    # Test optimizer configuration
+    # -- Optimizer config --
     optim = trainer_module.configure_optimizers()
     assert isinstance(optim, torch.optim.Adam)
     assert any([p.requires_grad for p in optim.param_groups[0]["params"]])
 
+    # -- train/val dataloader with a val_dataset (tests DataLoader branch) --
     train_loader = trainer_module.train_dataloader()
     val_loader = trainer_module.val_dataloader()
-
     assert isinstance(train_loader, DataLoader)
     assert isinstance(val_loader, DataLoader)
-    # Test if you can get a batch and it's the expected tuple format
     train_batch = next(iter(train_loader))
     val_batch = next(iter(val_loader))
-
-    # Each batch should be a tuple of (signal, image)
     assert isinstance(train_batch, (tuple, list)) and len(train_batch) == 2
     assert isinstance(val_batch, (tuple, list)) and len(val_batch) == 2
-    # Shape check: should match batch_size for first dimension
     assert train_batch[0].shape[0] == trainer_module.batch_size or train_batch[0].shape[0] == len(train_ds)
     assert val_batch[0].shape[0] <= trainer_module.batch_size
+
+    # -- test val_dataloader when val_dataset=None (tests the else branch) --
+    trainer_module_no_val = SignalImageTriStreamVAETrainer(
+        model=model,
+        train_dataset=train_ds,
+        val_dataset=None,
+        batch_size=2,
+        num_workers=0,
+        lambda_image=1.0,
+        lambda_signal=2.0,
+        lr=1e-2,
+        annealing_epochs=2,
+        scale_factor=1e-4,
+    )
+    val_loader_none = trainer_module_no_val.val_dataloader()
+    assert val_loader_none is None
+
+
+# Dummy pre-trained model with frozen encoders
+class DummyEncoder(nn.Module):
+    def __init__(self, latent_dim=4):
+        super().__init__()
+        self.linear = nn.Linear(5, latent_dim)
+
+    def forward(self, x):
+        return self.linear(x), torch.zeros(x.size(0), self.linear.out_features)
+
+
+class DummyPretrainedModel(nn.Module):
+    def __init__(self, latent_dim=4):
+        super().__init__()
+        self.image_encoder = DummyEncoder(latent_dim)
+        self.signal_encoder = DummyEncoder(latent_dim)
+        self.n_latents = latent_dim
 
 
 def test_multimodal_trainer_step_and_metrics():

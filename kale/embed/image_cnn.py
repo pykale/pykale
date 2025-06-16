@@ -33,9 +33,9 @@ class Identity(nn.Module):
     It returns the input tensor as the output.
 
     Examples:
-        x = torch.randn(8, 3, 224, 224)
-        x = Identity()(x)
-        print(x.shape)
+        >>> x = torch.randn(8, 3, 224, 224)
+        >>> x = Identity()(x)
+        >>> print(x.shape)
         (8, 3, 224, 224)
     """
 
@@ -56,7 +56,7 @@ class SmallCNNFeature(nn.Module):
         kernel_size (int): the size of the convolution kernel (default=5).
 
     Examples::
-        feature_network = SmallCNNFeature(num_channels)
+        >>> feature_network = SmallCNNFeature(num_channels)
     """
 
     def __init__(self, num_channels=3, kernel_size=5):
@@ -388,9 +388,9 @@ class LeNet(nn.Module):
         return output
 
 
-class ImageVaeEncoder(nn.Module):
+class ImageVAEEncoder(nn.Module):
     """
-    ImageVaeEncoder encodes 2D image data into a latent representation for use in a Variational Autoencoder (VAE).
+    ImageVAEEncoder encodes 2D image data into a latent representation for use in a Variational Autoencoder (VAE).
 
     Note:
         This implementation assumes the input images are 224 x 224 pixels.
@@ -409,12 +409,12 @@ class ImageVaeEncoder(nn.Module):
         x (Tensor): Input image tensor of shape (batch_size, input_channels, 224, 224).
 
     Forward Output:
-        mu (Tensor): Mean vector of the latent Gaussian distribution, shape (batch_size, latent_dim).
+        mean (Tensor): Mean vector of the latent Gaussian distribution, shape (batch_size, latent_dim).
         log_var (Tensor): Log-variance vector of the latent Gaussian, shape (batch_size, latent_dim).
 
     Example:
-        encoder = ImageVaeEncoder(input_channels=1, latent_dim=128)
-        mu, log_var = encoder(images)
+        encoder = ImageVAEEncoder(input_channels=1, latent_dim=128)
+        mean, log_var = encoder(images)
     """
 
     def __init__(self, input_channels=1, latent_dim=256):
@@ -436,13 +436,13 @@ class ImageVaeEncoder(nn.Module):
             x (Tensor): Input image tensor, shape (batch_size, input_channels, 224, 224)
 
         Returns:
-            mu (Tensor): Latent mean, shape (batch_size, latent_dim)
-            logvar (Tensor): Latent log-variance, shape (batch_size, latent_dim)
+            mean (Tensor): Latent mean, shape (batch_size, latent_dim)
+            log_var (Tensor): Latent log-variance, shape (batch_size, latent_dim)
         """
         x = self.relu(self.conv1(x))
         x = self.relu(self.conv2(x))
         x = self.relu(self.conv3(x))
         x = self.flatten(x)
-        mu = self.fc_mu(x)
+        mean = self.fc_mu(x)
         log_var = self.fc_log_var(x)
-        return mu, log_var
+        return mean, log_var

@@ -8,9 +8,9 @@ This module provides CNN-based encoders for transforming 1D signals into latent 
 import torch.nn as nn
 
 
-class SignalVaeEncoder(nn.Module):
+class SignalVAEEncoder(nn.Module):
     """
-    SignalVaeEncoder encodes 1D signals into a latent representation suitable for variational autoencoders (VAE).
+    SignalVAEEncoder encodes 1D signals into a latent representation suitable for variational autoencoders (VAE).
 
     This encoder uses a series of 1D convolutional layers to extract hierarchical temporal features from generic 1D signals,
     followed by fully connected layers that output the mean and log-variance vectors for the latent Gaussian distribution.
@@ -24,12 +24,12 @@ class SignalVaeEncoder(nn.Module):
         x (Tensor): Input signal tensor of shape (batch_size, 1, input_dim).
 
     Forward Output:
-        mu (Tensor): Mean vector of the latent Gaussian distribution, shape (batch_size, latent_dim).
-        logvar (Tensor): Log-variance vector of the latent Gaussian, shape (batch_size, latent_dim).
+        mean (Tensor): Mean vector of the latent Gaussian distribution, shape (batch_size, latent_dim).
+        log_var (Tensor): Log-variance vector of the latent Gaussian, shape (batch_size, latent_dim).
 
     Example:
-        encoder = SignalVaeEncoder(input_dim=60000, latent_dim=128)
-        mu, logvar = encoder(signals)
+        encoder = SignalVAEEncoder(input_dim=60000, latent_dim=128)
+        mean, log_var = encoder(signals)
     """
 
     def __init__(self, input_dim=60000, latent_dim=256):
@@ -39,7 +39,7 @@ class SignalVaeEncoder(nn.Module):
         self.conv3 = nn.Conv1d(32, 64, kernel_size=3, stride=2, padding=1)
         self.flatten = nn.Flatten()
         self.fc_mu = nn.Linear(64 * (input_dim // 8), latent_dim)
-        self.fc_logvar = nn.Linear(64 * (input_dim // 8), latent_dim)
+        self.fc_log_var = nn.Linear(64 * (input_dim // 8), latent_dim)
         self.relu = nn.ReLU()
 
     def forward(self, x):
@@ -47,6 +47,6 @@ class SignalVaeEncoder(nn.Module):
         x = self.relu(self.conv2(x))
         x = self.relu(self.conv3(x))
         x = self.flatten(x)
-        mu = self.fc_mu(x)
-        logvar = self.fc_logvar(x)
-        return mu, logvar
+        mean = self.fc_mu(x)
+        log_var = self.fc_log_var(x)
+        return mean, log_var

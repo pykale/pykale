@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 import torch
 
-from kale.loaddata.signal_access import load_ecg_from_dir
+from kale.loaddata.signal_access import load_ecg_from_folder
 
 
 @pytest.fixture
@@ -46,7 +46,7 @@ def test_load_ecg_from_dir(tmp_path, monkeypatch, make_csv, bad_shape):
     monkeypatch.setattr("kale.loaddata.signal_access.prepare_ecg_tensor", dummy_prepare_ecg_tensor)
 
     # -- Test
-    batch = load_ecg_from_dir(root, csv_path.name)
+    batch = load_ecg_from_folder(root, csv_path.name)
     if not bad_shape:
         # Should stack both
         assert batch.shape == (2, 1, 20)

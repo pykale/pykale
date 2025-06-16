@@ -38,28 +38,28 @@ def test_low_rank_tensor_fusion():
 
 
 def test_product_of_experts_forward():
-    # Prepare dummy expert means and logvars for 3 experts, 5 batch, 8 latent dims
+    # Prepare dummy expert means and log_vars for 3 experts, 5 batch, 8 latent dims
     num_experts = 3
     batch_size = 5
     latent_dim = 8
-    mu = torch.randn(num_experts, batch_size, latent_dim)
-    logvar = torch.randn(num_experts, batch_size, latent_dim)
+    mean = torch.randn(num_experts, batch_size, latent_dim)
+    log_var = torch.randn(num_experts, batch_size, latent_dim)
 
     poe = ProductOfExperts()
-    pd_mu, pd_logvar = poe(mu, logvar)
+    pd_mu, pd_log_var = poe(mean, log_var)
 
     # Check shapes
     assert pd_mu.shape == (batch_size, latent_dim)
-    assert pd_logvar.shape == (batch_size, latent_dim)
+    assert pd_log_var.shape == (batch_size, latent_dim)
     assert isinstance(pd_mu, torch.Tensor)
-    assert isinstance(pd_logvar, torch.Tensor)
+    assert isinstance(pd_log_var, torch.Tensor)
 
 
 def test_product_of_experts_numerical_stability():
-    # All experts have large negative logvar (very low variance)
-    mu = torch.zeros(2, 1, 4)
-    logvar = torch.full((2, 1, 4), -20.0)
+    # All experts have large negative log_var (very low variance)
+    mean = torch.zeros(2, 1, 4)
+    log_var = torch.full((2, 1, 4), -20.0)
     poe = ProductOfExperts()
-    pd_mu, pd_logvar = poe(mu, logvar, eps=1e-10)  # Use custom eps for coverage
+    pd_mu, pd_log_var = poe(mean, log_var, eps=1e-10)  # Use custom eps for coverage
     assert torch.isfinite(pd_mu).all()
-    assert torch.isfinite(pd_logvar).all()
+    assert torch.isfinite(pd_log_var).all()

@@ -342,7 +342,7 @@ def test_auto_mida_trainer_coef_shape(toy_data, augment, monkeypatch):
     x, y, domains, factors = toy_data
 
     monkeypatch.setitem(CLASSIFIER_PARAMS["lr"], "C", [1])
-    monkeypatch.setitem(MIDA_PARAMS, "mu", [1])
+    monkeypatch.setitem(MIDA_PARAMS, "mean", [1])
     monkeypatch.setitem(MIDA_PARAMS, "augment", [augment])
     monkeypatch.setitem(MIDA_PARAMS, "ignore_y", [True])
 

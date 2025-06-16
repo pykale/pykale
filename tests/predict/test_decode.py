@@ -162,7 +162,7 @@ def test_signal_vae_decoder_edge_case():
     assert signal_recon.shape == (1, 1, 8)
 
 
-# Dummy encoder that returns (mu, logvar)
+# Dummy encoder that returns (mean, log_var)
 class DummyEncoder(nn.Module):
     def __init__(self, feature_dim, latent_dim):
         super().__init__()
@@ -171,9 +171,9 @@ class DummyEncoder(nn.Module):
 
     def forward(self, x):
         batch_size = x.shape[0]
-        mu = torch.ones(batch_size, self.latent_dim)
-        logvar = torch.zeros(batch_size, self.latent_dim)
-        return mu, logvar
+        mean = torch.ones(batch_size, self.latent_dim)
+        log_var = torch.zeros(batch_size, self.latent_dim)
+        return mean, log_var
 
 
 class DummyPretrainedModel(nn.Module):

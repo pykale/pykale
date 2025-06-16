@@ -72,17 +72,84 @@ class SignalImageTriStreamVAETrainer(pl.LightningModule):
             signal (Tensor, optional): Batch of signal modality inputs.
 
         Returns:
-            Tuple: Model outputs (image reconstruction, signal reconstruction, mu, logvar).
+            Tuple: Model outputs (image reconstruction, signal reconstruction, mean, log_var).
         """
         return self.model(image, signal)
+
+    def _compute_total_loss(self, signal, image, annealing_factor, batch_size):
+        """
+        Calculates the total loss (ELBO) over joint, image-only, and signal-only forward passes.
+
+        Args:
+            signal (Tensor): Batch of signal modality data (e.g., ECG signals), shape (batch_size, signal_dim).
+            image (Tensor): Batch of image modality data (e.g., CXR images), shape (batch_size, channels, H, W).
+            annealing_factor (float): Factor for KL annealing, typically [0, 1].
+            batch_size (int): Number of samples in the current batch.
+
+        Returns:
+            Tensor: Scalar loss value, averaged over the batch.
+
+        Example:
+            total_loss = self._compute_total_loss(signal, image, annealing_factor, batch_size)
+        """
+        outputs = {
+            "joint": self.model(image, signal),
+            "image_only": self.model(image=image),
+            "signal_only": self.model(signal=signal),
+        }
+        loss_args = {
+            "joint": {
+                "recon_image": outputs["joint"][0],
+                "target_image": image,
+                "recon_signal": outputs["joint"][1],
+                "target_signal": signal,
+                "mean": outputs["joint"][2],
+                "log_var": outputs["joint"][3],
+            },
+            "image_only": {
+                "recon_image": outputs["image_only"][0],
+                "target_image": image,
+                "recon_signal": None,
+                "target_signal": None,
+                "mean": outputs["image_only"][2],
+                "log_var": outputs["image_only"][3],
+            },
+            "signal_only": {
+                "recon_image": None,
+                "target_image": None,
+                "recon_signal": outputs["signal_only"][1],
+                "target_signal": signal,
+                "mean": outputs["signal_only"][2],
+                "log_var": outputs["signal_only"][3],
+            },
+        }
+        shared_kwargs = {
+            "lambda_image": self.lambda_image,
+            "lambda_signal": self.lambda_signal,
+            "annealing_factor": annealing_factor,
+            "scale_factor": self.scale_factor,
+        }
+        total_loss = 0.0
+        for mode in ["joint", "image_only", "signal_only"]:
+            args = loss_args[mode]
+            total_loss += signal_image_elbo_loss(
+                args["recon_image"],
+                args["target_image"],
+                args["recon_signal"],
+                args["target_signal"],
+                args["mean"],
+                args["log_var"],
+                **shared_kwargs,
+            )
+        return total_loss / batch_size
 
     def training_step(self, batch, batch_idx):
         """
         Performs a single training step with reconstruction and KL losses for all input combinations.
 
         Args:
-            batch (tuple): Tuple of (signal, image) tensors.
-            batch_idx (int): Batch index.
+            batch (tuple): Tuple of (signal, image) tensors for the current batch.
+            batch_idx (int): Index of the current batch.
 
         Returns:
             Tensor: Training loss for the current batch.
@@ -90,79 +157,20 @@ class SignalImageTriStreamVAETrainer(pl.LightningModule):
         signal, image = batch
         signal = signal.to(self.device)
         image = image.to(self.device)
-
         epoch = self.current_epoch
         annealing_factor = min(epoch / self.annealing_epochs, 1.0)
         batch_size = signal.size(0)
-
-        # Forward passes for joint, image-only, and signal-only
-        outputs = {
-            "joint": self.model(image, signal),
-            "image_only": self.model(image=image),
-            "signal_only": self.model(signal=signal),
-        }
-
-        # Corresponding targets for each loss type
-        loss_args = {
-            "joint": {
-                "recon_image": outputs["joint"][0],
-                "target_image": image,
-                "recon_signal": outputs["joint"][1],
-                "target_signal": signal,
-                "mu": outputs["joint"][2],
-                "logvar": outputs["joint"][3],
-            },
-            "image_only": {
-                "recon_image": outputs["image_only"][0],
-                "target_image": image,
-                "recon_signal": None,
-                "target_signal": None,
-                "mu": outputs["image_only"][2],
-                "logvar": outputs["image_only"][3],
-            },
-            "signal_only": {
-                "recon_image": None,
-                "target_image": None,
-                "recon_signal": outputs["signal_only"][1],
-                "target_signal": signal,
-                "mu": outputs["signal_only"][2],
-                "logvar": outputs["signal_only"][3],
-            },
-        }
-
-        # Shared loss arguments
-        shared_kwargs = {
-            "lambda_image": self.lambda_image,
-            "lambda_signal": self.lambda_signal,
-            "annealing_factor": annealing_factor,
-            "scale_factor": self.scale_factor,
-        }
-
-        # Compute all three losses using a loop
-        total_loss = 0.0
-        for mode in ["joint", "image_only", "signal_only"]:
-            args = loss_args[mode]
-            total_loss += signal_image_elbo_loss(
-                args["recon_image"],
-                args["target_image"],
-                args["recon_signal"],
-                args["target_signal"],
-                args["mu"],
-                args["logvar"],
-                **shared_kwargs,
-            )
-
-        train_loss = total_loss / batch_size
+        train_loss = self._compute_total_loss(signal, image, annealing_factor, batch_size)
         self.log("train_loss", train_loss, prog_bar=True, on_step=True, on_epoch=True)
         return train_loss
 
     def validation_step(self, batch, batch_idx):
         """
-        Performs a single validation step, mirroring the training loss calculations.
+        Performs a single validation step with reconstruction and KL losses for all input combinations.
 
         Args:
-            batch (tuple): Tuple of (signal, image) tensors.
-            batch_idx (int): Batch index.
+            batch (tuple): Tuple of (signal, image) tensors for the current batch.
+            batch_idx (int): Index of the current batch.
 
         Returns:
             Tensor: Validation loss for the current batch.
@@ -170,68 +178,10 @@ class SignalImageTriStreamVAETrainer(pl.LightningModule):
         signal, image = batch
         signal = signal.to(self.device)
         image = image.to(self.device)
-
         epoch = self.current_epoch
         annealing_factor = min(epoch / self.annealing_epochs, 1.0)
         batch_size = signal.size(0)
-
-        # Forward passes for joint, image-only, and signal-only
-        outputs = {
-            "joint": self.model(image, signal),
-            "image_only": self.model(image=image),
-            "signal_only": self.model(signal=signal),
-        }
-
-        # Prepare inputs for loss calculation
-        loss_args = {
-            "joint": {
-                "recon_image": outputs["joint"][0],
-                "target_image": image,
-                "recon_signal": outputs["joint"][1],
-                "target_signal": signal,
-                "mu": outputs["joint"][2],
-                "logvar": outputs["joint"][3],
-            },
-            "image_only": {
-                "recon_image": outputs["image_only"][0],
-                "target_image": image,
-                "recon_signal": None,
-                "target_signal": None,
-                "mu": outputs["image_only"][2],
-                "logvar": outputs["image_only"][3],
-            },
-            "signal_only": {
-                "recon_image": None,
-                "target_image": None,
-                "recon_signal": outputs["signal_only"][1],
-                "target_signal": signal,
-                "mu": outputs["signal_only"][2],
-                "logvar": outputs["signal_only"][3],
-            },
-        }
-
-        shared_kwargs = {
-            "lambda_image": self.lambda_image,
-            "lambda_signal": self.lambda_signal,
-            "annealing_factor": annealing_factor,
-            "scale_factor": self.scale_factor,
-        }
-
-        # Compute the three validation losses
-        total_loss = 0.0
-        for mode in ["joint", "image_only", "signal_only"]:
-            args = loss_args[mode]
-            total_loss += signal_image_elbo_loss(
-                args["recon_image"],
-                args["target_image"],
-                args["recon_signal"],
-                args["target_signal"],
-                args["mu"],
-                args["logvar"],
-                **shared_kwargs,
-            )
-
-        val_loss = total_loss / batch_size
+        val_loss = self._compute_total_loss(signal, image, annealing_factor, batch_size)
         self.log("val_loss", val_loss, prog_bar=True, on_epoch=True)
         return val_loss
 

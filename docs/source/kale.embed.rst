@@ -81,7 +81,7 @@ kale.embed.mogonet module
     :undoc-members:
     :show-inheritance:
 
-kale.embed.multimodal_\_encoder module
+kale.embed.multimodal\_encoder module
 -------------------------
 
 .. automodule:: kale.embed.multimodal_encoder

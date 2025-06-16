@@ -19,37 +19,37 @@ def test_bimodal_vae_full_coverage():
     model = SignalImageVAE(image_input_channels=image_channels, signal_input_dim=signal_length, latent_dim=latent_dim)
 
     # --- Test prior_expert (cpu branch) ---
-    mu, logvar = model.prior_expert((1, batch_size, latent_dim), use_cuda=False)
-    assert mu.shape == (1, batch_size, latent_dim)
-    assert torch.allclose(logvar, torch.zeros_like(logvar))
+    mean, log_var = model.prior_expert((1, batch_size, latent_dim), use_cuda=False)
+    assert mean.shape == (1, batch_size, latent_dim)
+    assert torch.allclose(log_var, torch.zeros_like(log_var))
 
     # --- Test prior_expert (mocked cuda branch, even on CPU) ---
     with patch.object(torch.Tensor, "cuda", lambda x: x):
-        mu_cuda, logvar_cuda = model.prior_expert((1, batch_size, latent_dim), use_cuda=True)
+        mu_cuda, log_var_cuda = model.prior_expert((1, batch_size, latent_dim), use_cuda=True)
         assert mu_cuda.shape == (1, batch_size, latent_dim)
-        assert logvar_cuda.shape == (1, batch_size, latent_dim)
+        assert log_var_cuda.shape == (1, batch_size, latent_dim)
         # These are not .is_cuda (since we're faking), but they exist
 
     # --- Test reparametrize, both training and eval mode ---
     dummy_mu = torch.zeros(batch_size, latent_dim)
-    dummy_logvar = torch.zeros(batch_size, latent_dim)
+    dummy_log_var = torch.zeros(batch_size, latent_dim)
     model.train()
-    z_train = model.reparametrize(dummy_mu, dummy_logvar)
+    z_train = model.reparametrize(dummy_mu, dummy_log_var)
     assert z_train.shape == (batch_size, latent_dim)
     model.eval()
-    z_eval = model.reparametrize(dummy_mu, dummy_logvar)
+    z_eval = model.reparametrize(dummy_mu, dummy_log_var)
     assert torch.allclose(z_eval, dummy_mu)
 
     # --- Test forward (with both modalities) ---
     model.train()
-    img_recon, sig_recon, mu, logvar = model(image=image, signal=signal)
+    img_recon, sig_recon, mean, log_var = model(image=image, signal=signal)
     assert img_recon.shape[0] == batch_size
     assert sig_recon.shape[0] == batch_size
-    assert mu.shape == (batch_size, latent_dim)
-    assert logvar.shape == (batch_size, latent_dim)
+    assert mean.shape == (batch_size, latent_dim)
+    assert log_var.shape == (batch_size, latent_dim)
 
     # --- Test infer with only one modality at a time ---
-    mu_img, logvar_img = model.infer(image=image)
+    mu_img, log_var_img = model.infer(image=image)
     assert mu_img.shape == (batch_size, latent_dim)
-    mu_sig, logvar_sig = model.infer(signal=signal)
+    mu_sig, log_var_sig = model.infer(signal=signal)
     assert mu_sig.shape == (batch_size, latent_dim)

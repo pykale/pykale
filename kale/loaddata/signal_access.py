@@ -9,7 +9,7 @@ from tqdm import tqdm
 from kale.prepdata.signal_transform import interpolate_signal, normalize_signal, prepare_ecg_tensor
 
 
-def load_ecg_from_dir(base_path, csv_file):
+def load_ecg_from_folder(base_path, csv_file):
     """
     Loads and preprocesses a batch of ECG signals from a CSV file listing file paths.
 

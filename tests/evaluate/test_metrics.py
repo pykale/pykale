@@ -141,16 +141,16 @@ def test_signal_image_elbo_loss_branches(use_image, use_signal):
     recon_signal = torch.randn(signal_shape) if use_signal else None
     target_signal = torch.randn(signal_shape) if use_signal else None
 
-    mu = torch.zeros(batch_size, latent_dim)
-    logvar = torch.zeros(batch_size, latent_dim)
+    mean = torch.zeros(batch_size, latent_dim)
+    log_var = torch.zeros(batch_size, latent_dim)
 
     loss = signal_image_elbo_loss(
         recon_image,
         target_image,
         recon_signal,
         target_signal,
-        mu,
-        logvar,
+        mean,
+        log_var,
         lambda_image=2.0,
         lambda_signal=3.0,
         annealing_factor=0.7,
@@ -171,8 +171,8 @@ def test_signal_image_elbo_loss_values():
     target_image = torch.ones(batch_size, 2)
     recon_signal = torch.zeros(batch_size, 2)
     target_signal = torch.ones(batch_size, 2)
-    mu = torch.zeros(batch_size, latent_dim)
-    logvar = torch.zeros(batch_size, latent_dim)
+    mean = torch.zeros(batch_size, latent_dim)
+    log_var = torch.zeros(batch_size, latent_dim)
 
     # MSE = mean((0-1)^2) = 1 per element, 4 elements per modality
     # Reduction='sum' = 4.0
@@ -183,8 +183,8 @@ def test_signal_image_elbo_loss_values():
         target_image,
         recon_signal,
         target_signal,
-        mu,
-        logvar,
+        mean,
+        log_var,
         lambda_image=1.0,
         lambda_signal=1.0,
         annealing_factor=1.0,

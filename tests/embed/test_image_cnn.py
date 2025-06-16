@@ -4,7 +4,7 @@ import torch
 from kale.embed.image_cnn import (
     Flatten,
     Identity,
-    ImageVaeEncoder,
+    ImageVAEEncoder,
     LeNet,
     ResNet18Feature,
     ResNet34Feature,
@@ -88,14 +88,14 @@ def test_image_vae_encoder_forward():
     x = torch.randn(batch_size, input_channels, height, width)
 
     # Initialize encoder
-    encoder = ImageVaeEncoder(input_channels=input_channels, latent_dim=32)
+    encoder = ImageVAEEncoder(input_channels=input_channels, latent_dim=32)
 
     # Forward pass
-    mu, logvar = encoder(x)
+    mean, log_var = encoder(x)
 
     # Check output shapes
-    assert mu.shape == (batch_size, 32)
-    assert logvar.shape == (batch_size, 32)
+    assert mean.shape == (batch_size, 32)
+    assert log_var.shape == (batch_size, 32)
     # Check types
-    assert isinstance(mu, torch.Tensor)
-    assert isinstance(logvar, torch.Tensor)
+    assert isinstance(mean, torch.Tensor)
+    assert isinstance(log_var, torch.Tensor)

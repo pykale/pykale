@@ -12,8 +12,8 @@ import torch
 import torch.nn as nn
 
 from kale.embed.feature_fusion import ProductOfExperts
-from kale.embed.image_cnn import ImageVaeEncoder
-from kale.embed.signal_cnn import SignalVaeEncoder
+from kale.embed.image_cnn import ImageVAEEncoder
+from kale.embed.signal_cnn import SignalVAEEncoder
 from kale.predict.decode import ImageVaeDecoder, SignalVaeDecoder
 
 
@@ -40,18 +40,18 @@ class SignalImageVAE(nn.Module):
     Forward Outputs:
         image_recon (Tensor): Reconstructed image tensor (batch_size, image_input_channels, H, W)
         signal_recon (Tensor): Reconstructed signal tensor (batch_size, 1, signal_input_dim)
-        mu (Tensor): Mean vector of the fused latent distribution (batch_size, latent_dim)
-        logvar (Tensor): Log-variance vector of the fused latent distribution (batch_size, latent_dim)
+        mean (Tensor): Mean vector of the fused latent distribution (batch_size, latent_dim)
+        log_var (Tensor): Log-variance vector of the fused latent distribution (batch_size, latent_dim)
 
     Example:
         model = SignalImageVAE(image_input_channels=1, signal_input_dim=60000, latent_dim=128)
-        image_recon, signal_recon, mu, logvar = model(image=image_data, signal=signal_data)
+        image_recon, signal_recon, mean, log_var = model(image=image_data, signal=signal_data)
     """
 
     def __init__(self, image_input_channels=1, signal_input_dim=60000, latent_dim=256):
         super().__init__()
-        self.image_encoder = ImageVaeEncoder(image_input_channels, latent_dim)
-        self.signal_encoder = SignalVaeEncoder(signal_input_dim, latent_dim)
+        self.image_encoder = ImageVAEEncoder(image_input_channels, latent_dim)
+        self.signal_encoder = SignalVAEEncoder(signal_input_dim, latent_dim)
         self.image_decoder = ImageVaeDecoder(latent_dim, image_input_channels)
         self.signal_decoder = SignalVaeDecoder(latent_dim, signal_input_dim)
         self.experts = ProductOfExperts()
@@ -67,44 +67,44 @@ class SignalImageVAE(nn.Module):
             use_cuda (bool): Whether to move tensors to CUDA.
 
         Returns:
-            mu (Tensor): Zero-mean tensor.
-            logvar (Tensor): Zero log-variance tensor.
+            mean (Tensor): Zero-mean tensor.
+            log_var (Tensor): Zero log-variance tensor.
         """
-        mu = torch.zeros(size)
-        logvar = torch.zeros(size)
+        mean = torch.zeros(size)
+        log_var = torch.zeros(size)
         if use_cuda:
-            mu = mu.cuda()
-            logvar = logvar.cuda()
-        return mu, logvar
+            mean = mean.cuda()
+            log_var = log_var.cuda()
+        return mean, log_var
 
-    def reparametrize(self, mu, logvar):
+    def reparametrize(self, mean, log_var):
         """
-        Applies the reparameterization trick to sample from a Gaussian distribution parameterized by mu and logvar.
+        Applies the reparameterization trick to sample from a Gaussian distribution parameterized by mean and log_var.
 
         This allows backpropagation through stochastic nodes by expressing the random variable as a deterministic
-        function of mu, logvar, and noise. During training, returns a random sample from N(mu, sigma^2).
-        During evaluation, returns mu (the mean).
+        function of mean, log_var, and noise. During training, returns a random sample from N(mean, sigma^2).
+        During evaluation, returns mean (the mean).
 
         Args:
-            mu (Tensor): Mean of the Gaussian, shape (batch_size, latent_dim).
-            logvar (Tensor): Log-variance of the Gaussian, shape (batch_size, latent_dim).
+            mean (Tensor): Mean of the Gaussian, shape (batch_size, latent_dim).
+            log_var (Tensor): Log-variance of the Gaussian, shape (batch_size, latent_dim).
 
         Returns:
             z (Tensor): Sampled latent vector, shape (batch_size, latent_dim).
         """
         if self.training:
-            std = torch.exp(0.5 * logvar)
+            std = torch.exp(0.5 * log_var)
             eps = torch.randn_like(std)
-            return mu + eps * std
+            return mean + eps * std
         else:
-            return mu
+            return mean
 
     def forward(self, image=None, signal=None):
-        mu, logvar = self.infer(image, signal)
-        z = self.reparametrize(mu, logvar)
+        mean, log_var = self.infer(image, signal)
+        z = self.reparametrize(mean, log_var)
         image_recon = self.image_decoder(z)
         signal_recon = self.signal_decoder(z)
-        return image_recon, signal_recon, mu, logvar
+        return image_recon, signal_recon, mean, log_var
 
     def infer(self, image=None, signal=None):
         """
@@ -119,19 +119,19 @@ class SignalImageVAE(nn.Module):
             signal (Tensor, optional): 1D signal tensor, shape (batch_size, 1, signal_length).
 
         Returns:
-            mu (Tensor): Mean vector of the fused latent distribution, shape (batch_size, latent_dim).
-            logvar (Tensor): Log-variance vector of the fused latent distribution, shape (batch_size, latent_dim).
+            mean (Tensor): Mean vector of the fused latent distribution, shape (batch_size, latent_dim).
+            log_var (Tensor): Log-variance vector of the fused latent distribution, shape (batch_size, latent_dim).
         """
         batch_size = image.size(0) if image is not None else signal.size(0)
         use_cuda = next(self.parameters()).is_cuda
-        mu, logvar = self.prior_expert((1, batch_size, self.n_latents), use_cuda=use_cuda)
+        mean, log_var = self.prior_expert((1, batch_size, self.n_latents), use_cuda=use_cuda)
         if image is not None:
-            img_mu, img_logvar = self.image_encoder(image)
-            mu = torch.cat((mu, img_mu.unsqueeze(0)), dim=0)
-            logvar = torch.cat((logvar, img_logvar.unsqueeze(0)), dim=0)
+            img_mu, img_log_var = self.image_encoder(image)
+            mean = torch.cat((mean, img_mu.unsqueeze(0)), dim=0)
+            log_var = torch.cat((log_var, img_log_var.unsqueeze(0)), dim=0)
         if signal is not None:
-            signal_mu, signal_logvar = self.signal_encoder(signal)
-            mu = torch.cat((mu, signal_mu.unsqueeze(0)), dim=0)
-            logvar = torch.cat((logvar, signal_logvar.unsqueeze(0)), dim=0)
-        mu, logvar = self.experts(mu, logvar)
-        return mu, logvar
+            signal_mu, signal_log_var = self.signal_encoder(signal)
+            mean = torch.cat((mean, signal_mu.unsqueeze(0)), dim=0)
+            log_var = torch.cat((log_var, signal_log_var.unsqueeze(0)), dim=0)
+        mean, log_var = self.experts(mean, log_var)
+        return mean, log_var

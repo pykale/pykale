@@ -873,7 +873,7 @@ class MIDA(BaseKernelDomainAdapter):
 
     Args:
         num_components (int, optional): Number of components to keep. If None, all components are kept.
-        mu (float, optional): L2 kernel regularization coefficient. Default is 1.0.
+        mean (float, optional): L2 kernel regularization coefficient. Default is 1.0.
         eta (float, optional): Class-dependency regularization coefficient. Default is 1.0.
         ignore_y (bool, optional): Whether to ignore the target variable `y` during fitting. Default is False.
         augment (str, optional): Whether to augment the input data with factors. Can be "pre" (prepend factors),
@@ -919,14 +919,14 @@ class MIDA(BaseKernelDomainAdapter):
 
     _parameter_constraints: dict = {
         **BaseKernelDomainAdapter._parameter_constraints,
-        "mu": [Interval(Real, 0, None, closed="neither")],
+        "mean": [Interval(Real, 0, None, closed="neither")],
         "eta": [Interval(Real, 0, None, closed="neither")],
     }
 
     def __init__(
         self,
         num_components=None,
-        mu=1.0,
+        mean=1.0,
         eta=1.0,
         ignore_y=False,
         augment=None,
@@ -948,7 +948,7 @@ class MIDA(BaseKernelDomainAdapter):
         num_jobs=None,
     ):
         # L2 kernel regularization parameter
-        self.mu = mu
+        self.mean = mean
         # Class dependency regularization parameter
         self.eta = eta
 

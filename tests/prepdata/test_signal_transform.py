@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import torch
 
 from kale.prepdata.signal_transform import interpolate_signal, normalize_signal, prepare_ecg_tensor
@@ -40,8 +41,8 @@ def test_interpolate_signal_no_nan():
     assert np.allclose(arr, interpolated)
 
 
-def test_prepare_ecg_tensor_shape_dtype():
-    arr = np.arange(6).reshape(3, 2)  # (3,2)
+def test_prepare_ecg_tensor_numpy():
+    arr = np.arange(6).reshape(3, 2)
     tensor = prepare_ecg_tensor(arr)
     assert isinstance(tensor, torch.Tensor)
     assert tensor.shape == (1, 6)
@@ -50,7 +51,29 @@ def test_prepare_ecg_tensor_shape_dtype():
     assert torch.allclose(tensor, torch.tensor(arr.reshape(1, -1), dtype=torch.float32))
 
 
-def test_prepare_ecg_tensor_empty():
+def test_prepare_ecg_tensor_tensor():
+    arr = torch.arange(6).reshape(3, 2)
+    tensor = prepare_ecg_tensor(arr)
+    assert isinstance(tensor, torch.Tensor)
+    assert tensor.shape == (1, 6)
+    assert tensor.dtype == torch.float32
+    assert torch.allclose(tensor, arr.reshape(1, -1).to(torch.float32))
+
+
+def test_prepare_ecg_tensor_empty_numpy():
     arr = np.array([]).reshape(0, 2)
     tensor = prepare_ecg_tensor(arr)
     assert tensor.shape == (1, 0)
+    assert tensor.dtype == torch.float32
+
+
+def test_prepare_ecg_tensor_empty_tensor():
+    arr = torch.empty(0, 2)
+    tensor = prepare_ecg_tensor(arr)
+    assert tensor.shape == (1, 0)
+    assert tensor.dtype == torch.float32
+
+
+def test_prepare_ecg_tensor_wrong_type():
+    with pytest.raises(TypeError):
+        prepare_ecg_tensor([1, 2, 3])  # List, not supported

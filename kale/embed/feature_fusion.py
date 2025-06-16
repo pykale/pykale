@@ -1,4 +1,4 @@
-"""This module implements fiur different multimodal fusion methods:
+"""This module implements four different multimodal fusion methods:
 1. Concat
 2. BimodalInteractionFusion
 3. LowRankTensorFusion
@@ -220,7 +220,7 @@ class ProductOfExperts(nn.Module):
     by computing their product in closed form. This is commonly used in multimodal variational autoencoders (VAE)
     and probabilistic models to fuse information from different modalities or sources, yielding a consensus latent distribution.
 
-    For each expert, the inputs are mean (`mu`) and log-variance (`logvar`) tensors, and the output is the mean and log-variance
+    For each expert, the inputs are mean (`mean`) and log-variance (`log_var`) tensors, and the output is the mean and log-variance
     of the combined product Gaussian. This formulation enables principled uncertainty fusion and robust inference
     in the presence of missing or noisy modalities.
 
@@ -229,20 +229,20 @@ class ProductOfExperts(nn.Module):
         combined_mu, combined_log_var = poe(mu_experts, log_var_experts)
     """
 
-    def forward(self, mu, logvar, eps=1e-8):
+    def forward(self, mean, log_var, eps=1e-8):
         """
         Args:
-            mu (Tensor): Mean values from all experts, shape (num_experts, batch_size, latent_dim)
-            logvar (Tensor): Log-variance values from all experts, shape (num_experts, batch_size, latent_dim)
+            mean (Tensor): Mean values from all experts, shape (num_experts, batch_size, latent_dim)
+            log_var (Tensor): Log-variance values from all experts, shape (num_experts, batch_size, latent_dim)
             eps (float, optional): Small value for numerical stability. Default is 1e-8.
 
         Returns:
             prod_mean (Tensor): Mean of the combined product Gaussian, shape (batch_size, latent_dim)
             prod_log_var (Tensor): Log-variance of the combined product Gaussian, shape (batch_size, latent_dim)
         """
-        var = torch.exp(logvar) + eps
+        var = torch.exp(log_var) + eps
         precision = 1.0 / (var + eps)
-        prod_mean = torch.sum(mu * precision, dim=0) / torch.sum(precision, dim=0)
+        prod_mean = torch.sum(mean * precision, dim=0) / torch.sum(precision, dim=0)
         prod_var = 1.0 / torch.sum(precision, dim=0)
         prod_log_var = torch.log(prod_var + eps)
         return prod_mean, prod_log_var

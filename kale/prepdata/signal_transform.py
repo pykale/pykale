@@ -37,12 +37,17 @@ def interpolate_signal(signal):
 
 def prepare_ecg_tensor(signal):
     """
-    Converts preprocessed ECG numpy array to a torch tensor of shape (1, -1).
+    Converts a preprocessed ECG signal (NumPy array or PyTorch tensor) to a torch tensor of shape (1, -1).
 
     Args:
-        signal (ndarray): Preprocessed and normalized ECG array (samples, channels).
+        signal (ndarray or Tensor): Preprocessed and normalized ECG array (samples, channels).
 
     Returns:
         Tensor: Flattened ECG tensor, shape (1, total_samples).
     """
-    return torch.tensor(signal.reshape(1, -1), dtype=torch.float32)
+    if isinstance(signal, np.ndarray):
+        return torch.tensor(signal.reshape(1, -1), dtype=torch.float32)
+    elif isinstance(signal, torch.Tensor):
+        return signal.reshape(1, -1).to(dtype=torch.float32)
+    else:
+        raise TypeError("Input must be a NumPy ndarray or a PyTorch tensor")
