@@ -10,6 +10,8 @@ References for processing stacked images:
 import logging
 
 import numpy as np
+import skimage.color
+import skimage.io
 import torchvision.transforms as transforms
 from skimage.transform import estimate_transform, rescale, warp
 
@@ -202,3 +204,59 @@ def normalize_img_stack(images):
             images[i][j, ...] = (img - np.min(img)) / (np.max(img) - np.min(img))
 
     return images
+
+
+def prepare_image_tensor(image_path: str, resize_dim=(224, 224), channels=1):
+    """
+    Loads, resizes, and normalizes a single image for use in deep learning models.
+
+    Args:
+        image_path (str): Path to the image file.
+        resize_dim (tuple, optional): Desired (height, width) for resizing. Default is (224, 224).
+        channels (int, optional): 1 for grayscale, 3 for RGB. Default is 1.
+
+    Returns:
+        Tensor: Preprocessed image tensor, normalized and shaped as (channels, H, W).
+    """
+    image = skimage.io.imread(image_path)
+
+    # Convert to grayscale or RGB as needed
+    if channels == 1:
+        if len(image.shape) == 3:
+            image = skimage.color.rgb2gray(image)
+    elif channels == 3:
+        if len(image.shape) == 2:
+            # Grayscale to RGB
+            image = np.stack([image] * 3, axis=-1)
+        elif image.shape[2] == 1:
+            # (H, W, 1) to (H, W, 3)
+            image = np.repeat(image, 3, axis=2)
+    else:
+        raise ValueError("channels must be 1 (grayscale) or 3 (RGB)")
+
+    # Resize image
+    image = skimage.transform.resize(image, resize_dim, mode="constant", anti_aliasing=True)
+
+    # To uint8 if needed for ToPILImage()
+    if image.max() <= 1.0:
+        image = (image * 255).astype(np.uint8)
+    else:
+        image = image.astype(np.uint8)
+
+    # Build transforms: for grayscale, normalize with [0.5]; for RGB, normalize with [0.5, 0.5, 0.5]
+    if channels == 1:
+        normalize = transforms.Normalize(mean=[0.5], std=[0.5])
+    else:
+        normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+
+    # Compose transform
+    transform = transforms.Compose(
+        [
+            transforms.ToPILImage(),
+            transforms.ToTensor(),
+            normalize,
+        ]
+    )
+
+    image = transform(image)
+    return image

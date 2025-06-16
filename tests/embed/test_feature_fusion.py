@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from kale.embed.feature_fusion import BimodalInteractionFusion, Concat, LowRankTensorFusion
+from kale.embed.feature_fusion import BimodalInteractionFusion, Concat, LowRankTensorFusion, ProductOfExperts
 
 
 def test_concat():
@@ -35,3 +35,31 @@ def test_low_rank_tensor_fusion():
     m3 = torch.randn(4, 3)
     output = lrtf([m1, m2, m3])
     assert output.shape == (4, 1)
+
+
+def test_product_of_experts_forward():
+    # Prepare dummy expert means and logvars for 3 experts, 5 batch, 8 latent dims
+    num_experts = 3
+    batch_size = 5
+    latent_dim = 8
+    mu = torch.randn(num_experts, batch_size, latent_dim)
+    logvar = torch.randn(num_experts, batch_size, latent_dim)
+
+    poe = ProductOfExperts()
+    pd_mu, pd_logvar = poe(mu, logvar)
+
+    # Check shapes
+    assert pd_mu.shape == (batch_size, latent_dim)
+    assert pd_logvar.shape == (batch_size, latent_dim)
+    assert isinstance(pd_mu, torch.Tensor)
+    assert isinstance(pd_logvar, torch.Tensor)
+
+
+def test_product_of_experts_numerical_stability():
+    # All experts have large negative logvar (very low variance)
+    mu = torch.zeros(2, 1, 4)
+    logvar = torch.full((2, 1, 4), -20.0)
+    poe = ProductOfExperts()
+    pd_mu, pd_logvar = poe(mu, logvar, eps=1e-10)  # Use custom eps for coverage
+    assert torch.isfinite(pd_mu).all()
+    assert torch.isfinite(pd_logvar).all()

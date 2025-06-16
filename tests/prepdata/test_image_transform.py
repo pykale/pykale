@@ -3,11 +3,19 @@ import os
 import matplotlib.figure
 import numpy as np
 import pytest
+import torch
 from numpy import testing
+from PIL import Image
 
 from kale.interpret.visualize import plot_multi_images
 from kale.loaddata.image_access import check_dicom_series_uid, dicom2arraylist, read_dicom_dir
-from kale.prepdata.image_transform import mask_img_stack, normalize_img_stack, reg_img_stack, rescale_img_stack
+from kale.prepdata.image_transform import (
+    mask_img_stack,
+    normalize_img_stack,
+    prepare_image_tensor,
+    reg_img_stack,
+    rescale_img_stack,
+)
 
 SCALES = [4, 8]
 
@@ -104,3 +112,70 @@ def test_normalize(images):
     for i in range(len(norm_image)):
         assert np.min(norm_image[i]) >= 0
         assert np.max(norm_image[i]) <= 1
+
+
+def save_image_to_path(np_img, path):
+    """Save numpy image to file for skimage.io.imread compatibility"""
+    img = Image.fromarray(np_img)
+    img.save(path)
+
+
+@pytest.mark.parametrize(
+    "channels_in,channels_arg,expected_shape",
+    [
+        (1, 1, (1, 224, 224)),  # Grayscale file, grayscale output
+        (3, 3, (3, 224, 224)),  # RGB file, RGB output
+        (1, 3, (3, 224, 224)),  # Grayscale file, RGB output
+        (3, 1, (1, 224, 224)),  # RGB file, grayscale output
+    ],
+)
+def test_prepare_image_tensor_branches(tmp_path, channels_in, channels_arg, expected_shape):
+    # Create dummy image data (random)
+    H, W = 32, 32
+    if channels_in == 1:
+        np_img = np.random.randint(0, 255, size=(H, W), dtype=np.uint8)
+    elif channels_in == 3:
+        np_img = np.random.randint(0, 255, size=(H, W, 3), dtype=np.uint8)
+    else:
+        raise ValueError("Test: invalid test param")
+
+    # Save temp image
+    img_path = tmp_path / f"test_{channels_in}.png"
+    save_image_to_path(np_img, img_path)
+
+    # Run function
+    out_tensor = prepare_image_tensor(str(img_path), resize_dim=(224, 224), channels=channels_arg)
+    assert isinstance(out_tensor, torch.Tensor)
+    assert out_tensor.shape == expected_shape
+    assert out_tensor.max() <= 1.0 or out_tensor.min() >= -1.0  # normalized
+
+
+def test_prepare_image_tensor_hw1_to_hw3(tmp_path):
+    # Simulate (H, W, 1) image
+    np_img = np.random.randint(0, 255, size=(32, 32, 1), dtype=np.uint8)
+    img_path = tmp_path / "hw1.png"
+    # PIL expects at least 2D, save as grayscale
+    img = Image.fromarray(np_img.squeeze())
+    img.save(img_path)
+    # Re-load as (H, W, 1) and save as .npy for direct skimage.io.imread
+    np.save(str(tmp_path / "hw1.npy"), np_img)
+    # Use prepare_image_tensor (simulate read as H, W, 1)
+    img_loaded = np.load(str(tmp_path / "hw1.npy"))
+    # Monkeypatch skimage.io.imread to return (H, W, 1)
+    import skimage.io
+
+    orig_imread = skimage.io.imread
+    skimage.io.imread = lambda path: img_loaded
+    try:
+        out_tensor = prepare_image_tensor("dummy_path", resize_dim=(224, 224), channels=3)
+        assert out_tensor.shape == (3, 224, 224)
+    finally:
+        skimage.io.imread = orig_imread
+
+
+def test_prepare_image_tensor_invalid_channels(tmp_path):
+    np_img = np.random.randint(0, 255, size=(32, 32), dtype=np.uint8)
+    img_path = tmp_path / "test_invalid.png"
+    save_image_to_path(np_img, img_path)
+    with pytest.raises(ValueError):
+        prepare_image_tensor(str(img_path), resize_dim=(224, 224), channels=2)
