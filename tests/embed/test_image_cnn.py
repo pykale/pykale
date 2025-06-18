@@ -4,6 +4,7 @@ import torch
 from kale.embed.image_cnn import (
     Flatten,
     Identity,
+    ImageVAEEncoder,
     LeNet,
     ResNet18Feature,
     ResNet34Feature,
@@ -75,3 +76,26 @@ def test_identity_output_shapes():
     x = torch.randn(16, 3, 32, 32)
     output = identity(x)
     assert output.shape == (16, 3, 32, 32), "Unexpected output shape"
+
+
+def test_image_vae_encoder_forward():
+    # Test configuration
+    batch_size = 2
+    input_channels = 1
+    height, width = 224, 224  # After 3 layers with stride=2, output is 28x28
+
+    # Create dummy image input (batch of grayscale images)
+    x = torch.randn(batch_size, input_channels, height, width)
+
+    # Initialize encoder
+    encoder = ImageVAEEncoder(input_channels=input_channels, latent_dim=32)
+
+    # Forward pass
+    mean, log_var = encoder(x)
+
+    # Check output shapes
+    assert mean.shape == (batch_size, 32)
+    assert log_var.shape == (batch_size, 32)
+    # Check types
+    assert isinstance(mean, torch.Tensor)
+    assert isinstance(log_var, torch.Tensor)

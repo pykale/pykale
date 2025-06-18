@@ -38,6 +38,14 @@ kale.prepdata.string\_transform module
    :undoc-members:
    :show-inheritance:
 
+kale.prepdata.signal\_transform module
+--------------------------------------
+
+.. automodule:: kale.prepdata.signal_transform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.prepdata.supergraph\_construct module
 ------------------------------------------
 
