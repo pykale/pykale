@@ -7,7 +7,7 @@ Submodules
 ----------
 
 kale.interpret.feature\_importance module
--------------------------------
+-----------------------------------------
 
 .. automodule:: kale.interpret.feature_importance
    :members:
