@@ -1,6 +1,7 @@
 """Author: Lawrence Schobs, lawrenceschobs@gmail.com
     This file contains functions for string manipulation.
 """
+from ast import literal_eval
 
 
 def strip_for_bound(string_: str) -> list:
@@ -17,11 +18,5 @@ def strip_for_bound(string_: str) -> list:
     bounds = []
     for entry in string_:
         entry = entry[1:-1]
-        # bounds.append([float(i) for i in entry.split(",")])
-        bounds.append(
-            [
-                float(i.replace("np.float64(", "").replace(")", "")) if "np.float64" in i else float(i)
-                for i in entry.split(",")
-            ]
-        )
+        bounds.append([float(literal_eval(i)) if "np.float64" in i else float(i) for i in entry.split(",")])
     return bounds
