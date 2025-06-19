@@ -8,6 +8,7 @@ https://www.nature.com/articles/s41467-021-23774-w
 """
 
 import argparse
+import logging
 import warnings
 
 import pytorch_lightning as pl
@@ -18,6 +19,7 @@ from model import MogonetModel
 import kale.utils.seed as seed
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
+from kale.interpret.feature_importance import select_top_features
 
 warnings.filterwarnings(action="ignore")
 
@@ -102,6 +104,24 @@ def main():
     # ---- testing model ----
     print("\n==> Testing model...")
     _ = trainer.test(model)
+
+    print("\n==> Identifying biomarkers...")
+    pl_logger = logging.getLogger("pytorch_lightning")
+    pl_logger.setLevel(logging.ERROR)
+    trainer.progress_bar_callback.disable()
+    f1_key = "F1" if multiomics_data.num_classes == 2 else "F1 macro"
+    df_featimp_top = select_top_features(
+        trainer=trainer,
+        model=model,
+        dataset=multiomics_data,
+        metric=f1_key,
+        num_top_feats=30,
+        verbose=False,
+    )
+
+    print('{:>4}\t{:<20}\t{:>5}\t{}'.format('Rank', 'Feature name', 'Omics', 'Importance'))
+    for rank, row in enumerate(df_featimp_top.itertuples(index=False), 1):
+        print(f"{rank:>4}\t{row.feat_name:<20}\t{row.omics:>5}\t{row.imp:.4f}")
 
 
 if __name__ == "__main__":
