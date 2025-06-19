@@ -18,6 +18,7 @@ import os.path as osp
 from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn.functional as F
 from torch_geometric.data import Data, Dataset, download_url, extract_zip
@@ -73,6 +74,7 @@ class MultiomicsDataset(Dataset):
         self._target_pre_transform = target_pre_transform
         self._processed_file_names = "data.pt"
         super().__init__(root, transform, pre_transform)
+        self._data_list = torch.load(osp.join(self.processed_dir, "data.pt"))
 
     @property
     def raw_file_names(self) -> Optional[List[str]]:
@@ -208,15 +210,17 @@ class MultiomicsDataset(Dataset):
 
     def get(self, modality_idx) -> Data:
         r"""Gets the data object at index ``idx``."""
-        data_list = torch.load(osp.join(self.processed_dir, "data.pt"))
-        return data_list[modality_idx]
+        return self._data_list[modality_idx]
+
+    def set(self, modality_data, modality_idx) -> None:
+        r"""Sets the data object at index ``idx``."""
+        self._data_list[modality_idx] = modality_data
 
     def __len__(self) -> int:
         return 1
 
     def __getitem__(self, index) -> Union["Dataset", Data]:
-        data_list = torch.load(osp.join(self.processed_dir, "data.pt"))
-        return data_list
+        return self._data_list
 
     @property
     def num_modalities(self) -> int:
