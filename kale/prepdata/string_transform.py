@@ -32,7 +32,7 @@ def convert_to_float(value: str) -> float:
     Returns:
         float: The converted float value.
     """
-    # Match patterns like np.float32(0.5), np.float64(1.23e-5), etc.
+    value = value.strip()
     match = re.match(r"np\.float\d+\((.+)\)", value)
     if match:
         value = match.group(1)  # Extract the number inside the parentheses
