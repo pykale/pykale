@@ -6,6 +6,14 @@ Interpret
 Submodules
 ----------
 
+kale.interpret.feature\_importance module
+-------------------------------
+
+.. automodule:: kale.interpret.feature_importance
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.interpret.model\_weights module
 ------------------------------------
 
@@ -13,7 +21,6 @@ kale.interpret.model\_weights module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 kale.interpret.uncertainty\_quantiles module
 --------------------------------------------
