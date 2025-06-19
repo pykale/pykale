@@ -82,6 +82,7 @@ dev_requires = full_requires + [
     "pre-commit",
     "pytest",
     "pytest-cov",
+    "pytest-testmon",
     "recommonmark",
     "sphinx",
     "sphinx-rtd-theme",
