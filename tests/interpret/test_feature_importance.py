@@ -122,6 +122,7 @@ def test_select_top_features(test_model, num_classes, url):
     assert df_featimp_top["imp"].is_monotonic_decreasing
 
 
+@pytest.mark.parametrize("num_classes, url", [(2, binary_class_data_url)])
 def test_select_top_features_raises_for_invalid_metric(test_model):
     trainer = pl.Trainer(
         default_root_dir="./tests/outputs",
