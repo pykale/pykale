@@ -52,6 +52,7 @@ def main():
         file_names.append(f"{modality}_lbl_tr.csv")
         file_names.append(f"{modality}_te.csv")
         file_names.append(f"{modality}_lbl_te.csv")
+        file_names.append(f"{modality}_feat_name.csv")
 
     multiomics_data = SparseMultiomicsDataset(
         root=cfg.DATASET.ROOT,
