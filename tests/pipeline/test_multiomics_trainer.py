@@ -117,7 +117,7 @@ def test_configure_optimizers(test_model, num_classes, url):
         (5, multi_class_data_url, True),
     ],
 )
-def test_forward2(test_model, num_classes, url, multimodal):
+def test_forward(test_model, num_classes, url, multimodal):
     x = []
     adj_t = []
     for modality in range(test_model.num_modalities):
