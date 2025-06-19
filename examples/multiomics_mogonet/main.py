@@ -17,9 +17,9 @@ from config import get_cfg_defaults
 from model import MogonetModel
 
 import kale.utils.seed as seed
+from kale.interpret.feature_importance import select_top_features
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
-from kale.interpret.feature_importance import select_top_features
 
 warnings.filterwarnings(action="ignore")
 
@@ -119,7 +119,7 @@ def main():
         verbose=False,
     )
 
-    print('{:>4}\t{:<20}\t{:>5}\t{}'.format('Rank', 'Feature name', 'Omics', 'Importance'))
+    print("{:>4}\t{:<20}\t{:>5}\t{}".format("Rank", "Feature name", "Omics", "Importance"))
     for rank, row in enumerate(df_featimp_top.itertuples(index=False), 1):
         print(f"{rank:>4}\t{row.feat_name:<20}\t{row.omics:>5}\t{row.imp:.4f}")
 

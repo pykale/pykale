@@ -11,12 +11,12 @@ from kale.pipeline.multiomics_trainer import MultiomicsTrainer
 
 
 def select_top_features(
-        trainer: Trainer,
-        model: MultiomicsTrainer,
-        dataset: SparseMultiomicsDataset,
-        metric: str,
-        num_top_feats: int = 30,
-        verbose: bool = False,
+    trainer: Trainer,
+    model: MultiomicsTrainer,
+    dataset: SparseMultiomicsDataset,
+    metric: str,
+    num_top_feats: int = 30,
+    verbose: bool = False,
 ) -> pd.DataFrame:
     """Compute feature importance using an ablation approach (feature masking) and select the top-ranked features.
     Each feature is individually masked, and the performance drop is measured using the specified metric. The
@@ -76,14 +76,10 @@ def select_top_features(
         dataset.set(modality_data, modality_idx)
         model.dataset = dataset
 
-        df_modality = pd.DataFrame({
-            "feat_name": feat_names,
-            "imp": imp_scores,
-            "omics": modality_label
-        })
+        df_modality = pd.DataFrame({"feat_name": feat_names, "imp": imp_scores, "omics": modality_label})
         feat_imp_list.append(df_modality)
 
     df_feat_imp = pd.concat(feat_imp_list, ignore_index=True)
-    df_top_feats = df_feat_imp.sort_values(by='imp', ascending=False).iloc[:num_top_feats]
+    df_top_feats = df_feat_imp.sort_values(by="imp", ascending=False).iloc[:num_top_feats]
 
     return df_top_feats
