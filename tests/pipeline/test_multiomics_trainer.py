@@ -39,6 +39,7 @@ def test_model(num_classes, url):
         file_names.append(f"{modality}_lbl_tr.csv")
         file_names.append(f"{modality}_te.csv")
         file_names.append(f"{modality}_lbl_te.csv")
+        file_names.append(f"{modality}_feat_name.csv")
 
     dataset = SparseMultiomicsDataset(
         root=root,
