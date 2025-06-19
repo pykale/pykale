@@ -100,23 +100,25 @@ class MultiomicsDataset(Dataset):
 
         for modality in range(self.num_modalities):
             if self._random_split:
-                full_data = np.loadtxt(self.raw_paths[modality * 2], delimiter=",")
-                full_labels = np.loadtxt(self.raw_paths[(modality * 2) + 1], delimiter=",")
+                full_data = np.loadtxt(self.raw_paths[modality * 3], delimiter=",")
+                full_labels = np.loadtxt(self.raw_paths[(modality * 3) + 1], delimiter=",")
                 full_labels = full_labels.astype(int)
 
                 train_idx, test_idx = self.get_random_split(full_labels, self._num_classes, self._train_size)
                 num_train = len(train_idx)
                 num_tests = len(test_idx)
+
+                feat_names = pd.read_csv(self.raw_paths[(modality * 3) + 2], header=None)
             else:
                 # The datasets provided here have already been pre-split into training and test sets.
-                train_data = np.loadtxt(self.raw_paths[modality * 4], delimiter=",")
-                train_labels = np.loadtxt(self.raw_paths[(modality * 4) + 1], delimiter=",")
+                train_data = np.loadtxt(self.raw_paths[modality * 5], delimiter=",")
+                train_labels = np.loadtxt(self.raw_paths[(modality * 5) + 1], delimiter=",")
                 train_labels = train_labels.astype(int)
                 num_train = len(train_labels)
                 train_idx = torch.tensor(list(range(num_train)), dtype=torch.long)
 
-                test_data = np.loadtxt(self.raw_paths[(modality * 4) + 2], delimiter=",")
-                test_labels = np.loadtxt(self.raw_paths[(modality * 4) + 3], delimiter=",")
+                test_data = np.loadtxt(self.raw_paths[(modality * 5) + 2], delimiter=",")
+                test_labels = np.loadtxt(self.raw_paths[(modality * 5) + 3], delimiter=",")
                 test_labels = test_labels.astype(int)
                 num_tests = len(test_labels)
                 test_idx = torch.tensor(list(range(num_train, num_train + num_tests)), dtype=torch.long)
@@ -124,6 +126,8 @@ class MultiomicsDataset(Dataset):
                 full_data = np.concatenate((train_data, test_data), axis=0)
                 full_labels = np.concatenate((train_labels, test_labels))
                 full_labels = full_labels.astype(int)
+
+                feat_names = pd.read_csv(self.raw_paths[(modality * 5) + 4], header=None)
 
             full_data = full_data if self.pre_transform is None else self.pre_transform(full_data)
             full_labels = full_labels if self._target_pre_transform is None else self._target_pre_transform(full_labels)
@@ -141,6 +145,7 @@ class MultiomicsDataset(Dataset):
                 test_idx=test_idx,
                 num_train=num_train,
                 num_test=num_tests,
+                feat_names=feat_names.values.flatten(),
             )
 
             data = self.extend_data(data)
