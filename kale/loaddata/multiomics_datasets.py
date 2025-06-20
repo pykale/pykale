@@ -86,16 +86,10 @@ class MultiomicsDataset(Dataset):
     def processed_file_names(self) -> Union[str, List[str], Tuple]:
         r"""The name of the files in the ``self.processed_dir`` folder that must be present in order to skip
         processing."""
-        return []
-        # return self._processed_file_names
+        return self._processed_file_names
 
     def download(self) -> None:
         r"""Downloads the dataset to the ``self.raw_dir`` folder."""
-        import os
-        import shutil
-
-        if os.path.exists(self.raw_dir):
-            shutil.rmtree(self.raw_dir)
         path = download_url(self._url, self.raw_dir)
         extract_zip(path, self.raw_dir)
 
