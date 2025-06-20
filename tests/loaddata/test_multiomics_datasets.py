@@ -28,6 +28,7 @@ def test_multiomics_datasets(random_split):
         if not random_split:
             file_names.append(f"{modality}_te.csv")
             file_names.append(f"{modality}_lbl_te.csv")
+        file_names.append(f"{modality}_feat_name.csv")
 
     dataset = MultiomicsDataset(
         root=root,
@@ -87,6 +88,7 @@ def test_sparse_multiomics_datasets():
         file_names.append(f"{modality}_lbl_tr.csv")
         file_names.append(f"{modality}_te.csv")
         file_names.append(f"{modality}_lbl_te.csv")
+        file_names.append(f"{modality}_feat_name.csv")
 
     dataset = SparseMultiomicsDataset(
         root=root,
