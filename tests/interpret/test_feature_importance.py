@@ -31,9 +31,9 @@ def test_model(num_classes, url):
     multimodal_decoder = None
 
     if num_classes > 2:
-        root = "tests/test_data/multiomics/trainer/multi_class"
+        root = "tests/test_data/multiomics/biomarker/multi_class"
     else:
-        root = "tests/test_data/multiomics/trainer/binary_class"
+        root = "tests/test_data/multiomics/biomarker/binary_class"
 
     file_names = []
     for modality in range(1, num_modalities + 1):
