@@ -149,7 +149,7 @@ def testing_cfg(download_path):
     cfg.DATASET.DOWNLOAD = False
     cfg.SOLVER.TRAIN_BATCH_SIZE = 16
     cfg.SOLVER.TEST_BATCH_SIZE = 20
-    cfg.DATASET.NUM_WORKERS = 1
+    cfg.DATASET.NUM_WORKERS = 0
     yield cfg
 
     # Teardown: remove data files, or not?

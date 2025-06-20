@@ -174,7 +174,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
                     self._target_by_split[part],
                 ) = _split_dataset_few_shot(self._target_by_split[part], self._n_fewshot)
 
-    def get_domain_loaders(self, split="train", batch_size=32, num_workers=1):
+    def get_domain_loaders(self, split="train", batch_size=32, num_workers=0):
         source_ds = self._source_by_split[split]
         source_loader = self._source_sampling_config.create_loader(source_ds, batch_size, num_workers)
         target_ds = self._target_by_split[split]
@@ -588,7 +588,7 @@ class MultiDomainAdapDataset(DomainsDatasetBase):
                 self._valid_split_ratio
             )
 
-    def get_domain_loaders(self, split="train", batch_size=32, num_workers=1):
+    def get_domain_loaders(self, split="train", batch_size=32, num_workers=0):
         return self._sampling_config.create_loader(self._sample_by_split[split], batch_size, num_workers)
 
     def __len__(self):

@@ -2,7 +2,9 @@
 requires = [
     "setuptools==74.1.0",
     "wheel",
+    "numpy",
 ]
+build-backend = "setuptools.build_meta"
 
 [tool.black]
 # https://github.com/psf/black

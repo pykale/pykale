@@ -15,11 +15,11 @@ from setuptools import find_packages, setup
 
 # Core dependencies frequently used in PyKale Core API
 install_requires = [
-    "numpy<2.0.0",  # sure
-    "pandas",  # sure
-    "pytorch-lightning>=2.0.0",  # in pipeline API only
+    "numpy>=1.26.0",  # Numpy 2.0.0+ is needed
+    "pandas<=2.2.2",  # for compatibility with Colab 1.0.0 and Torch 2.3.0
+    "pytorch-lightning==2.3.2",  # in pipeline API only
+    "scipy>=1.13.0",  # scipy 1.14.0 supports python 3.10+
     "scikit-learn>=1.6.1",
-    "scipy>=1.5.4",  # in factorization API only
     "tensorly>=0.5.1",  # in factorization and model_weights API only
     "torch==2.3.0",  # also change the version in the test.yaml when changing this next time, and update the pytorch version in the bindingdb_deepdta tutorial notebook
     "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
@@ -39,7 +39,7 @@ image_requires = [
     "pydicom",
     "pylibjpeg",
     "python-gdcm",
-    "scikit-image>=0.16.2",
+    "scikit-image>=0.24.0",
 ]
 
 # End application-specific dependencies
@@ -51,7 +51,7 @@ example_requires = [
     "matplotlib<=3.10.0",  # matplotlib 3.10.1 will cause "Building wheel for matplotlib (setup.py): finished with status 'error'" for tests
     "nilearn>=0.7.0",
     "Pillow",
-    "PyTDC",
+    "PyTDC<=0.3.6",
     "seaborn",
     "torchsummary>=1.5.0",
     "yacs>=0.1.7",
@@ -75,6 +75,7 @@ dev_requires = full_requires + [
     "isort",
     "m2r",
     "mypy",
+    "nbconvert",
     "nbmake>=0.8",
     "nbsphinx",
     "nbsphinx-link",
@@ -130,7 +131,6 @@ setup(
         "full": full_requires,
         "dev": dev_requires,
     },
-    setup_requires=["setuptools==74.1.0"],
     license="MIT",
     keywords="machine learning, pytorch, deep learning, multimodal learning, transfer learning",
     classifiers=[

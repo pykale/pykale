@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
     """ DEMO 3 CONTINUED: DATALOADER """
     dataloader = torch.utils.data.DataLoader(
-        dataset=dataset, batch_size=2, shuffle=True, num_workers=4, pin_memory=True
+        dataset=dataset, batch_size=2, shuffle=True, num_workers=0, pin_memory=True
     )
 
     for epoch in range(10):
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     )
 
     dataloader = torch.utils.data.DataLoader(
-        dataset=dataset, batch_size=3, shuffle=True, num_workers=2, pin_memory=True
+        dataset=dataset, batch_size=3, shuffle=True, num_workers=0, pin_memory=True
     )
 
     print("\nMulti-Label Example")
