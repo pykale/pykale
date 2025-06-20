@@ -86,10 +86,15 @@ class MultiomicsDataset(Dataset):
     def processed_file_names(self) -> Union[str, List[str], Tuple]:
         r"""The name of the files in the ``self.processed_dir`` folder that must be present in order to skip
         processing."""
-        return self._processed_file_names
+        return []
+        # return self._processed_file_names
 
     def download(self) -> None:
         r"""Downloads the dataset to the ``self.raw_dir`` folder."""
+        import os
+        import shutil
+        if os.path.exists(self.raw_dir):
+            shutil.rmtree(self.raw_dir)
         path = download_url(self._url, self.raw_dir)
         extract_zip(path, self.raw_dir)
 
@@ -110,6 +115,7 @@ class MultiomicsDataset(Dataset):
 
                 feat_names = pd.read_csv(self.raw_paths[(modality * 3) + 2], header=None)
             else:
+                print(modality, self.raw_paths)
                 # The datasets provided here have already been pre-split into training and test sets.
                 train_data = np.loadtxt(self.raw_paths[modality * 5], delimiter=",")
                 train_labels = np.loadtxt(self.raw_paths[(modality * 5) + 1], delimiter=",")
