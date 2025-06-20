@@ -43,10 +43,17 @@ def download_multiomics_data(save_path):
     # Downloading Binary Class and Multi Class Multiomics datasets for tests/pipeline/test_multiomics_trainer.py test
     url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
     binary_save_path = Path(save_path).joinpath("multiomics/trainer/binary_class/")
+    import shutil
+
+    if binary_save_path.exists():
+        shutil.rmtree(binary_save_path)
+
     download_file_by_url(url, binary_save_path, "binary_class.zip", "zip")
 
     url = "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"
     multi_save_path = Path(save_path).joinpath("multiomics/trainer/multi_class/")
+    if multi_save_path.exists():
+        shutil.rmtree(multi_save_path)
     download_file_by_url(url, multi_save_path, "multi_class.zip", "zip")
 
 
