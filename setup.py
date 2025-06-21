@@ -56,6 +56,7 @@ example_requires = [
     "torchsummary>=1.5.0",
     "yacs>=0.1.7",
     "pwlf",
+    "wfdb",
     "xlsxwriter",
     "prettytable",
     "comet_ml",
