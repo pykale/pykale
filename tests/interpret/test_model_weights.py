@@ -5,14 +5,13 @@ import pytorch_lightning as pl
 import torch
 from torch.nn import CrossEntropyLoss
 
-from kale.interpret import model_weights
 from kale.embed.mogonet import MogonetGCN
+from kale.interpret import model_weights
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.pipeline.multiomics_trainer import MultiomicsTrainer
 from kale.predict.decode import LinearClassifier, VCDN
 from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 from kale.utils.seed import set_seed
-
 
 binary_class_data_url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
 multi_class_data_url = "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"

@@ -8,12 +8,11 @@ from itertools import combinations
 
 import numpy as np
 import pandas as pd
+from pytorch_lightning import Trainer
 from sklearn.utils import indexable
 from sklearn.utils._param_validation import Interval, Real, validate_params
 from tensorly.base import fold, unfold
-from pytorch_lightning import Trainer
 from tqdm import trange
-
 
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.pipeline.multiomics_trainer import MultiomicsTrainer
