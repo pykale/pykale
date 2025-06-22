@@ -473,3 +473,30 @@ def test_auto_mida_trainer_callable_score(toy_data, classifier):
         "Please provide group_labels when calling fit.",
     ):
         _ = trainer.groups_
+
+
+def test_auto_mida_trainer_custom_param_grid():
+    custom_param_grid = {
+        "C": [0.1, 1, 10],
+        "domain_adapter__mu": [0.01, 0.1, 1],
+        "domain_adapter__num_components": [2, 4],
+    }
+
+    trainer = AutoMIDAClassificationTrainer(
+        classifier="lr",
+        search_strategy="random",
+        scoring="accuracy",
+        num_search_iter=3,
+        num_solver_iter=10,
+        cv=2,
+        param_grid=custom_param_grid,
+        error_score="raise",
+        random_state=0,
+    )
+    _, generated_param_grid = trainer._get_classifier_and_grid()
+    generated_mida_grid = trainer._get_mida_and_grid()
+
+    assert generated_param_grid == custom_param_grid, (
+        f"Expected custom_param_grid to be {custom_param_grid}, " f"but got {generated_param_grid}"
+    )
+    assert generated_mida_grid == {}, "MIDA grid should be empty with predefined param_grid"
