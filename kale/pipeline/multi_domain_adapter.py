@@ -1080,7 +1080,7 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
 
         best_params = self.best_params_
         kernels = [k for k in best_params if k.endswith("__kernel")]
-        has_nonlinear_kernel = any(k != "linear" for k in kernels)
+        has_nonlinear_kernel = any(best_params[k] != "linear" for k in kernels)
 
         if self.nonlinear or has_nonlinear_kernel:
             raise ValueError(
