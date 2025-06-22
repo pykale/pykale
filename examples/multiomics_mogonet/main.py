@@ -106,12 +106,16 @@ def main():
     _ = trainer.test(model)
 
     print("\n==> Identifying biomarkers...")
-    pl_logger = logging.getLogger("pytorch_lightning")
-    pl_logger.setLevel(logging.ERROR)
-    trainer.progress_bar_callback.disable()
+    logging.getLogger("pytorch_lightning").setLevel(logging.ERROR)
+    trainer_biomarker = pl.Trainer(
+        max_epochs=cfg.SOLVER.MAX_EPOCHS,
+        accelerator="auto",
+        devices="auto",
+        enable_progress_bar=False,
+    )
     f1_key = "F1" if multiomics_data.num_classes == 2 else "F1 macro"
     df_featimp_top = select_top_features_by_masking(
-        trainer=trainer,
+        trainer=trainer_biomarker,
         model=model,
         dataset=multiomics_data,
         metric=f1_key,
