@@ -496,7 +496,34 @@ def test_auto_mida_trainer_custom_param_grid():
     _, generated_param_grid = trainer._get_classifier_and_grid()
     generated_mida_grid = trainer._get_mida_and_grid()
 
-    assert generated_param_grid == custom_param_grid, (
-        f"Expected custom_param_grid to be {custom_param_grid}, " f"but got {generated_param_grid}"
-    )
+    assert (
+        generated_param_grid == custom_param_grid
+    ), f"Expected custom_param_grid to be {custom_param_grid}, but got {generated_param_grid}"
     assert generated_mida_grid == {}, "MIDA grid should be empty with predefined param_grid"
+
+
+def test_auto_mida_trainer_check_nonlinear_for_custom_param_grid(toy_data):
+    x, y, domains, _ = toy_data
+
+    custom_param_grid = {
+        "C": [0.1, 1, 10],
+        "domain_adapter__mu": [0.01, 0.1, 1],
+        "domain_adapter__num_components": [2, 4],
+        "domain_adapter__kernel": ["rbf"],  # Nonlinear kernel included
+    }
+
+    trainer = AutoMIDAClassificationTrainer(
+        classifier="svm",
+        search_strategy="random",
+        scoring="accuracy",
+        num_search_iter=3,
+        num_solver_iter=10,
+        cv=2,
+        param_grid=custom_param_grid,
+        error_score="raise",
+        random_state=0,
+    )
+
+    with pytest.raises(ValueError, match="coef_ is not available when"):
+        trainer.fit(x, y, group_labels=domains)
+        trainer.coef_
