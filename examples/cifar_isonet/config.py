@@ -18,7 +18,7 @@ _C.DATASET = CfgNode()
 _C.DATASET.ROOT = "../data"
 _C.DATASET.NAME = "CIFAR10"
 _C.DATASET.NUM_CLASSES = 10
-_C.DATASET.NUM_WORKERS = 1
+_C.DATASET.NUM_WORKERS = 0
 
 # ---------------------------------------------------------------------------- #
 # Solver
