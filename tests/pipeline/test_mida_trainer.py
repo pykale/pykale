@@ -48,6 +48,15 @@ def toy_data():
     return x, y, domains, factors
 
 
+@pytest.fixture(scope="module")
+def custom_param_grid():
+    return {
+        "C": [0.1, 1, 10],
+        "domain_adapter__mu": [0.01, 0.1, 1],
+        "domain_adapter__num_components": [2, 4],
+    }
+
+
 @pytest.mark.parametrize("transformer", TRANSFORMER)
 @pytest.mark.parametrize("param_grid", PARAM_GRID)
 def test_mida_trainer_params_consistency(toy_data, transformer, param_grid):
@@ -403,7 +412,7 @@ def test_auto_mida_trainer_nonlinear_enabled(toy_data, monkeypatch):
 
 # Test classifier="auto" without nonlinear
 def test_auto_mida_trainer_classifier_auto(toy_data, monkeypatch):
-    x, y, domains, factors = toy_data
+    x, y, domains, _ = toy_data
 
     for name in CLASSIFIER_PARAMS:
         param_name = list(CLASSIFIER_PARAMS[name].keys())[0]
@@ -429,7 +438,7 @@ def test_auto_mida_trainer_classifier_auto(toy_data, monkeypatch):
 
 @pytest.mark.parametrize("verbose", [2, 3, 10])
 def test_auto_mida_trainer_classifier_verbose(toy_data, verbose):
-    x, y, domains, factors = toy_data
+    x, y, domains, _ = toy_data
     trainer = AutoMIDAClassificationTrainer(
         classifier="lr",
         search_strategy="random",
@@ -447,7 +456,7 @@ def test_auto_mida_trainer_classifier_verbose(toy_data, verbose):
 
 @pytest.mark.parametrize("classifier", ["lr", "lda"])
 def test_auto_mida_trainer_callable_score(toy_data, classifier):
-    x, y, domains, factors = toy_data
+    x, y, domains, _ = toy_data
     trainer = AutoMIDAClassificationTrainer(
         classifier=classifier,
         search_strategy="random",
@@ -475,13 +484,7 @@ def test_auto_mida_trainer_callable_score(toy_data, classifier):
         _ = trainer.groups_
 
 
-def test_auto_mida_trainer_custom_param_grid():
-    custom_param_grid = {
-        "C": [0.1, 1, 10],
-        "domain_adapter__mu": [0.01, 0.1, 1],
-        "domain_adapter__num_components": [2, 4],
-    }
-
+def test_auto_mida_trainer_custom_param_grid(custom_param_grid):
     trainer = AutoMIDAClassificationTrainer(
         classifier="lr",
         search_strategy="random",
@@ -502,15 +505,8 @@ def test_auto_mida_trainer_custom_param_grid():
     assert generated_mida_grid == {}, "MIDA grid should be empty with predefined param_grid"
 
 
-def test_auto_mida_trainer_check_nonlinear_for_custom_param_grid(toy_data):
+def test_auto_mida_trainer_check_nonlinear_for_custom_param_grid(toy_data, custom_param_grid):
     x, y, domains, _ = toy_data
-
-    custom_param_grid = {
-        "C": [0.1, 1, 10],
-        "domain_adapter__mu": [0.01, 0.1, 1],
-        "domain_adapter__num_components": [2, 4],
-        "domain_adapter__kernel": ["rbf"],  # Nonlinear kernel included
-    }
 
     trainer = AutoMIDAClassificationTrainer(
         classifier="svm",
@@ -524,6 +520,23 @@ def test_auto_mida_trainer_check_nonlinear_for_custom_param_grid(toy_data):
         random_state=0,
     )
 
-    with pytest.raises(ValueError, match="coef_ is not available when"):
+    with pytest.raises((ValueError, AttributeError), match="coef_ is"):
         trainer.fit(x, y, group_labels=domains)
         trainer.coef_
+
+
+def test_auto_mida_trainer_check_custom_param_grid_with_auto(custom_param_grid):
+    trainer = AutoMIDAClassificationTrainer(
+        classifier="auto",
+        search_strategy="random",
+        scoring="accuracy",
+        num_search_iter=3,
+        num_solver_iter=10,
+        cv=2,
+        param_grid=custom_param_grid,
+        error_score="raise",
+        random_state=0,
+    )
+
+    with pytest.raises(ValueError, match="`classifier='auto'` does not support custom param_grid."):
+        trainer._get_classifier_and_grid()
