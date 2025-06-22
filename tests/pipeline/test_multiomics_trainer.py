@@ -17,7 +17,7 @@ multi_class_data_url = "https://github.com/pykale/data/raw/main/multiomics/TCGA_
 @pytest.fixture
 def test_model(num_classes, url):
     num_modalities = 3
-    gcn_hidden_dim = [200, 200, 100]
+    gcn_hidden_dim = [64, 64, 32]
     vcdn_hidden_dim = pow(num_classes, num_modalities)
     gcn_dropout_rate = 0.5
     gcn_lr = 5e-4
@@ -46,7 +46,7 @@ def test_model(num_classes, url):
         raw_file_names=file_names,
         num_modalities=num_modalities,
         num_classes=num_classes,
-        edge_per_node=10,
+        edge_per_node=2,
         url=url,
         random_split=False,
         train_size=0.7,
