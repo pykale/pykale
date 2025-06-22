@@ -139,7 +139,7 @@ def get_top_symmetric_weight(weights, labels, coords, p=0.001):
     return sym_weights, top_labels, top_coords
 
 
-def select_top_features(
+def select_top_features_by_masking(
     trainer: Trainer,
     model: MultiomicsTrainer,
     dataset: SparseMultiomicsDataset,

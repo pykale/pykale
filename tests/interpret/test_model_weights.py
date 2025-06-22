@@ -133,7 +133,7 @@ def test_select_top_features(test_multiomics_model, num_classes, url):
     trainer.fit(test_multiomics_model)
 
     f1_key = "F1" if test_multiomics_model.dataset.num_classes == 2 else "F1 macro"
-    df_featimp_top = model_weights.select_top_features(
+    df_featimp_top = model_weights.select_top_features_by_masking(
         trainer=trainer,
         model=test_multiomics_model,
         dataset=test_multiomics_model.dataset,
@@ -167,7 +167,7 @@ def test_select_top_features_raises_for_invalid_metric(test_multiomics_model):
     trainer.fit(test_multiomics_model)
 
     with pytest.raises(ValueError):
-        model_weights.select_top_features(
+        model_weights.select_top_features_by_masking(
             trainer=trainer,
             model=test_multiomics_model,
             dataset=test_multiomics_model.dataset,

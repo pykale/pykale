@@ -17,7 +17,7 @@ from config import get_cfg_defaults
 from model import MogonetModel
 
 import kale.utils.seed as seed
-from kale.interpret.model_weights import select_top_features
+from kale.interpret.model_weights import select_top_features_by_masking
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 
@@ -110,7 +110,7 @@ def main():
     pl_logger.setLevel(logging.ERROR)
     trainer.progress_bar_callback.disable()
     f1_key = "F1" if multiomics_data.num_classes == 2 else "F1 macro"
-    df_featimp_top = select_top_features(
+    df_featimp_top = select_top_features_by_masking(
         trainer=trainer,
         model=model,
         dataset=multiomics_data,
