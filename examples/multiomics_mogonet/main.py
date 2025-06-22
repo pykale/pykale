@@ -17,7 +17,7 @@ from config import get_cfg_defaults
 from model import MogonetModel
 
 import kale.utils.seed as seed
-from kale.interpret.feature_importance import select_top_features
+from kale.interpret.model_weights import select_top_features
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 
