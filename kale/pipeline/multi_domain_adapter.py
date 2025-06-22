@@ -992,7 +992,7 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         param_grid (dict or None, optional): Dictionary with parameter names as keys and lists of parameter settings
             to try as values. If None, uses default parameters for the selected classifier.
         use_mida (bool, optional): Whether to use MIDA for domain adaptation. Default is True.
-        nonlinear (bool, optional): Whether to enable nonlinear MIDA. Default is False.
+        nonlinear (bool, optional): Whether to enable nonlinear MIDA. Ignored when `param_grid` is defined. Default is False.
         transformer (sklearn.base.BaseEstimator or None, optional): Optional transformer to apply before MIDA.
             Must implement `fit` and `transform`. Default is None.
         search_strategy (str, optional): "grid" or "random" search for hyperparameter optimization. Default is "random".
