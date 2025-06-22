@@ -1218,7 +1218,7 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         if self.param_grid is not None:
             # "auto" is not usable with custom param_grid
             if self.classifier == "auto":
-                raise ValueError("Cannot provide a custom param_grid when classifier is set to 'auto'.")
+                raise ValueError("`classifier='auto'` does not support custom param_grid.")
             return base_classifier, clone(self.param_grid, safe=False)
 
         if self.classifier != "auto":
