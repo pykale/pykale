@@ -100,6 +100,11 @@ class MultiomicsDataset(Dataset):
 
         for modality in range(self.num_modalities):
             if self._random_split:
+                # Each modality has 3 corresponding files, added to self.raw_paths in the following order:
+                # - Index 0: full data (combined train and test)
+                # - Index 1: full labels
+                # - Index 2: feature names
+                # We use modality * 3 + offset to access the correct files per modality
                 full_data = np.loadtxt(self.raw_paths[modality * 3], delimiter=",")
                 full_labels = np.loadtxt(self.raw_paths[(modality * 3) + 1], delimiter=",")
                 full_labels = full_labels.astype(int)
@@ -111,6 +116,13 @@ class MultiomicsDataset(Dataset):
                 feat_names = pd.read_csv(self.raw_paths[(modality * 3) + 2], header=None)
             else:
                 # The datasets provided here have already been pre-split into training and test sets.
+                # Each modality has 5 corresponding files, added to self.raw_paths in the following order:
+                # - Index 0: training data
+                # - Index 1: training labels
+                # - Index 2: test data
+                # - Index 3: test labels
+                # - Index 4: feature names
+                # Therefore, for each modality, we access these files using modality * 5 + offset
                 train_data = np.loadtxt(self.raw_paths[modality * 5], delimiter=",")
                 train_labels = np.loadtxt(self.raw_paths[(modality * 5) + 1], delimiter=",")
                 train_labels = train_labels.astype(int)
