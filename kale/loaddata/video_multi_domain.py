@@ -154,7 +154,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
                     self._flow_target_by_split["test"], self.class_ids
                 )
 
-    def get_domain_loaders(self, split="train", batch_size=32, num_workers=4):
+    def get_domain_loaders(self, split="train", batch_size=32, num_workers=0):
         rgb_source_ds = rgb_target_ds = flow_source_ds = flow_target_ds = None
         rgb_source_loader = rgb_target_loader = flow_source_loader = flow_target_loader = None
         rgb_target_labeled_loader = flow_target_labeled_loader = None
