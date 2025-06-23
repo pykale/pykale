@@ -26,6 +26,7 @@ def test_download_file_by_url(param):
     download_file_by_url(url, output_directory, output_file_name, file_format)
 
     assert os.path.exists(output_directory.joinpath(output_file_name)) is True
+    assert output_directory.exists()
 
 
 @pytest.mark.parametrize("param", GDRIVE_PARAM)
@@ -37,3 +38,4 @@ def test_download_file_gdrive(param):
     download_file_gdrive(id, output_directory, output_file_name, file_format)
 
     assert os.path.exists(output_directory.joinpath(output_file_name)) is True
+    assert output_directory.exists()
