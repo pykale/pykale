@@ -62,6 +62,7 @@ example_requires = [
     "comet_ml",
     "neurokit2",
     "captum",
+    "pywt",
 ]
 
 # Full dependencies except for development
