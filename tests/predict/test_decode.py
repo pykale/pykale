@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 
 from kale.predict.decode import (
-    ImageVaeDecoder,
+    ImageVAEDecoder,
     LinearClassifier,
     MLPDecoder,
     SignalImageFineTuningClassifier,
@@ -117,7 +117,7 @@ def test_image_vae_decoder_forward():
     output_channels = 2
     batch_size = 3
 
-    decoder = ImageVaeDecoder(latent_dim=latent_dim, output_channels=output_channels)
+    decoder = ImageVAEDecoder(latent_dim=latent_dim, output_channels=output_channels)
     decoder.eval()
 
     latent_vector = torch.randn(batch_size, latent_dim)
@@ -128,9 +128,9 @@ def test_image_vae_decoder_forward():
 
 
 def test_image_vae_decoder_repr_and_init():
-    decoder = ImageVaeDecoder(latent_dim=16, output_channels=3)
-    assert isinstance(decoder, ImageVaeDecoder)
-    assert "ImageVaeDecoder" in repr(decoder) or "ImageVAEDecoder" in repr(decoder)
+    decoder = ImageVAEDecoder(latent_dim=16, output_channels=3)
+    assert isinstance(decoder, ImageVAEDecoder)
+    assert "ImageVAEDecoder" in repr(decoder) or "ImageVAEDecoder" in repr(decoder)
 
 
 def test_signal_vae_decoder_forward():

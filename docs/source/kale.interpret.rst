@@ -30,6 +30,14 @@ kale.interpret.visualize module
    :undoc-members:
    :show-inheritance:
 
+kale.interpret.signal\_image\_attribution module
+-------------------------------
+
+.. automodule:: kale.interpret.signal_image_attribution
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 
 Module contents
