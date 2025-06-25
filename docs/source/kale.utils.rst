@@ -54,6 +54,14 @@ kale.utils.seed module
    :undoc-members:
    :show-inheritance:
 
+kale.utils.remap\_model\_parameters module
+----------------------
+
+.. automodule:: kale.utils.remap_model_parameters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------

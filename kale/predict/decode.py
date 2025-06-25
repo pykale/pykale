@@ -262,7 +262,7 @@ class VCDN(nn.Module):
         return output
 
 
-class ImageVaeDecoder(nn.Module):
+class ImageVAEDecoder(nn.Module):
     """
     ImageVAEDecoder reconstructs 2D image data from a latent representation in a variational autoencoder (VAE) framework.
 
@@ -286,7 +286,7 @@ class ImageVaeDecoder(nn.Module):
         image_recon (Tensor): Reconstructed image tensor of shape (batch_size, output_channels, H, W).
 
     Example:
-        decoder = ImageVaeDecoder(latent_dim=128, output_channels=1)
+        decoder = ImageVAEDecoder(latent_dim=128, output_channels=1)
         image_recon = decoder(latent_vector)
     """
 
@@ -308,7 +308,7 @@ class ImageVaeDecoder(nn.Module):
         return image_recon
 
 
-class SignalVaeDecoder(nn.Module):
+class SignalVAEDecoder(nn.Module):
     """
     SignalVAEDecoder reconstructs 1D signal data from a latent representation in a variational autoencoder (VAE) framework.
 
@@ -334,7 +334,7 @@ class SignalVaeDecoder(nn.Module):
         signal_recon (Tensor): Reconstructed 1D signal tensor of shape (batch_size, 1, output_dim).
 
     Example:
-        decoder = SignalVaeDecoder(latent_dim=128, output_dim=60000)
+        decoder = SignalVAEDecoder(latent_dim=128, output_dim=60000)
         signal_recon = decoder(latent_vector)
     """
 
