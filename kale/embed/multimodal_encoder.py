@@ -14,7 +14,7 @@ import torch.nn as nn
 from kale.embed.feature_fusion import ProductOfExperts
 from kale.embed.image_cnn import ImageVAEEncoder
 from kale.embed.signal_cnn import SignalVAEEncoder
-from kale.predict.decode import ImageVaeDecoder, SignalVaeDecoder
+from kale.predict.decode import ImageVAEDecoder, SignalVAEDecoder
 
 
 class SignalImageVAE(nn.Module):
@@ -52,8 +52,8 @@ class SignalImageVAE(nn.Module):
         super().__init__()
         self.image_encoder = ImageVAEEncoder(image_input_channels, latent_dim)
         self.signal_encoder = SignalVAEEncoder(signal_input_dim, latent_dim)
-        self.image_decoder = ImageVaeDecoder(latent_dim, image_input_channels)
-        self.signal_decoder = SignalVaeDecoder(latent_dim, signal_input_dim)
+        self.image_decoder = ImageVAEDecoder(latent_dim, image_input_channels)
+        self.signal_decoder = SignalVAEDecoder(latent_dim, signal_input_dim)
         self.experts = ProductOfExperts()
         self.n_latents = latent_dim
 

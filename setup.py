@@ -60,6 +60,9 @@ example_requires = [
     "xlsxwriter",
     "prettytable",
     "comet_ml",
+    "neurokit2",
+    "captum",
+    "pywavelets",
 ]
 
 # Full dependencies except for development
