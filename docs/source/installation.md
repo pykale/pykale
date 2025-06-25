@@ -4,8 +4,7 @@
 
 PyKale requires Python 3.9, 3.10, or 3.11. Before installing pykale, you should
 
-- manually [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware first,
-- if you will use APIs related to graphs, you need to manually install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) first following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation) and matching your PyTorch installation, and
+- Manually [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware first,
 - If [RDKit](https://www.rdkit.org/) will be used, you need to install it via `pip install rdkit`.
 
 ## Pip install
