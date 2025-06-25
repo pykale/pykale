@@ -23,8 +23,6 @@ def remap_state_dict_keys(state_dict):
         ("ecg_encoder.", "signal_encoder."),
         ("ecg_decoder.", "signal_decoder."),
         ("fc_logvar", "fc_log_var"),
-        ("signal_encoder.fc_logvar.weight", "signal_encoder.fc_log_var.weight"),
-        ("signal_encoder.fc_logvar.bias", "signal_encoder.fc_log_var.bias"),
     ]
     new_state_dict = {}
     for k, v in state_dict.items():

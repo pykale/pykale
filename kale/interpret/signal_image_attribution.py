@@ -18,6 +18,7 @@ def multimodal_signal_image_attribution(
     zoom_range=(3, 3.5),
     lead_number=12,
     sampling_rate=500,
+    signal_length=10,
 ):
     """
     Computes model attributions for multimodal (signal + image) input using Integrated Gradients.
@@ -45,6 +46,8 @@ def multimodal_signal_image_attribution(
         Number of signal leads (default is 12).
     sampling_rate : int, optional
         Sampling rate of the signal waveform in Hz (default is 500).
+    signal_length : int, optional
+        signal_length of the signal waveform in Seconds (default is 10).
 
     Returns
     -------
@@ -132,12 +135,12 @@ def multimodal_signal_image_attribution(
         attributions_signal_np.max() - attributions_signal_np.min() + 1e-8
     )
     signal_waveform_np = signal_smoothed_tensor.cpu().detach().numpy().squeeze()
-    full_length = min(60000, len(signal_waveform_np))
+    full_length = min(int(lead_number * sampling_rate * signal_length), len(signal_waveform_np))
     full_time = np.arange(0, full_length) / sampling_rate / lead_number
     important_indices_full = np.where(norm_attributions_signal[:full_length] >= signal_threshold)[0]
 
-    zoom_start = int(zoom_range[0] * 6000)
-    zoom_end = int(zoom_range[1] * 6000)
+    zoom_start = int(zoom_range[0] * int(lead_number * sampling_rate))
+    zoom_end = int(zoom_range[1] * int(lead_number * sampling_rate))
     zoom_time = np.arange(zoom_start, zoom_end) / sampling_rate / lead_number
     segment_signal_waveform = signal_waveform_np[zoom_start:zoom_end]
     segment_attributions = norm_attributions_signal[zoom_start:zoom_end]

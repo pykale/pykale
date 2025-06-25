@@ -4,7 +4,7 @@
 
 import pytest
 
-from kale.utils.remap_model_parameters import remap_state_dict_keys  # Change this to your actual module path
+from kale.utils.remap_model_parameters import remap_state_dict_keys
 
 
 @pytest.fixture

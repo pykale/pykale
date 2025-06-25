@@ -7,7 +7,7 @@ from kale.predict.decode import (
     LinearClassifier,
     MLPDecoder,
     SignalImageFineTuningClassifier,
-    SignalVaeDecoder,
+    SignalVAEDecoder,
     VCDN,
 )
 from kale.utils.seed import set_seed
@@ -130,7 +130,7 @@ def test_image_vae_decoder_forward():
 def test_image_vae_decoder_repr_and_init():
     decoder = ImageVAEDecoder(latent_dim=16, output_channels=3)
     assert isinstance(decoder, ImageVAEDecoder)
-    assert "ImageVAEDecoder" in repr(decoder) or "ImageVAEDecoder" in repr(decoder)
+    assert "ImageVAEDecoder" in repr(decoder)
 
 
 def test_signal_vae_decoder_forward():
@@ -138,7 +138,7 @@ def test_signal_vae_decoder_forward():
     output_dim = 32  # Small for test
     batch_size = 4
 
-    decoder = SignalVaeDecoder(latent_dim=latent_dim, output_dim=output_dim)
+    decoder = SignalVAEDecoder(latent_dim=latent_dim, output_dim=output_dim)
     decoder.eval()
 
     latent_vector = torch.randn(batch_size, latent_dim)
@@ -150,13 +150,13 @@ def test_signal_vae_decoder_forward():
 
 
 def test_signal_vae_decoder_init_repr():
-    decoder = SignalVaeDecoder(latent_dim=16, output_dim=64)
-    assert isinstance(decoder, SignalVaeDecoder)
-    assert "SignalVaeDecoder" in repr(decoder) or "SignalVAEDecoder" in repr(decoder)
+    decoder = SignalVAEDecoder(latent_dim=16, output_dim=64)
+    assert isinstance(decoder, SignalVAEDecoder)
+    assert "SignalVAEDecoder" in repr(decoder)
 
 
 def test_signal_vae_decoder_edge_case():
-    decoder = SignalVaeDecoder(latent_dim=1, output_dim=8)
+    decoder = SignalVAEDecoder(latent_dim=1, output_dim=8)
     latent_vector = torch.randn(1, 1)
     signal_recon = decoder(latent_vector)
     assert signal_recon.shape == (1, 1, 8)
