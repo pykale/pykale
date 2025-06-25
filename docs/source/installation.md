@@ -16,7 +16,7 @@ Install PyKale using `pip` for the stable version:
 pip install pykale  # for the core API only
 ```
 
-For users who wants to use PyKale in Google Colab, prefers quicker installation while requiring specific CUDA version, we highly recommend using PyTorch Geometric's pre-built wheel to prevent building the wheel manually during the runtime.
+For users who want to use PyKale in Google Colab, prefer quicker installation while requiring specific CUDA version, we highly recommend using PyTorch Geometric's pre-built wheel to prevent building the wheel manually during the runtime.
 
 If you need CUDA for GPU runtime, please install PyKale with command:
 ```bash
