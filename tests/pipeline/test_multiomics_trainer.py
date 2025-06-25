@@ -17,7 +17,7 @@ multi_class_data_url = "https://github.com/pykale/data/raw/main/multiomics/TCGA_
 @pytest.fixture
 def test_model(num_classes, url):
     num_modalities = 3
-    gcn_hidden_dim = [200, 200, 100]
+    gcn_hidden_dim = [64, 64, 32]
     vcdn_hidden_dim = pow(num_classes, num_modalities)
     gcn_dropout_rate = 0.5
     gcn_lr = 5e-4
@@ -39,13 +39,14 @@ def test_model(num_classes, url):
         file_names.append(f"{modality}_lbl_tr.csv")
         file_names.append(f"{modality}_te.csv")
         file_names.append(f"{modality}_lbl_te.csv")
+        file_names.append(f"{modality}_feat_name.csv")
 
     dataset = SparseMultiomicsDataset(
         root=root,
         raw_file_names=file_names,
         num_modalities=num_modalities,
         num_classes=num_classes,
-        edge_per_node=10,
+        edge_per_node=2,
         url=url,
         random_split=False,
         train_size=0.7,
@@ -117,7 +118,7 @@ def test_configure_optimizers(test_model, num_classes, url):
         (5, multi_class_data_url, True),
     ],
 )
-def test_forward2(test_model, num_classes, url, multimodal):
+def test_forward(test_model, num_classes, url, multimodal):
     x = []
     adj_t = []
     for modality in range(test_model.num_modalities):

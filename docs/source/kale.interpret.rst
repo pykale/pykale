@@ -14,7 +14,6 @@ kale.interpret.model\_weights module
    :undoc-members:
    :show-inheritance:
 
-
 kale.interpret.uncertainty\_quantiles module
 --------------------------------------------
 
