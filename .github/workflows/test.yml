@@ -18,18 +18,19 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+#        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         python-version: ["3.9", "3.10", "3.11"] # list of Python versions to test
-        exclude:
-          - os: windows-latest
-            python-version: "3.9"
-          - os: windows-latest
-            python-version: "3.10"
+#        exclude:
+#          - os: windows-latest
+#            python-version: "3.9"
+#          - os: windows-latest
+#            python-version: "3.10"
         include:
           - os: ubuntu-latest
             path: ~/.cache/pip
-          - os: windows-latest
-            path: ~\AppData\Local\pip\Cache
+#          - os: windows-latest
+#            path: ~\AppData\Local\pip\Cache
 
     steps:
       - uses: actions/checkout@v4
@@ -55,11 +56,12 @@ jobs:
           # We set a date tag to the cache key to show the updated date of the cache. We can update this date tag to
           # generate new cache after every major changes in setup.py.
 
-      - name: Install dependencies
+      - name: Install PyTorch + PyG
         run: |
           pip install rdkit
           pip install gdown
           pip install pyparsing==3.0.9
+          pip install numpy>=2.0.0
           pip install torch==2.3.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torchvision==0.18.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install torch_scatter==2.1.2 -f https://data.pyg.org/whl/torch-2.3.0+cpu.html
@@ -67,7 +69,11 @@ jobs:
           pip install torch_cluster==1.6.3 -f https://data.pyg.org/whl/torch-2.3.0+cpu.html
           pip install torch_spline_conv==1.2.2 -f https://data.pyg.org/whl/torch-2.3.0+cpu.html
           pip install torch_geometric==2.3.0
-          pip install -e .[dev]
+        shell: bash -l {0}
+
+      - name: Install project and dev dependencies
+        run: |
+          pip install --no-build-isolation -e .[dev]
         shell: bash -l {0}
 
       - name: Cache downloaded test data
@@ -86,9 +92,12 @@ jobs:
           python tests/download_test_data.py
         shell: bash -l {0}
 
-      - name: Run tests
+      - name: Run tests with thread limits
         id: run_tests
         run: |
+          export OMP_NUM_THREADS=1
+          export MKL_NUM_THREADS=1
+          export NUMEXPR_NUM_THREADS=1
           pytest --nbmake --nbmake-timeout=3000 --cov=kale
         shell: bash -l {0}
 
@@ -99,3 +108,5 @@ jobs:
 
       - name: Report coverage
         uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

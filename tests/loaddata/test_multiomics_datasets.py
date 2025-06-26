@@ -28,6 +28,7 @@ def test_multiomics_datasets(random_split):
         if not random_split:
             file_names.append(f"{modality}_te.csv")
             file_names.append(f"{modality}_lbl_te.csv")
+        file_names.append(f"{modality}_feat_name.csv")
 
     dataset = MultiomicsDataset(
         root=root,
@@ -70,6 +71,11 @@ def test_multiomics_datasets(random_split):
         assert dataset.get(modality).x.dtype == torch.float
         assert dataset.get(modality).y.dtype == torch.float
 
+    dataset.process()
+    data = next(iter(dataset))[0]
+    _ = dataset.extend_data(data)
+    _ = dataset.get_adjacency_info(data.x)
+
 
 def test_sparse_multiomics_datasets():
     num_modalities = 3
@@ -82,6 +88,7 @@ def test_sparse_multiomics_datasets():
         file_names.append(f"{modality}_lbl_tr.csv")
         file_names.append(f"{modality}_te.csv")
         file_names.append(f"{modality}_lbl_te.csv")
+        file_names.append(f"{modality}_feat_name.csv")
 
     dataset = SparseMultiomicsDataset(
         root=root,
@@ -96,6 +103,8 @@ def test_sparse_multiomics_datasets():
         pre_transform=ToTensor(dtype=torch.float),
         target_pre_transform=ToOneHotEncoding(dtype=torch.float),
     )
+    data = next(iter(dataset))[0]
+    _ = dataset.extend_data(data)
 
     # Test download method
     assert os.path.isfile(os.path.join(root, "raw/ROSMAP.zip"))

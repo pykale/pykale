@@ -13,8 +13,11 @@ from torchvision import datasets
 
 
 def get_auto_num_workers():
-    total_cores = os.cpu_count()
-    return max(1, int(total_cores * 0.75))  # Use 75% of available cores
+    total_cores = os.cpu_count() or 1
+    num_workers = max(1, int(total_cores * 0.75))  # Use 75% of available cores
+    if os.environ.get("CI") == "true":
+        num_workers = 0
+    return num_workers
 
 
 class SamplingConfig:

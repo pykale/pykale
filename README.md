@@ -9,6 +9,7 @@
 -----------------------------------------
 
 <!-- Keep badges to just ONE line, i.e. only the most important badges! -->
+[![PyTorch Landscape](https://img.shields.io/badge/PyTorch%20Landscape-5699C6)](https://landscape.pytorch.org/?item=training--multimodal--pykale)
 [![tests](https://github.com/pykale/pykale/workflows/test/badge.svg)](https://github.com/pykale/pykale/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/pykale/pykale/branch/main/graph/badge.svg?token=jmIYPbA2le)](https://codecov.io/gh/pykale/pykale)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/pykale/pykale/blob/main/LICENSE)
@@ -24,6 +25,8 @@
 [Changelog](https://github.com/pykale/pykale/tree/main/.github/CHANGELOG.md)
 
 PyKale is a library in the [PyTorch ecosystem](https://pytorch.org/ecosystem/) aiming to make machine learning more accessible to interdisciplinary research by bridging gaps between data, software, and end users. Both machine learning experts and end users can do better research with our accessible, scalable, and sustainable design, guided by green machine learning principles. PyKale has a unified *pipeline-based* API and focuses on [multimodal learning](https://en.wikipedia.org/wiki/Multimodal_learning) and [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning) for graphs, images, and videos at the moment, with supporting models on [deep learning](https://en.wikipedia.org/wiki/Deep_learning) and [dimensionality reduction](https://en.wikipedia.org/wiki/Dimensionality_reduction).
+
+PyKale is one of only four libraries officially listed under "Multimodal" in the [PyTorch Landscape](https://landscape.pytorch.org/) — alongside MMF (Meta), NeMo (NVIDIA), and USB (Microsoft). It is the only academic-led toolkit in this category.
 
 PyKale enforces *standardization* and *minimalism*, via green machine learning concepts of *reducing* repetitions and redundancy, *reusing* existing resources, and *recycling* learning models across areas. PyKale will enable and accelerate *interdisciplinary*, *knowledge-aware* machine learning research for graphs, images, and videos in applications including bioinformatics, graph analysis, image/video recognition, and medical imaging, with an overarching theme of leveraging knowledge from multiple sources for accurate and *interpretable* prediction.
 
@@ -99,6 +102,8 @@ Please consider citing our [CIKM2022 paper](https://doi.org/10.1145/3511808.3557
 
 ### Acknowledgements
 
-The development of PyKale is partially supported by the following project(s).
+The development of PyKale is partially supported by the following grants:
 
-- Wellcome Trust Innovator Awards: Digital Technologies Ref 215799/Z/19/Z "Developing a Machine Learning Tool to Improve Prognostic and Treatment Response Assessment on Cardiac MRI Data".
+- EPSRC Network Plus: Tomorrow's Engineering Research Challenges (grant no. UKRI396) - "[UK Open Multimodal AI Network (UKOMAIN)](https://multimodalai.github.io/)"
+- University of Sheffield: Centre for Machine Intelligence (CMI) - [AI Research Engineering (AIRE)](https://shef-aire.github.io/).
+- Wellcome Trust Innovator Awards: Digital Technologies (grant no. 215799/Z/19/Z) - "Developing a Machine Learning Tool to Improve Prognostic and Treatment Response Assessment on Cardiac MRI Data".

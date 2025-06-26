@@ -8,6 +8,7 @@ https://www.nature.com/articles/s41467-021-23774-w
 """
 
 import argparse
+import logging
 import warnings
 
 import pytorch_lightning as pl
@@ -16,6 +17,7 @@ from config import get_cfg_defaults
 from model import MogonetModel
 
 import kale.utils.seed as seed
+from kale.interpret.model_weights import select_top_features_by_masking
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.prepdata.tabular_transform import ToOneHotEncoding, ToTensor
 
@@ -52,6 +54,7 @@ def main():
         file_names.append(f"{modality}_lbl_tr.csv")
         file_names.append(f"{modality}_te.csv")
         file_names.append(f"{modality}_lbl_te.csv")
+        file_names.append(f"{modality}_feat_name.csv")
 
     multiomics_data = SparseMultiomicsDataset(
         root=cfg.DATASET.ROOT,
@@ -101,6 +104,28 @@ def main():
     # ---- testing model ----
     print("\n==> Testing model...")
     _ = trainer.test(model)
+
+    print("\n==> Identifying biomarkers...")
+    logging.getLogger("pytorch_lightning").setLevel(logging.ERROR)
+    trainer_biomarker = pl.Trainer(
+        max_epochs=cfg.SOLVER.MAX_EPOCHS,
+        accelerator="auto",
+        devices="auto",
+        enable_progress_bar=False,
+    )
+    f1_key = "F1" if multiomics_data.num_classes == 2 else "F1 macro"
+    df_featimp_top = select_top_features_by_masking(
+        trainer=trainer_biomarker,
+        model=model,
+        dataset=multiomics_data,
+        metric=f1_key,
+        num_top_feats=30,
+        verbose=False,
+    )
+
+    print("{:>4}\t{:<20}\t{:>5}\t{}".format("Rank", "Feature name", "Omics", "Importance"))
+    for rank, row in enumerate(df_featimp_top.itertuples(index=False), 1):
+        print(f"{rank:>4}\t{row.feat_name:<20}\t{row.omics:>5}\t{row.imp:.4f}")
 
 
 if __name__ == "__main__":

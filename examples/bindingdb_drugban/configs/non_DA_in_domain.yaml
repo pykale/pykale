@@ -1,0 +1,23 @@
+# This is for in-domain experiments using DrugBAN without domain adaptation.
+
+DATA:
+  DATASET: "bindingdb"  # bindingdb, biosnap
+  SPLIT: "random"       # random
+
+SOLVER:
+  BATCH_SIZE: 64
+  MAX_EPOCH: 100
+  LEARNING_RATE: 5e-5
+  SEED: 20
+
+DA:
+  TASK: False
+  USE: False
+
+DECODER:
+  BINARY: 1
+
+# Config below only when you use comet
+COMET:
+  EXPERIMENT_NAME: "Non_DA_in_domain"
+  TAG: "DrugBAN_Vanilla"

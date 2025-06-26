@@ -34,7 +34,7 @@ def testing_cfg(download_path):
             "nb_init_epochs": 1,
             "init_lr": 0.001,
             "batch_size": 30,
-            "num_workers": 1,
+            "num_workers": 0,
             "optimizer": {"type": "SGD", "optim_params": {"momentum": 0.9, "weight_decay": 0.0005, "nesterov": True}},
         }
     }

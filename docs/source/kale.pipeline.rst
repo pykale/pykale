@@ -30,10 +30,27 @@ kale.pipeline.domain\_adapter module
    :undoc-members:
    :show-inheritance:
 
+kale.pipeline.drugban\_trainer module
+------------------------------------
+
+.. automodule:: kale.pipeline.drugban_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 kale.pipeline.mpca\_trainer module
 ----------------------------------
 
 .. automodule:: kale.pipeline.mpca_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.pipeline.multimodal\_trainer module
+----------------------------------
+
+.. automodule:: kale.pipeline.multimodal_trainer
    :members:
    :undoc-members:
    :show-inheritance:
