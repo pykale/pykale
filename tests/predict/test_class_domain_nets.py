@@ -55,8 +55,12 @@ def test_classnetvideoconv_shapes():
 
 
 @pytest.mark.parametrize("model", DOMAINNET_MODEL)
-def test_domainnet_shapes(model):
-    model = model(input_size=128)
+@pytest.mark.parametrize("bigger_discrim", [False, True])
+def test_domainnet_shapes(model, bigger_discrim):
+    if model == DomainNetSmallImage:
+        model = model(input_size=128, bigger_discrim=bigger_discrim)
+    else:
+        model = model(input_size=128)
     model.eval()
     output_batch = model(INPUT_BATCH)
     assert output_batch.size() == (BATCH_SIZE, 2)

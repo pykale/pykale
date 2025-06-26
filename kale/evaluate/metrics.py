@@ -2,6 +2,7 @@
 # Author: Shuo Zhou, sz144@outlook.com
 #         Sina Tabakhi, sina.tabakhi@gmail.com
 #         Peizhen Bai, https://github.com/peizhenbai
+#         Mohammod Suvon, m.suvon@sheffield.ac.uk
 # =============================================================================
 
 """Commonly used metrics, losses, and distances, part from domain adaptation package
@@ -43,6 +44,21 @@ def cross_entropy_logits(output, target, weights=None):
         losses = nn.NLLLoss(reduction="none")(class_output, target.type_as(y_hat).view(target.size(0)))
         loss = torch.sum(weights * losses) / torch.sum(weights)
     return loss, is_correct
+
+
+def binary_cross_entropy(output, target):
+    """
+    Compute binary cross-entropy loss between predicted output and true labels.
+
+    Args:
+        output (Tensor): The output of the last layer of the network, before softmax.
+        target (Tensor): The ground truth label.
+    """
+    loss_fct = torch.nn.BCELoss()
+    m = nn.Sigmoid()
+    n = torch.squeeze(m(output), 1)
+    loss = loss_fct(n, target)
+    return n, loss
 
 
 def topk_accuracy(output, target, topk=(1,)):
@@ -444,3 +460,35 @@ def calculate_distance(
         return torch.mm(x1, x2.t()) / (w1 * w2.t()).clamp(min=eps)
 
     raise Exception("This metric is not still implemented")
+
+
+def signal_image_elbo_loss(
+    recon_image,
+    target_image,
+    recon_signal,
+    target_signal,
+    mean,
+    log_var,
+    lambda_image=1.0,
+    lambda_signal=1.0,
+    annealing_factor=1.0,
+    scale_factor=1e-4,
+):
+    """
+    Computes a multimodal ELBO loss for VAE with image and signal modalities.
+    """
+    eps = 1e-8
+    image_mse = 0.0
+    signal_mse = 0.0
+
+    if recon_image is not None and target_image is not None:
+        image_mse = F.mse_loss(recon_image, target_image, reduction="sum") * lambda_image
+    if recon_signal is not None and target_signal is not None:
+        signal_mse = F.mse_loss(recon_signal, target_signal, reduction="sum") * lambda_signal
+
+    recon_loss = (image_mse + signal_mse) * scale_factor
+    log_var = torch.clamp(log_var, min=-10, max=10)
+    kl_div = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp() + eps, dim=1)
+    kl_div = kl_div.sum()
+    loss = recon_loss + annealing_factor * kl_div
+    return loss

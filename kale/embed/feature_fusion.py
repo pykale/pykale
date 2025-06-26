@@ -1,7 +1,8 @@
-"""This module implements three different multimodal fusion methods:
+"""This module implements four different multimodal fusion methods:
 1. Concat
 2. BimodalInteractionFusion
 3. LowRankTensorFusion
+4. ProductOfExperts
 Each of these fusion methods are designed to work with input modalities as PyTorch tensors and perform different
 operations to combine and create a joint representation of the input data.
 Reference: https://github.com/pliang279/MultiBench/blob/main/fusions/common_fusions.py
@@ -36,7 +37,7 @@ class BimodalInteractionFusion(nn.Module):
     hypernetwork-based interaction mechanism. The 'input_dims' argument specifies the input dimensions of the two
     modalities. The 'output_dim' argument specifies the output dimension after the fusion. The 'output' argument
     defines the type of bimodal matrix interactions to be performed, which can be 'matrix', 'vector', or 'scalar'.
-        This fusion method  supports three types of bimodal interactions:
+        This fusion method supports three types of bimodal interactions:
             - Matrix: It implements a general hypernetwork mechanism where the interaction is multiplicative. It uses
             separate weight matrices and biases for the two modalities.
             - Vector: It uses diagonal forms and gating mechanisms, applying element-wise multiplication to combine the
@@ -48,7 +49,7 @@ class BimodalInteractionFusion(nn.Module):
         This fusion approach allows for complex interactions between the modalities and is well-suited for tasks that
         require the integration of heterogeneous data.
     Args:
-        input_dims (int): list or tuple of 2 integers indicating input dimensions of the 2 modalities
+        input_dims (list or tuple): list or tuple of 2 integers indicating input dimensions of the 2 modalities
         output_dim (int): output dimension after the fusion
         output (str): type of BimodalMatrix Interactions, options from 'matrix','vector','scalar'
         flatten (bool): whether we need to flatten the input modalities
@@ -156,7 +157,7 @@ class LowRankTensorFusion(nn.Module):
        This approach provides an efficient and compact representation for capturing interactions among multiple
        modalities, making it suitable for tasks involving high-dimensional multimodal data.
     Args:
-        input_dims (int): A list or tuple of integers indicating input dimensions of the modalities.
+        input_dims (list or tuple): A list or tuple of integers indicating input dimensions of the modalities.
         output_dim (int): output dimension after the fusion.
         rank (int): A hyperparameter specifying the rank for the low-rank tensor decomposition.
         flatten (bool): Boolean to dictate if output should be flattened or not. Default: True
@@ -211,3 +212,37 @@ class LowRankTensorFusion(nn.Module):
         output = torch.matmul(self.fusion_weights, fused_tensor.permute(1, 0, 2)).squeeze() + self.fusion_bias
         output = output.view(-1, self.output_dim)
         return output
+
+
+class ProductOfExperts(nn.Module):
+    """
+    ProductOfExperts combines multiple independent Gaussian distributions ("experts") into a single Gaussian
+    by computing their product in closed form. This is commonly used in multimodal variational autoencoders (VAE)
+    and probabilistic models to fuse information from different modalities or sources, yielding a consensus latent distribution.
+
+    For each expert, the inputs are mean (`mean`) and log-variance (`log_var`) tensors, and the output is the mean and log-variance
+    of the combined product Gaussian. This formulation enables principled uncertainty fusion and robust inference
+    in the presence of missing or noisy modalities.
+
+    Example:
+        poe = ProductOfExperts()
+        combined_mu, combined_log_var = poe(mu_experts, log_var_experts)
+    """
+
+    def forward(self, mean, log_var, eps=1e-8):
+        """
+        Args:
+            mean (Tensor): Mean values from all experts, shape (num_experts, batch_size, latent_dim)
+            log_var (Tensor): Log-variance values from all experts, shape (num_experts, batch_size, latent_dim)
+            eps (float, optional): Small value for numerical stability. Default is 1e-8.
+
+        Returns:
+            prod_mean (Tensor): Mean of the combined product Gaussian, shape (batch_size, latent_dim)
+            prod_log_var (Tensor): Log-variance of the combined product Gaussian, shape (batch_size, latent_dim)
+        """
+        var = torch.exp(log_var) + eps
+        precision = 1.0 / (var + eps)
+        prod_mean = torch.sum(mean * precision, dim=0) / torch.sum(precision, dim=0)
+        prod_var = 1.0 / torch.sum(precision, dim=0)
+        prod_log_var = torch.log(prod_var + eps)
+        return prod_mean, prod_log_var

@@ -1,11 +1,12 @@
+import pandas as pd
 import pytest
 import torch
 from numpy import testing
 from yacs.config import CfgNode
 
 from kale.loaddata.dataset_access import get_class_subset
-from kale.loaddata.image_access import DigitDataset, DigitDatasetAccess, get_cifar, ImageAccess
-from kale.loaddata.multi_domain import DomainsDatasetBase, MultiDomainDataset, BinaryDomainDatasets
+from kale.loaddata.image_access import DigitDataset, DigitDatasetAccess, get_cifar, ImageAccess, load_images_from_dir
+from kale.loaddata.multi_domain import BinaryDomainDatasets, DomainsDatasetBase, MultiDomainDataset
 
 
 @pytest.mark.parametrize("test_on_all", [True, False])
@@ -128,7 +129,7 @@ def test_class_subsets(class_subset, valid_ratio, download_path):
 
 def test_multi_domain_digits(download_path):
     data_access = ImageAccess.get_multi_domain_images(
-        "DIGITS", download_path, sub_domain_set=["SVHN", "USPS_RGB"], return_domain_label=True
+        "DIGITS", download_path, sub_domain_set=["SVHN", "USPS_RGB", "MNISTM"], return_domain_label=True
     )
     dataset = MultiDomainDataset(data_access)
     dataset.prepare_data_loaders()
@@ -164,3 +165,38 @@ def test_get_cifar(dataset, testing_cfg):
     train_loader, valid_loader = get_cifar(cfg)
     assert isinstance(train_loader, torch.utils.data.DataLoader)
     assert isinstance(valid_loader, torch.utils.data.DataLoader)
+
+
+# Example dummy prepare_image_tensor for the test
+def prepare_image_tensor(image_path, resize_dim=(224, 224), channels=1):
+    if channels == 1:
+        return torch.ones(1, resize_dim[0], resize_dim[1])
+    else:
+        return torch.ones(3, resize_dim[0], resize_dim[1])
+
+
+@pytest.mark.parametrize("channels", [1, 3])
+def test_load_images_from_dir(tmp_path, channels, monkeypatch):
+    root = tmp_path
+    num_images = 5
+    resize_dim = (32, 32)
+    file_names = [f"img_{i}.png" for i in range(num_images)]
+
+    for fname in file_names:
+        img_path = root / fname
+        with open(img_path, "wb") as f:
+            f.write(b"")
+
+    # Write a CSV file listing the images
+    csv_path = root / "images.csv"
+    df = pd.DataFrame({"file_path": file_names})
+    df.to_csv(csv_path, index=False)
+
+    def dummy_prepare_image_tensor(image_path, resize_dim=(32, 32), channels=1):
+        return torch.ones(channels, *resize_dim)
+
+    monkeypatch.setattr("kale.loaddata.image_access.prepare_image_tensor", dummy_prepare_image_tensor)
+
+    batch = load_images_from_dir(root, "images.csv", resize_dim=resize_dim, channels=channels)
+    assert batch.shape == (num_images, channels, *resize_dim)
+    assert torch.all(batch == 1)

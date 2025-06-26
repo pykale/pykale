@@ -38,6 +38,14 @@ kale.loaddata.mnistm module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.molecular\_datasets module
+---------------------------
+
+.. automodule:: kale.loaddata.molecular_datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.multi\_domain module
 ----------------------------------
 
@@ -77,6 +85,24 @@ kale.loaddata.tabular\_access module
    :members:
    :undoc-members:
    :show-inheritance:
+
+
+kale.loaddata.signal\_access module
+------------------------------------
+
+.. automodule:: kale.loaddata.signal_access
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.loaddata.signal\_image\_access module
+------------------------------------
+
+.. automodule:: kale.loaddata.signal_image_access
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 kale.loaddata.tdc\_datasets module
 ----------------------------------
