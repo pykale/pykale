@@ -1,8 +1,7 @@
 # =============================================================================
 # Author: Shuo Zhou, shuo.zhou@sheffield.ac.uk/sz144@outlook.com
 # =============================================================================
-"""Multi-source domain adaptation pipelines
-"""
+"""Multi-source domain adaptation pipelines"""
 
 import logging
 import time
@@ -990,8 +989,10 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
     Args:
         classifier (str, optional): Classifier type or "auto" to automatically select one.
             Supported strings include {"lr", "linear_svm", "svm", "ridge"}. Default is "auto".
+        param_grid (dict or None, optional): Dictionary with parameter names as keys and lists of parameter settings
+            to try as values. If None, uses default parameters for the selected classifier.
         use_mida (bool, optional): Whether to use MIDA for domain adaptation. Default is True.
-        nonlinear (bool, optional): Whether to enable nonlinear MIDA. Default is False.
+        nonlinear (bool, optional): Whether to enable nonlinear MIDA. Ignored when `param_grid` is defined. Default is False.
         transformer (sklearn.base.BaseEstimator or None, optional): Optional transformer to apply before MIDA.
             Must implement `fit` and `transform`. Default is None.
         search_strategy (str, optional): "grid" or "random" search for hyperparameter optimization. Default is "random".
@@ -1012,6 +1013,7 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
 
     _parameter_constraints = {
         "classifier": [StrOptions({"auto"} | set(CLASSIFIERS))],
+        "param_grid": [None, dict],
         "use_mida": ["boolean"],
         "nonlinear": ["boolean"],
         "transformer": [HasMethods(["fit", "transform"]), None],
@@ -1032,6 +1034,7 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
     def __init__(
         self,
         classifier="auto",
+        param_grid=None,
         use_mida=True,
         nonlinear=False,
         transformer=None,
@@ -1049,6 +1052,7 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         return_train_score=False,
     ):
         self.classifier = classifier
+        self.param_grid = param_grid
         self.use_mida = use_mida
         self.nonlinear = nonlinear
         self.transformer = transformer
@@ -1074,8 +1078,14 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         """
         check_is_fitted(self)
 
-        if self.nonlinear:
-            raise ValueError("coef_ is not available when `nonlinear=True`.")
+        best_params = self.best_params_
+        kernels = [k for k in best_params if k.endswith("__kernel")]
+        has_nonlinear_kernel = any(best_params[k] != "linear" for k in kernels)
+
+        if self.nonlinear or has_nonlinear_kernel:
+            raise ValueError(
+                "coef_ is not available when `nonlinear=True` or found `kernel != 'linear'` in `best_params`."
+            )
 
         augment = None
         coef = self.best_classifier_.coef_
@@ -1204,8 +1214,15 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         if hasattr(base_classifier, "max_iter"):
             base_classifier.set_params(max_iter=self.num_solver_iter, random_state=self.random_state)
 
+        # If a custom param_grid is provided, use it directly
+        if self.param_grid is not None:
+            # "auto" is not usable with custom param_grid
+            if self.classifier == "auto":
+                raise ValueError("`classifier='auto'` does not support custom param_grid.")
+            return base_classifier, clone(self.param_grid, safe=False)
+
         if self.classifier != "auto":
-            return base_classifier, CLASSIFIER_PARAMS[self.classifier]
+            return base_classifier, clone(CLASSIFIER_PARAMS[self.classifier], safe=False)
 
         # Workaround to allow classifier selection
         base_classifier = Pipeline([("classifier", base_classifier)])
@@ -1231,7 +1248,9 @@ class AutoMIDAClassificationTrainer(MetaEstimatorMixin, BaseEstimator):
         Returns:
             dict: Parameter grid for MIDA.
         """
-        if not self.use_mida:
+        # Just return empty if param_grid is provided or MIDA is not used
+        # Assuming param_grid have predefined MIDA parameters
+        if not self.use_mida or self.param_grid is not None:
             return {}
 
         param_grid = {f"domain_adapter__{param}": value for param, value in MIDA_PARAMS.items()}

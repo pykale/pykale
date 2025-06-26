@@ -3,11 +3,12 @@ Test for sampler.py API adapted from https://github.com/criteo-research/pytorch-
 """
 
 import itertools
+import os
 from collections import Counter
 
 import numpy as np
 
-from kale.loaddata.sampler import BalancedBatchSampler, ReweightedBatchSampler
+from kale.loaddata.sampler import BalancedBatchSampler, get_auto_num_workers, ReweightedBatchSampler
 
 
 class MyDataset:
@@ -59,6 +60,18 @@ def test_balanced_bigger_batches():
     # 2 duplicates for class 1, 2, 4
     counts = Counter(batch)
     assert sorted(idx_to_class(idx) for idx, nb in counts.items() if nb > 1) == ["1", "1", "2", "2", "4", "4"]
+
+
+def test_get_auto_num_workers_default(monkeypatch):
+    monkeypatch.delenv("CI", raising=False)  # Ensure CI is not set
+    total_cores = os.cpu_count()
+    expected = max(1, int(total_cores * 0.75))
+    assert get_auto_num_workers() == expected
+
+
+def test_get_auto_num_workers_ci(monkeypatch):
+    monkeypatch.setenv("CI", "true")  # Simulate CI environment
+    assert get_auto_num_workers() == 0
 
 
 def test_reweighter():

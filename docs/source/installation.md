@@ -6,7 +6,7 @@ PyKale requires Python 3.9, 3.10, or 3.11. Before installing pykale, you should
 
 - manually [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware first,
 - if you will use APIs related to graphs, you need to manually install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) first following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation) and matching your PyTorch installation, and
-- If [RDKit](https://www.rdkit.org/) will be used, you need to install it via `pip install rdkit`.
+- if [RDKit](https://www.rdkit.org/) will be used, you need to install it via `pip install rdkit`.
 
 ## Pip install
 
@@ -15,6 +15,20 @@ Install PyKale using `pip` for the stable version:
 ```bash
 pip install pykale  # for the core API only
 ```
+
+For users who want to use PyKale in Google Colab, prefer quicker installation while requiring specific CUDA version, we highly recommend using PyTorch Geometric's pre-built wheel to prevent building the wheel manually during the runtime.
+
+If you need CUDA for GPU runtime, please install PyKale with command:
+```bash
+pip install pykale -f https://data.pyg.org/whl/torch-2.3.0+${CUDA}.html
+```
+where `${CUDA}` can either be `cu121` or `cu118`. We recommend to use `cu121` for Google Colab runtime.
+
+Alternatively, if you don't need GPUs for your workflow please run:
+```bash
+pip install pykale -f https://data.pyg.org/whl/torch-2.3.0+cpu.html
+```
+
 
 ## Install from source
 

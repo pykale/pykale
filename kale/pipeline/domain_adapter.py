@@ -226,7 +226,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         nb_init_epochs: int = 10,
         nb_adapt_epochs: int = 50,
         batch_size: int = 32,
-        num_workers: int = 1,
+        num_workers: int = 0,
         init_lr: float = 1e-3,
         optimizer: Optional[dict] = None,
     ):
