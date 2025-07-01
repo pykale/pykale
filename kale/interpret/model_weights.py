@@ -181,8 +181,7 @@ def select_top_features_by_masking(
         imp_scores = np.zeros(num_feats)
         modality_label = np.full(num_feats, modality_idx, dtype=int)
 
-        # for feat_idx in range(num_feats):
-        for feat_idx in trange(num_feats, desc=f"Features (Modality {modality_idx})", leave=False):
+        for feat_idx in range(num_feats):
             # Mask the feature
             feat_data = modality_data.x[:, feat_idx].clone()
             modality_data.x[:, feat_idx] = 0
