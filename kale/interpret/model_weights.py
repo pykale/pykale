@@ -174,14 +174,12 @@ def select_top_features_by_masking(
     feat_imp_list = []
 
     for modality_idx in range(dataset.num_modalities):
-        # for modality_idx in trange(dataset.num_modalities, desc="Modalities"):
         modality_data = dataset.get(modality_idx)
         num_feats = modality_data.x.shape[1]
         feat_names = modality_data.feat_names
         imp_scores = np.zeros(num_feats)
         modality_label = np.full(num_feats, modality_idx, dtype=int)
 
-        # for feat_idx in trange(num_feats):
         for feat_idx in trange(num_feats, desc=f"Features (Modality {modality_idx})", leave=False):
             # Mask the feature
             feat_data = modality_data.x[:, feat_idx].clone()
