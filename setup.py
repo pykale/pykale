@@ -15,13 +15,13 @@ from setuptools import find_packages, setup
 
 # Core dependencies frequently used in PyKale Core API
 install_requires = [
-    "numpy>=1.26.0",  # Numpy 2.0.0+ is needed
+    "numpy>=2.0.0",  # Numpy 2.0.0+ is needed
     "pandas<=2.2.2",  # for compatibility with Colab 1.0.0 and Torch 2.3.0
-    "pytorch-lightning==2.3.2",  # in pipeline API only
+    "pytorch-lightning>=2.3.2",  # in pipeline API only
     "scipy>=1.13.0",  # scipy 1.14.0 supports python 3.10+
     "scikit-learn>=1.6.1",
     "tensorly>=0.5.1",  # in factorization and model_weights API only
-    "torch>=2.3.0",  # also change the version in the test.yaml when changing this next time, and update the pytorch version in the bindingdb_deepdta tutorial notebook
+    "torch<=2.6.0",  # also change the version in the test.yaml when changing this next time, and update the pytorch version in the bindingdb_deepdta tutorial notebook
     "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
 ]
 
