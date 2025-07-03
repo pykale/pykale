@@ -23,15 +23,6 @@ install_requires = [
     "tensorly>=0.5.1",  # in factorization and model_weights API only
     "torch>=2.3.0",  # also change the version in the test.yaml when changing this next time, and update the pytorch version in the bindingdb_deepdta tutorial notebook
     "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
-    # Given now many modules requires PyG with torch_sparse and torch_scatter,
-    # it will now be included as core dependencies.
-    # For installing PyG's pre-build wheels, can be done either:
-    # pip install pykale -f https://data.pyg.org/whl/torch-2.3.0+cpu.html
-    # pip install pykale -f https://data.pyg.org/whl/torch-2.3.0+cu118.html
-    # pip install pykale -f https://data.pyg.org/whl/torch-2.3.0+cu121.html
-    "torch-geometric==2.3.0",
-    "torch_sparse",
-    "torch_scatter",
 ]
 
 # Application-specific dependencies sorted alphabetically below
