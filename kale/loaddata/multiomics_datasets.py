@@ -74,7 +74,7 @@ class MultiomicsDataset(Dataset):
         self._target_pre_transform = target_pre_transform
         self._processed_file_names = "data.pt"
         super().__init__(root, transform, pre_transform)
-        self._data_list = torch.load(osp.join(self.processed_dir, "data.pt"))
+        self._data_list = torch.load(osp.join(self.processed_dir, "data.pt"), weights_only=True)
 
     @property
     def raw_file_names(self) -> Optional[List[str]]:
