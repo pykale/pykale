@@ -68,9 +68,13 @@ class MNISTM(data.Dataset):
             raise RuntimeError("Dataset not found." + " You can use download=True to download it")
 
         if self.train:
-            self.data, self.targets = torch.load(os.path.join(self.root, self.processed_folder, self.training_file))
+            self.data, self.targets = torch.load(
+                os.path.join(self.root, self.processed_folder, self.training_file), weights_only=False
+            )
         else:
-            self.data, self.targets = torch.load(os.path.join(self.root, self.processed_folder, self.test_file))
+            self.data, self.targets = torch.load(
+                os.path.join(self.root, self.processed_folder, self.test_file), weights_only=False
+            )
 
     def __getitem__(self, index):
         """Get images and target for data loader.

@@ -75,7 +75,7 @@ def main():
     if args.resume:
         # Load checkpoint
         print("==> Resuming from checkpoint..")
-        cp = torch.load(args.resume)
+        cp = torch.load(args.resume, weights_only=False)
         trainer.model.load_state_dict(cp["net"])
         trainer.optim.load_state_dict(cp["optim"])
         trainer.epochs = cp["epoch"]

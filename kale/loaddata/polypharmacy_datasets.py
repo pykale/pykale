@@ -45,7 +45,7 @@ class PolypharmacyDataset(Dataset):
         data_path = os.path.join(self.root, f"{self.name}.pt")
 
         # load data
-        return torch.load(data_path)
+        return torch.load(data_path, weights_only=False)
 
     def __len__(self):
         return 1

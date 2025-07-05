@@ -81,7 +81,7 @@ def smiles_to_graph(smiles, max_drug_nodes):
             [
                 atom.GetAtomicNum(),  # Atomic number - essential
                 atom.GetDegree(),
-                atom.GetImplicitValence(),
+                atom.GetValence(Chem.rdchem.ValenceType.IMPLICIT),
                 atom.GetFormalCharge(),
                 atom.GetNumRadicalElectrons(),
                 atom.GetHybridization(),
