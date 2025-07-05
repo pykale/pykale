@@ -63,6 +63,7 @@ example_requires = [
     "neurokit2",
     "captum",
     "pywavelets",
+    "rdkit>=2025.3.1",  # For DrugBAN example
 ]
 
 # Full dependencies except for development
