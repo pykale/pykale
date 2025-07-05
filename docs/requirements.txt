@@ -5,8 +5,7 @@
 # Remove if switching to DGL
 cython  # C-extensions for Python
 https://data.pyg.org/whl/torch-2.6.0%2Bcpu/torch_scatter-2.1.2%2Bpt26cpu-cp310-cp310-linux_x86_64.whl
-
-https://data.pyg.org/whl/torch-2.6.0%2Bcpu/torch_sparse-0.6.18%2Bpt23cpu-cp311-cp311-linux_x86_64.whl
+https://data.pyg.org/whl/torch-2.6.0%2Bcpu/torch_sparse-0.6.18%2Bpt26cpu-cp311-cp311-linux_x86_64.whl
 https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp311-cp311-linux_x86_64.whl
 
 ipython
