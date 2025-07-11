@@ -29,11 +29,11 @@ def get_dataset(dataFolder, da_task, **kwargs):
         df_train_target = pd.read_csv(os.path.join(dataFolder, "target_train.csv"))
         df_test_target = pd.read_csv(os.path.join(dataFolder, "target_test.csv"))
 
-        train_dataset = DTIDataset(df_train_source.index.values, df_train_source)
+        train_source_dataset = DTIDataset(df_train_source.index.values, df_train_source)
         train_target_dataset = DTIDataset(df_train_target.index.values, df_train_target)
         test_target_dataset = DTIDataset(df_test_target.index.values, df_test_target)
 
-        return train_dataset, train_target_dataset, test_target_dataset
+        return train_source_dataset, train_target_dataset, test_target_dataset
 
 
 def get_dataloader(*datasets, batchsize, num_workers, collate_fn, is_da, da_task, **kwargs):
@@ -50,33 +50,33 @@ def get_dataloader(*datasets, batchsize, num_workers, collate_fn, is_da, da_task
         if not da_task:
             train_dataset, valid_dataset, test_dataset = datasets
             # If in-domain splitting strategy is used
-            training_generator = DataLoader(train_dataset, **params)
+            train_dataloader = DataLoader(train_dataset, **params)
             params.update({"shuffle": False, "drop_last": False})
-            valid_generator = DataLoader(valid_dataset, **params)
-            test_generator = DataLoader(test_dataset, **params)
+            valid_dataloader = DataLoader(valid_dataset, **params)
+            test_dataloader = DataLoader(test_dataset, **params)
 
         else:
             train_dataset, _, test_target_dataset = datasets
             # If cross-domain splitting strategy is used
-            training_generator = DataLoader(train_dataset, **params)
+            train_dataloader = DataLoader(train_dataset, **params)
             params.update({"shuffle": False, "drop_last": False})
-            valid_generator = DataLoader(test_target_dataset, **params)
-            test_generator = DataLoader(test_target_dataset, **params)
+            valid_dataloader = DataLoader(test_target_dataset, **params)
+            test_dataloader = DataLoader(test_target_dataset, **params)
     else:
         # If domain adaptation is used, and cross-domain splitting strategy is used
         train_dataset, train_target_dataset, test_target_dataset = datasets
-        source_generator = DataLoader(train_dataset, **params)
-        target_generator = DataLoader(train_target_dataset, **params)
-        n_batches = max(len(source_generator), len(target_generator))
-        training_generator = MultiDataLoader(
-            dataloaders=[source_generator, target_generator], n_batches=n_batches
+        source_dataloader = DataLoader(train_dataset, **params)
+        target_dataloader = DataLoader(train_target_dataset, **params)
+        n_batches = max(len(source_dataloader), len(target_dataloader))
+        train_dataloader = MultiDataLoader(
+            dataloaders=[source_dataloader, target_dataloader], n_batches=n_batches
         )  # used to be named as multi_generator
 
         params.update({"shuffle": False, "drop_last": False})
-        valid_generator = DataLoader(test_target_dataset, **params)
-        test_generator = DataLoader(test_target_dataset, **params)
+        valid_dataloader = DataLoader(test_target_dataset, **params) # validation set is the same as test set, as in the paper
+        test_dataloader = DataLoader(test_target_dataset, **params)
 
-    return training_generator, valid_generator, test_generator
+    return train_dataloader, valid_dataloader, test_dataloader
 
 
 def get_model(config, **kwargs):
