@@ -18,7 +18,7 @@ from time import time
 import pytorch_lightning as pl
 import torch
 from configs import get_cfg_defaults
-from pytorch_lightning.loggers import CometLogger, TensorBoardLogger
+from pytorch_lightning import loggers as pl_loggers
 
 sys.path.append("../../../pykale/")
 from model import get_dataloader, get_dataset, get_model
@@ -71,13 +71,14 @@ def main():
     # ---- set logger ----
     experiment_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     if cfg.COMET.USE:
-        logger = CometLogger(
-            api_key=cfg["COMET"]["API_KEY"],
-            project_name=cfg["COMET"]["PROJECT_NAME"],
+        logger = pl_loggers.CometLogger(
+            api_key=cfg.COMET.API_KEY,
+            project_name=cfg.COMET.PROJECT_NAME,
+            save_dir=cfg.OUTPUT.OUT_DIR,
             experiment_name="{}_{}".format(cfg.COMET.EXPERIMENT_NAME, experiment_time),
         )
     else:
-        logger = TensorBoardLogger(save_dir=cfg.RESULT.OUTPUT_DIR, name=experiment_time)
+        logger = pl_loggers.TensorBoardLogger(save_dir=cfg.COMET.PROJECT_NAME, name=experiment_time)
 
     # ---- setup trainer ----
     checkpoint_callback = ModelCheckpoint(
@@ -101,6 +102,6 @@ def main():
 
 if __name__ == "__main__":
     s = time()
-    result = main()
+    main()
     e = time()
     print(f"Total running time: {round(e - s, 2)}s")
