@@ -6,8 +6,8 @@ _C = CfgNode()
 # DATA setting
 # ---------------------------------------------------------------------------- #
 _C.DATA = CfgNode()
-_C.DATA.DATASET = None  # Name of the dataset to use
-_C.DATA.SPLIT = None  # Data splitting strategy
+_C.DATA.DATASET = None  # Name of the dataset to use. Options: ["bindingdb", "biosnap"]
+_C.DATA.SPLIT = None  # Data splitting strategy. Options: ["cluster", "random"]
 
 # ---------------------------------------------------------------------------- #
 # Drug feature extractor
@@ -76,14 +76,14 @@ _C.DA.RANDOM_DIM = None  # Output dimensionality of the random layer (only used 
 _C.DA.USE_ENTROPY = True  # Whether to use entropy-based weighting when computing domain adversarial loss
 
 # ---------------------------------------------------------------------------- #
-# Comet config, ignore it If not installed.
+# Comet config, ignore it if you don't use Comet. More info: https://www.comet.com/site/
 # ---------------------------------------------------------------------------- #
 _C.COMET = CfgNode()
-_C.COMET.USE = True  # Enable Comet logging (set True if Comet is installed and configured)
+_C.COMET.USE = False  # Enable Comet logging (set True if you want to use Comet)
 _C.COMET.PROJECT_NAME = "drugban-23-May"  # Comet project name (if applicable)
 _C.COMET.EXPERIMENT_NAME = None  # Optional experiment name (e.g., 'drugban-run-1')
 _C.COMET.TAG = None  # Comet tags (optional)
-_C.COMET.API_KEY = "InDQ1UsqJt7QMiANWg55Ulebe"  # Comet API key (leave blank if unused)
+_C.COMET.API_KEY = "InDQ1UsqJt7QMiANWg55Ulebe"  # Comet API key. Please go to https://www.comet.com/account-settings/apiKeys to generate your own key.
 
 
 # ---------------------------------------------------------------------------- #
