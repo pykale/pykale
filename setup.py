@@ -60,7 +60,7 @@ example_requires = [
     "xlsxwriter",
     "prettytable",
     "comet_ml",
-    "neurokit2",
+    "neurokit2<=0.2.11",  # neurokit2 0.2.11 requires requires python>=3.10
     "captum",
     "pywavelets",
     "rdkit>=2025.3.1",  # For DrugBAN example
