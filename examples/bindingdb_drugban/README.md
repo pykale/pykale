@@ -7,18 +7,18 @@ This example is constructed by refactoring the [Interpretable bilinear attention
 ### 2. Usage
 
 ### Datasets
-For downloading the datasets, please refer to the following links: https://github.com/pykale/data/blob/main/molecular/README.md
+For dataset information, please refer to the following links: https://github.com/pykale/data/blob/main/molecular/README.md.
 
-We have two datasets in this collection:
-- [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp)
-- [BioSNAP](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets)
+After downloading the `drug-target-datasets` zip file, create a `datasets` folder inside the `bingdingdb_drugban` directory.
+Upzip the downloaded file, and place the datasets in `drug-target-datasets` into the newly created `datasets` foler.
 
-where BindingDB and BioSNAP are split into random and cluster splits. The full dataset is also provided for each dataset.
+We use two datasets in this example: [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp) and [BioSNAP](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets), 
+where they are split into random and cluster splits. The full data is also provided for each dataset.
 
 All datasets should be organised as follows:
 
-```sh
-└───root
+```
+└───bindingdb_drugban
     ├───datasets
     │   ├───bindingdb
     │   │   ├───cluster
