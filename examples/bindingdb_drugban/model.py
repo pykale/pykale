@@ -84,18 +84,18 @@ def get_dataloader(*datasets, batchsize, num_workers, collate_fn, is_da, da_task
 def get_model(config, **kwargs):
     return DrugbanTrainer(
         model=DrugBAN(**config),
-        solver_lr=config["SOLVER"]["LEARNING_RATE"],
-        num_classes=config["DECODER"]["BINARY"],
-        batch_size=config["SOLVER"]["BATCH_SIZE"],
+        solver_lr=config.SOLVER.LEARNING_RATE,
+        num_classes=config.DECODER.BINARY,
+        batch_size=config.SOLVER.BATCH_SIZE,
         # --- domain adaptation parameters ---
-        is_da=config["DA"]["USE"],
-        solver_da_lr=config["SOLVER"]["DA_LEARNING_RATE"],
-        da_init_epoch=config["DA"]["INIT_EPOCH"],
-        da_method=config["DA"]["METHOD"],
-        original_random=config["DA"]["ORIGINAL_RANDOM"],
-        use_da_entropy=config["DA"]["USE_ENTROPY"],
-        da_random_layer=config["DA"]["RANDOM_LAYER"],
+        is_da=config.DA.USE,
+        solver_da_lr=config.SOLVER.DA_LEARNING_RATE,
+        da_init_epoch=config.DA.INIT_EPOCH,
+        da_method=config.DA.METHOD,
+        original_random=config.DA.ORIGINAL_RANDOM,
+        use_da_entropy=config.DA.USE_ENTROPY,
+        da_random_layer=config.DA.RANDOM_LAYER,
         # --- discriminator parameters ---
-        da_random_dim=config["DA"]["RANDOM_DIM"],
-        decoder_in_dim=config["DECODER"]["IN_DIM"],
+        da_random_dim=config.DA.RANDOM_DIM,
+        decoder_in_dim=config.DECODER.IN_DIM,
     )
