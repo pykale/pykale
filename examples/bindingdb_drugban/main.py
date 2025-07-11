@@ -10,7 +10,6 @@ Reference: https://github.com/peizhenbai/DrugBAN/blob/main/main.py
 
 import argparse
 import os
-import sys
 import warnings
 from datetime import datetime
 from time import time
@@ -20,7 +19,6 @@ import torch
 from configs import get_cfg_defaults
 from pytorch_lightning import loggers as pl_loggers
 
-sys.path.append("../../../pykale/")
 from model import get_dataloader, get_dataset, get_model
 from pytorch_lightning.callbacks import ModelCheckpoint
 
