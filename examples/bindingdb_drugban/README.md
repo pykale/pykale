@@ -12,7 +12,7 @@ For dataset information, please refer to the following links: https://github.com
 After downloading the `drug-target-datasets` zip file, create a `datasets` folder inside the `bingdingdb_drugban` directory.
 Upzip the downloaded file, and place the datasets in `drug-target-datasets` into the newly created `datasets` foler.
 
-We use two datasets in this example: [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp) and [BioSNAP](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets), 
+We use two datasets in this example: [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp) and [BioSNAP](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets),
 where they are split into random and cluster splits. The full data is also provided for each dataset.
 
 All datasets should be organised as follows:

@@ -73,7 +73,9 @@ def get_dataloader(*datasets, batchsize, num_workers, collate_fn, is_da, da_task
         )  # used to be named as multi_generator
 
         params.update({"shuffle": False, "drop_last": False})
-        valid_dataloader = DataLoader(test_target_dataset, **params) # validation set is the same as test set, as in the paper
+        valid_dataloader = DataLoader(
+            test_target_dataset, **params
+        )  # validation set is the same as test set, as in the paper
         test_dataloader = DataLoader(test_target_dataset, **params)
 
     return train_dataloader, valid_dataloader, test_dataloader

@@ -17,9 +17,8 @@ from time import time
 import pytorch_lightning as pl
 import torch
 from configs import get_cfg_defaults
-from pytorch_lightning import loggers as pl_loggers
-
 from model import get_dataloader, get_dataset, get_model
+from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 from kale.loaddata.molecular_datasets import graph_collate_func
@@ -49,8 +48,10 @@ def main():
     # ---- setup dataset ----
     dataFolder = os.path.join(f"./datasets/{cfg.DATA.DATASET}", str(cfg.DATA.SPLIT))
     if not os.path.exists(dataFolder):
-        raise FileNotFoundError(f"Dataset folder {dataFolder} does not exist. Please check if the data folder exists.\n"
-                                f"If you haven't downloaded the data, please follow the dataset guidance at https://github.com/pykale/pykale/tree/main/examples/bindingdb_drugban#datasets")
+        raise FileNotFoundError(
+            f"Dataset folder {dataFolder} does not exist. Please check if the data folder exists.\n"
+            f"If you haven't downloaded the data, please follow the dataset guidance at https://github.com/pykale/pykale/tree/main/examples/bindingdb_drugban#datasets"
+        )
     if not cfg.DA.TASK:
         datasets = get_dataset(dataFolder, da_task=cfg.DA.TASK)
     else:
@@ -72,11 +73,14 @@ def main():
         logger = pl_loggers.CometLogger(
             api_key=cfg.COMET.API_KEY,
             project_name=cfg.COMET.PROJECT_NAME,
-            save_dir=cfg.OUTPUT.OUT_DIR,
-            experiment_name="{}_{}".format(cfg.COMET.EXPERIMENT_NAME, experiment_time),
+            save_dir=os.path.join(cfg.OUTPUT.OUT_DIR, "comet"),
+            experiment_name=os.path.join(cfg.COMET.EXPERIMENT_NAME, experiment_time),
         )
     else:
-        logger = pl_loggers.TensorBoardLogger(save_dir=cfg.COMET.PROJECT_NAME, name=experiment_time)
+        logger = pl_loggers.TensorBoardLogger(
+            save_dir=os.path.join(cfg.OUTPUT.OUT_DIR, "tensorboard", cfg.COMET.PROJECT_NAME),
+            name=experiment_time,
+        )
 
     # ---- setup trainer ----
     checkpoint_callback = ModelCheckpoint(
