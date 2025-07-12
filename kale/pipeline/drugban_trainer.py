@@ -63,7 +63,6 @@ class DrugbanTrainer(pl.LightningModule):
         da_random_layer,
         da_random_dim,
         decoder_in_dim,
-        save_attention=False,
     ):
         super(DrugbanTrainer, self).__init__()
 
@@ -71,7 +70,6 @@ class DrugbanTrainer(pl.LightningModule):
         self.solver_lr = solver_lr
         self.num_classes = num_classes
         self.batch_size = batch_size
-        self.save_attention = save_attention
 
         # --- domain adaptation parameters ---
         self.is_da = is_da
@@ -148,8 +146,6 @@ class DrugbanTrainer(pl.LightningModule):
         # metrics with scikit-learn
         self.test_preds = []
         self.test_targets = []
-        # self.test_results = []
-        self.test_attention = []
 
     def configure_optimizers(self):
         """
@@ -360,10 +356,6 @@ class DrugbanTrainer(pl.LightningModule):
         # ---- log the loss ----
         self.log("test_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
-        # ---- save attention if required ----
-        if self.save_attention:
-            self.test_attention.append(att.detach().cpu())
-
     def on_test_epoch_end(self):
         """
         At the end of the test epoch, compute and log the test metrics, and reset the test metrics.
@@ -383,9 +375,7 @@ class DrugbanTrainer(pl.LightningModule):
         precision = tpr / (tpr + fpr)
         f1_scores = 2 * precision * tpr / (tpr + precision + 0.00001)
 
-        # If save attention is enabled, we start from index 1 to avoid error in thresholding
-        # If save attention is disabled, we start from index 5 to avoid unstable F1 scores
-        start = 1 if self.save_attention else 5
+        start = 1 if thresholds.size <= 5 else 5
         thred_optim = thresholds[start:][np.argmax(f1_scores[start:])]
 
         # optimal thresholding for F1
@@ -394,7 +384,7 @@ class DrugbanTrainer(pl.LightningModule):
         # y_pred_bin = (y_pred >= 0.5).astype(int)
 
         # === Global confusion matrix ===
-        if not self.save_attention:
+        if thresholds.size > 5:
             cm1 = confusion_matrix(y_label, y_pred_bin)
             accuracy = (cm1[0, 0] + cm1[1, 1]) / sum(sum(cm1))
             sensitivity = cm1[0, 0] / (cm1[0, 0] + cm1[0, 1])
@@ -410,17 +400,13 @@ class DrugbanTrainer(pl.LightningModule):
         self.log("test_accuracy_sklearn", accuracy, prog_bar=False)
         self.log("test_f1_sklearn", f1, prog_bar=False)
         self.log("test_optim_threshold", thred_optim)
-        if not self.save_attention:
+        if thresholds.size > 5:
             self.log("test_sensitivity", sensitivity, prog_bar=False)
             self.log("test_specificity", specificity, prog_bar=False)
-        else:
-            # Save attention if required
-            all_att = torch.cat(self.test_attention, dim=0)  # [batch, ...]
-            torch.save(all_att, "attention_map.pt")
+
         # Clear
         self.test_preds.clear()
         self.test_targets.clear()
-        self.test_attention.clear()
 
         # torchmetrics
         output = self.test_metrics.compute()
