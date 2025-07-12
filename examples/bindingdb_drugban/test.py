@@ -14,6 +14,7 @@ from time import time
 import pytorch_lightning as pl
 import torch
 from configs import get_cfg_defaults
+from tqdm import tqdm
 
 from examples.bindingdb_drugban.model import get_model_from_ckpt, get_test_dataloader, get_test_dataset
 from kale.loaddata.molecular_datasets import graph_collate_func
@@ -25,9 +26,7 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="DrugBAN for DTI prediction")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument("--ckpt_resume", default=None, help="path to train checkpoint file", type=str)
-    parser.add_argument(
-        "--save_attention", action="store_true", help="save attention matrix. use this flag to turn it on"
-    )
+    parser.add_argument("--save_att_path", default=None, help="path to save attention maps", type=str)
     args = parser.parse_args()
     return args
 
@@ -40,6 +39,8 @@ def main():
     args = arg_parse()
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
+    cfg.SOLVER.BATCH_SIZE = 1
+
     SEED = cfg.SOLVER.SEED
     set_seed(SEED)
     pl.seed_everything(SEED, workers=True)
@@ -60,17 +61,33 @@ def main():
     )
 
     # ---- setup model ----
-    if args.save_attention:
-        print("Attention saving is ENABLED.")
-    else:
-        print("Attention saving is disabled.")
-    model = get_model_from_ckpt(args.ckpt_resume, cfg, args.save_attention)
+    model = get_model_from_ckpt(args.ckpt_resume, cfg)
+    model.model.eval()
+
+    # ---- test the model ----
     trainer = pl.Trainer(
         devices="auto",
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
         deterministic=True,
     )
     trainer.test(model, dataloaders=test_dataloader)
+
+    # ---- save attention maps ----
+    print("Attention saving is ENABLED.") if args.save_att_path is not None else print("Attention saving is DISABLED.")
+    if args.save_att_path is not None:
+        all_attentions = []
+        for batch in tqdm(test_dataloader):
+            drug, protein, _ = batch
+            drug, protein = drug.to(model.device), protein.to(model.device)
+
+            _, _, _, _, attention = model.model.forward(drug, protein, mode="eval")  # [B, H, V, Q]
+
+            attention = attention.detach().cpu()
+            all_attentions.append(attention)
+
+        # Concatenate into one tensor: [N, H, V, Q]
+        all_attentions = torch.cat(all_attentions, dim=0)
+        torch.save(all_attentions, args.save_att_path)
 
 
 if __name__ == "__main__":
