@@ -71,3 +71,10 @@ def seq_to_spatial(sequence_tensor: torch.Tensor, desired_height: int, desired_w
     spatial_tensor = permuted_tensor.view(batch_size, num_channels, desired_height, desired_width)
 
     return spatial_tensor
+
+
+def normalize_tensor(tensor, eps=1e-8):
+    """Normalize a PyTorch tensor to [0, 1] ranges."""
+    min_val = tensor.min()
+    max_val = tensor.max()
+    return (tensor - min_val) / (max_val - min_val + eps)
