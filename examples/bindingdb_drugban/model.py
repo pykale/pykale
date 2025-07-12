@@ -101,14 +101,13 @@ def get_model(config, **kwargs):
     )
 
 
-def get_model_from_ckpt(ckpt_path, config, save_attention):
+def get_model_from_ckpt(ckpt_path, config):
     return DrugbanTrainer.load_from_checkpoint(
         checkpoint_path=ckpt_path,
         model=DrugBAN(**config),
         solver_lr=config.SOLVER.LEARNING_RATE,
         num_classes=config.DECODER.BINARY,
         batch_size=config.SOLVER.BATCH_SIZE,
-        save_attention=save_attention,
         # --- domain adaptation parameters ---
         is_da=config.DA.USE,
         solver_da_lr=config.SOLVER.DA_LEARNING_RATE,
