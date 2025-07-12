@@ -122,11 +122,8 @@ def get_model_from_ckpt(ckpt_path, config):
     )
 
 
-def get_test_dataset(dataFolder, split):
-    if split == "cluster":
-        df_test_target = pd.read_csv(os.path.join(dataFolder, "target_test.csv"))
-    if split == "random":
-        df_test_target = pd.read_csv(os.path.join(dataFolder, "test.csv"))
+def get_test_dataset(dataFolder):
+    df_test_target = pd.read_csv(dataFolder)
     test_target_dataset = DTIDataset(df_test_target.index.values, df_test_target)
     return test_target_dataset
 

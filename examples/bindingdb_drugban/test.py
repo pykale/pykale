@@ -25,8 +25,14 @@ def arg_parse():
     """Parsing arguments"""
     parser = argparse.ArgumentParser(description="DrugBAN for DTI prediction")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    parser.add_argument("--ckpt_resume", default=None, help="path to train checkpoint file", type=str)
-    parser.add_argument("--save_att_path", default=None, help="path to save attention maps", type=str)
+    parser.add_argument("--ckpt_resume", required=True, default=None, help="path to train checkpoint file", type=str)
+    parser.add_argument("--test_file", required=True, default=None, help="path to test file", type=str)
+    parser.add_argument(
+        "--save_att_path",
+        default=None,
+        help="path to save attention maps. unuse for no need to save attention maps",
+        type=str,
+    )
     args = parser.parse_args()
     return args
 
@@ -46,14 +52,13 @@ def main():
     pl.seed_everything(SEED, workers=True)
 
     # ---- setup dataset ----
-    dataFolder = os.path.join(f"./datasets/" + cfg.DATA.DATASET)
-    # dataFolder = os.path.join(f"./datasets/" + cfg.DATA.DATASET + "/" + str(cfg.DATA.SPLIT))
+    dataFolder = args.test_file
     if not os.path.exists(dataFolder):
         raise FileNotFoundError(
             f"Dataset folder {dataFolder} does not exist. Please check if the data folder exists.\n"
             f"If you haven't downloaded the data, please follow the dataset guidance at https://github.com/pykale/pykale/tree/main/examples/bindingdb_drugban#datasets"
         )
-    test_dataset = get_test_dataset(dataFolder, cfg.DATA.SPLIT)
+    test_dataset = get_test_dataset(dataFolder)
 
     # ---- setup dataloader ----
     test_dataloader = get_test_dataloader(
