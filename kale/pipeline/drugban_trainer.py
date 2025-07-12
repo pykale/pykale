@@ -63,7 +63,7 @@ class DrugbanTrainer(pl.LightningModule):
         da_random_layer,
         da_random_dim,
         decoder_in_dim,
-        **kwargs,
+        save_attention=False,
     ):
         super(DrugbanTrainer, self).__init__()
 
@@ -71,6 +71,7 @@ class DrugbanTrainer(pl.LightningModule):
         self.solver_lr = solver_lr
         self.num_classes = num_classes
         self.batch_size = batch_size
+        self.save_attention = save_attention
 
         # --- domain adaptation parameters ---
         self.is_da = is_da
@@ -147,7 +148,8 @@ class DrugbanTrainer(pl.LightningModule):
         # metrics with scikit-learn
         self.test_preds = []
         self.test_targets = []
-        self.test_results = []
+        # self.test_results = []
+        self.test_attention = []
 
     def configure_optimizers(self):
         """
@@ -314,7 +316,7 @@ class DrugbanTrainer(pl.LightningModule):
     def validation_step(self, val_batch, batch_idx):
         v_d, v_p, labels = val_batch
         labels = labels.float()
-        v_d, v_p, f, score = self.model(v_d, v_p)
+        v_d, v_p, f, score, _ = self.model(v_d, v_p, mode="eval")
         if self.num_classes == 1:
             n, loss = binary_cross_entropy(score, labels)
         else:
@@ -340,7 +342,7 @@ class DrugbanTrainer(pl.LightningModule):
     def test_step(self, test_batch, batch_idx):
         v_d, v_p, labels = test_batch
         labels = labels.float()
-        v_d, v_p, f, score = self.model(v_d, v_p)
+        v_d, v_p, f, score, att = self.model(v_d, v_p, mode="eval")
         if self.num_classes == 1:
             n, loss = binary_cross_entropy(score, labels)
         else:
@@ -357,6 +359,10 @@ class DrugbanTrainer(pl.LightningModule):
 
         # ---- log the loss ----
         self.log("test_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+
+        # ---- save attention if required ----
+        if self.save_attention:
+            self.test_attention.append(att.detach().cpu())
 
     def on_test_epoch_end(self):
         """
@@ -376,7 +382,11 @@ class DrugbanTrainer(pl.LightningModule):
         # === Optimal F1 threshold ===
         precision = tpr / (tpr + fpr)
         f1_scores = 2 * precision * tpr / (tpr + precision + 0.00001)
-        thred_optim = thresholds[5:][np.argmax(f1_scores[5:])]
+
+        # If save attention is enabled, we start from index 1 to avoid error in thresholding
+        # If save attention is disabled, we start from index 5 to avoid unstable F1 scores
+        start = 1 if self.save_attention else 5
+        thred_optim = thresholds[start:][np.argmax(f1_scores[start:])]
 
         # optimal thresholding for F1
         y_pred_bin = [1 if i else 0 for i in (y_pred >= thred_optim)]
@@ -384,27 +394,33 @@ class DrugbanTrainer(pl.LightningModule):
         # y_pred_bin = (y_pred >= 0.5).astype(int)
 
         # === Global confusion matrix ===
-        cm1 = confusion_matrix(y_label, y_pred_bin)
-        accuracy = (cm1[0, 0] + cm1[1, 1]) / sum(sum(cm1))
-        sensitivity = cm1[0, 0] / (cm1[0, 0] + cm1[0, 1])
-        specificity = cm1[1, 1] / (cm1[1, 0] + cm1[1, 1])
+        if not self.save_attention:
+            cm1 = confusion_matrix(y_label, y_pred_bin)
+            accuracy = (cm1[0, 0] + cm1[1, 1]) / sum(sum(cm1))
+            sensitivity = cm1[0, 0] / (cm1[0, 0] + cm1[0, 1])
+            specificity = cm1[1, 1] / (cm1[1, 0] + cm1[1, 1])
 
         # === Global metrics ===
         auroc = roc_auc_score(y_label, y_pred)
-        f1 = np.max(f1_scores[5:])
+        f1 = np.max(f1_scores[start:])
         accuracy = accuracy_score(y_label, y_pred_bin)
 
         # === Log ====
         self.log("test_auroc_sklearn", auroc, prog_bar=False)
         self.log("test_accuracy_sklearn", accuracy, prog_bar=False)
         self.log("test_f1_sklearn", f1, prog_bar=False)
-        self.log("test_sensitivity", sensitivity, prog_bar=False)
-        self.log("test_specificity", specificity, prog_bar=False)
         self.log("test_optim_threshold", thred_optim)
-
+        if not self.save_attention:
+            self.log("test_sensitivity", sensitivity, prog_bar=False)
+            self.log("test_specificity", specificity, prog_bar=False)
+        else:
+            # Save attention if required
+            all_att = torch.cat(self.test_attention, dim=0)  # [batch, ...]
+            torch.save(all_att, "attention_map.pt")
         # Clear
         self.test_preds.clear()
         self.test_targets.clear()
+        self.test_attention.clear()
 
         # torchmetrics
         output = self.test_metrics.compute()
