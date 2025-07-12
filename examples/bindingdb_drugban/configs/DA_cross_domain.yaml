@@ -5,8 +5,8 @@ DATA:
   SPLIT: "cluster"
 
 SOLVER:
-  BATCH_SIZE: 32
-  MAX_EPOCH: 100
+  BATCH_SIZE: 1
+  MAX_EPOCH: 1
   LEARNING_RATE: 1e-4
   DA_LEARNING_RATE: 5e-5
   SEED: 20
@@ -26,6 +26,7 @@ DECODER:
 
 # Config below only when you use comet
 COMET:
-  USE: True
+#  USE: True
   EXPERIMENT_NAME: "DA_cross_domain"
   TAG: "DrugBAN_CDAN"
+#  API_KEY: "fwDWzM3HmQuZuFGFS2q90vLT3"
