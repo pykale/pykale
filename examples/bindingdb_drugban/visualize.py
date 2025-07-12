@@ -1,3 +1,4 @@
+import argparse
 import os
 
 import matplotlib.pyplot as plt
@@ -7,6 +8,17 @@ import torch
 from matplotlib import colormaps
 from rdkit import Chem
 from rdkit.Chem.Draw import rdMolDraw2D
+
+
+def arg_parse():
+    """Parsing arguments"""
+    parser = argparse.ArgumentParser(description="Interpretation and visualization for DrugBAN")
+    parser.add_argument("--attention_file", required=True, default="attention_map_all.pt", help="path to train checkpoint file", type=str)
+    parser.add_argument("--data_file", required=True, default=None, help="path to save attention maps", type=str)
+    parser.add_argument("--out_path", default="./visualization", help="path to save visualization", type=str)
+
+    args = parser.parse_args()
+    return args
 
 
 def normalize_tensor(tensor, eps=1e-8):
@@ -72,18 +84,15 @@ def process_sample(index, attention, smile, protein, out_dir):
 
 
 def main():
-    attention_path = "attention_map.pt"  # Path to the attention map file
-    data_path = "datasets/bindingdb/target_test.csv"  # Path to the SMILES file
-    out_dir = "./visualization"
-    max_n = 5
+    args = arg_parse()
 
-    attention = torch.load(attention_path, map_location="cpu")  # [B, H, V, Q]
-    data_df = pd.read_csv(data_path)
+    attention = torch.load(args.attention_file, map_location="cpu")  # [B, H, V, Q]
+    data_df = pd.read_csv(args.data_file)
     smiles = data_df["SMILES"]
     proteins = data_df["Protein"]
 
-    for i in range(min(max_n, len(attention))):
-        process_sample(i, attention, smiles[i], proteins[i], out_dir)
+    for i in range(len(attention)):
+        process_sample(i, attention, smiles[i], proteins[i], args.out_path)
 
 
 if __name__ == "__main__":
