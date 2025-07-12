@@ -20,5 +20,6 @@ DECODER:
 
 # Config below only when you use comet
 COMET:
+  USE: True
   EXPERIMENT_NAME: "Non_DA_cross_domain"
   TAG: "DrugBAN_Vanilla"

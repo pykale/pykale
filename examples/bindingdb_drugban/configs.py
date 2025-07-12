@@ -6,8 +6,8 @@ _C = CfgNode()
 # DATA setting
 # ---------------------------------------------------------------------------- #
 _C.DATA = CfgNode()
-_C.DATA.DATASET = None  # Name of the dataset to use
-_C.DATA.SPLIT = None  # Data splitting strategy
+_C.DATA.DATASET = None  # Name of the dataset to use. Options: ["bindingdb", "biosnap"]
+_C.DATA.SPLIT = None  # Data splitting strategy. Options: ["cluster", "random"]
 
 # ---------------------------------------------------------------------------- #
 # Drug feature extractor
@@ -56,12 +56,6 @@ _C.SOLVER.DA_LEARNING_RATE = 1e-3  # Learning rate for the domain adaptation (if
 _C.SOLVER.SEED = 2048  # Random seed for reproducibility
 
 # ---------------------------------------------------------------------------- #
-# RESULT
-# ---------------------------------------------------------------------------- #
-_C.RESULT = CfgNode()
-_C.RESULT.SAVE_MODEL = True  # Whether to save model checkpoints during training
-
-# ---------------------------------------------------------------------------- #
 # Domain adaptation
 # ---------------------------------------------------------------------------- #
 _C.DA = CfgNode()
@@ -76,14 +70,21 @@ _C.DA.RANDOM_DIM = None  # Output dimensionality of the random layer (only used 
 _C.DA.USE_ENTROPY = True  # Whether to use entropy-based weighting when computing domain adversarial loss
 
 # ---------------------------------------------------------------------------- #
-# Comet config, ignore it If not installed.
+# Output options
+# ---------------------------------------------------------------------------- #
+_C.OUTPUT = CfgNode()
+_C.OUTPUT.PB_FRESH = 50  # Number of steps before a new progress bar is printed. Set 0 to disable the progress bar.
+_C.OUTPUT.OUT_DIR = "./outputs"  # Directory to save outputs to (logs, checkpoints, etc.)
+
+# ---------------------------------------------------------------------------- #
+# Comet config, ignore it if you don't use Comet. More info: https://www.comet.com/site/
 # ---------------------------------------------------------------------------- #
 _C.COMET = CfgNode()
-_C.COMET.USE = True  # Enable Comet logging (set True if Comet is installed and configured)
+_C.COMET.USE = False  # Enable Comet logging (set True if you want to use Comet)
 _C.COMET.PROJECT_NAME = "drugban-23-May"  # Comet project name (if applicable)
 _C.COMET.EXPERIMENT_NAME = None  # Optional experiment name (e.g., 'drugban-run-1')
 _C.COMET.TAG = None  # Comet tags (optional)
-_C.COMET.API_KEY = "InDQ1UsqJt7QMiANWg55Ulebe"  # Comet API key (leave blank if unused)
+_C.COMET.API_KEY = ""  # Use your own Comet API key. Generate the key at https://www.comet.com/account-settings/apiKeys.
 
 
 # ---------------------------------------------------------------------------- #

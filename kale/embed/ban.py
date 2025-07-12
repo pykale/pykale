@@ -75,7 +75,7 @@ class DrugBAN(nn.Module):
         if mode == "train":
             return vec_drug, vec_protein, f, score
         elif mode == "eval":
-            return vec_drug, vec_protein, score, att
+            return vec_drug, vec_protein, f, score, att
 
 
 class MolecularGCN(nn.Module):

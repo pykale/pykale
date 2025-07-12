@@ -10,7 +10,6 @@ Reference: https://github.com/peizhenbai/DrugBAN/blob/main/main.py
 
 import argparse
 import os
-import sys
 import warnings
 from datetime import datetime
 from time import time
@@ -18,10 +17,8 @@ from time import time
 import pytorch_lightning as pl
 import torch
 from configs import get_cfg_defaults
-from pytorch_lightning.loggers import CometLogger, TensorBoardLogger
-
-sys.path.append("../../../pykale/")
 from model import get_dataloader, get_dataset, get_model
+from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 from kale.loaddata.molecular_datasets import graph_collate_func
@@ -50,13 +47,18 @@ def main():
 
     # ---- setup dataset ----
     dataFolder = os.path.join(f"./datasets/{cfg.DATA.DATASET}", str(cfg.DATA.SPLIT))
+    if not os.path.exists(dataFolder):
+        raise FileNotFoundError(
+            f"Dataset folder {dataFolder} does not exist. Please check if the data folder exists.\n"
+            f"If you haven't downloaded the data, please follow the dataset guidance at https://github.com/pykale/pykale/tree/main/examples/bindingdb_drugban#datasets"
+        )
     if not cfg.DA.TASK:
         datasets = get_dataset(dataFolder, da_task=cfg.DA.TASK)
     else:
         datasets = get_dataset(dataFolder, da_task=cfg.DA.TASK)
 
     # ---- setup dataloader ----
-    training_generator, valid_generator, test_generator = get_dataloader(
+    training_dataloader, valid_dataloader, test_dataloader = get_dataloader(
         *datasets,
         batchsize=cfg.SOLVER.BATCH_SIZE,
         num_workers=cfg.SOLVER.NUM_WORKERS,
@@ -68,13 +70,17 @@ def main():
     # ---- set logger ----
     experiment_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     if cfg.COMET.USE:
-        logger = CometLogger(
-            api_key=cfg["COMET"]["API_KEY"],
-            project_name=cfg["COMET"]["PROJECT_NAME"],
-            experiment_name="{}_{}".format(cfg.COMET.EXPERIMENT_NAME, experiment_time),
+        logger = pl_loggers.CometLogger(
+            api_key=cfg.COMET.API_KEY,
+            project_name=cfg.COMET.PROJECT_NAME,
+            save_dir=os.path.join(cfg.OUTPUT.OUT_DIR, "comet"),
+            experiment_name=os.path.join(cfg.COMET.EXPERIMENT_NAME, experiment_time),
         )
     else:
-        logger = TensorBoardLogger(save_dir=cfg.RESULT.OUTPUT_DIR, name=experiment_time)
+        logger = pl_loggers.TensorBoardLogger(
+            save_dir=os.path.join(cfg.OUTPUT.OUT_DIR, "tensorboard", cfg.COMET.PROJECT_NAME),
+            name=experiment_time,
+        )
 
     # ---- setup trainer ----
     checkpoint_callback = ModelCheckpoint(
@@ -92,12 +98,12 @@ def main():
         logger=logger,
         deterministic=True,  # for reproducibility
     )
-    trainer.fit(model, train_dataloaders=training_generator, val_dataloaders=valid_generator)
-    trainer.test(model, dataloaders=test_generator, ckpt_path="best")
+    trainer.fit(model, train_dataloaders=training_dataloader, val_dataloaders=valid_dataloader)
+    trainer.test(model, dataloaders=test_dataloader, ckpt_path="best")
 
 
 if __name__ == "__main__":
     s = time()
-    result = main()
+    main()
     e = time()
     print(f"Total running time: {round(e - s, 2)}s")
