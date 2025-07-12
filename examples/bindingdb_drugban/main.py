@@ -58,7 +58,7 @@ def main():
         datasets = get_dataset(dataFolder, da_task=cfg.DA.TASK)
 
     # ---- setup dataloader ----
-    training_generator, valid_generator, test_generator = get_dataloader(
+    training_dataloader, valid_dataloader, test_dataloader = get_dataloader(
         *datasets,
         batchsize=cfg.SOLVER.BATCH_SIZE,
         num_workers=cfg.SOLVER.NUM_WORKERS,
@@ -98,8 +98,8 @@ def main():
         logger=logger,
         deterministic=True,  # for reproducibility
     )
-    trainer.fit(model, train_dataloaders=training_generator, val_dataloaders=valid_generator)
-    trainer.test(model, dataloaders=test_generator, ckpt_path="best")
+    trainer.fit(model, train_dataloaders=training_dataloader, val_dataloaders=valid_dataloader)
+    trainer.test(model, dataloaders=test_dataloader, ckpt_path="best")
 
 
 if __name__ == "__main__":
