@@ -7,18 +7,18 @@ This example is constructed by refactoring the [Interpretable bilinear attention
 ### 2. Usage
 
 ### Datasets
-For downloading the datasets, please refer to the following links: https://github.com/pykale/data/blob/main/molecular/README.md
+For dataset information, please refer to the following links: https://github.com/pykale/data/blob/main/molecular/README.md.
 
-We have two datasets in this collection:
-- [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp)
-- [BioSNAP](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets)
+After downloading the `drug-target-datasets` zip file, create a `datasets` folder inside the `bingdingdb_drugban` directory.
+Upzip the downloaded file, and place the datasets in `drug-target-datasets` into the newly created `datasets` foler.
 
-where BindingDB and BioSNAP are split into random and cluster splits. The full dataset is also provided for each dataset.
+We use two datasets in this example: [BindingDB](https://www.bindingdb.org/rwd/bind/index.jsp) and [BioSNAP](https://github.com/kexinhuang12345/MolTrans?tab=readme-ov-file#datasets),
+where they are split into random and cluster splits. The full data is also provided for each dataset.
 
 All datasets should be organised as follows:
 
-```sh
-└───root
+```
+└───bindingdb_drugban
     ├───datasets
     │   ├───bindingdb
     │   │   ├───cluster
@@ -45,6 +45,9 @@ All datasets should be organised as follows:
 
 
 ### Examples
+
+
+#### Training
 
 For in-domain prediction tasks using DrugBAN without domain adaptation, run the following command:
 
@@ -79,6 +82,29 @@ The use of `cfg.DA.TASK` in `*.yaml` files is as follows:
 * `cfg.DA.TASK = True` refers to **cross-domain** splitting strategy, where the single-linkage algorithm is used to cluster drugs and proteins, and randomly selected 60% of the drug clusters and 60% of the protein clusters.
   * All drug-protein pairs in the selected clusters are source domain data. The remaining drug-protein pairs are target domain data.
   * In the setting of domain adaptation, all labelled source domain data and 80% unlabelled target domain data are used for training. The remaining 20% labelled target domain data are used for testing.
+
+#### Testing
+To evaluate the model, use the `test.py` script provided in the repository to load a trained checkpoint and run it on a test set.
+Example command for cross-domain prediction with DrugBAN and domain adaptation:
+
+`python test.py --cfg configs/DA_cross_domain.yaml --ckpt_resume best.ckpt --test_file datasets/bindingdb/cluster/target_test.csv`
+
+Make sure to replace the command arguments with your own configuration.
+
+#### Interpretation and Visualization
+We provide functionality to extract and visualize attention maps for interpreting model decisions.
+To extract attention maps during testing, add the `save_att_path` argument:
+
+`python test.py --cfg configs/DA_cross_domain.yaml --ckpt_resume best.ckpt --test_file datasets/bindingdb/cluster/target_test.csv --save_att_path "attention_map_all.pt"`
+
+The resulting attention maps will be saved as a PyTorch `.pt` file.
+
+To visualize the attention maps and corresponding molecules:
+
+`python interpret.py --att_file "attention_map_all.pt" --data_file "datasets/bindingdb/target_test.csv"`
+
+This will generate images of attention maps and molecules with attention highlights, saved in the `visualization` directory.
+You may also test on your own dataset by changing `test_file` and `data_file`, as long as it follows the same format as `datasets/bindingdb/target_test.csv`.
 
 
 ### 3. Related `kale` API
