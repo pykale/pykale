@@ -6,18 +6,18 @@ Embed
 Submodules
 ----------
 
-kale.embed.ban module
---------------------------------
-
-.. automodule:: kale.embed.ban
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.embed.attention\_cnn module
 --------------------------------
 
 .. automodule:: kale.embed.attention_cnn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.embed.cnn module
+--------------------------------
+
+.. automodule:: kale.embed.cnn
    :members:
    :undoc-members:
    :show-inheritance:
@@ -47,16 +47,6 @@ kale.embed.gcn module
    :show-inheritance:
    :exclude-members: message, update
 
-kale.embed.gripnet module
--------------------------
-
-.. automodule:: kale.embed.gripnet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :exclude-members: message, update
-
-
 kale.embed.image\_cnn module
 ----------------------------
 
@@ -65,18 +55,35 @@ kale.embed.image\_cnn module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.signal\_cnn module
-----------------------------
+kale.embed.nn module
+--------------------------------
 
-.. automodule:: kale.embed.signal_cnn
+.. automodule:: kale.embed.nn
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.mogonet module
+kale.embed.model\_lib.ban module
+--------------------------------
+
+.. automodule:: kale.embed.model_lib.drugban
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.embed.model\_lib.gripnet module
 -------------------------
 
-.. automodule:: kale.embed.mogonet
+.. automodule:: kale.embed.model_lib.gripnet
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :exclude-members: message, update
+
+kale.embed.model\_lib.mogonet module
+-------------------------
+
+.. automodule:: kale.embed.model_lib.mogonet
     :members:
     :undoc-members:
     :show-inheritance:
@@ -105,6 +112,14 @@ kale.embed.seq\_nn module
    :undoc-members:
    :show-inheritance:
    :exclude-members:
+
+kale.embed.signal\_cnn module
+----------------------------
+
+.. automodule:: kale.embed.signal_cnn
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 kale.embed.uncertainty\_fitting module
 --------------------------------------
