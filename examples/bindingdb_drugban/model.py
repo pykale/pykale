@@ -84,22 +84,56 @@ def get_dataloader(*datasets, batchsize, num_workers, collate_fn, is_da, da_task
 def get_model(config, **kwargs):
     model_config = parse_config(config)
     return DrugbanTrainer(
-        model=DrugBAN(model_config),
-        solver_lr=config["SOLVER"]["LEARNING_RATE"],
-        num_classes=config["DECODER"]["BINARY"],
-        batch_size=config["SOLVER"]["BATCH_SIZE"],
+        model=DrugBAN(**config),
+        solver_lr=config.SOLVER.LEARNING_RATE,
+        num_classes=config.DECODER.BINARY,
+        batch_size=config.SOLVER.BATCH_SIZE,
         # --- domain adaptation parameters ---
-        is_da=config["DA"]["USE"],
-        solver_da_lr=config["SOLVER"]["DA_LEARNING_RATE"],
-        da_init_epoch=config["DA"]["INIT_EPOCH"],
-        da_method=config["DA"]["METHOD"],
-        original_random=config["DA"]["ORIGINAL_RANDOM"],
-        use_da_entropy=config["DA"]["USE_ENTROPY"],
-        da_random_layer=config["DA"]["RANDOM_LAYER"],
+        is_da=config.DA.USE,
+        solver_da_lr=config.SOLVER.DA_LEARNING_RATE,
+        da_init_epoch=config.DA.INIT_EPOCH,
+        da_method=config.DA.METHOD,
+        original_random=config.DA.ORIGINAL_RANDOM,
+        use_da_entropy=config.DA.USE_ENTROPY,
+        da_random_layer=config.DA.RANDOM_LAYER,
         # --- discriminator parameters ---
-        da_random_dim=config["DA"]["RANDOM_DIM"],
-        decoder_in_dim=config["DECODER"]["IN_DIM"],
+        da_random_dim=config.DA.RANDOM_DIM,
+        decoder_in_dim=config.DECODER.IN_DIM,
     )
+
+
+def get_model_from_ckpt(ckpt_path, config):
+    return DrugbanTrainer.load_from_checkpoint(
+        checkpoint_path=ckpt_path,
+        model=DrugBAN(**config),
+        solver_lr=config.SOLVER.LEARNING_RATE,
+        num_classes=config.DECODER.BINARY,
+        batch_size=config.SOLVER.BATCH_SIZE,
+        # --- domain adaptation parameters ---
+        is_da=config.DA.USE,
+        solver_da_lr=config.SOLVER.DA_LEARNING_RATE,
+        da_init_epoch=config.DA.INIT_EPOCH,
+        da_method=config.DA.METHOD,
+        original_random=config.DA.ORIGINAL_RANDOM,
+        use_da_entropy=config.DA.USE_ENTROPY,
+        da_random_layer=config.DA.RANDOM_LAYER,
+        # --- discriminator parameters ---
+        da_random_dim=config.DA.RANDOM_DIM,
+        decoder_in_dim=config.DECODER.IN_DIM,
+    )
+
+
+def get_test_dataset(dataFolder):
+    df_test_target = pd.read_csv(dataFolder)
+    test_target_dataset = DTIDataset(df_test_target.index.values, df_test_target)
+    return test_target_dataset
+
+
+def get_test_dataloader(dataset, batchsize, num_workers, collate_fn):
+    test_dataloader = DataLoader(
+        dataset, batch_size=batchsize, num_workers=num_workers, collate_fn=collate_fn, shuffle=False, drop_last=True
+    )
+    return test_dataloader
 
 
 def parse_config(raw_config: dict) -> FullConfig:

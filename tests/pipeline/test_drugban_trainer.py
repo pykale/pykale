@@ -16,8 +16,13 @@ class SimpleModel(nn.Module):
         super(SimpleModel, self).__init__()
         self.fc = nn.Linear(10, 2)
 
-    def forward(self, v_d, v_p):
-        return v_d, v_p, torch.cat((v_d, v_p), dim=1), self.fc(v_d)
+    def forward(self, v_d, v_p, mode="train"):
+        # Training mode returns four outputs: drug, protein, f, score
+        # Evaluation mode returns five outputs: drug, protein, f, score, attention weights
+        if mode == "train":
+            return v_d, v_p, torch.cat((v_d, v_p), dim=1), self.fc(v_d)
+        if mode == "eval":
+            return v_d, v_p, torch.cat((v_d, v_p), dim=1), self.fc(v_d), self.fc(v_d)
 
 
 @pytest.fixture

@@ -84,9 +84,7 @@ _C.COMET.USE = False  # Enable Comet logging (set True if you want to use Comet)
 _C.COMET.PROJECT_NAME = "drugban-23-May"  # Comet project name (if applicable)
 _C.COMET.EXPERIMENT_NAME = None  # Optional experiment name (e.g., 'drugban-run-1')
 _C.COMET.TAG = None  # Comet tags (optional)
-_C.COMET.API_KEY = (
-    ""  # Use your own Comet API key. Please go to https://www.comet.com/account-settings/apiKeys to generate the key.
-)
+_C.COMET.API_KEY = ""  # Use your own Comet API key. Generate the key at https://www.comet.com/account-settings/apiKeys.
 
 
 # ---------------------------------------------------------------------------- #
