@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torchmetrics import Accuracy, AUROC, F1Score, MetricCollection, Recall, Specificity
 
-from kale.embed.ban import RandomLayer
+from kale.embed.nn import RandomLayer
 from kale.pipeline.drugban_trainer import DrugbanTrainer
 from kale.predict.class_domain_nets import DomainNetSmallImage
 

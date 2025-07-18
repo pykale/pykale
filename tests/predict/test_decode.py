@@ -23,7 +23,7 @@ def test_mlp_decoder():
         hidden_dim=hidden_dim,
         out_dim=out_dim,
         dropout_rate=dropout_rate,
-        include_decoder_layers=include_decoder_layers,
+        use_deep_layers=include_decoder_layers,
     )
     assert mlp_decoder.fc1.weight.size() == (hidden_dim, in_dim)
     assert mlp_decoder.fc2.weight.size() == (hidden_dim, hidden_dim)
@@ -41,7 +41,7 @@ def test_mlp_decoder():
         hidden_dim=hidden_dim,
         out_dim=out_dim,
         dropout_rate=dropout_rate,
-        include_decoder_layers=include_decoder_layers,
+        use_deep_layers=include_decoder_layers,
     )
     assert mlp_decoder.fc1.weight.size() == (hidden_dim, in_dim)
     assert mlp_decoder.fc2.weight.size() == (out_dim, hidden_dim)
@@ -207,3 +207,33 @@ def test_multimodal_classifier_forward():
     labels = torch.randint(0, num_classes, (batch_size,))
     loss = nn.CrossEntropyLoss()(logits, labels)
     loss.backward()
+
+
+def test_mlp_decoder_forward():
+    in_dim = 64
+    hidden_dim = 32
+    out_dim = 16
+    batch_size = 64
+
+    # Initialize MLPDecoder model
+    model = MLPDecoder(in_dim, hidden_dim, out_dim)
+
+    # Create a mock input
+    input_data = torch.randn(batch_size, in_dim)
+
+    # Forward pass through the model
+    output = model(input_data)
+
+    # Check output types and shape
+    assert isinstance(output, torch.Tensor), "Output should be a tensor"
+    assert output.shape[0] == batch_size, "Output batch size should match input batch size"
+    assert output.shape[1] == 1, "Output should have one dimension for binary classification"
+
+
+def test_mlp_decoder_minimal_inputs():
+    # MLPDecoder
+    model = MLPDecoder(1, 1, 1)
+    model.eval()
+    inp = torch.randn(2, 1)
+    out = model(inp)
+    assert out.shape[0] == 2

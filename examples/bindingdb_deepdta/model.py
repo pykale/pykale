@@ -1,4 +1,4 @@
-from kale.embed.seq_nn import CNNEncoder
+from kale.embed.cnn import CNNEncoder
 from kale.pipeline.deepdta import DeepDTATrainer
 from kale.predict.decode import MLPDecoder
 
@@ -42,7 +42,7 @@ def get_model(cfg):
         hidden_dim=decoder_hidden_dim,
         out_dim=decoder_out_dim,
         dropout_rate=dropout_rate,
-        include_decoder_layers=True,
+        use_deep_layers=True,
     )
 
     # ---- learning rate ----

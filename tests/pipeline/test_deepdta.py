@@ -3,7 +3,7 @@ import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader
 
-from kale.embed.seq_nn import CNNEncoder
+from kale.embed.cnn import CNNEncoder
 from kale.loaddata.tdc_datasets import BindingDBDataset
 from kale.pipeline.deepdta import BaseDTATrainer, DeepDTATrainer
 from kale.predict.decode import MLPDecoder
@@ -24,7 +24,7 @@ def test_deep_data(download_path):
     target_encoder = CNNEncoder(
         num_embeddings=25, embedding_dim=128, sequence_length=1200, num_kernels=32, kernel_length=8
     )
-    decoder = MLPDecoder(in_dim=192, hidden_dim=16, out_dim=16, include_decoder_layers=True)
+    decoder = MLPDecoder(in_dim=192, hidden_dim=16, out_dim=16, use_deep_layers=True)
     # test deep_dta trainer
     save_parameters = {"seed": 2020, "batch_size": 256}
     model = DeepDTATrainer(drug_encoder, target_encoder, decoder, lr=0.001, ci_metric=True, **save_parameters).eval()

@@ -4,7 +4,7 @@ import sys
 import pandas as pd
 from torch.utils.data import DataLoader
 
-from kale.embed.ban import DrugBAN
+from kale.embed.model_lib.drugban import BCNConfig, DecoderConfig, DrugBAN, DrugConfig, FullConfig, ProteinConfig
 from kale.loaddata.molecular_datasets import DTIDataset
 from kale.pipeline.drugban_trainer import DrugbanTrainer
 
@@ -73,15 +73,18 @@ def get_dataloader(*datasets, batchsize, num_workers, collate_fn, is_da, da_task
         )  # used to be named as multi_generator
 
         params.update({"shuffle": False, "drop_last": False})
-        valid_dataloader = DataLoader(test_target_dataset, **params) # validation set is the same as test set, as in the paper
+        valid_dataloader = DataLoader(
+            test_target_dataset, **params
+        )  # validation set is the same as test set, as in the paper
         test_dataloader = DataLoader(test_target_dataset, **params)
 
     return train_dataloader, valid_dataloader, test_dataloader
 
 
 def get_model(config, **kwargs):
+    model_config = parse_config(config)
     return DrugbanTrainer(
-        model=DrugBAN(**config),
+        model=DrugBAN(model_config),
         solver_lr=config["SOLVER"]["LEARNING_RATE"],
         num_classes=config["DECODER"]["BINARY"],
         batch_size=config["SOLVER"]["BATCH_SIZE"],
@@ -96,4 +99,13 @@ def get_model(config, **kwargs):
         # --- discriminator parameters ---
         da_random_dim=config["DA"]["RANDOM_DIM"],
         decoder_in_dim=config["DECODER"]["IN_DIM"],
+    )
+
+
+def parse_config(raw_config: dict) -> FullConfig:
+    return FullConfig(
+        DRUG=DrugConfig(**raw_config["DRUG"]),
+        PROTEIN=ProteinConfig(**raw_config["PROTEIN"]),
+        DECODER=DecoderConfig(**raw_config["DECODER"]),
+        BCN=BCNConfig(**raw_config["BCN"]),
     )

@@ -49,14 +49,16 @@ def main():
     pl.seed_everything(SEED, workers=True)
 
     # ---- setup dataset ----
-    dataFolder = os.path.join(f"./datasets/{cfg.DATA.DATASET}", str(cfg.DATA.SPLIT))
-    if not os.path.exists(dataFolder):
-        raise FileNotFoundError(f"Dataset folder {dataFolder} does not exist. Please check if the data folder exists.\n"
-                                f"If you haven't downloaded the data, please follow the dataset guidance at https://github.com/pykale/pykale/tree/main/examples/bindingdb_drugban#datasets")
+    data_path = os.path.join(f"./datasets/{cfg.DATA.DATASET}", str(cfg.DATA.SPLIT))
+    if not os.path.exists(data_path):
+        raise FileNotFoundError(
+            f"Dataset folder {data_path} does not exist. Please check if the data folder exists.\n"
+            f"If you haven't downloaded the data, please follow the dataset guidance at https://github.com/pykale/pykale/tree/main/examples/bindingdb_drugban#datasets"
+        )
     if not cfg.DA.TASK:
-        datasets = get_dataset(dataFolder, da_task=cfg.DA.TASK)
+        datasets = get_dataset(data_path, da_task=cfg.DA.TASK)
     else:
-        datasets = get_dataset(dataFolder, da_task=cfg.DA.TASK)
+        datasets = get_dataset(data_path, da_task=cfg.DA.TASK)
 
     # ---- setup dataloader ----
     training_generator, valid_generator, test_generator = get_dataloader(
