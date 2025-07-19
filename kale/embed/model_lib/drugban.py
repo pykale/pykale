@@ -126,7 +126,7 @@ class DrugBAN(nn.Module):
         if mode == "train":
             return feat_drug, feat_protein, f, score
         elif mode == "eval":
-            return feat_drug, feat_protein, score, att
+            return feat_drug, feat_protein, f, score, att
         else:
             # Optionally raise error on unexpected mode
             raise ValueError(f"Unsupported mode: {mode}")
