@@ -84,7 +84,7 @@ def test_drugban_forward_eval_and_invalid():
     bg_d = create_mock_batch_graph(batch_size, in_feats=CONFIG["DRUG"]["NODE_IN_FEATS"])
     v_p = create_mock_protein_input(batch_size, sequence_length)
     # Eval mode
-    v_d, v_p_out, score, att = model(bg_d, v_p, mode="eval")
+    v_d, v_p_out, f, score, att = model(bg_d, v_p, mode="eval")
     assert isinstance(score, torch.Tensor)
     assert isinstance(att, torch.Tensor)
     # Invalid mode

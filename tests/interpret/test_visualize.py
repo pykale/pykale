@@ -1,11 +1,27 @@
+import os
+import tempfile
+
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+import torch
+from rdkit import Chem
 
 from kale.interpret import visualize
+from kale.interpret.visualize import draw_attention_map, draw_mol_with_attention
 
 matplotlib.use("Agg")  # Use non-interactive backend for tests
+
+
+@pytest.fixture
+def dummy_attention():
+    return torch.rand(10, 15)  # Small dummy attention matrix
+
+
+@pytest.fixture
+def dummy_smile():
+    return "CC(=O)OC1=CC=CC=C1C(=O)O"  # Aspirin
 
 
 def test_plot_weights():
@@ -136,3 +152,22 @@ def test_plot_multi_images_invalid_image_titles():
     with pytest.raises(ValueError):
         images = np.random.rand(2, 5, 5)
         visualize.plot_multi_images(images, image_titles=["One only"])
+
+
+def test_draw_attention_map_runs(dummy_attention):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_path = os.path.join(tmpdir, "attn_map.png")
+        draw_attention_map(dummy_attention, out_path)
+        assert os.path.isfile(out_path)
+
+
+def test_draw_mol_with_attention(tmp_path, dummy_smile):
+    mol = Chem.MolFromSmiles(dummy_smile)
+    num_atoms = mol.GetNumAtoms()
+    attention_tensor = torch.rand(num_atoms)  # 确保长度与原子数一致
+
+    out_path = tmp_path / "mol_attention.svg"
+    draw_mol_with_attention(attention_tensor, dummy_smile, str(out_path))
+
+    assert os.path.exists(out_path)
+    assert os.path.getsize(out_path) > 0

@@ -75,7 +75,7 @@ def main():
         devices=args.devices if args.devices != 0 else "auto",
     )
 
-    model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt))
+    model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt, weights_only=False))
 
     # test scores
     trainer.test(model=model_test)
