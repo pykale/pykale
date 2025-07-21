@@ -18,17 +18,21 @@ def test_mlp_decoder():
     in_dim, hidden_dim, out_dim = 8, 16, 32
     include_decoder_layers = True
     dropout_rate = 0.1
+    binary = 1
     mlp_decoder = MLPDecoder(
         in_dim=in_dim,
         hidden_dim=hidden_dim,
         out_dim=out_dim,
+        binary=binary,
         dropout_rate=dropout_rate,
         use_deep_layers=include_decoder_layers,
     )
-    assert mlp_decoder.fc1.weight.size() == (hidden_dim, in_dim)
-    assert mlp_decoder.fc2.weight.size() == (hidden_dim, hidden_dim)
-    assert mlp_decoder.fc3.weight.size() == (out_dim, hidden_dim)
-    assert mlp_decoder.fc4.weight.size() == (1, out_dim)
+
+    layer_types = [type(layer) for layer in mlp_decoder.model]
+    assert layer_types.count(nn.Linear) == 4  # 3 hidden + 1 final
+    assert isinstance(mlp_decoder.model[-1], nn.Linear)
+    assert mlp_decoder.model[-1].out_features == binary
+
     input_batch = torch.randn((16, in_dim))
     output = mlp_decoder(input_batch)
     assert output.size() == (16, 1)
@@ -40,16 +44,21 @@ def test_mlp_decoder():
         in_dim=in_dim,
         hidden_dim=hidden_dim,
         out_dim=out_dim,
+        binary=out_dim,
         dropout_rate=dropout_rate,
         use_deep_layers=include_decoder_layers,
     )
-    assert mlp_decoder.fc1.weight.size() == (hidden_dim, in_dim)
-    assert mlp_decoder.fc2.weight.size() == (out_dim, hidden_dim)
-    assert not hasattr(mlp_decoder, "fc3")  # There should be no fc3 layer
-    assert not hasattr(mlp_decoder, "fc4")  # There should be no fc4 layer
+
+    # Check structure
+    layer_types = [type(layer) for layer in mlp_decoder.model]
+    assert layer_types.count(nn.Linear) == 3  # 2 hidden + 1 final
+    assert isinstance(mlp_decoder.model[-1], nn.Linear)
+    assert mlp_decoder.model[-1].out_features == out_dim
+
+    # Run forward
     input_batch = torch.randn((16, in_dim))
     output = mlp_decoder(input_batch)
-    assert output.size() == (16, out_dim)
+    assert output.shape == (16, out_dim)
 
 
 def test_linear_classifier_shape():

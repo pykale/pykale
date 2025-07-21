@@ -1,7 +1,8 @@
 import torch
+import torch.nn.functional as F
+
 from kale.embed.gcn import GCNEncoder, MolecularGCN
 from tests.helpers.mock_graph import create_mock_batch_graph
-import torch.nn.functional as F
 
 
 def test_molecular_gcn_with_activation():
@@ -13,6 +14,7 @@ def test_molecular_gcn_with_activation():
     batch_graph = create_mock_batch_graph(batch_size=batch_size, in_feats=in_feats)
     output = model(batch_graph)
     assert output.shape[-1] == hidden_feats[-1]
+
 
 def test_molecular_gcn_minimal_inputs():
     model = MolecularGCN(1, dim_embedding=1, hidden_feats=[1])

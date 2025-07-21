@@ -46,12 +46,6 @@ def main():
     pl.seed_everything(SEED, workers=True)
 
     # ---- setup dataset ----
-    dataFolder = os.path.join(f"./datasets/{cfg.DATA.DATASET}", str(cfg.DATA.SPLIT))
-    if not os.path.exists(dataFolder):
-        raise FileNotFoundError(
-            f"Dataset folder {dataFolder} does not exist. Please check if the data folder exists.\n"
-            f"If you haven't downloaded the data, please follow the dataset guidance at https://github.com/pykale/pykale/tree/main/examples/bindingdb_drugban#datasets"
-        )
     data_path = os.path.join(f"./datasets/{cfg.DATA.DATASET}", str(cfg.DATA.SPLIT))
     if not os.path.exists(data_path):
         raise FileNotFoundError(

@@ -1,11 +1,14 @@
+from typing import Any, Dict
+
+import pytest
 import torch
 
-from kale.embed.model_lib.drugban import DrugBAN
+from kale.embed.model_lib.drugban import BCNConfig, DecoderConfig, DrugBAN, DrugConfig, FullConfig, ProteinConfig
 from tests.helpers.mock_graph import create_mock_batch_graph
 
 BATCH_SIZE = 64
 
-CONFIG = {
+CONFIG: Dict[str, Dict[str, Any]] = {
     "DRUG": {
         "NODE_IN_FEATS": 100,
         "NODE_IN_EMBEDDING": 128,
@@ -30,27 +33,37 @@ CONFIG = {
 }
 
 
+@pytest.fixture(scope="module")
+def model_config() -> FullConfig:
+    return FullConfig(
+        DRUG=DrugConfig(**CONFIG["DRUG"]),
+        PROTEIN=ProteinConfig(**CONFIG["PROTEIN"]),
+        DECODER=DecoderConfig(**CONFIG["DECODER"]),
+        BCN=BCNConfig(**CONFIG["BCN"]),
+    )
+
+
 # Mock Protein Input (protein sequence data)
 def create_mock_protein_input(batch_size, sequence_length):
     return torch.randint(0, 25, (batch_size, sequence_length))  # Simulating protein sequences as random integers
 
 
 # Pytest for DrugBAN initialization
-def test_drugban_initialization():
-    model = DrugBAN(**CONFIG)
+def test_drugban_initialization(model_config):
+    model = DrugBAN(model_config)
     assert isinstance(model, DrugBAN), "Model should be an instance of DrugBAN"
 
 
 # Pytest for forward pass in training mode
-def test_drugban_forward_train():
-    model = DrugBAN(**CONFIG)
+def test_drugban_forward_train(model_config):
+    model = DrugBAN(model_config)
     model.eval()
 
     batch_size = 64
     sequence_length = 200  # Protein sequence length
 
     # Create mock inputs
-    bg_d = create_mock_batch_graph(batch_size, in_feats=CONFIG["DRUG"]["NODE_IN_FEATS"])
+    bg_d = create_mock_batch_graph(batch_size, in_feats=model_config.DRUG.NODE_IN_FEATS)
     v_p = create_mock_protein_input(batch_size, sequence_length)
 
     # Forward pass in training mode
@@ -63,12 +76,12 @@ def test_drugban_forward_train():
     assert score.shape[0] == batch_size
 
 
-def test_drugban_forward_eval_and_invalid():
-    model = DrugBAN(**CONFIG)
+def test_drugban_forward_eval_and_invalid(model_config):
+    model = DrugBAN(model_config)
     model.eval()
     batch_size = 8
     sequence_length = 50
-    bg_d = create_mock_batch_graph(batch_size, in_feats=CONFIG["DRUG"]["NODE_IN_FEATS"])
+    bg_d = create_mock_batch_graph(batch_size, in_feats=model_config.DRUG.NODE_IN_FEATS)
     v_p = create_mock_protein_input(batch_size, sequence_length)
     # Eval mode
     v_d, v_p_out, f, score, att = model(bg_d, v_p, mode="eval")
