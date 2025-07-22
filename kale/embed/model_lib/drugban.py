@@ -26,6 +26,16 @@ from kale.predict.decode import MLPDecoder
 
 @dataclass
 class DrugConfig:
+    """
+    Configuration for drug graph input processing.
+
+    Attributes:
+        NODE_IN_FEATS (int): Dimension of the raw input node features.
+        NODE_IN_EMBEDDING (int): Dimension of the node embeddings after initial transformation.
+        HIDDEN_LAYERS (list): List of hidden layer sizes for drug feature extraction.
+        PADDING (bool): Whether to apply padding to drug graph inputs.
+    """
+
     NODE_IN_FEATS: int
     NODE_IN_EMBEDDING: int
     HIDDEN_LAYERS: list
@@ -34,6 +44,16 @@ class DrugConfig:
 
 @dataclass
 class ProteinConfig:
+    """
+    Configuration for protein sequence input processing.
+
+    Attributes:
+        EMBEDDING_DIM (int): Dimension of the protein embedding vector.
+        NUM_FILTERS (list): List specifying the number of filters in each convolutional layer.
+        KERNEL_SIZE (list): List specifying the kernel size for each convolutional layer.
+        PADDING (bool): Whether to apply padding to the protein input sequence.
+    """
+
     EMBEDDING_DIM: int
     NUM_FILTERS: list  # Number of filters in each convolutional layer
     KERNEL_SIZE: list  # Kernel size for each convolutional layer
@@ -42,6 +62,16 @@ class ProteinConfig:
 
 @dataclass
 class DecoderConfig:
+    """
+    Configuration for the MLP decoder that predicts drug-protein interactions.
+
+    Attributes:
+        IN_DIM (int): Input dimension to the decoder.
+        HIDDEN_DIM (int): Dimension of the decoder's hidden layer(s).
+        OUT_DIM (int): Dimension of the decoder's output before final classification.
+        BINARY (bool): Whether the final output is binary (True) or multi-class (False).
+    """
+
     IN_DIM: int
     HIDDEN_DIM: int
     OUT_DIM: int
@@ -50,11 +80,29 @@ class DecoderConfig:
 
 @dataclass
 class BCNConfig:
+    """
+    Configuration for the Bilinear Attention Network (BCN) component.
+
+    Attributes:
+        HEADS (int): Number of attention heads in the BCN module.
+    """
+
     HEADS: int
 
 
 @dataclass
 class FullConfig:
+    """
+    Aggregated configuration for the full model, combining sub-configs for
+    drug input, protein input, decoder, and BCN components.
+
+    Attributes:
+        DRUG (DrugConfig): Configuration for drug graph features.
+        PROTEIN (ProteinConfig): Configuration for protein sequence features.
+        DECODER (DecoderConfig): Configuration for the MLP decoder.
+        BCN (BCNConfig): Configuration for the Bilinear Attention Network.
+    """
+
     DRUG: DrugConfig
     PROTEIN: ProteinConfig
     DECODER: DecoderConfig

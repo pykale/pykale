@@ -11,7 +11,7 @@ def test_random_layer_forward():
     # Initialize RandomLayer model
     model = RandomLayer(input_dim_list, output_dim)
 
-    # Create mock input list
+    # Create a mock input list
     input_list = [torch.randn(batch_size, dim) for dim in input_dim_list]
 
     # Forward pass through the model

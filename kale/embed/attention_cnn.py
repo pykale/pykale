@@ -27,7 +27,7 @@ class ContextCNNGeneric(nn.Module):
                          attention to contextualize the sequence and returns
                          a sequence of the exact same shape. This will mainly be
                          a Transformer-Encoder (required).
-        output_type (string): One of 'sequence' or 'spatial'. If Spatial then the final
+        output_type (string): One of 'sequence' or 'spatial'. If Spatial, then the final
                       output of the model, which is a sequence, will be reshaped
                       to resemble the image-batch shape of the output of the CNN.
                       If Sequence then the output sequence is returned as is (required).
@@ -213,9 +213,11 @@ class BANLayer(nn.Module):
             embed_q = self.q_net(q)
             att_maps = torch.einsum("xhyk,bvk,bqk->bhvq", (self.h_mat, embed_v, embed_q)) + self.h_bias
         else:
-            embed_v = self.v_net(v).transpose(1, 2).unsqueeze(3)
-            embed_q = self.q_net(q).transpose(1, 2).unsqueeze(2)
-            d_ = torch.matmul(embed_v, embed_q)  # b x hidden_dim x v x q
+            embed_v = self.v_net(v)
+            embed_q = self.q_net(q)
+            d_ = torch.matmul(
+                embed_v.transpose(1, 2).unsqueeze(3), embed_q.transpose(1, 2).unsqueeze(2)
+            )  # b x hidden_dim x v x q
             att_maps = self.h_net(d_.transpose(1, 2).transpose(2, 3))  # b x v x q x num_out_heads
             att_maps = att_maps.transpose(2, 3).transpose(1, 2)  # b x num_out_heads x v x q
         if softmax:

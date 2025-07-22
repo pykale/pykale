@@ -26,6 +26,7 @@ def test_mlp_decoder():
         binary=binary,
         dropout_rate=dropout_rate,
         use_deep_layers=include_decoder_layers,
+        use_batchnorm=True,
     )
 
     layer_types = [type(layer) for layer in mlp_decoder.model]

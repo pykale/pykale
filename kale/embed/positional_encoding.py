@@ -43,7 +43,7 @@ class PositionalEncoding(nn.Module):
         """
         Expects input of shape (sequence_length, batch_size, num_features)
         and returns output of the same shape. sequence_length is at most
-        allowed to be self.max_len and num_features is expected to
+        allowed to be self.max_len and num_features are expected to
         be exactly self.d_model
 
         Args:
