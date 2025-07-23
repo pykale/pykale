@@ -37,28 +37,21 @@ class MLPDecoder(nn.Module):
     ):
         super(MLPDecoder, self).__init__()
 
-        def base_block(in_features: int, out_features: int, apply_bn: bool, apply_dropout: bool) -> List[nn.Module]:
-            layers: List[nn.Module] = [nn.Linear(in_features, out_features)]
-            if apply_bn:
-                layers.append(nn.BatchNorm1d(out_features))
-            layers.append(nn.ReLU())
-            if apply_dropout and dropout_rate > 0:
-                layers.append(nn.Dropout(dropout_rate))
-            return layers
+        self.dropout_rate = dropout_rate
 
         layers = []
 
         # First block
-        layers += base_block(in_dim, hidden_dim, use_batchnorm, apply_dropout=True)
+        layers += self._base_block(in_dim, hidden_dim, use_batchnorm, apply_dropout=True)
 
         if use_deep_layers:
             # Hidden block 1
-            layers += base_block(hidden_dim, hidden_dim, use_batchnorm, apply_dropout=True)
+            layers += self._base_block(hidden_dim, hidden_dim, use_batchnorm, apply_dropout=True)
             # Hidden block 2
-            layers += base_block(hidden_dim, out_dim, use_batchnorm, apply_dropout=False)
+            layers += self._base_block(hidden_dim, out_dim, use_batchnorm, apply_dropout=False)
         else:
             # Direct to output
-            layers += base_block(hidden_dim, out_dim, use_batchnorm, apply_dropout=False)
+            layers += self._base_block(hidden_dim, out_dim, use_batchnorm, apply_dropout=False)
         final = nn.Linear(out_dim, binary)
         if not use_deep_layers:
             torch.nn.init.normal_(final.weight)
@@ -68,6 +61,15 @@ class MLPDecoder(nn.Module):
 
     def forward(self, x):
         return self.model(x)
+
+    def _base_block(self, in_features: int, out_features: int, apply_bn: bool, apply_dropout: bool) -> List[nn.Module]:
+        layers: List[nn.Module] = [nn.Linear(in_features, out_features)]
+        if apply_bn:
+            layers.append(nn.BatchNorm1d(out_features))
+        layers.append(nn.ReLU())
+        if apply_dropout and self.dropout_rate > 0:
+            layers.append(nn.Dropout(self.dropout_rate))
+        return layers
 
 
 class DistMultDecoder(torch.nn.Module):

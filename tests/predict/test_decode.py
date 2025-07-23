@@ -18,12 +18,11 @@ def test_mlp_decoder():
     in_dim, hidden_dim, out_dim = 8, 16, 32
     include_decoder_layers = True
     dropout_rate = 0.1
-    binary = 1
     mlp_decoder = MLPDecoder(
         in_dim=in_dim,
         hidden_dim=hidden_dim,
         out_dim=out_dim,
-        binary=binary,
+        binary=1,
         dropout_rate=dropout_rate,
         use_deep_layers=include_decoder_layers,
         use_batchnorm=True,
@@ -32,7 +31,7 @@ def test_mlp_decoder():
     layer_types = [type(layer) for layer in mlp_decoder.model]
     assert layer_types.count(nn.Linear) == 4  # 3 hidden + 1 final
     assert isinstance(mlp_decoder.model[-1], nn.Linear)
-    assert mlp_decoder.model[-1].out_features == binary
+    assert mlp_decoder.model[-1].out_features == 1  # Binary classification
 
     input_batch = torch.randn((16, in_dim))
     output = mlp_decoder(input_batch)
@@ -45,7 +44,7 @@ def test_mlp_decoder():
         in_dim=in_dim,
         hidden_dim=hidden_dim,
         out_dim=out_dim,
-        binary=out_dim,
+        binary=2,
         dropout_rate=dropout_rate,
         use_deep_layers=include_decoder_layers,
     )

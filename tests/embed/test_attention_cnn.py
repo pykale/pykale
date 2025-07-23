@@ -3,7 +3,8 @@ import pytest
 import torch
 import torch.nn as nn
 
-from kale.embed.attention_cnn import BANLayer, CNNTransformer
+from kale.embed.attention import BANLayer
+from kale.embed.attention_cnn import CNNTransformer
 from kale.prepdata.tensor_reshape import seq_to_spatial
 from kale.utils.seed import set_seed
 

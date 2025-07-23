@@ -267,12 +267,12 @@ class FCNet(nn.Module):
             out_dim = dims[i + 1]
             if 0 < dropout:
                 layers.append(nn.Dropout(dropout))
-            layers.append(weight_norm(nn.Linear(in_dim, out_dim), dim=0))
+            layers.append(weight_norm(nn.Linear(in_dim, out_dim), dim=None))
             if "" != activation:
                 layers.append(getattr(nn, activation)())
         if 0 < dropout:
             layers.append(nn.Dropout(dropout))
-        layers.append(weight_norm(nn.Linear(dims[-2], dims[-1]), dim=0))
+        layers.append(weight_norm(nn.Linear(dims[-2], dims[-1]), dim=None))
         if "" != activation:
             layers.append(getattr(nn, activation)())
 

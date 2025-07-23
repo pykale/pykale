@@ -3,7 +3,7 @@ import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader
 
-from kale.embed.cnn import CNNEncoder
+from kale.embed.attention_cnn import CNNEncoder
 from kale.loaddata.tdc_datasets import BindingDBDataset
 from kale.pipeline.deepdta import BaseDTATrainer, DeepDTATrainer
 from kale.predict.decode import MLPDecoder

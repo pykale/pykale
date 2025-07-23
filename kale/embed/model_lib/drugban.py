@@ -1,5 +1,7 @@
 # =============================================================================
 # Author: Jiayang Zhang, jiayang.zhang@sheffield.ac.uk
+#         Shuo Zhou, shuo.zhou@sheffield.ac.uk
+#         Xianyuan Liu, xianyuan.liu@sheffield.ac.uk
 # =============================================================================
 
 """
@@ -18,8 +20,8 @@ from dataclasses import dataclass
 import torch.nn as nn
 from torch.nn.utils.weight_norm import weight_norm
 
-from kale.embed.attention_cnn import BANLayer
-from kale.embed.cnn import ProteinCNN
+from kale.embed.attention import BANLayer
+from kale.embed.attention_cnn import ProteinCNN
 from kale.embed.gcn import MolecularGCN
 from kale.predict.decode import MLPDecoder
 
@@ -34,6 +36,11 @@ class DrugConfig:
         NODE_IN_EMBEDDING (int): Dimension of the node embeddings after initial transformation.
         HIDDEN_LAYERS (list): List of hidden layer sizes for drug feature extraction.
         PADDING (bool): Whether to apply padding to drug graph inputs.
+
+    Reference:
+        Bai, P., Miljković, F., John, B., & Lu, H. (2023). Interpretable bilinear attention network with domain
+        adaptation improves drug–target prediction. Nature Machine Intelligence, 5(2), 126-136.
+        For initial implementation, please go to https://github.com/peizhenbai/DrugBAN
     """
 
     NODE_IN_FEATS: int
@@ -69,13 +76,13 @@ class DecoderConfig:
         IN_DIM (int): Input dimension to the decoder.
         HIDDEN_DIM (int): Dimension of the decoder's hidden layer(s).
         OUT_DIM (int): Dimension of the decoder's output before final classification.
-        BINARY (bool): Whether the final output is binary (True) or multi-class (False).
+        BINARY (int): Number of output classes. Use 1 for binary classification.
     """
 
     IN_DIM: int
     HIDDEN_DIM: int
     OUT_DIM: int
-    BINARY: bool
+    BINARY: int
 
 
 @dataclass

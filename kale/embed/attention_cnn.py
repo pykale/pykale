@@ -2,11 +2,84 @@ from typing import Any, Tuple, Union
 
 import torch
 import torch.nn as nn
-from torch.nn.utils.weight_norm import weight_norm
+import torch.nn.functional as F
 
-from kale.embed.positional_encoding import PositionalEncoding
-from kale.predict.class_domain_nets import FCNet
+from kale.embed.attention import PositionalEncoding
 from kale.prepdata.tensor_reshape import seq_to_spatial, spatial_to_seq
+
+
+class CNNEncoder(nn.Module):
+    r"""
+    The DeepDTA's CNN encoder module, which comprises three 1D-convolutional layers and one max-pooling layer.
+    The module is applied to encoding drug/target sequence information, and the input should be transformed information
+    with integer/label encoding. The original paper is `"DeepDTA: deep drug–target binding affinity prediction"
+    <https://academic.oup.com/bioinformatics/article/34/17/i821/5093245>`_ .
+
+    Args:
+        num_embeddings (int): Number of embedding labels/categories, depends on the types of encoding sequence.
+        embedding_dim (int): Dimension of embedding labels/categories.
+        sequence_length (int): Max length of an input sequence.
+        num_kernels (int): Number of kernels (filters).
+        kernel_length (int): Length of kernel (filter).
+    """
+
+    def __init__(self, num_embeddings, embedding_dim, sequence_length, num_kernels, kernel_length):
+        super(CNNEncoder, self).__init__()
+        self.embedding = nn.Embedding(num_embeddings + 1, embedding_dim)
+        self.conv1 = nn.Conv1d(in_channels=sequence_length, out_channels=num_kernels, kernel_size=kernel_length)
+        self.conv2 = nn.Conv1d(in_channels=num_kernels, out_channels=num_kernels * 2, kernel_size=kernel_length)
+        self.conv3 = nn.Conv1d(in_channels=num_kernels * 2, out_channels=num_kernels * 3, kernel_size=kernel_length)
+        self.global_max_pool = nn.AdaptiveMaxPool1d(output_size=1)
+
+    def forward(self, x):
+        x = self.embedding(x)
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = self.global_max_pool(x)
+        x = x.squeeze(2)
+        return x
+
+
+class ProteinCNN(nn.Module):
+    """
+    A protein feature extractor using Convolutional Neural Networks (CNNs).
+
+    This class extracts features from protein sequences using a series of 1D convolutional layers.
+    The input protein sequence is first embedded and then passed through multiple convolutional
+    and batch normalization layers to produce a fixed-size feature vector.
+
+    Args:
+        embedding_dim (int): Dimensionality of the embedding space for protein sequences.
+        num_filters (list of int): A list specifying the number of filters for each convolutional layer.
+        kernel_size (list of int): A list specifying the kernel size for each convolutional layer.
+        padding (bool): Whether to apply padding to the embedding layer.
+    """
+
+    def __init__(self, embedding_dim, num_filters, kernel_size, padding=True):
+        super(ProteinCNN, self).__init__()
+        if padding:
+            self.embedding = nn.Embedding(26, embedding_dim, padding_idx=0)
+        else:
+            self.embedding = nn.Embedding(26, embedding_dim)
+        in_ch = [embedding_dim] + num_filters
+        # self.in_ch = in_ch[-1]
+        kernels = kernel_size
+        self.conv1 = nn.Conv1d(in_channels=in_ch[0], out_channels=in_ch[1], kernel_size=kernels[0])
+        self.bn1 = nn.BatchNorm1d(in_ch[1])
+        self.conv2 = nn.Conv1d(in_channels=in_ch[1], out_channels=in_ch[2], kernel_size=kernels[1])
+        self.bn2 = nn.BatchNorm1d(in_ch[2])
+        self.conv3 = nn.Conv1d(in_channels=in_ch[2], out_channels=in_ch[3], kernel_size=kernels[2])
+        self.bn3 = nn.BatchNorm1d(in_ch[3])
+
+    def forward(self, v):
+        v = self.embedding(v.long())
+        v = v.transpose(2, 1)
+        v = self.bn1(F.relu(self.conv1(v)))
+        v = self.bn2(F.relu(self.conv2(v)))
+        v = self.bn3(F.relu(self.conv3(v)))
+        v = v.view(v.size(0), v.size(2), -1)
+        return v
 
 
 class ContextCNNGeneric(nn.Module):
@@ -150,82 +223,3 @@ class CNNTransformer(ContextCNNGeneric):
         for p in encoder.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
-
-
-class BANLayer(nn.Module):
-    """
-    The bilinear Attention Network (BAN) layer is designed to apply bilinear attention between two feature sets (`v` and `q`),
-    which could represent features extracted from drugs and proteins, respectively. This layer
-    enables the interaction between these two sets of features, allowing the model to learn
-    joint representations that can be used for downstream tasks like predicting drug-protein
-    interactions.
-
-    Args:
-        input_v_dim (int): Dimensionality of the first input feature set (`v`).
-        input_q_dim (int): Dimensionality of the second input feature set (`q`).
-        hidden_dim (int): Dimensionality of the hidden layer used in the bilinear attention mechanism.
-        num_out_heads (int): Number of output heads in the bilinear attention mechanism.
-        activation (str, optional): Activation function to use in the fully connected networks for `v` and `q`.
-                             Default is "ReLU".
-        dropout (float, optional): Dropout rate to apply after each layer in the fully connected networks.
-                                   Default is 0.2.
-        num_att_maps (int, optional): Number of attention maps to generate (used in pooling). Default is 3.
-    """
-
-    def __init__(
-        self, input_v_dim, input_q_dim, hidden_dim, num_out_heads, activation="ReLU", dropout=0.2, num_att_maps: int = 3
-    ):
-        super().__init__()
-
-        self.c = 32
-        self.num_att_maps = num_att_maps
-        self.input_v_dim = input_v_dim
-        self.input_q_dim = input_q_dim
-        self.hidden_dim = hidden_dim
-        self.num_out_heads = num_out_heads
-
-        self.v_net = FCNet([input_v_dim, hidden_dim * self.num_att_maps], activation=activation, dropout=dropout)
-        self.q_net = FCNet([input_q_dim, hidden_dim * self.num_att_maps], activation=activation, dropout=dropout)
-        # self.dropout = nn.Dropout(dropout[1])
-        if 1 < num_att_maps:
-            self.p_net = nn.AvgPool1d(self.num_att_maps, stride=self.num_att_maps)
-
-        if num_out_heads <= self.c:
-            self.h_mat = nn.Parameter(torch.Tensor(1, num_out_heads, 1, hidden_dim * self.num_att_maps).normal_())
-            self.h_bias = nn.Parameter(torch.Tensor(1, num_out_heads, 1, 1).normal_())
-        else:
-            self.h_net = weight_norm(nn.Linear(hidden_dim * self.num_att_maps, num_out_heads), dim=0)
-
-        self.bn = nn.BatchNorm1d(hidden_dim)
-
-    def attention_pooling(self, v, q, att_map):
-        fusion_logits = torch.einsum("bvk,bvq,bqk->bk", (v, att_map, q))
-        if 1 < self.num_att_maps:
-            fusion_logits = fusion_logits.unsqueeze(1)  # b x 1 x d
-            fusion_logits = self.p_net(fusion_logits).squeeze(1) * self.num_att_maps  # sum-pooling
-        return fusion_logits
-
-    def forward(self, v, q, softmax=False):
-        num_v = v.size(1)
-        num_q = q.size(1)
-        if self.num_out_heads <= self.c:
-            embed_v = self.v_net(v)
-            embed_q = self.q_net(q)
-            att_maps = torch.einsum("xhyk,bvk,bqk->bhvq", (self.h_mat, embed_v, embed_q)) + self.h_bias
-        else:
-            embed_v = self.v_net(v)
-            embed_q = self.q_net(q)
-            d_ = torch.matmul(
-                embed_v.transpose(1, 2).unsqueeze(3), embed_q.transpose(1, 2).unsqueeze(2)
-            )  # b x hidden_dim x v x q
-            att_maps = self.h_net(d_.transpose(1, 2).transpose(2, 3))  # b x v x q x num_out_heads
-            att_maps = att_maps.transpose(2, 3).transpose(1, 2)  # b x num_out_heads x v x q
-        if softmax:
-            prob_mat = nn.functional.softmax(att_maps.view(-1, self.num_out_heads, num_v * num_q), 2)
-            att_maps = prob_mat.view(-1, self.num_out_heads, num_v, num_q)
-        logits = self.attention_pooling(embed_v, embed_q, att_maps[:, 0, :, :])
-        for i in range(1, self.num_out_heads):
-            logits_i = self.attention_pooling(embed_v, embed_q, att_maps[:, i, :, :])
-            logits += logits_i
-        logits = self.bn(logits)
-        return logits, att_maps

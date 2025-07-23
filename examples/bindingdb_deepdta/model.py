@@ -1,4 +1,4 @@
-from kale.embed.cnn import CNNEncoder
+from kale.embed.attention_cnn import CNNEncoder
 from kale.pipeline.deepdta import DeepDTATrainer
 from kale.predict.decode import MLPDecoder
 

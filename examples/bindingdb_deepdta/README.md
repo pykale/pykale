@@ -1,15 +1,18 @@
 # Drug-Target Interaction Prediction using DeepDTA
 
-### 1. Description
+## 1. Description
+
 Drug-target interaction prediction is an important research area in the field of drug discovery. It refers to predicting the binding affinity between the given chemical compounds and protein targets. In this example we train a standard DeepDTA model as a baseline in BindingDB, a public, web-accessible dataset of measured binding affinities.
 
-### 2. DeepDTA
+## 2. DeepDTA
+
 [DeepDTA](https://academic.oup.com/bioinformatics/article/34/17/i821/5093245) is the modeling of protein sequences and compound 1D
 representations with convolutional neural networks (CNNs). The whole architecture of DeepDTA is shown below.
 
 ![DeepDTA](https://github.com/hkmztrk/DeepDTA/blob/master/docs/figures/deepdta.PNG)
 
-### 3. Datasets
+## 3. Datasets
+
 We construct **three datasets** from BindingDB distinguished by different affinity measurement metrics
 (**Kd, IC50 and Ki**). They are acquired from [Therapeutics Data Commons](https://tdcommons.ai/) (TDC), which is a collection of machine learning
 tasks spread across different domains of therapeutics. The data statistics is shown:
@@ -24,22 +27,26 @@ This figure is the binding affinity distribution for the three datasets respecti
 log space.
 ![Binding affinity distribution](figures/bindingdb.jpg)
 
-### 4. Requirements
+## 4. Requirements
+
 You'll need to install the external [RDKit](https://github.com/rdkit/rdkit) package for running the example codes.
 
-```
+```bash
 pip install rdkit
 ```
 
-### 5. Usage
+## 5. Usage
+
 Run model for BindingDB datasets with IC50, Kd and Ki metrics respectively.
-```
+
+```bash
 python main.py --cfg configs/IC50-DeepDTA.yaml
 python main.py --cfg configs/Kd-DeepDTA.yaml
 python main.py --cfg configs/Ki-DeepDTA.yaml
 ```
 
-### 6. Results
+## 6. Results
+
 Here are the MSE loss results for the three BindingDB datasets, and the minimal validation loss's epoch is saved as the
 best checkpoint, which is applied to calculate test dataset loss. All default maximum epochs are 100.
 
@@ -49,7 +56,8 @@ best checkpoint, which is applied to calculate test dataset loss. All default ma
 | IC50  | 0.9264 | 0.9198 | 83 |
 | Ki | 1.071 | 1.072 | 91 |
 
-### 7. Architecture
+## 7. Architecture
+
 Below is the architecture of DeepDTA with default hyperparameters settings.
 
 <pre>
