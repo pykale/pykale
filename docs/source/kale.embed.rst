@@ -6,10 +6,10 @@ Embed
 Submodules
 ----------
 
-kale.embed.attention\_cnn module
+kale.embed.attention module
 --------------------------------
 
-.. automodule:: kale.embed.attention_cnn
+.. automodule:: kale.embed.attention
    :members:
    :undoc-members:
    :show-inheritance:
@@ -96,14 +96,6 @@ kale.embed.multimodal\_encoder module
     :undoc-members:
     :show-inheritance:
 
-kale.embed.positional\_encoding module
---------------------------------------
-
-.. automodule:: kale.embed.positional_encoding
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.embed.seq\_nn module
 -------------------------
 
@@ -130,7 +122,7 @@ kale.embed.uncertainty\_fitting module
    :show-inheritance:
    :exclude-members:
 
-kale.embed.video\_feature\_extractor module
+kale.embed.video.video\_feature\_extractor module
 -------------------------------------------
 
 .. automodule:: kale.embed.video_feature_extractor
@@ -138,7 +130,7 @@ kale.embed.video\_feature\_extractor module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_i3d module
+kale.embed.video.video\_i3d module
 ----------------------------
 
 .. automodule:: kale.embed.video_i3d
@@ -146,7 +138,7 @@ kale.embed.video\_i3d module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_res3d module
+kale.embed.video.video\_res3d module
 ------------------------------
 
 .. automodule:: kale.embed.video_res3d
@@ -154,7 +146,7 @@ kale.embed.video\_res3d module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_se\_i3d module
+kale.embed.video.video\_se\_i3d module
 --------------------------------
 
 .. automodule:: kale.embed.video_se_i3d
@@ -162,7 +154,7 @@ kale.embed.video\_se\_i3d module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_se\_res3d module
+kale.embed.video.video\_se\_res3d module
 ----------------------------------
 
 .. automodule:: kale.embed.video_se_res3d
@@ -170,7 +162,7 @@ kale.embed.video\_se\_res3d module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_selayer module
+kale.embed.video.video\_selayer module
 --------------------------------
 
 .. automodule:: kale.embed.video_selayer

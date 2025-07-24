@@ -11,8 +11,8 @@ Contains multimodal encoder models, such as BimodalVAE, for joint representation
 import torch
 import torch.nn as nn
 
-from kale.embed.feature_fusion import ProductOfExperts
 from kale.embed.image_cnn import ImageVAEEncoder
+from kale.embed.multimodal_fusion import ProductOfExperts
 from kale.embed.signal_cnn import SignalVAEEncoder
 from kale.predict.decode import ImageVAEDecoder, SignalVAEDecoder
 

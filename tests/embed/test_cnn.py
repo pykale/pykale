@@ -1,6 +1,6 @@
 import torch
 
-from kale.embed.attention_cnn import CNNEncoder, ProteinCNN
+from kale.embed.cnn import CNNEncoder, ProteinCNN
 
 
 def test_cnn_encoder():

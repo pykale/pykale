@@ -21,7 +21,7 @@ import torch.nn as nn
 from torch.nn.utils.weight_norm import weight_norm
 
 from kale.embed.attention import BANLayer
-from kale.embed.attention_cnn import ProteinCNN
+from kale.embed.cnn import ProteinCNN
 from kale.embed.gcn import MolecularGCN
 from kale.predict.decode import MLPDecoder
 
