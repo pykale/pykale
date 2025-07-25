@@ -3,6 +3,7 @@ from typing import Any, Dict
 import pytest
 import torch
 
+from kale.embed.attention import BANLayer
 from kale.embed.model_lib.drugban import BCNConfig, DecoderConfig, DrugBAN, DrugConfig, FullConfig, ProteinConfig
 from tests.helpers.mock_graph import create_mock_batch_graph
 
@@ -93,3 +94,68 @@ def test_drugban_forward_eval_and_invalid(model_config):
         assert False, "Should raise an error for invalid mode"
     except Exception:
         pass
+
+
+def test_ban_layer_forward():
+    v_dim = 64
+    q_dim = 64
+    h_dim = 128
+    h_out = 8
+    batch_size = 32
+    v_seq_len = 10
+    q_seq_len = 12
+
+    # Initialize BANLayer model
+    model = BANLayer(v_dim, q_dim, h_dim, h_out)
+
+    # Create mock input tensors for v and q
+    v = torch.randn(batch_size, v_seq_len, v_dim)
+    q = torch.randn(batch_size, q_seq_len, q_dim)
+
+    # Forward pass through the model
+    logits, att_maps = model(v, q)
+
+    # Check output types and shape
+    assert isinstance(logits, torch.Tensor), "Logits should be a tensor"
+    assert isinstance(att_maps, torch.Tensor), "Attention maps should be a tensor"
+    assert logits.shape == torch.Size([batch_size, h_dim]), "Logits shape should match batch size and hidden_dim"
+    assert att_maps.shape == torch.Size([batch_size, h_out, v_seq_len, q_seq_len]), "Attention maps shape should match"
+
+
+def test_ban_layer_attention_pooling():
+    v_dim = 16
+    q_dim = 16
+    h_dim = 32
+    h_out = 2
+    batch_size = 2
+    seq_len = 3
+    model = BANLayer(v_dim, q_dim, h_dim, h_out)
+    v = torch.randn(batch_size, seq_len, h_dim * model.num_att_maps)
+    q = torch.randn(batch_size, seq_len, h_dim * model.num_att_maps)
+    att_map = torch.randn(batch_size, seq_len, seq_len)
+    pooled = model.attention_pooling(v, q, att_map)
+    assert pooled.shape[0] == batch_size
+
+
+@pytest.mark.parametrize(
+    "v_dim, q_dim, hidden_dim, num_out_heads, num_att_maps, batch_size, seq_len_v, seq_len_q",
+    [
+        # This set triggers the `else` branch (uses `h_net`)
+        (32, 32, 16, 64, 3, 2, 10, 12),
+        # This set triggers the `if num_out_heads <= self.c` branch (uses h_mat + einsum)
+        (16, 16, 32, 8, 3, 4, 5, 6),
+    ],
+)
+def test_ban_layer_forward_hout_leq_c(
+    v_dim, q_dim, hidden_dim, num_out_heads, num_att_maps, batch_size, seq_len_v, seq_len_q
+):
+    model = BANLayer(v_dim, q_dim, hidden_dim, num_out_heads=num_out_heads, num_att_maps=num_att_maps)
+    v = torch.randn(batch_size, seq_len_v, v_dim)
+    q = torch.randn(batch_size, seq_len_q, q_dim)
+    logits, att_maps = model(v, q)
+    assert logits.shape[0] == batch_size
+    assert att_maps.shape[0] == batch_size
+    # Also test with softmax=True
+    logits_sm, att_maps_sm = model(v, q, softmax=True)
+    assert logits_sm.shape[0] == batch_size
+    assert att_maps_sm.shape[0] == batch_size
