@@ -3,7 +3,7 @@ import torch
 from torch_geometric.data import Data
 from torch_sparse import SparseTensor
 
-from kale.embed.mogonet import MogonetGCN, MogonetGCNConv
+from kale.embed.model_lib.mogonet import MogonetGCN, MogonetGCNConv
 
 
 @pytest.fixture(scope="module")

@@ -3,10 +3,10 @@
 import pytest
 import torch
 
-from kale.embed.video_i3d import InceptionI3d
-from kale.embed.video_res3d import BasicBlock, BasicStem, Bottleneck, Conv3DSimple, VideoResNet
-from kale.embed.video_se_i3d import SEInceptionI3DFlow, SEInceptionI3DRGB
-from kale.embed.video_se_res3d import se_r3d_18_flow, se_r3d_18_rgb
+from kale.embed.video.video_i3d import InceptionI3d
+from kale.embed.video.video_res3d import BasicBlock, BasicStem, Bottleneck, Conv3DSimple, VideoResNet
+from kale.embed.video.video_se_i3d import SEInceptionI3DFlow, SEInceptionI3DRGB
+from kale.embed.video.video_se_res3d import se_r3d_18_flow, se_r3d_18_rgb
 from kale.utils.seed import set_seed
 
 set_seed(36)

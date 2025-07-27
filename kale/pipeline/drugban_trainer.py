@@ -3,8 +3,8 @@
 # =============================================================================
 
 """
-This module contains the DrugBAN trainer class and related functions. It trains a Interpretable bilinear attention
-network with or without domain adaptation model for drug-target interaction prediction.
+This module contains the DrugBAN trainer class and related functions. It trains an Interpretable bilinear attention
+network with or without a domain adaptation model for drug-target interaction prediction.
 
 This is refactored from: https://github.com/peizhenbai/DrugBAN/blob/main/trainer.py
 """
@@ -18,7 +18,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_c
 from torch.nn import functional as F
 from torchmetrics import Accuracy, AUROC, F1Score, MetricCollection, Recall, Specificity
 
-from kale.embed.ban import RandomLayer
+from kale.embed.nn import RandomLayer
 from kale.evaluate.metrics import binary_cross_entropy, cross_entropy_logits, entropy_logits
 from kale.pipeline.domain_adapter import GradReverse
 from kale.predict.class_domain_nets import DomainNetSmallImage
@@ -33,11 +33,11 @@ class DrugbanTrainer(pl.LightningModule):
 
     Args:
         model (torch.nn.Module): The model to be trained.
-        solver_lr (float): Learning rate for the main optimiser.
+        solver_lr (float): Learning rate for the main optimizer.
         num_classes (int): Number of output classes.
         batch_size (int): Batch size used during training and evaluation.
         is_da (bool): Whether to use domain adaptation (True) or not (False).
-        solver_da_lr (float): Learning rate for the domain discriminator optimiser (if DA is enabled).
+        solver_da_lr (float): Learning rate for the domain discriminator optimizer (if DA is enabled).
         da_init_epoch (int): Epoch at which to start applying domain adaptation loss.
         da_method (str): Domain adaptation method to use, e.g., "CDAN".
         original_random (bool): Whether to use the original random layer from the CDAN implementation.

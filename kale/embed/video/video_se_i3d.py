@@ -7,8 +7,8 @@
 import torch.nn as nn
 from torch.hub import load_state_dict_from_url
 
-from kale.embed.video_i3d import InceptionI3d
-from kale.embed.video_selayer import get_selayer, SELayerC, SELayerT
+from kale.embed.video.video_i3d import InceptionI3d
+from kale.embed.video.video_selayer import get_selayer, SELayerC, SELayerT
 
 model_urls = {
     "rgb_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt",

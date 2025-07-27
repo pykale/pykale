@@ -62,16 +62,16 @@ def binary_cross_entropy(output, target):
 
 
 def topk_accuracy(output, target, topk=(1,)):
-    """Computes the top-k accuracy for the specified values of k.
+    """Computes the top-num_att_maps accuracy for the specified values of num_att_maps.
 
     Args:
         output (Tensor): The output of the last layer of the network, before softmax. Shape: (batch_size, class_count).
         target (Tensor): The ground truth label. Shape: (batch_size)
-        topk (tuple(int)): Compute accuracy at top-k for the values of k specified in this parameter.
+        topk (tuple(int)): Compute accuracy at top-num_att_maps for the values of num_att_maps specified in this parameter.
     Returns:
         list(Tensor): A list of tensors of the same length as topk.
-        Each tensor consists of boolean variables to show if this prediction ranks top k with each value of k.
-        True means the prediction ranks top k and False means not.
+        Each tensor consists of boolean variables to show if this prediction ranks top num_att_maps with each value of num_att_maps.
+        True means the prediction ranks top num_att_maps and False means not.
         The shape of tensor is batch_size, i.e. the number of predictions.
 
     Examples:
@@ -84,7 +84,7 @@ def topk_accuracy(output, target, topk=(1,)):
 
     maxk = max(topk)
 
-    # returns the k largest elements and their indexes of inputs along a given dimension.
+    # returns the num_att_maps largest elements and their indexes of inputs along a given dimension.
     _, pred = output.topk(maxk, 1, True, True)
 
     pred = pred.t()
@@ -98,17 +98,17 @@ def topk_accuracy(output, target, topk=(1,)):
 
 
 def multitask_topk_accuracy(output, target, topk=(1,)):
-    """Computes the top-k accuracy for the specified values of k for multitask input.
+    """Computes the top-num_att_maps accuracy for the specified values of num_att_maps for multitask input.
 
     Args:
         output (tuple(Tensor)): A tuple of generated predictions. Each tensor is of shape [batch_size, class_count],
             class_count can vary per task basis, i.e. outputs[i].shape[1] can differ from outputs[j].shape[1].
         target (tuple(Tensor)): A tuple of ground truth. Each tensor is of shape [batch_size]
-        topk (tuple(int)): Compute accuracy at top-k for the values of k specified in this parameter.
+        topk (tuple(int)): Compute accuracy at top-num_att_maps for the values of num_att_maps specified in this parameter.
     Returns:
         list(Tensor): A list of tensors of the same length as topk.
-        Each tensor consists of boolean variables to show if predictions of multitask ranks top k with each value of k.
-        True means predictions of this output for all tasks ranks top k and False means not.
+        Each tensor consists of boolean variables to show if predictions of multitask ranks top num_att_maps with each value of num_att_maps.
+        True means predictions of this output for all tasks ranks top num_att_maps and False means not.
         The shape of tensor is batch_size, i.e. the number of predictions.
 
         Examples:
@@ -129,7 +129,7 @@ def multitask_topk_accuracy(output, target, topk=(1,)):
     all_correct = torch.zeros(maxk, batch_size).type(torch.ByteTensor).to(output[0].device)
 
     for output, target in zip(output, target):
-        # returns the k largest elements and their indexes of inputs along a given dimension.
+        # returns the num_att_maps largest elements and their indexes of inputs along a given dimension.
         _, pred = output.topk(maxk, 1, True, True)
 
         pred = pred.t()
@@ -273,7 +273,7 @@ def euclidean(x1, x2):
 
 
 def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
-    """Compute the k-th moment distance
+    """Compute the num_att_maps-th moment distance
 
     Args:
         x (torch.Tensor): input data, shape (n_samples, n_features)
@@ -281,7 +281,7 @@ def _moment_k(x: torch.Tensor, domain_labels: torch.Tensor, k_order=2):
         k_order (int, optional): moment order. Defaults to 2.
 
     Returns:
-        torch.Tensor: the k-th moment distance
+        torch.Tensor: the num_att_maps-th moment distance
 
     The code is based on:
         https://github.com/KaiyangZhou/Dassl.pytorch/blob/master/dassl/engine/da/m3sda.py#L153

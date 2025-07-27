@@ -10,7 +10,7 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 
 from copy import deepcopy
 
-from kale.embed.video_feature_extractor import get_video_feat_extractor
+from kale.embed.video.video_feature_extractor import get_video_feat_extractor
 from kale.pipeline import domain_adapter, video_domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 
