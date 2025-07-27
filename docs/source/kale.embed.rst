@@ -30,14 +30,6 @@ kale.embed.factorization module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.feature\_fusion module
----------------------------------
-
-.. automodule:: kale.embed.feature_fusion
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.embed.gcn module
 ---------------------
 
@@ -51,14 +43,6 @@ kale.embed.image\_cnn module
 ----------------------------
 
 .. automodule:: kale.embed.image_cnn
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kale.embed.nn module
---------------------------------
-
-.. automodule:: kale.embed.nn
    :members:
    :undoc-members:
    :show-inheritance:
@@ -96,14 +80,21 @@ kale.embed.multimodal\_encoder module
     :undoc-members:
     :show-inheritance:
 
-kale.embed.seq\_nn module
--------------------------
+kale.embed.multimodal\_fusion module
+---------------------------------
 
-.. automodule:: kale.embed.seq_nn
+.. automodule:: kale.embed.multimodal_fusion
    :members:
    :undoc-members:
    :show-inheritance:
-   :exclude-members:
+
+kale.embed.nn module
+--------------------------------
+
+.. automodule:: kale.embed.nn
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 kale.embed.signal\_cnn module
 ----------------------------
@@ -125,7 +116,7 @@ kale.embed.uncertainty\_fitting module
 kale.embed.video.video\_feature\_extractor module
 -------------------------------------------
 
-.. automodule:: kale.embed.video_feature_extractor
+.. automodule:: kale.embed.video.video_feature_extractor
    :members:
    :undoc-members:
    :show-inheritance:
@@ -133,7 +124,7 @@ kale.embed.video.video\_feature\_extractor module
 kale.embed.video.video\_i3d module
 ----------------------------
 
-.. automodule:: kale.embed.video_i3d
+.. automodule:: kale.embed.video.video_i3d
    :members:
    :undoc-members:
    :show-inheritance:
@@ -141,7 +132,7 @@ kale.embed.video.video\_i3d module
 kale.embed.video.video\_res3d module
 ------------------------------
 
-.. automodule:: kale.embed.video_res3d
+.. automodule:: kale.embed.video.video_res3d
    :members:
    :undoc-members:
    :show-inheritance:
@@ -149,7 +140,7 @@ kale.embed.video.video\_res3d module
 kale.embed.video.video\_se\_i3d module
 --------------------------------
 
-.. automodule:: kale.embed.video_se_i3d
+.. automodule:: kale.embed.video.video_se_i3d
    :members:
    :undoc-members:
    :show-inheritance:
@@ -157,7 +148,7 @@ kale.embed.video.video\_se\_i3d module
 kale.embed.video.video\_se\_res3d module
 ----------------------------------
 
-.. automodule:: kale.embed.video_se_res3d
+.. automodule:: kale.embed.video.video_se_res3d
    :members:
    :undoc-members:
    :show-inheritance:
@@ -165,7 +156,7 @@ kale.embed.video.video\_se\_res3d module
 kale.embed.video.video\_selayer module
 --------------------------------
 
-.. automodule:: kale.embed.video_selayer
+.. automodule:: kale.embed.video.video_selayer
    :members:
    :undoc-members:
    :show-inheritance:
