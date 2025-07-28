@@ -13,12 +13,12 @@ class CNNEncoder(nn.Module):
     The DeepDTA's CNN encoder module, which comprises three 1D-convolutional layers and one max-pooling layer.
     The module is applied to encoding drug/target sequence information, and the input should be transformed information
     with integer/label encoding. The original paper is `"DeepDTA: deep drug–target binding affinity prediction"
-    <https://academic.oup.com/bioinformatics/article/34/17/i821/5093245>`_ .
+    <https://academic.oup.com/bioinformatics/article/34/17/i821/5093245>`_.
 
     Args:
         num_embeddings (int): Number of embedding labels/categories, depends on the types of encoding sequence.
         embedding_dim (int): Dimension of embedding labels/categories.
-        sequence_length (int): Max length of an input sequence.
+        sequence_length (int): Max length of the input sequence.
         num_kernels (int): Number of kernels (filters).
         kernel_length (int): Length of kernel (filter).
     """
@@ -100,10 +100,10 @@ class ContextCNNGeneric(nn.Module):
                          attention to contextualize the sequence and returns
                          a sequence of the exact same shape. This will mainly be
                          a Transformer-Encoder (required).
-        output_type (string): One of 'sequence' or 'spatial'. If Spatial, then the final
+        output_type (string): One of 'sequence' or 'spatial'. If spatial, then the final
                       output of the model, which is a sequence, will be reshaped
                       to resemble the image-batch shape of the output of the CNN.
-                      If Sequence then the output sequence is returned as is (required).
+                      If sequence then the output sequence is returned as is (required).
 
     Examples:
         >>> cnn = nn.Sequential(nn.Conv2d(3, 32, kernel_size=3),

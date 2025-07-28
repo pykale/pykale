@@ -1,7 +1,7 @@
 # Image Classification: Standard CNN vs. CNN+Attention
 
 ### 1. Description
-In this example we train a standard 8-layer CNN on CIFAR10 as a baseline. We then take the same CNN architecture and stack a Transformer-Encoder ontop and train this new CNNTransformer model from scratch. We present several different variants of this model where we only alter the Transformer size. Below, the validation accuracy of each model is compared.
+In this example we train a standard 8-layer CNN on CIFAR10 as a baseline. We then take the same CNN architecture and stack a Transformer-Encoder on top and train this new CNNTransformer model from scratch. We present several different variants of this model where we only alter the Transformer size. Below, the validation accuracy of each model is compared.
 
 [//]: # (![Model Comparisons]&#40;CIFAR10-ModelComparison-ValAcc-Lightning.png&#41;)
 <div align="center">

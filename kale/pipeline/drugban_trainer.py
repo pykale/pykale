@@ -3,8 +3,8 @@
 # =============================================================================
 
 """
-This module contains the DrugBAN trainer class and related functions. It trains an Interpretable bilinear attention
-network with or without a domain adaptation model for drug-target interaction prediction.
+This module contains the DrugBAN trainer class and related functions. It trains an interpretable bilinear attention
+network with or without a domain adaptation model for drug-target (molecular-protein) interaction prediction.
 
 This is refactored from: https://github.com/peizhenbai/DrugBAN/blob/main/trainer.py
 """
@@ -310,9 +310,9 @@ class DrugbanTrainer(pl.LightningModule):
             return loss
 
     def validation_step(self, val_batch, batch_idx):
-        v_d, v_p, labels = val_batch
+        input_molecular, input_protein, labels = val_batch
         labels = labels.float()
-        v_d, v_p, f, score, _ = self.model(v_d, v_p, mode="eval")
+        input_molecular, input_protein, f, score, _ = self.model(input_molecular, input_protein, mode="eval")
         if self.num_classes == 1:
             n, loss = binary_cross_entropy(score, labels)
         else:
@@ -336,9 +336,9 @@ class DrugbanTrainer(pl.LightningModule):
         self.valid_metrics.reset()
 
     def test_step(self, test_batch, batch_idx):
-        v_d, v_p, labels = test_batch
+        input_molecular, input_protein, labels = test_batch
         labels = labels.float()
-        v_d, v_p, f, score, att = self.model(v_d, v_p, mode="eval")
+        input_molecular, input_protein, f, score, att = self.model(input_molecular, input_protein, mode="eval")
         if self.num_classes == 1:
             n, loss = binary_cross_entropy(score, labels)
         else:

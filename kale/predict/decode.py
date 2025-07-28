@@ -95,7 +95,7 @@ class DistMultDecoder(torch.nn.Module):
     def forward(self, x, edge_index: torch.Tensor, edge_type: torch.Tensor, sigmoid: bool = True) -> torch.Tensor:
         """
         Args:
-            x: the input node features embeddings.
+            x: the input node feature embeddings.
             edge_index: the edge index in COO format with shape [2, num_edges].
             edge_type: the one-dimensional relation type/index for each target edge in edge_index.
             sigmoid: whether to use sigmoid function or not.

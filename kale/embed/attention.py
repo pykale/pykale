@@ -46,7 +46,7 @@ class PositionalEncoding(nn.Module):
         """
         Expects input of shape (sequence_length, batch_size, num_features)
         and returns output of the same shape. sequence_length is at most
-        allowed to be self.max_len and num_features are expected to
+        allowed to be self.max_len and num_features is expected to
         be exactly self.d_model
 
         Args:
@@ -59,11 +59,10 @@ class PositionalEncoding(nn.Module):
 
 class BANLayer(nn.Module):
     """
-    The bilinear Attention Network (BAN) layer is designed to apply bilinear attention between two feature sets (`v` and `q`),
-    which could represent features extracted from drugs and proteins, respectively. This layer
-    enables the interaction between these two sets of features, allowing the model to learn
-    joint representations that can be used for downstream tasks like predicting drug-protein
-    interactions.
+    The bilinear Attention Network (BAN) layer is designed to apply bilinear attention between two feature sets
+    (`v` and `q`), which could represent features extracted from drugs and proteins, respectively. This layer
+    enables the interaction between these two sets of features, allowing the model to learn joint representations
+    that can be used for downstream tasks like predicting drug-protein interactions.
 
     Args:
         input_v_dim (int): Dimensionality of the first input feature set (`v`).
