@@ -156,7 +156,7 @@ class DrugBAN(nn.Module):
         # BCN config
         ban_heads = config.BCN.HEADS
 
-        self.drug_extractor = MolecularGCN(
+        self.molecular_extractor = MolecularGCN(
             in_feats=drug_in_feats, dim_embedding=drug_embedding, padding=drug_padding, hidden_feats=drug_hidden_feats
         )
         self.protein_extractor = ProteinCNN(protein_emb_dim, num_filters, kernel_size, protein_padding)
@@ -173,15 +173,15 @@ class DrugBAN(nn.Module):
         )
         self.mlp_classifier = MLPDecoder(mlp_in_dim, mlp_hidden_dim, mlp_out_dim, binary=out_binary)
 
-    def forward(self, input_drug, input_protein, mode="train"):
-        feat_drug = self.drug_extractor(input_drug)
+    def forward(self, input_molecular, input_protein, mode="train"):
+        feat_molecular = self.molecular_extractor(input_molecular)
         feat_protein = self.protein_extractor(input_protein)
-        f, att = self.bcn(feat_drug, feat_protein)
+        f, att = self.bcn(feat_molecular, feat_protein)
         score = self.mlp_classifier(f)
         if mode == "train":
-            return feat_drug, feat_protein, f, score
+            return feat_molecular, feat_protein, f, score
         elif mode == "eval":
-            return feat_drug, feat_protein, f, score, att
+            return feat_molecular, feat_protein, f, score, att
         else:
             # Optionally raise error on unexpected mode
             raise ValueError(f"Unsupported mode: {mode}")

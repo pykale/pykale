@@ -309,23 +309,37 @@ class DrugbanTrainer(pl.LightningModule):
 
             return loss
 
-    def validation_step(self, val_batch, batch_idx):
-        input_molecular, input_protein, labels = val_batch
+    def _eval_step(self, eval_batch, stage="test"):
+        """
+        Common evaluation step for validation and test phases.
+        """
+        input_molecular, input_protein, labels = eval_batch
         labels = labels.float()
-        input_molecular, input_protein, f, score, _ = self.model(input_molecular, input_protein, mode="eval")
+        feat_molecular, feat_protein, f, score, att = self.model(input_molecular, input_protein, mode="eval")
         if self.num_classes == 1:
             n, loss = binary_cross_entropy(score, labels)
         else:
             n = F.softmax(score, dim=1)[:, 1]
             loss, _ = cross_entropy_logits(score, labels)
 
-        # ---- metrics update ----
-        self.valid_metrics.update(n, labels.long())
+        # Stage-specific processing
+        if stage == "test":
+            # Save predictions for scikit-learn metrics
+            preds = n.detach().cpu()  # sigmoid scores
+            self.test_preds.append(preds)
+            self.test_targets.append(labels.long().cpu())
 
-        # ---- log the loss ----
-        self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=False, logger=True)
+        # Update metrics
+        metrics = self.valid_metrics if stage == "validation" else self.test_metrics
+        metrics.update(n, labels.long())
 
-        return
+        # Log loss
+        self.log(f"{stage}_loss", loss, on_step=False, on_epoch=True, prog_bar=(stage == "test"), logger=True)
+
+        return self
+
+    def validation_step(self, val_batch, batch_idx):
+        return self._eval_step(val_batch, "validation")
 
     def on_validation_epoch_end(self):
         """
@@ -336,25 +350,10 @@ class DrugbanTrainer(pl.LightningModule):
         self.valid_metrics.reset()
 
     def test_step(self, test_batch, batch_idx):
-        input_molecular, input_protein, labels = test_batch
-        labels = labels.float()
-        input_molecular, input_protein, f, score, att = self.model(input_molecular, input_protein, mode="eval")
-        if self.num_classes == 1:
-            n, loss = binary_cross_entropy(score, labels)
-        else:
-            n = F.softmax(score, dim=1)[:, 1]
-            loss, _ = cross_entropy_logits(score, labels)
-
-        # f1 metrics with scikit-learn
-        preds = n.detach().cpu()  # sigmoid scores
-        self.test_preds.append(preds)
-        self.test_targets.append(labels.long().cpu())
-
-        # ---- metrics update ----
-        self.test_metrics.update(n, labels.long())
-
-        # ---- log the loss ----
-        self.log("test_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        """
+        Test step for the DrugBAN model. It evaluates the model on the test dataset and computes metrics.
+        """
+        return self._eval_step(test_batch, "test")
 
     def on_test_epoch_end(self):
         """
