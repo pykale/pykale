@@ -45,7 +45,6 @@ class DrugbanTrainer(pl.LightningModule):
         da_random_layer (bool): Whether to apply a random layer before the domain discriminator.
         da_random_dim (int): Output dimensionality of the random layer (if used).
         decoder_in_dim (int): Dimensionality of the feature vector input to the domain discriminator.
-        **kwargs: Additional keyword arguments (not used directly but allows for flexibility).
     """
 
     def __init__(
@@ -118,29 +117,21 @@ class DrugbanTrainer(pl.LightningModule):
         self.automatic_optimization = False
 
         # --- Metrics ---
+        metric_type = "binary"
         if self.num_classes <= 2:
-            metrics = MetricCollection(
-                [
-                    AUROC("binary", average="none", num_classes=self.num_classes),
-                    F1Score("binary", average="none", num_classes=self.num_classes),
-                    Recall("binary", average="none", num_classes=self.num_classes),
-                    Specificity("binary", average="none", num_classes=self.num_classes),
-                    Accuracy("binary", average="none", num_classes=self.num_classes),
-                    # AveragePrecision("binary", average="none", num_classes=self.num_classes),
-                ]
-            )
-        else:
-            metrics = MetricCollection(
-                [
-                    AUROC("multiclass", average="none", num_classes=self.num_classes),
-                    F1Score("multiclass", average="none", num_classes=self.num_classes),
-                    Recall("multiclass", average="none", num_classes=self.num_classes),
-                    Specificity("multiclass", average="none", num_classes=self.num_classes),
-                    Accuracy("multiclass", average="none", num_classes=self.num_classes),
-                    # AveragePrecision("multiclass", average="none", num_classes=self.num_classes),
-                ]
-            )
-        self.valid_metrics = metrics.clone(prefix="val_")
+            metric_type = "multiclass"
+        metrics = MetricCollection(
+            [
+                AUROC(task=metric_type, average="none", num_classes=self.num_classes),
+                F1Score(task=metric_type, average="none", num_classes=self.num_classes),
+                Recall(task=metric_type, average="none", num_classes=self.num_classes),
+                Specificity(task=metric_type, average="none", num_classes=self.num_classes),
+                Accuracy(task=metric_type, average="none", num_classes=self.num_classes),
+                # AveragePrecision("binary", average="none", num_classes=self.num_classes),
+            ]
+        )
+
+        self.valid_metrics = metrics.clone(prefix="valid_")
         self.test_metrics = metrics.clone(prefix="test_")
 
         # metrics with scikit-learn
@@ -179,6 +170,33 @@ class DrugbanTrainer(pl.LightningModule):
         entropy_w = 1.0 + torch.exp(-entropy)
         return entropy_w
 
+    def _compute_domain_loss(self, f, score):
+        reverse_f = GradReverse.apply(f, self.alpha)
+        softmax_output = torch.nn.Softmax(dim=1)(score)
+        softmax_output = softmax_output.detach()
+
+        if self.original_random:
+            random_out = self.random_layer.forward([reverse_f, softmax_output])
+            adv_output_score = self.domain_discriminator(random_out.view(-1, random_out.size(1)))
+        else:
+            feature = torch.bmm(softmax_output.unsqueeze(2), reverse_f.unsqueeze(1))
+            feature = feature.view(-1, softmax_output.size(1) * reverse_f.size(1))
+            if self.random_layer:
+                random_out = self.random_layer.forward(feature)
+                adv_output_score = self.domain_discriminator(random_out)
+            else:
+                adv_output_score = self.domain_discriminator(feature)
+
+        if self.use_da_entropy:
+            entropy = self._compute_entropy_weights(score)
+            weight = entropy / torch.sum(entropy)
+        else:
+            weight = None
+
+        loss_cdan, _ = cross_entropy_logits(adv_output_score, torch.zeros(self.batch_size), weights=weight)
+
+        return loss_cdan
+
     def training_step(self, train_batch, batch_idx):
         """
         Training step for the DrugBAN model with or without domain adaptation.
@@ -211,7 +229,7 @@ class DrugbanTrainer(pl.LightningModule):
             return loss
 
         else:
-            # ---- optimisers ----
+            # ---- optimizers ----
             opt, opt_da = self.optimizers()
             opt.zero_grad()
             opt_da.zero_grad()
@@ -222,78 +240,31 @@ class DrugbanTrainer(pl.LightningModule):
             vec_drug_tgt, vec_protein_tgt = batch_target[0], batch_target[1]
 
             # ---- model: forward pass ----
-            vec_drug, vec_protein, f, score_src = self.model(vec_drug, vec_protein)
+            vec_drug, vec_protein, f_src, score_src = self.model(vec_drug, vec_protein)
             if self.num_classes == 1:
                 n, model_loss = binary_cross_entropy(score_src, labels)
             else:
                 # n = F.softmax(score, dim=1)[:, 1]
                 model_loss, _ = cross_entropy_logits(score_src, labels)
 
+            da_loss = 0
+
             # ---- domain discriminator: forward pass ----
             if self.current_epoch >= self.da_init_epoch:
-                vec_drug_tgt, vec_protein_tgt, f_t, score_tgt = self.model(vec_drug_tgt, vec_protein_tgt)
+                vec_drug_tgt, vec_protein_tgt, f_tgt, score_tgt = self.model(vec_drug_tgt, vec_protein_tgt)
 
                 if self.da_method == "CDAN":
                     # ---- source----
-                    reverse_f = GradReverse.apply(f, self.alpha)
-                    softmax_output = torch.nn.Softmax(dim=1)(score_src)
-                    softmax_output = softmax_output.detach()
-
-                    if self.original_random:
-                        random_out = self.random_layer.forward([reverse_f, softmax_output])
-                        adv_output_score_src = self.domain_discriminator(random_out.view(-1, random_out.size(1)))
-                    else:
-                        feature = torch.bmm(softmax_output.unsqueeze(2), reverse_f.unsqueeze(1))
-                        feature = feature.view(-1, softmax_output.size(1) * reverse_f.size(1))
-                        if self.random_layer:
-                            random_out = self.random_layer.forward(feature)
-                            adv_output_score_src = self.domain_discriminator(random_out)
-                        else:
-                            adv_output_score_src = self.domain_discriminator(feature)
-
+                    loss_cdan_src = self._compute_domain_loss(f_src, score_src)
                     # ---- target ----
-                    reverse_f_t = GradReverse.apply(f_t, self.alpha)
-                    softmax_output_t = torch.nn.Softmax(dim=1)(score_tgt)
-                    softmax_output_t = softmax_output_t.detach()
-
-                    if self.original_random:
-                        random_out_tgt = self.random_layer.forward([reverse_f_t, softmax_output_t])
-                        adv_output_score_tgt = self.domain_discriminator(
-                            random_out_tgt.view(-1, random_out_tgt.size(1))
-                        )
-                    else:
-                        feature_tgt = torch.bmm(softmax_output_t.unsqueeze(2), reverse_f_t.unsqueeze(1))
-                        feature_tgt = feature_tgt.view(-1, softmax_output_t.size(1) * reverse_f_t.size(1))
-                        if self.random_layer:
-                            random_out_tgt = self.random_layer.forward(feature_tgt)
-                            adv_output_score_tgt = self.domain_discriminator(random_out_tgt)
-                        else:
-                            adv_output_score_tgt = self.domain_discriminator(feature_tgt)
-
-                    if self.use_da_entropy:
-                        entropy_src = self._compute_entropy_weights(score_src)
-                        entropy_tgt = self._compute_entropy_weights(score_tgt)
-                        weight_src = entropy_src / torch.sum(entropy_src)
-                        weight_tgt = entropy_tgt / torch.sum(entropy_tgt)
-                    else:
-                        weight_src = None
-                        weight_tgt = None
-
-                    loss_cdan_src, _ = cross_entropy_logits(
-                        adv_output_score_src, torch.zeros(self.batch_size), weights=weight_src
-                    )
-
-                    loss_cdan_tgt, _ = cross_entropy_logits(
-                        adv_output_score_tgt, torch.ones(self.batch_size), weights=weight_tgt
-                    )
-
+                    loss_cdan_tgt = self._compute_domain_loss(f_tgt, score_tgt)
                     da_loss = loss_cdan_src + loss_cdan_tgt
-
                 else:
                     raise ValueError(f"The da method {self.da_method} is not supported")
-                loss = model_loss + da_loss
-            else:
-                loss = model_loss
+
+                self.log("train_step da loss", da_loss.item(), on_step=True, on_epoch=True, prog_bar=False, logger=True)
+
+            loss = model_loss + da_loss
 
             # ---- log the loss ----
             self.manual_backward(loss)
@@ -304,8 +275,6 @@ class DrugbanTrainer(pl.LightningModule):
                 "train_step model loss", model_loss.item(), on_step=True, on_epoch=True, prog_bar=False, logger=True
             )
             self.log("train_step total loss", loss.item(), on_step=True, on_epoch=True, prog_bar=False, logger=True)
-            if self.current_epoch >= self.da_init_epoch:
-                self.log("train_step da loss", da_loss.item(), on_step=True, on_epoch=True, prog_bar=False, logger=True)
 
             return loss
 
@@ -330,7 +299,7 @@ class DrugbanTrainer(pl.LightningModule):
             self.test_targets.append(labels.long().cpu())
 
         # Update metrics
-        metrics = self.valid_metrics if stage == "validation" else self.test_metrics
+        metrics = self.valid_metrics if stage == "valid" else self.test_metrics
         metrics.update(n, labels.long())
 
         # Log loss
@@ -339,7 +308,7 @@ class DrugbanTrainer(pl.LightningModule):
         return self
 
     def validation_step(self, val_batch, batch_idx):
-        return self._eval_step(val_batch, "validation")
+        return self._eval_step(val_batch, "valid")
 
     def on_validation_epoch_end(self):
         """
@@ -364,9 +333,6 @@ class DrugbanTrainer(pl.LightningModule):
         y_pred = torch.cat(self.test_preds).cpu().numpy()
         y_label = torch.cat(self.test_targets).cpu().numpy()
 
-        # === ROC and PR curve metrics ===
-        auroc = roc_auc_score(y_label, y_pred)
-
         fpr, tpr, thresholds = roc_curve(y_label, y_pred)
         prec, recall, _ = precision_recall_curve(y_label, y_pred)
 
@@ -385,23 +351,23 @@ class DrugbanTrainer(pl.LightningModule):
         # === Global confusion matrix ===
         if thresholds.size > 5:
             cm1 = confusion_matrix(y_label, y_pred_bin)
-            accuracy = (cm1[0, 0] + cm1[1, 1]) / sum(sum(cm1))
+            # accuracy = (cm1[0, 0] + cm1[1, 1]) / sum(sum(cm1))
             sensitivity = cm1[0, 0] / (cm1[0, 0] + cm1[0, 1])
             specificity = cm1[1, 1] / (cm1[1, 0] + cm1[1, 1])
+
+            self.log("test_sensitivity", sensitivity, prog_bar=False)
+            self.log("test_specificity", specificity, prog_bar=False)
 
         # === Global metrics ===
         auroc = roc_auc_score(y_label, y_pred)
         f1 = np.max(f1_scores[start:])
         accuracy = accuracy_score(y_label, y_pred_bin)
 
-        # === Log ====
+        # === Log global metrics ====
         self.log("test_auroc_sklearn", auroc, prog_bar=False)
         self.log("test_accuracy_sklearn", accuracy, prog_bar=False)
         self.log("test_f1_sklearn", f1, prog_bar=False)
         self.log("test_optim_threshold", thred_optim)
-        if thresholds.size > 5:
-            self.log("test_sensitivity", sensitivity, prog_bar=False)
-            self.log("test_specificity", specificity, prog_bar=False)
 
         # Clear
         self.test_preds.clear()
