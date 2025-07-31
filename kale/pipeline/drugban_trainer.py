@@ -117,9 +117,9 @@ class DrugbanTrainer(pl.LightningModule):
         self.automatic_optimization = False
 
         # --- Metrics ---
-        metric_type = "binary"
+        metric_type = "multiclass"
         if self.num_classes <= 2:
-            metric_type = "multiclass"
+            metric_type = "binary"
         metrics = MetricCollection(
             [
                 AUROC(task=metric_type, average="none", num_classes=self.num_classes),
@@ -135,7 +135,7 @@ class DrugbanTrainer(pl.LightningModule):
         self.test_metrics = metrics.clone(prefix="test_")
 
         # metrics with scikit-learn
-        self.test_preds = []
+        self.test_pred = []
         self.test_targets = []
 
     def configure_optimizers(self):
@@ -294,8 +294,8 @@ class DrugbanTrainer(pl.LightningModule):
         # Stage-specific processing
         if stage == "test":
             # Save predictions for scikit-learn metrics
-            preds = n.detach().cpu()  # sigmoid scores
-            self.test_preds.append(preds)
+            pred = n.detach().cpu()  # sigmoid scores
+            self.test_pred.append(pred)
             self.test_targets.append(labels.long().cpu())
 
         # Update metrics
@@ -330,7 +330,7 @@ class DrugbanTrainer(pl.LightningModule):
         """
         # # sklearn metrics with Peizhen's implementation
         # # === Custom F1 with optimal threshold ===
-        y_pred = torch.cat(self.test_preds).cpu().numpy()
+        y_pred = torch.cat(self.test_pred).cpu().numpy()
         y_label = torch.cat(self.test_targets).cpu().numpy()
 
         fpr, tpr, thresholds = roc_curve(y_label, y_pred)
@@ -370,7 +370,7 @@ class DrugbanTrainer(pl.LightningModule):
         self.log("test_optim_threshold", thred_optim)
 
         # Clear
-        self.test_preds.clear()
+        self.test_pred.clear()
         self.test_targets.clear()
 
         # torchmetrics
