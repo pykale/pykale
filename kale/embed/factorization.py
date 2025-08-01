@@ -151,7 +151,7 @@ def _eigendecompose(
     Returns:
         tuple: `(eigenvalues, eigenvectors)` of the kernel matrix.
     """
-    # we accept tuple or list for num_att_maps, in case a method
+    # we accept tuple or list for k, in case a method
     # need to use a generalized eigenvalue decomposition
     if isinstance(k, (tuple, list)):
         a, b = k
