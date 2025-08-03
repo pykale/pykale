@@ -87,7 +87,7 @@ def test_fcnet_forward():
 
 def test_fcnet_minimal_inputs():
     # FCNet
-    model = FCNet([1, 1])
+    model = FCNet([1, 1], dropout=1.0)
     inp = torch.randn(2, 1)
     out = model(inp)
     assert out.shape == (2, 1)
