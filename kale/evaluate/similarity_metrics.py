@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 
+from kale.interpret.correlation_analysis import fit_line_with_ci
 from kale.prepdata.tabular_transform import apply_confidence_inversion
 
 
@@ -94,7 +95,6 @@ def evaluate_correlations(
         The "all_folds" key contains the correlation statistics for all testing folds combined.
         The "quantiles" key contains the correlation statistics for each quantile bin separately.
     """
-    from kale.interpret.uncertainty_quantiles import fit_line_with_ci
 
     logger = logging.getLogger("qbin")
     # define dict to save correlations to.
