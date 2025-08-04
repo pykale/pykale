@@ -72,7 +72,7 @@ def test_fcnet_forward():
     batch_size = 32
 
     # Initialize FCNet model
-    model = FCNet(dims)
+    model = FCNet(dims, dropout=1)
 
     # Create mock input
     input_data = torch.randn(batch_size, dims[0])
@@ -87,7 +87,7 @@ def test_fcnet_forward():
 
 def test_fcnet_minimal_inputs():
     # FCNet
-    model = FCNet([1, 1], dropout=1.0)
+    model = FCNet([1, 1])
     inp = torch.randn(2, 1)
     out = model(inp)
     assert out.shape == (2, 1)
