@@ -28,13 +28,13 @@ def fit_line_with_ci(
         errors (np.ndarray): Array of errors.
         uncertainties (np.ndarray): Array of uncertainties.
         quantile_thresholds (List[float]): List of quantile thresholds.
-        cmaps (List[str]): List of colormap names.
+        cmaps (List[Dict[str, str]]): List of colormap dictionaries.
         to_log (bool, optional): Whether to apply logarithmic transformation on axes. Defaults to False.
         error_scaling_factor (float, optional): Scaling factor for error. Defaults to 1.0.
         save_path (Optional[str], optional): Path to save the plot, if None, the plot will be shown. Defaults to None.
 
     Returns:
-        Dict[str, Tuple[float, float]]: Dictionary containing Spearman and Pearson correlation coefficients and p-values.
+        Dict[str, List[Any]]: Dictionary containing Spearman and Pearson correlation coefficients and p-values.
     """
 
     plt.figure(figsize=(12, 8))
@@ -94,13 +94,13 @@ def fit_line_with_ci(
             min_ = quantile_thresholds[idx - 1]
             max_ = max(X)
 
-        plot_indicies = [i for i in range(len(xHat)) if min_ <= xHat[i] < max_]
+        plot_indices = [i for i in range(len(xHat)) if min_ <= xHat[i] < max_]
         bin_label_locs.append((min_ + max_) / 2)
-        quantile_data_indicies = [i for i in range(len(X)) if min_ <= X[i] < max_]
+        quantile_data_indices = [i for i in range(len(X)) if min_ <= X[i] < max_]
         # shade background to make slices per quantile
-        q_spm_corr, q_spm_p = stats.spearmanr(X[quantile_data_indicies], y[quantile_data_indicies])
-        plt.axvspan(xHat[plot_indicies][0], xHat[plot_indicies][-1], facecolor=color, alpha=0.1)
-        plt.plot(xHat[plot_indicies], yHat[plot_indicies], "-", color=color, zorder=3)
+        q_spm_corr, q_spm_p = stats.spearmanr(X[quantile_data_indices], y[quantile_data_indices])
+        plt.axvspan(xHat[plot_indices][0], xHat[plot_indices][-1], facecolor=color, alpha=0.1)
+        plt.plot(xHat[plot_indices], yHat[plot_indices], "-", color=color, zorder=3)
 
     ax.set_xticks(bin_label_locs)
     new_labels = [r"$Q_{{{}}}$".format(x + 1) for x in range(len(quantile_thresholds) + 1)]
