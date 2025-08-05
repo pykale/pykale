@@ -1,7 +1,8 @@
-# This workflow will automatically add an issue or pull request to the project defined on lines 22 and 32.
+# This workflow will automatically add an issue or pull request to the project defined on lines 24 and 37.
 # The project needs to be updated when we move to a new project.
 # https://github.com/marketplace/actions/add-to-github-projects
 # The encrypted secret key "ADD_TO_PROJECT_PAT" has been created in accordance with the guidelines provided in https://docs.github.com/en/actions/security-guides/encrypted-secrets
+# In PRs, the action will only run if the PR is from pykale repository to avoid requesting secrets for forks.
 
 name: assign-project
 
@@ -14,7 +15,9 @@ on:
 jobs:
   add-issue-to-project:
     name: Add issue to project
-    if: github.event_name == 'issues' && github.event.action == 'opened'
+    if: |
+      github.event_name == 'issues' &&
+      github.event.action == 'opened'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/add-to-project@v0.5.0
@@ -24,7 +27,10 @@ jobs:
 
   add-pull-request-to-project:
     name: Add pull request to project
-    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action == 'opened' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/add-to-project@v0.5.0
