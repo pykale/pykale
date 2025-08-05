@@ -1,4 +1,4 @@
-# This workflow will automatically add an issue or pull request to the project defined on lines 24 and 37.
+# This workflow will automatically add an issue or pull request to the project defined on lines 25 and 38.
 # The project needs to be updated when we move to a new project.
 # https://github.com/marketplace/actions/add-to-github-projects
 # The encrypted secret key "ADD_TO_PROJECT_PAT" has been created in accordance with the guidelines provided in https://docs.github.com/en/actions/security-guides/encrypted-secrets
