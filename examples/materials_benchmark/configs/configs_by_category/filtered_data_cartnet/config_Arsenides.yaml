@@ -1,0 +1,36 @@
+CARTNET:
+  ATOM_TYPES: true
+  DIM_IN: 256
+  DIM_RBF: 64
+  INVARIANT: true
+  NUM_LAYERS: 4
+  USE_ENVELOPE: true
+DATASET:
+  TRAIN: data/data_by_type/data_Arsenides/train_data.json
+  VAL: data/data_by_type/data_Arsenides/test_data.json
+LOGGING:
+  LOG_DIR: saved_models
+  LOG_DIR_NAME: data_by_type/cartnet/Arsenides
+MODEL:
+  CIF_FOLDER: cif_file
+  INIT_FILE: cif_file/atom_init.json
+  NAME: cartnet
+  PRETRAINED_MODEL_PATH: saved_models/cartnet/best.ckpt
+OUTPUT:
+  DIR: predictions/cartnet/Arsenides
+SOLVER:
+  BATCH_SIZE: 64
+  DISABLE_CUDA: false
+  EPOCHS: 50
+  LR: 0.001
+  NUM_FOLDS: 5
+  NUM_RUNS: 1
+  OPTIM: SGD
+  PRINT_FREQ: 10
+  RANDOMIZE: true
+  RESUME: ''
+  SEED: 42
+  START_EPOCH: 0
+  TASK: regression
+  WEIGHT_DECAY: 0.0
+  WORKERS: 0

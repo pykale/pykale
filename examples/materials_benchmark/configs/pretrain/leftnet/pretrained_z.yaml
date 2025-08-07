@@ -1,0 +1,24 @@
+DATASET:
+  TRAIN: "data/pretrain_data.json"
+  VAL: 'data/fine_tune/test_data.json'
+
+MODEL:
+  NAME: "leftnet"
+  PRETRAINED_MODEL_PATH: "saved_models/leftnet/z/last-epoch=199.ckpt" # NOT EXIST
+  INIT_FILE: 'cif_file/atom_init.json'
+  CIF_FOLDER: "cif_file"
+
+
+SOLVER:
+  LR: 0.001
+  NUM_FOLDS: 10
+  EPOCHS: 250
+  NUM_RUNS: 1
+
+
+LEFTNET:
+  ENCODING: 'z'
+
+LOGGING:
+  LOG_DIR: "saved_models"
+  LOG_DIR_NAME: "leftnet/z"

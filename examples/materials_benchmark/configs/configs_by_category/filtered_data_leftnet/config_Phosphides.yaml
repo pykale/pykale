@@ -1,0 +1,20 @@
+DATASET:
+  TRAIN: data/data_by_type/data_Phosphides/train_data.json
+  VAL: data/data_by_type/data_Phosphides/test_data.json
+LEFTNET:
+  ENCODING: none
+  LAYER_FREEZE: none
+LOGGING:
+  LOG_DIR: saved_models
+  LOG_DIR_NAME: data_by_type/leftnet/Phosphides
+MODEL:
+  INIT_FILE: cif_file/atom_init.json
+  CIF_FOLDER: cif_file
+  NAME: leftnet
+  PRETRAINED_MODEL_PATH: saved_models/leftnet/z/best.ckpt
+OUTPUT:
+  DIR:  
+SOLVER:
+  EPOCHS: 50
+  LR: 0.001
+  NUM_RUNS: 1

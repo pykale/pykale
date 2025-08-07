@@ -1,0 +1,24 @@
+DATASET:
+ TRAIN: 'data/fine_tune/train_data.json'
+ VAL: 'data/fine_tune/test_data.json'
+
+MODEL:
+  NAME: "leftnet"
+  PRETRAINED_MODEL_PATH: " " # NOT EXIST
+  INIT_FILE: 'cif_file/atom_init.json'
+  CIF_FOLDER: "cif_file"
+
+SOLVER:
+  LR: 0.01
+  TRAIN_RATIO: 0.75
+  VAL_RATIO: 0.15
+  TEST_RATIO: 0.05
+  EPOCHS: 100
+  NUM_RUNS: 50
+
+LEFTNET:
+  ENCODING: 'one-hot'
+
+LOGGING:
+  LOG_DIR: "saved_models"
+  LOG_DIR_NAME: "/leftnet_prop"

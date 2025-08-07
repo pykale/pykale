@@ -1,0 +1,23 @@
+DATASET:
+  TRAIN: "data/pretrain_data.json"
+  VAL: 'data/filtered_data/test_data.json'
+MODEL:
+  NAME: "leftnet"
+  PRETRAINED_MODEL_PATH: " " # NOT EXIST
+  INIT_FILE: "master_files/encoding/atom_init.json"
+  CIF_FOLDER: "cif_file"
+
+SOLVER:
+  LR: 0.01
+  TRAIN_RATIO: 0.85
+  VAL_RATIO: 0.1
+  TEST_RATIO: 0.05
+  EPOCHS: 200
+  NUM_RUNS: 1
+
+LEFTNET:
+  ENCODING: 'prop'
+
+LOGGING:
+  LOG_DIR: "saved_models"
+  LOG_DIR_NAME: "/leftnet/m1_full_lr0.01_encoding"

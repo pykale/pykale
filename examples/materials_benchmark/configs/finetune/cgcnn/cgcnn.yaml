@@ -1,0 +1,30 @@
+# DATASET:
+#   TRAIN: 'data/ds2.json'
+#   VAL: 'data/ds3.json'
+
+DATASET:
+ TRAIN: 'data/fine_tune/train_data.json'
+ VAL: 'data/fine_tune/test_data.json'
+
+MODEL:
+  NAME: 'cgcnn'
+  PRETRAINED_MODEL_PATH: 'saved_models/cgcnn/best.ckpt'
+  INIT_FILE: 'cif_file/atom_init.json'
+  CIF_FOLDER: "cif_file"
+  # CIF_FOLDER: "master_files/cif_master"
+
+ 
+SOLVER:
+  LR: 0.001
+  NUM_FOLDS: 10
+  EPOCHS: 50
+  NUM_RUNS: 1
+
+
+CGCNN:
+  FEATURE_FUSION: 'leftnet'
+  LAYER_FREEZE: 'none'
+
+LOGGING:
+  LOG_DIR: "saved_models"
+  LOG_DIR_NAME: "fine_tune_data/cgcnn_tst"

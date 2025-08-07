@@ -1,0 +1,11 @@
+matplotlib
+numpy
+pandas
+pymatgen==2024.8.9
+pytorch_lightning==2.4.0
+scikit_learn==1.6.0
+seaborn==0.13.2
+torch==2.4.1+cu124
+torch_geometric==2.6.1
+torch_scatter==2.1.2+pt24cu124
+yacs==0.1.8

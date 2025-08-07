@@ -1,0 +1,21 @@
+DATASET:
+  TRAIN: data/data_by_type/data_Arsenides/train_data.json
+  VAL: data/data_by_type/data_Arsenides/test_data.json
+LEFTNET:
+  ENCODING: one-hot
+  LAYER_FREEZE: none
+LOGGING:
+  LOG_DIR: saved_models
+  LOG_DIR_NAME: data_by_type/cgcnn/Arsenides
+MODEL:
+  INIT_FILE: cif_file/atom_init.json
+  CIF_FOLDER: cif_file
+  NAME: cgcnn
+  PRETRAINED_MODEL_PATH: saved_models/cgcnn/best.ckpt
+OUTPUT:
+  DIR:  
+SOLVER:
+  EPOCHS: 50
+  LR: 0.01
+  NUM_RUNS: 1
+

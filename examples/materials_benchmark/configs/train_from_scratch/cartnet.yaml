@@ -1,0 +1,45 @@
+SOLVER:
+  SEED: 42
+  # EPOCHS: 100
+  EPOCHS: 100
+  LR: 0.001
+  BATCH_SIZE: 32
+  NUM_RUNS: 1
+  NUM_FOLDS: 5
+  RANDOMIZE: True
+  TASK: "regression"  # Choices: ['regression', 'classification']
+  DISABLE_CUDA: False
+  WORKERS: 4
+  START_EPOCH: 0
+  LR_MILESTONES: [50, 75]
+  WEIGHT_DECAY: 0.0
+  PRINT_FREQ: 10
+  RESUME: ""
+  OPTIM: "SGD"  # Choices: ['SGD', 'Adam']
+
+MODEL:
+  NAME: "cartnet"  # Choices: ['cgcnn', 'leftnet', 'cartnet', 'logistic', 'random_forest']
+  PRETRAINED_MODEL_PATH: ""
+  INIT_FILE: 'cif_file/atom_init.json'
+  CIF_FOLDER: "cif_file"
+  MAX_NBRS: 12
+  RADIUS: 8.0
+
+CARTNET:
+  DIM_IN: 256  # Add appropriate default value
+  DIM_RBF: 64  # Add appropriate default value
+  NUM_LAYERS: 4  # Add appropriate default value
+  INVARIANT: True  # Add appropriate default value
+  # TEMPERATURE: 0.1  # Add appropriate default value
+  USE_ENVELOPE: True  # Add appropriate default value
+  ATOM_TYPES: True  # Add appropriate default value
+  # LAYER_FREEZE: False  # Add appropriate default value
+
+LOGGING:
+  LOG_DIR: "saved_models"
+  LOG_DIR_NAME: "cartnet"
+
+DATASET:
+  TRAIN: 'data/fine_tune/train_data.json'
+  VAL: 'data/fine_tune/test_data.json'
+  # RATIO: 0.5
