@@ -6,6 +6,14 @@ Interpret
 Submodules
 ----------
 
+kale.interpret.correlation\_analysis module
+--------------------------------------------
+
+.. automodule:: kale.interpret.correlation_analysis
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.interpret.model\_weights module
 ------------------------------------
 

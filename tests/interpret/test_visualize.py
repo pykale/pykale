@@ -171,3 +171,9 @@ def test_draw_mol_with_attention(tmp_path, dummy_smile):
 
     assert os.path.exists(out_path)
     assert os.path.getsize(out_path) > 0
+
+
+def test_save_or_show_plot(tmp_path):
+    out_path = tmp_path / "test_plot.png"
+    visualize.save_or_show_plot(save_path=str(out_path))
+    assert os.path.isfile(out_path)

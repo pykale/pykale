@@ -13,10 +13,8 @@ Paper link: https://arxiv.org/abs/2203.02351
 
 import argparse
 import os
-import warnings
 
 import numpy as np
-import pandas as pd
 import seaborn as sns
 from config import get_cfg_defaults
 from pandas import *

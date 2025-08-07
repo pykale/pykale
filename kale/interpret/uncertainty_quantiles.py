@@ -1107,7 +1107,6 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
             _ = evaluate_correlations(
                 bins_all_targets,
                 uncertainty_error_pairs,
-                cmaps,
                 num_bins,
                 confidence_invert,
                 num_folds=num_folds,
