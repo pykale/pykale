@@ -11,18 +11,14 @@ from kale.predict.class_domain_nets import FCNet
 
 class PositionalEncoding(nn.Module):
     """
-    Implements the positional encoding as described in the NIPS2017 paper
-    'Attention Is All You Need' about Transformers
+    Implements the positional encoding as described in the NIPS2017 paper 'Attention Is All You Need' about Transformers
     (https://arxiv.org/abs/1706.03762).
-    Essentially, for all timesteps in a given sequence,
-    adds information about the relative temporal location of a timestep
-    directly into the features of that timestep, and then returns this
-    slightly-modified, same-shape sequence.
+    Essentially, for all timesteps in a given sequence, adds information about the relative temporal location of a
+    timestep directly into the features of that timestep, and then returns this slightly-modified, same-shape sequence.
 
     args:
-        d_model: the number of features that each timestep has (required).
-        max_len: the maximum sequence length that the positional
-                  encodings should support (required).
+        d_model: The number of features that each timestep has (required).
+        max_len: The maximum sequence length that the positional encodings should support (required).
     """
 
     def __init__(self, d_model: int, max_len: int = 5000):
@@ -44,10 +40,8 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, x):
         """
-        Expects input of shape (sequence_length, batch_size, num_features)
-        and returns output of the same shape. sequence_length is at most
-        allowed to be self.max_len and num_features is expected to
-        be exactly self.d_model
+        Expects input of shape (sequence_length, batch_size, num_features) and returns output of the same shape.
+        sequence_length is at most allowed to be self.max_len and num_features is expected to be exactly self.d_model.
 
         Args:
             x: a sequence input of shape (sequence_length, batch_size, num_features) (required).

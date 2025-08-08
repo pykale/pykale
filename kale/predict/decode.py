@@ -23,12 +23,12 @@ class MLPDecoder(nn.Module):
     A generalized MLP model that can act as either a 2-layer MLPDecoder or a 4-layer MLPDecoder based on the use_deep_layers parameter.
 
     Args:
-        in_dim (int): the dimension of input feature.
-        hidden_dim (int): the dimension of hidden layers.
-        out_dim (int): the dimension of output layer.
+        in_dim (int): The dimension of input feature.
+        hidden_dim (int): The dimension of hidden layers.
+        out_dim (int): The dimension of output layer.
         binary (int): Number of output classes (default is 1 for binary classification).
-        dropout_rate (float): the dropout rate during training.
-        use_deep_layers (bool): whether to include the additional layers that are part of the MLPDecoder. Default is False.
+        dropout_rate (float): The dropout rate during training.
+        use_deep_layers (bool): Whether to include the additional layers that are part of the MLPDecoder. Default is False.
         use_batchnorm (bool): Whether to apply batch normalization after each hidden layer. Default is False.
     """
 

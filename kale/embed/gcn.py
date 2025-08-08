@@ -1,14 +1,12 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.nn import Parameter
 from torch_geometric.nn import GCNConv, global_max_pool
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.utils import add_remaining_self_loops
 from torch_scatter import scatter_add
 
 
-# Copy-paste with slight modification from torch_geometric.nn.GCNConv
 class GCNEncoderLayer(MessagePassing):
     r"""
     Modification of PyTorch Geometirc's nn.GCNConv, which reduces the computational cost of GCN layer for
@@ -54,10 +52,10 @@ class GCNEncoderLayer(MessagePassing):
         self.cached = cached
         self.cached_result = None
 
-        self.weight = Parameter(torch.Tensor(in_channels, out_channels))
+        self.weight = nn.Parameter(torch.Tensor(in_channels, out_channels))
 
         if bias:
-            self.bias = Parameter(torch.Tensor(out_channels))
+            self.bias = nn.Parameter(torch.Tensor(out_channels))
         else:
             self.register_parameter("bias", None)
 
@@ -128,7 +126,6 @@ class GCNEncoderLayer(MessagePassing):
         return "{}({}, {})".format(self.__class__.__name__, self.in_channels, self.out_channels)
 
 
-# Copy-paste with slight modification from torch_geometric.nn.RGCNConv
 class RGCNEncoderLayer(MessagePassing):
     r"""
     Modification of PyTorch Geometirc's nn.RGCNConv, which reduces the computational and memory
@@ -170,12 +167,12 @@ class RGCNEncoderLayer(MessagePassing):
         self.num_bases = num_bases
         self.after_relu = after_relu
 
-        self.basis = Parameter(torch.Tensor(num_bases, in_channels, out_channels))
-        self.att = Parameter(torch.Tensor(num_relations, num_bases))
-        self.root = Parameter(torch.Tensor(in_channels, out_channels))
+        self.basis = nn.Parameter(torch.Tensor(num_bases, in_channels, out_channels))
+        self.att = nn.Parameter(torch.Tensor(num_relations, num_bases))
+        self.root = nn.Parameter(torch.Tensor(in_channels, out_channels))
 
         if bias:
-            self.bias = Parameter(torch.Tensor(out_channels))
+            self.bias = nn.Parameter(torch.Tensor(out_channels))
         else:
             self.register_parameter("bias", None)
 
