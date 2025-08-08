@@ -9,7 +9,7 @@ import torch
 from rdkit import Chem
 
 from kale.interpret import visualize
-from kale.interpret.visualize import draw_attention_map, draw_mol_with_attention
+from kale.interpret.visualize import draw_attention_map, draw_mol_with_attention, save_or_show_plot
 
 matplotlib.use("Agg")  # Use non-interactive backend for tests
 
@@ -164,7 +164,7 @@ def test_draw_attention_map_runs(dummy_attention):
 def test_draw_mol_with_attention(tmp_path, dummy_smile):
     mol = Chem.MolFromSmiles(dummy_smile)
     num_atoms = mol.GetNumAtoms()
-    attention_tensor = torch.rand(num_atoms)  # 确保长度与原子数一致
+    attention_tensor = torch.rand(num_atoms)
 
     out_path = tmp_path / "mol_attention.svg"
     draw_mol_with_attention(attention_tensor, dummy_smile, str(out_path))
@@ -175,5 +175,5 @@ def test_draw_mol_with_attention(tmp_path, dummy_smile):
 
 def test_save_or_show_plot(tmp_path):
     out_path = tmp_path / "test_plot.png"
-    visualize.save_or_show_plot(save_path=str(out_path))
+    save_or_show_plot(save_path=str(out_path))
     assert os.path.isfile(out_path)

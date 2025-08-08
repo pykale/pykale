@@ -17,7 +17,6 @@ import os
 import numpy as np
 import seaborn as sns
 from config import get_cfg_defaults
-from pandas import *
 
 import kale.utils.logger as logging
 from kale.embed.uncertainty_fitting import fit_and_predict
@@ -59,8 +58,8 @@ def main():
     # ---- setup dataset ----
     base_dir = cfg.DATASET.BASE_DIR
 
-    # download data if neccesary
-    if cfg.DATASET.SOURCE != None:
+    # download data if Dataset source is provided
+    if cfg.DATASET.SOURCE is not None:
         logger.info("Downloading data...")
         data_file_name = "%s.%s" % (base_dir, cfg.DATASET.FILE_FORMAT)
         download_file_by_url(
@@ -171,12 +170,12 @@ def main():
                         cmaps,
                         os.path.join(save_folder, "fitted_quantile_binning"),
                         save_file_preamble,
-                        cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
-                        cfg["OUTPUT"]["SAVE_FIGURES"],
-                        cfg["DATASET"]["CONFIDENCE_INVERT"],
-                        cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                        cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                        cfg["BOXPLOT"]["ERROR_LIM"],
+                        cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+                        cfg.OUTPUT.SAVE_FIGURES,
+                        cfg.DATASET.CONFIDENCE_INVERT,
+                        cfg.BOXPLOT.SAMPLES_AS_DOTS,
+                        cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
+                        cfg.BOXPLOT.ERROR_LIM,
                         show_individual_landmark_plots,
                         interpret,
                         num_folds,
@@ -231,11 +230,11 @@ def main():
                                 all_fitted_save_paths,
                                 save_folder_comparison,
                                 save_file_preamble,
-                                cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
-                                cfg["OUTPUT"]["SAVE_FIGURES"],
-                                cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                                cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                                cfg["BOXPLOT"]["ERROR_LIM"],
+                                cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+                                cfg.OUTPUT.SAVE_FIGURES,
+                                cfg.BOXPLOT.SAMPLES_AS_DOTS,
+                                cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
+                                cfg.BOXPLOT.ERROR_LIM,
                                 show_individual_landmark_plots,
                                 interpret,
                                 num_folds,
