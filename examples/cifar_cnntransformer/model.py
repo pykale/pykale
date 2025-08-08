@@ -6,7 +6,7 @@ from copy import deepcopy
 import torch
 import torch.nn as nn
 
-from kale.embed.attention_cnn import CNNTransformer, ContextCNNGeneric
+from kale.embed.cnn import CNNTransformer, ContextCNNGeneric
 from kale.embed.image_cnn import SimpleCNNBuilder
 from kale.pipeline.base_nn_trainer import CNNTransformerTrainer
 from kale.predict.class_domain_nets import ClassNet

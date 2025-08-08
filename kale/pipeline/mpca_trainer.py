@@ -35,7 +35,7 @@ classifiers = {
     "lr": [LogisticRegression, {"C": param_c_grids}],
 }
 
-# k-fold cross validation used for grid search, i.e. searching for optimal value of C
+# k-fold cross-validation used for grid search, i.e. searching for optimal value of C
 default_search_params = {"cv": 5}
 default_mpca_params = {"var_ratio": 0.97, "vectorize": True}
 

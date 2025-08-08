@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from kale.embed.feature_fusion import BimodalInteractionFusion, Concat, LowRankTensorFusion, ProductOfExperts
+from kale.embed.multimodal_fusion import BimodalInteractionFusion, Concat, LowRankTensorFusion, ProductOfExperts
 
 
 def test_concat():

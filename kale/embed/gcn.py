@@ -1,12 +1,12 @@
 import numpy as np
 import torch
-from torch.nn import Parameter
+import torch.nn as nn
+from torch_geometric.nn import GCNConv, global_max_pool
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.utils import add_remaining_self_loops
 from torch_scatter import scatter_add
 
 
-# Copy-paste with slight modification from torch_geometric.nn.GCNConv
 class GCNEncoderLayer(MessagePassing):
     r"""
     Modification of PyTorch Geometirc's nn.GCNConv, which reduces the computational cost of GCN layer for
@@ -52,10 +52,10 @@ class GCNEncoderLayer(MessagePassing):
         self.cached = cached
         self.cached_result = None
 
-        self.weight = Parameter(torch.Tensor(in_channels, out_channels))
+        self.weight = nn.Parameter(torch.Tensor(in_channels, out_channels))
 
         if bias:
-            self.bias = Parameter(torch.Tensor(out_channels))
+            self.bias = nn.Parameter(torch.Tensor(out_channels))
         else:
             self.register_parameter("bias", None)
 
@@ -126,7 +126,6 @@ class GCNEncoderLayer(MessagePassing):
         return "{}({}, {})".format(self.__class__.__name__, self.in_channels, self.out_channels)
 
 
-# Copy-paste with slight modification from torch_geometric.nn.RGCNConv
 class RGCNEncoderLayer(MessagePassing):
     r"""
     Modification of PyTorch Geometirc's nn.RGCNConv, which reduces the computational and memory
@@ -168,12 +167,12 @@ class RGCNEncoderLayer(MessagePassing):
         self.num_bases = num_bases
         self.after_relu = after_relu
 
-        self.basis = Parameter(torch.Tensor(num_bases, in_channels, out_channels))
-        self.att = Parameter(torch.Tensor(num_relations, num_bases))
-        self.root = Parameter(torch.Tensor(in_channels, out_channels))
+        self.basis = nn.Parameter(torch.Tensor(num_bases, in_channels, out_channels))
+        self.att = nn.Parameter(torch.Tensor(num_relations, num_bases))
+        self.root = nn.Parameter(torch.Tensor(in_channels, out_channels))
 
         if bias:
-            self.bias = Parameter(torch.Tensor(out_channels))
+            self.bias = nn.Parameter(torch.Tensor(out_channels))
         else:
             self.register_parameter("bias", None)
 
@@ -235,3 +234,85 @@ class RGCNEncoderLayer(MessagePassing):
         return "{}({}, {}, num_relations={})".format(
             self.__class__.__name__, self.in_channels, self.out_channels, self.num_relations
         )
+
+
+class GCNEncoder(nn.Module):
+    r"""
+    The GraphDTA's GCN encoder module, which comprises three graph convolutional layers and one full connected layer.
+    The model is a variant of DeepDTA and is applied to encoding drug molecule graph information. The original paper
+    is  `"GraphDTA: Predicting drug–target binding affinity with graph neural networks"
+    <https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btaa921/5942970>`_ .
+
+    Args:
+        in_channel (int): Dimension of each input node feature.
+        out_channel (int): Dimension of each output node feature.
+        dropout_rate (float): dropout rate during training.
+    """
+
+    def __init__(self, in_channel=78, out_channel=128, dropout_rate=0.2):
+        super(GCNEncoder, self).__init__()
+        self.conv1 = GCNConv(in_channel, in_channel)
+        self.conv2 = GCNConv(in_channel, in_channel * 2)
+        self.conv3 = GCNConv(in_channel * 2, in_channel * 4)
+        self.fc = nn.Linear(in_channel * 4, out_channel)
+        self.relu = nn.ReLU()
+        self.dropout = nn.Dropout(dropout_rate)
+
+    def forward(self, x, edge_index, batch):
+        x = self.relu(self.conv1(x, edge_index))
+        x = self.relu(self.conv2(x, edge_index))
+        x = self.relu(self.conv3(x, edge_index))
+        x = global_max_pool(x, batch)
+        x = self.fc(x)
+        x = self.dropout(x)
+        return x
+
+
+class MolecularGCN(nn.Module):
+    """
+    A molecular feature extractor using a Graph Convolutional Network (GCN).
+
+    This class implements a GCN to extract features from molecular graphs. It includes an initial
+    linear transformation followed by a series of graph convolutional layers. The output is a
+    fixed-size feature vector for each molecule.
+
+    Args:
+        in_feats (int): Number of input features each node has.
+        dim_embedding (int): Dimensionality of the embedding space after the initial linear transformation.
+        padding (bool): Whether to apply padding (set certain weights to zero).
+        hidden_feats (list of int): A list specifying the number of hidden units for each GCN layer.
+        activation (callable, optional): Activation function to apply after each GCN layer.
+    """
+
+    def __init__(self, in_feats, dim_embedding=128, padding=True, hidden_feats=None, activation=None):
+        super(MolecularGCN, self).__init__()
+        self.init_transform = nn.Linear(in_feats, dim_embedding, bias=False)
+        if padding:
+            # If padding is enabled, set the last row of the weight matrix to zeros (for any padded (dummy) nodes)
+            with torch.no_grad():
+                self.init_transform.weight[-1].fill_(0)
+
+        self.gcn_layers = nn.ModuleList()
+        self.activations = []
+        prev_dim = dim_embedding
+        for hidden_dim in hidden_feats:
+            self.gcn_layers.append(GCNConv(prev_dim, hidden_dim))
+            self.activations.append(activation)
+            prev_dim = hidden_dim
+
+        self.output_feats = hidden_feats[-1]
+
+    def forward(self, batch_graph):
+        x, edge_index = batch_graph.x, batch_graph.edge_index
+        x = self.init_transform(x)
+
+        for gcn_layer, activation in zip(self.gcn_layers, self.activations):
+            x = gcn_layer(x, edge_index)
+            if activation is not None:
+                x = activation(x)
+
+        # Expect all graphs to be padded to the same number of nodes
+        batch_size = batch_graph.num_graphs
+        x = x.view(batch_size, -1, self.output_feats)
+
+        return x

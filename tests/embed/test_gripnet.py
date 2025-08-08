@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from kale.embed.gripnet import GripNet
+from kale.embed.model_lib.gripnet import GripNet
 from kale.predict.decode import GripNetLinkPrediction
 from kale.prepdata.supergraph_construct import SuperEdge, SuperGraph, SuperVertex, SuperVertexParaSetting
 
