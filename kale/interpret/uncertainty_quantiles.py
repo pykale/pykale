@@ -1,6 +1,10 @@
-"""
-Authors: Lawrence Schobs, lawrenceschobs@gmail.com
+# =============================================================================
+# Author: JLawrence Schobs, lawrenceschobs@gmail.com
+#         Wenjie Zhao, 1534779821@qq.com
+#         Zhongwei Ji, jizhongwei1999@outlook.com
+# =============================================================================
 
+"""
 Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization,"
 in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 

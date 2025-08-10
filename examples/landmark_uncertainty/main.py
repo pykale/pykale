@@ -25,19 +25,20 @@ from kale.utils.download import download_file_by_url
 
 
 def arg_parse():
-    """Parsing arguments"""
-    parser = argparse.ArgumentParser(description="Quantile Binning for landmark uncertainty estimation.")
-    parser.add_argument("--cfg", required=False, help="path to config file", type=str)
+    """
+    Parsing arguments
 
-    args = parser.parse_args()
-
-    """Example:
+    Example:
     python main.py
 
     To use a custom config, or a config file provided in the configs folder:
     python main.py --cfg ../configs/isbi_config.yaml
 
     """
+    parser = argparse.ArgumentParser(description="Quantile Binning for landmark uncertainty estimation.")
+    parser.add_argument("--cfg", required=False, help="path to config file", type=str)
+
+    args = parser.parse_args()
     return args
 
 
@@ -125,10 +126,10 @@ def main():
                         cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_test + "_t" + str(landmark)
                     )
 
-                    fitted_save_at = os.path.join(save_folder, "fitted_quantile_binning", model, dataset)
+                    quantile_binning_output_dir = os.path.join(save_folder, "fitted_quantile_binning", model, dataset)
                     os.makedirs(save_folder, exist_ok=True)
 
-                    uncert_boundaries, estimated_errors, predicted_bins = fit_and_predict(
+                    fit_and_predict(
                         landmark,
                         all_uncert_error_pairs_to_compare,
                         landmark_results_path_val,
@@ -136,7 +137,7 @@ def main():
                         num_bins,
                         cfg,
                         groundtruth_test_errors=gt_test_error_available,
-                        save_folder=fitted_save_at,
+                        save_folder=quantile_binning_output_dir,
                     )
 
         ############ Evaluation Phase ##########################
@@ -206,7 +207,7 @@ def main():
                             ]
                         )
 
-                        all_fitted_save_paths = [
+                        quantile_binning_dirs = [
                             os.path.join(cfg.OUTPUT.OUT_DIR, dataset, str(x_bins) + "Bins", "fitted_quantile_binning")
                             for x_bins in cfg.PIPELINE.NUM_QUANTILE_BINS
                         ]
@@ -227,7 +228,7 @@ def main():
                                 landmarks,
                                 cfg.PIPELINE.NUM_QUANTILE_BINS,
                                 cmaps,
-                                all_fitted_save_paths,
+                                quantile_binning_dirs,
                                 save_folder_comparison,
                                 save_file_preamble,
                                 cfg.PIPELINE.COMBINE_MIDDLE_BINS,
