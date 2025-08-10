@@ -1,5 +1,5 @@
 # =============================================================================
-# Author: JLawrence Schobs, lawrenceschobs@gmail.com
+# Author: Lawrence Schobs, lawrenceschobs@gmail.com
 #         Wenjie Zhao, 1534779821@qq.com
 #         Zhongwei Ji, jizhongwei1999@outlook.com
 # =============================================================================
