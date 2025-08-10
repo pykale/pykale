@@ -34,7 +34,8 @@ def typed_negative_sampling(pos_edge_index: torch.Tensor, num_nodes: int, range_
     r"""
     Typed negative sampling for link prediction. Copy-paste from https://github.com/NYXFLOWER/GripNet.
 
-    Args:        pos_edge_index (torch.Tensor): edge indices in COO format with shape [2, num_edges].
+    Args:
+        pos_edge_index (torch.Tensor): edge indices in COO format with shape [2, num_edges].
         num_nodes (int): the number of nodes in the graph.
         range_list (torch.Tensor): the range of edge types. [[start_index, end_index], ...]
 
