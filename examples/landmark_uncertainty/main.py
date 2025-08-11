@@ -126,7 +126,7 @@ def main():
                         cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_test + "_t" + str(landmark)
                     )
 
-                    quantile_binning_output_dir = os.path.join(save_folder, "fitted_quantile_binning", model, dataset)
+                    output_dir = os.path.join(save_folder, "fitted_quantile_binning", model, dataset)
                     os.makedirs(save_folder, exist_ok=True)
 
                     fit_and_predict(
@@ -137,7 +137,7 @@ def main():
                         num_bins,
                         cfg,
                         groundtruth_test_errors=gt_test_error_available,
-                        save_folder=quantile_binning_output_dir,
+                        save_folder=output_dir,
                     )
 
         ############ Evaluation Phase ##########################
