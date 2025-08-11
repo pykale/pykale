@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from kale.embed.video.video_feature_extractor import get_video_feat_extractor
+from kale.embed.video.feature_extractor import get_video_feat_extractor
 
 MODEL_NAME = ["I3D", "R3D_18", "R2PLUS1D_18", "MC3_18"]
 IMAGE_MODALITY = ["rgb", "flow", "joint"]

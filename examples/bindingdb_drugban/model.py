@@ -9,7 +9,7 @@ from kale.loaddata.sampler import MultiDataLoader
 from kale.pipeline.drugban_trainer import DrugbanTrainer
 
 
-def get_dataset(data_folder, da_task, **kwargs):
+def get_dataset(data_folder, da_task):
     if not da_task:
         df_train = pd.read_csv(os.path.join(data_folder, "train.csv"))
         df_val = pd.read_csv(os.path.join(data_folder, "val.csv"))
@@ -33,7 +33,7 @@ def get_dataset(data_folder, da_task, **kwargs):
         return train_source_dataset, train_target_dataset, test_target_dataset
 
 
-def get_dataloader(*datasets, batchsize, num_workers, collate_fn, is_da, da_task, **kwargs):
+def get_dataloader(*datasets, batchsize, num_workers, collate_fn, is_da, da_task):
     params = {
         "batch_size": batchsize,
         "shuffle": True,

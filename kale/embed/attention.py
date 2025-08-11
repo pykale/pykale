@@ -59,12 +59,12 @@ class BANLayer(nn.Module):
     that can be used for downstream tasks like predicting drug-protein interactions.
 
     Args:
-        input_v_dim (int): Dimensionality of the first input feature set (`v`).
-        input_q_dim (int): Dimensionality of the second input feature set (`q`).
+        input_v_dim (int): Dimensionality of the first input "value" feature set (`v`).
+        input_q_dim (int): Dimensionality of the second input "query" feature set (`q`).
         hidden_dim (int): Dimensionality of the hidden layer used in the bilinear attention mechanism.
         num_out_heads (int): Number of output heads in the bilinear attention mechanism.
-        activation (str, optional): Activation function to use in the fully connected networks for `v` and `q`.
-                             Default is "ReLU".
+        activation (str, optional): Activation function to use in the fully connected networks for value (`v`) and
+                                    query (`q`). Default is "ReLU".
         dropout (float, optional): Dropout rate to apply after each layer in the fully connected networks.
                                    Default is 0.2.
         num_att_maps (int, optional): Number of attention maps to generate (used in pooling). Default is 3.

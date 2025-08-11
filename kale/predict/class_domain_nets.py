@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.weight_norm import weight_norm
 
-from kale.embed.video.video_i3d import Unit3D
+from kale.embed.video.i3d import Unit3D
 
 
 # Previously FFSoftmaxClassifier

@@ -7,7 +7,7 @@ from kale.embed.attention import BANLayer
 from kale.embed.model_lib.drugban import BCNConfig, DecoderConfig, DrugBAN, DrugConfig, FullConfig, ProteinConfig
 from tests.helpers.mock_graph import create_mock_batch_graph
 
-BATCH_SIZE = 64
+BATCH_SIZE = 4
 
 CONFIG: Dict[str, Dict[str, Any]] = {
     "DRUG": {
@@ -60,7 +60,7 @@ def test_drugban_forward_train(model_config):
     model = DrugBAN(model_config)
     model.eval()
 
-    batch_size = 64
+    batch_size = BATCH_SIZE
     sequence_length = 200  # Protein sequence length
 
     # Create mock inputs
@@ -80,7 +80,7 @@ def test_drugban_forward_train(model_config):
 def test_drugban_forward_eval_and_invalid(model_config):
     model = DrugBAN(model_config)
     model.eval()
-    batch_size = 8
+    batch_size = BATCH_SIZE
     sequence_length = 50
     bg_d = create_mock_batch_graph(batch_size, in_feats=model_config.DRUG.NODE_IN_FEATS)
     v_p = create_mock_protein_input(batch_size, sequence_length)
@@ -101,7 +101,7 @@ def test_ban_layer_forward():
     q_dim = 64
     h_dim = 128
     h_out = 8
-    batch_size = 32
+    batch_size = BATCH_SIZE
     v_seq_len = 10
     q_seq_len = 12
 
@@ -127,7 +127,7 @@ def test_ban_layer_attention_pooling():
     q_dim = 16
     h_dim = 32
     h_out = 2
-    batch_size = 2
+    batch_size = BATCH_SIZE
     seq_len = 3
     model = BANLayer(v_dim, q_dim, h_dim, h_out)
     v = torch.randn(batch_size, seq_len, h_dim * model.num_att_maps)
