@@ -4,35 +4,43 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class ConvLayer(nn.Module):
-    """
-    Convolutional operation on graphs
-    """
+from torch_geometric.nn import MessagePassing
+from torch_geometric.nn import global_mean_pool
+from torch.nn import Linear, BatchNorm1d, Sigmoid, Softplus
+
+class CGCNNConv(MessagePassing):
     def __init__(self, atom_fea_len, nbr_fea_len):
-        super(ConvLayer, self).__init__()
-        self.fc_full = nn.Linear(2 * atom_fea_len + nbr_fea_len, 2 * atom_fea_len)
-        self.sigmoid = nn.Sigmoid()
-        self.softplus1 = nn.Softplus()
-        self.bn1 = nn.BatchNorm1d(2 * atom_fea_len)
-        self.bn2 = nn.BatchNorm1d(atom_fea_len)
-        self.softplus2 = nn.Softplus()
+        super().__init__(aggr='add')  # 聚合方式为加法
+        self.atom_fea_len = atom_fea_len
+        self.fc_full = Linear(2 * atom_fea_len + nbr_fea_len, 2 * atom_fea_len)
+        self.bn1 = BatchNorm1d(2 * atom_fea_len)
+        self.bn2 = BatchNorm1d(atom_fea_len)
+        self.sigmoid = Sigmoid()
+        self.softplus1 = Softplus()
+        self.softplus2 = Softplus()
 
-    def forward(self, atom_in_fea, nbr_fea, nbr_fea_idx):
-        N, M = nbr_fea_idx.shape
-        atom_nbr_fea = atom_in_fea[nbr_fea_idx, :]
-        total_nbr_fea = torch.cat(
-            [atom_in_fea.unsqueeze(1).expand(N, M, -1), atom_nbr_fea, nbr_fea], dim=2
-        )
-        total_gated_fea = self.fc_full(total_nbr_fea)
-        total_gated_fea = self.bn1(total_gated_fea.view(-1, total_gated_fea.shape[-1])).view(N, M, -1)
-        nbr_filter, nbr_core = total_gated_fea.chunk(2, dim=2)
-        nbr_filter = self.sigmoid(nbr_filter)
-        nbr_core = self.softplus1(nbr_core)
-        nbr_sumed = torch.sum(nbr_filter * nbr_core, dim=1)
-        nbr_sumed = self.bn2(nbr_sumed)
-        out = self.softplus2(atom_in_fea + nbr_sumed)
-        return out
+    def forward(self, x, edge_index, edge_attr):
+        # x: [N, atom_fea_len]
+        # edge_index: [2, E]
+        # edge_attr: [E, nbr_fea_len]
+        return self.propagate(edge_index, x=x, edge_attr=edge_attr)
 
+    def message(self, x_i, x_j, edge_attr):
+        # x_i: [E, atom_fea_len] 目标节点
+        # x_j: [E, atom_fea_len] 源节点
+        # edge_attr: [E, nbr_fea_len]
+        total = torch.cat([x_i, x_j, edge_attr], dim=-1)  # [E, 2*atom_fea_len + nbr_fea_len]
+        total = self.fc_full(total)  # [E, 2*atom_fea_len]
+        total = self.bn1(total)
+        filter_, core = total.chunk(2, dim=-1)
+        filter_ = self.sigmoid(filter_)
+        core = self.softplus1(core)
+        return filter_ * core
+
+    def update(self, aggr_out, x):
+        out = self.bn2(aggr_out)
+        return self.softplus2(x + out)
+    
 class CrystalGraphConvNet(nn.Module):
     """
     Create a crystal graph convolutional neural network for predicting total
@@ -42,7 +50,9 @@ class CrystalGraphConvNet(nn.Module):
         super(CrystalGraphConvNet, self).__init__()
         self.classification = classification
         self.embedding = nn.Linear(orig_atom_fea_len, atom_fea_len)
-        self.convs = nn.ModuleList([ConvLayer(atom_fea_len=atom_fea_len, nbr_fea_len=nbr_fea_len) for _ in range(n_conv)])
+        self.convs = nn.ModuleList([
+    CGCNNConv(atom_fea_len=atom_fea_len, nbr_fea_len=nbr_fea_len) for _ in range(n_conv)
+])
         self.conv_to_fc = nn.Linear(atom_fea_len, h_fea_len)
         self.conv_to_fc_softplus = nn.Softplus()
         if n_h > 1:
@@ -58,16 +68,19 @@ class CrystalGraphConvNet(nn.Module):
     def forward(self, data):
         device = next(self.parameters()).device
         # atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx
-        atom_fea = data.atom_fea.to(device)
-        nbr_fea = data.nbr_fea.to(device)
-        nbr_fea_idx = data.nbr_fea_idx.to(device)
-        crystal_atom_idx = data.crystal_atom_idx
+        atom_fea = data.x.to(device)
+        # nbr_fea = data.nbr_fea.to(device)
+        # nbr_fea_idx = data.nbr_fea_idx.to(device)
+        # crystal_atom_idx = data.crystal_atom_idx
 
         atom_fea = self.embedding(atom_fea)
+        edge_index = data.edge_index.to(device)
+        edge_attr = data.edge_attr.to(device)
+
         for conv_func in self.convs:
-            atom_fea = conv_func(atom_fea, nbr_fea, nbr_fea_idx) # add position information
+            atom_fea = conv_func(atom_fea, edge_index, edge_attr)
         # or here posi_fea = fc()
-        crys_fea = self.pooling(atom_fea, crystal_atom_idx)
+        crys_fea = global_mean_pool(atom_fea, data.batch)
         crys_fea = self.conv_to_fc(self.conv_to_fc_softplus(crys_fea))
         crys_fea = self.conv_to_fc_softplus(crys_fea)
         if self.classification:
@@ -80,9 +93,9 @@ class CrystalGraphConvNet(nn.Module):
             out = self.logsoftmax(out)
         return out
 
-    def pooling(self, atom_fea, crystal_atom_idx):
-        """
-        Pooling the atom features to crystal features
-        """
-        summed_fea = [torch.mean(atom_fea[idx_map], dim=0, keepdim=True) for idx_map in crystal_atom_idx]
-        return torch.cat(summed_fea, dim=0)
+    # def pooling(self, atom_fea, crystal_atom_idx):
+    #     """
+    #     Pooling the atom features to crystal features
+    #     """
+    #     summed_fea = [torch.mean(atom_fea[idx_map], dim=0, keepdim=True) for idx_map in crystal_atom_idx]
+    #     return torch.cat(summed_fea, dim=0)

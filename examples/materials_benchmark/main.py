@@ -13,14 +13,14 @@ from sklearn.svm import SVR
 import torch
 import numpy as np
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+# from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
 from torch.utils.data import DataLoader
 from sklearn.utils import shuffle
 import random
 
 from move_to_kale.prepdata.materials_features import extract_features
-from models.cgcnn.model_cgcnn import get_cgcnn_model
+from examples.materials_benchmark.models.cgcnn.model import get_cgcnn_model
 from move_to_kale.loaddata.materials_datasets import CIFData
 # from loaddata.collate import collate_pool_leftnet
 from models.leftnet.model_leftnet import get_leftnet_model
@@ -102,16 +102,49 @@ def get_model(cfg):
         raise ValueError(f"Unknown model name: {cfg.MODEL.NAME}")
 
 
-def load_pretrained_model(model, pretrained_model_path):
-    if os.path.exists(pretrained_model_path):
-        print(f"Loading pretrained model from {pretrained_model_path}...")
-        checkpoint = torch.load(pretrained_model_path)
-        if 'state_dict' in checkpoint:
-            model.load_state_dict(checkpoint['state_dict'])
+# def load_pretrained_model(model, pretrained_model_path):
+#     if os.path.exists(pretrained_model_path):
+#         print(f"Loading pretrained model from {pretrained_model_path}...")
+#         checkpoint = torch.load(pretrained_model_path)
+#         if 'state_dict' in checkpoint:
+#             model.load_state_dict(checkpoint['state_dict'])
+#         else:
+#             model.load_state_dict(checkpoint)
+#     else:
+#         print("No pretrained model found. Training a new model...")
+#     return model
+
+def load_pretrained_model(model, path):
+    if not os.path.isfile(path):
+        print(f"=> no checkpoint found at '{path}'")
+        return model
+
+    print(f"=> loading checkpoint '{path}'")
+    checkpoint = torch.load(path, map_location="cpu")
+    state_dict = checkpoint["state_dict"]
+
+    # 兼容旧版本 key: 把 model. 改成 model.feature_extractor.
+    new_state_dict = {}
+    for k, v in state_dict.items():
+        if k.startswith("model.") and not k.startswith("model.feature_extractor."):
+            new_k = k.replace("model.", "model.feature_extractor.")
         else:
-            model.load_state_dict(checkpoint)
-    else:
-        print("No pretrained model found. Training a new model...")
+            new_k = k
+        new_state_dict[new_k] = v
+
+    missing, unexpected = model.load_state_dict(new_state_dict, strict=False)
+    if missing:
+        print(f"Warning: missing keys when loading state_dict: {missing}")
+    if unexpected:
+        print(f"Warning: unexpected keys when loading state_dict: {unexpected}")
+
+    if 'optimizer' in checkpoint:
+        try:
+            model.configure_optimizers()[0].load_state_dict(checkpoint['optimizer'])
+        except Exception as e:
+            print(f"Warning: Could not load optimizer state: {e}")
+
+    print(f"=> loaded checkpoint '{path}' (epoch {checkpoint.get('epoch', 'unknown')})")
     return model
 
 
@@ -234,10 +267,10 @@ def main():
         # Extract feature dimensions
         structures = train_dataset[0]
         cfg.defrost()
-        cfg.GRAPH.ORIG_ATOM_FEA_LEN = structures.atom_fea.shape[-1]
-        cfg.GRAPH.NBR_FEA_LEN = structures.nbr_fea.shape[-1]
-        cfg.GRAPH.POS_FEA_LEN = structures.positions.shape[-1]
-        cfg.GRAPH.ATOM_FEA_DIM = structures.atom_fea.shape[-1]
+        cfg.GRAPH.ORIG_ATOM_FEA_LEN = structures.x.shape[-1]
+        cfg.GRAPH.NBR_FEA_LEN = structures.edge_attr.shape[-1]
+        cfg.GRAPH.POS_FEA_LEN = structures.pos.shape[-1]
+        # cfg.GRAPH.ATOM_FEA_DIM = structures.x.shape[-1]
         cfg.freeze()
 
         # Setup model and trainer
