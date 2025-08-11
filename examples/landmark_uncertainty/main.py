@@ -26,14 +26,14 @@ from kale.utils.download import download_file_by_url
 
 def arg_parse():
     """
-    Parsing arguments
+    Parse command-line arguments.
 
     Example:
-    python main.py
+        Default settings:
+            python main.py
 
-    To use a custom config, or a config file provided in the configs folder:
-    python main.py --cfg ../configs/isbi_config.yaml
-
+        With custom config:
+            python main.py --cfg ../configs/isbi_config.yaml
     """
     parser = argparse.ArgumentParser(description="Quantile Binning for landmark uncertainty estimation.")
     parser.add_argument("--cfg", required=False, help="path to config file", type=str)
