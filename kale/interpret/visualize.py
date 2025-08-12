@@ -319,9 +319,9 @@ def save_or_show_plot(save_path: Optional[str] = None, show: bool = True, **fig_
         save_path (str, optional): Path to save the figure. If None, the figure will be shown instead.
         show (bool, optional): Whether to show the figure. Defaults to True.
         **fig_kwargs: Additional keyword arguments for figure configuration. Supported parameters:
-            - dpi: int, dots per inch for the saved figure (default: 600)
-            - fig_width: float, width of the figure in inches (default: 16.0)
-            - fig_height: float, height of the figure in inches (default: 8.0)
+            - save_dpi: int, dots per inch for the saved figure (default: 600)
+            - show_dpi: int, dots per inch for the shown figure (default: 100)
+            - fig_size: tuple, size of the figure in inches (default: (16.0, 8.0))
             - bbox_inches: str, bounding box for saved figure (default: "tight")
             - pad_inches: float, padding for saved figure (default: 0.1)
             - Any other parameters supported by plt.savefig()
@@ -330,9 +330,10 @@ def save_or_show_plot(save_path: Optional[str] = None, show: bool = True, **fig_
         None
     """
     # Extract figure parameters with defaults
-    dpi = fig_kwargs.pop("dpi", 600)
-    w = fig_kwargs.pop("fig_width", 16.0)
-    h = fig_kwargs.pop("fig_height", 8.0)
+    save_dpi = fig_kwargs.pop("save_dpi", 600)
+    show_dpi = fig_kwargs.pop("show_dpi", 100)
+    w = fig_kwargs.pop("fig_size", (16.0, 8.0))[0]
+    h = fig_kwargs.pop("fig_size", (16.0, 8.0))[1]
     bbox_inches = fig_kwargs.pop("bbox_inches", "tight")
     pad_inches = fig_kwargs.pop("pad_inches", 0.1)
 
@@ -340,9 +341,9 @@ def save_or_show_plot(save_path: Optional[str] = None, show: bool = True, **fig_
 
     if save_path is not None:
         plt.tight_layout()
-        plt.savefig(save_path, dpi=dpi, bbox_inches=bbox_inches, pad_inches=pad_inches, **fig_kwargs)
+        plt.savefig(save_path, dpi=save_dpi, bbox_inches=bbox_inches, pad_inches=pad_inches, **fig_kwargs)
 
     if show:
-        plt.show()
+        plt.show(dpi=show_dpi)
 
     plt.close()
