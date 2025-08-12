@@ -20,11 +20,11 @@ from sklearn.utils import shuffle
 import random
 
 from move_to_kale.prepdata.materials_features import extract_features
-from examples.materials_benchmark.models.cgcnn.model import get_cgcnn_model
+from models.model import get_model
 from move_to_kale.loaddata.materials_datasets import CIFData
 # from loaddata.collate import collate_pool_leftnet
-from models.leftnet.model_leftnet import get_leftnet_model
-from models.cartnet.model_cartnet import get_cartnet_model
+# from models.leftnet.model_leftnet import get_leftnet_model
+# from models.cartnet.model_cartnet import get_cartnet_model
 from move_to_kale.evaluate.metrics import mean_relative_error
 from config import get_cfg_defaults
 
@@ -91,15 +91,15 @@ def set_random_seed(seed):
         torch.cuda.manual_seed_all(seed)
 
 
-def get_model(cfg):
-    if cfg.MODEL.NAME == "cgcnn":
-        return get_cgcnn_model(cfg)
-    elif cfg.MODEL.NAME == "leftnet":
-        return get_leftnet_model(cfg)
-    elif cfg.MODEL.NAME == "cartnet":
-        return get_cartnet_model(cfg)
-    else:
-        raise ValueError(f"Unknown model name: {cfg.MODEL.NAME}")
+# def get_model(cfg):
+#     if cfg.MODEL.NAME == "cgcnn":
+#         return get_cgcnn_model(cfg)
+#     elif cfg.MODEL.NAME == "leftnet":
+#         return get_leftnet_model(cfg)
+#     elif cfg.MODEL.NAME == "cartnet":
+#         return get_cartnet_model(cfg)
+#     else:
+#         raise ValueError(f"Unknown model name: {cfg.MODEL.NAME}")
 
 
 # def load_pretrained_model(model, pretrained_model_path):
@@ -266,15 +266,18 @@ def main():
 
         # Extract feature dimensions
         structures = train_dataset[0]
-        cfg.defrost()
-        cfg.GRAPH.ORIG_ATOM_FEA_LEN = structures.x.shape[-1]
-        cfg.GRAPH.NBR_FEA_LEN = structures.edge_attr.shape[-1]
-        cfg.GRAPH.POS_FEA_LEN = structures.pos.shape[-1]
-        # cfg.GRAPH.ATOM_FEA_DIM = structures.x.shape[-1]
-        cfg.freeze()
+        # cfg.defrost()
+        # cfg.GRAPH.ORIG_ATOM_FEA_LEN = structures.x.shape[-1]
+        # cfg.GRAPH.NBR_FEA_LEN = structures.edge_attr.shape[-1]
+        # cfg.GRAPH.POS_FEA_LEN = structures.pos.shape[-1]
+        # # cfg.GRAPH.ATOM_FEA_DIM = structures.x.shape[-1]
+        # cfg.freeze()
+
+        structures = train_dataset[0]
+        atom_fea_len, nbr_fea_len, pos_fea_len = structures.x.shape[-1], structures.edge_attr.shape[-1], structures.pos.shape[-1]
 
         # Setup model and trainer
-        model = get_model(cfg)
+        model = get_model(cfg, atom_fea_len, nbr_fea_len, pos_fea_len)
         wandb_logger, log_dir = setup_logger(cfg, "pretrain")
         trainer, checkpoint_callback = setup_trainer(cfg, args, wandb_logger, log_dir)
 
@@ -313,13 +316,10 @@ def main():
             nbr_fea_len = structures.edge_attr.shape[-1]
             pos_fea_len = structures.pos.shape[-1]  
             max_neighbours = structures.max_nbrs
-            cfg.defrost()  # Unfreeze the cfg to allow modification
-            cfg.GRAPH.ORIG_ATOM_FEA_LEN = orig_atom_fea_len
-            cfg.GRAPH.NBR_FEA_LEN = nbr_fea_len
-            cfg.GRAPH.POS_FEA_LEN = pos_fea_len
-            cfg.GRAPH.ATOM_FEA_DIM = orig_atom_fea_len
-            cfg.freeze()  # Refreeze the cfg to prevent further changes
-            print(cfg)
+
+
+            structures = train_dataset[0]
+            atom_fea_len, nbr_fea_len, pos_fea_len = structures.x.shape[-1], structures.edge_attr.shape[-1], structures.pos.shape[-1]
 
             if cfg.MODEL.NAME in ["random_forest", "linear_regression", "svm"]:
                 print(f"Training {cfg.MODEL.NAME} model...")
@@ -379,7 +379,7 @@ def main():
                     print(f"Fold {fold + 1} {cfg.MODEL.NAME} Test Result- MAE: {test_mae:}, MSE: {test_mse:}, MRE: {test_mre:}, R²: {test_r2:}")
                 continue
 
-            model = get_model(cfg)
+            model = get_model(cfg, atom_fea_len, nbr_fea_len, pos_fea_len)
             model = load_pretrained_model(model, cfg.MODEL.PRETRAINED_MODEL_PATH)
 
             wandb_logger, log_dir = setup_logger(cfg, fold)
