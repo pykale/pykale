@@ -312,11 +312,12 @@ def draw_mol_with_attention(attention_weights, smile, out_path, colormap="viridi
         f.write(drawer.GetDrawingText())
 
 
-def save_or_show_plot(save_path: Optional[str] = None, **fig_kwargs) -> None:
+def save_or_show_plot(save_path: Optional[str] = None, show: bool = True, **fig_kwargs) -> None:
     """Save plot to file or show it.
 
     Args:
         save_path (str, optional): Path to save the figure. If None, the figure will be shown instead.
+        show (bool, optional): Whether to show the figure. Defaults to True.
         **fig_kwargs: Additional keyword arguments for figure configuration. Supported parameters:
             - dpi: int, dots per inch for the saved figure (default: 600)
             - fig_width: float, width of the figure in inches (default: 16.0)
@@ -335,12 +336,13 @@ def save_or_show_plot(save_path: Optional[str] = None, **fig_kwargs) -> None:
     bbox_inches = fig_kwargs.pop("bbox_inches", "tight")
     pad_inches = fig_kwargs.pop("pad_inches", 0.1)
 
+    plt.gcf().set_size_inches(w, h)
+
     if save_path is not None:
-        plt.gcf().set_size_inches(w, h)
         plt.tight_layout()
         plt.savefig(save_path, dpi=dpi, bbox_inches=bbox_inches, pad_inches=pad_inches, **fig_kwargs)
-        plt.close()
-    else:
-        plt.gcf().set_size_inches(w, h)
+
+    if show:
         plt.show()
-        plt.close()
+
+    plt.close()
