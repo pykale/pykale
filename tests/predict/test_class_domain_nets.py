@@ -8,7 +8,6 @@ from kale.predict.class_domain_nets import (
     ClassNetVideoConv,
     DomainNetSmallImage,
     DomainNetVideo,
-    FCNet,
     SoftmaxNet,
 )
 from kale.utils.seed import set_seed
@@ -65,29 +64,3 @@ def test_domainnet_shapes(model, bigger_discrim):
     model.eval()
     output_batch = model(INPUT_BATCH)
     assert output_batch.size() == (BATCH_SIZE, 2)
-
-
-def test_fcnet_forward():
-    dims = [64, 128, 64]
-    batch_size = 32
-
-    # Initialize FCNet model
-    model = FCNet(dims, dropout=1)
-
-    # Create mock input
-    input_data = torch.randn(batch_size, dims[0])
-
-    # Forward pass through the model
-    output = model(input_data)
-
-    # Check output types and shape
-    assert isinstance(output, torch.Tensor), "Output should be a tensor"
-    assert output.shape == torch.Size([batch_size, dims[-1]]), "Output shape should match batch size and last dim"
-
-
-def test_fcnet_minimal_inputs():
-    # FCNet
-    model = FCNet([1, 1])
-    inp = torch.randn(2, 1)
-    out = model(inp)
-    assert out.shape == (2, 1)

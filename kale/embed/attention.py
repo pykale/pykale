@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.weight_norm import weight_norm
 
-from kale.predict.class_domain_nets import FCNet
+from kale.embed.nn import FCNet
 
 
 class PositionalEncoding(nn.Module):
