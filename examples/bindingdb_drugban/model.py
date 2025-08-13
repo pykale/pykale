@@ -1,22 +1,19 @@
 import os
-import sys
 
 import pandas as pd
 from torch.utils.data import DataLoader
 
-from kale.embed.ban import DrugBAN
+from kale.embed.model_lib.drugban import BCNConfig, DecoderConfig, DrugBAN, DrugConfig, FullConfig, ProteinConfig
 from kale.loaddata.molecular_datasets import DTIDataset
+from kale.loaddata.sampler import MultiDataLoader
 from kale.pipeline.drugban_trainer import DrugbanTrainer
 
-sys.path.append("../../../pykale/")
-from kale.loaddata.sampler import MultiDataLoader
 
-
-def get_dataset(dataFolder, da_task, **kwargs):
+def get_dataset(data_folder, da_task):
     if not da_task:
-        df_train = pd.read_csv(os.path.join(dataFolder, "train.csv"))
-        df_val = pd.read_csv(os.path.join(dataFolder, "val.csv"))
-        df_test = pd.read_csv(os.path.join(dataFolder, "test.csv"))
+        df_train = pd.read_csv(os.path.join(data_folder, "train.csv"))
+        df_val = pd.read_csv(os.path.join(data_folder, "val.csv"))
+        df_test = pd.read_csv(os.path.join(data_folder, "test.csv"))
 
         train_dataset = DTIDataset(df_train.index.values, df_train)
         valid_dataset = DTIDataset(df_val.index.values, df_val)
@@ -25,9 +22,9 @@ def get_dataset(dataFolder, da_task, **kwargs):
         return train_dataset, valid_dataset, test_dataset
 
     else:
-        df_train_source = pd.read_csv(os.path.join(dataFolder, "source_train.csv"))
-        df_train_target = pd.read_csv(os.path.join(dataFolder, "target_train.csv"))
-        df_test_target = pd.read_csv(os.path.join(dataFolder, "target_test.csv"))
+        df_train_source = pd.read_csv(os.path.join(data_folder, "source_train.csv"))
+        df_train_target = pd.read_csv(os.path.join(data_folder, "target_train.csv"))
+        df_test_target = pd.read_csv(os.path.join(data_folder, "target_test.csv"))
 
         train_source_dataset = DTIDataset(df_train_source.index.values, df_train_source)
         train_target_dataset = DTIDataset(df_train_target.index.values, df_train_target)
@@ -36,7 +33,7 @@ def get_dataset(dataFolder, da_task, **kwargs):
         return train_source_dataset, train_target_dataset, test_target_dataset
 
 
-def get_dataloader(*datasets, batchsize, num_workers, collate_fn, is_da, da_task, **kwargs):
+def get_dataloader(*datasets, batchsize, num_workers, collate_fn, is_da, da_task):
     params = {
         "batch_size": batchsize,
         "shuffle": True,
@@ -82,8 +79,9 @@ def get_dataloader(*datasets, batchsize, num_workers, collate_fn, is_da, da_task
 
 
 def get_model(config, **kwargs):
+    model_config = parse_config(config)
     return DrugbanTrainer(
-        model=DrugBAN(**config),
+        model=DrugBAN(model_config),
         solver_lr=config.SOLVER.LEARNING_RATE,
         num_classes=config.DECODER.BINARY,
         batch_size=config.SOLVER.BATCH_SIZE,
@@ -102,9 +100,10 @@ def get_model(config, **kwargs):
 
 
 def get_model_from_ckpt(ckpt_path, config):
+    model_config = parse_config(config)
     return DrugbanTrainer.load_from_checkpoint(
         checkpoint_path=ckpt_path,
-        model=DrugBAN(**config),
+        model=DrugBAN(model_config),
         solver_lr=config.SOLVER.LEARNING_RATE,
         num_classes=config.DECODER.BINARY,
         batch_size=config.SOLVER.BATCH_SIZE,
@@ -122,8 +121,8 @@ def get_model_from_ckpt(ckpt_path, config):
     )
 
 
-def get_test_dataset(dataFolder):
-    df_test_target = pd.read_csv(dataFolder)
+def get_test_dataset(data_folder):
+    df_test_target = pd.read_csv(data_folder)
     test_target_dataset = DTIDataset(df_test_target.index.values, df_test_target)
     return test_target_dataset
 
@@ -133,3 +132,12 @@ def get_test_dataloader(dataset, batchsize, num_workers, collate_fn):
         dataset, batch_size=batchsize, num_workers=num_workers, collate_fn=collate_fn, shuffle=False, drop_last=True
     )
     return test_dataloader
+
+
+def parse_config(raw_config: dict) -> FullConfig:
+    return FullConfig(
+        DRUG=DrugConfig(**raw_config["DRUG"]),
+        PROTEIN=ProteinConfig(**raw_config["PROTEIN"]),
+        DECODER=DecoderConfig(**raw_config["DECODER"]),
+        BCN=BCNConfig(**raw_config["BCN"]),
+    )

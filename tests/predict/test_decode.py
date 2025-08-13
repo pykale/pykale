@@ -22,13 +22,17 @@ def test_mlp_decoder():
         in_dim=in_dim,
         hidden_dim=hidden_dim,
         out_dim=out_dim,
+        binary=1,
         dropout_rate=dropout_rate,
-        include_decoder_layers=include_decoder_layers,
+        use_deep_layers=include_decoder_layers,
+        use_batchnorm=True,
     )
-    assert mlp_decoder.fc1.weight.size() == (hidden_dim, in_dim)
-    assert mlp_decoder.fc2.weight.size() == (hidden_dim, hidden_dim)
-    assert mlp_decoder.fc3.weight.size() == (out_dim, hidden_dim)
-    assert mlp_decoder.fc4.weight.size() == (1, out_dim)
+
+    layer_types = [type(layer) for layer in mlp_decoder.model]
+    assert layer_types.count(nn.Linear) == 4  # 3 hidden + 1 final
+    assert isinstance(mlp_decoder.model[-1], nn.Linear)
+    assert mlp_decoder.model[-1].out_features == 1  # Binary classification
+
     input_batch = torch.randn((16, in_dim))
     output = mlp_decoder(input_batch)
     assert output.size() == (16, 1)
@@ -40,16 +44,21 @@ def test_mlp_decoder():
         in_dim=in_dim,
         hidden_dim=hidden_dim,
         out_dim=out_dim,
+        binary=2,
         dropout_rate=dropout_rate,
-        include_decoder_layers=include_decoder_layers,
+        use_deep_layers=include_decoder_layers,
     )
-    assert mlp_decoder.fc1.weight.size() == (hidden_dim, in_dim)
-    assert mlp_decoder.fc2.weight.size() == (out_dim, hidden_dim)
-    assert not hasattr(mlp_decoder, "fc3")  # There should be no fc3 layer
-    assert not hasattr(mlp_decoder, "fc4")  # There should be no fc4 layer
+
+    # Check structure
+    layer_types = [type(layer) for layer in mlp_decoder.model]
+    assert layer_types.count(nn.Linear) == 3  # 2 hidden + 1 final
+    assert isinstance(mlp_decoder.model[-1], nn.Linear)
+    assert mlp_decoder.model[-1].out_features == out_dim
+
+    # Run forward
     input_batch = torch.randn((16, in_dim))
     output = mlp_decoder(input_batch)
-    assert output.size() == (16, out_dim)
+    assert output.shape == (16, out_dim)
 
 
 def test_linear_classifier_shape():
@@ -207,3 +216,33 @@ def test_multimodal_classifier_forward():
     labels = torch.randint(0, num_classes, (batch_size,))
     loss = nn.CrossEntropyLoss()(logits, labels)
     loss.backward()
+
+
+def test_mlp_decoder_forward():
+    in_dim = 64
+    hidden_dim = 32
+    out_dim = 16
+    batch_size = 64
+
+    # Initialize MLPDecoder model
+    model = MLPDecoder(in_dim, hidden_dim, out_dim)
+
+    # Create a mock input
+    input_data = torch.randn(batch_size, in_dim)
+
+    # Forward pass through the model
+    output = model(input_data)
+
+    # Check output types and shape
+    assert isinstance(output, torch.Tensor), "Output should be a tensor"
+    assert output.shape[0] == batch_size, "Output batch size should match input batch size"
+    assert output.shape[1] == 1, "Output should have one dimension for binary classification"
+
+
+def test_mlp_decoder_minimal_inputs():
+    # MLPDecoder
+    model = MLPDecoder(1, 1, 1)
+    model.eval()
+    inp = torch.randn(2, 1)
+    out = model(inp)
+    assert out.shape[0] == 2
