@@ -13,36 +13,32 @@ Paper link: https://arxiv.org/abs/2203.02351
 
 import argparse
 import os
-import warnings
 
 import numpy as np
-import pandas as pd
 import seaborn as sns
 from config import get_cfg_defaults
-from pandas import *
 
 import kale.utils.logger as logging
 from kale.embed.uncertainty_fitting import fit_and_predict
 from kale.interpret.uncertainty_quantiles import generate_fig_comparing_bins, generate_fig_individual_bin_comparison
 from kale.utils.download import download_file_by_url
 
-warnings.filterwarnings("error")
-
 
 def arg_parse():
-    """Parsing arguments"""
+    """
+    Parse command-line arguments.
+
+    Example:
+        Default settings:
+            python main.py
+
+        With custom config:
+            python main.py --cfg ../configs/isbi_config.yaml
+    """
     parser = argparse.ArgumentParser(description="Quantile Binning for landmark uncertainty estimation.")
     parser.add_argument("--cfg", required=False, help="path to config file", type=str)
 
     args = parser.parse_args()
-
-    """Example:
-    python main.py
-
-    To use a custom config, or a config file provided in the configs folder:
-    python main.py --cfg ../configs/isbi_config.yaml
-
-    """
     return args
 
 
@@ -63,8 +59,8 @@ def main():
     # ---- setup dataset ----
     base_dir = cfg.DATASET.BASE_DIR
 
-    # download data if neccesary
-    if cfg.DATASET.SOURCE != None:
+    # download data if Dataset source is provided
+    if cfg.DATASET.SOURCE is not None:
         logger.info("Downloading data...")
         data_file_name = "%s.%s" % (base_dir, cfg.DATASET.FILE_FORMAT)
         download_file_by_url(
@@ -124,16 +120,16 @@ def main():
                 for landmark in landmarks:
                     # Define Paths for this loop
                     landmark_results_path_val = os.path.join(
-                        cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
+                        cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_val + "_t" + str(landmark)
                     )
                     landmark_results_path_test = os.path.join(
-                        cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
+                        cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_test + "_t" + str(landmark)
                     )
 
-                    fitted_save_at = os.path.join(save_folder, "fitted_quantile_binning", model, dataset)
+                    output_dir = os.path.join(save_folder, "fitted_quantile_binning", model, dataset)
                     os.makedirs(save_folder, exist_ok=True)
 
-                    uncert_boundaries, estimated_errors, predicted_bins = fit_and_predict(
+                    fit_and_predict(
                         landmark,
                         all_uncert_error_pairs_to_compare,
                         landmark_results_path_val,
@@ -141,7 +137,7 @@ def main():
                         num_bins,
                         cfg,
                         groundtruth_test_errors=gt_test_error_available,
-                        save_folder=fitted_save_at,
+                        save_folder=output_dir,
                     )
 
         ############ Evaluation Phase ##########################
@@ -175,12 +171,12 @@ def main():
                         cmaps,
                         os.path.join(save_folder, "fitted_quantile_binning"),
                         save_file_preamble,
-                        cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
-                        cfg["OUTPUT"]["SAVE_FIGURES"],
-                        cfg["DATASET"]["CONFIDENCE_INVERT"],
-                        cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                        cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                        cfg["BOXPLOT"]["ERROR_LIM"],
+                        cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+                        cfg.OUTPUT.SAVE_FIGURES,
+                        cfg.DATASET.CONFIDENCE_INVERT,
+                        cfg.BOXPLOT.SAMPLES_AS_DOTS,
+                        cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
+                        cfg.BOXPLOT.ERROR_LIM,
                         show_individual_landmark_plots,
                         interpret,
                         num_folds,
@@ -211,7 +207,7 @@ def main():
                             ]
                         )
 
-                        all_fitted_save_paths = [
+                        quantile_binning_dirs = [
                             os.path.join(cfg.OUTPUT.OUT_DIR, dataset, str(x_bins) + "Bins", "fitted_quantile_binning")
                             for x_bins in cfg.PIPELINE.NUM_QUANTILE_BINS
                         ]
@@ -232,14 +228,14 @@ def main():
                                 landmarks,
                                 cfg.PIPELINE.NUM_QUANTILE_BINS,
                                 cmaps,
-                                all_fitted_save_paths,
+                                quantile_binning_dirs,
                                 save_folder_comparison,
                                 save_file_preamble,
-                                cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
-                                cfg["OUTPUT"]["SAVE_FIGURES"],
-                                cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                                cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                                cfg["BOXPLOT"]["ERROR_LIM"],
+                                cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+                                cfg.OUTPUT.SAVE_FIGURES,
+                                cfg.BOXPLOT.SAMPLES_AS_DOTS,
+                                cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
+                                cfg.BOXPLOT.ERROR_LIM,
                                 show_individual_landmark_plots,
                                 interpret,
                                 num_folds,

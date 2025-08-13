@@ -163,10 +163,12 @@ class GripNetLinkPrediction(pl.LightningModule):
             pos_score_this_type, neg_score_this_type = pos_score[start:end], neg_score[start:end]
 
             score = torch.cat([pos_score_this_type, neg_score_this_type])
-            target = torch.cat([torch.ones(pos_score_this_type.shape[0]), torch.zeros(neg_score_this_type.shape[0])])
+            target = torch.cat(
+                [torch.ones(pos_score_this_type.shape[0]), torch.zeros(neg_score_this_type.shape[0])]
+            ).to(dtype=torch.int)
 
             record.append(list(auprc_auroc_ap(target, score)))
-        auprc, auroc, ave_precision = np.array(record).mean(axis=0)
+        auprc, auroc, ave_precision = torch.tensor(record).mean(axis=0)
 
         return loss, auprc, auroc, ave_precision
 
