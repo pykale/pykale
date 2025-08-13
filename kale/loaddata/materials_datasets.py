@@ -8,8 +8,8 @@ from pymatgen.core import Structure
 from torch.utils.data import Dataset
 from torch_geometric.data import Data, Batch
 
-from move_to_kale.prepdata.materials_transform import GaussianDistance
-from move_to_kale.prepdata.materials_features import AtomCustomJSONInitializer
+from kale.evaluate.metrics import GaussianDistance
+from kale.prepdata.materials_features import AtomCustomJSONInitializer
 
 
 class CIFData(Dataset):

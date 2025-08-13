@@ -6,7 +6,7 @@ SOLVER:
   NUM_RUNS: 1
   NUM_FOLDS: 10
   RANDOMIZE: True
-  TASK: "regression"  # Choices: ['regression', 'classification']
+  # TASK: "regression"  # Choices: ['regression', 'classification']
   DISABLE_CUDA: False
   WORKERS: 4
   START_EPOCH: 0
@@ -40,6 +40,6 @@ LOGGING:
   LOG_DIR_NAME: "cartnet"
 
 DATASET:
-  TRAIN: 'data/fine_tune/train_data.json'
+  TRAIN: 'data/fine_tune/test_data.json'
   VAL: 'data/fine_tune/test_data.json'
   # RATIO: 0.5

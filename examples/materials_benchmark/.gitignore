@@ -5,3 +5,4 @@ __pycache__/
 wandb/
 saved_models/
 cif_file/
+leave_one_material_out/

@@ -19,13 +19,13 @@ from torch.utils.data import DataLoader
 from sklearn.utils import shuffle
 import random
 
-from move_to_kale.prepdata.materials_features import extract_features
-from models.model import get_model
-from move_to_kale.loaddata.materials_datasets import CIFData
+from kale.prepdata.materials_features import extract_features
+from model import get_model
+from kale.loaddata.materials_datasets import CIFData
 # from loaddata.collate import collate_pool_leftnet
 # from models.leftnet.model_leftnet import get_leftnet_model
 # from models.cartnet.model_cartnet import get_cartnet_model
-from move_to_kale.evaluate.metrics import mean_relative_error
+from kale.evaluate.metrics import mean_relative_error
 from config import get_cfg_defaults
 
 
@@ -91,29 +91,6 @@ def set_random_seed(seed):
         torch.cuda.manual_seed_all(seed)
 
 
-# def get_model(cfg):
-#     if cfg.MODEL.NAME == "cgcnn":
-#         return get_cgcnn_model(cfg)
-#     elif cfg.MODEL.NAME == "leftnet":
-#         return get_leftnet_model(cfg)
-#     elif cfg.MODEL.NAME == "cartnet":
-#         return get_cartnet_model(cfg)
-#     else:
-#         raise ValueError(f"Unknown model name: {cfg.MODEL.NAME}")
-
-
-# def load_pretrained_model(model, pretrained_model_path):
-#     if os.path.exists(pretrained_model_path):
-#         print(f"Loading pretrained model from {pretrained_model_path}...")
-#         checkpoint = torch.load(pretrained_model_path)
-#         if 'state_dict' in checkpoint:
-#             model.load_state_dict(checkpoint['state_dict'])
-#         else:
-#             model.load_state_dict(checkpoint)
-#     else:
-#         print("No pretrained model found. Training a new model...")
-#     return model
-
 def load_pretrained_model(model, path):
     if not os.path.isfile(path):
         print(f"=> no checkpoint found at '{path}'")
@@ -123,7 +100,6 @@ def load_pretrained_model(model, path):
     checkpoint = torch.load(path, map_location="cpu")
     state_dict = checkpoint["state_dict"]
 
-    # 兼容旧版本 key: 把 model. 改成 model.feature_extractor.
     new_state_dict = {}
     for k, v in state_dict.items():
         if k.startswith("model.") and not k.startswith("model.feature_extractor."):
@@ -247,7 +223,7 @@ def main():
     # ---- setup configs ----
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
-    # cfg.freeze()
+    cfg.freeze()
 
     # Set random seed for reproducibility
     set_random_seed(cfg.SOLVER.SEED)
@@ -266,12 +242,6 @@ def main():
 
         # Extract feature dimensions
         structures = train_dataset[0]
-        # cfg.defrost()
-        # cfg.GRAPH.ORIG_ATOM_FEA_LEN = structures.x.shape[-1]
-        # cfg.GRAPH.NBR_FEA_LEN = structures.edge_attr.shape[-1]
-        # cfg.GRAPH.POS_FEA_LEN = structures.pos.shape[-1]
-        # # cfg.GRAPH.ATOM_FEA_DIM = structures.x.shape[-1]
-        # cfg.freeze()
 
         structures = train_dataset[0]
         atom_fea_len, nbr_fea_len, pos_fea_len = structures.x.shape[-1], structures.edge_attr.shape[-1], structures.pos.shape[-1]
@@ -310,12 +280,6 @@ def main():
 
             # Prepare datasets and loaders
             train_loader, val_loader, train_dataset = prepare_datasets(cfg, train_fold, val_fold)
-
-            structures = train_dataset[0]  # for just one of the item in cifs
-            orig_atom_fea_len = structures.x.shape[-1]
-            nbr_fea_len = structures.edge_attr.shape[-1]
-            pos_fea_len = structures.pos.shape[-1]  
-            max_neighbours = structures.max_nbrs
 
 
             structures = train_dataset[0]

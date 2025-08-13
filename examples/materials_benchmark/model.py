@@ -3,12 +3,12 @@ from copy import deepcopy
 
 import torch
 
-from models.CGCNN import CrystalGraphConvNet
-from .leftnet import LEFTNetZ, LEFTNetProp
+from kale.embed.gcn import CrystalGraphConvNet
+from kale.embed.gcn import LEFTNetZ, LEFTNetProp
 
-from .CartNet import CartNet
+from kale.embed.gcn import CartNet
 
-from move_to_kale.pipeline.materials_trainer import MaterialsTrainer
+from kale.pipeline.base_nn_trainer import RegressionTrainer
 
 
 
@@ -46,7 +46,6 @@ def get_config(cfg, atom_fea_len, nbr_fea_len, pos_fea_len):
             "n_conv": cfg.CGCNN.N_CONV,
             "h_fea_len": cfg.CGCNN.H_FEA_LEN,
             "n_h": cfg.CGCNN.N_H,
-            "classification": (cfg.SOLVER.TASK == "classification"),
             "feature_fusion": cfg.CGCNN.FEATURE_FUSION,
             # "layer_freeze": cfg.CGCNN.LAYER_FREEZE,  # add back if your builder uses it
         }
@@ -65,8 +64,7 @@ def get_config(cfg, atom_fea_len, nbr_fea_len, pos_fea_len):
             "otf_graph": cfg.LEFTNET.OTF_GRAPH,
             "output_dim": cfg.LEFTNET.OUTPUT_DIM,
             "encoding": cfg.LEFTNET.ENCODING,  # ['one-hot', 'none']
-            # "classification": (cfg.SOLVER.TASK == "classification"),
-            # "layer_freeze": cfg.LEFTNET.LAYER_FREEZE,
+        
         }
 
     elif name == "cartnet":
@@ -103,10 +101,9 @@ def build_cgcnn(train_params, model_params):
         atom_fea_len=model_params["atom_fea_len"],
         n_conv=model_params["n_conv"],
         h_fea_len=model_params["h_fea_len"],
-        n_h=model_params["n_h"],
-        classification=model_params["classification"]
+        n_h=model_params["n_h"]
     )
-    return MaterialsTrainer(feature_extractor=model, **train_params)
+    return RegressionTrainer(feature_extractor=model, **train_params)
 
 def build_leftnet(train_params, model_params):
     encoding = model_params.get("encoding", "none")
@@ -128,12 +125,12 @@ def build_leftnet(train_params, model_params):
     else:
         raise ValueError(f"Unsupported LEFTNet encoding: {encoding}")
 
-    return MaterialsTrainer(feature_extractor=model, **train_params)
+    return RegressionTrainer(feature_extractor=model, **train_params)
 
 def build_cartnet(train_params, model_params):
 
     model = CartNet(**model_params)
-    return MaterialsTrainer(feature_extractor=model, **train_params)
+    return RegressionTrainer(feature_extractor=model, **train_params)
 
 def get_model(cfg, atom_fea_len, nbr_fea_len, pos_fea_len):
     """
