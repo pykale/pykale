@@ -113,50 +113,50 @@ kale.embed.uncertainty\_fitting module
    :show-inheritance:
    :exclude-members:
 
-kale.embed.video.video\_feature\_extractor module
+kale.embed.video.feature\_extractor module
 -------------------------------------------
 
-.. automodule:: kale.embed.video.video_feature_extractor
+.. automodule:: kale.embed.video.feature_extractor
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video.video\_i3d module
+kale.embed.video.i3d module
 ----------------------------
 
-.. automodule:: kale.embed.video.video_i3d
+.. automodule:: kale.embed.video.i3d
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video.video\_res3d module
+kale.embed.video.res3d module
 ------------------------------
 
-.. automodule:: kale.embed.video.video_res3d
+.. automodule:: kale.embed.video.res3d
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video.video\_se\_i3d module
+kale.embed.video.se\_i3d module
 --------------------------------
 
-.. automodule:: kale.embed.video.video_se_i3d
+.. automodule:: kale.embed.video.se_i3d
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video.video\_se\_res3d module
+kale.embed.video.se\_res3d module
 ----------------------------------
 
-.. automodule:: kale.embed.video.video_se_res3d
+.. automodule:: kale.embed.video.se_res3d
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video.video\_selayer module
+kale.embed.video.selayer module
 --------------------------------
 
-.. automodule:: kale.embed.video.video_selayer
+.. automodule:: kale.embed.video.selayer
    :members:
    :undoc-members:
    :show-inheritance:

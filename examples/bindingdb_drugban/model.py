@@ -121,8 +121,8 @@ def get_model_from_ckpt(ckpt_path, config):
     )
 
 
-def get_test_dataset(data_path):
-    df_test_target = pd.read_csv(data_path)
+def get_test_dataset(data_folder):
+    df_test_target = pd.read_csv(data_folder)
     test_target_dataset = DTIDataset(df_test_target.index.values, df_test_target)
     return test_target_dataset
 
