@@ -461,7 +461,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
     bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = generate_struct_for_qbin(
         models_to_compare, target_indices, save_folder, dataset
     )
-    hatch = display_settings["hatch"]
+    hatch = display_settings.get("hatch", "")
     # Get mean errors bin-wise, get all errors concatenated together bin-wise, and seperate by target.
     all_error_data_dict = get_mean_errors(
         bins_all_targets,

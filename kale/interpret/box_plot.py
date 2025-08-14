@@ -23,7 +23,7 @@ Factory Functions:
 """
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -254,7 +254,10 @@ def create_boxplot_config(**kwargs: Any) -> BoxPlotConfig:
         TypeError: If parameter types don't match expected formats.
         ValueError: If parameter values are outside valid ranges.
     """
-    return BoxPlotConfig(**kwargs)
+    # Only pass kwargs that match BoxPlotConfig fields
+    boxplotconfig_field_names = {f.name for f in fields(BoxPlotConfig)}
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k in boxplotconfig_field_names}
+    return BoxPlotConfig(**filtered_kwargs)
 
 
 def create_boxplot_data(
@@ -332,13 +335,16 @@ def create_boxplot_data(
         TypeError: If data types don't match expected formats.
         KeyError: If required data keys are missing.
     """
+    # Only pass kwargs that match BoxPlotData fields
+    boxplotdata_field_names = {f.name for f in fields(BoxPlotData)}
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k in boxplotdata_field_names}
     return BoxPlotData(
         evaluation_data_by_bins=evaluation_data_by_bins,
         uncertainty_categories=uncertainty_categories,
         models=models,
         category_labels=category_labels,
         num_bins=num_bins,
-        **kwargs,
+        **filtered_kwargs,
     )
 
 
