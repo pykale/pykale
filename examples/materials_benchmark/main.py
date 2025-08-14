@@ -244,7 +244,7 @@ def main():
         structures = train_dataset[0]
 
         structures = train_dataset[0]
-        atom_fea_len, nbr_fea_len, pos_fea_len = structures.x.shape[-1], structures.edge_attr.shape[-1], structures.pos.shape[-1]
+        atom_fea_len, nbr_fea_len, pos_fea_len = structures.atom_fea.shape[-1], structures.nbr_fea.shape[-1], structures.positions.shape[-1]
 
         # Setup model and trainer
         model = get_model(cfg, atom_fea_len, nbr_fea_len, pos_fea_len)

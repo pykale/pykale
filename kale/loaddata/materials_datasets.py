@@ -2,6 +2,7 @@ import json
 import os
 import warnings
 
+from types import SimpleNamespace
 import torch
 import numpy as np
 from pymatgen.core import Structure
@@ -13,28 +14,6 @@ from kale.prepdata.materials_features import AtomCustomJSONInitializer
 
 
 class CIFData(Dataset):
-    """
-    Dataset class for loading and processing crystal structures from CIF files.
-
-    Each item corresponds to a single crystal graph, parsed from a CIF file and
-    transformed into atom-level and neighbor-level features for use in 
-    crystal graph neural networks.
-
-    Args:
-        mpids_bg (pd.DataFrame): DataFrame containing columns ['mpids', 'bg'] with IDs and target values.
-        cif_folder (str): Path to directory containing .cif files.
-        init_file (str): Path to JSON file defining atomic feature vectors.
-        max_nbrs (int): Maximum number of neighbors per atom.
-        radius (float): Cutoff radius for constructing neighbor graphs.
-        randomize (bool): Whether to shuffle the dataset order.
-        dmin (float): Minimum distance for Gaussian basis expansion.
-        step (float): Step size for the Gaussian distance expansion.
-    
-    Returns:
-        CIFDataItem: An object containing atom features, neighbor features, 
-                     atomic positions, atomic numbers, target value, and cif ID.
-
-    """
 
     def __init__(self, mpids_bg, cif_folder, init_file, max_nbrs, radius, randomize, dmin=0, step=0.2):
 
@@ -52,6 +31,46 @@ class CIFData(Dataset):
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
 
+    @staticmethod
+    def collate_fn(data_list):
+        batch_atom_fea, batch_nbr_fea, batch_nbr_fea_idx = [], [], []
+        batch_positions, batch_atom_num = [], []
+        crystal_atom_idx, batch_target = [], []
+        batch_cif_ids = []
+        batch_atom_indices = []
+        base_idx = 0
+
+        for i, data_item in enumerate(data_list):
+            n_i = data_item.atom_fea.shape[0]  # number of atoms in this crystal
+
+            # append features
+            batch_atom_fea.append(data_item.atom_fea)
+            batch_nbr_fea.append(data_item.nbr_fea)
+            batch_nbr_fea_idx.append(data_item.nbr_fea_idx + base_idx)
+            batch_positions.append(data_item.positions)
+            batch_atom_num.append(data_item.atom_num)
+
+            # index mappings
+            crystal_atom_idx.append(torch.arange(n_i, device=data_item.atom_fea.device) + base_idx)
+            batch_target.append(data_item.target)
+            batch_cif_ids.append(data_item.cif_id)
+            batch_atom_indices.append(torch.full((n_i,), i, dtype=torch.long, device=data_item.atom_fea.device))
+
+            base_idx += n_i
+
+        return SimpleNamespace(
+                    atom_fea=torch.cat(batch_atom_fea),
+                    nbr_fea=torch.cat(batch_nbr_fea),
+                    nbr_fea_idx=torch.cat(batch_nbr_fea_idx),
+                    positions=torch.cat(batch_positions),
+                    atom_num=torch.cat(batch_atom_num),
+                    crystal_atom_idx=crystal_atom_idx,
+                    target=torch.stack(batch_target),
+                    cif_ids=batch_cif_ids,
+                    batch_idx=torch.cat(batch_atom_indices),
+                    batch_size=len(batch_cif_ids)
+                )
+
     def __len__(self):
         return len(self.mpids_bg_dataset)
 
@@ -59,11 +78,12 @@ class CIFData(Dataset):
     def __getitem__(self, idx):
 
         cif_id, target_np = self.mpids_bg_dataset[idx]
-        crystal = Structure.from_file(os.path.join(self.cif_folder,
-                                                   cif_id + '.cif'))
-        atom_fea_np = np.vstack([self.ari.get_atom_fea(crystal[i].specie.number)
-                                 for i in range(len(crystal))])
-        atom_fea = torch.Tensor(atom_fea_np)
+        crystal = Structure.from_file(os.path.join(self.cif_folder, cif_id + '.cif'))
+
+        atom_fea = torch.tensor(
+                        np.vstack([self.ari.get_atom_fea(z) for z in Z]), dtype=torch.float32
+                    )
+
         target = torch.Tensor([float(target_np)])
         positions = torch.Tensor(crystal.cart_coords)
         atom_num = torch.Tensor(crystal.atomic_numbers).long()
@@ -93,35 +113,28 @@ class CIFData(Dataset):
         nbr_fea = torch.Tensor(nbr_fea_gp)
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
 
-        # Reshape neighbor info into edge_index / edge_attr
-        src_nodes = torch.arange(atom_fea.shape[0]).repeat_interleave(self.max_num_nbr)
-        dst_nodes = nbr_fea_idx.view(-1)
-        edge_index = torch.stack([src_nodes, dst_nodes], dim=0)    # [2, E]
-        edge_attr = nbr_fea.view(-1, nbr_fea.shape[-1])      # [E, edge_feat_dim]
-        max_nbrs = nbr_fea_idx.shape[-1]
+        return CIFDataItem(atom_fea, nbr_fea, nbr_fea_idx, positions, atom_num, target, cif_id)
+    
 
-        return Data(
-        x=atom_fea,
-        edge_index=edge_index,
-        edge_attr=edge_attr,
-        pos=positions,
-        y=target,
-        cif_id=cif_id,
-        atom_num=atom_num,
-        max_nbrs=max_nbrs,
-        )
+class CIFDataItem:
+    def __init__(self, atom_fea, nbr_fea, nbr_fea_idx, positions, atom_num, target, cif_id):
+        self.atom_fea = atom_fea
+        self.nbr_fea = nbr_fea
+        self.nbr_fea_idx = nbr_fea_idx
+        self.positions = positions
+        self.atom_num = atom_num
+        self.target = target
+        self.cif_id = cif_id
+
+    def to_dict(self):
+        return {
+            "atom_fea": self.atom_fea,
+            "nbr_fea": self.nbr_fea,
+            "nbr_fea_idx": self.nbr_fea_idx,
+            "positions": self.positions,
+            "atom_num": self.atom_num,
+            "target": self.target,
+            "cif_id": self.cif_id
+        }
             
-    @staticmethod
-    def collate_fn(data_list):
-        """
-        Collate function for PyTorch Geometric DataLoader.
-
-        Batches a list of `torch_geometric.data.Data` objects into a single `Batch`.
-
-        Args:
-            data_list (List[Data]): List of PyG Data objects (e.g., one per crystal)
-
-        Returns:
-            Batch: A PyG Batch object containing all the fields (x, edge_index, y, etc.)
-        """
-        return Batch.from_data_list(data_list)
+    

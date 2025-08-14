@@ -317,7 +317,7 @@ class RegressionTrainer(BaseNNTrainer):
         # Extract only the first item.
         output = results[0]
 
-        target = batch.y.to(self.device)
+        target = batch.target.to(self.device)
         l1_loss = nn.L1Loss()
         loss = nn.MSELoss()(output, target)
         mae = l1_loss(output, target)

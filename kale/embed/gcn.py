@@ -329,45 +329,34 @@ class MolecularGCN(nn.Module):
         return x
 
 
-class CGCNNConv(MessagePassing):
-    """ 
-    Crystal Graph Convolutional Network (CGCNN) convolution layer.
-
-    Args:
-        atom_fea_len (int): Length of the atom feature vector.
-        nbr_fea_len (int): Length of the neighbor feature vector.
+class ConvLayer(nn.Module):
+    """
+    Convolutional operation on graphs
     """
     def __init__(self, atom_fea_len, nbr_fea_len):
-        super().__init__(aggr='add')  
-        self.atom_fea_len = atom_fea_len
-        self.fc_full = Linear(2 * atom_fea_len + nbr_fea_len, 2 * atom_fea_len)
-        self.bn1 = BatchNorm1d(2 * atom_fea_len)
-        self.bn2 = BatchNorm1d(atom_fea_len)
-        self.sigmoid = Sigmoid()
-        self.softplus1 = Softplus()
-        self.softplus2 = Softplus()
+        super(ConvLayer, self).__init__()
+        self.fc_full = nn.Linear(2 * atom_fea_len + nbr_fea_len, 2 * atom_fea_len)
+        self.sigmoid = nn.Sigmoid()
+        self.softplus1 = nn.Softplus()
+        self.bn1 = nn.BatchNorm1d(2 * atom_fea_len)
+        self.bn2 = nn.BatchNorm1d(atom_fea_len)
+        self.softplus2 = nn.Softplus()
 
-    def forward(self, x, edge_index, edge_attr):
-        # x: [N, atom_fea_len]
-        # edge_index: [2, E]
-        # edge_attr: [E, nbr_fea_len]
-        return self.propagate(edge_index, x=x, edge_attr=edge_attr)
-
-    def message(self, x_i, x_j, edge_attr):
-        # x_i: [E, atom_fea_len] 
-        # x_j: [E, atom_fea_len] 
-        # edge_attr: [E, nbr_fea_len]
-        total = torch.cat([x_i, x_j, edge_attr], dim=-1)  # [E, 2*atom_fea_len + nbr_fea_len]
-        total = self.fc_full(total)  # [E, 2*atom_fea_len]
-        total = self.bn1(total)
-        filter_, core = total.chunk(2, dim=-1)
-        filter_ = self.sigmoid(filter_)
-        core = self.softplus1(core)
-        return filter_ * core
-
-    def update(self, aggr_out, x):
-        out = self.bn2(aggr_out)
-        return self.softplus2(x + out)
+    def forward(self, atom_in_fea, nbr_fea, nbr_fea_idx):
+        N, M = nbr_fea_idx.shape
+        atom_nbr_fea = atom_in_fea[nbr_fea_idx, :]
+        total_nbr_fea = torch.cat(
+            [atom_in_fea.unsqueeze(1).expand(N, M, -1), atom_nbr_fea, nbr_fea], dim=2
+        )
+        total_gated_fea = self.fc_full(total_nbr_fea)
+        total_gated_fea = self.bn1(total_gated_fea.view(-1, total_gated_fea.shape[-1])).view(N, M, -1)
+        nbr_filter, nbr_core = total_gated_fea.chunk(2, dim=2)
+        nbr_filter = self.sigmoid(nbr_filter)
+        nbr_core = self.softplus1(nbr_core)
+        nbr_sumed = torch.sum(nbr_filter * nbr_core, dim=1)
+        nbr_sumed = self.bn2(nbr_sumed)
+        out = self.softplus2(atom_in_fea + nbr_sumed)
+        return out
     
 class CrystalGraphConvNet(nn.Module):
     """
@@ -387,13 +376,11 @@ class CrystalGraphConvNet(nn.Module):
         h_fea_len (int, optional): Hidden feature length. Default is 128.
         n_h (int, optional): Number of hidden layers. Default is 1.
     """
-    def __init__(self, orig_atom_fea_len, nbr_fea_len, atom_fea_len=64, n_conv=3, h_fea_len=128, n_h=1):
+    def __init__(self, orig_atom_fea_len, nbr_fea_len, atom_fea_len=64, n_conv=3, h_fea_len=128, n_h=1, classification=False):
         super(CrystalGraphConvNet, self).__init__()
-   
+        self.classification = classification
         self.embedding = nn.Linear(orig_atom_fea_len, atom_fea_len)
-        self.convs = nn.ModuleList([
-    CGCNNConv(atom_fea_len=atom_fea_len, nbr_fea_len=nbr_fea_len) for _ in range(n_conv)
-])
+        self.convs = nn.ModuleList([ConvLayer(atom_fea_len=atom_fea_len, nbr_fea_len=nbr_fea_len) for _ in range(n_conv)])
         self.conv_to_fc = nn.Linear(atom_fea_len, h_fea_len)
         self.conv_to_fc_softplus = nn.Softplus()
         if n_h > 1:
@@ -405,30 +392,37 @@ class CrystalGraphConvNet(nn.Module):
             self.dropout = nn.Dropout()
         else:
             self.fc_out = nn.Linear(h_fea_len, 1)
-
     def forward(self, data):
         device = next(self.parameters()).device
-       
-        atom_fea = data.x.to(device)
-      
-        atom_fea = self.embedding(atom_fea)
-        edge_index = data.edge_index.to(device)
-        edge_attr = data.edge_attr.to(device)
+        # atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx
+        atom_fea = data.atom_fea.to(device)
+        nbr_fea = data.nbr_fea.to(device)
+        nbr_fea_idx = data.nbr_fea_idx.to(device)
+        crystal_atom_idx = data.crystal_atom_idx
 
+        atom_fea = self.embedding(atom_fea)
         for conv_func in self.convs:
-            atom_fea = conv_func(atom_fea, edge_index, edge_attr)
+            atom_fea = conv_func(atom_fea, nbr_fea, nbr_fea_idx) # add position information
         # or here posi_fea = fc()
-        crys_fea = global_mean_pool(atom_fea, data.batch)
+        crys_fea = self.pooling(atom_fea, crystal_atom_idx)
         crys_fea = self.conv_to_fc(self.conv_to_fc_softplus(crys_fea))
         crys_fea = self.conv_to_fc_softplus(crys_fea)
-       
+        if self.classification:
+            crys_fea = self.dropout(crys_fea)
         if hasattr(self, 'fcs') and hasattr(self, 'softpluses'):
             for fc, softplus in zip(self.fcs, self.softpluses):
                 crys_fea = softplus(fc(crys_fea))
         out = self.fc_out(crys_fea)
-   
+        if self.classification:
+            out = self.logsoftmax(out)
         return out
-    
+    def pooling(self, atom_fea, crystal_atom_idx):
+        """
+        Pooling the atom features to crystal features
+        """
+        summed_fea = [torch.mean(atom_fea[idx_map], dim=0, keepdim=True) for idx_map in crystal_atom_idx]
+        return torch.cat(summed_fea, dim=0)
+
 
 
 class LEFTNetZ(nn.Module):
@@ -738,7 +732,7 @@ class CartNet(torch.nn.Module):
         atom_types: bool = True):
         super().__init__()
     
-        self.encoder = Encoder(dim_in, dim_rbf=dim_rbf, radius=radius, invariant=invariant, temperature=temperature, atom_types=atom_types)
+        self.encoder = GeometricGraphEncoder(dim_in, dim_rbf=dim_rbf, radius=radius, invariant=invariant, temperature=temperature, atom_types=atom_types)
         self.dim_in = dim_in
 
         layers = []
@@ -768,27 +762,38 @@ class CartNet(torch.nn.Module):
         
         return pred,true
 
-class Encoder(torch.nn.Module):
+class GeometricGraphEncoder(nn.Module):
     """
-    Encoder module for the CartNet model.
-    This module encodes node and edge features for input into the CartNet model, incorporating optional temperature information and rotational invariance.
+    General-purpose geometry-aware graph encoder.
+
+    Builds edges from 3D coordinates using a radius cutoff, encodes node
+    features from categorical types or provided embeddings, and encodes
+    edge features from radial basis functions (RBF) and optional direction
+    vectors. Supports an invariant mode (distance-only edges) and a 
+    directional mode for equivariant message passing.
+
     Args:
-        dim_in (int): Dimension of the input features after embedding.
-        dim_rbf (int): Dimension of the radial basis function used for edge attributes.
-        radius (float, optional): Cutoff radius for neighbor interactions. Defaults to 5.0.
-        invariant (bool, optional): If True, the encoder enforces rotational invariance by excluding directional information from edge attributes. Defaults to False.
-        temperature (bool, optional): If True, includes temperature data in the node embeddings. Defaults to True.
-    Attributes:
-        dim_in (int): Dimension of the input features.
-        invariant (bool): Indicates if rotational invariance is enforced.
-        temperature (bool): Indicates if temperature information is included.
-        embedding (nn.Embedding): Embedding layer mapping atomic numbers to feature vectors.
-        temperature_proj_atom (pyg_nn.Linear): Linear layer projecting temperature to embedding dimensions (used if temperature is True).
-        bias (nn.Parameter): Bias term added to embeddings (used if temperature is False).
-        activation (nn.Module): Activation function (SiLU).
-        encoder_atom (nn.Sequential): Sequential network encoding node features.
-        encoder_edge (nn.Sequential): Sequential network encoding edge features.
-        rbf (ExpNormalSmearing): Radial basis function for encoding distances.
+        dim_in (int): Output dimension of encoded node features.
+        dim_rbf (int): Number of radial basis functions for distance encoding.
+        radius (float): Cutoff distance for neighbor search.
+        invariant (bool): If True, edges use distances only. If False, 
+            append unit direction vectors.
+        temperature (bool): If True, include temperature in node encoding.
+        use_node_type (bool): If True, embed node types (e.g., atomic numbers).
+    
+    Inputs (batch):
+        - `pos` (Tensor [N, 3]): Cartesian coordinates for nodes.
+        - Optional `node_type` (LongTensor [N]): Categorical node IDs (e.g., atomic numbers).
+        - Optional `x` (Tensor [N, F]): Pre-computed node features.
+        - Optional `temperature` (Tensor): Per-node or per-graph temperatures.
+        - `batch` (LongTensor [N]): Graph IDs for each node.
+
+    Outputs:
+        - `x` (Tensor [N, dim_in]): Encoded node features.
+        - `edge_index` (LongTensor [2, E]): Graph connectivity.
+        - `edge_attr` (Tensor [E, Fe]): Encoded edge features.
+        - `cart_dist` (Tensor [E]): Pairwise distances.
+        - `cart_dir` (Tensor [E, 3]): Direction vectors (if invariant=False).
     """
     
     def __init__(
@@ -800,7 +805,7 @@ class Encoder(torch.nn.Module):
         temperature: bool = True,
         atom_types: bool = True
     ):
-        super(Encoder, self).__init__()
+        super(GeometricGraphEncoder, self).__init__()
         self.dim_in = dim_in
         self.dim_rbf = dim_rbf
         self.radius = radius
