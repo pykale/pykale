@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run changelog
-        uses: saadmk11/changelog-ci@v1.1.2
+        uses: saadmk11/changelog-ci@v1.2.0
         with:
           changelog_filename: .github/CHANGELOG.md
           config_file: .github/changelog-ci-config.json

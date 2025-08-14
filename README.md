@@ -16,6 +16,7 @@
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11-blue)](https://www.python.org)
 [![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
 [![PyPI downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/pykale/pykale)
 <!-- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5557244.svg)](https://doi.org/10.5281/zenodo.5557244) -->
 
 [Getting Started](https://github.com/pykale/pykale#how-to-use) |

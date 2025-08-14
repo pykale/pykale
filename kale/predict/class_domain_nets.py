@@ -12,7 +12,7 @@ from https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/model
 import torch
 import torch.nn as nn
 
-from kale.embed.video_i3d import Unit3D
+from kale.embed.video.i3d import Unit3D
 
 
 # Previously FFSoftmaxClassifier

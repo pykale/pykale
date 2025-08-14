@@ -1,6 +1,6 @@
 import torch
 
-from kale.embed.seq_nn import CNNEncoder, GCNEncoder
+from kale.embed.cnn import CNNEncoder, ProteinCNN
 
 
 def test_cnn_encoder():
@@ -28,21 +28,31 @@ def test_cnn_encoder():
     assert output_encoding.size() == (8, 96)
 
 
-def test_gcn_encoder():
-    gcn_encoder = GCNEncoder(in_channel=8, out_channel=32).eval()
-    assert gcn_encoder.conv1.__repr__() == "GCNConv(8, 8)"
-    assert gcn_encoder.conv2.__repr__() == "GCNConv(8, 16)"
-    assert gcn_encoder.conv3.__repr__() == "GCNConv(16, 32)"
-    N1, N2 = 4, 5
-    x = torch.randn(N1 + N2, 8)
-    batch = torch.tensor([0 for _ in range(N1)] + [1 for _ in range(N2)])
-    edge_index = torch.tensor([[0, 0, 0, 1, 2, 3, 3, 5, 7, 8], [1, 2, 3, 0, 0, 0, 2, 6, 6, 0]], dtype=torch.long)
-    row, col = edge_index
-    from torch_sparse import SparseTensor
+def test_protein_cnn_forward():
+    embedding_dim = 128
+    num_filters = [32, 64, 128]
+    kernel_size = [3, 3, 3]
+    sequence_length = 200
+    batch_size = 64
 
-    adj = SparseTensor(row=row, col=col, value=None, sparse_sizes=(9, 9))
+    # Initialize ProteinCNN model
+    model = ProteinCNN(embedding_dim, num_filters, kernel_size)
 
-    out1 = gcn_encoder(x, edge_index, batch)
-    assert out1.size() == (2, 32)
-    # assert the consistency between types of LongTensor and SparseTensor.
-    assert torch.allclose(gcn_encoder(x, adj.t(), batch), out1, atol=1e-6)
+    # Create a mock protein input (protein sequence input)
+    protein_input = torch.randint(0, 25, (batch_size, sequence_length))  # Random protein sequences
+
+    # Forward pass through the model
+    output = model(protein_input)
+
+    # Check output types and shape
+    assert isinstance(output, torch.Tensor), "Output should be a tensor"
+    assert output.shape[0] == batch_size, "Output batch size should match input batch size"
+
+
+def test_protein_cnn_minimal_inputs():
+    # ProteinCNN
+    model = ProteinCNN(1, [1, 1, 1], [1, 1, 1], padding=False)
+    model.eval()
+    inp = torch.randint(0, 1, (2, 1))
+    out = model(inp)
+    assert out.shape[0] == 2

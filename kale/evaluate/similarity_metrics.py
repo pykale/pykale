@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 
+from kale.interpret.correlation_analysis import analyze_and_plot_uncertainty_correlation
 from kale.prepdata.tabular_transform import apply_confidence_inversion
 
 
@@ -39,9 +40,9 @@ def jaccard_similarity(list1: list, list2: list) -> float:
 def evaluate_correlations(
     bin_predictions: Dict[str, pd.DataFrame],
     uncertainty_error_pairs: List[Tuple[str, str, str]],
-    cmaps: List[Dict[Any, Any]],
     num_bins: int,
     confidence_invert_tuples: List[Tuple[str, bool]],
+    colormap: str = "Set1",
     num_folds: int = 8,
     error_scaling_factor: float = 1,
     combine_middle_bins: bool = False,
@@ -58,11 +59,11 @@ def evaluate_correlations(
         bin_predictions: A dictionary of Pandas DataFrames containing model predictions for each testing fold.
         uncertainty_error_pairs: A list of tuples specifying the names of the uncertainty,
             error, and uncertainty inversion keys for each pair.
-        cmaps: A dictionary of colour maps to use for plotting the results.
         num_bins: The number of quantile bins to divide the data into.
         confidence_invert_tuples: A list of tuples specifying whether to invert the uncertainty values for each method.
                           First element is a string specifying the uncertainty method name and the second element is
                           a boolean whether to invert e.g. [["E-MHA", True], ["E-CPV", False]]
+        colormap (str): Name of matplotlib colormap. Defaults to 'Set1'.
         num_folds: The number of folds to use for cross-validation (default: 8).
         error_scaling_factor: The scale factor to transform error by (default: 1).
         combine_middle_bins: Whether to combine the middle bins into one bin (default: False).
@@ -94,7 +95,6 @@ def evaluate_correlations(
         The "all_folds" key contains the correlation statistics for all testing folds combined.
         The "quantiles" key contains the correlation statistics for each quantile bin separately.
     """
-    from kale.interpret.uncertainty_quantiles import fit_line_with_ci
 
     logger = logging.getLogger("qbin")
     # define dict to save correlations to.
@@ -144,11 +144,10 @@ def evaluate_correlations(
                 if save_path
                 else None
             )
-            corr_dict = fit_line_with_ci(
+            corr_dict = analyze_and_plot_uncertainty_correlation(
                 fold_errors,
                 fold_uncertainty_values,
                 quantile_thresholds,
-                cmaps,
                 error_scaling_factor=error_scaling_factor,
                 save_path=save_path_fig,
                 to_log=to_log,

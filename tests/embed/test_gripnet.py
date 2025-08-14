@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from kale.embed.gripnet import GripNet
+from kale.embed.model_lib.gripnet import GripNet
 from kale.predict.decode import GripNetLinkPrediction
 from kale.prepdata.supergraph_construct import SuperEdge, SuperGraph, SuperVertex, SuperVertexParaSetting
 
@@ -53,4 +53,13 @@ def test_gripnet(mode, test_in_channels, test_out_channels):
     assert gripnet.__repr__() is not None
 
     # test GripNetLinkPrediction predictor
-    GripNetLinkPrediction(supergraph, 0.1)
+    predictor = GripNetLinkPrediction(supergraph, 0.1)
+
+    edge_type_range = torch.tensor([[0, 2], [2, 4]])
+
+    batch = (edge_index, edge_type, edge_type_range)
+
+    predictor.training_step(batch, batch_idx=0)
+    predictor.test_step(batch, batch_idx=0)
+    predictor.validation_step(batch, batch_idx=0)
+    _ = predictor.configure_optimizers()

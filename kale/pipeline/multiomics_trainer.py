@@ -28,7 +28,7 @@ from torch.optim.optimizer import Optimizer
 from torch_geometric.loader import DataLoader
 from torch_sparse import SparseTensor
 
-from kale.embed.mogonet import MogonetGCN
+from kale.embed.model_lib.mogonet import MogonetGCN
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.predict.decode import LinearClassifier, VCDN
 
