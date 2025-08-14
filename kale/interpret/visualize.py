@@ -319,31 +319,63 @@ def save_or_show_plot(save_path: Optional[str] = None, show: bool = True, **fig_
         save_path (str, optional): Path to save the figure. If None, the figure will be shown instead.
         show (bool, optional): Whether to show the figure. Defaults to True.
         **fig_kwargs: Additional keyword arguments for figure configuration. Supported parameters:
-            - save_dpi: int, dots per inch for the saved figure (default: 600)
-            - show_dpi: int, dots per inch for the shown figure (default: 100)
-            - fig_size: tuple, size of the figure in inches (default: (16.0, 8.0))
-            - bbox_inches: str, bounding box for saved figure (default: "tight")
-            - pad_inches: float, padding for saved figure (default: 0.1)
+            - save_dpi: int, dots per inch for the saved figure (only applied if provided)
+            - show_dpi: int, dots per inch for the shown figure (only applied if provided)
+            - fig_size: tuple, size of the figure in inches (only applied if provided)
+            - bbox_inches: str, bounding box for saved figure (only applied if provided)
+            - pad_inches: float, padding for saved figure (only applied if provided)
             - Any other parameters supported by plt.savefig()
+
+            Note: If these parameters are not provided, matplotlib's default values will be used.
 
     Returns:
         None
+
+    Raises:
+        ValueError: If fig_size is not a 2-element tuple/list.
     """
-    # Extract figure parameters with defaults
-    save_dpi = fig_kwargs.pop("save_dpi", 600)
-    show_dpi = fig_kwargs.pop("show_dpi", 100)
-    w = fig_kwargs.pop("fig_size", (16.0, 8.0))[0]
-    h = fig_kwargs.pop("fig_size", (16.0, 8.0))[1]
-    bbox_inches = fig_kwargs.pop("bbox_inches", "tight")
-    pad_inches = fig_kwargs.pop("pad_inches", 0.1)
+    # Extract and validate parameters
+    save_dpi = fig_kwargs.pop("save_dpi", None)
+    show_dpi = fig_kwargs.pop("show_dpi", None)
+    fig_size = fig_kwargs.pop("fig_size", None)
+    bbox_inches = fig_kwargs.pop("bbox_inches", None)
+    pad_inches = fig_kwargs.pop("pad_inches", None)
 
-    plt.gcf().set_size_inches(w, h)
+    # Validate fig_size format
+    if fig_size is not None:
+        if not (isinstance(fig_size, (tuple, list)) and len(fig_size) == 2):
+            raise ValueError("fig_size must be a 2-element tuple or list (width, height)")
 
+    # Get current figure
+    fig = plt.gcf()
+
+    # Apply figure size if provided
+    if fig_size is not None:
+        fig.set_size_inches(fig_size[0], fig_size[1])
+
+    # Apply display DPI early (affects both save and show if both are True)
+    if show_dpi is not None and show:
+        fig.set_dpi(show_dpi)
+
+    # Save the figure if path is provided
     if save_path is not None:
         plt.tight_layout()
-        plt.savefig(save_path, dpi=save_dpi, bbox_inches=bbox_inches, pad_inches=pad_inches, **fig_kwargs)
 
+        # Build save parameters dict - only include explicitly provided values
+        save_kwargs = {
+            k: v
+            for k, v in {"dpi": save_dpi, "bbox_inches": bbox_inches, "pad_inches": pad_inches}.items()
+            if v is not None
+        }
+
+        # Merge with additional user parameters
+        save_kwargs.update(fig_kwargs)
+
+        plt.savefig(save_path, **save_kwargs)
+
+    # Show the figure if requested
     if show:
-        plt.show(dpi=show_dpi)
+        plt.show()
 
+    # Clean up
     plt.close()

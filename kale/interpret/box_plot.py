@@ -46,7 +46,6 @@ class SampleInfoMode(Enum):
 
 
 @dataclass
-@dataclass
 class BoxPlotConfig:
     """Comprehensive configuration class for boxplot parameters and styling."""
 
