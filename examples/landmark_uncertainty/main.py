@@ -15,7 +15,6 @@ import argparse
 import os
 
 import numpy as np
-import seaborn as sns
 from config import get_cfg_defaults
 
 import kale.utils.logger as logging

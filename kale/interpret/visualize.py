@@ -319,17 +319,14 @@ def save_or_show_plot(save_path: Optional[str] = None, show: bool = True, **fig_
         save_path (str, optional): Path to save the figure. If None, the figure will be shown instead.
         show (bool, optional): Whether to show the figure. Defaults to True.
         **fig_kwargs: Additional keyword arguments for figure configuration. Supported parameters:
-            - save_dpi: int, dots per inch for the saved figure (only applied if provided)
-            - show_dpi: int, dots per inch for the shown figure (only applied if provided)
-            - fig_size: tuple, size of the figure in inches (only applied if provided)
-            - bbox_inches: str, bounding box for saved figure (only applied if provided)
-            - pad_inches: float, padding for saved figure (only applied if provided)
-            - Any other parameters supported by plt.savefig()
+            - save_dpi (int): Dots per inch for the saved figure
+            - show_dpi (int):  Dots per inch for the shown figure
+            - fig_size (tuple): Size of the figure in inches
+            - bbox_inches (str): Bounding box for saved figure
+            - pad_inches (float): Padding for saved figure
+            - Any other parameters supported by `plt.savefig()`
 
-            Note: If these parameters are not provided, matplotlib's default values will be used.
-
-    Returns:
-        None
+            If these parameters are not provided, matplotlib's default values will be used.
 
     Raises:
         ValueError: If fig_size is not a 2-element tuple/list.
@@ -362,11 +359,12 @@ def save_or_show_plot(save_path: Optional[str] = None, show: bool = True, **fig_
         plt.tight_layout()
 
         # Build save parameters dict - only include explicitly provided values
-        save_kwargs = {
-            k: v
-            for k, v in {"dpi": save_dpi, "bbox_inches": bbox_inches, "pad_inches": pad_inches}.items()
-            if v is not None
+        save_params = {
+            "dpi": save_dpi,
+            "bbox_inches": bbox_inches,
+            "pad_inches": pad_inches,
         }
+        save_kwargs = {k: v for k, v in save_params.items() if v is not None}
 
         # Merge with additional user parameters
         save_kwargs.update(fig_kwargs)
@@ -377,5 +375,4 @@ def save_or_show_plot(save_path: Optional[str] = None, show: bool = True, **fig_
     if show:
         plt.show()
 
-    # Clean up
     plt.close()
