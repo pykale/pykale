@@ -6,18 +6,18 @@ Embed
 Submodules
 ----------
 
-kale.embed.ban module
+kale.embed.attention module
 --------------------------------
 
-.. automodule:: kale.embed.ban
+.. automodule:: kale.embed.attention
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.attention\_cnn module
+kale.embed.cnn module
 --------------------------------
 
-.. automodule:: kale.embed.attention_cnn
+.. automodule:: kale.embed.cnn
    :members:
    :undoc-members:
    :show-inheritance:
@@ -26,14 +26,6 @@ kale.embed.factorization module
 -------------------------------
 
 .. automodule:: kale.embed.factorization
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kale.embed.feature\_fusion module
----------------------------------
-
-.. automodule:: kale.embed.feature_fusion
    :members:
    :undoc-members:
    :show-inheritance:
@@ -47,16 +39,6 @@ kale.embed.gcn module
    :show-inheritance:
    :exclude-members: message, update
 
-kale.embed.gripnet module
--------------------------
-
-.. automodule:: kale.embed.gripnet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :exclude-members: message, update
-
-
 kale.embed.image\_cnn module
 ----------------------------
 
@@ -65,18 +47,27 @@ kale.embed.image\_cnn module
    :undoc-members:
    :show-inheritance:
 
-kale.embed.signal\_cnn module
-----------------------------
+kale.embed.model\_lib.ban module
+--------------------------------
 
-.. automodule:: kale.embed.signal_cnn
+.. automodule:: kale.embed.model_lib.drugban
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.mogonet module
+kale.embed.model\_lib.gripnet module
 -------------------------
 
-.. automodule:: kale.embed.mogonet
+.. automodule:: kale.embed.model_lib.gripnet
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :exclude-members: message, update
+
+kale.embed.model\_lib.mogonet module
+-------------------------
+
+.. automodule:: kale.embed.model_lib.mogonet
     :members:
     :undoc-members:
     :show-inheritance:
@@ -89,22 +80,29 @@ kale.embed.multimodal\_encoder module
     :undoc-members:
     :show-inheritance:
 
-kale.embed.positional\_encoding module
---------------------------------------
+kale.embed.multimodal\_fusion module
+---------------------------------
 
-.. automodule:: kale.embed.positional_encoding
+.. automodule:: kale.embed.multimodal_fusion
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.seq\_nn module
--------------------------
+kale.embed.nn module
+--------------------------------
 
-.. automodule:: kale.embed.seq_nn
+.. automodule:: kale.embed.nn
    :members:
    :undoc-members:
    :show-inheritance:
-   :exclude-members:
+
+kale.embed.signal\_cnn module
+----------------------------
+
+.. automodule:: kale.embed.signal_cnn
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 kale.embed.uncertainty\_fitting module
 --------------------------------------
@@ -115,50 +113,50 @@ kale.embed.uncertainty\_fitting module
    :show-inheritance:
    :exclude-members:
 
-kale.embed.video\_feature\_extractor module
+kale.embed.video.feature\_extractor module
 -------------------------------------------
 
-.. automodule:: kale.embed.video_feature_extractor
+.. automodule:: kale.embed.video.feature_extractor
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_i3d module
+kale.embed.video.i3d module
 ----------------------------
 
-.. automodule:: kale.embed.video_i3d
+.. automodule:: kale.embed.video.i3d
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_res3d module
+kale.embed.video.res3d module
 ------------------------------
 
-.. automodule:: kale.embed.video_res3d
+.. automodule:: kale.embed.video.res3d
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_se\_i3d module
+kale.embed.video.se\_i3d module
 --------------------------------
 
-.. automodule:: kale.embed.video_se_i3d
+.. automodule:: kale.embed.video.se_i3d
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_se\_res3d module
+kale.embed.video.se\_res3d module
 ----------------------------------
 
-.. automodule:: kale.embed.video_se_res3d
+.. automodule:: kale.embed.video.se_res3d
    :members:
    :undoc-members:
    :show-inheritance:
 
-kale.embed.video\_selayer module
+kale.embed.video.selayer module
 --------------------------------
 
-.. automodule:: kale.embed.video_selayer
+.. automodule:: kale.embed.video.selayer
    :members:
    :undoc-members:
    :show-inheritance:

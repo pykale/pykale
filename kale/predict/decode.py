@@ -10,9 +10,8 @@ import numpy as np
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
-from kale.embed.gripnet import GripNet
+from kale.embed.model_lib.gripnet import GripNet
 from kale.evaluate.metrics import auprc_auroc_ap
 from kale.prepdata.graph_negative_sampling import typed_negative_sampling
 from kale.prepdata.supergraph_construct import SuperGraph
@@ -21,42 +20,56 @@ from kale.utils.initialize_nn import bias_init, xavier_init
 
 class MLPDecoder(nn.Module):
     """
-    A generalized MLP model that can act as either a 2-layer MLPDecoder or a 4-layer MLPDecoder based on the include_decoder_layers parameter.
+    A generalized MLP model that can act as either a 2-layer MLPDecoder or a 4-layer MLPDecoder based on the use_deep_layers parameter.
 
     Args:
-        in_dim (int): the dimension of input feature.
-        hidden_dim (int): the dimension of hidden layers.
-        out_dim (int): the dimension of output layer.
-        dropout_rate (float): the dropout rate during training.
-        include_decoder_layers (bool): whether or not to include the additional layers that are part of the MLPDecoder
+        in_dim (int): The dimension of input feature.
+        hidden_dim (int): The dimension of hidden layers.
+        out_dim (int): The dimension of output layer.
+        binary (int): Number of output classes (default is 1 for binary classification).
+        dropout_rate (float): The dropout rate during training.
+        use_deep_layers (bool): Whether to include the additional layers that are part of the MLPDecoder. Default is False.
+        use_batchnorm (bool): Whether to apply batch normalization after each hidden layer. Default is False.
     """
 
-    def __init__(self, in_dim, hidden_dim, out_dim, dropout_rate=0.1, include_decoder_layers=False):
+    def __init__(
+        self, in_dim, hidden_dim, out_dim, binary=1, dropout_rate=0.1, use_deep_layers=False, use_batchnorm=False
+    ):
         super(MLPDecoder, self).__init__()
-        self.fc1 = nn.Linear(in_dim, hidden_dim)
-        self.include_decoder_layers = include_decoder_layers
 
-        if self.include_decoder_layers:
-            self.fc2 = nn.Linear(hidden_dim, hidden_dim)
-            self.fc3 = nn.Linear(hidden_dim, out_dim)
-            self.fc4 = nn.Linear(out_dim, 1)
-            torch.nn.init.normal_(self.fc4.weight)
-            self.dropout = nn.Dropout(dropout_rate)
+        self.dropout_rate = dropout_rate
+
+        layers = []
+
+        # First block
+        layers += self._base_block(in_dim, hidden_dim, use_batchnorm, apply_dropout=True)
+
+        if use_deep_layers:
+            # Hidden block 1
+            layers += self._base_block(hidden_dim, hidden_dim, use_batchnorm, apply_dropout=True)
+            # Hidden block 2
+            layers += self._base_block(hidden_dim, out_dim, use_batchnorm, apply_dropout=False)
         else:
-            self.fc2 = nn.Linear(hidden_dim, out_dim)
-            self.dropout = nn.Dropout(dropout_rate)
+            # Direct to output
+            layers += self._base_block(hidden_dim, out_dim, use_batchnorm, apply_dropout=False)
+        final = nn.Linear(out_dim, binary)
+        if not use_deep_layers:
+            torch.nn.init.normal_(final.weight)
+        layers.append(final)
+
+        self.model = nn.Sequential(*layers)
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
+        return self.model(x)
 
-        if self.include_decoder_layers:
-            x = self.dropout(F.relu(x))
-            x = F.relu(self.fc3(x))
-            x = self.fc4(x)
-
-        return x
+    def _base_block(self, in_features: int, out_features: int, apply_bn: bool, apply_dropout: bool) -> List[nn.Module]:
+        layers: List[nn.Module] = [nn.Linear(in_features, out_features)]
+        if apply_bn:
+            layers.append(nn.BatchNorm1d(out_features))
+        layers.append(nn.ReLU())
+        if apply_dropout and self.dropout_rate > 0:
+            layers.append(nn.Dropout(self.dropout_rate))
+        return layers
 
 
 class DistMultDecoder(torch.nn.Module):

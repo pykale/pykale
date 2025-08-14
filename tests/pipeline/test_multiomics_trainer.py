@@ -3,7 +3,7 @@ import pytorch_lightning as pl
 import torch
 from torch.nn import CrossEntropyLoss
 
-from kale.embed.mogonet import MogonetGCN
+from kale.embed.model_lib.mogonet import MogonetGCN
 from kale.loaddata.multiomics_datasets import SparseMultiomicsDataset
 from kale.pipeline.multiomics_trainer import MultiomicsTrainer
 from kale.predict.decode import LinearClassifier, VCDN
