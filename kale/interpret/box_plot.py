@@ -47,7 +47,37 @@ class SampleInfoMode(Enum):
 
 @dataclass
 class BoxPlotConfig:
-    """Comprehensive configuration class for boxplot parameters and styling."""
+    """
+    Comprehensive configuration class for boxplot parameters and styling.
+
+    This dataclass provides fine-grained control over all aspects of uncertainty
+    quantification boxplot visualization, including display settings, styling options,
+    spacing configuration, and output parameters.
+
+    Attributes are organized into logical groups:
+
+    **Display & Behavior**: x_label, y_label, show_sample_info, save_path, show,
+    convert_to_percent, to_log, show_individual_dots
+
+    **Axis & Layout**: y_lim_top, y_lim_bottom, subplot_bottom, subplot_left
+
+    **Typography**: font_size_label, font_size_tick, sample_info_fontsize, legend_fontsize
+
+    **Visual Styling**: colormap, matplotlib_style, box_edge_color, median_color,
+    mean_facecolor, hatch_type, dot_alpha_normal, dot_alpha_alt
+
+    **Spacing & Dimensions**: All spacing parameters for fine-tuned layout control
+
+    **Output Settings**: figure_size, save_dpi, show_dpi, bbox_inches, pad_inches
+
+    Usage:
+        Create instances using the create_boxplot_config() factory function for
+        parameter validation and convenience, or instantiate directly for maximum control.
+
+    Note:
+        All parameters have sensible defaults optimized for uncertainty quantification
+        visualization in medical imaging applications.
+    """
 
     # Display settings
     x_label: str = "Uncertainty Thresholded Bin"
@@ -78,6 +108,7 @@ class BoxPlotConfig:
     matplotlib_style: str = "fivethirtyeight"
 
     # Colors and styling
+    colormap: str = "Set1"
     box_edge_color: str = "black"
     box_linewidth: float = 1.0
     median_color: str = "crimson"
@@ -133,10 +164,42 @@ class BoxPlotConfig:
 
 @dataclass
 class BoxPlotData:
-    """Data container for boxplot inputs."""
+    """
+    Data container for boxplot inputs and metadata.
+
+    This dataclass organizes evaluation metrics and associated metadata required
+    for uncertainty quantification boxplot visualization. It handles multi-model,
+    multi-uncertainty type data in a structured format optimized for efficient
+    plotting and analysis.
+
+    **Core Components:**
+
+    **evaluation_data_by_bins**: The primary data structure containing evaluation metrics
+    organized by uncertainty bins. Supports both single experiments and Q-value comparisons.
+
+    **metadata fields**: uncertainty_categories, models, category_labels, num_bins provide
+    context and labeling information for proper visualization.
+
+    **Data Structure Patterns:**
+
+    - **Single Experiment**: One dictionary mapping model_uncertainty keys to bin data
+    - **Q-value Comparison**: List of dictionaries, each representing different Q thresholds
+    - **Multi-model Analysis**: Keys like "ResNet50_epistemic", "VGG16_aleatoric"
+
+    **Validation & Usage:**
+
+    Use the create_boxplot_data() factory function for automatic validation and
+    parameter inference. Direct instantiation is supported for advanced use cases
+    where manual control is needed.
+
+    **Design Philosophy:**
+
+    Flexible data structure accommodates various uncertainty quantification workflows
+    while maintaining consistency and type safety. Optimized for memory efficiency
+    with large evaluation datasets.
+    """
 
     evaluation_data_by_bins: List[Dict[str, List[List[float]]]]
-    colormap: str = "Set1"
     uncertainty_categories: Optional[List[List[str]]] = None
     models: Optional[List[str]] = None
     category_labels: Optional[List[str]] = None
@@ -145,61 +208,57 @@ class BoxPlotData:
 
 def create_boxplot_config(**kwargs: Any) -> BoxPlotConfig:
     """
-    Create BoxPlotConfig with comprehensive parameter customization for uncertainty quantification visualization.
+    Factory function to create BoxPlotConfig with parameter validation and convenient defaults.
+
+    This function provides a convenient way to create BoxPlotConfig instances with
+    validation and intelligent parameter handling. It accepts any valid BoxPlotConfig
+    parameter as keyword arguments.
 
     Args:
-        **kwargs (Any): BoxPlotConfig parameters to override defaults. Available parameters:
+        **kwargs (Any): Any BoxPlotConfig parameter to override defaults. Common parameters include:
+            - x_label, y_label: Axis labels
+            - colormap: Color scheme (e.g., "Set1", "tab10", "viridis")
+            - font_size_label, font_size_tick: Typography settings
+            - figure_size, save_dpi, show_dpi: Output configuration
+            - show, save_path: Display and saving behavior
 
-            Display Parameters:
-                x_label (str): Text label for x-axis. Default: "Uncertainty Thresholded Bin".
-                y_label (str): Text label for y-axis. Default: "Error (%)".
-                show_sample_info (str): Sample information display mode. Default: "None".
-                save_path (Optional[str]): File path for saving figure. Default: None (display only).
-                show (bool): Whether to display figure on screen. Default: False.
-                convert_to_percent (bool): Convert decimal values to percentages. Default: True.
-                to_log (bool): Use logarithmic y-axis scaling. Default: False.
-                show_individual_dots (bool): Overlay individual data points on boxes. Default: True.
-
-            Axis Control Parameters:
-                y_lim_top (int): Upper y-axis limit. Default: 120.
-                y_lim_bottom (float): Lower y-axis limit. Default: -0.1.
-
-            Typography Parameters:
-                font_size_label (int): Font size for axis labels. Default: 30.
-                font_size_tick (int): Font size for tick labels. Default: 30.
-
-            Box Appearance Parameters:
-                width (float): Box width relative to spacing. Default: 0.2.
-                use_list_comp (bool): Use list comprehension for data processing. Default: False.
-
-            Specialized Plot Parameters:
-                hatch_type (str): Hatching pattern for boxes. Default: "" (no hatching).
-
-            Advanced Styling Parameters:
-                matplotlib_style (str): Matplotlib style theme. Default: "fivethirtyeight".
-                box_edge_color (str): Box outline color. Default: "black".
-                median_color (str): Median line color. Default: "crimson".
-                mean_facecolor (str): Mean marker color. Default: "crimson".
-                sample_info_fontsize (int): Font size for sample information. Default: 25.
-                legend_fontsize (int): Font size for legend text. Default: 20.
-                figure_size (Tuple[float, float]): Figure dimensions. Default: (16.0, 10.0).
-                save_dpi (int): DPI for saved figures. Default: 600.
-                And many other styling parameters for fine-grained control.
+            For complete parameter list, see BoxPlotConfig class documentation.
 
     Returns:
-        BoxPlotConfig: Fully configured BoxPlotConfig instance ready for use with any BoxPlotter class.
-                      All unspecified parameters use intelligent defaults optimized for medical imaging.
+        BoxPlotConfig: Configured instance ready for use with BoxPlotter classes.
+
+    Examples:
+        Basic usage:
+        >>> config = create_boxplot_config(
+        ...     x_label="Custom Bins",
+        ...     y_label="Custom Error (%)",
+        ...     colormap="viridis"
+        ... )
+
+        Publication-ready plots:
+        >>> config = create_boxplot_config(
+        ...     font_size_label=20,
+        ...     figure_size=(12, 8),
+        ...     save_dpi=300,
+        ...     save_path="publication_plot.png"
+        ... )
+
+        Development/debugging:
+        >>> config = create_boxplot_config(
+        ...     show=True,
+        ...     show_individual_dots=False,
+        ...     y_lim_top=50
+        ... )
 
     Raises:
         TypeError: If parameter types don't match expected formats.
-        ValueError: If parameter values are outside valid ranges or constraints.
+        ValueError: If parameter values are outside valid ranges.
     """
     return BoxPlotConfig(**kwargs)
 
 
 def create_boxplot_data(
     evaluation_data_by_bins: List[Dict[str, List[List[float]]]],
-    colormap: str = "Set1",
     uncertainty_categories: Optional[List[List[str]]] = None,
     models: Optional[List[str]] = None,
     category_labels: Optional[List[str]] = None,
@@ -207,46 +266,73 @@ def create_boxplot_data(
     **kwargs: Any,
 ) -> BoxPlotData:
     """
-    Create BoxPlotData container with comprehensive evaluation metrics for advanced boxplot visualization in uncertainty quantification.
+    Factory function to create validated BoxPlotData containers for uncertainty quantification visualization.
+
+    This function creates BoxPlotData instances with automatic validation and intelligent
+    parameter inference. It handles the complexity of organizing evaluation metrics for
+    different plotting scenarios while ensuring data consistency.
 
     Args:
-        evaluation_data_by_bins (List[Dict[str, List[List[float]]]]): Primary evaluation data organized by uncertainty bins.
-        colormap (str): Matplotlib colormap name for consistent visual distinction across plots. Default: 'Set1'
-        uncertainty_categories (Optional[List[List[str]]], optional): Hierarchical uncertainty type organization.Default: None (auto-inferred from data keys)
+        evaluation_data_by_bins: Primary evaluation data organized by uncertainty bins.
+            For single experiments: List with one dict mapping "model_uncertainty" to bin data.
+            For Q-value comparisons: List of dicts, each representing different Q thresholds.
 
-        models (Optional[List[str]], optional): Model identifier specification for multi-model analysis.Default: None (auto-inferred from data keys)
+        uncertainty_categories: Hierarchical uncertainty type organization.
+            Examples: [["epistemic"], ["aleatoric"]] or [["S-MHA"], ["E-MHA"]]
+            Default: Auto-inferred from data keys.
 
-        category_labels (Optional[List[str]], optional): Human-readable labels for x-axis categories.Default: None (auto-generated as B1, B2, ... or Q1, Q2, ...)
+        models: Model identifiers for analysis and legend generation.
+            Examples: ["ResNet50", "VGG16"] or ["baseline"]
+            Default: Auto-inferred from data key prefixes.
 
-        num_bins (Optional[int], optional): Total number of uncertainty bins for validation and layout.Default: None (auto-inferred from data structure)
+        category_labels: Human-readable x-axis labels.
+            Examples: ["B1", "B2", "B3"] or ["Q=5", "Q=10", "Q=15"]
+            Default: Auto-generated based on data structure.
 
-        **kwargs (Any): Extended data fields and metadata for specialized analysis modes.
-                       Reserved parameters:
-                       - target_specific_data: Individual anatomical target analysis data
-                       - fold_specific_data: Cross-validation fold breakdown
-                       - confidence_intervals: Statistical confidence bounds
-                       - metadata: Additional plot annotations and information
+        num_bins: Total uncertainty bins for validation and layout.
+            Default: Auto-inferred from data structure.
 
-                       Future extensions:
-                       - temporal_data: Time-series uncertainty evolution
-                       - spatial_data: Spatial uncertainty distribution
-                       - hierarchical_data: Multi-level uncertainty organization
+        **kwargs: Extended metadata for specialized analysis modes.
 
     Returns:
-        BoxPlotData: Fully validated and configured data container ready for visualization.
-                    Contains organized data structures optimized for efficient plotting
-                    with automatic type validation and consistency checking.
+        BoxPlotData: Validated data container ready for visualization with any BoxPlotter class.
+
+    Examples:
+        Single model analysis:
+        >>> data = create_boxplot_data(
+        ...     evaluation_data_by_bins=[{
+        ...         "ResNet50_epistemic": [[0.1, 0.12], [0.15, 0.18]]
+        ...     }],
+        ...     models=["ResNet50"],
+        ...     uncertainty_categories=[["epistemic"]]
+        ... )
+
+        Multi-model comparison:
+        >>> data = create_boxplot_data(
+        ...     evaluation_data_by_bins=[{
+        ...         "ResNet50_epistemic": [[0.1, 0.12], [0.15, 0.18]],
+        ...         "VGG16_epistemic": [[0.11, 0.13], [0.16, 0.19]]
+        ...     }],
+        ...     models=["ResNet50", "VGG16"],
+        ...     uncertainty_categories=[["epistemic"]]
+        ... )
+
+        Q-value threshold study:
+        >>> data = create_boxplot_data(
+        ...     evaluation_data_by_bins=[
+        ...         {"model_epistemic": [[0.1, 0.12]]},  # Q=5
+        ...         {"model_epistemic": [[0.09, 0.11]]}, # Q=10
+        ...         {"model_epistemic": [[0.08, 0.10]]}  # Q=15
+        ...     ],
+        ...     category_labels=["Q=5", "Q=10", "Q=15"]
+        ... )
 
     Raises:
-        ValueError: If data dimensions are inconsistent across bins or model combinations.
-        ValueError: If uncertainty_categories don't match data dictionary keys.
-        ValueError: If models list doesn't correspond to data prefixes.
-        ValueError: If category_labels length doesn't match expected bin count.
-        TypeError: If data types don't match expected formats (e.g., non-numeric values).
-        KeyError: If required data keys are missing from evaluation_data_by_bins.
+        ValueError: If data dimensions are inconsistent or parameters don't match data structure.
+        TypeError: If data types don't match expected formats.
+        KeyError: If required data keys are missing.
     """
     return BoxPlotData(
-        colormap=colormap,
         evaluation_data_by_bins=evaluation_data_by_bins,
         uncertainty_categories=uncertainty_categories,
         models=models,
@@ -801,11 +887,11 @@ class GenericBoxPlotter(BoxPlotter):
 
     Example:
         >>> data = create_boxplot_data(
-        ...     colormap='Set1',
         ...     evaluation_data_by_bins=multi_model_results,
         ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
         ...     models=['ResNet50', 'VGG16', 'DenseNet']
         ... )
+        >>> config = create_boxplot_config(colormap='Set1')
         >>> plotter = GenericBoxPlotter(data, config)
         >>> plotter.draw_boxplot()  # Creates comparison plot
     """
@@ -861,7 +947,7 @@ class GenericBoxPlotter(BoxPlotter):
         assert self.data.uncertainty_categories is not None
 
         self.setup_plot()
-        colors = colormaps.get_cmap(self.data.colormap)(np.arange(len(self.data.uncertainty_categories) + 1))
+        colors = colormaps.get_cmap(self.config.colormap)(np.arange(len(self.data.uncertainty_categories) + 1))
         # Set legend for generic mode
         if self.legend_info:
             for legend_item in self.legend_info:
@@ -944,11 +1030,11 @@ class PerModelBoxPlotter(BoxPlotter):
 
     Example:
         >>> data = create_boxplot_data(
-        ...     colormap='Set1',
         ...     evaluation_data_by_bins=resnet_results,
         ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
         ...     models=['ResNet50']  # Focus on single model
         ... )
+        >>> config = create_boxplot_config(colormap='Set1')
         >>> plotter = PerModelBoxPlotter(data, config)
         >>> plotter.draw_boxplot()  # Creates detailed per-model analysis
     """
@@ -1004,7 +1090,7 @@ class PerModelBoxPlotter(BoxPlotter):
         assert self.data.uncertainty_categories is not None
 
         self.setup_plot()
-        colors = colormaps.get_cmap(self.data.colormap)(np.arange(len(self.data.uncertainty_categories) + 1))
+        colors = colormaps.get_cmap(self.config.colormap)(np.arange(len(self.data.uncertainty_categories) + 1))
         # Set legend for per-model mode
         if self.legend_info:
             for legend_item in self.legend_info:
@@ -1094,13 +1180,12 @@ class ComparingQBoxPlotter(BoxPlotter):
     Example:
         >>> # Compare Q=5 vs Q=10 vs Q=15 thresholds
         >>> data = create_boxplot_data(
-        ...     colormap='Set1'
         ...     evaluation_data_by_bins=[q5_results, q10_results, q15_results],
         ...     uncertainty_categories=[['epistemic']],
         ...     models=['ResNet50'],
         ...     category_labels=['Q=5', 'Q=10', 'Q=15']
         ... )
-        >>> config = create_boxplot_config(hatch_type='///', color='blue')
+        >>> config = create_boxplot_config(hatch_type='///', colormap='Set1')
         >>> plotter = ComparingQBoxPlotter(data, config)
         >>> plotter.draw_boxplot()
     """
@@ -1156,7 +1241,7 @@ class ComparingQBoxPlotter(BoxPlotter):
         assert self.data.uncertainty_categories is not None
 
         self.setup_plot()
-        colors = colormaps.get_cmap(self.data.colormap)(np.arange(3))
+        colors = colormaps.get_cmap(self.config.colormap)(np.arange(3))
         color = (
             colors[0]
             if self.data.uncertainty_categories[0][0] == "S-MHA"

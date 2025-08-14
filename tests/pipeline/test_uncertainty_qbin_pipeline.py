@@ -5,7 +5,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pytest
-import seaborn as sns
 
 import kale.utils.logger as logging
 from kale.embed.uncertainty_fitting import fit_and_predict
@@ -197,7 +196,7 @@ def test_qbin_pipeline(testing_cfg):
     pixel_to_mm_scale = testing_cfg["PIPELINE"]["PIXEL_TO_MM_SCALE"]
 
     # Define parameters for visualization
-    cmaps = sns.color_palette("deep", 10).as_hex()
+    color_map_name = "Set1"
 
     show_individual_landmark_plots = testing_cfg["PIPELINE"]["SHOW_IND_LANDMARKS"]
 
@@ -271,7 +270,7 @@ def test_qbin_pipeline(testing_cfg):
                 dataset,
                 landmarks,
                 num_bins,
-                cmaps,
+                color_map_name,
                 os.path.join(save_folder, "fitted_quantile_binning"),
                 save_file_preamble,
                 testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
@@ -292,6 +291,7 @@ def test_qbin_pipeline(testing_cfg):
                 "jaccard": True,
                 "error_bounds": True,
                 "correlation": False,
+                "hatch": "o",
             },
         )
 
@@ -331,7 +331,6 @@ def test_qbin_pipeline(testing_cfg):
             ]
 
             hatch_type = "o" if "PHD-NET" == c_model else ""
-            color = cmaps[0] if c_er_pair[0] == "S-MHA" else cmaps[1] if c_er_pair[0] == "E-MHA" else cmaps[2]
             save_folder_comparison = os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset, "ComparisonBins")
             os.makedirs(save_folder_comparison, exist_ok=True)
 
@@ -343,7 +342,7 @@ def test_qbin_pipeline(testing_cfg):
                     dataset,
                     landmarks,
                     testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"],
-                    cmaps,
+                    color_map_name,
                     all_fitted_save_paths,
                     save_folder_comparison,
                     save_file_preamble,
@@ -364,7 +363,6 @@ def test_qbin_pipeline(testing_cfg):
                     "jaccard": True,
                     "error_bounds": True,
                     "hatch": hatch_type,
-                    "color": color,
                 },
             )
 

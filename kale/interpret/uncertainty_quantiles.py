@@ -145,12 +145,12 @@ def plot_generic_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
 
     Example:
         >>> data = create_boxplot_data(
-        ...     colormap='Set1',
         ...     evaluation_data_by_bins=error_data,
         ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
         ...     models=['ResNet50', 'VGG16']
         ... )
         >>> config = create_boxplot_config(
+        ...     colormap='Set1',
         ...     x_label="Uncertainty Bins",
         ...     y_label="Localization Error (mm)",
         ...     save_path="comparison.pdf"
@@ -192,13 +192,13 @@ def plot_per_model_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
 
     Example:
         >>> data = create_boxplot_data(
-        ...     colormap='Set1',
         ...     evaluation_data_by_bins=model_error_data,
         ...     uncertainty_categories=[['epistemic', 'aleatoric']],
         ...     models=['ResNet50'],
         ...     category_labels=['Low', 'Medium', 'High']
         ... )
         >>> config = create_boxplot_config(
+        ...     colormap='Set1',
         ...     x_label="Uncertainty Thresholded Bin",
         ...     y_label="Localization Error (mm)",
         ...     to_log=True,
@@ -246,7 +246,6 @@ def plot_comparing_q_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
     Example:
         >>> # Compare Q=5 vs Q=10 vs Q=15 quantile thresholds
         >>> data = create_boxplot_data(
-        ...     colormap='Set1',
         ...     evaluation_data_by_bins=[q5_results, q10_results, q15_results],
         ...     uncertainty_categories=[['epistemic']],
         ...     models=['ResNet50'],
@@ -256,7 +255,7 @@ def plot_comparing_q_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
         ...     x_label="Q (# Bins)",
         ...     y_label="Localization Error (mm)",
         ...     hatch_type='///',
-        ...     color='blue',
+        ...     colormap='Set1',
         ...     save_path="q_comparison.pdf"
         ... )
         >>> plot_comparing_q_boxplot(data, config)
@@ -606,7 +605,6 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
             # Create data and config objects for new API
             error_all_per_model_plot_data = create_boxplot_data(
-                colormap=colormap,
                 evaluation_data_by_bins=[all_bins_concat_targets_nosep_error],
                 uncertainty_categories=uncertainty_error_pairs,
                 models=models_to_compare,
@@ -618,6 +616,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Localization Error (mm)",
                 convert_to_percent=False,
+                colormap=colormap,
                 show_sample_info=show_sample_info_mode,
                 show_individual_dots=samples_as_dots_bool,
                 y_lim_top=box_plot_error_lim,
@@ -642,7 +641,6 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
                         # Create data and config objects for new API
                         error_target_per_model_plot_data = create_boxplot_data(
-                            colormap=colormap,
                             evaluation_data_by_bins=[target_data],
                             uncertainty_categories=uncertainty_error_pairs,
                             models=models_to_compare,
@@ -651,6 +649,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                         )
 
                         config = create_boxplot_config(
+                            colormap=colormap,
                             x_label="Uncertainty Thresholded Bin",
                             y_label="Error (mm)",
                             convert_to_percent=False,
@@ -673,7 +672,6 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
             # Create data and config objects for new API
             mean_error_per_model_plot_data = create_boxplot_data(
-                colormap=colormap,
                 evaluation_data_by_bins=[all_error_data],
                 uncertainty_categories=uncertainty_error_pairs,
                 models=models_to_compare,
@@ -682,6 +680,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
             )
 
             config = create_boxplot_config(
+                colormap=colormap,
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Mean Error (mm)",
                 convert_to_percent=False,
@@ -701,7 +700,6 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
             # Create data and config objects for new API
             errorbound_all_generic_plot_data = create_boxplot_data(
-                colormap=colormap,
                 evaluation_data_by_bins=[all_bound_data],
                 uncertainty_categories=uncertainty_error_pairs,
                 models=models_to_compare,
@@ -710,6 +708,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
             )
 
             config = create_boxplot_config(
+                colormap=colormap,
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Error Bound Accuracy (%)",
                 save_path=save_location,
@@ -738,7 +737,6 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
                         # Create data and config objects for new API
                         errorbound_generic_plot_data = create_boxplot_data(
-                            colormap=colormap,
                             evaluation_data_by_bins=[target_data],
                             uncertainty_categories=uncertainty_error_pairs,
                             models=models_to_compare,
@@ -747,6 +745,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                         )
 
                         config = create_boxplot_config(
+                            colormap=colormap,
                             x_label="Uncertainty Thresholded Bin",
                             y_label="Error Bound Accuracy (%)",
                             save_path=save_location,
@@ -770,7 +769,6 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
             # Create data and config objects for new API
             jaccard_all_generic_plot_data = create_boxplot_data(
-                colormap=colormap,
                 evaluation_data_by_bins=[all_jaccard_data],
                 uncertainty_categories=uncertainty_error_pairs,
                 models=models_to_compare,
@@ -779,6 +777,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
             )
 
             config = create_boxplot_config(
+                colormap=colormap,
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Jaccard Index (%)",
                 save_path=save_location,
@@ -800,7 +799,6 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
             # Create data and config objects for new API
             recall_jaccard_all_generic_plot_data = create_boxplot_data(
-                colormap=colormap,
                 evaluation_data_by_bins=[all_recall_data],
                 uncertainty_categories=uncertainty_error_pairs,
                 models=models_to_compare,
@@ -809,6 +807,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
             )
 
             config = create_boxplot_config(
+                colormap=colormap,
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Ground Truth Bins Recall",
                 convert_to_percent=True,
@@ -831,7 +830,6 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
             # Create data and config objects for new API
             precision_jaccard_all_generic_plot_data = create_boxplot_data(
-                colormap=colormap,
                 evaluation_data_by_bins=[all_precision_data],
                 uncertainty_categories=uncertainty_error_pairs,
                 models=models_to_compare,
@@ -840,6 +838,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
             )
 
             config = create_boxplot_config(
+                colormap=colormap,
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Ground Truth Bins Precision",
                 convert_to_percent=True,
@@ -870,7 +869,6 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
 
                         # Create data and config objects for new API
                         jaccard_generic_plot_data = create_boxplot_data(
-                            colormap=colormap,
                             evaluation_data_by_bins=[target_data],
                             uncertainty_categories=uncertainty_error_pairs,
                             models=models_to_compare,
@@ -879,6 +877,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                         )
 
                         config = create_boxplot_config(
+                            colormap=colormap,
                             x_label="Uncertainty Thresholded Bin",
                             y_label="Jaccard Index (%)",
                             save_path=save_location,
@@ -1073,7 +1072,6 @@ def generate_fig_comparing_bins(
 
             # Create data and config objects for new API
             error_all_plot_data = create_boxplot_data(
-                colormap=colormap,
                 uncertainty_categories=uncertainty_error_pair_list,
                 models=model_list,
                 category_labels=x_axis_labels,
@@ -1082,6 +1080,7 @@ def generate_fig_comparing_bins(
             )
 
             config = create_boxplot_config(
+                colormap=colormap,
                 x_label="Q (# Bins)",
                 y_label="Localization Error (mm)",
                 convert_to_percent=False,
@@ -1110,7 +1109,6 @@ def generate_fig_comparing_bins(
                         logger.info("individual error for T%s", target_idx)
                         # Create data and config objects for new API
                         individual_error_plot_data = create_boxplot_data(
-                            colormap=colormap,
                             uncertainty_categories=uncertainty_error_pair_list,
                             models=model_list,
                             category_labels=x_axis_labels,
@@ -1119,6 +1117,7 @@ def generate_fig_comparing_bins(
                         )
 
                         config = create_boxplot_config(
+                            colormap=colormap,
                             x_label="Q (# Bins)",
                             y_label="Localization Error (mm)",
                             convert_to_percent=False,
@@ -1138,7 +1137,6 @@ def generate_fig_comparing_bins(
                 )
             # Create data and config objects for new API
             mean_error_folds_plot_data = create_boxplot_data(
-                colormap=colormap,
                 uncertainty_categories=uncertainty_error_pair_list,
                 models=model_list,
                 category_labels=x_axis_labels,
@@ -1147,6 +1145,7 @@ def generate_fig_comparing_bins(
             )
 
             config = create_boxplot_config(
+                colormap=colormap,
                 x_label="Q (# Bins)",
                 y_label="Mean Error (mm)",
                 convert_to_percent=False,
@@ -1169,7 +1168,6 @@ def generate_fig_comparing_bins(
 
             # Create data and config objects for new API
             error_bound_all_plot_data = create_boxplot_data(
-                colormap=colormap,
                 uncertainty_categories=uncertainty_error_pair_list,
                 models=model_list,
                 category_labels=x_axis_labels,
@@ -1178,6 +1176,7 @@ def generate_fig_comparing_bins(
             )
 
             config = create_boxplot_config(
+                colormap=colormap,
                 x_label="Q (# Bins)",
                 y_label="Error Bound Accuracy (%)",
                 convert_to_percent=True,
@@ -1204,7 +1203,6 @@ def generate_fig_comparing_bins(
                         logger.info("individual errorbound acc for T%s", target_idx)
                         # Create data and config objects for new API
                         individual_errorbound_plot_data = create_boxplot_data(
-                            colormap=colormap,
                             uncertainty_categories=uncertainty_error_pair_list,
                             models=model_list,
                             category_labels=x_axis_labels,
@@ -1213,6 +1211,7 @@ def generate_fig_comparing_bins(
                         )
 
                         config = create_boxplot_config(
+                            colormap=colormap,
                             x_label="Q (# Bins)",
                             y_label="Error Bound Accuracy (%)",
                             convert_to_percent=True,
@@ -1232,7 +1231,6 @@ def generate_fig_comparing_bins(
 
             # Create data and config objects for new API
             jaccard_all_plot_data = create_boxplot_data(
-                colormap=colormap,
                 uncertainty_categories=uncertainty_error_pair_list,
                 models=model_list,
                 category_labels=x_axis_labels,
@@ -1241,6 +1239,7 @@ def generate_fig_comparing_bins(
             )
 
             config = create_boxplot_config(
+                colormap=colormap,
                 x_label="Q (# Bins)",
                 y_label="Jaccard Index (%)",
                 convert_to_percent=True,
@@ -1259,7 +1258,6 @@ def generate_fig_comparing_bins(
                 save_location = os.path.join(save_folder, save_file_preamble + "_recall_jaccard_all_targets.pdf")
             # Create data and config objects for new API
             recall_jaccard_all_plot_data = create_boxplot_data(
-                colormap=colormap,
                 uncertainty_categories=uncertainty_error_pair_list,
                 models=model_list,
                 category_labels=x_axis_labels,
@@ -1268,6 +1266,7 @@ def generate_fig_comparing_bins(
             )
 
             config = create_boxplot_config(
+                colormap=colormap,
                 x_label="Q (# Bins)",
                 y_label="Ground Truth Bin Recall (%)",
                 convert_to_percent=True,
@@ -1286,7 +1285,6 @@ def generate_fig_comparing_bins(
                 save_location = os.path.join(save_folder, save_file_preamble + "_precision_jaccard_all_targets.pdf")
             # Create data and config objects for new API
             precision_jaccard_all_plot_data = create_boxplot_data(
-                colormap=colormap,
                 uncertainty_categories=uncertainty_error_pair_list,
                 models=model_list,
                 category_labels=x_axis_labels,
@@ -1295,6 +1293,7 @@ def generate_fig_comparing_bins(
             )
 
             config = create_boxplot_config(
+                colormap=colormap,
                 x_label="Q (# Bins)",
                 y_label="Ground Truth Bin Precision (%)",
                 convert_to_percent=True,
@@ -1320,7 +1319,6 @@ def generate_fig_comparing_bins(
                         logger.info("individual jaccard for T%s", target_idx)
                         # Create data and config objects for new API
                         individual_jaccard_plot_data = create_boxplot_data(
-                            colormap=colormap,
                             uncertainty_categories=uncertainty_error_pair_list,
                             models=model_list,
                             category_labels=x_axis_labels,
@@ -1329,6 +1327,7 @@ def generate_fig_comparing_bins(
                         )
 
                         config = create_boxplot_config(
+                            colormap=colormap,
                             x_label="Q (# Bins)",
                             y_label="Jaccard Index (%)",
                             convert_to_percent=True,
