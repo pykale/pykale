@@ -217,7 +217,7 @@ def create_boxplot_config(**kwargs: Any) -> BoxPlotConfig:
     Args:
         **kwargs (Any): Any BoxPlotConfig parameter to override defaults. Common parameters include:
             - x_label, y_label: Axis labels
-            - colormap: Color scheme (e.g., "Set1", "tab10", "viridis")
+            - colormap: Color scheme (e.g., "Set1", "tab10", "Pastel1", "Dark2")
             - font_size_label, font_size_tick: Typography settings
             - figure_size, save_dpi, show_dpi: Output configuration
             - show, save_path: Display and saving behavior
@@ -232,7 +232,7 @@ def create_boxplot_config(**kwargs: Any) -> BoxPlotConfig:
         >>> config = create_boxplot_config(
         ...     x_label="Custom Bins",
         ...     y_label="Custom Error (%)",
-        ...     colormap="viridis"
+        ...     colormap="Set1"
         ... )
 
         Publication-ready plots:
