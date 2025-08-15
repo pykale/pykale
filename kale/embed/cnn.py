@@ -84,26 +84,23 @@ class ProteinCNN(nn.Module):
 
 class ContextCNNGeneric(nn.Module):
     """
-    A template to construct a feature extractor consisting of a CNN followed by a
-    sequence-to-sequence contextualizer like a Transformer-Encoder. Before inputting the CNN output
-    tensor to the contextualizer, the tensor's spatial dimensions are unrolled
-    into a sequence.
+    A template to construct a feature extractor consisting of a CNN followed by a sequence-to-sequence contextualizer
+    like a Transformer-Encoder. Before inputting the CNN output tensor to the contextualizer, the tensor's spatial
+    dimensions are unrolled into a sequence.
 
     Args:
-        cnn (nn.Module): any convolutional neural network that takes in batches of images of
-             shape (batch_size, channels, height, width) and outputs tensor
-             representations of shape (batch_size, out_channels, out_height, out_width).
-        cnn_output_shape (tuple): A tuple of shape (batch_size, num_channels, height, width)
-                           describing the output shape of the given CNN (required).
-        contextualizer (nn.Module, optional): A sequence-to-sequence model that takes inputs of shape
-                         (num_timesteps, batch_size, num_features) and uses
-                         attention to contextualize the sequence and returns
-                         a sequence of the exact same shape. This will mainly be
-                         a Transformer-Encoder (required).
-        output_type (string): One of 'sequence' or 'spatial'. If spatial, then the final
-                      output of the model, which is a sequence, will be reshaped
-                      to resemble the image-batch shape of the output of the CNN.
-                      If sequence then the output sequence is returned as is (required).
+        cnn (nn.Module): Any convolutional neural network that takes in batches of images of
+                        shape (batch_size, channels, height, width) and outputs tensor representations of
+                        shape (batch_size, out_channels, out_height, out_width).
+        cnn_output_shape (tuple): A tuple of shape (batch_size, num_channels, height, width) describing
+                        the output shape of the given CNN (required).
+        contextualizer (nn.Module, optional): A sequence-to-sequence model that takes inputs of
+                        shape (num_timesteps, batch_size, num_features) and uses attention to contextualize
+                        the sequence and returns a sequence of the exact same shape.
+                        This will mainly be a Transformer-Encoder (required).
+        output_type (string): One of 'sequence' or 'spatial'. If spatial, then the final output of the model,
+                        which is a sequence, will be reshaped to resemble the image-batch shape of the output of the CNN.
+                        If sequence then the output sequence is returned as is (required).
 
     Examples:
         >>> cnn = nn.Sequential(nn.Conv2d(3, 32, kernel_size=3),
@@ -158,31 +155,26 @@ class ContextCNNGeneric(nn.Module):
 
 class CNNTransformer(ContextCNNGeneric):
     """
-    A feature extractor consisting of a given CNN backbone followed by a standard
-    Transformer-Encoder. See documentation of "ContextCNNGeneric" for more
-    information.
+    A feature extractor consisting of a given CNN backbone followed by a standard Transformer-Encoder.
+    See documentation of "ContextCNNGeneric" for more information.
 
     Args:
-        cnn (nn.Module): any convolutional neural network that takes in batches of images of
-             shape (batch_size, channels, height, width) and outputs tensor
-             representations of shape (batch_size, out_channels, out_height, out_width) (required).
-        cnn_output_shape (tuple): a tuple of shape (batch_size, num_channels, height, width)
-                           describing the output shape of the given CNN (required).
-        num_layers (int): number of attention layers in the Transformer-Encoder (required).
-        num_heads (int): number of attention heads in each transformer block (required).
-        dim_feedforward (int): number of neurons in the intermediate dense layer of
-                          each transformer feedforward block (required).
-        dropout (float): dropout rate of the transformer layers (required).
-        output_type (string): one of 'sequence' or 'spatial'. If Spatial then the final
-                      output of the model, which is the sequence output of the
-                      Transformer-Encoder, will be reshaped to resemble the
-                      image-batch shape of the output of the CNN (required).
+        cnn (nn.Module): Any convolutional neural network that takes in batches of images of
+                        shape (batch_size, channels, height, width) and outputs tensor representations of
+                        shape (batch_size, out_channels, out_height, out_width) (required).
+        cnn_output_shape (tuple): A tuple of shape (batch_size, num_channels, height, width) describing the
+                        output shape of the given CNN (required).
+        num_layers (int): Number of attention layers in the Transformer-Encoder (required).
+        num_heads (int): Number of attention heads in each transformer block (required).
+        dim_feedforward (int): Number of neurons in the intermediate dense layer of each transformer feedforward block (required).
+        dropout (float): Dropout rate of the transformer layers (required).
+        output_type (string): One of 'sequence' or 'spatial'. If Spatial then the final output of the model,
+                        which is the sequence output of the Transformer-Encoder, will be reshaped to resemble the
+                        image-batch shape of the output of the CNN (required).
         positional_encoder (nn.Module): None or a nn.Module that expects inputs of
-                            shape (sequence_length, batch_size, embedding_dim)
-                            and returns the same input after adding
-                            some positional information to the embeddings. If
-                            `None`, then the default and fixed sin-cos positional
-                            encodings of base transformers are applied (optional).
+                        shape (sequence_length, batch_size, embedding_dim) and returns the same input after adding
+                        some positional information to the embeddings. If `None`, then the default and fixed sin-cos
+                        positional encodings of base transformers are applied (optional).
 
     Examples:
         See pykale/examples/cifar_cnntransformer/model.py

@@ -6,23 +6,19 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.weight_norm import weight_norm
 
-from kale.predict.class_domain_nets import FCNet
+from kale.embed.nn import FCNet
 
 
 class PositionalEncoding(nn.Module):
     """
-    Implements the positional encoding as described in the NIPS2017 paper
-    'Attention Is All You Need' about Transformers
+    Implements the positional encoding as described in the NIPS2017 paper 'Attention Is All You Need' about Transformers
     (https://arxiv.org/abs/1706.03762).
-    Essentially, for all timesteps in a given sequence,
-    adds information about the relative temporal location of a timestep
-    directly into the features of that timestep, and then returns this
-    slightly-modified, same-shape sequence.
+    Essentially, for all timesteps in a given sequence, adds information about the relative temporal location of a
+    timestep directly into the features of that timestep, and then returns this slightly-modified, same-shape sequence.
 
     args:
-        d_model: the number of features that each timestep has (required).
-        max_len: the maximum sequence length that the positional
-                  encodings should support (required).
+        d_model: The number of features that each timestep has (required).
+        max_len: The maximum sequence length that the positional encodings should support (required).
     """
 
     def __init__(self, d_model: int, max_len: int = 5000):
@@ -44,10 +40,8 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, x):
         """
-        Expects input of shape (sequence_length, batch_size, num_features)
-        and returns output of the same shape. sequence_length is at most
-        allowed to be self.max_len and num_features is expected to
-        be exactly self.d_model
+        Expects input of shape (sequence_length, batch_size, num_features) and returns output of the same shape.
+        sequence_length is at most allowed to be self.max_len and num_features is expected to be exactly self.d_model.
 
         Args:
             x: a sequence input of shape (sequence_length, batch_size, num_features) (required).
@@ -65,12 +59,12 @@ class BANLayer(nn.Module):
     that can be used for downstream tasks like predicting drug-protein interactions.
 
     Args:
-        input_v_dim (int): Dimensionality of the first input feature set (`v`).
-        input_q_dim (int): Dimensionality of the second input feature set (`q`).
+        input_v_dim (int): Dimensionality of the first input "value" feature set (`v`).
+        input_q_dim (int): Dimensionality of the second input "query" feature set (`q`).
         hidden_dim (int): Dimensionality of the hidden layer used in the bilinear attention mechanism.
         num_out_heads (int): Number of output heads in the bilinear attention mechanism.
-        activation (str, optional): Activation function to use in the fully connected networks for `v` and `q`.
-                             Default is "ReLU".
+        activation (str, optional): Activation function to use in the fully connected networks for value (`v`) and
+                                    query (`q`). Default is "ReLU".
         dropout (float, optional): Dropout rate to apply after each layer in the fully connected networks.
                                    Default is 0.2.
         num_att_maps (int, optional): Number of attention maps to generate (used in pooling). Default is 3.

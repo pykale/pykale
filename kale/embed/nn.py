@@ -2,6 +2,7 @@ import math
 
 import torch
 import torch.nn as nn
+from torch.nn.utils.weight_norm import weight_norm
 
 
 class RandomLayer(nn.Module):
@@ -32,3 +33,46 @@ class RandomLayer(nn.Module):
         for single in return_list[1:]:
             return_tensor = torch.mul(return_tensor, single)
         return return_tensor
+
+
+class FCNet(nn.Module):
+    """
+    A simple class for non-linear fully connect network
+
+    Modified from https://github.com/jnhwkim/ban-vqa/blob/master/fc.py
+
+
+    This class creates a fully connected neural network with optional dropout and activation
+    functions. Weight normalization is applied to each linear layer.
+
+    Args:
+        dims (list of int): A list specifying the input and output dimensions of each layer.
+                            For example, [input_dim, hidden_dim1, hidden_dim2, ..., output_dim].
+        activation (str, optional): The name of the activation function to use (e.g., 'ReLU', 'Tanh').
+                             Default is 'ReLU'. If an empty string is provided, no activation is applied.
+        dropout (float, optional): Dropout probability to apply after each layer. Default is 0 (no dropout).
+
+    """
+
+    def __init__(self, dims, activation="ReLU", dropout=0):
+        super(FCNet, self).__init__()
+
+        layers = []
+        for i in range(len(dims) - 2):
+            in_dim = dims[i]
+            out_dim = dims[i + 1]
+            if 0 < dropout:
+                layers.append(nn.Dropout(dropout))
+            layers.append(weight_norm(nn.Linear(in_dim, out_dim), dim=None))
+            if "" != activation:
+                layers.append(getattr(nn, activation)())
+        if 0 < dropout:
+            layers.append(nn.Dropout(dropout))
+        layers.append(weight_norm(nn.Linear(dims[-2], dims[-1]), dim=None))
+        if "" != activation:
+            layers.append(getattr(nn, activation)())
+
+        self.main = nn.Sequential(*layers)
+
+    def forward(self, x):
+        return self.main(x)

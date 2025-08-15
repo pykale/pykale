@@ -12,14 +12,15 @@ from enum import Enum
 
 import torch
 import torch.nn as nn
-from sklearn import metrics
+from sklearn.metrics import auc
 from torch.autograd import grad
 from torch.nn import functional as F
+from torchmetrics import AUROC, AveragePrecision, PrecisionRecallCurve
 import numpy as np
 
 
 def cross_entropy_logits(output, target, weights=None):
-    """Computes cross entropy with logits
+    """Computes cross-entropy with logits
 
     Args:
         output (Tensor): The output of the last layer of the network, before softmax.
@@ -388,21 +389,27 @@ class protonet_loss:
         return torch.pow(x - y, 2).sum(2)
 
 
-def auprc_auroc_ap(target: torch.Tensor, score: torch.Tensor):
+def auprc_auroc_ap(target: torch.Tensor, score: torch.Tensor, task="binary"):
     """
-    auprc: area under the precision-recall curve
-    auroc: area under the receiver operating characteristic curve
-    ap: average precision
+    Args:
+        target: ground truth labels, shape [batch_size]
+        score: predicted scores, shape [batch_size]
+        task: type of task, "binary" for binary classification, "multiclass" for multiclass classification
+    Returns:
+        auprc: area under the precision-recall curve
+        auroc: area under the receiver operating characteristic curve
+        ap: average precision
 
-    Copy-paste from https://github.com/NYXFLOWER/GripNet
+    Adapted from https://github.com/NYXFLOWER/GripNet
     """
-    y = target.detach().cpu().numpy()
-    pred = score.detach().cpu().numpy()
-    auroc, ave_precision = metrics.roc_auc_score(y, pred), metrics.average_precision_score(y, pred)
-    precision, recall, _ = metrics.precision_recall_curve(y, pred)
-    auprc = metrics.auc(recall, precision)
+    auroc_metric = AUROC(task=task)
+    ave_precision_metric = AveragePrecision(task=task)
+    pr_curve = PrecisionRecallCurve(task=task)
+    auroc_score, ave_precision = auroc_metric(score, target), ave_precision_metric(score, target)
+    precision, recall, thresholds = pr_curve(score, target)
+    auprc_score = auc(recall.tolist(), precision.tolist())
 
-    return auprc, auroc, ave_precision
+    return auprc_score, auroc_score, ave_precision
 
 
 def concord_index(y, y_pred):
