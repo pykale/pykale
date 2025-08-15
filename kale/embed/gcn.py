@@ -361,8 +361,8 @@ class ConvLayer(nn.Module):
 class CrystalGraphConvNet(nn.Module):
     """
     Crystal Graph Convolutional Neural Network (CGCNN).
-    An implementation of implementation of paper "Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of 
-    Material Properties<https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301>". Each crystal is represented as a graph
+    An implementation of implementation of paper `Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of 
+    Material Properties<https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301>`. Each crystal is represented as a graph
     whose nodes are atoms (node features = elemental descriptors), and edges
     encode inter-atomic relations (edge features = distance embeddings).
     Node features are updated by a stack of CGCNN convolution blocks and are
@@ -450,8 +450,8 @@ class LEFTNetZ(nn.Module):
         LEFTNet-Z model for predicting properties of materials based on their crystal structure.
         This model uses an equivariant graph neural network architecture to process crystal graphs.
         It is designed to handle periodic boundary conditions (PBC) and can optionally regress forces.
-        the code is implemented based on the paper "A new perspective on building efficient and expressive
-3D equivariant graph neural networks<https://openreview.net/pdf?id=hWPNYWkYPN>"
+        the code is implemented based on the paper `A new perspective on building efficient and expressive
+3D equivariant graph neural networks<https://openreview.net/pdf?id=hWPNYWkYPN>`
         Args:
             atom_fea_dim (int): Dimension of the input atomic feature vector.
             num_targets (int): Number of target properties to predict.
@@ -700,7 +700,7 @@ class CartNet(torch.nn.Module):
 
     CartNet model from Cartesian Encoding Graph Neural Network for Crystal Structures Property Prediction: Application to Thermal Ellipsoid Estimation.
     This is an implementation of the paper "Cartesian Encoding Graph Neural Network for Crystal Structures Property Prediction: Application to Thermal Ellipsoid Estimation<https://pubs.rsc.org/en/content/articlelanding/2024/dd/d4dd00352g>"
-    The code is adapted from the "CartNet repository<https://github.com/imatge-upc/CartNet/tree/main>".
+    The code is adapted from the `CartNet repository<https://github.com/imatge-upc/CartNet/tree/main>`.
     Args:
         dim_in (int): Dimensionality of the input features.
         dim_rbf (int): Dimensionality of the radial basis function embeddings.
