@@ -51,10 +51,12 @@ def get_config(cfg, atom_fea_len, nbr_fea_len, pos_fea_len):
         }
 
     elif name == "leftnet":
+        encoding = cfg.LEFTNET.ENCODING  
+        atom_fea_dim = atom_fea_len if encoding == "prop" else 95 # if leftnet-prop, atom_fea_len=len of one-hot vector
+
         config_params["model_params"] = {
-            "atom_fea_dim": atom_fea_len,
-            # "nbr_fea_len": nbr_fea_len,
-            # "pos_fea_len": pos_fea_len,
+            "atom_fea_dim": atom_fea_dim,
+            "num_targets": cfg.LEFTNET.TARGET_DIM,  
             "cutoff": cfg.LEFTNET.CUTOFF,
             "hidden_channels": cfg.LEFTNET.HIDDEN_CHANNELS,
             "num_layers": cfg.LEFTNET.NUM_LAYERS,
@@ -63,9 +65,9 @@ def get_config(cfg, atom_fea_len, nbr_fea_len, pos_fea_len):
             "use_pbc": cfg.LEFTNET.USE_PBC,
             "otf_graph": cfg.LEFTNET.OTF_GRAPH,
             "output_dim": cfg.LEFTNET.OUTPUT_DIM,
-            "encoding": cfg.LEFTNET.ENCODING,  # ['one-hot', 'none']
-        
+            "encoding": encoding,
         }
+
 
     elif name == "cartnet":
         config_params["model_params"] = {
@@ -112,14 +114,10 @@ def build_leftnet(train_params, model_params):
     model_params = {k: v for k, v in model_params.items() if k != "encoding"}
     if encoding == "z":
         model = LEFTNetZ(
-            atom_fea_dim=95,
-            num_targets=model_params.get("output_dim", 1),
             **model_params
         )
     elif encoding == "prop":
         model = LEFTNetProp(
-            # atom_fea_dim=model_params["atom_fea_dim"],
-            num_targets=model_params.get("output_dim", 1),
             **model_params
         )
     else:

@@ -14,6 +14,19 @@ from kale.prepdata.materials_features import AtomCustomJSONInitializer
 
 
 class CIFData(Dataset):
+    """
+    Dataset for loading CIF files and extracting features for crystal structures.
+    
+    Args:
+        mpids_bg (pd.DataFrame): DataFrame containing material IDs and bandgap values.
+        cif_folder (str): Path to the folder containing CIF files.
+        init_file (str): Path to the JSON file for atom feature initialization.
+        max_nbrs (int): Maximum number of neighbors to consider for each atom.
+        radius (float): Radius for neighbor search.
+        randomize (bool): Whether to randomize the dataset order.
+        dmin (float, optional): Minimum distance for Gaussian distance calculation. Default is 0.
+        step (float, optional): Step size for Gaussian distance calculation. Default is 0.2.
+    """
 
     def __init__(self, mpids_bg, cif_folder, init_file, max_nbrs, radius, randomize, dmin=0, step=0.2):
 
@@ -80,6 +93,7 @@ class CIFData(Dataset):
         cif_id, target_np = self.mpids_bg_dataset[idx]
         crystal = Structure.from_file(os.path.join(self.cif_folder, cif_id + '.cif'))
 
+        Z = np.asarray(crystal.atomic_numbers, dtype=np.int64)
         atom_fea = torch.tensor(
                         np.vstack([self.ari.get_atom_fea(z) for z in Z]), dtype=torch.float32
                     )

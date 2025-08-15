@@ -21,9 +21,9 @@ def extract_features(dataset):
 
     features, targets = [], []
     for data in dataset:
-        atom_fea = data.atom_fea.cpu().numpy()  # (N_atoms, atom_fea_len)
-        nbr_fea = data.nbr_fea.cpu().numpy()  # (N_atoms, N_neighbors, nbr_fea_len)
-        nbr_fea_idx = data.nbr_fea_idx.cpu().numpy()  # (N_atoms, N_neighbors)
+        atom_fea = np.array(data.atom_fea.cpu().tolist()) # (N_atoms, atom_fea_len)
+        nbr_fea = np.array(data.nbr_fea.cpu().tolist())  # (N_atoms, N_neighbors, nbr_fea_len)
+        nbr_fea_idx = np.array(data.nbr_fea_idx.cpu().tolist())  # (N_atoms, N_neighbors)
         # Get neighbor atom features
         N, M = nbr_fea_idx.shape
         atom_nbr_fea = atom_fea[nbr_fea_idx]  # (N_atoms, N_neighbors, atom_fea_len)
@@ -43,7 +43,7 @@ def extract_features(dataset):
 
         # Store features and target (bandgap value)
         features.append(total_fea)
-        targets.append(data.target.cpu().numpy())  # Bandgap target
+        targets.append(np.array(data.target.cpu().tolist()))  # Bandgap target
 
     features = np.vstack(features)  # (Total samples, Feature size)
     targets = np.concatenate(targets)  # (Total samples,)

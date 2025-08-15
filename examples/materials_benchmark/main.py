@@ -80,7 +80,7 @@ def prepare_datasets(cfg, train_fold, val_fold):
         shuffle=False,
         num_workers=cfg.SOLVER.WORKERS
     )
-    return train_loader, val_loader, train_dataset
+    return train_loader, val_loader, train_dataset, val_dataset
 
 
 def set_random_seed(seed):
@@ -217,7 +217,7 @@ def test_model(cfg, trainer, model, fold):
 
 
 def main():
-    """The main for this domain adaptation example, showing the workflow"""
+
     args = arg_parse()
 
     # ---- setup configs ----
@@ -238,13 +238,11 @@ def main():
         train_idx, val_idx = next(kf.split(train_data))
         train_fold = train_data.iloc[train_idx]
         val_fold = train_data.iloc[val_idx]
-        train_loader, val_loader, train_dataset = prepare_datasets(cfg, train_fold, val_fold)
+        train_loader, val_loader, train_dataset, val_dataset = prepare_datasets(cfg, train_fold, val_fold)
 
         # Extract feature dimensions
-        structures = train_dataset[0]
-
-        structures = train_dataset[0]
-        atom_fea_len, nbr_fea_len, pos_fea_len = structures.atom_fea.shape[-1], structures.nbr_fea.shape[-1], structures.positions.shape[-1]
+        sample = train_dataset[0]
+        atom_fea_len, nbr_fea_len, pos_fea_len = sample.atom_fea.shape[-1], sample.nbr_fea.shape[-1], sample.positions.shape[-1]
 
         # Setup model and trainer
         model = get_model(cfg, atom_fea_len, nbr_fea_len, pos_fea_len)
@@ -279,11 +277,11 @@ def main():
             val_fold = train_data.iloc[val_idx]
 
             # Prepare datasets and loaders
-            train_loader, val_loader, train_dataset = prepare_datasets(cfg, train_fold, val_fold)
+            train_loader, val_loader, train_dataset, val_dataset = prepare_datasets(cfg, train_fold, val_fold)
 
 
-            structures = train_dataset[0]
-            atom_fea_len, nbr_fea_len, pos_fea_len = structures.x.shape[-1], structures.edge_attr.shape[-1], structures.pos.shape[-1]
+            sample = train_dataset[0]
+            atom_fea_len, nbr_fea_len, pos_fea_len = sample.atom_fea.shape[-1], sample.nbr_fea.shape[-1], sample.positions.shape[-1]
 
             if cfg.MODEL.NAME in ["random_forest", "linear_regression", "svm"]:
                 print(f"Training {cfg.MODEL.NAME} model...")
@@ -299,7 +297,11 @@ def main():
 
                 model.fit(X_train, y_train)
 
-                relative_error_scorer = make_scorer(mean_relative_error, greater_is_better=False)
+                relative_error_scorer = make_scorer(lambda yt, yp: float(mean_relative_error(
+                                                        torch.as_tensor(yt, dtype=torch.float32),
+                                                        torch.as_tensor(yp, dtype=torch.float32)
+                                                    )),
+                                                    greater_is_better=False)
                 result = permutation_importance(
                     estimator=model,
                     X=X_val,

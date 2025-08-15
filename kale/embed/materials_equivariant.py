@@ -1,3 +1,6 @@
+# This file contains the implementation of modules that embeds crystal structures or alike graph data
+# in a materials science context, specifically for equivariant neural networks.
+
 import math
 
 from typing import Optional, Tuple
@@ -13,6 +16,7 @@ class rbf_emb(nn.Module):
     """
     Wrapper for RBF embedding using ExpNormalSmearing + CosineCutoff backend.
     Keeps the same signature as LEFTNet's original rbf_emb.
+    The following code is from the "LEFTNet repository<https://github.com/yuanqidu/LeftNet>".
     """
 
     def __init__(self, num_rbf, rbound_upper, rbf_trainable=False):
@@ -30,6 +34,16 @@ class rbf_emb(nn.Module):
         return self.rbf_layer(dist)
 
 class NeighborEmb(MessagePassing):
+
+    """
+    Embeds the atom features and neighbor features into a higher-dimensional space.
+    The following code is from the "LEFTNet repository<https://github.com/yuanqidu/LeftNet>".
+
+    Args:
+        hid_dim (int): Dimension of the hidden space.
+        input_dim (int): Dimension of the input features.
+    """
+
     def __init__(self, hid_dim: int, input_dim: int):
         super(NeighborEmb, self).__init__(aggr="add")
         self.hid_dim = hid_dim
@@ -51,6 +65,9 @@ class NeighborEmb(MessagePassing):
 
 
 class S_vector(MessagePassing):
+    """
+    Message passing layer that computes the new features for each atom based on its neighbors.
+    """
     def __init__(self, hid_dim: int):
         super(S_vector, self).__init__(aggr="add")
         self.hid_dim = hid_dim
@@ -72,6 +89,16 @@ class S_vector(MessagePassing):
 
 
 class EquiMessagePassing(MessagePassing):
+    """
+    Equivariant message passing layer that aggregates features from neighboring atoms.
+    This layer uses a combination of atom features, neighbor features, and radial basis functions
+    to compute the new features for each atom.
+    The following code is from the "LEFTNet repository<https://github.com/yuanqidu/LeftNet>".
+
+    Args:
+        hidden_channels (int): Dimension of the hidden space.
+        num_radial (int): Number of radial basis functions to use.
+    """
     def __init__(
         self,
         hidden_channels,
@@ -154,6 +181,14 @@ class EquiMessagePassing(MessagePassing):
 
 
 class FTE(nn.Module):
+    """
+    Frame transition encoding module from `LEFTNet<https://openreview.net/pdf?id=hWPNYWkYPN>`.
+    An equivariant message-passing module that encodes local geometric information by scalarizing tensor-valued edge features in a node-wise frame, 
+    transforming them via an MLP, and re-tensorizing to update both invariant and tensor features without information loss.
+
+    Args:
+        hidden_channels (int): Dimension of the hidden space.
+    """
     def __init__(self, hidden_channels):
         super().__init__()
         self.hidden_channels = hidden_channels
@@ -234,8 +269,12 @@ class EquiOutput(nn.Module):
 
 # Borrowed from TorchMD-Net
 class GatedEquivariantBlock(nn.Module):
-    """Gated Equivariant Block as defined in Schütt et al. (2021):
-    Equivariant message passing for the prediction of tensorial properties and molecular spectra
+    """Gated Equivariant Block as defined in `Quantum-chemical insights from deep tensor neural networks<https://www.nature.com/articles/ncomms13890>`:
+    Equivariant message passing for the prediction of tensorial properties and molecular spectra.
+
+    Args:
+        hidden_channels (int): Dimension of the hidden space.
+        out_channels (int): Dimension of the output space.
     """
 
     def __init__(
@@ -284,6 +323,18 @@ class GatedEquivariantBlock(nn.Module):
 # Implementation from TensorNet
 # https://github.com/torchmd/torchmd-net
 class ExpNormalSmearing(nn.Module):
+    """
+    Exponentially normal smearing function for radial basis function (RBF) embeddings.
+    This function is used to create a smooth representation of distances between atoms in a crystal structure.
+    The following code is from the `TensorNet<https://github.com/torchmd/torchmd-net>`_ repository.
+
+    Args:
+        cutoff_lower (float): Lower bound of the cutoff distance.
+        cutoff_upper (float): Upper bound of the cutoff distance.
+        num_rbf (int): Number of radial basis functions to use.
+        trainable (bool): Whether the parameters of the RBF are trainable.
+        dtype (torch.dtype): Data type for the parameters.
+    """
     def __init__(
         self,
         cutoff_lower=0.0,
@@ -337,6 +388,14 @@ class ExpNormalSmearing(nn.Module):
         )
 
 class CosineCutoff(nn.Module):
+    """Cosine cutoff function for radial basis function (RBF) embeddings.
+    This function is used to apply a smooth cutoff to the RBF embeddings based on the distance between atoms.
+    The following code is from the `TensorNet<https://github.com/torchmd/torchmd-net>`_ repository.
+    Args:
+        cutoff_lower (float): Lower bound of the cutoff distance.
+        cutoff_upper (float): Upper bound of the cutoff distance.
+    """
+
     def __init__(self, cutoff_lower=0.0, cutoff_upper=5.0):
         super(CosineCutoff, self).__init__()
         self.cutoff_lower = cutoff_lower

@@ -9,13 +9,13 @@ from torch.utils.data import DataLoader
 import random
 
 # from loaddata.dataloader import get_train_val_test_loader
-from pipeline.cgcnn.model_cgcnn import get_cgcnn_model  # Ensure the correct module and function path
-from loaddata.cifdata import CIFData
-from loaddata.collate import collate_pool_leftnet
-from pipeline.leftnet.model_leftnet import get_leftnet_model
+from model import get_model  # Ensure the correct module and function path
+from kale.loaddata.materials_datasets import CIFData
+
+
 from config import get_cfg_defaults
 # from tests.shap_utils import compute_shap_values  # Import the SHAP utility function
-from pipeline.cartnet.model_cartnet import get_cartnet_model  # Import the missing function
+
 
 
 
@@ -23,7 +23,7 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="Test a model from a checkpoint.")
     parser.add_argument("--cfg", required=True, type=str, help="Path to the config file used to train the model.")
     parser.add_argument("--checkpoint", required=True, type=str, help="Path to the checkpoint file (.ckpt).")
-    parser.add_argument("--cif_folder", required=True, type=str, help="Path to the folder containing CIF files.")
+    parser.add_argument("--cif_folder", default="cif_file", type=str, help="Path to the folder containing CIF files.")
     parser.add_argument("--test_data", required=True, type=str, help="Path to the JSON file containing test data.")
     parser.add_argument("--devices",
                         default=1,
@@ -54,7 +54,6 @@ def load_model_and_data(cfg, checkpoint_path, test_data_path, cif_folder):
     test_data = test_data[['mpids', 'bg']]  # assuming 'bg' is your target property
     test_dataset = CIFData(
         test_data,
-        # cfg.MODEL.CIF_FOLDER,
         cif_folder,
         cfg.MODEL.INIT_FILE,
         cfg.MODEL.MAX_NBRS,
@@ -63,34 +62,20 @@ def load_model_and_data(cfg, checkpoint_path, test_data_path, cif_folder):
     )
 
     # Get the structure information from one example to complete config
-    structures = test_dataset[0]
-    orig_atom_fea_len = structures.atom_fea.shape[-1]
-    nbr_fea_len = structures.nbr_fea.shape[-1]
-    pos_fea_len = structures.positions.shape[-1]
-    cfg.defrost()
-    cfg.GRAPH.ORIG_ATOM_FEA_LEN = orig_atom_fea_len
-    cfg.GRAPH.NBR_FEA_LEN = nbr_fea_len
-    cfg.GRAPH.POS_FEA_LEN = pos_fea_len
-    cfg.freeze()
+    sample = test_dataset[0]
+    atom_fea_len, nbr_fea_len, pos_fea_len = sample.atom_fea.shape[-1], sample.nbr_fea.shape[-1], sample.positions.shape[-1]
+ 
 
     # Create test DataLoader
     test_loader = DataLoader(
         test_dataset,
-        collate_fn=collate_pool_leftnet,
+        collate_fn=test_dataset.collate_fn,
         batch_size=cfg.SOLVER.BATCH_SIZE,
-        shuffle=False,
         num_workers=cfg.SOLVER.WORKERS,
     )
 
     # Initialize model
-    if cfg.MODEL.NAME == "cgcnn":
-        model = get_cgcnn_model(cfg)
-    elif cfg.MODEL.NAME == "leftnet":
-        model = get_leftnet_model(cfg)
-    elif cfg.MODEL.NAME == "cartnet":
-        model = get_cartnet_model(cfg)
-    else:
-        raise ValueError(f"Unknown model name: {cfg.MODEL.NAME}")
+    model = get_model(cfg, atom_fea_len, nbr_fea_len, pos_fea_len)
 
     # Load the checkpoint
     print(f"Loading model from checkpoint: {checkpoint_path}")

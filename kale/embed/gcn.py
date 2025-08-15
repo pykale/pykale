@@ -550,8 +550,8 @@ class LEFTNetZ(nn.Module):
     # @conditional_grad(torch.enable_grad())
     def _forward(self, data):
         device = next(self.parameters()).device
-        pos = data.pos.to(device)
-        batch = data.batch.to(device)
+        pos = data.positions.to(device)
+        batch = data.batch_idx.to(device)
         z = self.prop_setup(data, device)
 
 
@@ -682,7 +682,7 @@ class LEFTNetProp(LEFTNetZ):
        Setup for the property encoding. for LEFTNet-Prop, a one-hot encoding contains atomic properties is used as the atomic feature..
        '''
 
-       return data.x.to(device)
+       return data.atom_fea.to(device)
     
 
 import torch
@@ -757,10 +757,11 @@ class CartNet(torch.nn.Module):
 
         for layer in self.layers:
             batch = layer(batch)
+        dim_size = int(batch.batch_idx.max().item() + 1)
+        x = self.head(batch.x)
+        pred = scatter(x, batch.batch_idx.to(x.device), dim=0, reduce="mean", dim_size=dim_size)
         
-        pred, true = self.head(batch.x), batch.y
-        
-        return pred,true
+        return pred,batch.target
 
 class GeometricGraphEncoder(nn.Module):
     """
@@ -846,8 +847,8 @@ class GeometricGraphEncoder(nn.Module):
 
         batch.device = next(self.parameters()).device
         data = batch.atom_num.long().to(batch.device)
-        batch_idx = batch.batch.to(batch.device)
-        pos = batch.pos.to(batch.device)
+        batch_idx = batch.batch_idx.to(batch.device)
+        pos = batch.positions.to(batch.device)
 
         batch.edge_index = radius_graph(pos, r=self.radius, batch=batch_idx, max_num_neighbors=1000)
         j, i = batch.edge_index

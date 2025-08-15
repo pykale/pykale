@@ -84,6 +84,7 @@ _C.LEFTNET.OTF_GRAPH = False
 _C.LEFTNET.OUTPUT_DIM = 1
 _C.LEFTNET.LAYER_FREEZE = "none"  # ['all', 'embedding', 'none']
 _C.LEFTNET.ENCODING = "none"  # ['one-hot', 'none']
+_C.LEFTNET.TARGET_DIM = 1  # Number of targets for regression or classification
 
 # -----------------------------------------------------------------------------
 # CartNet parameters
