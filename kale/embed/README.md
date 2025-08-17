@@ -31,7 +31,7 @@ embed/
 ```
 
 where:
-- `embed.model_lib/`: Predefined models for specific applications (e.g., for reprodicuing the models designed in published papers).
+- `embed.model_lib/`: Predefined models for specific applications (e.g., for reproducing the models designed in published papers).
 - `embed.video/`: Modules for video feature extraction and processing.
 - `attention.py`: General attention modules.
 - `cnn.py`: General convolutional neural network modules.
