@@ -381,8 +381,8 @@ class BoxPlotter:
         self.config = config or BoxPlotConfig()
 
         # Plotting state variables
-        self.ax: Optional[Any] = None  # matplotlib.axes.Axes
-        self.fig: Optional[Any] = None  # matplotlib.figure.Figure
+        self.ax = None  # matplotlib.axes.Axes
+        self.fig = None  # matplotlib.figure.Figure
         self.legend_patches: List[Union[patches.Patch, mlines.Line2D]] = []
         self.max_bin_height = 0.0
         self.sample_label_x_positions: List[float] = []
@@ -472,7 +472,7 @@ class BoxPlotter:
         box_color: str,
         dot_color: str,
         hatch_idx: int,
-    ) -> Any:  # matplotlib boxplot return type
+    ) -> Dict[str, List[Any]]:  # matplotlib boxplot return type
         """
         Create a single matplotlib boxplot with comprehensive styling and data visualization features.
 
@@ -487,7 +487,7 @@ class BoxPlotter:
             hatch_idx (int): Hatching pattern application control flag.
 
         Returns:
-            Any: Matplotlib boxplot dictionary containing plot elements and metadata.
+            Dict[str, List[Any]]: Matplotlib boxplot dictionary containing plot elements and metadata.
                 Structure: {"boxes": [], "medians": [], "means": [], "whiskers": [], "caps": []}
                 Elements: Provides access to individual plot components for further customization
                 Usage: Can be used to extract statistical information or apply additional styling
@@ -543,7 +543,7 @@ class BoxPlotter:
         color: str,
         dot_color: str,
         hatch_type: str,
-    ) -> Any:  # matplotlib boxplot return type
+    ) -> Dict[str, List[Any]]:  # matplotlib boxplot return type
         """
         Create specialized hatched boxplot for Q-value comparison studies with distinctive visual patterns.
 
@@ -558,7 +558,7 @@ class BoxPlotter:
             hatch_type (str): Hatching pattern specification for visual distinction.
 
         Returns:
-            Any: Matplotlib boxplot dictionary with hatched styling applied.
+            Dict[str, List[Any]]: Matplotlib boxplot dictionary with hatched styling applied.
                 Structure: Standard matplotlib boxplot return format
                 Elements: All boxes have mandatory hatching patterns applied
                 Usage: Can be used for statistical extraction or additional customization
