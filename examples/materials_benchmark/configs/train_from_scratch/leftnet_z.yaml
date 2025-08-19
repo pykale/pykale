@@ -15,7 +15,7 @@ SOLVER:
   NUM_RUNS: 1
 
 LEFTNET:
-  ENCODING: "z"  
+  ENCODING: "z"
 
 LOGGING:
   LOG_DIR: "saved_models"

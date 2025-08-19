@@ -10,13 +10,13 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/los
 """
 from enum import Enum
 
+import numpy as np
 import torch
 import torch.nn as nn
 from sklearn.metrics import auc
 from torch.autograd import grad
 from torch.nn import functional as F
 from torchmetrics import AUROC, AveragePrecision, PrecisionRecallCurve
-import numpy as np
 
 
 def cross_entropy_logits(output, target, weights=None):
@@ -501,19 +501,21 @@ def signal_image_elbo_loss(
     loss = recon_loss + annealing_factor * kl_div
     return loss
 
+
 def mean_relative_error(output, target):
     """
-        Calculate the mean relative error between true and predicted values using PyTorch.
-        Args:
-            output (torch.Tensor): Predicted values.
-            target (torch.Tensor): True values. 
-        Returns:
-            float: Mean relative error.
+    Calculate the mean relative error between true and predicted values using PyTorch.
+    Args:
+        output (torch.Tensor): Predicted values.
+        target (torch.Tensor): True values.
+    Returns:
+        float: Mean relative error.
     """
     # Epsilon to avoid division by zero if target can be zero
     eps = 1e-9
     errors = torch.abs(target - output) / (torch.abs(target) + eps)
     return torch.mean(errors).item()
+
 
 class GaussianDistance(object):
     """
@@ -521,6 +523,7 @@ class GaussianDistance(object):
 
     Unit: angstrom
     """
+
     def __init__(self, dmin, dmax, step, var=None):
         """
         Parameters
@@ -535,7 +538,7 @@ class GaussianDistance(object):
         """
         assert dmin < dmax
         assert dmax - dmin > step
-        self.filter = np.arange(dmin, dmax+step, step)
+        self.filter = np.arange(dmin, dmax + step, step)
         if var is None:
             var = step
         self.var = var
@@ -556,5 +559,4 @@ class GaussianDistance(object):
           Expanded distance matrix with the last dimension of length
           len(self.filter)
         """
-        return np.exp(-(distances[..., np.newaxis] - self.filter)**2 /
-                      self.var**2)
+        return np.exp(-((distances[..., np.newaxis] - self.filter) ** 2) / self.var**2)

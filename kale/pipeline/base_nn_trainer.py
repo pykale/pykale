@@ -279,8 +279,9 @@ class MultimodalNNTrainer(pl.LightningModule):
         loss, metrics = self.compute_loss(test_batch, split_name="test")
         self.log_dict(metrics, on_step=False, on_epoch=True, logger=True)
 
+
 class RegressionTrainer(BaseNNTrainer):
-    '''
+    """
     A PyTorch Lightning trainer for regression tasks. It computes the loss and metrics for regression tasks, such as
     Mean Absolute Error (MAE), Mean Relative Error (MRE), and R² (Coefficient of Determination). The trainer
     is designed to work with a feature extractor model and can be used for training, validation, and testing steps.
@@ -290,30 +291,24 @@ class RegressionTrainer(BaseNNTrainer):
         max_epochs (int): The maximum number of epochs for training.
         init_lr (float, optional): The initial learning rate for the optimizer. Defaults to 0.001.
         adapt_lr (bool, optional): Whether to adapt the learning rate during training. Defaults to False.
-    ''' 
-
+    """
 
     def __init__(self, feature_extractor, optimizer, max_epochs, init_lr=0.001, adapt_lr=False):
         super(RegressionTrainer, self).__init__(
-            optimizer=optimizer,
-            max_epochs=max_epochs,
-            init_lr=init_lr,
-            adapt_lr=adapt_lr
+            optimizer=optimizer, max_epochs=max_epochs, init_lr=init_lr, adapt_lr=adapt_lr
         )
         self.fea = feature_extractor
 
     def forward(self, batch):
-
         return self.fea(batch)
 
     def compute_loss(self, batch, split_name="val"):
-        
         results = self.forward(batch)
-    
+
         # If forward returns a single object (not tuple/list), wrap it so we can index it.
         if not isinstance(results, (tuple, list)):
             results = (results,)
-        
+
         # Extract only the first item.
         output = results[0]
 
@@ -364,8 +359,8 @@ class RegressionTrainer(BaseNNTrainer):
         optimizer = self.optimizers()
         if isinstance(optimizer, list):
             optimizer = optimizer[0]
-        current_lr = optimizer.param_groups[0]['lr']
-        metrics['learning_rate'] = current_lr
+        current_lr = optimizer.param_groups[0]["lr"]
+        metrics["learning_rate"] = current_lr
         self.log_dict(metrics, on_step=True, on_epoch=True, logger=True, batch_size=train_batch.batch_size)
         return loss
 

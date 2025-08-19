@@ -1,7 +1,7 @@
 ### bandgap-benchmark
 Code for "Benchmarking Band Gap Prediction For Semiconductor Materials Using Multimodal And Multi-fidelity Data"
 
-This repository contains the PyTorch Lightning implementation of the benchmark that described in our paper "Benchmarking Band Gap Prediction For Semiconductor Materials Using Multimodal And Multi-fidelity Data". We compiled a new multimodal, multi-idelity dataset from the Materials Project and BandgapDatabase1, consisting of 60,218 low-fidelity computational band gaps and 1,183 high-fidelity experimental band gaps. We evaluated seven ML models, including three traditioanl methods (linear regression, random forest regression and support vector regression) and four GNN (CGCNN, CartNet, LEFTNet-Z and LEFTNet-Prop). 
+This repository contains the PyTorch Lightning implementation of the benchmark that described in our paper "Benchmarking Band Gap Prediction For Semiconductor Materials Using Multimodal And Multi-fidelity Data". We compiled a new multimodal, multi-idelity dataset from the Materials Project and BandgapDatabase1, consisting of 60,218 low-fidelity computational band gaps and 1,183 high-fidelity experimental band gaps. We evaluated seven ML models, including three traditioanl methods (linear regression, random forest regression and support vector regression) and four GNN (CGCNN, CartNet, LEFTNet-Z and LEFTNet-Prop).
 
 ### Repository Structure
 `cif_file.zip` - Contains `.cif` files and the atomic encoding file used in the benchmark.
@@ -40,4 +40,3 @@ After training, predictions can be generated using:
 ```(bash)
 python test_model.py --cfg configs/PATH_TO_YOUR_CONFIG.yaml --checkpoint saved_models/PATH_TO_YOUR_MODEL.ckpt --cif_folder cif_file --test_data data/fine_tune/test_data.json
 ```
-

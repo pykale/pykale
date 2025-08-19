@@ -7,7 +7,6 @@ SOLVER:
   NUM_RUNS: 1
   NUM_FOLDS: 5
   RANDOMIZE: True
-  TASK: "regression"  # Choices: ['regression', 'classification']
   DISABLE_CUDA: False
   WORKERS: 4
   START_EPOCH: 0

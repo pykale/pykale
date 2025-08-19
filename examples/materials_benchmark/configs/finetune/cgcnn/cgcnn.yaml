@@ -11,10 +11,9 @@ MODEL:
   PRETRAINED_MODEL_PATH: 'saved_models/cgcnn/best.ckpt'
   INIT_FILE: 'cif_file/atom_init.json'
   CIF_FOLDER: "cif_file"
-  RADIUS: 7.0
-  # CIF_FOLDER: "master_files/cif_master"
+  RADIUS: 8.0
 
- 
+
 SOLVER:
   LR: 0.001
   NUM_FOLDS: 10
@@ -22,9 +21,6 @@ SOLVER:
   NUM_RUNS: 1
 
 
-CGCNN:
-  FEATURE_FUSION: 'leftnet'
-  LAYER_FREEZE: 'none'
 
 
 LOGGING:

@@ -1,8 +1,9 @@
-import numpy as np
 import json
 
-def extract_features(dataset):
+import numpy as np
 
+
+def extract_features(dataset):
     """
     Extracts fixed-size features from PyG-style crystal graph data for use in non-GNN models.
 
@@ -21,7 +22,7 @@ def extract_features(dataset):
 
     features, targets = [], []
     for data in dataset:
-        atom_fea = np.array(data.atom_fea.cpu().tolist()) # (N_atoms, atom_fea_len)
+        atom_fea = np.array(data.atom_fea.cpu().tolist())  # (N_atoms, atom_fea_len)
         nbr_fea = np.array(data.nbr_fea.cpu().tolist())  # (N_atoms, N_neighbors, nbr_fea_len)
         nbr_fea_idx = np.array(data.nbr_fea_idx.cpu().tolist())  # (N_atoms, N_neighbors)
         # Get neighbor atom features
@@ -39,8 +40,6 @@ def extract_features(dataset):
         # total_fea = np.concatenate([atom_fea, total_fea], axis=-1)  # (N_atoms, input_dim + atom_fea_len)
         total_fea = np.mean(total_fea, axis=0)
 
-
-
         # Store features and target (bandgap value)
         features.append(total_fea)
         targets.append(np.array(data.target.cpu().tolist()))  # Bandgap target
@@ -56,6 +55,7 @@ class AtomInitializer(object):
 
     !!! Use one AtomInitializer per dataset !!!
     """
+
     def __init__(self, atom_types):
         self.atom_types = set(atom_types)
         self._embedding = {}
@@ -67,16 +67,14 @@ class AtomInitializer(object):
     def load_state_dict(self, state_dict):
         self._embedding = state_dict
         self.atom_types = set(self._embedding.keys())
-        self._decodedict = {idx: atom_type for atom_type, idx in
-                            self._embedding.items()}
+        self._decodedict = {idx: atom_type for atom_type, idx in self._embedding.items()}
 
     def state_dict(self):
         return self._embedding
 
     def decode(self, idx):
-        if not hasattr(self, '_decodedict'):
-            self._decodedict = {idx: atom_type for atom_type, idx in
-                                self._embedding.items()}
+        if not hasattr(self, "_decodedict"):
+            self._decodedict = {idx: atom_type for atom_type, idx in self._embedding.items()}
         return self._decodedict[idx]
 
 
@@ -92,11 +90,11 @@ class AtomCustomJSONInitializer(AtomInitializer):
     elem_embedding_file: str
         The path to the .json file
     """
+
     def __init__(self, elem_embedding_file):
         with open(elem_embedding_file) as f:
             elem_embedding = json.load(f)
-        elem_embedding = {int(key): value for key, value
-                          in elem_embedding.items()}
+        elem_embedding = {int(key): value for key, value in elem_embedding.items()}
         atom_types = set(elem_embedding.keys())
         super(AtomCustomJSONInitializer, self).__init__(atom_types)
         for key, value in elem_embedding.items():

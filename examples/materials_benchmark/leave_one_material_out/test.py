@@ -50,13 +50,21 @@ for config_file in os.listdir(config_folder):
         print(f"Generating output file: {output_file}")
 
         # Run the subprocess with the appropriate paths
-        subprocess.run([
-            "python", "test_model.py",
-            "--cfg", config_path,
-            "--checkpoint", checkpoint_path,
-            "--test_data", test_data_file,
-            "--cif_folder", "cif_file",
-            "--output_dir", f"predictions/cartnet/{category}",
-            "--output_file", output_file,
-        ])
-
+        subprocess.run(
+            [
+                "python",
+                "test_model.py",
+                "--cfg",
+                config_path,
+                "--checkpoint",
+                checkpoint_path,
+                "--test_data",
+                test_data_file,
+                "--cif_folder",
+                "cif_file",
+                "--output_dir",
+                f"predictions/cartnet/{category}",
+                "--output_file",
+                output_file,
+            ]
+        )

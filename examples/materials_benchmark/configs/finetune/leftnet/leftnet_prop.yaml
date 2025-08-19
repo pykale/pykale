@@ -20,5 +20,4 @@ LEFTNET:
 
 LOGGING:
   LOG_DIR: "saved_models"
-  LOG_DIR_NAME: "leftnet_prop"  
-
+  LOG_DIR_NAME: "leftnet_prop"

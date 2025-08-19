@@ -17,7 +17,7 @@ SOLVER:
   NUM_RUNS: 50
 
 LEFTNET:
-  ENCODING: 'one-hot'
+  ENCODING: 'prop'
 
 LOGGING:
   LOG_DIR: "saved_models"

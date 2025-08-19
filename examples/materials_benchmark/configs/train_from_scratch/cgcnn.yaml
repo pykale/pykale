@@ -13,9 +13,6 @@ SOLVER:
   EPOCHS: 100
   NUM_RUNS: 1
 
-CGCNN:
-    FEATURE_FUSION: 'none'
-
 LOGGING:
   LOG_DIR: "saved_models"
   LOG_DIR_NAME: "cgcnn"

@@ -1,20 +1,26 @@
+from math import pi
+
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.nn import Parameter
-from torch.nn import Linear, BatchNorm1d, Sigmoid, Softplus
+import torch.nn.functional as F
+import torch_geometric.nn as pyg_nn
+from torch_cluster import radius_graph
 from torch_geometric.nn import GCNConv, global_max_pool
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.utils import add_remaining_self_loops
-from torch_scatter import scatter_add
-from torch_geometric.nn import global_mean_pool
+from torch_scatter import scatter, scatter_add
 
 from kale.embed.materials_equivariant import (
-    rbf_emb, NeighborEmb, S_vector, EquiMessagePassing, FTE, aggregate_pos
+    CosineCutoff,
+    EquiMessagePassing,
+    ExpNormalSmearing,
+    FTE,
+    NeighborEmb,
+    rbf_emb,
+    S_vector,
 )
 
-import math
-from math import pi
 
 class GCNEncoderLayer(MessagePassing):
     r"""
@@ -137,7 +143,7 @@ class GCNEncoderLayer(MessagePassing):
 
 class RGCNEncoderLayer(MessagePassing):
     r"""
-    Modification of PyTorch Geometirc's nn.RGCNConv, which reduces the computational and memory
+    Modification of PyTorch Geometric's nn.RGCNConv, which reduces the computational and memory
     cost of RGCN encoder layer for `GripNet <https://github.com/NYXFLOWER/GripNet>`_ model.
     The relational graph convolutional operator from the `"Modeling
     Relational Data with Graph Convolutional Networks" <https://arxiv.org/abs/1703.06103>`_ paper.
@@ -327,12 +333,19 @@ class MolecularGCN(nn.Module):
         return x
 
 
-class ConvLayer(nn.Module):
+class CGCNNEncoderLayer(nn.Module):
+    r"""
+    CGCNN-style edge-gated graph convolution for crystal graphs.
+    An implementation of paper `Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of
+    Material Properties<https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301>`.
+
+    Args:
+        atom_fea_len (int): Node/atom feature dimension.
+        nbr_fea_len (int):  Edge/neighbor feature dimension.
     """
-    Convolutional operation on graphs
-    """
+
     def __init__(self, atom_fea_len, nbr_fea_len):
-        super(ConvLayer, self).__init__()
+        super(CGCNNEncoderLayer, self).__init__()
         self.fc_full = nn.Linear(2 * atom_fea_len + nbr_fea_len, 2 * atom_fea_len)
         self.sigmoid = nn.Sigmoid()
         self.softplus1 = nn.Softplus()
@@ -343,9 +356,7 @@ class ConvLayer(nn.Module):
     def forward(self, atom_in_fea, nbr_fea, nbr_fea_idx):
         N, M = nbr_fea_idx.shape
         atom_nbr_fea = atom_in_fea[nbr_fea_idx, :]
-        total_nbr_fea = torch.cat(
-            [atom_in_fea.unsqueeze(1).expand(N, M, -1), atom_nbr_fea, nbr_fea], dim=2
-        )
+        total_nbr_fea = torch.cat([atom_in_fea.unsqueeze(1).expand(N, M, -1), atom_nbr_fea, nbr_fea], dim=2)
         total_gated_fea = self.fc_full(total_nbr_fea)
         total_gated_fea = self.bn1(total_gated_fea.view(-1, total_gated_fea.shape[-1])).view(N, M, -1)
         nbr_filter, nbr_core = total_gated_fea.chunk(2, dim=2)
@@ -355,30 +366,37 @@ class ConvLayer(nn.Module):
         nbr_sumed = self.bn2(nbr_sumed)
         out = self.softplus2(atom_in_fea + nbr_sumed)
         return out
-    
-class CrystalGraphConvNet(nn.Module):
+
+
+class CrystalGCN(nn.Module):
     """
     Crystal Graph Convolutional Neural Network (CGCNN).
-    An implementation of implementation of paper `Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of 
-    Material Properties<https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301>`. Each crystal is represented as a graph
-    whose nodes are atoms (node features = elemental descriptors), and edges
-    encode inter-atomic relations (edge features = distance embeddings).
-    Node features are updated by a stack of CGCNN convolution blocks and are
-    pooled to a crystal representation for regression/classification.
+    An implementation of paper `Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of
+    Material Properties<https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301>`.
+    Each crystal is provided as:
+      - atom features ``data.atom_fea``,
+      - dense neighbor lists ``data.nbr_fea_idx``,
+      - neighbor edge features ``data.nbr_fea`` (e.g., distance embeddings).
 
     Args:
-        orig_atom_fea_len (int): Input atom feature dimension (e.g., length of elemental descriptor).
-        nbr_fea_len (int): Neighbor feature length.
-        atom_fea_len (int, optional): Atom feature length after embedding. Default is 64.
-        n_conv (int, optional): Number of convolutional layers. Default is 3.
-        h_fea_len (int, optional): Hidden feature length. Default is 128.
-        n_h (int, optional): Number of hidden layers. Default is 1.
+        orig_atom_fea_len (int): Input atom feature dim.
+        nbr_fea_len (int): Neighbor/edge feature dim.
+        atom_fea_len (int): Hidden atom feature dim after embedding. Default: 64.
+        n_conv (int): Number of CGCNN layers. Default: 3.
+        h_fea_len (int): Hidden dim before output. Default: 128.
+        n_h (int): # of hidden FC layers after pooling. Default: 1.
+        classification (bool): If True, 2-way classification; else regression.
     """
-    def __init__(self, orig_atom_fea_len, nbr_fea_len, atom_fea_len=64, n_conv=3, h_fea_len=128, n_h=1, classification=False):
-        super(CrystalGraphConvNet, self).__init__()
+
+    def __init__(
+        self, orig_atom_fea_len, nbr_fea_len, atom_fea_len=64, n_conv=3, h_fea_len=128, n_h=1, classification=False
+    ):
+        super(CrystalGCN, self).__init__()
         self.classification = classification
         self.embedding = nn.Linear(orig_atom_fea_len, atom_fea_len)
-        self.convs = nn.ModuleList([ConvLayer(atom_fea_len=atom_fea_len, nbr_fea_len=nbr_fea_len) for _ in range(n_conv)])
+        self.convs = nn.ModuleList(
+            [CGCNNEncoderLayer(atom_fea_len=atom_fea_len, nbr_fea_len=nbr_fea_len) for _ in range(n_conv)]
+        )
         self.conv_to_fc = nn.Linear(atom_fea_len, h_fea_len)
         self.conv_to_fc_softplus = nn.Softplus()
         if n_h > 1:
@@ -390,6 +408,7 @@ class CrystalGraphConvNet(nn.Module):
             self.dropout = nn.Dropout()
         else:
             self.fc_out = nn.Linear(h_fea_len, 1)
+
     def forward(self, data):
         device = next(self.parameters()).device
         # atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx
@@ -400,20 +419,21 @@ class CrystalGraphConvNet(nn.Module):
 
         atom_fea = self.embedding(atom_fea)
         for conv_func in self.convs:
-            atom_fea = conv_func(atom_fea, nbr_fea, nbr_fea_idx) # add position information
+            atom_fea = conv_func(atom_fea, nbr_fea, nbr_fea_idx)  # add position information
         # or here posi_fea = fc()
         crys_fea = self.pooling(atom_fea, crystal_atom_idx)
         crys_fea = self.conv_to_fc(self.conv_to_fc_softplus(crys_fea))
         crys_fea = self.conv_to_fc_softplus(crys_fea)
         if self.classification:
             crys_fea = self.dropout(crys_fea)
-        if hasattr(self, 'fcs') and hasattr(self, 'softpluses'):
+        if hasattr(self, "fcs") and hasattr(self, "softpluses"):
             for fc, softplus in zip(self.fcs, self.softpluses):
                 crys_fea = softplus(fc(crys_fea))
         out = self.fc_out(crys_fea)
         if self.classification:
             out = self.logsoftmax(out)
         return out
+
     def pooling(self, atom_fea, crystal_atom_idx):
         """
         Pooling the atom features to crystal features
@@ -422,17 +442,14 @@ class CrystalGraphConvNet(nn.Module):
         return torch.cat(summed_fea, dim=0)
 
 
-
 class LEFTNetZ(nn.Module):
     def __init__(
         self,
         atom_fea_dim,
-        num_targets,  # not used
+        num_targets,
         otf_graph=False,
         use_pbc=True,
-        regress_forces=False,
         output_dim=0,
-        direct_forces=False,
         cutoff=6.0,
         num_layers=4,
         readout="mean",
@@ -442,30 +459,28 @@ class LEFTNetZ(nn.Module):
         y_std=1,
         eps=1e-10,
     ):
-        
-
-        r"""        
+        """
         LEFTNet-Z model for predicting properties of materials based on their crystal structure.
-        This model uses an equivariant graph neural network architecture to process crystal graphs.
-        It is designed to handle periodic boundary conditions (PBC) and can optionally regress forces.
-        the code is implemented based on the paper `A new perspective on building efficient and expressive
-3D equivariant graph neural networks<https://openreview.net/pdf?id=hWPNYWkYPN>`
+        Equivariant GNN for crystal graphs with periodic boundary conditions (PBC) support. It builds a radius graph from atomic positions, uses RBF distance
+        encodings and equivariant message passing. Outputs graph-level properties via readout.
+
+        The code is implemented based on the paper `A new perspective on building efficient and expressive
+        3D equivariant graph neural networks<https://openreview.net/pdf?id=hWPNYWkYPN>`
+
         Args:
-            atom_fea_dim (int): Dimension of the input atomic feature vector.
-            num_targets (int): Number of target properties to predict.
-            otf_graph (bool): Whether to use on-the-fly graph construction.
-            use_pbc (bool): Whether to use periodic boundary conditions.
-            regress_forces (bool): Whether to regress forces in addition to properties. 
-            output_dim (int): Dimension of the output layer. If 0, defaults to num_targets.
-            direct_forces (bool): Whether to directly compute forces.
-            cutoff (float): Cutoff distance for neighbor interactions.
-            num_layers (int): Number of message passing layers in the network.
-            readout (str): Readout method for aggregating node features ('mean', 'sum', etc.).
-            hidden_channels (int): Number of hidden channels in the network.
-            num_radial (int): Number of radial basis functions for distance encoding.
-            y_mean (float): Mean of the target property for normalization.
-            y_std (float): Standard deviation of the target property for normalization.
-            eps (float): Small value to avoid division by zero in normalization.
+            atom_fea_dim (int): Input atomic feature dimension (e.g., size of Z/property encoding).
+            num_targets (int): Graph-level output dimension (if ``output_dim==0``, this value is used).
+            otf_graph (bool): Whether to use on-the-fly graph construction. (Stored but unused here.)
+            use_pbc (bool): Whether to enable periodic boundary conditions. (Stored but unused here.)
+            output_dim (int): If > 0, overrides ``num_targets`` for the final layer size. Default: 0.
+            cutoff (float): Radius cutoff (Å) for neighbor search. Default: 6.0.
+            num_layers (int): Number of equivariant message passing blocks. Default: 4.
+            readout (str): Readout reducer: {"mean","sum",...}. Default: "mean".
+            hidden_channels (int): Hidden channel size for invariant/equivariant states. Default: 128.
+            num_radial (int): Number of RBFs for encoding distances. Default: 96.
+            y_mean (float): Target normalization mean. Default: 0.
+            y_std (float): Target normalization std. Default: 1.
+            eps (float): Numerical epsilon to avoid division-by-zero. Default: 1e-10.
         """
         super(LEFTNetZ, self).__init__()
         self.y_std = y_std
@@ -477,15 +492,10 @@ class LEFTNetZ(nn.Module):
         self.num_targets = num_targets
         self.readout = readout
 
-        self.regress_forces = regress_forces
         self.use_pbc = use_pbc
         self.otf_graph = otf_graph
-        self.direct_forces = direct_forces
 
         self.input_dim = atom_fea_dim
-
-        # self.z_emb_ln = nn.LayerNorm(hidden_channels, elementwise_affine=False)
-        # self.z_emb = Embedding(95, hidden_channels)
 
         self.radial_emb = rbf_emb(num_radial, cutoff)
         self.radial_lin = nn.Sequential(
@@ -513,22 +523,15 @@ class LEFTNetZ(nn.Module):
         self.last_layer = nn.Linear(hidden_channels, self.num_targets)
         # self.out_forces = EquiOutput(hidden_channels)
 
-        # for node-wise frame
-        self.mean_neighbor_pos = aggregate_pos(aggr="mean")
-
-        self.inv_sqrt_2 = 1 / math.sqrt(2.0)
-
         self.reset_parameters()
 
     def reset_parameters(self):
-        # self.z_emb.reset_parameters()
         self.radial_emb.reset_parameters()
         for layer in self.message_layers:
             layer.reset_parameters()
         for layer in self.FTEs:
             layer.reset_parameters()
         self.last_layer.reset_parameters()
-        # self.out_forces.reset_parameters()
         for layer in self.radial_lin:
             if hasattr(layer, "reset_parameters"):
                 layer.reset_parameters()
@@ -537,13 +540,13 @@ class LEFTNetZ(nn.Module):
                 layer.reset_parameters()
 
     def prop_setup(self, data, device):
-       """
-       Setup for the property encoding. for LEFTNet-Z, only the atomic number is used as the input feature.
-       num_classes = 95 for the first 95 elements are used in the periodic table.
-       """
-       z = data.atom_num.long().to(device)
-       z_encoded = F.one_hot(z, num_classes=95).float()
-       return z_encoded
+        """
+        Setup for the property encoding. for LEFTNet-Z, only the atomic number is used as the input feature.
+        num_classes = 95 for the first 95 elements are used in the periodic table.
+        """
+        z = data.atom_num.long().to(device)
+        z_encoded = F.one_hot(z, num_classes=95).float()
+        return z_encoded
 
     # @conditional_grad(torch.enable_grad())
     def _forward(self, data):
@@ -552,39 +555,43 @@ class LEFTNetZ(nn.Module):
         batch = data.batch_idx.to(device)
         z = self.prop_setup(data, device)
 
-
         edge_index = radius_graph(pos, r=self.cutoff, batch=batch, max_num_neighbors=1000)
         j, i = edge_index
         vecs = pos[j] - pos[i]
         dist = vecs.norm(dim=-1)
 
-        radial_emb = self.radial_emb(dist) # RBF, shape: (num_edges, num_radial=32), embedding for raw distance
-        radial_hidden = self.radial_lin(radial_emb) # MLP
-        rbounds = 0.5 * (torch.cos(dist * pi / self.cutoff) + 1.0) # for soft cutoff, smooth decay, value closer to 1 means stronger relationship, closer to 0 means weaker
+        radial_emb = self.radial_emb(dist)  # RBF, shape: (num_edges, num_radial=32), embedding for raw distance
+        radial_hidden = self.radial_lin(radial_emb)  # MLP
+        rbounds = 0.5 * (
+            torch.cos(dist * pi / self.cutoff) + 1.0
+        )  # for soft cutoff, smooth decay, value closer to 1 means stronger relationship, closer to 0 means weaker
 
         radial_emb = radial_emb.to(device)
         radial_hidden = radial_hidden.to(device)
         rbounds = rbounds.to(device)
 
-        radial_hidden = rbounds.unsqueeze(-1) * radial_hidden # further stengthen the representation of radial_emb
+        radial_hidden = rbounds.unsqueeze(-1) * radial_hidden  # further stengthen the representation of radial_emb
 
         # init invariant node features
         # shape: (num_nodes, hidden_channels)
-        s = self.neighbor_emb(z, edge_index, radial_hidden) # z (num_nodes, atom_encoding), z_emb (num_nodes, hidden_channels); s=z_emb+neighbor_emb, shape: (num_nodes, hidden_channels)
+        s = self.neighbor_emb(
+            z, edge_index, radial_hidden
+        )  # z (num_nodes, atom_encoding), z_emb (num_nodes, hidden_channels); s=z_emb+neighbor_emb, shape: (num_nodes, hidden_channels)
 
         # init equivariant node features
         # shape: (num_nodes, 3, hidden_channels)
         vec = torch.zeros(s.size(0), 3, s.size(1), device=s.device)
 
-        # bulid edge-wise frame
+        # build edge-wise frame
         edge_diff = vecs
-        edge_diff = edge_diff / (dist.unsqueeze(1) + self.eps) # normalize the edge_diff
-        # noise = torch.clip(torch.empty(1,3).to(z.device).normal_(mean=0.0, std=0.1), min=-0.1, max=0.1)
+        edge_diff = edge_diff / (dist.unsqueeze(1) + self.eps)  # normalize the edge_diff
         edge_cross = torch.cross(pos[i], pos[j])
         edge_cross = edge_cross / ((torch.sqrt(torch.sum((edge_cross) ** 2, 1).unsqueeze(1))) + self.eps)
         edge_vertical = torch.cross(edge_diff, edge_cross)
         # shape: (num_edges, 3, 3)
-        edge_frame = torch.cat((edge_diff.unsqueeze(-1), edge_cross.unsqueeze(-1), edge_vertical.unsqueeze(-1)), dim=-1) # normalised edge, edge_cross, edge_vertical
+        edge_frame = torch.cat(
+            (edge_diff.unsqueeze(-1), edge_cross.unsqueeze(-1), edge_vertical.unsqueeze(-1)), dim=-1
+        )  # normalised edge, edge_cross, edge_vertical
 
         node_frame = 0
 
@@ -608,8 +615,7 @@ class LEFTNetZ(nn.Module):
         edge_weight = torch.cat((scalar3, scalar4), dim=-1) * rbounds.unsqueeze(-1)
         edge_weight = torch.cat((edge_weight, radial_hidden, radial_emb), dim=-1)
 
-        # for i in range(self.num_layers):
-        for i in range(1):
+        for i in range(self.num_layers):
             ds, dvec = self.message_layers[i](s, vec, edge_index, radial_emb, edge_weight, edge_diff)
 
             s = s + ds
@@ -634,22 +640,20 @@ class LEFTNetZ(nn.Module):
         return sum(p.numel() for p in self.parameters())
 
 
-
 class LEFTNetProp(LEFTNetZ):
-    '''
-    LEFTNet with property encoding, using a one-hot encoding of the atomic properties for the atoms.
-    Rest of the architecture is the same as LEFTNetZ.
-    '''
+    """
+    LEFTNet with property-based atomic encoding. Only differs in ``prop_setup``:
+    it uses ``data.atom_fea`` (precomputed atomic properties) instead of Z one-hot.
+    """
+
     def __init__(
         self,
         atom_fea_dim,
-        num_targets,  # not used
+        num_targets,
         otf_graph=False,
         use_pbc=True,
-        regress_forces=False,
         output_dim=0,
-        direct_forces=False,
-        cutoff=6.0,
+        cutoff=8.0,
         num_layers=4,
         readout="mean",
         hidden_channels=128,
@@ -663,9 +667,7 @@ class LEFTNetProp(LEFTNetZ):
             num_targets=num_targets,
             otf_graph=otf_graph,
             use_pbc=use_pbc,
-            regress_forces=regress_forces,
             output_dim=output_dim,
-            direct_forces=direct_forces,
             cutoff=cutoff,
             num_layers=num_layers,
             readout=readout,
@@ -673,24 +675,15 @@ class LEFTNetProp(LEFTNetZ):
             num_radial=num_radial,
             y_mean=y_mean,
             y_std=y_std,
-            eps=eps
+            eps=eps,
         )
+
     def prop_setup(self, data, device):
-       '''
-       Setup for the property encoding. for LEFTNet-Prop, a one-hot encoding contains atomic properties is used as the atomic feature..
-       '''
+        """
+        Setup for the property encoding. for LEFTNet-Prop, a one-hot encoding contains atomic properties is used as the atomic feature..
+        """
 
-       return data.atom_fea.to(device)
-    
-
-import torch
-from torch_cluster import radius_graph
-import torch_geometric.nn as pyg_nn
-import torch.nn as nn
-import torch.nn.functional as F
-from torch_geometric.graphgym.config import cfg
-from torch_scatter import scatter
-from kale.embed.materials_equivariant import ExpNormalSmearing, CosineCutoff
+        return data.atom_fea.to(device)
 
 
 class CartNet(torch.nn.Module):
@@ -718,30 +711,34 @@ class CartNet(torch.nn.Module):
                 true: The ground truth values corresponding to the input batch.
     """
 
-
-    def __init__(self, 
-        dim_in: int, 
-        dim_rbf: int, 
+    def __init__(
+        self,
+        dim_in: int,
+        dim_rbf: int,
         num_layers: int,
         radius: float = 5.0,
         invariant: bool = False,
-        temperature: bool = True, 
+        temperature: bool = True,
         use_envelope: bool = True,
-        atom_types: bool = True):
+        atom_types: bool = True,
+    ):
         super().__init__()
-    
-        self.encoder = GeometricGraphEncoder(dim_in, dim_rbf=dim_rbf, radius=radius, invariant=invariant, temperature=temperature, atom_types=atom_types)
+
+        self.encoder = GeometricGraphEncoder(
+            dim_in, dim_rbf=dim_rbf, radius=radius, invariant=invariant, temperature=temperature, atom_types=atom_types
+        )
         self.dim_in = dim_in
 
         layers = []
         for _ in range(num_layers):
-            layers.append(CartNet_layer(
-                dim_in=dim_in,
-                use_envelope=use_envelope,
-                radius=radius,
-            ))
+            layers.append(
+                CartNet_layer(
+                    dim_in=dim_in,
+                    use_envelope=use_envelope,
+                    radius=radius,
+                )
+            )
         self.layers = torch.nn.Sequential(*layers)
-
 
         self.head = nn.Sequential(
             pyg_nn.Linear(dim_in, dim_in // 2, bias=True),
@@ -749,7 +746,6 @@ class CartNet(torch.nn.Module):
             pyg_nn.Linear(dim_in // 2, 1, bias=True),
         )
 
-        
     def forward(self, batch):
         batch = self.encoder(batch)
 
@@ -758,28 +754,29 @@ class CartNet(torch.nn.Module):
         dim_size = int(batch.batch_idx.max().item() + 1)
         x = self.head(batch.x)
         pred = scatter(x, batch.batch_idx.to(x.device), dim=0, reduce="mean", dim_size=dim_size)
-        
-        return pred,batch.target
+
+        return pred, batch.target
+
 
 class GeometricGraphEncoder(nn.Module):
     """
-    General-purpose geometry-aware graph encoder.
+    Geometry-aware graph encoder.
 
     Builds edges from 3D coordinates using a radius cutoff, encodes node
     features from categorical types or provided embeddings, and encodes
     edge features from radial basis functions (RBF) and optional direction
-    vectors. Supports an invariant mode (distance-only edges) and a 
+    vectors. Supports an invariant mode (distance-only edges) and a
     directional mode for equivariant message passing.
 
     Args:
         dim_in (int): Output dimension of encoded node features.
         dim_rbf (int): Number of radial basis functions for distance encoding.
         radius (float): Cutoff distance for neighbor search.
-        invariant (bool): If True, edges use distances only. If False, 
+        invariant (bool): If True, edges use distances only. If False,
             append unit direction vectors.
         temperature (bool): If True, include temperature in node encoding.
         use_node_type (bool): If True, embed node types (e.g., atomic numbers).
-    
+
     Inputs (batch):
         - `pos` (Tensor [N, 3]): Cartesian coordinates for nodes.
         - Optional `node_type` (LongTensor [N]): Categorical node IDs (e.g., atomic numbers).
@@ -794,15 +791,15 @@ class GeometricGraphEncoder(nn.Module):
         - `cart_dist` (Tensor [E]): Pairwise distances.
         - `cart_dir` (Tensor [E, 3]): Direction vectors (if invariant=False).
     """
-    
+
     def __init__(
         self,
         dim_in: int,
         dim_rbf: int,
         radius: float = 5.0,
-        invariant: bool = False, 
+        invariant: bool = False,
         temperature: bool = True,
-        atom_types: bool = True
+        atom_types: bool = True,
     ):
         super(GeometricGraphEncoder, self).__init__()
         self.dim_in = dim_in
@@ -812,37 +809,36 @@ class GeometricGraphEncoder(nn.Module):
         self.temperature = temperature
         self.atom_types = atom_types
         if self.atom_types:
-            self.embedding = nn.Embedding(119, self.dim_in*2)
+            self.embedding = nn.Embedding(119, self.dim_in * 2)
             torch.nn.init.xavier_uniform_(self.embedding.weight.data)
         elif not self.temperature:
             self.embedding = nn.Embedding(1, self.dim_in)
 
         if self.temperature:
-            self.temperature_proj_atom = pyg_nn.Linear(1, self.dim_in*2, bias=True)
+            self.temperature_proj_atom = pyg_nn.Linear(1, self.dim_in * 2, bias=True)
         elif self.atom_types:
-            self.bias = nn.Parameter(torch.zeros(self.dim_in*2))
+            self.bias = nn.Parameter(torch.zeros(self.dim_in * 2))
         self.activation = nn.SiLU(inplace=True)
-        
+
         if self.temperature or self.atom_types:
-            self.encoder_atom = nn.Sequential(self.activation,
-                                        pyg_nn.Linear(self.dim_in*2, self.dim_in),
-                                        self.activation)
+            self.encoder_atom = nn.Sequential(
+                self.activation, pyg_nn.Linear(self.dim_in * 2, self.dim_in), self.activation
+            )
         if self.invariant:
             dim_edge = dim_rbf
         else:
             dim_edge = dim_rbf + 3
-        
-        self.encoder_edge = nn.Sequential(pyg_nn.Linear(dim_edge, self.dim_in*2),
-                                        self.activation,
-                                        pyg_nn.Linear(self.dim_in*2, self.dim_in),
-                                        self.activation)
 
-        self.rbf = ExpNormalSmearing(0.0,radius,dim_rbf,False)  
-        
-        
+        self.encoder_edge = nn.Sequential(
+            pyg_nn.Linear(dim_edge, self.dim_in * 2),
+            self.activation,
+            pyg_nn.Linear(self.dim_in * 2, self.dim_in),
+            self.activation,
+        )
+
+        self.rbf = ExpNormalSmearing(0.0, radius, dim_rbf, False)
 
     def forward(self, batch):
-
         batch.device = next(self.parameters()).device
         data = batch.atom_num.long().to(batch.device)
         batch_idx = batch.batch_idx.to(batch.device)
@@ -853,70 +849,56 @@ class GeometricGraphEncoder(nn.Module):
         vec = pos[j] - pos[i]
         dist = vec.norm(dim=-1)
         batch.cart_dist = dist
-        batch.cart_dir = vec/dist.unsqueeze(-1)
+        batch.cart_dir = vec / dist.unsqueeze(-1)
 
+        x = self.embedding(data) + self.bias
 
-        if self.temperature and self.atom_types:
-            x = self.embedding(data) + self.temperature_proj_atom(batch.temperature.unsqueeze(-1))[batch.batch]
-        elif not self.temperature and self.atom_types:  # atom_types default value is True
-            x = self.embedding(data) + self.bias
-    
-        
-        if self.temperature or self.atom_types:
-            batch.x = self.encoder_atom(x)
+        batch.x = self.encoder_atom(x)
 
-        if self.invariant: # cfg.invariant is False
+        if self.invariant:  # cfg.invariant is False
             batch.edge_attr = self.encoder_edge(self.rbf(batch.cart_dist))
         else:
             batch.edge_attr = self.encoder_edge(torch.cat([self.rbf(batch.cart_dist), batch.cart_dir], dim=-1))
 
         return batch
 
+
 class CartNet_layer(pyg_nn.conv.MessagePassing):
     """
     The message-passing layer used in the CartNet architecture.
     Args:
         dim_in (int): Dimension of the input node features.
+        radius (float, optional): Radius cutoff for neighbor interactions. Default is 8.0.
         use_envelope (bool, optional): If True, applies an envelope function to the distances. Defaults to True.
-    Attributes:
-        dim_in (int): Dimension of the input node features.
-        activation (nn.Module): Activation function (SiLU) used in the layer.
-        MLP_aggr (nn.Sequential): MLP used for aggregating messages.
-        MLP_gate (nn.Sequential): MLP used for computing gating coefficients.
-        norm (nn.BatchNorm1d): Batch normalization applied to the gating coefficients.
-        norm2 (nn.BatchNorm1d): Batch normalization applied to the aggregated messages.
-        use_envelope (bool): Indicates if the envelope function is used.
-        envelope (CosineCutoff): Envelope function applied to the distances.
+
     """
-    
-    def __init__(self, 
-        dim_in: int, 
-        radius: float = 5.0,
+
+    def __init__(
+        self,
+        dim_in: int,
+        radius: float = 8.0,
         use_envelope: bool = True,
     ):
         super().__init__()
         self.dim_in = dim_in
-        self.activation = nn.SiLU(inplace=True) 
+        self.activation = nn.SiLU(inplace=True)
         self.MLP_aggr = nn.Sequential(
-            pyg_nn.Linear(dim_in*3, dim_in, bias=True),
+            pyg_nn.Linear(dim_in * 3, dim_in, bias=True),
             self.activation,
             pyg_nn.Linear(dim_in, dim_in, bias=True),
         )
         self.MLP_gate = nn.Sequential(
-            pyg_nn.Linear(dim_in*3, dim_in, bias=True),
+            pyg_nn.Linear(dim_in * 3, dim_in, bias=True),
             self.activation,
             pyg_nn.Linear(dim_in, dim_in, bias=True),
         )
-        
+
         self.norm = nn.BatchNorm1d(dim_in)
         self.norm2 = nn.BatchNorm1d(dim_in)
         self.use_envelope = use_envelope
         self.envelope = CosineCutoff(0, radius)
-        
 
     def forward(self, batch):
-
-        x, e, edge_index, dist = batch.x, batch.edge_attr, batch.edge_index, batch.cart_dist
         """
         x               : [n_nodes, dim_in]
         e               : [n_edges, dim_in]
@@ -924,21 +906,23 @@ class CartNet_layer(pyg_nn.conv.MessagePassing):
         dist            : [n_edges]
         batch           : [n_nodes]
         """
-        
+        x, e, edge_index, dist = batch.x, batch.edge_attr, batch.edge_index, batch.cart_dist
+
         x_in = x
         e_in = e
 
-        x, e = self.propagate(edge_index,
-                                Xx=x, Ee=e,
-                                He=dist,
-                            )
- 
+        x, e = self.propagate(
+            edge_index,
+            Xx=x,
+            Ee=e,
+            He=dist,
+        )
+
         batch.x = self.activation(x) + x_in
-        
-        batch.edge_attr = e_in + e 
+
+        batch.edge_attr = e_in + e
 
         return batch
-
 
     def message(self, Xx_i, Ee, Xx_j, He):
         """
@@ -949,12 +933,12 @@ class CartNet_layer(pyg_nn.conv.MessagePassing):
 
         e_ij = self.MLP_gate(torch.cat([Xx_i, Xx_j, Ee], dim=-1))
         e_ij = F.sigmoid(self.norm(e_ij))
-        
+
         if self.use_envelope:
-            sigma_ij = self.envelope(He).unsqueeze(-1)*e_ij
+            sigma_ij = self.envelope(He).unsqueeze(-1) * e_ij
         else:
             sigma_ij = e_ij
-        
+
         self.e = sigma_ij
         return sigma_ij
 
@@ -964,13 +948,11 @@ class CartNet_layer(pyg_nn.conv.MessagePassing):
         index           : [n_edges]
         x_j           : [n_edges, dim_in]
         """
-        dim_size = Xx.shape[0]  
+        dim_size = Xx.shape[0]
 
         sender = self.MLP_aggr(torch.cat([Xx_i, Xx_j, Ee], dim=-1))
-        
 
-        out = scatter(sigma_ij*sender, index, 0, None, dim_size,
-                                   reduce='sum')
+        out = scatter(sigma_ij * sender, index, 0, None, dim_size, reduce="sum")
 
         return out
 
@@ -980,7 +962,7 @@ class CartNet_layer(pyg_nn.conv.MessagePassing):
         x             : [n_nodes, dim_in]
         """
         x = self.norm2(aggr_out)
-       
+
         e_out = self.e
         del self.e
 

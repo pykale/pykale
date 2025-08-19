@@ -11,7 +11,7 @@ _C = CN()
 _C.DATASET = CN()
 _C.DATASET.TRAIN = "data/ds1.json"
 _C.DATASET.VAL = "data/ds3.json"
-_C.DATASET.RATIO = 1.0 # Ratio of the dataset to use
+_C.DATASET.RATIO = 1.0  # Ratio of the dataset to use
 
 
 # -----------------------------------------------------------------------------
@@ -42,7 +42,7 @@ _C.SOLVER.OPTIM = "SGD"  # Choices: ['SGD', 'Adam']
 # Model paths and parameters
 # -----------------------------------------------------------------------------
 _C.MODEL = CN()
-_C.MODEL.NAME = "cgcnn" # Choices: ['cgcnn', 'leftnet', logistic', 'random_forest']
+_C.MODEL.NAME = "cgcnn"  # Choices: ['cgcnn', 'leftnet', logistic', 'random_forest']
 _C.MODEL.PRETRAINED_MODEL_PATH = ""
 _C.MODEL.CIF_FOLDER = "./cifs"
 _C.MODEL.INIT_FILE = "./init.json"
@@ -67,8 +67,6 @@ _C.CGCNN.H_FEA_LEN = 128
 _C.CGCNN.N_CONV = 3
 _C.CGCNN.N_H = 1
 _C.CGCNN.NUM_REPEAT = 1
-_C.CGCNN.LAYER_FREEZE = "none"  # ['all', 'embedding', 'none']
-_C.CGCNN.FEATURE_FUSION = "none"  # ['none', 'data level', 'fc level', 'feature level']
 
 # -----------------------------------------------------------------------------
 # LeftNet configs
@@ -82,8 +80,7 @@ _C.LEFTNET.REGRESS_FORCES = False
 _C.LEFTNET.USE_PBC = True
 _C.LEFTNET.OTF_GRAPH = False
 _C.LEFTNET.OUTPUT_DIM = 1
-_C.LEFTNET.LAYER_FREEZE = "none"  # ['all', 'embedding', 'none']
-_C.LEFTNET.ENCODING = "none"  # ['one-hot', 'none']
+_C.LEFTNET.ENCODING = "z"  # ['z', 'prop']
 _C.LEFTNET.TARGET_DIM = 1  # Number of targets for regression or classification
 
 # -----------------------------------------------------------------------------
@@ -113,6 +110,7 @@ _C.LOGGING = CN()
 _C.LOGGING.LOG_DIR = "./logs"
 
 _C.LOGGING.LOG_DIR_NAME = None
+
 
 def get_cfg_defaults():
     """Get a yacs CfgNode object with default values for the configuration."""

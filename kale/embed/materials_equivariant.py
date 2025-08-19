@@ -2,15 +2,13 @@
 # in a materials science context, specifically for equivariant neural networks.
 
 import math
-
 from typing import Optional, Tuple
 
 import torch
 from torch import nn, Tensor
-
 from torch_geometric.nn.conv import MessagePassing
 from torch_scatter import scatter
-import torch.nn.functional as F
+
 
 class rbf_emb(nn.Module):
     """
@@ -27,11 +25,13 @@ class rbf_emb(nn.Module):
             num_rbf=num_rbf,
             trainable=rbf_trainable,
         )
+
     def reset_parameters(self):
         self.rbf_layer.reset_parameters()
 
     def forward(self, dist):
         return self.rbf_layer(dist)
+
 
 class NeighborEmb(MessagePassing):
 
@@ -52,13 +52,12 @@ class NeighborEmb(MessagePassing):
         self.ln_emb = nn.LayerNorm(hid_dim, elementwise_affine=False)
 
     def forward(self, z, edge_index, embs):
- 
         """Atom Embedding + Neighborhours Embedding"""
-        z_emb = self.ln_emb(self.fc(z)) # shape: (num_nodes, hidden_channels)
+        z_emb = self.ln_emb(self.fc(z))  # shape: (num_nodes, hidden_channels)
         s_neighbors = self.propagate(edge_index, x=z_emb, norm=embs)
         z_emb = z_emb + s_neighbors
         # s = s + s_neighbors
-        return z_emb # shape: (num_nodes, hidden_channels)
+        return z_emb  # shape: (num_nodes, hidden_channels)
 
     def message(self, x_j, norm):
         return norm.view(-1, self.hid_dim) * x_j
@@ -68,6 +67,7 @@ class S_vector(MessagePassing):
     """
     Message passing layer that computes the new features for each atom based on its neighbors.
     """
+
     def __init__(self, hid_dim: int):
         super(S_vector, self).__init__(aggr="add")
         self.hid_dim = hid_dim
@@ -99,6 +99,7 @@ class EquiMessagePassing(MessagePassing):
         hidden_channels (int): Dimension of the hidden space.
         num_radial (int): Number of radial basis functions to use.
     """
+
     def __init__(
         self,
         hidden_channels,
@@ -135,7 +136,6 @@ class EquiMessagePassing(MessagePassing):
         nn.init.xavier_uniform_(self.rbf_proj.weight)
         self.rbf_proj.bias.data.fill_(0)
         self.x_layernorm.reset_parameters()
-        ## question: why don't reset parameters for dir_proj?
 
     def forward(self, x, vec, edge_index, edge_rbf, weight, edge_vector):
         xh = self.x_proj(self.x_layernorm(x))
@@ -183,12 +183,13 @@ class EquiMessagePassing(MessagePassing):
 class FTE(nn.Module):
     """
     Frame transition encoding module from `LEFTNet<https://openreview.net/pdf?id=hWPNYWkYPN>`.
-    An equivariant message-passing module that encodes local geometric information by scalarizing tensor-valued edge features in a node-wise frame, 
+    An equivariant message-passing module that encodes local geometric information by scalarizing tensor-valued edge features in a node-wise frame,
     transforming them via an MLP, and re-tensorizing to update both invariant and tensor features without information loss.
 
     Args:
         hidden_channels (int): Dimension of the hidden space.
     """
+
     def __init__(self, hidden_channels):
         super().__init__()
         self.hidden_channels = hidden_channels
@@ -234,17 +235,15 @@ class FTE(nn.Module):
         return dx, dvec
 
 
-class aggregate_pos(MessagePassing):
-    def __init__(self, aggr="mean"):
-        super(aggregate_pos, self).__init__(aggr=aggr)
-
-    def forward(self, vector, edge_index):
-        v = self.propagate(edge_index, x=vector)
-
-        return v
-
-
 class EquiOutput(nn.Module):
+    """
+    Output layer for equivariant neural networks.
+    This layer processes the output from the last message-passing layer and produces a vector representation.
+
+    Args:
+        hidden_channels (int): Dimension of the hidden space.
+    """
+
     def __init__(self, hidden_channels):
         super().__init__()
         self.hidden_channels = hidden_channels
@@ -314,10 +313,6 @@ class GatedEquivariantBlock(nn.Module):
 
         x = self.act(x)
         return x, v
-    
-
-
-
 
 
 # Implementation from TensorNet
@@ -335,6 +330,7 @@ class ExpNormalSmearing(nn.Module):
         trainable (bool): Whether the parameters of the RBF are trainable.
         dtype (torch.dtype): Data type for the parameters.
     """
+
     def __init__(
         self,
         cutoff_lower=0.0,
@@ -363,11 +359,7 @@ class ExpNormalSmearing(nn.Module):
     def _initial_params(self):
         # initialize means and betas according to the default values in PhysNet
         # https://pubs.acs.org/doi/10.1021/acs.jctc.9b00181
-        start_value = torch.exp(
-            torch.scalar_tensor(
-                -self.cutoff_upper + self.cutoff_lower, dtype=self.dtype
-            )
-        )
+        start_value = torch.exp(torch.scalar_tensor(-self.cutoff_upper + self.cutoff_lower, dtype=self.dtype))
         means = torch.linspace(start_value, 1, self.num_rbf, dtype=self.dtype)
         betas = torch.tensor(
             [(2 / self.num_rbf * (1 - start_value)) ** -2] * self.num_rbf,
@@ -383,9 +375,9 @@ class ExpNormalSmearing(nn.Module):
     def forward(self, dist):
         dist = dist.unsqueeze(-1)
         return self.cutoff_fn(dist) * torch.exp(
-            -self.betas
-            * (torch.exp(self.alpha * (-dist + self.cutoff_lower)) - self.means) ** 2
+            -self.betas * (torch.exp(self.alpha * (-dist + self.cutoff_lower)) - self.means) ** 2
         )
+
 
 class CosineCutoff(nn.Module):
     """Cosine cutoff function for radial basis function (RBF) embeddings.
@@ -405,13 +397,7 @@ class CosineCutoff(nn.Module):
         if self.cutoff_lower > 0:
             cutoffs = 0.5 * (
                 torch.cos(
-                    math.pi
-                    * (
-                        2
-                        * (distances - self.cutoff_lower)
-                        / (self.cutoff_upper - self.cutoff_lower)
-                        + 1.0
-                    )
+                    math.pi * (2 * (distances - self.cutoff_lower) / (self.cutoff_upper - self.cutoff_lower) + 1.0)
                 )
                 + 1.0
             )
@@ -424,4 +410,3 @@ class CosineCutoff(nn.Module):
             # remove contributions beyond the cutoff radius
             cutoffs = cutoffs * (distances < self.cutoff_upper)
             return cutoffs
-

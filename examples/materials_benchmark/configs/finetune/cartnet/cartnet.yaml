@@ -6,7 +6,6 @@ SOLVER:
   NUM_RUNS: 1
   NUM_FOLDS: 10
   RANDOMIZE: True
-  # TASK: "regression"  # Choices: ['regression', 'classification']
   DISABLE_CUDA: False
   WORKERS: 4
   START_EPOCH: 0
@@ -26,14 +25,12 @@ MODEL:
   RADIUS: 8.0
 
 CARTNET:
-  DIM_IN: 256  # Add appropriate default value
-  DIM_RBF: 64  # Add appropriate default value
-  NUM_LAYERS: 4  # Add appropriate default value
-  INVARIANT: True  # Add appropriate default value
-  # TEMPERATURE: 0.1  # Add appropriate default value
-  USE_ENVELOPE: True  # Add appropriate default value
-  ATOM_TYPES: True  # Add appropriate default value
-  # LAYER_FREEZE: False  # Add appropriate default value
+  DIM_IN: 256
+  DIM_RBF: 64
+  NUM_LAYERS: 4
+  INVARIANT: True
+  USE_ENVELOPE: True
+  ATOM_TYPES: True
 
 LOGGING:
   LOG_DIR: "saved_models"
@@ -42,4 +39,3 @@ LOGGING:
 DATASET:
   TRAIN: 'data/fine_tune/test_data.json'
   VAL: 'data/fine_tune/test_data.json'
-  # RATIO: 0.5
