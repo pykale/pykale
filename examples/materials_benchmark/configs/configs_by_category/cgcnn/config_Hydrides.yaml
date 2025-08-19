@@ -13,7 +13,7 @@ MODEL:
   NAME: cgcnn
   PRETRAINED_MODEL_PATH: saved_models/cgcnn/best.ckpt
 OUTPUT:
-  DIR:  
+  DIR:
 SOLVER:
   EPOCHS: 50
   LR: 0.01
