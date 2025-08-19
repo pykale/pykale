@@ -732,7 +732,7 @@ class CartNet(torch.nn.Module):
         layers = []
         for _ in range(num_layers):
             layers.append(
-                CartNet_layer(
+                CartNetLayer(
                     dim_in=dim_in,
                     use_envelope=use_envelope,
                     radius=radius,
@@ -863,7 +863,7 @@ class GeometricGraphEncoder(nn.Module):
         return batch
 
 
-class CartNet_layer(pyg_nn.conv.MessagePassing):
+class CartNetLayer(pyg_nn.conv.MessagePassing):
     """
     The message-passing layer used in the CartNet architecture.
     Args:
