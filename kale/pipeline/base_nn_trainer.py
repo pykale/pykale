@@ -321,9 +321,9 @@ class RegressionTrainer(BaseNNTrainer):
         target = target.to(pred.device)
 
         eps = 1e-8
-        loss = nn.MSELoss()(pred, target)              # MSE
-        mae  = nn.L1Loss()(pred, target)                  # MAE
-        mre  = torch.mean(torch.abs(pred - target) / (torch.abs(target) + eps))  # MRE
+        loss = nn.MSELoss()(pred, target)  # MSE
+        mae = nn.L1Loss()(pred, target)  # MAE
+        mre = torch.mean(torch.abs(pred - target) / (torch.abs(target) + eps))  # MRE
         # R² with safe denominator
         y_mean = torch.mean(target)
         ss_tot = torch.sum((target - y_mean) ** 2) + eps
@@ -332,23 +332,26 @@ class RegressionTrainer(BaseNNTrainer):
 
         log_metrics = {
             f"{split_name}_loss": loss,
-            f"{split_name}_mae":  mae,
-            f"{split_name}_mre":  mre,
-            f"{split_name}_r2":   r2,
+            f"{split_name}_mae": mae,
+            f"{split_name}_mre": mre,
+            f"{split_name}_r2": r2,
         }
         return loss, log_metrics
-    def training_step(self, train_batch, batch_idx): 
-        loss, metrics = self.compute_loss(train_batch, split_name="train") 
-        optimizer = self.optimizers() 
-        if isinstance(optimizer, list): 
-            optimizer = optimizer[0] 
-            current_lr = optimizer.param_groups[0]["lr"] 
-            metrics["learning_rate"] = current_lr 
-            self.log_dict(metrics, on_step=True, on_epoch=True, logger=True, batch_size=train_batch.batch_size) 
-        return loss 
-    def validation_step(self, valid_batch, batch_idx): 
-        loss, metrics = self.compute_loss(valid_batch, split_name="val") 
-        self.log_dict(metrics, on_step=False, on_epoch=True, logger=True, batch_size=valid_batch.batch_size) 
-    def test_step(self, test_batch, batch_idx): 
-        loss, metrics = self.compute_loss(test_batch, split_name="test") 
+
+    def training_step(self, train_batch, batch_idx):
+        loss, metrics = self.compute_loss(train_batch, split_name="train")
+        optimizer = self.optimizers()
+        if isinstance(optimizer, list):
+            optimizer = optimizer[0]
+            current_lr = optimizer.param_groups[0]["lr"]
+            metrics["learning_rate"] = current_lr
+            self.log_dict(metrics, on_step=True, on_epoch=True, logger=True, batch_size=train_batch.batch_size)
+        return loss
+
+    def validation_step(self, valid_batch, batch_idx):
+        loss, metrics = self.compute_loss(valid_batch, split_name="val")
+        self.log_dict(metrics, on_step=False, on_epoch=True, logger=True, batch_size=valid_batch.batch_size)
+
+    def test_step(self, test_batch, batch_idx):
+        loss, metrics = self.compute_loss(test_batch, split_name="test")
         self.log_dict(metrics, on_step=False, on_epoch=True, logger=True, batch_size=test_batch.batch_size)
