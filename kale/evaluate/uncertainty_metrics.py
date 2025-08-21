@@ -1,5 +1,9 @@
+# =============================================================================
+# Author: Lawrence Schobs, lawrenceschobs@gmail.com
+#         Zhongwei Ji, jizhongwei1999@outlook.com
+# =============================================================================
+
 """
-Authors: Lawrence Schobs, lawrenceschobs@gmail.com
 Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization,"
 in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
@@ -14,8 +18,8 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
+from sklearn.metrics import jaccard_score
 
-from kale.evaluate.similarity_metrics import jaccard_similarity
 from kale.prepdata.string_transform import strip_for_bound
 
 
@@ -26,7 +30,6 @@ def evaluate_bounds(
     num_bins: int,
     targets: List[int],
     num_folds: int = 8,
-    show_fig: bool = False,
     combine_middle_bins: bool = False,
 ) -> Dict:
     """
@@ -39,7 +42,6 @@ def evaluate_bounds(
         num_bins (int): Number of bins to be used.
         targets (List[str]): List of targets to be evaluated.
         num_folds (int, optional): Number of folds for cross-validation. Defaults to 8.
-        show_fig (bool, optional): Flag to show the figure. Defaults to False.
         combine_middle_bins (bool, optional): Flag to combine the middle bins. Defaults to False.
 
     Returns:
@@ -91,8 +93,7 @@ def evaluate_bounds(
                     fold_bins,
                     targets,
                     uncertainty_type,
-                    num_bins=num_bins,
-                    show_fig=show_fig,
+                    num_bins=num_bins
                 )
                 fold_learned_bounds_mean_targets.append(return_dict["mean all targets"])
 
@@ -143,7 +144,6 @@ def bin_wise_bound_eval(
     targets: list,
     uncertainty_type: str,
     num_bins: int = 5,
-    show_fig: bool = False,
 ) -> dict:
     """
     Helper function for `evaluate_bounds`. Evaluates the accuracy of estimated error bounds for each quantile bin
@@ -439,10 +439,10 @@ def get_mean_errors(
 
 def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, targets, num_folds=8, combine_middle_bins=False):
     """
-        Evaluate uncertainty estimation's ability to predict true error quantiles.
-        For each bin, we calculate the jaccard index (JI) between the pred bins and GT error quantiles.
-        We calculate the JI for each dictionary in the bin_predictions dict. For each bin, we calculate: a) the mean and
-        std over all folds and all targets b) the mean and std for each target over all folds.
+    Evaluate uncertainty estimation's ability to predict true error quantiles.
+    For each bin, we calculate the jaccard index (JI) between the pred bins and GT error quantiles.
+    We calculate the JI for each dictionary in the bin_predictions dict. For each bin, we calculate: a) the mean and
+    std over all folds and all targets b) the mean and std for each target over all folds.
 
     Args:
         bin_predictions (Dict): dict of Pandas Dataframes where each dataframe has errors, predicted bins for all uncertainty measures for a model,
@@ -450,130 +450,58 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, targets, num_
         num_bins (int): Number of quantile bins,
         targets (list) list of targets to measure uncertainty estimation,
         num_folds (int): Number of folds,
-
+        combine_middle_bins (bool): Whether to combine middle bins into one bin
 
     Returns:
         [Dict]: Dicts with JI for all targets combined and targets seperated.
     """
-
-    # If combining middle bins, we need the original number of bins to calcualate the true quantiles of the error.
-    # Then, we combine all the middle bins of the true quantiles, giving us 3 bins.
-    # There are only 3 bins that have been predicted, so set num_bins to 3.
-
-    if combine_middle_bins:
-        num_bins_for_quantiles = num_bins
-        num_bins = 3
-    else:
-        num_bins_for_quantiles = num_bins
-    # initialize empty dicts
-    all_jaccard_data = {}
-    all_jaccard_bins_targets_sep = {}
-
-    all_recall_data = {}
-    all_recall_bins_targets_sep = {}
-
-    all_precision_data = {}
-    all_precision__bins_targets_sep = {}
-
-    all_concat_jacc_bins_target_sep_foldwise = [{} for x in range(len(targets))]
-    all_concat_jacc_bins_target_sep_all = [{} for x in range(len(targets))]
-    # Loop over models (model) and uncertainty methods (uncert_pair)
-    for i, (model, data_structs) in enumerate(bin_predictions.items()):
-        for uncert_pair in uncertainty_pairs:  # uncert_pair = [pair name, error name , uncertainty name]
+    # Configure bin settings
+    num_bins, num_bins_for_quantiles = _configure_bins(num_bins, combine_middle_bins)
+    
+    # Initialize result containers
+    result_containers = _initialize_jaccard_containers(targets)
+    
+    # Process each model and uncertainty pair
+    for model, data_structs in bin_predictions.items():
+        for uncert_pair in uncertainty_pairs:
             uncertainty_type = uncert_pair[0]
-
-            fold_mean_targets = []
-            fold_mean_bins = [[] for x in range(num_bins)]
-            fold_all_bins = [[] for x in range(num_bins)]
-
-            fold_mean_targets_recall = []
-            fold_mean_bins_recall = [[] for x in range(num_bins)]
-            fold_all_bins_recall = [[] for x in range(num_bins)]
-
-            fold_mean_targets_precision = []
-            fold_mean_bins_precision = [[] for x in range(num_bins)]
-            fold_all_bins_precision = [[] for x in range(num_bins)]
-
-            fold_all_bins_concat_targets_sep_foldwise = [[[] for y in range(num_bins)] for x in range(len(targets))]
-            fold_all_bins_concat_targets_sep_all = [[[] for y in range(num_bins)] for x in range(len(targets))]
-
-            for fold in range(num_folds):
-                # Get the errors and predicted bins for this fold
-                fold_errors = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "target_idx", uncertainty_type + " Error"]
-                ]
-                fold_bins = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "target_idx", uncertainty_type + " Uncertainty bins"]
-                ]
-
-                return_dict = bin_wise_jaccard(
-                    fold_errors,
-                    fold_bins,
-                    num_bins,
-                    num_bins_for_quantiles,
-                    targets,
-                    uncertainty_type,
-                    combine_middle_bins,
-                )
-
-                fold_mean_targets.append(return_dict["mean all targets"])
-                fold_mean_targets_recall.append(return_dict["mean all targets recall"])
-                fold_mean_targets_precision.append(return_dict["mean all targets precision"])
-
-                for idx_bin in range(len(return_dict["mean all bins"])):
-                    fold_mean_bins[idx_bin].append(return_dict["mean all bins"][idx_bin])
-                    fold_all_bins[idx_bin] = fold_all_bins[idx_bin] + return_dict["all bins"][idx_bin]
-
-                    fold_mean_bins_recall[idx_bin].append(return_dict["mean all bins recall"][idx_bin])
-                    fold_all_bins_recall[idx_bin] = (
-                        fold_all_bins_recall[idx_bin] + return_dict["all bins recall"][idx_bin]
-                    )
-
-                    fold_mean_bins_precision[idx_bin].append(return_dict["mean all bins precision"][idx_bin])
-                    fold_all_bins_precision[idx_bin] = (
-                        fold_all_bins_precision[idx_bin] + return_dict["all bins precision"][idx_bin]
-                    )
-
-                    # Get the jaccard saved for the individual targets, flattening the folds and also not flattening the folds
-                    for target_idx in range(len(targets)):
-                        fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin] = (
-                            fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin]
-                            + return_dict["all bins concatenated targets seperated"][target_idx][idx_bin]
-                        )
-                        combined = (
-                            fold_all_bins_concat_targets_sep_all[target_idx][idx_bin]
-                            + return_dict["all bins concatenated targets seperated"][target_idx][idx_bin]
-                        )
-
-                        fold_all_bins_concat_targets_sep_all[target_idx][idx_bin] = combined
-
-            all_jaccard_data[model + " " + uncertainty_type] = fold_mean_bins
-            all_jaccard_bins_targets_sep[model + " " + uncertainty_type] = fold_all_bins
-
-            all_recall_data[model + " " + uncertainty_type] = fold_mean_bins_recall
-            all_recall_bins_targets_sep[model + " " + uncertainty_type] = fold_all_bins_recall
-
-            all_precision_data[model + " " + uncertainty_type] = fold_mean_bins_precision
-            all_precision__bins_targets_sep[model + " " + uncertainty_type] = fold_all_bins_precision
-
-            for target_idx in range(len(all_concat_jacc_bins_target_sep_foldwise)):
-                all_concat_jacc_bins_target_sep_foldwise[target_idx][
-                    model + " " + uncertainty_type
-                ] = fold_all_bins_concat_targets_sep_foldwise[target_idx]
-                all_concat_jacc_bins_target_sep_all[target_idx][
-                    model + " " + uncertainty_type
-                ] = fold_all_bins_concat_targets_sep_all[target_idx]
-
+            
+            # Process all folds for this model-uncertainty combination
+            fold_results = _process_all_folds(
+                data_structs, uncertainty_type, num_bins, num_bins_for_quantiles, 
+                targets, num_folds, combine_middle_bins
+            )
+            
+            # Store results for this model-uncertainty combination
+            key = f"{model} {uncertainty_type}"
+            
+            # Store main results
+            result_containers['jaccard_data'][key] = fold_results['mean_bins']
+            result_containers['jaccard_bins_targets_sep'][key] = fold_results['all_bins']
+            result_containers['recall_data'][key] = fold_results['mean_bins_recall']
+            result_containers['recall_bins_targets_sep'][key] = fold_results['all_bins_recall']
+            result_containers['precision_data'][key] = fold_results['mean_bins_precision']
+            result_containers['precision_bins_targets_sep'][key] = fold_results['all_bins_precision']
+            
+            # Store target-separated results
+            for target_idx in range(len(result_containers['concat_jacc_bins_target_sep_foldwise'])):
+                result_containers['concat_jacc_bins_target_sep_foldwise'][target_idx][key] = \
+                    fold_results['concat_targets_sep_foldwise'][target_idx]
+                result_containers['concat_jacc_bins_target_sep_all'][target_idx][key] = \
+                    fold_results['concat_targets_sep_all'][target_idx]
+    
     return {
-        "Jaccard All": all_jaccard_data,
-        "Jaccard targets seperated": all_jaccard_bins_targets_sep,
-        "Recall All": all_recall_data,
-        "Recall targets seperated": all_recall_bins_targets_sep,
-        "Precision All": all_precision_data,
-        "Precision targets seperated": all_precision__bins_targets_sep,
-        "all jacc concat bins targets sep foldwise": all_concat_jacc_bins_target_sep_foldwise,
-        "all jacc concat bins targets sep all": all_concat_jacc_bins_target_sep_all,
+        "Jaccard All": result_containers['jaccard_data'],
+        "Jaccard targets seperated": result_containers['jaccard_bins_targets_sep'],
+        "Recall All": result_containers['recall_data'],
+        "Recall targets seperated": result_containers['recall_bins_targets_sep'],
+        "Precision All": result_containers['precision_data'],
+        "Precision targets seperated": result_containers['precision_bins_targets_sep'],
+        "all jacc concat bins targets sep foldwise": result_containers['concat_jacc_bins_target_sep_foldwise'],
+        "all jacc concat bins targets sep all": result_containers['concat_jacc_bins_target_sep_all'],
     }
+
+
 
 
 def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, error_scaling_factor):
@@ -688,127 +616,68 @@ def bin_wise_jaccard(
     Example:
         >>> bin_wise_jaccard(fold_errors, fold_bins, 10, 5, [0,1], 'S-MHA', True)
     """
-
+    # Initialize result containers
     all_target_jacc: List[float] = []
-    all_qs_jacc: List[List[float]] = [[] for x in range(num_bins)]
-
+    all_qs_jacc: List[List[float]] = [[] for _ in range(num_bins)]
     all_qs_jacc_concat_targets_sep: List[List[List[float]]] = [
-        [[] for y in range(num_bins)] for x in range(len(targets))
+        [[] for _ in range(num_bins)] for _ in range(len(targets))
     ]
-
+    
     all_target_recall: List[float] = []
-    all_qs_recall: List[List[float]] = [[] for x in range(num_bins)]
-
+    all_qs_recall: List[List[float]] = [[] for _ in range(num_bins)]
+    
     all_target_precision: List[float] = []
-    all_qs_precision: List[List[float]] = [[] for x in range(num_bins)]
+    all_qs_precision: List[List[float]] = [[] for _ in range(num_bins)]
 
+    # Process each target
     for i, target_idx in enumerate(targets):
-        true_errors_ti = fold_errors[(fold_errors["target_idx"] == target_idx)][["uid", uncertainty_key + " Error"]]
-        pred_bins_ti = fold_bins[(fold_errors["target_idx"] == target_idx)][
-            ["uid", uncertainty_key + " Uncertainty bins"]
-        ]
-
-        # Zip to dictionary
-        true_errors_ti = dict(zip(true_errors_ti.uid, true_errors_ti[uncertainty_key + " Error"]))
-        pred_bins_ti = dict(zip(pred_bins_ti.uid, pred_bins_ti[uncertainty_key + " Uncertainty bins"]))
-
-        pred_bins_keys = []
-        pred_bins_errors = []
-
-        # This is saving them from best quantile of predictions to worst quantile of predictions in terms of uncertainty
-        for j in range(num_bins):
-            inner_list = list([key for key, val in pred_bins_ti.items() if str(j) == str(val)])
-            inner_list_errors = []
-
-            for id_ in inner_list:
-                inner_list_errors.append(list([val for key, val in true_errors_ti.items() if str(key) == str(id_)])[0])
-
-            pred_bins_errors.append(inner_list_errors)
-            pred_bins_keys.append(inner_list)
-
-        # Get the true error quantiles
-        sorted_errors = [v for k, v in sorted(true_errors_ti.items(), key=lambda item: item[1])]
-
-        quantiles = np.arange(1 / num_bins_quantiles, 1, 1 / num_bins_quantiles)[: num_bins_quantiles - 1]
-        quantile_thresholds = [np.quantile(sorted_errors, q) for q in quantiles]
-
-        # If we are combining the middle bins, combine the middle lists into 1 list.
-
-        if combine_middle_bins:
-            quantile_thresholds = [quantile_thresholds[0], quantile_thresholds[-1]]
-
-        errors_groups = []
-        key_groups = []
-
-        for q in range(len(quantile_thresholds) + 1):
-            inner_list_e = []
-            inner_list_id = []
-            for i_te, (id_, error) in enumerate(true_errors_ti.items()):
-                if q == 0:
-                    lower = 0
-                    upper = quantile_thresholds[q]
-
-                    if error <= upper:
-                        inner_list_e.append(error)
-                        inner_list_id.append(id_)
-
-                elif q < len(quantile_thresholds):
-                    lower = quantile_thresholds[q - 1]
-                    upper = quantile_thresholds[q]
-
-                    if error <= upper and error > lower:
-                        inner_list_e.append(error)
-                        inner_list_id.append(id_)
-
-                else:
-                    lower = quantile_thresholds[q - 1]
-                    upper = 999999999999999999999999999999
-
-                    if error > lower:
-                        inner_list_e.append(error)
-                        inner_list_id.append(id_)
-
-            errors_groups.append(inner_list_e)
-            key_groups.append(inner_list_id)
-
-        # flip them so they go from B5 to B1
+        # Extract target-specific data
+        true_errors_dict, pred_bins_dict = _extract_target_data(
+            fold_errors, fold_bins, target_idx, uncertainty_key
+        )
+        
+        # Organize prediction bins
+        pred_bins_keys, pred_bins_errors = _organize_prediction_bins(
+            pred_bins_dict, true_errors_dict, num_bins
+        )
+        
+        # Calculate quantile thresholds
+        quantile_thresholds = _calculate_quantile_thresholds(
+            true_errors_dict, num_bins_quantiles, combine_middle_bins
+        )
+        
+        # Group by error quantiles
+        errors_groups, key_groups = _group_by_error_quantiles(true_errors_dict, quantile_thresholds)
+        
+        # Reverse order to go from B5 to B1 (worst to best)
         pred_bins_keys = pred_bins_keys[::-1]
         pred_bins_errors = pred_bins_errors[::-1]
         errors_groups = errors_groups[::-1]
         key_groups = key_groups[::-1]
-
-        # Now for each bin, get the jaccard similarity
+        
+        # Calculate metrics for each bin
         inner_jaccard_sims = []
         inner_recalls = []
         inner_precisions = []
-        for bin in range(num_bins):
-            pred_b_keys = pred_bins_keys[bin]
-            gt_bins_keys = key_groups[bin]
-
-            j_sim = jaccard_similarity(pred_b_keys, gt_bins_keys)
-            all_qs_jacc[bin].append(j_sim)
-            all_qs_jacc_concat_targets_sep[i][bin].append(j_sim)
-
+        
+        for bin_idx in range(num_bins):
+            pred_keys = pred_bins_keys[bin_idx]
+            gt_keys = key_groups[bin_idx]
+            
+            j_sim, recall, precision = _calculate_metrics_for_bin(pred_keys, gt_keys)
+            
+            # Store bin-level results
+            all_qs_jacc[bin_idx].append(j_sim)
+            all_qs_jacc_concat_targets_sep[i][bin_idx].append(j_sim)
+            all_qs_recall[bin_idx].append(recall)
+            all_qs_precision[bin_idx].append(precision)
+            
+            # Store target-level results
             inner_jaccard_sims.append(j_sim)
-
-            # If quantile threshold is the same as the last quantile threshold,
-            # the GT set is empty (rare, but can happen if distribution of errors is quite uniform).
-            if len(gt_bins_keys) == 0:
-                recall = 1.0
-                precision = 0.0
-            else:
-                recall = sum(el in gt_bins_keys for el in pred_b_keys) / len(gt_bins_keys)
-
-                if len(pred_b_keys) == 0 and len(gt_bins_keys) > 0:
-                    precision = 0.0
-                else:
-                    precision = sum(1 for x in pred_b_keys if x in gt_bins_keys) / len(pred_b_keys)
-
             inner_recalls.append(recall)
             inner_precisions.append(precision)
-            all_qs_recall[bin].append(recall)
-            all_qs_precision[bin].append(precision)
-
+        
+        # Store mean results for this target
         all_target_jacc.append(np.mean(inner_jaccard_sims))
         all_target_recall.append(np.mean(inner_recalls))
         all_target_precision.append(np.mean(inner_precisions))
@@ -825,3 +694,205 @@ def bin_wise_jaccard(
         "all bins precision": all_qs_precision,
         "all bins concatenated targets seperated": all_qs_jacc_concat_targets_sep,
     }
+
+
+def _configure_bins(num_bins: int, combine_middle_bins: bool) -> tuple:
+    """Configure bin settings based on combine_middle_bins flag."""
+    num_bins_for_quantiles = num_bins
+    
+    if combine_middle_bins:
+        num_bins = 3
+
+    return num_bins, num_bins_for_quantiles
+
+
+def _initialize_jaccard_containers(targets: list) -> dict:
+    """Initialize all result containers for jaccard evaluation."""
+    return {
+        'jaccard_data': {},
+        'jaccard_bins_targets_sep': {},
+        'recall_data': {},
+        'recall_bins_targets_sep': {},
+        'precision_data': {},
+        'precision_bins_targets_sep': {},
+        'concat_jacc_bins_target_sep_foldwise': [{} for _ in range(len(targets))],
+        'concat_jacc_bins_target_sep_all': [{} for _ in range(len(targets))]
+    }
+
+
+def _process_all_folds(data_structs, uncertainty_type: str, num_bins: int, num_bins_for_quantiles: int, 
+                      targets: list, num_folds: int, combine_middle_bins: bool) -> dict:
+    """Process all folds for a given model-uncertainty combination."""
+    # Initialize fold-level containers
+    fold_containers = _initialize_fold_containers(num_bins, targets)
+    
+    for fold in range(num_folds):
+        # Extract fold data
+        fold_errors, fold_bins = _extract_fold_data(data_structs, fold, uncertainty_type)
+        
+        # Calculate jaccard metrics for this fold
+        return_dict = bin_wise_jaccard(
+            fold_errors, fold_bins, num_bins, num_bins_for_quantiles,
+            targets, uncertainty_type, combine_middle_bins
+        )
+        
+        # Aggregate fold results
+        _aggregate_fold_results(fold_containers, return_dict, num_bins, targets)
+    
+    return fold_containers
+
+
+def _initialize_fold_containers(num_bins: int, targets: list) -> dict:
+    """Initialize containers for fold-level results."""
+    return {
+        'mean_targets': [],
+        'mean_bins': [[] for _ in range(num_bins)],
+        'all_bins': [[] for _ in range(num_bins)],
+        'mean_targets_recall': [],
+        'mean_bins_recall': [[] for _ in range(num_bins)],
+        'all_bins_recall': [[] for _ in range(num_bins)],
+        'mean_targets_precision': [],
+        'mean_bins_precision': [[] for _ in range(num_bins)],
+        'all_bins_precision': [[] for _ in range(num_bins)],
+        'concat_targets_sep_foldwise': [[[] for _ in range(num_bins)] for _ in range(len(targets))],
+        'concat_targets_sep_all': [[[] for _ in range(num_bins)] for _ in range(len(targets))]
+    }
+
+
+def _extract_fold_data(data_structs, fold: int, uncertainty_type: str) -> tuple:
+    """Extract error and bin data for a specific fold."""
+    fold_errors = data_structs[(data_structs["Testing Fold"] == fold)][
+        ["uid", "target_idx", uncertainty_type + " Error"]
+    ]
+    fold_bins = data_structs[(data_structs["Testing Fold"] == fold)][
+        ["uid", "target_idx", uncertainty_type + " Uncertainty bins"]
+    ]
+    return fold_errors, fold_bins
+
+
+def _aggregate_fold_results(fold_containers: dict, return_dict: dict, num_bins: int, targets: list) -> None:
+    """Aggregate results from a single fold into fold containers."""
+    # Store target-level means
+    fold_containers['mean_targets'].append(return_dict["mean all targets"])
+    fold_containers['mean_targets_recall'].append(return_dict["mean all targets recall"])
+    fold_containers['mean_targets_precision'].append(return_dict["mean all targets precision"])
+    
+    # Store bin-level results
+    for idx_bin in range(len(return_dict["mean all bins"])):
+        # Jaccard results
+        fold_containers['mean_bins'][idx_bin].append(return_dict["mean all bins"][idx_bin])
+        fold_containers['all_bins'][idx_bin].extend(return_dict["all bins"][idx_bin])
+        
+        # Recall results
+        fold_containers['mean_bins_recall'][idx_bin].append(return_dict["mean all bins recall"][idx_bin])
+        fold_containers['all_bins_recall'][idx_bin].extend(return_dict["all bins recall"][idx_bin])
+        
+        # Precision results
+        fold_containers['mean_bins_precision'][idx_bin].append(return_dict["mean all bins precision"][idx_bin])
+        fold_containers['all_bins_precision'][idx_bin].extend(return_dict["all bins precision"][idx_bin])
+        
+        # Target-separated results
+        for target_idx in range(len(targets)):
+            fold_containers['concat_targets_sep_foldwise'][target_idx][idx_bin].extend(
+                return_dict["all bins concatenated targets seperated"][target_idx][idx_bin]
+            )
+            fold_containers['concat_targets_sep_all'][target_idx][idx_bin].extend(
+                return_dict["all bins concatenated targets seperated"][target_idx][idx_bin]
+            )
+
+
+def _extract_target_data(fold_errors: pd.DataFrame, fold_bins: pd.DataFrame, target_idx: int, uncertainty_key: str) -> tuple:
+    """Extract and organize error and bin data for a specific target."""
+    true_errors_ti = fold_errors[(fold_errors["target_idx"] == target_idx)][["uid", uncertainty_key + " Error"]]
+    pred_bins_ti = fold_bins[(fold_errors["target_idx"] == target_idx)][
+        ["uid", uncertainty_key + " Uncertainty bins"]
+    ]
+    
+    # Convert to dictionaries
+    true_errors_dict = dict(zip(true_errors_ti.uid, true_errors_ti[uncertainty_key + " Error"]))
+    pred_bins_dict = dict(zip(pred_bins_ti.uid, pred_bins_ti[uncertainty_key + " Uncertainty bins"]))
+    
+    return true_errors_dict, pred_bins_dict
+
+
+def _organize_prediction_bins(pred_bins_dict: dict, true_errors_dict: dict, num_bins: int) -> tuple:
+    """Organize prediction bins and corresponding errors."""
+    pred_bins_keys = []
+    pred_bins_errors = []
+    
+    for j in range(num_bins):
+        keys = [key for key, val in pred_bins_dict.items() if str(j) == str(val)]
+        errors = [true_errors_dict[id_] for id_ in keys]
+        
+        pred_bins_errors.append(errors)
+        pred_bins_keys.append(keys)
+    
+    return pred_bins_keys, pred_bins_errors
+
+
+def _calculate_quantile_thresholds(true_errors_dict: dict, num_bins_quantiles: int, combine_middle_bins: bool) -> list:
+    """Calculate quantile thresholds for error binning."""
+    sorted_errors = sorted(true_errors_dict.values())
+    
+    quantiles = np.arange(1 / num_bins_quantiles, 1, 1 / num_bins_quantiles)[: num_bins_quantiles - 1]
+    quantile_thresholds = [np.quantile(sorted_errors, q) for q in quantiles]
+    
+    if combine_middle_bins:
+        quantile_thresholds = [quantile_thresholds[0], quantile_thresholds[-1]]
+    
+    return quantile_thresholds
+
+
+def _group_by_error_quantiles(true_errors_dict: dict, quantile_thresholds: list) -> tuple:
+    """Group errors and keys by quantile thresholds."""
+    errors_groups = []
+    key_groups = []
+    
+    for q in range(len(quantile_thresholds) + 1):
+        inner_list_e = []
+        inner_list_id = []
+        
+        for id_, error in true_errors_dict.items():
+            if q == 0:
+                if error <= quantile_thresholds[q]:
+                    inner_list_e.append(error)
+                    inner_list_id.append(id_)
+            elif q < len(quantile_thresholds):
+                if quantile_thresholds[q - 1] < error <= quantile_thresholds[q]:
+                    inner_list_e.append(error)
+                    inner_list_id.append(id_)
+            else:
+                if error > quantile_thresholds[q - 1]:
+                    inner_list_e.append(error)
+                    inner_list_id.append(id_)
+        
+        errors_groups.append(inner_list_e)
+        key_groups.append(inner_list_id)
+    
+    return errors_groups, key_groups
+
+
+def _calculate_metrics_for_bin(pred_keys: list, gt_keys: list) -> tuple:
+    """Calculate jaccard, recall, and precision metrics for a single bin."""
+    # Calculate Jaccard similarity using sklearn
+    all_keys = list(set(pred_keys + gt_keys))
+    
+    j_sim = 0.0
+    if len(all_keys) != 0:
+        pred_binary = [1 if key in pred_keys else 0 for key in all_keys]
+        gt_binary = [1 if key in gt_keys else 0 for key in all_keys]
+        j_sim = jaccard_score(gt_binary, pred_binary, zero_division=0)
+    
+    # Calculate recall and precision
+    if len(gt_keys) == 0:
+        recall = 1.0
+        precision = 0.0
+    else:
+        recall = sum(1 for el in pred_keys if el in gt_keys) / len(gt_keys)
+        
+        if len(pred_keys) == 0:
+            precision = 0.0
+        else:
+            precision = sum(1 for x in pred_keys if x in gt_keys) / len(pred_keys)
+    
+    return j_sim, recall, precision
