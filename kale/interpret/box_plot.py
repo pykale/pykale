@@ -1773,6 +1773,7 @@ class BoxPlotDataProcessor(ABC):
         """
         box_x_positions = []
 
+        assert self.config is not None, "Configuration must be set before processing and collecting positions"
         for bin_idx, model_type, hatch_idx in items_data:
             x_position = self._process_and_store_single_item(
                 uncertainty_type, model_type, bin_idx, uncertainty_idx, hatch_idx, width
@@ -1783,8 +1784,9 @@ class BoxPlotDataProcessor(ABC):
             self._collect_legend_info_for_first_bin(bin_idx, uncertainty_idx, model_type, uncertainty_type, hatch_idx)
 
             # Update inner position with spacing
-            assert self.config is not None, "Configuration must be set before updating position"
             self.inner_min_x_loc += self.config.inner_spacing + width
+
+        self._store_bin_label_positions(box_x_positions, use_extend=self.config.use_list_comp)
 
         return box_x_positions
 
@@ -1857,12 +1859,8 @@ class GenericBoxPlotDataProcessor(BoxPlotDataProcessor):
                 items_data = [(bin_idx, model_type, hatch_idx) for hatch_idx, model_type in enumerate(self.models)]
 
                 # Process all models for this bin using shared method
-                box_x_positions = self._process_and_collect_positions(
-                    uncertainty_type, uncertainty_idx, items_data, width
-                )
+                self._process_and_collect_positions(uncertainty_type, uncertainty_idx, items_data, width)
 
-                # Store bin labels and apply middle spacing
-                self._store_bin_label_positions(box_x_positions, use_extend=use_list_comp)
                 self.middle_min_x_loc += self.config.middle_spacing
 
             # Apply spacing between uncertainty types
@@ -1914,8 +1912,6 @@ class PerModelBoxPlotDataProcessor(BoxPlotDataProcessor):
         assert self.uncertainty_categories is not None, "Uncertainty categories must be set"
         assert self.models is not None, "Models must be set"
 
-        use_list_comp = self.config.use_list_comp
-
         for uncertainty_idx, uncert_pair in enumerate(self.uncertainty_categories):
             uncertainty_type = uncert_pair[0]
 
@@ -1928,12 +1924,7 @@ class PerModelBoxPlotDataProcessor(BoxPlotDataProcessor):
                 items_data = [(bin_idx, model_type, hatch_idx) for bin_idx in range(self.num_bins)]
 
                 # Process all bins for this model using shared method
-                box_x_positions = self._process_and_collect_positions(
-                    uncertainty_type, uncertainty_idx, items_data, width
-                )
-
-                # Store all box positions for this model
-                self._store_bin_label_positions(box_x_positions, use_extend=use_list_comp)
+                self._process_and_collect_positions(uncertainty_type, uncertainty_idx, items_data, width)
 
                 # Apply spacing between models
                 spacing_adjustment = self._calculate_spacing_adjustment(False)
@@ -2081,5 +2072,5 @@ class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
             # Process this Q value
             box_x_positions = self._process_single_q_value(q_idx, evaluation_data_by_bin, base_width)
 
-        # Apply spacing and store labels
-        self._apply_q_spacing_and_store_labels(box_x_positions)
+            # Apply spacing and store labels for this Q value
+            self._apply_q_spacing_and_store_labels(box_x_positions)

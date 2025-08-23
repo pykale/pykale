@@ -636,7 +636,7 @@ class TestBoxPlotDataProcessor:
         # Should have processed data for all Q values and bins
         assert len(processed_data) == 6  # 3 Q values × 2 bins per Q value
         assert legend_info is None  # Q-comparison mode doesn't use legend_info
-        assert len(bin_label_locs) == 6
+        assert len(bin_label_locs) == 3  # 3 Q values (each Q value gets one label position)
 
     def test_processor_empty_data_validation(self, processor):
         """Test that processors validate empty data correctly."""
