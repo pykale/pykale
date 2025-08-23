@@ -582,7 +582,8 @@ class BoxPlotter:
         show_individual_dots: bool,
         box_color: str,
         dot_color: str,
-        hatch_idx: int,
+        hatch_idx: int = 0,
+        dot_alpha: float = 0.75,
     ) -> Dict[str, List[Any]]:
         """
         Create a single matplotlib boxplot with comprehensive styling and data visualization features.
@@ -595,7 +596,8 @@ class BoxPlotter:
             show_individual_dots (bool): Individual data point overlay control.
             box_color (str): Box face color specification for visual distinction.
             dot_color (str): Individual data point color for scatter overlay.
-            hatch_idx (int): Hatching pattern application control flag.
+            hatch_idx (int, optional): Hatching pattern application control flag. Defaults to 0.
+            dot_alpha (float, optional): Transparency for individual dots. Defaults to 0.75.
 
         Returns:
             Dict[str, List[Any]]: Matplotlib boxplot dictionary containing plot elements and metadata.
@@ -622,7 +624,7 @@ class BoxPlotter:
                 color=dot_color,
                 marker=".",
                 linestyle="None",
-                alpha=0.75,
+                alpha=dot_alpha,
             )
 
         # Set colors, patterns, median lines and mean markers
@@ -640,66 +642,6 @@ class BoxPlotter:
             mean.set(markerfacecolor="crimson", markeredgecolor="black", markersize=10)
 
         self.max_bin_height = max(max(rect["caps"][-1].get_ydata()), self.max_bin_height)
-
-        return rect
-
-    def _create_single_boxplot_with_hatch(
-        self,
-        data: List[float],
-        x_loc: List[float],
-        width: float,
-        convert_to_percent: bool,
-        show_individual_dots: bool,
-        color: str,
-        dot_color: str,
-        hatch_type: str,
-    ) -> Dict[str, List[Any]]:
-        """
-        Create specialized hatched boxplot for Q-value comparison studies with distinctive visual patterns.
-
-        Args:
-            data (List[float]): Numerical evaluation data for boxplot generation.
-            x_loc (List[float]): X-axis positioning coordinates for precise boxplot placement.
-            width (float): Box width parameter with progressive reduction for Q-studies.
-            convert_to_percent (bool): Data transformation control for percentage display.
-            show_individual_dots (bool): Individual data point overlay control.
-            color (str): Primary box face color for Q-value series identification.
-            dot_color (str): Scatter point color for individual data visualization.
-            hatch_type (str): Hatching pattern specification for visual distinction.
-
-        Returns:
-            Dict[str, List[Any]]: Matplotlib boxplot dictionary with hatched styling applied.
-                Structure: Standard matplotlib boxplot return format
-                Elements: All boxes have mandatory hatching patterns applied
-                Usage: Can be used for statistical extraction or additional customization
-        """
-        assert self.ax is not None
-
-        # Convert data to percentage and filter out None values
-        if convert_to_percent:
-            displayed_data = [x * 100 for x in data if x is not None]
-        else:
-            displayed_data = [x for x in data if x is not None]
-
-        rect = self.ax.boxplot(displayed_data, positions=x_loc, sym="", widths=width, showmeans=True, patch_artist=True)
-
-        self.max_bin_height = max(max(rect["caps"][-1].get_ydata()), self.max_bin_height)
-
-        if show_individual_dots:
-            # Add random "jitter" to x-axis
-            x = np.random.normal(x_loc, 0.01, size=len(displayed_data))
-            self.ax.plot(x, displayed_data, color=dot_color, marker=".", linestyle="None", alpha=0.2)
-
-        # Set colors, patterns, median lines and mean markers
-        for r in rect["boxes"]:
-            r.set(color="black", linewidth=1)
-            r.set(facecolor=color)
-            r.set_hatch(hatch_type)
-        for median in rect["medians"]:
-            median.set(color="crimson", linewidth=3)
-
-        for mean in rect["means"]:
-            mean.set(markerfacecolor="crimson", markeredgecolor="black", markersize=10)
 
         return rect
 
@@ -1433,7 +1375,7 @@ class ComparingQBoxPlotter(BoxPlotter):
 
         # Draw boxplots with special hatched style
         for data_item in self.processed_data:
-            rect = self._create_single_boxplot_with_hatch(
+            rect = self._create_single_boxplot(
                 data_item["data"],
                 [data_item["x_position"]],
                 data_item["width"],
@@ -1441,7 +1383,8 @@ class ComparingQBoxPlotter(BoxPlotter):
                 self.config.show_individual_dots,
                 color,
                 "crimson",
-                self.config.hatch_type,
+                hatch_idx=1,
+                dot_alpha=0.2,
             )
 
             # Handle sample information
