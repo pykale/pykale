@@ -196,7 +196,7 @@ def test_qbin_pipeline(testing_cfg):
     pixel_to_mm_scale = testing_cfg["PIPELINE"]["PIXEL_TO_MM_SCALE"]
 
     # Define parameters for visualization
-    color_map_name = "Set1"
+    colormap = "Set1"
 
     show_individual_landmark_plots = testing_cfg["PIPELINE"]["SHOW_IND_LANDMARKS"]
 
@@ -270,7 +270,7 @@ def test_qbin_pipeline(testing_cfg):
                 dataset,
                 landmarks,
                 num_bins,
-                color_map_name,
+                colormap,
                 os.path.join(save_folder, "fitted_quantile_binning"),
                 save_file_preamble,
                 testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
@@ -342,7 +342,7 @@ def test_qbin_pipeline(testing_cfg):
                     dataset,
                     landmarks,
                     testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"],
-                    color_map_name,
+                    colormap,
                     all_fitted_save_paths,
                     save_folder_comparison,
                     save_file_preamble,

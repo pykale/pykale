@@ -16,16 +16,31 @@ Classes:
     PerModelBoxPlotter: Individual model performance analysis
     ComparingQBoxPlotter: Q-value comparison studies
 
+Data Processing Architecture:
+    BoxPlotDataProcessor: Abstract base class using template method pattern
+    GenericBoxPlotDataProcessor: Specialized processor for multi-model comparisons
+    PerModelBoxPlotDataProcessor: Specialized processor for per-model analysis
+    ComparingQBoxPlotDataProcessor: Specialized processor for Q-value comparisons
+
 Factory Functions:
     create_boxplot_config(): Create configuration objects with sensible defaults
     create_boxplot_data(): Create data containers with required parameters
 
+The data processing system uses the template method pattern to provide a consistent
+processing workflow while allowing customization through specialized subclasses.
+Each processor implements specific logic for different visualization modes while
+sharing common utility methods from the base class.
 """
 
 import math
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
+
+if TYPE_CHECKING:
+    import matplotlib.axes
+    import matplotlib.figure
 
 import matplotlib.lines as mlines
 import matplotlib.patches as patches
@@ -124,11 +139,13 @@ class BoxPlotConfig:
     # Spacing values
     inner_spacing: float = 0.1
     middle_spacing: float = 0.02
+    outer_spacing: float = 0.24
     gap_large: float = 0.25
     gap_small: float = 0.12
     outer_gap_small: float = 0.35
     outer_gap_large: float = 0.24
-    comparing_q_spacing: float = 0.2
+    comparing_q_inner_spacing: float = 0.02
+    comparing_q_outer_spacing: float = 0.2
 
     # Spacing threshold configuration
     large_spacing_threshold: int = 9
@@ -160,6 +177,51 @@ class BoxPlotConfig:
     show_dpi: int = 100
     bbox_inches: str = "tight"
     pad_inches: float = 0.1
+
+    def set_params(self, **kwargs: Any) -> "BoxPlotConfig":
+        """
+        Set parameters on the BoxPlotConfig instance and return self for method chaining.
+
+        This method allows for convenient parameter updating using a fluent interface.
+        It validates that provided parameters are valid BoxPlotConfig attributes.
+
+        Args:
+            **kwargs (Any): Keyword arguments corresponding to BoxPlotConfig attributes.
+                     Any valid BoxPlotConfig parameter can be set.
+
+        Returns:
+            BoxPlotConfig: Self reference for method chaining.
+
+        Examples:
+            Basic usage:
+            >>> config = BoxPlotConfig()
+            >>> config.set_params(x_label="Custom Label", y_label="Custom Y")
+
+            Method chaining:
+            >>> config = BoxPlotConfig().set_params(
+            ...     x_label="Uncertainty Bins",
+            ...     colormap="Set1",
+            ...     font_size_label=25
+            ... )
+
+            Multiple updates:
+            >>> config.set_params(show=True).set_params(save_path="output.png")
+
+        Raises:
+            AttributeError: If an invalid parameter name is provided.
+        """
+        # Get valid field names for validation
+        valid_fields = {f.name for f in fields(self)}
+
+        for param_name, param_value in kwargs.items():
+            if param_name not in valid_fields:
+                raise AttributeError(
+                    f"'{param_name}' is not a valid BoxPlotConfig parameter. "
+                    f"Valid parameters are: {sorted(valid_fields)}"
+                )
+            setattr(self, param_name, param_value)
+
+        return self
 
 
 @dataclass
@@ -204,6 +266,56 @@ class BoxPlotData:
     models: Optional[List[str]] = None
     category_labels: Optional[List[str]] = None
     num_bins: Optional[int] = None
+
+    def set_data(self, **kwargs: Any) -> "BoxPlotData":
+        """
+        Set data parameters on the BoxPlotData instance and return self for method chaining.
+
+        This method allows for convenient data parameter updating using a fluent interface.
+        It validates that provided parameters are valid BoxPlotData attributes.
+
+        Args:
+            **kwargs (Any): Keyword arguments corresponding to BoxPlotData attributes.
+                     Valid parameters include:
+                     - evaluation_data_by_bins: Primary evaluation data
+                     - uncertainty_categories: Hierarchical uncertainty type organization
+                     - models: Model identifiers for analysis
+                     - category_labels: Human-readable x-axis labels
+                     - num_bins: Total uncertainty bins
+
+        Returns:
+            BoxPlotData: Self reference for method chaining.
+
+        Examples:
+            Basic usage:
+            >>> data = BoxPlotData(evaluation_data_by_bins=[{}])
+            >>> data.set_data(models=["ResNet50", "VGG16"])
+
+            Method chaining:
+            >>> data = BoxPlotData(evaluation_data_by_bins=[{}]).set_data(
+            ...     models=["ResNet50"],
+            ...     uncertainty_categories=[["epistemic"]],
+            ...     num_bins=5
+            ... )
+
+            Multiple updates:
+            >>> data.set_data(models=["ResNet50"]).set_data(num_bins=5)
+
+        Raises:
+            AttributeError: If an invalid parameter name is provided.
+        """
+        # Get valid field names for validation
+        valid_fields = {f.name for f in fields(self)}
+
+        for param_name, param_value in kwargs.items():
+            if param_name not in valid_fields:
+                raise AttributeError(
+                    f"'{param_name}' is not a valid BoxPlotData parameter. "
+                    f"Valid parameters are: {sorted(valid_fields)}"
+                )
+            setattr(self, param_name, param_value)
+
+        return self
 
 
 def create_boxplot_config(**kwargs: Any) -> BoxPlotConfig:
@@ -251,8 +363,7 @@ def create_boxplot_config(**kwargs: Any) -> BoxPlotConfig:
         ... )
 
     Raises:
-        TypeError: If parameter types don't match expected formats.
-        ValueError: If parameter values are outside valid ranges.
+        None: Any type or value errors will be raised by the BoxPlotConfig constructor.
     """
     # Only pass kwargs that match BoxPlotConfig fields
     boxplotconfig_field_names = {f.name for f in fields(BoxPlotConfig)}
@@ -276,26 +387,21 @@ def create_boxplot_data(
     different plotting scenarios while ensuring data consistency.
 
     Args:
-        evaluation_data_by_bins: Primary evaluation data organized by uncertainty bins.
+        evaluation_data_by_bins (List[Dict[str, List[List[float]]]]): Primary evaluation data organized by uncertainty bins.
             For single experiments: List with one dict mapping "model_uncertainty" to bin data.
             For Q-value comparisons: List of dicts, each representing different Q thresholds.
-
-        uncertainty_categories: Hierarchical uncertainty type organization.
+        uncertainty_categories (Optional[List[List[str]]], optional): Hierarchical uncertainty type organization.
             Examples: [["epistemic"], ["aleatoric"]] or [["S-MHA"], ["E-MHA"]]
             Default: Auto-inferred from data keys.
-
-        models: Model identifiers for analysis and legend generation.
+        models (Optional[List[str]], optional): Model identifiers for analysis and legend generation.
             Examples: ["ResNet50", "VGG16"] or ["baseline"]
             Default: Auto-inferred from data key prefixes.
-
-        category_labels: Human-readable x-axis labels.
+        category_labels (Optional[List[str]], optional): Human-readable x-axis labels.
             Examples: ["B1", "B2", "B3"] or ["Q=5", "Q=10", "Q=15"]
             Default: Auto-generated based on data structure.
-
-        num_bins: Total uncertainty bins for validation and layout.
+        num_bins (Optional[int], optional): Total uncertainty bins for validation and layout.
             Default: Auto-inferred from data structure.
-
-        **kwargs: Extended metadata for specialized analysis modes.
+        **kwargs (Any): Extended metadata for specialized analysis modes.
 
     Returns:
         BoxPlotData: Validated data container ready for visualization with any BoxPlotter class.
@@ -331,9 +437,7 @@ def create_boxplot_data(
         ... )
 
     Raises:
-        ValueError: If data dimensions are inconsistent or parameters don't match data structure.
-        TypeError: If data types don't match expected formats.
-        KeyError: If required data keys are missing.
+        None: Any type or value errors will be raised by the BoxPlotData constructor.
     """
     # Only pass kwargs that match BoxPlotData fields
     boxplotdata_field_names = {f.name for f in fields(BoxPlotData)}
@@ -374,15 +478,17 @@ class BoxPlotter:
         Initialize BoxPlotter with optional data and configuration.
 
         Args:
-            data: BoxPlotData containing evaluation metrics. Can be set later via set_data().
-            config: BoxPlotConfig for display settings. Uses defaults if not provided.
+            data (Optional[BoxPlotData], optional): BoxPlotData containing evaluation metrics.
+                Can be set later via set_data(). Defaults to None.
+            config (Optional[BoxPlotConfig], optional): BoxPlotConfig for display settings.
+                Uses defaults if not provided. Defaults to None.
         """
         self.data = data
         self.config = config or BoxPlotConfig()
 
         # Plotting state variables
-        self.ax = None  # matplotlib.axes.Axes
-        self.fig = None  # matplotlib.figure.Figure
+        self.ax: Optional["matplotlib.axes.Axes"] = None
+        self.fig: Optional["matplotlib.figure.Figure"] = None
         self.legend_patches: List[Union[patches.Patch, mlines.Line2D]] = []
         self.max_bin_height = 0.0
         self.sample_label_x_positions: List[float] = []
@@ -393,7 +499,7 @@ class BoxPlotter:
         Update the data container for this plotter.
 
         Args:
-            data: New BoxPlotData containing evaluation metrics to visualize.
+            data (BoxPlotData): New BoxPlotData containing evaluation metrics to visualize.
         """
         self.data = data
 
@@ -402,7 +508,7 @@ class BoxPlotter:
         Update the configuration settings for this plotter.
 
         Args:
-            config: New BoxPlotConfig with updated display and styling options.
+            config (BoxPlotConfig): New BoxPlotConfig with updated display and styling options.
         """
         self.config = config
 
@@ -419,7 +525,9 @@ class BoxPlotter:
         for custom plotting workflows.
         """
         plt.style.use(self.config.matplotlib_style)
-        self.ax = plt.gca()
+        ax_temp = plt.gca()
+        assert ax_temp is not None
+        self.ax = ax_temp
         assert self.ax is not None
         self.ax.xaxis.grid(False)
 
@@ -433,8 +541,11 @@ class BoxPlotter:
         """
         Abstract method for creating the actual boxplot visualization.
 
+        This method must be implemented by subclasses to provide specific
+        plotting behavior for different visualization modes.
+
         Raises:
-            NotImplementedError: Always raised - subclasses must provide implementation
+            NotImplementedError: Always raised - subclasses must provide implementation.
         """
         raise NotImplementedError("Subclasses must implement draw_boxplot method")
 
@@ -443,10 +554,10 @@ class BoxPlotter:
         Create and register a legend patch for model-uncertainty combinations.
 
         Args:
-            color: Color for the legend patch (hex code or named color)
-            model_type: Model identifier for legend label
-            uncertainty_type: Uncertainty category for legend label
-            hatch_idx: Hatching pattern index (1 for hatched, 0 for solid)
+            color (str): Color for the legend patch (hex code or named color).
+            model_type (str): Model identifier for legend label.
+            uncertainty_type (str): Uncertainty category for legend label.
+            hatch_idx (int): Hatching pattern index (1 for hatched, 0 for solid).
 
         Note:
             Patches are stored in self.legend_patches for later legend creation.
@@ -472,7 +583,7 @@ class BoxPlotter:
         box_color: str,
         dot_color: str,
         hatch_idx: int,
-    ) -> Dict[str, List[Any]]:  # matplotlib boxplot return type
+    ) -> Dict[str, List[Any]]:
         """
         Create a single matplotlib boxplot with comprehensive styling and data visualization features.
 
@@ -491,15 +602,14 @@ class BoxPlotter:
                 Structure: {"boxes": [], "medians": [], "means": [], "whiskers": [], "caps": []}
                 Elements: Provides access to individual plot components for further customization
                 Usage: Can be used to extract statistical information or apply additional styling
-                Side effects: Updates self.max_bin_height for axis scaling coordination
         """
         assert self.ax is not None
 
-        # Convert data to percentage
+        # Convert data to percentage and filter out None values
         if convert_to_percent:
-            displayed_data = [(x) * 100 for x in data]
+            displayed_data = [x * 100 for x in data if x is not None]
         else:
-            displayed_data = data
+            displayed_data = [x for x in data if x is not None]
 
         rect = self.ax.boxplot(displayed_data, positions=x_loc, sym="", widths=width, showmeans=True, patch_artist=True)
 
@@ -543,7 +653,7 @@ class BoxPlotter:
         color: str,
         dot_color: str,
         hatch_type: str,
-    ) -> Dict[str, List[Any]]:  # matplotlib boxplot return type
+    ) -> Dict[str, List[Any]]:
         """
         Create specialized hatched boxplot for Q-value comparison studies with distinctive visual patterns.
 
@@ -562,15 +672,14 @@ class BoxPlotter:
                 Structure: Standard matplotlib boxplot return format
                 Elements: All boxes have mandatory hatching patterns applied
                 Usage: Can be used for statistical extraction or additional customization
-                Side effects: Updates self.max_bin_height for axis coordination
         """
         assert self.ax is not None
 
-        # Convert data to percentage
+        # Convert data to percentage and filter out None values
         if convert_to_percent:
-            displayed_data = [(x) * 100 for x in data]
+            displayed_data = [x * 100 for x in data if x is not None]
         else:
-            displayed_data = data
+            displayed_data = [x for x in data if x is not None]
 
         rect = self.ax.boxplot(displayed_data, positions=x_loc, sym="", widths=width, showmeans=True, patch_artist=True)
 
@@ -612,8 +721,8 @@ class BoxPlotter:
             average_samples_per_bin (List[float]): Accumulator for sample percentage collection.
             rect (Any): Matplotlib boxplot dictionary for geometric information extraction.
 
-        Returns:
-            None: Method operates through side effects on instance variables and parameter lists.
+        Note:
+            Method operates through side effects on instance variables and parameter lists.
         """
         if show_sample_info != "None":
             flattened_model_data = [x for xss in model_data for x in xss]
@@ -632,6 +741,11 @@ class BoxPlotter:
         Display sample percentage information above boxplots based on configuration settings.
 
         Handles both "Average" and "All" modes with appropriate positioning and formatting.
+        Text is positioned above boxplots with alternating heights to prevent overlap.
+
+        Note:
+            Requires self.config.show_sample_info to be set to a valid mode.
+            Uses self.all_sample_percs and self.sample_label_x_positions for placement.
         """
         assert self.ax is not None
 
@@ -690,6 +804,10 @@ class BoxPlotter:
             num_bins (int): Total number of uncertainty bins for layout optimization.
             uncertainty_categories (List[List[str]]): Hierarchical uncertainty type organization.
             comparing_q (bool): Q-value comparison mode flag.
+
+        Note:
+            Q-value comparison plots use simple direct labeling.
+            Other modes use formatted labels with repetition multipliers.
         """
         assert self.ax is not None
 
@@ -745,7 +863,7 @@ class BoxPlotter:
             category_labels (List[str]): Original category labels.
             num_bins (int): Total number of bins.
             blanks_around (int): Number of blanks to distribute around arrow (3 or 5).
-            add_padding (bool): Whether to add empty padding at start and end.
+            add_padding (bool, optional): Whether to add empty padding at start and end. Defaults to False.
 
         Returns:
             List[str]: Abbreviated label list with blanks and arrow.
@@ -764,6 +882,9 @@ class BoxPlotter:
     def _setup_y_axis_scaling(self) -> None:
         """
         Configure y-axis scaling, limits, and tick formatting based on configuration.
+
+        Handles both linear and logarithmic scaling options, and adjusts tick spacing
+        for percentage display when needed.
         """
         assert self.ax is not None
 
@@ -781,6 +902,12 @@ class BoxPlotter:
     def _setup_legend(self) -> None:
         """
         Configure and display the plot legend with mean/median symbols and sample info.
+
+        Creates legend entries for:
+        - Model-uncertainty combinations from self.legend_patches
+        - Mean symbol (red triangle)
+        - Median symbol (red line)
+        - Sample info notation (if showing averages)
         """
         assert self.ax is not None
 
@@ -845,10 +972,7 @@ class BoxPlotter:
             category_labels (List[str]): Human-readable labels for x-axis categories.
             num_bins (int): Total number of uncertainty bins for layout optimization.
             uncertainty_categories (List[List[str]]): Hierarchical uncertainty type organization.
-            comparing_q (bool, optional): Q-value comparison mode flag.
-
-        Returns:
-            None: Method operates through side effects on matplotlib axes and figure.
+            comparing_q (bool, optional): Q-value comparison mode flag. Defaults to False.
         """
         assert self.ax is not None
 
@@ -907,8 +1031,10 @@ class GenericBoxPlotter(BoxPlotter):
         Initialize GenericBoxPlotter for multi-model comparisons.
 
         Args:
-            data: BoxPlotData with evaluation_data_by_bins, uncertainty_categories, and models
-            config: BoxPlotConfig for styling and display options
+            data (Optional[BoxPlotData], optional): BoxPlotData with evaluation_data_by_bins,
+                uncertainty_categories, and models. Defaults to None.
+            config (Optional[BoxPlotConfig], optional): BoxPlotConfig for styling and
+                display options. Defaults to None.
         """
         super().__init__(data, config)
         self.processed_data: Optional[List[Dict]] = None
@@ -916,7 +1042,15 @@ class GenericBoxPlotter(BoxPlotter):
         self.bin_label_locs: Optional[List[float]] = None
 
     def process_data(self) -> None:
-        """Process data for generic plotting mode."""
+        """
+        Process data for generic plotting mode.
+
+        Validates required data fields and processes evaluation data for multi-model
+        comparison visualization using GenericBoxPlotDataProcessor.
+
+        Raises:
+            ValueError: If BoxPlotData is not set or missing required fields for generic mode.
+        """
         if not self.data:
             raise ValueError("BoxPlotData must be set before processing")
 
@@ -935,16 +1069,21 @@ class GenericBoxPlotter(BoxPlotter):
         assert self.data.models is not None
         assert self.data.num_bins is not None
 
-        self.processed_data, self.legend_info, self.bin_label_locs = _process_boxplot_data_generic(
+        processor = GenericBoxPlotDataProcessor(self.config)
+        self.processed_data, self.legend_info, self.bin_label_locs = processor.process_data(
             self.data.evaluation_data_by_bins[0],
             self.data.uncertainty_categories,
             self.data.models,
             self.data.num_bins,
-            self.config,
         )
 
     def draw_boxplot(self) -> None:
-        """Draw generic multi-model boxplot."""
+        """
+        Draw generic multi-model boxplot.
+
+        Creates side-by-side boxplot comparisons across different models and uncertainty
+        types. Groups boxplots by uncertainty type first, then by models within each category.
+        """
         if not self.processed_data:
             self.process_data()
 
@@ -1050,8 +1189,10 @@ class PerModelBoxPlotter(BoxPlotter):
         Initialize PerModelBoxPlotter for detailed individual model analysis.
 
         Args:
-            data: BoxPlotData configured for per-model analysis
-            config: BoxPlotConfig with appropriate styling for detailed views
+            data (Optional[BoxPlotData], optional): BoxPlotData configured for per-model analysis.
+                Defaults to None.
+            config (Optional[BoxPlotConfig], optional): BoxPlotConfig with appropriate styling
+                for detailed views. Defaults to None.
         """
         super().__init__(data, config)
         self.processed_data: Optional[List[Dict]] = None
@@ -1059,7 +1200,14 @@ class PerModelBoxPlotter(BoxPlotter):
         self.bin_label_locs: Optional[List[float]] = None
 
     def process_data(self) -> None:
-        """Process data for per-model plotting mode."""
+        """
+        Process data for per-model plotting mode.
+
+        Validates required data fields and processes evaluation data for individual
+        model performance analysis using PerModelBoxPlotDataProcessor.
+
+        Raises:
+            ValueError: If BoxPlotData is not set or missing required fields for per-model mode."""
         if not self.data:
             raise ValueError("BoxPlotData must be set before processing")
 
@@ -1078,16 +1226,20 @@ class PerModelBoxPlotter(BoxPlotter):
         assert self.data.models is not None
         assert self.data.num_bins is not None
 
-        self.processed_data, self.legend_info, self.bin_label_locs = _process_boxplot_data_per_model(
+        processor = PerModelBoxPlotDataProcessor(self.config)
+        self.processed_data, self.legend_info, self.bin_label_locs = processor.process_data(
             self.data.evaluation_data_by_bins[0],
             self.data.uncertainty_categories,
             self.data.models,
             self.data.num_bins,
-            self.config,
         )
 
     def draw_boxplot(self) -> None:
-        """Draw per-model boxplot."""
+        """
+        Draw per-model boxplot.
+
+        Creates detailed analysis visualization focusing on individual models by
+        organizing boxplots by model first, then by uncertainty type within each model."""
         if not self.processed_data:
             self.process_data()
 
@@ -1201,8 +1353,10 @@ class ComparingQBoxPlotter(BoxPlotter):
         Initialize ComparingQBoxPlotter for quantile threshold comparison.
 
         Args:
-            data: BoxPlotData with evaluation_data_by_bins for Q-value comparison
-            config: BoxPlotConfig with hatch_type and color for Q-plot styling
+            data (Optional[BoxPlotData], optional): BoxPlotData with evaluation_data_by_bins
+                for Q-value comparison. Defaults to None.
+            config (Optional[BoxPlotConfig], optional): BoxPlotConfig with hatch_type and
+                color for Q-plot styling. Defaults to None.
         """
         super().__init__(data, config)
         self.processed_data: Optional[List[Dict]] = None
@@ -1210,7 +1364,14 @@ class ComparingQBoxPlotter(BoxPlotter):
         self.uncertainty_type: Optional[str] = None
 
     def process_data(self) -> None:
-        """Process data for comparing Q plotting mode."""
+        """
+        Process data for comparing Q plotting mode.
+
+        Validates required data fields and processes evaluation data for Q-value
+        threshold comparison using ComparingQBoxPlotDataProcessor.
+
+        Raises:
+            ValueError: If BoxPlotData is not set or missing required fields for Q-comparison mode."""
         if not self.data:
             raise ValueError("BoxPlotData must be set before processing")
 
@@ -1226,7 +1387,8 @@ class ComparingQBoxPlotter(BoxPlotter):
         assert self.data.models is not None
         assert self.data.category_labels is not None
 
-        self.processed_data, self.bin_label_locs = _process_boxplot_data_comparing_q(
+        processor = ComparingQBoxPlotDataProcessor(self.config)
+        self.processed_data, _, self.bin_label_locs = processor.process_data(
             self.data.evaluation_data_by_bins,
             self.data.uncertainty_categories,
             self.data.models,
@@ -1238,7 +1400,11 @@ class ComparingQBoxPlotter(BoxPlotter):
         self.model_type = self.data.models[0]
 
     def draw_boxplot(self) -> None:
-        """Draw comparing Q boxplot."""
+        """
+        Draw comparing Q boxplot.
+
+        Creates quantile threshold comparison visualization with distinctive hatched
+        styling and progressive box width reduction for different Q values."""
         if not self.processed_data:
             self.process_data()
 
@@ -1301,331 +1467,676 @@ class ComparingQBoxPlotter(BoxPlotter):
         )
 
 
-# Data processing helper functions
-# ================================
-
-
-def _find_data_key(evaluation_data_by_bin: Dict[str, List[List[float]]], model_type: str, uncertainty_type: str) -> str:
+class BoxPlotDataProcessor(ABC):
     """
-    Locate the appropriate data key for model-uncertainty combination.
+    Abstract base class for boxplot data processing using template method pattern.
 
-    Args:
-        evaluation_data_by_bin: Dictionary with keys like "ResNet50_epistemic", "VGG16_aleatoric"
-        model_type: Model identifier to search for (e.g., "ResNet50", "VGG16")
-        uncertainty_type: Uncertainty category to search for (e.g., "epistemic", "aleatoric")
+    This class defines the common data processing workflow for different boxplot modes,
+    while allowing subclasses to customize specific operations through method overrides.
 
-    Returns:
-        str: First matching dictionary key containing both model and uncertainty type
-
-    Raises:
-        KeyError: If no key contains both model_type and uncertainty_type
+    The template method pattern ensures consistent processing flow while enabling
+    flexible customization for different visualization requirements.
     """
-    matching_keys = [key for key in evaluation_data_by_bin.keys() if (model_type in key) and (uncertainty_type in key)]
-    if not matching_keys:
-        raise KeyError(f"No matching key found: model_type='{model_type}', uncertainty_type='{uncertainty_type}'")
-    return matching_keys[0]
 
+    def __init__(self, config: Optional[BoxPlotConfig] = None):
+        """
+        Initialize the processor with default state.
 
-def _extract_bin_data(model_data: List[List[float]], bin_idx: int, use_list_comp: bool = False) -> List[float]:
-    """
-    Extract data from specific bin from model data.
+        Args:
+            config (Optional[BoxPlotConfig], optional): BoxPlotConfig for display settings.
+                Uses defaults if not provided. Defaults to None.
 
-    Args:
-        model_data: Model data list
-        bin_idx: Bin index
-        use_list_comp: Whether to use list comprehension to filter None values
+        Sets up instance variables for input data, processing state, and results.
+        All variables are initialized to None or empty collections.
+        """
+        # Input data
+        self.evaluation_data_by_bin: Optional[Dict[str, List[List[float]]]] = None
+        self.evaluation_data_by_bins: Optional[List[Dict[str, List[List[float]]]]] = None
+        self.uncertainty_categories: Optional[List[List[str]]] = None
+        self.models: Optional[List[str]] = None
+        self.num_bins: Optional[int] = None
+        self.config: Optional[BoxPlotConfig] = None
+        self.category_labels: Optional[List[str]] = None
 
-    Returns:
-        Extracted bin data
-    """
-    if use_list_comp:
-        return [x for x in model_data[bin_idx] if x is not None]
-    else:
-        return model_data[bin_idx]
+        # Processing state
+        self.outer_min_x_loc: float = 0.0
+        self.middle_min_x_loc: float = 0.0
+        self.inner_min_x_loc: float = 0.0
 
+        # Results
+        self.processed_data: List[Dict] = []
+        self.legend_info: Optional[List[Dict]] = []
+        self.bin_label_locs: List[float] = []
+        self.config = config or BoxPlotConfig()
 
-def _create_data_item(
-    data: List[float],
-    x_position: float,
-    width: float,
-    color_idx: int,
-    model_type: str,
-    uncertainty_type: str,
-    hatch_idx: int,
-    bin_idx: int,
-    model_data: List[List[float]],
-    **extra_fields,
-) -> Dict:
-    """
-    Create standard data item dictionary.
+    def process_data(self, *args, **kwargs) -> Tuple[List[Dict], Union[List[Dict], None], List[float]]:
+        """
+        Template method that defines the main data processing algorithm.
 
-    Args:
-        data: Boxplot data
-        x_position: x-axis position
-        width: Box width
-        color_idx: Color index
-        model_type: Model type
-        uncertainty_type: Uncertainty type
-        hatch_idx: Hatch index
-        bin_idx: Bin index
-        model_data: Original model data
-        **extra_fields: Additional fields
+        This method coordinates the overall processing flow by calling specific
+        hook methods that subclasses can override to customize behavior.
 
-    Returns:
-        Data item dictionary
-    """
-    item = {
-        "data": data,
-        "x_position": x_position,
-        "width": width,
-        "color_idx": color_idx,
-        "model_type": model_type,
-        "uncertainty_type": uncertainty_type,
-        "hatch_idx": hatch_idx,
-        "bin_idx": bin_idx,
-        "model_data": model_data,
-    }
-    item.update(extra_fields)  # Add additional fields
-    return item
+        Args:
+            *args: Variable positional arguments specific to each processing mode.
+            **kwargs: Variable keyword arguments specific to each processing mode.
 
+        Returns:
+            Tuple[List[Dict], Union[List[Dict], None], List[float]]: A tuple containing:
+                - processed_data: List of dictionaries with boxplot data and positioning
+                - legend_info: Legend information (None for Q-comparison mode)
+                - bin_label_locs: X-axis positions for bin labels
 
-def _calculate_spacing_adjustment(num_bins: int, is_large_spacing: bool, config: BoxPlotConfig) -> float:
-    """
-    Calculate spacing adjustment value based on bin count using configurable parameters.
+        Raises:
+            ValueError: If processing results in empty data or invalid state.
+        """
+        # Initialize processing parameters
+        self._initialize_processing_parameters(*args, **kwargs)
 
-    Args:
-        num_bins: Number of bins
-        is_large_spacing: Whether to use large spacing configuration
-        config: BoxPlotConfig object containing spacing parameters
+        # Execute main processing loop (varies by subclass)
+        self._execute_processing_loop()
 
-    Returns:
-        Spacing adjustment value based on configuration
-    """
-    # Select threshold based on spacing type
-    threshold = config.large_spacing_threshold if is_large_spacing else config.small_spacing_threshold
+        # Finalize and validate results
+        self._finalize_processing_results()
 
-    # Select spacing values based on spacing type
-    large_val = config.gap_large_for_large_spacing if is_large_spacing else config.gap_large_for_small_spacing
+        return self.processed_data, self.legend_info, self.bin_label_locs
 
-    small_val = config.gap_small_for_large_spacing if is_large_spacing else config.gap_small_for_small_spacing
+    @staticmethod
+    def create_data_item(
+        data: List[float],
+        x_position: float,
+        width: float,
+        color_idx: int,
+        model_type: str,
+        uncertainty_type: str,
+        hatch_idx: int,
+        bin_idx: int,
+        model_data: List[List[float]],
+        **extra_fields,
+    ) -> Dict:
+        """
+        Create standard data item dictionary for boxplot processing.
 
-    return large_val if num_bins > threshold else small_val
+        Args:
+            data (List[float]): Boxplot data values.
+            x_position (float): X-axis position for the boxplot.
+            width (float): Box width for the boxplot.
+            color_idx (int): Color index for styling.
+            model_type (str): Model identifier.
+            uncertainty_type (str): Uncertainty category.
+            hatch_idx (int): Hatching pattern index.
+            bin_idx (int): Bin index.
+            model_data (List[List[float]]): Original model data.
+            **extra_fields: Additional fields to include in the data item.
 
+        Returns:
+            Dict: Standardized data item dictionary with all required fields.
 
-def _process_boxplot_data_generic(
-    evaluation_data_by_bin: Dict[str, List[List[float]]],
-    uncertainty_categories: List[List[str]],
-    models: List[str],
-    num_bins: int,
-    config: BoxPlotConfig,
-) -> Tuple[List[Dict], List[Dict], List[float]]:
-    """
-    Process evaluation data for generic multi-model boxplot visualization with sophisticated data organization.
+        Examples:
+            >>> item = create_data_item([0.1, 0.2], 1.0, 0.2, 0, "ResNet50", "epistemic", 0, 0, model_data)
+        """
+        item = {
+            "data": data,
+            "x_position": x_position,
+            "width": width,
+            "color_idx": color_idx,
+            "model_type": model_type,
+            "uncertainty_type": uncertainty_type,
+            "hatch_idx": hatch_idx,
+            "bin_idx": bin_idx,
+            "model_data": model_data,
+        }
+        item.update(extra_fields)  # Add additional fields
+        return item
 
-    Args:
-        evaluation_data_by_bin (Dict[str, List[List[float]]]): Primary evaluation data organized by model-uncertainty combinations.
-        uncertainty_categories (List[List[str]]): Hierarchical organization of uncertainty types for comparative analysis.
-        models (List[str]): Model identifiers for multi-model comparative visualization.
-        num_bins (int): Total number of uncertainty bins for spatial layout and validation.
-        config (BoxPlotConfig): Configuration object containing various plotting parameters.
+    # Abstract hook methods that subclasses must implement
+    @abstractmethod
+    def _initialize_processing_parameters(self, *args, **kwargs) -> None:
+        """
+        Initialize the processing parameters from input arguments.
 
-    Returns:
-        Tuple[List[Dict], List[Dict], List[float]]: Comprehensive data structure for boxplot rendering.
+        Subclasses should override this method to extract and store relevant
+        parameters as instance variables.
 
-    Raises:
-        KeyError: If model-uncertainty combinations in uncertainty_categories and models don't match
-                 keys in evaluation_data_by_bin.
-        ValueError: If num_bins doesn't match the actual data structure length.
-        IndexError: If bin indices exceed available data in evaluation_data_by_bin.
-    """
-    processed_data = []
-    legend_info = []
-    bin_label_locs = []
+        Args:
+            *args: Variable positional arguments specific to processing mode.
+            **kwargs: Variable keyword arguments specific to processing mode.
+        """
+        pass
 
-    outer_min_x_loc = 0.0
-    middle_min_x_loc = 0.0
-    inner_min_x_loc = 0.0
+    @abstractmethod
+    def _execute_processing_loop(self) -> None:
+        """
+        Execute the main data processing loop.
 
-    for i, (uncert_pair) in enumerate(uncertainty_categories):
-        uncertainty_type = (uncert_pair)[0]
+        Each subclass implements its specific processing logic directly.
+        Results should be stored in self.processed_data, self.legend_info,
+        and self.bin_label_locs.
+        """
+        pass
 
-        for j in range(num_bins):
-            box_x_positions = []
+    def _finalize_processing_results(self) -> None:
+        """
+        Optional hook for result validation and finalization.
 
-            for hatch_idx, model_type in enumerate(models):
-                # Use helper function to extract data
-                dict_key = _find_data_key(evaluation_data_by_bin, model_type, uncertainty_type)
-                model_data = evaluation_data_by_bin[dict_key]
-                bin_data = _extract_bin_data(model_data, j, config.use_list_comp)
+        Default implementation performs basic validation.
+        Subclasses can override for additional processing.
 
-                # Calculate position
-                x_loc = outer_min_x_loc + inner_min_x_loc + middle_min_x_loc
-                box_x_positions.append(x_loc)
+        Raises:
+            ValueError: If processing resulted in empty data or bin label locations.
+        """
+        if not self.processed_data:
+            raise ValueError("Processing resulted in empty data")
+        if not self.bin_label_locs:
+            raise ValueError("Processing resulted in empty bin label locations")
 
-                # Use helper function to create data item
-                data_item = _create_data_item(
-                    bin_data, x_loc, config.width, i, model_type, uncertainty_type, hatch_idx, j, model_data
-                )
-                processed_data.append(data_item)
+    def _calculate_spacing_adjustment(self, is_large_spacing: bool) -> float:
+        """
+        Calculate spacing adjustment value based on bin count using configurable parameters.
 
-                # Collect legend info (only on first bin)
-                if j == 0:
-                    legend_item = {
-                        "color_idx": i,
-                        "model_type": model_type,
-                        "uncertainty_type": uncertainty_type,
-                        "hatch_idx": hatch_idx,
-                    }
-                    legend_info.append(legend_item)
+        Args:
+            is_large_spacing (bool): Whether to use large spacing configuration.
 
-                inner_min_x_loc += 0.1 + config.width
+        Returns:
+            float: Spacing adjustment value based on configuration and bin count.
 
-            # Calculate bin label position
-            if config.use_list_comp:
-                bin_label_locs.extend(box_x_positions)
-            else:
-                bin_label_locs.append(float(np.mean(box_x_positions)))
+        Note:
+            Uses config thresholds and spacing values to determine appropriate spacing.
+        """
+        assert self.config is not None, "Configuration must be set before calculating spacing adjustment"
 
-            middle_min_x_loc += 0.02
+        # Select threshold based on spacing type
+        threshold = self.config.large_spacing_threshold if is_large_spacing else self.config.small_spacing_threshold
 
-        # Adjust spacing between different uncertainty types
-        if config.use_list_comp:
-            spacing_adjustment = _calculate_spacing_adjustment(num_bins, True, config)
-            middle_min_x_loc += spacing_adjustment
+        # Select spacing values based on spacing type
+        large_val = (
+            self.config.gap_large_for_large_spacing if is_large_spacing else self.config.gap_large_for_small_spacing
+        )
+        small_val = (
+            self.config.gap_small_for_large_spacing if is_large_spacing else self.config.gap_small_for_small_spacing
+        )
+
+        assert self.num_bins is not None, "Number of bins must be set before calculating spacing adjustment"
+        return large_val if self.num_bins > threshold else small_val
+
+    def _find_data_key(
+        self, evaluation_data_by_bin: Dict[str, List[List[float]]], model_type: str, uncertainty_type: str
+    ) -> str:
+        """
+        Locate the appropriate data key for model-uncertainty combination.
+
+        Args:
+            evaluation_data_by_bin (Dict[str, List[List[float]]]): Dictionary with keys like
+                "ResNet50_epistemic", "VGG16_aleatoric".
+            model_type (str): Model identifier to search for (e.g., "ResNet50", "VGG16").
+            uncertainty_type (str): Uncertainty category to search for (e.g., "epistemic", "aleatoric").
+
+        Returns:
+            str: First matching dictionary key containing both model and uncertainty type.
+
+        Raises:
+            KeyError: If no key contains both model_type and uncertainty_type.
+
+        Examples:
+            >>> key = _find_data_key(data, "ResNet50", "epistemic")  # Returns "ResNet50_epistemic"
+            >>> key = _find_data_key(data, "VGG16", "aleatoric")     # Returns "VGG16_aleatoric"
+        """
+        matching_keys = [
+            key for key in evaluation_data_by_bin.keys() if (model_type in key) and (uncertainty_type in key)
+        ]
+        if not matching_keys:
+            raise KeyError(f"No matching key found: model_type='{model_type}', uncertainty_type='{uncertainty_type}'")
+        return matching_keys[0]
+
+    def _extract_bin_data(self, model_data: List[List[float]], bin_idx: int) -> List[float]:
+        """
+        Extract data from specific bin from model data.
+
+        Args:
+            model_data (List[List[float]]): Model data organized by bins.
+            bin_idx (int): Index of the bin to extract data from.
+
+        Returns:
+            List[float]: Extracted bin data, optionally filtered for None values.
+
+        Examples:
+            >>> data = [[0.1, 0.2], [0.3, None, 0.4]]
+            >>> _extract_bin_data(data, 0)  # Returns [0.1, 0.2]
+            >>> _extract_bin_data(data, 1)  # Returns [0.3, 0.4]
+        """
+        assert self.config is not None, "Configuration must be set before extracting bin data"
+
+        if self.config.use_list_comp:
+            return [x for x in model_data[bin_idx] if x is not None]
         else:
-            spacing_adjustment = _calculate_spacing_adjustment(num_bins, False, config)
-            outer_min_x_loc += spacing_adjustment
+            return model_data[bin_idx]
 
-    return processed_data, legend_info, bin_label_locs
+    # Shared utility methods for common processing patterns
+    def _process_single_item(
+        self,
+        uncertainty_type: str,
+        model_type: str,
+        bin_idx: int,
+        uncertainty_idx: int,
+        hatch_idx: int,
+        width: float,
+        evaluation_data_override: Optional[Dict] = None,
+    ) -> Dict:
+        """
+        Process a single data item and return the result.
 
+        Args:
+            uncertainty_type (str): Uncertainty category identifier.
+            model_type (str): Model identifier.
+            bin_idx (int): Bin index to process.
+            uncertainty_idx (int): Uncertainty type index for coloring.
+            hatch_idx (int): Hatching pattern index.
+            width (float): Box width for the item.
+            evaluation_data_override (Dict, optional): Override data for Q-comparison mode.
+                Defaults to None.
 
-def _process_boxplot_data_per_model(
-    evaluation_data_by_bin: Dict[str, List[List[float]]],
-    uncertainty_categories: List[List[str]],
-    models: List[str],
-    num_bins: int,
-    config: BoxPlotConfig,
-) -> Tuple[List[Dict], List[Dict], List[float]]:
-    """
-    Process boxplot data grouped by model.
+        Returns:
+            Dict: Processed data item dictionary with all required fields.
+        """
+        # Use override data for Q-comparison mode, otherwise use instance data
+        evaluation_data = evaluation_data_override or self.evaluation_data_by_bin
+        assert evaluation_data is not None, "Evaluation data must be available"
 
-    Args:
-        evaluation_data_by_bin: Dictionary containing all evaluation data grouped by bins
-        uncertainty_categories: List of uncertainty types
-        models: Model list
-        num_bins: Number of bins
-        config: BoxPlotConfig
+        # Extract data using base class method
+        dict_key = self._find_data_key(evaluation_data, model_type, uncertainty_type)
+        model_data = evaluation_data[dict_key]
 
-    Returns:
-        Tuple[processed_data, legend_info, bin_label_locs]
-    """
-    processed_data = []
-    legend_info = []
-    bin_label_locs = []
+        bin_data = self._extract_bin_data(model_data, bin_idx)
 
-    outer_min_x_loc = 0.0
-    middle_min_x_loc = 0.0
-    inner_min_x_loc = 0.0
+        # Calculate position from instance variables
+        x_loc = self.outer_min_x_loc + self.middle_min_x_loc + self.inner_min_x_loc
 
-    for i, (uncert_pair) in enumerate(uncertainty_categories):
-        uncertainty_type = (uncert_pair)[0]
-        for hatch_idx, model_type in enumerate(models):
-            box_x_positions = []
+        # Create and return data item
+        return self.create_data_item(
+            bin_data, x_loc, width, uncertainty_idx, model_type, uncertainty_type, hatch_idx, bin_idx, model_data
+        )
 
-            for j in range(num_bins):
-                # Use helper function to extract data
-                dict_key = _find_data_key(evaluation_data_by_bin, model_type, uncertainty_type)
-                model_data = evaluation_data_by_bin[dict_key]
-                bin_data = _extract_bin_data(model_data, j, use_list_comp=True)
+    def _process_and_store_single_item(
+        self,
+        uncertainty_type: str,
+        model_type: str,
+        bin_idx: int,
+        uncertainty_idx: int,
+        hatch_idx: int,
+        width: float,
+        evaluation_data_override: Optional[Dict] = None,
+    ) -> float:
+        """
+        Process single item and store in processed_data, return x position.
 
-                # Calculate position
-                width = 0.25
-                x_loc = outer_min_x_loc + inner_min_x_loc + middle_min_x_loc
-                box_x_positions.append(x_loc)
+        Args:
+            uncertainty_type (str): Uncertainty category identifier.
+            model_type (str): Model identifier.
+            bin_idx (int): Bin index to process.
+            uncertainty_idx (int): Uncertainty type index for coloring.
+            hatch_idx (int): Hatching pattern index.
+            width (float): Box width for the item.
+            evaluation_data_override (Dict, optional): Override data for Q-comparison mode.
+                Defaults to None.
 
-                # Use helper function to create data item
-                data_item = _create_data_item(
-                    bin_data, x_loc, width, i, model_type, uncertainty_type, hatch_idx, j, model_data
-                )
-                processed_data.append(data_item)
+        Returns:
+            float: X-axis position of the processed item."""
+        data_item = self._process_single_item(
+            uncertainty_type, model_type, bin_idx, uncertainty_idx, hatch_idx, width, evaluation_data_override
+        )
+        self.processed_data.append(data_item)
+        return data_item["x_position"]
 
-                # Collect legend info (only on first bin)
-                if j == 0:
-                    legend_item = {
-                        "color_idx": i,
-                        "model_type": model_type,
-                        "uncertainty_type": uncertainty_type,
-                        "hatch_idx": hatch_idx,
-                    }
-                    legend_info.append(legend_item)
+    def _collect_legend_info_for_first_bin(
+        self,
+        bin_idx: int,
+        uncertainty_idx: int,
+        model_type: str,
+        uncertainty_type: str,
+        hatch_idx: int,
+    ) -> None:
+        """
+        Collect legend information if this is the first bin.
 
-                inner_min_x_loc += 0.1 + width
+        Args:
+            bin_idx (int): Current bin index.
+            uncertainty_idx (int): Uncertainty type index for coloring.
+            model_type (str): Model identifier for legend.
+            uncertainty_type (str): Uncertainty category for legend.
+            hatch_idx (int): Hatching pattern index."""
+        if bin_idx == 0 and self.legend_info is not None:
+            legend_item = {
+                "color_idx": uncertainty_idx,
+                "model_type": model_type,
+                "uncertainty_type": uncertainty_type,
+                "hatch_idx": hatch_idx,
+            }
+            self.legend_info.append(legend_item)
 
-            bin_label_locs.extend(box_x_positions)
+    def _process_and_collect_positions(
+        self,
+        uncertainty_type: str,
+        uncertainty_idx: int,
+        items_data: List[Tuple[int, str, int]],  # (bin_idx, model_type, hatch_idx)
+        width: float,
+    ) -> List[float]:
+        """
+        Process items and collect their positions with common logic.
 
-            # Adjust spacing between bins
-            spacing_adjustment = _calculate_spacing_adjustment(num_bins, True, config)
-            middle_min_x_loc += spacing_adjustment
-
-        outer_min_x_loc += 0.24
-
-    return processed_data, legend_info, bin_label_locs
-
-
-def _process_boxplot_data_comparing_q(
-    evaluation_data_by_bins: List[Dict[str, List[List[float]]]],
-    uncertainty_categories: List[List[str]],
-    model: List[str],
-    category_labels: List[str],
-) -> Tuple[List[Dict], List[float]]:
-    """
-    Process boxplot data for comparing Q values.
-
-    Args:
-        evaluation_data_by_bins: List of data dictionaries, one per Q value
-        uncertainty_categories: List of uncertainty types
-        model: Model list
-        category_labels: Category labels (Q values)
-
-    Returns:
-        Tuple[processed_data, bin_label_locs]
-    """
-    processed_data = []
-    bin_label_locs = []
-
-    outer_min_x_loc = 0.0
-    inner_min_x_loc = 0.0
-    middle_min_x_loc = 0.0
-
-    uncertainty_type = uncertainty_categories[0][0]
-    model_type = model[0]
-
-    for idx, q_value in enumerate(category_labels):
+        Args:
+            uncertainty_type (str): Uncertainty category identifier.
+            uncertainty_idx (int): Uncertainty type index for coloring.
+            items_data (List[Tuple[int, str, int]]): List of (bin_idx, model_type, hatch_idx) tuples.
+            width (float): Box width for all items.
+        """
         box_x_positions = []
-        evaluation_data_by_bin = evaluation_data_by_bins[idx]
 
-        # Use helper function to get data key
-        dict_key = _find_data_key(evaluation_data_by_bin, model_type, uncertainty_type)
+        for bin_idx, model_type, hatch_idx in items_data:
+            x_position = self._process_and_store_single_item(
+                uncertainty_type, model_type, bin_idx, uncertainty_idx, hatch_idx, width
+            )
+            box_x_positions.append(x_position)
+
+            # Collect legend info for first bin
+            self._collect_legend_info_for_first_bin(bin_idx, uncertainty_idx, model_type, uncertainty_type, hatch_idx)
+
+            # Update inner position with spacing
+            assert self.config is not None, "Configuration must be set before updating position"
+            self.inner_min_x_loc += self.config.inner_spacing + width
+
+        return box_x_positions
+
+    def _store_bin_label_positions(self, box_x_positions: List[float], use_extend: bool = True) -> None:
+        """
+        Store bin label positions using extend or mean calculation.
+
+        Args:
+            box_x_positions (List[float]): X-axis positions of boxes in current bin.
+            use_extend (bool, optional): Whether to extend positions directly or calculate mean.
+                Defaults to True."""
+        if use_extend:
+            self.bin_label_locs.extend(box_x_positions)
+        else:
+            self.bin_label_locs.append(float(np.mean(box_x_positions)))
+
+
+class GenericBoxPlotDataProcessor(BoxPlotDataProcessor):
+    """
+    Data processor for generic multi-model boxplot visualization.
+
+    Implements uncertainty -> bins -> models processing order for comparing
+    multiple models across different uncertainty types.
+    """
+
+    def _initialize_processing_parameters(
+        self,
+        evaluation_data_by_bin: Dict[str, List[List[float]]],
+        uncertainty_categories: List[List[str]],
+        models: List[str],
+        num_bins: int,
+    ) -> None:
+        """
+        Initialize processing parameters for generic mode.
+
+        Args:
+            evaluation_data_by_bin (Dict[str, List[List[float]]]): Evaluation data organized by bins.
+            uncertainty_categories (List[List[str]]): Hierarchical uncertainty type organization.
+            models (List[str]): List of model identifiers.
+            num_bins (int): Total number of uncertainty bins.
+        """
+        self.evaluation_data_by_bin = evaluation_data_by_bin
+        self.uncertainty_categories = uncertainty_categories
+        self.models = models
+        self.num_bins = num_bins
+        self.legend_info = []  # Generic mode has legend info
+
+    def _execute_processing_loop(self) -> None:
+        """
+        Execute generic processing: uncertainty -> bins -> models.
+
+        Processes data in the order: for each uncertainty type, for each bin,
+        for each model. This creates grouped comparisons by uncertainty type.
+        """
+        assert self.config is not None, "Configuration must be set before processing"
+        assert self.uncertainty_categories is not None, "Uncertainty categories must be set"
+        assert self.models is not None, "Models must be set"
+
+        use_list_comp = self.config.use_list_comp
+
+        for uncertainty_idx, uncert_pair in enumerate(self.uncertainty_categories):
+            uncertainty_type = uncert_pair[0]
+
+            # Process each bin for this uncertainty type
+            assert self.num_bins is not None, "Number of bins must be set before processing"
+            for bin_idx in range(self.num_bins):
+                width = self.config.default_box_width
+
+                # Prepare items data for processing
+                items_data = [(bin_idx, model_type, hatch_idx) for hatch_idx, model_type in enumerate(self.models)]
+
+                # Process all models for this bin using shared method
+                box_x_positions = self._process_and_collect_positions(
+                    uncertainty_type, uncertainty_idx, items_data, width
+                )
+
+                # Store bin labels and apply middle spacing
+                self._store_bin_label_positions(box_x_positions, use_extend=use_list_comp)
+                self.middle_min_x_loc += self.config.middle_spacing
+
+            # Apply spacing between uncertainty types
+            spacing_adjustment = self._calculate_spacing_adjustment(True)
+            if use_list_comp:
+                self.middle_min_x_loc += spacing_adjustment
+            else:
+                self.outer_min_x_loc += spacing_adjustment
+
+
+class PerModelBoxPlotDataProcessor(BoxPlotDataProcessor):
+    """
+    Data processor for per-model boxplot visualization.
+
+    Implements uncertainty -> models -> bins processing order for detailed
+    individual model analysis with model-first grouping.
+    """
+
+    def _initialize_processing_parameters(
+        self,
+        evaluation_data_by_bin: Dict[str, List[List[float]]],
+        uncertainty_categories: List[List[str]],
+        models: List[str],
+        num_bins: int,
+    ) -> None:
+        """
+        Initialize processing parameters for per-model mode.
+
+        Args:
+            evaluation_data_by_bin (Dict[str, List[List[float]]]): Evaluation data organized by bins.
+            uncertainty_categories (List[List[str]]): Hierarchical uncertainty type organization.
+            models (List[str]): List of model identifiers.
+            num_bins (int): Total number of uncertainty bins.
+        """
+        self.evaluation_data_by_bin = evaluation_data_by_bin
+        self.uncertainty_categories = uncertainty_categories
+        self.models = models
+        self.num_bins = num_bins
+        self.legend_info = []  # Per-model mode has legend info
+
+    def _execute_processing_loop(self) -> None:
+        """
+        Execute per-model processing: uncertainty -> models -> bins.
+
+        Processes data in the order: for each uncertainty type, for each model,
+        for each bin. This creates detailed per-model analysis with model-first grouping.
+        """
+        assert self.config is not None, "Configuration must be set before processing"
+        assert self.uncertainty_categories is not None, "Uncertainty categories must be set"
+        assert self.models is not None, "Models must be set"
+
+        use_list_comp = self.config.use_list_comp
+
+        for uncertainty_idx, uncert_pair in enumerate(self.uncertainty_categories):
+            uncertainty_type = uncert_pair[0]
+
+            # Process each model for this uncertainty type
+            for hatch_idx, model_type in enumerate(self.models):
+                width = self.config.default_box_width
+
+                # Prepare items data for processing
+                assert self.num_bins is not None, "Number of bins must be set before processing"
+                items_data = [(bin_idx, model_type, hatch_idx) for bin_idx in range(self.num_bins)]
+
+                # Process all bins for this model using shared method
+                box_x_positions = self._process_and_collect_positions(
+                    uncertainty_type, uncertainty_idx, items_data, width
+                )
+
+                # Store all box positions for this model
+                self._store_bin_label_positions(box_x_positions, use_extend=use_list_comp)
+
+                # Apply spacing between models
+                spacing_adjustment = self._calculate_spacing_adjustment(False)
+                self.middle_min_x_loc += spacing_adjustment
+
+            # Apply final spacing after each uncertainty type
+            self.outer_min_x_loc += self.config.outer_spacing
+
+
+class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
+    """
+    Data processor for Q-value comparison boxplot visualization.
+
+    Implements specialized processing for quantile threshold comparison
+    studies with progressive width reduction.
+    """
+
+    def __init__(self, config: Optional[BoxPlotConfig] = None):
+        """
+        Initialize ComparingQ processor with specific parameters.
+
+        Args:
+            config (Optional[BoxPlotConfig], optional): BoxPlotConfig for display settings.
+                Uses defaults if not provided. Defaults to None.
+
+        Extends base processor initialization with Q-comparison specific variables
+        including evaluation_data_by_bins list and category_labels.
+        """
+        super().__init__(config)
+        self.evaluation_data_by_bins = []
+        self.category_labels = []
+        self.uncertainty_type = ""
+        self.model_type = ""
+
+    def _initialize_processing_parameters(
+        self,
+        evaluation_data_by_bins: List[Dict[str, List[List[float]]]],
+        uncertainty_categories: List[List[str]],
+        model: List[str],
+        category_labels: List[str],
+    ) -> None:
+        """
+        Initialize processing parameters for comparing Q mode.
+
+        Args:
+            evaluation_data_by_bins (List[Dict[str, List[List[float]]]]): List of evaluation
+                data, one per Q-value.
+            uncertainty_categories (List[List[str]]): Hierarchical uncertainty type organization.
+            model (List[str]): Single model identifier (list with one element).
+            category_labels (List[str]): Labels for Q-value categories.
+        """
+        self.evaluation_data_by_bins = evaluation_data_by_bins
+        self.uncertainty_categories = uncertainty_categories
+        self.models = model
+        self.category_labels = category_labels
+        self.uncertainty_type = uncertainty_categories[0][0]
+        self.model_type = model[0]
+        self.legend_info = None  # Q mode has no legend info
+
+    def _calculate_progressive_width(self, base_width: float, q_idx: int) -> float:
+        """
+        Calculate progressive width reduction for Q-value comparison.
+
+        Args:
+            base_width (float): Base width for the first Q-value.
+            q_idx (int): Index of the current Q-value.
+
+        Returns:
+            float: Reduced width for visual distinction between Q-values.
+
+        Note:
+            Uses (4/5)^q_idx formula for progressive width reduction.
+        """
+        return base_width * (4 / 5) ** q_idx
+
+    def _process_single_q_value(
+        self, q_idx: int, evaluation_data_by_bin: Dict[str, List[List[float]]], base_width: float
+    ) -> List[float]:
+        """
+        Process all bins for a single Q value.
+
+        Args:
+            q_idx (int): Index of the current Q-value.
+            evaluation_data_by_bin (Dict[str, List[List[float]]]): Evaluation data for this Q-value.
+            base_width (float): Base width for width calculation.
+
+        Returns:
+            List[float]: X-axis positions of all boxes for this Q-value.
+        """
+        box_x_positions = []
+
+        # Get data for this Q value
+        dict_key = self._find_data_key(evaluation_data_by_bin, self.model_type, self.uncertainty_type)
         model_data = evaluation_data_by_bin[dict_key]
 
-        # Iterate through each bin to display data
-        for j in range(len(model_data)):
-            bin_data = _extract_bin_data(model_data, j, use_list_comp=True)
+        # Process each bin for this Q value
+        for bin_idx in range(len(model_data)):
+            # Progressive width reduction
+            width = self._calculate_progressive_width(base_width, q_idx)
 
-            # Calculate box width and position
-            width = 0.2 * (4 / 5) ** idx
-            x_loc = outer_min_x_loc + inner_min_x_loc + middle_min_x_loc
-            box_x_positions.append(x_loc)
-
-            # Use helper function to create data item (with extra fields)
-            data_item = _create_data_item(
-                bin_data, x_loc, width, 0, model_type, uncertainty_type, 0, j, model_data, q_idx=idx  # extra field
+            x_position = self._process_and_store_single_item(
+                self.uncertainty_type,
+                self.model_type,
+                bin_idx,
+                0,
+                0,
+                width,
+                evaluation_data_override=evaluation_data_by_bin,
             )
-            processed_data.append(data_item)
+            box_x_positions.append(x_position)
 
-            inner_min_x_loc += 0.02 + width
+            assert self.config is not None, "Configuration must be set before updating position"
+            self.inner_min_x_loc += self.config.inner_spacing + width
 
-        outer_min_x_loc += 0.2
-        bin_label_locs.append(float(np.mean(box_x_positions)))
+        return box_x_positions
 
-    return processed_data, bin_label_locs
+    def _apply_q_spacing_and_store_labels(self, box_x_positions: List[float]) -> None:
+        """
+        Apply outer spacing and store bin label locations for Q comparison.
+
+        Args:
+            box_x_positions (List[float]): X-axis positions of boxes for current Q-value.
+        """
+        assert self.config is not None, "Configuration must be set before applying spacing"
+
+        self.outer_min_x_loc += self.config.comparing_q_outer_spacing
+        self._store_bin_label_positions(box_x_positions, use_extend=False)
+
+    def _execute_processing_loop(self) -> None:
+        """
+        Execute Q-comparison processing loop with progressive width.
+
+        Processes each Q-value with progressive width reduction for visual distinction.
+        Uses specialized Q-value processing methods.
+        """
+        assert self.config is not None, "Configuration must be set before processing"
+        assert self.category_labels is not None, "Category labels must be set"
+        assert self.evaluation_data_by_bins is not None, "Evaluation data must be set"
+
+        base_width = self.config.comparing_q_width_base
+
+        for q_idx, _ in enumerate(self.category_labels):
+            evaluation_data_by_bin = self.evaluation_data_by_bins[q_idx]
+
+            # Process this Q value
+            box_x_positions = self._process_single_q_value(q_idx, evaluation_data_by_bin, base_width)
+
+        # Apply spacing and store labels
+        self._apply_q_spacing_and_store_labels(box_x_positions)

@@ -91,7 +91,7 @@ def main():
     # Define parameters for visualization
     # available options: ['Pastel1', 'Pastel2', 'Paired', 'Accent', 'Dark2', 'Set1',
     #                     'Set2', 'Set3', 'tab10', 'tab20', 'tab20b', 'tab20c']
-    color_map_name = "Set1"
+    colormap = cfg.IM_KWARGS.colormap
 
     if gt_test_error_available:
         fit = True
@@ -169,7 +169,7 @@ def main():
                         dataset,
                         landmarks,
                         num_bins,
-                        color_map_name,
+                        colormap,
                         os.path.join(save_folder, "fitted_quantile_binning"),
                         save_file_preamble,
                         cfg.PIPELINE.COMBINE_MIDDLE_BINS,
@@ -226,7 +226,7 @@ def main():
                                 dataset,
                                 landmarks,
                                 cfg.PIPELINE.NUM_QUANTILE_BINS,
-                                color_map_name,
+                                colormap,
                                 quantile_binning_dirs,
                                 save_folder_comparison,
                                 save_file_preamble,

@@ -5,16 +5,16 @@ import pytest
 # Import only the core components to avoid dependency issues
 try:
     from kale.interpret.box_plot import (
-        _calculate_spacing_adjustment,
-        _create_data_item,
-        _extract_bin_data,
-        _find_data_key,
         BoxPlotConfig,
         BoxPlotData,
+        BoxPlotDataProcessor,
+        ComparingQBoxPlotDataProcessor,
         ComparingQBoxPlotter,
         create_boxplot_config,
         create_boxplot_data,
+        GenericBoxPlotDataProcessor,
         GenericBoxPlotter,
+        PerModelBoxPlotDataProcessor,
         PerModelBoxPlotter,
         SampleInfoMode,
     )
@@ -382,75 +382,275 @@ class TestComparingQBoxPlotter:
         mock_save_show.assert_called_once()
 
 
-class TestHelperFunctions:
-    """Test helper functions."""
+class TestBoxPlotDataProcessor:
+    """Test BoxPlotDataProcessor methods and subclasses."""
 
-    def test_find_data_key_success(self, sample_evaluation_data):
+    @pytest.fixture
+    def processor(self):
+        """Create a generic BoxPlotDataProcessor instance for testing."""
+        config = create_boxplot_config()
+        return GenericBoxPlotDataProcessor(config)
+
+    @pytest.fixture
+    def processor_per_model(self):
+        """Create a PerModelBoxPlotDataProcessor instance for testing."""
+        config = create_boxplot_config()
+        return PerModelBoxPlotDataProcessor(config)
+
+    @pytest.fixture
+    def processor_comparing_q(self):
+        """Create a ComparingQBoxPlotDataProcessor instance for testing."""
+        config = create_boxplot_config()
+        return ComparingQBoxPlotDataProcessor(config)
+
+    def test_processor_initialization(self, processor):
+        """Test that processors are initialized correctly."""
+        # Check that all attributes are initialized
+        assert processor.config is not None
+        assert processor.evaluation_data_by_bin is None
+        assert processor.uncertainty_categories is None
+        assert processor.models is None
+        assert processor.num_bins is None
+        assert processor.outer_min_x_loc == 0.0
+        assert processor.middle_min_x_loc == 0.0
+        assert processor.inner_min_x_loc == 0.0
+        assert processor.processed_data == []
+        assert processor.legend_info == []
+        assert processor.bin_label_locs == []
+
+    def test_find_data_key_success(self, processor, sample_evaluation_data):
         """Test successful data key finding."""
-        key = _find_data_key(sample_evaluation_data, "ResNet50", "epistemic")
+        key = processor._find_data_key(sample_evaluation_data, "ResNet50", "epistemic")
         assert key == "ResNet50_epistemic"
 
-    def test_find_data_key_failure(self, sample_evaluation_data):
+    def test_find_data_key_failure(self, processor, sample_evaluation_data):
         """Test data key finding failure."""
         with pytest.raises(KeyError, match="No matching key found"):
-            _find_data_key(sample_evaluation_data, "NonExistent", "epistemic")
+            processor._find_data_key(sample_evaluation_data, "NonExistent", "epistemic")
 
-    def test_extract_bin_data_basic(self):
+    def test_extract_bin_data_basic(self, processor):
         """Test basic bin data extraction."""
         model_data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-        result = _extract_bin_data(model_data, 1, use_list_comp=False)
+        result = processor._extract_bin_data(model_data, 1)
         assert result == [4, 5, 6]
 
-    def test_extract_bin_data_with_none_filtering(self):
+    def test_extract_bin_data_with_none_filtering(self, processor):
         """Test bin data extraction with None filtering."""
-        model_data = [[1, None, 3], [4, 5, None], [7, 8, 9]]
-        result = _extract_bin_data(model_data, 0, use_list_comp=True)
-        assert result == [1, 3]
+        processor.config.use_list_comp = True
+        model_data = [[1, None, 2], [3, 4, None], [5, 6, 7]]
+
+        result = processor._extract_bin_data(model_data, 0)
+        assert result == [1, 2]  # None values filtered out
+
+        result = processor._extract_bin_data(model_data, 1)
+        assert result == [3, 4]  # None values filtered out
+
+    def test_extract_bin_data_without_none_filtering(self, processor):
+        """Test bin data extraction without None filtering."""
+        processor.config.use_list_comp = False
+        model_data = [[1, None, 2], [3, 4, None], [5, 6, 7]]
+
+        result = processor._extract_bin_data(model_data, 0)
+        assert result == [1, None, 2]  # None values preserved
+
+    def test_calculate_spacing_adjustment_large(self, processor):
+        """Test spacing adjustment calculation for large spacing."""
+        processor.num_bins = 10  # Above large threshold
+        result = processor._calculate_spacing_adjustment(is_large_spacing=True)
+        expected = processor.config.gap_large_for_large_spacing
+        assert result == expected
+
+    def test_calculate_spacing_adjustment_small(self, processor):
+        """Test spacing adjustment calculation for small spacing."""
+        processor.num_bins = 2  # Below threshold
+        result = processor._calculate_spacing_adjustment(is_large_spacing=True)
+        expected = processor.config.gap_small_for_large_spacing
+        assert result == expected
 
     def test_create_data_item(self):
-        """Test data item creation."""
-        model_data = [[1, 2, 3], [4, 5, 6]]
-        item = _create_data_item(
-            data=[1, 2, 3],
-            x_position=1.0,
-            width=0.2,
+        """Test static data item creation method."""
+        data = [0.1, 0.2, 0.3]
+        model_data = [[0.1, 0.2], [0.3, 0.4]]
+
+        item = BoxPlotDataProcessor.create_data_item(
+            data=data,
+            x_position=1.5,
+            width=0.3,
             color_idx=0,
             model_type="ResNet50",
             uncertainty_type="epistemic",
-            hatch_idx=0,
+            hatch_idx=1,
             bin_idx=0,
             model_data=model_data,
-            extra_field="extra_value",
+            extra_field="test_value",
         )
 
-        assert item["data"] == [1, 2, 3]
-        assert item["x_position"] == 1.0
-        assert item["width"] == 0.2
+        assert item["data"] == data
+        assert item["x_position"] == 1.5
+        assert item["width"] == 0.3
         assert item["color_idx"] == 0
         assert item["model_type"] == "ResNet50"
         assert item["uncertainty_type"] == "epistemic"
-        assert item["hatch_idx"] == 0
+        assert item["hatch_idx"] == 1
         assert item["bin_idx"] == 0
         assert item["model_data"] == model_data
-        assert item["extra_field"] == "extra_value"
+        assert item["extra_field"] == "test_value"
 
-    def test_calculate_spacing_adjustment(self, sample_config):
-        """Test spacing adjustment calculation."""
-        # Test large spacing, num_bins > threshold
-        result = _calculate_spacing_adjustment(15, True, sample_config)
-        assert result == sample_config.gap_large_for_large_spacing
+    def test_process_single_item(self, processor, sample_evaluation_data):
+        """Test processing a single data item."""
+        # Set up processor state
+        processor.evaluation_data_by_bin = sample_evaluation_data
+        processor.config.use_list_comp = False
+        processor.outer_min_x_loc = 1.0
+        processor.middle_min_x_loc = 0.5
+        processor.inner_min_x_loc = 0.2
 
-        # Test large spacing, num_bins <= threshold
-        result = _calculate_spacing_adjustment(5, True, sample_config)
-        assert result == sample_config.gap_small_for_large_spacing
+        item = processor._process_single_item(
+            uncertainty_type="epistemic", model_type="ResNet50", bin_idx=0, uncertainty_idx=0, hatch_idx=0, width=0.3
+        )
 
-        # Test small spacing, num_bins > threshold
-        result = _calculate_spacing_adjustment(15, False, sample_config)
-        assert result == sample_config.gap_large_for_small_spacing
+        assert item["data"] == sample_evaluation_data["ResNet50_epistemic"][0]
+        assert item["x_position"] == 1.7  # 1.0 + 0.5 + 0.2
+        assert item["width"] == 0.3
+        assert item["model_type"] == "ResNet50"
+        assert item["uncertainty_type"] == "epistemic"
 
-        # Test small spacing, num_bins <= threshold
-        result = _calculate_spacing_adjustment(5, False, sample_config)
-        assert result == sample_config.gap_small_for_small_spacing
+    def test_process_and_store_single_item(self, processor, sample_evaluation_data):
+        """Test processing and storing a single item."""
+        # Set up processor state
+        processor.evaluation_data_by_bin = sample_evaluation_data
+        processor.config.use_list_comp = False
+        processor.outer_min_x_loc = 1.0
+        processor.middle_min_x_loc = 0.5
+        processor.inner_min_x_loc = 0.2
+
+        x_position = processor._process_and_store_single_item(
+            uncertainty_type="epistemic", model_type="ResNet50", bin_idx=0, uncertainty_idx=0, hatch_idx=0, width=0.3
+        )
+
+        assert x_position == 1.7  # 1.0 + 0.5 + 0.2
+        assert len(processor.processed_data) == 1
+        assert processor.processed_data[0]["model_type"] == "ResNet50"
+
+    def test_collect_legend_info_for_first_bin(self, processor):
+        """Test legend information collection for first bin."""
+        processor.legend_info = []
+
+        processor._collect_legend_info_for_first_bin(
+            bin_idx=0, uncertainty_idx=1, model_type="VGG16", uncertainty_type="aleatoric", hatch_idx=2
+        )
+
+        assert len(processor.legend_info) == 1
+        legend_item = processor.legend_info[0]
+        assert legend_item["color_idx"] == 1
+        assert legend_item["model_type"] == "VGG16"
+        assert legend_item["uncertainty_type"] == "aleatoric"
+        assert legend_item["hatch_idx"] == 2
+
+    def test_collect_legend_info_skip_non_first_bin(self, processor):
+        """Test that legend info is not collected for non-first bins."""
+        processor.legend_info = []
+
+        processor._collect_legend_info_for_first_bin(
+            bin_idx=1, uncertainty_idx=1, model_type="VGG16", uncertainty_type="aleatoric", hatch_idx=2  # Not first bin
+        )
+
+        assert len(processor.legend_info) == 0
+
+    def test_process_and_collect_positions(self, processor, sample_evaluation_data):
+        """Test processing and collecting positions for multiple items."""
+        # Set up processor state
+        processor.evaluation_data_by_bin = sample_evaluation_data
+        processor.config.use_list_comp = False
+        processor.config.inner_spacing = 0.1
+        processor.outer_min_x_loc = 1.0
+        processor.middle_min_x_loc = 0.5
+        processor.inner_min_x_loc = 0.0
+        processor.legend_info = []
+
+        items_data = [
+            (0, "ResNet50", 0),  # (bin_idx, model_type, hatch_idx)
+            (0, "VGG16", 1),
+        ]
+
+        box_x_positions = processor._process_and_collect_positions(
+            uncertainty_type="epistemic", uncertainty_idx=0, items_data=items_data, width=0.3
+        )
+
+        assert len(box_x_positions) == 2
+        assert box_x_positions[0] == 1.5  # 1.0 + 0.5 + 0.0
+        # Second position should account for spacing and width updates
+        assert len(processor.processed_data) == 2
+        assert len(processor.legend_info) == 2  # Both items should have legend info (bin_idx=0)
+
+    def test_store_bin_label_positions_extend(self, processor):
+        """Test storing bin label positions with extend mode."""
+        processor.bin_label_locs = [1.0, 2.0]
+        box_x_positions = [3.0, 4.0, 5.0]
+
+        processor._store_bin_label_positions(box_x_positions, use_extend=True)
+
+        assert processor.bin_label_locs == [1.0, 2.0, 3.0, 4.0, 5.0]
+
+    def test_store_bin_label_positions_mean(self, processor):
+        """Test storing bin label positions with mean mode."""
+        processor.bin_label_locs = [1.0, 2.0]
+        box_x_positions = [3.0, 4.0, 5.0]
+
+        processor._store_bin_label_positions(box_x_positions, use_extend=False)
+
+        assert processor.bin_label_locs == [1.0, 2.0, 4.0]  # Mean of [3.0, 4.0, 5.0] is 4.0
+
+    def test_generic_processor_process_data(self, processor, sample_evaluation_data):
+        """Test GenericBoxPlotDataProcessor process_data method."""
+        processed_data, legend_info, bin_label_locs = processor.process_data(
+            sample_evaluation_data, [["epistemic"], ["aleatoric"]], ["ResNet50", "VGG16"], 3
+        )
+
+        # Should have processed data for all combinations
+        # 2 uncertainties × 3 bins × 2 models = 12 items
+        assert len(processed_data) == 12
+        assert legend_info is not None
+        assert len(legend_info) == 4  # 2 uncertainties × 2 models
+        assert len(bin_label_locs) > 0
+
+    def test_per_model_processor_process_data(self, processor_per_model, sample_evaluation_data):
+        """Test PerModelBoxPlotDataProcessor process_data method."""
+        processed_data, legend_info, bin_label_locs = processor_per_model.process_data(
+            sample_evaluation_data, [["epistemic"], ["aleatoric"]], ["ResNet50", "VGG16"], 3
+        )
+
+        # Should have processed data for all combinations
+        # 2 uncertainties × 2 models × 3 bins = 12 items
+        assert len(processed_data) == 12
+        assert legend_info is not None
+        assert len(legend_info) == 4  # 2 uncertainties × 2 models
+        assert len(bin_label_locs) > 0
+
+    def test_comparing_q_processor_process_data(self, processor_comparing_q, sample_q_comparison_data):
+        """Test ComparingQBoxPlotDataProcessor process_data method."""
+        processed_data, legend_info, bin_label_locs = processor_comparing_q.process_data(
+            sample_q_comparison_data, [["epistemic"]], ["model"], ["Q=5", "Q=10", "Q=15"]
+        )
+
+        # Should have processed data for all Q values and bins
+        assert len(processed_data) == 6  # 3 Q values × 2 bins per Q value
+        assert legend_info is None  # Q-comparison mode doesn't use legend_info
+        assert len(bin_label_locs) == 6
+
+    def test_processor_empty_data_validation(self, processor):
+        """Test that processors validate empty data correctly."""
+        with pytest.raises(ValueError, match="Processing resulted in empty data"):
+            # Try to finalize with empty processed_data
+            processor._finalize_processing_results()
+
+    def test_processor_empty_bin_labels_validation(self, processor):
+        """Test that processors validate empty bin labels correctly."""
+        processor.processed_data = [{"test": "data"}]  # Non-empty processed_data
+        processor.bin_label_locs = []  # Empty bin labels
+
+        with pytest.raises(ValueError, match="Processing resulted in empty bin label locations"):
+            processor._finalize_processing_results()
 
 
 class TestIntegration:

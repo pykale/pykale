@@ -621,6 +621,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 show_individual_dots=samples_as_dots_bool,
                 y_lim_top=box_plot_error_lim,
                 to_log=True,
+                use_list_comp=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -657,6 +658,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                             show_individual_dots=samples_as_dots_bool,
                             y_lim_top=box_plot_error_lim,
                             to_log=True,
+                            use_list_comp=True,
                             save_path=save_location,
                             hatch_type=hatch,
                         )
@@ -686,6 +688,8 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 convert_to_percent=False,
                 y_lim_top=box_plot_error_lim,
                 to_log=True,
+                show_individual_dots=True,
+                use_list_comp=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1088,6 +1092,7 @@ def generate_fig_comparing_bins(
                 show_individual_dots=samples_as_dots_bool,
                 y_lim_top=box_plot_error_lim,
                 to_log=True,
+                use_list_comp=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1125,6 +1130,7 @@ def generate_fig_comparing_bins(
                             show_individual_dots=samples_as_dots_bool,
                             y_lim_top=box_plot_error_lim,
                             to_log=True,
+                            use_list_comp=True,
                             save_path=save_location,
                             hatch_type=hatch,
                         )
@@ -1153,6 +1159,7 @@ def generate_fig_comparing_bins(
                 show_individual_dots=False,
                 y_lim_top=box_plot_error_lim,
                 to_log=True,
+                use_list_comp=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1183,6 +1190,7 @@ def generate_fig_comparing_bins(
                 show_sample_info="None",
                 show_individual_dots=False,
                 y_lim_top=100,
+                use_list_comp=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1217,6 +1225,7 @@ def generate_fig_comparing_bins(
                             convert_to_percent=True,
                             show_individual_dots=False,
                             y_lim_top=100,
+                            use_list_comp=True,
                             save_path=save_location,
                             hatch_type=hatch,
                         )
@@ -1245,6 +1254,7 @@ def generate_fig_comparing_bins(
                 convert_to_percent=True,
                 show_individual_dots=False,
                 y_lim_top=70,
+                use_list_comp=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1272,6 +1282,7 @@ def generate_fig_comparing_bins(
                 convert_to_percent=True,
                 show_individual_dots=False,
                 y_lim_top=120,
+                use_list_comp=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1299,6 +1310,7 @@ def generate_fig_comparing_bins(
                 convert_to_percent=True,
                 show_individual_dots=False,
                 y_lim_top=120,
+                use_list_comp=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1333,6 +1345,7 @@ def generate_fig_comparing_bins(
                             convert_to_percent=True,
                             show_individual_dots=False,
                             y_lim_top=70,
+                            use_list_comp=True,
                             save_path=save_location,
                             hatch_type=hatch,
                         )
