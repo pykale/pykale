@@ -47,5 +47,5 @@ python test_model.py \
 - `kale.loaddata.materials_datasets`: Load CIF files and extract features for crystal structures.
 - `kale.embed.gcn`: Graph-convolutional building blocks and encoders for graph data.
 - `kale.embed.materials_equivariant`: SE(3)-equivariant components for materials GNNs—RBF distance encoders, smooth cutoffs, invariant neighbor initialization, local-frame message passing, and related utilities.
-- `kale.pipeline.base_nn_trainer`: Regression trainer used in this benchmark.
-- `kale.evaluate.metrics`: Metrics/utilities used here (e.g., Gaussian distance for encoding interatomic distances; mean relative error for evaluation).
+- `kale.pipeline.base_nn_trainer`: Regression trainer used in the benchmark.
+- `kale.evaluate.metrics`: Metrics/utilities used in the benchmark (e.g., Gaussian distance for encoding interatomic distances; mean relative error for evaluation).

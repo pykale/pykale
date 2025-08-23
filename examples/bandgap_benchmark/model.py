@@ -3,7 +3,9 @@ from copy import deepcopy
 
 import torch
 
-from kale.embed.gcn import CartNet, CrystalGCN, LEFTNetProp, LEFTNetZ
+from kale.embed.model_lib.CartNet import CartNet
+from kale.embed.model_lib.CGCNN import CrystalGCN
+from kale.embed.model_lib.LEFTNet import LEFTNetProp, LEFTNetZ
 from kale.pipeline.base_nn_trainer import RegressionTrainer
 
 

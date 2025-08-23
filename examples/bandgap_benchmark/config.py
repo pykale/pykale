@@ -9,9 +9,9 @@ _C = CN()
 # Dataset paths
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.DATASET.TRAIN = "data/ds1.json"
-_C.DATASET.VAL = "data/ds3.json"
-_C.DATASET.RATIO = 1.0  # Ratio of the dataset to use
+_C.DATASET.TRAIN = "data/fine_tune/train_data.json"
+_C.DATASET.VAL = "data/fine_tune/test_data.json"
+_C.DATASET.TEST = "data/fine_tune/test_data.json"
 
 
 # -----------------------------------------------------------------------------
@@ -22,14 +22,10 @@ _C.SOLVER.SEED = 42
 _C.SOLVER.EPOCHS = 1
 _C.SOLVER.LR = 0.01
 _C.SOLVER.BATCH_SIZE = 64
-_C.SOLVER.NUM_RUNS = 1
-_C.SOLVER.NUM_FOLDS = 10
 _C.SOLVER.RANDOMIZE = False
-# _C.SOLVER.TASK = "regression"  # Choices: ['regression', 'classification']
 _C.SOLVER.DISABLE_CUDA = False
 _C.SOLVER.WORKERS = 0
 _C.SOLVER.START_EPOCH = 0
-_C.SOLVER.LR_MILESTONES = [100, 200]
 
 _C.SOLVER.MOMENTUM = 0.9
 _C.SOLVER.WEIGHT_DECAY = 0.0
@@ -42,10 +38,10 @@ _C.SOLVER.OPTIM = "SGD"  # Choices: ['SGD', 'Adam']
 # Model paths and parameters
 # -----------------------------------------------------------------------------
 _C.MODEL = CN()
-_C.MODEL.NAME = "cgcnn"  # Choices: ['cgcnn', 'leftnet', logistic', 'random_forest']
+_C.MODEL.NAME = "cgcnn"  # Choices: ['cgcnn', 'leftnet', 'random_forest', 'linear_regression', 'svr']
 _C.MODEL.PRETRAINED_MODEL_PATH = ""
-_C.MODEL.CIF_FOLDER = "./cifs"
-_C.MODEL.INIT_FILE = "./init.json"
+_C.MODEL.CIF_FOLDER = "cif_file"
+_C.MODEL.INIT_FILE = "cif_file/atom_init.json"
 _C.MODEL.MAX_NBRS = 12
 _C.MODEL.RADIUS = 8.0
 
@@ -90,26 +86,19 @@ _C.CARTNET = CN()
 _C.CARTNET.DIM_IN = 256
 _C.CARTNET.DIM_RBF = 64
 _C.CARTNET.NUM_LAYERS = 4
-_C.CARTNET.INVARIANT = False
+_C.CARTNET.INVARIANT = True
 _C.CARTNET.TEMPERATURE = False
 _C.CARTNET.USE_ENVELOPE = True
 _C.CARTNET.ATOM_TYPES = True
 
-# -----------------------------------------------------------------------------
-# Output
-# -----------------------------------------------------------------------------
-_C.OUTPUT = CN()
-_C.OUTPUT.DIR = "results"
-_C.OUTPUT.LOOP_RESULTS = "loop_50epochs.csv"
-_C.OUTPUT.PREDICTIONS = "predictions_reduced_ds2.csv"
 
 # -----------------------------------------------------------------------------
 # Logging
 # -----------------------------------------------------------------------------
 _C.LOGGING = CN()
 _C.LOGGING.LOG_DIR = "./logs"
-
 _C.LOGGING.LOG_DIR_NAME = None
+_C.LOGGING.PROJECT_NAME = "bandgap-project"
 
 
 def get_cfg_defaults():
