@@ -1,8 +1,10 @@
+import json
 import os
 import warnings
 from types import SimpleNamespace
 
 import numpy as np
+import pandas as pd
 import torch
 from pymatgen.core import Structure
 from torch.utils.data import Dataset
@@ -10,12 +12,6 @@ from torch.utils.data import Dataset
 from kale.evaluate.metrics import GaussianDistance
 from kale.prepdata.materials_features import AtomCustomJSONInitializer
 
-import json
-from typing import Optional, Tuple
-
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from torch.utils.data import DataLoader
 
 class CIFData(Dataset):
     """
@@ -32,7 +28,9 @@ class CIFData(Dataset):
         step (float, optional): Step size for Gaussian distance calculation. Default is 0.2.
     """
 
-    def __init__(self, target_path, cif_folder, init_file, max_nbrs, radius, randomize, target_key="bg", dmin=0, step=0.2):
+    def __init__(
+        self, target_path, cif_folder, init_file, max_nbrs, radius, randomize, target_key="bg", dmin=0, step=0.2
+    ):
         self.max_num_nbr, self.radius = max_nbrs, radius
         mpids_bg = self.load_data(target_path, target_key)
         if randomize:
@@ -87,7 +85,7 @@ class CIFData(Dataset):
             batch_idx=torch.cat(batch_atom_indices),
             batch_size=len(batch_cif_ids),
         )
-    
+
     def load_data(self, target_path, target_key) -> pd.DataFrame:
         """
         Load and return the dataset as a pandas DataFrame.
@@ -102,7 +100,6 @@ class CIFData(Dataset):
             data_df.rename(columns={"index": "mpids", 0: target_key}, inplace=True)
 
         return data_df
-
 
     def __len__(self):
         return len(self.mpids_bg_dataset)
@@ -165,6 +162,3 @@ class CIFDataItem:
             "target": self.target,
             "cif_id": self.cif_id,
         }
-
-
-    

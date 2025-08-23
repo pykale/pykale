@@ -1,13 +1,9 @@
-
 from math import pi
-
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from torch_cluster import radius_graph
-
 from torch_scatter import scatter
 
 from kale.embed.materials_equivariant import (
@@ -17,6 +13,7 @@ from kale.embed.materials_equivariant import (
     rbf_emb,
     S_vector,
 )
+
 
 class LEFTNetZ(nn.Module):
     def __init__(
@@ -260,4 +257,3 @@ class LEFTNetProp(LEFTNetZ):
         """
 
         return data.atom_fea.to(device)
-

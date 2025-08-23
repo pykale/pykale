@@ -1,19 +1,14 @@
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch_geometric.nn as pyg_nn
 from torch_cluster import radius_graph
-
 from torch_scatter import scatter
 
 from kale.embed.materials_equivariant import (
     CosineCutoff,
-
     ExpNormalSmearing,
-
 )
-
 
 
 class CartNet(torch.nn.Module):

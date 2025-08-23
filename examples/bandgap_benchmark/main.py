@@ -7,16 +7,16 @@ import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
 import torch
-from torch.utils.data import DataLoader
+from config import get_cfg_defaults
+from model import get_model
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.svm import SVR
+from torch.utils.data import DataLoader
 
-from config import get_cfg_defaults
-from model import get_model
 from kale.loaddata.materials_datasets import CIFData
 from kale.prepdata.materials_features import extract_features
 
@@ -27,8 +27,10 @@ def arg_parse():
     parser.add_argument(
         "--devices",
         default=1,
-        help=("gpu id(s) to use. int(0) for cpu. list[x,y] for xth, yth GPU. "
-              "str(x) for the first x GPUs. str(-1)/int(-1) for all GPUs"),
+        help=(
+            "gpu id(s) to use. int(0) for cpu. list[x,y] for xth, yth GPU. "
+            "str(x) for the first x GPUs. str(-1)/int(-1) for all GPUs"
+        ),
     )
     return parser.parse_args()
 
@@ -43,6 +45,7 @@ def main():
 
     # --- seed ----
     import random
+
     random.seed(cfg.SOLVER.SEED)
     np.random.seed(cfg.SOLVER.SEED)
     torch.manual_seed(cfg.SOLVER.SEED)
@@ -50,7 +53,6 @@ def main():
         torch.cuda.manual_seed_all(cfg.SOLVER.SEED)
 
     target_key = "bg"
-
 
     # --- datasets ---
     train_dataset = CIFData(
@@ -98,7 +100,7 @@ def main():
         shuffle=False,
         num_workers=cfg.SOLVER.WORKERS,
     )
- 
+
     test_loader = DataLoader(
         test_dataset,
         collate_fn=CIFData.collate_fn,
@@ -109,7 +111,11 @@ def main():
 
     # --- feature dimensions ---
     sample = train_dataset[0]
-    atom_fea_len, nbr_fea_len, pos_fea_len = sample.atom_fea.shape[-1], sample.nbr_fea.shape[-1], sample.positions.shape[-1]
+    atom_fea_len, nbr_fea_len, pos_fea_len = (
+        sample.atom_fea.shape[-1],
+        sample.nbr_fea.shape[-1],
+        sample.positions.shape[-1],
+    )
 
     # --- traditional ML branch ---
     if cfg.MODEL.NAME in ["random_forest", "linear_regression", "svm"]:
@@ -126,19 +132,23 @@ def main():
 
         model.fit(x_train, y_train)
         val_pred = model.predict(x_valid)
-        print("Validation - MAE: {:.4f}, MSE: {:.4f}, R²: {:.4f}".format(
-            mean_absolute_error(y_valid, val_pred),
-            mean_squared_error(y_valid, val_pred),
-            r2_score(y_valid, val_pred),
-        ))
+        print(
+            "Validation - MAE: {:.4f}, MSE: {:.4f}, R²: {:.4f}".format(
+                mean_absolute_error(y_valid, val_pred),
+                mean_squared_error(y_valid, val_pred),
+                r2_score(y_valid, val_pred),
+            )
+        )
         if test_loader is not None:
             X_test, y_test = extract_features(test_dataset)
             test_pred = model.predict(X_test)
-            print("Test       - MAE: {:.4f}, MSE: {:.4f}, R²: {:.4f}".format(
-                mean_absolute_error(y_test, test_pred),
-                mean_squared_error(y_test, test_pred),
-                r2_score(y_test, test_pred),
-            ))
+            print(
+                "Test       - MAE: {:.4f}, MSE: {:.4f}, R²: {:.4f}".format(
+                    mean_absolute_error(y_test, test_pred),
+                    mean_squared_error(y_test, test_pred),
+                    r2_score(y_test, test_pred),
+                )
+            )
         return
 
     # --- GNNs ---

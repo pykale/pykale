@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 
@@ -26,7 +25,9 @@ class CGCNNEncoderLayer(nn.Module):
     def forward(self, atom_in_fea, nbr_fea, nbr_fea_idx):
         num_atoms, max_nbr = nbr_fea_idx.shape
         atom_nbr_fea = atom_in_fea[nbr_fea_idx, :]
-        total_nbr_fea = torch.cat([atom_in_fea.unsqueeze(1).expand(num_atoms, max_nbr, -1), atom_nbr_fea, nbr_fea], dim=2)
+        total_nbr_fea = torch.cat(
+            [atom_in_fea.unsqueeze(1).expand(num_atoms, max_nbr, -1), atom_nbr_fea, nbr_fea], dim=2
+        )
         total_gated_fea = self.fc_full(total_nbr_fea)
         total_gated_fea = self.bn1(total_gated_fea.view(-1, total_gated_fea.shape[-1])).view(num_atoms, max_nbr, -1)
         nbr_filter, nbr_core = total_gated_fea.chunk(2, dim=2)

@@ -1,25 +1,10 @@
-from math import pi
-
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch_geometric.nn as pyg_nn
-from torch_cluster import radius_graph
 from torch_geometric.nn import GCNConv, global_max_pool
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.utils import add_remaining_self_loops
-from torch_scatter import scatter, scatter_add
-
-from kale.embed.materials_equivariant import (
-    CosineCutoff,
-    EquiMessagePassing,
-    ExpNormalSmearing,
-    FTE,
-    NeighborEmb,
-    rbf_emb,
-    S_vector,
-)
+from torch_scatter import scatter_add
 
 
 class GCNEncoderLayer(MessagePassing):
@@ -331,5 +316,3 @@ class MolecularGCN(nn.Module):
         x = x.view(batch_size, -1, self.output_feats)
 
         return x
-
-
