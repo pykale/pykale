@@ -126,7 +126,7 @@ setup(
         "Source": "https://github.com/pykale/pykale",
     },
     packages=find_packages(exclude=("docs", "examples", "tests")),
-    python_requires=">=3.9,<3.12",
+    python_requires=">=3.9",
     install_requires=install_requires,
     extras_require={
         "graph": graph_requires,
