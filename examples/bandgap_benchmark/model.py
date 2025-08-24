@@ -55,7 +55,7 @@ def get_config(cfg, atom_fea_len, nbr_fea_len, pos_fea_len):
             "hidden_channels": cfg.LEFTNET.HIDDEN_CHANNELS,
             "num_layers": cfg.LEFTNET.NUM_LAYERS,
             "num_radial": cfg.LEFTNET.NUM_RADIAL,
-            "regress_forces": cfg.LEFTNET.REGRESS_FORCES,
+            # "regress_forces": cfg.LEFTNET.REGRESS_FORCES,
             "use_pbc": cfg.LEFTNET.USE_PBC,
             "otf_graph": cfg.LEFTNET.OTF_GRAPH,
             "output_dim": cfg.LEFTNET.OUTPUT_DIM,

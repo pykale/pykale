@@ -340,12 +340,12 @@ class RegressionTrainer(BaseNNTrainer):
 
     def training_step(self, train_batch, batch_idx):
         loss, metrics = self.compute_loss(train_batch, split_name="train")
-        optimizer = self.optimizers()
-        if isinstance(optimizer, list):
-            optimizer = optimizer[0]
-            current_lr = optimizer.param_groups[0]["lr"]
-            metrics["learning_rate"] = current_lr
-            self.log_dict(metrics, on_step=True, on_epoch=True, logger=True, batch_size=train_batch.batch_size)
+        # optimizer = self.optimizers()
+        # if isinstance(optimizer, list):
+        #     optimizer = optimizer[0]
+        #     current_lr = optimizer.param_groups[0]["lr"]
+        #     metrics["learning_rate"] = current_lr
+        self.log_dict(metrics, on_step=True, on_epoch=True, logger=True, batch_size=train_batch.batch_size)
         return loss
 
     def validation_step(self, valid_batch, batch_idx):

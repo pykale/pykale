@@ -1,10 +1,13 @@
+from types import SimpleNamespace
+
 import pytest
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
 from kale.embed.image_cnn import SimpleCNNBuilder
-from kale.pipeline.base_nn_trainer import BaseNNTrainer, CNNTransformerTrainer, MultimodalNNTrainer
+from kale.embed.model_lib.CGCNN import CrystalGCN  # Add this import at the top of the file
+from kale.pipeline.base_nn_trainer import BaseNNTrainer, CNNTransformerTrainer, MultimodalNNTrainer, RegressionTrainer
 from kale.predict.class_domain_nets import ClassNet
 
 
@@ -235,3 +238,69 @@ def test_test_step(multimodal_model):
 def test_configure_optimizers(multimodal_model):
     optimizer = multimodal_model.configure_optimizers()
     assert isinstance(optimizer, torch.optim.Optimizer)
+
+
+def create_dummy_materials_data():
+    # Fixed dummy sizes
+    nodes_per_graph = (3, 2)
+    atom_fea_len = 8
+    nbr_fea_len = 6
+    max_nbrs = 3
+
+    num_graphs = len(nodes_per_graph)
+    total_nodes = sum(nodes_per_graph)
+
+    atom_fea = torch.randn(total_nodes, atom_fea_len)
+    nbr_fea_idx = torch.empty(total_nodes, max_nbrs, dtype=torch.long)
+    nbr_fea = torch.randn(total_nodes, max_nbrs, nbr_fea_len)
+
+    crystal_atom_idx = []
+    base = 0
+    for n in nodes_per_graph:
+        idx = torch.arange(base, base + n, dtype=torch.long)
+        crystal_atom_idx.append(idx)
+        for k, node in enumerate(idx):
+            local = idx[(k + torch.arange(max_nbrs)) % n]
+            nbr_fea_idx[node] = local
+        base += n
+
+    target = torch.randn(num_graphs, 1)
+
+    return SimpleNamespace(
+        atom_fea=atom_fea,
+        nbr_fea=nbr_fea,
+        nbr_fea_idx=nbr_fea_idx,
+        crystal_atom_idx=crystal_atom_idx,
+        target=target,
+        batch_size=num_graphs,
+    )
+
+
+class TestRegressionTrainer:
+    @pytest.fixture
+    def trainer(self):
+        model = CrystalGCN(
+            orig_atom_fea_len=8,
+            nbr_fea_len=6,
+            atom_fea_len=16,
+            n_conv=2,
+            h_fea_len=32,
+            n_h=1,
+            classification=False,
+        )
+        trainer = RegressionTrainer(feature_extractor=model, max_epochs=5, optimizer=None)
+        return trainer
+
+    def test_forward(self, trainer):
+        output, target = trainer.forward(create_dummy_materials_data())
+        assert isinstance(output, torch.Tensor)
+        assert isinstance(target, torch.Tensor)
+
+    def test_compute_loss(self, trainer):
+        loss, log_metrics = trainer.compute_loss(create_dummy_materials_data())
+        assert isinstance(loss, torch.Tensor)
+        assert isinstance(log_metrics, dict)
+
+    def test_training_step(self, trainer):
+        loss = trainer.training_step(create_dummy_materials_data(), batch_idx=0)
+        assert isinstance(loss, torch.Tensor)

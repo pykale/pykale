@@ -1,5 +1,6 @@
 import random
 
+import numpy as np
 import pytest
 import torch
 
@@ -7,6 +8,7 @@ from kale.evaluate.metrics import (
     binary_cross_entropy,
     calculate_distance,
     DistanceMetric,
+    GaussianDistance,
     multitask_topk_accuracy,
     protonet_loss,
     signal_image_elbo_loss,
@@ -234,3 +236,33 @@ def test_binary_cross_entropy_target_mismatch_shape():
     target = torch.tensor([[1.0, 0.0]])  # Incorrect shape
     with pytest.raises(ValueError):  # Correct the expected exception type
         binary_cross_entropy(output, target)
+
+
+def test_gaussian_distance():
+    # --- init assertions ---
+    with pytest.raises(AssertionError):
+        GaussianDistance(dmin=1.0, dmax=0.5, step=0.1)  # dmin < dmax violated
+    with pytest.raises(AssertionError):
+        GaussianDistance(dmin=0.0, dmax=1.0, step=1.0)  # (dmax - dmin) > step violated
+
+    # --- basic expand: shape & peaks at filter centers ---
+    gd = GaussianDistance(dmin=0.0, dmax=1.0, step=0.5)  # filter = [0.0, 0.5, 1.0]
+    dists = np.array([0.0, 0.5, 1.0])
+    out = gd.expand(dists)
+
+    assert out.shape == (3, 3)  # (len(dists), len(filter))
+    assert np.allclose(np.diag(out), 1.0, atol=1e-12)  # exact center -> exp(0) = 1
+    assert np.all(np.argmax(out, axis=1) == np.array([0, 1, 2]))
+    assert np.all(out >= 0.0) and np.all(out <= 1.0)
+
+    # --- broadcasting & default var == step equivalence ---
+    gd_def = GaussianDistance(dmin=0.0, dmax=2.0, step=0.5)  # var defaults to step
+    gd_exp = GaussianDistance(dmin=0.0, dmax=2.0, step=0.5, var=0.5)  # explicit
+
+    dists2 = np.array([[0.0, 1.0], [1.5, 2.0]])
+    out_def = gd_def.expand(dists2)
+    out_exp = gd_exp.expand(dists2)
+
+    assert out_def.shape == (2, 2, len(gd_def.filter))  # broadcasting: (*dists2.shape, len(filter))
+    assert np.allclose(out_def, out_exp, atol=1e-12)  # default var equals step
+    assert np.all(out_def >= 0.0) and np.all(out_def <= 1.0)

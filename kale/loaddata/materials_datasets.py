@@ -139,26 +139,12 @@ class CIFData(Dataset):
         nbr_fea = torch.Tensor(nbr_fea_gp)
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
 
-        return CIFDataItem(atom_fea, nbr_fea, nbr_fea_idx, positions, atom_num, target, cif_id)
-
-
-class CIFDataItem:
-    def __init__(self, atom_fea, nbr_fea, nbr_fea_idx, positions, atom_num, target, cif_id):
-        self.atom_fea = atom_fea
-        self.nbr_fea = nbr_fea
-        self.nbr_fea_idx = nbr_fea_idx
-        self.positions = positions
-        self.atom_num = atom_num
-        self.target = target
-        self.cif_id = cif_id
-
-    def to_dict(self):
-        return {
-            "atom_fea": self.atom_fea,
-            "nbr_fea": self.nbr_fea,
-            "nbr_fea_idx": self.nbr_fea_idx,
-            "positions": self.positions,
-            "atom_num": self.atom_num,
-            "target": self.target,
-            "cif_id": self.cif_id,
-        }
+        return SimpleNamespace(
+            atom_fea=atom_fea,
+            nbr_fea=nbr_fea,
+            nbr_fea_idx=nbr_fea_idx,
+            positions=positions,
+            atom_num=atom_num,
+            target=target,
+            cif_id=cif_id,
+        )
