@@ -6,12 +6,22 @@
 Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization,"
 in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
-Functions related to  evaluating the quantile binning method in terms of:
-   A) Binning accuracy to ground truth bins: evaluate_jaccard, bin_wise_jaccard.
-   B) Binning error bound accuracy: evaluate_bounds, bin_wise_bound_eval
-   C) Binning attributes such as mean errors of bins (get_mean_errors, bin_wise_errors).
+Key Evaluation Approaches:
+    A) Jaccard Similarity Analysis: Measures overlap between predicted uncertainty bins
+       and ground truth error quantiles (evaluate_jaccard, JaccardEvaluator).
+    B) Error Bound Accuracy: Evaluates whether predicted confidence intervals contain
+       actual errors (evaluate_bounds, bin_wise_bound_eval).
+    C) Bin-wise Error Analysis: Analyzes mean errors and distributions within uncertainty
+       bins (get_mean_errors, bin_wise_errors).
 
-Refactored using Template Method Pattern for better code reuse and maintainability.
+Main Classes:
+    - BaseEvaluator: Abstract base class defining the evaluation workflow
+    - JaccardEvaluator: Concrete evaluator for Jaccard similarity metrics
+    - EvaluationConfig: Configuration container for evaluation parameters
+    - ResultsContainer: Organizes complex nested evaluation results
+    - DataProcessor: Utilities for data extraction and preprocessing
+    - QuantileCalculator: Quantile-based error distribution analysis
+    - MetricsCalculator: Statistical metrics computation
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -242,12 +252,25 @@ class ResultsContainer:
     """
 
     def __init__(self, num_bins: int, num_targets: int):
+        """
+        Initialize ResultsContainer with bin and target dimensions.
+        
+        Args:
+            num_bins (int): Number of uncertainty bins in the evaluation.
+            num_targets (int): Number of target labels being evaluated.
+        """
         self.num_bins = num_bins
         self.num_targets = num_targets
         self._init_containers()
 
     def _init_containers(self):
-        """Initialize all result containers."""
+        """
+        Initialize all result containers with empty data structures.
+        
+        Sets up the internal data structures needed to organize evaluation results
+        across different dimensions (main results, target-separated results,
+        fold-wise results, and evaluation-specific containers).
+        """
         # Main results
         self.main_results = {}
         self.target_separated_results = {}
@@ -469,7 +492,22 @@ class QuantileCalculator:
 
     @staticmethod
     def _group_by_quantiles(errors_dict: Dict, thresholds: List[float]) -> Tuple[List[List], List[List]]:
-        """Group errors and keys by quantile thresholds."""
+        """
+        Group errors and keys by quantile thresholds.
+
+        Helper method that partitions prediction errors and their corresponding keys
+        into groups based on quantile threshold boundaries.
+
+        Args:
+            errors_dict (Dict): Dictionary mapping prediction keys to error values.
+            thresholds (List[float]): List of quantile threshold values that define
+                the boundaries between groups.
+
+        Returns:
+            Tuple[List[List], List[List]]: A tuple containing:
+                - error_groups: List of error value lists for each quantile group
+                - key_groups: List of prediction key lists for each quantile group
+        """
         error_groups = []
         key_groups = []
 
@@ -489,7 +527,21 @@ class QuantileCalculator:
 
     @staticmethod
     def _is_in_quantile_range(error: float, quantile_idx: int, thresholds: List[float]) -> bool:
-        """Check if error falls within the specified quantile range."""
+        """
+        Check if error falls within the specified quantile range.
+
+        Helper method that determines whether a given error value belongs to
+        the specified quantile group based on threshold boundaries.
+
+        Args:
+            error (float): The error value to classify.
+            quantile_idx (int): Index of the quantile group to check (0-based).
+            thresholds (List[float]): List of quantile threshold values.
+
+        Returns:
+            bool: True if the error falls within the specified quantile range,
+                False otherwise.
+        """
         if quantile_idx == 0:
             return error <= thresholds[0]
         elif quantile_idx < len(thresholds):
@@ -584,7 +636,27 @@ class MetricsCalculator:
 
     @staticmethod
     def calculate_bound_accuracy(error: float, bin_idx: int, bounds: List[float]) -> bool:
-        """Check if error falls within expected bounds for the bin."""
+        """
+        Check if error falls within expected bounds for the bin.
+
+        Determines whether a prediction error falls within the expected error bounds
+        for a specific uncertainty bin. This method is used to assess the accuracy
+        of uncertainty-based error predictions.
+
+        Args:
+            error (float): The prediction error value to check.
+            bin_idx (int): Index of the uncertainty bin (0-based).
+            bounds (List[float]): List of error boundary values that define
+                the expected error ranges for each bin.
+
+        Returns:
+            bool: True if the error falls within the expected bounds for the
+                specified bin, False otherwise.
+
+        Note:
+            Bin boundaries are exclusive on the lower bound and inclusive on the
+            upper bound, except for bin 0 which starts from 0 (exclusive).
+        """
         if bin_idx == 0:
             return 0 < error <= bounds[bin_idx]
         elif bin_idx < len(bounds):
@@ -640,6 +712,7 @@ class BaseEvaluator(ABC):
         """
         self.config_ = config
         # Instance variables to reduce parameter passing
+        self.container_: ResultsContainer
         self.current_num_bins_: int = config.original_num_bins
         self.current_targets_: List[int] = []
         self.current_uncertainty_type_: str = ""
@@ -685,7 +758,7 @@ class BaseEvaluator(ABC):
             self.config_.combined_num_bins if self.config_.combine_middle_bins else self.config_.original_num_bins
         )
 
-        container = ResultsContainer(self.current_num_bins_, len(targets))
+        self.container_ = ResultsContainer(self.current_num_bins_, len(targets))
 
         for model, data_structs in bin_predictions.items():
             for uncertainty_pair in uncertainty_pairs:
@@ -694,9 +767,9 @@ class BaseEvaluator(ABC):
 
                 fold_results = self._process_all_folds(data_structs)
 
-                self._aggregate_fold_results(container, model_key, fold_results)
+                self._aggregate_fold_results(model_key, fold_results)
 
-        return self._finalize_results(container)
+        return self._finalize_results()
 
     @abstractmethod
     def _process_single_fold(self, fold_data: FoldData) -> BinResults:
@@ -723,7 +796,7 @@ class BaseEvaluator(ABC):
         pass
 
     @abstractmethod
-    def _aggregate_fold_results(self, container: ResultsContainer, model_key: str, fold_results: List[BinResults]):
+    def _aggregate_fold_results(self, model_key: str, fold_results: List[BinResults]):
         """
         Aggregate results across all folds for a model-uncertainty combination.
 
@@ -731,8 +804,6 @@ class BaseEvaluator(ABC):
         stored in the results container for final output formatting.
 
         Args:
-            container (ResultsContainer): Container for organizing and storing
-                evaluation results across different groupings and metrics.
             model_key (str): Identifier for the current model-uncertainty combination
                 (format: "model_name uncertainty_type").
             fold_results (List[BinResults]): List of evaluation results from all folds
@@ -768,7 +839,30 @@ class BaseEvaluator(ABC):
         pass
 
     def _process_all_folds(self, data_structs: pd.DataFrame) -> List[BinResults]:
-        """Process all folds for a given model and uncertainty type."""
+        """
+        Process all cross-validation folds for a given model and uncertainty type.
+
+        Iterates through all configured cross-validation folds, extracting data for each
+        fold and applying the subclass-specific evaluation logic to compute fold-level
+        results. This method coordinates the fold-wise evaluation process within the
+        Template Method pattern.
+
+        Args:
+            data_structs (pd.DataFrame): Complete dataset containing all folds and evaluation
+                data for the current model. Must include columns for fold identification,
+                UIDs, target indices, errors, and uncertainty bins.
+
+        Returns:
+            List[BinResults]: List of evaluation results from all folds, where each element
+                contains the evaluation metrics (e.g., Jaccard similarity, error bounds)
+                computed for one fold. The specific type of BinResults depends on the
+                evaluator implementation (e.g., JaccardBinResults for Jaccard evaluation).
+
+        Note:
+            This method uses the current instance variables (current_uncertainty_type_,
+            config_.num_folds) to determine which data to extract and how many folds
+            to process. It delegates the actual evaluation logic to _process_single_fold.
+        """
         fold_results = []
 
         for fold in range(self.config_.num_folds):
@@ -1026,7 +1120,7 @@ class JaccardEvaluator(BaseEvaluator):
             "bin_precision": bin_precision,
         }
 
-    def _aggregate_fold_results(self, container: ResultsContainer, model_key: str, fold_results: List[BinResults]):
+    def _aggregate_fold_results(self, model_key: str, fold_results: List[BinResults]):
         """
         Aggregate Jaccard evaluation results across all cross-validation folds.
 
@@ -1035,8 +1129,6 @@ class JaccardEvaluator(BaseEvaluator):
         both main results and target-separated results based on configuration.
 
         Args:
-            container (ResultsContainer): Container for organizing and storing
-                evaluation results across different groupings and metrics.
             model_key (str): Identifier for the current model-uncertainty combination
                 (format: "model_name uncertainty_type").
             fold_results (List[BinResults]): List of JaccardBinResults from all folds
@@ -1069,50 +1161,46 @@ class JaccardEvaluator(BaseEvaluator):
                 fold_all_precision_bins[bin_idx].extend(result.all_bins_precision[bin_idx])
 
         # Store results in container
-        container.add_main_result(model_key, fold_jaccard_bins)
-        container.add_target_separated_result(model_key, fold_all_jaccard_bins)
+        self.container_.add_main_result(model_key, fold_jaccard_bins)
+        self.container_.add_target_separated_result(model_key, fold_all_jaccard_bins)
 
         # Store recall results
-        container.recall_results[model_key] = fold_recall_bins
-        container.recall_target_separated[model_key] = fold_all_recall_bins
+        self.container_.recall_results[model_key] = fold_recall_bins
+        self.container_.recall_target_separated[model_key] = fold_all_recall_bins
 
         # Store precision results
-        container.precision_results[model_key] = fold_precision_bins
-        container.precision_target_separated[model_key] = fold_all_precision_bins
+        self.container_.precision_results[model_key] = fold_precision_bins
+        self.container_.precision_target_separated[model_key] = fold_all_precision_bins
 
         # Store target separated data for foldwise and all
         for fold_idx in range(len(jaccard_results)):
             result = jaccard_results[fold_idx]
             for target_idx in range(len(result.all_bins_concat_targets_sep)):
                 for bin_idx in range(self.current_num_bins_):
-                    if target_idx < len(container.target_sep_foldwise):
-                        if model_key not in container.target_sep_foldwise[target_idx]:
-                            container.target_sep_foldwise[target_idx][model_key] = [
+                    if target_idx < len(self.container_.target_sep_foldwise):
+                        if model_key not in self.container_.target_sep_foldwise[target_idx]:
+                            self.container_.target_sep_foldwise[target_idx][model_key] = [
                                 [] for _ in range(self.current_num_bins_)
                             ]
-                        container.target_sep_foldwise[target_idx][model_key][bin_idx].extend(
+                        self.container_.target_sep_foldwise[target_idx][model_key][bin_idx].extend(
                             result.all_bins_concat_targets_sep[target_idx][bin_idx]
                         )
 
-                        if model_key not in container.target_sep_all[target_idx]:
-                            container.target_sep_all[target_idx][model_key] = [
+                        if model_key not in self.container_.target_sep_all[target_idx]:
+                            self.container_.target_sep_all[target_idx][model_key] = [
                                 [] for _ in range(self.current_num_bins_)
                             ]
-                        container.target_sep_all[target_idx][model_key][bin_idx].extend(
+                        self.container_.target_sep_all[target_idx][model_key][bin_idx].extend(
                             result.all_bins_concat_targets_sep[target_idx][bin_idx]
                         )
 
-    def _finalize_results(self, container: ResultsContainer) -> Dict:
+    def _finalize_results(self) -> Dict:
         """
         Convert aggregated results container into final Jaccard evaluation output format.
 
         Transforms the results container into the expected API output format with
         properly organized Jaccard similarity, precision, and recall results for
         all evaluation categories.
-
-        Args:
-            container (ResultsContainer): Container with aggregated Jaccard evaluation
-                results organized by different groupings (main, target-separated, etc.).
 
         Returns:
             Dict: Final results dictionary with keys defined in ResultKeys class:
@@ -1130,14 +1218,14 @@ class JaccardEvaluator(BaseEvaluator):
             result keys expected by the Jaccard evaluation API.
         """
         return {
-            ResultKeys.JACCARD_ALL: container.main_results,
-            ResultKeys.JACCARD_TARGETS_SEPARATED: container.target_separated_results,
-            ResultKeys.RECALL_ALL: container.recall_results,
-            ResultKeys.RECALL_TARGETS_SEPARATED: container.recall_target_separated,
-            ResultKeys.PRECISION_ALL: container.precision_results,
-            ResultKeys.PRECISION_TARGETS_SEPARATED: container.precision_target_separated,
-            ResultKeys.ALL_JACC_CONCAT_BINS_TARGET_SEP_FOLDWISE: container.target_sep_foldwise,
-            ResultKeys.ALL_JACC_CONCAT_BINS_TARGET_SEP_ALL: container.target_sep_all,
+            ResultKeys.JACCARD_ALL: self.container_.main_results,
+            ResultKeys.JACCARD_TARGETS_SEPARATED: self.container_.target_separated_results,
+            ResultKeys.RECALL_ALL: self.container_.recall_results,
+            ResultKeys.RECALL_TARGETS_SEPARATED: self.container_.recall_target_separated,
+            ResultKeys.PRECISION_ALL: self.container_.precision_results,
+            ResultKeys.PRECISION_TARGETS_SEPARATED: self.container_.precision_target_separated,
+            ResultKeys.ALL_JACC_CONCAT_BINS_TARGET_SEP_FOLDWISE: self.container_.target_sep_foldwise,
+            ResultKeys.ALL_JACC_CONCAT_BINS_TARGET_SEP_ALL: self.container_.target_sep_all,
         }
 
 
