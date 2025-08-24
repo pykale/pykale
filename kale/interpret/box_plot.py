@@ -114,7 +114,7 @@ class BoxPlotConfig:
 
     # Box settings
     width: float = 0.2
-    use_list_comp: bool = False
+    detailed_mode: bool = False
 
     # Specific settings for comparing_q plots
     hatch_type: str = ""
@@ -493,6 +493,8 @@ class BoxPlotter:
         self.max_bin_height = 0.0
         self.sample_label_x_positions: List[float] = []
         self.all_sample_percs: List[Union[float, List[float]]] = []
+        self.processed_data: Optional[List[Dict]] = None
+        self.bin_label_locs: Optional[List[List[float]]] = None
 
     def set_data(self, data: BoxPlotData) -> None:
         """
@@ -535,7 +537,6 @@ class BoxPlotter:
         self.legend_patches = []
         self.max_bin_height = 0.0
         self.sample_label_x_positions = []
-        self.all_sample_percs = []
 
     def draw_boxplot(self) -> None:
         """
@@ -645,38 +646,28 @@ class BoxPlotter:
 
         return rect
 
-    def _collect_sample_info_if_needed(
-        self,
-        show_sample_info: str,
-        bin_data: List[float],
-        model_data: List[List[float]],
-        average_samples_per_bin: List[float],
-        rect,
-    ) -> None:
+    def _collect_sample_info_all(self, rect) -> None:
         """
-        Collect and register sample distribution information for statistical annotation display.
+        Collect and register sample distribution information for statistical annotation display(show_sample_info="All").
 
         Args:
-            show_sample_info (str): Sample information display mode control.
-            bin_data (List[float]): Current bin's evaluation data for sample counting.
-            model_data (List[List[float]]): Complete model evaluation data for total sample calculation.
-            average_samples_per_bin (List[float]): Accumulator for sample percentage collection.
             rect (Any): Matplotlib boxplot dictionary for geometric information extraction.
 
         Note:
             Method operates through side effects on instance variables and parameter lists.
         """
-        if show_sample_info != "None":
-            flattened_model_data = [x for xss in model_data for x in xss]
-            percent_size = np.round(len(bin_data) / len(flattened_model_data) * 100, 1)
-            average_samples_per_bin.append(percent_size)
+        (x_l, _), (x_r, _) = rect["caps"][-1].get_xydata()
+        x_line_center = (x_l + x_r) / 2
+        self.sample_label_x_positions.append(x_line_center)
 
-            if show_sample_info == "All":
-                """Add sample count above the highest whisker line"""
-                (x_l, y), (x_r, _) = rect["caps"][-1].get_xydata()
-                x_line_center = (x_l + x_r) / 2
-                self.sample_label_x_positions.append(x_line_center)
-                self.all_sample_percs.append(percent_size)
+    def _collect_sample_info_average(self) -> None:
+        """
+        Collect and register sample distribution information for statistical annotation display(show_sample_info="Average").
+        """
+        assert self.bin_label_locs is not None, "Bin label locations must be set before collecting sample info"
+        for bin_label_loc in self.bin_label_locs:
+            middle_x = float(np.mean(bin_label_loc))
+            self.sample_label_x_positions.append(middle_x)
 
     def _display_sample_information(self) -> None:
         """
@@ -716,18 +707,24 @@ class BoxPlotter:
                     fontsize=self.config.sample_info_fontsize,
                 )
 
-    def _setup_basic_axes_formatting(self, bin_label_locs: List[float]) -> None:
+    def _setup_basic_axes_formatting(self, bin_label_locs: List[List[float]], show_all_ticks: bool) -> None:
         """
         Configure basic axis labels, ticks, and subplot adjustments.
 
         Args:
             bin_label_locs (List[float]): X-axis positions for tick mark placement.
+            show_all_ticks (bool): Whether to show all tick marks.
         """
         assert self.ax is not None
 
         self.ax.set_xlabel(self.config.x_label, fontsize=self.config.font_size_label)
         self.ax.set_ylabel(self.config.y_label, fontsize=self.config.font_size_label)
-        self.ax.set_xticks(bin_label_locs)
+
+        # Configure x-axis ticks
+        if show_all_ticks:
+            self.ax.set_xticks([item for sublist in bin_label_locs for item in sublist])
+        else:
+            self.ax.set_xticks([np.mean(locs) for locs in bin_label_locs])
 
         plt.subplots_adjust(bottom=self.config.subplot_bottom)
         plt.subplots_adjust(left=self.config.subplot_left)
@@ -897,11 +894,12 @@ class BoxPlotter:
 
     def _format_and_finalize_plot(
         self,
-        bin_label_locs: List[float],
+        bin_label_locs: List[List[float]],
         category_labels: List[str],
         num_bins: int,
         uncertainty_categories: List[List[str]],
         comparing_q: bool = False,
+        show_all_ticks: bool = True,
     ) -> None:
         """
         Apply comprehensive formatting, styling, and finalization to complete boxplot visualization.
@@ -910,17 +908,18 @@ class BoxPlotter:
         sub-functions for each formatting aspect, making the code more maintainable and testable.
 
         Args:
-            bin_label_locs (List[float]): X-axis positions for tick mark and label placement.
+            bin_label_locs (List[List[float]]): X-axis positions for tick mark and label placement.
             category_labels (List[str]): Human-readable labels for x-axis categories.
             num_bins (int): Total number of uncertainty bins for layout optimization.
             uncertainty_categories (List[List[str]]): Hierarchical uncertainty type organization.
             comparing_q (bool, optional): Q-value comparison mode flag. Defaults to False.
+            show_all_ticks (bool, optional): Whether to show all tick marks. Defaults to True.
         """
         assert self.ax is not None
 
         # Execute formatting steps in logical order
         self._display_sample_information()
-        self._setup_basic_axes_formatting(bin_label_locs)
+        self._setup_basic_axes_formatting(bin_label_locs, show_all_ticks=show_all_ticks)
         self._setup_x_axis_formatter(category_labels, num_bins, uncertainty_categories, comparing_q)
         self._setup_y_axis_scaling()
         self._setup_legend()
@@ -979,9 +978,7 @@ class GenericBoxPlotter(BoxPlotter):
                 display options. Defaults to None.
         """
         super().__init__(data, config)
-        self.processed_data: Optional[List[Dict]] = None
         self.legend_info: Optional[List[Dict]] = None
-        self.bin_label_locs: Optional[List[float]] = None
 
     def process_data(self) -> None:
         """
@@ -1012,7 +1009,7 @@ class GenericBoxPlotter(BoxPlotter):
         assert self.data.num_bins is not None
 
         processor = GenericBoxPlotDataProcessor(self.config)
-        self.processed_data, self.legend_info, self.bin_label_locs = processor.process_data(
+        self.processed_data, self.legend_info, self.bin_label_locs, self.all_sample_percs = processor.process_data(
             self.data.evaluation_data_by_bins[0],
             self.data.uncertainty_categories,
             self.data.models,
@@ -1026,14 +1023,14 @@ class GenericBoxPlotter(BoxPlotter):
         Creates side-by-side boxplot comparisons across different models and uncertainty
         types. Groups boxplots by uncertainty type first, then by models within each category.
         """
+        self.setup_plot()
+
         if not self.processed_data:
             self.process_data()
 
         assert self.processed_data is not None
         assert self.data is not None
         assert self.data.uncertainty_categories is not None
-
-        self.setup_plot()
         colors = colormaps.get_cmap(self.config.colormap)(np.arange(len(self.data.uncertainty_categories) + 1))
         # Set legend for generic mode
         if self.legend_info:
@@ -1076,12 +1073,14 @@ class GenericBoxPlotter(BoxPlotter):
                 )
 
             # Handle sample information
-            self._collect_sample_info_if_needed(
-                self.config.show_sample_info, data_item["data"], data_item["model_data"], [], rect
-            )
+            if self.config.show_sample_info == "All":
+                self._collect_sample_info_all(rect)
+
+        assert self.bin_label_locs is not None  # Should be set by process_data
+        if self.config.show_sample_info == "Average":
+            self._collect_sample_info_average()
 
         # Format and finalize plot
-        assert self.bin_label_locs is not None  # Should be set by process_data
         assert self.data.category_labels is not None
         assert self.data.num_bins is not None
         assert self.data.uncertainty_categories is not None
@@ -1092,6 +1091,7 @@ class GenericBoxPlotter(BoxPlotter):
             self.data.num_bins,
             self.data.uncertainty_categories,
             comparing_q=False,
+            show_all_ticks=self.config.detailed_mode,
         )
 
 
@@ -1137,9 +1137,7 @@ class PerModelBoxPlotter(BoxPlotter):
                 for detailed views. Defaults to None.
         """
         super().__init__(data, config)
-        self.processed_data: Optional[List[Dict]] = None
         self.legend_info: Optional[List[Dict]] = None
-        self.bin_label_locs: Optional[List[float]] = None
 
     def process_data(self) -> None:
         """
@@ -1169,7 +1167,7 @@ class PerModelBoxPlotter(BoxPlotter):
         assert self.data.num_bins is not None
 
         processor = PerModelBoxPlotDataProcessor(self.config)
-        self.processed_data, self.legend_info, self.bin_label_locs = processor.process_data(
+        self.processed_data, self.legend_info, self.bin_label_locs, self.all_sample_percs = processor.process_data(
             self.data.evaluation_data_by_bins[0],
             self.data.uncertainty_categories,
             self.data.models,
@@ -1182,6 +1180,8 @@ class PerModelBoxPlotter(BoxPlotter):
 
         Creates detailed analysis visualization focusing on individual models by
         organizing boxplots by model first, then by uncertainty type within each model."""
+        self.setup_plot()
+
         if not self.processed_data:
             self.process_data()
 
@@ -1189,7 +1189,6 @@ class PerModelBoxPlotter(BoxPlotter):
         assert self.data is not None
         assert self.data.uncertainty_categories is not None
 
-        self.setup_plot()
         colors = colormaps.get_cmap(self.config.colormap)(np.arange(len(self.data.uncertainty_categories) + 1))
         # Set legend for per-model mode
         if self.legend_info:
@@ -1232,9 +1231,12 @@ class PerModelBoxPlotter(BoxPlotter):
                 )
 
             # Handle sample information
-            self._collect_sample_info_if_needed(
-                self.config.show_sample_info, data_item["data"], data_item["model_data"], [], rect
-            )
+            if self.config.show_sample_info == "All":
+                self._collect_sample_info_all(rect)
+
+        assert self.bin_label_locs is not None  # Should be set by process_data
+        if self.config.show_sample_info == "Average":
+            self._collect_sample_info_average()
 
         # Format and finalize plot
         assert self.bin_label_locs is not None  # Should be set by process_data
@@ -1248,6 +1250,7 @@ class PerModelBoxPlotter(BoxPlotter):
             self.data.num_bins,
             self.data.uncertainty_categories,
             comparing_q=False,
+            show_all_ticks=True,
         )
 
 
@@ -1301,8 +1304,6 @@ class ComparingQBoxPlotter(BoxPlotter):
                 color for Q-plot styling. Defaults to None.
         """
         super().__init__(data, config)
-        self.processed_data: Optional[List[Dict]] = None
-        self.bin_label_locs: Optional[List[float]] = None
         self.uncertainty_type: Optional[str] = None
 
     def process_data(self) -> None:
@@ -1330,7 +1331,7 @@ class ComparingQBoxPlotter(BoxPlotter):
         assert self.data.category_labels is not None
 
         processor = ComparingQBoxPlotDataProcessor(self.config)
-        self.processed_data, _, self.bin_label_locs = processor.process_data(
+        self.processed_data, _, self.bin_label_locs, self.all_sample_percs = processor.process_data(
             self.data.evaluation_data_by_bins,
             self.data.uncertainty_categories,
             self.data.models,
@@ -1347,6 +1348,8 @@ class ComparingQBoxPlotter(BoxPlotter):
 
         Creates quantile threshold comparison visualization with distinctive hatched
         styling and progressive box width reduction for different Q values."""
+        self.setup_plot()
+
         if not self.processed_data:
             self.process_data()
 
@@ -1354,7 +1357,6 @@ class ComparingQBoxPlotter(BoxPlotter):
         assert self.data is not None
         assert self.data.uncertainty_categories is not None
 
-        self.setup_plot()
         colors = colormaps.get_cmap(self.config.colormap)(np.arange(3))
         color = (
             colors[0]
@@ -1388,9 +1390,12 @@ class ComparingQBoxPlotter(BoxPlotter):
             )
 
             # Handle sample information
-            self._collect_sample_info_if_needed(
-                self.config.show_sample_info, data_item["data"], data_item["model_data"], [], rect
-            )
+            if self.config.show_sample_info == "All":
+                self._collect_sample_info_all(rect)
+
+        assert self.bin_label_locs is not None  # Should be set by process_data
+        if self.config.show_sample_info == "Average":
+            self._collect_sample_info_average()
 
         # Format and finalize plot
         assert self.uncertainty_type is not None  # Should be set by process_data
@@ -1407,6 +1412,7 @@ class ComparingQBoxPlotter(BoxPlotter):
             num_bins_for_plot,
             uncertainty_types_for_plot,
             comparing_q=True,
+            show_all_ticks=False,
         )
 
 
@@ -1438,8 +1444,8 @@ class BoxPlotDataProcessor(ABC):
         self.uncertainty_categories: Optional[List[List[str]]] = None
         self.models: Optional[List[str]] = None
         self.num_bins: Optional[int] = None
-        self.config: Optional[BoxPlotConfig] = None
         self.category_labels: Optional[List[str]] = None
+        self.config: BoxPlotConfig = config or BoxPlotConfig()
 
         # Processing state
         self.outer_min_x_loc: float = 0.0
@@ -1449,10 +1455,13 @@ class BoxPlotDataProcessor(ABC):
         # Results
         self.processed_data: List[Dict] = []
         self.legend_info: Optional[List[Dict]] = []
-        self.bin_label_locs: List[float] = []
-        self.config = config or BoxPlotConfig()
+        self.bin_label_locs: List[List[float]] = []
+        self.all_sample_percs: List[Union[float, List[float]]] = []
+        self.all_box_x_positions: List[float] = []
 
-    def process_data(self, *args, **kwargs) -> Tuple[List[Dict], Union[List[Dict], None], List[float]]:
+    def process_data(
+        self, *args, **kwargs
+    ) -> Tuple[List[Dict], Union[List[Dict], None], List[List[float]], List[Union[float, List[float]]]]:
         """
         Template method that defines the main data processing algorithm.
 
@@ -1464,10 +1473,11 @@ class BoxPlotDataProcessor(ABC):
             **kwargs: Variable keyword arguments specific to each processing mode.
 
         Returns:
-            Tuple[List[Dict], Union[List[Dict], None], List[float]]: A tuple containing:
+            Tuple[List[Dict], Union[List[Dict], None], List[List[float]], List[float]]: A tuple containing:
                 - processed_data: List of dictionaries with boxplot data and positioning
                 - legend_info: Legend information (None for Q-comparison mode)
                 - bin_label_locs: X-axis positions for bin labels
+                - all_sample_percs: Sample percentage information
 
         Raises:
             ValueError: If processing results in empty data or invalid state.
@@ -1481,7 +1491,7 @@ class BoxPlotDataProcessor(ABC):
         # Finalize and validate results
         self._finalize_processing_results()
 
-        return self.processed_data, self.legend_info, self.bin_label_locs
+        return self.processed_data, self.legend_info, self.bin_label_locs, self.all_sample_percs
 
     @staticmethod
     def create_data_item(
@@ -1494,6 +1504,7 @@ class BoxPlotDataProcessor(ABC):
         hatch_idx: int,
         bin_idx: int,
         model_data: List[List[float]],
+        percent_size: float,
         **extra_fields,
     ) -> Dict:
         """
@@ -1527,6 +1538,7 @@ class BoxPlotDataProcessor(ABC):
             "hatch_idx": hatch_idx,
             "bin_idx": bin_idx,
             "model_data": model_data,
+            "percent_size": percent_size,
         }
         item.update(extra_fields)  # Add additional fields
         return item
@@ -1648,10 +1660,40 @@ class BoxPlotDataProcessor(ABC):
         """
         assert self.config is not None, "Configuration must be set before extracting bin data"
 
-        if self.config.use_list_comp:
+        if self.config.detailed_mode:
             return [x for x in model_data[bin_idx] if x is not None]
         else:
             return model_data[bin_idx]
+
+    def _calculate_sample_percs(self, model_data: List[List[float]], bin_data: List[float]) -> float:
+        """
+        Calculate the percentage of samples in a specific bin compared to the total samples.
+
+        Args:
+            model_data (List[List[float]]): The model data organized by bins.
+            bin_data (List[float]): The data for the specific bin.
+
+        Returns:
+            float: The percentage of samples in the bin.
+        """
+        if self.config.show_sample_info != "None":
+            flattened_model_data = [x for xss in model_data for x in xss]
+            percent_size = np.round(len(bin_data) / len(flattened_model_data) * 100, 1)
+            if self.config.show_sample_info == "All":
+                self.all_sample_percs.append(percent_size)
+            return percent_size
+        return 0
+
+    def _calculate_average_sample_info(self, average_samples_per_bin: List[float]) -> None:
+        """
+        Calculate and store average sample percentages for the current configuration.
+
+        Args:
+            average_samples_per_bin (List[float]): List of sample percentages for each bin.
+        """
+        mean_perc = np.round(np.mean(average_samples_per_bin), 1)
+        std_perc = np.round(np.std(average_samples_per_bin), 1)
+        self.all_sample_percs.append([mean_perc, std_perc])
 
     # Shared utility methods for common processing patterns
     def _process_single_item(
@@ -1693,9 +1735,20 @@ class BoxPlotDataProcessor(ABC):
         # Calculate position from instance variables
         x_loc = self.outer_min_x_loc + self.middle_min_x_loc + self.inner_min_x_loc
 
+        percent_size = self._calculate_sample_percs(model_data, bin_data)
+
         # Create and return data item
         return self.create_data_item(
-            bin_data, x_loc, width, uncertainty_idx, model_type, uncertainty_type, hatch_idx, bin_idx, model_data
+            bin_data,
+            x_loc,
+            width,
+            uncertainty_idx,
+            model_type,
+            uncertainty_type,
+            hatch_idx,
+            bin_idx,
+            model_data,
+            percent_size,
         )
 
     def _process_and_store_single_item(
@@ -1707,7 +1760,7 @@ class BoxPlotDataProcessor(ABC):
         hatch_idx: int,
         width: float,
         evaluation_data_override: Optional[Dict] = None,
-    ) -> float:
+    ) -> Tuple[float, float]:
         """
         Process single item and store in processed_data, return x position.
 
@@ -1722,12 +1775,13 @@ class BoxPlotDataProcessor(ABC):
                 Defaults to None.
 
         Returns:
-            float: X-axis position of the processed item."""
+            tuple[float, float]: X-axis position and percent size of the processed item.
+        """
         data_item = self._process_single_item(
             uncertainty_type, model_type, bin_idx, uncertainty_idx, hatch_idx, width, evaluation_data_override
         )
         self.processed_data.append(data_item)
-        return data_item["x_position"]
+        return data_item["x_position"], data_item["percent_size"]
 
     def _collect_legend_info_for_first_bin(
         self,
@@ -1772,13 +1826,15 @@ class BoxPlotDataProcessor(ABC):
             width (float): Box width for all items.
         """
         box_x_positions = []
+        average_samples_per_bin = []
 
         assert self.config is not None, "Configuration must be set before processing and collecting positions"
         for bin_idx, model_type, hatch_idx in items_data:
-            x_position = self._process_and_store_single_item(
+            x_position, percent_size = self._process_and_store_single_item(
                 uncertainty_type, model_type, bin_idx, uncertainty_idx, hatch_idx, width
             )
             box_x_positions.append(x_position)
+            average_samples_per_bin.append(percent_size)
 
             # Collect legend info for first bin
             self._collect_legend_info_for_first_bin(bin_idx, uncertainty_idx, model_type, uncertainty_type, hatch_idx)
@@ -1786,22 +1842,12 @@ class BoxPlotDataProcessor(ABC):
             # Update inner position with spacing
             self.inner_min_x_loc += self.config.inner_spacing + width
 
-        self._store_bin_label_positions(box_x_positions, use_extend=self.config.use_list_comp)
+        if self.config.show_sample_info == "Average":
+            self._calculate_average_sample_info(average_samples_per_bin)
+
+        self.bin_label_locs.append(box_x_positions)
 
         return box_x_positions
-
-    def _store_bin_label_positions(self, box_x_positions: List[float], use_extend: bool = True) -> None:
-        """
-        Store bin label positions using extend or mean calculation.
-
-        Args:
-            box_x_positions (List[float]): X-axis positions of boxes in current bin.
-            use_extend (bool, optional): Whether to extend positions directly or calculate mean.
-                Defaults to True."""
-        if use_extend:
-            self.bin_label_locs.extend(box_x_positions)
-        else:
-            self.bin_label_locs.append(float(np.mean(box_x_positions)))
 
 
 class GenericBoxPlotDataProcessor(BoxPlotDataProcessor):
@@ -1845,7 +1891,7 @@ class GenericBoxPlotDataProcessor(BoxPlotDataProcessor):
         assert self.uncertainty_categories is not None, "Uncertainty categories must be set"
         assert self.models is not None, "Models must be set"
 
-        use_list_comp = self.config.use_list_comp
+        detailed_mode = self.config.detailed_mode
 
         for uncertainty_idx, uncert_pair in enumerate(self.uncertainty_categories):
             uncertainty_type = uncert_pair[0]
@@ -1865,7 +1911,7 @@ class GenericBoxPlotDataProcessor(BoxPlotDataProcessor):
 
             # Apply spacing between uncertainty types
             spacing_adjustment = self._calculate_spacing_adjustment(True)
-            if use_list_comp:
+            if detailed_mode:
                 self.middle_min_x_loc += spacing_adjustment
             else:
                 self.outer_min_x_loc += spacing_adjustment
@@ -2015,17 +2061,19 @@ class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
             List[float]: X-axis positions of all boxes for this Q-value.
         """
         box_x_positions = []
+        average_samples_per_bin = []
 
         # Get data for this Q value
         dict_key = self._find_data_key(evaluation_data_by_bin, self.model_type, self.uncertainty_type)
         model_data = evaluation_data_by_bin[dict_key]
 
+        assert self.config is not None, "Configuration must be set before processing and collecting positions"
         # Process each bin for this Q value
         for bin_idx in range(len(model_data)):
             # Progressive width reduction
             width = self._calculate_progressive_width(base_width, q_idx)
 
-            x_position = self._process_and_store_single_item(
+            x_position, percent_size = self._process_and_store_single_item(
                 self.uncertainty_type,
                 self.model_type,
                 bin_idx,
@@ -2035,9 +2083,12 @@ class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
                 evaluation_data_override=evaluation_data_by_bin,
             )
             box_x_positions.append(x_position)
+            average_samples_per_bin.append(percent_size)
 
-            assert self.config is not None, "Configuration must be set before updating position"
             self.inner_min_x_loc += self.config.inner_spacing + width
+
+        if self.config.show_sample_info == "Average":
+            self._calculate_average_sample_info(average_samples_per_bin)
 
         return box_x_positions
 
@@ -2051,7 +2102,7 @@ class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
         assert self.config is not None, "Configuration must be set before applying spacing"
 
         self.outer_min_x_loc += self.config.comparing_q_outer_spacing
-        self._store_bin_label_positions(box_x_positions, use_extend=False)
+        self.bin_label_locs.append(box_x_positions)
 
     def _execute_processing_loop(self) -> None:
         """

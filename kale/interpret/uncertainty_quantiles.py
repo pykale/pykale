@@ -158,6 +158,7 @@ def plot_generic_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
         >>> plot_generic_boxplot(data, config)
     """
     plotter = GenericBoxPlotter(data, config)
+    plotter.process_data()
     plotter.draw_boxplot()
 
 
@@ -207,6 +208,7 @@ def plot_per_model_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
         >>> plot_per_model_boxplot(data, config)
     """
     plotter = PerModelBoxPlotter(data, config)
+    plotter.process_data()
     plotter.draw_boxplot()
 
 
@@ -621,7 +623,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 show_individual_dots=samples_as_dots_bool,
                 y_lim_top=box_plot_error_lim,
                 to_log=True,
-                use_list_comp=True,
+                detailed_mode=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -658,7 +660,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                             show_individual_dots=samples_as_dots_bool,
                             y_lim_top=box_plot_error_lim,
                             to_log=True,
-                            use_list_comp=True,
+                            detailed_mode=True,
                             save_path=save_location,
                             hatch_type=hatch,
                         )
@@ -686,10 +688,11 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Mean Error (mm)",
                 convert_to_percent=False,
+                show_sample_info="None",
                 y_lim_top=box_plot_error_lim,
                 to_log=True,
                 show_individual_dots=True,
-                use_list_comp=True,
+                detailed_mode=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -715,6 +718,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 colormap=colormap,
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Error Bound Accuracy (%)",
+                show_sample_info="None",
                 save_path=save_location,
                 y_lim_top=120,
                 width=0.2,
@@ -722,7 +726,7 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 font_size_label=30,
                 font_size_tick=30,
                 show_individual_dots=False,
-                use_list_comp=False,
+                detailed_mode=False,
                 hatch_type=hatch,
             )
 
@@ -753,13 +757,14 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                             x_label="Uncertainty Thresholded Bin",
                             y_label="Error Bound Accuracy (%)",
                             save_path=save_location,
+                            show_sample_info="None",
                             y_lim_top=120,
                             width=0.2,
                             y_lim_bottom=-2,
                             font_size_label=30,
                             font_size_tick=30,
                             show_individual_dots=False,
-                            use_list_comp=False,
+                            detailed_mode=False,
                             hatch_type=hatch,
                         )
 
@@ -785,13 +790,14 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Jaccard Index (%)",
                 save_path=save_location,
+                show_sample_info="None",
                 y_lim_top=70,
                 width=0.2,
                 y_lim_bottom=-2,
                 font_size_label=30,
                 font_size_tick=30,
                 show_individual_dots=False,
-                use_list_comp=False,
+                detailed_mode=False,
                 hatch_type=hatch,
             )
 
@@ -816,13 +822,14 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 y_label="Ground Truth Bins Recall",
                 convert_to_percent=True,
                 save_path=save_location,
+                show_sample_info="None",
                 y_lim_top=120,
                 width=0.2,
                 y_lim_bottom=-2,
                 font_size_label=30,
                 font_size_tick=30,
                 show_individual_dots=False,
-                use_list_comp=False,
+                detailed_mode=False,
                 hatch_type=hatch,
             )
 
@@ -847,13 +854,14 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                 y_label="Ground Truth Bins Precision",
                 convert_to_percent=True,
                 save_path=save_location,
+                show_sample_info="None",
                 y_lim_top=120,
                 width=0.2,
                 y_lim_bottom=-2,
                 font_size_label=30,
                 font_size_tick=30,
                 show_individual_dots=False,
-                use_list_comp=False,
+                detailed_mode=False,
                 hatch_type=hatch,
             )
 
@@ -885,13 +893,14 @@ def generate_fig_individual_bin_comparison(data: Tuple, display_settings: dict) 
                             x_label="Uncertainty Thresholded Bin",
                             y_label="Jaccard Index (%)",
                             save_path=save_location,
+                            show_sample_info="None",
                             y_lim_top=70,
                             width=0.2,
                             y_lim_bottom=-2,
                             font_size_label=30,
                             font_size_tick=30,
                             show_individual_dots=False,
-                            use_list_comp=False,
+                            detailed_mode=False,
                             hatch_type=hatch,
                         )
 
@@ -1092,7 +1101,7 @@ def generate_fig_comparing_bins(
                 show_individual_dots=samples_as_dots_bool,
                 y_lim_top=box_plot_error_lim,
                 to_log=True,
-                use_list_comp=True,
+                detailed_mode=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1130,7 +1139,7 @@ def generate_fig_comparing_bins(
                             show_individual_dots=samples_as_dots_bool,
                             y_lim_top=box_plot_error_lim,
                             to_log=True,
-                            use_list_comp=True,
+                            detailed_mode=True,
                             save_path=save_location,
                             hatch_type=hatch,
                         )
@@ -1159,7 +1168,7 @@ def generate_fig_comparing_bins(
                 show_individual_dots=False,
                 y_lim_top=box_plot_error_lim,
                 to_log=True,
-                use_list_comp=True,
+                detailed_mode=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1190,7 +1199,7 @@ def generate_fig_comparing_bins(
                 show_sample_info="None",
                 show_individual_dots=False,
                 y_lim_top=100,
-                use_list_comp=True,
+                detailed_mode=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1222,10 +1231,11 @@ def generate_fig_comparing_bins(
                             colormap=colormap,
                             x_label="Q (# Bins)",
                             y_label="Error Bound Accuracy (%)",
+                            show_sample_info="None",
                             convert_to_percent=True,
                             show_individual_dots=False,
                             y_lim_top=100,
-                            use_list_comp=True,
+                            detailed_mode=True,
                             save_path=save_location,
                             hatch_type=hatch,
                         )
@@ -1252,9 +1262,10 @@ def generate_fig_comparing_bins(
                 x_label="Q (# Bins)",
                 y_label="Jaccard Index (%)",
                 convert_to_percent=True,
+                show_sample_info="None",
                 show_individual_dots=False,
                 y_lim_top=70,
-                use_list_comp=True,
+                detailed_mode=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1280,9 +1291,10 @@ def generate_fig_comparing_bins(
                 x_label="Q (# Bins)",
                 y_label="Ground Truth Bin Recall (%)",
                 convert_to_percent=True,
+                show_sample_info="None",
                 show_individual_dots=False,
                 y_lim_top=120,
-                use_list_comp=True,
+                detailed_mode=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1308,9 +1320,10 @@ def generate_fig_comparing_bins(
                 x_label="Q (# Bins)",
                 y_label="Ground Truth Bin Precision (%)",
                 convert_to_percent=True,
+                show_sample_info="None",
                 show_individual_dots=False,
                 y_lim_top=120,
-                use_list_comp=True,
+                detailed_mode=True,
                 save_path=save_location,
                 hatch_type=hatch,
             )
@@ -1343,9 +1356,10 @@ def generate_fig_comparing_bins(
                             x_label="Q (# Bins)",
                             y_label="Jaccard Index (%)",
                             convert_to_percent=True,
+                            show_sample_info="None",
                             show_individual_dots=False,
                             y_lim_top=70,
-                            use_list_comp=True,
+                            detailed_mode=True,
                             save_path=save_location,
                             hatch_type=hatch,
                         )

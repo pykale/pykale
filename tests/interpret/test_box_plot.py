@@ -436,7 +436,7 @@ class TestBoxPlotDataProcessor:
 
     def test_extract_bin_data_with_none_filtering(self, processor):
         """Test bin data extraction with None filtering."""
-        processor.config.use_list_comp = True
+        processor.config.detailed_mode = True
         model_data = [[1, None, 2], [3, 4, None], [5, 6, 7]]
 
         result = processor._extract_bin_data(model_data, 0)
@@ -447,7 +447,7 @@ class TestBoxPlotDataProcessor:
 
     def test_extract_bin_data_without_none_filtering(self, processor):
         """Test bin data extraction without None filtering."""
-        processor.config.use_list_comp = False
+        processor.config.detailed_mode = False
         model_data = [[1, None, 2], [3, 4, None], [5, 6, 7]]
 
         result = processor._extract_bin_data(model_data, 0)
@@ -482,6 +482,7 @@ class TestBoxPlotDataProcessor:
             hatch_idx=1,
             bin_idx=0,
             model_data=model_data,
+            percent_size=25.5,
             extra_field="test_value",
         )
 
@@ -500,7 +501,7 @@ class TestBoxPlotDataProcessor:
         """Test processing a single data item."""
         # Set up processor state
         processor.evaluation_data_by_bin = sample_evaluation_data
-        processor.config.use_list_comp = False
+        processor.config.detailed_mode = False
         processor.outer_min_x_loc = 1.0
         processor.middle_min_x_loc = 0.5
         processor.inner_min_x_loc = 0.2
@@ -519,16 +520,17 @@ class TestBoxPlotDataProcessor:
         """Test processing and storing a single item."""
         # Set up processor state
         processor.evaluation_data_by_bin = sample_evaluation_data
-        processor.config.use_list_comp = False
+        processor.config.detailed_mode = False
         processor.outer_min_x_loc = 1.0
         processor.middle_min_x_loc = 0.5
         processor.inner_min_x_loc = 0.2
 
-        x_position = processor._process_and_store_single_item(
+        x_position, percent_size = processor._process_and_store_single_item(
             uncertainty_type="epistemic", model_type="ResNet50", bin_idx=0, uncertainty_idx=0, hatch_idx=0, width=0.3
         )
 
         assert x_position == 1.7  # 1.0 + 0.5 + 0.2
+        assert isinstance(percent_size, (int, float))  # Can be 0 if show_sample_info is "None"
         assert len(processor.processed_data) == 1
         assert processor.processed_data[0]["model_type"] == "ResNet50"
 
@@ -561,7 +563,7 @@ class TestBoxPlotDataProcessor:
         """Test processing and collecting positions for multiple items."""
         # Set up processor state
         processor.evaluation_data_by_bin = sample_evaluation_data
-        processor.config.use_list_comp = False
+        processor.config.detailed_mode = False
         processor.config.inner_spacing = 0.1
         processor.outer_min_x_loc = 1.0
         processor.middle_min_x_loc = 0.5
@@ -583,27 +585,9 @@ class TestBoxPlotDataProcessor:
         assert len(processor.processed_data) == 2
         assert len(processor.legend_info) == 2  # Both items should have legend info (bin_idx=0)
 
-    def test_store_bin_label_positions_extend(self, processor):
-        """Test storing bin label positions with extend mode."""
-        processor.bin_label_locs = [1.0, 2.0]
-        box_x_positions = [3.0, 4.0, 5.0]
-
-        processor._store_bin_label_positions(box_x_positions, use_extend=True)
-
-        assert processor.bin_label_locs == [1.0, 2.0, 3.0, 4.0, 5.0]
-
-    def test_store_bin_label_positions_mean(self, processor):
-        """Test storing bin label positions with mean mode."""
-        processor.bin_label_locs = [1.0, 2.0]
-        box_x_positions = [3.0, 4.0, 5.0]
-
-        processor._store_bin_label_positions(box_x_positions, use_extend=False)
-
-        assert processor.bin_label_locs == [1.0, 2.0, 4.0]  # Mean of [3.0, 4.0, 5.0] is 4.0
-
     def test_generic_processor_process_data(self, processor, sample_evaluation_data):
         """Test GenericBoxPlotDataProcessor process_data method."""
-        processed_data, legend_info, bin_label_locs = processor.process_data(
+        processed_data, legend_info, bin_label_locs, all_sample_percs = processor.process_data(
             sample_evaluation_data, [["epistemic"], ["aleatoric"]], ["ResNet50", "VGG16"], 3
         )
 
@@ -613,10 +597,11 @@ class TestBoxPlotDataProcessor:
         assert legend_info is not None
         assert len(legend_info) == 4  # 2 uncertainties × 2 models
         assert len(bin_label_locs) > 0
+        assert len(all_sample_percs) >= 0
 
     def test_per_model_processor_process_data(self, processor_per_model, sample_evaluation_data):
         """Test PerModelBoxPlotDataProcessor process_data method."""
-        processed_data, legend_info, bin_label_locs = processor_per_model.process_data(
+        processed_data, legend_info, bin_label_locs, all_sample_percs = processor_per_model.process_data(
             sample_evaluation_data, [["epistemic"], ["aleatoric"]], ["ResNet50", "VGG16"], 3
         )
 
@@ -626,10 +611,11 @@ class TestBoxPlotDataProcessor:
         assert legend_info is not None
         assert len(legend_info) == 4  # 2 uncertainties × 2 models
         assert len(bin_label_locs) > 0
+        assert len(all_sample_percs) >= 0
 
     def test_comparing_q_processor_process_data(self, processor_comparing_q, sample_q_comparison_data):
         """Test ComparingQBoxPlotDataProcessor process_data method."""
-        processed_data, legend_info, bin_label_locs = processor_comparing_q.process_data(
+        processed_data, legend_info, bin_label_locs, all_sample_percs = processor_comparing_q.process_data(
             sample_q_comparison_data, [["epistemic"]], ["model"], ["Q=5", "Q=10", "Q=15"]
         )
 
