@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+
 import torch
 
 from kale.embed.model_lib.CGCNN import CGCNNEncoderLayer, CrystalGCN
