@@ -124,6 +124,20 @@ class TestBoxPlotConfig:
         assert config.x_label == "Valid"
         # Should not raise error for invalid params
 
+    def test_set_params_with_invalid_parameter(self):
+        """Test that set_params raises AttributeError for invalid parameters."""
+        config = BoxPlotConfig()
+        with pytest.raises(AttributeError, match="'invalid_param' is not a valid BoxPlotConfig parameter"):
+            config.set_params(invalid_param="test")
+
+    def test_set_params_with_valid_parameters(self):
+        """Test that set_params works correctly with valid parameters."""
+        config = BoxPlotConfig()
+        result = config.set_params(x_label="New Label", show=True)
+        assert result is config  # Should return self for chaining
+        assert config.x_label == "New Label"
+        assert config.show is True
+
 
 class TestBoxPlotData:
     """Test BoxPlotData dataclass and factory function."""
@@ -149,6 +163,28 @@ class TestBoxPlotData:
         )
         assert len(data.evaluation_data_by_bins) == 1
         # Should not raise error for invalid params
+
+    def test_set_data_with_invalid_parameter(self, sample_evaluation_data):
+        """Test that set_data raises AttributeError for invalid parameters."""
+        data = BoxPlotData(evaluation_data_by_bins=[sample_evaluation_data])
+        with pytest.raises(AttributeError, match="'invalid_param' is not a valid BoxPlotData parameter"):
+            data.set_data(invalid_param="test")
+
+    def test_set_data_with_valid_parameters(self, sample_evaluation_data):
+        """Test that set_data works correctly with valid parameters."""
+        data = BoxPlotData(evaluation_data_by_bins=[sample_evaluation_data])
+        result = data.set_data(models=["ResNet50"], num_bins=5)
+        assert result is data  # Should return self for chaining
+        assert data.models == ["ResNet50"]
+        assert data.num_bins == 5
+
+    def test_set_data_method_chaining(self, sample_evaluation_data):
+        """Test that set_data supports method chaining."""
+        data = BoxPlotData(evaluation_data_by_bins=[sample_evaluation_data])
+        result = data.set_data(models=["ResNet50"]).set_data(num_bins=5)
+        assert result is data
+        assert data.models == ["ResNet50"]
+        assert data.num_bins == 5
 
 
 class TestSampleInfoMode:
@@ -250,6 +286,81 @@ class TestGenericBoxPlotter:
         # Verify that the plot was set up
         mock_style.assert_called()
         mock_save_show.assert_called_once()
+
+    def test_process_data_with_incomplete_required_fields(self, sample_config):
+        """Test various combinations of missing required fields."""
+        # Test missing evaluation_data_by_bins
+        data1 = BoxPlotData(
+            evaluation_data_by_bins=None, uncertainty_categories=[["epistemic"]], models=["ResNet50"], num_bins=3
+        )
+        plotter1 = GenericBoxPlotter(data1, sample_config)
+        with pytest.raises(ValueError, match="GenericBoxPlotter requires"):
+            plotter1.process_data()
+
+        # Test missing uncertainty_categories
+        data2 = BoxPlotData(
+            evaluation_data_by_bins=[{"model_epistemic": [[1, 2]]}],
+            uncertainty_categories=None,
+            models=["ResNet50"],
+            num_bins=3,
+        )
+        plotter2 = GenericBoxPlotter(data2, sample_config)
+        with pytest.raises(ValueError, match="GenericBoxPlotter requires"):
+            plotter2.process_data()
+
+        # Test missing models
+        data3 = BoxPlotData(
+            evaluation_data_by_bins=[{"model_epistemic": [[1, 2]]}],
+            uncertainty_categories=[["epistemic"]],
+            models=None,
+            num_bins=3,
+        )
+        plotter3 = GenericBoxPlotter(data3, sample_config)
+        with pytest.raises(ValueError, match="GenericBoxPlotter requires"):
+            plotter3.process_data()
+
+        # Test missing num_bins
+        data4 = BoxPlotData(
+            evaluation_data_by_bins=[{"model_epistemic": [[1, 2]]}],
+            uncertainty_categories=[["epistemic"]],
+            models=["ResNet50"],
+            num_bins=None,
+        )
+        plotter4 = GenericBoxPlotter(data4, sample_config)
+        with pytest.raises(ValueError, match="GenericBoxPlotter requires"):
+            plotter4.process_data()
+
+    @patch("matplotlib.pyplot.subplots")
+    def test_draw_boxplot_with_no_uncertainty_categories(self, mock_subplots, sample_config):
+        """Test draw_boxplot behavior when uncertainty_categories is empty."""
+        # Mock matplotlib components
+        mock_fig, mock_ax = MagicMock(), MagicMock()
+        mock_subplots.return_value = (mock_fig, mock_ax)
+
+        # Create data with empty uncertainty_categories
+        data = BoxPlotData(
+            evaluation_data_by_bins=[{"model_epistemic": [[1, 2, 3]]}],
+            uncertainty_categories=[],  # Empty categories
+            models=["model"],
+            num_bins=3,
+            category_labels=["B1", "B2", "B3"],
+        )
+
+        plotter = GenericBoxPlotter(data, sample_config)
+
+        # Mock processed data and other required attributes
+        plotter.processed_data = [
+            {"data": [[1, 2, 3]], "x_position": 1.0, "width": 0.2, "color_idx": 0, "hatch_idx": 0}
+        ]
+        plotter.bin_label_locs = [[1.0]]
+        plotter.ax = mock_ax
+        plotter.legend_patches = []
+
+        # This should use default colors instead of color mapping
+        with patch("kale.interpret.box_plot.save_or_show_plot"):
+            plotter.draw_boxplot()
+
+        # Should complete without errors
 
 
 class TestPerModelBoxPlotter:
