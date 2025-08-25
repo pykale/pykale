@@ -342,6 +342,8 @@ def save_or_show_plot(save_path: Optional[str] = None, show: bool = True, **fig_
     if fig_size is not None:
         if not (isinstance(fig_size, (tuple, list)) and len(fig_size) == 2):
             raise ValueError("fig_size must be a 2-element tuple or list (width, height)")
+        if not all(isinstance(x, (int, float)) and x > 0 for x in fig_size):
+            raise ValueError("fig_size elements must be positive numbers (int or float)")
 
     # Get current figure
     fig = plt.gcf()
