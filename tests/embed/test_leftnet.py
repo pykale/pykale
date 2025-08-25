@@ -5,7 +5,7 @@ import pytest
 import torch
 
 # Adjust import path to where you placed the modules
-from kale.embed.model_lib.LEFTNet import LEFTNetProp, LEFTNetZ, NeighborEmb
+from kale.embed.model_lib.leftnet import LEFTNetProp, LEFTNetZ, NeighborEmb
 
 
 def _make_dummy_leftnet_batch(num_graphs=2, nodes_per_graph=(3, 2), with_atom_fea=False, atom_fea_dim=10):

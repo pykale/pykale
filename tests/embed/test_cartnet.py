@@ -4,7 +4,7 @@ import pytest
 import torch
 
 # Adjust the import to match your actual module path
-from kale.embed.model_lib.CartNet import CartNet, CartNetLayer, GeometricGraphEncoder
+from kale.embed.model_lib.cartnet import CartNet, CartNetLayer, GeometricGraphEncoder
 
 
 def _make_cartnet_batch(num_nodes=10, num_graphs=3, atom_max=30):

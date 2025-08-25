@@ -6,7 +6,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
 from kale.embed.image_cnn import SimpleCNNBuilder
-from kale.embed.model_lib.CGCNN import CrystalGCN  # Add this import at the top of the file
+from kale.embed.model_lib.cgcnn import CrystalGCN  # Add this import at the top of the file
 from kale.pipeline.base_nn_trainer import BaseNNTrainer, CNNTransformerTrainer, MultimodalNNTrainer, RegressionTrainer
 from kale.predict.class_domain_nets import ClassNet
 

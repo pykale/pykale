@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import torch
 
-from kale.embed.model_lib.CGCNN import CGCNNEncoderLayer, CrystalGCN
+from kale.embed.model_lib.cgcnn import CGCNNEncoderLayer, CrystalGCN
 
 
 def _make_dummy_cgcnn_batch(num_graphs=2, nodes_per_graph=(3, 2), atom_fea_len=8, nbr_fea_len=6, max_nbr=3):
