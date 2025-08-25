@@ -1,0 +1,8 @@
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+wandb/
+saved_models/
+cif_file/
+leave_one_material_out/

@@ -30,6 +30,13 @@ kale.loaddata.image\_access module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.materials\_equivariant module
+--------------------------------------
+.. automodule:: kale.loaddata.materials_equivariant
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.mnistm module
 ---------------------------
 
