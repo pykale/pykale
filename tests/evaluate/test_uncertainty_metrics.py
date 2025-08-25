@@ -1,8 +1,20 @@
 import logging
 
+import pandas as pd
 import pytest
 
-from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard
+from kale.evaluate.uncertainty_metrics import (
+    DataProcessor,
+    evaluate_bounds,
+    evaluate_jaccard,
+    EvaluationConfig,
+    FoldData,
+    JaccardBinResults,
+    JaccardEvaluator,
+    MetricsCalculator,
+    QuantileCalculator,
+    ResultsContainer,
+)
 from kale.prepdata.tabular_transform import generate_struct_for_qbin
 
 # from kale.utils.download import download_file_by_url
@@ -160,3 +172,312 @@ class TestEvaluateBounds:
             == len(all_bound_percents_notargetsep["U-NET E-MHA"][0])
             == 8 * 2
         )  # because each landmark has 8 folds - they are sep
+
+
+class TestEvaluationConfig:
+    """Test EvaluationConfig dataclass."""
+
+    def test_default_config(self):
+        """Test default configuration values."""
+        config = EvaluationConfig()
+        assert config.num_folds == 8
+        assert config.original_num_bins == 10
+        assert config.error_scaling_factor == 1.0
+        assert config.combine_middle_bins is False
+        assert config.combined_num_bins == 3
+
+    def test_custom_config(self):
+        """Test custom configuration values."""
+        config = EvaluationConfig(
+            num_folds=5, original_num_bins=15, error_scaling_factor=2.0, combine_middle_bins=True, combined_num_bins=4
+        )
+        assert config.num_folds == 5
+        assert config.original_num_bins == 15
+        assert config.error_scaling_factor == 2.0
+        assert config.combine_middle_bins is True
+        assert config.combined_num_bins == 4
+
+
+class TestResultsContainer:
+    """Test ResultsContainer functionality."""
+
+    def test_initialization(self):
+        """Test proper initialization of ResultsContainer."""
+        container = ResultsContainer(num_bins=5, num_targets=3)
+        assert container.num_bins == 5
+        assert container.num_targets == 3
+        assert len(container.target_sep_foldwise) == 3
+        assert len(container.target_sep_all) == 3
+        assert isinstance(container.main_results, dict)
+        assert isinstance(container.target_separated_results, dict)
+
+    def test_add_results(self):
+        """Test adding results to container."""
+        container = ResultsContainer(num_bins=5, num_targets=2)
+
+        # Test adding main result
+        test_data = [1, 2, 3, 4, 5]
+        container.add_main_result("test_key", test_data)
+        assert container.main_results["test_key"] == test_data
+
+        # Test adding target separated result
+        target_data = [[1, 2], [3, 4], [5, 6]]
+        container.add_target_separated_result("test_key", target_data)
+        assert container.target_separated_results["test_key"] == target_data
+
+
+class TestDataProcessor:
+    """Test DataProcessor utility methods."""
+
+    def test_group_data_by_bins(self):
+        """Test grouping data by bins."""
+        errors_dict = {"pred1": 0.1, "pred2": 0.3, "pred3": 0.2, "pred4": 0.4}
+        bins_dict = {"pred1": 0, "pred2": 1, "pred3": 0, "pred4": 1}
+
+        bin_keys, bin_errors = DataProcessor.group_data_by_bins(errors_dict, bins_dict, 2)
+
+        assert len(bin_keys) == 2
+        assert len(bin_errors) == 2
+        assert set(bin_keys[0]) == {"pred1", "pred3"}
+        assert set(bin_keys[1]) == {"pred2", "pred4"}
+        assert bin_errors[0] == [0.1, 0.2]
+        assert bin_errors[1] == [0.3, 0.4]
+
+
+class TestQuantileCalculator:
+    """Test QuantileCalculator utility methods."""
+
+    def test_calculate_error_quantiles(self):
+        """Test quantile threshold calculation."""
+        errors_dict = {f"pred{i}": i * 0.1 for i in range(10)}  # 0.0 to 0.9
+
+        thresholds, error_groups, key_groups = QuantileCalculator.calculate_error_quantiles(
+            errors_dict, num_bins=5, combine_middle_bins=False
+        )
+
+        assert len(thresholds) == 4  # num_bins - 1
+        assert len(error_groups) == 5
+        assert len(key_groups) == 5
+
+        # Check that groups are ordered from worst to best (reversed)
+        assert error_groups[0]  # Worst errors (highest values)
+        assert error_groups[-1]  # Best errors (lowest values)
+
+    def test_combine_middle_bins(self):
+        """Test combining middle bins functionality."""
+        errors_dict = {f"pred{i}": i * 0.1 for i in range(10)}
+
+        thresholds, error_groups, key_groups = QuantileCalculator.calculate_error_quantiles(
+            errors_dict, num_bins=5, combine_middle_bins=True
+        )
+
+        assert len(thresholds) == 2  # First and last threshold only
+        assert len(error_groups) == 3  # Combined to 3 groups
+        assert len(key_groups) == 3
+
+
+class TestMetricsCalculator:
+    """Test MetricsCalculator utility methods."""
+
+    def test_calculate_jaccard_metrics(self):
+        """Test Jaccard similarity calculation."""
+        predicted_keys = ["sample1", "sample2", "sample3"]
+        ground_truth_keys = ["sample1", "sample4"]
+
+        jaccard, recall, precision = MetricsCalculator.calculate_jaccard_metrics(predicted_keys, ground_truth_keys)
+
+        # Expected: intersection = {'sample1'}, union = {'sample1', 'sample2', 'sample3', 'sample4'}
+        # Jaccard = 1/4 = 0.25, Recall = 1/2 = 0.5, Precision = 1/3 ≈ 0.33
+        assert jaccard == 0.25
+        assert recall == 0.5
+        assert abs(precision - 1 / 3) < 1e-10
+
+    def test_empty_sets(self):
+        """Test edge cases with empty sets."""
+        # Both empty
+        jaccard, recall, precision = MetricsCalculator.calculate_jaccard_metrics([], [])
+        assert jaccard == 0.0
+        assert recall == 1.0  # Special case
+        assert precision == 0.0
+
+        # Empty ground truth
+        jaccard, recall, precision = MetricsCalculator.calculate_jaccard_metrics(["a"], [])
+        assert recall == 1.0
+        assert precision == 0.0
+
+        # Empty predictions
+        jaccard, recall, precision = MetricsCalculator.calculate_jaccard_metrics([], ["a"])
+        assert recall == 0.0
+        assert precision == 0.0
+
+    def test_calculate_bound_accuracy(self):
+        """Test bound accuracy calculation."""
+        bounds = [0.1, 0.3, 0.5, 0.7]
+
+        # Test bin 0: (0, 0.1]
+        assert MetricsCalculator.calculate_bound_accuracy(0.05, 0, bounds) is True
+        assert MetricsCalculator.calculate_bound_accuracy(0.15, 0, bounds) is False
+
+        # Test middle bin: (0.1, 0.3]
+        assert MetricsCalculator.calculate_bound_accuracy(0.2, 1, bounds) is True
+        assert MetricsCalculator.calculate_bound_accuracy(0.1, 1, bounds) is False
+
+        # Test last bin: (0.7, inf)
+        assert MetricsCalculator.calculate_bound_accuracy(0.8, 4, bounds) is True
+        assert MetricsCalculator.calculate_bound_accuracy(0.6, 4, bounds) is False
+
+
+class TestJaccardEvaluator:
+    """Test JaccardEvaluator class and methods."""
+
+    def test_initialization_default(self):
+        """Test default initialization."""
+        evaluator = JaccardEvaluator()
+        assert evaluator.config_.num_folds == 8
+        assert evaluator.config_.original_num_bins == 10
+        assert evaluator.config_.combine_middle_bins is False
+
+    def test_initialization_with_config(self):
+        """Test initialization with custom config."""
+        config = EvaluationConfig(num_folds=5, original_num_bins=7)
+        evaluator = JaccardEvaluator(config)
+        assert evaluator.config_.num_folds == 5
+        assert evaluator.config_.original_num_bins == 7
+
+    def test_create_simple_factory(self):
+        """Test create_simple factory method."""
+        evaluator = JaccardEvaluator.create_simple(original_num_bins=6, num_folds=4, combine_middle_bins=True)
+        assert evaluator.config_.original_num_bins == 6
+        assert evaluator.config_.num_folds == 4
+        assert evaluator.config_.combine_middle_bins is True
+
+    def test_create_default_factory(self):
+        """Test create_default factory method."""
+        evaluator = JaccardEvaluator.create_default()
+        assert evaluator.config_.num_folds == 8
+        assert evaluator.config_.original_num_bins == 10
+
+    def test_evaluate_integration(self, dummy_test_preds):
+        """Test integration with actual data using new evaluator interface."""
+        evaluator = JaccardEvaluator.create_simple(original_num_bins=5, num_folds=8)
+
+        results = evaluator.evaluate(bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"]], targets=[0, 1])
+
+        # Check that results match expected structure
+        assert "Jaccard All" in results
+        assert "Jaccard targets seperated" in results
+        assert "Recall All" in results
+        assert "Precision All" in results
+
+        # Check specific keys and structure
+        jaccard_all = results["Jaccard All"]
+        assert "U-NET S-MHA" in jaccard_all
+        assert len(jaccard_all["U-NET S-MHA"]) == 5  # 5 bins
+
+    @pytest.mark.parametrize("num_bins", [3, 5, 7])
+    def test_different_bin_numbers(self, dummy_test_preds, num_bins):
+        """Test evaluator with different numbers of bins."""
+        evaluator = JaccardEvaluator.create_simple(original_num_bins=num_bins, num_folds=8)
+
+        results = evaluator.evaluate(bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"]], targets=[0, 1])
+
+        jaccard_all = results["Jaccard All"]
+        assert len(jaccard_all["U-NET S-MHA"]) == num_bins
+
+    def test_combine_middle_bins(self, dummy_test_preds):
+        """Test evaluator with combined middle bins."""
+        evaluator = JaccardEvaluator.create_simple(original_num_bins=10, num_folds=8, combine_middle_bins=True)
+
+        results = evaluator.evaluate(bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"]], targets=[0, 1])
+
+        jaccard_all = results["Jaccard All"]
+        # When combine_middle_bins=True, should have 3 bins
+        assert len(jaccard_all["U-NET S-MHA"]) == 3
+
+    def test_multiple_uncertainty_types(self, dummy_test_preds):
+        """Test evaluator with multiple uncertainty types."""
+        evaluator = JaccardEvaluator.create_simple(original_num_bins=5, num_folds=8)
+
+        results = evaluator.evaluate(
+            bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"], ["E-MHA"]], targets=[0, 1]
+        )
+
+        jaccard_all = results["Jaccard All"]
+        assert "U-NET S-MHA" in jaccard_all
+        assert "U-NET E-MHA" in jaccard_all
+        assert len(jaccard_all["U-NET S-MHA"]) == 5
+        assert len(jaccard_all["U-NET E-MHA"]) == 5
+
+
+class TestBackwardCompatibility:
+    """Test backward compatibility between old functional interface and new class interface."""
+
+    def test_jaccard_results_consistency(self, dummy_test_preds):
+        """Test that old and new interfaces produce consistent results."""
+        # Old functional interface
+        old_results = evaluate_jaccard(dummy_test_preds[0], [["S-MHA"]], 5, [0, 1], num_folds=8)
+
+        # New class interface
+        evaluator = JaccardEvaluator.create_simple(original_num_bins=5, num_folds=8)
+        new_results = evaluator.evaluate(
+            bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"]], targets=[0, 1]
+        )
+
+        # Compare key results (allowing for small numerical differences)
+        old_jaccard = old_results["Jaccard All"]["U-NET S-MHA"]
+        new_jaccard = new_results["Jaccard All"]["U-NET S-MHA"]
+
+        assert len(old_jaccard) == len(new_jaccard)
+        for old_bin, new_bin in zip(old_jaccard, new_jaccard):
+            for old_val, new_val in zip(old_bin, new_bin):
+                assert abs(old_val - new_val) < 1e-10
+
+
+class TestFoldData:
+    """Test FoldData dataclass."""
+
+    def test_fold_data_creation(self):
+        """Test FoldData creation and attributes."""
+        errors_df = pd.DataFrame({"uid": [1, 2, 3], "target_idx": [0, 1, 0], "S-MHA Error": [0.1, 0.2, 0.3]})
+
+        bins_df = pd.DataFrame({"uid": [1, 2, 3], "target_idx": [0, 1, 0], "S-MHA Uncertainty bins": [0, 1, 2]})
+
+        fold_data = FoldData(errors=errors_df, bins=bins_df)
+
+        assert fold_data.errors.equals(errors_df)
+        assert fold_data.bins.equals(bins_df)
+        assert fold_data.bounds is None
+
+        # Test with bounds
+        bounds = [0.1, 0.2, 0.3]
+        fold_data_with_bounds = FoldData(errors=errors_df, bins=bins_df, bounds=bounds)
+        assert fold_data_with_bounds.bounds == bounds
+
+
+class TestJaccardBinResults:
+    """Test JaccardBinResults dataclass."""
+
+    def test_jaccard_bin_results_creation(self):
+        """Test JaccardBinResults creation and inheritance."""
+        results = JaccardBinResults(
+            mean_all_targets=0.5,
+            mean_all_bins=[0.4, 0.5, 0.6],
+            all_bins=[[0.3, 0.4], [0.5, 0.6], [0.7, 0.8]],
+            all_bins_concat_targets_sep=[[[0.3], [0.4]], [[0.5], [0.6]]],
+            mean_all_targets_recall=0.6,
+            mean_all_bins_recall=[0.5, 0.6, 0.7],
+            all_bins_recall=[[0.4, 0.5], [0.6, 0.7], [0.8, 0.9]],
+            mean_all_targets_precision=0.7,
+            mean_all_bins_precision=[0.6, 0.7, 0.8],
+            all_bins_precision=[[0.5, 0.6], [0.7, 0.8], [0.9, 1.0]],
+        )
+
+        # Test base class attributes
+        assert results.mean_all_targets == 0.5
+        assert results.mean_all_bins == [0.4, 0.5, 0.6]
+
+        # Test Jaccard-specific attributes
+        assert results.mean_all_targets_recall == 0.6
+        assert results.mean_all_bins_recall == [0.5, 0.6, 0.7]
+        assert results.mean_all_targets_precision == 0.7
+        assert results.mean_all_bins_precision == [0.6, 0.7, 0.8]

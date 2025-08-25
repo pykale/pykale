@@ -254,7 +254,7 @@ class ResultsContainer:
     def __init__(self, num_bins: int, num_targets: int):
         """
         Initialize ResultsContainer with bin and target dimensions.
-        
+
         Args:
             num_bins (int): Number of uncertainty bins in the evaluation.
             num_targets (int): Number of target labels being evaluated.
@@ -266,7 +266,7 @@ class ResultsContainer:
     def _init_containers(self):
         """
         Initialize all result containers with empty data structures.
-        
+
         Sets up the internal data structures needed to organize evaluation results
         across different dimensions (main results, target-separated results,
         fold-wise results, and evaluation-specific containers).
@@ -816,16 +816,12 @@ class BaseEvaluator(ABC):
         pass
 
     @abstractmethod
-    def _finalize_results(self, container: ResultsContainer) -> Dict:
+    def _finalize_results(self) -> Dict:
         """
         Convert results container into final output format.
 
         This abstract method handles the final formatting of evaluation results
         to match the expected API output format.
-
-        Args:
-            container (ResultsContainer): Container with all aggregated results
-                organized by different groupings (main, target-separated, etc.).
 
         Returns:
             Dict: Final results dictionary with keys matching the expected API format.
