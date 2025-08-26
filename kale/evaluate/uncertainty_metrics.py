@@ -712,7 +712,7 @@ class BaseEvaluator(ABC):
         """
         self.config_ = config
         # Instance variables to reduce parameter passing
-        self.container_: ResultsContainer
+        self.container_: Optional[ResultsContainer] = None
         self.current_num_bins_: int = config.original_num_bins
         self.current_targets_: List[int] = []
         self.current_uncertainty_type_: str = ""
@@ -919,8 +919,7 @@ class JaccardEvaluator(BaseEvaluator):
             Inherits utility components (data_processor, quantile_calculator,
             metrics_calculator) from BaseEvaluator initialization.
         """
-        self.config_ = config or EvaluationConfig()
-        super().__init__(self.config_)
+        super().__init__(config or EvaluationConfig())
 
     @classmethod
     def create_simple(
@@ -1157,6 +1156,7 @@ class JaccardEvaluator(BaseEvaluator):
                 fold_all_precision_bins[bin_idx].extend(result.all_bins_precision[bin_idx])
 
         # Store results in container
+        assert self.container_ is not None, "Results container is not initialized"
         self.container_.add_main_result(model_key, fold_jaccard_bins)
         self.container_.add_target_separated_result(model_key, fold_all_jaccard_bins)
 
@@ -1213,6 +1213,7 @@ class JaccardEvaluator(BaseEvaluator):
             This method maps the container's organized data structure to the specific
             result keys expected by the Jaccard evaluation API.
         """
+        assert self.container_ is not None, "Results container is not initialized"
         return {
             ResultKeys.JACCARD_ALL: self.container_.main_results,
             ResultKeys.JACCARD_TARGETS_SEPARATED: self.container_.target_separated_results,
