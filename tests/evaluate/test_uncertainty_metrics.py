@@ -1,9 +1,11 @@
 import logging
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from kale.evaluate.uncertainty_metrics import (
+    ColumnNames,
     DataProcessor,
     evaluate_bounds,
     evaluate_jaccard,
@@ -356,6 +358,125 @@ class TestJaccardEvaluator:
         evaluator = JaccardEvaluator.create_default()
         assert evaluator.config_.num_folds == 8
         assert evaluator.config_.original_num_bins == 10
+
+    def test_extract_target_data(self):
+        """Test _extract_target_data method."""
+        evaluator = JaccardEvaluator.create_simple(original_num_bins=5, num_folds=1)
+        evaluator.current_uncertainty_type_ = "epistemic"
+
+        # Create mock fold data
+        errors_df = pd.DataFrame(
+            {
+                ColumnNames.UID: ["uid1", "uid2", "uid3"],
+                ColumnNames.TARGET_IDX: [0, 0, 1],
+                "epistemic Error": [0.1, 0.2, 0.3],
+            }
+        )
+        bins_df = pd.DataFrame(
+            {
+                ColumnNames.UID: ["uid1", "uid2", "uid3"],
+                ColumnNames.TARGET_IDX: [0, 0, 1],
+                "epistemic Uncertainty bins": [1, 2, 1],
+            }
+        )
+        fold_data = FoldData(errors=errors_df, bins=bins_df)
+
+        errors_dict, bins_dict = evaluator._extract_target_data(fold_data, target_idx=0)
+
+        assert len(errors_dict) == 2  # Only target 0 data
+        assert "uid1" in errors_dict and "uid2" in errors_dict
+        assert "uid3" not in errors_dict  # Different target
+        assert errors_dict["uid1"] == 0.1
+        assert bins_dict["uid1"] == 1
+
+    def test_get_predicted_bin_keys(self):
+        """Test _get_predicted_bin_keys method."""
+        evaluator = JaccardEvaluator.create_simple(original_num_bins=3, num_folds=1)
+        evaluator.current_num_bins_ = 3
+
+        errors_dict = {"uid1": 0.1, "uid2": 0.5, "uid3": 0.3}
+        bins_dict = {"uid1": 0, "uid2": 2, "uid3": 1}  # Best to worst: 0, 1, 2
+
+        pred_bin_keys = evaluator._get_predicted_bin_keys(errors_dict, bins_dict)
+
+        # Should be reversed (worst to best: B3 to B1)
+        assert len(pred_bin_keys) == 3
+        assert isinstance(pred_bin_keys, list)
+        assert all(isinstance(bin_keys, list) for bin_keys in pred_bin_keys)
+
+    def test_calculate_bin_wise_metrics(self):
+        """Test _calculate_bin_wise_metrics method."""
+        evaluator = JaccardEvaluator.create_simple(original_num_bins=3, num_folds=1)
+        evaluator.current_num_bins_ = 3
+
+        pred_bin_keys = [["uid1", "uid2"], ["uid3"], []]
+        gt_key_groups = [["uid1"], ["uid2", "uid3"], []]
+
+        bin_jaccard, bin_recall, bin_precision = evaluator._calculate_bin_wise_metrics(pred_bin_keys, gt_key_groups)
+
+        assert len(bin_jaccard) == 3
+        assert len(bin_recall) == 3
+        assert len(bin_precision) == 3
+        assert all(isinstance(val, float) for val in bin_jaccard)
+
+    def test_format_target_results(self):
+        """Test _format_target_results method."""
+        evaluator = JaccardEvaluator.create_simple(original_num_bins=3, num_folds=1)
+
+        bin_jaccard = [0.5, 0.3, 0.8]
+        bin_recall = [0.6, 0.4, 0.9]
+        bin_precision = [0.7, 0.5, 0.85]
+
+        results = evaluator._format_target_results(bin_jaccard, bin_recall, bin_precision)
+
+        assert "mean_jaccard" in results
+        assert "mean_recall" in results
+        assert "mean_precision" in results
+        assert "bin_jaccard" in results
+        assert "bin_recall" in results
+        assert "bin_precision" in results
+
+        assert abs(results["mean_jaccard"] - np.mean(bin_jaccard)) < 1e-10
+        assert results["bin_jaccard"] == bin_jaccard
+
+    def test_aggregate_fold_metrics(self):
+        """Test _aggregate_fold_metrics method."""
+        evaluator = JaccardEvaluator.create_simple(original_num_bins=2, num_folds=1)
+        evaluator.current_num_bins_ = 2
+
+        # Create mock JaccardBinResults
+        results1 = JaccardBinResults(
+            mean_all_targets=0.5,
+            mean_all_bins=[0.4, 0.6],
+            all_bins=[[0.4], [0.6]],
+            all_bins_concat_targets_sep=[],
+            mean_all_targets_recall=0.6,
+            mean_all_bins_recall=[0.5, 0.7],
+            all_bins_recall=[[0.5], [0.7]],
+            mean_all_targets_precision=0.55,
+            mean_all_bins_precision=[0.45, 0.65],
+            all_bins_precision=[[0.45], [0.65]],
+        )
+        results2 = JaccardBinResults(
+            mean_all_targets=0.7,
+            mean_all_bins=[0.6, 0.8],
+            all_bins=[[0.6], [0.8]],
+            all_bins_concat_targets_sep=[],
+            mean_all_targets_recall=0.8,
+            mean_all_bins_recall=[0.7, 0.9],
+            all_bins_recall=[[0.7], [0.9]],
+            mean_all_targets_precision=0.75,
+            mean_all_bins_precision=[0.65, 0.85],
+            all_bins_precision=[[0.65], [0.85]],
+        )
+
+        aggregated = evaluator._aggregate_fold_metrics([results1, results2])
+
+        assert "fold_jaccard_bins" in aggregated
+        assert "fold_recall_bins" in aggregated
+        assert "fold_precision_bins" in aggregated
+        assert len(aggregated["fold_jaccard_bins"]) == 2  # num_bins
+        assert len(aggregated["fold_jaccard_bins"][0]) == 2  # num_folds
 
     def test_evaluate_integration(self, dummy_test_preds):
         """Test integration with actual data using new evaluator interface."""

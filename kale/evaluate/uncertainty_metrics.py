@@ -1057,9 +1057,9 @@ class JaccardEvaluator(BaseEvaluator):
 
         Returns:
             Dict: Dictionary containing computed metrics with keys:
-                - 'target_jaccard': Overall Jaccard similarity for this target
-                - 'target_recall': Overall recall for this target
-                - 'target_precision': Overall precision for this target
+                - 'mean_jaccard': Overall Jaccard similarity for this target
+                - 'mean_recall': Overall recall for this target
+                - 'mean_precision': Overall precision for this target
                 - 'bin_jaccard': List of Jaccard values for each bin
                 - 'bin_recall': List of recall values for each bin
                 - 'bin_precision': List of precision values for each bin
@@ -1068,6 +1068,29 @@ class JaccardEvaluator(BaseEvaluator):
             This method processes data specific to one target, enabling detailed
             analysis of uncertainty quantification performance across different
             prediction targets or classes.
+        """
+        # Extract and prepare target-specific data
+        errors_dict, bins_dict = self._extract_target_data(fold_data, target_idx)
+
+        # Get predicted bins and ground truth quantiles
+        pred_bin_keys = self._get_predicted_bin_keys(errors_dict, bins_dict)
+        gt_key_groups = self._get_ground_truth_quantiles(errors_dict)
+
+        # Calculate bin-wise metrics
+        bin_jaccard, bin_recall, bin_precision = self._calculate_bin_wise_metrics(pred_bin_keys, gt_key_groups)
+
+        return self._format_target_results(bin_jaccard, bin_recall, bin_precision)
+
+    def _extract_target_data(self, fold_data: FoldData, target_idx: int) -> Tuple[Dict, Dict]:
+        """
+        Extract and prepare target-specific data for evaluation.
+
+        Args:
+            fold_data (FoldData): Container with errors and bins data for the current fold.
+            target_idx (int): Index of the target to process.
+
+        Returns:
+            Tuple[Dict, Dict]: Tuple containing errors_dict and bins_dict for the target.
         """
         target_errors = fold_data.errors[fold_data.errors[ColumnNames.TARGET_IDX] == target_idx]
         target_bins = fold_data.bins[fold_data.bins[ColumnNames.TARGET_IDX] == target_idx]
@@ -1084,16 +1107,50 @@ class JaccardEvaluator(BaseEvaluator):
             )
         )
 
-        # Get predicted bins
-        pred_bin_keys, _ = DataProcessor.group_data_by_bins(errors_dict, bins_dict, self.current_num_bins_)
-        pred_bin_keys = pred_bin_keys[::-1]  # Reverse for B5 to B1
+        return errors_dict, bins_dict
 
-        # Get ground truth quantiles
+    def _get_predicted_bin_keys(self, errors_dict: Dict, bins_dict: Dict) -> List[List]:
+        """
+        Get predicted bin keys ordered from worst to best (B5 to B1).
+
+        Args:
+            errors_dict (Dict): Dictionary mapping UIDs to error values.
+            bins_dict (Dict): Dictionary mapping UIDs to bin assignments.
+
+        Returns:
+            List[List]: Predicted bin keys for each bin, ordered from worst to best.
+        """
+        pred_bin_keys, _ = DataProcessor.group_data_by_bins(errors_dict, bins_dict, self.current_num_bins_)
+        return pred_bin_keys[::-1]  # Reverse for B5 to B1
+
+    def _get_ground_truth_quantiles(self, errors_dict: Dict) -> List[List]:
+        """
+        Get ground truth quantile groups for error-based evaluation.
+
+        Args:
+            errors_dict (Dict): Dictionary mapping UIDs to error values.
+
+        Returns:
+            List[List]: Ground truth key groups for each quantile bin.
+        """
         _, _, gt_key_groups = QuantileCalculator.calculate_error_quantiles(
             errors_dict, self.config_.original_num_bins, self.config_.combine_middle_bins
         )
+        return gt_key_groups
 
-        # Calculate metrics for each bin
+    def _calculate_bin_wise_metrics(
+        self, pred_bin_keys: List[List], gt_key_groups: List[List]
+    ) -> Tuple[List[float], List[float], List[float]]:
+        """
+        Calculate Jaccard, recall, and precision metrics for each bin.
+
+        Args:
+            pred_bin_keys (List[List]): Predicted bin keys for each bin.
+            gt_key_groups (List[List]): Ground truth key groups for each bin.
+
+        Returns:
+            Tuple[List[float], List[float], List[float]]: Bin-wise jaccard, recall, and precision values.
+        """
         bin_jaccard = []
         bin_recall = []
         bin_precision = []
@@ -1106,6 +1163,22 @@ class JaccardEvaluator(BaseEvaluator):
             bin_recall.append(recall)
             bin_precision.append(precision)
 
+        return bin_jaccard, bin_recall, bin_precision
+
+    def _format_target_results(
+        self, bin_jaccard: List[float], bin_recall: List[float], bin_precision: List[float]
+    ) -> Dict:
+        """
+        Format target evaluation results into the expected dictionary format.
+
+        Args:
+            bin_jaccard (List[float]): Jaccard values for each bin.
+            bin_recall (List[float]): Recall values for each bin.
+            bin_precision (List[float]): Precision values for each bin.
+
+        Returns:
+            Dict: Formatted results dictionary with mean and bin-wise metrics.
+        """
         return {
             "mean_jaccard": np.mean(bin_jaccard),
             "mean_recall": np.mean(bin_recall),
@@ -1137,6 +1210,26 @@ class JaccardEvaluator(BaseEvaluator):
         # Cast to JaccardBinResults since we know that's what JaccardEvaluator produces
         jaccard_results = cast(List[JaccardBinResults], fold_results)
 
+        # Aggregate fold-level metrics
+        aggregated_metrics = self._aggregate_fold_metrics(jaccard_results)
+
+        # Store main results in container
+        self._store_main_results(model_key, aggregated_metrics)
+
+        # Store target-separated results
+        self._store_target_separated_results(model_key, jaccard_results)
+
+    def _aggregate_fold_metrics(self, jaccard_results: List[JaccardBinResults]) -> Dict[str, List[List[float]]]:
+        """
+        Aggregate metrics across all folds for bin-wise and target-wise analysis.
+
+        Args:
+            jaccard_results (List[JaccardBinResults]): Results from all folds.
+
+        Returns:
+            Dict[str, List[List[float]]]: Dictionary containing aggregated metrics for each metric type.
+        """
+        # Initialize containers for each metric type
         fold_jaccard_bins: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
         fold_recall_bins: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
         fold_precision_bins: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
@@ -1145,6 +1238,7 @@ class JaccardEvaluator(BaseEvaluator):
         fold_all_recall_bins: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
         fold_all_precision_bins: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
 
+        # Aggregate results across folds
         for result in jaccard_results:
             for bin_idx in range(len(result.mean_all_bins)):
                 fold_jaccard_bins[bin_idx].append(result.mean_all_bins[bin_idx])
@@ -1155,40 +1249,96 @@ class JaccardEvaluator(BaseEvaluator):
                 fold_all_recall_bins[bin_idx].extend(result.all_bins_recall[bin_idx])
                 fold_all_precision_bins[bin_idx].extend(result.all_bins_precision[bin_idx])
 
-        # Store results in container
+        return {
+            "fold_jaccard_bins": fold_jaccard_bins,
+            "fold_recall_bins": fold_recall_bins,
+            "fold_precision_bins": fold_precision_bins,
+            "fold_all_jaccard_bins": fold_all_jaccard_bins,
+            "fold_all_recall_bins": fold_all_recall_bins,
+            "fold_all_precision_bins": fold_all_precision_bins,
+        }
+
+    def _store_main_results(self, model_key: str, aggregated_metrics: Dict[str, List[List[float]]]):
+        """
+        Store main aggregated results in the results container.
+
+        Args:
+            model_key (str): Model-uncertainty combination identifier.
+            aggregated_metrics (Dict[str, List[List[float]]]): Aggregated metrics from all folds.
+        """
         assert self.container_ is not None, "Results container is not initialized"
-        self.container_.add_main_result(model_key, fold_jaccard_bins)
-        self.container_.add_target_separated_result(model_key, fold_all_jaccard_bins)
+
+        # Store main jaccard results
+        self.container_.add_main_result(model_key, aggregated_metrics["fold_jaccard_bins"])
+        self.container_.add_target_separated_result(model_key, aggregated_metrics["fold_all_jaccard_bins"])
 
         # Store recall results
-        self.container_.recall_results[model_key] = fold_recall_bins
-        self.container_.recall_target_separated[model_key] = fold_all_recall_bins
+        self.container_.recall_results[model_key] = aggregated_metrics["fold_recall_bins"]
+        self.container_.recall_target_separated[model_key] = aggregated_metrics["fold_all_recall_bins"]
 
         # Store precision results
-        self.container_.precision_results[model_key] = fold_precision_bins
-        self.container_.precision_target_separated[model_key] = fold_all_precision_bins
+        self.container_.precision_results[model_key] = aggregated_metrics["fold_precision_bins"]
+        self.container_.precision_target_separated[model_key] = aggregated_metrics["fold_all_precision_bins"]
 
-        # Store target separated data for foldwise and all
+    def _store_target_separated_results(self, model_key: str, jaccard_results: List[JaccardBinResults]):
+        """
+        Store target-separated results for foldwise and overall analysis.
+
+        Args:
+            model_key (str): Model-uncertainty combination identifier.
+            jaccard_results (List[JaccardBinResults]): Results from all folds.
+        """
+        assert self.container_ is not None, "Results container is not initialized"
+
+        # Process each fold's target-separated results
         for fold_idx in range(len(jaccard_results)):
             result = jaccard_results[fold_idx]
-            for target_idx in range(len(result.all_bins_concat_targets_sep)):
-                for bin_idx in range(self.current_num_bins_):
-                    if target_idx < len(self.container_.target_sep_foldwise):
-                        if model_key not in self.container_.target_sep_foldwise[target_idx]:
-                            self.container_.target_sep_foldwise[target_idx][model_key] = [
-                                [] for _ in range(self.current_num_bins_)
-                            ]
-                        self.container_.target_sep_foldwise[target_idx][model_key][bin_idx].extend(
-                            result.all_bins_concat_targets_sep[target_idx][bin_idx]
-                        )
+            self._process_fold_target_separation(model_key, result)
 
-                        if model_key not in self.container_.target_sep_all[target_idx]:
-                            self.container_.target_sep_all[target_idx][model_key] = [
-                                [] for _ in range(self.current_num_bins_)
-                            ]
-                        self.container_.target_sep_all[target_idx][model_key][bin_idx].extend(
-                            result.all_bins_concat_targets_sep[target_idx][bin_idx]
-                        )
+    def _process_fold_target_separation(self, model_key: str, result: JaccardBinResults):
+        """
+        Process target separation for a single fold's results.
+
+        Args:
+            model_key (str): Model-uncertainty combination identifier.
+            result (JaccardBinResults): Results from one fold.
+        """
+        assert self.container_ is not None, "Results container is not initialized"
+
+        for target_idx in range(len(result.all_bins_concat_targets_sep)):
+            self._initialize_target_containers_if_needed(model_key, target_idx)
+
+            for bin_idx in range(self.current_num_bins_):
+                if target_idx < len(self.container_.target_sep_foldwise):
+                    # Store foldwise target-separated results
+                    self.container_.target_sep_foldwise[target_idx][model_key][bin_idx].extend(
+                        result.all_bins_concat_targets_sep[target_idx][bin_idx]
+                    )
+
+                    # Store overall target-separated results
+                    self.container_.target_sep_all[target_idx][model_key][bin_idx].extend(
+                        result.all_bins_concat_targets_sep[target_idx][bin_idx]
+                    )
+
+    def _initialize_target_containers_if_needed(self, model_key: str, target_idx: int):
+        """
+        Initialize target containers if they don't exist for the given model key.
+
+        Args:
+            model_key (str): Model-uncertainty combination identifier.
+            target_idx (int): Index of the target.
+        """
+        assert self.container_ is not None, "Results container is not initialized"
+
+        # Initialize foldwise container if needed
+        if target_idx < len(self.container_.target_sep_foldwise):
+            if model_key not in self.container_.target_sep_foldwise[target_idx]:
+                self.container_.target_sep_foldwise[target_idx][model_key] = [[] for _ in range(self.current_num_bins_)]
+
+        # Initialize overall container if needed
+        if target_idx < len(self.container_.target_sep_all):
+            if model_key not in self.container_.target_sep_all[target_idx]:
+                self.container_.target_sep_all[target_idx][model_key] = [[] for _ in range(self.current_num_bins_)]
 
     def _finalize_results(self) -> Dict:
         """
