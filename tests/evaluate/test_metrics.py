@@ -1,3 +1,4 @@
+import math
 import random
 
 import numpy as np
@@ -9,6 +10,7 @@ from kale.evaluate.metrics import (
     calculate_distance,
     DistanceMetric,
     GaussianDistance,
+    mean_relative_error,
     multitask_topk_accuracy,
     protonet_loss,
     signal_image_elbo_loss,
@@ -236,6 +238,32 @@ def test_binary_cross_entropy_target_mismatch_shape():
     target = torch.tensor([[1.0, 0.0]])  # Incorrect shape
     with pytest.raises(ValueError):  # Correct the expected exception type
         binary_cross_entropy(output, target)
+
+
+def test_mean_relative_error():
+    # simple known values -> mean(|2-1|/1, |4-2|/2) = mean(1, 1) = 1.0
+    t = torch.tensor([1.0, 2.0])
+    o = torch.tensor([2.0, 4.0])
+    assert mean_relative_error(o, t) == pytest.approx(1.0, rel=1e-6)
+
+    # zeros in target with matching zeros -> finite & correct
+    #    contributions: 0/eps, 0/eps, |1.5-1|/1 = 0.5 => mean = 0.5/3
+    t = torch.tensor([0.0, 0.0, 1.0])
+    o = torch.tensor([0.0, 0.0, 1.5])
+    expected = (0.0 + 0.0 + 0.5) / 3.0
+    assert mean_relative_error(o, t) == pytest.approx(expected, rel=1e-6, abs=1e-12)
+
+    # zero target but nonzero prediction -> very large but finite due to eps
+    t = torch.tensor([0.0, 1.0])
+    o = torch.tensor([1.0, 1.0])
+    val = mean_relative_error(o, t)
+    assert math.isfinite(val) and val > 1e6  # with eps=1e-9, ~5e8 average here
+
+    # column-vector shape works the same
+    t = torch.tensor([[1.0], [2.0]])
+    o = torch.tensor([[1.5], [1.0]])
+    expected = ((0.5 / 1.0) + (1.0 / 2.0)) / 2.0
+    assert mean_relative_error(o, t) == pytest.approx(expected, rel=1e-6)
 
 
 def test_gaussian_distance():
