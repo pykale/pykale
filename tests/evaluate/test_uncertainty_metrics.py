@@ -316,16 +316,33 @@ class TestMetricsCalculator:
         """Test bound accuracy calculation."""
         bounds = [0.1, 0.3, 0.5, 0.7]
 
-        # Test bin 0: (0, 0.1]
+        # Test bin 0: (0, 0.1] - errors greater than 0 and up to 0.1
         assert MetricsCalculator.calculate_bound_accuracy(0.05, 0, bounds) is True
+        assert MetricsCalculator.calculate_bound_accuracy(0.1, 0, bounds) is True  # Upper bound inclusive
+        assert MetricsCalculator.calculate_bound_accuracy(0.0, 0, bounds) is False  # Exactly 0 excluded
         assert MetricsCalculator.calculate_bound_accuracy(0.15, 0, bounds) is False
 
-        # Test middle bin: (0.1, 0.3]
+        # Test middle bin 1: (0.1, 0.3] - errors greater than 0.1 and up to 0.3
         assert MetricsCalculator.calculate_bound_accuracy(0.2, 1, bounds) is True
-        assert MetricsCalculator.calculate_bound_accuracy(0.1, 1, bounds) is False
+        assert MetricsCalculator.calculate_bound_accuracy(0.3, 1, bounds) is True  # Upper bound inclusive
+        assert MetricsCalculator.calculate_bound_accuracy(0.1, 1, bounds) is False  # Lower bound exclusive
+        assert MetricsCalculator.calculate_bound_accuracy(0.35, 1, bounds) is False
 
-        # Test last bin: (0.7, inf)
+        # Test middle bin 2: (0.3, 0.5] - errors greater than 0.3 and up to 0.5
+        assert MetricsCalculator.calculate_bound_accuracy(0.4, 2, bounds) is True
+        assert MetricsCalculator.calculate_bound_accuracy(0.5, 2, bounds) is True  # Upper bound inclusive
+        assert MetricsCalculator.calculate_bound_accuracy(0.3, 2, bounds) is False  # Lower bound exclusive
+        assert MetricsCalculator.calculate_bound_accuracy(0.55, 2, bounds) is False
+
+        # Test middle bin 3: (0.5, 0.7] - errors greater than 0.5 and up to 0.7
+        assert MetricsCalculator.calculate_bound_accuracy(0.6, 3, bounds) is True
+        assert MetricsCalculator.calculate_bound_accuracy(0.7, 3, bounds) is True  # Upper bound inclusive
+        assert MetricsCalculator.calculate_bound_accuracy(0.5, 3, bounds) is False  # Lower bound exclusive
+        assert MetricsCalculator.calculate_bound_accuracy(0.75, 3, bounds) is False
+
+        # Test last bin 4: (0.7, inf) - errors greater than 0.7
         assert MetricsCalculator.calculate_bound_accuracy(0.8, 4, bounds) is True
+        assert MetricsCalculator.calculate_bound_accuracy(0.7, 4, bounds) is False  # Lower bound exclusive
         assert MetricsCalculator.calculate_bound_accuracy(0.6, 4, bounds) is False
 
 

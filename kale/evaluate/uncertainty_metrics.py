@@ -640,8 +640,10 @@ class MetricsCalculator:
                 specified bin, False otherwise.
 
         Note:
-            Bin boundaries are exclusive on the lower bound and inclusive on the
-            upper bound, except for bin 0 which starts from 0 (exclusive).
+            Bin ranges follow the pattern (lower_bound, upper_bound], where:
+            - Bin 0: (0, bounds[0]] - errors greater than 0 and up to bounds[0]
+            - Bin i: (bounds[i-1], bounds[i]] - errors greater than bounds[i-1] and up to bounds[i]
+            - Last bin: (bounds[-1], ∞) - errors greater than the last bound
         """
         if bin_idx == 0:
             return 0 < error <= bounds[bin_idx]
