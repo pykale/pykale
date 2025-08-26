@@ -23,6 +23,23 @@ mp-123456.cif
 mp-654321.cif
 ```
 
+## Config
+
+To run `main.py`, create a YAML file (passed via `--cfg`) based on `config.py`. Key sections:
+
+- **DATASET**: Paths to train/val/test JSON files.
+- **MODEL**:
+  - `NAME`: choose one of `cgcnn`, `leftnet`, `cartnet`, `random_forest`, `linear_regression`, `svr`.
+  - `CIF_FOLDER`: directory containing all crystal `.cif` files.
+  - `INIT_FILE`: JSON with atomic feature encodings.
+  - `PRETRAINED_MODEL_PATH`: checkpoint to load (optional).
+  - `MAX_NBRS`, `RADIUS`: neighbor-search settings used in preprocessing.
+- **SOLVER**: training settings — `EPOCHS`, `LR`, `BATCH_SIZE`, `OPTIM` (`SGD`/`Adam`), `SEED`, `WORKERS`.
+- **CGCNN / LEFTNET / CARTNET**: model-specific options.
+  - For **LEFTNet**, set `ENCODING` to `"z"` (one-hot atomic number) or `"prop"` (precomputed atomic properties). See paper for details.
+- **LOGGING**: `LOG_DIR`, `PROJECT_NAME` — where checkpoints/logs are saved.
+
+
 ## Training
 
 To train a model (add `--pretrain` to perform pretraining once instead of k-fold training):
