@@ -20,7 +20,7 @@ jobs:
       matrix:
 #        os: [ubuntu-latest, windows-latest]
         os: [ubuntu-latest]
-        python-version: ["3.9", "3.10", "3.11"] # list of Python versions to test
+        python-version: ["3.9", "3.10", "3.11", "3.12"] # list of Python versions to test
 #        exclude:
 #          - os: windows-latest
 #            python-version: "3.9"
