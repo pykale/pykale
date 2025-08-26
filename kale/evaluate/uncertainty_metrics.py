@@ -296,20 +296,6 @@ class ResultsContainer:
         """Add a target separated result."""
         self.target_separated_results[key] = value
 
-    def update_target_containers(self, key: str, foldwise_data, all_data):
-        """Update target-separated containers."""
-        for target_idx in range(self.num_targets):
-            self.target_sep_foldwise[target_idx][key] = foldwise_data[target_idx]
-            self.target_sep_all[target_idx][key] = all_data[target_idx]
-
-    def to_dict(self) -> Dict:
-        """Convert to dictionary format matching original API."""
-        result = {}
-        result.update(self.main_results)
-        result.update(self.target_separated_results)
-        result.update(self.additional_containers)
-        return result
-
 
 class DataProcessor:
     """
