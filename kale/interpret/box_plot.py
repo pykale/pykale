@@ -452,7 +452,7 @@ def create_boxplot_data(
     )
 
 
-class BoxPlotter:
+class BoxPlotter(ABC):
     """
     Abstract base class for uncertainty quantification boxplot visualization.
 
@@ -514,6 +514,16 @@ class BoxPlotter:
         """
         self.config = config
 
+    @abstractmethod
+    def process_data(self) -> None:
+        """
+        Abstract method to process data for plotting.
+
+        This method must be implemented by subclasses to handle their specific
+        data processing requirements.
+        """
+        pass
+
     def setup_plot(self) -> None:
         """
         Initialize matplotlib plotting environment and reset internal state.
@@ -540,15 +550,135 @@ class BoxPlotter:
 
     def draw_boxplot(self) -> None:
         """
-        Abstract method for creating the actual boxplot visualization.
+        Default implementation for creating boxplot visualizations.
 
-        This method must be implemented by subclasses to provide specific
-        plotting behavior for different visualization modes.
+        This method provides a common implementation that works for most plotting modes
+        (Generic and PerModel). Subclasses can override this method for specialized behavior
+        or override specific hook methods to customize parts of the process.
 
-        Raises:
-            NotImplementedError: Always raised - subclasses must provide implementation.
+        The default implementation:
+        1. Sets up the plot
+        2. Processes data if needed
+        3. Creates color scheme and legend
+        4. Draws boxplots with standard styling
+        5. Handles sample information
+        6. Formats and finalizes the plot
         """
-        raise NotImplementedError("Subclasses must implement draw_boxplot method")
+        self.setup_plot()
+
+        if not self.processed_data:
+            self.process_data()
+
+        assert self.processed_data is not None
+        assert self.data is not None
+        assert self.data.uncertainty_categories is not None
+
+        colors = colormaps.get_cmap(self.config.colormap)(np.arange(len(self.data.uncertainty_categories) + 1))
+
+        # Set up legend using hook method for customization
+        self._setup_legend_for_mode(colors)
+
+        # Draw boxplots
+        for data_item in self.processed_data:
+            rect = self._draw_single_boxplot_item(data_item, colors)
+
+            # Handle sample information
+            if self.config.show_sample_info == "All":
+                self._collect_sample_info_all(rect)
+
+        assert self.bin_label_locs is not None  # Should be set by process_data
+        if self.config.show_sample_info == "Average":
+            self._collect_sample_info_average()
+
+        # Format and finalize plot using hook method for customization
+        self._finalize_plot()
+
+    def _setup_legend_for_mode(self, colors) -> None:
+        """
+        Hook method for setting up legend in different plotting modes.
+
+        Args:
+            colors: Color array from colormap
+
+        Default implementation handles standard legend setup.
+        Subclasses can override for specialized legend behavior.
+        """
+        if hasattr(self, "legend_info") and self.legend_info:
+            for legend_item in self.legend_info:
+                self._add_legend_patch(
+                    colors[legend_item["color_idx"]],
+                    legend_item["model_type"],
+                    legend_item["uncertainty_type"],
+                    legend_item["hatch_idx"],
+                )
+
+    def _draw_single_boxplot_item(self, data_item: Dict, colors) -> Dict[str, List[Any]]:
+        """
+        Hook method for drawing a single boxplot item.
+
+        Args:
+            data_item: Dictionary containing boxplot data and positioning
+            colors: Color array from colormap
+
+        Returns:
+            Matplotlib boxplot dictionary
+
+        Default implementation handles standard boxplot drawing.
+        Subclasses can override for specialized drawing behavior.
+        """
+        assert self.data is not None
+        if self.data.uncertainty_categories:
+            # Safely get dot color, avoid index out of bounds
+            dot_color_idx = len(colors) - 1
+            dot_color = colors[dot_color_idx]
+
+            return self._create_single_boxplot(
+                data_item["data"],
+                [data_item["x_position"]],
+                data_item["width"],
+                self.config.convert_to_percent,
+                self.config.show_individual_dots,
+                colors[data_item["color_idx"]],
+                dot_color,
+                data_item["hatch_idx"],
+            )
+        else:
+            # Default color handling
+            return self._create_single_boxplot(
+                data_item["data"],
+                [data_item["x_position"]],
+                data_item["width"],
+                self.config.convert_to_percent,
+                self.config.show_individual_dots,
+                "blue",  # Default color
+                "red",  # Default dot color
+                data_item.get("hatch_idx", 0),
+            )
+
+    def _finalize_plot(self) -> None:
+        """
+        Hook method for finalizing the plot.
+
+        Default implementation uses standard parameters.
+        Subclasses can override to customize finalization behavior.
+        """
+        assert self.bin_label_locs is not None
+        assert self.data is not None
+        assert self.data.category_labels is not None
+        assert self.data.num_bins is not None
+        assert self.data.uncertainty_categories is not None
+
+        # Default show_all_ticks behavior - subclasses can override
+        show_all_ticks = getattr(self.config, "detailed_mode", True)
+
+        self._format_and_finalize_plot(
+            self.bin_label_locs,
+            self.data.category_labels,
+            self.data.num_bins,
+            self.data.uncertainty_categories,
+            comparing_q=False,
+            show_all_ticks=show_all_ticks,
+        )
 
     def _add_legend_patch(self, color: str, model_type: str, uncertainty_type: str, hatch_idx: int) -> None:
         """
@@ -1016,71 +1146,12 @@ class GenericBoxPlotter(BoxPlotter):
             self.data.num_bins,
         )
 
-    def draw_boxplot(self) -> None:
+    def _finalize_plot(self) -> None:
         """
-        Draw generic multi-model boxplot.
-
-        Creates side-by-side boxplot comparisons across different models and uncertainty
-        types. Groups boxplots by uncertainty type first, then by models within each category.
+        Override finalization to use detailed_mode for show_all_ticks in generic plots.
         """
-        self.setup_plot()
-
-        if not self.processed_data:
-            self.process_data()
-
-        assert self.processed_data is not None
+        assert self.bin_label_locs is not None
         assert self.data is not None
-        assert self.data.uncertainty_categories is not None
-        colors = colormaps.get_cmap(self.config.colormap)(np.arange(len(self.data.uncertainty_categories) + 1))
-        # Set legend for generic mode
-        if self.legend_info:
-            for legend_item in self.legend_info:
-                self._add_legend_patch(
-                    colors[legend_item["color_idx"]],
-                    legend_item["model_type"],
-                    legend_item["uncertainty_type"],
-                    legend_item["hatch_idx"],
-                )
-
-        # Draw boxplots
-        for data_item in self.processed_data:
-            if self.data.uncertainty_categories:
-                # Safely get dot color, avoid index out of bounds
-                dot_color_idx = len(colors) - 1
-                dot_color = colors[dot_color_idx]
-
-                rect = self._create_single_boxplot(
-                    data_item["data"],
-                    [data_item["x_position"]],
-                    data_item["width"],
-                    self.config.convert_to_percent,
-                    self.config.show_individual_dots,
-                    colors[data_item["color_idx"]],
-                    dot_color,
-                    data_item["hatch_idx"],
-                )
-            else:
-                # Default color handling
-                rect = self._create_single_boxplot(
-                    data_item["data"],
-                    [data_item["x_position"]],
-                    data_item["width"],
-                    self.config.convert_to_percent,
-                    self.config.show_individual_dots,
-                    "blue",  # Default color
-                    "red",  # Default dot color
-                    data_item.get("hatch_idx", 0),
-                )
-
-            # Handle sample information
-            if self.config.show_sample_info == "All":
-                self._collect_sample_info_all(rect)
-
-        assert self.bin_label_locs is not None  # Should be set by process_data
-        if self.config.show_sample_info == "Average":
-            self._collect_sample_info_average()
-
-        # Format and finalize plot
         assert self.data.category_labels is not None
         assert self.data.num_bins is not None
         assert self.data.uncertainty_categories is not None
@@ -1174,72 +1245,12 @@ class PerModelBoxPlotter(BoxPlotter):
             self.data.num_bins,
         )
 
-    def draw_boxplot(self) -> None:
+    def _finalize_plot(self) -> None:
         """
-        Draw per-model boxplot.
-
-        Creates detailed analysis visualization focusing on individual models by
-        organizing boxplots by model first, then by uncertainty type within each model."""
-        self.setup_plot()
-
-        if not self.processed_data:
-            self.process_data()
-
-        assert self.processed_data is not None
+        Override finalization to always use show_all_ticks=True for per-model plots.
+        """
+        assert self.bin_label_locs is not None
         assert self.data is not None
-        assert self.data.uncertainty_categories is not None
-
-        colors = colormaps.get_cmap(self.config.colormap)(np.arange(len(self.data.uncertainty_categories) + 1))
-        # Set legend for per-model mode
-        if self.legend_info:
-            for legend_item in self.legend_info:
-                self._add_legend_patch(
-                    colors[legend_item["color_idx"]],
-                    legend_item["model_type"],
-                    legend_item["uncertainty_type"],
-                    legend_item["hatch_idx"],
-                )
-
-        # Draw boxplots
-        for data_item in self.processed_data:
-            if self.data.uncertainty_categories:
-                # Safely get dot color, avoid index out of bounds
-                dot_color_idx = len(colors) - 1
-                dot_color = colors[dot_color_idx]
-
-                rect = self._create_single_boxplot(
-                    data_item["data"],
-                    [data_item["x_position"]],
-                    data_item["width"],
-                    self.config.convert_to_percent,
-                    self.config.show_individual_dots,
-                    colors[data_item["color_idx"]],
-                    dot_color,
-                    data_item["hatch_idx"],
-                )
-            else:
-                # Default color handling
-                rect = self._create_single_boxplot(
-                    data_item["data"],
-                    [data_item["x_position"]],
-                    data_item["width"],
-                    self.config.convert_to_percent,
-                    self.config.show_individual_dots,
-                    "blue",  # Default color
-                    "red",  # Default dot color
-                    data_item.get("hatch_idx", 0),
-                )
-
-            # Handle sample information
-            if self.config.show_sample_info == "All":
-                self._collect_sample_info_all(rect)
-
-        assert self.bin_label_locs is not None  # Should be set by process_data
-        if self.config.show_sample_info == "Average":
-            self._collect_sample_info_average()
-
-        # Format and finalize plot
-        assert self.bin_label_locs is not None  # Should be set by process_data
         assert self.data.category_labels is not None
         assert self.data.num_bins is not None
         assert self.data.uncertainty_categories is not None
@@ -1339,24 +1350,21 @@ class ComparingQBoxPlotter(BoxPlotter):
         )
 
         # Extract parameters for plotting
+        assert self.data is not None
+        assert self.data.uncertainty_categories is not None
+        assert self.data.models is not None
         self.uncertainty_type = self.data.uncertainty_categories[0][0]
         self.model_type = self.data.models[0]
 
-    def draw_boxplot(self) -> None:
+    def _setup_legend_for_mode(self, colors) -> None:
         """
-        Draw comparing Q boxplot.
+        Override legend setup for Q-comparison mode with specialized styling.
 
-        Creates quantile threshold comparison visualization with distinctive hatched
-        styling and progressive box width reduction for different Q values."""
-        self.setup_plot()
-
-        if not self.processed_data:
-            self.process_data()
-
-        assert self.processed_data is not None
+        Args:
+            colors: Color array from colormap (used for color selection)
+        """
         assert self.data is not None
         assert self.data.uncertainty_categories is not None
-
         colors = colormaps.get_cmap(self.config.colormap)(np.arange(3))
         color = (
             colors[0]
@@ -1365,7 +1373,8 @@ class ComparingQBoxPlotter(BoxPlotter):
             if self.data.uncertainty_categories[0][0] == "E-MHA"
             else colors[2]
         )
-        # Set legend for comparing_q mode
+
+        # Set legend for comparing_q mode with special hatched styling
         if self.uncertainty_type and self.model_type and self.config.hatch_type:
             legend_patch = patches.Patch(
                 hatch=self.config.hatch_type,
@@ -1375,35 +1384,53 @@ class ComparingQBoxPlotter(BoxPlotter):
             )
             self.legend_patches.append(legend_patch)
 
-        # Draw boxplots with special hatched style
-        for data_item in self.processed_data:
-            rect = self._create_single_boxplot(
-                data_item["data"],
-                [data_item["x_position"]],
-                data_item["width"],
-                self.config.convert_to_percent,
-                self.config.show_individual_dots,
-                color,
-                "crimson",
-                hatch_idx=1,
-                dot_alpha=0.2,
-            )
+    def _draw_single_boxplot_item(self, data_item: Dict, colors) -> Dict[str, List[Any]]:
+        """
+        Override boxplot drawing for Q-comparison mode with specialized styling.
 
-            # Handle sample information
-            if self.config.show_sample_info == "All":
-                self._collect_sample_info_all(rect)
+        Args:
+            data_item: Dictionary containing boxplot data and positioning
+            colors: Color array from colormap
 
-        assert self.bin_label_locs is not None  # Should be set by process_data
-        if self.config.show_sample_info == "Average":
-            self._collect_sample_info_average()
+        Returns:
+            Matplotlib boxplot dictionary
+        """
+        assert self.data is not None
+        assert self.data.uncertainty_categories is not None
+        colors = colormaps.get_cmap(self.config.colormap)(np.arange(3))
+        color = (
+            colors[0]
+            if self.data.uncertainty_categories[0][0] == "S-MHA"
+            else colors[1]
+            if self.data.uncertainty_categories[0][0] == "E-MHA"
+            else colors[2]
+        )
 
-        # Format and finalize plot
+        # Draw boxplots with special hatched style and fixed parameters for Q-comparison
+        return self._create_single_boxplot(
+            data_item["data"],
+            [data_item["x_position"]],
+            data_item["width"],
+            self.config.convert_to_percent,
+            self.config.show_individual_dots,
+            color,
+            "crimson",  # Fixed dot color for Q-comparison
+            hatch_idx=1,  # Always use hatching for Q-comparison
+            dot_alpha=0.2,  # Reduced alpha for Q-comparison
+        )
+
+    def _finalize_plot(self) -> None:
+        """
+        Override finalization for Q-comparison plots with specialized parameters.
+        """
         assert self.uncertainty_type is not None  # Should be set by process_data
+        assert self.bin_label_locs is not None
+        assert self.data is not None
+        assert self.data.category_labels is not None
+
+        # Create specialized parameters for Q-comparison plots
         uncertainty_types_for_plot = [[self.uncertainty_type]]
         num_bins_for_plot = self.data.num_bins
-
-        assert self.bin_label_locs is not None  # Should be set by process_data
-        assert self.data.category_labels is not None
         assert num_bins_for_plot is not None
 
         self._format_and_finalize_plot(
@@ -1411,8 +1438,8 @@ class ComparingQBoxPlotter(BoxPlotter):
             self.data.category_labels,
             num_bins_for_plot,
             uncertainty_types_for_plot,
-            comparing_q=True,
-            show_all_ticks=False,
+            comparing_q=True,  # Specialized flag for Q-comparison
+            show_all_ticks=False,  # Always False for Q-comparison
         )
 
 
@@ -1584,6 +1611,36 @@ class BoxPlotDataProcessor(ABC):
         if not self.bin_label_locs:
             raise ValueError("Processing resulted in empty bin label locations")
 
+    @staticmethod
+    def _find_data_key(
+        evaluation_data_by_bin: Dict[str, List[List[float]]], model_type: str, uncertainty_type: str
+    ) -> str:
+        """
+        Locate the appropriate data key for model-uncertainty combination.
+
+        Args:
+            evaluation_data_by_bin (Dict[str, List[List[float]]]): Dictionary with keys like
+                "ResNet50_epistemic", "VGG16_aleatoric".
+            model_type (str): Model identifier to search for (e.g., "ResNet50", "VGG16").
+            uncertainty_type (str): Uncertainty category to search for (e.g., "epistemic", "aleatoric").
+
+        Returns:
+            str: First matching dictionary key containing both model and uncertainty type.
+
+        Raises:
+            KeyError: If no key contains both model_type and uncertainty_type.
+
+        Examples:
+            >>> key = _find_data_key(data, "ResNet50", "epistemic")  # Returns "ResNet50_epistemic"
+            >>> key = _find_data_key(data, "VGG16", "aleatoric")     # Returns "VGG16_aleatoric"
+        """
+        matching_keys = [
+            key for key in evaluation_data_by_bin.keys() if (model_type in key) and (uncertainty_type in key)
+        ]
+        if not matching_keys:
+            raise KeyError(f"No matching key found: model_type='{model_type}', uncertainty_type='{uncertainty_type}'")
+        return matching_keys[0]
+
     def _calculate_spacing_adjustment(self, is_large_spacing: bool) -> float:
         """
         Calculate spacing adjustment value based on bin count using configurable parameters.
@@ -1612,35 +1669,6 @@ class BoxPlotDataProcessor(ABC):
 
         assert self.num_bins is not None, "Number of bins must be set before calculating spacing adjustment"
         return large_val if self.num_bins > threshold else small_val
-
-    def _find_data_key(
-        self, evaluation_data_by_bin: Dict[str, List[List[float]]], model_type: str, uncertainty_type: str
-    ) -> str:
-        """
-        Locate the appropriate data key for model-uncertainty combination.
-
-        Args:
-            evaluation_data_by_bin (Dict[str, List[List[float]]]): Dictionary with keys like
-                "ResNet50_epistemic", "VGG16_aleatoric".
-            model_type (str): Model identifier to search for (e.g., "ResNet50", "VGG16").
-            uncertainty_type (str): Uncertainty category to search for (e.g., "epistemic", "aleatoric").
-
-        Returns:
-            str: First matching dictionary key containing both model and uncertainty type.
-
-        Raises:
-            KeyError: If no key contains both model_type and uncertainty_type.
-
-        Examples:
-            >>> key = _find_data_key(data, "ResNet50", "epistemic")  # Returns "ResNet50_epistemic"
-            >>> key = _find_data_key(data, "VGG16", "aleatoric")     # Returns "VGG16_aleatoric"
-        """
-        matching_keys = [
-            key for key in evaluation_data_by_bin.keys() if (model_type in key) and (uncertainty_type in key)
-        ]
-        if not matching_keys:
-            raise KeyError(f"No matching key found: model_type='{model_type}', uncertainty_type='{uncertainty_type}'")
-        return matching_keys[0]
 
     def _extract_bin_data(self, model_data: List[List[float]], bin_idx: int) -> List[float]:
         """
@@ -1727,7 +1755,7 @@ class BoxPlotDataProcessor(ABC):
         assert evaluation_data is not None, "Evaluation data must be available"
 
         # Extract data using base class method
-        dict_key = self._find_data_key(evaluation_data, model_type, uncertainty_type)
+        dict_key = BoxPlotDataProcessor._find_data_key(evaluation_data, model_type, uncertainty_type)
         model_data = evaluation_data[dict_key]
 
         bin_data = self._extract_bin_data(model_data, bin_idx)
@@ -2030,7 +2058,8 @@ class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
         self.model_type = model[0]
         self.legend_info = None  # Q mode has no legend info
 
-    def _calculate_progressive_width(self, base_width: float, q_idx: int) -> float:
+    @staticmethod
+    def _calculate_progressive_width(base_width: float, q_idx: int) -> float:
         """
         Calculate progressive width reduction for Q-value comparison.
 
@@ -2064,14 +2093,14 @@ class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
         average_samples_per_bin = []
 
         # Get data for this Q value
-        dict_key = self._find_data_key(evaluation_data_by_bin, self.model_type, self.uncertainty_type)
+        dict_key = BoxPlotDataProcessor._find_data_key(evaluation_data_by_bin, self.model_type, self.uncertainty_type)
         model_data = evaluation_data_by_bin[dict_key]
 
         assert self.config is not None, "Configuration must be set before processing and collecting positions"
         # Process each bin for this Q value
         for bin_idx in range(len(model_data)):
             # Progressive width reduction
-            width = self._calculate_progressive_width(base_width, q_idx)
+            width = ComparingQBoxPlotDataProcessor._calculate_progressive_width(base_width, q_idx)
 
             x_position, percent_size = self._process_and_store_single_item(
                 self.uncertainty_type,
