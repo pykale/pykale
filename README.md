@@ -33,6 +33,10 @@ PyKale enforces *standardization* and *minimalism*, via green machine learning c
 
 See our [arXiv preprint](https://arxiv.org/abs/2106.09756) and four short introductory videos on YouTube: [Why build PyKale?](https://youtu.be/nybYgw-T2bM) [How was PyKale built?](https://youtu.be/jaIbkjkQvYs) [What's in PyKale?](https://youtu.be/I3vifU2rcc0) and [a 5-min summary](https://youtu.be/Snou2gg7pek).
 
+#### Event using PyKale
+
+- [Open Biomedical Multimodal AI Research Workshop](https://pykale.github.io/mmai-tutorials/workshop/intro.html) @ EMBC-2025
+
 #### Pipeline-based API
 
 - `loaddata` loads data from disk or online resources as input
@@ -65,9 +69,11 @@ For more details and other options, please refer to [the installation guide](htt
 
 Start with a brief [tutorial](https://pykale.readthedocs.io/en/latest/tutorial.html#usage-of-pipeline-based-api-in-examples) walking through API usage in examples or *interactive* [Jupyter notebook tutorials](https://pykale.readthedocs.io/en/latest/notebooks.html), e.g. [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pykale/pykale/blob/main/examples/digits_dann/tutorial.ipynb) or  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pykale/pykale/HEAD?filepath=examples%2Fdigits_dann%2Ftutorial.ipynb) for a basic digit classification problem.
 
+For additional learning materials, please refer to our [tutorial repository](https://github.com/pykale/mmai-tutorials), which supports our multimodal AI workshops.
+
 Browse through the [**examples**](https://github.com/pykale/pykale/tree/main/examples) to see the usage of PyKale in performing various prediction tasks in a wide range of applications, using a variety of settings, e.g. with or without [PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning).
 
-Ask questions on [PyKale's GitHub Discussions tab](https://github.com/pykale/pykale/discussions) if you need help or create an issue if you find som
+Ask questions on [PyKale's GitHub Discussions tab](https://github.com/pykale/pykale/discussions) if you need help or create an issue if you find something wrong.
 
 ### Step 2: Building and Contributing
 
