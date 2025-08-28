@@ -9,7 +9,7 @@ from torch_scatter import scatter_add
 
 class GCNEncoderLayer(MessagePassing):
     r"""
-    Modification of PyTorch Geometirc's nn.GCNConv, which reduces the computational cost of GCN layer for
+    Modification of PyTorch Geometric's nn.GCNConv, which reduces the computational cost of GCN layer for
     `GripNet <https://github.com/NYXFLOWER/GripNet>`_ model.
     The graph convolutional operator from the `"Semi-supervised Classification with Graph Convolutional Networks"
     <https://arxiv.org/abs/1609.02907>`_ (ICLR 2017) paper.

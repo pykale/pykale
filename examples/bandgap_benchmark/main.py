@@ -98,7 +98,7 @@ def main():
         elif cfg.MODEL.NAME in gnn_models:
             train_loader = dataset.get_train_loader()
             val_loader = dataset.get_valid_loader()
-            test_data = dataset.get_test_loader()
+            test_loader = dataset.get_test_loader()
 
             atom_fea_len, nbr_fea_len, pos_fea_len = dataset.feature_dims()
             model = get_model(cfg, atom_fea_len, nbr_fea_len, pos_fea_len)

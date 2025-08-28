@@ -32,7 +32,7 @@ kale.loaddata.image\_access module
 
 kale.loaddata.materials\_datasets module
 --------------------------------------
-.. automodule:: kale.loaddata.materials_dataset
+.. automodule:: kale.loaddata.materials_datasets
    :members:
    :undoc-members:
    :show-inheritance:
