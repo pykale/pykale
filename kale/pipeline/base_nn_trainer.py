@@ -323,7 +323,7 @@ class RegressionTrainer(BaseNNTrainer):
         eps = 1e-8
         loss = nn.MSELoss()(pred, target)  # MSE
         mae = nn.L1Loss()(pred, target)  # MAE
-        mre = torch.mean(torch.abs(pred - target) / (torch.abs(target) + eps))  # MRE
+        mre = losses.mean_relative_error(pred, target)  # MRE
         # R² with safe denominator
         y_mean = torch.mean(target)
         ss_tot = torch.sum((target - y_mean) ** 2) + eps

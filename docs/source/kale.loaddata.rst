@@ -30,9 +30,9 @@ kale.loaddata.image\_access module
    :undoc-members:
    :show-inheritance:
 
-kale.loaddata.materials\_equivariant module
+kale.loaddata.materials\_datasets module
 --------------------------------------
-.. automodule:: kale.loaddata.materials_equivariant
+.. automodule:: kale.loaddata.materials_dataset
    :members:
    :undoc-members:
    :show-inheritance:
