@@ -5,11 +5,12 @@ Functions to save results to Excel files.
 
 """
 
+import json
 from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
-import json
+
 
 def generate_summary_df(
     results_dictionary: dict, cols_to_save: list, sheet_name: str, save_location: str
@@ -84,6 +85,7 @@ def save_dict_xlsx(data_dict: Dict[Any, Any], save_location: str, sheet_name: st
     with pd.ExcelWriter(save_location, engine="xlsxwriter") as writer:  # pylint: disable=abstract-class-instantiated
         for n, df in (pd_df).items():
             df.to_excel(writer, sheet_name=sheet_name)
+
 
 def load_json_to_df(json_path: str, target_key: str) -> pd.DataFrame:
     """
