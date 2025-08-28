@@ -1,11 +1,19 @@
 import os
 from copy import deepcopy
 
+import numpy as np
 import torch
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.model_selection import KFold
+from sklearn.svm import SVR
 
 from kale.embed.model_lib.cartnet import CartNet
 from kale.embed.model_lib.cgcnn import CrystalGCN
 from kale.embed.model_lib.leftnet import LEFTNetProp, LEFTNetZ
+from kale.evaluate.metrics import mean_relative_error
+from kale.loaddata.materials_datasets import CIFData
 from kale.pipeline.base_nn_trainer import RegressionTrainer
 
 
@@ -156,3 +164,46 @@ def get_model(cfg, atom_fea_len, nbr_fea_len, pos_fea_len):
         print(f"=> no checkpoint found at '{pretrained_path}'")
 
     return trainer
+
+
+def run_traditional_ml(model_name, x_train, y_train, x_valid, y_valid, seed=42, x_test=None, y_test=None):
+    if model_name == "random_forest":
+        model = RandomForestRegressor(n_estimators=100, random_state=seed)
+    elif model_name == "linear_regression":
+        model = LinearRegression()
+    else:
+        model = SVR()
+
+    model.fit(x_train, y_train)
+    val_pred = model.predict(x_valid)
+
+    y_valid, y_test, val_pred = [torch.as_tensor(a, dtype=torch.float32) for a in (y_valid, y_test, val_pred)]
+
+    print(
+        "Validation - MAE: {:.4f}, MSE: {:.4f}, R²: {:.4f}".format(
+            mean_absolute_error(y_valid, val_pred),
+            mean_relative_error(y_valid, val_pred),
+            r2_score(y_valid, val_pred),
+        )
+    )
+
+    test_pred = torch.as_tensor(model.predict(x_test), dtype=torch.float32)
+    print(
+        "Test - MAE: {:.4f}, MSE: {:.4f}, R²: {:.4f}".format(
+            mean_absolute_error(y_test, test_pred),
+            mean_relative_error(y_test, test_pred),
+            r2_score(y_test, test_pred),
+        )
+    )
+
+
+def split_data_by_kfold(data, n_splits, seed=None, shuffle=True):
+    kf = KFold(n_splits=n_splits, shuffle=shuffle, random_state=seed)
+    train_data_list = []  # list of DataFrame
+    val_data_list = []
+    for train_index, val_index in kf.split(data):
+        train_data = data.iloc[train_index].reset_index(drop=True)
+        val_data = data.iloc[val_index].reset_index(drop=True)
+        train_data_list.append(train_data)
+        val_data_list.append(val_data)
+    return train_data_list, val_data_list

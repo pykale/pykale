@@ -1,4 +1,3 @@
-import json
 import os
 import warnings
 from types import SimpleNamespace
@@ -7,7 +6,7 @@ import numpy as np
 import pandas as pd
 import torch
 from pymatgen.core import Structure
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 
 from kale.evaluate.metrics import GaussianDistance
 from kale.prepdata.materials_features import AtomCustomJSONInitializer
@@ -16,7 +15,6 @@ from kale.prepdata.materials_features import AtomCustomJSONInitializer
 class CIFData(Dataset):
     """
     Dataset for loading CIF files and extracting features for crystal structures.
-
     Args:
         mpids_bg (pd.DataFrame): DataFrame containing material IDs and bandgap values.
         cif_folder (str): Path to the folder containing CIF files.
@@ -28,11 +26,9 @@ class CIFData(Dataset):
         step (float, optional): Step size for Gaussian distance calculation. Default is 0.2.
     """
 
-    def __init__(
-        self, target_path, cif_folder, init_file, max_nbrs, radius, randomize, target_key="bg", dmin=0, step=0.2
-    ):
+    def __init__(self, mpids_bg, cif_folder, init_file, max_nbrs, radius, randomize, dmin=0, step=0.2):
         self.max_num_nbr, self.radius = max_nbrs, radius
-        mpids_bg = self.load_data(target_path, target_key)
+
         if randomize:
             self.mpids_bg_dataset = (
                 mpids_bg.sample(frac=1).reset_index(drop=True).values
@@ -86,21 +82,6 @@ class CIFData(Dataset):
             batch_size=len(batch_cif_ids),
         )
 
-    def load_data(self, target_path, target_key) -> pd.DataFrame:
-        """
-        Load and return the dataset as a pandas DataFrame.
-
-        Args:
-            target_path (str): Path to the JSON file containing the dataset.
-            target_key (str): The key in the JSON file that corresponds to the target property.
-        """
-        with open(target_path, "r") as f:
-            data_json = json.load(f)
-            data_df = pd.DataFrame.from_dict(data_json, orient="index").reset_index()
-            data_df.rename(columns={"index": "mpids", 0: target_key}, inplace=True)
-
-        return data_df
-
     def __len__(self):
         return len(self.mpids_bg_dataset)
 
@@ -148,3 +129,108 @@ class CIFData(Dataset):
             target=target,
             cif_id=cif_id,
         )
+
+
+class CrystalDataset:
+    """
+    wrapper class to create train/val/test datasets and dataloaders.
+    Args:
+        train_df (pd.DataFrame): DataFrame for training data with columns ["mpids", target_key].
+        val_df (pd.DataFrame, optional): DataFrame for validation data with columns ["mpids", target_key]. Default is None.
+        test_df (pd.DataFrame, optional): DataFrame for test data with columns ["mpids", target_key]. Default is None.
+        cif_folder (str): Path to the folder containing CIF files.
+        init_file (str): Path to the JSON file for atom feature initialization.
+        max_nbrs (int): Maximum number of neighbors to consider for each atom.
+        radius (float): Radius for neighbor search.
+        target_key (str, optional): Column name for the target property in the DataFrames. Default is "bg".
+        batch_size (int, optional): Batch size for DataLoader. Default is 64.
+        num_workers (int, optional): Number of worker threads for DataLoader. Default is 0.
+        randomize_train (bool, optional): Whether to randomize the training dataset order. Default is False.
+
+    Usage:
+        dataset = CrystalDataset(
+            train_df=train_df, val_df=val_df, test_df=test_df,
+            cif_folder=cfg.MODEL.CIF_FOLDER, init_file=cfg.MODEL.INIT_FILE,
+            max_nbrs=cfg.MODEL.MAX_NBRS, radius=cfg.MODEL.RADIUS,
+            target_key="bg", batch_size=cfg.SOLVER.BATCH_SIZE,
+            num_workers=cfg.SOLVER.WORKERS, randomize_train=cfg.SOLVER.RANDOMIZE,
+        )
+        train_loader = dataset.get_train_loader()
+        val_loader   = dataset.get_valid_loader()
+        test_loader  = dataset.get_test_loader()
+    """
+
+    def __init__(
+        self,
+        *,
+        train_df: pd.DataFrame,
+        val_df: pd.DataFrame,
+        cif_folder: str,
+        init_file: str,
+        max_nbrs: int,
+        radius: float,
+        test_df: pd.DataFrame = None,
+        target_key: str = "bg",
+        batch_size: int = 64,
+        num_workers: int = 0,
+        randomize_train: bool = False,
+    ):
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.target_key = target_key
+
+        def _need_cols(df, name):
+            if df is None:
+                return
+            need = {"mpids", target_key}
+            missing = need - set(df.columns)
+            if missing:
+                raise ValueError(f"{name} is missing columns: {missing}")
+
+        _need_cols(train_df, "train_df")
+        _need_cols(val_df, "val_df")
+        _need_cols(test_df, "test_df")
+
+        self.train_dataset = CIFData(
+            train_df[["mpids", target_key]],
+            cif_folder,
+            init_file,
+            max_nbrs,
+            radius,
+            randomize=randomize_train,
+        )
+        self.valid_dataset = (
+            CIFData(val_df[["mpids", target_key]], cif_folder, init_file, max_nbrs, radius, randomize=False)
+            if val_df is not None
+            else None
+        )
+        self.test_dataset = (
+            CIFData(test_df[["mpids", target_key]], cif_folder, init_file, max_nbrs, radius, randomize=False)
+            if test_df is not None
+            else None
+        )
+
+    def _loader(self, dataset, shuffle=False):
+        if dataset is None:
+            return None
+        return DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            shuffle=shuffle,
+            num_workers=self.num_workers,
+            collate_fn=CIFData.collate_fn,
+        )
+
+    def get_train_loader(self, shuffle=True):
+        return self._loader(self.train_dataset, shuffle=shuffle)
+
+    def get_valid_loader(self, shuffle=False):
+        return self._loader(self.valid_dataset, shuffle=shuffle)
+
+    def get_test_loader(self, shuffle=False):
+        return self._loader(self.test_dataset, shuffle=shuffle)
+
+    def feature_dims(self):
+        """(atom_fea_len, nbr_fea_len, pos_fea_len) from one sample."""
+        s = self.train_dataset[0]
+        return s.atom_fea.shape[-1], s.nbr_fea.shape[-1], s.positions.shape[-1]

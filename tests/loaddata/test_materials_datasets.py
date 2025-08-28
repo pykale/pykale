@@ -3,11 +3,14 @@ import json
 import tempfile
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
 import pytest
+import torch
 from pymatgen.core import Lattice, Structure
 from torch.utils.data import DataLoader
 
-from kale.loaddata.materials_datasets import CIFData
+from kale.loaddata.materials_datasets import CIFData, CrystalDataset
 
 
 @pytest.fixture(scope="module")
@@ -63,39 +66,198 @@ def create_dummy_data(data_dir):
     }
 
 
-def test_cifdata(dummy_data):
-    dataset = CIFData(
-        target_path=dummy_data["target_path"],
-        cif_folder=dummy_data["cif_folder"],
-        init_file=dummy_data["init_file"],
-        max_nbrs=12,
-        radius=8.0,
+def test_cifdata(tmp_path):
+    # ---------- 1) atom_init.json (Na=11, Cl=17 -> 2-dim features) ----------
+    init_file = tmp_path / "atom_init.json"
+    with open(init_file, "w") as f:
+        json.dump({"11": [0.0, 1.0], "17": [1.0, 0.5]}, f)
+
+    # ---------- 2) two tiny CIFs (rock-salt NaCl) ----------
+    cif_dir = tmp_path / "cifs"
+    cif_dir.mkdir()
+    lat = Lattice.cubic(4.0)
+    struct = Structure(
+        lattice=lat,
+        species=["Na", "Cl"],
+        coords=[[0, 0, 0], [0.5, 0.5, 0.5]],
+        coords_are_cartesian=False,
+    )
+    for name in ["mat1", "mat2"]:
+        struct.to(fmt="cif", filename=str(cif_dir / f"{name}.cif"))
+
+    # ---------- 3) DataFrame: mpids + targets ----------
+    df = pd.DataFrame({"mpids": ["mat1", "mat2"], "bg": [1.23, 2.34]})
+
+    # common params
+    max_nbrs = 4
+    radius = 6.0  # Å
+    expected_rbf_len = len(np.arange(0.0, radius + 0.2, 0.2))  # matches GaussianDistance(dmin=0, step=0.2)
+
+    # ---------- 4) CIFData (deterministic order) ----------
+    ds = CIFData(
+        mpids_bg=df[["mpids", "bg"]],
+        cif_folder=str(cif_dir),
+        init_file=str(init_file),
+        max_nbrs=max_nbrs,
+        radius=radius,
         randomize=False,
-        target_key="bg",
     )
 
-    assert len(dataset) == 2
+    # length
+    assert len(ds) == 2
 
-    assert dataset.load_data(dummy_data["target_path"], "bg").shape == (2, 2)
+    # first sample
+    s0 = ds[0]
+    assert isinstance(s0.atom_fea, torch.Tensor) and s0.atom_fea.shape == (2, 2)  # 2 atoms, 2-dim features
+    assert isinstance(s0.positions, torch.Tensor) and s0.positions.shape == (2, 3)
+    assert isinstance(s0.atom_num, torch.Tensor) and s0.atom_num.shape == (2,)
+    assert isinstance(s0.nbr_fea, torch.Tensor) and s0.nbr_fea.shape == (2, max_nbrs, expected_rbf_len)
+    assert isinstance(s0.nbr_fea_idx, torch.Tensor) and s0.nbr_fea_idx.shape == (2, max_nbrs)
+    assert isinstance(s0.target, torch.Tensor) and s0.target.shape == (1,)
+    assert isinstance(s0.cif_id, str) and s0.cif_id == "mat1"
 
-    item = dataset[0]
-    assert item.atom_fea.shape[1] == 3
-    assert item.nbr_fea.shape[1] == 12
-    assert item.nbr_fea_idx.shape[1] == 12
-    assert item.positions.shape[1] == 3
-    assert item.atom_num.shape[0] == item.atom_fea.shape[0]
-    assert isinstance(item.cif_id, str)
-    assert item.target.shape == (1,)
-
-    loader = DataLoader(dataset, batch_size=2, shuffle=False, collate_fn=CIFData.collate_fn, num_workers=0)
-    batch = next(iter(loader))
-    assert batch.batch_size == 2
-    assert hasattr(batch, "atom_fea") and hasattr(batch, "nbr_fea_idx") and hasattr(batch, "positions")
-    assert (
-        batch.atom_fea.shape[0]
-        == batch.nbr_fea.shape[0]
-        == batch.positions.shape[0]
-        == batch.atom_num.shape[0]
-        == batch.batch_idx.shape[0]
-    )
+    # collate two samples
+    batch = CIFData.collate_fn([ds[0], ds[1]])
+    assert batch.atom_fea.shape == (4, 2)  # 2 crystals * 2 atoms
+    assert batch.nbr_fea.shape[0] == 4
+    assert batch.nbr_fea.shape[1] == max_nbrs
+    assert batch.nbr_fea.shape[2] == expected_rbf_len
+    assert batch.positions.shape == (4, 3)
+    assert isinstance(batch.crystal_atom_idx, list) and len(batch.crystal_atom_idx) == 2
     assert batch.target.shape == (2, 1)
+    assert batch.batch_size == 2
+    assert len(batch.cif_ids) == 2 and batch.cif_ids[0] == "mat1" and batch.cif_ids[1] == "mat2"
+
+    # DataLoader one batch
+    loader = DataLoader(ds, batch_size=2, shuffle=False, num_workers=0, collate_fn=CIFData.collate_fn)
+    b = next(iter(loader))
+    assert b.atom_fea.shape[0] == 4 and b.batch_size == 2
+
+    # ---------- 5) CIFData (randomize=True) preserves set of ids ----------
+    ds_shuf = CIFData(
+        mpids_bg=df[["mpids", "bg"]],
+        cif_folder=str(cif_dir),
+        init_file=str(init_file),
+        max_nbrs=max_nbrs,
+        radius=radius,
+        randomize=True,
+    )
+    # order may or may not change, but set of IDs must match
+    ids_orig = list(df["mpids"])
+    ids_shuf = [row[0] for row in ds_shuf.mpids_bg_dataset]
+    assert set(ids_orig) == set(ids_shuf)
+
+
+def test_crystal_dataset(tmp_path):
+    # --- 1) Write minimal atom_init.json (Na=11, Cl=17 -> 2-dim embedding) ---
+    init_file = tmp_path / "atom_init.json"
+    with open(init_file, "w") as f:
+        json.dump({"11": [0.0, 1.0], "17": [1.0, 0.5]}, f)
+
+    # --- 2) Write three tiny CIFs (NaCl rock-salt) ---
+    cif_dir = tmp_path / "cifs"
+    cif_dir.mkdir()
+    lat = Lattice.cubic(4.0)
+    s = Structure(lattice=lat, species=["Na", "Cl"], coords=[[0, 0, 0], [0.5, 0.5, 0.5]], coords_are_cartesian=False)
+    for name in ["mat1", "mat2", "mat3"]:
+        s.to(fmt="cif", filename=str(cif_dir / f"{name}.cif"))
+
+    # --- 3) Build DFs (train/val/test) ---
+    train_df = pd.DataFrame({"mpids": ["mat1", "mat2"], "bg": [1.1, 2.2]})
+    val_df = pd.DataFrame({"mpids": ["mat3"], "bg": [3.3]})
+    test_df = pd.DataFrame({"mpids": ["mat2"], "bg": [2.0]})
+
+    # common params
+    batch_size = 2
+    radius = 5.0
+    max_nbrs = 4
+
+    # --- 4) Case A: without test_df ---
+    ds_no_test = CrystalDataset(
+        train_df=train_df,
+        val_df=val_df,
+        test_df=None,
+        cif_folder=str(cif_dir),
+        init_file=str(init_file),
+        max_nbrs=max_nbrs,
+        radius=radius,
+        target_key="bg",
+        batch_size=batch_size,
+        num_workers=0,
+        randomize_train=False,
+    )
+    train_loader = ds_no_test.get_train_loader(shuffle=False)
+    val_loader = ds_no_test.get_valid_loader()
+    test_loader = ds_no_test.get_test_loader()
+    assert test_loader is None
+
+    # grab one batch from train
+    batch = next(iter(train_loader))
+    # basic fields exist
+    for attr in [
+        "atom_fea",
+        "nbr_fea",
+        "nbr_fea_idx",
+        "positions",
+        "atom_num",
+        "target",
+        "crystal_atom_idx",
+        "cif_ids",
+        "batch_idx",
+        "batch_size",
+    ]:
+        assert hasattr(batch, attr)
+    # dims: atom features length == 2 (from atom_init.json)
+    assert batch.atom_fea.shape[1] == 2
+    # neighbors second dim equals max_nbrs
+    assert batch.nbr_fea.shape[1] == max_nbrs
+    assert batch.nbr_fea_idx.shape[1] == max_nbrs
+    # positions are 3D
+    assert batch.positions.shape[1] == 3
+    # targets per-graph equals batch_size
+    assert batch.target.shape[0] == batch.batch_size
+    # crystal_atom_idx list length == batch_size
+    assert isinstance(batch.crystal_atom_idx, list) and len(batch.crystal_atom_idx) == batch.batch_size
+    # batch_idx covers all atoms
+    assert batch.batch_idx.numel() == batch.atom_fea.shape[0]
+
+    # feature_dims() check
+    a_len, e_len, p_len = ds_no_test.feature_dims()
+    assert a_len == 2
+    expected_rbf = len(np.arange(0.0, radius + 0.2, 0.2))  # matches GaussianDistance(dmin=0, step=0.2)
+    assert e_len == expected_rbf
+    assert p_len == 3
+
+    # val loader yields one batch
+    val_batch = next(iter(val_loader))
+    assert val_batch.target.shape[0] == val_batch.batch_size
+
+    # --- 5) Case B: with test_df ---
+    ds_with_test = CrystalDataset(
+        train_df=train_df,
+        val_df=val_df,
+        test_df=test_df,
+        cif_folder=str(cif_dir),
+        init_file=str(init_file),
+        max_nbrs=max_nbrs,
+        radius=radius,
+        target_key="bg",
+        batch_size=batch_size,
+        num_workers=0,
+        randomize_train=False,
+    )
+    assert ds_with_test.get_test_loader() is not None
+
+    # --- 6) Column validation error ---
+    bad_df = pd.DataFrame({"mpids": ["mat1", "mat2"]})  # missing 'bg'
+    with pytest.raises(ValueError):
+        _ = CrystalDataset(
+            train_df=bad_df,
+            val_df=val_df,
+            test_df=test_df,
+            cif_folder=str(cif_dir),
+            init_file=str(init_file),
+            max_nbrs=max_nbrs,
+            radius=radius,
+            target_key="bg",
+        )

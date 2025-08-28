@@ -32,7 +32,7 @@ from sklearn.isotonic import IsotonicRegression
 from kale.evaluate.similarity_metrics import evaluate_correlations
 from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard, get_mean_errors
 from kale.prepdata.tabular_transform import generate_struct_for_qbin
-from kale.utils.save_xlsx import generate_summary_df
+from kale.utils.format_transformation import generate_summary_df
 
 
 def quantile_binning_and_est_errors(

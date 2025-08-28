@@ -9,7 +9,7 @@ from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
-
+import json
 
 def generate_summary_df(
     results_dictionary: dict, cols_to_save: list, sheet_name: str, save_location: str
@@ -84,3 +84,21 @@ def save_dict_xlsx(data_dict: Dict[Any, Any], save_location: str, sheet_name: st
     with pd.ExcelWriter(save_location, engine="xlsxwriter") as writer:  # pylint: disable=abstract-class-instantiated
         for n, df in (pd_df).items():
             df.to_excel(writer, sheet_name=sheet_name)
+
+def load_json_to_df(json_path: str, target_key: str) -> pd.DataFrame:
+    """
+    Load a JSON file and convert it to a pandas DataFrame.
+
+    Args:
+        json_path (str): The path to the JSON file.
+        target_key (str): The key in the JSON file that corresponds to the target property.
+
+    Returns:
+        pd.DataFrame: A pandas DataFrame containing the data from the JSON file.
+    """
+    with open(json_path, "r") as f:
+        data_json = json.load(f)
+        data_df = pd.DataFrame.from_dict(data_json, orient="index").reset_index()
+        data_df.rename(columns={"index": "mpids", 0: target_key}, inplace=True)
+
+    return data_df

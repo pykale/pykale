@@ -10,7 +10,7 @@ _C = CN()
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
 _C.DATASET.TRAIN = "data/fine_tune/train_data.json"
-_C.DATASET.VAL = "data/fine_tune/test_data.json"
+_C.DATASET.VAL_FRAC = 0.1  # fraction of training data used for validation
 _C.DATASET.TEST = "data/fine_tune/test_data.json"
 
 
@@ -26,7 +26,7 @@ _C.SOLVER.RANDOMIZE = False
 _C.SOLVER.DISABLE_CUDA = False
 _C.SOLVER.WORKERS = 0
 _C.SOLVER.START_EPOCH = 0
-
+_C.SOLVER.NUM_FOLDS = 10  # for k-fold cross-validation
 _C.SOLVER.MOMENTUM = 0.9
 _C.SOLVER.WEIGHT_DECAY = 0.0
 _C.SOLVER.PRINT_FREQ = 10

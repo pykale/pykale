@@ -1,6 +1,6 @@
 DATASET:
  TRAIN: 'data/fine_tune/train_data.json'
- VAL: 'data/fine_tune/test_data.json'
+ TEST: 'data/fine_tune/test_data.json'
 
 MODEL:
   NAME: 'leftnet'
@@ -10,7 +10,6 @@ MODEL:
 
 SOLVER:
   LR: 0.001
-
   EPOCHS: 100
 
 

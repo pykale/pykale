@@ -6,3 +6,6 @@ wandb/
 saved_models/
 cif_file/
 leave_one_material_out/
+.gitignore
+tutorial.ipynb
+bandgap_dataset_graph_tutorial.ipynb
