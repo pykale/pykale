@@ -17,7 +17,6 @@ from kale.loaddata.materials_datasets import CIFData
 from kale.pipeline.base_nn_trainer import RegressionTrainer
 
 
-
 def get_config(cfg, atom_fea_len, nbr_fea_len, pos_fea_len):
     """
     Sets the hyperparameter for the optimizer and experiment using the config file
