@@ -608,7 +608,7 @@ class MetricsCalculator:
             pred_binary = tensor([1 if key in predicted_keys else 0 for key in all_keys])
             gt_binary = tensor([1 if key in ground_truth_keys else 0 for key in all_keys])
             jaccard_metric = BinaryJaccardIndex()
-            jaccard = jaccard_metric(pred_binary, gt_binary)
+            jaccard = float(jaccard_metric(pred_binary, gt_binary))
 
         if len(ground_truth_keys) == 0:
             recall = 1.0
