@@ -17,6 +17,7 @@ from kale.loaddata.materials_datasets import CIFData
 from kale.pipeline.base_nn_trainer import RegressionTrainer
 
 
+
 def get_config(cfg, atom_fea_len, nbr_fea_len, pos_fea_len):
     """
     Sets the hyperparameter for the optimizer and experiment using the config file
@@ -166,6 +167,7 @@ def get_model(cfg, atom_fea_len, nbr_fea_len, pos_fea_len):
     return trainer
 
 
+# TODO: move to kale.pipeline.traditional_ml
 def run_traditional_ml(model_name, x_train, y_train, x_valid, y_valid, seed=42, x_test=None, y_test=None):
     if model_name == "random_forest":
         model = RandomForestRegressor(n_estimators=100, random_state=seed)
@@ -180,7 +182,7 @@ def run_traditional_ml(model_name, x_train, y_train, x_valid, y_valid, seed=42, 
     y_valid, y_test, val_pred = [torch.as_tensor(a, dtype=torch.float32) for a in (y_valid, y_test, val_pred)]
 
     print(
-        "Validation - MAE: {:.4f}, MSE: {:.4f}, R²: {:.4f}".format(
+        "Validation - MAE: {:.4f}, MRE: {:.4f}, R²: {:.4f}".format(
             mean_absolute_error(y_valid, val_pred),
             mean_relative_error(y_valid, val_pred),
             r2_score(y_valid, val_pred),
@@ -189,7 +191,7 @@ def run_traditional_ml(model_name, x_train, y_train, x_valid, y_valid, seed=42, 
 
     test_pred = torch.as_tensor(model.predict(x_test), dtype=torch.float32)
     print(
-        "Test - MAE: {:.4f}, MSE: {:.4f}, R²: {:.4f}".format(
+        "Test - MAE: {:.4f}, MRE: {:.4f}, R²: {:.4f}".format(
             mean_absolute_error(y_test, test_pred),
             mean_relative_error(y_test, test_pred),
             r2_score(y_test, test_pred),
@@ -197,6 +199,7 @@ def run_traditional_ml(model_name, x_train, y_train, x_valid, y_valid, seed=42, 
     )
 
 
+# TODO: move to kale.prepdata.tabular_transform
 def split_data_by_kfold(data, n_splits, seed=None, shuffle=True):
     kf = KFold(n_splits=n_splits, shuffle=shuffle, random_state=seed)
     train_data_list = []  # list of DataFrame
