@@ -576,9 +576,9 @@ class TestFoldData:
 
     def test_fold_data_creation(self):
         """Test FoldData creation and attributes."""
-        errors_df = pd.DataFrame({"uid": [1, 2, 3], "target_idx": [0, 1, 0], "S-MHA Error": [0.1, 0.2, 0.3]})
+        errors_df = pd.DataFrame({"uid": [1, 2, 3], "Target Index": [0, 1, 0], "S-MHA Error": [0.1, 0.2, 0.3]})
 
-        bins_df = pd.DataFrame({"uid": [1, 2, 3], "target_idx": [0, 1, 0], "S-MHA Uncertainty bins": [0, 1, 2]})
+        bins_df = pd.DataFrame({"uid": [1, 2, 3], "Target Index": [0, 1, 0], "S-MHA Uncertainty bins": [0, 1, 2]})
 
         fold_data = FoldData(errors=errors_df, bins=bins_df)
 

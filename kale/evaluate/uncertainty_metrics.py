@@ -23,6 +23,7 @@ Main Classes:
     - QuantileCalculator: Quantile-based error distribution analysis
     - MetricsCalculator: Statistical metrics computation
 """
+import copy
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import cast, Dict, List, Optional, Tuple
@@ -39,7 +40,7 @@ class ColumnNames:
     """Constants for DataFrame column names."""
 
     UID = "uid"
-    TARGET_IDX = "target_idx"
+    TARGET_IDX = "Target Index"
     TESTING_FOLD = "Testing Fold"
     ERROR_SUFFIX = " Error"
     UNCERTAINTY_BINS_SUFFIX = " Uncertainty bins"
@@ -968,6 +969,28 @@ class JaccardEvaluator(BaseEvaluator):
         """
         return cls()
 
+    @staticmethod
+    def _format_target_results(bin_jaccard: List[float], bin_recall: List[float], bin_precision: List[float]) -> Dict:
+        """
+        Format target evaluation results into the expected dictionary format.
+
+        Args:
+            bin_jaccard (List[float]): Jaccard values for each bin.
+            bin_recall (List[float]): Recall values for each bin.
+            bin_precision (List[float]): Precision values for each bin.
+
+        Returns:
+            Dict: Formatted results dictionary with mean and bin-wise metrics.
+        """
+        return {
+            "mean_jaccard": np.mean(bin_jaccard),
+            "mean_recall": np.mean(bin_recall),
+            "mean_precision": np.mean(bin_precision),
+            "bin_jaccard": bin_jaccard,
+            "bin_recall": bin_recall,
+            "bin_precision": bin_precision,
+        }
+
     def _process_single_fold(self, fold_data: FoldData) -> JaccardBinResults:
         """
         Process Jaccard evaluation metrics for a single cross-validation fold.
@@ -1069,7 +1092,7 @@ class JaccardEvaluator(BaseEvaluator):
         # Calculate bin-wise metrics
         bin_jaccard, bin_recall, bin_precision = self._calculate_bin_wise_metrics(pred_bin_keys, gt_key_groups)
 
-        return self._format_target_results(bin_jaccard, bin_recall, bin_precision)
+        return JaccardEvaluator._format_target_results(bin_jaccard, bin_recall, bin_precision)
 
     def _extract_target_data(self, fold_data: FoldData, target_idx: int) -> Tuple[Dict, Dict]:
         """
@@ -1155,29 +1178,6 @@ class JaccardEvaluator(BaseEvaluator):
 
         return bin_jaccard, bin_recall, bin_precision
 
-    def _format_target_results(
-        self, bin_jaccard: List[float], bin_recall: List[float], bin_precision: List[float]
-    ) -> Dict:
-        """
-        Format target evaluation results into the expected dictionary format.
-
-        Args:
-            bin_jaccard (List[float]): Jaccard values for each bin.
-            bin_recall (List[float]): Recall values for each bin.
-            bin_precision (List[float]): Precision values for each bin.
-
-        Returns:
-            Dict: Formatted results dictionary with mean and bin-wise metrics.
-        """
-        return {
-            "mean_jaccard": np.mean(bin_jaccard),
-            "mean_recall": np.mean(bin_recall),
-            "mean_precision": np.mean(bin_precision),
-            "bin_jaccard": bin_jaccard,
-            "bin_recall": bin_recall,
-            "bin_precision": bin_precision,
-        }
-
     def _aggregate_fold_results(self, model_key: str, fold_results: List[BinResults]):
         """
         Aggregate Jaccard evaluation results across all cross-validation folds.
@@ -1219,14 +1219,17 @@ class JaccardEvaluator(BaseEvaluator):
         Returns:
             Dict[str, List[List[float]]]: Dictionary containing aggregated metrics for each metric type.
         """
-        # Initialize containers for each metric type
-        fold_jaccard_bins: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
-        fold_recall_bins: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
-        fold_precision_bins: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
+        # Create template for empty bin containers and copy it to avoid repetitive for loops
+        empty_bins_template: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
 
-        fold_all_jaccard_bins: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
-        fold_all_recall_bins: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
-        fold_all_precision_bins: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
+        # Initialize containers by copying the template
+        fold_jaccard_bins = copy.deepcopy(empty_bins_template)
+        fold_recall_bins = copy.deepcopy(empty_bins_template)
+        fold_precision_bins = copy.deepcopy(empty_bins_template)
+
+        fold_all_jaccard_bins = copy.deepcopy(empty_bins_template)
+        fold_all_recall_bins = copy.deepcopy(empty_bins_template)
+        fold_all_precision_bins = copy.deepcopy(empty_bins_template)
 
         # Aggregate results across folds
         for result in jaccard_results:
@@ -1451,10 +1454,10 @@ def evaluate_bounds(
             for fold in range(num_folds):
                 # Get the ids for this fold
                 fold_errors = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "target_idx", uncertainty_type + " Error"]
+                    ["uid", "Target Index", uncertainty_type + " Error"]
                 ]
                 fold_bins = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "target_idx", uncertainty_type + " Uncertainty bins"]
+                    ["uid", "Target Index", uncertainty_type + " Uncertainty bins"]
                 ]
                 fold_bounds = strip_for_bound(
                     error_bounds[error_bounds["fold"] == fold][uncertainty_type + " Uncertainty bounds"].values
@@ -1570,8 +1573,8 @@ def bin_wise_bound_eval(
     ]
 
     for i_ti, target_idx in enumerate(targets):
-        true_errors_ti = fold_errors[(fold_errors["target_idx"] == target_idx)][["uid", uncertainty_type + " Error"]]
-        pred_bins_ti = fold_bins[(fold_errors["target_idx"] == target_idx)][
+        true_errors_ti = fold_errors[(fold_errors["Target Index"] == target_idx)][["uid", uncertainty_type + " Error"]]
+        pred_bins_ti = fold_bins[(fold_errors["Target Index"] == target_idx)][
             ["uid", uncertainty_type + " Uncertainty bins"]
         ]
 
@@ -1755,10 +1758,10 @@ def get_mean_errors(
             for fold in range(num_folds):
                 # Get the errors and predicted bins for this fold
                 fold_errors = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "target_idx", uncertainty_type + " Error"]
+                    ["uid", "Target Index", uncertainty_type + " Error"]
                 ]
                 fold_bins = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "target_idx", uncertainty_type + " Uncertainty bins"]
+                    ["uid", "Target Index", uncertainty_type + " Uncertainty bins"]
                 ]
 
                 return_dict = bin_wise_errors(
@@ -1850,8 +1853,8 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, 
     all_qs_error_concat_targets_sep = [[[] for y in range(num_bins)] for x in range(len(targets))]
 
     for i, target_idx in enumerate(targets):
-        true_errors_ti = fold_errors[(fold_errors["target_idx"] == target_idx)][["uid", uncertainty_key + " Error"]]
-        pred_bins_ti = fold_bins[(fold_errors["target_idx"] == target_idx)][
+        true_errors_ti = fold_errors[(fold_errors["Target Index"] == target_idx)][["uid", uncertainty_key + " Error"]]
+        pred_bins_ti = fold_bins[(fold_errors["Target Index"] == target_idx)][
             ["uid", uncertainty_key + " Uncertainty bins"]
         ]
 
