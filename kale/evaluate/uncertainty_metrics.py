@@ -29,7 +29,8 @@ from typing import cast, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import jaccard_score
+from torch import tensor
+from torchmetrics.classification import BinaryJaccardIndex
 
 from kale.prepdata.string_transform import strip_for_bound
 
@@ -603,9 +604,10 @@ class MetricsCalculator:
 
         jaccard = 0.0
         if len(all_keys) != 0:
-            pred_binary = [1 if key in predicted_keys else 0 for key in all_keys]
-            gt_binary = [1 if key in ground_truth_keys else 0 for key in all_keys]
-            jaccard = jaccard_score(gt_binary, pred_binary, zero_division=0)
+            pred_binary = tensor([1 if key in predicted_keys else 0 for key in all_keys])
+            gt_binary = tensor([1 if key in ground_truth_keys else 0 for key in all_keys])
+            jaccard_metric = BinaryJaccardIndex()
+            jaccard = jaccard_metric(pred_binary, gt_binary)
 
         if len(ground_truth_keys) == 0:
             recall = 1.0
