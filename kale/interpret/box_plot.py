@@ -26,10 +26,9 @@ Factory Functions:
     create_boxplot_config(): Create configuration objects with sensible defaults
     create_boxplot_data(): Create data containers with required parameters
 
-The data processing system uses the template method pattern to provide a consistent
-processing workflow while allowing customization through specialized subclasses.
-Each processor implements specific logic for different visualization modes while
-sharing common utility methods from the base class.
+The data processing system uses the template method pattern to provide a consistent processing workflow while allowing
+customization through specialized subclasses. Each processor implements specific logic for different visualization modes
+while sharing common utility methods from the base class.
 """
 
 import math
@@ -65,33 +64,32 @@ class BoxPlotConfig:
     """
     Comprehensive configuration class for boxplot parameters and styling.
 
-    This dataclass provides fine-grained control over all aspects of uncertainty
-    quantification boxplot visualization, including display settings, styling options,
-    spacing configuration, and output parameters.
+    This dataclass provides fine-grained control over all aspects of uncertainty quantification boxplot visualization,
+    including display settings, styling options, spacing configuration, and output parameters.
 
     Attributes are organized into logical groups:
 
-    **Display & Behavior**: x_label, y_label, show_sample_info, save_path, show,
-    convert_to_percent, to_log, show_individual_dots
+    **Display & Behavior**: x_label, y_label, show_sample_info, save_path, show, convert_to_percent, to_log,
+    show_individual_dots
 
     **Axis & Layout**: y_lim_top, y_lim_bottom, subplot_bottom, subplot_left
 
     **Typography**: font_size_label, font_size_tick, sample_info_fontsize, legend_fontsize
 
-    **Visual Styling**: colormap, matplotlib_style, box_edge_color, median_color,
-    mean_facecolor, hatch_type, dot_alpha_normal, dot_alpha_alt
+    **Visual Styling**: colormap, matplotlib_style, box_edge_color, median_color, mean_facecolor, hatch_type,
+    dot_alpha_normal, dot_alpha_alt
 
     **Spacing & Dimensions**: All spacing parameters for fine-tuned layout control
 
     **Output Settings**: figure_size, save_dpi, show_dpi, bbox_inches, pad_inches
 
     Usage:
-        Create instances using the create_boxplot_config() factory function for
-        parameter validation and convenience, or instantiate directly for maximum control.
+        Create instances using the create_boxplot_config() factory function for parameter validation and convenience,
+        or instantiate directly for maximum control.
 
     Note:
-        All parameters have sensible defaults optimized for uncertainty quantification
-        visualization in medical imaging applications.
+        All parameters have sensible defaults optimized for uncertainty quantification visualization in medical
+        imaging applications.
     """
 
     # Display settings
@@ -182,12 +180,12 @@ class BoxPlotConfig:
         """
         Set parameters on the BoxPlotConfig instance and return self for method chaining.
 
-        This method allows for convenient parameter updating using a fluent interface.
-        It validates that provided parameters are valid BoxPlotConfig attributes.
+        This method allows for convenient parameter updating using a fluent interface. It validates that provided
+        parameters are valid BoxPlotConfig attributes.
 
         Args:
-            **kwargs (Any): Keyword arguments corresponding to BoxPlotConfig attributes.
-                     Any valid BoxPlotConfig parameter can be set.
+            **kwargs (Any): Keyword arguments corresponding to BoxPlotConfig attributes. Any valid BoxPlotConfig
+                           parameter can be set.
 
         Returns:
             BoxPlotConfig: Self reference for method chaining.
@@ -229,18 +227,17 @@ class BoxPlotData:
     """
     Data container for boxplot inputs and metadata.
 
-    This dataclass organizes evaluation metrics and associated metadata required
-    for uncertainty quantification boxplot visualization. It handles multi-model,
-    multi-uncertainty type data in a structured format optimized for efficient
+    This dataclass organizes evaluation metrics and associated metadata required for uncertainty quantification boxplot
+    visualization. It handles multi-model, multi-uncertainty type data in a structured format optimized for efficient
     plotting and analysis.
 
     **Core Components:**
 
-    **evaluation_data_by_bins**: The primary data structure containing evaluation metrics
-    organized by uncertainty bins. Supports both single experiments and Q-value comparisons.
+    **evaluation_data_by_bins**: The primary data structure containing evaluation metrics organized by uncertainty bins.
+    Supports both single experiments and Q-value comparisons.
 
-    **metadata fields**: uncertainty_categories, models, category_labels, num_bins provide
-    context and labeling information for proper visualization.
+    **metadata fields**: uncertainty_categories, models, category_labels, num_bins provide context and labeling
+    information for proper visualization.
 
     **Data Structure Patterns:**
 
@@ -250,14 +247,13 @@ class BoxPlotData:
 
     **Validation & Usage:**
 
-    Use the create_boxplot_data() factory function for automatic validation and
-    parameter inference. Direct instantiation is supported for advanced use cases
-    where manual control is needed.
+    Use the create_boxplot_data() factory function for automatic validation and parameter inference. Direct
+    instantiation is supported for advanced use cases where manual control is needed.
 
     **Design Philosophy:**
 
-    Flexible data structure accommodates various uncertainty quantification workflows
-    while maintaining consistency and type safety. Optimized for memory efficiency
+    Flexible data structure accommodates various uncertainty quantification workflows while maintaining consistency and
+    type safety. Optimized for memory efficiency
     with large evaluation datasets.
     """
 
@@ -271,17 +267,16 @@ class BoxPlotData:
         """
         Set data parameters on the BoxPlotData instance and return self for method chaining.
 
-        This method allows for convenient data parameter updating using a fluent interface.
-        It validates that provided parameters are valid BoxPlotData attributes.
+        This method allows for convenient data parameter updating using a fluent interface. It validates that provided
+        parameters are valid BoxPlotData attributes.
 
         Args:
-            **kwargs (Any): Keyword arguments corresponding to BoxPlotData attributes.
-                     Valid parameters include:
-                     - evaluation_data_by_bins: Primary evaluation data
-                     - uncertainty_categories: Hierarchical uncertainty type organization
-                     - models: Model identifiers for analysis
-                     - category_labels: Human-readable x-axis labels
-                     - num_bins: Total uncertainty bins
+            **kwargs (Any): Keyword arguments corresponding to BoxPlotData attributes. Valid parameters include:
+                           - evaluation_data_by_bins: Primary evaluation data
+                           - uncertainty_categories: Hierarchical uncertainty type organization
+                           - models: Model identifiers for analysis
+                           - category_labels: Human-readable x-axis labels
+                           - num_bins: Total uncertainty bins
 
         Returns:
             BoxPlotData: Self reference for method chaining.
@@ -322,9 +317,8 @@ def create_boxplot_config(**kwargs: Any) -> BoxPlotConfig:
     """
     Factory function to create BoxPlotConfig with parameter validation and convenient defaults.
 
-    This function provides a convenient way to create BoxPlotConfig instances with
-    validation and intelligent parameter handling. It accepts any valid BoxPlotConfig
-    parameter as keyword arguments.
+    This function provides a convenient way to create BoxPlotConfig instances with validation and intelligent parameter
+    handling. It accepts any valid BoxPlotConfig parameter as keyword arguments.
 
     Args:
         **kwargs (Any): Any BoxPlotConfig parameter to override defaults. Common parameters include:
@@ -382,25 +376,22 @@ def create_boxplot_data(
     """
     Factory function to create validated BoxPlotData containers for uncertainty quantification visualization.
 
-    This function creates BoxPlotData instances with automatic validation and intelligent
-    parameter inference. It handles the complexity of organizing evaluation metrics for
-    different plotting scenarios while ensuring data consistency.
+    This function creates BoxPlotData instances with automatic validation and intelligent parameter inference. It
+    handles the complexity of organizing evaluation metrics for different plotting scenarios while ensuring data
+    consistency.
 
     Args:
-        evaluation_data_by_bins (List[Dict[str, List[List[float]]]]): Primary evaluation data organized by uncertainty bins.
-            For single experiments: List with one dict mapping "model_uncertainty" to bin data.
-            For Q-value comparisons: List of dicts, each representing different Q thresholds.
+        evaluation_data_by_bins (List[Dict[str, List[List[float]]]]): Primary evaluation data organized by uncertainty
+            bins. For single experiments: List with one dict mapping "model_uncertainty" to bin data. For Q-value
+            comparisons: List of dicts, each representing different Q thresholds.
         uncertainty_categories (Optional[List[List[str]]], optional): Hierarchical uncertainty type organization.
-            Examples: [["epistemic"], ["aleatoric"]] or [["S-MHA"], ["E-MHA"]]
-            Default: Auto-inferred from data keys.
-        models (Optional[List[str]], optional): Model identifiers for analysis and legend generation.
-            Examples: ["ResNet50", "VGG16"] or ["baseline"]
-            Default: Auto-inferred from data key prefixes.
-        category_labels (Optional[List[str]], optional): Human-readable x-axis labels.
-            Examples: ["B1", "B2", "B3"] or ["Q=5", "Q=10", "Q=15"]
-            Default: Auto-generated based on data structure.
-        num_bins (Optional[int], optional): Total uncertainty bins for validation and layout.
-            Default: Auto-inferred from data structure.
+            Examples: [["epistemic"], ["aleatoric"]] or [["S-MHA"], ["E-MHA"]] Default: Auto-inferred from data keys.
+        models (Optional[List[str]], optional): Model identifiers for analysis and legend generation. Examples:
+            ["ResNet50", "VGG16"] or ["baseline"] Default: Auto-inferred from data key prefixes.
+        category_labels (Optional[List[str]], optional): Human-readable x-axis labels. Examples: ["B1", "B2", "B3"]
+            or ["Q=5", "Q=10", "Q=15"] Default: Auto-generated based on data structure.
+        num_bins (Optional[int], optional): Total uncertainty bins for validation and layout. Default: Auto-inferred
+            from data structure.
         **kwargs (Any): Extended metadata for specialized analysis modes.
 
     Returns:
@@ -478,10 +469,10 @@ class BoxPlotter(ABC):
         Initialize BoxPlotter with optional data and configuration.
 
         Args:
-            data (Optional[BoxPlotData], optional): BoxPlotData containing evaluation metrics.
-                Can be set later via set_data(). Defaults to None.
-            config (Optional[BoxPlotConfig], optional): BoxPlotConfig for display settings.
-                Uses defaults if not provided. Defaults to None.
+            data (Optional[BoxPlotData], optional): BoxPlotData containing evaluation metrics. Can be set later via
+                set_data(). Defaults to None.
+            config (Optional[BoxPlotConfig], optional): BoxPlotConfig for display settings. Uses defaults if not
+                provided. Defaults to None.
         """
         self.data = data
         self.config = config or BoxPlotConfig()
@@ -552,9 +543,9 @@ class BoxPlotter(ABC):
         """
         Default implementation for creating boxplot visualizations.
 
-        This method provides a common implementation that works for most plotting modes
-        (Generic and PerModel). Subclasses can override this method for specialized behavior
-        or override specific hook methods to customize parts of the process.
+        This method provides a common implementation that works for most plotting modes (Generic and PerModel).
+        Subclasses can override this method for specialized behavior or override specific hook methods to customize
+        parts of the process.
 
         The default implementation:
         1. Sets up the plot
@@ -569,9 +560,9 @@ class BoxPlotter(ABC):
         if not self.processed_data:
             self.process_data()
 
-        assert self.processed_data is not None
-        assert self.data is not None
-        assert self.data.uncertainty_categories is not None
+        assert self.processed_data is not None, "Data processing failed"
+        assert self.data is not None, "Data container is not set"
+        assert self.data.uncertainty_categories is not None, "Uncertainty categories are not set"
 
         colors = colormaps.get_cmap(self.config.colormap)(np.arange(len(self.data.uncertainty_categories) + 1))
 
@@ -623,8 +614,8 @@ class BoxPlotter(ABC):
         Returns:
             Matplotlib boxplot dictionary
 
-        Default implementation handles standard boxplot drawing.
-        Subclasses can override for specialized drawing behavior.
+        Default implementation handles standard boxplot drawing. Subclasses can override for specialized drawing
+        behavior.
         """
         assert self.data is not None
         if self.data.uncertainty_categories:
@@ -662,11 +653,11 @@ class BoxPlotter(ABC):
         Default implementation uses standard parameters.
         Subclasses can override to customize finalization behavior.
         """
-        assert self.bin_label_locs is not None
-        assert self.data is not None
-        assert self.data.category_labels is not None
-        assert self.data.num_bins is not None
-        assert self.data.uncertainty_categories is not None
+        assert self.bin_label_locs is not None, "Bin label locations must be set before finalizing plot"
+        assert self.data is not None, "Data container is not set"
+        assert self.data.category_labels is not None, "Category labels are not set"
+        assert self.data.num_bins is not None, "Number of bins is not set"
+        assert self.data.uncertainty_categories is not None, "Uncertainty categories are not set"
 
         # Default show_all_ticks behavior - subclasses can override
         show_all_ticks = getattr(self.config, "detailed_mode", True)
@@ -731,10 +722,10 @@ class BoxPlotter(ABC):
             dot_alpha (float, optional): Transparency for individual dots. Defaults to 0.75.
 
         Returns:
-            Dict[str, List[Any]]: Matplotlib boxplot dictionary containing plot elements and metadata.
-                Structure: {"boxes": [], "medians": [], "means": [], "whiskers": [], "caps": []}
-                Elements: Provides access to individual plot components for further customization
-                Usage: Can be used to extract statistical information or apply additional styling
+            Dict[str, List[Any]]: Matplotlib boxplot dictionary containing plot elements and metadata. Structure:
+                {"boxes": [], "medians": [], "means": [], "whiskers": [], "caps": []} Elements: Provides access to
+                individual plot components for further customization Usage: Can be used to extract statistical
+                information or apply additional styling
         """
         assert self.ax is not None
 
@@ -792,7 +783,8 @@ class BoxPlotter(ABC):
 
     def _collect_sample_info_average(self) -> None:
         """
-        Collect and register sample distribution information for statistical annotation display(show_sample_info="Average").
+        Collect and register sample distribution information for statistical annotation display
+        (show_sample_info="Average").
         """
         assert self.bin_label_locs is not None, "Bin label locations must be set before collecting sample info"
         for bin_label_loc in self.bin_label_locs:
@@ -1034,8 +1026,8 @@ class BoxPlotter(ABC):
         """
         Apply comprehensive formatting, styling, and finalization to complete boxplot visualization.
 
-        This method orchestrates the complete plot finalization process by calling specialized
-        sub-functions for each formatting aspect, making the code more maintainable and testable.
+        This method orchestrates the complete plot finalization process by calling specialized sub-functions for each
+        formatting aspect, making the code more maintainable and testable.
 
         Args:
             bin_label_locs (List[List[float]]): X-axis positions for tick mark and label placement.
@@ -1068,13 +1060,12 @@ class GenericBoxPlotter(BoxPlotter):
     """
     Multi-model comparison boxplot visualization for uncertainty analysis.
 
-    This specialized plotter creates side-by-side boxplot comparisons across different
-    models and uncertainty types. Ideal for comparative studies where you need to
-    evaluate multiple models under the same uncertainty quantification framework.
+    This specialized plotter creates side-by-side boxplot comparisons across different models and uncertainty types.
+    Ideal for comparative studies where you need to evaluate multiple models under the same uncertainty quantification
+    framework.
 
-    The plotter organizes data by uncertainty categories first, then by models within
-    each category, creating clear visual comparisons while maintaining consistent
-    color coding and spacing.
+    The plotter organizes data by uncertainty categories first, then by models within each category, creating clear
+    visual comparisons while maintaining consistent color coding and spacing.
 
     Data Organization:
     - Groups boxplots by uncertainty type (e.g., epistemic vs aleatoric)
@@ -1102,10 +1093,10 @@ class GenericBoxPlotter(BoxPlotter):
         Initialize GenericBoxPlotter for multi-model comparisons.
 
         Args:
-            data (Optional[BoxPlotData], optional): BoxPlotData with evaluation_data_by_bins,
-                uncertainty_categories, and models. Defaults to None.
-            config (Optional[BoxPlotConfig], optional): BoxPlotConfig for styling and
-                display options. Defaults to None.
+            data (Optional[BoxPlotData], optional): BoxPlotData with evaluation_data_by_bins, uncertainty_categories,
+                and models. Defaults to None.
+            config (Optional[BoxPlotConfig], optional): BoxPlotConfig for styling and display options. Defaults to
+                None.
         """
         super().__init__(data, config)
         self.legend_info: Optional[List[Dict]] = None
@@ -1114,8 +1105,8 @@ class GenericBoxPlotter(BoxPlotter):
         """
         Process data for generic plotting mode.
 
-        Validates required data fields and processes evaluation data for multi-model
-        comparison visualization using GenericBoxPlotDataProcessor.
+        Validates required data fields and processes evaluation data for multi-model comparison visualization using
+        GenericBoxPlotDataProcessor.
 
         Raises:
             ValueError: If BoxPlotData is not set or missing required fields for generic mode.
@@ -1170,10 +1161,9 @@ class PerModelBoxPlotter(BoxPlotter):
     """
     Individual model performance analysis with grouped uncertainty visualization.
 
-    This specialized plotter focuses on detailed analysis of individual models by
-    organizing boxplots by model first, then by uncertainty type within each model.
-    Perfect for in-depth model analysis and understanding uncertainty patterns
-    within specific architectures.
+    This specialized plotter focuses on detailed analysis of individual models by organizing boxplots by model first,
+    then by uncertainty type within each model. Perfect for in-depth model analysis and understanding uncertainty
+    patterns within specific architectures.
 
     Data Organization:
     - Primary grouping by model (e.g., ResNet50, VGG16)
@@ -1202,10 +1192,9 @@ class PerModelBoxPlotter(BoxPlotter):
         Initialize PerModelBoxPlotter for detailed individual model analysis.
 
         Args:
-            data (Optional[BoxPlotData], optional): BoxPlotData configured for per-model analysis.
+            data (Optional[BoxPlotData], optional): BoxPlotData configured for per-model analysis. Defaults to None.
+            config (Optional[BoxPlotConfig], optional): BoxPlotConfig with appropriate styling for detailed views.
                 Defaults to None.
-            config (Optional[BoxPlotConfig], optional): BoxPlotConfig with appropriate styling
-                for detailed views. Defaults to None.
         """
         super().__init__(data, config)
         self.legend_info: Optional[List[Dict]] = None
@@ -1214,11 +1203,12 @@ class PerModelBoxPlotter(BoxPlotter):
         """
         Process data for per-model plotting mode.
 
-        Validates required data fields and processes evaluation data for individual
-        model performance analysis using PerModelBoxPlotDataProcessor.
+        Validates required data fields and processes evaluation data for individual model performance analysis using
+        PerModelBoxPlotDataProcessor.
 
         Raises:
-            ValueError: If BoxPlotData is not set or missing required fields for per-model mode."""
+            ValueError: If BoxPlotData is not set or missing required fields for per-model mode.
+        """
         if not self.data:
             raise ValueError("BoxPlotData must be set before processing")
 
@@ -1269,9 +1259,9 @@ class ComparingQBoxPlotter(BoxPlotter):
     """
     Quantile threshold comparison visualization for binning strategy analysis.
 
-    This specialized plotter compares the impact of different quantile thresholds
-    (Q values) on uncertainty quantification performance. Essential for studies
-    that need to optimize binning strategies or understand threshold sensitivity.
+    This specialized plotter compares the impact of different quantile thresholds (Q values) on uncertainty
+    quantification performance. Essential for studies that need to optimize binning strategies or understand threshold
+    sensitivity.
 
     Data Organization:
     - Each Q value (e.g., Q=5, Q=10, Q=15) gets its own dataset
@@ -1309,10 +1299,10 @@ class ComparingQBoxPlotter(BoxPlotter):
         Initialize ComparingQBoxPlotter for quantile threshold comparison.
 
         Args:
-            data (Optional[BoxPlotData], optional): BoxPlotData with evaluation_data_by_bins
-                for Q-value comparison. Defaults to None.
-            config (Optional[BoxPlotConfig], optional): BoxPlotConfig with hatch_type and
-                color for Q-plot styling. Defaults to None.
+            data (Optional[BoxPlotData], optional): BoxPlotData with evaluation_data_by_bins for Q-value comparison.
+                Defaults to None.
+            config (Optional[BoxPlotConfig], optional): BoxPlotConfig with hatch_type and color for Q-plot styling.
+                Defaults to None.
         """
         super().__init__(data, config)
         self.uncertainty_type: Optional[str] = None
@@ -1321,11 +1311,12 @@ class ComparingQBoxPlotter(BoxPlotter):
         """
         Process data for comparing Q plotting mode.
 
-        Validates required data fields and processes evaluation data for Q-value
-        threshold comparison using ComparingQBoxPlotDataProcessor.
+        Validates required data fields and processes evaluation data for Q-value threshold comparison using
+        ComparingQBoxPlotDataProcessor.
 
         Raises:
-            ValueError: If BoxPlotData is not set or missing required fields for Q-comparison mode."""
+            ValueError: If BoxPlotData is not set or missing required fields for Q-comparison mode.
+        """
         if not self.data:
             raise ValueError("BoxPlotData must be set before processing")
 
@@ -1447,11 +1438,11 @@ class BoxPlotDataProcessor(ABC):
     """
     Abstract base class for boxplot data processing using template method pattern.
 
-    This class defines the common data processing workflow for different boxplot modes,
-    while allowing subclasses to customize specific operations through method overrides.
+    This class defines the common data processing workflow for different boxplot modes, while allowing subclasses to
+    customize specific operations through method overrides.
 
-    The template method pattern ensures consistent processing flow while enabling
-    flexible customization for different visualization requirements.
+    The template method pattern ensures consistent processing flow while enabling flexible customization for different
+    visualization requirements.
     """
 
     def __init__(self, config: Optional[BoxPlotConfig] = None):
@@ -1459,11 +1450,11 @@ class BoxPlotDataProcessor(ABC):
         Initialize the processor with default state.
 
         Args:
-            config (Optional[BoxPlotConfig], optional): BoxPlotConfig for display settings.
-                Uses defaults if not provided. Defaults to None.
+            config (Optional[BoxPlotConfig], optional): BoxPlotConfig for display settings. Uses defaults if not
+                provided. Defaults to None.
 
-        Sets up instance variables for input data, processing state, and results.
-        All variables are initialized to None or empty collections.
+        Sets up instance variables for input data, processing state, and results. All variables are initialized to
+        None or empty collections.
         """
         # Input data
         self.evaluation_data_by_bin: Optional[Dict[str, List[List[float]]]] = None
@@ -1492,15 +1483,16 @@ class BoxPlotDataProcessor(ABC):
         """
         Template method that defines the main data processing algorithm.
 
-        This method coordinates the overall processing flow by calling specific
-        hook methods that subclasses can override to customize behavior.
+        This method coordinates the overall processing flow by calling specific hook methods that subclasses can
+        override to customize behavior.
 
         Args:
             *args: Variable positional arguments specific to each processing mode.
             **kwargs: Variable keyword arguments specific to each processing mode.
 
         Returns:
-            Tuple[List[Dict], Union[List[Dict], None], List[List[float]], List[float]]: A tuple containing:
+            Tuple[List[Dict], Union[List[Dict], None], List[List[float]], List[Union[float, List[float]]]]: A tuple
+                containing:
                 - processed_data: List of dictionaries with boxplot data and positioning
                 - legend_info: Legend information (None for Q-comparison mode)
                 - bin_label_locs: X-axis positions for bin labels
@@ -1547,13 +1539,14 @@ class BoxPlotDataProcessor(ABC):
             hatch_idx (int): Hatching pattern index.
             bin_idx (int): Bin index.
             model_data (List[List[float]]): Original model data.
+            percent_size (float): Percentage size information.
             **extra_fields: Additional fields to include in the data item.
 
         Returns:
             Dict: Standardized data item dictionary with all required fields.
 
         Examples:
-            >>> item = create_data_item([0.1, 0.2], 1.0, 0.2, 0, "ResNet50", "epistemic", 0, 0, model_data)
+            >>> item = create_data_item([0.1, 0.2], 1.0, 0.2, 0, "ResNet50", "epistemic", 0, 0, model_data, 50.0)
         """
         item = {
             "data": data,
@@ -1576,8 +1569,7 @@ class BoxPlotDataProcessor(ABC):
         """
         Initialize the processing parameters from input arguments.
 
-        Subclasses should override this method to extract and store relevant
-        parameters as instance variables.
+        Subclasses should override this method to extract and store relevant parameters as instance variables.
 
         Args:
             *args: Variable positional arguments specific to processing mode.
@@ -1590,9 +1582,8 @@ class BoxPlotDataProcessor(ABC):
         """
         Execute the main data processing loop.
 
-        Each subclass implements its specific processing logic directly.
-        Results should be stored in self.processed_data, self.legend_info,
-        and self.bin_label_locs.
+        Each subclass implements its specific processing logic directly. Results should be stored in
+        self.processed_data, self.legend_info, and self.bin_label_locs.
         """
         pass
 
@@ -1600,8 +1591,7 @@ class BoxPlotDataProcessor(ABC):
         """
         Optional hook for result validation and finalization.
 
-        Default implementation performs basic validation.
-        Subclasses can override for additional processing.
+        Default implementation performs basic validation. Subclasses can override for additional processing.
 
         Raises:
             ValueError: If processing resulted in empty data or bin label locations.
@@ -1619,8 +1609,8 @@ class BoxPlotDataProcessor(ABC):
         Locate the appropriate data key for model-uncertainty combination.
 
         Args:
-            evaluation_data_by_bin (Dict[str, List[List[float]]]): Dictionary with keys like
-                "ResNet50_epistemic", "VGG16_aleatoric".
+            evaluation_data_by_bin (Dict[str, List[List[float]]]): Dictionary with keys like "ResNet50_epistemic",
+                "VGG16_aleatoric".
             model_type (str): Model identifier to search for (e.g., "ResNet50", "VGG16").
             uncertainty_type (str): Uncertainty category to search for (e.g., "epistemic", "aleatoric").
 
@@ -1744,8 +1734,7 @@ class BoxPlotDataProcessor(ABC):
             uncertainty_idx (int): Uncertainty type index for coloring.
             hatch_idx (int): Hatching pattern index.
             width (float): Box width for the item.
-            evaluation_data_override (Dict, optional): Override data for Q-comparison mode.
-                Defaults to None.
+            evaluation_data_override (Dict, optional): Override data for Q-comparison mode. Defaults to None.
 
         Returns:
             Dict: Processed data item dictionary with all required fields.
@@ -1882,8 +1871,8 @@ class GenericBoxPlotDataProcessor(BoxPlotDataProcessor):
     """
     Data processor for generic multi-model boxplot visualization.
 
-    Implements uncertainty -> bins -> models processing order for comparing
-    multiple models across different uncertainty types.
+    Implements uncertainty -> bins -> models processing order for comparing multiple models across different
+    uncertainty types.
     """
 
     def _initialize_processing_parameters(
@@ -1912,8 +1901,8 @@ class GenericBoxPlotDataProcessor(BoxPlotDataProcessor):
         """
         Execute generic processing: uncertainty -> bins -> models.
 
-        Processes data in the order: for each uncertainty type, for each bin,
-        for each model. This creates grouped comparisons by uncertainty type.
+        Processes data in the order: for each uncertainty type, for each bin, for each model. This creates grouped
+        comparisons by uncertainty type.
         """
         assert self.config is not None, "Configuration must be set before processing"
         assert self.uncertainty_categories is not None, "Uncertainty categories must be set"
@@ -1949,8 +1938,8 @@ class PerModelBoxPlotDataProcessor(BoxPlotDataProcessor):
     """
     Data processor for per-model boxplot visualization.
 
-    Implements uncertainty -> models -> bins processing order for detailed
-    individual model analysis with model-first grouping.
+    Implements uncertainty -> models -> bins processing order for detailed individual model analysis with model-first
+    grouping.
     """
 
     def _initialize_processing_parameters(
@@ -1979,8 +1968,8 @@ class PerModelBoxPlotDataProcessor(BoxPlotDataProcessor):
         """
         Execute per-model processing: uncertainty -> models -> bins.
 
-        Processes data in the order: for each uncertainty type, for each model,
-        for each bin. This creates detailed per-model analysis with model-first grouping.
+        Processes data in the order: for each uncertainty type, for each model, for each bin. This creates detailed
+        per-model analysis with model-first grouping.
         """
         assert self.config is not None, "Configuration must be set before processing"
         assert self.uncertainty_categories is not None, "Uncertainty categories must be set"
@@ -2012,8 +2001,7 @@ class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
     """
     Data processor for Q-value comparison boxplot visualization.
 
-    Implements specialized processing for quantile threshold comparison
-    studies with progressive width reduction.
+    Implements specialized processing for quantile threshold comparison studies with progressive width reduction.
     """
 
     def __init__(self, config: Optional[BoxPlotConfig] = None):
@@ -2024,8 +2012,8 @@ class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
             config (Optional[BoxPlotConfig], optional): BoxPlotConfig for display settings.
                 Uses defaults if not provided. Defaults to None.
 
-        Extends base processor initialization with Q-comparison specific variables
-        including evaluation_data_by_bins list and category_labels.
+        Extends base processor initialization with Q-comparison specific variables including evaluation_data_by_bins
+        list and category_labels.
         """
         super().__init__(config)
         self.evaluation_data_by_bins = []
@@ -2044,8 +2032,7 @@ class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
         Initialize processing parameters for comparing Q mode.
 
         Args:
-            evaluation_data_by_bins (List[Dict[str, List[List[float]]]]): List of evaluation
-                data, one per Q-value.
+            evaluation_data_by_bins (List[Dict[str, List[List[float]]]]): List of evaluation data, one per Q-value.
             uncertainty_categories (List[List[str]]): Hierarchical uncertainty type organization.
             model (List[str]): Single model identifier (list with one element).
             category_labels (List[str]): Labels for Q-value categories.
@@ -2137,8 +2124,8 @@ class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
         """
         Execute Q-comparison processing loop with progressive width.
 
-        Processes each Q-value with progressive width reduction for visual distinction.
-        Uses specialized Q-value processing methods.
+        Processes each Q-value with progressive width reduction for visual distinction. Uses specialized Q-value
+        processing methods.
         """
         assert self.config is not None, "Configuration must be set before processing"
         assert self.category_labels is not None, "Category labels must be set"
