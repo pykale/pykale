@@ -35,7 +35,7 @@ See our [arXiv preprint](https://arxiv.org/abs/2106.09756) and four short introd
 
 #### Event using PyKale
 
-- [Open Biomedical Multimodal AI Research Workshop](https://pykale.github.io/mmai-tutorials/workshop/intro.html) @ EMBC-2025
+- [Open Biomedical Multimodal AI Research Workshop](https://pykale.github.io/mmai-tutorials/workshop/embc25.html) @ EMBC-2025
 
 #### Pipeline-based API
 
