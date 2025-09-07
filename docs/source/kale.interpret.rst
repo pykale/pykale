@@ -6,6 +6,14 @@ Interpret
 Submodules
 ----------
 
+kale.interpret.box\_plot module
+--------------------------------------------
+
+.. automodule:: kale.interpret.box_plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.interpret.correlation\_analysis module
 --------------------------------------------
 
