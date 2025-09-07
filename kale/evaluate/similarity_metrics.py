@@ -126,6 +126,7 @@ def evaluate_correlations(
                 fold_errors,
                 fold_uncertainty_values,
                 quantile_thresholds,
+                colormap=colormap,
                 error_scaling_factor=error_scaling_factor,
                 save_path=save_path_fig,
                 to_log=to_log,
