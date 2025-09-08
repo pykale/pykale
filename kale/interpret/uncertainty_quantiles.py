@@ -41,7 +41,7 @@ from kale.interpret.box_plot import (
     PerModelBoxPlotter,
 )
 from kale.prepdata.tabular_transform import generate_struct_for_qbin
-from kale.utils.save_xlsx import generate_summary_df
+from kale.utils.format_transformation import generate_summary_df
 
 
 def quantile_binning_and_est_errors(
