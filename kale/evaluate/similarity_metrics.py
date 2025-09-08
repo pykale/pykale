@@ -15,28 +15,6 @@ from kale.interpret.correlation_analysis import analyze_and_plot_uncertainty_cor
 from kale.prepdata.tabular_transform import apply_confidence_inversion
 
 
-def jaccard_similarity(list1: list, list2: list) -> float:
-    """
-    Calculates the Jaccard Index (JI) between two lists.
-
-    Args:
-        list1 (list): List of elements in set A.
-        list2 (list): List of elements in set B.
-    Returns:
-        float: The Jaccard Index between list1 and list2.
-    Example:
-        >>> jaccard_similarity([1,2,3], [2,3,4])
-        0.5
-    """
-
-    if len(list1) == 0 or len(list2) == 0:
-        return 0
-    else:
-        intersection = len(set(list1).intersection(list2))  # no need to call list here
-        union = len(list1 + list2) - intersection  # you only need to call len once here
-        return intersection / union  # also no need to cast to float as this will be done for you
-
-
 def evaluate_correlations(
     bin_predictions: Dict[str, pd.DataFrame],
     uncertainty_error_pairs: List[Tuple[str, str, str]],
