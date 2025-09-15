@@ -5,20 +5,7 @@
 # =============================================================================
 
 """
-Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based La        # 1. Unpack configuration parameters from data tuple
-    (
-         _, _, _, _, _, colormap, _, save_folder, save_file_preamble, _,
-        save_figures_bool, samples_as_dots_bool, show_sample_info,
-        box_plot_error_lim, _, interpret, _, _, _,
-    ) = data
-
-    # 2. Prepare configuration dictionary required by the new class
-    boxplot_aesthetic_config = {
-        "colormap": colormap,
-        "hatch_type": display_settings.get("hatch", "")
-    }
-
-    # 3. Instantiate and run the new analyzeration,"
+Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization,"
 in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
 Functions related to interpreting the uncertainty quantiles from the quantile binning method in terms of:
@@ -678,8 +665,16 @@ class QuantileBinningAnalyzer:
         # Plot aggregated charts for all targets
         self.logger.info(f"Plotting {metric_name} for all targets.")
 
-        # In individual mode, the data is already in the first element of the list
-        plot_data_all = all_targets_data if plot_func == plot_comparing_q_boxplot else all_targets_data
+        # Handle different data structures for different plot functions
+        if plot_func == plot_comparing_q_boxplot:
+            # For comparing Q plots, data is a list of dictionaries
+            plot_data_all = all_targets_data
+        else:
+            # For individual bin comparison, check if data is already a list
+            if isinstance(all_targets_data, list):
+                plot_data_all = all_targets_data
+            else:
+                plot_data_all = [all_targets_data]
 
         boxplot_data = create_boxplot_data(
             evaluation_data_by_bins=plot_data_all,
@@ -746,8 +741,7 @@ class QuantileBinningAnalyzer:
         )
 
         num_bins_display = 3 if combine_middle_bins else num_bins
-        category_labels = [rf"$B_{{{i+1}}}$" for i in range(num_bins_display)]
-
+        category_labels = [rf"$B_{{{num_bins_display + 1 - (i + 1)}}}$" for i in range(num_bins_display + 1)]
         # --- Start plotting ---
         if self.display_settings.get("correlation"):
             colormap = self.boxplot_config.get("colormap", "Set1")
@@ -779,7 +773,7 @@ class QuantileBinningAnalyzer:
 
         if self.display_settings.get("errors"):
             self._plot_metric(
-                "errors",
+                "error",
                 plot_per_model_boxplot,
                 eval_data["errors"]["all error concat bins targets nosep"],
                 models_to_compare,
@@ -792,13 +786,13 @@ class QuantileBinningAnalyzer:
                 to_log=True,
                 convert_to_percent=False,
                 num_bins_display=num_bins_display,
-                y_lim_top=120,
+                y_lim_top=self.box_plot_error_lim,
                 detailed_mode=False,
             )
 
             if show_individual_target_plots:
                 self._plot_individual_targets(
-                    "errors",
+                    "error",
                     plot_per_model_boxplot,
                     eval_data["errors"]["all error concat bins targets sep all"],
                     ind_targets_to_show,
@@ -818,7 +812,7 @@ class QuantileBinningAnalyzer:
                 )
 
             self._plot_metric(
-                "mean_error",
+                "mean_error_folds",
                 plot_per_model_boxplot,
                 eval_data["errors"]["all mean error bins nosep"],
                 models_to_compare,
@@ -845,7 +839,7 @@ class QuantileBinningAnalyzer:
                 category_labels,
                 x_label="Uncertainty Thresholded Bin",
                 y_label="Error Bound Accuracy (%)",
-                to_log=True,
+                to_log=False,
                 convert_to_percent=True,
                 num_bins_display=num_bins_display,
                 y_lim_top=120,
@@ -896,7 +890,7 @@ class QuantileBinningAnalyzer:
                 to_log=False,
                 convert_to_percent=True,
                 num_bins_display=num_bins_display,
-                y_lim_top=120,
+                y_lim_top=70,
                 width=0.2,
                 y_lim_bottom=-2,
                 font_size_label=30,
@@ -970,6 +964,7 @@ class QuantileBinningAnalyzer:
                     detailed_mode=False,
                     x_label="Uncertainty Thresholded Bin",
                     y_label="Jaccard Index (%)",
+                    to_log=False,
                     convert_to_percent=True,
                     target_indices=target_indices,
                 )
@@ -1054,7 +1049,7 @@ class QuantileBinningAnalyzer:
         # --- Start plotting ---
         if self.display_settings.get("errors"):
             self._plot_metric(
-                "errors",
+                "error",
                 plot_comparing_q_boxplot,
                 all_eval_data_by_q["all error concat bins targets nosep"],
                 model_list,
@@ -1064,6 +1059,7 @@ class QuantileBinningAnalyzer:
                 x_label="Q (# Bins)",
                 y_label="Localization Error (mm)",
                 to_log=True,
+                y_lim_top=self.box_plot_error_lim,
                 convert_to_percent=False,
                 num_bins_display=num_bins_display,
                 show_individual_dots=self.samples_as_dots_bool,
@@ -1072,7 +1068,7 @@ class QuantileBinningAnalyzer:
 
             if show_individual_target_plots:
                 self._plot_individual_targets(
-                    "errors",
+                    "error",
                     plot_comparing_q_boxplot,
                     all_eval_data_by_q["all error concat bins targets sep all"],
                     ind_targets_to_show,
@@ -1121,7 +1117,7 @@ class QuantileBinningAnalyzer:
                 y_lim_top=100,
                 x_label="Q (# Bins)",
                 y_label="Error Bound Accuracy (%)",
-                to_log=True,
+                to_log=False,
                 convert_to_percent=True,
                 num_bins_display=num_bins_display,
                 show_individual_dots=False,
@@ -1141,7 +1137,7 @@ class QuantileBinningAnalyzer:
                     show_sample_info="None",
                     x_label="Q (# Bins)",
                     y_label="Error Bound Accuracy (%)",
-                    to_log=True,
+                    to_log=False,
                     y_lim_top=100,
                     convert_to_percent=True,
                     show_individual_dots=False,
@@ -1161,7 +1157,7 @@ class QuantileBinningAnalyzer:
                 y_lim_top=70,
                 x_label="Q (# Bins)",
                 y_label="Jaccard Index (%)",
-                to_log=True,
+                to_log=False,
                 convert_to_percent=True,
                 num_bins_display=num_bins_display,
                 show_individual_dots=False,
@@ -1179,7 +1175,7 @@ class QuantileBinningAnalyzer:
                 y_lim_top=120,
                 x_label="Q (# Bins)",
                 y_label="Ground Truth Bins Recall (%)",
-                to_log=True,
+                to_log=False,
                 convert_to_percent=True,
                 num_bins_display=num_bins_display,
                 show_individual_dots=False,
@@ -1197,7 +1193,7 @@ class QuantileBinningAnalyzer:
                 y_lim_top=120,
                 x_label="Q (# Bins)",
                 y_label="Ground Truth Bins Precision (%)",
-                to_log=True,
+                to_log=False,
                 convert_to_percent=True,
                 num_bins_display=num_bins_display,
                 show_individual_dots=False,
@@ -1217,7 +1213,7 @@ class QuantileBinningAnalyzer:
                     show_sample_info="None",
                     x_label="Q (# Bins)",
                     y_label="Jaccard Index (%)",
-                    to_log=True,
+                    to_log=False,
                     y_lim_top=70,
                     convert_to_percent=True,
                     show_individual_dots=False,
