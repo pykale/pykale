@@ -19,7 +19,7 @@ from config import get_cfg_defaults
 
 import kale.utils.logger as logging
 from kale.embed.uncertainty_fitting import fit_and_predict
-from kale.interpret.uncertainty_quantiles import generate_fig_comparing_bins, generate_fig_individual_bin_comparison
+from kale.interpret.uncertainty_quantiles import ComparingBinsConfig, QuantileBinningAnalyzer, QuantileBinningConfig
 from kale.utils.download import download_file_by_url
 
 
@@ -162,37 +162,51 @@ def main():
                     ]
                 )
 
-                generate_fig_individual_bin_comparison(
-                    data=[
-                        ind_q_uncertainty_error_pairs,
-                        ind_q_models_to_compare,
-                        dataset,
-                        landmarks,
-                        num_bins,
-                        colormap,
-                        os.path.join(save_folder, "fitted_quantile_binning"),
-                        save_file_preamble,
-                        cfg.PIPELINE.COMBINE_MIDDLE_BINS,
-                        cfg.OUTPUT.SAVE_FIGURES,
-                        cfg.DATASET.CONFIDENCE_INVERT,
-                        cfg.BOXPLOT.SAMPLES_AS_DOTS,
-                        cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
-                        cfg.BOXPLOT.ERROR_LIM,
-                        show_individual_landmark_plots,
-                        interpret,
-                        num_folds,
-                        ind_landmarks_to_show,
-                        pixel_to_mm_scale,
-                    ],
-                    display_settings={
-                        "cumulative_error": True,
-                        "errors": True,
-                        "jaccard": True,
-                        "error_bounds": True,
-                        "correlation": True,
-                        "hatch": "o",
-                    },
+                # Create configuration object for the new OOP API
+                config = QuantileBinningConfig(
+                    uncertainty_error_pairs=ind_q_uncertainty_error_pairs,
+                    models=ind_q_models_to_compare,
+                    dataset=dataset,
+                    target_indices=landmarks,
+                    num_bins=num_bins,
+                    combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+                    confidence_invert=cfg.DATASET.CONFIDENCE_INVERT,
+                    show_individual_target_plots=show_individual_landmark_plots,
+                    ind_targets_to_show=ind_landmarks_to_show,
+                    save_folder=os.path.join(save_folder, "fitted_quantile_binning"),
+                    save_file_preamble=save_file_preamble,
+                    save_figures=cfg.OUTPUT.SAVE_FIGURES,
+                    samples_as_dots_bool=cfg.BOXPLOT.SAMPLES_AS_DOTS,
+                    show_sample_info=cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
+                    box_plot_error_lim=cfg.BOXPLOT.ERROR_LIM,
+                    colormap=colormap,
+                    interpret=interpret,
+                    num_folds=num_folds,
+                    error_scaling_factor=pixel_to_mm_scale,
                 )
+
+                # Create analyzer and run individual bin comparison
+                display_settings = {
+                    "cumulative_error": True,
+                    "errors": True,
+                    "jaccard": True,
+                    "error_bounds": True,
+                    "correlation": True,
+                    "hatch": "o",
+                }
+
+                analyzer = QuantileBinningAnalyzer(
+                    display_settings=display_settings,
+                    save_folder=config.save_folder,
+                    save_file_preamble=config.save_file_preamble,
+                    save_figures=config.save_figures,
+                    interpret=config.interpret,
+                    samples_as_dots_bool=config.samples_as_dots_bool,
+                    show_sample_info=config.show_sample_info,
+                    box_plot_error_lim=config.box_plot_error_lim,
+                    boxplot_config={"colormap": config.colormap, "hatch_type": display_settings.get("hatch", "")},
+                )
+                analyzer.run_individual_bin_comparison(config)
 
             # If we are comparing bins against each other, we need to wait until all the bins have been fitted.
             if cfg.PIPELINE.COMPARE_Q_VALUES and num_bins == cfg.PIPELINE.NUM_QUANTILE_BINS[-1]:
@@ -219,36 +233,54 @@ def main():
                         os.makedirs(save_folder_comparison, exist_ok=True)
 
                         logger.info("Comparison Q figures for: %s and %s ", c_model, c_er_pair)
-                        generate_fig_comparing_bins(
-                            data=[
-                                c_er_pair,
-                                c_model,
-                                dataset,
-                                landmarks,
-                                cfg.PIPELINE.NUM_QUANTILE_BINS,
-                                colormap,
-                                quantile_binning_dirs,
-                                save_folder_comparison,
-                                save_file_preamble,
-                                cfg.PIPELINE.COMBINE_MIDDLE_BINS,
-                                cfg.OUTPUT.SAVE_FIGURES,
-                                cfg.BOXPLOT.SAMPLES_AS_DOTS,
-                                cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
-                                cfg.BOXPLOT.ERROR_LIM,
-                                show_individual_landmark_plots,
-                                interpret,
-                                num_folds,
-                                ind_landmarks_to_show,
-                                pixel_to_mm_scale,
-                            ],
-                            display_settings={
-                                "cumulative_error": True,
-                                "errors": True,
-                                "jaccard": True,
-                                "error_bounds": True,
-                                "hatch": hatch_type,
+
+                        # Create configuration object for comparing bins analysis
+                        comparing_config = ComparingBinsConfig(
+                            uncertainty_error_pair=c_er_pair,
+                            model=c_model,
+                            dataset=dataset,
+                            targets=landmarks,
+                            all_values_q=cfg.PIPELINE.NUM_QUANTILE_BINS,
+                            all_fitted_save_paths=quantile_binning_dirs,
+                            combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
+                            show_individual_target_plots=show_individual_landmark_plots,
+                            ind_targets_to_show=ind_landmarks_to_show,
+                            save_folder=save_folder_comparison,
+                            save_file_preamble=save_file_preamble,
+                            save_figures=cfg.OUTPUT.SAVE_FIGURES,
+                            samples_as_dots_bool=cfg.BOXPLOT.SAMPLES_AS_DOTS,
+                            show_sample_info=cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
+                            box_plot_error_lim=cfg.BOXPLOT.ERROR_LIM,
+                            colormap=colormap,
+                            interpret=interpret,
+                            num_folds=num_folds,
+                            error_scaling_factor=pixel_to_mm_scale,
+                        )
+
+                        # Create analyzer and run comparing bins analysis
+                        display_settings = {
+                            "cumulative_error": True,
+                            "errors": True,
+                            "jaccard": True,
+                            "error_bounds": True,
+                            "hatch": hatch_type,
+                        }
+
+                        analyzer = QuantileBinningAnalyzer(
+                            display_settings=display_settings,
+                            save_folder=comparing_config.save_folder,
+                            save_file_preamble=comparing_config.save_file_preamble,
+                            save_figures=comparing_config.save_figures,
+                            interpret=comparing_config.interpret,
+                            samples_as_dots_bool=comparing_config.samples_as_dots_bool,
+                            show_sample_info=comparing_config.show_sample_info,
+                            box_plot_error_lim=comparing_config.box_plot_error_lim,
+                            boxplot_config={
+                                "colormap": comparing_config.colormap,
+                                "hatch_type": display_settings.get("hatch", ""),
                             },
                         )
+                        analyzer.run_comparing_bins_analysis(comparing_config)
 
 
 if __name__ == "__main__":

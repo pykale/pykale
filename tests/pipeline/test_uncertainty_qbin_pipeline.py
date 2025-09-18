@@ -8,7 +8,7 @@ import pytest
 
 import kale.utils.logger as logging
 from kale.embed.uncertainty_fitting import fit_and_predict
-from kale.interpret.uncertainty_quantiles import generate_fig_comparing_bins, generate_fig_individual_bin_comparison
+from kale.interpret.uncertainty_quantiles import ComparingBinsConfig, QuantileBinningAnalyzer, QuantileBinningConfig
 
 
 @pytest.fixture(scope="module")
@@ -65,29 +65,29 @@ def testing_cfg():
 EXPECTED_FILES_IND_3 = [
     "3Bins/fitted_quantile_binningcumulative_error.pdf",
     "3Bins/fitted_quantile_binning/target_errors.xlsx",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_dotted_error_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_dotted_error_target_0.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_target_0.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_recall_jaccard_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_precision_jaccard_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_target_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_target_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_target_0.pdf",
 ]
 # /home/schobs/Documents/results/testing/4CH/3Bins/
 EXPECTED_FILES_IND_5 = [
     "5Bins/fitted_quantile_binningcumulative_error.pdf",
     "5Bins/fitted_quantile_binning/target_errors.xlsx",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_dotted_error_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_dotted_error_target_0.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_target_0.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_recall_jaccard_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_precision_jaccard_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_target_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_target_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_target_0.pdf",
 ]
 EXPECED_FILES_FIT = [
     "3Bins/fitted_quantile_binning/PHD-NET/4CH/res_predicted_bins_t0.csv",
@@ -128,42 +128,42 @@ EXPECED_FILES_FIT = [
     "5Bins/fitted_quantile_binning/U-NET/4CH/uncertainty_bounds_t2.csv",
 ]
 EXPECTED_FILES_COMP = [
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_dotted_error_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_dotted_error_target_0.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_jaccard_target_0.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_errorbound_target_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_jaccard_target_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_dotted_error_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_dotted_error_target_0.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_jaccard_target_0.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_errorbound_target_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_jaccard_target_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_dotted_error_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_dotted_error_target_0.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_jaccard_target_0.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_errorbound_target_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_jaccard_target_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_dotted_error_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_dotted_error_target_0.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_jaccard_target_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_errorbound_target_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_jaccard_target_0.pdf",
 ]
 
 
@@ -263,37 +263,51 @@ def test_qbin_pipeline(testing_cfg):
             ]
         )
 
-        generate_fig_individual_bin_comparison(
-            data=[
-                ind_q_uncertainty_error_pairs,
-                ind_q_models_to_compare,
-                dataset,
-                landmarks,
-                num_bins,
-                colormap,
-                os.path.join(save_folder, "fitted_quantile_binning"),
-                save_file_preamble,
-                testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
-                testing_cfg["OUTPUT"]["SAVE_FIGURES"],
-                testing_cfg["DATASET"]["CONFIDENCE_INVERT"],
-                testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                testing_cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                testing_cfg["BOXPLOT"]["ERROR_LIM"],
-                show_individual_landmark_plots,
-                True,
-                num_folds,
-                ind_landmarks_to_show,
-                pixel_to_mm_scale,
-            ],
-            display_settings={
-                "cumulative_error": True,
-                "errors": True,
-                "jaccard": True,
-                "error_bounds": True,
-                "correlation": False,
-                "hatch": "o",
-            },
+        # Create configuration object for the new OOP API
+        config = QuantileBinningConfig(
+            uncertainty_error_pairs=ind_q_uncertainty_error_pairs,
+            models=ind_q_models_to_compare,
+            dataset=dataset,
+            target_indices=landmarks,
+            num_bins=num_bins,
+            combine_middle_bins=testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
+            confidence_invert=testing_cfg["DATASET"]["CONFIDENCE_INVERT"],
+            show_individual_target_plots=show_individual_landmark_plots,
+            ind_targets_to_show=ind_landmarks_to_show,
+            save_folder=os.path.join(save_folder, "fitted_quantile_binning"),
+            save_file_preamble=save_file_preamble,
+            save_figures=testing_cfg["OUTPUT"]["SAVE_FIGURES"],
+            samples_as_dots_bool=testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+            show_sample_info=testing_cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
+            box_plot_error_lim=testing_cfg["BOXPLOT"]["ERROR_LIM"],
+            colormap=colormap,
+            interpret=True,
+            num_folds=num_folds,
+            error_scaling_factor=pixel_to_mm_scale,
         )
+
+        # Create analyzer and run individual bin comparison
+        display_settings = {
+            "cumulative_error": True,
+            "errors": True,
+            "jaccard": True,
+            "error_bounds": True,
+            "correlation": False,
+            "hatch": "o",
+        }
+
+        analyzer = QuantileBinningAnalyzer(
+            display_settings=display_settings,
+            save_folder=config.save_folder,
+            save_file_preamble=config.save_file_preamble,
+            save_figures=config.save_figures,
+            interpret=config.interpret,
+            samples_as_dots_bool=config.samples_as_dots_bool,
+            show_sample_info=config.show_sample_info,
+            box_plot_error_lim=config.box_plot_error_lim,
+            boxplot_config={"colormap": config.colormap, "hatch_type": display_settings.get("hatch", "")},
+        )
+        analyzer.run_individual_bin_comparison(config)
 
         if num_bins == 3:
             exp = EXPECTED_FILES_IND_3
@@ -335,36 +349,51 @@ def test_qbin_pipeline(testing_cfg):
             os.makedirs(save_folder_comparison, exist_ok=True)
 
             logger.info("Comparison Q figures for: %s and %s ", c_model, c_er_pair)
-            generate_fig_comparing_bins(
-                data=[
-                    c_er_pair,
-                    c_model,
-                    dataset,
-                    landmarks,
-                    testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"],
-                    colormap,
-                    all_fitted_save_paths,
-                    save_folder_comparison,
-                    save_file_preamble,
-                    testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
-                    testing_cfg["OUTPUT"]["SAVE_FIGURES"],
-                    testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                    testing_cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                    testing_cfg["BOXPLOT"]["ERROR_LIM"],
-                    show_individual_landmark_plots,
-                    True,
-                    num_folds,
-                    ind_landmarks_to_show,
-                    pixel_to_mm_scale,
-                ],
-                display_settings={
-                    "cumulative_error": True,
-                    "errors": True,
-                    "jaccard": True,
-                    "error_bounds": True,
-                    "hatch": hatch_type,
-                },
+
+            # Create configuration object for comparing bins analysis
+            comparing_config = ComparingBinsConfig(
+                uncertainty_error_pair=c_er_pair,
+                model=c_model,
+                dataset=dataset,
+                targets=landmarks,
+                all_values_q=testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"],
+                all_fitted_save_paths=all_fitted_save_paths,
+                combine_middle_bins=testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
+                show_individual_target_plots=show_individual_landmark_plots,
+                ind_targets_to_show=ind_landmarks_to_show,
+                save_folder=save_folder_comparison,
+                save_file_preamble=save_file_preamble,
+                save_figures=testing_cfg["OUTPUT"]["SAVE_FIGURES"],
+                samples_as_dots_bool=testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+                show_sample_info=testing_cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
+                box_plot_error_lim=testing_cfg["BOXPLOT"]["ERROR_LIM"],
+                colormap=colormap,
+                interpret=True,
+                num_folds=num_folds,
+                error_scaling_factor=pixel_to_mm_scale,
             )
+
+            # Create analyzer and run comparing bins analysis
+            display_settings = {
+                "cumulative_error": True,
+                "errors": True,
+                "jaccard": True,
+                "error_bounds": True,
+                "hatch": hatch_type,
+            }
+
+            analyzer = QuantileBinningAnalyzer(
+                display_settings=display_settings,
+                save_folder=comparing_config.save_folder,
+                save_file_preamble=comparing_config.save_file_preamble,
+                save_figures=comparing_config.save_figures,
+                interpret=comparing_config.interpret,
+                samples_as_dots_bool=comparing_config.samples_as_dots_bool,
+                show_sample_info=comparing_config.show_sample_info,
+                box_plot_error_lim=comparing_config.box_plot_error_lim,
+                boxplot_config={"colormap": comparing_config.colormap, "hatch_type": display_settings.get("hatch", "")},
+            )
+            analyzer.run_comparing_bins_analysis(comparing_config)
 
     helper_test_expected_files_exist(EXPECTED_FILES_COMP, os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset))
 
