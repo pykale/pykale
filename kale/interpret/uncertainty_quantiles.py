@@ -5,18 +5,55 @@
 # =============================================================================
 
 """
-Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization,"
-in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
+This module implements the uncertainty quantification method from L. A. Schobs, A. J. Swift and H. Lu,
+"Uncertainty Estimation for Heatmap-Based Landmark Localization," in IEEE Transactions on Medical Imaging,
+vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
-Functions related to interpreting the uncertainty quantiles from the quantile binning method in terms of:
-   A) Perform Isotonic regression on uncertainty & error pairs (quantile_binning_and_est_errors)
-   B) Modern configuration-based plotting functions: plot_generic_boxplot, plot_per_model_boxplot, plot_comparing_q_boxplot
-   C) Cumulative error plots: plot_cumulative
-   D) High-level analysis functions for QBinning: generate_fig_individual_bin_comparison, generate_fig_comparing_bins
+Core Classes:
+   - QuantileBinningAnalyzer: Main analysis class encapsulating uncertainty quantile analysis
+   - QuantileBinningConfig: Configuration for individual bin comparison analysis
+   - ComparingBinsConfig: Configuration for comparing different bin counts (Q values)
 
-Note: Configuration classes (BoxPlotConfig, BoxPlotData) and data processing functions are now located in kale.interpret.box_plot
-for better code organization and maintainability.
+Analysis Capabilities:
+   A) Isotonic regression on uncertainty & error pairs (quantile_binning_and_est_errors)
+   B) Individual bin comparison: Compare different models/uncertainty types at fixed bin counts
+   C) Bin count comparison: Analyze impact of different Q values on model performance
+   D) Comprehensive visualization: Boxplots, error bounds, Jaccard metrics, cumulative plots
 
+Example Usage:
+    ```python
+    from kale.interpret.uncertainty_quantiles import QuantileBinningAnalyzer, QuantileBinningConfig
+
+    # Configure analysis
+    config = QuantileBinningConfig(
+        uncertainty_error_pairs=[('uncertainty_col', 'error_col')],
+        models=['model1', 'model2'],
+        dataset='my_dataset',
+        target_indices=[0, 1, 2],
+        num_bins=10
+    )
+
+    # Create analyzer
+    analyzer = QuantileBinningAnalyzer(
+        display_settings={'errors': True, 'jaccard': True, 'error_bounds': True},
+        save_folder='output/',
+        save_file_preamble='analysis_',
+        save_figures=True,
+        interpret=True,
+        samples_as_dots_bool=False,
+        show_sample_info='detailed',
+        box_plot_error_lim=64,
+        boxplot_config={'colormap': 'Set1'}
+    )
+
+    # Run analysis
+    analyzer.individual_bin_comparison(config, detailed_mode=True)
+    ```
+
+Dependencies:
+   - Box plot configuration classes from kale.interpret.box_plot
+   - Uncertainty metrics from kale.evaluate.uncertainty_metrics
+   - Similarity metrics from kale.evaluate.similarity_metrics
 """
 import logging
 import os
@@ -94,8 +131,8 @@ class QuantileBinningConfig:
     """
     Configuration class for quantile binning analysis.
 
-    This class replaces the tuple-based parameter passing with a more structured,
-    type-safe approach for configuring quantile binning uncertainty analysis.
+    This class replaces the tuple-based parameter passing with a more structured, type-safe approach for configuring
+    quantile binning uncertainty analysis.
     """
 
     # Data configuration
@@ -130,7 +167,12 @@ class QuantileBinningConfig:
     interpret: bool = True
 
     def __post_init__(self):
-        """Initialize default values for mutable fields."""
+        """
+        Initialize default values for mutable fields.
+
+        This method is automatically called after dataclass initialization to set up mutable default values that cannot
+        be safely defined in the field declarations.
+        """
         if self.ind_targets_to_show is None:
             self.ind_targets_to_show = []
 
@@ -173,7 +215,12 @@ class ComparingBinsConfig:
     interpret: bool = True
 
     def __post_init__(self):
-        """Initialize default values for mutable fields."""
+        """
+        Initialize default values for mutable fields.
+
+        This method is automatically called after dataclass initialization to set up mutable default values that cannot
+        be safely defined in the field declarations.
+        """
         if self.ind_targets_to_show is None:
             self.ind_targets_to_show = []
 
@@ -182,9 +229,9 @@ class QuantileBinningAnalyzer:
     """
     A class for performing and visualizing Quantile Binning uncertainty analysis.
 
-    This class encapsulates the functionality of the original generate_fig_individual_bin_comparison
-    and generate_fig_comparing_bins functions to reduce code duplication and improve maintainability.
-    It provides two core analysis modes:
+    This class encapsulates the functionality of the original generate_fig_individual_bin_comparison and
+    generate_fig_comparing_bins functions to reduce code duplication and improve maintainability. It provides two core
+    analysis modes:
     1. Compare different models/uncertainty types at fixed bin counts (individual_bin_comparison).
     2. Compare the impact of different bin counts (Q values) on model performance (comparing_bins_analysis).
     """
@@ -202,15 +249,22 @@ class QuantileBinningAnalyzer:
         boxplot_config: Dict[str, Any],
     ):
         """
-        Initialize the analyzer.
+        Initialize the QuantileBinningAnalyzer for uncertainty quantification analysis.
 
         Args:
-            display_settings (Dict[str, Any]): Dictionary controlling which plots to generate (e.g., {'errors': True, 'jaccard': True}).
-            save_folder (str): Folder path to save generated plots.
-            save_file_preamble (str): Prefix for saved file names.
-            save_figures (bool): If True, save plots; otherwise, display plots.
-            interpret (bool): If True, execute analysis and visualization.
-            boxplot_config (Dict[str, Any]): Generic aesthetic configuration for boxplots.
+            display_settings (Dict[str, Any]): Dictionary controlling which plots to generate.
+                Keys include 'errors', 'error_bounds', 'jaccard', 'correlation', 'cumulative_error'.
+                Each value should be boolean indicating whether to generate that plot type.
+            save_folder (str): Folder path where generated plots will be saved.
+            save_file_preamble (str): Prefix string for saved file names to ensure unique identification.
+            save_figures (bool): If True, save plots to disk; if False, display plots interactively.
+            interpret (bool): If True, execute analysis and visualization; if False, skip processing.
+            samples_as_dots_bool (bool): Whether to show individual data points as dots on boxplots.
+            show_sample_info (str): Mode for displaying sample size information on plots.
+                Common values: "None", "text", "legend".
+            box_plot_error_lim (int): Upper limit for y-axis on error boxplots (typically in mm).
+            boxplot_config (Dict[str, Any]): Configuration dictionary for boxplot aesthetics including colormap, font
+                sizes, figure dimensions, and styling parameters.
         """
         self.logger = logging.getLogger("qbin")
         self.display_settings = display_settings
@@ -226,10 +280,55 @@ class QuantileBinningAnalyzer:
 
     def run_individual_bin_comparison(self, config: QuantileBinningConfig) -> None:
         """
-        Execute comparative analysis of different models and uncertainty types at fixed bin counts.
+        Execute comprehensive comparative analysis of different models and uncertainty types at fixed bin counts.
+
+        This method performs the core individual bin comparison analysis, comparing how different models and
+        uncertainty estimation methods perform across uncertainty-based bins. It generates multiple types of
+        visualizations and statistical analyses to evaluate uncertainty quantification effectiveness in medical imaging
+        applications.
+
+        The analysis workflow includes:
+        1. Data loading and evaluation metric computation for all model-uncertainty combinations
+        2. Correlation analysis between uncertainty estimates and actual errors (if enabled)
+        3. Cumulative error distribution analysis (if enabled)
+        4. Error boxplot generation comparing models across uncertainty bins
+        5. Error bounds accuracy assessment showing calibration quality
+        6. Jaccard similarity analysis evaluating bin overlap with ground truth
 
         Args:
-            config (QuantileBinningConfig): Configuration object containing all analysis parameters.
+            config (QuantileBinningConfig): Comprehensive configuration object containing:
+                - uncertainty_error_pairs: List of (uncertainty_type, error_type) combinations to analyze
+                - models: List of model names to compare (e.g., ['ResNet50', 'VGG16', 'DenseNet'])
+                - dataset: Dataset identifier for labeling and file organization
+                - target_indices: List of anatomical landmark/target indices to analyze
+                - num_bins: Number of uncertainty quantile bins (typically 5-20)
+                - combine_middle_bins: Whether to merge middle bins for simplified 3-bin analysis
+                - confidence_invert: Whether to invert confidence values for analysis
+                - Display and visualization settings for plot generation
+                - File paths and saving configuration
+
+        Raises:
+            FileNotFoundError: If required data files are not found at specified paths.
+            ValueError: If configuration parameters are invalid or incompatible.
+
+        Example:
+            >>> config = QuantileBinningConfig(
+            ...     uncertainty_error_pairs=[('epistemic_uncertainty', 'localization_error')],
+            ...     models=['ResNet50', 'VGG16'],
+            ...     dataset='cardiac_mri',
+            ...     target_indices=[0, 1, 2, 3],  # 4 anatomical landmarks
+            ...     num_bins=10,
+            ...     combine_middle_bins=False,
+            ...     show_individual_target_plots=True,
+            ...     ind_targets_to_show=[0, 1]  # Show detailed plots for first 2 targets
+            ... )
+            >>> analyzer.run_individual_bin_comparison(config)
+
+        Note:
+            - The method respects the analyzer's display_settings to control which plots are generated
+            - Individual target plots provide detailed per-landmark analysis when enabled
+            - Results are automatically saved to Excel summary files for further analysis
+            - All plots use consistent styling and colormaps for publication-ready figures
         """
         if not self.interpret:
             return
@@ -346,10 +445,65 @@ class QuantileBinningAnalyzer:
 
     def run_comparing_bins_analysis(self, config: ComparingBinsConfig) -> None:
         """
-        Execute comparative analysis of different bin counts (Q values).
+        Execute comprehensive analysis comparing the impact of different bin counts (Q values) on model performance.
+
+        This method performs Q-value optimization analysis to determine the optimal number of uncertainty bins for a
+        specific model and uncertainty type combination. It systematically evaluates how different binning strategies
+        (Q=5, Q=10, Q=15, etc.) affect uncertainty quantification performance and provides insights for hyperparameter
+        selection in medical imaging applications.
+
+        The analysis workflow includes:
+        1. Iterative data collection across all specified Q values
+        2. Metric computation (errors, Jaccard similarity, error bounds) for each Q configuration
+        3. Comparative visualization showing Q-value impact on performance metrics
+        4. Statistical analysis of optimal bin count selection
+        5. Individual target analysis (if enabled) for detailed per-landmark insights
+
+        This analysis is crucial for:
+        - Determining optimal binning strategies for specific datasets and models
+        - Understanding the trade-offs between granularity and statistical reliability
+        - Identifying Q values that maximize uncertainty-error correlation
+        - Validating binning approach generalizability across different anatomical targets
 
         Args:
-            config (ComparingBinsConfig): Configuration object containing all analysis parameters.
+            config (ComparingBinsConfig): Comprehensive configuration object containing:
+                - uncertainty_error_pair: Single (uncertainty_type, error_type) tuple to analyze
+                - model: Single model name to evaluate across different Q values
+                - dataset: Dataset identifier for consistent labeling and organization
+                - targets: List of target indices for multi-target analysis
+                - all_values_q: List of Q values to compare (e.g., [5, 10, 15, 20, 25])
+                - all_fitted_save_paths: Corresponding list of data file paths for each Q value
+                - combine_middle_bins: Whether to use simplified 3-bin analysis for all Q values
+                - Display settings controlling which metrics to visualize
+                - Individual target plotting configuration for detailed analysis
+
+        Raises:
+            FileNotFoundError: If data files for any Q value are missing or inaccessible.
+            ValueError: If Q values and save paths lists have mismatched lengths.
+            IndexError: If specified target indices are not present in the data.
+
+        Example:
+            >>> config = ComparingBinsConfig(
+            ...     uncertainty_error_pair=('epistemic_uncertainty', 'localization_error'),
+            ...     model='ResNet50',
+            ...     dataset='cardiac_mri',
+            ...     targets=[0, 1, 2, 3],
+            ...     all_values_q=[5, 10, 15, 20],
+            ...     all_fitted_save_paths=[
+            ...         'data/q5_results/', 'data/q10_results/',
+            ...         'data/q15_results/', 'data/q20_results/'
+            ...     ],
+            ...     show_individual_target_plots=True,
+            ...     ind_targets_to_show=[0]  # Detailed analysis for target 0
+            ... )
+            >>> analyzer.run_comparing_bins_analysis(config)
+
+        Note:
+            - Results typically show optimal Q values in the range of 10-20 bins for medical imaging
+            - Higher Q values provide finer granularity but may suffer from insufficient statistics
+            - Lower Q values are more robust but may miss important uncertainty patterns
+            - Individual target analysis can reveal target-specific optimal Q values
+            - Generated plots use consistent formatting for easy comparison across Q values
         """
         if not self.interpret:
             return
@@ -468,7 +622,21 @@ class QuantileBinningAnalyzer:
             )
 
     def _get_save_location(self, suffix: str, show_individual_dots: bool) -> Optional[str]:
-        """Construct and return the save path for charts, or return None if not saving."""
+        """
+        Construct and return the save path for charts, or return None if not saving.
+
+        This method generates the complete file path for saving plots based on the analyzer's configuration and the
+        specific plot parameters.
+
+        Args:
+            suffix (str): Descriptive suffix for the filename (e.g., "error_all_targets", "jaccard_target_1").
+            show_individual_dots (bool): Whether individual data points are shown as dots on the plot.
+                This affects the filename to distinguish between dotted and undotted variants.
+
+        Returns:
+            Optional[str]: Complete file path with .pdf extension if saving is enabled,
+                          None if save_figures is False.
+        """
         if not self.save_figures:
             return None
 
@@ -537,7 +705,29 @@ class QuantileBinningAnalyzer:
         detailed_mode: bool = False,
         **kwargs: Any,
     ):
-        """Plot error-related metrics (error and mean_error_folds)."""
+        """
+        Plot error-related metrics including individual errors and mean error across folds.
+
+        This method generates three types of error plots:
+        1. Main error plot aggregating all targets
+        2. Individual target plots (if requested)
+        3. Mean error across folds plot
+
+        Args:
+            eval_data (Dict[str, Any]): Dictionary containing evaluation data with keys:
+                'errors' containing ERROR_DATA_ALL_CONCAT_NOSEP, ERROR_DATA_ALL_CONCAT_SEP, ERROR_DATA_MEAN_BINS_NOSEP.
+            models (List[str]): List of model names to compare.
+            uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
+                Each inner list contains [uncertainty_type, error_type].
+            category_labels (List[str]): Labels for x-axis categories (bins or Q values).
+            num_bins_display (int): Number of bins to display on the plot.
+            plot_func (Callable): Plotting function to use (plot_per_model_boxplot, plot_comparing_q_boxplot, etc.).
+            show_individual_target_plots (bool): Whether to generate separate plots for individual targets.
+            ind_targets_to_show (List[int]): List of target indices to plot individually. Empty list means none.
+            target_indices (Optional[List[int]]): Complete list of target indices for reference. Defaults to None.
+            detailed_mode (bool): Whether to use detailed plotting mode with enhanced features. Defaults to False.
+            **kwargs: Additional keyword arguments passed to the plotting function.
+        """
         # Main error plot
         self._plot_metric(
             METRIC_NAME_ERROR,
@@ -613,7 +803,29 @@ class QuantileBinningAnalyzer:
         target_indices: Optional[List[int]] = None,
         **kwargs: Any,
     ):
-        """Plot error bounds related metrics."""
+        """
+        Plot error bounds related metrics for uncertainty quantification accuracy assessment.
+
+        This method generates error bounds plots that show how well the uncertainty estimates predict actual errors.
+        It creates both aggregated and individual target plots.
+
+        Args:
+            eval_data (Dict[str, Any]): Dictionary containing evaluation data with 'bounds' key
+                containing BOUNDS_DATA_ALL and BOUNDS_DATA_ALL_CONCAT_SEP data.
+            models (List[str]): List of model names to analyze.
+            uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
+                Each inner list contains [uncertainty_type, error_type].
+            category_labels (List[str]): Labels for x-axis categories (bins or Q values).
+            num_bins_display (int): Number of bins to display on the plot.
+            plot_func (Callable): Plotting function to use for visualization.
+            show_individual_target_plots (bool): Whether to generate separate plots for individual targets.
+            ind_targets_to_show (List[int]): List of target indices to plot individually.
+            detailed_mode (bool): Whether to use detailed plotting mode with enhanced features.
+            percent_y_lim_extended (int): Upper limit for y-axis when plotting percentages (typically 100-120).
+            target_indices (Optional[List[int]]): Complete list of target indices for reference. Defaults to None.
+            **kwargs: Additional keyword arguments passed to the plotting function including
+                width, y_lim_bottom, font_size_label, font_size_tick, x_label.
+        """
         # Main error bounds plot
         self._plot_metric(
             METRIC_NAME_ERRORBOUND,
@@ -671,7 +883,35 @@ class QuantileBinningAnalyzer:
         target_indices: Optional[List[int]] = None,
         **kwargs: Any,
     ):
-        """Plot Jaccard-related metrics (jaccard, recall, precision)."""
+        """
+        Plot Jaccard-related metrics including Jaccard index, recall, and precision.
+
+        This method generates comprehensive Jaccard analysis plots that evaluate how well uncertainty-based bins match
+        ground truth error bins. It produces four types of plots:
+        1. Main Jaccard index plot (overlap between predicted and actual high-error regions)
+        2. Recall plot (sensitivity - how many actual high-error cases were identified)
+        3. Precision plot (specificity - how many identified cases were actually high-error)
+        4. Individual target plots (if requested)
+
+        Args:
+            eval_data (Dict[str, Any]): Dictionary containing evaluation data with 'jaccard' key
+                containing JACCARD_DATA_ALL, JACCARD_DATA_RECALL_ALL, JACCARD_DATA_PRECISION_ALL,
+                and JACCARD_DATA_ALL_CONCAT_SEP data.
+            models (List[str]): List of model names to analyze.
+            uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
+                Each inner list contains [uncertainty_type, error_type].
+            category_labels (List[str]): Labels for x-axis categories (bins or Q values).
+            num_bins_display (int): Number of bins to display on the plot.
+            plot_func (Callable): Plotting function to use for visualization.
+            show_individual_target_plots (bool): Whether to generate separate plots for individual targets.
+            ind_targets_to_show (List[int]): List of target indices to plot individually.
+            detailed_mode (bool): Whether to use detailed plotting mode with enhanced features.
+            percent_y_lim_standard (int): Standard upper limit for y-axis when plotting percentages (typically 70).
+            percent_y_lim_extended (int): Extended upper limit for y-axis for recall/precision plots (typically 120).
+            target_indices (Optional[List[int]]): Complete list of target indices for reference. Defaults to None.
+            **kwargs: Additional keyword arguments including recall_y_label, precision_y_label,
+                width, y_lim_bottom, font_size_label, font_size_tick, x_label.
+        """
         # Main Jaccard plot
         self._plot_metric(
             METRIC_NAME_JACCARD,
@@ -768,6 +1008,30 @@ class QuantileBinningAnalyzer:
         detailed_mode: bool,
         **kwargs: Any,
     ):
+        """
+        Generate individual target-specific plots for detailed analysis.
+
+        This method creates separate plots for each specified target to enable detailed analysis of model performance
+        on individual anatomical landmarks or regions. It handles different data structures depending on the plotting
+        mode.
+
+        Args:
+            metric_name (str): Name of the metric being plotted (e.g., "error", "jaccard", "errorbound").
+            plot_func (Callable): Plotting function to use (plot_per_model_boxplot, plot_comparing_q_boxplot, etc.).
+            sep_target_data (List[Any]): Data separated by target. Structure varies by plotting mode:
+                - For individual bin comparison: List of target data dictionaries
+                - For comparing Q: List of Q-value data with target indices
+            ind_targets_to_show (List[int]): List of target indices to plot individually.
+                Use [-1] to plot all targets.
+            uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
+            models (List[str]): List of model names to analyze.
+            category_labels (List[str]): Labels for x-axis categories.
+            num_bins_display (int): Number of bins to display on the plot.
+            show_individual_dots (bool): Whether to show individual data points as dots.
+            target_indices (Optional[List[int]]): Complete list of target indices for reference.
+            detailed_mode (bool): Whether to use detailed plotting mode with enhanced features.
+            **kwargs: Additional keyword arguments passed to the plotting function.
+        """
         individual_targets_data = []
         if plot_func == plot_comparing_q_boxplot:
             # This logic is for comparing_q mode where sep_target_data is structured differently.
@@ -823,20 +1087,35 @@ class QuantileBinningAnalyzer:
         **kwargs: Any,
     ):
         """
-        Universal metric plotting function for drawing boxplots of errors, Jaccard index, or error bounds.
+        Universal metric plotting function for drawing boxplots of various uncertainty quantification metrics.
+
+        This is the core plotting method that handles the creation of boxplots for different metrics including errors,
+        Jaccard index, and error bounds. It standardizes the plotting process across different metric types and
+        plotting modes.
 
         Args:
-            metric_name (str): The metric to be plotted ('errors', 'jaccard', 'bounds').
-            plot_mode (str): The plotting mode ('individual' or 'comparing').
-            data_by_q (List[Dict]): Raw data list organized by Q values.
-            models (List[str]): List of model names.
-            uncertainty_categories (List[Tuple]): List of uncertainty types.
-            category_labels (List[str]): X-axis labels.
-            num_bins_display (int): Number of bins to display.
-            show_individual_targets (bool): Whether to plot for each target separately.
-            ind_targets_to_show (List[int]): List of target indices to show individually.
+            metric_name (str): The metric being plotted ('error', 'jaccard', 'errorbound', 'mean_error_folds',
+                'recall_jaccard', 'precision_jaccard').
+            plot_func (Callable): The plotting function to use (plot_generic_boxplot, plot_per_model_boxplot,
+                plot_comparing_q_boxplot).
+            all_targets_data (List[Dict]): Raw data organized for all targets. Structure varies:
+                - For individual bin comparison: Single dictionary or list with one dictionary
+                - For comparing Q plots: List of dictionaries (one per Q value)
+            models (List[str]): List of model names to analyze.
+            uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations. Each inner list
+                contains [uncertainty_type, error_type].
+            category_labels (List[str]): Labels for x-axis categories (bins, Q values, etc.).
+            show_sample_info (str): Mode for displaying sample size information ("None", "text", "legend").
+            x_label (str): Label for the x-axis (e.g., "Uncertainty Thresholded Bin", "Q (# Bins)").
+            y_label (str): Label for the y-axis (e.g., "Localization Error (mm)", "Jaccard Index (%)").
+            to_log (bool): Whether to use logarithmic scaling for the y-axis.
+            convert_to_percent (bool): Whether to convert values to percentages for display.
+            num_bins_display (int): Number of bins to display on the plot.
+            show_individual_dots (bool): Whether to show individual data points as dots on boxplots.
+            detailed_mode (bool): Whether to use detailed plotting mode with enhanced features.
+            **kwargs: Additional keyword arguments passed to the boxplot configuration including y_lim_top,
+                y_lim_bottom, font_size_label, font_size_tick, width, colormap.
         """
-
         # Plot aggregated charts for all targets
         self.logger.info(PLOTTING_TARGET_MESSAGE_TEMPLATE.format(metric_name))
 
@@ -883,25 +1162,20 @@ def quantile_binning_and_est_errors(
     combine_middle_bins: bool = False,
 ) -> Tuple[List[List[float]], List[float]]:
     """
-    Calculate quantile thresholds, and isotonically regress errors and uncertainties
-    and get estimated error bounds.
+    Calculate quantile thresholds, and isotonically regress errors and uncertainties and get estimated error bounds.
 
     Args:
         errors (List[float]): List of errors.
         uncertainties (List[float]): List of uncertainties.
         num_bins (int): Number of quantile bins.
-        type (str, optional): Type of thresholds to calculate, "quantile" recommended.
-                              Defaults to "quantile".
-        acceptable_thresh (float, optional): Acceptable error threshold. Only relevant
-                                             if type="error-wise". Defaults to 5.
-        combine_middle_bins (bool, optional): Whether to combine middle bins.
-                                              Defaults to False.
+        type (str, optional): Type of thresholds to calculate, "quantile" recommended. Defaults to "quantile".
+        acceptable_thresh (float, optional): Acceptable error threshold. Only relevant if type="error-wise".
+                                             Defaults to 5.
+        combine_middle_bins (bool, optional): Whether to combine middle bins. Defaults to False.
 
     Returns:
-        Tuple[List[List[float]], List[float]]: List of quantile thresholds and
-                                               estimated error bounds.
+        Tuple[List[List[float]], List[float]]: List of quantile thresholds and estimated error bounds.
     """
-
     if len(errors) != len(uncertainties):
         raise ValueError(
             "Length of errors and uncertainties must be the same. errors is length %s and uncertainties is length %s"
@@ -949,9 +1223,8 @@ def plot_generic_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
     """
     Create generic multi-model boxplot for uncertainty quantification analysis.
 
-    This function generates boxplots comparing multiple models across different uncertainty
-    bins or categories. It's designed for comparative analysis of model performance in
-    medical imaging uncertainty quantification workflows.
+    This function generates boxplots comparing multiple models across different uncertainty bins or categories. It's
+    designed for comparative analysis of model performance in medical imaging uncertainty quantification workflows.
 
     Args:
         data (BoxPlotData): Data container object containing all required inputs:
@@ -969,9 +1242,6 @@ def plot_generic_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
             - y_lim_top/y_lim_bottom: Y-axis limits
             - font_size_label/font_size_tick: Font size settings
             - Additional styling and display options
-
-    Returns:
-        None: The function displays and/or saves the figure based on configuration.
 
     Example:
         >>> data = create_boxplot_data(
@@ -996,9 +1266,9 @@ def plot_per_model_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
     """
     Generate per-model boxplot for individual model performance analysis.
 
-    This function creates boxplots that focus on analyzing the performance of individual models
-    across different uncertainty bins. It's particularly useful for detailed model-specific
-    uncertainty quantification analysis in medical imaging applications.
+    This function creates boxplots that focus on analyzing the performance of individual models across different
+    uncertainty bins. It's particularly useful for detailed model-specific uncertainty quantification analysis in
+    medical imaging applications.
 
     Args:
         data (BoxPlotData): Data container object containing all required inputs:
@@ -1017,9 +1287,6 @@ def plot_per_model_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
             - y_lim_top/y_lim_bottom: Y-axis limits for consistent scaling
             - to_log: Whether to use logarithmic y-axis scaling
             - Additional styling and formatting options
-
-    Returns:
-        None: The function displays and/or saves the figure based on configuration settings.
 
     Example:
         >>> data = create_boxplot_data(
@@ -1046,9 +1313,9 @@ def plot_comparing_q_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
     """
     Create boxplot comparing different Q values for quantile threshold optimization.
 
-    This function generates boxplots that compare the impact of different quantile thresholds
-    (Q values) on uncertainty quantification performance. It's essential for optimizing
-    binning strategies and understanding threshold sensitivity in medical imaging applications.
+    This function generates boxplots that compare the impact of different quantile thresholds (Q values) on uncertainty
+    quantification performance. It's essential for optimizing binning strategies and understanding threshold
+    sensitivity in medical imaging applications.
 
     Args:
         data (BoxPlotData): Data container object containing all required inputs:
@@ -1068,9 +1335,6 @@ def plot_comparing_q_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
             - y_lim_top/y_lim_bottom: Y-axis limits
             - to_log: Whether to use logarithmic y-axis scaling
             - Additional styling and formatting options
-
-    Returns:
-        None: The function displays and/or saves the figure based on configuration settings.
 
     Raises:
         ValueError: If required fields (evaluation_data_by_bins, uncertainty_categories, models) are missing.
@@ -1113,18 +1377,35 @@ def plot_cumulative(
     error_scaling_factor: float = 1,
 ) -> None:
     """
-    Plots cumulative errors.
+    Generate cumulative error distribution plots for uncertainty quantification analysis.
+
+    This function creates cumulative distribution plots showing the percentage of images with errors below certain
+    thresholds. It's useful for understanding the overall error distribution across different uncertainty bins and
+    comparing model performance.
 
     Args:
-        colormap (str): Matplotlib colormap name for consistent visual distinction across plots.
-        data_struct: A dictionary containing the dataframes for each model.
-        models: A list of models we want to compare, keys in `data_struct`.
-        uncertainty_types: A list of lists describing the different uncertainty combinations to test.
-        bins: A list of bins to show error form.
-        title: The title of the plot.
-        compare_to_all: Whether to compare the given subset of bins to all the data (default=False).
-        save_path: The path to save plot to. If None, displays on screen (default=None).
-        error_scaling_factor (float, optional): Scaling factor for error. Defaults to 1.0.
+        colormap (str): Matplotlib colormap name for consistent visual distinction across plots
+            (e.g., 'Set1', 'tab10', 'viridis').
+        data_struct (Dict[str, pd.DataFrame]): Dictionary containing dataframes for each model.
+            Keys are model names, values are DataFrames with uncertainty and error columns.
+        models (List[str]): List of model names to compare. These should be keys in data_struct.
+        uncertainty_types (List[Tuple[str, str]]): List of tuples describing uncertainty-error combinations to analyze.
+            Each tuple contains (uncertainty_type, error_type).
+        bins (Union[List[int], np.ndarray]): Bin indices to include in the analysis.
+            Can be a single value, list, or numpy array.
+        title (str): Title for the plot (e.g., "Cumulative Error Distribution - Dataset Name").
+        compare_to_all (bool, optional): Whether to compare the given subset of bins to all data points. If True, adds
+            comparison lines for complete dataset. Defaults to False.
+        save_path (Optional[str], optional): File path to save the plot. If None, displays on screen interactively.
+            File will be saved with "_cumulative_error.pdf" suffix. Defaults to None.
+        error_scaling_factor (float, optional): Multiplicative factor to scale error values
+            (e.g., 1.0 for mm, 0.1 for cm). Defaults to 1.0.
+
+    Note:
+        - The plot uses logarithmic scaling on the x-axis for better visualization of error distributions
+        - A vertical reference line is drawn at x=5 (typically representing 5mm error threshold)
+        - Different line styles distinguish between models and uncertainty types
+        - The y-axis shows cumulative percentage (0-100%)
     """
 
     # make sure bins is a list and not a single value
