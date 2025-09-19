@@ -5,7 +5,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pytest
-import seaborn as sns
 
 import kale.utils.logger as logging
 from kale.embed.uncertainty_fitting import fit_and_predict
@@ -68,13 +67,13 @@ EXPECTED_FILES_IND_3 = [
     "3Bins/fitted_quantile_binning/target_errors.xlsx",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undottedmean_error_folds_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_all_targets.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_target_0.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_all_targets.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_recall_jaccard_all_targets.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_precision_jaccard_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalsejaccard_target_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_target_0.pdf",
 ]
 # /home/schobs/Documents/results/testing/4CH/3Bins/
 EXPECTED_FILES_IND_5 = [
@@ -82,13 +81,13 @@ EXPECTED_FILES_IND_5 = [
     "5Bins/fitted_quantile_binning/target_errors.xlsx",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undottedmean_error_folds_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_all_targets.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_target_0.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_all_targets.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_recall_jaccard_all_targets.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_precision_jaccard_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalsejaccard_target_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_target_0.pdf",
 ]
 EXPECED_FILES_FIT = [
     "3Bins/fitted_quantile_binning/PHD-NET/4CH/res_predicted_bins_t0.csv",
@@ -131,40 +130,40 @@ EXPECED_FILES_FIT = [
 EXPECTED_FILES_COMP = [
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undottedmean_error_folds_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalsejaccard_target_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_jaccard_target_0.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undottedmean_error_folds_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalsejaccard_target_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_jaccard_target_0.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undottedmean_error_folds_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalsejaccard_target_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_jaccard_target_0.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undottedmean_error_folds_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
     "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalsejaccard_target_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_jaccard_target_0.pdf",
 ]
 
 
@@ -197,7 +196,7 @@ def test_qbin_pipeline(testing_cfg):
     pixel_to_mm_scale = testing_cfg["PIPELINE"]["PIXEL_TO_MM_SCALE"]
 
     # Define parameters for visualization
-    cmaps = sns.color_palette("deep", 10).as_hex()
+    colormap = "Set1"
 
     show_individual_landmark_plots = testing_cfg["PIPELINE"]["SHOW_IND_LANDMARKS"]
 
@@ -271,7 +270,7 @@ def test_qbin_pipeline(testing_cfg):
                 dataset,
                 landmarks,
                 num_bins,
-                cmaps,
+                colormap,
                 os.path.join(save_folder, "fitted_quantile_binning"),
                 save_file_preamble,
                 testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
@@ -292,6 +291,7 @@ def test_qbin_pipeline(testing_cfg):
                 "jaccard": True,
                 "error_bounds": True,
                 "correlation": False,
+                "hatch": "o",
             },
         )
 
@@ -331,7 +331,6 @@ def test_qbin_pipeline(testing_cfg):
             ]
 
             hatch_type = "o" if "PHD-NET" == c_model else ""
-            color = cmaps[0] if c_er_pair[0] == "S-MHA" else cmaps[1] if c_er_pair[0] == "E-MHA" else cmaps[2]
             save_folder_comparison = os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset, "ComparisonBins")
             os.makedirs(save_folder_comparison, exist_ok=True)
 
@@ -343,7 +342,7 @@ def test_qbin_pipeline(testing_cfg):
                     dataset,
                     landmarks,
                     testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"],
-                    cmaps,
+                    colormap,
                     all_fitted_save_paths,
                     save_folder_comparison,
                     save_file_preamble,
@@ -364,7 +363,6 @@ def test_qbin_pipeline(testing_cfg):
                     "jaccard": True,
                     "error_bounds": True,
                     "hatch": hatch_type,
-                    "color": color,
                 },
             )
 

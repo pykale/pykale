@@ -13,7 +13,7 @@
 [![tests](https://github.com/pykale/pykale/workflows/test/badge.svg)](https://github.com/pykale/pykale/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/pykale/pykale/branch/main/graph/badge.svg?token=jmIYPbA2le)](https://codecov.io/gh/pykale/pykale)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/pykale/pykale/blob/main/LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11-blue)](https://www.python.org)
+[![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org)
 [![PyPI version](https://img.shields.io/pypi/v/pykale?color=blue)](https://pypi.org/project/pykale/)
 [![PyPI downloads](https://pepy.tech/badge/pykale)](https://pepy.tech/project/pykale)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/pykale/pykale)
@@ -33,6 +33,10 @@ PyKale enforces *standardization* and *minimalism*, via green machine learning c
 
 See our [arXiv preprint](https://arxiv.org/abs/2106.09756) and four short introductory videos on YouTube: [Why build PyKale?](https://youtu.be/nybYgw-T2bM) [How was PyKale built?](https://youtu.be/jaIbkjkQvYs) [What's in PyKale?](https://youtu.be/I3vifU2rcc0) and [a 5-min summary](https://youtu.be/Snou2gg7pek).
 
+#### Event using PyKale
+
+- [Open Biomedical Multimodal AI Research Workshop](https://pykale.github.io/mmai-tutorials/workshop/embc25.html) @ EMBC-2025
+
 #### Pipeline-based API
 
 - `loaddata` loads data from disk or online resources as input
@@ -51,7 +55,7 @@ See our [arXiv preprint](https://arxiv.org/abs/2106.09756) and four short introd
 
 ### Step 0: Installation
 
-PyKale supports Python 3.9, 3.10, or 3.11. Before installing `pykale`, we suggest you to first [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware, and if graphs will be used, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation).
+PyKale supports Python 3.9, 3.10, 3.11, or 3.12. Before installing `pykale`, we suggest you to first [install PyTorch](https://pytorch.org/get-started/locally/) matching your hardware, and if graphs will be used, install [PyTorch Geometric](https://github.com/rusty1s/pytorch_geometric) following its [official instructions](https://github.com/rusty1s/pytorch_geometric#installation).
 
 Simple installation of `pykale` from [PyPI](https://pypi.org/project/pykale/):
 
@@ -65,9 +69,11 @@ For more details and other options, please refer to [the installation guide](htt
 
 Start with a brief [tutorial](https://pykale.readthedocs.io/en/latest/tutorial.html#usage-of-pipeline-based-api-in-examples) walking through API usage in examples or *interactive* [Jupyter notebook tutorials](https://pykale.readthedocs.io/en/latest/notebooks.html), e.g. [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pykale/pykale/blob/main/examples/digits_dann/tutorial.ipynb) or  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pykale/pykale/HEAD?filepath=examples%2Fdigits_dann%2Ftutorial.ipynb) for a basic digit classification problem.
 
+For additional learning materials, please refer to our [tutorial repository](https://github.com/pykale/mmai-tutorials), which supports our multimodal AI workshops.
+
 Browse through the [**examples**](https://github.com/pykale/pykale/tree/main/examples) to see the usage of PyKale in performing various prediction tasks in a wide range of applications, using a variety of settings, e.g. with or without [PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning).
 
-Ask questions on [PyKale's GitHub Discussions tab](https://github.com/pykale/pykale/discussions) if you need help or create an issue if you find som
+Ask questions on [PyKale's GitHub Discussions tab](https://github.com/pykale/pykale/discussions) if you need help or create an issue if you find something wrong.
 
 ### Step 2: Building and Contributing
 

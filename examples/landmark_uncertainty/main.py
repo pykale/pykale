@@ -15,7 +15,6 @@ import argparse
 import os
 
 import numpy as np
-import seaborn as sns
 from config import get_cfg_defaults
 
 import kale.utils.logger as logging
@@ -90,7 +89,9 @@ def main():
     pixel_to_mm_scale = cfg.PIPELINE.PIXEL_TO_MM_SCALE
 
     # Define parameters for visualization
-    cmaps = sns.color_palette("deep", 10).as_hex()
+    # available options: ['Pastel1', 'Pastel2', 'Paired', 'Accent', 'Dark2', 'Set1',
+    #                     'Set2', 'Set3', 'tab10', 'tab20', 'tab20b', 'tab20c']
+    colormap = cfg.IM_KWARGS.colormap
 
     if gt_test_error_available:
         fit = True
@@ -168,7 +169,7 @@ def main():
                         dataset,
                         landmarks,
                         num_bins,
-                        cmaps,
+                        colormap,
                         os.path.join(save_folder, "fitted_quantile_binning"),
                         save_file_preamble,
                         cfg.PIPELINE.COMBINE_MIDDLE_BINS,
@@ -189,6 +190,7 @@ def main():
                         "jaccard": True,
                         "error_bounds": True,
                         "correlation": True,
+                        "hatch": "o",
                     },
                 )
 
@@ -213,9 +215,6 @@ def main():
                         ]
 
                         hatch_type = "o" if "PHD-NET" == c_model else ""
-                        color = (
-                            cmaps[0] if c_er_pair[0] == "S-MHA" else cmaps[1] if c_er_pair[0] == "E-MHA" else cmaps[2]
-                        )
                         save_folder_comparison = os.path.join(cfg.OUTPUT.OUT_DIR, dataset, "ComparisonBins")
                         os.makedirs(save_folder_comparison, exist_ok=True)
 
@@ -227,7 +226,7 @@ def main():
                                 dataset,
                                 landmarks,
                                 cfg.PIPELINE.NUM_QUANTILE_BINS,
-                                cmaps,
+                                colormap,
                                 quantile_binning_dirs,
                                 save_folder_comparison,
                                 save_file_preamble,
@@ -248,7 +247,6 @@ def main():
                                 "jaccard": True,
                                 "error_bounds": True,
                                 "hatch": hatch_type,
-                                "color": color,
                             },
                         )
 

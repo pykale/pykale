@@ -154,7 +154,7 @@ def generate_struct_for_qbin(
         for target_idx in targets:
             bin_pred_path = os.path.join(saved_bins_path_pre, model, dataset, "res_predicted_bins_t" + str(target_idx))
             bin_preds = pd.read_csv(bin_pred_path + ".csv", header=0)
-            bin_preds["target_idx"] = target_idx
+            bin_preds["Target Index"] = target_idx
 
             error_bounds_path = os.path.join(
                 saved_bins_path_pre, model, dataset, "estimated_error_bounds_t" + str(target_idx)

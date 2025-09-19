@@ -4,7 +4,7 @@ import math
 
 import torch
 import torch.nn as nn
-from torch.nn.utils.weight_norm import weight_norm
+from torch.nn.utils.parametrizations import weight_norm
 
 from kale.embed.nn import FCNet
 
