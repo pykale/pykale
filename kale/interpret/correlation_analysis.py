@@ -1,6 +1,6 @@
 # =============================================================================
 # Author: Lawrence Schobs, lawrenceschobs@gmail.com
-#         Wenjie Zhao, 1534779821@qq.com
+#         Wenjie Zhao, mcsoft12138@outlook.com
 #         Zhongwei Ji, jizhongwei1999@outlook.com
 # =============================================================================
 
@@ -35,6 +35,7 @@ def analyze_and_plot_uncertainty_correlation(
     n_bootstrap: int = 1000,
     sample_ratio: float = 0.6,
     font_size: int = 25,
+    show: bool = False,
     **fig_kwargs: Any,
 ) -> Dict[str, List[Any]]:
     """
@@ -71,9 +72,11 @@ def analyze_and_plot_uncertainty_correlation(
         font_size (int, optional): Font size for all text elements in the plot
             including axis labels, correlation text, and quantile labels.
             Defaults to 25.
+        show (bool, optional): Whether to display the plot interactively. Defaults to False.
         **fig_kwargs: Additional keyword arguments for figure creation and styling:
             - figsize (tuple): Figure size in inches (default: (16, 8))
-            - dpi (int): Resolution in dots per inch (default: 600)
+            - save_dpi (int): Resolution in dots per inch for the saved figure (default: 600)
+            - show_dpi (int): Resolution in dots per inch for the shown figure (default: 100)
             - bottom (float): Bottom margin for subplot adjustment (default: 0.2)
             - left (float): Left margin for subplot adjustment (default: 0.15)
             - Any other matplotlib figure parameters
@@ -109,6 +112,7 @@ def analyze_and_plot_uncertainty_correlation(
         colormap,
         to_log,
         save_path,
+        show=show,
         font_size=font_size,
         **fig_kwargs,
     )
@@ -192,6 +196,7 @@ def plot_uncertainty_correlation(
     colormap: str = "Set1",
     to_log: bool = False,
     save_path: Optional[str] = None,
+    show: bool = False,
     font_size: int = 25,
     **fig_kwargs: Any,
 ) -> None:
@@ -206,12 +211,13 @@ def plot_uncertainty_correlation(
             Defaults to "Set1".
         to_log (bool, optional): Whether to use logarithmic scale for both axes.
             Defaults to False.
-        save_path (Optional[str], optional): File path to save the plot. If None,
-            displays the plot interactively. Defaults to None.
+        save_path (Optional[str], optional): File path to save the plot. Defaults to None.
+        show (bool, optional): Whether to show the figure. Defaults to False.
         font_size (int, optional): Font size for all text elements. Defaults to 25.
         **fig_kwargs: Additional keyword arguments for figure creation and styling:
             - figsize (tuple): Figure size in inches (default: (16, 8))
-            - dpi (int): Dots per inch for resolution (default: 600)
+            - save_dpi (int): Dots per inch for resolution (default: 600)
+            - show_dpi (int): Dots per inch for the shown figure (default: 100)
             - bottom (float): Bottom margin for subplots_adjust (default: 0.2)
             - left (float): Left margin for subplots_adjust (default: 0.15)
             - Any other matplotlib figure parameters
@@ -225,12 +231,11 @@ def plot_uncertainty_correlation(
     """
     # Extract figure-specific kwargs with defaults
     figsize = fig_kwargs.pop("figsize", (16, 8))
-    dpi = fig_kwargs.pop("dpi", 600)
     bottom = fig_kwargs.pop("bottom", 0.2)
     left = fig_kwargs.pop("left", 0.15)
 
     # Initialize plot
-    fig, ax = plt.subplots(figsize=figsize, dpi=dpi, **fig_kwargs)
+    fig, ax = plt.subplots(figsize=figsize, **fig_kwargs)
 
     # Handle color configuration
     colors = colormaps.get_cmap(colormap)(np.arange(3))
@@ -260,7 +265,7 @@ def plot_uncertainty_correlation(
     plt.subplots_adjust(bottom=bottom, left=left)
 
     # Save or show plot using all remaining fig_kwargs
-    save_or_show_plot(save_path=save_path, fig_width=figsize[0], fig_height=figsize[1], dpi=dpi)
+    save_or_show_plot(save_path=save_path, show=show, fig_size=figsize)
 
 
 def _calculate_correlations(uncertainties: np.ndarray, scaled_errors: np.ndarray) -> Dict[str, List[float]]:

@@ -173,7 +173,83 @@ def test_draw_mol_with_attention(tmp_path, dummy_smile):
     assert os.path.getsize(out_path) > 0
 
 
-def test_save_or_show_plot(tmp_path):
+def test_save_or_show_plot_basic_save(tmp_path):
+    """Test basic save functionality of save_or_show_plot."""
+    plt.figure()
+    plt.plot([1, 2, 3], [1, 4, 2])
     out_path = tmp_path / "test_plot.png"
-    save_or_show_plot(save_path=str(out_path))
+    save_or_show_plot(save_path=str(out_path), show=False)
     assert os.path.isfile(out_path)
+    assert os.path.getsize(out_path) > 0
+
+
+def test_save_or_show_plot_custom_dpi(tmp_path):
+    """Test save_or_show_plot with custom DPI setting."""
+    plt.figure()
+    plt.plot([1, 2, 3], [2, 3, 1])
+    out_path_dpi = tmp_path / "test_plot_dpi.png"
+    save_or_show_plot(save_path=str(out_path_dpi), show=False, save_dpi=300)
+    assert os.path.isfile(out_path_dpi)
+    assert os.path.getsize(out_path_dpi) > 0
+
+
+def test_save_or_show_plot_custom_figure_size(tmp_path):
+    """Test save_or_show_plot with custom figure size."""
+    plt.figure()
+    plt.plot([1, 2, 3], [3, 1, 2])
+    out_path_size = tmp_path / "test_plot_size.png"
+    save_or_show_plot(save_path=str(out_path_size), show=False, fig_size=(10, 6))
+    assert os.path.isfile(out_path_size)
+
+
+def test_save_or_show_plot_bbox_and_padding(tmp_path):
+    """Test save_or_show_plot with bbox_inches and pad_inches."""
+    plt.figure()
+    plt.plot([1, 2, 3], [1, 3, 2])
+    out_path_bbox = tmp_path / "test_plot_bbox.png"
+    save_or_show_plot(save_path=str(out_path_bbox), show=False, bbox_inches="tight", pad_inches=0.1)
+    assert os.path.isfile(out_path_bbox)
+
+
+def test_save_or_show_plot_extra_matplotlib_params(tmp_path):
+    """Test save_or_show_plot with additional matplotlib savefig parameters."""
+    plt.figure()
+    plt.plot([1, 2, 3], [2, 1, 3])
+    out_path_extra = tmp_path / "test_plot_extra.png"
+    save_or_show_plot(save_path=str(out_path_extra), show=False, facecolor="white", edgecolor="black")
+    assert os.path.isfile(out_path_extra)
+
+
+def test_save_or_show_plot_show_only_mode():
+    """Test save_or_show_plot in show-only mode (no save)."""
+    plt.figure()
+    plt.plot([1, 2, 3], [1, 2, 3])
+    # This should not raise an error and should not create any file
+    save_or_show_plot(save_path=None, show=False)  # show=False to avoid display in test
+
+
+def test_save_or_show_plot_invalid_fig_size_length():
+    """Test save_or_show_plot with invalid fig_size length."""
+    plt.figure()
+    plt.plot([1, 2, 3], [1, 2, 3])
+    with pytest.raises(ValueError, match="fig_size must be a 2-element tuple or list"):
+        save_or_show_plot(show=False, fig_size=(10,))  # Invalid: only one element
+
+
+def test_save_or_show_plot_invalid_fig_size_type():
+    """Test save_or_show_plot with invalid fig_size type."""
+    plt.figure()
+    plt.plot([1, 2, 3], [1, 2, 3])
+    with pytest.raises(ValueError, match="fig_size must be a 2-element tuple or list"):
+        save_or_show_plot(show=False, fig_size=10)  # Invalid: not tuple/list
+
+
+def test_save_or_show_plot_different_file_formats(tmp_path):
+    """Test save_or_show_plot with different file formats."""
+    for ext in [".jpg", ".pdf", ".svg"]:
+        plt.figure()
+        plt.plot([1, 2, 3], [1, 2, 3])
+        out_path_format = tmp_path / f"test_plot{ext}"
+        save_or_show_plot(save_path=str(out_path_format), show=False)
+        assert os.path.isfile(out_path_format)
+        assert os.path.getsize(out_path_format) > 0

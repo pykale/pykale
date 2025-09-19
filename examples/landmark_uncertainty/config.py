@@ -80,7 +80,9 @@ _C.PIPELINE.SHOW_IND_LANDMARKS = True
 # Visualization
 # ---------------------------------------------------------------------------- #
 _C.IM_KWARGS = CfgNode()
-_C.IM_KWARGS.cmap = "gray"
+
+# 'Pastel1', 'Pastel2', 'Paired', 'Accent', 'Dark2', 'Set1','Set2', 'Set3', 'tab10', 'tab20', 'tab20b', 'tab20c'
+_C.IM_KWARGS.colormap = "Set1"
 
 _C.MARKER_KWARGS = CfgNode()
 _C.MARKER_KWARGS.marker = "o"
