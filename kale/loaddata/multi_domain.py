@@ -247,18 +247,18 @@ def _domain_stratified_split(domain_labels, n_partitions, split_ratios):
         given ratios. Then the indices of different domains within the same split will be concatenated.
 
     Args:
-        domain_labels (array-like): Labels to indicate which domains the samples are from.
+        domain_labels (torch.Tensor): Labels to indicate which domains the samples are from.
         n_partitions (int): Number of partitions to split, 2 <= n_partitions <= len(split_ratios) + 1.
         split_ratios (list): Ratios of splits to be produced, where 0 < sum(split_ratios) <= 1.
 
     Returns:
         [list]: Indices for different splits.
     """
-    domains = np.unique(domain_labels)
+    domains = torch.unique(domain_labels)
     subset_idx = [[] for _ in range(n_partitions)]
     for domain_label_ in domains:
-        domain_idx = np.where(domain_labels == domain_label_)[0]
-        subsets = split_by_ratios(torch.from_numpy(domain_idx), split_ratios)
+        domain_idx = torch.where(domain_labels == domain_label_)[0]
+        subsets = split_by_ratios(domain_idx, split_ratios)
         for i in range(n_partitions):
             subset_idx[i].append(domain_idx[subsets[i].indices])
 
