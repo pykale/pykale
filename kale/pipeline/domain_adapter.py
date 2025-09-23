@@ -82,15 +82,18 @@ class Method(Enum):
         return self.is_fewshot_method()
 
 
-def create_mmd_based(method: Method, dataset, feature_extractor, task_classifier, **train_params):
+def create_mmd_based(method: Method, dataset, feature_extractor, task_classifier, target_domain, **train_params):
     """MMD-based deep learning methods for domain adaptation: DAN and JAN"""
     if method is Method.DAN:
-        return DANTrainer(dataset, feature_extractor, task_classifier, method=method, **train_params)
+        return DANTrainer(
+            dataset, feature_extractor, task_classifier, target_domain=target_domain, method=method, **train_params
+        )
     elif method is Method.JAN:
         return JANTrainer(
             dataset,
             feature_extractor,
             task_classifier,
+            target_domain=target_domain,
             method=method,
             kernel_mul=[2.0, 2.0],
             kernel_num=[5, 1],
@@ -100,10 +103,14 @@ def create_mmd_based(method: Method, dataset, feature_extractor, task_classifier
         raise ValueError(f"Unsupported MMD method: {method}")
 
 
-def create_dann_like(method: Method, dataset, feature_extractor, task_classifier, critic, **train_params):
+def create_dann_like(
+    method: Method, dataset, feature_extractor, task_classifier, target_domain, critic, **train_params
+):
     """DANN-based deep learning methods for domain adaptation: DANN, CDAN, CDAN+E"""
     if dataset.is_semi_supervised():
-        return create_fewshot_trainer(method, dataset, feature_extractor, task_classifier, critic, **train_params)
+        return create_fewshot_trainer(
+            method, dataset, feature_extractor, task_classifier, target_domain, critic, **train_params
+        )
 
     if method.is_dann_method():
         alpha = 0.0 if method is Method.Source else 1.0
@@ -112,6 +119,7 @@ def create_dann_like(method: Method, dataset, feature_extractor, task_classifier
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
+            target_domain=target_domain,
             critic=critic,
             method=method,
             **train_params,
@@ -121,6 +129,7 @@ def create_dann_like(method: Method, dataset, feature_extractor, task_classifier
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
+            target_domain=target_domain,
             critic=critic,
             method=method,
             use_entropy=method is Method.CDAN_E,
@@ -131,6 +140,7 @@ def create_dann_like(method: Method, dataset, feature_extractor, task_classifier
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
+            target_domain=target_domain,
             critic=critic,
             method=method,
             **train_params,
@@ -140,6 +150,7 @@ def create_dann_like(method: Method, dataset, feature_extractor, task_classifier
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
+            target_domain=target_domain,
             critic=critic,
             method=method,
             **train_params,
@@ -148,7 +159,9 @@ def create_dann_like(method: Method, dataset, feature_extractor, task_classifier
         raise ValueError(f"Unsupported method: {method}")
 
 
-def create_fewshot_trainer(method: Method, dataset, feature_extractor, task_classifier, critic, **train_params):
+def create_fewshot_trainer(
+    method: Method, dataset, feature_extractor, task_classifier, target_domain, critic, **train_params
+):
     """DANN-based few-shot deep learning methods for domain adaptation: FSDANN, MME"""
     if not dataset.is_semi_supervised():
         raise ValueError("Dataset must be semi-supervised for few-shot methods.")
@@ -160,6 +173,7 @@ def create_fewshot_trainer(method: Method, dataset, feature_extractor, task_clas
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
+            target_domain=target_domain,
             critic=critic,
             method=method,
             **train_params,
@@ -220,7 +234,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         dataset,
         feature_extractor,
         task_classifier,
-        target_domain: str,
+        target_domain: Optional[str] = None,
         method: Optional[str] = None,
         lambda_init: float = 1.0,
         adapt_lambda: bool = True,
@@ -251,7 +265,6 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._dataset = dataset
         self.feat = feature_extractor
         self.classifier = task_classifier
-        self.target_domain = target_domain
         self._dataset.prepare_data_loaders()
         self._nb_training_batches = None  # to be set by method train_dataloader
         self._optimizer_params = optimizer
@@ -263,6 +276,7 @@ class BaseAdaptTrainer(pl.LightningModule):
                 % (target_domain, self.domain_to_idx.keys())
             )
         self.target_domain = target_domain
+        self.target_label = self.domain_to_idx[target_domain]
 
     @property
     def method(self):
@@ -456,38 +470,37 @@ class BaseDANNLike(BaseAdaptTrainer):
         Perform a forward pass for a batch in the unsupervised domain adaptation setting.
 
         Returns:
-            y_hat (Tensor): predictions on the source domain data.
-            y_t_hat (Tensor): predictions on the target domain data.
-            d_hat (Tensor): predictions of the domain classifier on the source domain data.
-            d_t_hat (Tensor): predictions of the domain classifier on the target domain data.
+            y_hat_src (Tensor): predictions on the source domain data.
+            y_hat_tgt (Tensor): predictions on the target domain data.
+            d_hat_src (Tensor): predictions of the domain classifier on the source domain data.
+            d_hat_tgt (Tensor): predictions of the domain classifier on the target domain data.
             loss_cls (Tensor): classification loss on the source domain data.
             ok_src (Tensor): a boolean Tensor indicating accuracy for each sample of the source domain.
             ok_tgt (Tensor): a boolean Tensor indicating accuracy for each sample of the target domain.
         """
         x, y, domain_labels = batch
         idx_src, idx_tgt = self._get_src_tgt_idx(domain_labels)
-        x_s = x[idx_src]
-        y_s = y[idx_src]
-        x_tu = x[idx_tgt]
-        y_tu = y[idx_tgt]
-        _, y_hat, d_hat = self.forward(x_s)
-        _, y_t_hat, d_t_hat = self.forward(x_tu)
+        _, y_hat, d_hat = self.forward(x)
+        y_hat_src = y_hat[idx_src]
+        y_hat_tgt = y_hat[idx_tgt]
+        d_hat_src = d_hat[idx_src]
+        d_hat_tgt = d_hat[idx_tgt]
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        loss_cls, ok_src = losses.cross_entropy_logits(y_hat_src, y[idx_src])
+        _, ok_tgt = losses.cross_entropy_logits(y_hat_tgt, y[idx_tgt])
         ok_src = ok_src.double().mean()
         ok_tgt = ok_tgt.double().mean()
 
-        return y_hat, y_t_hat, d_hat, d_t_hat, loss_cls, ok_src, ok_tgt
+        return y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt
 
     def compute_loss(self, batch, split_name="valid"):
-        if len(batch) == 3:
-            raise NotImplementedError("DANN does not support semi-supervised setting.")
-        batch_size = len(batch[0][1])
-        y_hat, y_t_hat, d_hat, d_t_hat, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
+        # if len(batch) == 3:
+        #     raise NotImplementedError("DANN does not support semi-supervised setting.")
+        # batch_size = len(batch[0][1])
+        y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
 
-        loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
-        loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
+        loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat_src, torch.zeros(d_hat_src.shape[0]))
+        loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_hat_tgt, torch.ones(d_hat_tgt.shape[0]))
 
         dok = torch.cat((dok_src, dok_tgt)).double().mean()
         dok_src = dok_src.double().mean()
@@ -521,11 +534,12 @@ class DANNTrainer(BaseDANNLike):
         dataset,
         feature_extractor,
         task_classifier,
+        target_domain,
         critic,
         method=None,
         **base_params,
     ):
-        super().__init__(dataset, feature_extractor, task_classifier, critic, **base_params)
+        super().__init__(dataset, feature_extractor, task_classifier, target_domain, critic, **base_params)
 
         if method is None:
             self._method = Method.DANN
@@ -556,13 +570,14 @@ class CDANTrainer(BaseDANNLike):
         dataset,
         feature_extractor,
         task_classifier,
+        target_domain,
         critic,
         use_entropy=False,
         use_random=False,
         random_dim=1024,
         **base_params,
     ):
-        super().__init__(dataset, feature_extractor, task_classifier, critic, **base_params)
+        super().__init__(dataset, feature_extractor, task_classifier, target_domain, critic, **base_params)
         self.random_layer = None
         self.random_dim = random_dim
         self.entropy = use_entropy
@@ -603,22 +618,22 @@ class CDANTrainer(BaseDANNLike):
         return entropy_w
 
     def compute_loss(self, batch, split_name="valid"):
-        if len(batch) == 3:
-            raise NotImplementedError("CDAN does not support semi-supervised setting.")
-        batch_size = len(batch[0][1])
-        y_hat, y_t_hat, d_hat, d_t_hat, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
+        # if len(batch) == 3:
+        #     raise NotImplementedError("CDAN does not support semi-supervised setting.")
+        # batch_size = len(batch[0][1])
+        y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
 
         if self.entropy:
-            e_s = self._compute_entropy_weights(y_hat)
-            e_t = self._compute_entropy_weights(y_t_hat)
+            e_s = self._compute_entropy_weights(y_hat_src)
+            e_t = self._compute_entropy_weights(y_hat_tgt)
             source_weight = e_s / torch.sum(e_s)
             target_weight = e_t / torch.sum(e_t)
         else:
             source_weight = None
             target_weight = None
 
-        loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size), source_weight)
-        loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)), target_weight)
+        loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat_src, torch.zeros(d_hat_src.shape[0]), source_weight)
+        loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_hat_tgt, torch.ones(d_hat_tgt.shape[0]), target_weight)
 
         dok = torch.cat((dok_src, dok_tgt)).double().mean()
         dok_src = dok_src.double().mean()
@@ -657,6 +672,7 @@ class WDGRLTrainer(BaseDANNLike):
         dataset,
         feature_extractor,
         task_classifier,
+        target_domain,
         critic,
         k_critic=5,
         gamma=10,
@@ -668,7 +684,7 @@ class WDGRLTrainer(BaseDANNLike):
 
             k_critic: number of steps to train critic (called n in Algorithm 1 of the paper)
         """
-        super().__init__(dataset, feature_extractor, task_classifier, critic, **base_params)
+        super().__init__(dataset, feature_extractor, task_classifier, target_domain, critic, **base_params)
         self._k_critic = k_critic
         self._beta_ratio = beta_ratio
         self._gamma = gamma
@@ -687,17 +703,16 @@ class WDGRLTrainer(BaseDANNLike):
         #     raise NotImplementedError("WDGRL does not support semi-supervised setting.")
 
         # batch_size = len(batch[0][1])
-        y_hat, y_t_hat, d_hat, d_t_hat, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
-        batch_size = y_hat.shape[0] + y_t_hat.shape[0]
+        y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
 
-        _, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
-        _, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(len(d_t_hat)))
+        _, dok_src = losses.cross_entropy_logits(d_hat_src, torch.zeros(d_hat_src.shape[0]))
+        _, dok_tgt = losses.cross_entropy_logits(d_hat_tgt, torch.ones(d_hat_tgt.shape[0]))
 
         dok = torch.cat((dok_src, dok_tgt)).double().mean()
         dok_src = dok_src.double().mean()
         dok_tgt = dok_tgt.double().mean()
 
-        wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
+        wasserstein_distance = d_hat_src.mean() - (1 + self._beta_ratio) * d_hat_tgt.mean()
         adv_loss = wasserstein_distance
         task_loss = loss_cls
 
@@ -718,10 +733,15 @@ class WDGRLTrainer(BaseDANNLike):
         set_requires_grad(self.feat, requires_grad=False)
         set_requires_grad(self.domain_classifier, requires_grad=True)
 
-        (x_s, y_s), (x_tu, _) = batch
+        x, y, domain_labels = batch
+        idx_src, idx_tgt = self._get_src_tgt_idx(domain_labels)
+
         with torch.no_grad():
-            h_s = self.feat(x_s).data.view(x_s.shape[0], -1)
-            h_t = self.feat(x_tu).data.view(x_tu.shape[0], -1)
+            h = self.feat(x)
+            h_s = h[idx_src].data.view(len(idx_src), -1)
+            h_t = h[idx_tgt].data.view(len(idx_tgt), -1)
+            # h_s = self.feat(x_s).data.view(x_s.shape[0], -1)
+            # h_t = self.feat(x_tu).data.view(x_tu.shape[0], -1)
         for _ in range(self._k_critic):
             gp = losses.gradient_penalty(self.domain_classifier, h_s, h_t)
 
@@ -967,28 +987,28 @@ class FewShotDANNTrainer(BaseDANNLike):
         # assert len(batch) == 3
         x, y, domain_labels = batch
         idx_src, idx_tgt = self._get_src_tgt_idx(domain_labels)
-        x_s = x[idx_src]
         y_s = y[idx_src]
-        x_t = x[idx_tgt]
         y_t = y[idx_tgt]
         idx_tgt_labeled = torch.where(y_t != self.unlabeled_value)[0]
         idx_tgt_unlabeled = torch.where(y_t == self.unlabeled_value)[0]
-        x_tl = x_t[idx_tgt_labeled]
         y_tl = y_t[idx_tgt_labeled]
-        x_tu = x_t[idx_tgt_unlabeled]
         y_tu = y_t[idx_tgt_unlabeled]
 
-        # (x_s, y_s), (x_tl, y_tl), (x_tu, y_tu) = batch
-        batch_size = len(y_s)
+        _, y_hat, d_hat = self.forward(x)
+        y_hat_src = y_hat[idx_src]
+        y_hat_tl = y_hat[idx_tgt][idx_tgt_labeled]
+        y_hat_tu = y_hat[idx_tgt][idx_tgt_unlabeled]
+        d_hat_src = d_hat[idx_src]
+        d_hat_tl = d_hat[idx_tgt][idx_tgt_labeled]
+        d_hat_tu = d_hat[idx_tgt][idx_tgt_unlabeled]
 
-        _, y_hat, d_hat = self.forward(x_s)
-        _, y_tl_hat, d_tl_hat = self.forward(x_tl)
-        _, y_tu_hat, d_tu_hat = self.forward(x_tu)
-        d_target_pred = torch.cat((d_tl_hat, d_tu_hat))
+        batch_size = not y_s.shape[0]
 
-        loss_cls_s, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        loss_cls_tl, ok_tl = losses.cross_entropy_logits(y_tl_hat, y_tl)
-        _, ok_tu = losses.cross_entropy_logits(y_tu_hat, y_tu)
+        d_target_pred = torch.cat((d_hat_tl, d_hat_tu))
+
+        loss_cls_s, ok_src = losses.cross_entropy_logits(y_hat_src, y_s)
+        loss_cls_tl, ok_tl = losses.cross_entropy_logits(y_hat_tl, y_tl)
+        _, ok_tu = losses.cross_entropy_logits(y_hat_tu, y_tu)
         ok_tgt = torch.cat((ok_tl, ok_tu)).double().mean()
         ok_src = ok_src.double().mean()
 
@@ -999,13 +1019,13 @@ class FewShotDANNTrainer(BaseDANNLike):
         else:
             task_loss = (batch_size * loss_cls_s + len(y_tl) * loss_cls_tl) / (batch_size + len(y_tl))
 
-        loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
+        loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat_src, torch.zeros(batch_size))
         loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_target_pred, torch.ones(len(d_target_pred)))
 
         if self._method is Method.MME:
             # only keep accuracy, overwrite "domain" loss
             loss_dmn_src = 0
-            loss_dmn_tgt = losses.entropy_logits_loss(y_tu_hat)
+            loss_dmn_tgt = losses.entropy_logits_loss(y_hat_tu)
 
         adv_loss = loss_dmn_src + loss_dmn_tgt
 
@@ -1052,8 +1072,6 @@ class BaseMMDLike(BaseAdaptTrainer):
         raise NotImplementedError("You need to implement a MMD-loss")
 
     def compute_loss(self, batch, split_name="valid"):
-        # if len(batch) == 3:
-        #     raise NotImplementedError("MMD does not support semi-supervised setting.")
         x, y, domain_labels = batch
         idx_src, idx_tgt = self._get_src_tgt_idx(domain_labels)
         y_src = y[idx_src]
@@ -1092,11 +1110,11 @@ class DANTrainer(BaseMMDLike):
     code based on https://github.com/thuml/Xlearn.
     """
 
-    def __init__(self, dataset, feature_extractor, task_classifier, **base_params):
-        super().__init__(dataset, feature_extractor, task_classifier, **base_params)
+    def __init__(self, dataset, feature_extractor, task_classifier, target_domain, **base_params):
+        super().__init__(dataset, feature_extractor, task_classifier, target_domain, **base_params)
 
     def _compute_mmd(self, phi_src, phi_tgt, y_src_hat, y_tgt_hat):
-        batch_size = int(phi_src.size()[0])
+        batch_size = phi_src.shape[0]
         kernels = losses.gaussian_kernel(
             phi_src,
             phi_tgt,
@@ -1140,7 +1158,7 @@ class JANTrainer(BaseMMDLike):
         softmax_layer = torch.nn.Softmax(dim=-1)
         source_list = [phi_src, softmax_layer(y_src_hat)]
         target_list = [phi_tgt, softmax_layer(y_tgt_hat)]
-        batch_size = int(phi_src.size()[0])
+        batch_size = int(phi_src.shape[0])
 
         joint_kernels = None
         for source, target, k_mul, k_num, sigma in zip(

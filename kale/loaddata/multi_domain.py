@@ -549,11 +549,18 @@ class MultiDomainDataset(DomainsDatasetBase):
         valid_split_ratio (float, optional): Split ratio for validation set. Defaults to 0.1.
         test_split_ratio (float, optional): Split ratio for test set. Defaults to 0.2.
         random_state (int, optional): Random state for generator. Defaults to 1.
+        n_fewshot (int, optional): Number of target samples for which the label may be used, default to 0 (n).
         test_on_all (bool, optional): Whether test model on all target. Defaults to False.
     """
 
     def __init__(
-        self, data_access, valid_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1, test_on_all=False
+        self,
+        data_access,
+        valid_split_ratio=0.1,
+        test_split_ratio=0.2,
+        random_state: int = 1,
+        n_fewshot: int = 0,
+        test_on_all=False,
     ):
         self.domain_to_idx = data_access.domain_to_idx
         self.n_domains = len(data_access.domain_to_idx)
@@ -562,6 +569,9 @@ class MultiDomainDataset(DomainsDatasetBase):
         self._test_split_ratio = test_split_ratio
         self._sample_by_split: Dict[str, torch.utils.data.Subset] = {}
         self._sampling_config = FixedSeedSamplingConfig(seed=random_state, balance_domain=True)
+        if n_fewshot < 0:
+            raise ValueError(f"n_fewshot should be >= 0, not '{n_fewshot}'")
+        self._n_fewshot = n_fewshot
         self._loader = MultiDataLoader
         self._random_state = random_state
         self.test_on_all = test_on_all
@@ -587,6 +597,9 @@ class MultiDomainDataset(DomainsDatasetBase):
             self._sample_by_split["valid"], self._sample_by_split["train"] = self.data_access.get_train_valid(
                 self._valid_split_ratio
             )
+
+    def is_semi_supervised(self):
+        return self._n_fewshot > 0
 
     def get_domain_loaders(self, split="train", batch_size=32, num_workers=0):
         return self._sampling_config.create_loader(self._sample_by_split[split], batch_size, num_workers)
