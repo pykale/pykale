@@ -247,13 +247,15 @@ def _domain_stratified_split(domain_labels, n_partitions, split_ratios):
         given ratios. Then the indices of different domains within the same split will be concatenated.
 
     Args:
-        domain_labels (torch.Tensor): Labels to indicate which domains the samples are from.
+        domain_labels (torch.Tensor, list, or array-like): Labels to indicate which domains the samples are from.
         n_partitions (int): Number of partitions to split, 2 <= n_partitions <= len(split_ratios) + 1.
         split_ratios (list): Ratios of splits to be produced, where 0 < sum(split_ratios) <= 1.
 
     Returns:
         [list]: Indices for different splits.
     """
+    if not isinstance(domain_labels, torch.Tensor):
+        domain_labels = torch.tensor(domain_labels)
     domains = torch.unique(domain_labels)
     subset_idx = [[] for _ in range(n_partitions)]
     for domain_label_ in domains:
@@ -354,7 +356,7 @@ class MultiDomainImageFolder(VisionDataset):
         self.targets = [s[1] for s in samples]
         self.domains = domains
         self.domain_to_idx = domain_to_idx
-        self.domain_labels = [s[2] for s in samples]
+        self.domain_labels = torch.tensor([s[2] for s in samples])
         self.return_domain_label = return_domain_label
         self.split_train_test = split_train_test
         self.split_ratio = split_ratio
