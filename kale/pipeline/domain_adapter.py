@@ -15,6 +15,7 @@ import torch
 from torch.autograd import Function
 
 import kale.evaluate.metrics as losses
+from kale.loaddata.multi_domain import MultiDomainDataset
 from kale.utils.validate import validate_kwargs
 
 
@@ -268,15 +269,18 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._dataset.prepare_data_loaders()
         self._nb_training_batches = None  # to be set by method train_dataloader
         self._optimizer_params = optimizer
-
-        self.domain_to_idx = dataset.domain_to_idx
-        if target_domain not in self.domain_to_idx.keys():
-            raise ValueError(
-                "The given target domain %s not in the dataset! The available domain names are %s"
-                % (target_domain, self.domain_to_idx.keys())
-            )
         self.target_domain = target_domain
-        self.target_label = self.domain_to_idx[target_domain]
+        if isinstance(dataset, MultiDomainDataset) and target_domain is not None:
+            self.domain_to_idx = dataset.domain_to_idx
+            if target_domain not in self.domain_to_idx.keys():
+                raise ValueError(
+                    "The given target domain %s not in the dataset! The available domain names are %s"
+                    % (target_domain, self.domain_to_idx.keys())
+                )
+            self.target_label = self.domain_to_idx[target_domain]
+        else:
+            self.domain_to_idx = None
+            self.target_label = None
 
     @property
     def method(self):
