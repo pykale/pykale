@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from yacs.config import CfgNode
 
-from kale.interpret.uncertainty_quantiles import quantile_binning_and_est_errors
+from kale.interpret.uncertainty_utils import quantile_binning_and_est_errors
 from kale.loaddata.tabular_access import load_csv_columns
 from kale.predict.uncertainty_binning import quantile_binning_predictions
 from kale.prepdata.tabular_transform import apply_confidence_inversion

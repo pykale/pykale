@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 
-from kale.interpret.correlation_analysis import analyze_and_plot_uncertainty_correlation
+from kale.interpret.uncertainty_utils import analyze_and_plot_uncertainty_correlation
 from kale.prepdata.tabular_transform import apply_confidence_inversion
 
 
