@@ -99,8 +99,8 @@ def test_domain_adaptor(da_method, n_fewshot, download_path, testing_cfg):
             dataset=dataset,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
-            target_domain="TARGET",
             critic=critic_network,
+            target_domain="TARGET",
             **method_params,
             **train_params,
         )

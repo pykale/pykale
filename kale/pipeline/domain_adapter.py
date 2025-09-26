@@ -85,6 +85,8 @@ class Method(Enum):
 
 def create_mmd_based(method: Method, dataset, feature_extractor, task_classifier, target_domain, **train_params):
     """MMD-based deep learning methods for domain adaptation: DAN and JAN"""
+    if not method.is_mmd_method():
+        raise ValueError(f"Unsupported MMD method: {method}")
     if method is Method.DAN:
         return DANTrainer(
             dataset, feature_extractor, task_classifier, target_domain=target_domain, method=method, **train_params
@@ -443,15 +445,15 @@ class BaseDANNLike(BaseAdaptTrainer):
         dataset,
         feature_extractor,
         task_classifier,
-        target_domain,
         critic,
+        target_domain=None,
         alpha=1.0,
         entropy_reg=0.0,  # not used
         adapt_reg=True,  # not used
         batch_reweighting=False,  # not used
         **base_params,
     ):
-        super().__init__(dataset, feature_extractor, task_classifier, target_domain, **base_params)
+        super().__init__(dataset, feature_extractor, task_classifier, target_domain=target_domain, **base_params)
 
         self.alpha = alpha
 
@@ -538,12 +540,14 @@ class DANNTrainer(BaseDANNLike):
         dataset,
         feature_extractor,
         task_classifier,
-        target_domain,
         critic,
+        target_domain=None,
         method=None,
         **base_params,
     ):
-        super().__init__(dataset, feature_extractor, task_classifier, target_domain, critic, **base_params)
+        super().__init__(
+            dataset, feature_extractor, task_classifier, critic, target_domain=target_domain, **base_params
+        )
 
         if method is None:
             self._method = Method.DANN
@@ -574,14 +578,16 @@ class CDANTrainer(BaseDANNLike):
         dataset,
         feature_extractor,
         task_classifier,
-        target_domain,
         critic,
+        target_domain=None,
         use_entropy=False,
         use_random=False,
         random_dim=1024,
         **base_params,
     ):
-        super().__init__(dataset, feature_extractor, task_classifier, target_domain, critic, **base_params)
+        super().__init__(
+            dataset, feature_extractor, task_classifier, critic, target_domain=target_domain, **base_params
+        )
         self.random_layer = None
         self.random_dim = random_dim
         self.entropy = use_entropy
@@ -676,8 +682,8 @@ class WDGRLTrainer(BaseDANNLike):
         dataset,
         feature_extractor,
         task_classifier,
-        target_domain,
         critic,
+        target_domain=None,
         k_critic=5,
         gamma=10,
         beta_ratio=0,
@@ -688,7 +694,9 @@ class WDGRLTrainer(BaseDANNLike):
 
             k_critic: number of steps to train critic (called n in Algorithm 1 of the paper)
         """
-        super().__init__(dataset, feature_extractor, task_classifier, target_domain, critic, **base_params)
+        super().__init__(
+            dataset, feature_extractor, task_classifier, critic, target_domain=target_domain, **base_params
+        )
         self._k_critic = k_critic
         self._beta_ratio = beta_ratio
         self._gamma = gamma
@@ -828,8 +836,8 @@ class WDGRLTrainerMod(WDGRLTrainer):
         dataset,
         feature_extractor,
         task_classifier,
-        target_domain,
         critic,
+        target_domain=None,
         k_critic=5,
         gamma=10,
         beta_ratio=0,
@@ -840,7 +848,9 @@ class WDGRLTrainerMod(WDGRLTrainer):
 
             k_critic: number of steps to train critic (called n in Algorithm 1 of the paper)
         """
-        super().__init__(dataset, feature_extractor, task_classifier, target_domain, critic, **base_params)
+        super().__init__(
+            dataset, feature_extractor, task_classifier, critic, target_domain=target_domain, **base_params
+        )
         self._k_critic = k_critic
         self._beta_ratio = beta_ratio
         self._gamma = gamma
@@ -971,9 +981,19 @@ class FewShotDANNTrainer(BaseDANNLike):
     """
 
     def __init__(
-        self, dataset, feature_extractor, task_classifier, target_domain, unlabeled_value, critic, method, **base_params
+        self,
+        dataset,
+        feature_extractor,
+        task_classifier,
+        critic,
+        method,
+        target_domain=None,
+        unlabeled_value=-1,
+        **base_params,
     ):
-        super().__init__(dataset, feature_extractor, task_classifier, target_domain, critic, **base_params)
+        super().__init__(
+            dataset, feature_extractor, task_classifier, critic, target_domain=target_domain, **base_params
+        )
         self.unlabeled_value = unlabeled_value
         self._method = Method(method)
 
@@ -1055,12 +1075,12 @@ class BaseMMDLike(BaseAdaptTrainer):
         dataset,
         feature_extractor,
         task_classifier,
-        target_domain,
+        target_domain=None,
         kernel_mul=2.0,
         kernel_num=5,
         **base_params,
     ):
-        super().__init__(dataset, feature_extractor, task_classifier, target_domain, **base_params)
+        super().__init__(dataset, feature_extractor, task_classifier, target_domain=target_domain, **base_params)
 
         self._kernel_mul = kernel_mul
         self._kernel_num = kernel_num
@@ -1114,8 +1134,8 @@ class DANTrainer(BaseMMDLike):
     code based on https://github.com/thuml/Xlearn.
     """
 
-    def __init__(self, dataset, feature_extractor, task_classifier, target_domain, **base_params):
-        super().__init__(dataset, feature_extractor, task_classifier, target_domain, **base_params)
+    def __init__(self, dataset, feature_extractor, task_classifier, target_domain=None, **base_params):
+        super().__init__(dataset, feature_extractor, task_classifier, target_domain=target_domain, **base_params)
 
     def _compute_mmd(self, phi_src, phi_tgt, y_src_hat, y_tgt_hat):
         batch_size = phi_src.shape[0]
@@ -1143,7 +1163,7 @@ class JANTrainer(BaseMMDLike):
         dataset,
         feature_extractor,
         task_classifier,
-        target_domain,
+        target_domain=None,
         kernel_mul=(2.0, 2.0),
         kernel_num=(5, 1),
         **base_params,
@@ -1152,7 +1172,7 @@ class JANTrainer(BaseMMDLike):
             dataset,
             feature_extractor,
             task_classifier,
-            target_domain,
+            target_domain=target_domain,
             kernel_mul=kernel_mul,
             kernel_num=kernel_num,
             **base_params,

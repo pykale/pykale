@@ -107,11 +107,14 @@ class BaseMMDLikeVideo(BaseMMDLike):
         image_modality,
         feature_extractor,
         task_classifier,
+        target_domain=None,
         kernel_mul=2.0,
         kernel_num=5,
         **base_params,
     ):
-        super().__init__(dataset, feature_extractor, task_classifier, kernel_mul, kernel_num, **base_params)
+        super().__init__(
+            dataset, feature_extractor, task_classifier, target_domain, kernel_mul, kernel_num, **base_params
+        )
         self.image_modality = image_modality
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
@@ -247,7 +250,7 @@ class DANNTrainerVideo(DANNTrainer):
         **base_params,
     ):
         super(DANNTrainerVideo, self).__init__(
-            dataset, feature_extractor, task_classifier, critic, method, **base_params
+            dataset, feature_extractor, task_classifier, critic, method=method, **base_params
         )
         self.image_modality = image_modality
         self.rgb, self.flow = get_image_modality(self.image_modality)
