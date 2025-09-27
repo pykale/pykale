@@ -113,7 +113,13 @@ class BaseMMDLikeVideo(BaseMMDLike):
         **base_params,
     ):
         super().__init__(
-            dataset, feature_extractor, task_classifier, target_domain, kernel_mul, kernel_num, **base_params
+            dataset,
+            feature_extractor,
+            task_classifier,
+            target_domain=target_domain,
+            kernel_mul=kernel_mul,
+            kernel_num=kernel_num,
+            **base_params,
         )
         self.image_modality = image_modality
         self.rgb_feat = self.feat["rgb"]
@@ -385,7 +391,14 @@ class CDANTrainerVideo(CDANTrainer):
         **base_params,
     ):
         super(CDANTrainerVideo, self).__init__(
-            dataset, feature_extractor, task_classifier, critic, use_entropy, use_random, random_dim, **base_params
+            dataset,
+            feature_extractor,
+            task_classifier,
+            critic,
+            use_entropy=use_entropy,
+            use_random=use_random,
+            random_dim=random_dim,
+            **base_params,
         )
         self.image_modality = image_modality
         self.rgb, self.flow = get_image_modality(image_modality)
