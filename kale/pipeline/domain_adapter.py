@@ -6,6 +6,7 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/arc
 This module uses `PyTorch Lightning <https://github.com/Lightning-AI/lightning>`_ to standardize the flow.
 """
 
+import warnings
 from enum import Enum
 from typing import Optional
 
@@ -112,7 +113,7 @@ def create_dann_like(
     """DANN-based deep learning methods for domain adaptation: DANN, CDAN, CDAN+E"""
     if dataset.is_semi_supervised():
         return create_fewshot_trainer(
-            method, dataset, feature_extractor, task_classifier, target_domain, critic, **train_params
+            method, dataset, feature_extractor, task_classifier, critic, target_domain, **train_params
         )
 
     if method.is_dann_method():
@@ -122,8 +123,8 @@ def create_dann_like(
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
-            target_domain=target_domain,
             critic=critic,
+            target_domain=target_domain,
             method=method,
             **train_params,
         )
@@ -132,8 +133,8 @@ def create_dann_like(
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
-            target_domain=target_domain,
             critic=critic,
+            target_domain=target_domain,
             method=method,
             use_entropy=method is Method.CDAN_E,
             **train_params,
@@ -143,8 +144,8 @@ def create_dann_like(
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
-            target_domain=target_domain,
             critic=critic,
+            target_domain=target_domain,
             method=method,
             **train_params,
         )
@@ -153,8 +154,8 @@ def create_dann_like(
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
-            target_domain=target_domain,
             critic=critic,
+            target_domain=target_domain,
             method=method,
             **train_params,
         )
@@ -176,8 +177,8 @@ def create_fewshot_trainer(
             dataset=dataset,
             feature_extractor=feature_extractor,
             task_classifier=task_classifier,
-            target_domain=target_domain,
             critic=critic,
+            target_domain=target_domain,
             method=method,
             **train_params,
         )
@@ -272,14 +273,14 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._nb_training_batches = None  # to be set by method train_dataloader
         self._optimizer_params = optimizer
         self.target_domain = target_domain
-        if isinstance(dataset, MultiDomainDataset) and target_domain is not None:
+        if isinstance(dataset, MultiDomainDataset):
             self.domain_to_idx = dataset.domain_to_idx
-            if target_domain not in self.domain_to_idx.keys():
-                raise ValueError(
-                    "The given target domain %s not in the dataset! The available domain names are %s"
-                    % (target_domain, self.domain_to_idx.keys())
+            if target_domain is None or target_domain not in self.domain_to_idx.keys():
+                self.target_domain = self.domain_to_idx.keys()[-1]  # use last domain as target by default
+                warnings.warn(
+                    "The given target domain %s not is valid. Using %s instead." % (target_domain, self.target_domain)
                 )
-            self.target_label = self.domain_to_idx[target_domain]
+            self.target_label = self.domain_to_idx[self.target_domain]
         else:
             self.domain_to_idx = None
             self.target_label = None

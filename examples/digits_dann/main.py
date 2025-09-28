@@ -14,8 +14,8 @@ from model import get_model
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar
 
-from kale.loaddata.image_access import DigitDataset
-from kale.loaddata.multi_domain import BinaryDomainDatasets
+from kale.loaddata.image_access import DigitDataset, ImageAccess
+from kale.loaddata.multi_domain import BinaryDomainDatasets, MultiDomainAccess, MultiDomainDataset
 from kale.utils.seed import set_seed
 
 
@@ -53,16 +53,34 @@ def main():
     )
 
     # ---- setup dataset ----
-    source, target, num_channels = DigitDataset.get_source_target(
-        DigitDataset(cfg.DATASET.SOURCE.upper()), DigitDataset(cfg.DATASET.TARGET.upper()), cfg.DATASET.ROOT
+    # source, target, num_channels = DigitDataset.get_source_target(
+    #     DigitDataset(cfg.DATASET.SOURCE.upper()), DigitDataset(cfg.DATASET.TARGET.upper()), cfg.DATASET.ROOT
+    # )
+    # dataset = BinaryDomainDatasets(
+    #     source,
+    #     target,
+    #     config_weight_type=cfg.DATASET.WEIGHT_TYPE,
+    #     config_size_type=cfg.DATASET.SIZE_TYPE,
+    #     valid_split_ratio=cfg.DATASET.VALID_SPLIT_RATIO,
+    # )
+    data_src = DigitDataset(cfg.DATASET.SOURCE.upper())
+    data_tgt = DigitDataset(cfg.DATASET.TARGET.upper())
+    num_channels = max(DigitDataset.get_channel_numbers(data_src), DigitDataset.get_channel_numbers(data_tgt))
+    data_access = MultiDomainAccess(
+        {
+            cfg.DATASET.SOURCE.upper(): DigitDataset.get_access(data_src, cfg.DATASET.ROOT),
+            cfg.DATASET.TARGET.upper(): DigitDataset.get_access(data_tgt, cfg.DATASET.ROOT),
+        },
+        cfg.DATASET.NUN_CLASSES,
+        return_domain_label=True,
     )
-    dataset = BinaryDomainDatasets(
-        source,
-        target,
-        config_weight_type=cfg.DATASET.WEIGHT_TYPE,
-        config_size_type=cfg.DATASET.SIZE_TYPE,
-        valid_split_ratio=cfg.DATASET.VALID_SPLIT_RATIO,
-    )
+    # data_access = ImageAccess.get_multi_domain_images(
+    #     "DIGITS",
+    #     cfg.DATASET.ROOT,
+    #     sub_domain_set=[cfg.DATASET.SOURCE.upper(), cfg.DATASET.TARGET.upper()],
+    #     return_domain_label=True,
+    # )
+    dataset = MultiDomainDataset(data_access)
 
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
