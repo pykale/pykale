@@ -68,10 +68,10 @@ def main():
     num_channels = max(DigitDataset.get_channel_numbers(data_src), DigitDataset.get_channel_numbers(data_tgt))
     data_access = MultiDomainAccess(
         {
-            cfg.DATASET.SOURCE.upper(): DigitDataset.get_access(data_src, cfg.DATASET.ROOT),
-            cfg.DATASET.TARGET.upper(): DigitDataset.get_access(data_tgt, cfg.DATASET.ROOT),
+            cfg.DATASET.SOURCE.upper(): DigitDataset.get_access(data_src, cfg.DATASET.ROOT)[0],
+            cfg.DATASET.TARGET.upper(): DigitDataset.get_access(data_tgt, cfg.DATASET.ROOT)[0],
         },
-        cfg.DATASET.NUN_CLASSES,
+        cfg.DATASET.NUM_CLASSES,
         return_domain_label=True,
     )
     # data_access = ImageAccess.get_multi_domain_images(
