@@ -63,7 +63,10 @@ def testing_cfg():
 
 # DEFINE constants for testing
 EXPECTED_FILES_IND_3 = [
-    "3Bins/fitted_quantile_binningcumulative_error.pdf",
+    "3Bins/fitted_quantile_binning/all_predictions_cumulative_error.pdf",
+    "3Bins/fitted_quantile_binning/b1_predictions_cumulative_error.pdf",
+    "3Bins/fitted_quantile_binning/PHD-NET_b1_vs_all_cumulative_error.pdf",
+    "3Bins/fitted_quantile_binning/U-NET_b1_vs_all_cumulative_error.pdf",
     "3Bins/fitted_quantile_binning/target_errors.xlsx",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_dotted_error_all_targets.pdf",
     "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_dotted_error_target_0.pdf",
@@ -77,7 +80,10 @@ EXPECTED_FILES_IND_3 = [
 ]
 # /home/schobs/Documents/results/testing/4CH/3Bins/
 EXPECTED_FILES_IND_5 = [
-    "5Bins/fitted_quantile_binningcumulative_error.pdf",
+    "5Bins/fitted_quantile_binning/all_predictions_cumulative_error.pdf",
+    "5Bins/fitted_quantile_binning/b1_predictions_cumulative_error.pdf",
+    "5Bins/fitted_quantile_binning/PHD-NET_b1_vs_all_cumulative_error.pdf",
+    "5Bins/fitted_quantile_binning/U-NET_b1_vs_all_cumulative_error.pdf",
     "5Bins/fitted_quantile_binning/target_errors.xlsx",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_dotted_error_all_targets.pdf",
     "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_dotted_error_target_0.pdf",

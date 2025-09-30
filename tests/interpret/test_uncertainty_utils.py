@@ -1,8 +1,9 @@
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pytest
 
-from unittest.mock import MagicMock
-from kale.interpret.utils import (
+from kale.interpret.uncertainty_utils import (
     analyze_and_plot_uncertainty_correlation,
     plot_cumulative,
     quantile_binning_and_est_errors,

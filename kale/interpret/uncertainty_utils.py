@@ -12,15 +12,16 @@ Functions related to uncertainty-error correlation analysis in terms of:
    B) Plotting: plot_uncertainty_correlation
    C) Main analysis functions: analyze_and_plot_uncertainty_correlation
 """
+import os
 from typing import Any, Dict, List, Optional, Tuple, Union
+
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import pwlf
 from matplotlib import colormaps
 from matplotlib.ticker import ScalarFormatter
 from scipy import stats
-
-import pandas as pd
 from sklearn.isotonic import IsotonicRegression
 
 from kale.interpret.visualize import save_or_show_plot
@@ -345,6 +346,7 @@ def plot_cumulative(
     title: str,
     compare_to_all: bool = False,
     save_path: Optional[str] = None,
+    file_name: str = "cumulative_error.pdf",
     error_scaling_factor: float = 1,
 ) -> None:
     """
@@ -456,7 +458,7 @@ def plot_cumulative(
     ax.tick_params(axis="y", colors="black")
 
     if save_path is not None:
-        plt.savefig(save_path + "cumulative_error.pdf", dpi=100, bbox_inches="tight", pad_inches=0.2)
+        plt.savefig(os.path.join(save_path, file_name), dpi=100, bbox_inches="tight", pad_inches=0.2)
         plt.close()
     else:
         plt.gcf().set_size_inches(16.0, 10.0)

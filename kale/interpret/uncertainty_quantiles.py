@@ -375,8 +375,36 @@ class QuantileBinningAnalyzer:
                 np.arange(config.num_bins),
                 CUMULATIVE_ERROR_TITLE_TEMPLATE.format(config.dataset),
                 save_path=self.save_folder if self.save_figures else None,
+                file_name="all_predictions_cumulative_error.pdf",
                 error_scaling_factor=config.error_scaling_factor,
             )
+            # Plot cumulative error figure for B1 only predictions
+            plot_cumulative(
+                colormap,
+                eval_data["bins"],
+                config.models,
+                extracted_uncertainty_error_pairs,
+                0,
+                "Cumulative error for B1 predictions, dataset " + config.dataset,
+                save_path=self.save_folder if self.save_figures else None,
+                file_name="b1_predictions_cumulative_error.pdf",
+                error_scaling_factor=config.error_scaling_factor,
+            )
+
+            # Plot cumulative error figure comparing B1 and ALL, for both models
+            for model_type in config.models:
+                plot_cumulative(
+                    colormap,
+                    eval_data["bins"],
+                    [model_type],
+                    extracted_uncertainty_error_pairs,
+                    0,
+                    model_type + ". Cumulative error comparing ALL and B1, dataset " + config.dataset,
+                    compare_to_all=True,
+                    save_path=self.save_folder if self.save_figures else None,
+                    file_name=f"{model_type}_b1_vs_all_cumulative_error.pdf",
+                    error_scaling_factor=config.error_scaling_factor,
+                )
 
         if self.display_settings.get("errors"):
             uncertainty_categories = [[name, name] for name, err, unc in config.uncertainty_error_pairs]
