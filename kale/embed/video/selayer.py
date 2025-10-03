@@ -4,8 +4,8 @@
 
 """Python implementation of Squeeze-and-Excitation Layers (SELayer)
 Initial implementation: channel-wise (SELayerC)
-Improved implementation: temporal-wise (SELayerT), convolution-based channel-wise (SELayerCoC), max-pooling-based
-channel-wise (SELayerMC), multi-pooling-based channel-wise (SELayerMAC)
+Improved implementation: temporal-wise (SELayerT), max-pooling-based channel-wise (SELayerMC),
+multi-pooling-based channel-wise (SELayerMAC)
 
 [Redundancy and repeat of code will be reduced in the future.]
 
@@ -19,168 +19,145 @@ import torch.nn as nn
 
 
 def get_selayer(attention):
-    """Get SELayers referring to attention.
+    """Returns a SELayer class based on the attention identifier.
 
     Args:
-        attention (string): the name of the SELayer.
-            (Options: ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC"])
+        attention: Name of the SELayer implementation to retrieve.
 
     Returns:
-        se_layer (SELayer, optional): the SELayer.
+        SELayer: Subclass corresponding to the requested attention name.
+
+    Raises:
+        ValueError: If the provided attention name is unsupported.
     """
-    if attention == "SELayerC":
-        se_layer = SELayerC
-    elif attention == "SELayerCoC":
-        se_layer = SELayerCoC
-    elif attention == "SELayerMC":
-        se_layer = SELayerMC
-    elif attention == "SELayerMAC":
-        se_layer = SELayerMAC
-    elif attention == "SELayerCoC":
-        se_layer = SELayerCoC
-    elif attention == "SELayerT":
-        se_layer = SELayerT
-    else:
-        raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))
-    return se_layer
+
+    selayer_map = {
+        "SELayerC": SELayerC,
+        "SELayerT": SELayerT,
+        "SELayerMC": SELayerMC,
+        "SELayerMAC": SELayerMAC,
+    }
+
+    try:
+        return selayer_map[attention]
+    except KeyError as exc:
+        raise ValueError(f"Wrong MODEL.ATTENTION. Current:{attention}") from exc
 
 
 class SELayer(nn.Module):
-    """Helper class for SELayer design."""
+    """Base class for squeeze-and-excitation layers.
+
+    Args:
+        channel: Total number of channels expected by the layer.
+        reduction: Reduction ratio applied inside the excitation block.
+    """
 
     def __init__(self, channel, reduction=16):
-        super(SELayer, self).__init__()
+        super().__init__()
         self.channel = channel
         self.reduction = reduction
 
     def forward(self, x):
-        return NotImplementedError()
+        squeezed = self._squeeze(x)
+        excited = self._excite(squeezed)
+        scale = self._reshape(excited, x)
+        return self._scale_residual(x, scale)
+
+    def _scale_residual(self, x, scale):
+        scale = scale - 0.5
+        return x + x * scale.expand_as(x)
+
+    def _squeeze(self, x):
+        raise NotImplementedError()
+
+    def _excite(self, squeezed):
+        raise NotImplementedError()
+
+    def _reshape(self, excited, x):
+        return excited.view(x.size(0), self.channel, 1, 1, 1)
+
+    @staticmethod
+    def _make_se_fc(channel, reduction):
+        """Builds a squeeze-excitation projection independent of layer state."""
+
+        return nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid(),
+        )
 
 
 class SELayerC(SELayer):
     """Construct channel-wise SELayer."""
 
     def __init__(self, channel, reduction=16):
-        super(SELayerC, self).__init__(channel, reduction)
+        super().__init__(channel, reduction)
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
-        self.fc = nn.Sequential(
-            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Linear(self.channel // self.reduction, self.channel, bias=False),
-            nn.Sigmoid(),
-        )
+        self.fc = self._make_se_fc(channel, reduction)
 
-    def forward(self, x):
-        b, c, _, _, _ = x.size()
-        y = self.avg_pool(x).view(b, c)
-        y = self.fc(y).view(b, c, 1, 1, 1)
-        # out = x * y.expand_as(x)
-        y = y - 0.5
-        out = x + x * y.expand_as(x)
-        return out
+    def _squeeze(self, x):
+        return self.avg_pool(x).view(x.size(0), self.channel)
+
+    def _excite(self, squeezed):
+        return self.fc(squeezed)
 
 
 class SELayerT(SELayer):
     """Construct temporal-wise SELayer."""
 
     def __init__(self, channel, reduction=2):
-        super(SELayerT, self).__init__(channel, reduction)
+        super().__init__(channel, reduction)
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
-        self.fc = nn.Sequential(
-            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Linear(self.channel // self.reduction, self.channel, bias=False),
-            nn.Sigmoid(),
-        )
+        self.fc = self._make_se_fc(channel, reduction)
 
-    def forward(self, x):
-        b, _, t, _, _ = x.size()
+    def _squeeze(self, x):
+        batch_size, _, time_steps, _, _ = x.size()
         output = x.transpose(1, 2).contiguous()
-        y = self.avg_pool(output).view(b, t)
-        y = self.fc(y).view(b, t, 1, 1, 1)
-        y = y.transpose(1, 2).contiguous()
-        # out = x * y.expand_as(x)
-        y = y - 0.5
-        out = x + x * y.expand_as(x)
-        return out
+        return self.avg_pool(output).view(batch_size, time_steps)
 
+    def _excite(self, squeezed):
+        return self.fc(squeezed)
 
-class SELayerCoC(SELayer):
-    """Construct convolution-based channel-wise SELayer."""
-
-    def __init__(self, channel, reduction=16):
-        super(SELayerCoC, self).__init__(channel, reduction)
-        self.conv1 = nn.Conv3d(
-            in_channels=self.channel, out_channels=self.channel // self.reduction, kernel_size=1, bias=False
-        )
-        self.bn1 = nn.BatchNorm3d(num_features=self.channel // self.reduction)
-        self.avg_pool = nn.AdaptiveAvgPool3d(1)
-        self.sigmoid = nn.Sigmoid()
-        self.conv2 = nn.Conv3d(
-            in_channels=self.channel // self.reduction, out_channels=self.channel, kernel_size=1, bias=False
-        )
-        self.bn2 = nn.BatchNorm3d(num_features=self.channel)
-
-    def forward(self, x):
-        b, c, t, _, _ = x.size()  # n, c, t, h, w
-        y = self.conv1(x)  # n, c/r, t, h, w
-        y = self.bn1(y)  # n, c/r, t, h, w
-        y = self.avg_pool(y)  # n, c/r, 1, 1, 1
-        y = self.conv2(y)  # n, c, 1, 1, 1
-        y = self.bn2(y)  # n, c, 1, 1, 1
-        y = self.sigmoid(y)  # n, c, 1, 1, 1
-        # out = x * y.expand_as(x)  # n, c, t, h, w
-        y = y - 0.5
-        out = x + x * y.expand_as(x)
-        return out
+    def _reshape(self, excited, x):
+        batch_size, time_steps = excited.size()
+        scale = excited.view(batch_size, time_steps, 1, 1, 1)
+        return scale.transpose(1, 2).contiguous()
 
 
 class SELayerMC(SELayer):
     """Construct channel-wise SELayer with max pooling."""
 
     def __init__(self, channel, reduction=16):
-        super(SELayerMC, self).__init__(channel, reduction)
+        super().__init__(channel, reduction)
         self.max_pool = nn.AdaptiveMaxPool3d(1)
-        self.fc = nn.Sequential(
-            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Linear(self.channel // self.reduction, self.channel, bias=False),
-            nn.Sigmoid(),
-        )
+        self.fc = self._make_se_fc(channel, reduction)
 
-    def forward(self, x):
-        b, c, _, _, _ = x.size()
-        y = self.max_pool(x).view(b, c)
-        y = self.fc(y).view(b, c, 1, 1, 1)
-        # out = x * y.expand_as(x)
-        y = y - 0.5
-        out = x + x * y.expand_as(x)
-        return out
+    def _squeeze(self, x):
+        return self.max_pool(x).view(x.size(0), self.channel)
+
+    def _excite(self, squeezed):
+        return self.fc(squeezed)
 
 
 class SELayerMAC(SELayer):
     """Construct channel-wise SELayer with the mix of average pooling and max pooling."""
 
     def __init__(self, channel, reduction=16):
-        super(SELayerMAC, self).__init__(channel, reduction)
+        super().__init__(channel, reduction)
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.max_pool = nn.AdaptiveMaxPool3d(1)
         self.conv = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=(1, 2), bias=False)
-        self.fc = nn.Sequential(
-            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Linear(self.channel // self.reduction, self.channel, bias=False),
-            nn.Sigmoid(),
-        )
+        self.fc = self._make_se_fc(channel, reduction)
 
-    def forward(self, x):
-        b, c, _, _, _ = x.size()
+    def _squeeze(self, x):
+        batch_size = x.size(0)
         y_avg = self.avg_pool(x)
         y_max = self.max_pool(x)
-        y = torch.cat((y_avg, y_max), dim=2).squeeze().unsqueeze(dim=1)
-        y = self.conv(y).squeeze()
-        y = self.fc(y).view(b, c, 1, 1, 1)
-        # out = x * y.expand_as(x)
-        y = y - 0.5
-        out = x + x * y.expand_as(x)
-        return out
+        y = torch.cat((y_avg, y_max), dim=2).contiguous()
+        y = y.view(batch_size, self.channel, 2)
+        y = self.conv(y.unsqueeze(1))
+        return y.view(batch_size, self.channel)
+
+    def _excite(self, squeezed):
+        return self.fc(squeezed)
