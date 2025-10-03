@@ -24,7 +24,7 @@ class SEInceptionI3DRGB(nn.Module):
         num_channels (int): the channel number of the input.
         num_classes (int): the class number of dataset.
         attention (string): the name of the SELayer.
-            (Options: ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC", "SELayerCT" and "SELayerTC"])
+            (Options: ["SELayerC", "SELayerT", "SELayerMC", "SELayerMAC", "SELayerCT" and "SELayerTC"])
 
     Returns:
         model (VideoResNet): I3D model with SELayers.
@@ -36,7 +36,7 @@ class SEInceptionI3DRGB(nn.Module):
         temporal_length = 16
 
         # Add channel-wise SELayer
-        if attention in ["SELayerC", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
+        if attention in ["SELayerC", "SELayerMC", "SELayerMAC"]:
             se_layer = get_selayer(attention)
             model.Mixed_3b.add_module(attention, se_layer(256))
             model.Mixed_3c.add_module(attention, se_layer(480))
@@ -123,7 +123,7 @@ class SEInceptionI3DFlow(nn.Module):
         temporal_length = 16
 
         # Add channel-wise SELayer
-        if attention in ["SELayerC", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
+        if attention in ["SELayerC", "SELayerMC", "SELayerMAC"]:
             se_layer = get_selayer(attention)
             model.Mixed_3b.add_module(attention, se_layer(256))
             model.Mixed_3c.add_module(attention, se_layer(480))

@@ -32,7 +32,7 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
     Args:
         arch (string): the name of basic architecture. (Options: ["r3d_18", "mc3_18" and "r2plus1d_18"])
         attention (string): the name of the SELayer.
-            (Options: ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC", "SELayerCT", and "SELayerTC"])
+            (Options: ["SELayerC", "SELayerT", "SELayerMC", "SELayerMAC", "SELayerCT", and "SELayerTC"])
         pretrained (bool): choose if pretrained parameters are used. (Default: False)
         progress (bool, optional): whether or not to display a progress bar to stderr. (Default: True)
 
@@ -43,7 +43,7 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
     temporal_length = 16
 
     # Add channel-wise SELayer
-    if attention in ["SELayerC", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
+    if attention in ["SELayerC", "SELayerMC", "SELayerMAC"]:
         se_layer = get_selayer(attention)
         model.layer1._modules["0"].add_module(attention, se_layer(64))
         model.layer1._modules["1"].add_module(attention, se_layer(64))
@@ -115,7 +115,7 @@ def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kw
     temporal_length = 16
 
     # Add channel-wise SELayer
-    if attention in ["SELayerC", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
+    if attention in ["SELayerC", "SELayerMC", "SELayerMAC"]:
         se_layer = get_selayer(attention)
         model.layer1._modules["0"].add_module(attention, se_layer(64))
         model.layer1._modules["1"].add_module(attention, se_layer(64))
