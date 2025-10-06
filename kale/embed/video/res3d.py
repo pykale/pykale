@@ -110,6 +110,8 @@ class BasicBlock(nn.Module):
         # Check if SELayer is used.
         if "SELayerC" in dir(self):  # check channel-wise
             out = self.SELayerC(out)
+        if "SELayerCT" in dir(self):
+            out = self.SELayerCT(out)
         if "SELayerMC" in dir(self):
             out = self.SELayerMC(out)
         if "SELayerMAC" in dir(self):
