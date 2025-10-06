@@ -46,7 +46,7 @@ def get_selayer(attention):
         raise ValueError(f"Wrong MODEL.ATTENTION. Current:{attention}") from exc
 
 
-class SELayer(nn.Module):
+class BaseSELayer(nn.Module):
     """Base class for squeeze-and-excitation layers.
 
     Args:
@@ -90,7 +90,7 @@ class SELayer(nn.Module):
         )
 
 
-class SELayerC(SELayer):
+class SELayerC(BaseSELayer):
     """Construct channel-wise SELayer."""
 
     def __init__(self, channel, reduction=16):
@@ -105,7 +105,7 @@ class SELayerC(SELayer):
         return self.fc(squeezed)
 
 
-class SELayerT(SELayer):
+class SELayerT(BaseSELayer):
     """Construct temporal-wise SELayer."""
 
     def __init__(self, channel, reduction=2):
@@ -127,7 +127,7 @@ class SELayerT(SELayer):
         return scale.transpose(1, 2).contiguous()
 
 
-class SELayerMC(SELayer):
+class SELayerMC(BaseSELayer):
     """Construct channel-wise SELayer with max pooling."""
 
     def __init__(self, channel, reduction=16):
@@ -142,7 +142,7 @@ class SELayerMC(SELayer):
         return self.fc(squeezed)
 
 
-class SELayerMAC(SELayer):
+class SELayerMAC(BaseSELayer):
     """Construct channel-wise SELayer with the mix of average pooling and max pooling."""
 
     def __init__(self, channel, reduction=16):
