@@ -108,12 +108,18 @@ def create_mmd_based(method: Method, dataset, feature_extractor, task_classifier
 
 
 def create_dann_like(
-    method: Method, dataset, feature_extractor, task_classifier, target_domain, critic, **train_params
+    method: Method, dataset, feature_extractor, task_classifier, critic, target_domain, **train_params
 ):
     """DANN-based deep learning methods for domain adaptation: DANN, CDAN, CDAN+E"""
     if dataset.is_semi_supervised():
         return create_fewshot_trainer(
-            method, dataset, feature_extractor, task_classifier, critic, target_domain, **train_params
+            method=method,
+            dataset=dataset,
+            feature_extractor=feature_extractor,
+            task_classifier=task_classifier,
+            critic=critic,
+            target_domain=target_domain,
+            **train_params,
         )
 
     if method.is_dann_method():
@@ -269,7 +275,6 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._dataset = dataset
         self.feat = feature_extractor
         self.classifier = task_classifier
-        self._dataset.prepare_data_loaders()
         self._nb_training_batches = None  # to be set by method train_dataloader
         self._optimizer_params = optimizer
         self.target_domain = target_domain
@@ -284,6 +289,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         else:
             self.domain_to_idx = None
             self.target_label = None
+        self._dataset.prepare_data_loaders(target_domain=self.target_domain)
 
     @property
     def method(self):
@@ -309,6 +315,15 @@ class BaseAdaptTrainer(pl.LightningModule):
         idx_src = torch.where(domain_labels != self.target_label)[0]
         idx_tgt = torch.where(domain_labels == self.target_label)[0]
         return idx_src, idx_tgt
+
+    def _extract_features(self, x):
+        """Run feature extractor (if any) and flatten.
+
+        Reduces duplicated code across forward methods.
+        """
+        if self.feat is not None:
+            x = self.feat(x)
+        return x.view(x.size(0), -1)
 
     def forward(self, x):
         raise NotImplementedError("Forward pass needs to be defined.")
@@ -557,9 +572,7 @@ class DANNTrainer(BaseDANNLike):
             assert self._method.is_dann_method()
 
     def forward(self, x):
-        if self.feat is not None:
-            x = self.feat(x)
-        feature = x.view(x.size(0), -1)
+        feature = self._extract_features(x)
 
         reverse_feature = GradReverse.apply(feature, self.alpha)
         class_output = self.classifier(feature)
@@ -600,9 +613,7 @@ class CDANTrainer(BaseDANNLike):
                 param.requires_grad = False
 
     def forward(self, x):
-        if self.feat is not None:
-            x = self.feat(x)
-        x = x.view(x.size(0), -1)
+        x = self._extract_features(x)
 
         class_output = self.classifier(x)
 
@@ -703,9 +714,7 @@ class WDGRLTrainer(BaseDANNLike):
         self._gamma = gamma
 
     def forward(self, x):
-        if self.feat is not None:
-            x = self.feat(x)
-        x = x.view(x.size(0), -1)
+        x = self._extract_features(x)
 
         class_output = self.classifier(x)
         adversarial_output = self.domain_classifier(x)
@@ -989,19 +998,16 @@ class FewShotDANNTrainer(BaseDANNLike):
         critic,
         method,
         target_domain=None,
-        unlabeled_value=-1,
         **base_params,
     ):
         super().__init__(
             dataset, feature_extractor, task_classifier, critic, target_domain=target_domain, **base_params
         )
-        self.unlabeled_value = unlabeled_value
+        self._few_shot_domain_label = dataset.n_domains - 1  # assumes labeled target is last domain
         self._method = Method(method)
 
     def forward(self, x):
-        if self.feat is not None:
-            x = self.feat(x)
-        x = x.view(x.size(0), -1)
+        x = self._extract_features(x)
 
         reverse_feature = GradReverse.apply(x, self.alpha)
         class_output = self.classifier(x)
@@ -1011,23 +1017,23 @@ class FewShotDANNTrainer(BaseDANNLike):
     def compute_loss(self, batch, split_name="valid"):
         # assert len(batch) == 3
         x, y, domain_labels = batch
-        idx_src, idx_tgt = self._get_src_tgt_idx(domain_labels)
+        idx_tgt_unlabeled = torch.where(domain_labels == self.target_label)[0]
+        idx_tgt_labeled = torch.where(domain_labels == self._few_shot_domain_label)[0]
+        idx_src = torch.where((domain_labels != self.target_label) & (domain_labels != self._few_shot_domain_label))[0]
+        # idx_src, idx_tgt = self._get_src_tgt_idx(domain_labels)
+        y_tu = y[idx_tgt_unlabeled]
+        y_tl = y[idx_tgt_labeled]
         y_s = y[idx_src]
-        y_t = y[idx_tgt]
-        idx_tgt_labeled = torch.where(y_t != self.unlabeled_value)[0]
-        idx_tgt_unlabeled = torch.where(y_t == self.unlabeled_value)[0]
-        y_tl = y_t[idx_tgt_labeled]
-        y_tu = y_t[idx_tgt_unlabeled]
 
         _, y_hat, d_hat = self.forward(x)
         y_hat_src = y_hat[idx_src]
-        y_hat_tl = y_hat[idx_tgt][idx_tgt_labeled]
-        y_hat_tu = y_hat[idx_tgt][idx_tgt_unlabeled]
+        y_hat_tl = y_hat[idx_tgt_labeled]
+        y_hat_tu = y_hat[idx_tgt_unlabeled]
         d_hat_src = d_hat[idx_src]
-        d_hat_tl = d_hat[idx_tgt][idx_tgt_labeled]
-        d_hat_tu = d_hat[idx_tgt][idx_tgt_unlabeled]
+        d_hat_tl = d_hat[idx_tgt_labeled]
+        d_hat_tu = d_hat[idx_tgt_unlabeled]
 
-        batch_size = not y_s.shape[0]
+        batch_size = y_s.shape[0]
 
         d_target_pred = torch.cat((d_hat_tl, d_hat_tu))
 
@@ -1087,9 +1093,7 @@ class BaseMMDLike(BaseAdaptTrainer):
         self._kernel_num = kernel_num
 
     def forward(self, x):
-        if self.feat is not None:
-            x = self.feat(x)
-        x = x.view(x.size(0), -1)
+        x = self._extract_features(x)
         class_output = self.classifier(x)
         return x, class_output
 

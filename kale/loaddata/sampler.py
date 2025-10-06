@@ -11,6 +11,8 @@ from torch.utils.data import DataLoader, Subset
 from torch.utils.data.sampler import BatchSampler, RandomSampler
 from torchvision import datasets
 
+import kale.loaddata.multi_domain
+
 
 def get_auto_num_workers():
     total_cores = os.cpu_count() or 1
@@ -160,12 +162,14 @@ class BalancedBatchSampler(BatchSampler):
 
     def __init__(self, dataset, batch_size):
         labels = get_labels(dataset)
-        classes = sorted(set(labels))
+        classes = torch.unique(labels)
 
-        n_classes = len(classes)
+        n_classes = classes.size(0)
         self._n_samples = batch_size // n_classes
         if self._n_samples == 0:
-            raise ValueError(f"batch_size should be bigger than the number of classes, got {batch_size}")
+            raise ValueError(
+                f"batch_size should be bigger than the number of classes, the number of classes is {n_classes}, got {batch_size}"
+            )
 
         self._class_iters = [InfiniteSliceIterator(np.where(labels == class_)[0], class_=class_) for class_ in classes]
 
@@ -266,7 +270,7 @@ def get_labels(dataset):
     """
 
     dataset_type = type(dataset)
-    if dataset_type is datasets.SVHN:
+    if dataset_type is datasets.SVHN or dataset_type is kale.loaddata.multi_domain.ConcatMultiDomainAccess:
         return dataset.labels
     if dataset_type is datasets.ImageFolder:
         return np.array(dataset.targets)
@@ -278,13 +282,13 @@ def get_labels(dataset):
         logging.debug(f"data subset of len {len(indices)} from {len(all_labels)}")
         labels = all_labels[indices]
         if isinstance(labels, torch.Tensor):
-            return labels.numpy()
+            return labels
         return labels
 
     try:
         logging.debug(dataset.targets.shape, type(dataset.targets))
         if isinstance(dataset.targets, torch.Tensor):
-            return dataset.targets.numpy()
+            return dataset.targets
         return dataset.targets
     except AttributeError:
         logging.error(type(dataset))
@@ -334,6 +338,7 @@ class DomainBalancedBatchSampler(BalancedBatchSampler):
 
     def __init__(self, dataset, batch_size):
         # call to __init__ of super class will generate class balanced sampler, do not do it here
+        super().__init__(dataset, batch_size)
         dataset_type = type(dataset)
         if dataset_type is Subset:
             domain_labels = np.asarray(dataset.dataset.domain_labels)[dataset.indices]

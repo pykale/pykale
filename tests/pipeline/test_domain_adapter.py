@@ -18,8 +18,8 @@ DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN", "FSDA
 WEIGHT_TYPE = "natural"
 DATASIZE_TYPE = "source"
 NUM_CLASSES = 10
-# FEW_SHOT = [0, 20]
-FEW_SHOT = [0]
+FEW_SHOT = [0, 20]
+
 # Not checking values so seed is not needed. If seed, move all seeds to conftest later
 # seed = 36
 # set_seed(seed)
