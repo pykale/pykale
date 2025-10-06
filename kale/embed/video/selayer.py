@@ -35,6 +35,7 @@ def get_selayer(attention):
         "SELayerC": SELayerC,
         "SELayerT": SELayerT,
         "SELayerCT": SELayerCT,
+        "SELayerTC": SELayerTC,
         "SELayerMC": SELayerMC,
         "SELayerMAC": SELayerMAC,
     }
@@ -177,3 +178,18 @@ class SELayerCT(nn.Module):
     def forward(self, x):
         out = self.channel_layer(x)
         return self.temporal_layer(out)
+
+
+class SELayerTC(nn.Module):
+    """Compose temporal SELayer followed by channel SELayer."""
+
+    def __init__(self, channel, temporal, *, channel_reduction=16, temporal_reduction=2):
+        super().__init__()
+        if temporal <= 0:
+            raise ValueError("Temporal dimension must be positive for SELayerTC.")
+        self.temporal_layer = SELayerT(temporal, temporal_reduction)
+        self.channel_layer = SELayerC(channel, channel_reduction)
+
+    def forward(self, x):
+        out = self.temporal_layer(x)
+        return self.channel_layer(out)
