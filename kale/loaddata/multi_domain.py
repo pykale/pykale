@@ -137,7 +137,7 @@ class BinaryDomainDatasets(DomainsDatasetBase):
     def is_semi_supervised(self):
         return self._n_fewshot is not None and self._n_fewshot > 0
 
-    def prepare_data_loaders(self):
+    def prepare_data_loaders(self, **kwargs):
         logging.debug("Load source")
         (
             self._source_by_split["train"],

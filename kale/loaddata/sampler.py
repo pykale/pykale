@@ -270,15 +270,15 @@ def get_labels(dataset):
     """
 
     dataset_type = type(dataset)
-    if dataset_type is datasets.SVHN or dataset_type is kale.loaddata.multi_domain.ConcatMultiDomainAccess:
-        return dataset.labels
-    if dataset_type is datasets.ImageFolder:
-        return np.array(dataset.targets)
+    if dataset_type is datasets.SVHN or hasattr(dataset, "labels"):
+        return torch.tensor(dataset.labels)
+    if dataset_type is datasets.ImageFolder or hasattr(dataset, "targets"):
+        return torch.tensor(dataset.targets)
 
     # Handle subset, recurses into non-subset version
     if dataset_type is Subset:
-        indices = dataset.indices
-        all_labels = get_labels(dataset.dataset)
+        indices = torch.tensor(dataset.indices)
+        all_labels = torch.tensor(get_labels(dataset.dataset))
         logging.debug(f"data subset of len {len(indices)} from {len(all_labels)}")
         labels = all_labels[indices]
         if isinstance(labels, torch.Tensor):
