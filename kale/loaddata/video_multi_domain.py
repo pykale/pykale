@@ -87,7 +87,7 @@ class VideoBinaryDomainDatasets(BinaryDomainDatasets):
         self._target_by_split = {}
         self.class_ids = class_ids
 
-    def prepare_data_loaders(self):
+    def prepare_data_loaders(self, **kwargs):
         if self.rgb:
             logging.debug("Load RGB train and valid")
             (self._rgb_source_by_split["train"], self._rgb_source_by_split["valid"]) = self._source_access_dict[

@@ -11,8 +11,6 @@ from torch.utils.data import DataLoader, Subset
 from torch.utils.data.sampler import BatchSampler, RandomSampler
 from torchvision import datasets
 
-import kale.loaddata.multi_domain
-
 
 def get_auto_num_workers():
     total_cores = os.cpu_count() or 1
@@ -205,9 +203,9 @@ class ReweightedBatchSampler(BatchSampler):
     # /!\ 'class_weights' should be provided in the "natural order" of the classes (i.e. sorted(classes)) /!\
     def __init__(self, dataset, batch_size, class_weights):
         labels = get_labels(dataset)
-        self._classes = sorted(set(labels))
+        self._classes = torch.unique(labels).numpy()
 
-        n_classes = len(self._classes)
+        n_classes = self._classes.shape[0]
         if n_classes > len(class_weights):
             k = len(class_weights)
             sum_w = np.sum(class_weights)
@@ -234,7 +232,7 @@ class ReweightedBatchSampler(BatchSampler):
             class_: InfiniteSliceIterator(np.where(labels == class_)[0], class_=class_) for class_ in self._classes
         }
 
-        self.n_dataset = len(labels)
+        self.n_dataset = labels.shape[0]
         self._batch_size = batch_size
         self._n_batches = self.n_dataset // self._batch_size
         if self._n_batches == 0:
@@ -278,7 +276,7 @@ def get_labels(dataset):
     # Handle subset, recurses into non-subset version
     if dataset_type is Subset:
         indices = torch.tensor(dataset.indices)
-        all_labels = torch.tensor(get_labels(dataset.dataset))
+        all_labels = get_labels(dataset.dataset)
         logging.debug(f"data subset of len {len(indices)} from {len(all_labels)}")
         labels = all_labels[indices]
         if isinstance(labels, torch.Tensor):
