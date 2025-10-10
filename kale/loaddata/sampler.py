@@ -162,7 +162,7 @@ class BalancedBatchSampler(BatchSampler):
         labels = get_labels(dataset)
         classes = torch.unique(labels)
 
-        n_classes = classes.size(0)
+        n_classes = classes.shape[0]
         self._n_samples = batch_size // n_classes
         if self._n_samples == 0:
             raise ValueError(

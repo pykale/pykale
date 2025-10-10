@@ -669,7 +669,7 @@ def _get_few_shot_labeled_idx(labels, domain_labels, target_domain_label, n_fews
     for class_ in classes:
         mask = (labels == class_) & (domain_labels == target_domain_label)
         indices = mask.nonzero(as_tuple=True)[0]
-        random_state.shuffle(indices)
+        indices = indices[torch.randperm(len(indices))]
         head, tail = torch.split(indices, [num_fewshot, len(indices) - num_fewshot])
         labeled_idx.append(head)
 

@@ -53,16 +53,6 @@ def main():
     )
 
     # ---- setup dataset ----
-    # source, target, num_channels = DigitDataset.get_source_target(
-    #     DigitDataset(cfg.DATASET.SOURCE.upper()), DigitDataset(cfg.DATASET.TARGET.upper()), cfg.DATASET.ROOT
-    # )
-    # dataset = BinaryDomainDatasets(
-    #     source,
-    #     target,
-    #     config_weight_type=cfg.DATASET.WEIGHT_TYPE,
-    #     config_size_type=cfg.DATASET.SIZE_TYPE,
-    #     valid_split_ratio=cfg.DATASET.VALID_SPLIT_RATIO,
-    # )
     data_src = DigitDataset(cfg.DATASET.SOURCE.upper())
     data_tgt = DigitDataset(cfg.DATASET.TARGET.upper())
     num_channels = max(DigitDataset.get_channel_numbers(data_src), DigitDataset.get_channel_numbers(data_tgt))

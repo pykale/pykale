@@ -281,9 +281,9 @@ class BaseAdaptTrainer(pl.LightningModule):
         if isinstance(dataset, MultiDomainDataset):
             self.domain_to_idx = dataset.domain_to_idx
             if target_domain is None or target_domain not in self.domain_to_idx.keys():
-                self.target_domain = self.domain_to_idx.keys()[-1]  # use last domain as target by default
+                self.target_domain = list(self.domain_to_idx.keys())[-1]  # use last domain as target by default
                 warnings.warn(
-                    "The given target domain %s not is valid. Using %s instead." % (target_domain, self.target_domain)
+                    "The given target domain %s is not valid. Using %s instead." % (target_domain, self.target_domain)
                 )
             self.target_label = self.domain_to_idx[self.target_domain]
         else:
