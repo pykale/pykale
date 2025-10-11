@@ -515,29 +515,45 @@ class BaseDANNLike(BaseAdaptTrainer):
 
         return y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt
 
-    def compute_loss(self, batch, split_name="valid"):
-        # if len(batch) == 3:
-        #     raise NotImplementedError("DANN does not support semi-supervised setting.")
-        # batch_size = len(batch[0][1])
-        y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
+    @staticmethod
+    def _compute_domain_classifier_stats(d_hat_src, d_hat_tgt, source_weight=None, target_weight=None):
+        """Compute standard domain-classifier losses and accuracies."""
+        loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat_src, torch.zeros(d_hat_src.shape[0]), source_weight)
+        loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_hat_tgt, torch.ones(d_hat_tgt.shape[0]), target_weight)
 
-        loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat_src, torch.zeros(d_hat_src.shape[0]))
-        loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_hat_tgt, torch.ones(d_hat_tgt.shape[0]))
+        dok_src_mean = dok_src.double().mean()
+        dok_tgt_mean = dok_tgt.double().mean()
 
-        dok = torch.cat((dok_src, dok_tgt)).double().mean()
-        dok_src = dok_src.double().mean()
-        dok_tgt = dok_tgt.double().mean()
+        return {
+            "loss_src": loss_dmn_src,
+            "loss_tgt": loss_dmn_tgt,
+            "domain_acc": torch.cat((dok_src, dok_tgt)).double().mean(),
+            "domain_acc_src": dok_src_mean,
+            "domain_acc_tgt": dok_tgt_mean,
+        }
 
-        adv_loss = loss_dmn_src + loss_dmn_tgt
-        task_loss = loss_cls
-
+    @staticmethod
+    def _build_adversarial_da_log_metrics(split_name, ok_src, ok_tgt, domain_stats, extra_metrics=None):
+        """Aggregate standard logging metrics for UDA trainers."""
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
+            f"{split_name}_domain_acc": domain_stats["domain_acc"],
+            f"{split_name}_source_domain_acc": domain_stats["domain_acc_src"],
+            f"{split_name}_target_domain_acc": domain_stats["domain_acc_tgt"],
         }
+        if extra_metrics:
+            log_metrics.update(extra_metrics)
+        return log_metrics
+
+    def compute_loss(self, batch, split_name="valid"):
+        y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
+
+        domain_stats = self._compute_domain_classifier_stats(d_hat_src, d_hat_tgt)
+        adv_loss = domain_stats["loss_src"] + domain_stats["loss_tgt"]
+        task_loss = loss_cls
+
+        log_metrics = self._build_adversarial_da_log_metrics(split_name, ok_src, ok_tgt, domain_stats)
         return task_loss, adv_loss, log_metrics
 
 
@@ -640,9 +656,6 @@ class CDANTrainer(BaseDANNLike):
         return entropy_w
 
     def compute_loss(self, batch, split_name="valid"):
-        # if len(batch) == 3:
-        #     raise NotImplementedError("CDAN does not support semi-supervised setting.")
-        # batch_size = len(batch[0][1])
         y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
 
         if self.entropy:
@@ -654,23 +667,13 @@ class CDANTrainer(BaseDANNLike):
             source_weight = None
             target_weight = None
 
-        loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat_src, torch.zeros(d_hat_src.shape[0]), source_weight)
-        loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_hat_tgt, torch.ones(d_hat_tgt.shape[0]), target_weight)
-
-        dok = torch.cat((dok_src, dok_tgt)).double().mean()
-        dok_src = dok_src.double().mean()
-        dok_tgt = dok_tgt.double().mean()
-
-        adv_loss = loss_dmn_src + loss_dmn_tgt
+        domain_stats = self._compute_domain_classifier_stats(
+            d_hat_src, d_hat_tgt, source_weight=source_weight, target_weight=target_weight
+        )
+        adv_loss = domain_stats["loss_src"] + domain_stats["loss_tgt"]
         task_loss = loss_cls
 
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-        }
+        log_metrics = self._build_adversarial_da_log_metrics(split_name, ok_src, ok_tgt, domain_stats)
         return task_loss, adv_loss, log_metrics
 
 
@@ -721,31 +724,21 @@ class WDGRLTrainer(BaseDANNLike):
         return x, class_output, adversarial_output
 
     def compute_loss(self, batch, split_name="valid"):
-        # if len(batch) == 3:
-        #     raise NotImplementedError("WDGRL does not support semi-supervised setting.")
-
-        # batch_size = len(batch[0][1])
         y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
 
-        _, dok_src = losses.cross_entropy_logits(d_hat_src, torch.zeros(d_hat_src.shape[0]))
-        _, dok_tgt = losses.cross_entropy_logits(d_hat_tgt, torch.ones(d_hat_tgt.shape[0]))
-
-        dok = torch.cat((dok_src, dok_tgt)).double().mean()
-        dok_src = dok_src.double().mean()
-        dok_tgt = dok_tgt.double().mean()
+        domain_stats = self._compute_domain_classifier_stats(d_hat_src, d_hat_tgt)
 
         wasserstein_distance = d_hat_src.mean() - (1 + self._beta_ratio) * d_hat_tgt.mean()
         adv_loss = wasserstein_distance
         task_loss = loss_cls
 
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-            f"{split_name}_wasserstein_dist": wasserstein_distance,
-        }
+        log_metrics = self._build_adversarial_da_log_metrics(
+            split_name,
+            ok_src,
+            ok_tgt,
+            domain_stats,
+            extra_metrics={f"{split_name}_wasserstein_dist": wasserstein_distance},
+        )
         return task_loss, adv_loss, log_metrics
 
     def critic_update_steps(self, batch):
@@ -1015,12 +1008,10 @@ class FewShotDANNTrainer(BaseDANNLike):
         return x, class_output, adversarial_output
 
     def compute_loss(self, batch, split_name="valid"):
-        # assert len(batch) == 3
         x, y, domain_labels = batch
         idx_tgt_unlabeled = torch.where(domain_labels == self.target_label)[0]
         idx_tgt_labeled = torch.where(domain_labels == self._few_shot_domain_label)[0]
         idx_src = torch.where((domain_labels != self.target_label) & (domain_labels != self._few_shot_domain_label))[0]
-        # idx_src, idx_tgt = self._get_src_tgt_idx(domain_labels)
         y_tu = y[idx_tgt_unlabeled]
         y_tl = y[idx_tgt_labeled]
         y_s = y[idx_src]
