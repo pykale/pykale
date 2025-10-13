@@ -58,28 +58,9 @@ class SEInceptionI3DRGB(nn.Module):
             model.Mixed_4d.add_module(attention, se_layer(temporal_length // 4))
             model.Mixed_4e.add_module(attention, se_layer(temporal_length // 4))
             model.Mixed_4f.add_module(attention, se_layer(temporal_length // 4))
-            # model.Mixed_5b.add_module(attention, SELayerT(temporal_length//8))
-            # model.Mixed_5c.add_module(attention, SELayerT(temporal_length//8))
 
-        # Add channel-temporal-wise SELayer
-        elif attention == "SELayerCT":
-            se_layer = get_selayer(attention)
-            channel_schedule = [
-                ("Mixed_3b", 256, temporal_length // 2),
-                ("Mixed_3c", 480, temporal_length // 2),
-                ("Mixed_4b", 512, temporal_length // 4),
-                ("Mixed_4c", 512, temporal_length // 4),
-                ("Mixed_4d", 512, temporal_length // 4),
-                ("Mixed_4e", 528, temporal_length // 4),
-                ("Mixed_4f", 832, temporal_length // 4),
-                ("Mixed_5b", 832, max(1, temporal_length // 8)),
-                ("Mixed_5c", 1024, max(1, temporal_length // 8)),
-            ]
-            for module_name, channels, temporal in channel_schedule:
-                getattr(model, module_name).add_module(attention, se_layer(channels, temporal))
-
-        # Add temporal-channel-wise SELayer
-        elif attention == "SELayerTC":
+        # Add channel-temporal & temporal-channel SELayer
+        elif attention in ["SELayerCT", "SELayerTC"]:
             se_layer = get_selayer(attention)
             channel_schedule = [
                 ("Mixed_3b", 256, temporal_length // 2),
@@ -136,25 +117,8 @@ class SEInceptionI3DFlow(nn.Module):
             model.Mixed_4e.add_module(attention, se_layer(temporal_length // 8))
             model.Mixed_4f.add_module(attention, se_layer(temporal_length // 8))
 
-        # Add channel-temporal-wise SELayer
-        elif attention == "SELayerCT":
-            se_layer = get_selayer(attention)
-            channel_schedule = [
-                ("Mixed_3b", 256, temporal_length // 4),
-                ("Mixed_3c", 480, temporal_length // 4),
-                ("Mixed_4b", 512, temporal_length // 8),
-                ("Mixed_4c", 512, temporal_length // 8),
-                ("Mixed_4d", 512, temporal_length // 8),
-                ("Mixed_4e", 528, temporal_length // 8),
-                ("Mixed_4f", 832, temporal_length // 8),
-                ("Mixed_5b", 832, max(1, temporal_length // 16)),
-                ("Mixed_5c", 1024, max(1, temporal_length // 16)),
-            ]
-            for module_name, channels, temporal in channel_schedule:
-                getattr(model, module_name).add_module(attention, se_layer(channels, temporal))
-
-        # Add temporal-channel-wise SELayer
-        elif attention == "SELayerTC":
+        # Add channel-temporal & temporal-channel SELayer
+        elif attention in ["SELayerCT", "SELayerTC"]:
             se_layer = get_selayer(attention)
             channel_schedule = [
                 ("Mixed_3b", 256, temporal_length // 4),

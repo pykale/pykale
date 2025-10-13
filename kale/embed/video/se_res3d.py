@@ -64,24 +64,8 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
         model.layer3._modules["0"].add_module(attention, se_layer(temporal_length // 4))
         model.layer3._modules["1"].add_module(attention, se_layer(temporal_length // 4))
 
-    # Add channel-temporal-wise SELayer
-    elif attention == "SELayerCT":
-        se_layer = get_selayer(attention)
-        layer_schedule = [
-            ("layer1", "0", 64, temporal_length),
-            ("layer1", "1", 64, temporal_length),
-            ("layer2", "0", 128, temporal_length // 2),
-            ("layer2", "1", 128, temporal_length // 2),
-            ("layer3", "0", 256, temporal_length // 4),
-            ("layer3", "1", 256, temporal_length // 4),
-            ("layer4", "0", 512, max(1, temporal_length // 8)),
-            ("layer4", "1", 512, max(1, temporal_length // 8)),
-        ]
-        for layer_name, block_idx, channels, temporal in layer_schedule:
-            getattr(model, layer_name)._modules[block_idx].add_module(attention, se_layer(channels, temporal))
-
-    # Add temporal-channel-wise SELayer
-    elif attention == "SELayerTC":
+    # Add channel-temporal & temporal-channel SELayer
+    elif attention in ["SELayerCT", "SELayerTC"]:
         se_layer = get_selayer(attention)
         layer_schedule = [
             ("layer1", "0", 64, temporal_length),
@@ -130,8 +114,8 @@ def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kw
         model.layer2._modules["0"].add_module(attention, se_layer(temporal_length // 4))
         model.layer2._modules["1"].add_module(attention, se_layer(temporal_length // 4))
 
-    # Add channel-temporal-wise SELayer
-    elif attention == "SELayerCT":
+    # Add channel-temporal & temporal-channel SELayer
+    elif attention in ["SELayerCT", "SELayerTC"]:
         se_layer = get_selayer(attention)
         layer_schedule = [
             ("layer1", "0", 64, temporal_length // 2),
@@ -142,22 +126,6 @@ def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kw
             ("layer3", "1", 256, max(1, temporal_length // 8)),
             ("layer4", "0", 512, max(1, temporal_length // 16)),
             ("layer4", "1", 512, max(1, temporal_length // 16)),
-        ]
-        for layer_name, block_idx, channels, temporal in layer_schedule:
-            getattr(model, layer_name)._modules[block_idx].add_module(attention, se_layer(channels, temporal))
-
-    # Add temporal-channel-wise SELayer
-    elif attention == "SELayerTC":
-        se_layer = get_selayer(attention)
-        layer_schedule = [
-            ("layer1", "0", 64, temporal_length),
-            ("layer1", "1", 64, temporal_length),
-            ("layer2", "0", 128, temporal_length // 2),
-            ("layer2", "1", 128, temporal_length // 2),
-            ("layer3", "0", 256, temporal_length // 4),
-            ("layer3", "1", 256, temporal_length // 4),
-            ("layer4", "0", 512, max(1, temporal_length // 8)),
-            ("layer4", "1", 512, max(1, temporal_length // 8)),
         ]
         for layer_name, block_idx, channels, temporal in layer_schedule:
             getattr(model, layer_name)._modules[block_idx].add_module(attention, se_layer(channels, temporal))
