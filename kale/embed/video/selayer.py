@@ -4,10 +4,8 @@
 
 """Python implementation of Squeeze-and-Excitation Layers (SELayer)
 Initial implementation: channel-wise (SELayerC)
-Improved implementation: temporal-wise (SELayerT), channel-temporal (SELayerCT), max-pooling-based channel-wise
-(SELayerMC), multi-pooling-based channel-wise (SELayerMAC)
-
-[Redundancy and repeat of code will be reduced in the future.]
+Improved implementation: temporal-wise (SELayerT), max-pooling-based channel-wise (SELayerMC),
+multi-pooling-based channel-wise (SELayerMAC), and their combinations (SELayerCT, SELayerTC).
 
 References:
     Hu Jie, Li Shen, and Gang Sun. "Squeeze-and-excitation networks." In CVPR, pp. 7132-7141. 2018.
@@ -168,7 +166,7 @@ class SELayerMAC(BaseSELayer):
 class SELayerCT(nn.Module):
     """Compose channel SELayer followed by temporal SELayer."""
 
-    def __init__(self, channel, temporal, *, channel_reduction=16, temporal_reduction=2):
+    def __init__(self, channel, temporal, channel_reduction=16, temporal_reduction=2):
         super().__init__()
         if temporal <= 0:
             raise ValueError("Temporal dimension must be positive for SELayerCT.")
@@ -176,20 +174,11 @@ class SELayerCT(nn.Module):
         self.temporal_layer = SELayerT(temporal, temporal_reduction)
 
     def forward(self, x):
-        out = self.channel_layer(x)
-        return self.temporal_layer(out)
+        return self.temporal_layer(self.channel_layer(x))
 
 
-class SELayerTC(nn.Module):
+class SELayerTC(SELayerCT):
     """Compose temporal SELayer followed by channel SELayer."""
 
-    def __init__(self, channel, temporal, *, channel_reduction=16, temporal_reduction=2):
-        super().__init__()
-        if temporal <= 0:
-            raise ValueError("Temporal dimension must be positive for SELayerTC.")
-        self.temporal_layer = SELayerT(temporal, temporal_reduction)
-        self.channel_layer = SELayerC(channel, channel_reduction)
-
     def forward(self, x):
-        out = self.temporal_layer(x)
-        return self.channel_layer(out)
+        return self.channel_layer(self.temporal_layer(x))
