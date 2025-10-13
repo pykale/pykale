@@ -110,25 +110,16 @@ class BasicBlock(nn.Module):
         # Check if SELayer is used.
         if "SELayerC" in dir(self):  # check channel-wise
             out = self.SELayerC(out)
-        if "SELayerCT" in dir(self):
-            out = self.SELayerCT(out)
         if "SELayerMC" in dir(self):
             out = self.SELayerMC(out)
         if "SELayerMAC" in dir(self):
             out = self.SELayerMAC(out)
-
         if "SELayerT" in dir(self):  # check temporal-wise
             out = self.SELayerT(out)
-
-        if "SELayerCTc" in dir(self):  # check channel-temporal-wise
-            out = self.SELayerCTc(out)
-        if "SELayerCTt" in dir(self):
-            out = self.SELayerCTt(out)
-
-        if "SELayerTCt" in dir(self):  # check temporal-channel-wise
-            out = self.SELayerTCt(out)
-        if "SELayerTCc" in dir(self):
-            out = self.SELayerTCc(out)
+        if "SELayerCT" in dir(self):
+            out = self.SELayerCT(out)
+        if "SELayerTC" in dir(self):
+            out = self.SELayerTC(out)
 
         out += residual
         out = self.relu(out)
