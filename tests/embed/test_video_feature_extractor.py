@@ -5,9 +5,7 @@ from kale.embed.video.feature_extractor import get_video_feat_extractor
 
 MODEL_NAME = ["I3D", "R3D_18", "R2PLUS1D_18", "MC3_18"]
 IMAGE_MODALITY = ["rgb", "flow", "joint"]
-# ATTENTION = ["SELayerC", "SELayerT", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC", "None"]
 ATTENTION = ["SELayerC", "SELayerT", "SELayerCT", "SELayerTC", "None"]
-# NUM_CLASSES = [6, 7, 8]
 NUM_CLASSES = [6]
 
 
