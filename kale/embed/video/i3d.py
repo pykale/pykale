@@ -13,6 +13,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.hub import load_state_dict_from_url
 
+from kale.embed.video.res3d import SELayerMixin
+
 model_urls = {
     "rgb_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt",
     "flow_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/flow_imagenet.pt",
@@ -139,7 +141,7 @@ class Unit3D(nn.Module):
         return x
 
 
-class InceptionModule(nn.Module):
+class InceptionModule(SELayerMixin, nn.Module):
     """
     Construct Inception module. Concatenation after four branches (1x1x1 conv; 1x1x1 + 3x3x3 convs; 1x1x1 + 3x3x3
     convs; 3x3x3 max-pool + 1x1x1 conv). In `forward`, we check if SELayers are used, which are
@@ -205,29 +207,7 @@ class InceptionModule(nn.Module):
         outputs = self._forward(x)
         out = torch.cat(outputs, dim=1)
 
-        # Check if SELayer is used.
-        if "SELayerC" in dir(self):  # check channel-wise
-            out = self.SELayerC(out)
-        if "SELayerCoC" in dir(self):
-            out = self.SELayerCoC(out)
-        if "SELayerMC" in dir(self):
-            out = self.SELayerMC(out)
-        if "SELayerMAC" in dir(self):
-            out = self.SELayerMAC(out)
-
-        if "SELayerT" in dir(self):  # check temporal-wise
-            out = self.SELayerT(out)
-
-        if "SELayerCTc" in dir(self):  # check channel-temporal-wise
-            out = self.SELayerCTc(out)
-        if "SELayerCTt" in dir(self):
-            out = self.SELayerCTt(out)
-
-        if "SELayerTCt" in dir(self):  # check temporal-channel-wise
-            out = self.SELayerTCt(out)
-        if "SELayerTCc" in dir(self):
-            out = self.SELayerTCc(out)
-
+        out = self._apply_selayer(out)
         return out
 
 
