@@ -78,11 +78,36 @@ class Conv3DNoTemporal(nn.Conv3d):
         return 1, stride, stride
 
 
-class BasicBlock(nn.Module):
+class SELayerMixin:
+    """Provide reusable helpers for applying squeeze-excitation submodules."""
+
+    _SE_LAYER_ATTRS = (
+        "SELayerC",
+        "SELayerMC",
+        "SELayerMAC",
+        "SELayerT",
+        "SELayerCT",
+        "SELayerTC",
+    )
+
+    def _apply_selayer(self, x):
+        """Apply all configured squeeze-excitation layers to the input tensor."""
+        for layer in self._iter_selayer():
+            x = layer(x)
+        return x
+
+    def _iter_selayer(self):
+        """Iterate through squeeze-excitation layers attached to this instance."""
+        for name in self._SE_LAYER_ATTRS:
+            layer = getattr(self, name, None)
+            if layer is not None:
+                yield layer
+
+
+class BasicBlock(SELayerMixin, nn.Module):
     """
     Basic ResNet building block. Each block consists of two convolutional layers with a ReLU activation function
-    after each layer and residual connections. In `forward`, we check if SELayers are used, which are
-    channel-wise (SELayerC) and temporal-wise (SELayerT).
+    after each layer and residual connections. Optional squeeze-excitation layers are applied via SELayerMixin.
     """
 
     expansion = 1
@@ -107,19 +132,7 @@ class BasicBlock(nn.Module):
         if self.downsample is not None:
             residual = self.downsample(x)
 
-        # Check if SELayer is used.
-        if "SELayerC" in dir(self):  # check channel-wise
-            out = self.SELayerC(out)
-        if "SELayerMC" in dir(self):
-            out = self.SELayerMC(out)
-        if "SELayerMAC" in dir(self):
-            out = self.SELayerMAC(out)
-        if "SELayerT" in dir(self):  # check temporal-wise
-            out = self.SELayerT(out)
-        if "SELayerCT" in dir(self):
-            out = self.SELayerCT(out)
-        if "SELayerTC" in dir(self):
-            out = self.SELayerTC(out)
+        out = self._apply_selayer(out)
 
         out += residual
         out = self.relu(out)
