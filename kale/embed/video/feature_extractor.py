@@ -25,7 +25,7 @@ def get_video_feat_extractor(model_name, image_modality, attention, num_classes)
     Args:
         model_name (string): The name of the feature extractor. (Choices=["I3D", "R3D_18", "R2PLUS1D_18", "MC3_18"])
         image_modality (string): Image type. (Choices=["rgb", "flow", "joint"])
-        attention (string): The attention type. (Choices=["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC",
+        attention (string): The attention type. (Choices=["SELayerC", "SELayerT", "SELayerMC",
         "SELayerCT", "SELayerTC", "SELayerMAC"])
         num_classes (int): The class number of specific dataset. (Default: No use)
 
@@ -37,7 +37,7 @@ def get_video_feat_extractor(model_name, image_modality, attention, num_classes)
     """
     rgb, flow = get_image_modality(image_modality)
 
-    attention_list = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"]
+    attention_list = ["SELayerC", "SELayerT", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"]
     model_list = ["I3D", "R3D_18", "MC3_18", "R2PLUS1D_18"]
 
     if attention in attention_list:
