@@ -262,34 +262,55 @@ class ReweightedBatchSampler(BatchSampler):
         return self._n_batches
 
 
+def _ensure_tensor(labels):
+    if isinstance(labels, torch.Tensor):
+        return labels
+    return torch.tensor(labels)
+
+
+_SPECIAL_LABEL_ATTRS = {
+    datasets.SVHN: "labels",
+    datasets.ImageFolder: "targets",
+}
+
+
+def _extract_labels_from_dataset(dataset):
+    dataset_type = type(dataset)
+    primary_attr = _SPECIAL_LABEL_ATTRS.get(dataset_type)
+    candidates = [primary_attr] if primary_attr else []
+    candidates.extend(["labels", "targets"])
+
+    for attr in candidates:
+        if attr and hasattr(dataset, attr):
+            values = getattr(dataset, attr)
+            if attr == "targets":
+                logging.debug(getattr(values, "shape", None), type(values))
+            return _ensure_tensor(values)
+    return None
+
+
 def get_labels(dataset):
     """
     Get class labels for dataset
     """
 
-    dataset_type = type(dataset)
-    if dataset_type is datasets.SVHN or hasattr(dataset, "labels"):
-        return torch.tensor(dataset.labels)
-    if dataset_type is datasets.ImageFolder or hasattr(dataset, "targets"):
-        return torch.tensor(dataset.targets)
-
-    # Handle subset, recurses into non-subset version
-    if dataset_type is Subset:
+    if isinstance(dataset, Subset):
         indices = torch.tensor(dataset.indices)
-        all_labels = get_labels(dataset.dataset)
-        logging.debug(f"data subset of len {len(indices)} from {len(all_labels)}")
-        labels = all_labels[indices]
-        if isinstance(labels, torch.Tensor):
-            return labels
-        return labels
+        base_labels = get_labels(dataset.dataset)
+        logging.debug(
+            f"data subset of len {len(indices)} from {len(base_labels) if base_labels is not None else 'unknown'}"
+        )
+        if base_labels is None:
+            logging.error(type(dataset.dataset))
+            return None
+        return _ensure_tensor(base_labels)[indices]
 
-    try:
-        logging.debug(dataset.targets.shape, type(dataset.targets))
-        if isinstance(dataset.targets, torch.Tensor):
-            return dataset.targets
-        return dataset.targets
-    except AttributeError:
+    labels = _extract_labels_from_dataset(dataset)
+    if labels is None:
         logging.error(type(dataset))
+        return None
+
+    return labels
 
 
 class InfiniteSliceIterator:

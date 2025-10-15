@@ -755,8 +755,7 @@ class WDGRLTrainer(BaseDANNLike):
             h = self.feat(x)
             h_s = h[idx_src].data.view(len(idx_src), -1)
             h_t = h[idx_tgt].data.view(len(idx_tgt), -1)
-            # h_s = self.feat(x_s).data.view(x_s.shape[0], -1)
-            # h_t = self.feat(x_tu).data.view(x_tu.shape[0], -1)
+
         for _ in range(self._k_critic):
             gp = losses.gradient_penalty(self.domain_classifier, h_s, h_t)
 
