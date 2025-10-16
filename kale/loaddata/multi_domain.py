@@ -138,41 +138,43 @@ class BinaryDomainDatasets(DomainsDatasetBase):
         return self._n_fewshot is not None and self._n_fewshot > 0
 
     def prepare_data_loaders(self, **kwargs):
-        logging.debug("Load source")
-        (
-            self._source_by_split["train"],
-            self._source_by_split["valid"],
-        ) = self._source_access.get_train_valid(self._valid_split_ratio)
-        if self.class_ids is not None:
-            self._source_by_split["train"] = get_class_subset(self._source_by_split["train"], self.class_ids)
-            self._source_by_split["valid"] = get_class_subset(self._source_by_split["valid"], self.class_ids)
+        self._load_source_splits()
+        self._load_target_splits()
+        if not self.is_semi_supervised():
+            return
+        self._prepare_fewshot_target()
 
-        logging.debug("Load target")
-        (
-            self._target_by_split["train"],
-            self._target_by_split["valid"],
-        ) = self._target_access.get_train_valid(self._valid_split_ratio)
-        if self.class_ids is not None:
-            self._target_by_split["train"] = get_class_subset(self._target_by_split["train"], self.class_ids)
-            self._target_by_split["valid"] = get_class_subset(self._target_by_split["valid"], self.class_ids)
+    def _load_source_splits(self):
+        logging.debug("Load source")
+        train_split, valid_split = self._source_access.get_train_valid(self._valid_split_ratio)
+        self._source_by_split["train"] = self._filter_classes(train_split)
+        self._source_by_split["valid"] = self._filter_classes(valid_split)
 
         logging.debug("Load source Test")
-        self._source_by_split["test"] = self._source_access.get_test()
-        if self.class_ids is not None:
-            self._source_by_split["test"] = get_class_subset(self._source_by_split["test"], self.class_ids)
-        logging.debug("Load target Test")
-        self._target_by_split["test"] = self._target_access.get_test()
-        if self.class_ids is not None:
-            self._target_by_split["test"] = get_class_subset(self._target_by_split["test"], self.class_ids)
+        self._source_by_split["test"] = self._filter_classes(self._source_access.get_test())
 
-        if self._n_fewshot is not None and self._n_fewshot > 0:
-            # semi-supervised target domain
-            self._labeled_target_by_split = {}
-            for part in ["train", "valid", "test"]:
-                (
-                    self._labeled_target_by_split[part],
-                    self._target_by_split[part],
-                ) = _split_dataset_few_shot(self._target_by_split[part], self._n_fewshot)
+    def _load_target_splits(self):
+        logging.debug("Load target")
+        train_split, valid_split = self._target_access.get_train_valid(self._valid_split_ratio)
+        self._target_by_split["train"] = self._filter_classes(train_split)
+        self._target_by_split["valid"] = self._filter_classes(valid_split)
+
+        logging.debug("Load target Test")
+        self._target_by_split["test"] = self._filter_classes(self._target_access.get_test())
+
+    def _prepare_fewshot_target(self):
+        # semi-supervised target domain
+        self._labeled_target_by_split = {}
+        for part in ["train", "valid", "test"]:
+            (
+                self._labeled_target_by_split[part],
+                self._target_by_split[part],
+            ) = _split_dataset_few_shot(self._target_by_split[part], self._n_fewshot)
+
+    def _filter_classes(self, dataset):
+        if self.class_ids is None or dataset is None:
+            return dataset
+        return get_class_subset(dataset, self.class_ids)
 
     def get_domain_loaders(self, split="train", batch_size=32, num_workers=0):
         source_ds = self._source_by_split[split]
@@ -582,66 +584,143 @@ class MultiDomainDataset(DomainsDatasetBase):
 
     def prepare_data_loaders(self, target_domain=None):
         splits = ["test", "valid", "train"]
-        self._sample_by_split["test"] = self.data_access.get_test()
-        if self._sample_by_split["test"] is None:
-            # split test, valid, and train set if the data access no train test splits
-            if self.test_on_all:
-                subset_idx = _domain_stratified_split(self.data_access.domain_labels, 2, [self._valid_split_ratio])
-                self._sample_by_split["valid"] = torch.utils.data.Subset(self.data_access, subset_idx[0])
-                self._sample_by_split["train"] = torch.utils.data.Subset(self.data_access, subset_idx[1])
-                self._sample_by_split["test"] = torch.utils.data.Subset(self.data_access, np.concatenate(subset_idx))
-            else:
-                subset_idx = _domain_stratified_split(
-                    self.data_access.domain_labels, 3, [self._test_split_ratio, self._valid_split_ratio]
-                )
-                for i in range(len(splits)):
-                    self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
-        else:
-            # use original data split if get_test() is not none
+        self._initialize_splits(splits)
+        if not (self.is_semi_supervised() and target_domain):
+            return
+        self._apply_semi_supervised(target_domain, splits)
+
+    def _initialize_splits(self, splits):
+        test_split = self.data_access.get_test()
+        self._sample_by_split["test"] = test_split
+        if test_split is not None:
             self._sample_by_split["valid"], self._sample_by_split["train"] = self.data_access.get_train_valid(
                 self._valid_split_ratio
             )
+            return
 
-        if self.is_semi_supervised() and target_domain is not None:
-            # semi-supervised target domain
-            target_domain_label = self.domain_to_idx[target_domain]
-            target_labeled_key = f"{target_domain}_labeled"
-            target_unlabeled_key = f"{target_domain}_unlabeled"
-            self.n_domains += 1
-            few_shot_domain_label = self.n_domains - 1
-            self.domain_to_idx[target_unlabeled_key] = few_shot_domain_label
-            self.domain_to_idx[target_labeled_key] = target_domain_label
-            for _split in splits:
-                if isinstance(self._sample_by_split[_split], torch.utils.data.Subset):
-                    split_indices = self._sample_by_split[_split].indices
-                    split_domain_labels = self._sample_by_split[_split].dataset.domain_labels[split_indices]
-                    split_labels = self._sample_by_split[_split].dataset.labels[split_indices]
+        if self.test_on_all:
+            subset_idx = _domain_stratified_split(self.data_access.domain_labels, 2, [self._valid_split_ratio])
+            self._sample_by_split["valid"] = torch.utils.data.Subset(self.data_access, subset_idx[0])
+            self._sample_by_split["train"] = torch.utils.data.Subset(self.data_access, subset_idx[1])
+            self._sample_by_split["test"] = torch.utils.data.Subset(self.data_access, np.concatenate(subset_idx))
+            return
 
-                    if target_unlabeled_key not in self._sample_by_split[_split].dataset.domain_to_idx:
-                        self._sample_by_split[_split].dataset.domain_to_idx[target_unlabeled_key] = target_domain_label
-                        self._sample_by_split[_split].dataset.domain_to_idx[target_labeled_key] = few_shot_domain_label
-                        self._sample_by_split[_split].dataset.domain_to_idx.pop(target_domain)
-                    labeled_idx = _get_few_shot_labeled_idx(
-                        split_labels,
-                        split_domain_labels,
-                        target_domain_label,
-                        self._n_fewshot,
-                        self._random_state,
-                    )
-                    mapped_labeled_idx = torch.tensor(split_indices)[labeled_idx]
-                    self._sample_by_split[_split].dataset.domain_labels[mapped_labeled_idx] = few_shot_domain_label
-                else:
-                    domain_labels = self._sample_by_split[_split].domain_labels
-                    labels = self._sample_by_split[_split].labels
-                    if target_unlabeled_key not in self._sample_by_split[_split].domain_to_idx:
-                        self._sample_by_split[_split].domain_to_idx[target_unlabeled_key] = target_domain_label
-                        self._sample_by_split[_split].domain_to_idx[target_labeled_key] = few_shot_domain_label
-                        self._sample_by_split[_split].domain_to_idx.pop(target_domain)
-                    labeled_idx = _get_few_shot_labeled_idx(
-                        labels, domain_labels, target_domain_label, self._n_fewshot, self._random_state
-                    )
-                    self._sample_by_split[_split].domain_labels[labeled_idx] = few_shot_domain_label
-            self.domain_to_idx.pop(target_domain)
+        subset_idx = _domain_stratified_split(
+            self.data_access.domain_labels, 3, [self._test_split_ratio, self._valid_split_ratio]
+        )
+        for split_name, indices in zip(splits, subset_idx):
+            self._sample_by_split[split_name] = torch.utils.data.Subset(self.data_access, indices)
+
+    def _apply_semi_supervised(self, target_domain, splits):
+        target_domain_label = self.domain_to_idx[target_domain]
+        target_labeled_key = f"{target_domain}_labeled"
+        target_unlabeled_key = f"{target_domain}_unlabeled"
+        few_shot_domain_label = self._register_few_shot_domains(
+            target_domain_label, target_labeled_key, target_unlabeled_key
+        )
+
+        for split_name in splits:
+            split_data = self._sample_by_split[split_name]
+            if isinstance(split_data, torch.utils.data.Subset):
+                self._update_subset_split(
+                    split_data,
+                    target_domain,
+                    target_domain_label,
+                    target_labeled_key,
+                    target_unlabeled_key,
+                    few_shot_domain_label,
+                )
+                continue
+
+            self._update_dataset_split(
+                split_data,
+                target_domain,
+                target_domain_label,
+                target_labeled_key,
+                target_unlabeled_key,
+                few_shot_domain_label,
+            )
+
+        self.domain_to_idx.pop(target_domain)
+
+    def _register_few_shot_domains(self, target_domain_label, target_labeled_key, target_unlabeled_key):
+        self.n_domains += 1
+        few_shot_domain_label = self.n_domains - 1
+        self.domain_to_idx[target_unlabeled_key] = few_shot_domain_label
+        self.domain_to_idx[target_labeled_key] = target_domain_label
+        return few_shot_domain_label
+
+    def _update_subset_split(
+        self,
+        split_data,
+        target_domain,
+        target_domain_label,
+        target_labeled_key,
+        target_unlabeled_key,
+        few_shot_domain_label,
+    ):
+        dataset = split_data.dataset
+        self._ensure_dataset_mappings(
+            dataset.domain_to_idx,
+            target_domain,
+            target_domain_label,
+            target_labeled_key,
+            target_unlabeled_key,
+            few_shot_domain_label,
+        )
+        split_indices = split_data.indices
+        split_domain_labels = dataset.domain_labels[split_indices]
+        split_labels = dataset.labels[split_indices]
+        labeled_idx = _get_few_shot_labeled_idx(
+            split_labels,
+            split_domain_labels,
+            target_domain_label,
+            self._n_fewshot,
+            self._random_state,
+        )
+        mapped_labeled_idx = torch.tensor(split_indices)[labeled_idx]
+        dataset.domain_labels[mapped_labeled_idx] = few_shot_domain_label
+
+    def _update_dataset_split(
+        self,
+        split_data,
+        target_domain,
+        target_domain_label,
+        target_labeled_key,
+        target_unlabeled_key,
+        few_shot_domain_label,
+    ):
+        self._ensure_dataset_mappings(
+            split_data.domain_to_idx,
+            target_domain,
+            target_domain_label,
+            target_labeled_key,
+            target_unlabeled_key,
+            few_shot_domain_label,
+        )
+        labeled_idx = _get_few_shot_labeled_idx(
+            split_data.labels,
+            split_data.domain_labels,
+            target_domain_label,
+            self._n_fewshot,
+            self._random_state,
+        )
+        split_data.domain_labels[labeled_idx] = few_shot_domain_label
+
+    @staticmethod
+    def _ensure_dataset_mappings(
+        domain_to_idx,
+        target_domain,
+        target_domain_label,
+        target_labeled_key,
+        target_unlabeled_key,
+        few_shot_domain_label,
+    ):
+        if target_unlabeled_key in domain_to_idx:
+            return
+        domain_to_idx[target_unlabeled_key] = target_domain_label
+        domain_to_idx[target_labeled_key] = few_shot_domain_label
+        domain_to_idx.pop(target_domain)
 
     def is_semi_supervised(self):
         return self._n_fewshot > 0
