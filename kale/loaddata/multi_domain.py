@@ -9,13 +9,52 @@ from enum import Enum
 from typing import Any, Callable, cast, Dict, List, Optional, Tuple
 
 import numpy as np
+import torch
 import torch.utils.data
-from sklearn.utils import check_random_state
 from torchvision.datasets import VisionDataset
 from torchvision.datasets.folder import default_loader, has_file_allowed_extension, IMG_EXTENSIONS
 
 from kale.loaddata.dataset_access import DatasetAccess, get_class_subset, split_by_ratios
 from kale.loaddata.sampler import FixedSeedSamplingConfig, get_labels, MultiDataLoader, SamplingConfig
+
+_MAX_TORCH_SEED = 2**63 - 1
+
+
+def _seed_from_random_state(random_state):
+    """Normalize different RNG providers to a torch-compatible seed."""
+    if random_state is None:
+        return None
+    if isinstance(random_state, (int, np.integer)):
+        return int(random_state)
+    if isinstance(random_state, np.random.RandomState):
+        return int(random_state.randint(0, _MAX_TORCH_SEED))
+    if isinstance(random_state, np.random.Generator):
+        return int(random_state.integers(0, _MAX_TORCH_SEED))
+    raise TypeError("random_state must be an int, torch.Generator, numpy RandomState/Generator, or None.")
+
+
+def _setup_torch_generator(random_state=None, *, device: Optional[torch.device] = None):
+    """Create a torch.Generator from various random state inputs."""
+    if isinstance(random_state, torch.Generator):
+        generator = random_state
+        return generator.initial_seed(), generator
+
+    device = torch.device("cpu") if device is None else device
+    generator = torch.Generator(device=device)
+
+    seed = _seed_from_random_state(random_state)
+    if seed is None:
+        seed = generator.seed()
+    else:
+        generator.manual_seed(seed)
+
+    return seed, generator
+
+
+def _resolve_generator(random_state=None):
+    """Return a torch.Generator for downstream sampling."""
+    _, generator = _setup_torch_generator(random_state)
+    return generator
 
 
 class WeightingType(Enum):
@@ -90,8 +129,8 @@ class BinaryDomainDatasets(DomainsDatasetBase):
                 (=> RandomSampler).
             n_fewshot (int, optional): Number of target samples for which the label may be used,
                 to define the few-shot, semi-supervised setting. Defaults to None.
-            random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label
-                selection. Defaults to None.
+            random_state ([int|np.random.RandomState|np.random.Generator|torch.Generator], optional):
+                Used for deterministic sampling/few-shot label selection. Defaults to None.
             class_ids (list, optional): List of chosen subset of class ids. Defaults to None (=> All Classes).
         Examples::
             >>> dataset = BinaryDomainDatasets(source_access, target_access)
@@ -128,7 +167,7 @@ class BinaryDomainDatasets(DomainsDatasetBase):
         # )
         self._size_type = size_type
         self._n_fewshot = n_fewshot
-        self._random_state = check_random_state(random_state)
+        self._random_state = _resolve_generator(random_state)
         self._source_by_split: Dict[str, torch.utils.data.Subset] = {}
         self._labeled_target_by_split = None
         self._target_by_split: Dict[str, torch.utils.data.Subset] = {}
@@ -164,12 +203,7 @@ class BinaryDomainDatasets(DomainsDatasetBase):
 
     def _prepare_fewshot_target(self):
         # semi-supervised target domain
-        self._labeled_target_by_split = {}
-        for part in ["train", "valid", "test"]:
-            (
-                self._labeled_target_by_split[part],
-                self._target_by_split[part],
-            ) = _split_dataset_few_shot(self._target_by_split[part], self._n_fewshot)
+        return
 
     def _filter_classes(self, dataset):
         if self.class_ids is None or dataset is None:
@@ -212,36 +246,6 @@ class BinaryDomainDatasets(DomainsDatasetBase):
         else:
             labeled_target_ds = self._labeled_target_by_split["train"]
             return DatasetSizeType.get_size(self._size_type, source_ds, labeled_target_ds, target_ds)
-
-
-def _split_dataset_few_shot(dataset, n_fewshot, random_state=None):
-    if n_fewshot <= 0:
-        raise ValueError(f"n_fewshot should be > 0, not '{n_fewshot}'")
-    assert n_fewshot > 0
-    labels = get_labels(dataset)
-    classes = sorted(set(labels))
-    if n_fewshot < 1:
-        max_few = len(dataset) // len(classes)
-        n_fewshot = round(max_few * n_fewshot)
-    n_fewshot = int(round(n_fewshot))
-
-    random_state = check_random_state(random_state)
-    # sample n_fewshot items per class from last dataset
-    tindices = []
-    uindices = []
-    for class_ in classes:
-        indices = np.where(labels == class_)[0]
-        random_state.shuffle(indices)
-        head, tail = np.split(indices, [n_fewshot])
-        assert len(head) == n_fewshot
-        tindices.append(head)
-        uindices.append(tail)
-    tindices = np.concatenate(tindices)
-    uindices = np.concatenate(uindices)
-    assert len(tindices) == len(classes) * n_fewshot
-    labeled_dataset = torch.utils.data.Subset(dataset, tindices)
-    unlabeled_dataset = torch.utils.data.Subset(dataset, uindices)
-    return labeled_dataset, unlabeled_dataset
 
 
 def _domain_stratified_split(domain_labels, n_partitions, split_ratios):
@@ -552,7 +556,8 @@ class MultiDomainDataset(DomainsDatasetBase):
         data_access (MultiDomainImageFolder, or MultiDomainAccess): Multi-domain data access.
         valid_split_ratio (float, optional): Split ratio for validation set. Defaults to 0.1.
         test_split_ratio (float, optional): Split ratio for test set. Defaults to 0.2.
-        random_state (int, optional): Random state for generator. Defaults to 1.
+        random_state (Union[int, np.random.RandomState, np.random.Generator, torch.Generator], optional):
+            Random state for generator. Defaults to 1.
         n_fewshot (int or float, optional): Number or ratio of target samples for which the label may be used, default to 0 (n).
         test_on_all (bool, optional): Whether test model on all target. Defaults to False.
     """
@@ -573,13 +578,14 @@ class MultiDomainDataset(DomainsDatasetBase):
         self._valid_split_ratio = valid_split_ratio
         self._test_split_ratio = test_split_ratio
         self._sample_by_split: Dict[str, torch.utils.data.Subset] = {}
-        self._sampling_config = FixedSeedSamplingConfig(seed=random_state, balance_domain=True)
+        sampling_seed, generator = _setup_torch_generator(random_state)
+        self._sampling_config = FixedSeedSamplingConfig(seed=sampling_seed, balance_domain=True)
         assert isinstance(n_fewshot, int) or (isinstance(n_fewshot, float) and 0 < n_fewshot < 1)
         if n_fewshot < 0:
             raise ValueError(f"n_fewshot should be >= 0, not '{n_fewshot}'")
         self._n_fewshot = n_fewshot
         self._loader = MultiDataLoader
-        self._random_state = random_state
+        self._random_state = generator
         self.test_on_all = test_on_all
 
     def prepare_data_loaders(self, target_domain=None):
@@ -670,7 +676,10 @@ class MultiDomainDataset(DomainsDatasetBase):
         )
         split_indices = split_data.indices
         split_domain_labels = dataset.domain_labels[split_indices]
-        split_labels = dataset.labels[split_indices]
+        dataset_labels = get_labels(dataset)
+        if dataset_labels is None:
+            raise ValueError(f"Unable to extract labels from dataset of type {type(dataset)}")
+        split_labels = dataset_labels[split_indices]
         labeled_idx = _get_few_shot_labeled_idx(
             split_labels,
             split_domain_labels,
@@ -698,8 +707,11 @@ class MultiDomainDataset(DomainsDatasetBase):
             target_unlabeled_key,
             few_shot_domain_label,
         )
+        split_labels = get_labels(split_data)
+        if split_labels is None:
+            raise ValueError(f"Unable to extract labels from dataset of type {type(split_data)}")
         labeled_idx = _get_few_shot_labeled_idx(
-            split_data.labels,
+            split_labels,
             split_data.domain_labels,
             target_domain_label,
             self._n_fewshot,
@@ -744,11 +756,13 @@ def _get_few_shot_labeled_idx(labels, domain_labels, target_domain_label, n_fews
 
     labeled_idx = []
 
-    random_state = check_random_state(random_state)
+    generator = _resolve_generator(random_state)
     for class_ in classes:
         mask = (labels == class_) & (domain_labels == target_domain_label)
         indices = mask.nonzero(as_tuple=True)[0]
-        indices = indices[torch.randperm(len(indices))]
+        indices_cpu = indices.cpu()
+        perm = torch.randperm(indices_cpu.numel(), generator=generator)
+        indices = indices_cpu[perm].to(indices.device)
         head, tail = torch.split(indices, [num_fewshot, len(indices) - num_fewshot])
         labeled_idx.append(head)
 

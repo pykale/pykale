@@ -975,7 +975,7 @@ class FewShotDANNTrainer(BaseDANNLike):
 
     naive: task classifier is trained on labeled target data, in addition to source
     data.
-    MME: immplements Saito, Kuniaki, et al.
+    MME: implements Saito, Kuniaki, et al.
     "Semi-supervised domain adaptation via minimax entropy."
     Proceedings of the IEEE International Conference on Computer Vision. 2019
     https://arxiv.org/pdf/1904.06487.pdf
