@@ -9,14 +9,17 @@ import os
 import time
 
 import pytorch_lightning as pl
+import torch
 from config import get_cfg_defaults
 from model import get_model
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar
 
 from kale.loaddata.image_access import DigitDataset, ImageAccess
-from kale.loaddata.multi_domain import BinaryDomainDatasets, MultiDomainAccess, MultiDomainDataset
+from kale.loaddata.multi_domain import MultiDomainAccess, MultiDomainDataset
 from kale.utils.seed import set_seed
+
+torch.set_float32_matmul_precision("medium")
 
 
 def arg_parse():

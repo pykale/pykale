@@ -142,7 +142,7 @@ def create_dann_like(
             critic=critic,
             target_domain=target_domain,
             method=method,
-            use_entropy=method is Method.CDAN_E,
+            use_entropy_weight=method is Method.CDAN_E,
             **train_params,
         )
     elif method is Method.WDGRL:
@@ -462,8 +462,10 @@ class BaseDANNLike(BaseAdaptTrainer):
         feature_extractor,
         task_classifier,
         critic,
+        div_loss="adversarial",
         target_domain=None,
         alpha=1.0,
+        use_entropy_weight=False,
         entropy_reg=0.0,  # not used
         adapt_reg=True,  # not used
         batch_reweighting=False,  # not used
@@ -472,11 +474,12 @@ class BaseDANNLike(BaseAdaptTrainer):
         super().__init__(dataset, feature_extractor, task_classifier, target_domain=target_domain, **base_params)
 
         self.alpha = alpha
-
+        self.div_loss = div_loss
+        self.use_entropy_weight = use_entropy_weight
         self._entropy_reg_init = entropy_reg  # not used
         self._entropy_reg = entropy_reg  # not used
         self._adapt_reg = adapt_reg  # not used
-
+        self._beta_ratio = 0.0
         self._reweight_beta = 4  # not used
         self._do_dynamic_batch_weight = batch_reweighting  # not used
 
@@ -486,6 +489,12 @@ class BaseDANNLike(BaseAdaptTrainer):
         super()._update_batch_epoch_factors(batch_id)
         if self._adapt_reg:
             self._entropy_reg = self._entropy_reg_init * self._grow_fact
+
+    def _compute_entropy_weights(self, logits):
+        entropy = losses.entropy_logits(logits)
+        entropy = GradReverse.apply(entropy, self.alpha)
+        entropy_w = 1.0 + torch.exp(-entropy)
+        return entropy_w
 
     def _uda_batch_forward(self, batch):
         """
@@ -497,63 +506,57 @@ class BaseDANNLike(BaseAdaptTrainer):
             d_hat_src (Tensor): predictions of the domain classifier on the source domain data.
             d_hat_tgt (Tensor): predictions of the domain classifier on the target domain data.
             loss_cls (Tensor): classification loss on the source domain data.
-            ok_src (Tensor): a boolean Tensor indicating accuracy for each sample of the source domain.
-            ok_tgt (Tensor): a boolean Tensor indicating accuracy for each sample of the target domain.
+            y_ok_src (Tensor): a boolean Tensor indicating accuracy for each sample of the source domain.
+            y_ok_tgt (Tensor): a boolean Tensor indicating accuracy for each sample of the target domain.
         """
         x, y, domain_labels = batch
         idx_src, idx_tgt = self._get_src_tgt_idx(domain_labels)
         _, y_hat, d_hat = self.forward(x)
         y_hat_src = y_hat[idx_src]
         y_hat_tgt = y_hat[idx_tgt]
-        d_hat_src = d_hat[idx_src]
-        d_hat_tgt = d_hat[idx_tgt]
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat_src, y[idx_src])
-        _, ok_tgt = losses.cross_entropy_logits(y_hat_tgt, y[idx_tgt])
-        ok_src = ok_src.double().mean()
-        ok_tgt = ok_tgt.double().mean()
+        loss_cls, y_ok_src = losses.cross_entropy_logits(y_hat_src, y[idx_src])
+        _, y_ok_tgt = losses.cross_entropy_logits(y_hat_tgt, y[idx_tgt])
 
-        return y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt
+        y_ok_src = y_ok_src.double().mean()
+        y_ok_tgt = y_ok_tgt.double().mean()
 
-    @staticmethod
-    def _compute_domain_classifier_stats(d_hat_src, d_hat_tgt, source_weight=None, target_weight=None):
-        """Compute standard domain-classifier losses and accuracies."""
-        loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat_src, torch.zeros(d_hat_src.shape[0]), source_weight)
-        loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_hat_tgt, torch.ones(d_hat_tgt.shape[0]), target_weight)
+        if self.use_entropy_weight:
+            weights = torch.ones_like(domain_labels).float()
+            e_s = self._compute_entropy_weights(y_hat_src)
+            e_t = self._compute_entropy_weights(y_hat_tgt)
+            weights[idx_src] = e_s / torch.sum(e_s)
+            weights[idx_tgt] = e_t / torch.sum(e_t)
+        else:
+            weights = None
 
-        dok_src_mean = dok_src.double().mean()
-        dok_tgt_mean = dok_tgt.double().mean()
+        loss_div, dok = losses.cross_entropy_logits(d_hat, domain_labels, weights)
+        dok = dok.double().mean()
 
-        return {
-            "loss_src": loss_dmn_src,
-            "loss_tgt": loss_dmn_tgt,
-            "domain_acc": torch.cat((dok_src, dok_tgt)).double().mean(),
-            "domain_acc_src": dok_src_mean,
-            "domain_acc_tgt": dok_tgt_mean,
-        }
+        if self.div_loss == "wasserstein":
+            loss_div = d_hat[idx_src].mean() - (1 + self._beta_ratio) * d_hat[idx_tgt].mean()
+
+        return loss_cls, y_ok_src, y_ok_tgt, loss_div, dok
 
     @staticmethod
-    def _build_adversarial_da_log_metrics(split_name, ok_src, ok_tgt, domain_stats, extra_metrics=None):
+    def _build_adversarial_da_log_metrics(split_name, ok_src, ok_tgt, dok, extra_metrics=None):
         """Aggregate standard logging metrics for UDA trainers."""
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": domain_stats["domain_acc"],
-            f"{split_name}_source_domain_acc": domain_stats["domain_acc_src"],
-            f"{split_name}_target_domain_acc": domain_stats["domain_acc_tgt"],
+            f"{split_name}_domain_acc": dok,
         }
         if extra_metrics:
             log_metrics.update(extra_metrics)
         return log_metrics
 
     def compute_loss(self, batch, split_name="valid"):
-        y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
+        loss_cls, y_ok_src, y_ok_tgt, loss_domain_cls, dok = self._uda_batch_forward(batch)
 
-        domain_stats = self._compute_domain_classifier_stats(d_hat_src, d_hat_tgt)
-        adv_loss = domain_stats["loss_src"] + domain_stats["loss_tgt"]
+        adv_loss = loss_domain_cls
         task_loss = loss_cls
 
-        log_metrics = self._build_adversarial_da_log_metrics(split_name, ok_src, ok_tgt, domain_stats)
+        log_metrics = self._build_adversarial_da_log_metrics(split_name, y_ok_src, y_ok_tgt, dok)
         return task_loss, adv_loss, log_metrics
 
 
@@ -573,14 +576,11 @@ class DANNTrainer(BaseDANNLike):
         feature_extractor,
         task_classifier,
         critic,
-        target_domain=None,
         method=None,
         **base_params,
     ):
-        super().__init__(
-            dataset, feature_extractor, task_classifier, critic, target_domain=target_domain, **base_params
-        )
-
+        super().__init__(dataset, feature_extractor, task_classifier, critic, **base_params)
+        self.div_loss = "adversarial"
         if method is None:
             self._method = Method.DANN
         else:
@@ -609,18 +609,14 @@ class CDANTrainer(BaseDANNLike):
         feature_extractor,
         task_classifier,
         critic,
-        target_domain=None,
-        use_entropy=False,
         use_random=False,
         random_dim=1024,
         **base_params,
     ):
-        super().__init__(
-            dataset, feature_extractor, task_classifier, critic, target_domain=target_domain, **base_params
-        )
+        super().__init__(dataset, feature_extractor, task_classifier, critic, **base_params)
+        self.div_loss = "adversarial"
         self.random_layer = None
         self.random_dim = random_dim
-        self.entropy = use_entropy
         if use_random:
             nb_inputs = self.feat.output_size() * self.classifier.n_classes()
             self.random_layer = torch.nn.Linear(in_features=nb_inputs, out_features=self.random_dim, bias=False)
@@ -649,33 +645,6 @@ class CDANTrainer(BaseDANNLike):
 
         return x, class_output, adversarial_output
 
-    def _compute_entropy_weights(self, logits):
-        entropy = losses.entropy_logits(logits)
-        entropy = GradReverse.apply(entropy, self.alpha)
-        entropy_w = 1.0 + torch.exp(-entropy)
-        return entropy_w
-
-    def compute_loss(self, batch, split_name="valid"):
-        y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
-
-        if self.entropy:
-            e_s = self._compute_entropy_weights(y_hat_src)
-            e_t = self._compute_entropy_weights(y_hat_tgt)
-            source_weight = e_s / torch.sum(e_s)
-            target_weight = e_t / torch.sum(e_t)
-        else:
-            source_weight = None
-            target_weight = None
-
-        domain_stats = self._compute_domain_classifier_stats(
-            d_hat_src, d_hat_tgt, source_weight=source_weight, target_weight=target_weight
-        )
-        adv_loss = domain_stats["loss_src"] + domain_stats["loss_tgt"]
-        task_loss = loss_cls
-
-        log_metrics = self._build_adversarial_da_log_metrics(split_name, ok_src, ok_tgt, domain_stats)
-        return task_loss, adv_loss, log_metrics
-
 
 class WDGRLTrainer(BaseDANNLike):
     """
@@ -698,7 +667,6 @@ class WDGRLTrainer(BaseDANNLike):
         feature_extractor,
         task_classifier,
         critic,
-        target_domain=None,
         k_critic=5,
         gamma=10,
         beta_ratio=0,
@@ -709,9 +677,8 @@ class WDGRLTrainer(BaseDANNLike):
 
             k_critic: number of steps to train critic (called n in Algorithm 1 of the paper)
         """
-        super().__init__(
-            dataset, feature_extractor, task_classifier, critic, target_domain=target_domain, **base_params
-        )
+        super().__init__(dataset, feature_extractor, task_classifier, critic, **base_params)
+        self.div_loss = "wasserstein"
         self._k_critic = k_critic
         self._beta_ratio = beta_ratio
         self._gamma = gamma
@@ -724,19 +691,16 @@ class WDGRLTrainer(BaseDANNLike):
         return x, class_output, adversarial_output
 
     def compute_loss(self, batch, split_name="valid"):
-        y_hat_src, y_hat_tgt, d_hat_src, d_hat_tgt, loss_cls, ok_src, ok_tgt = self._uda_batch_forward(batch)
+        loss_cls, y_ok_src, y_ok_tgt, wasserstein_distance, dok = self._uda_batch_forward(batch)
 
-        domain_stats = self._compute_domain_classifier_stats(d_hat_src, d_hat_tgt)
-
-        wasserstein_distance = d_hat_src.mean() - (1 + self._beta_ratio) * d_hat_tgt.mean()
         adv_loss = wasserstein_distance
         task_loss = loss_cls
 
         log_metrics = self._build_adversarial_da_log_metrics(
             split_name,
-            ok_src,
-            ok_tgt,
-            domain_stats,
+            y_ok_src,
+            y_ok_tgt,
+            dok,
             extra_metrics={f"{split_name}_wasserstein_dist": wasserstein_distance},
         )
         return task_loss, adv_loss, log_metrics
@@ -839,7 +803,6 @@ class WDGRLTrainerMod(WDGRLTrainer):
         feature_extractor,
         task_classifier,
         critic,
-        target_domain=None,
         k_critic=5,
         gamma=10,
         beta_ratio=0,
@@ -850,9 +813,7 @@ class WDGRLTrainerMod(WDGRLTrainer):
 
             k_critic: number of steps to train critic (called n in Algorithm 1 of the paper)
         """
-        super().__init__(
-            dataset, feature_extractor, task_classifier, critic, target_domain=target_domain, **base_params
-        )
+        super().__init__(dataset, feature_extractor, task_classifier, critic, **base_params)
         self._k_critic = k_critic
         self._beta_ratio = beta_ratio
         self._gamma = gamma
@@ -989,12 +950,9 @@ class FewShotDANNTrainer(BaseDANNLike):
         task_classifier,
         critic,
         method,
-        target_domain=None,
         **base_params,
     ):
-        super().__init__(
-            dataset, feature_extractor, task_classifier, critic, target_domain=target_domain, **base_params
-        )
+        super().__init__(dataset, feature_extractor, task_classifier, critic, **base_params)
         self._few_shot_domain_label = dataset.n_domains - 1  # assumes labeled target is last domain
         self._method = Method(method)
 
