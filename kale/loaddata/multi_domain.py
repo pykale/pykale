@@ -573,7 +573,6 @@ class MultiDomainDataset(DomainsDatasetBase):
     ):
         self.domain_to_idx = data_access.domain_to_idx.copy()
         self.n_domains = len(data_access.domain_to_idx)
-        # if isinstance(data_access, MultiDomainImageFolder):
         self.data_access = data_access
         self._valid_split_ratio = valid_split_ratio
         self._test_split_ratio = test_split_ratio
@@ -745,6 +744,17 @@ class MultiDomainDataset(DomainsDatasetBase):
 
 
 def _get_few_shot_labeled_idx(labels, domain_labels, target_domain_label, n_fewshot, random_state):
+    """Get few-shot labeled indices for the target domain.
+    Args:
+        labels (torch.Tensor): Labels of all samples.
+        domain_labels (torch.Tensor): Domain labels of all samples.
+        target_domain_label (int): Domain label of the target domain.
+        n_fewshot (int or float): Number or ratio of target samples for which the label may be used.
+        random_state (Union[int, np.random.RandomState, np.random.Generator, torch.Generator]):
+            Random state for generator.
+    Returns:
+        torch.Tensor: Indices of few-shot labeled samples in the target domain.
+    """
     num_target = torch.sum(domain_labels == target_domain_label).item()
     classes = labels.unique()
 

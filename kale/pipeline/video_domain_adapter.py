@@ -81,7 +81,7 @@ def create_dann_like_video(
             task_classifier=task_classifier,
             critic=critic,
             method=method,
-            use_entropy=method is Method.CDAN_E,
+            use_entropy_weight=method is Method.CDAN_E,
             **train_params,
         )
     elif method is Method.WDGRL:
@@ -385,7 +385,7 @@ class CDANTrainerVideo(CDANTrainer):
         feature_extractor,
         task_classifier,
         critic,
-        use_entropy=False,
+        use_entropy_weight=False,
         use_random=False,
         random_dim=1024,
         **base_params,
@@ -395,7 +395,7 @@ class CDANTrainerVideo(CDANTrainer):
             feature_extractor,
             task_classifier,
             critic,
-            use_entropy=use_entropy,
+            use_entropy_weight=use_entropy_weight,
             use_random=use_random,
             random_dim=random_dim,
             **base_params,

@@ -312,6 +312,13 @@ class BaseAdaptTrainer(pl.LightningModule):
             self.lamb_da = self._init_lambda * self._grow_fact
 
     def _get_src_tgt_idx(self, domain_labels):
+        """Get source and target indices from domain labels
+        Args:
+            domain_labels (torch.Tensor): tensor of domain labels of shape (batch_size,)
+        Returns:
+            idx_src (Tensor): indices of source domain samples
+            idx_tgt (Tensor): indices of target domain samples
+        """
         idx_src = torch.where(domain_labels != self.target_label)[0]
         idx_tgt = torch.where(domain_labels == self.target_label)[0]
         return idx_src, idx_tgt
@@ -682,6 +689,8 @@ class WDGRLTrainer(BaseDANNLike):
         self._k_critic = k_critic
         self._beta_ratio = beta_ratio
         self._gamma = gamma
+        self.critic_sched = None
+        self.critic_opt = None
 
     def forward(self, x):
         x = self._extract_features(x)
@@ -966,6 +975,7 @@ class FewShotDANNTrainer(BaseDANNLike):
 
     def compute_loss(self, batch, split_name="valid"):
         x, y, domain_labels = batch
+        assert isinstance(domain_labels, torch.Tensor)
         idx_tgt_unlabeled = torch.where(domain_labels == self.target_label)[0]
         idx_tgt_labeled = torch.where(domain_labels == self._few_shot_domain_label)[0]
         idx_src = torch.where((domain_labels != self.target_label) & (domain_labels != self._few_shot_domain_label))[0]
@@ -1023,19 +1033,22 @@ class FewShotDANNTrainer(BaseDANNLike):
 
 
 class BaseMMDLike(BaseAdaptTrainer):
-    """Common API for MME-based deep learning DA methods: DAN, JAN"""
+    """Common API for MME-based deep learning DA methods: DAN, JAN
+    Args:
+        kernel_mul (float, tuple, list): kernel multiplier(s) for MMD computation.
+        kernel_num (int, tuple, list): number of kernels for MMD computation.
+    """
 
     def __init__(
         self,
         dataset,
         feature_extractor,
         task_classifier,
-        target_domain=None,
         kernel_mul=2.0,
         kernel_num=5,
         **base_params,
     ):
-        super().__init__(dataset, feature_extractor, task_classifier, target_domain=target_domain, **base_params)
+        super().__init__(dataset, feature_extractor, task_classifier, **base_params)
 
         self._kernel_mul = kernel_mul
         self._kernel_num = kernel_num
@@ -1087,8 +1100,8 @@ class DANTrainer(BaseMMDLike):
     code based on https://github.com/thuml/Xlearn.
     """
 
-    def __init__(self, dataset, feature_extractor, task_classifier, target_domain=None, **base_params):
-        super().__init__(dataset, feature_extractor, task_classifier, target_domain=target_domain, **base_params)
+    def __init__(self, dataset, feature_extractor, task_classifier, **base_params):
+        super().__init__(dataset, feature_extractor, task_classifier, **base_params)
 
     def _compute_mmd(self, phi_src, phi_tgt, y_src_hat, y_tgt_hat):
         batch_size = phi_src.shape[0]
@@ -1116,7 +1129,6 @@ class JANTrainer(BaseMMDLike):
         dataset,
         feature_extractor,
         task_classifier,
-        target_domain=None,
         kernel_mul=(2.0, 2.0),
         kernel_num=(5, 1),
         **base_params,
@@ -1125,7 +1137,6 @@ class JANTrainer(BaseMMDLike):
             dataset,
             feature_extractor,
             task_classifier,
-            target_domain=target_domain,
             kernel_mul=kernel_mul,
             kernel_num=kernel_num,
             **base_params,
