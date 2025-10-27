@@ -57,7 +57,7 @@ Dependencies:
 """
 import logging
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, cast, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -111,8 +111,20 @@ METRIC_NAME_MEAN_ERROR_FOLDS = "mean_error_folds"
 
 # Template strings
 CUMULATIVE_ERROR_TITLE_TEMPLATE = "Cumulative error for ALL predictions, dataset {}"
+CUMULATIVE_ERROR_B1_TITLE_TEMPLATE = "Cumulative error for B1 predictions, dataset {}"
+CUMULATIVE_ERROR_B1_VS_ALL_TITLE_TEMPLATE = "{}. Cumulative error comparing ALL and B1, dataset {}"
 PLOTTING_TARGET_MESSAGE_TEMPLATE = "Plotting {} for all targets."
 PLOTTING_INDIVIDUAL_TARGET_MESSAGE_TEMPLATE = "Plotting individual {} for T{}"
+
+# File name constants
+FILE_NAME_ALL_PREDICTIONS_CUMULATIVE_ERROR = "all_predictions_cumulative_error.pdf"
+FILE_NAME_B1_PREDICTIONS_CUMULATIVE_ERROR = "b1_predictions_cumulative_error.pdf"
+FILE_NAME_B1_VS_ALL_CUMULATIVE_ERROR_TEMPLATE = "{}_b1_vs_all_cumulative_error.pdf"
+FILE_NAME_TARGET_ERRORS = "target_errors.xlsx"
+
+# Label constants for specific use cases
+LABEL_GROUND_TRUTH_BINS_RECALL_PERCENT = "Ground Truth Bins Recall (%)"
+LABEL_GROUND_TRUTH_BINS_PRECISION_PERCENT = "Ground Truth Bins Precision (%)"
 
 # Summary and report strings
 SUMMARY_ALL_TARGETS = "All Targets"
@@ -218,6 +230,55 @@ class ComparingBinsConfig:
             self.ind_targets_to_show = []
 
 
+@dataclass
+class MetricPlotConfig:
+    """
+    Configuration class for metric plotting parameters.
+
+    This class consolidates plotting parameters to reduce function argument count
+    and improve maintainability of plotting methods.
+    """
+
+    # Core plotting parameters
+    eval_data: Dict[str, Any]
+    models: List[str]
+    uncertainty_categories: List[List[str]]
+    category_labels: List[str]
+    num_bins_display: int
+    plot_func: Callable[..., Any]
+    show_individual_target_plots: bool
+    ind_targets_to_show: List[int]
+    detailed_mode: bool
+    target_indices: Optional[List[int]] = None
+
+    # Y-axis limits
+    percent_y_lim_standard: int = 70
+    percent_y_lim_extended: int = 120
+
+    # Additional plot parameters
+    kwargs: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class MetricDefinition:
+    """
+    Definition of a specific metric's plotting characteristics.
+
+    This class encapsulates the specific parameters needed for each metric type,
+    enabling a unified plotting approach across different metrics.
+    """
+
+    metric_name: str
+    data_key: str
+    y_label: str
+    to_log: bool = False
+    convert_to_percent: bool = False
+    y_lim_top_attr: str = "percent_y_lim_standard"  # Attribute name in config to use for y_lim_top
+    show_sample_info: str = "None"
+    show_individual_dots: bool = False
+    individual_data_key: Optional[str] = None  # For individual target plots
+
+
 class QuantileBinningAnalyzer:
     """
     A class for performing and visualizing Quantile Binning uncertainty analysis.
@@ -228,6 +289,79 @@ class QuantileBinningAnalyzer:
     1. Compare different models/uncertainty types at fixed bin counts (individual_bin_comparison).
     2. Compare the impact of different bin counts (Q values) on model performance (comparing_bins_analysis).
     """
+
+    # Metric definitions for unified plotting
+    _METRIC_DEFINITIONS = {
+        "error": [
+            MetricDefinition(
+                metric_name=METRIC_NAME_ERROR,
+                data_key=ERROR_DATA_ALL_CONCAT_NOSEP,
+                y_label=LABEL_LOCALIZATION_ERROR,
+                to_log=True,
+                convert_to_percent=False,
+                y_lim_top_attr="box_plot_error_lim",
+                show_sample_info="detailed",  # Will be overridden by instance setting
+                show_individual_dots=True,  # Will be overridden by instance setting
+                individual_data_key=ERROR_DATA_ALL_CONCAT_SEP,
+            ),
+            MetricDefinition(
+                metric_name=METRIC_NAME_MEAN_ERROR_FOLDS,
+                data_key=ERROR_DATA_MEAN_BINS_NOSEP,
+                y_label=LABEL_MEAN_ERROR,
+                to_log=True,
+                convert_to_percent=False,
+                y_lim_top_attr="box_plot_error_lim",
+                show_sample_info="None",
+                show_individual_dots=False,
+            ),
+        ],
+        "error_bounds": [
+            MetricDefinition(
+                metric_name=METRIC_NAME_ERRORBOUND,
+                data_key=BOUNDS_DATA_ALL,
+                y_label=LABEL_ERROR_BOUND_ACCURACY,
+                to_log=False,
+                convert_to_percent=True,
+                y_lim_top_attr="percent_y_lim_extended",
+                show_sample_info="None",
+                show_individual_dots=False,
+                individual_data_key=BOUNDS_DATA_ALL_CONCAT_SEP,
+            )
+        ],
+        "jaccard": [
+            MetricDefinition(
+                metric_name=METRIC_NAME_JACCARD,
+                data_key=JACCARD_DATA_ALL,
+                y_label=LABEL_JACCARD_INDEX,
+                to_log=False,
+                convert_to_percent=True,
+                y_lim_top_attr="percent_y_lim_standard",
+                show_sample_info="None",
+                show_individual_dots=False,
+                individual_data_key=JACCARD_DATA_ALL_CONCAT_SEP,
+            ),
+            MetricDefinition(
+                metric_name=METRIC_NAME_RECALL_JACCARD,
+                data_key=JACCARD_DATA_RECALL_ALL,
+                y_label=LABEL_GROUND_TRUTH_BINS_RECALL,
+                to_log=False,
+                convert_to_percent=True,
+                y_lim_top_attr="percent_y_lim_extended",
+                show_sample_info="None",
+                show_individual_dots=False,
+            ),
+            MetricDefinition(
+                metric_name=METRIC_NAME_PRECISION_JACCARD,
+                data_key=JACCARD_DATA_PRECISION_ALL,
+                y_label=LABEL_GROUND_TRUTH_BINS_PRECISION,
+                to_log=False,
+                convert_to_percent=True,
+                y_lim_top_attr="percent_y_lim_extended",
+                show_sample_info="None",
+                show_individual_dots=False,
+            ),
+        ],
+    }
 
     def __init__(
         self,
@@ -375,7 +509,7 @@ class QuantileBinningAnalyzer:
                 np.arange(config.num_bins),
                 CUMULATIVE_ERROR_TITLE_TEMPLATE.format(config.dataset),
                 save_path=self.save_folder if self.save_figures else None,
-                file_name="all_predictions_cumulative_error.pdf",
+                file_name=FILE_NAME_ALL_PREDICTIONS_CUMULATIVE_ERROR,
                 error_scaling_factor=config.error_scaling_factor,
             )
             # Plot cumulative error figure for B1 only predictions
@@ -385,9 +519,9 @@ class QuantileBinningAnalyzer:
                 config.models,
                 extracted_uncertainty_error_pairs,
                 0,
-                "Cumulative error for B1 predictions, dataset " + config.dataset,
+                CUMULATIVE_ERROR_B1_TITLE_TEMPLATE.format(config.dataset),
                 save_path=self.save_folder if self.save_figures else None,
-                file_name="b1_predictions_cumulative_error.pdf",
+                file_name=FILE_NAME_B1_PREDICTIONS_CUMULATIVE_ERROR,
                 error_scaling_factor=config.error_scaling_factor,
             )
 
@@ -399,73 +533,76 @@ class QuantileBinningAnalyzer:
                     [model_type],
                     extracted_uncertainty_error_pairs,
                     0,
-                    model_type + ". Cumulative error comparing ALL and B1, dataset " + config.dataset,
+                    CUMULATIVE_ERROR_B1_VS_ALL_TITLE_TEMPLATE.format(model_type, config.dataset),
                     compare_to_all=True,
                     save_path=self.save_folder if self.save_figures else None,
-                    file_name=f"{model_type}_b1_vs_all_cumulative_error.pdf",
+                    file_name=FILE_NAME_B1_VS_ALL_CUMULATIVE_ERROR_TEMPLATE.format(model_type),
                     error_scaling_factor=config.error_scaling_factor,
                 )
 
         if self.display_settings.get("errors"):
             uncertainty_categories = [[name, name] for name, err, unc in config.uncertainty_error_pairs]
-            self._plot_error_metrics(
-                eval_data,
-                config.models,
-                uncertainty_categories,
-                category_labels,
-                num_bins_display,
-                plot_per_model_boxplot,
-                config.show_individual_target_plots,
-                config.ind_targets_to_show or [],
-                config.target_indices,
+            plot_config = self._create_plot_config(
+                eval_data=eval_data,
+                models=config.models,
+                uncertainty_categories=uncertainty_categories,
+                category_labels=category_labels,
+                num_bins_display=num_bins_display,
+                plot_func=plot_per_model_boxplot,
+                show_individual_target_plots=config.show_individual_target_plots,
+                ind_targets_to_show=config.ind_targets_to_show or [],
                 detailed_mode=False,
+                target_indices=config.target_indices,
                 x_label=LABEL_UNCERTAINTY_THRESHOLDED_BIN,
             )
+            self._plot_metrics("error", plot_config)
 
         if self.display_settings.get("error_bounds"):
             uncertainty_categories = [[name, name] for name, err, unc in config.uncertainty_error_pairs]
-            self._plot_error_bounds_metrics(
-                eval_data,
-                config.models,
-                uncertainty_categories,
-                category_labels,
-                num_bins_display,
-                plot_generic_boxplot,
-                config.show_individual_target_plots,
-                config.ind_targets_to_show or [],
-                False,  # detailed_mode
-                config.percent_y_lim_extended,
-                config.target_indices,
+            plot_config = self._create_plot_config(
+                eval_data=eval_data,
+                models=config.models,
+                uncertainty_categories=uncertainty_categories,
+                category_labels=category_labels,
+                num_bins_display=num_bins_display,
+                plot_func=plot_generic_boxplot,
+                show_individual_target_plots=config.show_individual_target_plots,
+                ind_targets_to_show=config.ind_targets_to_show or [],
+                detailed_mode=False,
+                target_indices=config.target_indices,
+                percent_y_lim_extended=config.percent_y_lim_extended,
                 x_label=LABEL_UNCERTAINTY_THRESHOLDED_BIN,
                 width=0.2,
                 y_lim_bottom=-2,
                 font_size_label=30,
                 font_size_tick=30,
             )
+            self._plot_metrics("error_bounds", plot_config)
 
         if self.display_settings.get("jaccard"):
             uncertainty_categories = [[name, name] for name, err, unc in config.uncertainty_error_pairs]
-            self._plot_jaccard_metrics(
-                eval_data,
-                config.models,
-                uncertainty_categories,
-                category_labels,
-                num_bins_display,
-                plot_generic_boxplot,
-                config.show_individual_target_plots,
-                config.ind_targets_to_show or [],
-                False,  # detailed_mode
-                config.percent_y_lim_standard,
-                config.percent_y_lim_extended,
-                config.target_indices,
-                x_label="Uncertainty Thresholded Bin",
-                recall_y_label="Ground Truth Bins Recall",
-                precision_y_label="Ground Truth Bins Precision",
+            plot_config = self._create_plot_config(
+                eval_data=eval_data,
+                models=config.models,
+                uncertainty_categories=uncertainty_categories,
+                category_labels=category_labels,
+                num_bins_display=num_bins_display,
+                plot_func=plot_generic_boxplot,
+                show_individual_target_plots=config.show_individual_target_plots,
+                ind_targets_to_show=config.ind_targets_to_show or [],
+                detailed_mode=False,
+                target_indices=config.target_indices,
+                percent_y_lim_standard=config.percent_y_lim_standard,
+                percent_y_lim_extended=config.percent_y_lim_extended,
+                x_label=LABEL_UNCERTAINTY_THRESHOLDED_BIN,
+                recall_y_label=LABEL_GROUND_TRUTH_BINS_RECALL,
+                precision_y_label=LABEL_GROUND_TRUTH_BINS_PRECISION,
                 width=0.2,
                 y_lim_bottom=-2,
                 font_size_label=30,
                 font_size_tick=30,
             )
+            self._plot_metrics("jaccard", plot_config)
 
     def run_comparing_bins_analysis(self, config: ComparingBinsConfig) -> None:
         """
@@ -594,56 +731,59 @@ class QuantileBinningAnalyzer:
 
         if self.display_settings.get("errors"):
             uncertainty_categories = [[config.uncertainty_error_pair[0], config.uncertainty_error_pair[1]]]
-            self._plot_error_metrics(
-                combined_eval_data,
-                model_list,
-                uncertainty_categories,
-                category_labels,
-                num_bins_display,
-                plot_comparing_q_boxplot,
-                config.show_individual_target_plots,
-                config.ind_targets_to_show or [],
-                config.targets,
+            plot_config = self._create_plot_config(
+                eval_data=combined_eval_data,
+                models=model_list,
+                uncertainty_categories=uncertainty_categories,
+                category_labels=category_labels,
+                num_bins_display=num_bins_display,
+                plot_func=plot_comparing_q_boxplot,
+                show_individual_target_plots=config.show_individual_target_plots,
+                ind_targets_to_show=config.ind_targets_to_show or [],
                 detailed_mode=True,
+                target_indices=config.targets,
                 x_label=LABEL_Q_NUM_BINS,
             )
+            self._plot_metrics("error", plot_config)
 
         if self.display_settings.get("error_bounds"):
             uncertainty_categories = [[config.uncertainty_error_pair[0], config.uncertainty_error_pair[1]]]
-            self._plot_error_bounds_metrics(
-                combined_eval_data,
-                model_list,
-                uncertainty_categories,
-                category_labels,
-                num_bins_display,
-                plot_comparing_q_boxplot,
-                config.show_individual_target_plots,
-                config.ind_targets_to_show or [],
-                True,  # detailed_mode
-                config.percent_y_lim_extended,
-                config.targets,
+            plot_config = self._create_plot_config(
+                eval_data=combined_eval_data,
+                models=model_list,
+                uncertainty_categories=uncertainty_categories,
+                category_labels=category_labels,
+                num_bins_display=num_bins_display,
+                plot_func=plot_comparing_q_boxplot,
+                show_individual_target_plots=config.show_individual_target_plots,
+                ind_targets_to_show=config.ind_targets_to_show or [],
+                detailed_mode=True,
+                target_indices=config.targets,
+                percent_y_lim_extended=config.percent_y_lim_extended,
                 x_label=LABEL_Q_NUM_BINS,
             )
+            self._plot_metrics("error_bounds", plot_config)
 
         if self.display_settings.get("jaccard"):
             uncertainty_categories = [[config.uncertainty_error_pair[0], config.uncertainty_error_pair[1]]]
-            self._plot_jaccard_metrics(
-                combined_eval_data,
-                model_list,
-                uncertainty_categories,
-                category_labels,
-                num_bins_display,
-                plot_comparing_q_boxplot,
-                config.show_individual_target_plots,
-                config.ind_targets_to_show or [],
-                True,  # detailed_mode
-                config.percent_y_lim_standard,
-                config.percent_y_lim_extended,
-                config.targets,
+            plot_config = self._create_plot_config(
+                eval_data=combined_eval_data,
+                models=model_list,
+                uncertainty_categories=uncertainty_categories,
+                category_labels=category_labels,
+                num_bins_display=num_bins_display,
+                plot_func=plot_comparing_q_boxplot,
+                show_individual_target_plots=config.show_individual_target_plots,
+                ind_targets_to_show=config.ind_targets_to_show or [],
+                detailed_mode=True,
+                target_indices=config.targets,
+                percent_y_lim_standard=config.percent_y_lim_standard,
+                percent_y_lim_extended=config.percent_y_lim_extended,
                 x_label=LABEL_Q_NUM_BINS,
-                recall_y_label="Ground Truth Bins Recall (%)",
-                precision_y_label="Ground Truth Bins Precision (%)",
+                recall_y_label=LABEL_GROUND_TRUTH_BINS_RECALL_PERCENT,
+                precision_y_label=LABEL_GROUND_TRUTH_BINS_PRECISION_PERCENT,
             )
+            self._plot_metrics("jaccard", plot_config)
 
     def _get_save_location(self, suffix: str, show_individual_dots: bool) -> Optional[str]:
         """
@@ -711,311 +851,123 @@ class QuantileBinningAnalyzer:
             error_data,
             [[ERROR_DATA_MEAN_BINS_NOSEP, SUMMARY_ALL_TARGETS]],
             SUMMARY_MEAN_ERROR_TITLE,
-            os.path.join(self.save_folder, "target_errors.xlsx"),
+            os.path.join(self.save_folder, FILE_NAME_TARGET_ERRORS),
         )
         return {"errors": error_data, "jaccard": jaccard_data, "bounds": bounds_data, "bins": bins_all_targets}
 
-    def _plot_error_metrics(
-        self,
-        eval_data: Dict[str, Any],
-        models: List[str],
-        uncertainty_categories: List[List[str]],
-        category_labels: List[str],
-        num_bins_display: int,
-        plot_func: Callable[..., Any],
-        show_individual_target_plots: bool,
-        ind_targets_to_show: List[int],
-        target_indices: Optional[List[int]] = None,
-        detailed_mode: bool = False,
-        **kwargs: Any,
-    ):
+    def _plot_metrics(self, metric_type: str, config: MetricPlotConfig) -> None:
         """
-        Plot error-related metrics including individual errors and mean error across folds.
+        Unified method for plotting different types of metrics.
 
-        This method generates three types of error plots:
-        1. Main error plot aggregating all targets
-        2. Individual target plots (if requested)
-        3. Mean error across folds plot
+        This method replaces the three similar _plot_*_metrics methods with a single,
+        configurable approach that reduces code duplication.
 
         Args:
-            eval_data (Dict[str, Any]): Dictionary containing evaluation data with keys:
-                'errors' containing ERROR_DATA_ALL_CONCAT_NOSEP, ERROR_DATA_ALL_CONCAT_SEP, ERROR_DATA_MEAN_BINS_NOSEP.
-            models (List[str]): List of model names to compare.
-            uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
-                Each inner list contains [uncertainty_type, error_type].
-            category_labels (List[str]): Labels for x-axis categories (bins or Q values).
-            num_bins_display (int): Number of bins to display on the plot.
-            plot_func (Callable): Plotting function to use (plot_per_model_boxplot, plot_comparing_q_boxplot, etc.).
-            show_individual_target_plots (bool): Whether to generate separate plots for individual targets.
-            ind_targets_to_show (List[int]): List of target indices to plot individually. Empty list means none.
-            target_indices (Optional[List[int]]): Complete list of target indices for reference. Defaults to None.
-            detailed_mode (bool): Whether to use detailed plotting mode with enhanced features. Defaults to False.
-            **kwargs: Additional keyword arguments passed to the plotting function.
+            metric_type (str): Type of metric ('error', 'error_bounds', 'jaccard')
+            config (MetricPlotConfig): Configuration object containing all plotting parameters
         """
-        # Main error plot
-        self._plot_metric(
-            METRIC_NAME_ERROR,
-            plot_func,
-            eval_data["errors"][ERROR_DATA_ALL_CONCAT_NOSEP],
-            models,
-            uncertainty_categories,
-            category_labels,
-            show_sample_info=self.show_sample_info,
-            show_individual_dots=self.samples_as_dots_bool,
-            y_label=LABEL_LOCALIZATION_ERROR,
-            to_log=True,
-            convert_to_percent=False,
-            num_bins_display=num_bins_display,
-            y_lim_top=self.box_plot_error_lim,
-            detailed_mode=detailed_mode,
-            **kwargs,
-        )
+        if metric_type not in self._METRIC_DEFINITIONS:
+            raise ValueError(f"Unknown metric type: {metric_type}. Available: {list(self._METRIC_DEFINITIONS.keys())}")
 
-        # Individual target plots
-        if show_individual_target_plots:
-            self._plot_individual_targets(
-                METRIC_NAME_ERROR,
-                plot_func,
-                eval_data["errors"][ERROR_DATA_ALL_CONCAT_SEP],
-                ind_targets_to_show,
-                uncertainty_categories,
-                models,
-                category_labels,
-                num_bins_display,
-                show_sample_info=self.show_sample_info,
-                y_label=LABEL_LOCALIZATION_ERROR,
-                to_log=True,
-                convert_to_percent=False,
-                show_individual_dots=self.samples_as_dots_bool,
-                y_lim_top=self.box_plot_error_lim,
-                target_indices=target_indices,
-                detailed_mode=detailed_mode,
-                **kwargs,
+        metric_definitions = self._METRIC_DEFINITIONS[metric_type]
+
+        # Handle special case for jaccard metrics with custom y_labels from kwargs
+        if metric_type == "jaccard" and config.kwargs:
+            recall_y_label = config.kwargs.get("recall_y_label", LABEL_GROUND_TRUTH_BINS_RECALL)
+            precision_y_label = config.kwargs.get("precision_y_label", LABEL_GROUND_TRUTH_BINS_PRECISION)
+
+            # Update metric definitions with custom labels
+            for metric_def in metric_definitions:
+                if metric_def.metric_name == METRIC_NAME_RECALL_JACCARD:
+                    metric_def.y_label = recall_y_label
+                elif metric_def.metric_name == METRIC_NAME_PRECISION_JACCARD:
+                    metric_def.y_label = precision_y_label
+
+        # Get the appropriate data section
+        if metric_type == "error":
+            data_section = config.eval_data["errors"]
+        elif metric_type == "error_bounds":
+            data_section = config.eval_data["bounds"]
+        elif metric_type == "jaccard":
+            data_section = config.eval_data["jaccard"]
+
+        # Plot each metric definition
+        for metric_def in metric_definitions:
+            # Skip mean error folds for individual target plots
+            if metric_def.metric_name == METRIC_NAME_MEAN_ERROR_FOLDS and config.show_individual_target_plots:
+                continue
+
+            # Determine y_lim_top from config
+            if metric_def.y_lim_top_attr == "box_plot_error_lim":
+                y_lim_top = self.box_plot_error_lim
+            elif metric_def.y_lim_top_attr == "percent_y_lim_standard":
+                y_lim_top = config.percent_y_lim_standard
+            elif metric_def.y_lim_top_attr == "percent_y_lim_extended":
+                y_lim_top = config.percent_y_lim_extended
+            else:
+                y_lim_top = None
+
+            # Override with instance settings for sample info and dots
+            show_sample_info = (
+                self.show_sample_info if metric_def.metric_name == METRIC_NAME_ERROR else metric_def.show_sample_info
+            )
+            show_individual_dots = (
+                self.samples_as_dots_bool
+                if metric_def.metric_name == METRIC_NAME_ERROR
+                else metric_def.show_individual_dots
             )
 
-        # Mean error folds plot
-        self._plot_metric(
-            METRIC_NAME_MEAN_ERROR_FOLDS,
-            plot_func,
-            eval_data["errors"][ERROR_DATA_MEAN_BINS_NOSEP],
-            models,
-            uncertainty_categories,
-            category_labels,
-            y_label=LABEL_MEAN_ERROR,
-            to_log=True,
-            convert_to_percent=False,
-            num_bins_display=num_bins_display,
-            y_lim_top=self.box_plot_error_lim,
-            show_sample_info="None",
-            show_individual_dots=False,
-            detailed_mode=detailed_mode,
-            **kwargs,
-        )
+            # Prepare kwargs for this specific metric
+            metric_kwargs = config.kwargs.copy() if config.kwargs else {}
+            if "y_label" not in metric_kwargs:
+                metric_kwargs["y_label"] = metric_def.y_label
 
-    def _plot_error_bounds_metrics(
-        self,
-        eval_data: Dict[str, Any],
-        models: List[str],
-        uncertainty_categories: List[List[str]],
-        category_labels: List[str],
-        num_bins_display: int,
-        plot_func: Callable[..., Any],
-        show_individual_target_plots: bool,
-        ind_targets_to_show: List[int],
-        detailed_mode: bool,
-        percent_y_lim_extended: int,
-        target_indices: Optional[List[int]] = None,
-        **kwargs: Any,
-    ):
-        """
-        Plot error bounds related metrics for uncertainty quantification accuracy assessment.
-
-        This method generates error bounds plots that show how well the uncertainty estimates predict actual errors.
-        It creates both aggregated and individual target plots.
-
-        Args:
-            eval_data (Dict[str, Any]): Dictionary containing evaluation data with 'bounds' key
-                containing BOUNDS_DATA_ALL and BOUNDS_DATA_ALL_CONCAT_SEP data.
-            models (List[str]): List of model names to analyze.
-            uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
-                Each inner list contains [uncertainty_type, error_type].
-            category_labels (List[str]): Labels for x-axis categories (bins or Q values).
-            num_bins_display (int): Number of bins to display on the plot.
-            plot_func (Callable): Plotting function to use for visualization.
-            show_individual_target_plots (bool): Whether to generate separate plots for individual targets.
-            ind_targets_to_show (List[int]): List of target indices to plot individually.
-            detailed_mode (bool): Whether to use detailed plotting mode with enhanced features.
-            percent_y_lim_extended (int): Upper limit for y-axis when plotting percentages (typically 100-120).
-            target_indices (Optional[List[int]]): Complete list of target indices for reference. Defaults to None.
-            **kwargs: Additional keyword arguments passed to the plotting function including
-                width, y_lim_bottom, font_size_label, font_size_tick, x_label.
-        """
-        # Main error bounds plot
-        self._plot_metric(
-            METRIC_NAME_ERRORBOUND,
-            plot_func,
-            eval_data["bounds"][BOUNDS_DATA_ALL],
-            models,
-            uncertainty_categories,
-            category_labels,
-            y_label=LABEL_ERROR_BOUND_ACCURACY,
-            to_log=False,
-            convert_to_percent=True,
-            num_bins_display=num_bins_display,
-            show_sample_info="None",
-            show_individual_dots=False,
-            detailed_mode=detailed_mode,
-            y_lim_top=percent_y_lim_extended,
-            **kwargs,
-        )
-
-        # Individual target plots
-        if show_individual_target_plots:
-            self._plot_individual_targets(
-                METRIC_NAME_ERRORBOUND,
-                plot_func,
-                eval_data["bounds"][BOUNDS_DATA_ALL_CONCAT_SEP],
-                ind_targets_to_show,
-                uncertainty_categories,
-                models,
-                category_labels,
-                num_bins_display,
-                show_sample_info="None",
-                y_label=LABEL_ERROR_BOUND_ACCURACY,
-                to_log=False,
-                convert_to_percent=True,
-                show_individual_dots=False,
-                detailed_mode=detailed_mode,
-                target_indices=target_indices,
-                y_lim_top=percent_y_lim_extended,
-                **kwargs,
+            # Plot main metric
+            self._plot_metric(
+                metric_def.metric_name,
+                config.plot_func,
+                data_section[metric_def.data_key],
+                config.models,
+                config.uncertainty_categories,
+                config.category_labels,
+                show_sample_info=show_sample_info,
+                to_log=metric_def.to_log,
+                convert_to_percent=metric_def.convert_to_percent,
+                num_bins_display=config.num_bins_display,
+                show_individual_dots=show_individual_dots,
+                y_lim_top=y_lim_top,
+                detailed_mode=config.detailed_mode,
+                **metric_kwargs,
             )
 
-    def _plot_jaccard_metrics(
-        self,
-        eval_data: Dict[str, Any],
-        models: List[str],
-        uncertainty_categories: List[List[str]],
-        category_labels: List[str],
-        num_bins_display: int,
-        plot_func: Callable[..., Any],
-        show_individual_target_plots: bool,
-        ind_targets_to_show: List[int],
-        detailed_mode: bool,
-        percent_y_lim_standard: int,
-        percent_y_lim_extended: int,
-        target_indices: Optional[List[int]] = None,
-        **kwargs: Any,
-    ):
-        """
-        Plot Jaccard-related metrics including Jaccard index, recall, and precision.
+            # Plot individual targets if requested and data available
+            if config.show_individual_target_plots and metric_def.individual_data_key and config.ind_targets_to_show:
+                # Prepare kwargs for individual targets, ensuring no duplicate y_label
+                individual_kwargs = metric_kwargs.copy()
+                individual_kwargs.update(
+                    {
+                        "show_sample_info": show_sample_info,
+                        "y_label": metric_def.y_label,
+                        "to_log": metric_def.to_log,
+                        "convert_to_percent": metric_def.convert_to_percent,
+                        "show_individual_dots": show_individual_dots,
+                        "y_lim_top": y_lim_top,
+                        "target_indices": config.target_indices,
+                        "detailed_mode": config.detailed_mode,
+                    }
+                )
 
-        This method generates comprehensive Jaccard analysis plots that evaluate how well uncertainty-based bins match
-        ground truth error bins. It produces four types of plots:
-        1. Main Jaccard index plot (overlap between predicted and actual high-error regions)
-        2. Recall plot (sensitivity - how many actual high-error cases were identified)
-        3. Precision plot (specificity - how many identified cases were actually high-error)
-        4. Individual target plots (if requested)
-
-        Args:
-            eval_data (Dict[str, Any]): Dictionary containing evaluation data with 'jaccard' key
-                containing JACCARD_DATA_ALL, JACCARD_DATA_RECALL_ALL, JACCARD_DATA_PRECISION_ALL,
-                and JACCARD_DATA_ALL_CONCAT_SEP data.
-            models (List[str]): List of model names to analyze.
-            uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
-                Each inner list contains [uncertainty_type, error_type].
-            category_labels (List[str]): Labels for x-axis categories (bins or Q values).
-            num_bins_display (int): Number of bins to display on the plot.
-            plot_func (Callable): Plotting function to use for visualization.
-            show_individual_target_plots (bool): Whether to generate separate plots for individual targets.
-            ind_targets_to_show (List[int]): List of target indices to plot individually.
-            detailed_mode (bool): Whether to use detailed plotting mode with enhanced features.
-            percent_y_lim_standard (int): Standard upper limit for y-axis when plotting percentages (typically 70).
-            percent_y_lim_extended (int): Extended upper limit for y-axis for recall/precision plots (typically 120).
-            target_indices (Optional[List[int]]): Complete list of target indices for reference. Defaults to None.
-            **kwargs: Additional keyword arguments including recall_y_label, precision_y_label,
-                width, y_lim_bottom, font_size_label, font_size_tick, x_label.
-        """
-        # Main Jaccard plot
-        self._plot_metric(
-            METRIC_NAME_JACCARD,
-            plot_func,
-            eval_data["jaccard"][JACCARD_DATA_ALL],
-            models,
-            uncertainty_categories,
-            category_labels,
-            y_label=LABEL_JACCARD_INDEX,
-            to_log=False,
-            convert_to_percent=True,
-            num_bins_display=num_bins_display,
-            y_lim_top=percent_y_lim_standard,
-            show_sample_info="None",
-            detailed_mode=detailed_mode,
-            show_individual_dots=False,
-            **kwargs,
-        )
-
-        # Recall plot
-        recall_kwargs = kwargs.copy()
-        recall_kwargs["y_label"] = kwargs.get("recall_y_label", LABEL_GROUND_TRUTH_BINS_RECALL)
-        self._plot_metric(
-            METRIC_NAME_RECALL_JACCARD,
-            plot_func,
-            eval_data["jaccard"][JACCARD_DATA_RECALL_ALL],
-            models,
-            uncertainty_categories,
-            category_labels,
-            to_log=False,
-            convert_to_percent=True,
-            num_bins_display=num_bins_display,
-            y_lim_top=percent_y_lim_extended,
-            show_sample_info="None",
-            detailed_mode=detailed_mode,
-            show_individual_dots=False,
-            **recall_kwargs,
-        )
-
-        # Precision plot
-        precision_kwargs = kwargs.copy()
-        precision_kwargs["y_label"] = kwargs.get("precision_y_label", LABEL_GROUND_TRUTH_BINS_PRECISION)
-        self._plot_metric(
-            METRIC_NAME_PRECISION_JACCARD,
-            plot_func,
-            eval_data["jaccard"][JACCARD_DATA_PRECISION_ALL],
-            models,
-            uncertainty_categories,
-            category_labels,
-            to_log=False,
-            convert_to_percent=True,
-            num_bins_display=num_bins_display,
-            y_lim_top=percent_y_lim_extended,
-            show_sample_info="None",
-            show_individual_dots=False,
-            detailed_mode=detailed_mode,
-            **precision_kwargs,
-        )
-
-        # Individual target plots for Jaccard
-        if show_individual_target_plots:
-            self._plot_individual_targets(
-                METRIC_NAME_JACCARD,
-                plot_func,
-                eval_data["jaccard"][JACCARD_DATA_ALL_CONCAT_SEP],
-                ind_targets_to_show,
-                uncertainty_categories,
-                models,
-                category_labels,
-                num_bins_display,
-                show_sample_info="None",
-                y_label=LABEL_JACCARD_INDEX,
-                to_log=False,
-                y_lim_top=percent_y_lim_standard,
-                convert_to_percent=True,
-                show_individual_dots=False,
-                target_indices=target_indices,
-                detailed_mode=detailed_mode,
-                **kwargs,
-            )
+                self._plot_individual_targets(
+                    metric_def.metric_name,
+                    config.plot_func,
+                    data_section[metric_def.individual_data_key],
+                    config.ind_targets_to_show,
+                    config.uncertainty_categories,
+                    config.models,
+                    config.category_labels,
+                    config.num_bins_display,
+                    **individual_kwargs,
+                )
 
     def _plot_individual_targets(
         self,
@@ -1169,4 +1121,83 @@ class QuantileBinningAnalyzer:
             convert_to_percent=convert_to_percent,
             show_sample_info=show_sample_info,
             **kwargs,
+        )
+
+    def _create_plot_config(
+        self,
+        eval_data: Dict[str, Any],
+        models: List[str],
+        uncertainty_categories: List[List[str]],
+        category_labels: List[str],
+        num_bins_display: int,
+        plot_func: Callable[..., Any],
+        show_individual_target_plots: bool,
+        ind_targets_to_show: List[int],
+        detailed_mode: bool,
+        target_indices: Optional[List[int]] = None,
+        percent_y_lim_standard: int = 70,
+        percent_y_lim_extended: int = 120,
+        **kwargs: Any,
+    ) -> MetricPlotConfig:
+        """
+        Create a MetricPlotConfig object from the provided parameters.
+
+        This helper method reduces the number of arguments passed to plotting methods by encapsulating them in a
+        configuration object. It serves as a factory method to construct the MetricPlotConfig dataclass with
+        consistent parameter organization and default value handling.
+
+        Args:
+            eval_data (Dict[str, Any]): Comprehensive evaluation data dictionary containing computed metrics.
+                Structure: {'errors': {...}, 'bounds': {...}, 'jaccard': {...}, 'bins': {...}}.
+                Each metric category contains aggregated and separated data for all models and targets.
+            models (List[str]): List of model names to include in the plots (e.g., ['ResNet50', 'VGG16']).
+            uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations for plotting.
+                Each inner list contains [uncertainty_type, error_type] (e.g., [['epistemic', 'localization']]).
+            category_labels (List[str]): Labels for x-axis categories. Can be bin labels (e.g., ['B_10', 'B_9', ...])
+                or Q values (e.g., ['5', '10', '15', '20']).
+            num_bins_display (int): Number of bins to display in the plot. May differ from actual bin count if
+                combine_middle_bins is True (typically 3 for combined, 5-20 for uncombined).
+            plot_func (Callable[..., Any]): Plotting function to use for visualization. Options include:
+                - plot_per_model_boxplot: For individual bin comparison mode
+                - plot_comparing_q_boxplot: For Q-value comparison mode
+                - plot_generic_boxplot: For generic metric visualization
+            show_individual_target_plots (bool): Whether to generate separate plots for individual anatomical targets.
+            ind_targets_to_show (List[int]): List of target indices for which to generate individual plots.
+                Use [-1] to plot all targets, or specify indices (e.g., [0, 1, 2]).
+            detailed_mode (bool): Whether to use detailed plotting mode with enhanced visualization features.
+                Set to False for individual bin comparison, True for comparing Q analysis.
+            target_indices (Optional[List[int]], optional): Complete list of all target indices in the dataset.
+                Required when plotting individual targets to maintain proper indexing. Defaults to None.
+            percent_y_lim_standard (int, optional): Standard upper limit for percentage-based y-axis (0-100 scale).
+                Used for Jaccard Index plots. Defaults to 70.
+            percent_y_lim_extended (int, optional): Extended upper limit for percentage-based y-axis.
+                Used for error bounds and recall/precision plots where values may exceed 100%. Defaults to 120.
+            **kwargs (Any): Additional keyword arguments passed to the plotting functions. Common kwargs include:
+                - x_label (str): Custom x-axis label
+                - y_label (str): Custom y-axis label
+                - width (float): Bar width for boxplots
+                - y_lim_bottom (int): Lower y-axis limit
+                - font_size_label (int): Font size for axis labels
+                - font_size_tick (int): Font size for tick labels
+                - recall_y_label (str): Custom label for Jaccard recall plots
+                - precision_y_label (str): Custom label for Jaccard precision plots
+
+        Returns:
+            MetricPlotConfig: Configuration object encapsulating all plotting parameters in a structured format.
+                This object is passed to _plot_metrics() to generate the actual visualizations.
+        """
+        return MetricPlotConfig(
+            eval_data=eval_data,
+            models=models,
+            uncertainty_categories=uncertainty_categories,
+            category_labels=category_labels,
+            num_bins_display=num_bins_display,
+            plot_func=plot_func,
+            show_individual_target_plots=show_individual_target_plots,
+            ind_targets_to_show=ind_targets_to_show,
+            detailed_mode=detailed_mode,
+            target_indices=target_indices,
+            percent_y_lim_standard=percent_y_lim_standard,
+            percent_y_lim_extended=percent_y_lim_extended,
+            kwargs=kwargs,
         )
