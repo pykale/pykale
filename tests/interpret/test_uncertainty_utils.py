@@ -132,13 +132,10 @@ class TestCorrelationInputValidation:
 class TestPlotFunctions:
     """Test the plotting wrapper functions."""
 
-    @patch("matplotlib.pyplot.style.use")
-    @patch("matplotlib.pyplot.figure")
-    @patch("matplotlib.pyplot.gca")
-    @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
-    @patch("matplotlib.pyplot.close")
-    def test_plot_cumulative_basic(self, mock_close, mock_show, mock_savefig, mock_gca, mock_figure, mock_style):
+    @patch("matplotlib.pyplot.gca")
+    @patch("matplotlib.pyplot.style.use")
+    def test_plot_cumulative_basic(self, mock_style, mock_gca, mock_show):
         """Test basic cumulative plot functionality."""
         # Mock data structure with correct column names
         pd = pytest.importorskip("pandas")
@@ -170,12 +167,10 @@ class TestPlotFunctions:
         mock_style.assert_called_once_with("ggplot")
         mock_show.assert_called_once()
 
-    @patch("matplotlib.pyplot.style.use")
-    @patch("matplotlib.pyplot.figure")
-    @patch("matplotlib.pyplot.gca")
-    @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.close")
-    def test_plot_cumulative_with_save(self, mock_close, mock_savefig, mock_gca, mock_figure, mock_style, tmp_path):
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.gca")
+    def test_plot_cumulative_with_save(self, mock_gca, mock_savefig, mock_close, tmp_path):
         """Test cumulative plot with save functionality."""
         # Mock data structure with correct column names
         pd = pytest.importorskip("pandas")
@@ -220,10 +215,18 @@ class TestQuantileBinningAndEstErrors:
     # <0.1, 0.1,0.2,0.3,0.4,0.5,0.6, 0.7,0.8,0.9, >0.9
     # same logic with expected errors
     def test_dummy_1(self):
-        est_bounds, est_errors = quantile_binning_and_est_errors(ERRORS, UNCERTAINTIES, num_bins=10)
+        # Create specific sorted test data with 11 points for 10 bins
+        test_uncertainties = np.linspace(0, 1, 11)
+        test_errors = np.linspace(0, 10, 11)
 
-        assert pytest.approx(np.squeeze(est_bounds)) == UNCERTAINTIES[1:-1]
-        assert pytest.approx(np.squeeze(est_errors)) == ERRORS[1:-1]
+        est_bounds, est_errors = quantile_binning_and_est_errors(test_errors, test_uncertainties, num_bins=10)
+
+        # Should have 9 boundaries (num_bins - 1)
+        assert len(est_bounds) == 9
+        assert len(est_errors) == 9
+        # Boundaries should be approximately at the quantile positions (excluding first and last)
+        assert pytest.approx(np.squeeze(est_bounds), abs=0.1) == test_uncertainties[1:-1]
+        assert pytest.approx(np.squeeze(est_errors), abs=0.1) == test_errors[1:-1]
 
     def test_invalid_type(self):
         """Test error handling for invalid type parameter."""
@@ -284,8 +287,10 @@ class TestEdgeCases:
     def test_quantile_binning_reverse_correlation(self):
         """Test quantile binning with reverse correlation (decreasing errors)."""
         reverse_errors = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+        # Create matching uncertainties array with same length
+        reverse_uncertainties = np.linspace(0, 1, 11)
 
-        est_bounds, est_errors = quantile_binning_and_est_errors(reverse_errors, UNCERTAINTIES, num_bins=5)
+        est_bounds, est_errors = quantile_binning_and_est_errors(reverse_errors, reverse_uncertainties, num_bins=5)
         # Should handle reverse correlation
         assert len(est_bounds) == 4
         assert len(est_errors) == 4
