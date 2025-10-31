@@ -464,7 +464,7 @@ class CDANTrainerVideo(CDANTrainer):
         _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
         batch_size = len(y_s)
 
-        if self.entropy:
+        if self.use_entropy_weight:
             e_s = self._compute_entropy_weights(y_hat)
             e_t = self._compute_entropy_weights(y_t_hat)
             source_weight = e_s / torch.sum(e_s)
