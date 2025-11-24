@@ -13,7 +13,6 @@ SOURCE = "USPS"
 TARGET = "USPS"
 
 DA_METHODS = ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN", "FSDANN", "MME", "Source"]
-# DA_METHODS = ["WDGRL", "WDGRLMod",]
 
 WEIGHT_TYPE = "natural"
 DATASIZE_TYPE = "source"
@@ -53,15 +52,12 @@ def test_domain_adaptor(da_method, n_fewshot, download_path, testing_cfg):
         if da_method in ["DANN", "CDAN", "CDAN-E", "WDGRL", "WDGRLMod", "DAN", "JAN"]:
             return
 
-    # source, target, num_channels = DigitDataset.get_source_target(
-    #     DigitDataset(SOURCE), DigitDataset(TARGET), download_path
-    # )
     source = DigitDataset.get_access(DigitDataset(SOURCE), download_path)[0]
     target = DigitDataset.get_access(DigitDataset(TARGET), download_path)[0]
     data_access = MultiDomainAccess({"SOURCE": source, "TARGET": target}, 10, return_domain_label=True)
     num_channels = 1
     dataset = MultiDomainDataset(data_access, n_fewshot=n_fewshot)
-    # dataset = BinaryDomainDatasets(
+    # dataset = BiDomainDatasets(
     #     source, target, config_weight_type=WEIGHT_TYPE, config_size_type=DATASIZE_TYPE, n_fewshot=n_fewshot
     # )
 

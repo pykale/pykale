@@ -56,6 +56,7 @@ def main():
     )
 
     # ---- setup dataset ----
+    # Use the MultiDomainAccess to customise a multidomain data access
     data_src = DigitDataset(cfg.DATASET.SOURCE.upper())
     data_tgt = DigitDataset(cfg.DATASET.TARGET.upper())
     num_channels = max(DigitDataset.get_channel_numbers(data_src), DigitDataset.get_channel_numbers(data_tgt))
@@ -67,6 +68,7 @@ def main():
         cfg.DATASET.NUM_CLASSES,
         return_domain_label=True,
     )
+    # Alternatively, use the ImageAccess API to create a multidomain data access for digits data
     # data_access = ImageAccess.get_multi_domain_images(
     #     "DIGITS",
     #     cfg.DATASET.ROOT,

@@ -160,7 +160,7 @@ class BalancedBatchSampler(BatchSampler):
 
     def __init__(self, dataset, batch_size):
         labels = get_labels(dataset)
-        classes = torch.unique(labels)
+        classes = torch.unique(labels, sorted=True)
 
         n_classes = classes.shape[0]
         self._n_samples = batch_size // n_classes
@@ -203,7 +203,7 @@ class ReweightedBatchSampler(BatchSampler):
     # /!\ 'class_weights' should be provided in the "natural order" of the classes (i.e. sorted(classes)) /!\
     def __init__(self, dataset, batch_size, class_weights):
         labels = get_labels(dataset)
-        self._classes = torch.unique(labels).numpy()
+        self._classes = torch.unique(labels)
 
         n_classes = self._classes.shape[0]
         if n_classes > len(class_weights):
@@ -357,7 +357,6 @@ class DomainBalancedBatchSampler(BalancedBatchSampler):
 
     def __init__(self, dataset, batch_size):
         # call to __init__ of super class will generate class balanced sampler, do not do it here
-        super().__init__(dataset, batch_size)
         dataset_type = type(dataset)
         if dataset_type is Subset:
             domain_labels = np.asarray(dataset.dataset.domain_labels)[dataset.indices]

@@ -4,7 +4,7 @@ import pytest
 from yacs.config import CfgNode
 
 from kale.loaddata.video_access import VideoDataset
-from kale.loaddata.video_multi_domain import VideoBinaryDomainDatasets
+from kale.loaddata.video_multi_domain import VideoBiDomainDatasets
 from kale.pipeline import domain_adapter, video_domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 from kale.utils.seed import set_seed
@@ -83,7 +83,7 @@ def test_video_domain_adapter(source_cfg, target_cfg, image_modality, da_method,
         VideoDataset(source_name), VideoDataset(target_name), seed, cfg
     )
 
-    dataset = VideoBinaryDomainDatasets(
+    dataset = VideoBiDomainDatasets(
         source,
         target,
         image_modality=cfg.DATASET.IMAGE_MODALITY,

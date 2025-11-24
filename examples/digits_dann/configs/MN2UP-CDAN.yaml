@@ -5,4 +5,4 @@ DATASET:
   SOURCE: "mnist"
 
 SOLVER:
-  NUM_WORKERS: 19
+  NUM_WORKERS: 4

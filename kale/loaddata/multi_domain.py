@@ -99,7 +99,7 @@ class DomainsDatasetBase:
         raise NotImplementedError()
 
 
-class BinaryDomainDatasets(DomainsDatasetBase):
+class BiDomainDatasets(DomainsDatasetBase):
     def __init__(
         self,
         source_access: DatasetAccess,
@@ -133,7 +133,7 @@ class BinaryDomainDatasets(DomainsDatasetBase):
                 Used for deterministic sampling/few-shot label selection. Defaults to None.
             class_ids (list, optional): List of chosen subset of class ids. Defaults to None (=> All Classes).
         Examples::
-            >>> dataset = BinaryDomainDatasets(source_access, target_access)
+            >>> dataset = BiDomainDatasets(source_access, target_access)
         """
         weight_type = WeightingType(config_weight_type)
         size_type = DatasetSizeType(config_size_type)

@@ -6,7 +6,7 @@ from yacs.config import CfgNode
 
 from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.image_access import DigitDataset, DigitDatasetAccess, get_cifar, ImageAccess, load_images_from_dir
-from kale.loaddata.multi_domain import BinaryDomainDatasets, DomainsDatasetBase, MultiDomainDataset
+from kale.loaddata.multi_domain import BiDomainDatasets, DomainsDatasetBase, MultiDomainDataset
 
 
 @pytest.mark.parametrize("test_on_all", [True, False])
@@ -39,7 +39,7 @@ def test_custom_office(office_path, split_ratio):
     kwargs = {"download": False, "split_train_test": True, "split_ratio": split_ratio}
     source = ImageAccess.get_multi_domain_images("office", office_path, sub_domain_set=["dslr"], **kwargs)
     target = ImageAccess.get_multi_domain_images("office", office_path, sub_domain_set=["webcam"], **kwargs)
-    dataset = BinaryDomainDatasets(source_access=source, target_access=target)
+    dataset = BiDomainDatasets(source_access=source, target_access=target)
     dataset.prepare_data_loaders()
     dataloader = dataset.get_domain_loaders()
     testing.assert_equal(len(next(iter(dataloader))), 2)
@@ -77,7 +77,7 @@ def test_multi_domain_datasets(weight_type, datasize_type, download_path):
     assert isinstance(source, DigitDatasetAccess)
     assert isinstance(target, DigitDatasetAccess)
 
-    dataset = BinaryDomainDatasets(source, target, config_weight_type=weight_type, config_size_type=datasize_type)
+    dataset = BiDomainDatasets(source, target, config_weight_type=weight_type, config_size_type=datasize_type)
     assert isinstance(dataset, DomainsDatasetBase)
 
 
@@ -101,7 +101,7 @@ def test_class_subsets(class_subset, valid_ratio, download_path):
         DigitDataset(dataset_name), DigitDataset(dataset_name), download_path
     )
 
-    dataset_subset = BinaryDomainDatasets(
+    dataset_subset = BiDomainDatasets(
         source,
         target,
         config_weight_type=WEIGHT_TYPE[0],

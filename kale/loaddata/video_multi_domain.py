@@ -11,12 +11,12 @@ import numpy as np
 from sklearn.utils import check_random_state
 
 from kale.loaddata.dataset_access import get_class_subset
-from kale.loaddata.multi_domain import BinaryDomainDatasets, DatasetSizeType, WeightingType
+from kale.loaddata.multi_domain import BiDomainDatasets, DatasetSizeType, WeightingType
 from kale.loaddata.sampler import FixedSeedSamplingConfig, MultiDataLoader
 from kale.loaddata.video_access import get_image_modality
 
 
-class VideoBinaryDomainDatasets(BinaryDomainDatasets):
+class VideoBiDomainDatasets(BiDomainDatasets):
     def __init__(
         self,
         source_access_dict,
@@ -33,7 +33,7 @@ class VideoBinaryDomainDatasets(BinaryDomainDatasets):
         class_ids=None,
     ):
         """The class controlling how the source and target domains are iterated over when the input is joint.
-            Inherited from BinaryDomainDatasets.
+            Inherited from BiDomainDatasets.
         Args:
             source_access_dict (dictionary): dictionary of source RGB and flow dataset accessors
             target_access_dict (dictionary): dictionary of target RGB and flow dataset accessors
@@ -88,6 +88,7 @@ class VideoBinaryDomainDatasets(BinaryDomainDatasets):
         self.class_ids = class_ids
 
     def prepare_data_loaders(self, **kwargs):
+        # MultiDomainDataloader requires an additional arg to specify the target domain label
         if self.rgb:
             logging.debug("Load RGB train and valid")
             (self._rgb_source_by_split["train"], self._rgb_source_by_split["valid"]) = self._source_access_dict[
