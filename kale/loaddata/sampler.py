@@ -229,7 +229,7 @@ class ReweightedBatchSampler(BatchSampler):
             raise ValueError(f"batch_size should be bigger than the number of classes, got {batch_size}")
 
         self._class_to_iter = {
-            class_: InfiniteSliceIterator(np.where(labels == class_)[0], class_=class_) for class_ in self._classes
+            int(class_): InfiniteSliceIterator(np.where(labels == class_)[0], class_=class_) for class_ in self._classes
         }
 
         self.n_dataset = labels.shape[0]
@@ -251,7 +251,7 @@ class ReweightedBatchSampler(BatchSampler):
             )
             indices = []
             for class_, num in zip(*np.unique(class_idx, return_counts=True)):
-                indices.extend(self._class_to_iter[class_].get(num))
+                indices.extend(self._class_to_iter[int(class_)].get(num))
             np.random.shuffle(indices)
             yield indices
 
@@ -263,6 +263,14 @@ class ReweightedBatchSampler(BatchSampler):
 
 
 def _ensure_tensor(labels):
+    """Convert labels to a torch tensor.
+
+    Args:
+        labels: A torch tensor, numpy array, or sequence of label values.
+
+    Returns:
+        torch.Tensor: Labels as a tensor on the default device.
+    """
     if isinstance(labels, torch.Tensor):
         return labels
     return torch.tensor(labels)
@@ -275,6 +283,14 @@ _SPECIAL_LABEL_ATTRS = {
 
 
 def _extract_labels_from_dataset(dataset):
+    """Extract labels from common dataset attributes.
+
+    Args:
+        dataset: A dataset instance expected to expose labels/targets attributes (e.g., torchvision datasets).
+
+    Returns:
+        torch.Tensor or None: Label tensor if found; otherwise None.
+    """
     dataset_type = type(dataset)
     primary_attr = _SPECIAL_LABEL_ATTRS.get(dataset_type)
     candidates = [primary_attr] if primary_attr else []
