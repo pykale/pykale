@@ -20,6 +20,7 @@ from kale.loaddata.multi_domain import MultiDomainAccess, MultiDomainDataset
 from kale.utils.seed import set_seed
 
 torch.set_float32_matmul_precision("medium")
+# relax the precision of float32 matrix multiplications to improve speed on some GPUs
 
 
 def arg_parse():

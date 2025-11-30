@@ -113,8 +113,9 @@ class BiDomainDatasets(DomainsDatasetBase):
         random_state=None,
         class_ids=None,
     ):
-        """The class controlling how the source and target domains are
-            iterated over.
+        """The class controlling how two domains, one source and one target, are iterated over.
+        Each iteration yields batches from the source and target domains, (x_s, y_s), (x_t, y_t) for unsupervised DA,
+        or (x_s, y_s), (x_t_l, y_t_l), (x_t_u, y_t_u) for semi-supervised DA.
 
         Args:
             source_access (DatasetAccess): accessor for the source dataset
@@ -551,6 +552,9 @@ class MultiDomainAccess(DatasetAccess):
 
 class MultiDomainDataset(DomainsDatasetBase):
     """The class controlling how the multiple domains are iterated over.
+
+    Each iteration yields a batch (X, y, d) where d is the domain label.
+    Specify the target domain using its label in the data_access object.
 
     Args:
         data_access (MultiDomainImageFolder, or MultiDomainAccess): Multi-domain data access.
