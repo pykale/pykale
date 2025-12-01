@@ -160,12 +160,14 @@ class BalancedBatchSampler(BatchSampler):
 
     def __init__(self, dataset, batch_size):
         labels = get_labels(dataset)
-        classes = sorted(set(labels))
+        classes = torch.unique(labels, sorted=True)
 
-        n_classes = len(classes)
+        n_classes = classes.shape[0]
         self._n_samples = batch_size // n_classes
         if self._n_samples == 0:
-            raise ValueError(f"batch_size should be bigger than the number of classes, got {batch_size}")
+            raise ValueError(
+                f"batch_size should be bigger than the number of classes, the number of classes is {n_classes}, got {batch_size}"
+            )
 
         self._class_iters = [InfiniteSliceIterator(np.where(labels == class_)[0], class_=class_) for class_ in classes]
 
@@ -201,9 +203,9 @@ class ReweightedBatchSampler(BatchSampler):
     # /!\ 'class_weights' should be provided in the "natural order" of the classes (i.e. sorted(classes)) /!\
     def __init__(self, dataset, batch_size, class_weights):
         labels = get_labels(dataset)
-        self._classes = sorted(set(labels))
+        self._classes = torch.unique(labels)
 
-        n_classes = len(self._classes)
+        n_classes = self._classes.shape[0]
         if n_classes > len(class_weights):
             k = len(class_weights)
             sum_w = np.sum(class_weights)
@@ -227,10 +229,10 @@ class ReweightedBatchSampler(BatchSampler):
             raise ValueError(f"batch_size should be bigger than the number of classes, got {batch_size}")
 
         self._class_to_iter = {
-            class_: InfiniteSliceIterator(np.where(labels == class_)[0], class_=class_) for class_ in self._classes
+            int(class_): InfiniteSliceIterator(np.where(labels == class_)[0], class_=class_) for class_ in self._classes
         }
 
-        self.n_dataset = len(labels)
+        self.n_dataset = labels.shape[0]
         self._batch_size = batch_size
         self._n_batches = self.n_dataset // self._batch_size
         if self._n_batches == 0:
@@ -249,7 +251,7 @@ class ReweightedBatchSampler(BatchSampler):
             )
             indices = []
             for class_, num in zip(*np.unique(class_idx, return_counts=True)):
-                indices.extend(self._class_to_iter[class_].get(num))
+                indices.extend(self._class_to_iter[int(class_)].get(num))
             np.random.shuffle(indices)
             yield indices
 
@@ -260,34 +262,71 @@ class ReweightedBatchSampler(BatchSampler):
         return self._n_batches
 
 
+def _ensure_tensor(labels):
+    """Convert labels to a torch tensor.
+
+    Args:
+        labels: A torch tensor, numpy array, or sequence of label values.
+
+    Returns:
+        torch.Tensor: Labels as a tensor on the default device.
+    """
+    if isinstance(labels, torch.Tensor):
+        return labels
+    return torch.tensor(labels)
+
+
+_SPECIAL_LABEL_ATTRS = {
+    datasets.SVHN: "labels",
+    datasets.ImageFolder: "targets",
+}
+
+
+def _extract_labels_from_dataset(dataset):
+    """Extract labels from common dataset attributes.
+
+    Args:
+        dataset: A dataset instance expected to expose labels/targets attributes (e.g., torchvision datasets).
+
+    Returns:
+        torch.Tensor or None: Label tensor if found; otherwise None.
+    """
+    dataset_type = type(dataset)
+    primary_attr = _SPECIAL_LABEL_ATTRS.get(dataset_type)
+    candidates = [primary_attr] if primary_attr else []
+    candidates.extend(["labels", "targets"])
+
+    for attr in candidates:
+        if attr and hasattr(dataset, attr):
+            values = getattr(dataset, attr)
+            if attr == "targets":
+                logging.debug(getattr(values, "shape", None), type(values))
+            return _ensure_tensor(values)
+    return None
+
+
 def get_labels(dataset):
     """
     Get class labels for dataset
     """
 
-    dataset_type = type(dataset)
-    if dataset_type is datasets.SVHN:
-        return dataset.labels
-    if dataset_type is datasets.ImageFolder:
-        return np.array(dataset.targets)
+    if isinstance(dataset, Subset):
+        indices = torch.tensor(dataset.indices)
+        base_labels = get_labels(dataset.dataset)
+        logging.debug(
+            f"data subset of len {len(indices)} from {len(base_labels) if base_labels is not None else 'unknown'}"
+        )
+        if base_labels is None:
+            logging.error(type(dataset.dataset))
+            return None
+        return _ensure_tensor(base_labels)[indices]
 
-    # Handle subset, recurses into non-subset version
-    if dataset_type is Subset:
-        indices = dataset.indices
-        all_labels = get_labels(dataset.dataset)
-        logging.debug(f"data subset of len {len(indices)} from {len(all_labels)}")
-        labels = all_labels[indices]
-        if isinstance(labels, torch.Tensor):
-            return labels.numpy()
-        return labels
-
-    try:
-        logging.debug(dataset.targets.shape, type(dataset.targets))
-        if isinstance(dataset.targets, torch.Tensor):
-            return dataset.targets.numpy()
-        return dataset.targets
-    except AttributeError:
+    labels = _extract_labels_from_dataset(dataset)
+    if labels is None:
         logging.error(type(dataset))
+        return None
+
+    return labels
 
 
 class InfiniteSliceIterator:

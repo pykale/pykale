@@ -79,6 +79,7 @@ def get_model(cfg, dataset, num_channels):
             dataset=dataset,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
+            target_domain=cfg.DATASET.TARGET.upper(),
             **method_params,
             **train_params_local,
         )
@@ -102,6 +103,7 @@ def get_model(cfg, dataset, num_channels):
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             critic=critic_network,
+            target_domain=cfg.DATASET.TARGET.upper(),
             **method_params,
             **train_params_local,
         )

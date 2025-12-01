@@ -58,7 +58,6 @@ example_requires = [
     "pwlf",
     "wfdb",
     "xlsxwriter",
-    "prettytable",
     "comet_ml",
     "neurokit2<=0.2.11",  # neurokit2 0.2.11 requires requires python>=3.10
     "captum",

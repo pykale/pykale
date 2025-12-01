@@ -14,7 +14,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from kale.loaddata.image_access import ImageAccess
-from kale.loaddata.multi_domain import MultiDomainAdapDataset
+from kale.loaddata.multi_domain import MultiDomainDataset
 from kale.utils.seed import set_seed
 
 
@@ -70,7 +70,7 @@ def main():
     # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = cfg.SOLVER.SEED + i * 10
-        dataset = MultiDomainAdapDataset(data_access, random_state=seed)
+        dataset = MultiDomainDataset(data_access, random_state=seed)
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----

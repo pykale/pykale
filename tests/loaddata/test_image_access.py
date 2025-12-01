@@ -6,7 +6,7 @@ from yacs.config import CfgNode
 
 from kale.loaddata.dataset_access import get_class_subset
 from kale.loaddata.image_access import DigitDataset, DigitDatasetAccess, get_cifar, ImageAccess, load_images_from_dir
-from kale.loaddata.multi_domain import DomainsDatasetBase, MultiDomainAdapDataset, MultiDomainDatasets
+from kale.loaddata.multi_domain import BiDomainDatasets, DomainsDatasetBase, MultiDomainDataset
 
 
 @pytest.mark.parametrize("test_on_all", [True, False])
@@ -16,7 +16,7 @@ def test_office31(office_path, test_on_all):
     )
     testing.assert_equal(len(office_access.class_to_idx), 31)
     testing.assert_equal(len(office_access.domain_to_idx), 3)
-    dataset = MultiDomainAdapDataset(office_access, test_on_all=test_on_all)
+    dataset = MultiDomainDataset(office_access, test_on_all=test_on_all)
     dataset.prepare_data_loaders()
     domain_labels = list(dataset.domain_to_idx.values())
     for split in ["train", "valid", "test"]:
@@ -39,7 +39,7 @@ def test_custom_office(office_path, split_ratio):
     kwargs = {"download": False, "split_train_test": True, "split_ratio": split_ratio}
     source = ImageAccess.get_multi_domain_images("office", office_path, sub_domain_set=["dslr"], **kwargs)
     target = ImageAccess.get_multi_domain_images("office", office_path, sub_domain_set=["webcam"], **kwargs)
-    dataset = MultiDomainDatasets(source_access=source, target_access=target)
+    dataset = BiDomainDatasets(source_access=source, target_access=target)
     dataset.prepare_data_loaders()
     dataloader = dataset.get_domain_loaders()
     testing.assert_equal(len(next(iter(dataloader))), 2)
@@ -77,7 +77,7 @@ def test_multi_domain_datasets(weight_type, datasize_type, download_path):
     assert isinstance(source, DigitDatasetAccess)
     assert isinstance(target, DigitDatasetAccess)
 
-    dataset = MultiDomainDatasets(source, target, config_weight_type=weight_type, config_size_type=datasize_type)
+    dataset = BiDomainDatasets(source, target, config_weight_type=weight_type, config_size_type=datasize_type)
     assert isinstance(dataset, DomainsDatasetBase)
 
 
@@ -101,7 +101,7 @@ def test_class_subsets(class_subset, valid_ratio, download_path):
         DigitDataset(dataset_name), DigitDataset(dataset_name), download_path
     )
 
-    dataset_subset = MultiDomainDatasets(
+    dataset_subset = BiDomainDatasets(
         source,
         target,
         config_weight_type=WEIGHT_TYPE[0],
@@ -131,7 +131,7 @@ def test_multi_domain_digits(download_path):
     data_access = ImageAccess.get_multi_domain_images(
         "DIGITS", download_path, sub_domain_set=["SVHN", "USPS_RGB", "MNISTM"], return_domain_label=True
     )
-    dataset = MultiDomainAdapDataset(data_access)
+    dataset = MultiDomainDataset(data_access)
     dataset.prepare_data_loaders()
     dataloader = dataset.get_domain_loaders(split="test", batch_size=10)
     assert len(next(iter(dataloader))) == 3
