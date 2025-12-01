@@ -57,7 +57,7 @@ def main():
     )
 
     # ---- setup dataset ----
-    # Use the MultiDomainAccess to customise a multidomain data access
+    # Use the MultiDomainAccess to customize a multidomain data access
     data_src = DigitDataset(cfg.DATASET.SOURCE.upper())
     data_tgt = DigitDataset(cfg.DATASET.TARGET.upper())
     num_channels = max(DigitDataset.get_channel_numbers(data_src), DigitDataset.get_channel_numbers(data_tgt))
