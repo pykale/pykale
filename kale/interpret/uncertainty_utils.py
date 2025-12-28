@@ -322,12 +322,12 @@ def quantile_binning_and_est_errors(
             estimated_errors.append(q_error_higher[0])
             uncert_boundaries.append(q_conf_higher)
 
-    elif type == "error_wise":
+    elif type == "error-wise":
         quantiles = np.arange(num_bins - 1, dtype=float)
         estimated_errors = [[(acceptable_thresh * x)] for x in quantiles]
 
         uncert_boundaries = [(ir.predict(x)).tolist() for x in estimated_errors]
-        raise NotImplementedError("error_wise Quantile Binning not implemented yet")
+        raise NotImplementedError("error-wise Quantile Binning not implemented yet")
 
     # IF combine bins, we grab only the values for the two outer bins
     if combine_middle_bins:

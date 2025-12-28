@@ -251,11 +251,10 @@ class TestQuantileBinningAndEstErrors:
         assert len(est_errors) == 2
 
     def test_error_wise_type_handling(self):
-        """Test that error_wise type is handled properly."""
-        # error-wise type is implemented and should return valid results
-        est_bounds, est_errors = quantile_binning_and_est_errors(ERRORS, UNCERTAINTIES, num_bins=5, type="error-wise")
-        assert isinstance(est_bounds, list)
-        assert isinstance(est_errors, list)
+        """Test that error_wise type raises NotImplementedError (not yet implemented)."""
+        # error-wise type is not implemented yet and should raise NotImplementedError
+        with pytest.raises(NotImplementedError, match="error-wise Quantile Binning not implemented yet"):
+            quantile_binning_and_est_errors(ERRORS, UNCERTAINTIES, num_bins=5, type="error-wise")
 
 
 class TestEdgeCases:
