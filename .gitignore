@@ -1,5 +1,12 @@
+# Python runtime artefacts
 */**/__pycache__
 */__pycache__
+
+# Python virtual environments
+.venv/
+venv/
+
+# Large data, model checkpoints, and binary artefacts
 *.dcm
 *.pt
 *.pth
@@ -11,7 +18,6 @@
 build/
 dist/
 *.egg-info/
-
 
 # Pycharm
 .idea
@@ -42,7 +48,6 @@ docs/source/backup
 cov*.xml
 tests/test_data
 tests/*/tests
-
 
 # Lightning
 lightning_logs
