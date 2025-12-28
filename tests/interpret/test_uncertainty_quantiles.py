@@ -4,11 +4,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from kale.interpret.box_plot import (
-    BoxPlotData,
-    create_boxplot_config,
-    create_boxplot_data,
-)
+from kale.interpret.box_plot import BoxPlotData, create_boxplot_config, create_boxplot_data
 from kale.interpret.uncertainty_quantiles import (
     plot_comparing_q_boxplot,
     plot_generic_boxplot,

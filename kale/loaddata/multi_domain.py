@@ -9,13 +9,52 @@ from enum import Enum
 from typing import Any, Callable, cast, Dict, List, Optional, Tuple
 
 import numpy as np
+import torch
 import torch.utils.data
-from sklearn.utils import check_random_state
 from torchvision.datasets import VisionDataset
 from torchvision.datasets.folder import default_loader, has_file_allowed_extension, IMG_EXTENSIONS
 
 from kale.loaddata.dataset_access import DatasetAccess, get_class_subset, split_by_ratios
 from kale.loaddata.sampler import FixedSeedSamplingConfig, get_labels, MultiDataLoader, SamplingConfig
+
+_MAX_TORCH_SEED = 2**63 - 1
+
+
+def _seed_from_random_state(random_state):
+    """Normalize different RNG providers to a torch-compatible seed."""
+    if random_state is None:
+        return None
+    if isinstance(random_state, (int, np.integer)):
+        return int(random_state)
+    if isinstance(random_state, np.random.RandomState):
+        return int(random_state.randint(0, _MAX_TORCH_SEED))
+    if isinstance(random_state, np.random.Generator):
+        return int(random_state.integers(0, _MAX_TORCH_SEED))
+    raise TypeError("random_state must be an int, torch.Generator, numpy RandomState/Generator, or None.")
+
+
+def _setup_torch_generator(random_state=None, *, device: Optional[torch.device] = None):
+    """Create a torch.Generator from various random state inputs."""
+    if isinstance(random_state, torch.Generator):
+        generator = random_state
+        return generator.initial_seed(), generator
+
+    device = torch.device("cpu") if device is None else device
+    generator = torch.Generator(device=device)
+
+    seed = _seed_from_random_state(random_state)
+    if seed is None:
+        seed = generator.seed()
+    else:
+        generator.manual_seed(seed)
+
+    return seed, generator
+
+
+def _resolve_generator(random_state=None):
+    """Return a torch.Generator for downstream sampling."""
+    _, generator = _setup_torch_generator(random_state)
+    return generator
 
 
 class WeightingType(Enum):
@@ -60,7 +99,7 @@ class DomainsDatasetBase:
         raise NotImplementedError()
 
 
-class MultiDomainDatasets(DomainsDatasetBase):
+class BiDomainDatasets(DomainsDatasetBase):
     def __init__(
         self,
         source_access: DatasetAccess,
@@ -74,8 +113,9 @@ class MultiDomainDatasets(DomainsDatasetBase):
         random_state=None,
         class_ids=None,
     ):
-        """The class controlling how the source and target domains are
-            iterated over.
+        """The class controlling how two domains, one source and one target, are iterated over.
+        Each iteration yields batches from the source and target domains, (x_s, y_s), (x_t, y_t) for unsupervised DA,
+        or (x_s, y_s), (x_t_l, y_t_l), (x_t_u, y_t_u) for semi-supervised DA.
 
         Args:
             source_access (DatasetAccess): accessor for the source dataset
@@ -90,11 +130,11 @@ class MultiDomainDatasets(DomainsDatasetBase):
                 (=> RandomSampler).
             n_fewshot (int, optional): Number of target samples for which the label may be used,
                 to define the few-shot, semi-supervised setting. Defaults to None.
-            random_state ([int|np.random.RandomState], optional): Used for deterministic sampling/few-shot label
-                selection. Defaults to None.
+            random_state ([int|np.random.RandomState|np.random.Generator|torch.Generator], optional):
+                Used for deterministic sampling/few-shot label selection. Defaults to None.
             class_ids (list, optional): List of chosen subset of class ids. Defaults to None (=> All Classes).
         Examples::
-            >>> dataset = MultiDomainDatasets(source_access, target_access)
+            >>> dataset = BiDomainDatasets(source_access, target_access)
         """
         weight_type = WeightingType(config_weight_type)
         size_type = DatasetSizeType(config_size_type)
@@ -128,7 +168,7 @@ class MultiDomainDatasets(DomainsDatasetBase):
         # )
         self._size_type = size_type
         self._n_fewshot = n_fewshot
-        self._random_state = check_random_state(random_state)
+        self._random_state = _resolve_generator(random_state)
         self._source_by_split: Dict[str, torch.utils.data.Subset] = {}
         self._labeled_target_by_split = None
         self._target_by_split: Dict[str, torch.utils.data.Subset] = {}
@@ -137,42 +177,39 @@ class MultiDomainDatasets(DomainsDatasetBase):
     def is_semi_supervised(self):
         return self._n_fewshot is not None and self._n_fewshot > 0
 
-    def prepare_data_loaders(self):
-        logging.debug("Load source")
-        (
-            self._source_by_split["train"],
-            self._source_by_split["valid"],
-        ) = self._source_access.get_train_valid(self._valid_split_ratio)
-        if self.class_ids is not None:
-            self._source_by_split["train"] = get_class_subset(self._source_by_split["train"], self.class_ids)
-            self._source_by_split["valid"] = get_class_subset(self._source_by_split["valid"], self.class_ids)
+    def prepare_data_loaders(self, **kwargs):
+        self._load_source_splits()
+        self._load_target_splits()
+        if not self.is_semi_supervised():
+            return
+        self._prepare_fewshot_target()
 
-        logging.debug("Load target")
-        (
-            self._target_by_split["train"],
-            self._target_by_split["valid"],
-        ) = self._target_access.get_train_valid(self._valid_split_ratio)
-        if self.class_ids is not None:
-            self._target_by_split["train"] = get_class_subset(self._target_by_split["train"], self.class_ids)
-            self._target_by_split["valid"] = get_class_subset(self._target_by_split["valid"], self.class_ids)
+    def _load_source_splits(self):
+        logging.debug("Load source")
+        train_split, valid_split = self._source_access.get_train_valid(self._valid_split_ratio)
+        self._source_by_split["train"] = self._filter_classes(train_split)
+        self._source_by_split["valid"] = self._filter_classes(valid_split)
 
         logging.debug("Load source Test")
-        self._source_by_split["test"] = self._source_access.get_test()
-        if self.class_ids is not None:
-            self._source_by_split["test"] = get_class_subset(self._source_by_split["test"], self.class_ids)
-        logging.debug("Load target Test")
-        self._target_by_split["test"] = self._target_access.get_test()
-        if self.class_ids is not None:
-            self._target_by_split["test"] = get_class_subset(self._target_by_split["test"], self.class_ids)
+        self._source_by_split["test"] = self._filter_classes(self._source_access.get_test())
 
-        if self._n_fewshot is not None and self._n_fewshot > 0:
-            # semi-supervised target domain
-            self._labeled_target_by_split = {}
-            for part in ["train", "valid", "test"]:
-                (
-                    self._labeled_target_by_split[part],
-                    self._target_by_split[part],
-                ) = _split_dataset_few_shot(self._target_by_split[part], self._n_fewshot)
+    def _load_target_splits(self):
+        logging.debug("Load target")
+        train_split, valid_split = self._target_access.get_train_valid(self._valid_split_ratio)
+        self._target_by_split["train"] = self._filter_classes(train_split)
+        self._target_by_split["valid"] = self._filter_classes(valid_split)
+
+        logging.debug("Load target Test")
+        self._target_by_split["test"] = self._filter_classes(self._target_access.get_test())
+
+    def _prepare_fewshot_target(self):
+        # semi-supervised target domain
+        return
+
+    def _filter_classes(self, dataset):
+        if self.class_ids is None or dataset is None:
+            return dataset
+        return get_class_subset(dataset, self.class_ids)
 
     def get_domain_loaders(self, split="train", batch_size=32, num_workers=0):
         source_ds = self._source_by_split[split]
@@ -212,53 +249,25 @@ class MultiDomainDatasets(DomainsDatasetBase):
             return DatasetSizeType.get_size(self._size_type, source_ds, labeled_target_ds, target_ds)
 
 
-def _split_dataset_few_shot(dataset, n_fewshot, random_state=None):
-    if n_fewshot <= 0:
-        raise ValueError(f"n_fewshot should be > 0, not '{n_fewshot}'")
-    assert n_fewshot > 0
-    labels = get_labels(dataset)
-    classes = sorted(set(labels))
-    if n_fewshot < 1:
-        max_few = len(dataset) // len(classes)
-        n_fewshot = round(max_few * n_fewshot)
-    n_fewshot = int(round(n_fewshot))
-
-    random_state = check_random_state(random_state)
-    # sample n_fewshot items per class from last dataset
-    tindices = []
-    uindices = []
-    for class_ in classes:
-        indices = np.where(labels == class_)[0]
-        random_state.shuffle(indices)
-        head, tail = np.split(indices, [n_fewshot])
-        assert len(head) == n_fewshot
-        tindices.append(head)
-        uindices.append(tail)
-    tindices = np.concatenate(tindices)
-    uindices = np.concatenate(uindices)
-    assert len(tindices) == len(classes) * n_fewshot
-    labeled_dataset = torch.utils.data.Subset(dataset, tindices)
-    unlabeled_dataset = torch.utils.data.Subset(dataset, uindices)
-    return labeled_dataset, unlabeled_dataset
-
-
 def _domain_stratified_split(domain_labels, n_partitions, split_ratios):
     """Get domain stratified indices of random split. Samples with the same domain label will be split based on the
         given ratios. Then the indices of different domains within the same split will be concatenated.
 
     Args:
-        domain_labels (array-like): Labels to indicate which domains the samples are from.
+        domain_labels (torch.Tensor, list, or array-like): Labels to indicate which domains the samples are from.
         n_partitions (int): Number of partitions to split, 2 <= n_partitions <= len(split_ratios) + 1.
         split_ratios (list): Ratios of splits to be produced, where 0 < sum(split_ratios) <= 1.
 
     Returns:
         [list]: Indices for different splits.
     """
-    domains = np.unique(domain_labels)
+    if not isinstance(domain_labels, torch.Tensor):
+        domain_labels = torch.tensor(domain_labels)
+    domains = torch.unique(domain_labels)
     subset_idx = [[] for _ in range(n_partitions)]
     for domain_label_ in domains:
-        domain_idx = np.where(domain_labels == domain_label_)[0]
-        subsets = split_by_ratios(torch.from_numpy(domain_idx), split_ratios)
+        domain_idx = torch.where(domain_labels == domain_label_)[0]
+        subsets = split_by_ratios(domain_idx, split_ratios)
         for i in range(n_partitions):
             subset_idx[i].append(domain_idx[subsets[i].indices])
 
@@ -354,7 +363,7 @@ class MultiDomainImageFolder(VisionDataset):
         self.targets = [s[1] for s in samples]
         self.domains = domains
         self.domain_to_idx = domain_to_idx
-        self.domain_labels = [s[2] for s in samples]
+        self.domain_labels = torch.tensor([s[2] for s in samples])
         self.return_domain_label = return_domain_label
         self.split_train_test = split_train_test
         self.split_ratio = split_ratio
@@ -541,55 +550,236 @@ class MultiDomainAccess(DatasetAccess):
         return len(self.get_train()) + len(self.get_test())
 
 
-class MultiDomainAdapDataset(DomainsDatasetBase):
+class MultiDomainDataset(DomainsDatasetBase):
     """The class controlling how the multiple domains are iterated over.
+
+    Each iteration yields a batch (X, y, d) where d is the domain label.
+    Specify the target domain using its label in the data_access object.
 
     Args:
         data_access (MultiDomainImageFolder, or MultiDomainAccess): Multi-domain data access.
         valid_split_ratio (float, optional): Split ratio for validation set. Defaults to 0.1.
         test_split_ratio (float, optional): Split ratio for test set. Defaults to 0.2.
-        random_state (int, optional): Random state for generator. Defaults to 1.
+        random_state (Union[int, np.random.RandomState, np.random.Generator, torch.Generator], optional):
+            Random state for generator. Defaults to 1.
+        n_fewshot (int or float, optional): Number or ratio of target samples for which the label may be used, default to 0 (n).
         test_on_all (bool, optional): Whether test model on all target. Defaults to False.
     """
 
     def __init__(
-        self, data_access, valid_split_ratio=0.1, test_split_ratio=0.2, random_state: int = 1, test_on_all=False
+        self,
+        data_access,
+        valid_split_ratio=0.1,
+        test_split_ratio=0.2,
+        random_state: int = 1,
+        n_fewshot: int = 0,
+        test_on_all=False,
     ):
-        self.domain_to_idx = data_access.domain_to_idx
+        self.domain_to_idx = data_access.domain_to_idx.copy()
         self.n_domains = len(data_access.domain_to_idx)
         self.data_access = data_access
         self._valid_split_ratio = valid_split_ratio
         self._test_split_ratio = test_split_ratio
         self._sample_by_split: Dict[str, torch.utils.data.Subset] = {}
-        self._sampling_config = FixedSeedSamplingConfig(seed=random_state, balance_domain=True)
+        sampling_seed, generator = _setup_torch_generator(random_state)
+        self._sampling_config = FixedSeedSamplingConfig(seed=sampling_seed, balance_domain=True)
+        assert isinstance(n_fewshot, int) or (isinstance(n_fewshot, float) and 0 < n_fewshot < 1)
+        if n_fewshot < 0:
+            raise ValueError(f"n_fewshot should be >= 0, not '{n_fewshot}'")
+        self._n_fewshot = n_fewshot
         self._loader = MultiDataLoader
-        self._random_state = random_state
+        self._random_state = generator
         self.test_on_all = test_on_all
 
-    def prepare_data_loaders(self):
+    def prepare_data_loaders(self, target_domain=None):
         splits = ["test", "valid", "train"]
-        self._sample_by_split["test"] = self.data_access.get_test()
-        if self._sample_by_split["test"] is None:
-            # split test, valid, and train set if the data access no train test splits
-            if self.test_on_all:
-                subset_idx = _domain_stratified_split(self.data_access.domain_labels, 2, [self._valid_split_ratio])
-                self._sample_by_split["valid"] = torch.utils.data.Subset(self.data_access, subset_idx[0])
-                self._sample_by_split["train"] = torch.utils.data.Subset(self.data_access, subset_idx[1])
-                self._sample_by_split["test"] = torch.utils.data.Subset(self.data_access, np.concatenate(subset_idx))
-            else:
-                subset_idx = _domain_stratified_split(
-                    self.data_access.domain_labels, 3, [self._test_split_ratio, self._valid_split_ratio]
-                )
-                for i in range(len(splits)):
-                    self._sample_by_split[splits[i]] = torch.utils.data.Subset(self.data_access, subset_idx[i])
-        else:
-            # use original data split if get_test() is not none
+        self._initialize_splits(splits)
+        if not (self.is_semi_supervised() and target_domain):
+            return
+        self._apply_semi_supervised(target_domain, splits)
+
+    def _initialize_splits(self, splits):
+        test_split = self.data_access.get_test()
+        self._sample_by_split["test"] = test_split
+        if test_split is not None:
             self._sample_by_split["valid"], self._sample_by_split["train"] = self.data_access.get_train_valid(
                 self._valid_split_ratio
             )
+            return
+
+        if self.test_on_all:
+            subset_idx = _domain_stratified_split(self.data_access.domain_labels, 2, [self._valid_split_ratio])
+            self._sample_by_split["valid"] = torch.utils.data.Subset(self.data_access, subset_idx[0])
+            self._sample_by_split["train"] = torch.utils.data.Subset(self.data_access, subset_idx[1])
+            self._sample_by_split["test"] = torch.utils.data.Subset(self.data_access, np.concatenate(subset_idx))
+            return
+
+        subset_idx = _domain_stratified_split(
+            self.data_access.domain_labels, 3, [self._test_split_ratio, self._valid_split_ratio]
+        )
+        for split_name, indices in zip(splits, subset_idx):
+            self._sample_by_split[split_name] = torch.utils.data.Subset(self.data_access, indices)
+
+    def _apply_semi_supervised(self, target_domain, splits):
+        target_domain_label = self.domain_to_idx[target_domain]
+        target_labeled_key = f"{target_domain}_labeled"
+        target_unlabeled_key = f"{target_domain}_unlabeled"
+        few_shot_domain_label = self._register_few_shot_domains(
+            target_domain_label, target_labeled_key, target_unlabeled_key
+        )
+
+        for split_name in splits:
+            split_data = self._sample_by_split[split_name]
+            if isinstance(split_data, torch.utils.data.Subset):
+                self._update_subset_split(
+                    split_data,
+                    target_domain,
+                    target_domain_label,
+                    target_labeled_key,
+                    target_unlabeled_key,
+                    few_shot_domain_label,
+                )
+                continue
+
+            self._update_dataset_split(
+                split_data,
+                target_domain,
+                target_domain_label,
+                target_labeled_key,
+                target_unlabeled_key,
+                few_shot_domain_label,
+            )
+
+        self.domain_to_idx.pop(target_domain)
+
+    def _register_few_shot_domains(self, target_domain_label, target_labeled_key, target_unlabeled_key):
+        self.n_domains += 1
+        few_shot_domain_label = self.n_domains - 1
+        self.domain_to_idx[target_unlabeled_key] = few_shot_domain_label
+        self.domain_to_idx[target_labeled_key] = target_domain_label
+        return few_shot_domain_label
+
+    def _update_subset_split(
+        self,
+        split_data,
+        target_domain,
+        target_domain_label,
+        target_labeled_key,
+        target_unlabeled_key,
+        few_shot_domain_label,
+    ):
+        dataset = split_data.dataset
+        self._ensure_dataset_mappings(
+            dataset.domain_to_idx,
+            target_domain,
+            target_domain_label,
+            target_labeled_key,
+            target_unlabeled_key,
+            few_shot_domain_label,
+        )
+        split_indices = split_data.indices
+        split_domain_labels = dataset.domain_labels[split_indices]
+        dataset_labels = get_labels(dataset)
+        if dataset_labels is None:
+            raise ValueError(f"Unable to extract labels from dataset of type {type(dataset)}")
+        split_labels = dataset_labels[split_indices]
+        labeled_idx = _get_few_shot_labeled_idx(
+            split_labels,
+            split_domain_labels,
+            target_domain_label,
+            self._n_fewshot,
+            self._random_state,
+        )
+        mapped_labeled_idx = torch.tensor(split_indices)[labeled_idx]
+        dataset.domain_labels[mapped_labeled_idx] = few_shot_domain_label
+
+    def _update_dataset_split(
+        self,
+        split_data,
+        target_domain,
+        target_domain_label,
+        target_labeled_key,
+        target_unlabeled_key,
+        few_shot_domain_label,
+    ):
+        self._ensure_dataset_mappings(
+            split_data.domain_to_idx,
+            target_domain,
+            target_domain_label,
+            target_labeled_key,
+            target_unlabeled_key,
+            few_shot_domain_label,
+        )
+        split_labels = get_labels(split_data)
+        if split_labels is None:
+            raise ValueError(f"Unable to extract labels from dataset of type {type(split_data)}")
+        labeled_idx = _get_few_shot_labeled_idx(
+            split_labels,
+            split_data.domain_labels,
+            target_domain_label,
+            self._n_fewshot,
+            self._random_state,
+        )
+        split_data.domain_labels[labeled_idx] = few_shot_domain_label
+
+    @staticmethod
+    def _ensure_dataset_mappings(
+        domain_to_idx,
+        target_domain,
+        target_domain_label,
+        target_labeled_key,
+        target_unlabeled_key,
+        few_shot_domain_label,
+    ):
+        if target_unlabeled_key in domain_to_idx:
+            return
+        domain_to_idx[target_unlabeled_key] = target_domain_label
+        domain_to_idx[target_labeled_key] = few_shot_domain_label
+        domain_to_idx.pop(target_domain)
+
+    def is_semi_supervised(self):
+        return self._n_fewshot > 0
 
     def get_domain_loaders(self, split="train", batch_size=32, num_workers=0):
         return self._sampling_config.create_loader(self._sample_by_split[split], batch_size, num_workers)
 
     def __len__(self):
         return len(self.data_access)
+
+
+def _get_few_shot_labeled_idx(labels, domain_labels, target_domain_label, n_fewshot, random_state):
+    """Get few-shot labeled indices for the target domain.
+    Args:
+        labels (torch.Tensor): Labels of all samples.
+        domain_labels (torch.Tensor): Domain labels of all samples.
+        target_domain_label (int): Domain label of the target domain.
+        n_fewshot (int or float): Number or ratio of target samples for which the label may be used.
+        random_state (Union[int, np.random.RandomState, np.random.Generator, torch.Generator]):
+            Random state for generator.
+    Returns:
+        torch.Tensor: Indices of few-shot labeled samples in the target domain.
+    """
+    num_target = torch.sum(domain_labels == target_domain_label).item()
+    classes = labels.unique()
+
+    if n_fewshot < 1:
+        max_few = num_target // len(classes)
+        num_fewshot = int(round(max_few * n_fewshot))
+    else:
+        num_fewshot = int(round(n_fewshot))
+
+    labeled_idx = []
+
+    generator = _resolve_generator(random_state)
+    for class_ in classes:
+        mask = (labels == class_) & (domain_labels == target_domain_label)
+        indices = mask.nonzero(as_tuple=True)[0]
+        indices_cpu = indices.cpu()
+        perm = torch.randperm(indices_cpu.numel(), generator=generator)
+        indices = indices_cpu[perm].to(indices.device)
+        head, tail = torch.split(indices, [num_fewshot, len(indices) - num_fewshot])
+        labeled_idx.append(head)
+
+    labeled_idx = torch.concatenate(labeled_idx)
+
+    return labeled_idx

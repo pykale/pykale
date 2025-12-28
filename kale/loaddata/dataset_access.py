@@ -64,7 +64,7 @@ def split_by_ratios(dataset, split_ratios):
     """Randomly split a dataset into non-overlapping new datasets of given ratios.
 
     Args:
-        dataset (torch.utils.data.Dataset): Dataset to be split.
+        dataset (torch.utils.data.Dataset, list, or Tensor): Dataset or data indices to be split.
         split_ratios (list): Ratios of splits to be produced, where 0 < sum(split_ratios) <= 1.
 
     Returns:

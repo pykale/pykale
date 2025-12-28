@@ -13,7 +13,7 @@ from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, TQDMProgressBar
 
 from kale.loaddata.video_access import VideoDataset
-from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
+from kale.loaddata.video_multi_domain import VideoBiDomainDatasets
 from kale.utils.seed import set_seed
 
 # from pytorch_lightning.callbacks.early_stopping import EarlyStopping
@@ -52,7 +52,7 @@ def main():
     source, target, num_classes = VideoDataset.get_source_target(
         VideoDataset(cfg.DATASET.SOURCE.upper()), VideoDataset(cfg.DATASET.TARGET.upper()), seed, cfg
     )
-    dataset = VideoMultiDomainDatasets(
+    dataset = VideoBiDomainDatasets(
         source,
         target,
         image_modality=cfg.DATASET.IMAGE_MODALITY,

@@ -81,7 +81,7 @@ def create_dann_like_video(
             task_classifier=task_classifier,
             critic=critic,
             method=method,
-            use_entropy=method is Method.CDAN_E,
+            use_entropy_weight=method is Method.CDAN_E,
             **train_params,
         )
     elif method is Method.WDGRL:
@@ -107,11 +107,20 @@ class BaseMMDLikeVideo(BaseMMDLike):
         image_modality,
         feature_extractor,
         task_classifier,
+        target_domain=None,
         kernel_mul=2.0,
         kernel_num=5,
         **base_params,
     ):
-        super().__init__(dataset, feature_extractor, task_classifier, kernel_mul, kernel_num, **base_params)
+        super().__init__(
+            dataset,
+            feature_extractor,
+            task_classifier,
+            target_domain=target_domain,
+            kernel_mul=kernel_mul,
+            kernel_num=kernel_num,
+            **base_params,
+        )
         self.image_modality = image_modality
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
@@ -247,7 +256,7 @@ class DANNTrainerVideo(DANNTrainer):
         **base_params,
     ):
         super(DANNTrainerVideo, self).__init__(
-            dataset, feature_extractor, task_classifier, critic, method, **base_params
+            dataset, feature_extractor, task_classifier, critic, method=method, **base_params
         )
         self.image_modality = image_modality
         self.rgb, self.flow = get_image_modality(self.image_modality)
@@ -376,13 +385,20 @@ class CDANTrainerVideo(CDANTrainer):
         feature_extractor,
         task_classifier,
         critic,
-        use_entropy=False,
+        use_entropy_weight=False,
         use_random=False,
         random_dim=1024,
         **base_params,
     ):
         super(CDANTrainerVideo, self).__init__(
-            dataset, feature_extractor, task_classifier, critic, use_entropy, use_random, random_dim, **base_params
+            dataset,
+            feature_extractor,
+            task_classifier,
+            critic,
+            use_entropy_weight=use_entropy_weight,
+            use_random=use_random,
+            random_dim=random_dim,
+            **base_params,
         )
         self.image_modality = image_modality
         self.rgb, self.flow = get_image_modality(image_modality)
@@ -448,7 +464,7 @@ class CDANTrainerVideo(CDANTrainer):
         _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow] = self.forward({"rgb": x_tu_rgb, "flow": x_tu_flow})
         batch_size = len(y_s)
 
-        if self.entropy:
+        if self.use_entropy_weight:
             e_s = self._compute_entropy_weights(y_hat)
             e_t = self._compute_entropy_weights(y_t_hat)
             source_weight = e_s / torch.sum(e_s)

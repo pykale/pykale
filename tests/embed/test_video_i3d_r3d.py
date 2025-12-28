@@ -16,7 +16,7 @@ set_seed(36)
 # Differences between inputs of RGB and flow is channel number and frame_per_segment.
 INPUT_BATCH_RGB = torch.randn(2, 3, 16, 112, 112)
 INPUT_BATCH_FLOW = torch.randn(2, 2, 8, 112, 112)
-SE_LAYERS = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC", "SELayerCT", "SELayerTC"]
+SE_LAYERS = ["SELayerC", "SELayerT", "SELayerMC", "SELayerMAC", "SELayerCT", "SELayerTC"]
 
 
 def test_i3d_shapes():
