@@ -439,9 +439,9 @@ class CoIRLS(BaseEstimator, ClassifierMixin):
         """
         out = self.decision_function(x)
         if self._label_binarizer.y_type_ == "binary":
-            pred = self._label_binarizer.inverse_transform(torch.sign(out).view(-1))
-        else:
-            pred = self._label_binarizer.inverse_transform(out)
+            out = torch.sign(out).view(-1)
+
+        pred = self._label_binarizer.inverse_transform(out.detach().cpu().numpy())
 
         return pred
 
