@@ -148,6 +148,8 @@ All new code should be covered by tests following the [`pykale` test guidelines]
 
 A maintainer assigned to review a pull request should follow GitHub guidelines on how to [review changes in pull requests](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/reviewing-changes-in-pull-requests) and [incorporate changes from a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/incorporating-changes-from-a-pull-request) to review and merge the pull requests. Merging can be automated (see [Automation](#automation)), in which case an approving review will trigger the merging. You should NOT approve the changes if they are not ready to merge.
 
+Maintainers may run an automated review first (Copilot review and/or Codex) to surface potential issues early. Human reviewers then focus on API/architecture decisions and scientific validity, and may follow up with deeper discussion.
+
 If you think you are not the right person to review, let the administrator (haipinglu) know for a reassignment. If multiple reviewers are assigned, anyone can approve and merge unless more approvals are explicitly required.
 
 For simple problems, such as typos, hyperlinks, the reviewers can fix it directly and push the changes rather than comment and wait for the author to fix. This will speed up the development.
