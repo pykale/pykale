@@ -35,7 +35,7 @@ import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     import matplotlib.axes
@@ -2141,3 +2141,222 @@ class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
 
             # Apply spacing and store labels for this Q value
             self._apply_q_spacing_and_store_labels(box_x_positions)
+
+
+def execute_boxplot(
+    plot_func: Callable[..., Any],
+    evaluation_data_by_bins: List[Any],
+    uncertainty_categories: List[List[str]],
+    models: List[str],
+    category_labels: List[str],
+    num_bins_display: int,
+    save_path: Optional[str],
+    boxplot_config_base: Dict[str, Any],
+    show_individual_dots: bool,
+    detailed_mode: bool,
+    x_label: Optional[str] = None,
+    y_label: Optional[str] = None,
+    to_log: bool = False,
+    convert_to_percent: bool = False,
+    show_sample_info: str = "None",
+    **kwargs: Any,
+) -> None:
+    """
+    Create boxplot data and configuration, then execute the plotting function.
+
+    This unified helper function encapsulates the common pattern of creating boxplot data, creating boxplot
+    configuration, and calling the plotting function. It reduces code duplication across all plotting methods.
+
+    Args:
+        plot_func (Callable): The plotting function to use (plot_generic_boxplot, plot_per_model_boxplot,
+            plot_comparing_q_boxplot).
+        evaluation_data_by_bins (List[Any]): Raw evaluation data organized by bins or categories.
+        uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
+        models (List[str]): List of model names to analyze.
+        category_labels (List[str]): Labels for x-axis categories.
+        num_bins_display (int): Number of bins to display on the plot.
+        save_path (Optional[str]): Complete save path for the plot. None if not saving.
+        boxplot_config_base (Dict[str, Any]): Base configuration dictionary for boxplot aesthetics.
+        show_individual_dots (bool): Whether to show individual data points as dots.
+        detailed_mode (bool): Whether to use detailed plotting mode.
+        x_label (Optional[str]): Label for the x-axis. If None, not included in config.
+        y_label (Optional[str]): Label for the y-axis. If None, not included in config.
+        to_log (bool): Whether to use logarithmic scaling for the y-axis. Defaults to False.
+        convert_to_percent (bool): Whether to convert values to percentages. Defaults to False.
+        show_sample_info (str): Mode for displaying sample size information. Defaults to "None".
+        **kwargs: Additional keyword arguments passed to the boxplot configuration.
+    """
+    boxplot_data = create_boxplot_data(
+        evaluation_data_by_bins=evaluation_data_by_bins,
+        uncertainty_categories=uncertainty_categories,
+        models=models,
+        category_labels=category_labels,
+        num_bins=num_bins_display,
+    )
+
+    # Build config parameters dynamically
+    config_params = {
+        "save_path": save_path,
+        "detailed_mode": detailed_mode,
+        "show_individual_dots": show_individual_dots,
+        "to_log": to_log,
+        "convert_to_percent": convert_to_percent,
+        "show_sample_info": show_sample_info,
+        **kwargs,
+        **boxplot_config_base,
+    }
+
+    # Add optional parameters only if provided
+    if x_label is not None:
+        config_params["x_label"] = x_label
+    if y_label is not None:
+        config_params["y_label"] = y_label
+
+    boxplot_config = create_boxplot_config(**config_params)
+    plot_func(boxplot_data, boxplot_config)
+
+
+def plot_generic_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
+    """
+    Create generic multi-model boxplot for uncertainty quantification analysis.
+
+    This function generates boxplots comparing multiple models across different uncertainty bins or categories. It's
+    designed for comparative analysis of model performance in medical imaging uncertainty quantification workflows.
+
+    Args:
+        data (BoxPlotData): Data container object containing all required inputs:
+            - colormap: Matplotlib colormap name for consistent visual distinction across plots.
+            - evaluation_data_by_bins: Dictionary mapping model+uncertainty combinations to binned data
+            - uncertainty_categories: List of uncertainty type groupings
+            - models: List of model identifiers for comparison
+            - category_labels: Labels for x-axis categories (bins, quantiles, etc.)
+            - num_bins: Number of bins for data organization
+        config (BoxPlotConfig): Configuration object containing all display parameters:
+            - x_label: Label for x-axis
+            - y_label: Label for y-axis
+            - save_path: File path for saving the figure (optional)
+            - show_individual_dots: Whether to show individual data points
+            - y_lim_top/y_lim_bottom: Y-axis limits
+            - font_size_label/font_size_tick: Font size settings
+            - Additional styling and display options
+
+    Example:
+        >>> data = create_boxplot_data(
+        ...     evaluation_data_by_bins=error_data,
+        ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
+        ...     models=['ResNet50', 'VGG16']
+        ... )
+        >>> config = create_boxplot_config(
+        ...     colormap='Set1',
+        ...     x_label="Uncertainty Bins",
+        ...     y_label="Localization Error (mm)",
+        ...     save_path="comparison.pdf"
+        ... )
+        >>> plot_generic_boxplot(data, config)
+    """
+    plotter = GenericBoxPlotter(data, config)
+    plotter.process_data()
+    plotter.draw_boxplot()
+
+
+def plot_per_model_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
+    """
+    Generate per-model boxplot for individual model performance analysis.
+
+    This function creates boxplots that focus on analyzing the performance of individual models across different
+    uncertainty bins. It's particularly useful for detailed model-specific uncertainty quantification analysis in
+    medical imaging applications.
+
+    Args:
+        data (BoxPlotData): Data container object containing all required inputs:
+            - colormap: Matplotlib colormap name for consistent visual distinction across plots.
+            - evaluation_data_by_bins: Dictionary mapping model+uncertainty combinations to binned data
+            - uncertainty_categories: List of uncertainty type groupings for the specific model
+            - models: List containing the model identifier(s) being analyzed
+            - category_labels: Labels for x-axis categories (uncertainty bins, thresholds, etc.)
+            - num_bins: Number of bins used for uncertainty organization
+        config (BoxPlotConfig): Configuration object containing all display parameters:
+            - x_label: Label for x-axis (e.g., "Uncertainty Thresholded Bin")
+            - y_label: Label for y-axis (e.g., "Localization Error (mm)")
+            - save_path: File path for saving the figure (optional)
+            - show_individual_dots: Whether to display individual data points as dots
+            - show_sample_info: Mode for displaying sample size information
+            - y_lim_top/y_lim_bottom: Y-axis limits for consistent scaling
+            - to_log: Whether to use logarithmic y-axis scaling
+            - Additional styling and formatting options
+
+    Example:
+        >>> data = create_boxplot_data(
+        ...     evaluation_data_by_bins=model_error_data,
+        ...     uncertainty_categories=[['epistemic', 'aleatoric']],
+        ...     models=['ResNet50'],
+        ...     category_labels=['Low', 'Medium', 'High']
+        ... )
+        >>> config = create_boxplot_config(
+        ...     colormap='Set1',
+        ...     x_label="Uncertainty Thresholded Bin",
+        ...     y_label="Localization Error (mm)",
+        ...     to_log=True,
+        ...     save_path="resnet_analysis.pdf"
+        ... )
+        >>> plot_per_model_boxplot(data, config)
+    """
+    plotter = PerModelBoxPlotter(data, config)
+    plotter.process_data()
+    plotter.draw_boxplot()
+
+
+def plot_comparing_q_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
+    """
+    Create boxplot comparing different Q values for quantile threshold optimization.
+
+    This function generates boxplots that compare the impact of different quantile thresholds (Q values) on uncertainty
+    quantification performance. It's essential for optimizing binning strategies and understanding threshold
+    sensitivity in medical imaging applications.
+
+    Args:
+        data (BoxPlotData): Data container object containing all required inputs:
+            - colormap: Matplotlib colormap name for visual distinction
+            - evaluation_data_by_bins: List of dictionaries, one per Q value, containing binned evaluation data
+            - uncertainty_categories: List of uncertainty type groupings (typically single uncertainty type)
+            - models: List containing the model identifier(s) being compared across Q values
+            - category_labels: Labels for x-axis categories representing Q values (e.g., ['Q=5', 'Q=10', 'Q=15'])
+            - num_bins: Number of bins used within each Q value configuration
+        config (BoxPlotConfig): Configuration object containing all display parameters:
+            - x_label: Label for x-axis (e.g., "Q (# Bins)")
+            - y_label: Label for y-axis (e.g., "Localization Error (mm)")
+            - hatch_type: Hatching pattern for distinguishing Q-comparison plots (e.g., '///')
+            - color: Base color for the boxplots
+            - save_path: File path for saving the figure (optional)
+            - show_individual_dots: Whether to display individual data points
+            - y_lim_top/y_lim_bottom: Y-axis limits
+            - to_log: Whether to use logarithmic y-axis scaling
+            - Additional styling and formatting options
+
+    Raises:
+        ValueError: If required fields (evaluation_data_by_bins, uncertainty_categories, models) are missing.
+
+    Example:
+        >>> # Compare Q=5 vs Q=10 vs Q=15 quantile thresholds
+        >>> data = create_boxplot_data(
+        ...     evaluation_data_by_bins=[q5_results, q10_results, q15_results],
+        ...     uncertainty_categories=[['epistemic']],
+        ...     models=['ResNet50'],
+        ...     category_labels=['Q=5', 'Q=10', 'Q=15']
+        ... )
+        >>> config = create_boxplot_config(
+        ...     x_label="Q (# Bins)",
+        ...     y_label="Localization Error (mm)",
+        ...     hatch_type='///',
+        ...     colormap='Set1',
+        ...     save_path="q_comparison.pdf"
+        ... )
+        >>> plot_comparing_q_boxplot(data, config)
+    """
+    if not all([data.evaluation_data_by_bins, data.uncertainty_categories, data.models]):
+        raise ValueError(
+            "For comparing_q plots, data must include evaluation_data_by_bins, uncertainty_categories, and models"
+        )
+
+    plotter = ComparingQBoxPlotter(data, config)
+    plotter.draw_boxplot()

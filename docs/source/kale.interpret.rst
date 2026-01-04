@@ -14,14 +14,6 @@ kale.interpret.box\_plot module
    :undoc-members:
    :show-inheritance:
 
-kale.interpret.correlation\_analysis module
---------------------------------------------
-
-.. automodule:: kale.interpret.correlation_analysis
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.interpret.model\_weights module
 ------------------------------------
 
@@ -34,6 +26,14 @@ kale.interpret.uncertainty\_quantiles module
 --------------------------------------------
 
 .. automodule:: kale.interpret.uncertainty_quantiles
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.interpret.uncertainty\_utils module
+--------------------------------------------
+
+.. automodule:: kale.interpret.uncertainty_utils
    :members:
    :undoc-members:
    :show-inheritance:
