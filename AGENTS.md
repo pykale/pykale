@@ -1,6 +1,6 @@
 # Automated Review Guidance for PyKale
 
-This file guides automated reviewers (Codex/Copilot) and humans reviewing pull requests. Keep feedback low-noise, friendly, and focused on what blocks a merge. Follow the tone of the contributing guide and the pull request template.
+This file guides automated reviewers (Codex) and humans reviewing pull requests. Keep feedback low-noise, friendly, and focused on what blocks a merge. Follow the tone of the contributing guide and the pull request template.
 
 ## Priorities
 - Assume good intent and keep comments actionable.
