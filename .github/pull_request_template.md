@@ -6,7 +6,11 @@ A few sentences describing the changes proposed in this pull request.
 ### Status
 **Ready/Work in progress/Hold**
 
-If you've been given access to pykale with role Triage or above, on the right (delete these after selection):
+### Automated review (delete after viewing)
+Maintainers may run automated reviewers (Copilot review and/or @codex review) as a first pass. Please focus responses on Must-fix and Important items first. If something is unclear, ask for clarification.
+
+### Review labels and assignment (delete after selection)
+If you've been given access to pykale with role Triage or above, on the right:
 
 - Select **one most appropriate** label.
 - **When** your pull request is **ready** for review, select a reviewer. Use the suggested one if unsure.

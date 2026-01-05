@@ -54,13 +54,12 @@ class DigitDataset(Enum):
         return transform_names[(dataset, n_channels)]
 
     @staticmethod
-    def get_access(dataset: "DigitDataset", data_path, num_channels=None):
+    def get_access(dataset: "DigitDataset", data_path):
         """Gets data loaders for digit datasets
 
         Args:
             dataset (DigitDataset): dataset name
             data_path (string): root directory of dataset
-            num_channels (int): number of channels, defaults to None
 
         Examples::
             >>> data_access, num_channel = DigitDataset.get_access(dataset, data_path)
@@ -74,8 +73,8 @@ class DigitDataset(Enum):
             DigitDataset.USPS_RGB: USPSDatasetAccess,
             DigitDataset.SVHN: SVHNDatasetAccess,
         }
-        if num_channels is None:
-            num_channels = DigitDataset.get_channel_numbers(dataset)
+
+        num_channels = DigitDataset.get_channel_numbers(dataset)
         tf = DigitDataset.get_digit_transform(dataset, num_channels)
 
         return factories[dataset](data_path, tf), num_channels
@@ -96,8 +95,8 @@ class DigitDataset(Enum):
         src_n_channels = DigitDataset.get_channel_numbers(source)
         tgt_n_channels = DigitDataset.get_channel_numbers(target)
         num_channels = max(src_n_channels, tgt_n_channels)
-        src_access, src_n_channels = DigitDataset.get_access(source, data_path, num_channels)
-        tgt_access, tgt_n_channels = DigitDataset.get_access(target, data_path, num_channels)
+        src_access, src_n_channels = DigitDataset.get_access(source, data_path)
+        tgt_access, tgt_n_channels = DigitDataset.get_access(target, data_path)
 
         return src_access, tgt_access, num_channels
 

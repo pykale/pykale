@@ -7,7 +7,7 @@ from torch.nn.functional import one_hot
 from kale.embed.image_cnn import ResNet18Feature
 from kale.interpret.visualize import distplot_1d
 from kale.loaddata.image_access import ImageAccess
-from kale.loaddata.multi_domain import MultiDomainAdapDataset
+from kale.loaddata.multi_domain import MultiDomainDataset
 from kale.pipeline.multi_domain_adapter import CoIRLS, create_ms_adapt_trainer
 from kale.predict.class_domain_nets import ClassNetSmallImage
 from tests.helpers.pipe_test_helper import ModelTestHelper
@@ -43,7 +43,7 @@ MSDA_METHODS = ["MFSAN", "M3SDA", "DIN"]
 def test_multi_source(method, input_dimension, office_caltech_access, testing_cfg):
     if method != "MFSAN" and input_dimension == 2:
         pytest.skip()
-    dataset = MultiDomainAdapDataset(office_caltech_access)
+    dataset = MultiDomainDataset(office_caltech_access)
     feature_network = ResNet18Feature()
     # setup classifier
     classifier_network = ClassNetSmallImage
@@ -70,7 +70,7 @@ def test_multi_source(method, input_dimension, office_caltech_access, testing_cf
 
 @pytest.mark.parametrize("kernel", ["linear", "rbf"])
 def test_coirls(kernel, office_caltech_access):
-    dataset = MultiDomainAdapDataset(office_caltech_access)
+    dataset = MultiDomainDataset(office_caltech_access)
     dataset.prepare_data_loaders()
     dataloader = dataset.get_domain_loaders(split="train", batch_size=100)
     feature_network = ResNet18Feature()

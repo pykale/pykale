@@ -58,7 +58,6 @@ example_requires = [
     "pwlf",
     "wfdb",
     "xlsxwriter",
-    "prettytable",
     "comet_ml",
     "neurokit2<=0.2.11",  # neurokit2 0.2.11 requires requires python>=3.10
     "captum",
@@ -127,7 +126,7 @@ setup(
         "Source": "https://github.com/pykale/pykale",
     },
     packages=find_packages(exclude=("docs", "examples", "tests")),
-    python_requires=">=3.9,<3.13",
+    python_requires=">=3.10,<3.13",
     install_requires=install_requires,
     extras_require={
         "graph": graph_requires,

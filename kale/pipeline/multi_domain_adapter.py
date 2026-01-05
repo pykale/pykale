@@ -48,7 +48,7 @@ def create_ms_adapt_trainer(method: str, dataset, feature_extractor, task_classi
 
     Args:
         method (str): Multi-source domain adaptation method, M3SDA or MFSAN
-        dataset (kale.loaddata.multi_domain.MultiDomainAdapDataset): the multi-domain datasets to be used for train,
+        dataset (kale.loaddata.multi_domain.MultiDomainDataset): the multi-domain datasets to be used for train,
             validation, and tests.
         feature_extractor (torch.nn.Module): feature extractor network
         task_classifier (torch.nn.Module): task classifier network
@@ -74,7 +74,7 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
     """Base class for all domain adaptation architectures
 
     Args:
-        dataset (kale.loaddata.multi_domain): the multi-domain datasets to be used for train, validation, and tests.
+        dataset (kale.loaddata.multi_domain.MultiDomainDataset): the multi-domain datasets to be used for train, validation, and tests.
         feature_extractor (torch.nn.Module): the feature extractor network
         task_classifier (torch.nn.Module): the task classifier network
         n_classes (int): number of classes
@@ -90,16 +90,9 @@ class BaseMultiSourceTrainer(BaseAdaptTrainer):
         target_domain: str,
         **base_params,
     ):
-        super().__init__(dataset, feature_extractor, task_classifier, **base_params)
+        super().__init__(dataset, feature_extractor, task_classifier, target_domain, **base_params)
         self.n_classes = n_classes
         self.feature_dim = feature_extractor.state_dict()[list(feature_extractor.state_dict().keys())[-2]].shape[0]
-        self.domain_to_idx = dataset.domain_to_idx
-        if target_domain not in self.domain_to_idx.keys():
-            raise ValueError(
-                "The given target domain %s not in the dataset! The available domain names are %s"
-                % (target_domain, self.domain_to_idx.keys())
-            )
-        self.target_domain = target_domain
         self.target_label = self.domain_to_idx[target_domain]
         self.base_params = base_params
 
@@ -146,8 +139,7 @@ class M3SDATrainer(BaseMultiSourceTrainer):
         x, y, domain_labels = batch
         phi_x = self.forward(x)
         moment_loss = self._compute_domain_dist(phi_x, domain_labels)
-        src_idx = torch.where(domain_labels != self.target_label)[0]
-        tgt_idx = torch.where(domain_labels == self.target_label)[0]
+        src_idx, tgt_idx = self._get_src_tgt_idx(domain_labels)
         cls_loss, ok_src = self._compute_cls_loss(phi_x[src_idx], y[src_idx], domain_labels[src_idx])
         if len(tgt_idx) > 0:
             y_tgt_hat = _average_cls_output(phi_x[tgt_idx], self.classifiers)
@@ -447,9 +439,9 @@ class CoIRLS(BaseEstimator, ClassifierMixin):
         """
         out = self.decision_function(x)
         if self._label_binarizer.y_type_ == "binary":
-            pred = self._label_binarizer.inverse_transform(torch.sign(out).view(-1))
-        else:
-            pred = self._label_binarizer.inverse_transform(out)
+            out = torch.sign(out).view(-1)
+
+        pred = self._label_binarizer.inverse_transform(out.detach().cpu().numpy())
 
         return pred
 

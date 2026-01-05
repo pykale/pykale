@@ -17,7 +17,7 @@ from kale.embed.video.res3d import (
     R2Plus1dStem,
     VideoResNet,
 )
-from kale.embed.video.selayer import get_selayer, SELayerC, SELayerT
+from kale.embed.video.selayer import get_selayer
 
 model_urls = {
     "r3d_18": "https://download.pytorch.org/models/r3d_18-b3b3357e.pth",
@@ -32,7 +32,7 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
     Args:
         arch (string): the name of basic architecture. (Options: ["r3d_18", "mc3_18" and "r2plus1d_18"])
         attention (string): the name of the SELayer.
-            (Options: ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC", "SELayerCT", and "SELayerTC"])
+            (Options: ["SELayerC", "SELayerT", "SELayerMC", "SELayerMAC", "SELayerCT", and "SELayerTC"])
         pretrained (bool): choose if pretrained parameters are used. (Default: False)
         progress (bool, optional): whether or not to display a progress bar to stderr. (Default: True)
 
@@ -43,7 +43,7 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
     temporal_length = 16
 
     # Add channel-wise SELayer
-    if attention in ["SELayerC", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
+    if attention in ["SELayerC", "SELayerMC", "SELayerMAC"]:
         se_layer = get_selayer(attention)
         model.layer1._modules["0"].add_module(attention, se_layer(64))
         model.layer1._modules["1"].add_module(attention, se_layer(64))
@@ -64,41 +64,21 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
         model.layer3._modules["0"].add_module(attention, se_layer(temporal_length // 4))
         model.layer3._modules["1"].add_module(attention, se_layer(temporal_length // 4))
 
-    # Add channel-temporal-wise SELayer
-    elif attention == "SELayerCT":
-        model.layer1._modules["0"].add_module(attention + "c", SELayerC(64))
-        model.layer1._modules["1"].add_module(attention + "c", SELayerC(64))
-        model.layer2._modules["0"].add_module(attention + "c", SELayerC(128))
-        model.layer2._modules["1"].add_module(attention + "c", SELayerC(128))
-        model.layer3._modules["0"].add_module(attention + "c", SELayerC(256))
-        model.layer3._modules["1"].add_module(attention + "c", SELayerC(256))
-        model.layer4._modules["0"].add_module(attention + "c", SELayerC(512))
-        model.layer4._modules["1"].add_module(attention + "c", SELayerC(512))
-
-        model.layer1._modules["0"].add_module(attention + "t", SELayerT(temporal_length))
-        model.layer1._modules["1"].add_module(attention + "t", SELayerT(temporal_length))
-        model.layer2._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 2))
-        model.layer2._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 2))
-        model.layer3._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 4))
-        model.layer3._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 4))
-
-    # Add temporal-channel-wise SELayer
-    elif attention == "SELayerTC":
-        model.layer1._modules["0"].add_module(attention + "t", SELayerT(temporal_length))
-        model.layer1._modules["1"].add_module(attention + "t", SELayerT(temporal_length))
-        model.layer2._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 2))
-        model.layer2._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 2))
-        model.layer3._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 4))
-        model.layer3._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 4))
-
-        model.layer1._modules["0"].add_module(attention + "c", SELayerC(64))
-        model.layer1._modules["1"].add_module(attention + "c", SELayerC(64))
-        model.layer2._modules["0"].add_module(attention + "c", SELayerC(128))
-        model.layer2._modules["1"].add_module(attention + "c", SELayerC(128))
-        model.layer3._modules["0"].add_module(attention + "c", SELayerC(256))
-        model.layer3._modules["1"].add_module(attention + "c", SELayerC(256))
-        model.layer4._modules["0"].add_module(attention + "c", SELayerC(512))
-        model.layer4._modules["1"].add_module(attention + "c", SELayerC(512))
+    # Add channel-temporal & temporal-channel SELayer
+    elif attention in ["SELayerCT", "SELayerTC"]:
+        se_layer = get_selayer(attention)
+        layer_schedule = [
+            ("layer1", "0", 64, temporal_length),
+            ("layer1", "1", 64, temporal_length),
+            ("layer2", "0", 128, temporal_length // 2),
+            ("layer2", "1", 128, temporal_length // 2),
+            ("layer3", "0", 256, temporal_length // 4),
+            ("layer3", "1", 256, temporal_length // 4),
+            ("layer4", "0", 512, max(1, temporal_length // 8)),
+            ("layer4", "1", 512, max(1, temporal_length // 8)),
+        ]
+        for layer_name, block_idx, channels, temporal in layer_schedule:
+            getattr(model, layer_name)._modules[block_idx].add_module(attention, se_layer(channels, temporal))
 
     else:
         raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))
@@ -115,7 +95,7 @@ def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kw
     temporal_length = 16
 
     # Add channel-wise SELayer
-    if attention in ["SELayerC", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
+    if attention in ["SELayerC", "SELayerMC", "SELayerMAC"]:
         se_layer = get_selayer(attention)
         model.layer1._modules["0"].add_module(attention, se_layer(64))
         model.layer1._modules["1"].add_module(attention, se_layer(64))
@@ -134,37 +114,21 @@ def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kw
         model.layer2._modules["0"].add_module(attention, se_layer(temporal_length // 4))
         model.layer2._modules["1"].add_module(attention, se_layer(temporal_length // 4))
 
-    # Add channel-temporal-wise SELayer
-    elif attention == "SELayerCT":
-        model.layer1._modules["0"].add_module(attention + "c", SELayerC(64))
-        model.layer1._modules["1"].add_module(attention + "c", SELayerC(64))
-        model.layer2._modules["0"].add_module(attention + "c", SELayerC(128))
-        model.layer2._modules["1"].add_module(attention + "c", SELayerC(128))
-        model.layer3._modules["0"].add_module(attention + "c", SELayerC(256))
-        model.layer3._modules["1"].add_module(attention + "c", SELayerC(256))
-        model.layer4._modules["0"].add_module(attention + "c", SELayerC(512))
-        model.layer4._modules["1"].add_module(attention + "c", SELayerC(512))
-
-        model.layer1._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 2))
-        model.layer1._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 2))
-        model.layer2._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 4))
-        model.layer2._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 4))
-
-    # Add temporal-channel-wise SELayer
-    elif attention == "SELayerTC":
-        model.layer1._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 2))
-        model.layer1._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 2))
-        model.layer2._modules["0"].add_module(attention + "t", SELayerT(temporal_length // 4))
-        model.layer2._modules["1"].add_module(attention + "t", SELayerT(temporal_length // 4))
-
-        model.layer1._modules["0"].add_module(attention + "c", SELayerC(64))
-        model.layer1._modules["1"].add_module(attention + "c", SELayerC(64))
-        model.layer2._modules["0"].add_module(attention + "c", SELayerC(128))
-        model.layer2._modules["1"].add_module(attention + "c", SELayerC(128))
-        model.layer3._modules["0"].add_module(attention + "c", SELayerC(256))
-        model.layer3._modules["1"].add_module(attention + "c", SELayerC(256))
-        model.layer4._modules["0"].add_module(attention + "c", SELayerC(512))
-        model.layer4._modules["1"].add_module(attention + "c", SELayerC(512))
+    # Add channel-temporal & temporal-channel SELayer
+    elif attention in ["SELayerCT", "SELayerTC"]:
+        se_layer = get_selayer(attention)
+        layer_schedule = [
+            ("layer1", "0", 64, temporal_length // 2),
+            ("layer1", "1", 64, temporal_length // 2),
+            ("layer2", "0", 128, temporal_length // 4),
+            ("layer2", "1", 128, temporal_length // 4),
+            ("layer3", "0", 256, max(1, temporal_length // 8)),
+            ("layer3", "1", 256, max(1, temporal_length // 8)),
+            ("layer4", "0", 512, max(1, temporal_length // 16)),
+            ("layer4", "1", 512, max(1, temporal_length // 16)),
+        ]
+        for layer_name, block_idx, channels, temporal in layer_schedule:
+            getattr(model, layer_name)._modules[block_idx].add_module(attention, se_layer(channels, temporal))
 
     else:
         raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))
