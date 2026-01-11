@@ -5,11 +5,7 @@ import numpy as np
 import pytest
 
 from kale.interpret.box_plot import BoxPlotData, create_boxplot_config, create_boxplot_data
-from kale.interpret.uncertainty_quantiles import (
-    plot_comparing_q_boxplot,
-    plot_generic_boxplot,
-    plot_per_model_boxplot,
-)
+from kale.interpret.uncertainty_quantiles import plot_comparing_q_boxplot, plot_generic_boxplot, plot_per_model_boxplot
 from kale.loaddata.tabular_access import load_csv_columns
 
 # from kale.utils.download import download_file_by_url

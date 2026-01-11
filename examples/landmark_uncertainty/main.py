@@ -24,16 +24,7 @@ from kale.utils.download import download_file_by_url
 
 
 def arg_parse():
-    """
-    Parse command-line arguments.
-
-    Example:
-        Default settings:
-            python main.py
-
-        With custom config:
-            python main.py --cfg ../configs/isbi_config.yaml
-    """
+    """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Quantile Binning for landmark uncertainty estimation.")
     parser.add_argument("--cfg", required=False, help="path to config file", type=str)
 
@@ -70,6 +61,7 @@ def main():
         )
         logger.info("Data downloaded to %s!", cfg.DATASET.ROOT + base_dir)
 
+    # define dataset parameters
     uncertainty_pairs_val = cfg.DATASET.UE_PAIRS_VAL
     uncertainty_pairs_test = cfg.DATASET.UE_PAIRS_TEST
     gt_test_error_available = cfg.DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE
@@ -104,6 +96,7 @@ def main():
 
     show_individual_landmark_plots = cfg.PIPELINE.SHOW_IND_LANDMARKS
 
+    # ---- fitting and evaluation ----
     for num_bins in cfg.PIPELINE.NUM_QUANTILE_BINS:
         # create the folder to save to
         save_folder = os.path.join(cfg.OUTPUT.OUT_DIR, dataset, str(num_bins) + "Bins")
