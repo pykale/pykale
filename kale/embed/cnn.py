@@ -1,3 +1,38 @@
+"""
+Convolutional Neural Network (CNN) architectures for embedding and feature extraction.
+
+This module provides a collection of CNN-based models for various tasks including:
+- Drug-target interaction prediction (CNNEncoder)
+- Protein sequence feature extraction (ProteinCNN)
+- CNN-Transformer hybrid architectures (CNNTransformer, ContextCNNGeneric)
+
+All CNN implementations inherit from BaseCNN, which provides reusable utilities for:
+- Creating convolutional blocks with batch normalization
+- Applying activation functions consistently
+- Weight initialization
+- Pooling operations
+- Embedding layer creation
+
+Classes:
+    BaseCNN: Base class providing common CNN utilities and patterns.
+    CNNEncoder: 1D CNN encoder for sequence data (DeepDTA architecture).
+    ProteinCNN: 1D CNN for protein sequence feature extraction.
+    ContextCNNGeneric: Template for CNN + sequence-to-sequence contextualizer.
+    CNNTransformer: CNN backbone followed by Transformer-Encoder.
+
+Example:
+    >>> from kale.embed.cnn import BaseCNN, CNNEncoder, ProteinCNN
+    >>> # Create a custom CNN using BaseCNN utilities
+    >>> class MyCNN(BaseCNN):
+    ...     def __init__(self):
+    ...         super().__init__()
+    ...         self.conv_layers, self.batch_norms = self._create_sequential_conv_blocks(
+    ...             in_channels=3, out_channels_list=[32, 64], kernel_sizes=3, conv_type='2d'
+    ...         )
+    >>> # Use existing implementations
+    >>> encoder = CNNEncoder(num_embeddings=64, embedding_dim=128, sequence_length=85,
+    ...                       num_kernels=32, kernel_length=8)
+"""
 from typing import Any, List, Optional, Tuple, Union
 
 import torch
@@ -127,6 +162,10 @@ class BaseCNN(nn.Module):
         """
         if conv_type not in ["1d", "2d"]:
             raise ValueError(f"conv_type must be '1d' or '2d', got '{conv_type}'")
+        if not out_channels_list:
+            raise ValueError("out_channels_list cannot be empty")
+        if in_channels <= 0:
+            raise ValueError(f"in_channels must be positive, got {in_channels}")
 
         conv_class = nn.Conv1d if conv_type == "1d" else nn.Conv2d
         bn_class = nn.BatchNorm1d if conv_type == "1d" else nn.BatchNorm2d
@@ -140,6 +179,16 @@ class BaseCNN(nn.Module):
             paddings = [paddings] * num_layers
         elif paddings == "same":
             paddings = [(k - 1) // 2 for k in kernel_sizes]
+
+        # Validate list lengths
+        if len(kernel_sizes) != num_layers:
+            raise ValueError(
+                f"kernel_sizes length ({len(kernel_sizes)}) must match out_channels_list length ({num_layers})"
+            )
+        if len(strides) != num_layers:
+            raise ValueError(f"strides length ({len(strides)}) must match out_channels_list length ({num_layers})")
+        if len(paddings) != num_layers:
+            raise ValueError(f"paddings length ({len(paddings)}) must match out_channels_list length ({num_layers})")
 
         conv_layers = nn.ModuleList()
         batch_norms = nn.ModuleList()
@@ -212,6 +261,72 @@ class BaseCNN(nn.Module):
             ... )
         """
         out_channels_list = [base_channels * (2**i) for i in range(num_layers)]
+
+        return self._create_sequential_conv_blocks(
+            in_channels=in_channels,
+            out_channels_list=out_channels_list,
+            kernel_sizes=kernel_sizes,
+            conv_type=conv_type,
+            strides=strides,
+            paddings=paddings,
+            use_batch_norm=use_batch_norm,
+            bias=bias,
+        )
+
+    def _create_progressive_conv_blocks(
+        self,
+        in_channels: int,
+        base_channels: int,
+        num_layers: int,
+        multipliers: List[int],
+        kernel_sizes: Union[int, List[int]],
+        conv_type: str = "2d",
+        strides: Union[int, List[int]] = 1,
+        paddings: Union[int, List[int], str] = "same",
+        use_batch_norm: bool = True,
+        bias: bool = False,
+    ) -> Tuple[nn.ModuleList, nn.ModuleList]:
+        """
+        Create convolutional blocks with custom channel multipliers (e.g., [1, 2, 3] for DeepDTA pattern).
+
+        This method allows for flexible channel progression patterns beyond simple doubling.
+        Useful for architectures that require specific channel scaling patterns.
+
+        Args:
+            in_channels (int): Number of input channels for the first convolutional layer.
+            base_channels (int): Base number of output channels.
+            num_layers (int): Number of convolutional layers to create.
+            multipliers (List[int]): Channel multipliers for each layer (e.g., [1, 2, 3]).
+            kernel_sizes (Union[int, List[int]]): Kernel size(s) for the convolutional layers.
+            conv_type (str, optional): Type of convolution ('1d' or '2d'). Defaults to '2d'.
+            strides (Union[int, List[int]], optional): Stride(s) for the convolutional layers.
+                Defaults to 1.
+            paddings (Union[int, List[int], str], optional): Padding for the convolutional layers.
+                Defaults to 'same'.
+            use_batch_norm (bool, optional): Whether to include batch normalization layers.
+                Defaults to True.
+            bias (bool, optional): Whether to include bias in convolutional layers.
+                Defaults to False.
+
+        Returns:
+            Tuple[nn.ModuleList, nn.ModuleList]: A tuple containing:
+                - conv_layers: ModuleList of convolutional layers
+                - batch_norms: ModuleList of batch normalization layers
+
+        Raises:
+            ValueError: If length of multipliers doesn't match num_layers.
+
+        Examples:
+            >>> # Creates layers with [32, 64, 96] output channels (DeepDTA pattern)
+            >>> conv_layers, batch_norms = self._create_progressive_conv_blocks(
+            ...     in_channels=85, base_channels=32, num_layers=3,
+            ...     multipliers=[1, 2, 3], kernel_sizes=8, conv_type='1d'
+            ... )
+        """
+        if len(multipliers) != num_layers:
+            raise ValueError(f"Length of multipliers ({len(multipliers)}) must match num_layers ({num_layers})")
+
+        out_channels_list = [base_channels * mult for mult in multipliers]
 
         return self._create_sequential_conv_blocks(
             in_channels=in_channels,
@@ -393,12 +508,14 @@ class BaseCNN(nn.Module):
         return (input_size + 2 * padding - dilation * (kernel_size - 1) - 1) // stride + 1
 
 
-class CNNEncoder(nn.Module):
+class CNNEncoder(BaseCNN):
     r"""
     The DeepDTA's CNN encoder module, which comprises three 1D-convolutional layers and one max-pooling layer.
     The module is applied to encoding drug/target sequence information, and the input should be transformed information
     with integer/label encoding. The original paper is `"DeepDTA: deep drug–target binding affinity prediction"
     <https://academic.oup.com/bioinformatics/article/34/17/i821/5093245>`_.
+
+    This class now inherits from BaseCNN to leverage shared CNN utilities.
 
     Args:
         num_embeddings (int): Number of embedding labels/categories, depends on the types of encoding sequence.
@@ -410,29 +527,68 @@ class CNNEncoder(nn.Module):
 
     def __init__(self, num_embeddings, embedding_dim, sequence_length, num_kernels, kernel_length):
         super(CNNEncoder, self).__init__()
-        self.embedding = nn.Embedding(num_embeddings + 1, embedding_dim)
-        self.conv1 = nn.Conv1d(in_channels=sequence_length, out_channels=num_kernels, kernel_size=kernel_length)
-        self.conv2 = nn.Conv1d(in_channels=num_kernels, out_channels=num_kernels * 2, kernel_size=kernel_length)
-        self.conv3 = nn.Conv1d(in_channels=num_kernels * 2, out_channels=num_kernels * 3, kernel_size=kernel_length)
+        # Create embedding layer using BaseCNN utility
+        self.embedding = self._create_embedding_layer(num_embeddings=num_embeddings + 1, embedding_dim=embedding_dim)
+
+        # Create convolutional layers with progressive channel multiplication (1x, 2x, 3x pattern)
+        conv_layers, _ = self._create_progressive_conv_blocks(
+            in_channels=sequence_length,
+            base_channels=num_kernels,
+            num_layers=3,
+            multipliers=[1, 2, 3],  # DeepDTA pattern: 1x, 2x, 3x base channels
+            kernel_sizes=kernel_length,
+            conv_type="1d",
+            paddings=0,  # No padding for DeepDTA architecture
+            use_batch_norm=False,
+            bias=True,
+        )
+
+        # Maintain backward compatibility: expose individual layer attributes
+        self.conv1 = conv_layers[0]
+        self.conv2 = conv_layers[1]
+        self.conv3 = conv_layers[2]
         self.global_max_pool = nn.AdaptiveMaxPool1d(output_size=1)
+        self._out_features = num_kernels * 3
 
     def forward(self, x):
         x = self.embedding(x)
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
+        # Apply convolutions with ReLU activation
+        x = self._apply_activation(self.conv1(x), "relu")
+        x = self._apply_activation(self.conv2(x), "relu")
+        x = self._apply_activation(self.conv3(x), "relu")
+        # Apply global adaptive max pooling
         x = self.global_max_pool(x)
         x = x.squeeze(2)
         return x
 
+    def output_size(self) -> int:
+        """
+        Return the output feature dimension of the encoder.
 
-class ProteinCNN(nn.Module):
+        Returns:
+            int: Number of output features (num_kernels * 3).
+        """
+        return self._out_features
+
+    def __repr__(self) -> str:
+        """Return a string representation of the CNNEncoder."""
+        return (
+            f"{self.__class__.__name__}("
+            f"embedding_dim={self.embedding.embedding_dim}, "
+            f"num_embeddings={self.embedding.num_embeddings}, "
+            f"output_features={self._out_features})"
+        )
+
+
+class ProteinCNN(BaseCNN):
     """
     A protein feature extractor using Convolutional Neural Networks (CNNs).
 
     This class extracts features from protein sequences using a series of 1D convolutional layers.
     The input protein sequence is first embedded and then passed through multiple convolutional
     and batch normalization layers to produce a fixed-size feature vector.
+
+    This class now inherits from BaseCNN to leverage shared CNN utilities.
 
     Args:
         embedding_dim (int): Dimensionality of the embedding space for protein sequences.
@@ -443,28 +599,58 @@ class ProteinCNN(nn.Module):
 
     def __init__(self, embedding_dim, num_filters, kernel_size, padding=True):
         super(ProteinCNN, self).__init__()
-        if padding:
-            self.embedding = nn.Embedding(26, embedding_dim, padding_idx=0)
-        else:
-            self.embedding = nn.Embedding(26, embedding_dim)
-        in_ch = [embedding_dim] + num_filters
-        # self.in_ch = in_ch[-1]
-        kernels = kernel_size
-        self.conv1 = nn.Conv1d(in_channels=in_ch[0], out_channels=in_ch[1], kernel_size=kernels[0])
-        self.bn1 = nn.BatchNorm1d(in_ch[1])
-        self.conv2 = nn.Conv1d(in_channels=in_ch[1], out_channels=in_ch[2], kernel_size=kernels[1])
-        self.bn2 = nn.BatchNorm1d(in_ch[2])
-        self.conv3 = nn.Conv1d(in_channels=in_ch[2], out_channels=in_ch[3], kernel_size=kernels[2])
-        self.bn3 = nn.BatchNorm1d(in_ch[3])
+        # Create embedding layer using BaseCNN utility
+        padding_idx = 0 if padding else None
+        self.embedding = self._create_embedding_layer(
+            num_embeddings=26, embedding_dim=embedding_dim, padding_idx=padding_idx
+        )
+
+        # Create convolutional blocks with batch normalization
+        conv_layers, batch_norms = self._create_sequential_conv_blocks(
+            in_channels=embedding_dim,
+            out_channels_list=num_filters,
+            kernel_sizes=kernel_size,
+            conv_type="1d",
+            use_batch_norm=True,
+            bias=True,
+        )
+
+        # Maintain backward compatibility: expose individual layer attributes
+        self.conv1 = conv_layers[0]
+        self.bn1 = batch_norms[0]
+        self.conv2 = conv_layers[1]
+        self.bn2 = batch_norms[1]
+        self.conv3 = conv_layers[2]
+        self.bn3 = batch_norms[2]
+        self._out_features = num_filters[-1]
 
     def forward(self, v):
         v = self.embedding(v.long())
         v = v.transpose(2, 1)
-        v = self.bn1(F.relu(self.conv1(v)))
-        v = self.bn2(F.relu(self.conv2(v)))
-        v = self.bn3(F.relu(self.conv3(v)))
+        # Apply convolutions with batch norm and ReLU activation
+        v = self.bn1(self._apply_activation(self.conv1(v), "relu"))
+        v = self.bn2(self._apply_activation(self.conv2(v), "relu"))
+        v = self.bn3(self._apply_activation(self.conv3(v), "relu"))
         v = v.view(v.size(0), v.size(2), -1)
         return v
+
+    def output_size(self) -> int:
+        """
+        Return the output feature dimension of the protein CNN.
+
+        Returns:
+            int: Number of output features (last filter size).
+        """
+        return self._out_features
+
+    def __repr__(self) -> str:
+        """Return a string representation of the ProteinCNN."""
+        return (
+            f"{self.__class__.__name__}("
+            f"embedding_dim={self.embedding.embedding_dim}, "
+            f"num_embeddings={self.embedding.num_embeddings}, "
+            f"output_features={self._out_features})"
+        )
 
 
 class ContextCNNGeneric(nn.Module):
