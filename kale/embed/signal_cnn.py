@@ -58,9 +58,9 @@ class SignalVAEEncoder(BaseCNN):
         self.fc_log_var = nn.Linear(64 * (input_dim // 8), latent_dim)
 
     def forward(self, x):
-        x = self._apply_activation(self.conv1(x), "relu")
-        x = self._apply_activation(self.conv2(x), "relu")
-        x = self._apply_activation(self.conv3(x), "relu")
+        # Apply convolutions with ReLU activation (iterate for maintainability)
+        for conv in [self.conv1, self.conv2, self.conv3]:
+            x = self._apply_activation(conv(x), "relu")
 
         x = self._flatten_features(x)
 

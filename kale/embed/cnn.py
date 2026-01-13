@@ -216,62 +216,62 @@ class BaseCNN(nn.Module):
 
     def _create_doubling_conv_blocks(
         self,
-        in_channels: int,
+        input_channels: int,
         base_channels: int,
         num_layers: int,
-        kernel_sizes: Union[int, List[int]],
-        conv_type: str = "2d",
-        strides: Union[int, List[int]] = 1,
-        paddings: Union[int, List[int], str] = "same",
+        first_kernel_size: int = 5,
+        subsequent_kernel_size: int = 3,
+        first_padding: int = 2,
+        subsequent_padding: int = 1,
         use_batch_norm: bool = True,
         bias: bool = False,
-    ) -> Tuple[nn.ModuleList, nn.ModuleList]:
+    ) -> Tuple[nn.ModuleList, Optional[nn.ModuleList], nn.ModuleList]:
         """
-        Create convolutional blocks where the number of output channels doubles at each layer.
+        Create convolutional blocks with doubling channel pattern for architectures like LeNet.
 
-        This is a common pattern in CNNs where feature maps progressively increase in depth
-        while spatial dimensions are reduced through pooling.
+        This helper creates layers where each subsequent layer doubles the number of channels
+        (base_channels → 2*base_channels → 4*base_channels, etc.) along with corresponding
+        batch normalization and adaptive average pooling layers.
 
         Args:
-            in_channels (int): Number of input channels for the first convolutional layer.
-            base_channels (int): Number of output channels for the first layer.
-                Each subsequent layer will have 2x the previous layer's channels.
-            num_layers (int): Number of convolutional layers to create.
-            kernel_sizes (Union[int, List[int]]): Kernel size(s) for the convolutional layers.
-            conv_type (str, optional): Type of convolution ('1d' or '2d'). Defaults to '2d'.
-            strides (Union[int, List[int]], optional): Stride(s) for the convolutional layers.
-                Defaults to 1.
-            paddings (Union[int, List[int], str], optional): Padding for the convolutional layers.
-                Defaults to 'same'.
-            use_batch_norm (bool, optional): Whether to include batch normalization layers.
-                Defaults to True.
-            bias (bool, optional): Whether to include bias in convolutional layers.
-                Defaults to False.
+            input_channels (int): Number of input channels for the first layer
+            base_channels (int): Base number of output channels (will be doubled for each layer)
+            num_layers (int): Total number of convolutional layers to create
+            first_kernel_size (int): Kernel size for the first layer (default: 5)
+            subsequent_kernel_size (int): Kernel size for subsequent layers (default: 3)
+            first_padding (int): Padding for the first layer (default: 2)
+            subsequent_padding (int): Padding for subsequent layers (default: 1)
+            use_batch_norm (bool): Whether to create batch normalization layers (default: True)
+            bias (bool): Whether to include bias in convolution (default: False)
 
         Returns:
-            Tuple[nn.ModuleList, nn.ModuleList]: A tuple containing:
-                - conv_layers: ModuleList of convolutional layers
-                - batch_norms: ModuleList of batch normalization layers
-
-        Examples:
-            >>> # Creates layers with [64, 128, 256] output channels
-            >>> conv_layers, batch_norms = self._create_doubling_conv_blocks(
-            ...     in_channels=3, base_channels=64, num_layers=3,
-            ...     kernel_sizes=3, conv_type='2d'
-            ... )
+            Tuple[nn.ModuleList, Optional[nn.ModuleList], nn.ModuleList]: Tuple of
+                (conv_layers, batch_norms, global_pools)
         """
-        out_channels_list = [base_channels * (2**i) for i in range(num_layers)]
+        conv_layers = nn.ModuleList()
+        batch_norms: Optional[nn.ModuleList] = nn.ModuleList() if use_batch_norm else None
+        global_pools = nn.ModuleList()
 
-        return self._create_sequential_conv_blocks(
-            in_channels=in_channels,
-            out_channels_list=out_channels_list,
-            kernel_sizes=kernel_sizes,
-            conv_type=conv_type,
-            strides=strides,
-            paddings=paddings,
-            use_batch_norm=use_batch_norm,
-            bias=bias,
-        )
+        for i in range(num_layers):
+            if i == 0:
+                out_channels = base_channels
+                in_ch = input_channels
+                kernel_size = first_kernel_size
+                padding = first_padding
+            else:
+                out_channels = (2**i) * base_channels
+                in_ch = (2 ** (i - 1)) * base_channels
+                kernel_size = subsequent_kernel_size
+                padding = subsequent_padding
+
+            conv_layers.append(nn.Conv2d(in_ch, out_channels, kernel_size=kernel_size, padding=padding, bias=bias))
+
+            if use_batch_norm and batch_norms is not None:
+                batch_norms.append(nn.BatchNorm2d(out_channels))
+
+            global_pools.append(nn.AdaptiveAvgPool2d(1))
+
+        return conv_layers, batch_norms, global_pools
 
     def _create_progressive_conv_blocks(
         self,
@@ -371,12 +371,10 @@ class BaseCNN(nn.Module):
                         f"Supported: 'kaiming', 'xavier', 'normal', 'uniform'."
                     )
 
-                # Initialize bias if present
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0.0)
 
             elif isinstance(m, (nn.BatchNorm1d, nn.BatchNorm2d)):
-                # Standard batch norm initialization
                 nn.init.constant_(m.weight, 1.0)
                 nn.init.constant_(m.bias, 0.0)
 
@@ -432,7 +430,7 @@ class BaseCNN(nn.Module):
             >>> x_pooled.shape  # torch.Size([32, 64, 14, 14])
         """
         pool_type = pool_type.lower()
-        ndim = x.ndim - 2  # Subtract batch and channel dimensions
+        ndim = x.ndim - 2
 
         if pool_type == "max":
             if ndim == 1:
@@ -527,10 +525,8 @@ class CNNEncoder(BaseCNN):
 
     def __init__(self, num_embeddings, embedding_dim, sequence_length, num_kernels, kernel_length):
         super(CNNEncoder, self).__init__()
-        # Create embedding layer using BaseCNN utility
         self.embedding = self._create_embedding_layer(num_embeddings=num_embeddings + 1, embedding_dim=embedding_dim)
 
-        # Create convolutional layers with progressive channel multiplication (1x, 2x, 3x pattern)
         conv_layers, _ = self._create_progressive_conv_blocks(
             in_channels=sequence_length,
             base_channels=num_kernels,
@@ -552,11 +548,8 @@ class CNNEncoder(BaseCNN):
 
     def forward(self, x):
         x = self.embedding(x)
-        # Apply convolutions with ReLU activation
-        x = self._apply_activation(self.conv1(x), "relu")
-        x = self._apply_activation(self.conv2(x), "relu")
-        x = self._apply_activation(self.conv3(x), "relu")
-        # Apply global adaptive max pooling
+        for conv in [self.conv1, self.conv2, self.conv3]:
+            x = self._apply_activation(conv(x), "relu")
         x = self.global_max_pool(x)
         x = x.squeeze(2)
         return x
@@ -599,13 +592,11 @@ class ProteinCNN(BaseCNN):
 
     def __init__(self, embedding_dim, num_filters, kernel_size, padding=True):
         super(ProteinCNN, self).__init__()
-        # Create embedding layer using BaseCNN utility
         padding_idx = 0 if padding else None
         self.embedding = self._create_embedding_layer(
             num_embeddings=26, embedding_dim=embedding_dim, padding_idx=padding_idx
         )
 
-        # Create convolutional blocks with batch normalization
         conv_layers, batch_norms = self._create_sequential_conv_blocks(
             in_channels=embedding_dim,
             out_channels_list=num_filters,
@@ -627,10 +618,8 @@ class ProteinCNN(BaseCNN):
     def forward(self, v):
         v = self.embedding(v.long())
         v = v.transpose(2, 1)
-        # Apply convolutions with batch norm and ReLU activation
-        v = self.bn1(self._apply_activation(self.conv1(v), "relu"))
-        v = self.bn2(self._apply_activation(self.conv2(v), "relu"))
-        v = self.bn3(self._apply_activation(self.conv3(v), "relu"))
+        for conv, bn in zip([self.conv1, self.conv2, self.conv3], [self.bn1, self.bn2, self.bn3]):
+            v = bn(self._apply_activation(conv(v), "relu"))
         v = v.view(v.size(0), v.size(2), -1)
         return v
 

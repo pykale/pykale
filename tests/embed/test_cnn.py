@@ -100,10 +100,11 @@ def test_basecnn_create_sequential_conv_blocks_no_batch_norm():
 def test_basecnn_create_doubling_conv_blocks():
     """Test creating doubling convolutional blocks."""
     model = BaseCNN()
-    conv_layers, batch_norms = model._create_doubling_conv_blocks(
-        in_channels=3, base_channels=32, num_layers=3, kernel_sizes=3, conv_type="2d"
+    conv_layers, batch_norms, global_pools = model._create_doubling_conv_blocks(
+        input_channels=3, base_channels=32, num_layers=3, first_kernel_size=3, subsequent_kernel_size=3
     )
     assert len(conv_layers) == 3
+    assert len(global_pools) == 3
     assert conv_layers[0].out_channels == 32
     assert conv_layers[1].out_channels == 64
     assert conv_layers[2].out_channels == 128
