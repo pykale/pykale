@@ -339,6 +339,43 @@ class BaseCNN(nn.Module):
             bias=bias,
         )
 
+    def _init_conv_or_linear_weights(self, module: nn.Module, method: str) -> None:
+        """
+        Initialize weights for convolutional or linear layers.
+
+        Args:
+            module: The layer module to initialize
+            method: Initialization method ('kaiming', 'xavier', 'normal', 'uniform')
+
+        Raises:
+            ValueError: If method is not supported
+        """
+        if method == "kaiming":
+            nn.init.kaiming_uniform_(module.weight, mode="fan_in", nonlinearity="relu")
+        elif method == "xavier":
+            nn.init.xavier_uniform_(module.weight)
+        elif method == "normal":
+            nn.init.normal_(module.weight, mean=0.0, std=0.01)
+        elif method == "uniform":
+            nn.init.uniform_(module.weight, a=-0.1, b=0.1)
+        else:
+            raise ValueError(
+                f"Unsupported initialization method: {method}. " f"Supported: 'kaiming', 'xavier', 'normal', 'uniform'."
+            )
+
+        if module.bias is not None:
+            nn.init.constant_(module.bias, 0.0)
+
+    def _init_batch_norm_weights(self, module: nn.Module) -> None:
+        """
+        Initialize weights for batch normalization layers.
+
+        Args:
+            module: The batch normalization module to initialize
+        """
+        nn.init.constant_(module.weight, 1.0)
+        nn.init.constant_(module.bias, 0.0)
+
     def _initialize_weights(self, method: str = "kaiming") -> None:
         """
         Initialize the weights of the network using the specified method.
@@ -357,26 +394,9 @@ class BaseCNN(nn.Module):
         method = method.lower()
         for m in self.modules():
             if isinstance(m, (nn.Conv1d, nn.Conv2d, nn.Linear)):
-                if method == "kaiming":
-                    nn.init.kaiming_uniform_(m.weight, mode="fan_in", nonlinearity="relu")
-                elif method == "xavier":
-                    nn.init.xavier_uniform_(m.weight)
-                elif method == "normal":
-                    nn.init.normal_(m.weight, mean=0.0, std=0.01)
-                elif method == "uniform":
-                    nn.init.uniform_(m.weight, a=-0.1, b=0.1)
-                else:
-                    raise ValueError(
-                        f"Unsupported initialization method: {method}. "
-                        f"Supported: 'kaiming', 'xavier', 'normal', 'uniform'."
-                    )
-
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0.0)
-
+                self._init_conv_or_linear_weights(m, method)
             elif isinstance(m, (nn.BatchNorm1d, nn.BatchNorm2d)):
-                nn.init.constant_(m.weight, 1.0)
-                nn.init.constant_(m.bias, 0.0)
+                self._init_batch_norm_weights(m)
 
     def _flatten_features(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -397,6 +417,50 @@ class BaseCNN(nn.Module):
             >>> x_flat.shape  # torch.Size([32, 3136])
         """
         return x.view(x.size(0), -1)
+
+    def _apply_standard_pooling(self, x: torch.Tensor, pool_type: str, pool_size: int) -> torch.Tensor:
+        """
+        Apply standard (non-adaptive) pooling operation.
+
+        Args:
+            x: Input tensor
+            pool_type: Type of pooling ('max' or 'avg')
+            pool_size: Size of the pooling window
+
+        Returns:
+            Pooled tensor
+        """
+        ndim = x.ndim - 2
+        if pool_type == "max":
+            return F.max_pool1d(x, kernel_size=pool_size) if ndim == 1 else F.max_pool2d(x, kernel_size=pool_size)
+        else:  # avg
+            return F.avg_pool1d(x, kernel_size=pool_size) if ndim == 1 else F.avg_pool2d(x, kernel_size=pool_size)
+
+    def _apply_adaptive_pooling(self, x: torch.Tensor, pool_type: str, output_size: int) -> torch.Tensor:
+        """
+        Apply adaptive pooling operation.
+
+        Args:
+            x: Input tensor
+            pool_type: Type of pooling ('adaptive_max' or 'adaptive_avg')
+            output_size: Desired output size
+
+        Returns:
+            Pooled tensor
+        """
+        ndim = x.ndim - 2
+        if pool_type == "adaptive_max":
+            return (
+                F.adaptive_max_pool1d(x, output_size=output_size)
+                if ndim == 1
+                else F.adaptive_max_pool2d(x, output_size=output_size)
+            )
+        else:  # adaptive_avg
+            return (
+                F.adaptive_avg_pool1d(x, output_size=output_size)
+                if ndim == 1
+                else F.adaptive_avg_pool2d(x, output_size=output_size)
+            )
 
     def _apply_pooling(
         self,
@@ -430,32 +494,13 @@ class BaseCNN(nn.Module):
             >>> x_pooled.shape  # torch.Size([32, 64, 14, 14])
         """
         pool_type = pool_type.lower()
-        ndim = x.ndim - 2
 
-        if pool_type == "max":
-            if ndim == 1:
-                return F.max_pool1d(x, kernel_size=pool_size)
-            elif ndim == 2:
-                return F.max_pool2d(x, kernel_size=pool_size)
-        elif pool_type == "avg":
-            if ndim == 1:
-                return F.avg_pool1d(x, kernel_size=pool_size)
-            elif ndim == 2:
-                return F.avg_pool2d(x, kernel_size=pool_size)
-        elif pool_type == "adaptive_max":
+        if pool_type in ["max", "avg"]:
+            return self._apply_standard_pooling(x, pool_type, pool_size)
+        elif pool_type in ["adaptive_max", "adaptive_avg"]:
             if adaptive_output_size is None:
                 raise ValueError("adaptive_output_size must be specified for adaptive pooling")
-            if ndim == 1:
-                return F.adaptive_max_pool1d(x, output_size=adaptive_output_size)
-            elif ndim == 2:
-                return F.adaptive_max_pool2d(x, output_size=adaptive_output_size)
-        elif pool_type == "adaptive_avg":
-            if adaptive_output_size is None:
-                raise ValueError("adaptive_output_size must be specified for adaptive pooling")
-            if ndim == 1:
-                return F.adaptive_avg_pool1d(x, output_size=adaptive_output_size)
-            elif ndim == 2:
-                return F.adaptive_avg_pool2d(x, output_size=adaptive_output_size)
+            return self._apply_adaptive_pooling(x, pool_type, adaptive_output_size)
         else:
             raise ValueError(
                 f"Unsupported pool_type: {pool_type}. " f"Supported: 'max', 'avg', 'adaptive_max', 'adaptive_avg'."
