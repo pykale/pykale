@@ -99,3 +99,153 @@ def test_image_vae_encoder_forward():
     # Check types
     assert isinstance(mean, torch.Tensor)
     assert isinstance(log_var, torch.Tensor)
+
+
+# =============================================================================
+# Additional Coverage Tests for Missing Branches
+# =============================================================================
+
+
+def test_smallcnnfeature_repr():
+    """Test SmallCNNFeature __repr__ method."""
+    model = SmallCNNFeature()
+    repr_str = repr(model)
+    assert "SmallCNNFeature" in repr_str
+    assert "output_features=128" in repr_str
+
+
+def test_smallcnnfeature_output_size():
+    """Test SmallCNNFeature output_size method."""
+    model = SmallCNNFeature()
+    output_size = model.output_size()
+    assert output_size == 128  # Returns int, not tuple
+
+
+def test_lenet_repr():
+    """Test LeNet __repr__ method."""
+    model = LeNet(3, 6, 2)
+    repr_str = repr(model)
+    assert "LeNet" in repr_str
+    assert "num_layers" in repr_str
+    assert "output_channels" in repr_str
+
+
+def test_lenet_output_size():
+    """Test LeNet output_size method."""
+    model = LeNet(3, 6, 2)
+    output_size = model.output_size()
+    assert isinstance(output_size, int) or isinstance(output_size, tuple)
+    # LeNet returns int
+    if isinstance(output_size, int):
+        assert output_size == 24  # output_channels * (num_layers + 1)
+    else:
+        assert isinstance(output_size, tuple)
+
+
+def test_simplecnnbuilder_repr():
+    """Test SimpleCNNBuilder __repr__ method."""
+    model = SimpleCNNBuilder(conv_layers_spec=[[16, 3], [32, 3]])
+    repr_str = repr(model)
+    assert "SimpleCNNBuilder" in repr_str
+    assert "num_layers=2" in repr_str
+
+
+def test_simplecnnbuilder_output_size():
+    """Test SimpleCNNBuilder output_size method."""
+    model = SimpleCNNBuilder(conv_layers_spec=[[16, 3], [32, 3]])
+    output_size = model.output_size()
+    assert isinstance(output_size, int) or isinstance(output_size, tuple)
+    # SimpleCNNBuilder returns int
+    if isinstance(output_size, int):
+        assert output_size == 32  # Last layer channels
+    else:
+        assert isinstance(output_size, tuple)
+
+
+def test_imagevaeencoder_repr():
+    """Test ImageVAEEncoder __repr__ method."""
+    model = ImageVAEEncoder(input_channels=3, latent_dim=32)
+    repr_str = repr(model)
+    assert "ImageVAEEncoder" in repr_str
+    assert "input_channels=3" in repr_str
+    assert "latent_dim=32" in repr_str
+
+
+def test_imagevaeencoder_output_size():
+    """Test ImageVAEEncoder output_size method."""
+    model = ImageVAEEncoder(input_channels=3, latent_dim=32)
+    output_size = model.output_size()
+    assert output_size == 32  # Returns latent_dim as int
+
+
+def test_resnet18_forward_with_small_input():
+    """Test ResNet18Feature with small input size."""
+    model = ResNet18Feature(weights=None)
+    x = torch.randn(4, 3, 64, 64)  # Smaller than default 224x224
+    output = model(x)
+    assert output.shape[0] == 4
+    assert output.shape[1] == 512
+
+
+def test_resnet34_forward_with_small_input():
+    """Test ResNet34Feature with small input size."""
+    model = ResNet34Feature(weights=None)
+    x = torch.randn(4, 3, 64, 64)
+    output = model(x)
+    assert output.shape[0] == 4
+    assert output.shape[1] == 512
+
+
+def test_resnet50_forward():
+    """Test ResNet50Feature forward pass."""
+    model = ResNet50Feature(weights=None)
+    x = torch.randn(4, 3, 32, 32)
+    output = model(x)
+    assert output.shape[0] == 4
+    assert output.shape[1] == 2048
+
+
+def test_resnet101_forward():
+    """Test ResNet101Feature forward pass."""
+    model = ResNet101Feature(weights=None)
+    x = torch.randn(4, 3, 32, 32)
+    output = model(x)
+    assert output.shape[0] == 4
+    assert output.shape[1] == 2048
+
+
+def test_resnet152_forward():
+    """Test ResNet152Feature forward pass."""
+    model = ResNet152Feature(weights=None)
+    x = torch.randn(4, 3, 32, 32)
+    output = model(x)
+    assert output.shape[0] == 4
+    assert output.shape[1] == 2048
+
+
+def test_resnet34_output_size():
+    """Test ResNet34Feature output_size method."""
+    model = ResNet34Feature(weights=None)
+    output_size = model.output_size()
+    assert output_size == 512
+
+
+def test_resnet50_output_size():
+    """Test ResNet50Feature output_size method."""
+    model = ResNet50Feature(weights=None)
+    output_size = model.output_size()
+    assert output_size == 2048
+
+
+def test_resnet101_output_size():
+    """Test ResNet101Feature output_size method."""
+    model = ResNet101Feature(weights=None)
+    output_size = model.output_size()
+    assert output_size == 2048
+
+
+def test_resnet152_output_size():
+    """Test ResNet152Feature output_size method."""
+    model = ResNet152Feature(weights=None)
+    output_size = model.output_size()
+    assert output_size == 2048

@@ -323,5 +323,211 @@ def test_protein_cnn_repr():
     assert "output_features=96" in repr_str  # Last filter size
 
 
+# =============================================================================
+# Additional Coverage Tests for Missing Branches
+# =============================================================================
+
+
+def test_basecnn_apply_activation_tanh():
+    """Test tanh activation."""
+    model = BaseCNN()
+    x = torch.randn(2, 3, 4, 4)
+    activated = model._apply_activation(x, "tanh")
+    assert activated.shape == x.shape
+    assert torch.all(activated >= -1) and torch.all(activated <= 1)
+
+
+def test_basecnn_apply_activation_leaky_relu():
+    """Test leaky_relu activation."""
+    model = BaseCNN()
+    x = torch.randn(2, 3, 4, 4)
+    activated = model._apply_activation(x, "leaky_relu")
+    assert activated.shape == x.shape
+
+
+def test_basecnn_apply_activation_elu():
+    """Test ELU activation."""
+    model = BaseCNN()
+    x = torch.randn(2, 3, 4, 4)
+    activated = model._apply_activation(x, "elu")
+    assert activated.shape == x.shape
+
+
+def test_basecnn_create_sequential_conv_blocks_invalid_conv_type():
+    """Test error handling for invalid conv_type."""
+    model = BaseCNN()
+    with pytest.raises(ValueError, match="conv_type must be '1d' or '2d'"):
+        model._create_sequential_conv_blocks(3, [32, 64], [3, 3], conv_type="3d")
+
+
+def test_basecnn_create_sequential_conv_blocks_empty_channels():
+    """Test error handling for empty out_channels_list."""
+    model = BaseCNN()
+    with pytest.raises(ValueError, match="out_channels_list cannot be empty"):
+        model._create_sequential_conv_blocks(3, [], [3], conv_type="2d")
+
+
+def test_basecnn_create_sequential_conv_blocks_negative_in_channels():
+    """Test error handling for negative in_channels."""
+    model = BaseCNN()
+    with pytest.raises(ValueError, match="in_channels must be positive"):
+        model._create_sequential_conv_blocks(-1, [32, 64], [3, 3], conv_type="2d")
+
+
+def test_basecnn_initialize_weights_xavier():
+    """Test Xavier weight initialization."""
+
+    class TestCNN(BaseCNN):
+        def __init__(self):
+            super().__init__()
+            self.conv = nn.Conv2d(3, 32, 3)
+            self._initialize_weights(method="xavier")
+
+    model = TestCNN()
+    assert model.conv.weight is not None
+
+
+def test_basecnn_initialize_weights_normal():
+    """Test normal weight initialization."""
+
+    class TestCNN(BaseCNN):
+        def __init__(self):
+            super().__init__()
+            self.conv = nn.Conv2d(3, 32, 3)
+            self._initialize_weights(method="normal")
+
+    model = TestCNN()
+    assert model.conv.weight is not None
+
+
+def test_basecnn_initialize_weights_uniform():
+    """Test uniform weight initialization."""
+
+    class TestCNN(BaseCNN):
+        def __init__(self):
+            super().__init__()
+            self.conv = nn.Conv2d(3, 32, 3)
+            self._initialize_weights(method="uniform")
+
+    model = TestCNN()
+    assert model.conv.weight is not None
+
+
+def test_basecnn_initialize_weights_invalid_method():
+    """Test error handling for invalid weight initialization method."""
+
+    class TestCNN(BaseCNN):
+        def __init__(self):
+            super().__init__()
+            self.conv = nn.Conv2d(3, 32, 3)
+
+    model = TestCNN()
+    with pytest.raises(ValueError, match="Unsupported initialization method"):
+        model._initialize_weights(method="invalid_method")
+
+
+def test_cnn_encoder_output_size():
+    """Test CNNEncoder output_size method."""
+    model = CNNEncoder(num_embeddings=100, embedding_dim=128, sequence_length=1000, num_kernels=32, kernel_length=4)
+    output_size = model.output_size()
+    assert isinstance(output_size, int) or isinstance(output_size, tuple)
+    # CNNEncoder returns (96,) as tuple
+    if isinstance(output_size, tuple):
+        assert len(output_size) == 1
+        assert output_size[0] == 96  # num_kernels * 3
+    else:
+        assert output_size == 96
+
+
+def test_cnn_encoder_with_different_kernels():
+    """Test CNNEncoder with different kernel configurations."""
+    model = CNNEncoder(num_embeddings=50, embedding_dim=64, sequence_length=500, num_kernels=16, kernel_length=8)
+    x = torch.randint(0, 50, (2, 500))
+    output = model(x)
+    assert output.shape[0] == 2
+    assert output.shape[1] == 48  # num_kernels * 3
+
+
+def test_protein_cnn_output_size():
+    """Test ProteinCNN output_size method."""
+    model = ProteinCNN(embedding_dim=64, num_filters=[32, 64, 96], kernel_size=[4, 6, 8])
+    output_size = model.output_size()
+    assert output_size == 96  # Last filter size (returns int, not tuple)
+
+
+def test_basecnn_create_sequential_conv_blocks_kernel_mismatch():
+    """Test error handling for mismatched kernel_sizes length."""
+    model = BaseCNN()
+    with pytest.raises(ValueError, match="kernel_sizes length.*must match"):
+        model._create_sequential_conv_blocks(3, [32, 64, 128], [3, 3], conv_type="2d")  # Only 2 kernels for 3 layers
+
+
+def test_basecnn_create_sequential_conv_blocks_stride_mismatch():
+    """Test error handling for mismatched strides length."""
+    model = BaseCNN()
+    with pytest.raises(ValueError, match="strides length.*must match"):
+        model._create_sequential_conv_blocks(
+            3, [32, 64, 128], [3, 3, 3], strides=[1, 1], conv_type="2d"
+        )  # Only 2 strides for 3 layers
+
+
+def test_basecnn_create_sequential_conv_blocks_padding_mismatch():
+    """Test error handling for mismatched paddings length."""
+    model = BaseCNN()
+    with pytest.raises(ValueError, match="paddings length.*must match"):
+        model._create_sequential_conv_blocks(
+            3, [32, 64, 128], [3, 3, 3], paddings=[1, 1], conv_type="2d"
+        )  # Only 2 paddings for 3 layers
+
+
+def test_basecnn_create_progressive_conv_blocks_multiplier_mismatch():
+    """Test error handling for mismatched multipliers length."""
+    model = BaseCNN()
+    with pytest.raises(ValueError, match="Length of multipliers.*must match num_layers"):
+        model._create_progressive_conv_blocks(
+            in_channels=3, base_channels=32, num_layers=3, multipliers=[1, 2], kernel_sizes=3, conv_type="2d"
+        )  # Only 2 multipliers for 3 layers
+
+
+def test_basecnn_apply_pooling_adaptive_avg_2d():
+    """Test adaptive average pooling for 2D."""
+    model = BaseCNN()
+    x = torch.randn(2, 3, 8, 8)
+    pooled = model._apply_pooling(x, pool_type="adaptive_avg", adaptive_output_size=(4, 4))
+    assert pooled.shape == (2, 3, 4, 4)
+
+
+def test_basecnn_apply_pooling_adaptive_avg_1d():
+    """Test adaptive average pooling for 1D."""
+    model = BaseCNN()
+    x = torch.randn(2, 3, 16)
+    pooled = model._apply_pooling(x, pool_type="adaptive_avg", adaptive_output_size=8)
+    assert pooled.shape == (2, 3, 8)
+
+
+def test_basecnn_apply_pooling_avg_1d():
+    """Test average pooling for 1D."""
+    model = BaseCNN()
+    x = torch.randn(2, 3, 16)
+    pooled = model._apply_pooling(x, pool_type="avg", pool_size=2)
+    assert pooled.shape == (2, 3, 8)
+
+
+def test_basecnn_apply_pooling_adaptive_error():
+    """Test error handling for adaptive pooling without output size."""
+    model = BaseCNN()
+    x = torch.randn(2, 3, 8, 8)
+    with pytest.raises(ValueError, match="adaptive_output_size must be specified"):
+        model._apply_pooling(x, pool_type="adaptive_max")
+
+
+def test_basecnn_apply_pooling_invalid_type():
+    """Test error handling for invalid pool_type."""
+    model = BaseCNN()
+    x = torch.randn(2, 3, 8, 8)
+    with pytest.raises(ValueError, match="Unsupported pool_type"):
+        model._apply_pooling(x, pool_type="invalid_pool")
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
