@@ -547,6 +547,16 @@ class CNNEncoder(BaseCNN):
         self._out_features = num_kernels * 3
 
     def forward(self, x):
+        """
+        Forward pass through the CNNEncoder.
+
+        Args:
+            x (torch.Tensor): Input tensor containing embedded sequence data of shape
+                (batch_size, sequence_length).
+
+        Returns:
+            torch.Tensor: Encoded feature vector of shape (batch_size, num_kernels * 3).
+        """
         x = self.embedding(x)
         for conv in [self.conv1, self.conv2, self.conv3]:
             x = self._apply_activation(conv(x), "relu")
@@ -616,6 +626,17 @@ class ProteinCNN(BaseCNN):
         self._out_features = num_filters[-1]
 
     def forward(self, v):
+        """
+        Forward pass through the ProteinCNN.
+
+        Args:
+            v (torch.Tensor): Input tensor containing protein sequence indices of shape
+                (batch_size, sequence_length).
+
+        Returns:
+            torch.Tensor: Extracted protein features of shape
+                (batch_size, sequence_length, num_filters[-1]).
+        """
         v = self.embedding(v.long())
         v = v.transpose(2, 1)
         for conv, bn in zip([self.conv1, self.conv2, self.conv3], [self.bn1, self.bn2, self.bn3]):

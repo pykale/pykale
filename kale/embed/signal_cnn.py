@@ -58,6 +58,19 @@ class SignalVAEEncoder(BaseCNN):
         self.fc_log_var = nn.Linear(64 * (input_dim // 8), latent_dim)
 
     def forward(self, x):
+        """
+        Forward pass through the SignalVAEEncoder.
+
+        Args:
+            x (torch.Tensor): Input 1D signal tensor of shape (batch_size, 1, input_dim).
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: A tuple containing:
+                - mean (torch.Tensor): Mean vector of the latent Gaussian distribution,
+                    shape (batch_size, latent_dim).
+                - log_var (torch.Tensor): Log-variance vector of the latent Gaussian,
+                    shape (batch_size, latent_dim).
+        """
         # Apply convolutions with ReLU activation (iterate for maintainability)
         for conv in [self.conv1, self.conv2, self.conv3]:
             x = self._apply_activation(conv(x), "relu")

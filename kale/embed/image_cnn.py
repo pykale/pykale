@@ -123,6 +123,20 @@ class SmallCNNFeature(BaseCNN):
         """
         return self._out_features
 
+    def __repr__(self) -> str:
+        """
+        Return a string representation of the SmallCNNFeature model.
+
+        Returns:
+            str: String describing the model's configuration.
+        """
+        return (
+            f"{self.__class__.__name__}("
+            f"num_channels={self.conv_layers[0].in_channels}, "
+            f"kernel_size={self.conv_layers[0].kernel_size[0]}, "
+            f"output_features={self._out_features})"
+        )
+
 
 class SimpleCNNBuilder(BaseCNN):
     """A builder for simple CNNs to experiment with different basic architectures.
@@ -292,9 +306,24 @@ class ResNet18Feature(nn.Module):
         self.model.fc = Flatten()
 
     def forward(self, x):
+        """
+        Forward pass through ResNet18 feature extractor.
+
+        Args:
+            x (torch.Tensor): Input image tensor of shape (batch_size, 3, 224, 224).
+
+        Returns:
+            torch.Tensor: Extracted features of shape (batch_size, 512).
+        """
         return self.model(x)
 
     def output_size(self):
+        """
+        Return the output feature dimension.
+
+        Returns:
+            int: Number of output features (512 for ResNet18).
+        """
         return self._out_features
 
 
@@ -315,9 +344,24 @@ class ResNet34Feature(nn.Module):
         self.model.fc = Flatten()
 
     def forward(self, x):
+        """
+        Forward pass through ResNet34 feature extractor.
+
+        Args:
+            x (torch.Tensor): Input image tensor of shape (batch_size, 3, 224, 224).
+
+        Returns:
+            torch.Tensor: Extracted features of shape (batch_size, 512).
+        """
         return self.model(x)
 
     def output_size(self):
+        """
+        Return the output feature dimension.
+
+        Returns:
+            int: Number of output features (512 for ResNet34).
+        """
         return self._out_features
 
 
@@ -338,9 +382,24 @@ class ResNet50Feature(nn.Module):
         self.model.fc = Flatten()
 
     def forward(self, x):
+        """
+        Forward pass through ResNet50 feature extractor.
+
+        Args:
+            x (torch.Tensor): Input image tensor of shape (batch_size, 3, 224, 224).
+
+        Returns:
+            torch.Tensor: Extracted features of shape (batch_size, 2048).
+        """
         return self.model(x)
 
     def output_size(self):
+        """
+        Return the output feature dimension.
+
+        Returns:
+            int: Number of output features (2048 for ResNet50).
+        """
         return self._out_features
 
 
@@ -361,9 +420,24 @@ class ResNet101Feature(nn.Module):
         self.model.fc = Flatten()
 
     def forward(self, x):
+        """
+        Forward pass through ResNet101 feature extractor.
+
+        Args:
+            x (torch.Tensor): Input image tensor of shape (batch_size, 3, 224, 224).
+
+        Returns:
+            torch.Tensor: Extracted features of shape (batch_size, 2048).
+        """
         return self.model(x)
 
     def output_size(self):
+        """
+        Return the output feature dimension.
+
+        Returns:
+            int: Number of output features (2048 for ResNet101).
+        """
         return self._out_features
 
 
@@ -384,9 +458,24 @@ class ResNet152Feature(nn.Module):
         self.model.fc = Flatten()
 
     def forward(self, x):
+        """
+        Forward pass through ResNet152 feature extractor.
+
+        Args:
+            x (torch.Tensor): Input image tensor of shape (batch_size, 3, 224, 224).
+
+        Returns:
+            torch.Tensor: Extracted features of shape (batch_size, 2048).
+        """
         return self.model(x)
 
     def output_size(self):
+        """
+        Return the output feature dimension.
+
+        Returns:
+            int: Number of output features (2048 for ResNet152).
+        """
         return self._out_features
 
 
