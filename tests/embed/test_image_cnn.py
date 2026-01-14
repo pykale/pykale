@@ -249,3 +249,97 @@ def test_resnet152_output_size():
     model = ResNet152Feature(weights=None)
     output_size = model.output_size()
     assert output_size == 2048
+
+
+def test_simplecnnbuilder_without_batch_norm():
+    """Test SimpleCNNBuilder with use_batchnorm=False."""
+    model = SimpleCNNBuilder(conv_layers_spec=[[16, 3], [32, 3]], use_batchnorm=False)
+    x = torch.randn(4, 3, 32, 32)
+    output = model(x)
+    assert output.shape[0] == 4
+    assert output.shape[1] == 32  # Last layer channels
+
+
+def test_lenet_output_each_layer():
+    """Test LeNet with output_each_layer=True."""
+    model = LeNet(3, 6, 2, output_each_layer=True)
+    x = torch.randn(4, 3, 32, 32)
+    outputs = model(x)
+    assert isinstance(outputs, list)
+    assert len(outputs) > 0
+
+
+def test_lenet_with_squeeze_output():
+    """Test LeNet with squeeze_output=True."""
+    model = LeNet(3, 6, 2, squeeze_output=True)
+    x = torch.randn(4, 3, 32, 32)
+    output = model(x)
+    assert output.shape[0] == 4
+
+
+def test_lenet_without_squeeze_output():
+    """Test LeNet with squeeze_output=False."""
+    model = LeNet(3, 6, 2, squeeze_output=False)
+    x = torch.randn(4, 3, 32, 32)
+    output = model(x)
+    assert output.shape[0] == 4
+
+
+def test_bottleneck_1d_input():
+    """Test _Bottleneck with 1D input (input_dimension=1)."""
+    from kale.embed.image_cnn import _Bottleneck
+
+    bottleneck = _Bottleneck(inplanes=64, planes=32, stride=1, expansion=1, input_dimension=1)
+    x = torch.randn(4, 64, 100)  # 1D input
+    output = bottleneck(x)
+    assert output.shape[0] == 4
+    assert len(output.shape) == 2  # Flattened output
+
+
+def test_bottleneck_1d_with_2d_shape():
+    """Test _Bottleneck 1D handling when input has 2D shape."""
+    from kale.embed.image_cnn import _Bottleneck
+
+    bottleneck = _Bottleneck(inplanes=64, planes=32, stride=1, expansion=1, input_dimension=1)
+    x = torch.randn(4, 64)  # 2D input (batch, channels) - should be reshaped
+    output = bottleneck(x)
+    assert output.shape[0] == 4
+    assert len(output.shape) == 2
+
+
+def test_bottleneck_1d_initialization():
+    """Test _Bottleneck initialization with 1D convolutions."""
+    from kale.embed.image_cnn import _Bottleneck
+
+    # Test that 1D bottleneck uses Conv1d and BatchNorm1d
+    bottleneck = _Bottleneck(inplanes=32, planes=16, stride=2, expansion=2, input_dimension=1)
+    assert bottleneck.input_dimension == 1
+    assert isinstance(bottleneck.conv1, torch.nn.Conv1d)
+    assert isinstance(bottleneck.bn1, torch.nn.BatchNorm1d)
+    assert isinstance(bottleneck.conv2, torch.nn.Conv1d)
+    assert isinstance(bottleneck.bn2, torch.nn.BatchNorm1d)
+    assert isinstance(bottleneck.conv3, torch.nn.Conv1d)
+    assert isinstance(bottleneck.bn3, torch.nn.BatchNorm1d)
+    assert isinstance(bottleneck.avgpool, torch.nn.AdaptiveAvgPool1d)
+
+
+def test_bottleneck_2d_default():
+    """Test _Bottleneck with default 2D convolutions."""
+    from kale.embed.image_cnn import _Bottleneck
+
+    # Test default input_dimension=2 path
+    bottleneck = _Bottleneck(inplanes=64, planes=32, stride=1, expansion=1, input_dimension=2)
+    assert bottleneck.input_dimension == 2
+    assert isinstance(bottleneck.conv1, torch.nn.Conv2d)
+    assert isinstance(bottleneck.bn1, torch.nn.BatchNorm2d)
+
+
+def test_lenet_output_each_layer_no_squeeze():
+    """Test LeNet with output_each_layer=True and squeeze_output=False."""
+    model = LeNet(3, 6, 1, output_each_layer=True, squeeze_output=False)
+    x = torch.randn(4, 3, 32, 32)
+    outputs = model(x)
+    assert isinstance(outputs, list)
+    # Verify outputs are not squeezed
+    for output in outputs:
+        assert isinstance(output, torch.Tensor)
