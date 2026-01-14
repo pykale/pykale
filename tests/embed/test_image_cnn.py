@@ -343,3 +343,30 @@ def test_lenet_output_each_layer_no_squeeze():
     # Verify outputs are not squeezed
     for output in outputs:
         assert isinstance(output, torch.Tensor)
+
+
+def test_lenet_with_linear_layer_proper():
+    """Test LeNet with linear layer initialization and repr."""
+    # Just test that linear layer is created and repr works
+    model = LeNet(3, 4, 0, linear=(256, 10))
+
+    # Verify linear layer is created (covers line 571)
+    assert model.linear is not None
+    assert isinstance(model.linear, torch.nn.Linear)
+    assert model.linear.in_features == 256
+    assert model.linear.out_features == 10
+
+    # Test repr with linear (covers line 621)
+    repr_str = repr(model)
+    assert "has_linear=True" in repr_str
+
+
+def test_lenet_repr_with_linear():
+    """Test LeNet __repr__ method with linear layer."""
+    model = LeNet(3, 6, 1, linear=(100, 10))
+    repr_str = repr(model)
+    assert "LeNet" in repr_str
+    assert "num_layers" in repr_str
+    assert "has_linear=True" in repr_str
+    assert "output_each_layer=False" in repr_str
+    assert "squeeze_output=True" in repr_str
