@@ -9,7 +9,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 from torchvision import models
 
-from kale.embed.cnn import BaseCNN
+from kale.embed.base_cnn import BaseCNN
 
 
 class Flatten(nn.Module):

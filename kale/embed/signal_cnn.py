@@ -7,7 +7,7 @@ This module provides CNN-based encoders for transforming 1D signals into latent 
 
 import torch.nn as nn
 
-from kale.embed.cnn import BaseCNN
+from kale.embed.base_cnn import BaseCNN
 
 
 class SignalVAEEncoder(BaseCNN):
