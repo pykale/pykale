@@ -113,6 +113,43 @@ class BaseCNN(nn.Module):
                 f"Supported: 'relu', 'tanh', 'sigmoid', 'leaky_relu', 'elu'."
             )
 
+    def _build_conv_and_bn_layers(
+        self,
+        in_channels: int,
+        out_channels_list: List[int],
+        kernel_sizes: List[int],
+        strides: List[int],
+        paddings: List[int],
+        conv_class: type,
+        bn_class: type,
+        use_batch_norm: bool,
+        bias: bool,
+    ) -> Tuple[nn.ModuleList, nn.ModuleList]:
+        """Build convolutional and batch normalization layer modules."""
+        conv_layers = nn.ModuleList()
+        batch_norms = nn.ModuleList()
+
+        current_in_channels = in_channels
+        for out_channels, kernel_size, stride, padding in zip(out_channels_list, kernel_sizes, strides, paddings):
+            conv = conv_class(
+                in_channels=current_in_channels,
+                out_channels=out_channels,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                bias=bias,
+            )
+            conv_layers.append(conv)
+
+            if use_batch_norm:
+                batch_norms.append(bn_class(out_channels))
+            else:
+                batch_norms.append(nn.Identity())
+
+            current_in_channels = out_channels
+
+        return conv_layers, batch_norms
+
     def _create_sequential_conv_blocks(
         self,
         in_channels: int,
@@ -171,48 +208,38 @@ class BaseCNN(nn.Module):
         bn_class = nn.BatchNorm1d if conv_type == "1d" else nn.BatchNorm2d
 
         num_layers = len(out_channels_list)
-        if isinstance(kernel_sizes, int):
-            kernel_sizes = [kernel_sizes] * num_layers
-        if isinstance(strides, int):
-            strides = [strides] * num_layers
+        kernel_sizes_list = [kernel_sizes] * num_layers if isinstance(kernel_sizes, int) else kernel_sizes
+        strides_list = [strides] * num_layers if isinstance(strides, int) else strides
+
         if isinstance(paddings, int):
-            paddings = [paddings] * num_layers
+            paddings_list: List[int] = [paddings] * num_layers
         elif paddings == "same":
-            paddings = [(k - 1) // 2 for k in kernel_sizes]
+            paddings_list = [(k - 1) // 2 for k in kernel_sizes_list]
+        else:
+            paddings_list = paddings  # type: ignore[assignment]
 
-        # Validate list lengths
-        if len(kernel_sizes) != num_layers:
+        if len(kernel_sizes_list) != num_layers:
             raise ValueError(
-                f"kernel_sizes length ({len(kernel_sizes)}) must match out_channels_list length ({num_layers})"
+                f"kernel_sizes length ({len(kernel_sizes_list)}) must match out_channels_list length ({num_layers})"
             )
-        if len(strides) != num_layers:
-            raise ValueError(f"strides length ({len(strides)}) must match out_channels_list length ({num_layers})")
-        if len(paddings) != num_layers:
-            raise ValueError(f"paddings length ({len(paddings)}) must match out_channels_list length ({num_layers})")
-
-        conv_layers = nn.ModuleList()
-        batch_norms = nn.ModuleList()
-
-        current_in_channels = in_channels
-        for out_channels, kernel_size, stride, padding in zip(out_channels_list, kernel_sizes, strides, paddings):
-            conv = conv_class(
-                in_channels=current_in_channels,
-                out_channels=out_channels,
-                kernel_size=kernel_size,
-                stride=stride,
-                padding=padding,
-                bias=bias,
+        if len(strides_list) != num_layers:
+            raise ValueError(f"strides length ({len(strides_list)}) must match out_channels_list length ({num_layers})")
+        if len(paddings_list) != num_layers:
+            raise ValueError(
+                f"paddings length ({len(paddings_list)}) must match out_channels_list length ({num_layers})"
             )
-            conv_layers.append(conv)
 
-            if use_batch_norm:
-                batch_norms.append(bn_class(out_channels))
-            else:
-                batch_norms.append(nn.Identity())
-
-            current_in_channels = out_channels
-
-        return conv_layers, batch_norms
+        return self._build_conv_and_bn_layers(
+            in_channels,
+            out_channels_list,
+            kernel_sizes_list,
+            strides_list,
+            paddings_list,
+            conv_class,
+            bn_class,
+            use_batch_norm,
+            bias,
+        )
 
     def _create_doubling_conv_blocks(
         self,
@@ -821,7 +848,7 @@ class CNNTransformer(ContextCNNGeneric):
         height = cnn_output_shape[2]
         width = cnn_output_shape[3]
 
-        encoder_layer = nn.TransformerEncoderLayer(num_channels, num_heads, dim_feedforward, dropout)
+        encoder_layer = nn.TransformerEncoderLayer(num_channels, num_heads, dim_feedforward, dropout, batch_first=True)
         encoder_normalizer = nn.LayerNorm(num_channels)
         encoder = nn.TransformerEncoder(encoder_layer, num_layers, encoder_normalizer)
 
