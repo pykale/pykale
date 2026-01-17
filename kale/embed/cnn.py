@@ -149,6 +149,7 @@ class ProteinCNN(BaseCNN):
             out_channels_list=num_filters,
             kernel_sizes=kernel_size,
             conv_type="1d",
+            paddings=0,
             use_batch_norm=True,
             bias=True,
         )
@@ -313,7 +314,7 @@ class CNNTransformer(ContextCNNGeneric):
         height = cnn_output_shape[2]
         width = cnn_output_shape[3]
 
-        encoder_layer = nn.TransformerEncoderLayer(num_channels, num_heads, dim_feedforward, dropout, batch_first=True)
+        encoder_layer = nn.TransformerEncoderLayer(num_channels, num_heads, dim_feedforward, dropout)
         encoder_normalizer = nn.LayerNorm(num_channels)
         encoder = nn.TransformerEncoder(encoder_layer, num_layers, encoder_normalizer)
 

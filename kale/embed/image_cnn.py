@@ -84,7 +84,16 @@ class SmallCNNFeature(BaseCNN):
             conv_type="2d",
             paddings=[0, 0, 0],  # No padding to reduce spatial dimensions like original
             use_batch_norm=True,
+            bias=True,
         )
+
+        # Maintain backward compatibility: expose individual layer attributes
+        self.conv1 = self.conv_layers[0]
+        self.bn1 = self.batch_norms[0]
+        self.conv2 = self.conv_layers[1]
+        self.bn2 = self.batch_norms[1]
+        self.conv3 = self.conv_layers[2]
+        self.bn3 = self.batch_norms[2]
 
         self.pool1 = nn.MaxPool2d(2)
         self.pool2 = nn.MaxPool2d(2)
@@ -611,9 +620,12 @@ class LeNet(BaseCNN):
         Return the output feature dimension of the LeNet model.
 
         Returns:
-            int: Number of output channels in the final convolutional layer.
-                This is (2^(num_layers-1)) * base_channels.
+            int: Output dimension - linear layer output if configured,
+                otherwise the number of output channels in the final conv layer.
         """
+        if self.linear is not None:
+            return self.linear.out_features
+
         num_layers = len(self.conv_layers)
         if num_layers > 0:
             # Last layer has channels: (2^(num_layers-1)) * base_channels
@@ -690,7 +702,13 @@ class ImageVAEEncoder(BaseCNN):
             strides=[2, 2, 2],
             paddings=[1, 1, 1],
             use_batch_norm=False,
+            bias=True,
         )
+
+        # Maintain backward compatibility: expose individual layer attributes
+        self.conv1 = self.conv_layers[0]
+        self.conv2 = self.conv_layers[1]
+        self.conv3 = self.conv_layers[2]
 
         self.flatten = nn.Flatten()
         self.fc_mu = nn.Linear(64 * 28 * 28, latent_dim)
