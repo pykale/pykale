@@ -1,19 +1,56 @@
+"""
+Convolutional Neural Network (CNN) architectures for embedding and feature extraction.
+
+This module provides a collection of CNN-based models for various tasks including:
+- Drug-target interaction prediction (CNNEncoder)
+- Protein sequence feature extraction (ProteinCNN)
+- CNN-Transformer hybrid architectures (CNNTransformer, ContextCNNGeneric)
+
+All CNN implementations inherit from BaseCNN (from kale.embed.base_cnn), which provides
+reusable utilities for creating convolutional blocks, applying activations, weight
+initialization, pooling operations, and embedding layer creation.
+
+Classes:
+    CNNEncoder: 1D CNN encoder for sequence data (DeepDTA architecture).
+    ProteinCNN: 1D CNN for protein sequence feature extraction.
+    ContextCNNGeneric: Template for CNN + sequence-to-sequence contextualizer.
+    CNNTransformer: CNN backbone followed by Transformer-Encoder.
+
+Note:
+    Import BaseCNN directly from kale.embed.base_cnn for base utilities.
+
+Example:
+    >>> from kale.embed.base_cnn import BaseCNN
+    >>> from kale.embed.cnn import CNNEncoder, ProteinCNN
+    >>> # Create a custom CNN using BaseCNN utilities
+    >>> class MyCNN(BaseCNN):
+    ...     def __init__(self):
+    ...         super().__init__()
+    ...         self.conv_layers, self.batch_norms = self._create_sequential_conv_blocks(
+    ...             in_channels=3, out_channels_list=[32, 64], kernel_sizes=3, conv_type='2d'
+    ...         )
+    >>> # Use existing implementations
+    >>> encoder = CNNEncoder(num_embeddings=64, embedding_dim=128, sequence_length=85,
+    ...                       num_kernels=32, kernel_length=8)
+"""
 from typing import Any, Tuple, Union
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from kale.embed.attention import PositionalEncoding
+from kale.embed.base_cnn import BaseCNN
 from kale.prepdata.tensor_reshape import seq_to_spatial, spatial_to_seq
 
 
-class CNNEncoder(nn.Module):
+class CNNEncoder(BaseCNN):
     r"""
     The DeepDTA's CNN encoder module, which comprises three 1D-convolutional layers and one max-pooling layer.
     The module is applied to encoding drug/target sequence information, and the input should be transformed information
     with integer/label encoding. The original paper is `"DeepDTA: deep drug–target binding affinity prediction"
     <https://academic.oup.com/bioinformatics/article/34/17/i821/5093245>`_.
+
+    This class now inherits from BaseCNN to leverage shared CNN utilities.
 
     Args:
         num_embeddings (int): Number of embedding labels/categories, depends on the types of encoding sequence.
@@ -25,29 +62,73 @@ class CNNEncoder(nn.Module):
 
     def __init__(self, num_embeddings, embedding_dim, sequence_length, num_kernels, kernel_length):
         super(CNNEncoder, self).__init__()
-        self.embedding = nn.Embedding(num_embeddings + 1, embedding_dim)
-        self.conv1 = nn.Conv1d(in_channels=sequence_length, out_channels=num_kernels, kernel_size=kernel_length)
-        self.conv2 = nn.Conv1d(in_channels=num_kernels, out_channels=num_kernels * 2, kernel_size=kernel_length)
-        self.conv3 = nn.Conv1d(in_channels=num_kernels * 2, out_channels=num_kernels * 3, kernel_size=kernel_length)
+        self.embedding = self._create_embedding_layer(num_embeddings=num_embeddings + 1, embedding_dim=embedding_dim)
+
+        conv_layers, _ = self._create_progressive_conv_blocks(
+            in_channels=sequence_length,
+            base_channels=num_kernels,
+            num_layers=3,
+            multipliers=[1, 2, 3],  # DeepDTA pattern: 1x, 2x, 3x base channels
+            kernel_sizes=kernel_length,
+            conv_type="1d",
+            paddings=0,  # No padding for DeepDTA architecture
+            use_batch_norm=False,
+            bias=True,
+        )
+
+        # Maintain backward compatibility: expose individual layer attributes
+        self.conv1 = conv_layers[0]
+        self.conv2 = conv_layers[1]
+        self.conv3 = conv_layers[2]
         self.global_max_pool = nn.AdaptiveMaxPool1d(output_size=1)
+        self._out_features = num_kernels * 3
 
     def forward(self, x):
+        """
+        Forward pass through the CNNEncoder.
+
+        Args:
+            x (torch.Tensor): Input tensor containing embedded sequence data of shape
+                (batch_size, sequence_length).
+
+        Returns:
+            torch.Tensor: Encoded feature vector of shape (batch_size, num_kernels * 3).
+        """
         x = self.embedding(x)
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
+        for conv in [self.conv1, self.conv2, self.conv3]:
+            x = self._apply_activation(conv(x), "relu")
         x = self.global_max_pool(x)
         x = x.squeeze(2)
         return x
 
+    def output_size(self) -> int:
+        """
+        Return the output feature dimension of the encoder.
 
-class ProteinCNN(nn.Module):
+        Returns:
+            int: Number of output features (num_kernels * 3).
+        """
+        return self._out_features
+
+    def __repr__(self) -> str:
+        """Return a string representation of the CNNEncoder."""
+        return (
+            f"{self.__class__.__name__}("
+            f"embedding_dim={self.embedding.embedding_dim}, "
+            f"num_embeddings={self.embedding.num_embeddings}, "
+            f"output_features={self._out_features})"
+        )
+
+
+class ProteinCNN(BaseCNN):
     """
     A protein feature extractor using Convolutional Neural Networks (CNNs).
 
     This class extracts features from protein sequences using a series of 1D convolutional layers.
     The input protein sequence is first embedded and then passed through multiple convolutional
     and batch normalization layers to produce a fixed-size feature vector.
+
+    This class now inherits from BaseCNN to leverage shared CNN utilities.
 
     Args:
         embedding_dim (int): Dimensionality of the embedding space for protein sequences.
@@ -58,28 +139,66 @@ class ProteinCNN(nn.Module):
 
     def __init__(self, embedding_dim, num_filters, kernel_size, padding=True):
         super(ProteinCNN, self).__init__()
-        if padding:
-            self.embedding = nn.Embedding(26, embedding_dim, padding_idx=0)
-        else:
-            self.embedding = nn.Embedding(26, embedding_dim)
-        in_ch = [embedding_dim] + num_filters
-        # self.in_ch = in_ch[-1]
-        kernels = kernel_size
-        self.conv1 = nn.Conv1d(in_channels=in_ch[0], out_channels=in_ch[1], kernel_size=kernels[0])
-        self.bn1 = nn.BatchNorm1d(in_ch[1])
-        self.conv2 = nn.Conv1d(in_channels=in_ch[1], out_channels=in_ch[2], kernel_size=kernels[1])
-        self.bn2 = nn.BatchNorm1d(in_ch[2])
-        self.conv3 = nn.Conv1d(in_channels=in_ch[2], out_channels=in_ch[3], kernel_size=kernels[2])
-        self.bn3 = nn.BatchNorm1d(in_ch[3])
+        padding_idx = 0 if padding else None
+        self.embedding = self._create_embedding_layer(
+            num_embeddings=26, embedding_dim=embedding_dim, padding_idx=padding_idx
+        )
+
+        conv_layers, batch_norms = self._create_sequential_conv_blocks(
+            in_channels=embedding_dim,
+            out_channels_list=num_filters,
+            kernel_sizes=kernel_size,
+            conv_type="1d",
+            paddings=0,
+            use_batch_norm=True,
+            bias=True,
+        )
+
+        # Maintain backward compatibility: expose individual layer attributes
+        self.conv1 = conv_layers[0]
+        self.bn1 = batch_norms[0]
+        self.conv2 = conv_layers[1]
+        self.bn2 = batch_norms[1]
+        self.conv3 = conv_layers[2]
+        self.bn3 = batch_norms[2]
+        self._out_features = num_filters[-1]
 
     def forward(self, v):
+        """
+        Forward pass through the ProteinCNN.
+
+        Args:
+            v (torch.Tensor): Input tensor containing protein sequence indices of shape
+                (batch_size, sequence_length).
+
+        Returns:
+            torch.Tensor: Extracted protein features of shape
+                (batch_size, sequence_length, num_filters[-1]).
+        """
         v = self.embedding(v.long())
         v = v.transpose(2, 1)
-        v = self.bn1(F.relu(self.conv1(v)))
-        v = self.bn2(F.relu(self.conv2(v)))
-        v = self.bn3(F.relu(self.conv3(v)))
+        for conv, bn in zip([self.conv1, self.conv2, self.conv3], [self.bn1, self.bn2, self.bn3]):
+            v = bn(self._apply_activation(conv(v), "relu"))
         v = v.view(v.size(0), v.size(2), -1)
         return v
+
+    def output_size(self) -> int:
+        """
+        Return the output feature dimension of the protein CNN.
+
+        Returns:
+            int: Number of output features (last filter size).
+        """
+        return self._out_features
+
+    def __repr__(self) -> str:
+        """Return a string representation of the ProteinCNN."""
+        return (
+            f"{self.__class__.__name__}("
+            f"embedding_dim={self.embedding.embedding_dim}, "
+            f"num_embeddings={self.embedding.num_embeddings}, "
+            f"output_features={self._out_features})"
+        )
 
 
 class ContextCNNGeneric(nn.Module):
