@@ -641,7 +641,7 @@ class TestBoxPlotDataProcessor:
         )
 
         assert x_position == 1.7  # 1.0 + 0.5 + 0.2
-        assert isinstance(percent_size, (int, float))  # Can be 0 if show_sample_info is "None"
+        assert isinstance(percent_size, (int, float))  # Can be 0 if show_sample_info is None
         assert len(processor.processed_data) == 1
         assert processor.processed_data[0]["model_type"] == "ResNet50"
 
@@ -1109,7 +1109,7 @@ class TestPrivateMethods:
 
     def test_display_sample_information_none_mode(self, sample_generic_data):
         """Test _display_sample_information with None mode (early return)."""
-        config = create_boxplot_config(show_sample_info="None", show=False, save_path=None)
+        config = create_boxplot_config(show_sample_info=None, show=False, save_path=None)
         plotter = GenericBoxPlotter(sample_generic_data, config)
 
         # Mock matplotlib components
@@ -1230,7 +1230,7 @@ class TestPrivateMethods:
 
     def test_calculate_sample_percs_none_mode(self):
         """Test _calculate_sample_percs when show_sample_info is None."""
-        config = create_boxplot_config(show_sample_info="None", show=False, save_path=None)
+        config = create_boxplot_config(show_sample_info=None, show=False, save_path=None)
 
         from kale.interpret.box_plot import GenericBoxPlotDataProcessor
 

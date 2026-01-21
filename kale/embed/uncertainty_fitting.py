@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from yacs.config import CfgNode
 
-from kale.interpret.uncertainty_quantiles import quantile_binning_and_est_errors
+from kale.interpret.uncertainty_utils import quantile_binning_and_est_errors
 from kale.loaddata.tabular_access import load_csv_columns
 from kale.predict.uncertainty_binning import quantile_binning_predictions
 from kale.prepdata.tabular_transform import apply_confidence_inversion
@@ -63,7 +63,7 @@ def fit_and_predict(
 
     for idx, uncertainty_pairing in enumerate(uncertainty_error_pairs):
         uncertainty_category = uncertainty_pairing[0]
-        invert_uncert_bool = [x[1] for x in invert_confidences if x[0] == uncertainty_category][0]
+        invert_uncert = [x[1] for x in invert_confidences if x[0] == uncertainty_category][0]
         evaluation_metric = uncertainty_pairing[1]
         uncertainty_measure = uncertainty_pairing[2]
 
@@ -86,7 +86,7 @@ def fit_and_predict(
 
             testing_pairs = load_csv_columns(ue_pairs_test, "Testing Fold", fold, cols_to_get)
 
-            if invert_uncert_bool:
+            if invert_uncert:
                 validation_pairs = apply_confidence_inversion(validation_pairs, uncertainty_measure)
                 testing_pairs = apply_confidence_inversion(testing_pairs, uncertainty_measure)
 
