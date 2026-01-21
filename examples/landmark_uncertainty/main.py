@@ -66,8 +66,8 @@ def main():
     uncertainty_pairs_test = cfg.DATASET.UE_PAIRS_TEST
     gt_test_error_available = cfg.DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE
 
-    ind_q_uncertainty_error_pairs = cfg.PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS
-    ind_q_models_to_compare = cfg.PIPELINE.INDIVIDUAL_Q_MODELS
+    individual_q_uncertainty_error_pairs = cfg.PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS
+    individual_q_models_to_compare = cfg.PIPELINE.INDIVIDUAL_Q_MODELS
 
     compare_q_uncertainty_error_pairs = cfg.PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS
     compare_q_models_to_compare = cfg.PIPELINE.COMPARE_Q_MODELS
@@ -76,7 +76,7 @@ def main():
     landmarks = cfg.DATASET.LANDMARKS
     num_folds = cfg.DATASET.NUM_FOLDS
 
-    ind_landmarks_to_show = cfg.PIPELINE.IND_LANDMARKS_TO_SHOW
+    individual_landmarks_to_show = cfg.PIPELINE.INDIVIDUAL_LANDMARKS_TO_SHOW
 
     pixel_to_mm_scale = cfg.PIPELINE.PIXEL_TO_MM_SCALE
 
@@ -94,7 +94,7 @@ def main():
         evaluate = False
         interpret = False
 
-    show_individual_landmark_plots = cfg.PIPELINE.SHOW_IND_LANDMARKS
+    show_individual_landmark_plots = cfg.PIPELINE.SHOW_INDIVIDUAL_LANDMARKS
 
     # ---- fitting and evaluation ----
     for num_bins in cfg.PIPELINE.NUM_QUANTILE_BINS:
@@ -105,9 +105,9 @@ def main():
         if fit:
             # Fit all the options for the individual Q selection and comparison Q selection
 
-            all_models_to_compare = np.unique(ind_q_models_to_compare + compare_q_models_to_compare)
+            all_models_to_compare = np.unique(individual_q_models_to_compare + compare_q_models_to_compare)
             all_uncert_error_pairs_to_compare = np.unique(
-                ind_q_uncertainty_error_pairs + compare_q_uncertainty_error_pairs, axis=0
+                individual_q_uncertainty_error_pairs + compare_q_uncertainty_error_pairs, axis=0
             )
 
             for model in all_models_to_compare:
@@ -139,9 +139,9 @@ def main():
         if evaluate:
             # Get results for each individual bin.
             if cfg.PIPELINE.COMPARE_INDIVIDUAL_Q:
-                comparisons_models = "_".join(ind_q_models_to_compare)
+                comparisons_models = "_".join(individual_q_models_to_compare)
 
-                comparisons_um = [str(x[0]) for x in ind_q_uncertainty_error_pairs]
+                comparisons_um = [str(x[0]) for x in individual_q_uncertainty_error_pairs]
                 comparisons_um = "_".join(comparisons_um)
 
                 save_file_preamble = "_".join(
@@ -157,19 +157,19 @@ def main():
 
                 # Create configuration object for the new OOP API
                 config = QuantileBinningConfig(
-                    uncertainty_error_pairs=ind_q_uncertainty_error_pairs,
-                    models=ind_q_models_to_compare,
+                    uncertainty_error_pairs=individual_q_uncertainty_error_pairs,
+                    models=individual_q_models_to_compare,
                     dataset=dataset,
                     target_indices=landmarks,
                     num_bins=num_bins,
                     combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
                     confidence_invert=cfg.DATASET.CONFIDENCE_INVERT,
                     show_individual_target_plots=show_individual_landmark_plots,
-                    ind_targets_to_show=ind_landmarks_to_show,
+                    individual_targets_to_show=individual_landmarks_to_show,
                     save_folder=os.path.join(save_folder, "fitted_quantile_binning"),
                     save_file_preamble=save_file_preamble,
                     save_figures=cfg.OUTPUT.SAVE_FIGURES,
-                    samples_as_dots_bool=cfg.BOXPLOT.SAMPLES_AS_DOTS,
+                    plot_samples_as_dots=cfg.BOXPLOT.SAMPLES_AS_DOTS,
                     show_sample_info=cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
                     box_plot_error_lim=cfg.BOXPLOT.ERROR_LIM,
                     colormap=colormap,
@@ -194,7 +194,7 @@ def main():
                     save_file_preamble=config.save_file_preamble,
                     save_figures=config.save_figures,
                     interpret=config.interpret,
-                    samples_as_dots_bool=config.samples_as_dots_bool,
+                    plot_samples_as_dots=config.plot_samples_as_dots,
                     show_sample_info=config.show_sample_info,
                     box_plot_error_lim=config.box_plot_error_lim,
                     boxplot_config={"colormap": config.colormap, "hatch_type": display_settings.get("hatch", "")},
@@ -237,11 +237,11 @@ def main():
                             all_fitted_save_paths=quantile_binning_dirs,
                             combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
                             show_individual_target_plots=show_individual_landmark_plots,
-                            ind_targets_to_show=ind_landmarks_to_show,
+                            individual_targets_to_show=individual_landmarks_to_show,
                             save_folder=save_folder_comparison,
                             save_file_preamble=save_file_preamble,
                             save_figures=cfg.OUTPUT.SAVE_FIGURES,
-                            samples_as_dots_bool=cfg.BOXPLOT.SAMPLES_AS_DOTS,
+                            plot_samples_as_dots=cfg.BOXPLOT.SAMPLES_AS_DOTS,
                             show_sample_info=cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
                             box_plot_error_lim=cfg.BOXPLOT.ERROR_LIM,
                             colormap=colormap,
@@ -265,7 +265,7 @@ def main():
                             save_file_preamble=comparing_config.save_file_preamble,
                             save_figures=comparing_config.save_figures,
                             interpret=comparing_config.interpret,
-                            samples_as_dots_bool=comparing_config.samples_as_dots_bool,
+                            plot_samples_as_dots=comparing_config.plot_samples_as_dots,
                             show_sample_info=comparing_config.show_sample_info,
                             box_plot_error_lim=comparing_config.box_plot_error_lim,
                             boxplot_config={

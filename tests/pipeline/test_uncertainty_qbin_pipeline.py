@@ -43,8 +43,8 @@ def testing_cfg():
             ],
             "COMBINE_MIDDLE_BINS": False,
             "PIXEL_TO_MM_SCALE": 1.0,
-            "IND_LANDMARKS_TO_SHOW": [0],
-            "SHOW_IND_LANDMARKS": True,
+            "INDIVIDUAL_LANDMARKS_TO_SHOW": [0],
+            "SHOW_INDIVIDUAL_LANDMARKS": True,
         },
         "IM_KWARGS": {"cmap": "gray"},
         "MARKER_KWARGS": {
@@ -62,36 +62,36 @@ def testing_cfg():
 
 
 # DEFINE constants for testing
-EXPECTED_FILES_IND_3 = [
+EXPECTED_FILES_INDIVIDUAL_3 = [
     "3Bins/fitted_quantile_binning/all_predictions_cumulative_error.pdf",
     "3Bins/fitted_quantile_binning/b1_predictions_cumulative_error.pdf",
     "3Bins/fitted_quantile_binning/PHD-NET_b1_vs_all_cumulative_error.pdf",
     "3Bins/fitted_quantile_binning/U-NET_b1_vs_all_cumulative_error.pdf",
     "3Bins/fitted_quantile_binning/target_errors.xlsx",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_target_0.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_target_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_target_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_target_0.pdf",
 ]
 # /home/schobs/Documents/results/testing/4CH/3Bins/
-EXPECTED_FILES_IND_5 = [
+EXPECTED_FILES_INDIVIDUAL_5 = [
     "5Bins/fitted_quantile_binning/all_predictions_cumulative_error.pdf",
     "5Bins/fitted_quantile_binning/b1_predictions_cumulative_error.pdf",
     "5Bins/fitted_quantile_binning/PHD-NET_b1_vs_all_cumulative_error.pdf",
     "5Bins/fitted_quantile_binning/U-NET_b1_vs_all_cumulative_error.pdf",
     "5Bins/fitted_quantile_binning/target_errors.xlsx",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_target_0.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_target_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_target_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_target_0.pdf",
 ]
 EXPECED_FILES_FIT = [
     "3Bins/fitted_quantile_binning/PHD-NET/4CH/res_predicted_bins_t0.csv",
@@ -177,7 +177,7 @@ def _create_analyzer(config, display_settings):
         save_file_preamble=config.save_file_preamble,
         save_figures=config.save_figures,
         interpret=config.interpret,
-        samples_as_dots_bool=config.samples_as_dots_bool,
+        plot_samples_as_dots=config.plot_samples_as_dots,
         show_sample_info=config.show_sample_info,
         box_plot_error_lim=config.box_plot_error_lim,
         boxplot_config={"colormap": config.colormap, "hatch_type": display_settings.get("hatch", "")},
@@ -252,34 +252,34 @@ def _run_individual_bin_comparison(testing_cfg, num_bins, save_folder, colormap)
     Returns:
         list: List of expected output file paths based on the number of bins.
     """
-    ind_q_uncertainty_error_pairs = testing_cfg["PIPELINE"]["INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS"]
-    ind_q_models_to_compare = testing_cfg["PIPELINE"]["INDIVIDUAL_Q_MODELS"]
+    individual_q_uncertainty_error_pairs = testing_cfg["PIPELINE"]["INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS"]
+    individual_q_models_to_compare = testing_cfg["PIPELINE"]["INDIVIDUAL_Q_MODELS"]
 
     save_file_preamble = "_".join(
         [
             testing_cfg["OUTPUT"]["SAVE_PREPEND"],
             "ind",
             testing_cfg["DATASET"]["DATA"],
-            "_".join(ind_q_models_to_compare),
-            "_".join([str(x[0]) for x in ind_q_uncertainty_error_pairs]),
+            "_".join(individual_q_models_to_compare),
+            "_".join([str(x[0]) for x in individual_q_uncertainty_error_pairs]),
             "combined" + str(testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]),
         ]
     )
 
     config = QuantileBinningConfig(
-        uncertainty_error_pairs=ind_q_uncertainty_error_pairs,
-        models=ind_q_models_to_compare,
+        uncertainty_error_pairs=individual_q_uncertainty_error_pairs,
+        models=individual_q_models_to_compare,
         dataset=testing_cfg["DATASET"]["DATA"],
         target_indices=testing_cfg["DATASET"]["LANDMARKS"],
         num_bins=num_bins,
         combine_middle_bins=testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
         confidence_invert=testing_cfg["DATASET"]["CONFIDENCE_INVERT"],
-        show_individual_target_plots=testing_cfg["PIPELINE"]["SHOW_IND_LANDMARKS"],
-        ind_targets_to_show=testing_cfg["PIPELINE"]["IND_LANDMARKS_TO_SHOW"],
+        show_individual_target_plots=testing_cfg["PIPELINE"]["SHOW_INDIVIDUAL_LANDMARKS"],
+        individual_targets_to_show=testing_cfg["PIPELINE"]["INDIVIDUAL_LANDMARKS_TO_SHOW"],
         save_folder=os.path.join(save_folder, "fitted_quantile_binning"),
         save_file_preamble=save_file_preamble,
         save_figures=testing_cfg["OUTPUT"]["SAVE_FIGURES"],
-        samples_as_dots_bool=testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+        plot_samples_as_dots=testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
         show_sample_info=testing_cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
         box_plot_error_lim=testing_cfg["BOXPLOT"]["ERROR_LIM"],
         colormap=colormap,
@@ -300,7 +300,7 @@ def _run_individual_bin_comparison(testing_cfg, num_bins, save_folder, colormap)
     analyzer = _create_analyzer(config, display_settings)
     analyzer.run_individual_bin_comparison(config)
 
-    return EXPECTED_FILES_IND_3 if num_bins == 3 else EXPECTED_FILES_IND_5
+    return EXPECTED_FILES_INDIVIDUAL_3 if num_bins == 3 else EXPECTED_FILES_INDIVIDUAL_5
 
 
 def _run_comparing_bins_analysis(testing_cfg, c_model, c_er_pair, colormap):
@@ -346,12 +346,12 @@ def _run_comparing_bins_analysis(testing_cfg, c_model, c_er_pair, colormap):
         all_values_q=testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"],
         all_fitted_save_paths=all_fitted_save_paths,
         combine_middle_bins=testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
-        show_individual_target_plots=testing_cfg["PIPELINE"]["SHOW_IND_LANDMARKS"],
-        ind_targets_to_show=testing_cfg["PIPELINE"]["IND_LANDMARKS_TO_SHOW"],
+        show_individual_target_plots=testing_cfg["PIPELINE"]["SHOW_INDIVIDUAL_LANDMARKS"],
+        individual_targets_to_show=testing_cfg["PIPELINE"]["INDIVIDUAL_LANDMARKS_TO_SHOW"],
         save_folder=save_folder_comparison,
         save_file_preamble=save_file_preamble,
         save_figures=testing_cfg["OUTPUT"]["SAVE_FIGURES"],
-        samples_as_dots_bool=testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+        plot_samples_as_dots=testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
         show_sample_info=testing_cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
         box_plot_error_lim=testing_cfg["BOXPLOT"]["ERROR_LIM"],
         colormap=colormap,

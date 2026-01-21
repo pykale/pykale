@@ -63,7 +63,7 @@ def fit_and_predict(
 
     for idx, uncertainty_pairing in enumerate(uncertainty_error_pairs):
         uncertainty_category = uncertainty_pairing[0]
-        invert_uncert_bool = [x[1] for x in invert_confidences if x[0] == uncertainty_category][0]
+        invert_uncert = [x[1] for x in invert_confidences if x[0] == uncertainty_category][0]
         evaluation_metric = uncertainty_pairing[1]
         uncertainty_measure = uncertainty_pairing[2]
 
@@ -86,7 +86,7 @@ def fit_and_predict(
 
             testing_pairs = load_csv_columns(ue_pairs_test, "Testing Fold", fold, cols_to_get)
 
-            if invert_uncert_bool:
+            if invert_uncert:
                 validation_pairs = apply_confidence_inversion(validation_pairs, uncertainty_measure)
                 testing_pairs = apply_confidence_inversion(testing_pairs, uncertainty_measure)
 

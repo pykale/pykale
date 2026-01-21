@@ -40,7 +40,7 @@ Example Usage:
         save_file_preamble='analysis_',
         save_figures=True,
         interpret=True,
-        samples_as_dots_bool=False,
+        plot_samples_as_dots=False,
         show_sample_info='detailed',
         box_plot_error_lim=64,
         boxplot_config={'colormap': 'Set1'}
@@ -55,12 +55,11 @@ Dependencies:
    - Uncertainty metrics from kale.evaluate.uncertainty_metrics
    - Similarity metrics from kale.evaluate.similarity_metrics
 """
+import copy
 import logging
 import os
 from dataclasses import dataclass, field
 from typing import Any, Callable, cast, Dict, List, Optional, Tuple, Union
-import copy
-from pathlib import Path
 
 import numpy as np
 
@@ -148,102 +147,96 @@ SUMMARY_MEAN_ERROR_TITLE = "Mean error"
 
 
 @dataclass
-class QuantileBinningConfig:
+class BaseAnalysisConfig:
+    """
+    Base configuration class with common analysis and visualization settings.
+
+    This base class consolidates shared fields across different analysis configurations to avoid duplication
+    and ensure consistency in plotting and analysis parameters.
+    """
+
+    # Common analysis settings
+    combine_middle_bins: bool = False  # If True, merge middle bins into one for simplified 3-bin analysis
+    num_folds: int = 5  # Number of cross-validation folds for statistical robustness
+    error_scaling_factor: float = 1.0  # Multiplicative factor for error values (e.g., pixel to mm conversion)
+
+    # Display settings
+    show_individual_target_plots: bool = False  # If True, generate separate plots for each target
+    individual_targets_to_show: Optional[List[int]] = None  # Target indices for individual plots; use [-1] for all
+
+    # File/save configuration
+    save_folder: str = ""  # Directory path where output plots and data files will be saved
+    save_file_preamble: str = ""  # Prefix string added to all saved filenames for identification
+    save_figures: bool = True  # If True, save plots to disk; if False, display interactively
+
+    # Visualization settings (shared across all analysis types)
+    plot_samples_as_dots: bool = False  # If True, overlay individual data points as dots on boxplots
+    show_sample_info: Optional[
+        str
+    ] = None  # Display mode for sample sizes: None (no display), 'text', 'legend', or 'detailed'
+    box_plot_error_lim: int = 64  # Upper limit for y-axis on error plots (in mm or pixels)
+    percent_y_lim_standard: int = 70  # Y-axis upper limit (%) for standard percentage metrics
+    percent_y_lim_extended: int = 120  # Y-axis upper limit (%) for metrics that may exceed 100%
+    colormap: str = "Set1"  # Matplotlib colormap name for plot colors (e.g., 'Set1', 'tab10')
+    interpret: bool = True  # If True, execute analysis and plotting; if False, skip processing
+
+    def __post_init__(self):
+        """
+        Initialize default values for mutable fields.
+
+        This method is automatically called after dataclass initialization to set up mutable default values that cannot
+        be safely defined in the field declarations.
+        """
+        if self.individual_targets_to_show is None:
+            self.individual_targets_to_show = []
+
+
+@dataclass
+class QuantileBinningConfig(BaseAnalysisConfig):
     """
     Configuration class for quantile binning analysis.
 
     This class replaces the tuple-based parameter passing with a more structured, type-safe approach for configuring
-    quantile binning uncertainty analysis.
+    quantile binning uncertainty analysis. It inherits common analysis and visualization settings from BaseAnalysisConfig.
     """
 
-    # Data configuration
-    uncertainty_error_pairs: List[Tuple[str, str, str]]
-    models: List[str]
-    dataset: str
-    target_indices: List[int]
-    num_bins: int
+    # Data configuration (specific to this analysis type)
+    uncertainty_error_pairs: List[Tuple[str, str, str]] = field(
+        default_factory=list
+    )  # List of (display_name, error_column_name, uncertainty_column_name) tuples for analysis
+    models: List[str] = field(default_factory=list)  # List of model names to compare (e.g., ['ResNet50', 'VGG16'])
+    dataset: str = ""  # Dataset identifier for labeling and file organization
+    target_indices: List[int] = field(default_factory=list)  # List of anatomical landmark/target indices to analyze
+    num_bins: int = 10  # Number of uncertainty quantile bins (Q value, typically 5-20)
 
-    # Analysis settings
-    combine_middle_bins: bool = False
-    confidence_invert: Optional[List[List[Union[str, bool]]]] = None
-    num_folds: int = 5
-    error_scaling_factor: float = 1.0
-
-    # Display settings
-    show_individual_target_plots: bool = False
-    ind_targets_to_show: Optional[List[int]] = None
-
-    # File/save configuration
-    save_folder: str = ""
-    save_file_preamble: str = ""
-    save_figures: bool = True
-
-    # Visualization settings
-    samples_as_dots_bool: bool = False
-    show_sample_info: str = "None"
-    box_plot_error_lim: int = 64
-    percent_y_lim_standard: int = 70
-    percent_y_lim_extended: int = 120
-    colormap: str = "Set1"
-    interpret: bool = True
-
-    def __post_init__(self):
-        """
-        Initialize default values for mutable fields.
-
-        This method is automatically called after dataclass initialization to set up mutable default values that cannot
-        be safely defined in the field declarations.
-        """
-        if self.ind_targets_to_show is None:
-            self.ind_targets_to_show = []
+    # Analysis settings specific to individual bin comparison
+    confidence_invert: Optional[List[List[Union[str, bool]]]] = None  # List of [uncertainty_type, should_invert] pairs
 
 
 @dataclass
-class ComparingBinsConfig:
+class ComparingBinsConfig(BaseAnalysisConfig):
     """
     Configuration class for comparing different bin counts (Q values) analysis.
+
+    This class inherits common analysis and visualization settings from BaseAnalysisConfig, focusing on Q-value
+    optimization while reducing code duplication.
     """
 
-    # Data configuration
-    uncertainty_error_pair: Tuple[str, str, str]
-    model: str
-    dataset: str
-    targets: List[int]
-    all_values_q: List[int]
-    all_fitted_save_paths: List[str]
-
-    # Analysis settings
-    combine_middle_bins: bool = False
-    num_folds: int = 5
-    error_scaling_factor: float = 1.0
-
-    # Display settings
-    show_individual_target_plots: bool = False
-    ind_targets_to_show: Optional[List[int]] = None
-
-    # File/save configuration
-    save_folder: str = ""
-    save_file_preamble: str = ""
-    save_figures: bool = True
-
-    # Visualization settings
-    samples_as_dots_bool: bool = False
-    show_sample_info: str = "None"
-    box_plot_error_lim: int = 64
-    percent_y_lim_standard: int = 70
-    percent_y_lim_extended: int = 120
-    colormap: str = "Set1"
-    interpret: bool = True
-
-    def __post_init__(self):
-        """
-        Initialize default values for mutable fields.
-
-        This method is automatically called after dataclass initialization to set up mutable default values that cannot
-        be safely defined in the field declarations.
-        """
-        if self.ind_targets_to_show is None:
-            self.ind_targets_to_show = []
+    # Data configuration (specific to this analysis type)
+    uncertainty_error_pair: Tuple[str, str, str] = (
+        "",
+        "",
+        "",
+    )  # Single (display_name, error_column_name, uncertainty_column_name) tuple to analyze
+    model: str = ""  # Single model name to evaluate across different Q values
+    dataset: str = ""  # Dataset identifier for labeling and file organization
+    targets: List[int] = field(default_factory=list)  # List of anatomical landmark/target indices to analyze
+    all_values_q: List[int] = field(
+        default_factory=list
+    )  # List of Q values (bin counts) to compare (e.g., [5, 10, 15, 20])
+    all_fitted_save_paths: List[str] = field(
+        default_factory=list
+    )  # Corresponding list of data file paths for each Q value
 
 
 @dataclass
@@ -256,23 +249,23 @@ class MetricPlotConfig:
     """
 
     # Core plotting parameters
-    eval_data: Dict[str, Any]
-    models: List[str]
-    uncertainty_categories: List[List[str]]
-    category_labels: List[str]
-    num_bins_display: int
-    plot_func: Callable[..., Any]
-    show_individual_target_plots: bool
-    ind_targets_to_show: List[int]
-    detailed_mode: bool
-    target_indices: Optional[List[int]] = None
+    eval_data: Dict[str, Any]  # Dictionary containing computed metrics (errors, jaccard, bounds)
+    models: List[str]  # List of model names to include in plots
+    uncertainty_categories: List[List[str]]  # List of [uncertainty_type, error_type] pairs
+    category_labels: List[str]  # X-axis labels (e.g., bin names or Q values)
+    num_bins_display: int  # Number of bins to display (may differ from actual if combined)
+    plot_func: Callable[..., Any]  # Plotting function (plot_per_model_boxplot, plot_comparing_q_boxplot, etc.)
+    show_individual_target_plots: bool  # If True, generate separate plots for each target
+    individual_targets_to_show: List[int]  # Target indices for individual plots; use [-1] for all
+    detailed_mode: bool  # If True, use enhanced plotting features with additional annotations
+    target_indices: Optional[List[int]] = None  # Complete list of target indices for reference
 
     # Y-axis limits
-    percent_y_lim_standard: int = 70
-    percent_y_lim_extended: int = 120
+    percent_y_lim_standard: int = 70  # Y-axis upper limit (%) for standard percentage metrics
+    percent_y_lim_extended: int = 120  # Y-axis upper limit (%) for metrics that may exceed 100%
 
     # Additional plot parameters
-    kwargs: Dict[str, Any] = field(default_factory=dict)
+    kwargs: Dict[str, Any] = field(default_factory=dict)  # Extra keyword arguments for plot customization
 
 
 @dataclass
@@ -284,15 +277,17 @@ class MetricDefinition:
     enabling a unified plotting approach across different metrics.
     """
 
-    metric_name: str
-    data_key: str
-    y_label: str
-    to_log: bool = False
-    convert_to_percent: bool = False
+    metric_name: str  # Internal identifier for the metric (e.g., 'error', 'jaccard', 'errorbound')
+    data_key: str  # Dictionary key to access metric data in eval_data
+    y_label: str  # Y-axis label for plots (e.g., 'Localization Error (mm)')
+    to_log: bool = False  # If True, apply logarithmic scaling to y-axis
+    convert_to_percent: bool = False  # If True, multiply values by 100 and show as percentages
     y_lim_top_attr: str = "percent_y_lim_standard"  # Attribute name in config to use for y_lim_top
-    show_sample_info: str = "None"
-    show_individual_dots: bool = False
-    individual_data_key: Optional[str] = None  # For individual target plots
+    show_sample_info: Optional[
+        str
+    ] = None  # Display mode for sample sizes: None (no display), 'text', 'legend', or 'detailed'
+    show_individual_dots: bool = False  # If True, overlay individual data points as dots on boxplots
+    individual_data_key: Optional[str] = None  # Dictionary key for target-separated data; None if not applicable
 
 
 class QuantileBinningAnalyzer:
@@ -327,7 +322,7 @@ class QuantileBinningAnalyzer:
                 to_log=True,
                 convert_to_percent=False,
                 y_lim_top_attr="box_plot_error_lim",
-                show_sample_info="None",
+                show_sample_info=None,
                 show_individual_dots=False,
             ),
         ],
@@ -339,7 +334,7 @@ class QuantileBinningAnalyzer:
                 to_log=False,
                 convert_to_percent=True,
                 y_lim_top_attr="percent_y_lim_extended",
-                show_sample_info="None",
+                show_sample_info=None,
                 show_individual_dots=False,
                 individual_data_key=BOUNDS_DATA_ALL_CONCAT_SEP,
             )
@@ -352,7 +347,7 @@ class QuantileBinningAnalyzer:
                 to_log=False,
                 convert_to_percent=True,
                 y_lim_top_attr="percent_y_lim_standard",
-                show_sample_info="None",
+                show_sample_info=None,
                 show_individual_dots=False,
                 individual_data_key=JACCARD_DATA_ALL_CONCAT_SEP,
             ),
@@ -363,7 +358,7 @@ class QuantileBinningAnalyzer:
                 to_log=False,
                 convert_to_percent=True,
                 y_lim_top_attr="percent_y_lim_extended",
-                show_sample_info="None",
+                show_sample_info=None,
                 show_individual_dots=False,
             ),
             MetricDefinition(
@@ -373,7 +368,7 @@ class QuantileBinningAnalyzer:
                 to_log=False,
                 convert_to_percent=True,
                 y_lim_top_attr="percent_y_lim_extended",
-                show_sample_info="None",
+                show_sample_info=None,
                 show_individual_dots=False,
             ),
         ],
@@ -386,8 +381,8 @@ class QuantileBinningAnalyzer:
         save_file_preamble: str,
         save_figures: bool,
         interpret: bool,
-        samples_as_dots_bool: bool,
-        show_sample_info: str,
+        plot_samples_as_dots: bool,
+        show_sample_info: Optional[str],
         box_plot_error_lim: int,
         boxplot_config: Dict[str, Any],
         figure_format: str = DEFAULT_FIGURE_FORMAT,
@@ -404,9 +399,9 @@ class QuantileBinningAnalyzer:
             save_file_preamble (str): Prefix string for saved file names to ensure unique identification.
             save_figures (bool): If True, save plots to disk; if False, display plots interactively.
             interpret (bool): If True, execute analysis and visualization; if False, skip processing.
-            samples_as_dots_bool (bool): Whether to show individual data points as dots on boxplots.
-            show_sample_info (str): Mode for displaying sample size information on plots.
-                Common values: "None", "text", "legend".
+            plot_samples_as_dots (bool): Whether to show individual data points as dots on boxplots.
+            show_sample_info (Optional[str]): Mode for displaying sample size information on plots.
+                Valid values: None (no display), "text", "legend", "detailed".
             box_plot_error_lim (int): Upper limit for y-axis on error boxplots (typically in mm).
             boxplot_config (Dict[str, Any]): Configuration dictionary for boxplot aesthetics including colormap, font
                 sizes, figure dimensions, and styling parameters.
@@ -423,7 +418,7 @@ class QuantileBinningAnalyzer:
         self.interpret = interpret
         self.box_plot_error_lim = box_plot_error_lim
         self.boxplot_config = boxplot_config
-        self.samples_as_dots_bool = samples_as_dots_bool
+        self.plot_samples_as_dots = plot_samples_as_dots
         self.show_sample_info = show_sample_info
         self.hatch = display_settings.get("hatch", "o")
         self.figure_format = figure_format
@@ -484,7 +479,7 @@ class QuantileBinningAnalyzer:
             ...     num_bins=10,
             ...     combine_middle_bins=False,
             ...     show_individual_target_plots=True,
-            ...     ind_targets_to_show=[0, 1]  # Show detailed plots for first 2 targets
+            ...     individual_targets_to_show=[0, 1]  # Show detailed plots for first 2 targets
             ... )
             >>> analyzer.run_individual_bin_comparison(config)
 
@@ -587,7 +582,7 @@ class QuantileBinningAnalyzer:
                 num_bins_display=num_bins_display,
                 plot_func=plot_per_model_boxplot,
                 show_individual_target_plots=config.show_individual_target_plots,
-                ind_targets_to_show=config.ind_targets_to_show or [],
+                individual_targets_to_show=config.individual_targets_to_show or [],
                 detailed_mode=False,
                 target_indices=config.target_indices,
                 x_label=LABEL_UNCERTAINTY_THRESHOLDED_BIN,
@@ -604,7 +599,7 @@ class QuantileBinningAnalyzer:
                 num_bins_display=num_bins_display,
                 plot_func=plot_generic_boxplot,
                 show_individual_target_plots=config.show_individual_target_plots,
-                ind_targets_to_show=config.ind_targets_to_show or [],
+                individual_targets_to_show=config.individual_targets_to_show or [],
                 detailed_mode=False,
                 target_indices=config.target_indices,
                 percent_y_lim_extended=config.percent_y_lim_extended,
@@ -626,7 +621,7 @@ class QuantileBinningAnalyzer:
                 num_bins_display=num_bins_display,
                 plot_func=plot_generic_boxplot,
                 show_individual_target_plots=config.show_individual_target_plots,
-                ind_targets_to_show=config.ind_targets_to_show or [],
+                individual_targets_to_show=config.individual_targets_to_show or [],
                 detailed_mode=False,
                 target_indices=config.target_indices,
                 percent_y_lim_standard=config.percent_y_lim_standard,
@@ -692,7 +687,7 @@ class QuantileBinningAnalyzer:
             ...         'data/q15_results/', 'data/q20_results/'
             ...     ],
             ...     show_individual_target_plots=True,
-            ...     ind_targets_to_show=[0]  # Detailed analysis for target 0
+            ...     individual_targets_to_show=[0]  # Detailed analysis for target 0
             ... )
             >>> analyzer.run_comparing_bins_analysis(config)
 
@@ -776,7 +771,7 @@ class QuantileBinningAnalyzer:
                 num_bins_display=num_bins_display,
                 plot_func=plot_comparing_q_boxplot,
                 show_individual_target_plots=config.show_individual_target_plots,
-                ind_targets_to_show=config.ind_targets_to_show or [],
+                individual_targets_to_show=config.individual_targets_to_show or [],
                 detailed_mode=True,
                 target_indices=config.targets,
                 x_label=LABEL_Q_NUM_BINS,
@@ -793,7 +788,7 @@ class QuantileBinningAnalyzer:
                 num_bins_display=num_bins_display,
                 plot_func=plot_comparing_q_boxplot,
                 show_individual_target_plots=config.show_individual_target_plots,
-                ind_targets_to_show=config.ind_targets_to_show or [],
+                individual_targets_to_show=config.individual_targets_to_show or [],
                 detailed_mode=True,
                 target_indices=config.targets,
                 percent_y_lim_extended=config.percent_y_lim_extended,
@@ -811,7 +806,7 @@ class QuantileBinningAnalyzer:
                 num_bins_display=num_bins_display,
                 plot_func=plot_comparing_q_boxplot,
                 show_individual_target_plots=config.show_individual_target_plots,
-                ind_targets_to_show=config.ind_targets_to_show or [],
+                individual_targets_to_show=config.individual_targets_to_show or [],
                 detailed_mode=True,
                 target_indices=config.targets,
                 percent_y_lim_standard=config.percent_y_lim_standard,
@@ -949,7 +944,7 @@ class QuantileBinningAnalyzer:
                 self.show_sample_info if metric_def.metric_name == METRIC_NAME_ERROR else metric_def.show_sample_info
             )
             show_individual_dots = (
-                self.samples_as_dots_bool
+                self.plot_samples_as_dots
                 if metric_def.metric_name == METRIC_NAME_ERROR
                 else metric_def.show_individual_dots
             )
@@ -978,7 +973,11 @@ class QuantileBinningAnalyzer:
             )
 
             # Plot individual targets if requested and data available
-            if config.show_individual_target_plots and metric_def.individual_data_key and config.ind_targets_to_show:
+            if (
+                config.show_individual_target_plots
+                and metric_def.individual_data_key
+                and config.individual_targets_to_show
+            ):
                 # Prepare kwargs for individual targets, ensuring no duplicate y_label
                 individual_kwargs = metric_kwargs.copy()
                 individual_kwargs.update(
@@ -998,7 +997,7 @@ class QuantileBinningAnalyzer:
                     metric_def.metric_name,
                     config.plot_func,
                     data_section[metric_def.individual_data_key],
-                    config.ind_targets_to_show,
+                    config.individual_targets_to_show,
                     config.uncertainty_categories,
                     config.models,
                     config.category_labels,
@@ -1011,7 +1010,7 @@ class QuantileBinningAnalyzer:
         metric_name: str,
         plot_func: Callable[..., Any],
         sep_target_data: List[Any],
-        ind_targets_to_show: List[int],
+        individual_targets_to_show: List[int],
         uncertainty_categories: List[List[str]],
         models: List[str],
         category_labels: List[str],
@@ -1034,7 +1033,7 @@ class QuantileBinningAnalyzer:
             sep_target_data (List[Any]): Data separated by target. Structure varies by plotting mode:
                 - For individual bin comparison: List of target data dictionaries
                 - For comparing Q: List of Q-value data with target indices
-            ind_targets_to_show (List[int]): List of target indices to plot individually.
+            individual_targets_to_show (List[int]): List of target indices to plot individually.
                 Use [-1] to plot all targets.
             uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
             models (List[str]): List of model names to analyze.
@@ -1050,14 +1049,16 @@ class QuantileBinningAnalyzer:
             # This logic is for comparing_q mode where sep_target_data is structured differently.
             if target_indices is not None:
                 for t_idx in target_indices:
-                    if t_idx in ind_targets_to_show or ind_targets_to_show == [-1]:
+                    if t_idx in individual_targets_to_show or individual_targets_to_show == [-1]:
                         # Extract data for this target across all Q values
-                        target_data_across_q = [q_data[t_idx] for q_data in sep_target_data]
+                        # Map target ID to its position in the targets list
+                        target_pos = target_indices.index(t_idx)
+                        target_data_across_q = [q_data[target_pos] for q_data in sep_target_data]
                         individual_targets_data.append({"target_idx": t_idx, "data": target_data_across_q})
         else:
             # This logic is for individual bin comparison mode.
             for idx, target_data in enumerate(sep_target_data):
-                if idx in ind_targets_to_show or ind_targets_to_show == [-1]:
+                if idx in individual_targets_to_show or individual_targets_to_show == [-1]:
                     individual_targets_data.append({"target_idx": idx, "data": [target_data]})
 
         for target_info in individual_targets_data:
@@ -1087,7 +1088,7 @@ class QuantileBinningAnalyzer:
         models: List[str],
         uncertainty_categories: List[List[str]],
         category_labels: List[str],
-        show_sample_info: str,
+        show_sample_info: Optional[str],
         x_label: str,
         y_label: str,
         to_log: bool,
@@ -1169,7 +1170,7 @@ class QuantileBinningAnalyzer:
         num_bins_display: int,
         plot_func: Callable[..., Any],
         show_individual_target_plots: bool,
-        ind_targets_to_show: List[int],
+        individual_targets_to_show: List[int],
         detailed_mode: bool,
         target_indices: Optional[List[int]] = None,
         percent_y_lim_standard: int = 70,
@@ -1199,7 +1200,7 @@ class QuantileBinningAnalyzer:
                 - plot_comparing_q_boxplot: For Q-value comparison mode
                 - plot_generic_boxplot: For generic metric visualization
             show_individual_target_plots (bool): Whether to generate separate plots for individual anatomical targets.
-            ind_targets_to_show (List[int]): List of target indices for which to generate individual plots.
+            individual_targets_to_show (List[int]): List of target indices for which to generate individual plots.
                 Use [-1] to plot all targets, or specify indices (e.g., [0, 1, 2]).
             detailed_mode (bool): Whether to use detailed plotting mode with enhanced visualization features.
                 Set to False for individual bin comparison, True for comparing Q analysis.
@@ -1231,7 +1232,7 @@ class QuantileBinningAnalyzer:
             num_bins_display=num_bins_display,
             plot_func=plot_func,
             show_individual_target_plots=show_individual_target_plots,
-            ind_targets_to_show=ind_targets_to_show,
+            individual_targets_to_show=individual_targets_to_show,
             detailed_mode=detailed_mode,
             target_indices=target_indices,
             percent_y_lim_standard=percent_y_lim_standard,

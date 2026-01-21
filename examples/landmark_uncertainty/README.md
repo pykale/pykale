@@ -272,19 +272,19 @@ A float specifying the scale factor to convert pixel units to millimeter units.
 Default:
 `_C.PIPELINE.PIXEL_TO_MM_SCALE` = 1.0
 
-#### `PIPELINE.IND_LANDMARKS_TO_SHOW`
+#### `PIPELINE.INDIVIDUAL_LANDMARKS_TO_SHOW`
 
 A list of landmark indices to show individually. A value of -1 means show all landmarks individually, and an empty list means show none.
 
 Default:
-`_C.PIPELINE.IND_LANDMARKS_TO_SHOW` = [-1]
+`_C.PIPELINE.INDIVIDUAL_LANDMARKS_TO_SHOW` = [-1]
 
-#### `PIPELINE.SHOW_IND_LANDMARKS`
+#### `PIPELINE.SHOW_INDIVIDUAL_LANDMARKS`
 
 A boolean indicating whether to show results from individual landmarks.
 
 Default:
-_C.`PIPELINE.SHOW_IND_LANDMARKS` = True
+_C.`PIPELINE.SHOW_INDIVIDUAL_LANDMARKS` = True
 
 <br/><br/>
 

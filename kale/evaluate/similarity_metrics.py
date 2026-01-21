@@ -99,8 +99,8 @@ def evaluate_correlations(
                 [uncertainty_type + " Uncertainty"]
             ]
 
-            invert_uncert_bool = [x[1] for x in confidence_invert_tuples if x[0] == uncertainty_type][0]
-            if invert_uncert_bool:
+            invert_uncert = [x[1] for x in confidence_invert_tuples if x[0] == uncertainty_type][0]
+            if invert_uncert:
                 fold_uncertainty_values = apply_confidence_inversion(fold_uncertainty_values, uncert_pair[2])
 
             fold_uncertainty_values = np.array(fold_uncertainty_values.values.tolist()).flatten()

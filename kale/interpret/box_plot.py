@@ -95,7 +95,7 @@ class BoxPlotConfig:
     # Display settings
     x_label: str = "Uncertainty Thresholded Bin"
     y_label: str = "Error (%)"
-    show_sample_info: str = "None"
+    show_sample_info: Optional[str] = None
     save_path: Optional[str] = None
     show: bool = False
     convert_to_percent: bool = True
@@ -804,7 +804,7 @@ class BoxPlotter(ABC):
         """
         assert self.ax is not None
 
-        if self.config.show_sample_info == "None":
+        if self.config.show_sample_info is None:
             return
 
         for idx_text, perc_info in enumerate(self.all_sample_percs):
@@ -1694,7 +1694,7 @@ class BoxPlotDataProcessor(ABC):
         Returns:
             float: The percentage of samples in the bin.
         """
-        if self.config.show_sample_info != "None":
+        if self.config.show_sample_info is not None:
             flattened_model_data = [x for xss in model_data for x in xss]
             percent_size = np.round(len(bin_data) / len(flattened_model_data) * 100, 1)
             if self.config.show_sample_info == "All":
@@ -2158,7 +2158,7 @@ def execute_boxplot(
     y_label: Optional[str] = None,
     to_log: bool = False,
     convert_to_percent: bool = False,
-    show_sample_info: str = "None",
+    show_sample_info: Optional[str] = None,
     **kwargs: Any,
 ) -> None:
     """
@@ -2183,7 +2183,8 @@ def execute_boxplot(
         y_label (Optional[str]): Label for the y-axis. If None, not included in config.
         to_log (bool): Whether to use logarithmic scaling for the y-axis. Defaults to False.
         convert_to_percent (bool): Whether to convert values to percentages. Defaults to False.
-        show_sample_info (str): Mode for displaying sample size information. Defaults to "None".
+        show_sample_info (Optional[str]): Mode for displaying sample size information. Defaults to None.
+            Valid values: None (no display), "text", "legend", "detailed", "Average", "All".
         **kwargs: Additional keyword arguments passed to the boxplot configuration.
     """
     boxplot_data = create_boxplot_data(
