@@ -59,6 +59,8 @@ import logging
 import os
 from dataclasses import dataclass, field
 from typing import Any, Callable, cast, Dict, List, Optional, Tuple, Union
+import copy
+from pathlib import Path
 
 import numpy as np
 
@@ -74,34 +76,28 @@ from kale.interpret.uncertainty_utils import plot_cumulative
 from kale.prepdata.tabular_transform import generate_struct_for_qbin
 from kale.utils.save_xlsx import generate_summary_df
 
-# Constants for hardcoded strings
+# -----------------------------------------------------------------------------
+# Internal Data Dictionary Keys
+# -----------------------------------------------------------------------------
 
 # Error data keys
-ERROR_DATA_ALL_CONCAT_NOSEP = "all error concat bins targets nosep"
-ERROR_DATA_ALL_CONCAT_SEP = "all error concat bins targets sep all"
-ERROR_DATA_MEAN_BINS_NOSEP = "all mean error bins nosep"
+ERROR_DATA_ALL_CONCAT_NOSEP = "all_error_concat_bins_targets_nosep"
+ERROR_DATA_ALL_CONCAT_SEP = "all_error_concat_bins_targets_sep_all"
+ERROR_DATA_MEAN_BINS_NOSEP = "all_mean_error_bins_nosep"
 
 # Bounds data keys
-BOUNDS_DATA_ALL = "Error Bounds All"
-BOUNDS_DATA_ALL_CONCAT_SEP = "all errorbound concat bins targets sep all"
+BOUNDS_DATA_ALL = "error_bounds_all"
+BOUNDS_DATA_ALL_CONCAT_SEP = "all_errorbound_concat_bins_targets_sep_all"
 
 # Jaccard data keys
-JACCARD_DATA_ALL = "Jaccard All"
-JACCARD_DATA_RECALL_ALL = "Recall All"
-JACCARD_DATA_PRECISION_ALL = "Precision All"
-JACCARD_DATA_ALL_CONCAT_SEP = "all jacc concat bins targets sep all"
+JACCARD_DATA_ALL = "jaccard_all"
+JACCARD_DATA_RECALL_ALL = "recall_all"
+JACCARD_DATA_PRECISION_ALL = "precision_all"
+JACCARD_DATA_ALL_CONCAT_SEP = "all_jaccard_concat_bins_targets_sep_all"
 
-# Labels and display text
-LABEL_ERROR_BOUND_ACCURACY = "Error Bound Accuracy (%)"
-LABEL_JACCARD_INDEX = "Jaccard Index (%)"
-LABEL_LOCALIZATION_ERROR = "Localization Error (mm)"
-LABEL_MEAN_ERROR = "Mean Error (mm)"
-LABEL_GROUND_TRUTH_BINS_RECALL = "Ground Truth Bins Recall"
-LABEL_GROUND_TRUTH_BINS_PRECISION = "Ground Truth Bins Precision"
-LABEL_UNCERTAINTY_THRESHOLDED_BIN = "Uncertainty Thresholded Bin"
-LABEL_Q_NUM_BINS = "Q (# Bins)"
-
-# Metric names for plotting
+# -----------------------------------------------------------------------------
+# Metric Names
+# -----------------------------------------------------------------------------
 METRIC_NAME_ERROR = "error"
 METRIC_NAME_ERRORBOUND = "errorbound"
 METRIC_NAME_JACCARD = "jaccard"
@@ -109,24 +105,44 @@ METRIC_NAME_RECALL_JACCARD = "recall_jaccard"
 METRIC_NAME_PRECISION_JACCARD = "precision_jaccard"
 METRIC_NAME_MEAN_ERROR_FOLDS = "mean_error_folds"
 
-# Template strings
+# -----------------------------------------------------------------------------
+# Display Labels
+# -----------------------------------------------------------------------------
+LABEL_ERROR_BOUND_ACCURACY = "Error Bound Accuracy (%)"
+LABEL_JACCARD_INDEX = "Jaccard Index (%)"
+LABEL_LOCALIZATION_ERROR = "Localization Error (mm)"
+LABEL_MEAN_ERROR = "Mean Error (mm)"
+LABEL_GROUND_TRUTH_BINS_RECALL = "Ground Truth Bins Recall"
+LABEL_GROUND_TRUTH_BINS_PRECISION = "Ground Truth Bins Precision"
+LABEL_GROUND_TRUTH_BINS_RECALL_PERCENT = "Ground Truth Bins Recall (%)"
+LABEL_GROUND_TRUTH_BINS_PRECISION_PERCENT = "Ground Truth Bins Precision (%)"
+LABEL_UNCERTAINTY_THRESHOLDED_BIN = "Uncertainty Thresholded Bin"
+LABEL_Q_NUM_BINS = "Q (# Bins)"
+
+# -----------------------------------------------------------------------------
+# Title and Message Templates
+# -----------------------------------------------------------------------------
 CUMULATIVE_ERROR_TITLE_TEMPLATE = "Cumulative error for ALL predictions, dataset {}"
 CUMULATIVE_ERROR_B1_TITLE_TEMPLATE = "Cumulative error for B1 predictions, dataset {}"
 CUMULATIVE_ERROR_B1_VS_ALL_TITLE_TEMPLATE = "{}. Cumulative error comparing ALL and B1, dataset {}"
 PLOTTING_TARGET_MESSAGE_TEMPLATE = "Plotting {} for all targets."
 PLOTTING_INDIVIDUAL_TARGET_MESSAGE_TEMPLATE = "Plotting individual {} for T{}"
 
-# File name constants
-FILE_NAME_ALL_PREDICTIONS_CUMULATIVE_ERROR = "all_predictions_cumulative_error.pdf"
-FILE_NAME_B1_PREDICTIONS_CUMULATIVE_ERROR = "b1_predictions_cumulative_error.pdf"
-FILE_NAME_B1_VS_ALL_CUMULATIVE_ERROR_TEMPLATE = "{}_b1_vs_all_cumulative_error.pdf"
-FILE_NAME_TARGET_ERRORS = "target_errors.xlsx"
+# -----------------------------------------------------------------------------
+# File Names
+# -----------------------------------------------------------------------------
+FILE_NAME_ALL_PREDICTIONS_CUMULATIVE_ERROR = "all_predictions_cumulative_error"
+FILE_NAME_B1_PREDICTIONS_CUMULATIVE_ERROR = "b1_predictions_cumulative_error"
+FILE_NAME_B1_VS_ALL_CUMULATIVE_ERROR_TEMPLATE = "{}_b1_vs_all_cumulative_error"
+FILE_NAME_TARGET_ERRORS = "target_errors"
 
-# Label constants for specific use cases
-LABEL_GROUND_TRUTH_BINS_RECALL_PERCENT = "Ground Truth Bins Recall (%)"
-LABEL_GROUND_TRUTH_BINS_PRECISION_PERCENT = "Ground Truth Bins Precision (%)"
+# Default file format extensions
+DEFAULT_FIGURE_FORMAT = "pdf"
+DEFAULT_DATA_FORMAT = "xlsx"
 
-# Summary and report strings
+# -----------------------------------------------------------------------------
+# Summary and Report Strings (for reports and summaries)
+# -----------------------------------------------------------------------------
 SUMMARY_ALL_TARGETS = "All Targets"
 SUMMARY_MEAN_ERROR_TITLE = "Mean error"
 
@@ -374,6 +390,8 @@ class QuantileBinningAnalyzer:
         show_sample_info: str,
         box_plot_error_lim: int,
         boxplot_config: Dict[str, Any],
+        figure_format: str = DEFAULT_FIGURE_FORMAT,
+        data_format: str = DEFAULT_DATA_FORMAT,
     ):
         """
         Initialize the QuantileBinningAnalyzer for uncertainty quantification analysis.
@@ -392,6 +410,10 @@ class QuantileBinningAnalyzer:
             box_plot_error_lim (int): Upper limit for y-axis on error boxplots (typically in mm).
             boxplot_config (Dict[str, Any]): Configuration dictionary for boxplot aesthetics including colormap, font
                 sizes, figure dimensions, and styling parameters.
+            figure_format (str): File extension for figure outputs (e.g., 'pdf', 'png', 'svg').
+                Defaults to 'pdf'.
+            data_format (str): File extension for data outputs (e.g., 'xlsx', 'csv').
+                Defaults to 'xlsx'.
         """
         self.logger = logging.getLogger("qbin")
         self.display_settings = display_settings
@@ -404,6 +426,21 @@ class QuantileBinningAnalyzer:
         self.samples_as_dots_bool = samples_as_dots_bool
         self.show_sample_info = show_sample_info
         self.hatch = display_settings.get("hatch", "o")
+        self.figure_format = figure_format
+        self.data_format = data_format
+
+    def _build_filename(self, base_name: str, is_figure: bool = True) -> str:
+        """Build full filename with appropriate extension.
+
+        Args:
+            base_name (str): Base filename without extension.
+            is_figure (bool): If True, use figure_format; otherwise use data_format.
+
+        Returns:
+            str: Full filename with extension (e.g., 'plot.pdf' or 'data.xlsx').
+        """
+        ext = self.figure_format if is_figure else self.data_format
+        return f"{base_name}.{ext}"
 
     def run_individual_bin_comparison(self, config: QuantileBinningConfig) -> None:
         """
@@ -509,7 +546,7 @@ class QuantileBinningAnalyzer:
                 np.arange(config.num_bins),
                 CUMULATIVE_ERROR_TITLE_TEMPLATE.format(config.dataset),
                 save_path=self.save_folder if self.save_figures else None,
-                file_name=FILE_NAME_ALL_PREDICTIONS_CUMULATIVE_ERROR,
+                file_name=self._build_filename(FILE_NAME_ALL_PREDICTIONS_CUMULATIVE_ERROR),
                 error_scaling_factor=config.error_scaling_factor,
             )
             # Plot cumulative error figure for B1 only predictions
@@ -521,7 +558,7 @@ class QuantileBinningAnalyzer:
                 0,
                 CUMULATIVE_ERROR_B1_TITLE_TEMPLATE.format(config.dataset),
                 save_path=self.save_folder if self.save_figures else None,
-                file_name=FILE_NAME_B1_PREDICTIONS_CUMULATIVE_ERROR,
+                file_name=self._build_filename(FILE_NAME_B1_PREDICTIONS_CUMULATIVE_ERROR),
                 error_scaling_factor=config.error_scaling_factor,
             )
 
@@ -536,7 +573,7 @@ class QuantileBinningAnalyzer:
                     CUMULATIVE_ERROR_B1_VS_ALL_TITLE_TEMPLATE.format(model_type, config.dataset),
                     compare_to_all=True,
                     save_path=self.save_folder if self.save_figures else None,
-                    file_name=FILE_NAME_B1_VS_ALL_CUMULATIVE_ERROR_TEMPLATE.format(model_type),
+                    file_name=self._build_filename(FILE_NAME_B1_VS_ALL_CUMULATIVE_ERROR_TEMPLATE.format(model_type)),
                     error_scaling_factor=config.error_scaling_factor,
                 )
 
@@ -851,7 +888,7 @@ class QuantileBinningAnalyzer:
             error_data,
             [[ERROR_DATA_MEAN_BINS_NOSEP, SUMMARY_ALL_TARGETS]],
             SUMMARY_MEAN_ERROR_TITLE,
-            os.path.join(self.save_folder, FILE_NAME_TARGET_ERRORS),
+            os.path.join(self.save_folder, self._build_filename(FILE_NAME_TARGET_ERRORS, is_figure=False)),
         )
         return {"errors": error_data, "jaccard": jaccard_data, "bounds": bounds_data, "bins": bins_all_targets}
 
@@ -869,7 +906,7 @@ class QuantileBinningAnalyzer:
         if metric_type not in self._METRIC_DEFINITIONS:
             raise ValueError(f"Unknown metric type: {metric_type}. Available: {list(self._METRIC_DEFINITIONS.keys())}")
 
-        metric_definitions = self._METRIC_DEFINITIONS[metric_type]
+        metric_definitions = copy.deepcopy(self._METRIC_DEFINITIONS[metric_type])
 
         # Handle special case for jaccard metrics with custom y_labels from kwargs
         if metric_type == "jaccard" and config.kwargs:
