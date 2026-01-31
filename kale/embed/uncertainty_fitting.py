@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from yacs.config import CfgNode
 
-from kale.interpret.uncertainty_quantiles import quantile_binning_and_est_errors
+from kale.interpret.uncertainty_utils import quantile_binning_and_estimate_errors
 from kale.loaddata.tabular_access import load_csv_columns
 from kale.predict.uncertainty_binning import quantile_binning_predictions
 from kale.prepdata.tabular_transform import apply_confidence_inversion
@@ -46,7 +46,7 @@ def fit_and_predict(
         save_folder (str, optional): Path to folder to save results to. If None, results are not saved.
 
     Returns:
-        all_uncert_boundaries (pd.DataFrame): A DataFrame with uncertainty boundaries for each fold and uncertainty pairing.
+        all_uncertainty_boundaries (pd.DataFrame): A DataFrame with uncertainty boundaries for each fold and uncertainty pairing.
         error_bound_estimates (pd.DataFrame): A DataFrame with estimated error bounds for each fold and uncertainty pairing.
         all_testing_results (pd.DataFrame): A DataFrame with predicted test bin values for each fold and uncertainty pairing.
     """
@@ -59,17 +59,17 @@ def fit_and_predict(
     # Save results across uncertainty pairings for each target.
     all_testing_results = pd.DataFrame(load_csv_columns(ue_pairs_test, "Testing Fold", np.arange(num_folds)))
     error_bound_estimates = pd.DataFrame({"fold": np.arange(num_folds)})
-    all_uncert_boundaries = pd.DataFrame({"fold": np.arange(num_folds)})
+    all_uncertainty_boundaries = pd.DataFrame({"fold": np.arange(num_folds)})
 
     for idx, uncertainty_pairing in enumerate(uncertainty_error_pairs):
         uncertainty_category = uncertainty_pairing[0]
-        invert_uncert_bool = [x[1] for x in invert_confidences if x[0] == uncertainty_category][0]
+        invert_uncert = [x[1] for x in invert_confidences if x[0] == uncertainty_category][0]
         evaluation_metric = uncertainty_pairing[1]
         uncertainty_measure = uncertainty_pairing[2]
 
         running_results = []
         running_error_bounds = []
-        running_uncert_boundaries = []
+        running_uncertainty_boundaries = []
 
         for fold in range(num_folds):
             validation_pairs = load_csv_columns(
@@ -86,7 +86,7 @@ def fit_and_predict(
 
             testing_pairs = load_csv_columns(ue_pairs_test, "Testing Fold", fold, cols_to_get)
 
-            if invert_uncert_bool:
+            if invert_uncert:
                 validation_pairs = apply_confidence_inversion(validation_pairs, uncertainty_measure)
                 testing_pairs = apply_confidence_inversion(testing_pairs, uncertainty_measure)
 
@@ -94,28 +94,28 @@ def fit_and_predict(
             # Return both and save for each fold and target.
             validation_errors = validation_pairs[evaluation_metric].values
             validation_uncerts = validation_pairs[uncertainty_measure].values
-            uncert_boundaries, estimated_errors = quantile_binning_and_est_errors(
+            uncertainty_boundaries, estimated_errors = quantile_binning_and_estimate_errors(
                 validation_errors,
                 validation_uncerts,
                 num_bins,
-                type="quantile",
+                threshold_type="quantile",
                 combine_middle_bins=combine_middle_bins,
             )
 
             # Predict for test data
             test_bins_pred = quantile_binning_predictions(
-                dict(zip(testing_pairs.uid, testing_pairs[uncertainty_measure])), uncert_boundaries
+                dict(zip(testing_pairs.uid, testing_pairs[uncertainty_measure])), uncertainty_boundaries
             )
             running_results.append(test_bins_pred)
             running_error_bounds.append((estimated_errors))
-            running_uncert_boundaries.append(uncert_boundaries)
+            running_uncertainty_boundaries.append(uncertainty_boundaries)
 
         # Combine dictionaries and save if you want
         combined_dict_bins = {k: v for x in running_results for k, v in x.items()}
 
         all_testing_results[uncertainty_measure + " bins"] = list(combined_dict_bins.values())
         error_bound_estimates[uncertainty_measure + " bounds"] = running_error_bounds
-        all_uncert_boundaries[uncertainty_measure + " bounds"] = running_uncert_boundaries
+        all_uncertainty_boundaries[uncertainty_measure + " bounds"] = running_uncertainty_boundaries
 
     # Save Bin predictions and error bound estimations to spreadsheets
     if save_folder is not None:
@@ -128,10 +128,10 @@ def fit_and_predict(
             os.path.join(save_bin_path, "estimated_error_bounds_t" + str(target_idx) + ".csv"), index=False
         )
 
-        all_uncert_boundaries.to_csv(
+        all_uncertainty_boundaries.to_csv(
             os.path.join(save_bin_path, "uncertainty_bounds_t" + str(target_idx) + ".csv"), index=False
         )
         logger.info(
             "Saved predicted test bins for T%s, error bounds and uncertainty bounds to: %s", target_idx, save_bin_path
         )
-    return all_uncert_boundaries, error_bound_estimates, all_testing_results
+    return all_uncertainty_boundaries, error_bound_estimates, all_testing_results
