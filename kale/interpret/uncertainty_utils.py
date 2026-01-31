@@ -271,11 +271,11 @@ def plot_uncertainty_correlation(
     save_or_show_plot(save_path=save_path, show=show, fig_size=figsize)
 
 
-def quantile_binning_and_est_errors(
+def quantile_binning_and_estimate_errors(
     errors: List[float],
     uncertainties: List[float],
     num_bins: int,
-    type: str = "quantile",
+    threshold_type: str = "quantile",
     acceptable_thresh: float = 5,
     combine_middle_bins: bool = False,
 ) -> Tuple[List[List[float]], List[float]]:
@@ -286,8 +286,8 @@ def quantile_binning_and_est_errors(
         errors (List[float]): List of errors.
         uncertainties (List[float]): List of uncertainties.
         num_bins (int): Number of quantile bins.
-        type (str, optional): Type of thresholds to calculate, "quantile" recommended. Defaults to "quantile".
-        acceptable_thresh (float, optional): Acceptable error threshold. Only relevant if type="error-wise".
+        threshold_type (str, optional): Type of thresholds to calculate, "quantile" recommended. Defaults to "quantile".
+        acceptable_thresh (float, optional): Acceptable error threshold. Only relevant if threshold_type="error-wise".
                                              Defaults to 5.
         combine_middle_bins (bool, optional): Whether to combine middle bins. Defaults to False.
 
@@ -301,40 +301,36 @@ def quantile_binning_and_est_errors(
         )
 
     valid_types = {"quantile", "error-wise"}
-    if type not in valid_types:
-        raise ValueError("results: type must be one of %r. " % valid_types)
+    if threshold_type not in valid_types:
+        raise ValueError("results: threshold_type must be one of %r. " % valid_types)
 
     # Isotonically regress line
     ir = IsotonicRegression(out_of_bounds="clip", increasing=True)
 
     _ = ir.fit_transform(uncertainties, errors)
 
-    uncert_boundaries = []
+    uncertainty_boundaries = []
     estimated_errors = []
 
     # Estimate error bounds for each quantile bin
-    if type == "quantile":
+    if threshold_type == "quantile":
         quantiles = np.arange(1 / num_bins, 1, 1 / num_bins)[: num_bins - 1]
         for q in range(len(quantiles)):
             q_conf_higher = [np.quantile(uncertainties, quantiles[q])]
             q_error_higher = ir.predict(q_conf_higher)
 
             estimated_errors.append(q_error_higher[0])
-            uncert_boundaries.append(q_conf_higher)
+            uncertainty_boundaries.append(q_conf_higher)
 
-    elif type == "error-wise":
-        quantiles = np.arange(num_bins - 1, dtype=float)
-        estimated_errors = [[(acceptable_thresh * x)] for x in quantiles]
-
-        uncert_boundaries = [(ir.predict(x)).tolist() for x in estimated_errors]
+    elif threshold_type == "error-wise":
         raise NotImplementedError("error-wise Quantile Binning not implemented yet")
 
     # IF combine bins, we grab only the values for the two outer bins
     if combine_middle_bins:
         estimated_errors = [estimated_errors[0], estimated_errors[-1]]
-        uncert_boundaries = [uncert_boundaries[0], uncert_boundaries[-1]]
+        uncertainty_boundaries = [uncertainty_boundaries[0], uncertainty_boundaries[-1]]
 
-    return uncert_boundaries, estimated_errors
+    return uncertainty_boundaries, estimated_errors
 
 
 def plot_cumulative(
@@ -369,8 +365,10 @@ def plot_cumulative(
         title (str): Title for the plot (e.g., "Cumulative Error Distribution - Dataset Name").
         compare_to_all (bool, optional): Whether to compare the given subset of bins to all data points. If True, adds
             comparison lines for complete dataset. Defaults to False.
-        save_path (Optional[str], optional): File path to save the plot. If None, displays on screen interactively.
-            File will be saved with "_cumulative_error.pdf" suffix. Defaults to None.
+        save_path (Optional[str], optional): Directory path where the plot will be saved. If None, displays the plot
+            on screen interactively instead of saving. Defaults to None.
+        file_name (str, optional): Name of the output file when saving the plot. This is joined with save_path to
+            create the full file path. Defaults to "cumulative_error.pdf".
         error_scaling_factor (float, optional): Multiplicative factor to scale error values
             (e.g., 1.0 for mm, 0.1 for cm). Defaults to 1.0.
 
@@ -384,55 +382,36 @@ def plot_cumulative(
     # make sure bins is a list and not a single value
     bins = [bins] if not isinstance(bins, (list, np.ndarray)) else bins
 
-    plt.style.use("ggplot")
+    with plt.style.context("ggplot"):
+        _ = plt.figure()
 
-    _ = plt.figure()
+        ax = plt.gca()
+        plt.xticks(fontsize=10)
+        plt.yticks(fontsize=10)
 
-    ax = plt.gca()
-    plt.xticks(fontsize=10)
-    plt.yticks(fontsize=10)
+        ax.set_xlabel("Error (mm)", fontsize=10)
+        ax.set_ylabel("Number of images in %", fontsize=10)
+        plt.title(title)
 
-    ax.set_xlabel("Error (mm)", fontsize=10)
-    ax.set_ylabel("Number of images in %", fontsize=10)
-    plt.title(title)
+        ax.set_xscale("log")
+        line_styles = [":", "-", "dotted", "-."]
+        colors = colormaps.get_cmap(colormap)(np.arange(len(uncertainty_types) + 1))
+        for i, (uncertainty, _) in enumerate(uncertainty_types):
+            color = colors[i]
+            for hash_idx, model_type in enumerate(models):
+                line = line_styles[hash_idx]
 
-    ax.set_xscale("log")
-    line_styles = [":", "-", "dotted", "-."]
-    colors = colormaps.get_cmap(colormap)(np.arange(len(uncertainty_types) + 1))
-    for i, (uncert_pair) in enumerate(uncertainty_types):
-        uncertainty = (uncert_pair)[0]
-        color = colors[i]
-        for hash_idx, model_type in enumerate(models):
-            line = line_styles[hash_idx]
-
-            # Filter only the bins selected
-            dataframe = data_struct[model_type]
-            model_un_errors = (
-                dataframe[dataframe[uncertainty + " Uncertainty bins"].isin(bins)][uncertainty + " Error"].values
-                * error_scaling_factor
-            )
-
-            p = 100 * np.arange(len(model_un_errors)) / (len(model_un_errors) - 1)
-
-            sorted_errors = np.sort(model_un_errors)
-
-            ax.plot(
-                sorted_errors,
-                p,
-                label=model_type + " " + uncertainty,
-                color=color,
-                linestyle=line,
-                dash_capstyle="round",
-            )
-
-            if compare_to_all:
+                # Filter only the bins selected
                 dataframe = data_struct[model_type]
-                model_un_errors = dataframe[uncertainty + " Error"].values * error_scaling_factor
+                model_un_errors = (
+                    dataframe[dataframe[uncertainty + " Uncertainty bins"].isin(bins)][uncertainty + " Error"].values
+                    * error_scaling_factor
+                )
 
                 p = 100 * np.arange(len(model_un_errors)) / (len(model_un_errors) - 1)
 
                 sorted_errors = np.sort(model_un_errors)
-                line = line_styles[len(models) + hash_idx]
+
                 ax.plot(
                     sorted_errors,
                     p,
@@ -442,28 +421,45 @@ def plot_cumulative(
                     dash_capstyle="round",
                 )
 
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles, labels, prop={"size": 10})
-    plt.axvline(x=5, color=colors[len(uncertainty_types)])
+                if compare_to_all:
+                    dataframe = data_struct[model_type]
+                    model_un_errors = dataframe[uncertainty + " Error"].values * error_scaling_factor
 
-    for axis in [ax.xaxis, ax.yaxis]:
-        axis.set_major_formatter(ScalarFormatter())
+                    p = 100 * np.arange(len(model_un_errors)) / (len(model_un_errors) - 1)
 
-    plt.xticks([1, 2, 3, 4, 5, 10, 20, 30])
+                    sorted_errors = np.sort(model_un_errors)
+                    line = line_styles[len(models) + hash_idx]
+                    ax.plot(
+                        sorted_errors,
+                        p,
+                        label=model_type + " " + uncertainty,
+                        color=color,
+                        linestyle=line,
+                        dash_capstyle="round",
+                    )
 
-    ax.xaxis.label.set_color("black")
-    ax.yaxis.label.set_color("black")
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles, labels, prop={"size": 10})
+        plt.axvline(x=5, color=colors[len(uncertainty_types)])
 
-    ax.tick_params(axis="x", colors="black")
-    ax.tick_params(axis="y", colors="black")
+        for axis in [ax.xaxis, ax.yaxis]:
+            axis.set_major_formatter(ScalarFormatter())
 
-    if save_path is not None:
-        plt.savefig(os.path.join(save_path, file_name), dpi=100, bbox_inches="tight", pad_inches=0.2)
-        plt.close()
-    else:
-        plt.gcf().set_size_inches(16.0, 10.0)
-        plt.show()
-        plt.close()
+        plt.xticks([1, 2, 3, 4, 5, 10, 20, 30])
+
+        ax.xaxis.label.set_color("black")
+        ax.yaxis.label.set_color("black")
+
+        ax.tick_params(axis="x", colors="black")
+        ax.tick_params(axis="y", colors="black")
+
+        if save_path is not None:
+            plt.savefig(os.path.join(save_path, file_name), dpi=100, bbox_inches="tight", pad_inches=0.2)
+            plt.close()
+        else:
+            plt.gcf().set_size_inches(16.0, 10.0)
+            plt.show()
+            plt.close()
 
 
 def _calculate_correlations(uncertainties: np.ndarray, scaled_errors: np.ndarray) -> Dict[str, List[float]]:

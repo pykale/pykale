@@ -6,7 +6,7 @@ import pytest
 from kale.interpret.uncertainty_utils import (
     analyze_and_plot_uncertainty_correlation,
     plot_cumulative,
-    quantile_binning_and_est_errors,
+    quantile_binning_and_estimate_errors,
 )
 
 SEED = 42
@@ -207,9 +207,9 @@ class TestPlotFunctions:
 class TestQuantileBinningAndEstErrors:
     def test_empty(self):
         with pytest.raises(ValueError, match=r"Length of errors .*"):
-            quantile_binning_and_est_errors(ERRORS, [0, 1, 2], num_bins=5)
+            quantile_binning_and_estimate_errors(ERRORS, [0, 1, 2], num_bins=5)
         with pytest.raises(ValueError, match=r"Length of errors .*"):
-            quantile_binning_and_est_errors([], [0, 1, 2], num_bins=5)
+            quantile_binning_and_estimate_errors([], [0, 1, 2], num_bins=5)
 
     # Using 11 datapoints from 0-N, we test if we can create 10 bins between these:
     # <0.1, 0.1,0.2,0.3,0.4,0.5,0.6, 0.7,0.8,0.9, >0.9
@@ -219,7 +219,7 @@ class TestQuantileBinningAndEstErrors:
         test_uncertainties = np.linspace(0, 1, 11)
         test_errors = np.linspace(0, 10, 11)
 
-        est_bounds, est_errors = quantile_binning_and_est_errors(test_errors, test_uncertainties, num_bins=10)
+        est_bounds, est_errors = quantile_binning_and_estimate_errors(test_errors, test_uncertainties, num_bins=10)
 
         # Should have 9 boundaries (num_bins - 1)
         assert len(est_bounds) == 9
@@ -229,21 +229,21 @@ class TestQuantileBinningAndEstErrors:
         assert pytest.approx(np.squeeze(est_errors), abs=0.1) == test_errors[1:-1]
 
     def test_invalid_type(self):
-        """Test error handling for invalid type parameter."""
-        with pytest.raises(ValueError, match=r"type must be one of"):
-            quantile_binning_and_est_errors(ERRORS, UNCERTAINTIES, num_bins=5, type="invalid")
+        """Test error handling for invalid threshold_type parameter."""
+        with pytest.raises(ValueError, match=r"threshold_type must be one of"):
+            quantile_binning_and_estimate_errors(ERRORS, UNCERTAINTIES, num_bins=5, threshold_type="invalid")
 
     def test_different_bin_counts(self):
         """Test function with different bin counts."""
         for num_bins in [3, 5, 8]:
-            est_bounds, est_errors = quantile_binning_and_est_errors(ERRORS, UNCERTAINTIES, num_bins=num_bins)
+            est_bounds, est_errors = quantile_binning_and_estimate_errors(ERRORS, UNCERTAINTIES, num_bins=num_bins)
             # Should have num_bins - 1 boundaries
             assert len(est_bounds) == num_bins - 1
             assert len(est_errors) == num_bins - 1
 
     def test_combine_middle_bins(self):
         """Test combine_middle_bins functionality."""
-        est_bounds, est_errors = quantile_binning_and_est_errors(
+        est_bounds, est_errors = quantile_binning_and_estimate_errors(
             ERRORS, UNCERTAINTIES, num_bins=10, combine_middle_bins=True
         )
         # Should have only 2 bins when combining middle bins
@@ -254,7 +254,7 @@ class TestQuantileBinningAndEstErrors:
         """Test that error_wise type raises NotImplementedError (not yet implemented)."""
         # error-wise type is not implemented yet and should raise NotImplementedError
         with pytest.raises(NotImplementedError, match="error-wise Quantile Binning not implemented yet"):
-            quantile_binning_and_est_errors(ERRORS, UNCERTAINTIES, num_bins=5, type="error-wise")
+            quantile_binning_and_estimate_errors(ERRORS, UNCERTAINTIES, num_bins=5, threshold_type="error-wise")
 
 
 class TestEdgeCases:
@@ -263,13 +263,13 @@ class TestEdgeCases:
     def test_quantile_binning_single_bin(self):
         """Test quantile binning with single bin (edge case)."""
         # Single bin should result in no boundaries
-        est_bounds, est_errors = quantile_binning_and_est_errors(ERRORS, UNCERTAINTIES, num_bins=1)
+        est_bounds, est_errors = quantile_binning_and_estimate_errors(ERRORS, UNCERTAINTIES, num_bins=1)
         assert len(est_bounds) == 0
         assert len(est_errors) == 0
 
     def test_quantile_binning_two_bins(self):
         """Test quantile binning with two bins."""
-        est_bounds, est_errors = quantile_binning_and_est_errors(ERRORS, UNCERTAINTIES, num_bins=2)
+        est_bounds, est_errors = quantile_binning_and_estimate_errors(ERRORS, UNCERTAINTIES, num_bins=2)
         assert len(est_bounds) == 1
         assert len(est_errors) == 1
 
@@ -278,7 +278,9 @@ class TestEdgeCases:
         identical_uncertainties = [0.5] * 10
         varied_errors = list(range(10))
 
-        est_bounds, est_errors = quantile_binning_and_est_errors(varied_errors, identical_uncertainties, num_bins=5)
+        est_bounds, est_errors = quantile_binning_and_estimate_errors(
+            varied_errors, identical_uncertainties, num_bins=5
+        )
         # Should handle identical values gracefully
         assert len(est_bounds) == 4
         assert len(est_errors) == 4
@@ -289,7 +291,7 @@ class TestEdgeCases:
         # Create matching uncertainties array with same length
         reverse_uncertainties = np.linspace(0, 1, 11)
 
-        est_bounds, est_errors = quantile_binning_and_est_errors(reverse_errors, reverse_uncertainties, num_bins=5)
+        est_bounds, est_errors = quantile_binning_and_estimate_errors(reverse_errors, reverse_uncertainties, num_bins=5)
         # Should handle reverse correlation
         assert len(est_bounds) == 4
         assert len(est_errors) == 4
@@ -301,12 +303,12 @@ class TestParameterValidation:
     def test_quantile_binning_non_numeric_inputs(self):
         """Test error handling for non-numeric inputs."""
         with pytest.raises((TypeError, ValueError)):
-            quantile_binning_and_est_errors(["a", "b", "c"], [1, 2, 3], num_bins=2)
+            quantile_binning_and_estimate_errors(["a", "b", "c"], [1, 2, 3], num_bins=2)
 
     def test_quantile_binning_negative_bins(self):
         """Test behavior with negative bin count."""
         # Negative bins should be handled gracefully
-        est_bounds, est_errors = quantile_binning_and_est_errors(ERRORS, UNCERTAINTIES, num_bins=-1)
+        est_bounds, est_errors = quantile_binning_and_estimate_errors(ERRORS, UNCERTAINTIES, num_bins=-1)
         # Should return reasonable results even with negative input
         assert isinstance(est_bounds, list)
         assert isinstance(est_errors, list)
@@ -315,4 +317,4 @@ class TestParameterValidation:
         """Test error handling for zero bin count."""
         # Zero bins should raise a ZeroDivisionError
         with pytest.raises(ZeroDivisionError):
-            quantile_binning_and_est_errors(ERRORS, UNCERTAINTIES, num_bins=0)
+            quantile_binning_and_estimate_errors(ERRORS, UNCERTAINTIES, num_bins=0)

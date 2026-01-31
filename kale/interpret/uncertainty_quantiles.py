@@ -15,7 +15,7 @@ Core Classes:
    - ComparingBinsConfig: Configuration for comparing different bin counts (Q values)
 
 Analysis Capabilities:
-   A) Isotonic regression on uncertainty & error pairs (quantile_binning_and_est_errors)
+   A) Isotonic regression on uncertainty & error pairs (quantile_binning_and_estimate_errors)
    B) Individual bin comparison: Compare different models/uncertainty types at fixed bin counts
    C) Bin count comparison: Analyze impact of different Q values on model performance
    D) Comprehensive visualization: Boxplots, error bounds, Jaccard metrics, cumulative plots
@@ -59,7 +59,7 @@ import copy
 import logging
 import os
 from dataclasses import dataclass, field
-from typing import Any, Callable, cast, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, cast, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -210,7 +210,9 @@ class QuantileBinningConfig(BaseAnalysisConfig):
     num_bins: int = 10  # Number of uncertainty quantile bins (Q value, typically 5-20)
 
     # Analysis settings specific to individual bin comparison
-    confidence_invert: Optional[List[List[Union[str, bool]]]] = None  # List of [uncertainty_type, should_invert] pairs
+    confidence_invert: List[Tuple[str, bool]] = field(
+        default_factory=list
+    )  # List of (uncertainty_type, should_invert) tuples for proper type safety
 
 
 @dataclass
@@ -223,11 +225,10 @@ class ComparingBinsConfig(BaseAnalysisConfig):
     """
 
     # Data configuration (specific to this analysis type)
-    uncertainty_error_pair: Tuple[str, str, str] = (
+    uncertainty_error_pair: Tuple[str, str] = (
         "",
         "",
-        "",
-    )  # Single (display_name, error_column_name, uncertainty_column_name) tuple to analyze
+    )  # Single (uncertainty_type, error_type) tuple to analyze
     model: str = ""  # Single model name to evaluate across different Q values
     dataset: str = ""  # Dataset identifier for labeling and file organization
     targets: List[int] = field(default_factory=list)  # List of anatomical landmark/target indices to analyze
@@ -266,6 +267,11 @@ class MetricPlotConfig:
 
     # Additional plot parameters
     kwargs: Dict[str, Any] = field(default_factory=dict)  # Extra keyword arguments for plot customization
+
+    def __post_init__(self):
+        """Initialize default values for optional fields."""
+        if self.target_indices is None:
+            self.target_indices = []
 
 
 @dataclass
@@ -462,7 +468,7 @@ class QuantileBinningAnalyzer:
                 - target_indices: List of anatomical landmark/target indices to analyze
                 - num_bins: Number of uncertainty quantile bins (typically 5-20)
                 - combine_middle_bins: Whether to merge middle bins for simplified 3-bin analysis
-                - confidence_invert: Whether to invert confidence values for analysis
+                - confidence_invert: List of (uncertainty_type, should_invert) tuples for proper type-safe handling
                 - Display and visualization settings for plot generation
                 - File paths and saving configuration
 
@@ -512,15 +518,12 @@ class QuantileBinningAnalyzer:
         if self.display_settings.get("correlation"):
             colormap = self.boxplot_config.get("colormap", "Set1")
             uncertainty_error_model_triples = config.uncertainty_error_pairs
-            # Convert confidence_invert from List[List] to List[Tuple[str, bool]]
-            confidence_invert_tuples = (
-                [(str(item[0]), bool(item[1])) for item in config.confidence_invert] if config.confidence_invert else []
-            )
+            # confidence_invert is already properly typed as List[Tuple[str, bool]]
             evaluate_correlations(
                 eval_data["bins"],
                 uncertainty_error_model_triples,
                 config.num_bins,
-                confidence_invert_tuples,
+                config.confidence_invert,
                 num_folds=config.num_folds,
                 colormap=colormap,
                 error_scaling_factor=config.error_scaling_factor,
@@ -702,7 +705,11 @@ class QuantileBinningAnalyzer:
             return
 
         model_list = [config.model]
-        uncertainty_error_pair_list = [config.uncertainty_error_pair]
+        # Convert single 2-tuple (uncertainty_type, error_type) to 3-tuple format for _gather_evaluation_data
+        # Add uncertainty_type as the third element (display_name = uncertainty_type for consistency)
+        uncertainty_error_pair_list = [
+            (config.uncertainty_error_pair[0], config.uncertainty_error_pair[1], config.uncertainty_error_pair[0])
+        ]
 
         # Collect data for each Q value
         all_eval_data_by_q: Dict[str, List[Any]] = {
@@ -738,6 +745,7 @@ class QuantileBinningAnalyzer:
             all_eval_data_by_q[JACCARD_DATA_PRECISION_ALL].append(eval_data["jaccard"][JACCARD_DATA_PRECISION_ALL])
             all_eval_data_by_q[JACCARD_DATA_ALL_CONCAT_SEP].append(eval_data["jaccard"][JACCARD_DATA_ALL_CONCAT_SEP])
 
+        # num_bins_display uses the final Q value from the loop (last element of all_values_q) for display configuration
         num_bins_display = 3 if config.combine_middle_bins else num_bins
         category_labels = [str(q) for q in config.all_values_q]
 

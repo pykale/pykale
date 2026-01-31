@@ -73,7 +73,7 @@ def main():
     compare_q_models_to_compare = cfg.PIPELINE.COMPARE_Q_MODELS
 
     dataset = cfg.DATASET.DATA
-    landmarks = cfg.DATASET.LANDMARKS
+    landmark_indices = cfg.DATASET.LANDMARKS
     num_folds = cfg.DATASET.NUM_FOLDS
 
     individual_landmarks_to_show = cfg.PIPELINE.INDIVIDUAL_LANDMARKS_TO_SHOW
@@ -111,7 +111,7 @@ def main():
             )
 
             for model in all_models_to_compare:
-                for landmark in landmarks:
+                for landmark in landmark_indices:
                     # Define Paths for this loop
                     landmark_results_path_val = os.path.join(
                         cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_val + "_t" + str(landmark)
@@ -160,7 +160,7 @@ def main():
                     uncertainty_error_pairs=individual_q_uncertainty_error_pairs,
                     models=individual_q_models_to_compare,
                     dataset=dataset,
-                    target_indices=landmarks,
+                    target_indices=landmark_indices,
                     num_bins=num_bins,
                     combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
                     confidence_invert=cfg.DATASET.CONFIDENCE_INVERT,
@@ -232,7 +232,7 @@ def main():
                             uncertainty_error_pair=c_er_pair,
                             model=c_model,
                             dataset=dataset,
-                            targets=landmarks,
+                            targets=landmark_indices,
                             all_values_q=cfg.PIPELINE.NUM_QUANTILE_BINS,
                             all_fitted_save_paths=quantile_binning_dirs,
                             combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,

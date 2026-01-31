@@ -489,7 +489,7 @@ def helper_test_qbin_fit(
     This function tests the `fit_and_predict()` function with a specific landmark and set of inputs. It first creates
     a directory at the `save_folder` path if one does not already exist. It then calls `fit_and_predict()` with the
     specified inputs to generate predictions and associated uncertainty estimates. The function then tests the
-    resulting `estimated_errors`, `uncert_boundaries`, and `predicted_bins` arrays using the `csv_equality_helper()`
+    resulting `estimated_errors`, `uncertainty_boundaries`, and `predicted_bins` arrays using the `csv_equality_helper()`
     function.
 
     Note that this function assumes that there are ground truth test errors available for testing. If ground truth
@@ -499,7 +499,7 @@ def helper_test_qbin_fit(
     os.makedirs(save_folder, exist_ok=True)
 
     # Call `fit_and_predict()` with the specified inputs
-    uncert_boundaries, estimated_errors, predicted_bins = fit_and_predict(
+    uncertainty_boundaries, estimated_errors, predicted_bins = fit_and_predict(
         landmark,
         all_uncert_error_pairs_to_compare,
         landmark_results_path_val,
@@ -520,9 +520,9 @@ def helper_test_qbin_fit(
         landmark,
     )
 
-    # Test `uncert_boundaries` using `csv_equality_helper()`
+    # Test `uncertainty_boundaries` using `csv_equality_helper()`
     csv_equality_helper(
-        uncert_boundaries,
+        uncertainty_boundaries,
         os.path.join(cfg["DATASET"]["ROOT"], cfg["DATASET"]["BASE_DIR"], model)
         + "/4CH/"
         + str(num_bins)
