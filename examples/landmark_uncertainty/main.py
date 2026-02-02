@@ -147,7 +147,7 @@ def main():
                 save_file_preamble = "_".join(
                     [
                         cfg.OUTPUT.SAVE_PREPEND,
-                        "ind",
+                        "individual",
                         dataset,
                         comparisons_models,
                         comparisons_um,
@@ -171,7 +171,7 @@ def main():
                     save_figures=cfg.OUTPUT.SAVE_FIGURES,
                     plot_samples_as_dots=cfg.BOXPLOT.SAMPLES_AS_DOTS,
                     show_sample_info=cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
-                    box_plot_error_lim=cfg.BOXPLOT.ERROR_LIM,
+                    boxplot_error_lim=cfg.BOXPLOT.ERROR_LIM,
                     colormap=colormap,
                     interpret=interpret,
                     num_folds=num_folds,
@@ -179,25 +179,30 @@ def main():
                 )
 
                 # Create analyzer and run individual bin comparison
-                display_settings = {
-                    "cumulative_error": True,
-                    "errors": True,
-                    "jaccard": True,
-                    "error_bounds": True,
-                    "correlation": True,
-                    "hatch": "o",
+                plot_config = {
+                    "display_settings": {
+                        "cumulative_error": True,
+                        "errors": True,
+                        "jaccard": True,
+                        "error_bounds": True,
+                        "correlation": True,
+                        "hatch": "o",
+                    },
+                    "plot_samples_as_dots": config.plot_samples_as_dots,
+                    "show_sample_info": config.show_sample_info,
+                    "boxplot_error_lim": config.boxplot_error_lim,
+                    "boxplot_config": {
+                        "colormap": config.colormap,
+                        "hatch_type": "o",
+                    },
                 }
 
                 analyzer = QuantileBinningAnalyzer(
-                    display_settings=display_settings,
+                    plot_config=plot_config,
                     save_folder=config.save_folder,
                     save_file_preamble=config.save_file_preamble,
                     save_figures=config.save_figures,
                     interpret=config.interpret,
-                    plot_samples_as_dots=config.plot_samples_as_dots,
-                    show_sample_info=config.show_sample_info,
-                    box_plot_error_lim=config.box_plot_error_lim,
-                    boxplot_config={"colormap": config.colormap, "hatch_type": display_settings.get("hatch", "")},
                 )
                 analyzer.run_individual_bin_comparison(config)
 
@@ -233,8 +238,8 @@ def main():
                             model=c_model,
                             dataset=dataset,
                             targets=landmark_indices,
-                            all_values_q=cfg.PIPELINE.NUM_QUANTILE_BINS,
-                            all_fitted_save_paths=quantile_binning_dirs,
+                            q_values=cfg.PIPELINE.NUM_QUANTILE_BINS,
+                            fitted_save_paths=quantile_binning_dirs,
                             combine_middle_bins=cfg.PIPELINE.COMBINE_MIDDLE_BINS,
                             show_individual_target_plots=show_individual_landmark_plots,
                             individual_targets_to_show=individual_landmarks_to_show,
@@ -243,7 +248,7 @@ def main():
                             save_figures=cfg.OUTPUT.SAVE_FIGURES,
                             plot_samples_as_dots=cfg.BOXPLOT.SAMPLES_AS_DOTS,
                             show_sample_info=cfg.BOXPLOT.SHOW_SAMPLE_INFO_MODE,
-                            box_plot_error_lim=cfg.BOXPLOT.ERROR_LIM,
+                            boxplot_error_lim=cfg.BOXPLOT.ERROR_LIM,
                             colormap=colormap,
                             interpret=interpret,
                             num_folds=num_folds,
@@ -251,27 +256,29 @@ def main():
                         )
 
                         # Create analyzer and run comparing bins analysis
-                        display_settings = {
-                            "cumulative_error": True,
-                            "errors": True,
-                            "jaccard": True,
-                            "error_bounds": True,
-                            "hatch": hatch_type,
+                        plot_config = {
+                            "display_settings": {
+                                "cumulative_error": True,
+                                "errors": True,
+                                "jaccard": True,
+                                "error_bounds": True,
+                                "hatch": hatch_type,
+                            },
+                            "plot_samples_as_dots": comparing_config.plot_samples_as_dots,
+                            "show_sample_info": comparing_config.show_sample_info,
+                            "boxplot_error_lim": comparing_config.boxplot_error_lim,
+                            "boxplot_config": {
+                                "colormap": comparing_config.colormap,
+                                "hatch_type": hatch_type,
+                            },
                         }
 
                         analyzer = QuantileBinningAnalyzer(
-                            display_settings=display_settings,
+                            plot_config=plot_config,
                             save_folder=comparing_config.save_folder,
                             save_file_preamble=comparing_config.save_file_preamble,
                             save_figures=comparing_config.save_figures,
                             interpret=comparing_config.interpret,
-                            plot_samples_as_dots=comparing_config.plot_samples_as_dots,
-                            show_sample_info=comparing_config.show_sample_info,
-                            box_plot_error_lim=comparing_config.box_plot_error_lim,
-                            boxplot_config={
-                                "colormap": comparing_config.colormap,
-                                "hatch_type": display_settings.get("hatch", ""),
-                            },
                         )
                         analyzer.run_comparing_bins_analysis(comparing_config)
 

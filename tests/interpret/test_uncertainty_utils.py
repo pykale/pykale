@@ -26,12 +26,17 @@ def dummy_corr_data():
     return errors, uncertainties, quantile_thresholds
 
 
+@pytest.fixture
+def out_path(tmp_path):
+    """Fixture to provide a consistent output path for correlation plots."""
+    return tmp_path / "test_correlation_plot.pdf"
+
+
 class TestBasicCorrelation:
     """Test basic correlation analysis functionality."""
 
-    def test_basic_functionality(self, tmp_path):
+    def test_basic_functionality(self, out_path):
         """Test basic correlation analysis with default parameters."""
-        out_path = tmp_path / "test_correlation_plot.pdf"
         result = analyze_and_plot_uncertainty_correlation(
             errors=ERRORS,
             uncertainties=UNCERTAINTIES,
@@ -48,9 +53,8 @@ class TestBasicCorrelation:
         assert all(isinstance(x, float) for x in result["spearman"])
         assert all(isinstance(x, float) for x in result["pearson"])
 
-    def test_with_logging(self, dummy_corr_data, tmp_path):
+    def test_with_logging(self, dummy_corr_data, out_path):
         """Test correlation analysis with logarithmic scaling."""
-        out_path = tmp_path / "test_correlation_plot.pdf"
         errors, uncertainties, quantile_thresholds = dummy_corr_data
         result = analyze_and_plot_uncertainty_correlation(
             errors=errors,
@@ -64,10 +68,8 @@ class TestBasicCorrelation:
         assert "spearman" in result
         assert "pearson" in result
 
-    def test_save_functionality(self, tmp_path):
+    def test_save_functionality(self, out_path):
         """Test that plots are properly saved and files are created."""
-        out_path = tmp_path / "test_correlation_plot.pdf"
-
         result = analyze_and_plot_uncertainty_correlation(
             errors=ERRORS,
             uncertainties=UNCERTAINTIES,
@@ -99,9 +101,8 @@ class TestBasicCorrelation:
 class TestCorrelationInputValidation:
     """Test input validation and error handling."""
 
-    def test_mismatched_array_lengths(self, tmp_path):
+    def test_mismatched_array_lengths(self, out_path):
         """Test that mismatched array lengths raise appropriate errors."""
-        out_path = tmp_path / "test_correlation_plot.pdf"
         with pytest.raises(ValueError, match="must have the same length"):
             analyze_and_plot_uncertainty_correlation(
                 errors=np.array([1, 2, 3]),
@@ -110,17 +111,15 @@ class TestCorrelationInputValidation:
                 save_path=out_path,
             )
 
-    def test_empty_arrays(self, tmp_path):
+    def test_empty_arrays(self, out_path):
         """Test that empty arrays raise appropriate errors."""
-        out_path = tmp_path / "test_correlation_plot.pdf"
         with pytest.raises(ValueError, match="cannot be empty"):
             analyze_and_plot_uncertainty_correlation(
                 errors=np.array([]), uncertainties=np.array([]), quantile_thresholds=[0.5], save_path=out_path
             )
 
-    def test_negative_quantile_thresholds(self, tmp_path):
+    def test_negative_quantile_thresholds(self, out_path):
         """Test that negative quantile thresholds cause appropriate errors."""
-        out_path = tmp_path / "test_correlation_plot.pdf"
         errors = np.array([-1, -2, -3])
         uncertainties = np.array([-1, -2, -3])
         quantile_thresholds = [-0.5, -0.2]
@@ -225,8 +224,8 @@ class TestQuantileBinningAndEstErrors:
         assert len(est_bounds) == 9
         assert len(est_errors) == 9
         # Boundaries should be approximately at the quantile positions (excluding first and last)
-        assert pytest.approx(np.squeeze(est_bounds), abs=0.1) == test_uncertainties[1:-1]
-        assert pytest.approx(np.squeeze(est_errors), abs=0.1) == test_errors[1:-1]
+        assert pytest.approx(est_bounds, abs=0.1) == test_uncertainties[1:-1]
+        assert pytest.approx(est_errors, abs=0.1) == test_errors[1:-1]
 
     def test_invalid_type(self):
         """Test error handling for invalid threshold_type parameter."""

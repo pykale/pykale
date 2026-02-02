@@ -276,9 +276,8 @@ def quantile_binning_and_estimate_errors(
     uncertainties: List[float],
     num_bins: int,
     threshold_type: str = "quantile",
-    acceptable_thresh: float = 5,
     combine_middle_bins: bool = False,
-) -> Tuple[List[List[float]], List[float]]:
+) -> Tuple[List[float], List[float]]:
     """
     Calculate quantile thresholds, and isotonically regress errors and uncertainties and get estimated error bounds.
 
@@ -287,12 +286,10 @@ def quantile_binning_and_estimate_errors(
         uncertainties (List[float]): List of uncertainties.
         num_bins (int): Number of quantile bins.
         threshold_type (str, optional): Type of thresholds to calculate, "quantile" recommended. Defaults to "quantile".
-        acceptable_thresh (float, optional): Acceptable error threshold. Only relevant if threshold_type="error-wise".
-                                             Defaults to 5.
         combine_middle_bins (bool, optional): Whether to combine middle bins. Defaults to False.
 
     Returns:
-        Tuple[List[List[float]], List[float]]: List of quantile thresholds and estimated error bounds.
+        Tuple[List[float], List[float]]: List of quantile thresholds and estimated error bounds.
     """
     if len(errors) != len(uncertainties):
         raise ValueError(
@@ -316,8 +313,8 @@ def quantile_binning_and_estimate_errors(
     if threshold_type == "quantile":
         quantiles = np.arange(1 / num_bins, 1, 1 / num_bins)[: num_bins - 1]
         for q in range(len(quantiles)):
-            q_conf_higher = [np.quantile(uncertainties, quantiles[q])]
-            q_error_higher = ir.predict(q_conf_higher)
+            q_conf_higher = np.quantile(uncertainties, quantiles[q])
+            q_error_higher = ir.predict([q_conf_higher])
 
             estimated_errors.append(q_error_higher[0])
             uncertainty_boundaries.append(q_conf_higher)

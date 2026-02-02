@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from kale.interpret.box_plot import BoxPlotData, create_boxplot_config, create_boxplot_data
-from kale.interpret.uncertainty_quantiles import plot_comparing_q_boxplot, plot_generic_boxplot, plot_per_model_boxplot
+from kale.interpret.uncertainty_quantiles import plot_generic_boxplot, plot_per_model_boxplot, plot_q_comparing_boxplot
 from kale.loaddata.tabular_access import load_csv_columns
 
 # from kale.utils.download import download_file_by_url
@@ -97,13 +97,13 @@ class TestPlotFunctions:
         mock_draw.assert_called_once()
 
     @patch("kale.interpret.box_plot.ComparingQBoxPlotter.draw_boxplot")
-    def test_plot_comparing_q_boxplot(self, mock_draw, sample_comparing_q_data, sample_boxplot_config):
-        """Test plot_comparing_q_boxplot function."""
-        plot_comparing_q_boxplot(sample_comparing_q_data, sample_boxplot_config)
+    def test_plot_q_comparing_boxplot(self, mock_draw, sample_comparing_q_data, sample_boxplot_config):
+        """Test plot_q_comparing_boxplot function."""
+        plot_q_comparing_boxplot(sample_comparing_q_data, sample_boxplot_config)
         mock_draw.assert_called_once()
 
-    def test_plot_comparing_q_boxplot_missing_data(self, sample_boxplot_config):
-        """Test that plot_comparing_q_boxplot raises error with missing data."""
+    def test_plot_q_comparing_boxplot_missing_data(self, sample_boxplot_config):
+        """Test that plot_q_comparing_boxplot raises error with missing data."""
         incomplete_data = BoxPlotData(evaluation_data_by_bins=[{}])
         with pytest.raises(ValueError, match="For comparing_q plots"):
-            plot_comparing_q_boxplot(incomplete_data, sample_boxplot_config)
+            plot_q_comparing_boxplot(incomplete_data, sample_boxplot_config)

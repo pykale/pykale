@@ -1260,11 +1260,12 @@ class ComparingQBoxPlotter(BoxPlotter):
     Quantile threshold comparison visualization for binning strategy analysis.
 
     This specialized plotter compares the impact of different quantile thresholds (Q values) on uncertainty
-    quantification performance. Essential for studies that need to optimize binning strategies or understand threshold
-    sensitivity.
+    quantification performance. Q values represent the number of bins used for quantile-based discretization
+    (e.g., Q=5 means 5 bins, Q=10 means 10 bins). Essential for studies that need to optimize binning strategies or
+    understand threshold sensitivity.
 
     Data Organization:
-    - Each Q value (e.g., Q=5, Q=10, Q=15) gets its own dataset
+    - Each Q value (e.g., Q=5, Q=10, Q=15 representing different bin counts) gets its own dataset
     - Boxplots show performance distribution for each threshold
     - Special hatched styling distinguishes Q-comparison plots
     - Progressive box width reduction for visual clarity
@@ -2169,7 +2170,7 @@ def execute_boxplot(
 
     Args:
         plot_func (Callable): The plotting function to use (plot_generic_boxplot, plot_per_model_boxplot,
-            plot_comparing_q_boxplot).
+            plot_q_comparing_boxplot).
         evaluation_data_by_bins (List[Any]): Raw evaluation data organized by bins or categories.
         uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
         models (List[str]): List of model names to analyze.
@@ -2221,42 +2222,18 @@ def plot_generic_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
     """
     Create generic multi-model boxplot for uncertainty quantification analysis.
 
-    This function generates boxplots comparing multiple models across different uncertainty bins or categories. It's
-    designed for comparative analysis of model performance in medical imaging uncertainty quantification workflows.
+    Generates boxplots comparing multiple models across different uncertainty bins. This is the standard approach
+    for comparative analysis of model performance, grouping by uncertainty type first.
 
     Args:
-        data (BoxPlotData): Data container object containing all required inputs:
-            - colormap: Matplotlib colormap name for consistent visual distinction across plots.
-            - evaluation_data_by_bins: Dictionary mapping model+uncertainty combinations to binned data
-            - uncertainty_categories: List of uncertainty type groupings
-            - models: List of model identifiers for comparison
-            - category_labels: Labels for x-axis categories (bins, quantiles, etc.)
-            - num_bins: Number of bins for data organization
-        config (BoxPlotConfig): Configuration object containing all display parameters:
-            - x_label: Label for x-axis
-            - y_label: Label for y-axis
-            - save_path: File path for saving the figure (optional)
-            - show_individual_dots: Whether to show individual data points
-            - y_lim_top/y_lim_bottom: Y-axis limits
-            - font_size_label/font_size_tick: Font size settings
-            - Additional styling and display options
+        data (BoxPlotData): Evaluation data organized by uncertainty categories and models.
+        config (BoxPlotConfig): Display and styling parameters for the boxplot.
 
-    Example:
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=error_data,
-        ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
-        ...     models=['ResNet50', 'VGG16']
-        ... )
-        >>> config = create_boxplot_config(
-        ...     colormap='Set1',
-        ...     x_label="Uncertainty Bins",
-        ...     y_label="Localization Error (mm)",
-        ...     save_path="comparison.pdf"
-        ... )
-        >>> plot_generic_boxplot(data, config)
+    Note:
+        Data structure: evaluation_data_by_bins is a dictionary mapping model_uncertainty keys to binned data.
+        Processing order: Organizes data by uncertainty type first, then bins, then models.
     """
     plotter = GenericBoxPlotter(data, config)
-    plotter.process_data()
     plotter.draw_boxplot()
 
 
@@ -2264,96 +2241,49 @@ def plot_per_model_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
     """
     Generate per-model boxplot for individual model performance analysis.
 
-    This function creates boxplots that focus on analyzing the performance of individual models across different
-    uncertainty bins. It's particularly useful for detailed model-specific uncertainty quantification analysis in
-    medical imaging applications.
+    Creates detailed boxplots analyzing individual models across uncertainty bins. Useful for model-specific
+    uncertainty quantification analysis with detailed visual breakdown.
 
     Args:
-        data (BoxPlotData): Data container object containing all required inputs:
-            - colormap: Matplotlib colormap name for consistent visual distinction across plots.
-            - evaluation_data_by_bins: Dictionary mapping model+uncertainty combinations to binned data
-            - uncertainty_categories: List of uncertainty type groupings for the specific model
-            - models: List containing the model identifier(s) being analyzed
-            - category_labels: Labels for x-axis categories (uncertainty bins, thresholds, etc.)
-            - num_bins: Number of bins used for uncertainty organization
-        config (BoxPlotConfig): Configuration object containing all display parameters:
-            - x_label: Label for x-axis (e.g., "Uncertainty Thresholded Bin")
-            - y_label: Label for y-axis (e.g., "Localization Error (mm)")
-            - save_path: File path for saving the figure (optional)
-            - show_individual_dots: Whether to display individual data points as dots
-            - show_sample_info: Mode for displaying sample size information
-            - y_lim_top/y_lim_bottom: Y-axis limits for consistent scaling
-            - to_log: Whether to use logarithmic y-axis scaling
-            - Additional styling and formatting options
+        data (BoxPlotData): Evaluation data organized by uncertainty categories and models.
+        config (BoxPlotConfig): Display and styling parameters for the boxplot.
 
-    Example:
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=model_error_data,
-        ...     uncertainty_categories=[['epistemic', 'aleatoric']],
-        ...     models=['ResNet50'],
-        ...     category_labels=['Low', 'Medium', 'High']
-        ... )
-        >>> config = create_boxplot_config(
-        ...     colormap='Set1',
-        ...     x_label="Uncertainty Thresholded Bin",
-        ...     y_label="Localization Error (mm)",
-        ...     to_log=True,
-        ...     save_path="resnet_analysis.pdf"
-        ... )
-        >>> plot_per_model_boxplot(data, config)
+    Note:
+        Data structure: evaluation_data_by_bins is a dictionary mapping model_uncertainty keys to binned data.
+        Processing order: Organizes data by uncertainty type first, then models, then bins (model-focused grouping).
+        Use config.show_sample_info to display sample size information in different modes.
     """
     plotter = PerModelBoxPlotter(data, config)
-    plotter.process_data()
     plotter.draw_boxplot()
 
 
-def plot_comparing_q_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
+def plot_q_comparing_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
     """
     Create boxplot comparing different Q values for quantile threshold optimization.
 
-    This function generates boxplots that compare the impact of different quantile thresholds (Q values) on uncertainty
-    quantification performance. It's essential for optimizing binning strategies and understanding threshold
-    sensitivity in medical imaging applications.
+    Compares the impact of different quantile thresholds (Q values) on uncertainty quantification performance.
+    Q values represent the number of bins used for quantile-based discretization (e.g., Q=5 uses 5 bins, Q=10 uses
+    10 bins). Essential for optimizing binning strategies and understanding threshold sensitivity.
 
     Args:
-        data (BoxPlotData): Data container object containing all required inputs:
-            - colormap: Matplotlib colormap name for visual distinction
-            - evaluation_data_by_bins: List of dictionaries, one per Q value, containing binned evaluation data
-            - uncertainty_categories: List of uncertainty type groupings (typically single uncertainty type)
-            - models: List containing the model identifier(s) being compared across Q values
-            - category_labels: Labels for x-axis categories representing Q values (e.g., ['Q=5', 'Q=10', 'Q=15'])
-            - num_bins: Number of bins used within each Q value configuration
-        config (BoxPlotConfig): Configuration object containing all display parameters:
-            - x_label: Label for x-axis (e.g., "Q (# Bins)")
-            - y_label: Label for y-axis (e.g., "Localization Error (mm)")
-            - hatch_type: Hatching pattern for distinguishing Q-comparison plots (e.g., '///')
-            - color: Base color for the boxplots
-            - save_path: File path for saving the figure (optional)
-            - show_individual_dots: Whether to display individual data points
-            - y_lim_top/y_lim_bottom: Y-axis limits
-            - to_log: Whether to use logarithmic y-axis scaling
-            - Additional styling and formatting options
+        data (BoxPlotData): Evaluation data with evaluation_data_by_bins as a list of dictionaries
+                           (one per Q value), uncertainty_categories, and models.
+        config (BoxPlotConfig): Display and styling parameters. Use config.hatch_type to distinguish Q-values
+                               visually.
+
+    Note:
+        Data structure: evaluation_data_by_bins is a list of dictionaries, one per Q-value configuration.
+        category_labels should contain labels for each Q-value (e.g., ['Q=5', 'Q=10', 'Q=15']).
+        All of evaluation_data_by_bins, uncertainty_categories, and models must be present.
+
+        **Key Difference from Generic and Per-Model Plots:**
+        Uses a list of dictionaries for evaluation_data_by_bins (one per Q-value) rather than a single dictionary,
+        and validates this upfront with a fail-fast check before creating the plotter.
 
     Raises:
         ValueError: If required fields (evaluation_data_by_bins, uncertainty_categories, models) are missing.
-
-    Example:
-        >>> # Compare Q=5 vs Q=10 vs Q=15 quantile thresholds
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=[q5_results, q10_results, q15_results],
-        ...     uncertainty_categories=[['epistemic']],
-        ...     models=['ResNet50'],
-        ...     category_labels=['Q=5', 'Q=10', 'Q=15']
-        ... )
-        >>> config = create_boxplot_config(
-        ...     x_label="Q (# Bins)",
-        ...     y_label="Localization Error (mm)",
-        ...     hatch_type='///',
-        ...     colormap='Set1',
-        ...     save_path="q_comparison.pdf"
-        ... )
-        >>> plot_comparing_q_boxplot(data, config)
     """
+    # Validate that all required fields are present for Q-comparison mode
     if not all([data.evaluation_data_by_bins, data.uncertainty_categories, data.models]):
         raise ValueError(
             "For comparing_q plots, data must include evaluation_data_by_bins, uncertainty_categories, and models"

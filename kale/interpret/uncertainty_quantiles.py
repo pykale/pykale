@@ -35,16 +35,17 @@ Example Usage:
 
     # Create analyzer
     analyzer = QuantileBinningAnalyzer(
-        display_settings={'errors': True, 'jaccard': True, 'error_bounds': True},
+        plot_config={
+            'display_settings': {'errors': True, 'jaccard': True, 'error_bounds': True},
+            'plot_samples_as_dots': False,
+            'show_sample_info': 'detailed',
+            'boxplot_error_lim': 64,
+            'boxplot_config': {'colormap': 'Set1'}
+        },
         save_folder='output/',
         save_file_preamble='analysis_',
         save_figures=True,
-        interpret=True,
-        plot_samples_as_dots=False,
-        show_sample_info='detailed',
-        box_plot_error_lim=64,
-        boxplot_config={'colormap': 'Set1'}
-    )
+        interpret=True
 
     # Run analysis
     analyzer.individual_bin_comparison(config, detailed_mode=True)
@@ -67,9 +68,9 @@ from kale.evaluate.similarity_metrics import evaluate_correlations
 from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard, get_mean_errors
 from kale.interpret.box_plot import (
     execute_boxplot,
-    plot_comparing_q_boxplot,
     plot_generic_boxplot,
     plot_per_model_boxplot,
+    plot_q_comparing_boxplot,
 )
 from kale.interpret.uncertainty_utils import plot_cumulative
 from kale.prepdata.tabular_transform import generate_struct_for_qbin
@@ -174,7 +175,7 @@ class BaseAnalysisConfig:
     show_sample_info: Optional[
         str
     ] = None  # Display mode for sample sizes: None (no display), 'text', 'legend', or 'detailed'
-    box_plot_error_lim: int = 64  # Upper limit for y-axis on error plots (in mm or pixels)
+    boxplot_error_lim: int = 64  # Upper limit for y-axis on error plots (in mm or pixels)
     percent_y_lim_standard: int = 70  # Y-axis upper limit (%) for standard percentage metrics
     percent_y_lim_extended: int = 120  # Y-axis upper limit (%) for metrics that may exceed 100%
     colormap: str = "Set1"  # Matplotlib colormap name for plot colors (e.g., 'Set1', 'tab10')
@@ -232,12 +233,10 @@ class ComparingBinsConfig(BaseAnalysisConfig):
     model: str = ""  # Single model name to evaluate across different Q values
     dataset: str = ""  # Dataset identifier for labeling and file organization
     targets: List[int] = field(default_factory=list)  # List of anatomical landmark/target indices to analyze
-    all_values_q: List[int] = field(
+    q_values: List[int] = field(
         default_factory=list
     )  # List of Q values (bin counts) to compare (e.g., [5, 10, 15, 20])
-    all_fitted_save_paths: List[str] = field(
-        default_factory=list
-    )  # Corresponding list of data file paths for each Q value
+    fitted_save_paths: List[str] = field(default_factory=list)  # Corresponding list of data file paths for each Q value
 
 
 @dataclass
@@ -255,7 +254,7 @@ class MetricPlotConfig:
     uncertainty_categories: List[List[str]]  # List of [uncertainty_type, error_type] pairs
     category_labels: List[str]  # X-axis labels (e.g., bin names or Q values)
     num_bins_display: int  # Number of bins to display (may differ from actual if combined)
-    plot_func: Callable[..., Any]  # Plotting function (plot_per_model_boxplot, plot_comparing_q_boxplot, etc.)
+    plot_func: Callable[..., Any]  # Plotting function (plot_per_model_boxplot, plot_q_comparing_boxplot, etc.)
     show_individual_target_plots: bool  # If True, generate separate plots for each target
     individual_targets_to_show: List[int]  # Target indices for individual plots; use [-1] for all
     detailed_mode: bool  # If True, use enhanced plotting features with additional annotations
@@ -316,7 +315,7 @@ class QuantileBinningAnalyzer:
                 y_label=LABEL_LOCALIZATION_ERROR,
                 to_log=True,
                 convert_to_percent=False,
-                y_lim_top_attr="box_plot_error_lim",
+                y_lim_top_attr="boxplot_error_lim",
                 show_sample_info="detailed",  # Will be overridden by instance setting
                 show_individual_dots=True,  # Will be overridden by instance setting
                 individual_data_key=ERROR_DATA_ALL_CONCAT_SEP,
@@ -327,7 +326,7 @@ class QuantileBinningAnalyzer:
                 y_label=LABEL_MEAN_ERROR,
                 to_log=True,
                 convert_to_percent=False,
-                y_lim_top_attr="box_plot_error_lim",
+                y_lim_top_attr="boxplot_error_lim",
                 show_sample_info=None,
                 show_individual_dots=False,
             ),
@@ -382,15 +381,11 @@ class QuantileBinningAnalyzer:
 
     def __init__(
         self,
-        display_settings: Dict[str, Any],
+        plot_config: Dict[str, Any],
         save_folder: str,
         save_file_preamble: str,
         save_figures: bool,
         interpret: bool,
-        plot_samples_as_dots: bool,
-        show_sample_info: Optional[str],
-        box_plot_error_lim: int,
-        boxplot_config: Dict[str, Any],
         figure_format: str = DEFAULT_FIGURE_FORMAT,
         data_format: str = DEFAULT_DATA_FORMAT,
     ):
@@ -398,35 +393,36 @@ class QuantileBinningAnalyzer:
         Initialize the QuantileBinningAnalyzer for uncertainty quantification analysis.
 
         Args:
-            display_settings (Dict[str, Any]): Dictionary controlling which plots to generate.
-                Keys include 'errors', 'error_bounds', 'jaccard', 'correlation', 'cumulative_error'.
-                Each value should be boolean indicating whether to generate that plot type.
+            plot_config (Dict[str, Any]): Comprehensive dictionary containing all plot and visualization settings:
+                - display_settings (Dict[str, bool]): Keys include 'errors', 'error_bounds', 'jaccard',
+                    'correlation', 'cumulative_error' to control which plots are generated.
+                - plot_samples_as_dots (bool): Whether to show individual data points as dots on boxplots.
+                - show_sample_info (Optional[str]): Mode for displaying sample sizes. Valid values:
+                    None, "text", "legend", "detailed".
+                - boxplot_error_lim (int): Upper limit for y-axis on error boxplots (typically in mm).
+                - boxplot_config (Dict[str, Any]): Configuration for boxplot aesthetics including colormap,
+                    font sizes, figure dimensions, and styling parameters.
             save_folder (str): Folder path where generated plots will be saved.
             save_file_preamble (str): Prefix string for saved file names to ensure unique identification.
             save_figures (bool): If True, save plots to disk; if False, display plots interactively.
             interpret (bool): If True, execute analysis and visualization; if False, skip processing.
-            plot_samples_as_dots (bool): Whether to show individual data points as dots on boxplots.
-            show_sample_info (Optional[str]): Mode for displaying sample size information on plots.
-                Valid values: None (no display), "text", "legend", "detailed".
-            box_plot_error_lim (int): Upper limit for y-axis on error boxplots (typically in mm).
-            boxplot_config (Dict[str, Any]): Configuration dictionary for boxplot aesthetics including colormap, font
-                sizes, figure dimensions, and styling parameters.
             figure_format (str): File extension for figure outputs (e.g., 'pdf', 'png', 'svg').
                 Defaults to 'pdf'.
             data_format (str): File extension for data outputs (e.g., 'xlsx', 'csv').
                 Defaults to 'xlsx'.
         """
         self.logger = logging.getLogger("qbin")
-        self.display_settings = display_settings
+        self.plot_config = plot_config
+        self.display_settings = plot_config.get("display_settings", {})
+        self.plot_samples_as_dots = plot_config.get("plot_samples_as_dots", False)
+        self.show_sample_info = plot_config.get("show_sample_info", None)
+        self.boxplot_error_lim = plot_config.get("boxplot_error_lim", 64)
+        self.boxplot_config = plot_config.get("boxplot_config", {})
+        self.hatch = self.display_settings.get("hatch", "o")
         self.save_folder = save_folder
         self.save_file_preamble = save_file_preamble
         self.save_figures = save_figures
         self.interpret = interpret
-        self.box_plot_error_lim = box_plot_error_lim
-        self.boxplot_config = boxplot_config
-        self.plot_samples_as_dots = plot_samples_as_dots
-        self.show_sample_info = show_sample_info
-        self.hatch = display_settings.get("hatch", "o")
         self.figure_format = figure_format
         self.data_format = data_format
 
@@ -667,8 +663,8 @@ class QuantileBinningAnalyzer:
                 - model: Single model name to evaluate across different Q values
                 - dataset: Dataset identifier for consistent labeling and organization
                 - targets: List of target indices for multi-target analysis
-                - all_values_q: List of Q values to compare (e.g., [5, 10, 15, 20, 25])
-                - all_fitted_save_paths: Corresponding list of data file paths for each Q value
+                - q_values: List of Q values to compare (e.g., [5, 10, 15, 20, 25])
+                - fitted_save_paths: Corresponding list of data file paths for each Q value
                 - combine_middle_bins: Whether to use simplified 3-bin analysis for all Q values
                 - Display settings controlling which metrics to visualize
                 - Individual target plotting configuration for detailed analysis
@@ -684,8 +680,8 @@ class QuantileBinningAnalyzer:
             ...     model='ResNet50',
             ...     dataset='cardiac_mri',
             ...     targets=[0, 1, 2, 3],
-            ...     all_values_q=[5, 10, 15, 20],
-            ...     all_fitted_save_paths=[
+            ...     q_values=[5, 10, 15, 20],
+            ...     fitted_save_paths=[
             ...         'data/q5_results/', 'data/q10_results/',
             ...         'data/q15_results/', 'data/q20_results/'
             ...     ],
@@ -723,11 +719,11 @@ class QuantileBinningAnalyzer:
             JACCARD_DATA_PRECISION_ALL: [],
             JACCARD_DATA_ALL_CONCAT_SEP: [],
         }
-        for idx, num_bins in enumerate(config.all_values_q):
+        for idx, num_bins in enumerate(config.q_values):
             eval_data = self._gather_evaluation_data(
                 model_list,
                 config.targets,
-                config.all_fitted_save_paths[idx],
+                config.fitted_save_paths[idx],
                 config.dataset,
                 num_bins,
                 uncertainty_error_pair_list,
@@ -745,9 +741,9 @@ class QuantileBinningAnalyzer:
             all_eval_data_by_q[JACCARD_DATA_PRECISION_ALL].append(eval_data["jaccard"][JACCARD_DATA_PRECISION_ALL])
             all_eval_data_by_q[JACCARD_DATA_ALL_CONCAT_SEP].append(eval_data["jaccard"][JACCARD_DATA_ALL_CONCAT_SEP])
 
-        # num_bins_display uses the final Q value from the loop (last element of all_values_q) for display configuration
+        # num_bins_display uses the final Q value from the loop (last element of q_values) for display configuration
         num_bins_display = 3 if config.combine_middle_bins else num_bins
-        category_labels = [str(q) for q in config.all_values_q]
+        category_labels = [str(q) for q in config.q_values]
 
         # --- Start plotting ---
         # Convert data structure to match the helper method expectations
@@ -777,7 +773,7 @@ class QuantileBinningAnalyzer:
                 uncertainty_categories=uncertainty_categories,
                 category_labels=category_labels,
                 num_bins_display=num_bins_display,
-                plot_func=plot_comparing_q_boxplot,
+                plot_func=plot_q_comparing_boxplot,
                 show_individual_target_plots=config.show_individual_target_plots,
                 individual_targets_to_show=config.individual_targets_to_show or [],
                 detailed_mode=True,
@@ -794,7 +790,7 @@ class QuantileBinningAnalyzer:
                 uncertainty_categories=uncertainty_categories,
                 category_labels=category_labels,
                 num_bins_display=num_bins_display,
-                plot_func=plot_comparing_q_boxplot,
+                plot_func=plot_q_comparing_boxplot,
                 show_individual_target_plots=config.show_individual_target_plots,
                 individual_targets_to_show=config.individual_targets_to_show or [],
                 detailed_mode=True,
@@ -812,7 +808,7 @@ class QuantileBinningAnalyzer:
                 uncertainty_categories=uncertainty_categories,
                 category_labels=category_labels,
                 num_bins_display=num_bins_display,
-                plot_func=plot_comparing_q_boxplot,
+                plot_func=plot_q_comparing_boxplot,
                 show_individual_target_plots=config.show_individual_target_plots,
                 individual_targets_to_show=config.individual_targets_to_show or [],
                 detailed_mode=True,
@@ -938,8 +934,8 @@ class QuantileBinningAnalyzer:
                 continue
 
             # Determine y_lim_top from config
-            if metric_def.y_lim_top_attr == "box_plot_error_lim":
-                y_lim_top = self.box_plot_error_lim
+            if metric_def.y_lim_top_attr == "boxplot_error_lim":
+                y_lim_top = self.boxplot_error_lim
             elif metric_def.y_lim_top_attr == "percent_y_lim_standard":
                 y_lim_top = config.percent_y_lim_standard
             elif metric_def.y_lim_top_attr == "percent_y_lim_extended":
@@ -1037,7 +1033,7 @@ class QuantileBinningAnalyzer:
 
         Args:
             metric_name (str): Name of the metric being plotted (e.g., "error", "jaccard", "errorbound").
-            plot_func (Callable): Plotting function to use (plot_per_model_boxplot, plot_comparing_q_boxplot, etc.).
+            plot_func (Callable): Plotting function to use (plot_per_model_boxplot, plot_q_comparing_boxplot, etc.).
             sep_target_data (List[Any]): Data separated by target. Structure varies by plotting mode:
                 - For individual bin comparison: List of target data dictionaries
                 - For comparing Q: List of Q-value data with target indices
@@ -1053,7 +1049,7 @@ class QuantileBinningAnalyzer:
             **kwargs: Additional keyword arguments passed to the plotting function.
         """
         individual_targets_data = []
-        if plot_func == plot_comparing_q_boxplot:
+        if plot_func == plot_q_comparing_boxplot:
             # This logic is for comparing_q mode where sep_target_data is structured differently.
             if target_indices is not None:
                 for t_idx in target_indices:
@@ -1117,7 +1113,7 @@ class QuantileBinningAnalyzer:
             metric_name (str): The metric being plotted ('error', 'jaccard', 'errorbound', 'mean_error_folds',
                 'recall_jaccard', 'precision_jaccard').
             plot_func (Callable): The plotting function to use (plot_generic_boxplot, plot_per_model_boxplot,
-                plot_comparing_q_boxplot).
+                plot_q_comparing_boxplot).
             all_targets_data (List[Dict]): Raw data organized for all targets. Structure varies:
                 - For individual bin comparison: Single dictionary or list with one dictionary
                 - For comparing Q plots: List of dictionaries (one per Q value)
@@ -1140,7 +1136,7 @@ class QuantileBinningAnalyzer:
         self.logger.info(PLOTTING_TARGET_MESSAGE_TEMPLATE.format(metric_name))
 
         # Handle different data structures for different plot functions
-        if plot_func == plot_comparing_q_boxplot:
+        if plot_func == plot_q_comparing_boxplot:
             # For comparing Q plots, data is a list of dictionaries
             plot_data_all = all_targets_data
         else:
@@ -1205,7 +1201,7 @@ class QuantileBinningAnalyzer:
                 combine_middle_bins is True (typically 3 for combined, 5-20 for uncombined).
             plot_func (Callable[..., Any]): Plotting function to use for visualization. Options include:
                 - plot_per_model_boxplot: For individual bin comparison mode
-                - plot_comparing_q_boxplot: For Q-value comparison mode
+                - plot_q_comparing_boxplot: For Q-value comparison mode
                 - plot_generic_boxplot: For generic metric visualization
             show_individual_target_plots (bool): Whether to generate separate plots for individual anatomical targets.
             individual_targets_to_show (List[int]): List of target indices for which to generate individual plots.

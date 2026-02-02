@@ -171,16 +171,19 @@ def _create_analyzer(config, display_settings):
     Returns:
         QuantileBinningAnalyzer: Configured analyzer instance ready for analysis.
     """
+    plot_config = {
+        "display_settings": display_settings,
+        "plot_samples_as_dots": config.plot_samples_as_dots,
+        "show_sample_info": config.show_sample_info,
+        "boxplot_error_lim": config.boxplot_error_lim,
+        "boxplot_config": {"colormap": config.colormap, "hatch_type": display_settings.get("hatch", "")},
+    }
     return QuantileBinningAnalyzer(
-        display_settings=display_settings,
+        plot_config=plot_config,
         save_folder=config.save_folder,
         save_file_preamble=config.save_file_preamble,
         save_figures=config.save_figures,
         interpret=config.interpret,
-        plot_samples_as_dots=config.plot_samples_as_dots,
-        show_sample_info=config.show_sample_info,
-        box_plot_error_lim=config.box_plot_error_lim,
-        boxplot_config={"colormap": config.colormap, "hatch_type": display_settings.get("hatch", "")},
     )
 
 
@@ -258,7 +261,7 @@ def _run_individual_bin_comparison(testing_cfg, num_bins, save_folder, colormap)
     save_file_preamble = "_".join(
         [
             testing_cfg["OUTPUT"]["SAVE_PREPEND"],
-            "ind",
+            "individual",
             testing_cfg["DATASET"]["DATA"],
             "_".join(individual_q_models_to_compare),
             "_".join([str(x[0]) for x in individual_q_uncertainty_error_pairs]),
@@ -281,7 +284,7 @@ def _run_individual_bin_comparison(testing_cfg, num_bins, save_folder, colormap)
         save_figures=testing_cfg["OUTPUT"]["SAVE_FIGURES"],
         plot_samples_as_dots=testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
         show_sample_info=testing_cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-        box_plot_error_lim=testing_cfg["BOXPLOT"]["ERROR_LIM"],
+        boxplot_error_lim=testing_cfg["BOXPLOT"]["ERROR_LIM"],
         colormap=colormap,
         interpret=True,
         num_folds=testing_cfg["DATASET"]["NUM_FOLDS"],
@@ -323,7 +326,7 @@ def _run_comparing_bins_analysis(testing_cfg, c_model, c_er_pair, colormap):
         ]
     )
 
-    all_fitted_save_paths = [
+    fitted_save_paths = [
         os.path.join(
             testing_cfg["OUTPUT"]["SAVE_FOLDER"],
             testing_cfg["DATASET"]["DATA"],
@@ -343,8 +346,8 @@ def _run_comparing_bins_analysis(testing_cfg, c_model, c_er_pair, colormap):
         model=c_model,
         dataset=testing_cfg["DATASET"]["DATA"],
         targets=testing_cfg["DATASET"]["LANDMARKS"],
-        all_values_q=testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"],
-        all_fitted_save_paths=all_fitted_save_paths,
+        q_values=testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"],
+        fitted_save_paths=fitted_save_paths,
         combine_middle_bins=testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
         show_individual_target_plots=testing_cfg["PIPELINE"]["SHOW_INDIVIDUAL_LANDMARKS"],
         individual_targets_to_show=testing_cfg["PIPELINE"]["INDIVIDUAL_LANDMARKS_TO_SHOW"],
@@ -353,7 +356,7 @@ def _run_comparing_bins_analysis(testing_cfg, c_model, c_er_pair, colormap):
         save_figures=testing_cfg["OUTPUT"]["SAVE_FIGURES"],
         plot_samples_as_dots=testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
         show_sample_info=testing_cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-        box_plot_error_lim=testing_cfg["BOXPLOT"]["ERROR_LIM"],
+        boxplot_error_lim=testing_cfg["BOXPLOT"]["ERROR_LIM"],
         colormap=colormap,
         interpret=True,
         num_folds=testing_cfg["DATASET"]["NUM_FOLDS"],
