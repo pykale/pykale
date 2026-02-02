@@ -179,15 +179,15 @@ def main():
                 )
 
                 # Create analyzer and run individual bin comparison
-                plot_config = {
-                    "display_settings": {
-                        "cumulative_error": True,
-                        "errors": True,
-                        "jaccard": True,
-                        "error_bounds": True,
-                        "correlation": True,
-                        "hatch": "o",
-                    },
+                display_settings = {
+                    "cumulative_error": True,
+                    "errors": True,
+                    "jaccard": True,
+                    "error_bounds": True,
+                    "correlation": True,
+                    "hatch": "o",
+                }
+                analyzer_config = {
                     "plot_samples_as_dots": config.plot_samples_as_dots,
                     "show_sample_info": config.show_sample_info,
                     "boxplot_error_lim": config.boxplot_error_lim,
@@ -195,15 +195,13 @@ def main():
                         "colormap": config.colormap,
                         "hatch_type": "o",
                     },
+                    "save_folder": config.save_folder,
+                    "save_file_preamble": config.save_file_preamble,
+                    "save_figures": config.save_figures,
+                    "interpret": config.interpret,
                 }
 
-                analyzer = QuantileBinningAnalyzer(
-                    plot_config=plot_config,
-                    save_folder=config.save_folder,
-                    save_file_preamble=config.save_file_preamble,
-                    save_figures=config.save_figures,
-                    interpret=config.interpret,
-                )
+                analyzer = QuantileBinningAnalyzer(config=analyzer_config, display_settings=display_settings)
                 analyzer.run_individual_bin_comparison(config)
 
             # If we are comparing bins against each other, we need to wait until all the bins have been fitted.
@@ -256,14 +254,14 @@ def main():
                         )
 
                         # Create analyzer and run comparing bins analysis
-                        plot_config = {
-                            "display_settings": {
-                                "cumulative_error": True,
-                                "errors": True,
-                                "jaccard": True,
-                                "error_bounds": True,
-                                "hatch": hatch_type,
-                            },
+                        display_settings = {
+                            "cumulative_error": True,
+                            "errors": True,
+                            "jaccard": True,
+                            "error_bounds": True,
+                            "hatch": hatch_type,
+                        }
+                        analyzer_config = {
                             "plot_samples_as_dots": comparing_config.plot_samples_as_dots,
                             "show_sample_info": comparing_config.show_sample_info,
                             "boxplot_error_lim": comparing_config.boxplot_error_lim,
@@ -271,15 +269,13 @@ def main():
                                 "colormap": comparing_config.colormap,
                                 "hatch_type": hatch_type,
                             },
+                            "save_folder": comparing_config.save_folder,
+                            "save_file_preamble": comparing_config.save_file_preamble,
+                            "save_figures": comparing_config.save_figures,
+                            "interpret": comparing_config.interpret,
                         }
 
-                        analyzer = QuantileBinningAnalyzer(
-                            plot_config=plot_config,
-                            save_folder=comparing_config.save_folder,
-                            save_file_preamble=comparing_config.save_file_preamble,
-                            save_figures=comparing_config.save_figures,
-                            interpret=comparing_config.interpret,
-                        )
+                        analyzer = QuantileBinningAnalyzer(config=analyzer_config, display_settings=display_settings)
                         analyzer.run_comparing_bins_analysis(comparing_config)
 
 

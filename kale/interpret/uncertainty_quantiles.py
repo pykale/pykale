@@ -381,11 +381,8 @@ class QuantileBinningAnalyzer:
 
     def __init__(
         self,
-        plot_config: Dict[str, Any],
-        save_folder: str,
-        save_file_preamble: str,
-        save_figures: bool,
-        interpret: bool,
+        config: Dict[str, Any],
+        display_settings: Dict[str, Any],
         figure_format: str = DEFAULT_FIGURE_FORMAT,
         data_format: str = DEFAULT_DATA_FORMAT,
     ):
@@ -393,36 +390,40 @@ class QuantileBinningAnalyzer:
         Initialize the QuantileBinningAnalyzer for uncertainty quantification analysis.
 
         Args:
-            plot_config (Dict[str, Any]): Comprehensive dictionary containing all plot and visualization settings:
-                - display_settings (Dict[str, bool]): Keys include 'errors', 'error_bounds', 'jaccard',
-                    'correlation', 'cumulative_error' to control which plots are generated.
+            config (Dict[str, Any]): Analyzer configuration dictionary containing plot and save settings:
                 - plot_samples_as_dots (bool): Whether to show individual data points as dots on boxplots.
                 - show_sample_info (Optional[str]): Mode for displaying sample sizes. Valid values:
                     None, "text", "legend", "detailed".
                 - boxplot_error_lim (int): Upper limit for y-axis on error boxplots (typically in mm).
                 - boxplot_config (Dict[str, Any]): Configuration for boxplot aesthetics including colormap,
                     font sizes, figure dimensions, and styling parameters.
-            save_folder (str): Folder path where generated plots will be saved.
-            save_file_preamble (str): Prefix string for saved file names to ensure unique identification.
-            save_figures (bool): If True, save plots to disk; if False, display plots interactively.
-            interpret (bool): If True, execute analysis and visualization; if False, skip processing.
+                - save_folder (str): Folder path where generated plots will be saved.
+                - save_file_preamble (str): Prefix string for saved file names to ensure unique identification.
+                - save_figures (bool): If True, save plots to disk; if False, display plots interactively.
+                - interpret (bool): If True, execute analysis and visualization; if False, skip processing.
+            display_settings (Dict[str, bool]): Keys include 'errors', 'error_bounds', 'jaccard',
+                'correlation', 'cumulative_error' to control which plots are generated.
             figure_format (str): File extension for figure outputs (e.g., 'pdf', 'png', 'svg').
                 Defaults to 'pdf'.
             data_format (str): File extension for data outputs (e.g., 'xlsx', 'csv').
                 Defaults to 'xlsx'.
         """
         self.logger = logging.getLogger("qbin")
+
+        plot_config = dict(config)
+        plot_config["display_settings"] = display_settings
+
         self.plot_config = plot_config
-        self.display_settings = plot_config.get("display_settings", {})
-        self.plot_samples_as_dots = plot_config.get("plot_samples_as_dots", False)
-        self.show_sample_info = plot_config.get("show_sample_info", None)
-        self.boxplot_error_lim = plot_config.get("boxplot_error_lim", 64)
-        self.boxplot_config = plot_config.get("boxplot_config", {})
+        self.display_settings = display_settings
+        self.plot_samples_as_dots = config.get("plot_samples_as_dots", False)
+        self.show_sample_info = config.get("show_sample_info", None)
+        self.boxplot_error_lim = config.get("boxplot_error_lim", 64)
+        self.boxplot_config = config.get("boxplot_config", {})
         self.hatch = self.display_settings.get("hatch", "o")
-        self.save_folder = save_folder
-        self.save_file_preamble = save_file_preamble
-        self.save_figures = save_figures
-        self.interpret = interpret
+        self.save_folder = config.get("save_folder", "")
+        self.save_file_preamble = config.get("save_file_preamble", "")
+        self.save_figures = config.get("save_figures", True)
+        self.interpret = config.get("interpret", True)
         self.figure_format = figure_format
         self.data_format = data_format
 

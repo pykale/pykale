@@ -171,19 +171,19 @@ def _create_analyzer(config, display_settings):
     Returns:
         QuantileBinningAnalyzer: Configured analyzer instance ready for analysis.
     """
-    plot_config = {
-        "display_settings": display_settings,
+    analyzer_config = {
         "plot_samples_as_dots": config.plot_samples_as_dots,
         "show_sample_info": config.show_sample_info,
         "boxplot_error_lim": config.boxplot_error_lim,
         "boxplot_config": {"colormap": config.colormap, "hatch_type": display_settings.get("hatch", "")},
+        "save_folder": config.save_folder,
+        "save_file_preamble": config.save_file_preamble,
+        "save_figures": config.save_figures,
+        "interpret": config.interpret,
     }
     return QuantileBinningAnalyzer(
-        plot_config=plot_config,
-        save_folder=config.save_folder,
-        save_file_preamble=config.save_file_preamble,
-        save_figures=config.save_figures,
-        interpret=config.interpret,
+        config=analyzer_config,
+        display_settings=display_settings,
     )
 
 
