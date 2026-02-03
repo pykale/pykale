@@ -79,10 +79,10 @@ class SmallCNNFeature(BaseCNN):
         # Use padding=0 (no padding) to match original behavior that reduces spatial dimensions
         self.conv_layers, self.batch_norms = self._create_sequential_conv_blocks(
             in_channels=num_channels,
-            out_channels_list=[64, 64, 128],
+            out_channels_size_list=[64, 64, 128],
             kernel_sizes=[kernel_size, kernel_size, kernel_size],
             conv_type="2d",
-            paddings=[0, 0, 0],  # No padding to reduce spatial dimensions like original
+            conv_padding=[0, 0, 0],  # No padding to reduce spatial dimensions like original
             use_batch_norm=True,
             bias=True,
         )
@@ -158,7 +158,7 @@ class SimpleCNNBuilder(BaseCNN):
         num_channels (int, optional): the number of input channels. Defaults to 3.
         conv_layers_spec (list): a list for each convolutional layer given as [num_channels, kernel_size].
             For example, [[16, 3], [16, 1]] represents 2 layers with 16 filters and kernel sizes of 3 and 1 respectively.
-        activation_fun (str): a string specifying the activation function to use. one of ('relu', 'elu', 'leaky_relu').
+        activation_func (str): a string specifying the activation function to use. one of ('relu', 'elu', 'leaky_relu').
             Defaults to "relu".
         use_batchnorm (boolean): a boolean flag indicating whether to use batch normalization. Defaults to True.
         pool_locations (tuple): the index after which pooling layers should be placed in the convolutional layer list.
@@ -168,7 +168,7 @@ class SimpleCNNBuilder(BaseCNN):
         >>> # Build a CNN with custom layer specifications
         >>> model = SimpleCNNBuilder(
         ...     conv_layers_spec=[[16, 3], [32, 3], [64, 3]],
-        ...     activation_fun='relu',
+        ...     activation_func='relu',
         ...     use_batchnorm=True,
         ...     num_channels=3
         ... )
@@ -177,14 +177,23 @@ class SimpleCNNBuilder(BaseCNN):
     """
 
     def __init__(
-        self, conv_layers_spec, activation_fun="relu", use_batchnorm=True, pool_locations=(0, 3), num_channels=3
+        self,
+        conv_layers_spec,
+        activation_func="relu",
+        use_batchnorm=True,
+        pool_locations=(0, 3),
+        num_channels=3,
+        activation_fun=None,  # Deprecated: use activation_func instead
     ):
         super(SimpleCNNBuilder, self).__init__()
+        # Handle backward compatibility: activation_fun is deprecated, use activation_func
+        if activation_fun is not None:
+            activation_func = activation_fun
         self.conv_layers_spec = conv_layers_spec
-        self.activation_fun = activation_fun
+        self.activation_func = activation_func
         self.use_batchnorm = use_batchnorm
         self.pool_locations = pool_locations
-        self.num_input_channels = num_channels
+        self.num_channels = num_channels
 
         self.conv_layers = nn.ModuleList()
         self.batch_norms = nn.ModuleList()
@@ -217,7 +226,7 @@ class SimpleCNNBuilder(BaseCNN):
         for layer_num, (conv, bn) in enumerate(zip(self.conv_layers, self.batch_norms)):
             x = conv(x)
             x = bn(x)
-            x = self._apply_activation(x, self.activation_fun)
+            x = self._apply_activation(x, self.activation_func)
 
             if layer_num in self.pool_locations:
                 x = F.max_pool2d(x, kernel_size=2)
@@ -239,7 +248,7 @@ class SimpleCNNBuilder(BaseCNN):
             f"{self.__class__.__name__}("
             f"num_layers={len(self.conv_layers)}, "
             f"output_channels={self._out_channels}, "
-            f"activation={self.activation_fun}, "
+            f"activation={self.activation_func}, "
             f"use_batchnorm={self.use_batchnorm})"
         )
 
@@ -507,7 +516,7 @@ class LeNet(BaseCNN):
     but this can be configured with the 'squeeze_output' parameter.
 
     Args:
-        input_channels (int): Input channel number.
+        num_channels (int): Input channel number.
         output_channels (int): Output channel number for the first block.
         additional_layers (int): Number of additional blocks for LeNet.
         output_each_layer (bool, optional): Whether to return the output of all layers.
@@ -520,7 +529,7 @@ class LeNet(BaseCNN):
     Example:
         >>> # Create a LeNet model for single-channel 32x32 images
         >>> model = LeNet(
-        ...     input_channels=1,
+        ...     num_channels=1,
         ...     output_channels=4,
         ...     additional_layers=2,
         ...     output_each_layer=False,
@@ -536,18 +545,19 @@ class LeNet(BaseCNN):
 
     def __init__(
         self,
-        input_channels: int,
-        output_channels: int,
-        additional_layers: int,
+        num_channels: Optional[int] = None,  # Can be None if input_channels is provided (deprecated)
+        output_channels: Optional[int] = None,
+        additional_layers: Optional[int] = None,
         output_each_layer: bool = False,
         linear: Optional[Tuple[int, int]] = None,
         squeeze_output: bool = True,
+        input_channels: Optional[int] = None,  # Deprecated: use num_channels instead
     ):
         """
         Initialize the LeNet model.
 
         Args:
-            input_channels (int): Input channel number.
+            num_channels (int): Input channel number.
             output_channels (int): Output channel number for the first block.
             additional_layers (int): Number of additional blocks.
             output_each_layer (bool): Whether to return outputs from all layers (default=False).
@@ -558,13 +568,22 @@ class LeNet(BaseCNN):
         Returns:
             None
         """
+        # Handle backward compatibility: input_channels is deprecated, use num_channels
+        if input_channels is not None:
+            num_channels = input_channels
+        if num_channels is None:
+            raise TypeError("LeNet.__init__() missing required argument: 'num_channels' or 'input_channels'")
+        if output_channels is None:
+            raise TypeError("LeNet.__init__() missing required argument: 'output_channels'")
+        if additional_layers is None:
+            raise TypeError("LeNet.__init__() missing required argument: 'additional_layers'")
         super(LeNet, self).__init__()
         self.output_each_layer = output_each_layer
         self.squeeze_output = squeeze_output
 
         num_layers = 1 + additional_layers
         self.conv_layers, self.batch_norms, self.global_pools = self._create_doubling_conv_blocks(
-            input_channels=input_channels,
+            num_channels=num_channels,
             base_channels=output_channels,
             num_layers=num_layers,
             first_kernel_size=5,
@@ -586,7 +605,7 @@ class LeNet(BaseCNN):
         Forward pass through the LeNet model.
 
         Args:
-            x (torch.Tensor): Input tensor of shape (batch_size, input_channels, height, width).
+            x (torch.Tensor): Input tensor of shape (batch_size, num_channels, height, width).
 
         Returns:
             Union[torch.Tensor, List[torch.Tensor]]: If output_each_layer=True, returns a list
@@ -657,20 +676,20 @@ class ImageVAEEncoder(BaseCNN):
     multimodal learning, or generative modelling.
 
     Args:
-        input_channels (int, optional): Number of input channels in the image
+        num_channels (int, optional): Number of input channels in the image
             (e.g., 1 for grayscale, 3 for RGB). Default is 1.
         latent_dim (int, optional): Dimensionality of the latent space representation.
             Default is 256.
 
     Forward Input:
-        x (Tensor): Input image tensor of shape (batch_size, input_channels, 224, 224).
+        x (Tensor): Input image tensor of shape (batch_size, num_channels, 224, 224).
 
     Forward Output:
         mean (Tensor): Mean vector of the latent Gaussian distribution, shape (batch_size, latent_dim).
         log_var (Tensor): Log-variance vector of the latent Gaussian, shape (batch_size, latent_dim).
 
     Example:
-        >>> encoder = ImageVAEEncoder(input_channels=1, latent_dim=128)
+        >>> encoder = ImageVAEEncoder(num_channels=1, latent_dim=128)
         >>> images = torch.randn(2, 1, 224, 224)  # Batch of 2 grayscale 224x224 images
         >>> mean, log_var = encoder(images)
         >>> print(mean.shape, log_var.shape)  # torch.Size([2, 128]) torch.Size([2, 128])
@@ -681,26 +700,29 @@ class ImageVAEEncoder(BaseCNN):
         (e.g., adjust the linear layer input).
     """
 
-    def __init__(self, input_channels: int = 1, latent_dim: int = 256):
+    def __init__(self, num_channels: int = 1, latent_dim: int = 256, input_channels=None):
         """
         Initialize the ImageVAEEncoder model.
 
         Args:
-            input_channels (int): Number of input channels (default=1).
+            num_channels (int): Number of input channels (default=1).
             latent_dim (int): Dimensionality of the latent space (default=256).
 
         Returns:
             None
         """
+        # Handle backward compatibility: input_channels is deprecated, use num_channels
+        if input_channels is not None:
+            num_channels = input_channels
         super().__init__()
 
         self.conv_layers, _ = self._create_sequential_conv_blocks(
-            in_channels=input_channels,
-            out_channels_list=[16, 32, 64],
+            in_channels=num_channels,
+            out_channels_size_list=[16, 32, 64],
             kernel_sizes=[3, 3, 3],
             conv_type="2d",
             strides=[2, 2, 2],
-            paddings=[1, 1, 1],
+            conv_padding=[1, 1, 1],
             use_batch_norm=False,
             bias=True,
         )
@@ -719,7 +741,7 @@ class ImageVAEEncoder(BaseCNN):
         Forward pass for 224 x 224 images.
 
         Args:
-            x (Tensor): Input image tensor, shape (batch_size, input_channels, 224, 224)
+            x (Tensor): Input image tensor, shape (batch_size, num_channels, 224, 224)
 
         Returns:
             mean (Tensor): Latent mean, shape (batch_size, latent_dim)
@@ -744,6 +766,6 @@ class ImageVAEEncoder(BaseCNN):
 
     def __repr__(self) -> str:
         """Return a string representation of the ImageVAEEncoder."""
-        input_channels = self.conv_layers[0].in_channels
+        num_channels = self.conv_layers[0].in_channels
         latent_dim = self.fc_mu.out_features
-        return f"{self.__class__.__name__}(" f"input_channels={input_channels}, " f"latent_dim={latent_dim})"
+        return f"{self.__class__.__name__}(" f"num_channels={num_channels}, " f"latent_dim={latent_dim})"

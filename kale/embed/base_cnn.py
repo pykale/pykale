@@ -22,7 +22,7 @@ Example:
     ...     def __init__(self):
     ...         super().__init__()
     ...         self.conv_layers, self.batch_norms = self._create_sequential_conv_blocks(
-    ...             in_channels=3, out_channels_list=[32, 64], kernel_sizes=3, conv_type='2d'
+    ...             in_channels=3, out_channels_size_list=[32, 64], kernel_sizes=3, conv_type='2d'
     ...         )
 """
 from typing import List, Optional, Tuple, Union
@@ -50,7 +50,7 @@ class BaseCNN(nn.Module):
         >>>         super().__init__()
         >>>         self.conv_layers, self.batch_norms = self._create_sequential_conv_blocks(
         >>>             in_channels=input_channels,
-        >>>             out_channels_list=[32, 64],
+        >>>             out_channels_size_list=[32, 64],
         >>>             kernel_sizes=[3, 3],
         >>>             conv_type='2d'
         >>>         )
@@ -102,12 +102,12 @@ class BaseCNN(nn.Module):
                 f"Supported: 'relu', 'tanh', 'sigmoid', 'leaky_relu', 'elu'."
             )
 
-    def _validate_conv_block_inputs(self, in_channels: int, out_channels_list: List[int], conv_type: str) -> None:
+    def _validate_conv_block_inputs(self, in_channels: int, out_channels_size_list: List[int], conv_type: str) -> None:
         """Validate inputs for convolutional block creation."""
         if conv_type not in ["1d", "2d"]:
             raise ValueError(f"conv_type must be '1d' or '2d', got '{conv_type}'")
-        if not out_channels_list:
-            raise ValueError("out_channels_list cannot be empty")
+        if not out_channels_size_list:
+            raise ValueError("out_channels_size_list cannot be empty")
         if in_channels <= 0:
             raise ValueError(f"in_channels must be positive, got {in_channels}")
 
@@ -115,48 +115,50 @@ class BaseCNN(nn.Module):
         self,
         kernel_sizes: Union[int, List[int]],
         strides: Union[int, List[int]],
-        paddings: Union[int, List[int], str],
+        conv_padding: Union[int, List[int], str],
         num_layers: int,
     ) -> Tuple[List[int], List[int], List[int]]:
         """Normalize convolutional parameters to lists."""
         kernel_sizes_list = [kernel_sizes] * num_layers if isinstance(kernel_sizes, int) else kernel_sizes
         strides_list = [strides] * num_layers if isinstance(strides, int) else strides
 
-        if isinstance(paddings, int):
-            paddings_list: List[int] = [paddings] * num_layers
-        elif paddings == "same":
-            paddings_list = [(k - 1) // 2 for k in kernel_sizes_list]
+        if isinstance(conv_padding, int):
+            conv_padding_list: List[int] = [conv_padding] * num_layers
+        elif conv_padding == "same":
+            conv_padding_list = [(k - 1) // 2 for k in kernel_sizes_list]
         else:
-            paddings_list = paddings  # type: ignore[assignment]
+            conv_padding_list = conv_padding  # type: ignore[assignment]
 
-        return kernel_sizes_list, strides_list, paddings_list
+        return kernel_sizes_list, strides_list, conv_padding_list
 
     def _validate_parameter_lengths(
         self,
         kernel_sizes_list: List[int],
         strides_list: List[int],
-        paddings_list: List[int],
+        conv_padding_list: List[int],
         num_layers: int,
     ) -> None:
         """Validate that all parameter lists match the expected length."""
         if len(kernel_sizes_list) != num_layers:
             raise ValueError(
-                f"kernel_sizes length ({len(kernel_sizes_list)}) must match out_channels_list length ({num_layers})"
+                f"kernel_sizes length ({len(kernel_sizes_list)}) must match out_channels_size_list length ({num_layers})"
             )
         if len(strides_list) != num_layers:
-            raise ValueError(f"strides length ({len(strides_list)}) must match out_channels_list length ({num_layers})")
-        if len(paddings_list) != num_layers:
             raise ValueError(
-                f"paddings length ({len(paddings_list)}) must match out_channels_list length ({num_layers})"
+                f"strides length ({len(strides_list)}) must match out_channels_size_list length ({num_layers})"
+            )
+        if len(conv_padding_list) != num_layers:
+            raise ValueError(
+                f"conv_padding length ({len(conv_padding_list)}) must match out_channels_size_list length ({num_layers})"
             )
 
     def _build_conv_and_bn_layers(
         self,
         in_channels: int,
-        out_channels_list: List[int],
+        out_channels_size_list: List[int],
         kernel_sizes: List[int],
         strides: List[int],
-        paddings: List[int],
+        conv_padding: List[int],
         conv_class: type,
         bn_class: type,
         use_batch_norm: bool,
@@ -167,7 +169,9 @@ class BaseCNN(nn.Module):
         batch_norms = nn.ModuleList()
 
         current_in_channels = in_channels
-        for out_channels, kernel_size, stride, padding in zip(out_channels_list, kernel_sizes, strides, paddings):
+        for out_channels, kernel_size, stride, padding in zip(
+            out_channels_size_list, kernel_sizes, strides, conv_padding
+        ):
             conv = conv_class(
                 in_channels=current_in_channels,
                 out_channels=out_channels,
@@ -190,11 +194,11 @@ class BaseCNN(nn.Module):
     def _create_sequential_conv_blocks(
         self,
         in_channels: int,
-        out_channels_list: List[int],
+        out_channels_size_list: List[int],
         kernel_sizes: Union[int, List[int]],
         conv_type: str = "2d",
         strides: Union[int, List[int]] = 1,
-        paddings: Union[int, List[int], str] = "same",
+        conv_padding: Union[int, List[int], str] = "same",
         use_batch_norm: bool = True,
         bias: bool = False,
     ) -> Tuple[nn.ModuleList, nn.ModuleList]:
@@ -206,13 +210,13 @@ class BaseCNN(nn.Module):
 
         Args:
             in_channels (int): Number of input channels for the first convolutional layer.
-            out_channels_list (List[int]): List of output channels for each convolutional layer.
+            out_channels_size_list (List[int]): List of output channels for each convolutional layer.
             kernel_sizes (Union[int, List[int]]): Kernel size(s) for the convolutional layers.
                 If an integer, the same kernel size is used for all layers.
             conv_type (str, optional): Type of convolution ('1d' or '2d'). Defaults to '2d'.
             strides (Union[int, List[int]], optional): Stride(s) for the convolutional layers.
                 If an integer, the same stride is used for all layers. Defaults to 1.
-            paddings (Union[int, List[int], str], optional): Padding for the convolutional layers.
+            conv_padding (Union[int, List[int], str], optional): Padding for the convolutional layers.
                 Can be an integer, a list of integers, or 'same' for automatic padding.
                 Defaults to 'same'.
             use_batch_norm (bool, optional): Whether to include batch normalization layers.
@@ -230,33 +234,33 @@ class BaseCNN(nn.Module):
 
         Examples:
             >>> conv_layers, batch_norms = self._create_sequential_conv_blocks(
-            ...     in_channels=3, out_channels_list=[32, 64, 128],
+            ...     in_channels=3, out_channels_size_list=[32, 64, 128],
             ...     kernel_sizes=[3, 3, 3], conv_type='2d'
             ... )
         """
         # Validate inputs
-        self._validate_conv_block_inputs(in_channels, out_channels_list, conv_type)
+        self._validate_conv_block_inputs(in_channels, out_channels_size_list, conv_type)
 
         # Select appropriate layer classes
         conv_class = nn.Conv1d if conv_type == "1d" else nn.Conv2d
         bn_class = nn.BatchNorm1d if conv_type == "1d" else nn.BatchNorm2d
 
         # Normalize parameters to lists
-        num_layers = len(out_channels_list)
-        kernel_sizes_list, strides_list, paddings_list = self._normalize_conv_parameters(
-            kernel_sizes, strides, paddings, num_layers
+        num_layers = len(out_channels_size_list)
+        kernel_sizes_list, strides_list, conv_padding_list = self._normalize_conv_parameters(
+            kernel_sizes, strides, conv_padding, num_layers
         )
 
         # Validate parameter list lengths
-        self._validate_parameter_lengths(kernel_sizes_list, strides_list, paddings_list, num_layers)
+        self._validate_parameter_lengths(kernel_sizes_list, strides_list, conv_padding_list, num_layers)
 
         # Build layers
         return self._build_conv_and_bn_layers(
             in_channels,
-            out_channels_list,
+            out_channels_size_list,
             kernel_sizes_list,
             strides_list,
-            paddings_list,
+            conv_padding_list,
             conv_class,
             bn_class,
             use_batch_norm,
@@ -265,7 +269,7 @@ class BaseCNN(nn.Module):
 
     def _create_doubling_conv_blocks(
         self,
-        input_channels: int,
+        num_channels: int,
         base_channels: int,
         num_layers: int,
         first_kernel_size: int = 5,
@@ -283,7 +287,7 @@ class BaseCNN(nn.Module):
         batch normalization and adaptive average pooling layers.
 
         Args:
-            input_channels (int): Number of input channels for the first layer
+            num_channels (int): Number of input channels for the first layer
             base_channels (int): Base number of output channels (will be doubled for each layer)
             num_layers (int): Total number of convolutional layers to create
             first_kernel_size (int): Kernel size for the first layer (default: 5)
@@ -304,7 +308,7 @@ class BaseCNN(nn.Module):
         for i in range(num_layers):
             if i == 0:
                 out_channels = base_channels
-                in_ch = input_channels
+                in_ch = num_channels
                 kernel_size = first_kernel_size
                 padding = first_padding
             else:
@@ -331,7 +335,7 @@ class BaseCNN(nn.Module):
         kernel_sizes: Union[int, List[int]],
         conv_type: str = "2d",
         strides: Union[int, List[int]] = 1,
-        paddings: Union[int, List[int], str] = "same",
+        conv_padding: Union[int, List[int], str] = "same",
         use_batch_norm: bool = True,
         bias: bool = False,
     ) -> Tuple[nn.ModuleList, nn.ModuleList]:
@@ -350,7 +354,7 @@ class BaseCNN(nn.Module):
             conv_type (str, optional): Type of convolution ('1d' or '2d'). Defaults to '2d'.
             strides (Union[int, List[int]], optional): Stride(s) for the convolutional layers.
                 Defaults to 1.
-            paddings (Union[int, List[int], str], optional): Padding for the convolutional layers.
+            conv_padding (Union[int, List[int], str], optional): Padding for the convolutional layers.
                 Defaults to 'same'.
             use_batch_norm (bool, optional): Whether to include batch normalization layers.
                 Defaults to True.
@@ -375,15 +379,15 @@ class BaseCNN(nn.Module):
         if len(multipliers) != num_layers:
             raise ValueError(f"Length of multipliers ({len(multipliers)}) must match num_layers ({num_layers})")
 
-        out_channels_list = [base_channels * mult for mult in multipliers]
+        out_channels_size_list = [base_channels * mult for mult in multipliers]
 
         return self._create_sequential_conv_blocks(
             in_channels=in_channels,
-            out_channels_list=out_channels_list,
+            out_channels_size_list=out_channels_size_list,
             kernel_sizes=kernel_sizes,
             conv_type=conv_type,
             strides=strides,
-            paddings=paddings,
+            conv_padding=conv_padding,
             use_batch_norm=use_batch_norm,
             bias=bias,
         )

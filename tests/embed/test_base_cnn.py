@@ -21,7 +21,7 @@ def _create_simple_cnn(in_channels=3):
             super().__init__()
             self.conv_layers, self.batch_norms = self._create_sequential_conv_blocks(
                 in_channels=in_channels,
-                out_channels_list=[32, 64, 128],
+                out_channels_size_list=[32, 64, 128],
                 kernel_sizes=[3, 3, 3],
                 conv_type="2d",
             )
@@ -101,7 +101,7 @@ def test_basecnn_create_sequential_conv_blocks_2d():
     """Test creating sequential 2D convolutional blocks."""
     model = BaseCNN()
     conv_layers, batch_norms = model._create_sequential_conv_blocks(
-        in_channels=3, out_channels_list=[32, 64, 128], kernel_sizes=[3, 3, 3], conv_type="2d"
+        in_channels=3, out_channels_size_list=[32, 64, 128], kernel_sizes=[3, 3, 3], conv_type="2d"
     )
     assert len(conv_layers) == 3
     assert len(batch_norms) == 3
@@ -113,7 +113,7 @@ def test_basecnn_create_sequential_conv_blocks_1d():
     """Test creating sequential 1D convolutional blocks."""
     model = BaseCNN()
     conv_layers, batch_norms = model._create_sequential_conv_blocks(
-        in_channels=3, out_channels_list=[32, 64], kernel_sizes=[3, 3], conv_type="1d"
+        in_channels=3, out_channels_size_list=[32, 64], kernel_sizes=[3, 3], conv_type="1d"
     )
     assert len(conv_layers) == 2
     assert isinstance(conv_layers[0], nn.Conv1d)
@@ -123,7 +123,7 @@ def test_basecnn_create_sequential_conv_blocks_no_batch_norm():
     """Test creating sequential convolutional blocks without batch norm."""
     model = BaseCNN()
     conv_layers, batch_norms = model._create_sequential_conv_blocks(
-        in_channels=3, out_channels_list=[32, 64], kernel_sizes=[3, 3], conv_type="2d", use_batch_norm=False
+        in_channels=3, out_channels_size_list=[32, 64], kernel_sizes=[3, 3], conv_type="2d", use_batch_norm=False
     )
     assert len(conv_layers) == 2
     # When use_batch_norm=False, Identity modules are returned
@@ -135,7 +135,7 @@ def test_basecnn_create_doubling_conv_blocks():
     """Test creating doubling convolutional blocks."""
     model = BaseCNN()
     conv_layers, batch_norms, global_pools = model._create_doubling_conv_blocks(
-        input_channels=3, base_channels=32, num_layers=3
+        num_channels=3, base_channels=32, num_layers=3
     )
     assert len(conv_layers) == 3
     assert conv_layers[0].out_channels == 32
@@ -163,9 +163,9 @@ def test_basecnn_create_sequential_conv_blocks_invalid_conv_type():
 
 
 def test_basecnn_create_sequential_conv_blocks_empty_channels():
-    """Test error handling for empty out_channels_list."""
+    """Test error handling for empty out_channels_size_list."""
     model = BaseCNN()
-    with pytest.raises(ValueError, match="out_channels_list cannot be empty"):
+    with pytest.raises(ValueError, match="out_channels_size_list cannot be empty"):
         model._create_sequential_conv_blocks(3, [], [3], conv_type="2d")
 
 
@@ -193,12 +193,12 @@ def test_basecnn_create_sequential_conv_blocks_stride_mismatch():
 
 
 def test_basecnn_create_sequential_conv_blocks_padding_mismatch():
-    """Test error handling for mismatched paddings length."""
+    """Test error handling for mismatched conv_padding length."""
     model = BaseCNN()
-    with pytest.raises(ValueError, match="paddings length.*must match"):
+    with pytest.raises(ValueError, match="conv_padding length.*must match"):
         model._create_sequential_conv_blocks(
-            3, [32, 64, 128], [3, 3, 3], paddings=[1, 1], conv_type="2d"
-        )  # Only 2 paddings for 3 layers
+            3, [32, 64, 128], [3, 3, 3], conv_padding=[1, 1], conv_type="2d"
+        )  # Only 2 conv_padding values for 3 layers
 
 
 def test_basecnn_create_progressive_conv_blocks_multiplier_mismatch():

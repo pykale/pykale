@@ -41,11 +41,11 @@ class SignalVAEEncoder(BaseCNN):
 
         self.conv_layers, _ = self._create_sequential_conv_blocks(
             in_channels=1,
-            out_channels_list=[16, 32, 64],
+            out_channels_size_list=[16, 32, 64],
             kernel_sizes=3,
             conv_type="1d",
             strides=2,
-            paddings=1,
+            conv_padding=1,
             use_batch_norm=False,
             bias=True,
         )

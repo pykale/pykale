@@ -27,7 +27,7 @@ Example:
     ...     def __init__(self):
     ...         super().__init__()
     ...         self.conv_layers, self.batch_norms = self._create_sequential_conv_blocks(
-    ...             in_channels=3, out_channels_list=[32, 64], kernel_sizes=3, conv_type='2d'
+    ...             in_channels=3, out_channels_size_list=[32, 64], kernel_sizes=3, conv_type='2d'
     ...         )
     >>> # Use existing implementations
     >>> encoder = CNNEncoder(num_embeddings=64, embedding_dim=128, sequence_length=85,
@@ -71,15 +71,17 @@ class CNNEncoder(BaseCNN):
             multipliers=[1, 2, 3],  # DeepDTA pattern: 1x, 2x, 3x base channels
             kernel_sizes=kernel_length,
             conv_type="1d",
-            paddings=0,  # No padding for DeepDTA architecture
+            conv_padding=0,  # No padding for DeepDTA architecture
             use_batch_norm=False,
             bias=True,
         )
 
+        self.conv_layers = nn.ModuleList(conv_layers)
+
         # Maintain backward compatibility: expose individual layer attributes
-        self.conv1 = conv_layers[0]
-        self.conv2 = conv_layers[1]
-        self.conv3 = conv_layers[2]
+        self.conv1 = self.conv_layers[0]
+        self.conv2 = self.conv_layers[1]
+        self.conv3 = self.conv_layers[2]
         self.global_max_pool = nn.AdaptiveMaxPool1d(output_size=1)
         self._out_features = num_kernels * 3
 
@@ -95,7 +97,7 @@ class CNNEncoder(BaseCNN):
             torch.Tensor: Encoded feature vector of shape (batch_size, num_kernels * 3).
         """
         x = self.embedding(x)
-        for conv in [self.conv1, self.conv2, self.conv3]:
+        for conv in self.conv_layers:
             x = self._apply_activation(conv(x), "relu")
         x = self.global_max_pool(x)
         x = x.squeeze(2)
@@ -134,10 +136,12 @@ class ProteinCNN(BaseCNN):
         embedding_dim (int): Dimensionality of the embedding space for protein sequences.
         num_filters (list of int): A list specifying the number of filters for each convolutional layer.
         kernel_size (list of int): A list specifying the kernel size for each convolutional layer.
-        padding (bool): Whether to apply padding to the embedding layer.
+        padding (bool, optional): Whether to apply padding to the embedding layer. Defaults to True.
+            Note: This controls the `padding_idx` parameter of the embedding layer, not the convolutional
+            layer padding (which is controlled by the `conv_padding` argument in BaseCNN utilities).
     """
 
-    def __init__(self, embedding_dim, num_filters, kernel_size, padding=True):
+    def __init__(self, embedding_dim, num_filters, kernel_size, padding: bool = True):
         super(ProteinCNN, self).__init__()
         padding_idx = 0 if padding else None
         self.embedding = self._create_embedding_layer(
@@ -146,21 +150,24 @@ class ProteinCNN(BaseCNN):
 
         conv_layers, batch_norms = self._create_sequential_conv_blocks(
             in_channels=embedding_dim,
-            out_channels_list=num_filters,
+            out_channels_size_list=num_filters,
             kernel_sizes=kernel_size,
             conv_type="1d",
-            paddings=0,
+            conv_padding=0,
             use_batch_norm=True,
             bias=True,
         )
 
+        self.conv_layers = nn.ModuleList(conv_layers)
+        self.batch_norms = nn.ModuleList(batch_norms)
+
         # Maintain backward compatibility: expose individual layer attributes
-        self.conv1 = conv_layers[0]
-        self.bn1 = batch_norms[0]
-        self.conv2 = conv_layers[1]
-        self.bn2 = batch_norms[1]
-        self.conv3 = conv_layers[2]
-        self.bn3 = batch_norms[2]
+        self.conv1 = self.conv_layers[0]
+        self.bn1 = self.batch_norms[0]
+        self.conv2 = self.conv_layers[1]
+        self.bn2 = self.batch_norms[1]
+        self.conv3 = self.conv_layers[2]
+        self.bn3 = self.batch_norms[2]
         self._out_features = num_filters[-1]
 
     def forward(self, v):
@@ -177,7 +184,7 @@ class ProteinCNN(BaseCNN):
         """
         v = self.embedding(v.long())
         v = v.transpose(2, 1)
-        for conv, bn in zip([self.conv1, self.conv2, self.conv3], [self.bn1, self.bn2, self.bn3]):
+        for conv, bn in zip(self.conv_layers, self.batch_norms):
             v = bn(self._apply_activation(conv(v), "relu"))
         v = v.view(v.size(0), v.size(2), -1)
         return v
@@ -314,7 +321,7 @@ class CNNTransformer(ContextCNNGeneric):
         height = cnn_output_shape[2]
         width = cnn_output_shape[3]
 
-        encoder_layer = nn.TransformerEncoderLayer(num_channels, num_heads, dim_feedforward, dropout)
+        encoder_layer = nn.TransformerEncoderLayer(num_channels, num_heads, dim_feedforward, dropout, batch_first=True)
         encoder_normalizer = nn.LayerNorm(num_channels)
         encoder = nn.TransformerEncoder(encoder_layer, num_layers, encoder_normalizer)
 

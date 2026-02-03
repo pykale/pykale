@@ -164,10 +164,10 @@ def test_simplecnnbuilder_output_size():
 
 def test_imagevaeencoder_repr():
     """Test ImageVAEEncoder __repr__ method."""
-    model = ImageVAEEncoder(input_channels=3, latent_dim=32)
+    model = ImageVAEEncoder(num_channels=3, latent_dim=32)
     repr_str = repr(model)
     assert "ImageVAEEncoder" in repr_str
-    assert "input_channels=3" in repr_str
+    assert "num_channels=3" in repr_str
     assert "latent_dim=32" in repr_str
 
 
