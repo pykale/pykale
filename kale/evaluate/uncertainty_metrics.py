@@ -56,27 +56,27 @@ class ResultKeys:
     ALL_BINS_CONCAT_TARGETS_SEP = "all bins concatenated targets seperated"
 
     # Bounds specific
-    ERROR_BOUNDS_ALL = "Error Bounds All"
+    ERROR_BOUNDS_ALL = "error_bounds_all"
     ALL_BOUND_PERCENTS_NO_TARGET_SEP = "all_bound_percents_notargetsep"
     ALL_ERROR_BOUND_CONCAT_BINS_TARGET_SEP_FOLDWISE = "all errorbound concat bins targets sep foldwise"
-    ALL_ERROR_BOUND_CONCAT_BINS_TARGET_SEP_ALL = "all errorbound concat bins targets sep all"
+    ALL_ERROR_BOUND_CONCAT_BINS_TARGET_SEP_ALL = "all_errorbound_concat_bins_targets_sep_all"
 
     # Errors specific
-    ALL_MEAN_ERROR_BINS_NO_SEP = "all mean error bins nosep"
+    ALL_MEAN_ERROR_BINS_NO_SEP = "all_mean_error_bins_nosep"
     ALL_MEAN_ERROR_BINS_TARGETS_SEP = "all mean error bins targets sep"
-    ALL_ERROR_CONCAT_BINS_TARGET_NO_SEP = "all error concat bins targets nosep"
+    ALL_ERROR_CONCAT_BINS_TARGET_NO_SEP = "all_error_concat_bins_targets_nosep"
     ALL_ERROR_CONCAT_BINS_TARGET_SEP_FOLDWISE = "all error concat bins targets sep foldwise"
-    ALL_ERROR_CONCAT_BINS_TARGET_SEP_ALL = "all error concat bins targets sep all"
+    ALL_ERROR_CONCAT_BINS_TARGET_SEP_ALL = "all_error_concat_bins_targets_sep_all"
 
     # Jaccard specific
-    JACCARD_ALL = "Jaccard All"
+    JACCARD_ALL = "jaccard_all"
     JACCARD_TARGETS_SEPARATED = "Jaccard targets seperated"
-    RECALL_ALL = "Recall All"
+    RECALL_ALL = "recall_all"
     RECALL_TARGETS_SEPARATED = "Recall targets seperated"
-    PRECISION_ALL = "Precision All"
+    PRECISION_ALL = "precision_all"
     PRECISION_TARGETS_SEPARATED = "Precision targets seperated"
     ALL_JACC_CONCAT_BINS_TARGET_SEP_FOLDWISE = "all jacc concat bins targets sep foldwise"
-    ALL_JACC_CONCAT_BINS_TARGET_SEP_ALL = "all jacc concat bins targets sep all"
+    ALL_JACC_CONCAT_BINS_TARGET_SEP_ALL = "all_jaccard_concat_bins_targets_sep_all"
 
 
 @dataclass
@@ -1417,7 +1417,7 @@ def evaluate_bounds(
         ...     uncertainty_pairs=[['epistemic']],
         ...     num_bins=5, targets=[0, 1, 2]
         ... )
-        >>> print(results['Error Bounds All']['model1_epistemic'])
+        >>> print(results['error_bounds_all']['model1_epistemic'])
 
     Note:
         This function complements Jaccard-based evaluation by focusing on the
@@ -1501,10 +1501,10 @@ def evaluate_bounds(
                 ] = fold_all_bins_concat_targets_sep_all[target_idx]
 
     return {
-        "Error Bounds All": all_bound_percents,
+        "error_bounds_all": all_bound_percents,
         "all_bound_percents_notargetsep": all_bound_percents_notargetsep,
         "all errorbound concat bins targets sep foldwise": all_concat_errorbound_bins_target_sep_foldwise,
-        "all errorbound concat bins targets sep all": all_concat_errorbound_bins_target_sep_all,
+        "all_errorbound_concat_bins_targets_sep_all": all_concat_errorbound_bins_target_sep_all,
     }
 
 
@@ -1719,11 +1719,11 @@ def get_mean_errors(
         Dict[str, Union[Dict[str, List[List[float]]], List[Dict[str, List[float]]]]]: Dictionary with mean error for all
          targets combined and targets separated.
             Keys that are returned:
-                "all mean error bins nosep":  For every fold, the mean error for each bin. All targets are combined in the same list.
+                "all_mean_error_bins_nosep":  For every fold, the mean error for each bin. All targets are combined in the same list.
                 "all mean error bins targets sep":   For every fold, the mean error for each bin. Each target is in a separate list.
-                "all error concat bins targets nosep":  For every fold, every error value in a list. Each target is in the same list. The list is flattened for all the folds.
+                "all_error_concat_bins_targets_nosep":  For every fold, every error value in a list. Each target is in the same list. The list is flattened for all the folds.
                 "all error concat bins targets sep foldwise":  For every fold, every error value in a list. Each target is in a separate list. Each list has a list of results by fold.
-                "all error concat bins targets sep all": For every fold, every error value in a list. Each target is in a separate list. The list is flattened for all the folds.
+                "all_error_concat_bins_targets_sep_all": For every fold, every error value in a list. Each target is in a separate list. The list is flattened for all the folds.
 
     """
     # If we are combining the middle bins, we only have the 2 edge bins and the middle bins are combined into 1 bin.
@@ -1824,11 +1824,11 @@ def get_mean_errors(
                 ] = fold_all_bins_concat_targets_sep_all[target_idx]
 
     return {
-        "all mean error bins nosep": all_mean_error_bins,
+        "all_mean_error_bins_nosep": all_mean_error_bins,
         "all mean error bins targets sep": all_mean_error_bins_targets_sep,
-        "all error concat bins targets nosep": all_concat_error_bins_target_nosep,
+        "all_error_concat_bins_targets_nosep": all_concat_error_bins_target_nosep,
         "all error concat bins targets sep foldwise": all_concat_error_bins_target_sep_foldwise,
-        "all error concat bins targets sep all": all_concat_error_bins_target_sep_all,
+        "all_error_concat_bins_targets_sep_all": all_concat_error_bins_target_sep_all,
     }
 
 

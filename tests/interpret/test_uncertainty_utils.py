@@ -133,8 +133,8 @@ class TestPlotFunctions:
 
     @patch("matplotlib.pyplot.show")
     @patch("matplotlib.pyplot.gca")
-    @patch("matplotlib.pyplot.style.use")
-    def test_plot_cumulative_basic(self, mock_style, mock_gca, mock_show):
+    @patch("matplotlib.pyplot.style.context")
+    def test_plot_cumulative_basic(self, mock_style_context, mock_gca, mock_show):
         """Test basic cumulative plot functionality."""
         # Mock data structure with correct column names
         pd = pytest.importorskip("pandas")
@@ -163,7 +163,7 @@ class TestPlotFunctions:
             save_path=None,
         )
 
-        mock_style.assert_called_once_with("ggplot")
+        mock_style_context.assert_called_once_with("ggplot")
         mock_show.assert_called_once()
 
     @patch("matplotlib.pyplot.close")
