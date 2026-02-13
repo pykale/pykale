@@ -21,36 +21,36 @@ Analysis Capabilities:
    D) Comprehensive visualization: Boxplots, error bounds, Jaccard metrics, cumulative plots
 
 Example Usage:
-    ```python
-    from kale.interpret.uncertainty_quantiles import QuantileBinningAnalyzer, QuantileBinningConfig
+    .. code-block:: python
 
-    # Configure analysis
-    config = QuantileBinningConfig(
-        uncertainty_error_pairs=[('name', 'error_col', 'uncertainty_col')],
-        models=['model1', 'model2'],
-        dataset='my_dataset',
-        target_indices=[0, 1, 2],
-        num_bins=10
-    )
+        from kale.interpret.uncertainty_quantiles import QuantileBinningAnalyzer, QuantileBinningConfig
 
-    # Create analyzer
-    analyzer = QuantileBinningAnalyzer(
-        plot_config={
-            'display_settings': {'errors': True, 'jaccard': True, 'error_bounds': True},
-            'plot_samples_as_dots': False,
-            'show_sample_info': 'detailed',
-            'boxplot_error_lim': 64,
-            'boxplot_config': {'colormap': 'Set1'}
-        },
-        save_folder='output/',
-        save_file_preamble='analysis_',
-        save_figures=True,
-        interpret=True
+        # Configure analysis
+        config = QuantileBinningConfig(
+            uncertainty_error_pairs=[('name', 'error_col', 'uncertainty_col')],
+            models=['model1', 'model2'],
+            dataset='my_dataset',
+            target_indices=[0, 1, 2],
+            num_bins=10
+        )
 
-    # Run analysis
-    analyzer.individual_bin_comparison(config, detailed_mode=True)
-    ```
+        # Create analyzer
+        analyzer = QuantileBinningAnalyzer(
+            plot_config={
+                'display_settings': {'errors': True, 'jaccard': True, 'error_bounds': True},
+                'plot_samples_as_dots': False,
+                'show_sample_info': 'detailed',
+                'boxplot_error_lim': 64,
+                'boxplot_config': {'colormap': 'Set1'}
+            },
+            save_folder='output/',
+            save_file_preamble='analysis_',
+            save_figures=True,
+            interpret=True
+        )
 
+        # Run analysis
+        analyzer.individual_bin_comparison(config, detailed_mode=True)
 Dependencies:
    - Box plot configuration classes from kale.interpret.box_plot
    - Uncertainty metrics from kale.evaluate.uncertainty_metrics
