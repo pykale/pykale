@@ -50,7 +50,8 @@ Example Usage:
         )
 
         # Run analysis
-        analyzer.individual_bin_comparison(config, detailed_mode=True)
+        analyzer.run_individual_bin_comparison(config, detailed_mode=True)
+
 Dependencies:
    - Box plot configuration classes from kale.interpret.box_plot
    - Uncertainty metrics from kale.evaluate.uncertainty_metrics
