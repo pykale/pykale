@@ -192,18 +192,27 @@ class BoxPlotConfig:
 
         Examples:
             Basic usage:
-            >>> config = BoxPlotConfig()
-            >>> config.set_params(x_label="Custom Label", y_label="Custom Y")
+
+            .. code-block:: pycon
+
+                >>> config = BoxPlotConfig()
+                >>> config.set_params(x_label="Custom Label", y_label="Custom Y")
 
             Method chaining:
-            >>> config = BoxPlotConfig().set_params(
-            ...     x_label="Uncertainty Bins",
-            ...     colormap="Set1",
-            ...     font_size_label=25
-            ... )
+
+            .. code-block:: pycon
+
+                >>> config = BoxPlotConfig().set_params(
+                ...     x_label="Uncertainty Bins",
+                ...     colormap="Set1",
+                ...     font_size_label=25
+                ... )
 
             Multiple updates:
-            >>> config.set_params(show=True).set_params(save_path="output.png")
+
+            .. code-block:: pycon
+
+                >>> config.set_params(show=True).set_params(save_path="output.png")
 
         Raises:
             AttributeError: If an invalid parameter name is provided.
@@ -283,18 +292,27 @@ class BoxPlotData:
 
         Examples:
             Basic usage:
-            >>> data = BoxPlotData(evaluation_data_by_bins=[{}])
-            >>> data.set_data(models=["ResNet50", "VGG16"])
+
+            .. code-block:: pycon
+
+                >>> data = BoxPlotData(evaluation_data_by_bins=[{}])
+                >>> data.set_data(models=["ResNet50", "VGG16"])
 
             Method chaining:
-            >>> data = BoxPlotData(evaluation_data_by_bins=[{}]).set_data(
-            ...     models=["ResNet50"],
-            ...     uncertainty_categories=[["epistemic"]],
-            ...     num_bins=5
-            ... )
+
+            .. code-block:: pycon
+
+                >>> data = BoxPlotData(evaluation_data_by_bins=[{}]).set_data(
+                ...     models=["ResNet50"],
+                ...     uncertainty_categories=[["epistemic"]],
+                ...     num_bins=5
+                ... )
 
             Multiple updates:
-            >>> data.set_data(models=["ResNet50"]).set_data(num_bins=5)
+
+            .. code-block:: pycon
+
+                >>> data.set_data(models=["ResNet50"]).set_data(num_bins=5)
 
         Raises:
             AttributeError: If an invalid parameter name is provided.
@@ -335,26 +353,35 @@ def create_boxplot_config(**kwargs: Any) -> BoxPlotConfig:
 
     Examples:
         Basic usage:
-        >>> config = create_boxplot_config(
-        ...     x_label="Custom Bins",
-        ...     y_label="Custom Error (%)",
-        ...     colormap="Set1"
-        ... )
+
+        .. code-block:: pycon
+
+            >>> config = create_boxplot_config(
+            ...     x_label="Custom Bins",
+            ...     y_label="Custom Error (%)",
+            ...     colormap="Set1"
+            ... )
 
         Publication-ready plots:
-        >>> config = create_boxplot_config(
-        ...     font_size_label=20,
-        ...     figure_size=(12, 8),
-        ...     save_dpi=300,
-        ...     save_path="publication_plot.png"
-        ... )
+
+        .. code-block:: pycon
+
+            >>> config = create_boxplot_config(
+            ...     font_size_label=20,
+            ...     figure_size=(12, 8),
+            ...     save_dpi=300,
+            ...     save_path="publication_plot.png"
+            ... )
 
         Development/debugging:
-        >>> config = create_boxplot_config(
-        ...     show=True,
-        ...     show_individual_dots=False,
-        ...     y_lim_top=50
-        ... )
+
+        .. code-block:: pycon
+
+            >>> config = create_boxplot_config(
+            ...     show=True,
+            ...     show_individual_dots=False,
+            ...     y_lim_top=50
+            ... )
 
     Raises:
         None: Any type or value errors will be raised by the BoxPlotConfig constructor.
@@ -399,33 +426,42 @@ def create_boxplot_data(
 
     Examples:
         Single model analysis:
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=[{
-        ...         "ResNet50_epistemic": [[0.1, 0.12], [0.15, 0.18]]
-        ...     }],
-        ...     models=["ResNet50"],
-        ...     uncertainty_categories=[["epistemic"]]
-        ... )
+
+        .. code-block:: pycon
+
+            >>> data = create_boxplot_data(
+            ...     evaluation_data_by_bins=[{
+            ...         "ResNet50_epistemic": [[0.1, 0.12], [0.15, 0.18]]
+            ...     }],
+            ...     models=["ResNet50"],
+            ...     uncertainty_categories=[["epistemic"]]
+            ... )
 
         Multi-model comparison:
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=[{
-        ...         "ResNet50_epistemic": [[0.1, 0.12], [0.15, 0.18]],
-        ...         "VGG16_epistemic": [[0.11, 0.13], [0.16, 0.19]]
-        ...     }],
-        ...     models=["ResNet50", "VGG16"],
-        ...     uncertainty_categories=[["epistemic"]]
-        ... )
+
+        .. code-block:: pycon
+
+            >>> data = create_boxplot_data(
+            ...     evaluation_data_by_bins=[{
+            ...         "ResNet50_epistemic": [[0.1, 0.12], [0.15, 0.18]],
+            ...         "VGG16_epistemic": [[0.11, 0.13], [0.16, 0.19]]
+            ...     }],
+            ...     models=["ResNet50", "VGG16"],
+            ...     uncertainty_categories=[["epistemic"]]
+            ... )
 
         Q-value threshold study:
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=[
-        ...         {"model_epistemic": [[0.1, 0.12]]},  # Q=5
-        ...         {"model_epistemic": [[0.09, 0.11]]}, # Q=10
-        ...         {"model_epistemic": [[0.08, 0.10]]}  # Q=15
-        ...     ],
-        ...     category_labels=["Q=5", "Q=10", "Q=15"]
-        ... )
+
+        .. code-block:: pycon
+
+            >>> data = create_boxplot_data(
+            ...     evaluation_data_by_bins=[
+            ...         {"model_epistemic": [[0.1, 0.12]]},  # Q=5
+            ...         {"model_epistemic": [[0.09, 0.11]]}, # Q=10
+            ...         {"model_epistemic": [[0.08, 0.10]]}  # Q=15
+            ...     ],
+            ...     category_labels=["Q=5", "Q=10", "Q=15"]
+            ... )
 
     Raises:
         None: Any type or value errors will be raised by the BoxPlotData constructor.
@@ -1078,14 +1114,17 @@ class GenericBoxPlotter(BoxPlotter):
     - Publishing comparative studies with multiple model baselines
 
     Example:
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=multi_model_results,
-        ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
-        ...     models=['ResNet50', 'VGG16', 'DenseNet']
-        ... )
-        >>> config = create_boxplot_config(colormap='Set1')
-        >>> plotter = GenericBoxPlotter(data, config)
-        >>> plotter.draw_boxplot()  # Creates comparison plot
+
+        .. code-block:: pycon
+
+            >>> data = create_boxplot_data(
+            ...     evaluation_data_by_bins=multi_model_results,
+            ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
+            ...     models=['ResNet50', 'VGG16', 'DenseNet']
+            ... )
+            >>> config = create_boxplot_config(colormap='Set1')
+            >>> plotter = GenericBoxPlotter(data, config)
+            >>> plotter.draw_boxplot()  # Creates comparison plot
     """
 
     def __init__(self, data: Optional[BoxPlotData] = None, config: Optional[BoxPlotConfig] = None):
@@ -1177,14 +1216,17 @@ class PerModelBoxPlotter(BoxPlotter):
     - Detailed performance reports for single-model deployments
 
     Example:
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=resnet_results,
-        ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
-        ...     models=['ResNet50']  # Focus on single model
-        ... )
-        >>> config = create_boxplot_config(colormap='Set1')
-        >>> plotter = PerModelBoxPlotter(data, config)
-        >>> plotter.draw_boxplot()  # Creates detailed per-model analysis
+
+        .. code-block:: pycon
+
+            >>> data = create_boxplot_data(
+            ...     evaluation_data_by_bins=resnet_results,
+            ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
+            ...     models=['ResNet50']  # Focus on single model
+            ... )
+            >>> config = create_boxplot_config(colormap='Set1')
+            >>> plotter = PerModelBoxPlotter(data, config)
+            >>> plotter.draw_boxplot()  # Creates detailed per-model analysis
     """
 
     def __init__(self, data: Optional[BoxPlotData] = None, config: Optional[BoxPlotConfig] = None):
@@ -1283,16 +1325,19 @@ class ComparingQBoxPlotter(BoxPlotter):
     - Hyperparameter tuning for uncertainty quantification
 
     Example:
-        >>> # Compare Q=5 vs Q=10 vs Q=15 thresholds
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=[q5_results, q10_results, q15_results],
-        ...     uncertainty_categories=[['epistemic']],
-        ...     models=['ResNet50'],
-        ...     category_labels=['Q=5', 'Q=10', 'Q=15']
-        ... )
-        >>> config = create_boxplot_config(hatch_type='///', colormap='Set1')
-        >>> plotter = ComparingQBoxPlotter(data, config)
-        >>> plotter.draw_boxplot()
+
+        .. code-block:: pycon
+
+            >>> # Compare Q=5 vs Q=10 vs Q=15 thresholds
+            >>> data = create_boxplot_data(
+            ...     evaluation_data_by_bins=[q5_results, q10_results, q15_results],
+            ...     uncertainty_categories=[['epistemic']],
+            ...     models=['ResNet50'],
+            ...     category_labels=['Q=5', 'Q=10', 'Q=15']
+            ... )
+            >>> config = create_boxplot_config(hatch_type='///', colormap='Set1')
+            >>> plotter = ComparingQBoxPlotter(data, config)
+            >>> plotter.draw_boxplot()
     """
 
     def __init__(self, data: Optional[BoxPlotData] = None, config: Optional[BoxPlotConfig] = None):
@@ -1547,7 +1592,10 @@ class BoxPlotDataProcessor(ABC):
             Dict: Standardized data item dictionary with all required fields.
 
         Examples:
-            >>> item = create_data_item([0.1, 0.2], 1.0, 0.2, 0, "ResNet50", "epistemic", 0, 0, model_data, 50.0)
+
+            .. code-block:: pycon
+
+                >>> item = create_data_item([0.1, 0.2], 1.0, 0.2, 0, "ResNet50", "epistemic", 0, 0, model_data, 50.0)
         """
         item = {
             "data": data,
@@ -1622,8 +1670,11 @@ class BoxPlotDataProcessor(ABC):
             KeyError: If no key contains both model_type and uncertainty_type.
 
         Examples:
-            >>> key = _find_data_key(data, "ResNet50", "epistemic")  # Returns "ResNet50_epistemic"
-            >>> key = _find_data_key(data, "VGG16", "aleatoric")     # Returns "VGG16_aleatoric"
+
+            .. code-block:: pycon
+
+                >>> key = _find_data_key(data, "ResNet50", "epistemic")  # Returns "ResNet50_epistemic"
+                >>> key = _find_data_key(data, "VGG16", "aleatoric")     # Returns "VGG16_aleatoric"
         """
         matching_keys = [
             key for key in evaluation_data_by_bin.keys() if (model_type in key) and (uncertainty_type in key)
@@ -1673,9 +1724,12 @@ class BoxPlotDataProcessor(ABC):
             List[float]: Extracted bin data, optionally filtered for None values.
 
         Examples:
-            >>> data = [[0.1, 0.2], [0.3, None, 0.4]]
-            >>> _extract_bin_data(data, 0)  # Returns [0.1, 0.2]
-            >>> _extract_bin_data(data, 1)  # Returns [0.3, 0.4]
+
+            .. code-block:: pycon
+
+                >>> data = [[0.1, 0.2], [0.3, None, 0.4]]
+                >>> _extract_bin_data(data, 0)  # Returns [0.1, 0.2]
+                >>> _extract_bin_data(data, 1)  # Returns [0.3, 0.4]
         """
         assert self.config is not None, "Configuration must be set before extracting bin data"
 
