@@ -67,6 +67,17 @@ class TestBaseTrainer:
         assert optimizers[0].defaults["eps"] == 0.2
         assert optimizers[0].defaults["weight_decay"] == 0.3
 
+    def test_configure_optimizers_with_adamw(self, trainer):
+        # Test AdamW optimizer configuration. Return a configured AdamW optimizer.
+        trainer.optimizers = ClassNet()
+        trainer._optimizer_params = {"type": "AdamW", "optim_params": {"eps": 0.2, "weight_decay": 0.3}}
+        optimizers = trainer.configure_optimizers()
+        assert len(optimizers) == 1
+        assert isinstance(optimizers, list)
+        assert isinstance(optimizers[0], torch.optim.AdamW)
+        assert optimizers[0].defaults["eps"] == 0.2
+        assert optimizers[0].defaults["weight_decay"] == 0.3
+
     def test_configure_optimizers_with_sgd(self, trainer):
         # Test SGD optimizer configuration. Return a configured SGD optimizer.
         trainer.optimizers = ClassNet()
