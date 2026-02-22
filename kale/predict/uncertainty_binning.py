@@ -42,6 +42,9 @@ def quantile_binning_predictions(
     ):
         raise ValueError("uncert_thresh should be a list of floats, e.g. [0.1, 0.2, 0.3]")
 
+    if len(uncert_thresh) == 0:
+        return {key: 0 for key in uncertainties_test}
+
     all_binned_errors = {}
 
     for i, (key, fc) in enumerate(uncertainties_test.items()):
