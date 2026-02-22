@@ -36,21 +36,21 @@ Example Usage:
 
         # Create analyzer
         analyzer = QuantileBinningAnalyzer(
-            plot_config={
-                'display_settings': {'errors': True, 'jaccard': True, 'error_bounds': True},
+            config={
                 'plot_samples_as_dots': False,
                 'show_sample_info': 'detailed',
                 'boxplot_error_lim': 64,
-                'boxplot_config': {'colormap': 'Set1'}
+                'boxplot_config': {'colormap': 'Set1'},
+                'save_folder': 'output/',
+                'save_file_preamble': 'analysis_',
+                'save_figures': True,
+                'interpret': True,
             },
-            save_folder='output/',
-            save_file_preamble='analysis_',
-            save_figures=True,
-            interpret=True
+            display_settings={'errors': True, 'jaccard': True, 'error_bounds': True},
         )
 
         # Run analysis
-        analyzer.run_individual_bin_comparison(config, detailed_mode=True)
+        analyzer.run_individual_bin_comparison(config)
 
 Dependencies:
    - Box plot configuration classes from kale.interpret.box_plot
@@ -303,8 +303,8 @@ class QuantileBinningAnalyzer:
     This class encapsulates the functionality of the original generate_fig_individual_bin_comparison and
     generate_fig_comparing_bins functions to reduce code duplication and improve maintainability. It provides two core
     analysis modes:
-    1. Compare different models/uncertainty types at fixed bin counts (individual_bin_comparison).
-    2. Compare the impact of different bin counts (Q values) on model performance (comparing_bins_analysis).
+    1. Compare different models/uncertainty types at fixed bin counts (run_individual_bin_comparison).
+    2. Compare the impact of different bin counts (Q values) on model performance (run_comparing_bins_analysis).
     """
 
     # Metric definitions for unified plotting
@@ -475,17 +475,22 @@ class QuantileBinningAnalyzer:
             ValueError: If configuration parameters are invalid or incompatible.
 
         Example:
-            >>> config = QuantileBinningConfig(
-            ...     uncertainty_error_pairs=[('epistemic_uncertainty', 'localization_error', 'epistemic_uncertainty')],
-            ...     models=['ResNet50', 'VGG16'],
-            ...     dataset='cardiac_mri',
-            ...     target_indices=[0, 1, 2, 3],  # 4 anatomical landmarks
-            ...     num_bins=10,
-            ...     combine_middle_bins=False,
-            ...     show_individual_target_plots=True,
-            ...     individual_targets_to_show=[0, 1]  # Show detailed plots for first 2 targets
-            ... )
-            >>> analyzer.run_individual_bin_comparison(config)
+
+            .. code-block:: pycon
+
+                >>> config = QuantileBinningConfig(
+                ...     uncertainty_error_pairs=[
+                ...         ("epistemic_uncertainty", "localization_error", "epistemic_uncertainty")
+                ...     ],
+                ...     models=["ResNet50", "VGG16"],
+                ...     dataset="cardiac_mri",
+                ...     target_indices=[0, 1, 2, 3],
+                ...     num_bins=10,
+                ...     combine_middle_bins=False,
+                ...     show_individual_target_plots=True,
+                ...     individual_targets_to_show=[0, 1],
+                ... )
+                >>> analyzer.run_individual_bin_comparison(config)
 
         Note:
             - The method respects the analyzer's display_settings to control which plots are generated
@@ -677,20 +682,25 @@ class QuantileBinningAnalyzer:
             IndexError: If specified target indices are not present in the data.
 
         Example:
-            >>> config = ComparingBinsConfig(
-            ...     uncertainty_error_pair=('epistemic_uncertainty', 'localization_error'),
-            ...     model='ResNet50',
-            ...     dataset='cardiac_mri',
-            ...     targets=[0, 1, 2, 3],
-            ...     q_values=[5, 10, 15, 20],
-            ...     fitted_save_paths=[
-            ...         'data/q5_results/', 'data/q10_results/',
-            ...         'data/q15_results/', 'data/q20_results/'
-            ...     ],
-            ...     show_individual_target_plots=True,
-            ...     individual_targets_to_show=[0]  # Detailed analysis for target 0
-            ... )
-            >>> analyzer.run_comparing_bins_analysis(config)
+
+            .. code-block:: pycon
+
+                >>> config = ComparingBinsConfig(
+                ...     uncertainty_error_pair=("epistemic_uncertainty", "localization_error"),
+                ...     model="ResNet50",
+                ...     dataset="cardiac_mri",
+                ...     targets=[0, 1, 2, 3],
+                ...     q_values=[5, 10, 15, 20],
+                ...     fitted_save_paths=[
+                ...         "data/q5_results/",
+                ...         "data/q10_results/",
+                ...         "data/q15_results/",
+                ...         "data/q20_results/",
+                ...     ],
+                ...     show_individual_target_plots=True,
+                ...     individual_targets_to_show=[0],
+                ... )
+                >>> analyzer.run_comparing_bins_analysis(config)
 
         Note:
             - Results typically show optimal Q values in the range of 10-20 bins for medical imaging
