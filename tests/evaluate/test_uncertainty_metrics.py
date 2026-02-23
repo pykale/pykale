@@ -49,7 +49,7 @@ class TestEvaluateJaccard:
         jacc_dict = evaluate_jaccard(
             dummy_test_preds[0], [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"]], num_bins, [0, 1], num_folds=8
         )
-        all_jaccard_data = jacc_dict["Jaccard All"]
+        all_jaccard_data = jacc_dict["jaccard_all"]
         all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets seperated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA"]
@@ -66,7 +66,7 @@ class TestEvaluateJaccard:
             dummy_test_preds[0], [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"]], 5, [0, 1], num_folds=1
         )
 
-        all_jaccard_data = jacc_dict["Jaccard All"]
+        all_jaccard_data = jacc_dict["jaccard_all"]
         all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets seperated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA"]
@@ -87,7 +87,7 @@ class TestEvaluateJaccard:
             num_folds=1,
         )
 
-        all_jaccard_data = jacc_dict["Jaccard All"]
+        all_jaccard_data = jacc_dict["jaccard_all"]
         all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets seperated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
@@ -114,7 +114,7 @@ class TestEvaluateBounds:
             num_folds=8,
         )
 
-        all_bound_percents = bound_dict["Error Bounds All"]
+        all_bound_percents = bound_dict["error_bounds_all"]
         all_bound_percents_notargetsep = bound_dict["all_bound_percents_notargetsep"]
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA"]
@@ -135,7 +135,7 @@ class TestEvaluateBounds:
             [0, 1],
             num_folds=1,
         )
-        all_bound_percents = bound_dict["Error Bounds All"]
+        all_bound_percents = bound_dict["error_bounds_all"]
         all_bound_percents_notargetsep = bound_dict["all_bound_percents_notargetsep"]
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA"]
@@ -157,7 +157,7 @@ class TestEvaluateBounds:
             num_folds=8,
         )
 
-        all_bound_percents = bound_dict["Error Bounds All"]
+        all_bound_percents = bound_dict["error_bounds_all"]
         all_bound_percents_notargetsep = bound_dict["all_bound_percents_notargetsep"]
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
@@ -502,13 +502,13 @@ class TestJaccardEvaluator:
         results = evaluator.evaluate(bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"]], targets=[0, 1])
 
         # Check that results match expected structure
-        assert "Jaccard All" in results
+        assert "jaccard_all" in results
         assert "Jaccard targets seperated" in results
-        assert "Recall All" in results
-        assert "Precision All" in results
+        assert "recall_all" in results
+        assert "precision_all" in results
 
         # Check specific keys and structure
-        jaccard_all = results["Jaccard All"]
+        jaccard_all = results["jaccard_all"]
         assert "U-NET S-MHA" in jaccard_all
         assert len(jaccard_all["U-NET S-MHA"]) == 5  # 5 bins
 
@@ -519,7 +519,7 @@ class TestJaccardEvaluator:
 
         results = evaluator.evaluate(bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"]], targets=[0, 1])
 
-        jaccard_all = results["Jaccard All"]
+        jaccard_all = results["jaccard_all"]
         assert len(jaccard_all["U-NET S-MHA"]) == num_bins
 
     def test_combine_middle_bins(self, dummy_test_preds):
@@ -528,7 +528,7 @@ class TestJaccardEvaluator:
 
         results = evaluator.evaluate(bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"]], targets=[0, 1])
 
-        jaccard_all = results["Jaccard All"]
+        jaccard_all = results["jaccard_all"]
         # When combine_middle_bins=True, should have 3 bins
         assert len(jaccard_all["U-NET S-MHA"]) == 3
 
@@ -540,7 +540,7 @@ class TestJaccardEvaluator:
             bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"], ["E-MHA"]], targets=[0, 1]
         )
 
-        jaccard_all = results["Jaccard All"]
+        jaccard_all = results["jaccard_all"]
         assert "U-NET S-MHA" in jaccard_all
         assert "U-NET E-MHA" in jaccard_all
         assert len(jaccard_all["U-NET S-MHA"]) == 5
@@ -562,8 +562,8 @@ class TestBackwardCompatibility:
         )
 
         # Compare key results (allowing for small numerical differences)
-        old_jaccard = old_results["Jaccard All"]["U-NET S-MHA"]
-        new_jaccard = new_results["Jaccard All"]["U-NET S-MHA"]
+        old_jaccard = old_results["jaccard_all"]["U-NET S-MHA"]
+        new_jaccard = new_results["jaccard_all"]["U-NET S-MHA"]
 
         assert len(old_jaccard) == len(new_jaccard)
         for old_bin, new_bin in zip(old_jaccard, new_jaccard):

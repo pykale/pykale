@@ -8,7 +8,7 @@ import pytest
 
 import kale.utils.logger as logging
 from kale.embed.uncertainty_fitting import fit_and_predict
-from kale.interpret.uncertainty_quantiles import generate_fig_comparing_bins, generate_fig_individual_bin_comparison
+from kale.interpret.uncertainty_quantiles import ComparingBinsConfig, QuantileBinningAnalyzer, QuantileBinningConfig
 
 
 @pytest.fixture(scope="module")
@@ -43,8 +43,8 @@ def testing_cfg():
             ],
             "COMBINE_MIDDLE_BINS": False,
             "PIXEL_TO_MM_SCALE": 1.0,
-            "IND_LANDMARKS_TO_SHOW": [0],
-            "SHOW_IND_LANDMARKS": True,
+            "INDIVIDUAL_LANDMARKS_TO_SHOW": [0],
+            "SHOW_INDIVIDUAL_LANDMARKS": True,
         },
         "IM_KWARGS": {"cmap": "gray"},
         "MARKER_KWARGS": {
@@ -62,32 +62,36 @@ def testing_cfg():
 
 
 # DEFINE constants for testing
-EXPECTED_FILES_IND_3 = [
-    "3Bins/fitted_quantile_binningcumulative_error.pdf",
+EXPECTED_FILES_INDIVIDUAL_3 = [
+    "3Bins/fitted_quantile_binning/all_predictions_cumulative_error.pdf",
+    "3Bins/fitted_quantile_binning/b1_predictions_cumulative_error.pdf",
+    "3Bins/fitted_quantile_binning/PHD-NET_b1_vs_all_cumulative_error.pdf",
+    "3Bins/fitted_quantile_binning/U-NET_b1_vs_all_cumulative_error.pdf",
     "3Bins/fitted_quantile_binning/target_errors.xlsx",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_target_0.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_recall_jaccard_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_precision_jaccard_all_targets.pdf",
-    "3Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_target_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_target_0.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "3Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_target_0.pdf",
 ]
 # /home/schobs/Documents/results/testing/4CH/3Bins/
-EXPECTED_FILES_IND_5 = [
-    "5Bins/fitted_quantile_binningcumulative_error.pdf",
+EXPECTED_FILES_INDIVIDUAL_5 = [
+    "5Bins/fitted_quantile_binning/all_predictions_cumulative_error.pdf",
+    "5Bins/fitted_quantile_binning/b1_predictions_cumulative_error.pdf",
+    "5Bins/fitted_quantile_binning/PHD-NET_b1_vs_all_cumulative_error.pdf",
+    "5Bins/fitted_quantile_binning/U-NET_b1_vs_all_cumulative_error.pdf",
     "5Bins/fitted_quantile_binning/target_errors.xlsx",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_errorbound_target_0.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_recall_jaccard_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_precision_jaccard_all_targets.pdf",
-    "5Bins/fitted_quantile_binning/testing_ind_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_jaccard_target_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_error_target_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_errorbound_target_0.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "5Bins/fitted_quantile_binning/testing_individual_4CH_U-NET_PHD-NET_S-MHA_E-MHA_combinedFalse_undotted_jaccard_target_0.pdf",
 ]
 EXPECED_FILES_FIT = [
     "3Bins/fitted_quantile_binning/PHD-NET/4CH/res_predicted_bins_t0.csv",
@@ -128,250 +132,292 @@ EXPECED_FILES_FIT = [
     "5Bins/fitted_quantile_binning/U-NET/4CH/uncertainty_bounds_t2.csv",
 ]
 EXPECTED_FILES_COMP = [
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_jaccard_target_0.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_jaccard_target_0.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_jaccard_target_0.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_error_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_error_target_0.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_mean_error_folds_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_errorbound_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_errorbound_target_0.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_recall_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_precision_jaccard_all_targets.pdf",
-    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_jaccard_target_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_errorbound_target_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_E-MHA_4CH_combinedFalse_undotted_jaccard_target_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_errorbound_target_0.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_PHD-NET_S-MHA_4CH_combinedFalse_undotted_jaccard_target_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_errorbound_target_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_E-MHA_4CH_combinedFalse_undotted_jaccard_target_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_errorbound_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_errorbound_target_0.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_recall_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_precision_jaccard_all_targets.pdf",
+    "ComparisonBins/testing_compQ_U-NET_S-MHA_4CH_combinedFalse_undotted_jaccard_target_0.pdf",
 ]
+
+
+def _create_analyzer(config, display_settings):
+    """Create and return a QuantileBinningAnalyzer instance.
+
+    Args:
+        config: Configuration object (QuantileBinningConfig or ComparingBinsConfig) containing
+            analysis parameters like save folder, colormap, and display options.
+        display_settings (dict): Dictionary specifying which plots to generate (cumulative_error,
+            errors, jaccard, error_bounds, correlation, hatch).
+
+    Returns:
+        QuantileBinningAnalyzer: Configured analyzer instance ready for analysis.
+    """
+    analyzer_config = {
+        "plot_samples_as_dots": config.plot_samples_as_dots,
+        "show_sample_info": config.show_sample_info,
+        "boxplot_error_lim": config.boxplot_error_lim,
+        "boxplot_config": {"colormap": config.colormap, "hatch_type": display_settings.get("hatch", "")},
+        "save_folder": config.save_folder,
+        "save_file_preamble": config.save_file_preamble,
+        "save_figures": config.save_figures,
+        "interpret": config.interpret,
+    }
+    return QuantileBinningAnalyzer(
+        config=analyzer_config,
+        display_settings=display_settings,
+    )
+
+
+def _cleanup_test_files(expected_files, base_path):
+    """Remove test files after validation.
+
+    Args:
+        expected_files (list): List of relative file paths to remove.
+        base_path (str): Base directory path where the files are located.
+    """
+    for expected_file in expected_files:
+        file_path = os.path.join(base_path, expected_file)
+        os.remove(file_path)
+
+
+def _run_fitting_phase(testing_cfg, num_bins, save_folder, all_models, all_uncert_error_pairs, landmarks):
+    """Execute the fitting phase for all models and landmarks.
+
+    Args:
+        testing_cfg (dict): Test configuration dictionary containing dataset and pipeline settings.
+        num_bins (int): Number of quantile bins to use for uncertainty quantification.
+        save_folder (str): Directory path where fitted results will be saved.
+        all_models (np.ndarray): Array of model names to process (e.g., ['U-NET', 'PHD-NET']).
+        all_uncert_error_pairs (np.ndarray): Array of uncertainty-error pair configurations.
+        landmarks (list): List of landmark indices to process.
+    """
+    for model in all_models:
+        for landmark in landmarks:
+            landmark_results_path_val = os.path.join(
+                testing_cfg["DATASET"]["ROOT"],
+                testing_cfg["DATASET"]["BASE_DIR"],
+                model,
+                testing_cfg["DATASET"]["DATA"],
+                testing_cfg["DATASET"]["UE_PAIRS_VAL"] + "_t" + str(landmark),
+            )
+            landmark_results_path_test = os.path.join(
+                testing_cfg["DATASET"]["ROOT"],
+                testing_cfg["DATASET"]["BASE_DIR"],
+                model,
+                testing_cfg["DATASET"]["DATA"],
+                testing_cfg["DATASET"]["UE_PAIRS_TEST"] + "_t" + str(landmark),
+            )
+
+            fitted_save_at = os.path.join(save_folder, "fitted_quantile_binning", model, testing_cfg["DATASET"]["DATA"])
+            os.makedirs(save_folder, exist_ok=True)
+
+            helper_test_qbin_fit(
+                landmark,
+                all_uncert_error_pairs,
+                landmark_results_path_val,
+                landmark_results_path_test,
+                num_bins,
+                testing_cfg,
+                testing_cfg["DATASET"]["GROUND_TRUTH_TEST_ERRORS_AVAILABLE"],
+                fitted_save_at,
+                model,
+            )
+
+
+def _run_individual_bin_comparison(testing_cfg, num_bins, save_folder, colormap):
+    """Execute individual bin comparison analysis.
+
+    Args:
+        testing_cfg (dict): Test configuration dictionary containing pipeline and output settings.
+        num_bins (int): Number of quantile bins (3 or 5).
+        save_folder (str): Directory path where analysis results will be saved.
+        colormap (str): Name of the matplotlib colormap to use for visualization.
+
+    Returns:
+        list: List of expected output file paths based on the number of bins.
+    """
+    individual_q_uncertainty_error_pairs = testing_cfg["PIPELINE"]["INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS"]
+    individual_q_models_to_compare = testing_cfg["PIPELINE"]["INDIVIDUAL_Q_MODELS"]
+
+    save_file_preamble = "_".join(
+        [
+            testing_cfg["OUTPUT"]["SAVE_PREPEND"],
+            "individual",
+            testing_cfg["DATASET"]["DATA"],
+            "_".join(individual_q_models_to_compare),
+            "_".join([str(x[0]) for x in individual_q_uncertainty_error_pairs]),
+            "combined" + str(testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]),
+        ]
+    )
+
+    config = QuantileBinningConfig(
+        uncertainty_error_pairs=individual_q_uncertainty_error_pairs,
+        models=individual_q_models_to_compare,
+        dataset=testing_cfg["DATASET"]["DATA"],
+        target_indices=testing_cfg["DATASET"]["LANDMARKS"],
+        num_bins=num_bins,
+        combine_middle_bins=testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
+        confidence_invert=testing_cfg["DATASET"]["CONFIDENCE_INVERT"],
+        show_individual_target_plots=testing_cfg["PIPELINE"]["SHOW_INDIVIDUAL_LANDMARKS"],
+        individual_targets_to_show=testing_cfg["PIPELINE"]["INDIVIDUAL_LANDMARKS_TO_SHOW"],
+        save_folder=os.path.join(save_folder, "fitted_quantile_binning"),
+        save_file_preamble=save_file_preamble,
+        save_figures=testing_cfg["OUTPUT"]["SAVE_FIGURES"],
+        plot_samples_as_dots=testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+        show_sample_info=testing_cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
+        boxplot_error_lim=testing_cfg["BOXPLOT"]["ERROR_LIM"],
+        colormap=colormap,
+        interpret=True,
+        num_folds=testing_cfg["DATASET"]["NUM_FOLDS"],
+        error_scaling_factor=testing_cfg["PIPELINE"]["PIXEL_TO_MM_SCALE"],
+    )
+
+    display_settings = {
+        "cumulative_error": True,
+        "errors": True,
+        "jaccard": True,
+        "error_bounds": True,
+        "correlation": False,
+        "hatch": "o",
+    }
+
+    analyzer = _create_analyzer(config, display_settings)
+    analyzer.run_individual_bin_comparison(config)
+
+    return EXPECTED_FILES_INDIVIDUAL_3 if num_bins == 3 else EXPECTED_FILES_INDIVIDUAL_5
+
+
+def _run_comparing_bins_analysis(testing_cfg, c_model, c_er_pair, colormap):
+    """Execute comparing bins analysis for a specific model and error pair.
+
+    Args:
+        testing_cfg (dict): Test configuration dictionary with dataset, pipeline, and output settings.
+        c_model (str): Model name to analyze (e.g., 'U-NET' or 'PHD-NET').
+        c_er_pair (list): Uncertainty-error pair configuration [name, error_key, uncertainty_key].
+        colormap (str): Name of the matplotlib colormap to use for visualization.
+    """
+    save_file_preamble = "_".join(
+        [
+            testing_cfg["OUTPUT"]["SAVE_PREPEND"],
+            "compQ",
+            c_model,
+            c_er_pair[0],
+            testing_cfg["DATASET"]["DATA"],
+            "combined" + str(testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]),
+        ]
+    )
+
+    fitted_save_paths = [
+        os.path.join(
+            testing_cfg["OUTPUT"]["SAVE_FOLDER"],
+            testing_cfg["DATASET"]["DATA"],
+            str(x_bins) + "Bins",
+            "fitted_quantile_binning",
+        )
+        for x_bins in testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"]
+    ]
+
+    save_folder_comparison = os.path.join(
+        testing_cfg["OUTPUT"]["SAVE_FOLDER"], testing_cfg["DATASET"]["DATA"], "ComparisonBins"
+    )
+    os.makedirs(save_folder_comparison, exist_ok=True)
+
+    comparing_config = ComparingBinsConfig(
+        uncertainty_error_pair=c_er_pair,
+        model=c_model,
+        dataset=testing_cfg["DATASET"]["DATA"],
+        targets=testing_cfg["DATASET"]["LANDMARKS"],
+        q_values=testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"],
+        fitted_save_paths=fitted_save_paths,
+        combine_middle_bins=testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
+        show_individual_target_plots=testing_cfg["PIPELINE"]["SHOW_INDIVIDUAL_LANDMARKS"],
+        individual_targets_to_show=testing_cfg["PIPELINE"]["INDIVIDUAL_LANDMARKS_TO_SHOW"],
+        save_folder=save_folder_comparison,
+        save_file_preamble=save_file_preamble,
+        save_figures=testing_cfg["OUTPUT"]["SAVE_FIGURES"],
+        plot_samples_as_dots=testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
+        show_sample_info=testing_cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
+        boxplot_error_lim=testing_cfg["BOXPLOT"]["ERROR_LIM"],
+        colormap=colormap,
+        interpret=True,
+        num_folds=testing_cfg["DATASET"]["NUM_FOLDS"],
+        error_scaling_factor=testing_cfg["PIPELINE"]["PIXEL_TO_MM_SCALE"],
+    )
+
+    hatch_type = "o" if "PHD-NET" == c_model else ""
+    display_settings = {
+        "cumulative_error": True,
+        "errors": True,
+        "jaccard": True,
+        "error_bounds": True,
+        "hatch": hatch_type,
+    }
+
+    analyzer = _create_analyzer(comparing_config, display_settings)
+    analyzer.run_comparing_bins_analysis(comparing_config)
 
 
 def test_qbin_pipeline(testing_cfg):
     """Test the uncertainty quantile binning pipeline."""
-
-    # ---- setup output ----
+    # Setup
     os.makedirs(testing_cfg["OUTPUT"]["SAVE_FOLDER"], exist_ok=True)
     logger = logging.construct_logger("q_bin", testing_cfg["OUTPUT"]["SAVE_FOLDER"], log_to_terminal=True)
 
-    # ---- setup dataset ----
-    base_dir = testing_cfg["DATASET"]["BASE_DIR"]
-
-    uncertainty_pairs_val = testing_cfg["DATASET"]["UE_PAIRS_VAL"]
-    uncertainty_pairs_test = testing_cfg["DATASET"]["UE_PAIRS_TEST"]
-    gt_test_error_available = testing_cfg["DATASET"]["GROUND_TRUTH_TEST_ERRORS_AVAILABLE"]
-
-    ind_q_uncertainty_error_pairs = testing_cfg["PIPELINE"]["INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS"]
-    ind_q_models_to_compare = testing_cfg["PIPELINE"]["INDIVIDUAL_Q_MODELS"]
-
-    compare_q_uncertainty_error_pairs = testing_cfg["PIPELINE"]["COMPARE_Q_UNCERTAINTY_ERROR_PAIRS"]
-    compare_q_models_to_compare = testing_cfg["PIPELINE"]["COMPARE_Q_MODELS"]
-
     dataset = testing_cfg["DATASET"]["DATA"]
     landmarks = testing_cfg["DATASET"]["LANDMARKS"]
-    num_folds = testing_cfg["DATASET"]["NUM_FOLDS"]
-
-    ind_landmarks_to_show = testing_cfg["PIPELINE"]["IND_LANDMARKS_TO_SHOW"]
-
-    pixel_to_mm_scale = testing_cfg["PIPELINE"]["PIXEL_TO_MM_SCALE"]
-
-    # Define parameters for visualization
     colormap = "Set1"
 
-    show_individual_landmark_plots = testing_cfg["PIPELINE"]["SHOW_IND_LANDMARKS"]
+    # Get unique models and uncertainty-error pairs for fitting
+    all_models = np.unique(testing_cfg["PIPELINE"]["INDIVIDUAL_Q_MODELS"] + testing_cfg["PIPELINE"]["COMPARE_Q_MODELS"])
+    all_uncert_error_pairs = np.unique(
+        testing_cfg["PIPELINE"]["INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS"]
+        + testing_cfg["PIPELINE"]["COMPARE_Q_UNCERTAINTY_ERROR_PAIRS"],
+        axis=0,
+    )
 
+    # Process each bin configuration
     for num_bins in testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"]:
-        # create the folder to save to
         save_folder = os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset, str(num_bins) + "Bins")
 
-        # ---- This is the Fitting Phase ----
-        # Fit all the options for the individual q selection and comparison q selection
+        # Fitting phase
+        _run_fitting_phase(testing_cfg, num_bins, save_folder, all_models, all_uncert_error_pairs, landmarks)
 
-        all_models_to_compare = np.unique(ind_q_models_to_compare + compare_q_models_to_compare)
-        all_uncert_error_pairs_to_compare = np.unique(
-            ind_q_uncertainty_error_pairs + compare_q_uncertainty_error_pairs, axis=0
-        )
-
-        for model in all_models_to_compare:
-            for landmark in landmarks:
-                # Define Paths for this loop
-                landmark_results_path_val = os.path.join(
-                    testing_cfg["DATASET"]["ROOT"],
-                    base_dir,
-                    model,
-                    dataset,
-                    uncertainty_pairs_val + "_t" + str(landmark),
-                )
-                landmark_results_path_test = os.path.join(
-                    testing_cfg["DATASET"]["ROOT"],
-                    base_dir,
-                    model,
-                    dataset,
-                    uncertainty_pairs_test + "_t" + str(landmark),
-                )
-
-                fitted_save_at = os.path.join(save_folder, "fitted_quantile_binning", model, dataset)
-                os.makedirs(save_folder, exist_ok=True)
-
-                helper_test_qbin_fit(
-                    landmark,
-                    all_uncert_error_pairs_to_compare,
-                    landmark_results_path_val,
-                    landmark_results_path_test,
-                    num_bins,
-                    testing_cfg,
-                    gt_test_error_available,
-                    fitted_save_at,
-                    model,
-                )
-
-        # Evaluation Phase ##########################
-
-        comparisons_models = "_".join(ind_q_models_to_compare)
-
-        comparisons_um = [str(x[0]) for x in ind_q_uncertainty_error_pairs]
-        comparisons_um = "_".join(comparisons_um)
-
-        save_file_preamble = "_".join(
-            [
-                testing_cfg["OUTPUT"]["SAVE_PREPEND"],
-                "ind",
-                dataset,
-                comparisons_models,
-                comparisons_um,
-                "combined" + str(testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]),
-            ]
-        )
-
-        generate_fig_individual_bin_comparison(
-            data=[
-                ind_q_uncertainty_error_pairs,
-                ind_q_models_to_compare,
-                dataset,
-                landmarks,
-                num_bins,
-                colormap,
-                os.path.join(save_folder, "fitted_quantile_binning"),
-                save_file_preamble,
-                testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
-                testing_cfg["OUTPUT"]["SAVE_FIGURES"],
-                testing_cfg["DATASET"]["CONFIDENCE_INVERT"],
-                testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                testing_cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                testing_cfg["BOXPLOT"]["ERROR_LIM"],
-                show_individual_landmark_plots,
-                True,
-                num_folds,
-                ind_landmarks_to_show,
-                pixel_to_mm_scale,
-            ],
-            display_settings={
-                "cumulative_error": True,
-                "errors": True,
-                "jaccard": True,
-                "error_bounds": True,
-                "correlation": False,
-                "hatch": "o",
-            },
-        )
-
-        if num_bins == 3:
-            exp = EXPECTED_FILES_IND_3
-        else:
-            exp = EXPECTED_FILES_IND_5
-
+        # Individual bin comparison and validation
+        expected_files = _run_individual_bin_comparison(testing_cfg, num_bins, save_folder, colormap)
         search_dir = os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset, "/")
+        helper_test_expected_files_exist(expected_files, search_dir)
 
-        helper_test_expected_files_exist(exp, search_dir)
+        # Cleanup
+        _cleanup_test_files(expected_files, os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset))
 
-        # Now delete for memory
-        for expected_file in exp:
-            file_path = os.path.join(os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset), expected_file)
-            os.remove(file_path)
-
-    # If we are comparing bins against each other, we need to wait until all the bins have been fitted.
-    for c_model in compare_q_models_to_compare:
-        for c_er_pair in compare_q_uncertainty_error_pairs:
-            save_file_preamble = "_".join(
-                [
-                    testing_cfg["OUTPUT"]["SAVE_PREPEND"],
-                    "compQ",
-                    c_model,
-                    c_er_pair[0],
-                    dataset,
-                    "combined" + str(testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"]),
-                ]
-            )
-
-            all_fitted_save_paths = [
-                os.path.join(
-                    testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset, str(x_bins) + "Bins", "fitted_quantile_binning"
-                )
-                for x_bins in testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"]
-            ]
-
-            hatch_type = "o" if "PHD-NET" == c_model else ""
-            save_folder_comparison = os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset, "ComparisonBins")
-            os.makedirs(save_folder_comparison, exist_ok=True)
-
+    # Comparing bins analysis
+    for c_model in testing_cfg["PIPELINE"]["COMPARE_Q_MODELS"]:
+        for c_er_pair in testing_cfg["PIPELINE"]["COMPARE_Q_UNCERTAINTY_ERROR_PAIRS"]:
             logger.info("Comparison Q figures for: %s and %s ", c_model, c_er_pair)
-            generate_fig_comparing_bins(
-                data=[
-                    c_er_pair,
-                    c_model,
-                    dataset,
-                    landmarks,
-                    testing_cfg["PIPELINE"]["NUM_QUANTILE_BINS"],
-                    colormap,
-                    all_fitted_save_paths,
-                    save_folder_comparison,
-                    save_file_preamble,
-                    testing_cfg["PIPELINE"]["COMBINE_MIDDLE_BINS"],
-                    testing_cfg["OUTPUT"]["SAVE_FIGURES"],
-                    testing_cfg["BOXPLOT"]["SAMPLES_AS_DOTS"],
-                    testing_cfg["BOXPLOT"]["SHOW_SAMPLE_INFO_MODE"],
-                    testing_cfg["BOXPLOT"]["ERROR_LIM"],
-                    show_individual_landmark_plots,
-                    True,
-                    num_folds,
-                    ind_landmarks_to_show,
-                    pixel_to_mm_scale,
-                ],
-                display_settings={
-                    "cumulative_error": True,
-                    "errors": True,
-                    "jaccard": True,
-                    "error_bounds": True,
-                    "hatch": hatch_type,
-                },
-            )
+            _run_comparing_bins_analysis(testing_cfg, c_model, c_er_pair, colormap)
 
+    # Final validation and cleanup
     helper_test_expected_files_exist(EXPECTED_FILES_COMP, os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset))
-
-    # Now delete for memory
-    for expected_file in EXPECTED_FILES_COMP:
-        file_path = os.path.join(os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset), expected_file)
-        os.remove(file_path)
+    _cleanup_test_files(EXPECTED_FILES_COMP, os.path.join(testing_cfg["OUTPUT"]["SAVE_FOLDER"], dataset))
 
 
 def helper_test_expected_files_exist(expected_files, save_folder):
@@ -388,25 +434,24 @@ def helper_test_expected_files_exist(expected_files, save_folder):
     Raises:
         AssertionError: If any expected file is not found in the `save_folder` or its subdirectories.
     """
-    num_found = 0
     not_found_files = []
     found_files = []
+
     for expected_file in expected_files:
         found = False
         for dirpath, _, _ in os.walk(save_folder):
             file_path = os.path.join(dirpath, expected_file)
             if os.path.isfile(file_path):
-                num_found += 1
                 found_files.append(expected_file)
                 found = True
                 break
         if not found:
             not_found_files.append(expected_file)
 
-    assert num_found == len(expected_files), (
-        "Not all expected files were found in the save folder: "
+    assert len(not_found_files) == 0, (
+        f"Expected files not found in the save folder ({len(not_found_files)}/{len(expected_files)} missing): "
         + str(not_found_files)
-        + "\n FOUND: "
+        + "\n Found files: "
         + str(found_files)
     )
 
@@ -447,7 +492,7 @@ def helper_test_qbin_fit(
     This function tests the `fit_and_predict()` function with a specific landmark and set of inputs. It first creates
     a directory at the `save_folder` path if one does not already exist. It then calls `fit_and_predict()` with the
     specified inputs to generate predictions and associated uncertainty estimates. The function then tests the
-    resulting `estimated_errors`, `uncert_boundaries`, and `predicted_bins` arrays using the `csv_equality_helper()`
+    resulting `estimated_errors`, `uncertainty_boundaries`, and `predicted_bins` arrays using the `csv_equality_helper()`
     function.
 
     Note that this function assumes that there are ground truth test errors available for testing. If ground truth
@@ -457,7 +502,7 @@ def helper_test_qbin_fit(
     os.makedirs(save_folder, exist_ok=True)
 
     # Call `fit_and_predict()` with the specified inputs
-    uncert_boundaries, estimated_errors, predicted_bins = fit_and_predict(
+    uncertainty_boundaries, estimated_errors, predicted_bins = fit_and_predict(
         landmark,
         all_uncert_error_pairs_to_compare,
         landmark_results_path_val,
@@ -478,9 +523,9 @@ def helper_test_qbin_fit(
         landmark,
     )
 
-    # Test `uncert_boundaries` using `csv_equality_helper()`
+    # Test `uncertainty_boundaries` using `csv_equality_helper()`
     csv_equality_helper(
-        uncert_boundaries,
+        uncertainty_boundaries,
         os.path.join(cfg["DATASET"]["ROOT"], cfg["DATASET"]["BASE_DIR"], model)
         + "/4CH/"
         + str(num_bins)

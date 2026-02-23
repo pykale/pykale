@@ -27,22 +27,29 @@ class TestQuantileBinningPredictions:
     @pytest.mark.parametrize(
         "uncertainty_thresh_list, expected",
         [
-            ([[1], [3], [5], [9]], {"PHD_2154": 2, "PHD_2158": 2, "PHD_217": 1, "PHD_2194": 4}),
-            ([[1], [1.5], [1.6], [2]], {"PHD_2154": 4, "PHD_2158": 4, "PHD_217": 3, "PHD_2194": 4}),
-            ([[40], [42], [43], [44]], {"PHD_2154": 0, "PHD_2158": 0, "PHD_217": 0, "PHD_2194": 0}),
+            ([1, 3, 5, 9], {"PHD_2154": 2, "PHD_2158": 2, "PHD_217": 1, "PHD_2194": 4}),
+            ([1, 1.5, 1.6, 2], {"PHD_2154": 4, "PHD_2158": 4, "PHD_217": 3, "PHD_2194": 4}),
+            ([40, 42, 43, 44], {"PHD_2154": 0, "PHD_2158": 0, "PHD_217": 0, "PHD_2194": 0}),
         ],
     )
     def test_quantile_binning_predictions_thresh(self, uncertainty_thresh_list, expected):
         test_dict = dict(zip(DUMMY_TABULAR_DATA["uid"], DUMMY_TABULAR_DATA["E-CPV Uncertainty"]))
         assert quantile_binning_predictions(test_dict, uncertainty_thresh_list) == expected
 
+    def test_quantile_binning_predictions_empty_thresh(self):
+        test_dict = dict(zip(DUMMY_TABULAR_DATA["uid"], DUMMY_TABULAR_DATA["E-CPV Uncertainty"]))
+        expected = {uid: 0 for uid in DUMMY_TABULAR_DATA["uid"]}
+        assert quantile_binning_predictions(test_dict, []) == expected
+
     # test wrong dict format
     def test_dict_format(self):
         with pytest.raises(ValueError, match="uncertainties_test must be of type dict"):
-            quantile_binning_predictions([1, 2, 3], [[1], [1.5], [1.6], [2]])
+            quantile_binning_predictions([1, 2, 3], [1, 1.5, 1.6, 2])
         with pytest.raises(ValueError, match=r"Dict uncertainties_test should be of structure .*"):
             quantile_binning_predictions(
-                {"PHD_2154": "2", "PHD_2158": 2, "PHD_217": 1, "PHD_2194": 4}, [[1], [1.5], [1.6], [2]]
+                {"PHD_2154": "2", "PHD_2158": 2, "PHD_217": 1, "PHD_2194": 4}, [1, 1.5, 1.6, 2]
             )
-        with pytest.raises(ValueError, match=r"uncert_thresh list should be 2D .*"):
-            quantile_binning_predictions({"PHD_2154": 2, "PHD_2158": 2, "PHD_217": 1, "PHD_2194": 4}, [1, 1.5, 1.6, 2])
+        with pytest.raises(ValueError, match=r"uncert_thresh should be a list of floats.*"):
+            quantile_binning_predictions(
+                {"PHD_2154": 2, "PHD_2158": 2, "PHD_217": 1, "PHD_2194": 4}, [[1], [1.5], [1.6], [2]]
+            )
