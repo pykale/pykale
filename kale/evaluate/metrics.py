@@ -10,6 +10,7 @@ https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/los
 """
 from enum import Enum
 
+import numpy as np
 import torch
 import torch.nn as nn
 from sklearn.metrics import auc
@@ -499,3 +500,63 @@ def signal_image_elbo_loss(
     kl_div = kl_div.sum()
     loss = recon_loss + annealing_factor * kl_div
     return loss
+
+
+def mean_relative_error(output, target):
+    """
+    Calculate the mean relative error between true and predicted values using PyTorch.
+    Args:
+        output (torch.Tensor): Predicted values.
+        target (torch.Tensor): True values.
+    Returns:
+        float: Mean relative error.
+    """
+    # Epsilon to avoid division by zero if target can be zero
+    eps = 1e-9
+    errors = torch.abs(target - output) / (torch.abs(target) + eps)
+    return torch.mean(errors).item()
+
+
+class GaussianDistance(object):
+    """
+    Expands the distance by Gaussian basis.
+
+    Unit: angstrom
+    """
+
+    def __init__(self, dmin, dmax, step, var=None):
+        """
+        Parameters
+        ----------
+
+        dmin: float
+          Minimum interatomic distance
+        dmax: float
+          Maximum interatomic distance
+        step: float
+          Step size for the Gaussian filter
+        """
+        assert dmin < dmax
+        assert dmax - dmin > step
+        self.filter = np.arange(dmin, dmax + step, step)
+        if var is None:
+            var = step
+        self.var = var
+
+    def expand(self, distances):
+        """
+        Apply Gaussian disntance filter to a numpy distance array
+
+        Parameters
+        ----------
+
+        distance: np.array shape n-d array
+          A distance matrix of any shape
+
+        Returns
+        -------
+        expanded_distance: shape (n+1)-d array
+          Expanded distance matrix with the last dimension of length
+          len(self.filter)
+        """
+        return np.exp(-((distances[..., np.newaxis] - self.filter) ** 2) / self.var**2)
