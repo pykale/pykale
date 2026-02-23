@@ -2258,8 +2258,8 @@ def execute_boxplot(
         "to_log": to_log,
         "convert_to_percent": convert_to_percent,
         "show_sample_info": show_sample_info,
-        **kwargs,
         **boxplot_config_base,
+        **kwargs,
     }
 
     # Add optional parameters only if provided
