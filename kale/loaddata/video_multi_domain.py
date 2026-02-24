@@ -163,21 +163,21 @@ class VideoBiDomainDatasets(BiDomainDatasets):
 
         if self.rgb:
             rgb_source_ds = self._rgb_source_by_split[split]
-            rgb_source_loader = self._source_sampling_config.create_loader(rgb_source_ds, batch_size)
+            rgb_source_loader = self._source_sampling_config.create_loader(rgb_source_ds, batch_size, num_workers)
             rgb_target_ds = self._rgb_target_by_split[split]
 
         if self.flow:
             flow_source_ds = self._flow_source_by_split[split]
-            flow_source_loader = self._source_sampling_config.create_loader(flow_source_ds, batch_size)
+            flow_source_loader = self._source_sampling_config.create_loader(flow_source_ds, batch_size, num_workers)
             flow_target_ds = self._flow_target_by_split[split]
 
         if self._labeled_target_by_split is None:
             # unsupervised target domain
             if self.rgb:
-                rgb_target_loader = self._target_sampling_config.create_loader(rgb_target_ds, batch_size)
+                rgb_target_loader = self._target_sampling_config.create_loader(rgb_target_ds, batch_size, num_workers)
                 n_dataset = DatasetSizeType.get_size(self._size_type, rgb_source_ds, rgb_target_ds)
             if self.flow:
-                flow_target_loader = self._target_sampling_config.create_loader(flow_target_ds, batch_size)
+                flow_target_loader = self._target_sampling_config.create_loader(flow_target_ds, batch_size, num_workers)
                 n_dataset = DatasetSizeType.get_size(self._size_type, flow_source_ds, flow_target_ds)
 
             dataloaders = [rgb_source_loader, flow_source_loader, rgb_target_loader, flow_target_loader]
@@ -194,11 +194,11 @@ class VideoBiDomainDatasets(BiDomainDatasets):
                 rgb_target_unlabeled_ds = rgb_target_ds
                 # label domain: always balanced
                 rgb_target_labeled_loader = FixedSeedSamplingConfig(balance=True, class_weights=None).create_loader(
-                    rgb_target_labeled_ds, batch_size=min(len(rgb_target_labeled_ds), batch_size)
+                    rgb_target_labeled_ds, batch_size=min(len(rgb_target_labeled_ds), batch_size), num_workers=num_workers
                 )
 
                 rgb_target_unlabeled_loader = self._target_sampling_config.create_loader(
-                    rgb_target_unlabeled_ds, batch_size
+                    rgb_target_unlabeled_ds, batch_size, num_workers
                 )
                 n_dataset = DatasetSizeType.get_size(
                     self._size_type, rgb_source_ds, rgb_target_labeled_ds, rgb_target_unlabeled_ds
@@ -207,10 +207,10 @@ class VideoBiDomainDatasets(BiDomainDatasets):
                 flow_target_labeled_ds = self._labeled_target_by_split[split]
                 flow_target_unlabeled_ds = flow_target_ds
                 flow_target_labeled_loader = FixedSeedSamplingConfig(balance=True, class_weights=None).create_loader(
-                    flow_target_labeled_ds, batch_size=min(len(flow_target_labeled_ds), batch_size)
+                    flow_target_labeled_ds, batch_size=min(len(flow_target_labeled_ds), batch_size), num_workers
                 )
                 flow_target_unlabeled_loader = self._target_sampling_config.create_loader(
-                    flow_target_unlabeled_ds, batch_size
+                    flow_target_unlabeled_ds, batch_size, num_workers
                 )
                 n_dataset = DatasetSizeType.get_size(
                     self._size_type, rgb_source_ds, flow_target_labeled_ds, flow_target_unlabeled_ds
