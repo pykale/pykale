@@ -56,27 +56,27 @@ class ResultKeys:
     ALL_BINS_CONCAT_TARGETS_SEP = "all bins concatenated targets seperated"
 
     # Bounds specific
-    ERROR_BOUNDS_ALL = "Error Bounds All"
+    ERROR_BOUNDS_ALL = "error_bounds_all"
     ALL_BOUND_PERCENTS_NO_TARGET_SEP = "all_bound_percents_notargetsep"
     ALL_ERROR_BOUND_CONCAT_BINS_TARGET_SEP_FOLDWISE = "all errorbound concat bins targets sep foldwise"
-    ALL_ERROR_BOUND_CONCAT_BINS_TARGET_SEP_ALL = "all errorbound concat bins targets sep all"
+    ALL_ERROR_BOUND_CONCAT_BINS_TARGET_SEP_ALL = "all_errorbound_concat_bins_targets_sep_all"
 
     # Errors specific
-    ALL_MEAN_ERROR_BINS_NO_SEP = "all mean error bins nosep"
+    ALL_MEAN_ERROR_BINS_NO_SEP = "all_mean_error_bins_nosep"
     ALL_MEAN_ERROR_BINS_TARGETS_SEP = "all mean error bins targets sep"
-    ALL_ERROR_CONCAT_BINS_TARGET_NO_SEP = "all error concat bins targets nosep"
+    ALL_ERROR_CONCAT_BINS_TARGET_NO_SEP = "all_error_concat_bins_targets_nosep"
     ALL_ERROR_CONCAT_BINS_TARGET_SEP_FOLDWISE = "all error concat bins targets sep foldwise"
-    ALL_ERROR_CONCAT_BINS_TARGET_SEP_ALL = "all error concat bins targets sep all"
+    ALL_ERROR_CONCAT_BINS_TARGET_SEP_ALL = "all_error_concat_bins_targets_sep_all"
 
     # Jaccard specific
-    JACCARD_ALL = "Jaccard All"
+    JACCARD_ALL = "jaccard_all"
     JACCARD_TARGETS_SEPARATED = "Jaccard targets seperated"
-    RECALL_ALL = "Recall All"
+    RECALL_ALL = "recall_all"
     RECALL_TARGETS_SEPARATED = "Recall targets seperated"
-    PRECISION_ALL = "Precision All"
+    PRECISION_ALL = "precision_all"
     PRECISION_TARGETS_SEPARATED = "Precision targets seperated"
     ALL_JACC_CONCAT_BINS_TARGET_SEP_FOLDWISE = "all jacc concat bins targets sep foldwise"
-    ALL_JACC_CONCAT_BINS_TARGET_SEP_ALL = "all jacc concat bins targets sep all"
+    ALL_JACC_CONCAT_BINS_TARGET_SEP_ALL = "all_jaccard_concat_bins_targets_sep_all"
 
 
 @dataclass
@@ -106,12 +106,15 @@ class EvaluationConfig:
             combine_middle_bins is True.
 
     Example:
-        >>> config = EvaluationConfig(
-        ...     num_folds=5,
-        ...     original_num_bins=20,
-        ...     combine_middle_bins=True
-        ... )
-        >>> evaluator = JaccardEvaluator(config)
+
+        .. code-block:: pycon
+
+            >>> config = EvaluationConfig(
+            ...     num_folds=5,
+            ...     original_num_bins=20,
+            ...     combine_middle_bins=True
+            ... )
+            >>> evaluator = JaccardEvaluator(config)
     """
 
     num_folds: int = 8
@@ -139,11 +142,14 @@ class FoldData:
             for bound-based evaluation methods. Defaults to None.
 
     Example:
-        >>> fold_data = FoldData(
-        ...     errors=error_df[error_df['Testing Fold'] == fold_idx],
-        ...     bins=bins_df[bins_df['Testing Fold'] == fold_idx],
-        ...     bounds=optional_bounds_list
-        ... )
+
+        .. code-block:: pycon
+
+            >>> fold_data = FoldData(
+            ...     errors=error_df[error_df['Testing Fold'] == fold_idx],
+            ...     bins=bins_df[bins_df['Testing Fold'] == fold_idx],
+            ...     bounds=optional_bounds_list
+            ... )
     """
 
     errors: pd.DataFrame
@@ -248,9 +254,12 @@ class ResultsContainer:
         precision_target_separated (Dict): Target-separated precision results.
 
     Example:
-        >>> container = ResultsContainer(num_bins=10, num_targets=5)
-        >>> container.add_main_result("model1_epistemic", fold_results)
-        >>> container.add_target_separated_result("model1_epistemic", target_results)
+
+        .. code-block:: pycon
+
+            >>> container = ResultsContainer(num_bins=10, num_targets=5)
+            >>> container.add_main_result("model1_epistemic", fold_results)
+            >>> container.add_target_separated_result("model1_epistemic", target_results)
     """
 
     def __init__(self, num_bins: int, num_targets: int):
@@ -317,9 +326,12 @@ class DataProcessor:
         - Handle column name mapping and data type conversions
 
     Example:
-        >>> processor = DataProcessor()
-        >>> fold_data = processor.extract_fold_data(df, fold=0, uncertainty_type="epistemic")
-        >>> filtered_data = processor.filter_by_target(fold_data.errors, target_idx=1)
+
+        .. code-block:: pycon
+
+            >>> processor = DataProcessor()
+            >>> fold_data = processor.extract_fold_data(df, fold=0, uncertainty_type="epistemic")
+            >>> filtered_data = processor.filter_by_target(fold_data.errors, target_idx=1)
     """
 
     @staticmethod
@@ -384,11 +396,14 @@ class DataProcessor:
                   values for predictions assigned to bin i.
 
         Example:
-            >>> errors = {'pred1': 0.1, 'pred2': 0.3, 'pred3': 0.2}
-            >>> bins = {'pred1': 0, 'pred2': 1, 'pred3': 0}
-            >>> keys, errs = DataProcessor.group_data_by_bins(errors, bins, 2)
-            >>> # keys[0] = ['pred1', 'pred3'], keys[1] = ['pred2']
-            >>> # errs[0] = [0.1, 0.2], errs[1] = [0.3]
+
+            .. code-block:: pycon
+
+                >>> errors = {'pred1': 0.1, 'pred2': 0.3, 'pred3': 0.2}
+                >>> bins = {'pred1': 0, 'pred2': 1, 'pred3': 0}
+                >>> keys, errs = DataProcessor.group_data_by_bins(errors, bins, 2)
+                >>> # keys[0] = ['pred1', 'pred3'], keys[1] = ['pred2']
+                >>> # errs[0] = [0.1, 0.2], errs[1] = [0.3]
         """
         bin_keys: List[List] = [[] for _ in range(num_bins)]
         bin_errors: List[List] = [[] for _ in range(num_bins)]
@@ -422,11 +437,14 @@ class QuantileCalculator:
         - Support for worst-to-best ordering (B5 to B1)
 
     Example:
-        >>> calculator = QuantileCalculator()
-        >>> errors = {'pred1': 0.1, 'pred2': 0.5, 'pred3': 0.3}
-        >>> thresholds, err_groups, key_groups = calculator.calculate_error_quantiles(
-        ...     errors, num_bins=3, combine_middle_bins=False
-        ... )
+
+        .. code-block:: pycon
+
+            >>> calculator = QuantileCalculator()
+            >>> errors = {'pred1': 0.1, 'pred2': 0.5, 'pred3': 0.3}
+            >>> thresholds, err_groups, key_groups = calculator.calculate_error_quantiles(
+            ...     errors, num_bins=3, combine_middle_bins=False
+            ... )
     """
 
     @staticmethod
@@ -459,11 +477,14 @@ class QuantileCalculator:
             to match the expected evaluation output format.
 
         Example:
-            >>> errors = {'p1': 0.1, 'p2': 0.5, 'p3': 0.3, 'p4': 0.7, 'p5': 0.2}
-            >>> thresholds, err_grps, key_grps = QuantileCalculator.calculate_error_quantiles(
-            ...     errors, num_bins=3, combine_middle_bins=False
-            ... )
-            >>> # Returns thresholds and groups ordered from highest to lowest error
+
+            .. code-block:: pycon
+
+                >>> errors = {'p1': 0.1, 'p2': 0.5, 'p3': 0.3, 'p4': 0.7, 'p5': 0.2}
+                >>> thresholds, err_grps, key_grps = QuantileCalculator.calculate_error_quantiles(
+                ...     errors, num_bins=3, combine_middle_bins=False
+                ... )
+                >>> # Returns thresholds and groups ordered from highest to lowest error
         """
         sorted_errors = sorted(errors_dict.values())
 
@@ -557,11 +578,14 @@ class MetricsCalculator:
     and regression-style bound checking for error prediction accuracy.
 
     Example:
-        >>> calculator = MetricsCalculator()
-        >>> jaccard, recall, precision = calculator.calculate_jaccard_metrics(
-        ...     predicted_keys=['p1', 'p2'], ground_truth_keys=['p1', 'p3']
-        ... )
-        >>> # jaccard ≈ 0.33, recall = 0.5, precision = 0.5
+
+        .. code-block:: pycon
+
+            >>> calculator = MetricsCalculator()
+            >>> jaccard, recall, precision = calculator.calculate_jaccard_metrics(
+            ...     predicted_keys=['p1', 'p2'], ground_truth_keys=['p1', 'p3']
+            ... )
+            >>> # jaccard ≈ 0.33, recall = 0.5, precision = 0.5
     """
 
     @staticmethod
@@ -596,10 +620,13 @@ class MetricsCalculator:
             - Both empty: jaccard = 0.0 (handled by zero_division parameter)
 
         Example:
-            >>> pred = ['sample1', 'sample2', 'sample3']
-            >>> gt = ['sample1', 'sample4']
-            >>> jaccard, recall, precision = MetricsCalculator.calculate_jaccard_metrics(pred, gt)
-            >>> # jaccard = 1/4 = 0.25, recall = 1/2 = 0.5, precision = 1/3 ≈ 0.33
+
+            .. code-block:: pycon
+
+                >>> pred = ['sample1', 'sample2', 'sample3']
+                >>> gt = ['sample1', 'sample4']
+                >>> jaccard, recall, precision = MetricsCalculator.calculate_jaccard_metrics(pred, gt)
+                >>> # jaccard = 1/4 = 0.25, recall = 1/2 = 0.5, precision = 1/3 ≈ 0.33
         """
         all_keys = list(set(predicted_keys + ground_truth_keys))
 
@@ -883,10 +910,17 @@ class JaccardEvaluator(BaseEvaluator):
             Jaccard similarity and statistical measures.
 
     Example:
-        >>> config = EvaluationConfig(n_bins=10, targets_to_separate=['label1', 'label2'])
-        >>> evaluator = JaccardEvaluator(config)
-        >>> results = evaluator.evaluate(df, uncertainty_columns=['epistemic', 'aleatoric'])
-        >>> print(results['jaccard_main']['model1_epistemic'])
+
+        .. code-block:: pycon
+
+            >>> config = EvaluationConfig(original_num_bins=10, num_folds=5)
+            >>> evaluator = JaccardEvaluator(config)
+            >>> results = evaluator.evaluate(
+            ...     bin_predictions={"model1": df},
+            ...     uncertainty_pairs=[("epistemic", "error")],
+            ...     targets=[0, 1],
+            ... )
+            >>> print(results["jaccard_all"]["model1 epistemic"])
 
     Note:
         This evaluator implements the Template Method pattern defined in BaseEvaluator,
@@ -938,12 +972,19 @@ class JaccardEvaluator(BaseEvaluator):
                 quantification assessment.
 
         Example:
-            >>> evaluator = JaccardEvaluator.create_simple(
-            ...     original_num_bins=10,
-            ...     num_folds=5,
-            ...     combine_middle_bins=True
-            ... )
-            >>> results = evaluator.evaluate(predictions_df, uncertainty_columns=['epistemic'])
+
+            .. code-block:: pycon
+
+                >>> evaluator = JaccardEvaluator.create_simple(
+                ...     original_num_bins=10,
+                ...     num_folds=5,
+                ...     combine_middle_bins=True
+                ... )
+                >>> results = evaluator.evaluate(
+                ...     bin_predictions={"model1": predictions_df},
+                ...     uncertainty_pairs=[("epistemic", "error")],
+                ...     targets=[0, 1],
+                ... )
         """
         config = EvaluationConfig(
             original_num_bins=original_num_bins, num_folds=num_folds, combine_middle_bins=combine_middle_bins
@@ -964,8 +1005,15 @@ class JaccardEvaluator(BaseEvaluator):
                 including standard bin counts, fold numbers, and evaluation settings.
 
         Example:
-            >>> evaluator = JaccardEvaluator.create_default()
-            >>> results = evaluator.evaluate(data, uncertainty_columns=['uncertainty'])
+
+            .. code-block:: pycon
+
+                >>> evaluator = JaccardEvaluator.create_default()
+                >>> results = evaluator.evaluate(
+                ...     bin_predictions={"model1": data},
+                ...     uncertainty_pairs=[("uncertainty", "error")],
+                ...     targets=[0],
+                ... )
         """
         return cls()
 
@@ -1410,14 +1458,17 @@ def evaluate_bounds(
             - Bound coverage percentages and reliability metrics
 
     Example:
-        >>> bounds = {'model1': bounds_df}
-        >>> predictions = {'model1': predictions_df}
-        >>> results = evaluate_bounds(
-        ...     bounds, predictions,
-        ...     uncertainty_pairs=[['epistemic']],
-        ...     num_bins=5, targets=[0, 1, 2]
-        ... )
-        >>> print(results['Error Bounds All']['model1_epistemic'])
+
+        .. code-block:: pycon
+
+            >>> bounds = {'model1': bounds_df}
+            >>> predictions = {'model1': predictions_df}
+            >>> results = evaluate_bounds(
+            ...     bounds, predictions,
+            ...     uncertainty_pairs=[['epistemic']],
+            ...     num_bins=5, targets=[0, 1, 2]
+            ... )
+            >>> print(results['error_bounds_all']['model1_epistemic'])
 
     Note:
         This function complements Jaccard-based evaluation by focusing on the
@@ -1501,10 +1552,10 @@ def evaluate_bounds(
                 ] = fold_all_bins_concat_targets_sep_all[target_idx]
 
     return {
-        "Error Bounds All": all_bound_percents,
+        "error_bounds_all": all_bound_percents,
         "all_bound_percents_notargetsep": all_bound_percents_notargetsep,
         "all errorbound concat bins targets sep foldwise": all_concat_errorbound_bins_target_sep_foldwise,
-        "all errorbound concat bins targets sep all": all_concat_errorbound_bins_target_sep_all,
+        "all_errorbound_concat_bins_targets_sep_all": all_concat_errorbound_bins_target_sep_all,
     }
 
 
@@ -1562,7 +1613,10 @@ def bin_wise_bound_eval(
                for each target separately.
 
     Example:
-        >>> bin_wise_bound_eval(fold_bounds_all_targets, fold_errors, fold_bins, [0,1], 'S-MHA', num_bins=5)
+
+        .. code-block:: pycon
+
+            >>> bin_wise_bound_eval(fold_bounds_all_targets, fold_errors, fold_bins, [0,1], 'S-MHA', num_bins=5)
     """
     all_target_perc = []
     all_qs_perc: List[List[float]] = [[] for x in range(num_bins)]  #
@@ -1719,11 +1773,11 @@ def get_mean_errors(
         Dict[str, Union[Dict[str, List[List[float]]], List[Dict[str, List[float]]]]]: Dictionary with mean error for all
          targets combined and targets separated.
             Keys that are returned:
-                "all mean error bins nosep":  For every fold, the mean error for each bin. All targets are combined in the same list.
+                "all_mean_error_bins_nosep":  For every fold, the mean error for each bin. All targets are combined in the same list.
                 "all mean error bins targets sep":   For every fold, the mean error for each bin. Each target is in a separate list.
-                "all error concat bins targets nosep":  For every fold, every error value in a list. Each target is in the same list. The list is flattened for all the folds.
+                "all_error_concat_bins_targets_nosep":  For every fold, every error value in a list. Each target is in the same list. The list is flattened for all the folds.
                 "all error concat bins targets sep foldwise":  For every fold, every error value in a list. Each target is in a separate list. Each list has a list of results by fold.
-                "all error concat bins targets sep all": For every fold, every error value in a list. Each target is in a separate list. The list is flattened for all the folds.
+                "all_error_concat_bins_targets_sep_all": For every fold, every error value in a list. Each target is in a separate list. The list is flattened for all the folds.
 
     """
     # If we are combining the middle bins, we only have the 2 edge bins and the middle bins are combined into 1 bin.
@@ -1824,11 +1878,11 @@ def get_mean_errors(
                 ] = fold_all_bins_concat_targets_sep_all[target_idx]
 
     return {
-        "all mean error bins nosep": all_mean_error_bins,
+        "all_mean_error_bins_nosep": all_mean_error_bins,
         "all mean error bins targets sep": all_mean_error_bins_targets_sep,
-        "all error concat bins targets nosep": all_concat_error_bins_target_nosep,
+        "all_error_concat_bins_targets_nosep": all_concat_error_bins_target_nosep,
         "all error concat bins targets sep foldwise": all_concat_error_bins_target_sep_foldwise,
-        "all error concat bins targets sep all": all_concat_error_bins_target_sep_all,
+        "all_error_concat_bins_targets_sep_all": all_concat_error_bins_target_sep_all,
     }
 
 
