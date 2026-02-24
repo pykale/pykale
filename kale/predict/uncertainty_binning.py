@@ -13,7 +13,7 @@ import numpy as np
 
 def quantile_binning_predictions(
     uncertainties_test: Dict[str, Union[int, float]],
-    uncert_thresh: List[List[float]],
+    uncert_thresh: List[float],
     save_pred_path: Optional[str] = None,
 ) -> Dict[str, int]:
     """
@@ -21,7 +21,7 @@ def quantile_binning_predictions(
 
     Args:
         uncertainties_test (Dict): A dictionary of uncertainties with string ids and float/int uncertainty values.
-        uncert_thresh (List[List[float]]): A list of quantile thresholds to determine binning.
+        uncert_thresh (List[float]): A list of quantile thresholds to determine binning.
         save_pred_path (str, optional): A path preamble to save predicted bins to.
 
     Returns:
@@ -37,22 +37,27 @@ def quantile_binning_predictions(
                     r"Dict uncertainties_test should be of structure {string_id1: float_uncertainty1/int_uncertainty1, string_id2: float_uncertainty2/int_uncertainty2 } "
                 )
 
-    if np.array(uncert_thresh).shape != (len(uncert_thresh), 1):
-        raise ValueError("uncert_thresh list should be 2D e.g. [[0.1], [0.2], [0.3]] ")
+    if not isinstance(uncert_thresh, list) or (
+        len(uncert_thresh) > 0 and not isinstance(uncert_thresh[0], (float, int, np.number))
+    ):
+        raise ValueError("uncert_thresh should be a list of floats, e.g. [0.1, 0.2, 0.3]")
+
+    if len(uncert_thresh) == 0:
+        return {key: 0 for key in uncertainties_test}
 
     all_binned_errors = {}
 
     for i, (key, fc) in enumerate(uncertainties_test.items()):
         for q in range(len(uncert_thresh) + 1):
             if q == 0:
-                lower_c_bound = uncert_thresh[q][0]
+                lower_c_bound = uncert_thresh[q]
 
                 if fc <= lower_c_bound:
                     all_binned_errors[key] = q
 
             elif q < len(uncert_thresh):
-                lower_c_bound = uncert_thresh[q - 1][0]
-                upper_c_bound = uncert_thresh[q][0]
+                lower_c_bound = uncert_thresh[q - 1]
+                upper_c_bound = uncert_thresh[q]
 
                 if fc <= upper_c_bound:
                     if fc > lower_c_bound:
@@ -60,7 +65,7 @@ def quantile_binning_predictions(
 
             # Finally do the last bin
             else:
-                lower_c_bound = uncert_thresh[q - 1][0]
+                lower_c_bound = uncert_thresh[q - 1]
 
                 if fc > lower_c_bound:
                     all_binned_errors[key] = q

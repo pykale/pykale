@@ -70,10 +70,10 @@ To change this in your example, observe the following in main.py
         for landmark in landmarks:
             # Define Paths for this loop
             landmark_results_path_val = os.path.join(
-                cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_val + "_l" + str(landmark)
+                cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_val + "_t" + str(landmark)
             )
             landmark_results_path_test = os.path.join(
-                cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_test + "_l" + str(landmark)
+                cfg.DATASET.ROOT, base_dir, model, dataset, uncertainty_pairs_test + "_t" + str(landmark)
             )
 
             fitted_save_at = os.path.join(save_folder, "fitted_quantile_binning", model, dataset)
@@ -87,318 +87,87 @@ To change this in your example, observe the following in main.py
 
 When you loop through the target indicies (landmarks in the example above), you can specify the paths for each target.
 
-If you only have one target (e.g. regression of a house price), follow the config file [one_target_example.yaml](/pykale/examples/landmark_uncertainty/configs/one_target_example.yaml) for how to do this. Essentially, you just use a list of length 1.
+If you only have one target (e.g. regression of a house price), follow the config file [one_target_example.yaml](/examples/landmark_uncertainty/configs/one_target_example.yaml) for how to do this. Essentially, you just use a list of length 1.
 
 
 ## 6. Advanced Usage - Config Options
- You can add your own config or change the config options in the .yaml files.
- To use your own data, you can simply change the paths in DATASET, as shown in the examples.
+You can add your own config or change the config options in the `.yaml` files.
 
-### Quick Tips:
-- To display rather than save figures set `OUTPUT.SAVE_FIGURES`: `False` in the .yaml file.
-- To compare results for different numbers of Quantile Bins, check out the documentation below for `PIPELINE.NUM_QUANTILE_BINS`
-- If test error is not available, set `DATASET.TEST_ERROR_AVAILABLE`: False in the .yaml file.
-- Check out the `BOXPLOT` options to turn on/off visualizations of all landmarks on the box plots and adjust error limits.
+### Quick tips
+- To display figures instead of saving them, set `OUTPUT.SAVE_FIGURES: False`.
+- To compare multiple quantile bin settings, edit `PIPELINE.NUM_QUANTILE_BINS`.
+- If test errors are not available, set `DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE: False`.
+- Use `BOXPLOT` options to control detail level and plot readability.
 
-The configuration options are broken into a few sections:
-- A) [Dataset](#a-dataset) - options related to the dataset.
-- B) [Pipeline](#b-pipeline) - options related to the pipeline.
-- C) [Plotting](#c-visualisation-im_kwargs-marker_kwargs-weight_kwargs) - options related to the plots.
-- D) [Boxplot](#d-boxplot) - options related to the boxplot detai.
-- E) [Output](#e-output) - options related to output paths.
-
+The configuration options are grouped into:
+- A) [Dataset](#a-dataset)
+- B) [Pipeline](#b-pipeline)
+- C) [Visualization](#c-visualization)
+- D) [Boxplot](#d-boxplot)
+- E) [Output](#e-output)
 
 ### A) Dataset
 
-The following are the configuration options related to the dataset.
-
-#### `DATASET.SOURCE`
-
-The URL source of the dataset. This option points to the location where the dataset is hosted. If you have local data, set this to None and put your data under DATASET.ROOT.
-
-Default:
-`_C.DATASET.SOURCE` = "https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"
-
-#### `DATASET.ROOT`
-
-The root directory where the dataset will be downloaded and extracted to. If you have local data, set this to the directory where your data is stored.
-
-Default:
-`_C.DATASET.ROOT` = "../../../data/landmarks/"
-
-#### `DATASET.BASE_DIR`
-
-The base directory within the `DATASET.ROOT` directory where the dataset will be downloaded and extracted to. If you have local data, set this to one level down of ROOT, where the data is stored.
-
-e.g. if you are using `4CH` data (`DATASET.DATA`="4CH") and the full path to the data is "../../../data/landmarks/Uncertainty_tuples/4CH" then:
-
-1) Set `DATASET.BASE_DIR` = "Uncertainty_tuples"
-2)  Set `_C.DATASET.ROOT` = "../../../data/landmarks/".
-
-
-Default:
-`_C.DATASET.BASE_DIR` = "Uncertainty_tuples"
-
-#### `DATASET.FILE_FORMAT`
-
-The format of the dataset file. This option is used to specify the format of the dataset file when the file is downloaded and extracted.
-
-Default:
-`_C.DATASET.FILE_FORMAT` = "zip"
-
- #### `DATASET.CONFIDENCE_INVERT`
-
-A list of tuples specifying the uncertainty measures and whether or not to invert their confidence values. The measures are specified by name and the inversion is specified using a boolean value.
-
-Default:
-_C.DATASET.CONFIDENCE_INVERT` = [["S-MHA", True], ["E-MHA", True], ["E-CPV", False]]
-
-#### `DATASET.DATA`
-
-The type of dataset to use. This option specifies which subset of the dataset to use for the experiment. For the examples, you can use 4CH, SA or ISBI.
-
-Default:
-`_C.DATASET.DATA` = "4CH"
-
-#### `DATASET.LANDMARKS`
-
-A list of landmark indices to use in the experiment.
-
-Default:
-`_C.DATASET.LANDMARKS` = [0, 1, 2]
-
-
-#### `DATASET.NUM_FOLDS`
-
-The number of cross-validation folds to analyze. If no cross-validaiton, set to 1.
-
-Default:
-`_C.DATASET.NUM_FOLDS = 8`
-
-
-#### `DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE`
-
-A boolean indicating whether ground truth test errors are available in the dataset. If false, it will only fit the quantile binning model to the validation set, it won't attempt to evalute the performance on the test set since there is no ground truth test error.
-
-Default:
-`_C.DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE = True`
-
-
-#### `DATASET.UE_PAIRS_VAL`
-
-The name of the file containing the uncertainty pairs for validation. This option specifies the name of the file containing the uncertainty pairs for validation. This should be the preamble name of the .csv files before _lX.csv where X will be the landmark index.
-
-Default:
-`_C.DATASET.UE_PAIRS_VAL = "uncertainty_pairs_valid"`
-
-(The program will infer uncertainty_pairs_valid_l0.csv, uncertainty_pairs_valid_l1.csv, uncertainty_pairs_valid_l2.csv, etc.)
-
-#### `DATASET.UE_PAIRS_TEST`
-
-The name of the file containing the uncertainty pairs for testing. This option specifies the name of the file containing the uncertainty pairs for testing. This should be the preamble name of the .csv files before _lX.csv where X will be the landmark index.
-
-Default:
-`_C.DATASET.UE_PAIRS_TEST` = "uncertainty_pairs_test"
-
-(The program will infer uncertainty_pairs_test_l0.csv, uncertainty_pairs_test_l1.csv, uncertainty_pairs_test_l2.csv, etc.)
-
-<br/><br/>
-
+| Parameter | Description | Default |
+| --- | --- | --- |
+| `DATASET.SOURCE` | Dataset download URL. | `"https://github.com/pykale/data/raw/main/tabular/cardiac_landmark_uncertainty/Uncertainty_tuples.zip"` |
+| `DATASET.ROOT` | Root directory for data. | `"../../../data/landmarks/"` |
+| `DATASET.BASE_DIR` | Dataset folder under `DATASET.ROOT`. | `"Uncertainty_tuples"` |
+| `DATASET.FILE_FORMAT` | Download archive format. | `"zip"` |
+| `DATASET.CONFIDENCE_INVERT` | Invert flags per uncertainty measure: `[name, invert]`. | `[["S-MHA", True], ["E-MHA", True], ["E-CPV", False]]` |
+| `DATASET.DATA` | Dataset name to run (`"4CH"`, `"SA"`, `"ISBI"`, etc.). | `"4CH"` |
+| `DATASET.LANDMARKS` | Landmark indices to process. | `[0, 1, 2]` |
+| `DATASET.NUM_FOLDS` | Number of cross-validation folds. | `8` |
+| `DATASET.GROUND_TRUTH_TEST_ERRORS_AVAILABLE` | Whether test error labels are available. | `True` |
+| `DATASET.UE_PAIRS_VAL` | Validation CSV prefix (`<prefix>_tX.csv`). | `"uncertainty_pairs_valid"` |
+| `DATASET.UE_PAIRS_TEST` | Test CSV prefix (`<prefix>_tX.csv`). | `"uncertainty_pairs_test"` |
 
 ### B) Pipeline
 
-The following are the configuration options related to the pipeline.
-
-#### `PIPELINE.NUM_QUANTILE_BINS`
-
-A list of integers specifying the number of quantile bins to use for the uncertainty histogram. Use multiple if you want to compare the performance of different numbers of quantile bins, or just set it to a single integer if you want to use a single number of quantile bins e.g. [5].
-
-Default:
-`_C.PIPELINE.NUM_QUANTILE_BINS` = [5, 10, 25]
-
-#### `PIPELINE.COMPARE_INDIVIDUAL_Q`
-
-A boolean indicating whether to compare uncertainty measures and models over each single value of Q (Q= NUM_QUANTILE_BINS).
-
-Default:
-`_C.PIPELINE.COMPARE_INDIVIDUAL_Q` = True
-
-#### `PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS`
-
-A list of lists specifying the uncertainty error pairs to compare for each value of Q. Each sublist should contain three elements: the name of the uncertainty measure, the key for the error in the CSV file, and the key for the uncertainty in the CSV file.
-
-Default:
-`_C.PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS` = [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"], ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"]]
-
-#### `PIPELINE.INDIVIDUAL_Q_MODELS`
-
-A list of model names found in the path to compare for each value of Q.
-
-Default:
-_C.PIPELINE.INDIVIDUAL_Q_MODELS = ["U-NET", "PHD-NET"]
-
-#### `PIPELINE.COMPARE_Q_VALUES`
-
-A boolean indicating whether to compare a single uncertainty measure on a single model through various values of Q bins.
-
-Default:
-`_C.PIPELINE.COMPARE_Q_VALUES` = True
-
-#### `PIPELINE.COMPARE_Q_MODELS`
-
-A list of model names to compare over values of Q.
-
-Default:
-`_C.PIPELINE.COMPARE_Q_MODELS` = ["PHD-NET"]
-
-#### `PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS`
-
-A list of lists specifying the uncertainty error pairs to compare over values of Q. Each sublist should contain three elements: the name of the uncertainty measure, the key for the error in the CSV file, and the key for the uncertainty in the CSV file.
-
-Default:
-`_C.PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS` = [["E-MHA", "E-MHA Error", "E-MHA Uncertainty"]]
-
-#### `PIPELINE.COMBINE_MIDDLE_BINS`
-
-A boolean indicating whether to combine the middle quantile bins into a single bin.
-
-Default:
-`_C.PIPELINE.COMBINE_MIDDLE_BINS` = False
-
-#### `PIPELINE.PIXEL_TO_MM_SCALE`
-
-A float specifying the scale factor to convert pixel units to millimeter units.
-
-Default:
-`_C.PIPELINE.PIXEL_TO_MM_SCALE` = 1.0
-
-#### `PIPELINE.IND_LANDMARKS_TO_SHOW`
-
-A list of landmark indices to show individually. A value of -1 means show all landmarks individually, and an empty list means show none.
-
-Default:
-`_C.PIPELINE.IND_LANDMARKS_TO_SHOW` = [-1]
-
-#### `PIPELINE.SHOW_IND_LANDMARKS`
-
-A boolean indicating whether to show results from individual landmarks.
-
-Default:
-_C.`PIPELINE.SHOW_IND_LANDMARKS` = True
-
-<br/><br/>
-
-### C) Visualisation: IM_KWARGS, MARKER_KWARGS, WEIGHT_KWARGS
-The following are the configuration options related to visualization and plotting.
-
-#### `IM_KWARGS.CMAP`
-
-The color map to use for the image.
-
-Default:
-`_C.IM_KWARGS.cmap` = "gray"
-
-#### `MARKER_KWARGS.MARKER`
-
-The marker style to use for the landmark points.
-
-Default:
-`_C.MARKER_KWARGS.marker` = "o"
-
-#### `MARKER_KWARGS.MARKERFACECOLOR`
-
-The face color to use for the landmark points.
-
-Default:
-_C.MARKER_KWARGS.markerfacecolor = (1, 1, 1, 0.1)
-
-#### `MARKER_KWARGS.MARKEREDGEWIDTH`
-
-The edge width to use for the landmark points.
-
-Default:
-`_C.MARKER_KWARGS.markeredgewidth` = 1.5
-
-#### `MARKER_KWARGS.MARKEREDGECOLOR`
-
-The edge color to use for the landmark points.
-
-Default:
-`_C.MARKER_KWARGS.markeredgecolor` = "r"
-
-#### `WEIGHT_KWARGS.MARKERSIZE`
-
-The size to use for the weights of the landmark points.
-
-Default:
-`_C.WEIGHT_KWARGS.markersize` = 6
-
-#### `WEIGHT_KWARGS.ALPHA`
-
-The transparency to use for the plots.
-
-Default:
-`_C.WEIGHT_KWARGS.alpha` = 0.7
-
-<br/><br/>
-
-
-### D) BOXPLOT
-The following are the configuration options related to the box plot.
-
-
-#### `BOXPLOT.SAMPLES_AS_DOTS`
-
-A boolean indicating whether to show the samples as dots on the box plot (can be expensive if many landmarks.).
-
-Default:
-`_C.BOXPLOT.SAMPLES_AS_DOTS` = True
-
-#### `BOXPLOT.ERROR_LIM`
-
-The error limit to use for the box plot.
-
-Default:
-`_C.BOXPLOT.ERROR_LIM` = 64
-
-#### `BOXPLOT.SHOW_SAMPLE_INFO_MODE`
-
-The mode for showing sample information on the box plot. The available modes are "None", "All", and "Average".
-
-Default:
-_C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "Average"
-
-<br/><br/>
-
-
-### E) OUTPUT
-
-The following are miscellaneous configuration options.
-
-#### `OUTPUT.OUT_DIR`
-
-The folder where the experiment results will be saved.
-
-Default:
-`_C.OUTPUT.OUT_DIR` = "./outputs/""
-
-#### `OUTPUT.SAVE_PREPEND`
-
-The string to prepend to the output file names.
-
-Default:
-`_C.OUTPUT.SAVE_PREPEND` = "8std_27_07_22"
-
-#### `OUTPUT.SAVE_FIGURES`
-
-A boolean indicating whether to save the figures generated during the experiment.
-If False, the figures will be shown instead.
-
-Default:
-`_C.OUTPUT.SAVE_FIGURES` = True
-
-
-## 6. References
+| Parameter | Description | Default |
+| --- | --- | --- |
+| `PIPELINE.NUM_QUANTILE_BINS` | Q values (number of quantile bins) to run. | `[5, 10, 25]` |
+| `PIPELINE.COMPARE_INDIVIDUAL_Q` | Compare models and uncertainties at each Q. | `True` |
+| `PIPELINE.INDIVIDUAL_Q_UNCERTAINTY_ERROR_PAIRS` | Per-Q tuples: `[name, error_col, uncertainty_col]`. | `[["S-MHA", "S-MHA Error", "S-MHA Uncertainty"], ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"], ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"]]` |
+| `PIPELINE.INDIVIDUAL_Q_MODELS` | Models used in per-Q comparison. | `["U-NET", "PHD-NET"]` |
+| `PIPELINE.COMPARE_Q_VALUES` | Compare fixed model/uncertainty settings across Q values. | `True` |
+| `PIPELINE.COMPARE_Q_MODELS` | Models used in cross-Q comparison. | `["PHD-NET"]` |
+| `PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS` | Cross-Q tuples: `[name, error_col, uncertainty_col]`. | `[["E-MHA", "E-MHA Error", "E-MHA Uncertainty"]]` |
+| `PIPELINE.COMBINE_MIDDLE_BINS` | Merge middle quantile bins. | `False` |
+| `PIPELINE.PIXEL_TO_MM_SCALE` | Error scaling factor (pixel-to-mm multiplier). | `1.0` |
+| `PIPELINE.INDIVIDUAL_LANDMARKS_TO_SHOW` | Landmark indices for per-target plots (`[-1]` for all). | `[-1]` |
+| `PIPELINE.SHOW_INDIVIDUAL_LANDMARKS` | Enable per-target plots. | `True` |
+
+### C) Visualization
+
+| Parameter | Description | Default |
+| --- | --- | --- |
+| `IM_KWARGS.colormap` | Colormap name. | `"Set1"` |
+| `MARKER_KWARGS.marker` | Marker style. | `"o"` |
+| `MARKER_KWARGS.markerfacecolor` | Marker face color. | `(1, 1, 1, 0.1)` |
+| `MARKER_KWARGS.markeredgewidth` | Marker edge width. | `1.5` |
+| `MARKER_KWARGS.markeredgecolor` | Marker edge color. | `"r"` |
+| `WEIGHT_KWARGS.markersize` | Marker size. | `6` |
+| `WEIGHT_KWARGS.alpha` | Marker transparency. | `0.7` |
+
+### D) Boxplot
+
+| Parameter | Description | Default |
+| --- | --- | --- |
+| `BOXPLOT.SAMPLES_AS_DOTS` | Show sample points as dots on boxplots. | `True` |
+| `BOXPLOT.ERROR_LIM` | Upper y-axis limit for error plots. | `64` |
+| `BOXPLOT.SHOW_SAMPLE_INFO_MODE` | Sample-count label mode (`"All"`, `"Average"`, or `None`). | `"Average"` |
+
+### E) Output
+
+| Parameter | Description | Default |
+| --- | --- | --- |
+| `OUTPUT.OUT_DIR` | Output root directory. | `"./outputs/"` |
+| `OUTPUT.SAVE_PREPEND` | Prefix for output filenames. | `"example"` |
+| `OUTPUT.SAVE_FIGURES` | Save figures (`True`) or show interactively (`False`). | `True` |
+
+
+## 7. References
 [1] L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization," in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
 [2] J. Hurdman, R. Condliffe, C.A. Elliot, C. Davies, C. Hill, J.M. Wild, D. Capener, P. Sephton, N. Hamilton, I.J. Armstrong, C. Billings, A. Lawrie, I. Sabroe, M. Akil, L. O’Toole, D.G. Kiely
