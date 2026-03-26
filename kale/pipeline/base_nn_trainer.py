@@ -39,7 +39,10 @@ class BaseNNTrainer(pl.LightningModule):
     using the neural networks.
 
     Args:
-        optimizer (dict, None): optimizer parameters.
+        optimizer (dict, None): optimizer parameters, a dictionary with 2 keys:
+            "type": a string in ("SGD", "Adam", "AdamW")
+            "optim_params": kwargs for the above PyTorch optimizer.
+            Defaults to None.
         max_epochs (int): maximum number of epochs.
         init_lr (float): initial learning rate. Defaults to 0.001.
         adapt_lr (bool): whether to use the schedule for the learning rate. Defaults to False.
@@ -76,6 +79,7 @@ class BaseNNTrainer(pl.LightningModule):
 
     def configure_optimizers(self):
         """Default optimizer configuration. Set Adam to the default and provide SGD with cosine annealing.
+        Supported optimizer types: "Adam", "AdamW", "SGD".
         If other optimizers are needed, please override this function.
         """
         if self._optimizer_params is None:
@@ -83,6 +87,13 @@ class BaseNNTrainer(pl.LightningModule):
             return [optimizer]
         if self._optimizer_params["type"] == "Adam":
             optimizer = torch.optim.Adam(
+                self.parameters(),
+                lr=self._init_lr,
+                **self._optimizer_params["optim_params"],
+            )
+            return [optimizer]
+        if self._optimizer_params["type"] == "AdamW":
+            optimizer = torch.optim.AdamW(
                 self.parameters(),
                 lr=self._init_lr,
                 **self._optimizer_params["optim_params"],
