@@ -79,7 +79,7 @@ def test_protein_cnn_forward():
 def test_protein_cnn_minimal_inputs():
     """Test ProteinCNN with minimal configuration."""
     # ProteinCNN
-    model = ProteinCNN(1, [1, 1, 1], [1, 1, 1], padding=False)
+    model = ProteinCNN(1, [1, 1, 1], [1, 1, 1], use_padding=False)
     model.eval()
     inp = torch.randint(0, 1, (2, 1))
     out = model(inp)
