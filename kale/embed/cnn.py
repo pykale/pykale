@@ -136,14 +136,15 @@ class ProteinCNN(BaseCNN):
         embedding_dim (int): Dimensionality of the embedding space for protein sequences.
         num_filters (list of int): A list specifying the number of filters for each convolutional layer.
         kernel_size (list of int): A list specifying the kernel size for each convolutional layer.
-        padding (bool, optional): Whether to apply padding to the embedding layer. Defaults to True.
+        use_padding (bool, optional): Whether to set a padding index on the embedding layer. When True,
+            index 0 is treated as a padding token (its embedding is fixed at zero). Defaults to True.
             Note: This controls the `padding_idx` parameter of the embedding layer, not the convolutional
             layer padding (which is controlled by the `conv_padding` argument in BaseCNN utilities).
     """
 
-    def __init__(self, embedding_dim, num_filters, kernel_size, padding: bool = True):
+    def __init__(self, embedding_dim, num_filters, kernel_size, use_padding: bool = True):
         super(ProteinCNN, self).__init__()
-        padding_idx = 0 if padding else None
+        padding_idx = 0 if use_padding else None
         self.embedding = self._create_embedding_layer(
             num_embeddings=26, embedding_dim=embedding_dim, padding_idx=padding_idx
         )
