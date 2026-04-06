@@ -1,9 +1,10 @@
 import os
 from pathlib import Path
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 
-from kale.utils.download import download_file_by_url, download_file_gdrive
+from kale.utils.download import _retry_download, download_file_by_url, download_file_gdrive
 
 output_directory = Path().absolute().joinpath("tests/test_data/download")
 PARAM = [
@@ -15,6 +16,28 @@ GDRIVE_PARAM = [
     "1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga;demo_datasets.zip;zip",
     "1SV7fmAnWj-6AU9X5BGOrvGMoh2Gu9Nih;dummy_data.csv;csv",
 ]
+
+
+def test_retry_download_succeeds_on_first_attempt():
+    fn = MagicMock()
+    _retry_download(fn, retries=3, backoff=0)
+    fn.assert_called_once()
+
+
+def test_retry_download_retries_on_failure():
+    fn = MagicMock(side_effect=[RuntimeError("timeout"), RuntimeError("timeout"), None])
+    with patch("kale.utils.download.time.sleep") as mock_sleep:
+        _retry_download(fn, retries=3, backoff=2)
+    assert fn.call_count == 3
+    assert mock_sleep.call_count == 2
+
+
+def test_retry_download_raises_after_all_retries():
+    fn = MagicMock(side_effect=RuntimeError("timeout"))
+    with patch("kale.utils.download.time.sleep"):
+        with pytest.raises(RuntimeError, match="timeout"):
+            _retry_download(fn, retries=3, backoff=2)
+    assert fn.call_count == 3
 
 
 @pytest.mark.parametrize("param", PARAM)
