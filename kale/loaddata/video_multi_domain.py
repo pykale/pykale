@@ -207,7 +207,7 @@ class VideoBiDomainDatasets(BiDomainDatasets):
                 flow_target_labeled_ds = self._labeled_target_by_split[split]
                 flow_target_unlabeled_ds = flow_target_ds
                 flow_target_labeled_loader = FixedSeedSamplingConfig(balance=True, class_weights=None).create_loader(
-                    flow_target_labeled_ds, batch_size=min(len(flow_target_labeled_ds), batch_size), num_workers
+                    flow_target_labeled_ds, batch_size=min(len(flow_target_labeled_ds), batch_size), num_workers=num_workers
                 )
                 flow_target_unlabeled_loader = self._target_sampling_config.create_loader(
                     flow_target_unlabeled_ds, batch_size, num_workers
