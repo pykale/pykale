@@ -237,7 +237,7 @@ class VideoBiDomainDatasets(BiDomainDatasets):
                     num_workers=num_workers,
                 )
                 n_dataset = DatasetSizeType.get_size(
-                    self._size_type, rgb_source_ds, flow_target_labeled_ds, flow_target_unlabeled_ds
+                    self._size_type, flow_source_ds, flow_target_labeled_ds, flow_target_unlabeled_ds
                 )
 
             # combine loaders into a list and remove the loader which is NONE.
