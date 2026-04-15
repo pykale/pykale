@@ -5,14 +5,23 @@ name: changelog
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
   log-changes:
     name: Log changes
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          # Keep checkout shallow; changelog-ci handles unshallow internally.
+          # Using fetch-depth: 0 causes changelog-ci to fail with:
+          # "fatal: --unshallow on a complete repository does not make sense"
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run changelog
         uses: saadmk11/changelog-ci@v1.2.0
         with:
