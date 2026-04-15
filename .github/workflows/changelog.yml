@@ -5,7 +5,7 @@ name: changelog
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
   log-changes:
@@ -17,7 +17,10 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
+          # Keep checkout shallow; changelog-ci handles unshallow internally.
+          # Using fetch-depth: 0 causes changelog-ci to fail with:
+          # "fatal: --unshallow on a complete repository does not make sense"
+          fetch-depth: 1
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run changelog
         uses: saadmk11/changelog-ci@v1.2.0
