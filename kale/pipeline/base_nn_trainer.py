@@ -278,3 +278,80 @@ class MultimodalNNTrainer(pl.LightningModule):
     def test_step(self, test_batch, batch_idx):
         loss, metrics = self.compute_loss(test_batch, split_name="test")
         self.log_dict(metrics, on_step=False, on_epoch=True, logger=True)
+
+
+class RegressionTrainer(BaseNNTrainer):
+    """
+    A PyTorch Lightning trainer for regression tasks. It computes the loss and metrics for regression tasks, such as
+    Mean Absolute Error (MAE), Mean Relative Error (MRE), and R² (Coefficient of Determination). The trainer
+    is designed to work with a feature extractor model and can be used for training, validation, and testing steps.
+    Args:
+        feature_extractor (torch.nn.Module): The feature extractor model to be used for regression tasks.
+        optimizer (dict): A dictionary containing the optimizer type and parameters.
+        max_epochs (int): The maximum number of epochs for training.
+        init_lr (float, optional): The initial learning rate for the optimizer. Defaults to 0.001.
+        adapt_lr (bool, optional): Whether to adapt the learning rate during training. Defaults to False.
+    """
+
+    def __init__(self, feature_extractor, **kwargs):
+        """
+        Args:
+            feature_extractor (nn.Module): the regression model / feature extractor
+            **kwargs: forwarded to BaseNNTrainer (optimizer, max_epochs, init_lr, adapt_lr, ...)
+        """
+        super().__init__(**kwargs)
+        self.model = feature_extractor
+
+    def forward(self, batch):
+        """Return (pred, target_or_None) for a unified loss pipeline."""
+        out = self.model(batch)
+        if isinstance(out, (tuple, list)):
+            pred = out[0]
+            target = out[1] if len(out) > 1 else getattr(batch, "target", None)
+        else:
+            pred = out
+            target = getattr(batch, "target", None)
+        return pred, target
+
+    def compute_loss(self, batch, split_name: str = "valid"):
+        pred, target = self.forward(batch)
+        if target is None:
+            # fall back to batch.target if model did not return target
+            target = batch.target
+        target = target.to(pred.device)
+
+        eps = 1e-8
+        loss = nn.MSELoss()(pred, target)  # MSE
+        mae = nn.L1Loss()(pred, target)  # MAE
+        mre = losses.mean_relative_error(pred, target)  # MRE
+        # R² with safe denominator
+        y_mean = torch.mean(target)
+        ss_tot = torch.sum((target - y_mean) ** 2) + eps
+        ss_res = torch.sum((target - pred) ** 2)
+        r2 = 1.0 - ss_res / ss_tot
+
+        log_metrics = {
+            f"{split_name}_loss": loss,
+            f"{split_name}_mae": mae,
+            f"{split_name}_mre": mre,
+            f"{split_name}_r2": r2,
+        }
+        return loss, log_metrics
+
+    def training_step(self, train_batch, batch_idx):
+        loss, metrics = self.compute_loss(train_batch, split_name="train")
+        # optimizer = self.optimizers()
+        # if isinstance(optimizer, list):
+        #     optimizer = optimizer[0]
+        #     current_lr = optimizer.param_groups[0]["lr"]
+        #     metrics["learning_rate"] = current_lr
+        self.log_dict(metrics, on_step=True, on_epoch=True, logger=True, batch_size=train_batch.batch_size)
+        return loss
+
+    def validation_step(self, valid_batch, batch_idx):
+        loss, metrics = self.compute_loss(valid_batch, split_name="val")
+        self.log_dict(metrics, on_step=False, on_epoch=True, logger=True, batch_size=valid_batch.batch_size)
+
+    def test_step(self, test_batch, batch_idx):
+        loss, metrics = self.compute_loss(test_batch, split_name="test")
+        self.log_dict(metrics, on_step=False, on_epoch=True, logger=True, batch_size=test_batch.batch_size)
