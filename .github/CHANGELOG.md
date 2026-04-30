@@ -45,7 +45,7 @@
 * [#426](https://github.com/pykale/pykale/pull/426): Refactor documentation and resolve module visibility issues
 * [#429](https://github.com/pykale/pykale/pull/429): Cache preload data
 * [#430](https://github.com/pykale/pykale/pull/430): Use a softer matching strategy for caching downloaded pip dependencies
-* [#438](https://github.com/pykale/pykale/pull/438): Upgrade to support Numpy 2.0.0+ 
+* [#438](https://github.com/pykale/pykale/pull/438): Upgrade to support Numpy 2.0.0+
 * [#439](https://github.com/pykale/pykale/pull/439): Update Actions Caches and Set Numpy below 2.0.0
 * [#440](https://github.com/pykale/pykale/pull/440): Support Codecov, Action Cache, Action Checkout v4 & Setup-miniconda v3
 * [#441](https://github.com/pykale/pykale/pull/441): 402 refactor merge modules losses distance and metrics to one
@@ -78,7 +78,7 @@
 
 #### Other Changes
 
-* [#415](https://github.com/pykale/pykale/pull/415): Change testing data directory paths 
+* [#415](https://github.com/pykale/pykale/pull/415): Change testing data directory paths
 * [#417](https://github.com/pykale/pykale/pull/417): Add resume and test checkpoint loading to main.py in example/cifas_cn…
 * [#424](https://github.com/pykale/pykale/pull/424): Split the test data downloading and test cases
 * [#427](https://github.com/pykale/pykale/pull/427): Cache downloaded pip dependencies
