@@ -31,7 +31,7 @@ tensorly
 # torch>=2.0.0
 torch-geometric
 
-torchsummary>=1.5.0
+torchsummary>=1.5.1
 torchvision
 urllib3<2.0
 wfdb
