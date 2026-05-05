@@ -15,7 +15,7 @@ nbsphinx-link
 numpy
 
 pandas
-pillow>=6.2.0
+pillow>=12.2.0
 pwlf
 pydicom
 PyTDC
