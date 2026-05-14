@@ -15,7 +15,7 @@ nbsphinx-link
 numpy
 
 pandas
-pillow>=6.2.0
+pillow>=12.2.0
 pwlf
 pydicom
 PyTDC
@@ -31,8 +31,8 @@ tensorly
 # torch>=2.0.0
 torch-geometric
 
-torchsummary>=1.5.0
+torchsummary>=1.5.1
 torchvision
 urllib3<2.0
 wfdb
-yacs>=0.1.7
+yacs>=0.1.8
