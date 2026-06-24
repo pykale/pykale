@@ -53,7 +53,7 @@ class ResultKeys:
     MEAN_ALL_TARGETS = "mean all targets"
     MEAN_ALL_BINS = "mean all bins"
     ALL_BINS = "all bins"
-    ALL_BINS_CONCAT_TARGETS_SEP = "all bins concatenated targets seperated"
+    ALL_BINS_CONCAT_TARGETS_SEP = "all bins concatenated targets separated"
 
     # Bounds specific
     ERROR_BOUNDS_ALL = "error_bounds_all"
@@ -70,11 +70,11 @@ class ResultKeys:
 
     # Jaccard specific
     JACCARD_ALL = "jaccard_all"
-    JACCARD_TARGETS_SEPARATED = "Jaccard targets seperated"
+    JACCARD_TARGETS_SEPARATED = "Jaccard targets separated"
     RECALL_ALL = "recall_all"
-    RECALL_TARGETS_SEPARATED = "Recall targets seperated"
+    RECALL_TARGETS_SEPARATED = "Recall targets separated"
     PRECISION_ALL = "precision_all"
-    PRECISION_TARGETS_SEPARATED = "Precision targets seperated"
+    PRECISION_TARGETS_SEPARATED = "Precision targets separated"
     ALL_JACC_CONCAT_BINS_TARGET_SEP_FOLDWISE = "all jacc concat bins targets sep foldwise"
     ALL_JACC_CONCAT_BINS_TARGET_SEP_ALL = "all_jaccard_concat_bins_targets_sep_all"
 
@@ -1528,11 +1528,11 @@ def evaluate_bounds(
                     for target_idx in range(len(targets)):
                         fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin] = (
                             fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin]
-                            + return_dict["all bins concatenated targets seperated"][target_idx][idx_bin]
+                            + return_dict["all bins concatenated targets separated"][target_idx][idx_bin]
                         )
                         combined = (
                             fold_all_bins_concat_targets_sep_all[target_idx][idx_bin]
-                            + return_dict["all bins concatenated targets seperated"][target_idx][idx_bin]
+                            + return_dict["all bins concatenated targets separated"][target_idx][idx_bin]
                         )
 
                         fold_all_bins_concat_targets_sep_all[target_idx][idx_bin] = combined
@@ -1740,7 +1740,7 @@ def bin_wise_bound_eval(
         "mean all targets": np.mean(all_target_perc),
         "mean all bins": weighted_ave_binwise,
         "mean all": all_qs_perc,
-        "all bins concatenated targets seperated": all_qs_errorbound_concat_targets_sep,
+        "all bins concatenated targets separated": all_qs_errorbound_concat_targets_sep,
     }
 
 
@@ -1832,7 +1832,7 @@ def get_mean_errors(
                     fold_mean_bins[idx_bin].append(return_dict["mean all bins"][idx_bin])
                     fold_all_bins[idx_bin] = fold_all_bins[idx_bin] + return_dict["all bins"][idx_bin]
 
-                    concat_no_sep = [x[idx_bin] for x in return_dict["all bins concatenated targets seperated"]]
+                    concat_no_sep = [x[idx_bin] for x in return_dict["all bins concatenated targets separated"]]
 
                     flattened_concat_no_sep = [x for sublist in concat_no_sep for x in sublist]
                     flattened_concat_no_sep = [x for sublist in flattened_concat_no_sep for x in sublist]
@@ -1844,13 +1844,13 @@ def get_mean_errors(
                     for target_idx in range(len(targets)):
                         fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin] = (
                             fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin]
-                            + return_dict["all bins concatenated targets seperated"][target_idx][idx_bin]
+                            + return_dict["all bins concatenated targets separated"][target_idx][idx_bin]
                         )
 
-                        if return_dict["all bins concatenated targets seperated"][target_idx][idx_bin] != []:
+                        if return_dict["all bins concatenated targets separated"][target_idx][idx_bin] != []:
                             combined = (
                                 fold_all_bins_concat_targets_sep_all[target_idx][idx_bin]
-                                + return_dict["all bins concatenated targets seperated"][target_idx][idx_bin][0]
+                                + return_dict["all bins concatenated targets separated"][target_idx][idx_bin][0]
                             )
                         else:
                             combined = fold_all_bins_concat_targets_sep_all[target_idx][idx_bin]
@@ -1961,5 +1961,5 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, 
         "mean all targets": mean_all_targets,
         "mean all bins": mean_all_bins,
         "all bins": all_qs_error,
-        "all bins concatenated targets seperated": all_qs_error_concat_targets_sep,
+        "all bins concatenated targets separated": all_qs_error_concat_targets_sep,
     }
