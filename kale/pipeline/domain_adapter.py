@@ -788,8 +788,8 @@ class WDGRLTrainer(BaseDANNLike):
             parameters |= set(net.parameters())
 
         if self._adapt_lr:
-            task_feat_optimizer, task_feat_sched = self._configure_optimizer(parameters)
-            self.critic_opt, self.critic_sched = self._configure_optimizer(self.domain_classifier.parameters())
+            task_feat_optimizer, task_feat_sched = self._unpack_optimizer(self._configure_optimizer(parameters))
+            self.critic_opt, self.critic_sched = self._unpack_optimizer(self._configure_optimizer(self.domain_classifier.parameters()))
             self.critic_opt = self.critic_opt[0]
             self.critic_sched = self.critic_sched[0]
             return task_feat_optimizer, task_feat_sched
