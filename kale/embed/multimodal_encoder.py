@@ -58,7 +58,7 @@ class SignalImageVAE(nn.Module):
         self.n_latents = latent_dim
 
     @staticmethod
-    def prior_expert(size, use_cuda=False):
+    def prior_expert(size, use_cuda=False, device=None):
         """
         Creates a universal prior expert as a spherical Gaussian N(0, 1) with specified size.
 
@@ -72,9 +72,11 @@ class SignalImageVAE(nn.Module):
         """
         mean = torch.zeros(size)
         log_var = torch.zeros(size)
+        if device is None:
+            device = "cuda" if use_cuda else "cpu"
         if use_cuda:
-            mean = mean.cuda()
-            log_var = log_var.cuda()
+            mean = mean.to(device)
+            log_var = log_var.to(device)
         return mean, log_var
 
     def reparametrize(self, mean, log_var):
