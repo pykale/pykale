@@ -111,7 +111,7 @@ class ProtoNetTrainer(pl.LightningModule):
             loss (torch.Tensor): Loss value.
             return_dict (dict): Dictionary of loss and accuracy.
         """
-        loss, acc = eval(f"self.loss_{mode}")(feature_support, feature_query)
+        loss, acc = getattr(self, f"loss_{mode}")(feature_support, feature_query)
         return_dict = {"{}_loss".format(mode): loss.item(), "{}_acc".format(mode): acc}
         return loss, return_dict
 
@@ -146,5 +146,5 @@ class ProtoNetTrainer(pl.LightningModule):
         """
         Configure optimizer for training. Can be modified to support different optimizers from ``torch.optim``.
         """
-        optimizer = eval(f"torch.optim.{self.optimizer}")(self.model.parameters(), lr=self.lr)
+        optimizer = getattr(torch.optim, self.optimizer)(self.model.parameters(), lr=self.lr)
         return optimizer
