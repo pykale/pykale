@@ -73,8 +73,8 @@ class SignalImageVAE(nn.Module):
         mean = torch.zeros(size)
         log_var = torch.zeros(size)
         if use_cuda:
-            mean = mean.cuda()
-            log_var = log_var.cuda()
+            mean = mean.to(device)
+            log_var = log_var.to(device)
         return mean, log_var
 
     def reparametrize(self, mean, log_var):
