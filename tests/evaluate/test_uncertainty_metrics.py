@@ -50,7 +50,7 @@ class TestEvaluateJaccard:
             dummy_test_preds[0], [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"]], num_bins, [0, 1], num_folds=8
         )
         all_jaccard_data = jacc_dict["jaccard_all"]
-        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets seperated"]
+        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets separated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA"]
         assert len(all_jaccard_data["U-NET S-MHA"]) == num_bins
@@ -67,7 +67,7 @@ class TestEvaluateJaccard:
         )
 
         all_jaccard_data = jacc_dict["jaccard_all"]
-        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets seperated"]
+        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets separated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA"]
         assert len(all_jaccard_data["U-NET S-MHA"]) == 5
@@ -88,7 +88,7 @@ class TestEvaluateJaccard:
         )
 
         all_jaccard_data = jacc_dict["jaccard_all"]
-        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets seperated"]
+        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets separated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
         assert len(all_jaccard_data["U-NET S-MHA"]) == len(all_jaccard_data["U-NET E-MHA"]) == 5
@@ -503,7 +503,7 @@ class TestJaccardEvaluator:
 
         # Check that results match expected structure
         assert "jaccard_all" in results
-        assert "Jaccard targets seperated" in results
+        assert "Jaccard targets separated" in results
         assert "recall_all" in results
         assert "precision_all" in results
 
