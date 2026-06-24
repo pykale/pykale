@@ -324,10 +324,10 @@ class protonet_loss:
     Args:
         num_classes (int): Number of classes in a task. Default: 5
         num_query_samples (int): Number of samples per class in the query set. Default: 15
-        device (torch.device): The device in computation. Default: torch.device("cuda")
+        device (torch.device, optional): The device in computation. Default: cuda if available else cpu
 
     Examples:
-        >>> loss_fn = protonet_loss(num_classes=5, num_query_samples=15, device=torch.device("cuda"))
+        >>> loss_fn = protonet_loss(num_classes=5, num_query_samples=15)
         >>> loss, acc = loss_fn(feature_support, feature_query)
 
     Reference:
@@ -335,11 +335,13 @@ class protonet_loss:
     """
 
     def __init__(
-        self, num_classes: int = 5, num_query_samples: int = 15, device: torch.device = torch.device("cuda")
+        self, num_classes: int = 5, num_query_samples: int = 15, device: torch.device = None
     ) -> None:
         super().__init__()
         self.num_classes = num_classes
         self.num_query_samples = num_query_samples
+        if device is None:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.device = device
 
     def __call__(self, feature_support: torch.Tensor, feature_query: torch.Tensor) -> tuple:
