@@ -215,7 +215,7 @@ def distplot_1d(
         "p": [Interval(Real, 0, 1, closed="neither")],
         "cmap": [str],
         "marker_size": [Real],
-        "legend_params": [dict],
+        "legend_params": [dict, None],
     },
     prefer_skip_nested_validation=True,
 )
