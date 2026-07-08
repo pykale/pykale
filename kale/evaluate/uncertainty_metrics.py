@@ -1628,7 +1628,7 @@ def bin_wise_bound_eval(
 
     for i_ti, target_idx in enumerate(targets):
         true_errors_ti = fold_errors[(fold_errors["Target Index"] == target_idx)][["uid", uncertainty_type + " Error"]]
-        pred_bins_ti = fold_bins[(fold_errors["Target Index"] == target_idx)][
+        pred_bins_ti = fold_bins[(fold_bins["Target Index"] == target_idx)][
             ["uid", uncertainty_type + " Uncertainty bins"]
         ]
 
@@ -1908,7 +1908,7 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, 
 
     for i, target_idx in enumerate(targets):
         true_errors_ti = fold_errors[(fold_errors["Target Index"] == target_idx)][["uid", uncertainty_key + " Error"]]
-        pred_bins_ti = fold_bins[(fold_errors["Target Index"] == target_idx)][
+        pred_bins_ti = fold_bins[(fold_bins["Target Index"] == target_idx)][
             ["uid", uncertainty_key + " Uncertainty bins"]
         ]
 
