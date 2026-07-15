@@ -6,6 +6,7 @@ Functions related to similarity metrics including similarity measures and correl
 
 import logging
 import os
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -15,17 +16,99 @@ from kale.interpret.uncertainty_utils import analyze_and_plot_uncertainty_correl
 from kale.prepdata.tabular_transform import apply_confidence_inversion
 
 
+@dataclass
+class CorrelationConfig:
+    """
+    Configuration for :func:`evaluate_correlations`.
+
+    Groups the analysis, plotting and output settings so that callers pass one object instead of a long
+    parameter list, and so that the binning and file-naming constants are named rather than embedded in
+    the analysis code.
+    """
+
+    # Analysis settings
+    num_bins: int = 10  # Number of quantile bins used to derive the uncertainty thresholds
+    num_folds: int = 8  # Number of testing folds to include
+    error_scaling_factor: float = 1.0  # Multiplicative factor for error values (e.g. pixel to mm conversion)
+    combine_middle_bins: bool = False  # If True, keep only the outer thresholds so middle bins merge into one
+
+    # Plotting and output
+    colormap: str = "Set1"  # Matplotlib colormap name for the correlation plots
+    save_path: Optional[str] = None  # Directory to save plots into; if None, no figure is written
+    to_log: bool = False  # If True, use logarithmic scaling on the plot axes
+    file_name_template: str = "{model}_{uncertainty}_correlation_pwr_all_targets.pdf"  # Output file name pattern
+
+
+def _fold_rows(data_structs: pd.DataFrame, num_folds: int) -> pd.DataFrame:
+    """Select the rows belonging to the first ``num_folds`` testing folds.
+
+    Args:
+        data_structs (pd.DataFrame): Predictions for a single model.
+        num_folds (int): Number of testing folds to include.
+
+    Returns:
+        pd.DataFrame: The rows for those folds.
+    """
+    return data_structs[data_structs["Testing Fold"].isin(np.arange(num_folds))]
+
+
+def _fold_errors_and_uncertainties(
+    data_structs: pd.DataFrame,
+    uncertainty_pair: Tuple[str, str, str],
+    invert_uncertainty: bool,
+    num_folds: int,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Extract the errors and uncertainties for one uncertainty type across the testing folds.
+
+    Args:
+        data_structs (pd.DataFrame): Predictions for a single model.
+        uncertainty_pair (tuple): The (name, error key, uncertainty key) triple being analysed.
+        invert_uncertainty (bool): Whether the uncertainty values should be inverted.
+        num_folds (int): Number of testing folds to include.
+
+    Returns:
+        tuple: Flattened error values and (optionally inverted) uncertainty values.
+    """
+    uncertainty_type = uncertainty_pair[0]
+    rows = _fold_rows(data_structs, num_folds)
+
+    errors = np.array(rows[[uncertainty_type + " Error"]].values.tolist()).flatten()
+
+    uncertainties = rows[[uncertainty_type + " Uncertainty"]]
+    if invert_uncertainty:
+        uncertainties = apply_confidence_inversion(uncertainties, uncertainty_pair[2])
+
+    return errors, np.array(uncertainties.values.tolist()).flatten()
+
+
+def _quantile_thresholds(uncertainty_values: np.ndarray, num_bins: int, combine_middle_bins: bool) -> List[float]:
+    """Compute the uncertainty values that separate the quantile bins.
+
+    Args:
+        uncertainty_values (np.ndarray): Uncertainty values across all folds.
+        num_bins (int): Number of quantile bins.
+        combine_middle_bins (bool): If True, keep only the outer thresholds, so the middle bins merge
+            into a single bin and only the two edge bins remain distinct.
+
+    Returns:
+        list: The threshold values, ordered from lowest to highest uncertainty.
+    """
+    sorted_uncertainties = np.sort(uncertainty_values)
+
+    quantiles = np.arange(1 / num_bins, 1, 1 / num_bins)[: num_bins - 1]
+    thresholds = [np.quantile(sorted_uncertainties, quantile) for quantile in quantiles]
+
+    if combine_middle_bins:
+        thresholds = [thresholds[0], thresholds[-1]]
+
+    return thresholds
+
+
 def evaluate_correlations(
     bin_predictions: Dict[str, pd.DataFrame],
     uncertainty_error_pairs: List[Tuple[str, str, str]],
-    num_bins: int,
     confidence_invert_tuples: List[Tuple[str, bool]],
-    colormap: str = "Set1",
-    num_folds: int = 8,
-    error_scaling_factor: float = 1,
-    combine_middle_bins: bool = False,
-    save_path: Optional[str] = None,
-    to_log: bool = False,
+    config: Optional[CorrelationConfig] = None,
 ) -> Dict[str, Dict[str, Dict[str, Any]]]:
     """
     Calculates the correlation between error and uncertainty for each bin and for each target,
@@ -37,16 +120,11 @@ def evaluate_correlations(
         bin_predictions: A dictionary of Pandas DataFrames containing model predictions for each testing fold.
         uncertainty_error_pairs: A list of tuples specifying the names of the uncertainty,
             error, and uncertainty inversion keys for each pair.
-        num_bins: The number of quantile bins to divide the data into.
         confidence_invert_tuples: A list of tuples specifying whether to invert the uncertainty values for each method.
                           First element is a string specifying the uncertainty method name and the second element is
                           a boolean whether to invert e.g. [["E-MHA", True], ["E-CPV", False]]
-        colormap (str): Name of matplotlib colormap. Defaults to 'Set1'.
-        num_folds: The number of folds to use for cross-validation (default: 8).
-        error_scaling_factor: The scale factor to transform error by (default: 1).
-        combine_middle_bins: Whether to combine the middle bins into one bin (default: False).
-        save_path: The path to save the correlation plots (default: None).
-        to_log: Whether to use logarithmic scaling for the x and y axes of the plots (default: False).
+        config: Analysis, plotting and output settings. Defaults to :class:`CorrelationConfig`.
+
     Returns:
         A dictionary containing the correlation statistics for each model and uncertainty method.
         The dictionary has the following structure:
@@ -73,63 +151,47 @@ def evaluate_correlations(
         The "all_folds" key contains the correlation statistics for all testing folds combined.
         The "quantiles" key contains the correlation statistics for each quantile bin separately.
     """
+    config = config or CorrelationConfig()
 
     logger = logging.getLogger("qbin")
     # define dict to save correlations to.
     correlation_dict: Dict[str, Dict[str, Dict[str, Any]]] = {}
 
-    num_bins_quantiles = num_bins
-    # If we are combining the middle bins, we only have the 2 edge bins and the middle bins are combined into 1 bin.
-    if combine_middle_bins:
-        num_bins = 3
+    invert_by_type = dict(confidence_invert_tuples)
 
     # Loop over models (model) and uncertainty methods (uncert_pair)
-    for _, (model, data_structs) in enumerate(bin_predictions.items()):
+    for model, data_structs in bin_predictions.items():
         correlation_dict[model] = {}
         for uncert_pair in uncertainty_error_pairs:  # uncert_pair = [pair name, error name , uncertainty name]
             uncertainty_type = uncert_pair[0]
             logger.info("All folds correlation for Model: %s, Uncertainty type %s :", uncertainty_type, model)
-            fold_errors = np.array(
-                data_structs[(data_structs["Testing Fold"].isin(np.arange(num_folds)))][
-                    [uncertainty_type + " Error"]
-                ].values.tolist()
-            ).flatten()
 
-            fold_uncertainty_values = data_structs[(data_structs["Testing Fold"].isin(np.arange(num_folds)))][
-                [uncertainty_type + " Uncertainty"]
-            ]
-
-            invert_uncert = [x[1] for x in confidence_invert_tuples if x[0] == uncertainty_type][0]
-            if invert_uncert:
-                fold_uncertainty_values = apply_confidence_inversion(fold_uncertainty_values, uncert_pair[2])
-
-            fold_uncertainty_values = np.array(fold_uncertainty_values.values.tolist()).flatten()
+            fold_errors, fold_uncertainty_values = _fold_errors_and_uncertainties(
+                data_structs, uncert_pair, invert_by_type[uncertainty_type], config.num_folds
+            )
 
             # Get the quantiles of the data w.r.t to the uncertainty values.
-            # Get the true uncertianty quantiles
-            sorted_uncertainties = np.sort(fold_uncertainty_values)
-
-            quantiles = np.arange(1 / num_bins_quantiles, 1, 1 / num_bins_quantiles)[: num_bins_quantiles - 1]
-            quantile_thresholds = [np.quantile(sorted_uncertainties, q) for q in quantiles]
-
-            # If we are combining the middle bins, combine the middle lists into 1 list.
-            if combine_middle_bins:
-                quantile_thresholds = [quantile_thresholds[0], quantile_thresholds[-1]]
+            quantile_thresholds = _quantile_thresholds(
+                fold_uncertainty_values, config.num_bins, config.combine_middle_bins
+            )
 
             # fit a piece-wise linear regression line between quantiles, and return correlation values.
             save_path_fig = (
-                os.path.join(save_path, model + "_" + uncertainty_type + "_correlation_pwr_all_targets.pdf")
-                if save_path
+                os.path.join(
+                    config.save_path,
+                    config.file_name_template.format(model=model, uncertainty=uncertainty_type),
+                )
+                if config.save_path
                 else None
             )
             corr_dict = analyze_and_plot_uncertainty_correlation(
                 fold_errors,
                 fold_uncertainty_values,
                 quantile_thresholds,
-                colormap=colormap,
-                error_scaling_factor=error_scaling_factor,
+                colormap=config.colormap,
+                error_scaling_factor=config.error_scaling_factor,
                 save_path=save_path_fig,
-                to_log=to_log,
+                to_log=config.to_log,
             )
 
             correlation_dict[model][uncertainty_type] = corr_dict

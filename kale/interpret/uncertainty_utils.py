@@ -13,6 +13,7 @@ Functions related to uncertainty-error correlation analysis in terms of:
    C) Main analysis functions: analyze_and_plot_uncertainty_correlation
 """
 import os
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
@@ -330,51 +331,145 @@ def quantile_binning_and_estimate_errors(
     return uncertainty_boundaries, estimated_errors
 
 
+@dataclass
+class CumulativePlotConfig:
+    """
+    Configuration for :func:`plot_cumulative`.
+
+    Groups the presentation, output and styling settings so that callers pass one object instead of a
+    long parameter list, and so that the plot's constants are named and overridable rather than
+    embedded in the plotting code.
+    """
+
+    # Presentation
+    colormap: str = "Set1"  # Matplotlib colormap name for consistent colours across plots
+    title: str = ""  # Plot title, e.g. "Cumulative Error Distribution - Dataset Name"
+    compare_to_all: bool = False  # If True, overlay the full dataset alongside the selected bins
+
+    # Output
+    save_path: Optional[str] = None  # Directory to save into; if None, the plot is shown interactively
+    file_name: str = "cumulative_error.pdf"  # Output file name, joined with save_path
+    dpi: int = 100  # Resolution used when saving
+    figure_size: Tuple[float, float] = (16.0, 10.0)  # Figure size (inches) used when showing interactively
+
+    # Data scaling
+    error_scaling_factor: float = 1.0  # Multiplicative factor for error values (e.g. 1.0 for mm)
+
+    # Styling
+    font_size: int = 10  # Font size for ticks, axis labels and legend
+    x_label: str = "Error (mm)"  # X-axis label
+    y_label: str = "Number of images in %"  # Y-axis label
+    reference_line_x: float = 5.0  # X position of the vertical reference line (a 5mm error threshold)
+    x_ticks: List[int] = field(default_factory=lambda: [1, 2, 3, 4, 5, 10, 20, 30])  # Explicit log-scale x ticks
+    line_styles: List[str] = field(default_factory=lambda: [":", "-", "dotted", "-."])  # Per-model line styles
+
+
+def _cumulative_curve(errors: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """Sort errors and compute the cumulative percentage of samples at or below each one.
+
+    Args:
+        errors (np.ndarray): Error values for one model and uncertainty type.
+
+    Returns:
+        tuple: Sorted errors and their cumulative percentages.
+    """
+    percentages = 100 * np.arange(len(errors)) / (len(errors) - 1)
+    return np.sort(errors), percentages
+
+
+def _model_errors(
+    dataframe: pd.DataFrame,
+    uncertainty: str,
+    bins: Optional[Union[List[int], np.ndarray]],
+    error_scaling_factor: float,
+) -> np.ndarray:
+    """Extract scaled errors for one uncertainty type, optionally restricted to given bins.
+
+    Args:
+        dataframe (pd.DataFrame): Predictions for a single model.
+        uncertainty (str): Uncertainty type whose error column is read.
+        bins (list or np.ndarray, optional): Bins to keep; when None, all rows are used.
+        error_scaling_factor (float): Multiplicative factor applied to the errors.
+
+    Returns:
+        np.ndarray: The scaled error values.
+    """
+    if bins is not None:
+        dataframe = dataframe[dataframe[uncertainty + " Uncertainty bins"].isin(bins)]
+    return dataframe[uncertainty + " Error"].values * error_scaling_factor
+
+
+def _style_cumulative_axes(ax, config: CumulativePlotConfig) -> None:
+    """Apply axis labels, fonts and the logarithmic x scale."""
+    plt.xticks(fontsize=config.font_size)
+    plt.yticks(fontsize=config.font_size)
+    ax.set_xlabel(config.x_label, fontsize=config.font_size)
+    ax.set_ylabel(config.y_label, fontsize=config.font_size)
+    plt.title(config.title)
+    ax.set_xscale("log")
+
+
+def _finalize_cumulative_axes(ax, reference_color, config: CumulativePlotConfig) -> None:
+    """Add the legend, reference line, tick formatting and colours."""
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles, labels, prop={"size": config.font_size})
+    plt.axvline(x=config.reference_line_x, color=reference_color)
+
+    for axis in [ax.xaxis, ax.yaxis]:
+        axis.set_major_formatter(ScalarFormatter())
+
+    plt.xticks(config.x_ticks)
+
+    ax.xaxis.label.set_color("black")
+    ax.yaxis.label.set_color("black")
+    ax.tick_params(axis="x", colors="black")
+    ax.tick_params(axis="y", colors="black")
+
+
+def _output_figure(config: CumulativePlotConfig) -> None:
+    """Save the current figure when a save path is set, otherwise show it."""
+    if config.save_path is not None:
+        plt.savefig(
+            os.path.join(config.save_path, config.file_name), dpi=config.dpi, bbox_inches="tight", pad_inches=0.2
+        )
+    else:
+        plt.gcf().set_size_inches(*config.figure_size)
+        plt.show()
+    plt.close()
+
+
 def plot_cumulative(
-    colormap: str,
     data_struct: Dict[str, pd.DataFrame],
     models: List[str],
     uncertainty_types: List[Tuple[str, str]],
-    bins: Union[List[int], np.ndarray],
-    title: str,
-    compare_to_all: bool = False,
-    save_path: Optional[str] = None,
-    file_name: str = "cumulative_error.pdf",
-    error_scaling_factor: float = 1,
+    bins: Union[int, List[int], np.ndarray],
+    config: Optional[CumulativePlotConfig] = None,
 ) -> None:
     """
     Generate cumulative error distribution plots for uncertainty quantification analysis.
 
-    This function creates cumulative distribution plots showing the percentage of images with errors below certain
-    thresholds. It's useful for understanding the overall error distribution across different uncertainty bins and
-    comparing model performance.
+    Creates cumulative distribution plots showing the percentage of images with errors below certain
+    thresholds, which is useful for understanding the overall error distribution across uncertainty
+    bins and for comparing model performance.
 
     Args:
-        colormap (str): Matplotlib colormap name for consistent visual distinction across plots
-            (e.g., 'Set1', 'tab10', 'viridis').
         data_struct (Dict[str, pd.DataFrame]): Dictionary containing dataframes for each model.
             Keys are model names, values are DataFrames with uncertainty and error columns.
         models (List[str]): List of model names to compare. These should be keys in data_struct.
         uncertainty_types (List[Tuple[str, str]]): List of tuples describing uncertainty-error combinations to analyze.
             Each tuple contains (uncertainty_type, error_type).
-        bins (Union[List[int], np.ndarray]): Bin indices to include in the analysis.
+        bins (Union[int, List[int], np.ndarray]): Bin indices to include in the analysis.
             Can be a single value, list, or numpy array.
-        title (str): Title for the plot (e.g., "Cumulative Error Distribution - Dataset Name").
-        compare_to_all (bool, optional): Whether to compare the given subset of bins to all data points. If True, adds
-            comparison lines for complete dataset. Defaults to False.
-        save_path (Optional[str], optional): Directory path where the plot will be saved. If None, displays the plot
-            on screen interactively instead of saving. Defaults to None.
-        file_name (str, optional): Name of the output file when saving the plot. This is joined with save_path to
-            create the full file path. Defaults to "cumulative_error.pdf".
-        error_scaling_factor (float, optional): Multiplicative factor to scale error values
-            (e.g., 1.0 for mm, 0.1 for cm). Defaults to 1.0.
+        config (CumulativePlotConfig, optional): Presentation, output and styling settings.
+            Defaults to :class:`CumulativePlotConfig`.
 
     Note:
         - The plot uses logarithmic scaling on the x-axis for better visualization of error distributions
-        - A vertical reference line is drawn at x=5 (typically representing 5mm error threshold)
+        - A vertical reference line is drawn at ``config.reference_line_x``
         - Different line styles distinguish between models and uncertainty types
         - The y-axis shows cumulative percentage (0-100%)
     """
+    config = config or CumulativePlotConfig()
 
     # make sure bins is a list and not a single value
     bins = [bins] if not isinstance(bins, (list, np.ndarray)) else bins
@@ -383,80 +478,34 @@ def plot_cumulative(
         _ = plt.figure()
 
         ax = plt.gca()
-        plt.xticks(fontsize=10)
-        plt.yticks(fontsize=10)
+        _style_cumulative_axes(ax, config)
 
-        ax.set_xlabel("Error (mm)", fontsize=10)
-        ax.set_ylabel("Number of images in %", fontsize=10)
-        plt.title(title)
-
-        ax.set_xscale("log")
-        line_styles = [":", "-", "dotted", "-."]
-        colors = colormaps.get_cmap(colormap)(np.arange(len(uncertainty_types) + 1))
+        colors = colormaps.get_cmap(config.colormap)(np.arange(len(uncertainty_types) + 1))
         for i, (uncertainty, _) in enumerate(uncertainty_types):
             color = colors[i]
             for hash_idx, model_type in enumerate(models):
-                line = line_styles[hash_idx]
+                # The selected bins, and optionally the full dataset for comparison, share one code
+                # path; they differ only in the rows kept and the line style used.
+                selections = [(bins, config.line_styles[hash_idx])]
+                if config.compare_to_all:
+                    selections.append((None, config.line_styles[len(models) + hash_idx]))
 
-                # Filter only the bins selected
-                dataframe = data_struct[model_type]
-                model_un_errors = (
-                    dataframe[dataframe[uncertainty + " Uncertainty bins"].isin(bins)][uncertainty + " Error"].values
-                    * error_scaling_factor
-                )
-
-                p = 100 * np.arange(len(model_un_errors)) / (len(model_un_errors) - 1)
-
-                sorted_errors = np.sort(model_un_errors)
-
-                ax.plot(
-                    sorted_errors,
-                    p,
-                    label=model_type + " " + uncertainty,
-                    color=color,
-                    linestyle=line,
-                    dash_capstyle="round",
-                )
-
-                if compare_to_all:
-                    dataframe = data_struct[model_type]
-                    model_un_errors = dataframe[uncertainty + " Error"].values * error_scaling_factor
-
-                    p = 100 * np.arange(len(model_un_errors)) / (len(model_un_errors) - 1)
-
-                    sorted_errors = np.sort(model_un_errors)
-                    line = line_styles[len(models) + hash_idx]
+                for selected_bins, line in selections:
+                    errors = _model_errors(
+                        data_struct[model_type], uncertainty, selected_bins, config.error_scaling_factor
+                    )
+                    sorted_errors, percentages = _cumulative_curve(errors)
                     ax.plot(
                         sorted_errors,
-                        p,
+                        percentages,
                         label=model_type + " " + uncertainty,
                         color=color,
                         linestyle=line,
                         dash_capstyle="round",
                     )
 
-        handles, labels = ax.get_legend_handles_labels()
-        ax.legend(handles, labels, prop={"size": 10})
-        plt.axvline(x=5, color=colors[len(uncertainty_types)])
-
-        for axis in [ax.xaxis, ax.yaxis]:
-            axis.set_major_formatter(ScalarFormatter())
-
-        plt.xticks([1, 2, 3, 4, 5, 10, 20, 30])
-
-        ax.xaxis.label.set_color("black")
-        ax.yaxis.label.set_color("black")
-
-        ax.tick_params(axis="x", colors="black")
-        ax.tick_params(axis="y", colors="black")
-
-        if save_path is not None:
-            plt.savefig(os.path.join(save_path, file_name), dpi=100, bbox_inches="tight", pad_inches=0.2)
-            plt.close()
-        else:
-            plt.gcf().set_size_inches(16.0, 10.0)
-            plt.show()
-            plt.close()
+        _finalize_cumulative_axes(ax, colors[len(uncertainty_types)], config)
+        _output_figure(config)
 
 
 def _calculate_correlations(uncertainties: np.ndarray, scaled_errors: np.ndarray) -> Dict[str, List[float]]:
