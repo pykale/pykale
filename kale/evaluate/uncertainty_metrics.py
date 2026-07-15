@@ -1680,15 +1680,15 @@ def bin_wise_bound_eval(
 
                 else:
                     lower = fold_bounds[q - 1]
-                    upper = 999999999999999999999999999999
+                    upper = float("inf")
 
                     if error > lower:
                         inner_bin_correct += 1
 
-            if inner_bin_correct == 0:
-                accuracy_bin = 0.0
-            elif len(inbin_errors) == 0:
+            if len(inbin_errors) == 0:
                 accuracy_bin = 1.0
+            elif inner_bin_correct == 0:
+                accuracy_bin = 0.0
             else:
                 accuracy_bin = inner_bin_correct / len(inbin_errors)
             bins_sizes.append(len(inbin_errors))
