@@ -408,12 +408,19 @@ class DataProcessor:
         bin_keys: List[List] = [[] for _ in range(num_bins)]
         bin_errors: List[List] = [[] for _ in range(num_bins)]
 
-        for bin_idx in range(num_bins):
-            keys = [key for key, val in bins_dict.items() if str(bin_idx) == str(val)]
-            errors = [errors_dict[key] for key in keys if key in errors_dict]
+        # Bins are compared as strings because they may be stored as either numbers or strings.
+        index_by_bin_label = {str(bin_idx): bin_idx for bin_idx in range(num_bins)}
 
-            bin_keys[bin_idx] = keys
-            bin_errors[bin_idx] = errors
+        # A single pass over the predictions, so grouping stays linear in the number of samples
+        # rather than rescanning them once per bin.
+        for key, bin_value in bins_dict.items():
+            bin_idx = index_by_bin_label.get(str(bin_value))
+            if bin_idx is None:  # Bin assignment outside the requested range.
+                continue
+
+            bin_keys[bin_idx].append(key)
+            if key in errors_dict:
+                bin_errors[bin_idx].append(errors_dict[key])
 
         return bin_keys, bin_errors
 
@@ -1644,17 +1651,7 @@ def bin_wise_bound_eval(
         # Keep track of #samples in each bin for weighted mean.
 
         # turn dictionary of predicted bins into [[num_bins]] array
-        pred_bins_keys = []
-        pred_bins_errors = []
-        for i in range(num_bins):
-            inner_list_bin = list([key for key, val in pred_bins_ti.items() if str(i) == str(val)])
-            inner_list_errors = []
-
-            for id_ in inner_list_bin:
-                inner_list_errors.append(list([val for key, val in true_errors_ti.items() if str(key) == str(id_)])[0])
-
-            pred_bins_errors.append(inner_list_errors)
-            pred_bins_keys.append(inner_list_bin)
+        pred_bins_keys, pred_bins_errors = DataProcessor.group_data_by_bins(true_errors_ti, pred_bins_ti, num_bins)
 
         bins_acc = []
         bins_sizes = []
@@ -1918,19 +1915,8 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, 
         )
         pred_bins_ti = dict(zip(pred_bins_ti.uid, pred_bins_ti[uncertainty_key + " Uncertainty bins"]))
 
-        pred_bins_keys = []
-        pred_bins_errors = []
-
         # This is saving them from best quantile of predictions to worst quantile of predictions in terms of uncertainty
-        for j in range(num_bins):
-            inner_list = list([key for key, val in pred_bins_ti.items() if str(j) == str(val)])
-            inner_list_errors = []
-
-            for id_ in inner_list:
-                inner_list_errors.append(list([val for key, val in true_errors_ti.items() if str(key) == str(id_)])[0])
-
-            pred_bins_errors.append(inner_list_errors)
-            pred_bins_keys.append(inner_list)
+        pred_bins_keys, pred_bins_errors = DataProcessor.group_data_by_bins(true_errors_ti, pred_bins_ti, num_bins)
 
         # Now for each bin, get the mean error
         inner_errors = []
