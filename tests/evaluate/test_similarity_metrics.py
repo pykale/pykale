@@ -116,9 +116,7 @@ class TestEvaluateCorrelations:
         mock_analyze.return_value = {}
         mock_invert.side_effect = lambda frame, key: frame
 
-        evaluate_correlations(
-            bin_predictions, UNCERTAINTY_PAIRS, [("S-MHA", True)], CorrelationConfig(num_bins=2)
-        )
+        evaluate_correlations(bin_predictions, UNCERTAINTY_PAIRS, [("S-MHA", True)], CorrelationConfig(num_bins=2))
 
         mock_invert.assert_called_once()
         assert mock_invert.call_args.args[1] == "S-MHA Uncertainty"
