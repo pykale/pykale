@@ -284,6 +284,21 @@ class TestDataProcessor:
         assert bin_keys == [[], [], []]
         assert bin_errors == [[], [], []]
 
+    def test_group_data_by_bins_matches_mixed_type_uids(self):
+        """A uid stored as an int in the errors and as a str in the bins is still matched.
+
+        The original grouping compared uids with ``str(key) == str(id_)``, so it tolerated a type
+        mismatch between the two frames. Matching on the string form keeps that behaviour; a plain
+        ``key in errors_dict`` would silently drop the errors here.
+        """
+        errors_dict = {1: 0.1, 2: 0.3}
+        bins_dict = {"1": 0, "2": 1}
+
+        bin_keys, bin_errors = DataProcessor.group_data_by_bins(errors_dict, bins_dict, 2)
+
+        assert bin_keys == [["1"], ["2"]]
+        assert bin_errors == [[0.1], [0.3]]
+
 
 class TestQuantileCalculator:
     """Test QuantileCalculator utility methods."""
