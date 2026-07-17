@@ -784,8 +784,9 @@ class WDGRLTrainer(BaseDANNLike):
     def configure_optimizers(self):
         """Configure the task/feature optimizer and, separately, the critic optimizer.
 
-        The critic is stepped manually in ``compute_loss``, so its optimizer and scheduler are
-        stored on the trainer rather than returned to PyTorch Lightning.
+        The critic is stepped manually in ``critic_update_steps`` (called from ``training_step``),
+        so its optimizer and scheduler are stored on the trainer rather than returned to PyTorch
+        Lightning.
 
         ``_configure_optimizer`` returns ``([optimizer], [scheduler])`` only for SGD with
         ``adapt_lr`` enabled, and ``[optimizer]`` otherwise; both shapes are handled here and the
