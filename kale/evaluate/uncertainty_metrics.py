@@ -1682,7 +1682,9 @@ def bin_wise_bound_eval(
                     lower = fold_bounds[q - 1]
                     upper = float("inf")
 
-                    if error > lower:
+                    # ``upper`` is unbounded for the last bin, so ``error <= upper`` is always true;
+                    # writing the condition the same way as the other bins keeps them consistent.
+                    if error <= upper and error > lower:
                         inner_bin_correct += 1
 
             if len(inbin_errors) == 0:

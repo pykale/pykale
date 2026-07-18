@@ -702,13 +702,29 @@ class TestCrossDataFrameIndexAlignment:
         assert misaligned["mean all targets"] == pytest.approx(aligned["mean all targets"])
         assert misaligned["mean all bins"] == pytest.approx(aligned["mean all bins"])
 
+
 class TestBoundEvalEmptyBinsAndOpenUpperBound:
     """Tests for issues #549 and #550 in ``bin_wise_bound_eval``."""
 
-    @staticmethod
-    def _frames(bins):
-        errors_df = pd.DataFrame({"uid": ["u0", "u1"], "Target Index": [0, 0], "S-MHA Error": [1.0, 3.0]})
-        bins_df = pd.DataFrame({"uid": ["u0", "u1"], "Target Index": [0, 0], "S-MHA Uncertainty bins": bins})
+    UNCERTAINTY = "S-MHA"
+
+    @classmethod
+    def _frames(cls, errors, bins):
+        """Build matching error and bin frames for two predictions, using the column-name constants."""
+        errors_df = pd.DataFrame(
+            {
+                ColumnNames.UID: ["u0", "u1"],
+                ColumnNames.TARGET_IDX: [0, 0],
+                cls.UNCERTAINTY + ColumnNames.ERROR_SUFFIX: errors,
+            }
+        )
+        bins_df = pd.DataFrame(
+            {
+                ColumnNames.UID: ["u0", "u1"],
+                ColumnNames.TARGET_IDX: [0, 0],
+                cls.UNCERTAINTY + ColumnNames.UNCERTAINTY_BINS_SUFFIX: bins,
+            }
+        )
         return errors_df, bins_df
 
     def test_empty_bin_scores_one(self):
@@ -718,9 +734,11 @@ class TestBoundEvalEmptyBinsAndOpenUpperBound:
         dedicated empty-bin score. Because an empty bin has size 0, it must not affect the
         size-weighted means.
         """
-        errors_df, bins_df = self._frames([0, 0])
+        errors_df, bins_df = self._frames(errors=[1.0, 3.0], bins=[0, 0])
 
-        result = bin_wise_bound_eval([[2.0]], errors_df, bins_df, targets=[0], uncertainty_type="S-MHA", num_bins=2)
+        result = bin_wise_bound_eval(
+            [[2.0]], errors_df, bins_df, targets=[0], uncertainty_type=self.UNCERTAINTY, num_bins=2
+        )
 
         # Bin 1 is empty and is scored 1.0.
         assert result["mean all"][1] == [1.0]
@@ -732,10 +750,11 @@ class TestBoundEvalEmptyBinsAndOpenUpperBound:
 
     def test_last_bin_has_no_upper_bound(self):
         """The final bin is unbounded above, so an arbitrarily large error is still correct (#550)."""
-        errors_df = pd.DataFrame({"uid": ["u0", "u1"], "Target Index": [0, 0], "S-MHA Error": [1.0, 1e31]})
-        bins_df = pd.DataFrame({"uid": ["u0", "u1"], "Target Index": [0, 0], "S-MHA Uncertainty bins": [0, 1]})
+        errors_df, bins_df = self._frames(errors=[1.0, 1e31], bins=[0, 1])
 
-        result = bin_wise_bound_eval([[2.0]], errors_df, bins_df, targets=[0], uncertainty_type="S-MHA", num_bins=2)
+        result = bin_wise_bound_eval(
+            [[2.0]], errors_df, bins_df, targets=[0], uncertainty_type=self.UNCERTAINTY, num_bins=2
+        )
 
         # 1.0 falls inside bound 2.0; 1e31 exceeds the lower bound of the open-ended last bin.
         assert result["mean all targets"] == pytest.approx(1.0)
