@@ -17,7 +17,7 @@ from functools import partial
 from pathlib import Path
 
 from torch.hub import download_url_to_file
-from torchvision.datasets.utils import download_and_extract_archive, download_file_from_google_drive, extract_archive
+from torchvision.datasets.utils import download_file_from_google_drive, download_url, extract_archive
 
 # Errors that indicate a transient/recoverable download failure and are worth retrying.
 # ``OSError`` covers socket/timeout/IO errors (``IOError`` is an alias), ``urllib.error.URLError``
@@ -112,6 +112,54 @@ def _fetch_and_verify(fetch_fn, file, md5=None, sha256=None, file_size=None):
     _verify_file(file, md5=md5, sha256=sha256, file_size=file_size)
 
 
+def _download_verify_extract(url, output_directory, output_file_name, file, md5=None, sha256=None, file_size=None):
+    """Download an archive, verify it, then extract it.
+
+    Verification happens *before* extraction so a corrupt archive is never unpacked; on a
+    verification failure the archive is left for :func:`_retry_download` to clean up and retry.
+
+    Args:
+        url (str): URL of the archive to download.
+        output_directory (str or Path): Directory to download into and extract to.
+        output_file_name (str): File name to save the archive as.
+        file (str or Path): Full path to the downloaded archive (``output_directory/output_file_name``).
+        md5 (str, optional): Expected MD5 hex digest. Defaults to None.
+        sha256 (str, optional): Expected SHA-256 hex digest. Defaults to None.
+        file_size (int, optional): Expected size in bytes. Defaults to None.
+
+    Raises:
+        RuntimeError: If verification fails (see :func:`_verify_file`).
+    """
+    download_url(url, str(output_directory), output_file_name, md5=md5)
+    _verify_file(file, md5=md5, sha256=sha256, file_size=file_size)
+    extract_archive(str(file), str(output_directory))
+
+
+def _cached_file_valid(file, md5=None, sha256=None, file_size=None):
+    """Decide whether an already-present file can be reused.
+
+    With no integrity expectation an existing file is accepted as-is. When md5/sha256/size are
+    provided the file is verified; on mismatch the corrupt file is removed and ``False`` is
+    returned so the caller re-downloads it.
+
+    Args:
+        file (str or Path): Path to the existing file.
+        md5 (str, optional): Expected MD5 hex digest. Defaults to None.
+        sha256 (str, optional): Expected SHA-256 hex digest. Defaults to None.
+        file_size (int, optional): Expected size in bytes. Defaults to None.
+
+    Returns:
+        bool: True if the file is valid and can be reused, False if it was removed as invalid.
+    """
+    try:
+        _verify_file(file, md5=md5, sha256=sha256, file_size=file_size)
+        return True
+    except RuntimeError:
+        logging.warning("Cached file failed integrity check, re-downloading: %s", file)
+        _remove_partial_files([Path(file)])
+        return False
+
+
 def _retry_download(download_fn, retries=3, backoff=2, cleanup_paths=None):
     """Execute ``download_fn`` with retry and exponential backoff.
 
@@ -190,23 +238,21 @@ def download_file_by_url(
     output_directory = Path(output_directory).absolute()
     file = output_directory.joinpath(output_file_name)
 
-    if file.exists():
+    if file.exists() and _cached_file_valid(file, md5=md5, sha256=sha256, file_size=file_size):
         logging.info("Skipping Download and Extraction")
-
         return
     output_directory.mkdir(parents=True, exist_ok=True)
 
     if file_format in ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]:
-        fetch = partial(
-            download_and_extract_archive, url=url, download_root=output_directory, filename=output_file_name
-        )
+        fetch = partial(_download_verify_extract, url, output_directory, output_file_name, file, md5, sha256, file_size)
         start_message, done_message = "Downloading and extracting {}.", "Datasets downloaded and extracted in {}"
     else:
-        fetch = partial(download_url_to_file, url, str(file))
+        download = partial(download_url_to_file, url, str(file))
+        fetch = partial(_fetch_and_verify, download, file, md5, sha256, file_size)
         start_message, done_message = "Downloading {}.", "Datasets downloaded in {}"
 
     logging.info(start_message.format(output_file_name))
-    _retry_download(partial(_fetch_and_verify, fetch, file, md5, sha256, file_size), cleanup_paths=[file])
+    _retry_download(fetch, cleanup_paths=[file])
     logging.info(done_message.format(file))
 
 

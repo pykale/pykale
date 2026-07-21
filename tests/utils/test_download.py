@@ -134,9 +134,56 @@ def test_remove_partial_files_swallows_unlink_error(tmp_path, caplog):
 
 
 def test_download_file_by_url_archive_uses_retry(tmp_path):
-    with patch("kale.utils.download.download_and_extract_archive") as mock_dl:
-        download_file_by_url("http://example.com/data.zip", tmp_path, "data.zip", "zip")
+    with patch("kale.utils.download.download_url") as mock_dl:
+        with patch("kale.utils.download.extract_archive") as mock_extract:
+            download_file_by_url("http://example.com/data.zip", tmp_path, "data.zip", "zip")
     mock_dl.assert_called_once()
+    mock_extract.assert_called_once()
+
+
+def test_download_file_by_url_archive_verifies_before_extract(tmp_path):
+    # For archives, a checksum mismatch must be caught BEFORE extraction, so the bad
+    # archive is never unpacked and is cleaned up after retries are exhausted.
+    def fake_download(url, root, filename, md5=None):
+        Path(root).joinpath(filename).write_bytes(b"corrupt-archive")
+
+    with patch("kale.utils.download.time.sleep"):
+        with patch("kale.utils.download.download_url", side_effect=fake_download):
+            with patch("kale.utils.download.extract_archive") as mock_extract:
+                with pytest.raises(RuntimeError, match="md5 mismatch"):
+                    download_file_by_url("http://example.com/data.zip", tmp_path, "data.zip", "zip", md5="0" * 32)
+    mock_extract.assert_not_called()
+    assert not (tmp_path / "data.zip").exists()
+
+
+def test_download_file_by_url_verifies_cached_file(tmp_path):
+    # A cached file that fails verification is re-downloaded rather than silently accepted.
+    good = b"the real payload"
+    file = tmp_path / "data.pkl"
+    file.write_bytes(b"stale-corrupt")  # pre-existing, wrong content
+
+    def fake_download(url, dest):
+        Path(dest).write_bytes(good)
+
+    with patch("kale.utils.download.download_url_to_file", side_effect=fake_download) as mock_dl:
+        download_file_by_url(
+            "http://example.com/data.pkl", tmp_path, "data.pkl", "pkl", md5=hashlib.md5(good).hexdigest()
+        )
+    mock_dl.assert_called_once()  # the stale cached file triggered a re-download
+    assert file.read_bytes() == good
+
+
+def test_download_file_by_url_skips_valid_cached_file(tmp_path):
+    # A cached file that passes verification is reused without downloading.
+    content = b"already here"
+    file = tmp_path / "data.pkl"
+    file.write_bytes(content)
+
+    with patch("kale.utils.download.download_url_to_file") as mock_dl:
+        download_file_by_url(
+            "http://example.com/data.pkl", tmp_path, "data.pkl", "pkl", md5=hashlib.md5(content).hexdigest()
+        )
+    mock_dl.assert_not_called()
 
 
 def test_download_file_by_url_plain_uses_retry(tmp_path):
