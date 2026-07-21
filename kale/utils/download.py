@@ -60,6 +60,20 @@ def _hash_file(file, algorithm, chunk_size=1024 * 1024):
     return hasher.hexdigest()
 
 
+def _check_size(file, file_size):
+    """Raise ``RuntimeError`` if ``file`` is not exactly ``file_size`` bytes."""
+    actual_size = file.stat().st_size
+    if actual_size != file_size:
+        raise RuntimeError(f"Size mismatch for {file}: expected {file_size} bytes, got {actual_size}")
+
+
+def _check_hash(file, algorithm, expected):
+    """Raise ``RuntimeError`` if the ``algorithm`` digest of ``file`` does not match ``expected``."""
+    actual = _hash_file(file, algorithm)
+    if actual.lower() != expected.lower():
+        raise RuntimeError(f"{algorithm} mismatch for {file}: expected {expected}, got {actual}")
+
+
 def _verify_file(file, md5=None, sha256=None, file_size=None):
     """Verify a downloaded file against optional checksums and/or an expected size.
 
@@ -83,15 +97,11 @@ def _verify_file(file, md5=None, sha256=None, file_size=None):
     if not file.exists():
         raise RuntimeError(f"Cannot verify {file}: file does not exist")
     if file_size is not None:
-        actual_size = file.stat().st_size
-        if actual_size != file_size:
-            raise RuntimeError(f"Size mismatch for {file}: expected {file_size} bytes, got {actual_size}")
-    for algorithm, expected in (("md5", md5), ("sha256", sha256)):
-        if expected is None:
-            continue
-        actual = _hash_file(file, algorithm)
-        if actual.lower() != expected.lower():
-            raise RuntimeError(f"{algorithm} mismatch for {file}: expected {expected}, got {actual}")
+        _check_size(file, file_size)
+    if md5 is not None:
+        _check_hash(file, "md5", md5)
+    if sha256 is not None:
+        _check_hash(file, "sha256", sha256)
     logging.info("Verified integrity of %s", file)
 
 
