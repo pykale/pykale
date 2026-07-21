@@ -122,6 +122,17 @@ def test_remove_partial_files_ignores_missing(tmp_path):
     assert not existing.exists()
 
 
+def test_remove_partial_files_swallows_unlink_error(tmp_path, caplog):
+    # If deleting a partial file fails (e.g. permission error), the error is logged
+    # and swallowed rather than propagated, so it cannot mask the original download error.
+    path = tmp_path / "locked.bin"
+    path.write_bytes(b"x")
+    with patch.object(Path, "unlink", side_effect=OSError("permission denied")):
+        with caplog.at_level("WARNING"):
+            _remove_partial_files([path])
+    assert any("Could not remove partial download" in message for message in caplog.messages)
+
+
 def test_download_file_by_url_archive_uses_retry(tmp_path):
     with patch("kale.utils.download.download_and_extract_archive") as mock_dl:
         download_file_by_url("http://example.com/data.zip", tmp_path, "data.zip", "zip")
@@ -219,6 +230,32 @@ def test_download_file_by_url(param):
 
     assert os.path.exists(output_directory.joinpath(output_file_name)) is True
     assert output_directory.exists()
+
+
+def test_download_file_gdrive_archive_mocked(tmp_path):
+    # Exercise the gdrive download + extract branch without hitting the network.
+    def fake_gdrive(id, root, name):
+        Path(root).joinpath(name).write_bytes(b"archive-bytes")
+
+    with patch("kale.utils.download.download_file_from_google_drive", side_effect=fake_gdrive) as mock_dl:
+        with patch("kale.utils.download.extract_archive") as mock_extract:
+            download_file_gdrive("some-id", tmp_path, "data.zip", "zip")
+    mock_dl.assert_called_once()
+    mock_extract.assert_called_once()
+    assert (tmp_path / "data.zip").exists()
+
+
+def test_download_file_gdrive_plain_mocked(tmp_path):
+    # Exercise the gdrive plain (no-extract) branch without hitting the network.
+    def fake_gdrive(id, root, name):
+        Path(root).joinpath(name).write_bytes(b"plain-bytes")
+
+    with patch("kale.utils.download.download_file_from_google_drive", side_effect=fake_gdrive) as mock_dl:
+        with patch("kale.utils.download.extract_archive") as mock_extract:
+            download_file_gdrive("some-id", tmp_path, "data.csv", "csv")
+    mock_dl.assert_called_once()
+    mock_extract.assert_not_called()
+    assert (tmp_path / "data.csv").exists()
 
 
 @pytest.mark.parametrize("param", GDRIVE_PARAM)

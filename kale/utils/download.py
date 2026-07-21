@@ -13,6 +13,7 @@ import hashlib
 import logging
 import time
 import urllib.error
+from functools import partial
 from pathlib import Path
 
 from torch.hub import download_url_to_file
@@ -92,6 +93,23 @@ def _verify_file(file, md5=None, sha256=None, file_size=None):
         if actual.lower() != expected.lower():
             raise RuntimeError(f"{algorithm} mismatch for {file}: expected {expected}, got {actual}")
     logging.info("Verified integrity of %s", file)
+
+
+def _fetch_and_verify(fetch_fn, file, md5=None, sha256=None, file_size=None):
+    """Run a download callable and then verify the resulting file.
+
+    Args:
+        fetch_fn (callable): Zero-argument callable that downloads (and optionally extracts) the file.
+        file (str or Path): Path to the downloaded file to verify.
+        md5 (str, optional): Expected MD5 hex digest. Defaults to None.
+        sha256 (str, optional): Expected SHA-256 hex digest. Defaults to None.
+        file_size (int, optional): Expected size in bytes. Defaults to None.
+
+    Raises:
+        RuntimeError: If verification fails (see :func:`_verify_file`).
+    """
+    fetch_fn()
+    _verify_file(file, md5=md5, sha256=sha256, file_size=file_size)
 
 
 def _retry_download(download_fn, retries=3, backoff=2, cleanup_paths=None):
@@ -179,23 +197,17 @@ def download_file_by_url(
     output_directory.mkdir(parents=True, exist_ok=True)
 
     if file_format in ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]:
-        logging.info("Downloading and extracting {}.".format(output_file_name))
-
-        def _download_and_extract():
-            download_and_extract_archive(url=url, download_root=output_directory, filename=output_file_name)
-            _verify_file(file, md5=md5, sha256=sha256, file_size=file_size)
-
-        _retry_download(_download_and_extract, cleanup_paths=[file])
-        logging.info("Datasets downloaded and extracted in {}".format(file))
+        fetch = partial(
+            download_and_extract_archive, url=url, download_root=output_directory, filename=output_file_name
+        )
+        start_message, done_message = "Downloading and extracting {}.", "Datasets downloaded and extracted in {}"
     else:
-        logging.info("Downloading {}.".format(output_file_name))
+        fetch = partial(download_url_to_file, url, str(file))
+        start_message, done_message = "Downloading {}.", "Datasets downloaded in {}"
 
-        def _download():
-            download_url_to_file(url, str(file))
-            _verify_file(file, md5=md5, sha256=sha256, file_size=file_size)
-
-        _retry_download(_download, cleanup_paths=[file])
-        logging.info("Datasets downloaded in {}".format(file))
+    logging.info(start_message.format(output_file_name))
+    _retry_download(partial(_fetch_and_verify, fetch, file, md5, sha256, file_size), cleanup_paths=[file])
+    logging.info(done_message.format(file))
 
 
 def download_file_gdrive(id, output_directory, output_file_name, file_format=None):
