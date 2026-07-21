@@ -5,6 +5,8 @@ import pandas as pd
 import pytest
 
 from kale.evaluate.uncertainty_metrics import (
+    bin_wise_bound_eval,
+    bin_wise_errors,
     ColumnNames,
     DataProcessor,
     evaluate_bounds,
@@ -619,3 +621,83 @@ class TestJaccardBinResults:
         assert results.mean_all_bins_recall == [0.5, 0.6, 0.7]
         assert results.mean_all_targets_precision == 0.7
         assert results.mean_all_bins_precision == [0.6, 0.7, 0.8]
+
+
+class TestCrossDataFrameIndexAlignment:
+    """Regression tests for issue #553.
+
+    ``bin_wise_bound_eval`` and ``bin_wise_errors`` must group errors by ``uid`` using each
+    frame's own ``Target Index`` column, independently of how ``fold_errors`` and ``fold_bins``
+    are indexed. Before the fix, ``fold_bins`` was filtered with a boolean mask built from
+    ``fold_errors``, so a difference in row order/index between the two frames silently produced
+    the wrong grouping (or raised). These tests deliberately misalign the two frames.
+    """
+
+    @staticmethod
+    def _errors_df():
+        return pd.DataFrame(
+            {
+                "uid": ["u0", "u1", "u2", "u3"],
+                "Target Index": [0, 0, 1, 1],
+                "S-MHA Error": [1.0, 3.0, 5.0, 7.0],
+            }
+        )
+
+    @staticmethod
+    def _bins_df():
+        return pd.DataFrame(
+            {
+                "uid": ["u0", "u1", "u2", "u3"],
+                "Target Index": [0, 0, 1, 1],
+                "S-MHA Uncertainty bins": [0, 1, 0, 1],
+            }
+        )
+
+    def test_bin_wise_errors_misaligned_index(self):
+        """Bins must be grouped by uid even when ``fold_bins`` rows are reordered/reindexed.
+
+        The reordered ``fold_bins`` holds the same per-uid data as the aligned frame; only its
+        row order and index differ. The result must match the aligned case and the hand-computed
+        expectation.
+        """
+        errors_df = self._errors_df()
+        bins_aligned = self._bins_df()
+        # Same data, rows reversed and index reset, so a label-aligned mask taken from
+        # fold_errors points at the wrong rows of fold_bins under cross-frame indexing.
+        bins_misaligned = self._bins_df().iloc[[3, 2, 1, 0]].reset_index(drop=True)
+
+        result = bin_wise_errors(
+            errors_df, bins_misaligned, num_bins=2, targets=[0, 1], uncertainty_key="S-MHA", error_scaling_factor=1
+        )
+
+        # Hand-computed: target 0 -> {bin0: 1.0, bin1: 3.0}, target 1 -> {bin0: 5.0, bin1: 7.0}
+        assert result["mean all targets"] == pytest.approx(4.0)
+        assert result["mean all bins"] == pytest.approx([3.0, 5.0])
+        assert result["all bins"] == [[1.0, 5.0], [3.0, 7.0]]
+
+        aligned = bin_wise_errors(
+            errors_df, bins_aligned, num_bins=2, targets=[0, 1], uncertainty_key="S-MHA", error_scaling_factor=1
+        )
+        assert result["mean all targets"] == pytest.approx(aligned["mean all targets"])
+        assert result["mean all bins"] == pytest.approx(aligned["mean all bins"])
+        assert result["all bins"] == aligned["all bins"]
+
+    def test_bin_wise_bound_eval_misaligned_index(self):
+        """Bound accuracy must not depend on the index alignment between the two frames."""
+        errors_df = self._errors_df()
+        bins_aligned = self._bins_df()
+        bins_misaligned = self._bins_df().iloc[[3, 2, 1, 0]].reset_index(drop=True)
+        fold_bounds_all_targets = [[2.0], [6.0]]  # one threshold per target for num_bins=2
+
+        aligned = bin_wise_bound_eval(
+            fold_bounds_all_targets, errors_df, bins_aligned, targets=[0, 1], uncertainty_type="S-MHA", num_bins=2
+        )
+        misaligned = bin_wise_bound_eval(
+            fold_bounds_all_targets, errors_df, bins_misaligned, targets=[0, 1], uncertainty_type="S-MHA", num_bins=2
+        )
+
+        # With these bounds every error falls inside its own bin, so accuracy is perfect,
+        # and the misaligned frame must yield the same result.
+        assert aligned["mean all targets"] == pytest.approx(1.0)
+        assert misaligned["mean all targets"] == pytest.approx(aligned["mean all targets"])
+        assert misaligned["mean all bins"] == pytest.approx(aligned["mean all bins"])
