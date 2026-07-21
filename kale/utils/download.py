@@ -10,35 +10,65 @@ https://github.com/pytorch/pytorch/blob/master/torch/hub.py
 """
 
 import logging
-import os
 import time
+import urllib.error
 from pathlib import Path
 
 from torch.hub import download_url_to_file
 from torchvision.datasets.utils import download_and_extract_archive, download_file_from_google_drive, extract_archive
 
+# Errors that indicate a transient/recoverable download failure and are worth retrying.
+# ``OSError`` covers socket/timeout/IO errors (``IOError`` is an alias), ``urllib.error.URLError``
+# covers HTTP/URL failures, and ``RuntimeError`` is what torchvision raises on a failed download or
+# checksum mismatch. Programming errors (e.g. ``TypeError``, ``ValueError``) are deliberately not
+# caught here so they surface immediately instead of being retried and masked.
+_DOWNLOAD_ERRORS = (OSError, RuntimeError, urllib.error.URLError)
 
-def _retry_download(download_fn, retries=3, backoff=2):
+
+def _remove_partial_files(paths):
+    """Delete any files left behind by a failed/partial download attempt.
+
+    Args:
+        paths (Iterable[Path]): Paths to remove if they exist. Missing paths are ignored.
+    """
+    for path in paths:
+        try:
+            if path.exists():
+                path.unlink()
+                logging.warning("Removed partial download: %s", path)
+        except OSError as exc:
+            logging.warning("Could not remove partial download %s: %s", path, exc)
+
+
+def _retry_download(download_fn, retries=3, backoff=2, cleanup_paths=None):
     """Execute ``download_fn`` with retry and exponential backoff.
+
+    Any files listed in ``cleanup_paths`` are removed after a failed attempt so that a
+    partially written file is not left in place for the next attempt (or on final failure).
 
     Args:
         download_fn (callable): Zero-argument callable that performs the download.
         retries (int): Maximum number of attempts. Must be >= 1. Defaults to 3.
         backoff (int): Base for exponential back-off in seconds. Must be >= 1. Defaults to 2.
+        cleanup_paths (Iterable[str or Path], optional): Target paths to delete after a failed
+            attempt. Defaults to None (nothing to clean up).
 
     Raises:
         ValueError: If ``retries`` < 1 or ``backoff`` < 1.
-        Exception: Re-raises the last exception when all retries are exhausted.
+        OSError, RuntimeError, urllib.error.URLError: Re-raises the last download error when all
+            retries are exhausted.
     """
     if retries < 1:
         raise ValueError(f"retries must be >= 1, got {retries}")
     if backoff < 1:
         raise ValueError(f"backoff must be >= 1, got {backoff}")
+    cleanup_paths = [Path(p) for p in cleanup_paths] if cleanup_paths else []
     for attempt in range(retries):
         try:
             download_fn()
             return
-        except Exception as exc:
+        except _DOWNLOAD_ERRORS as exc:
+            _remove_partial_files(cleanup_paths)
             if attempt < retries - 1:
                 wait = backoff**attempt
                 logging.warning(
@@ -74,25 +104,25 @@ def download_file_by_url(url, output_directory, output_file_name, file_format=No
     """
 
     output_directory = Path(output_directory).absolute()
-    file = Path(output_directory).joinpath(output_file_name)
+    file = output_directory.joinpath(output_file_name)
 
-    if os.path.exists(file):
+    if file.exists():
         logging.info("Skipping Download and Extraction")
 
         return
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
+    output_directory.mkdir(parents=True, exist_ok=True)
 
     if file_format in ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]:
         logging.info("Downloading and extracting {}.".format(output_file_name))
 
         _retry_download(
-            lambda: download_and_extract_archive(url=url, download_root=output_directory, filename=output_file_name)
+            lambda: download_and_extract_archive(url=url, download_root=output_directory, filename=output_file_name),
+            cleanup_paths=[file],
         )
         logging.info("Datasets downloaded and extracted in {}".format(file))
     else:
         logging.info("Downloading {}.".format(output_file_name))
-        _retry_download(lambda: download_url_to_file(url, file))
+        _retry_download(lambda: download_url_to_file(url, str(file)), cleanup_paths=[file])
         logging.info("Datasets downloaded in {}".format(file))
 
 
@@ -116,11 +146,11 @@ def download_file_gdrive(id, output_directory, output_file_name, file_format=Non
     """
 
     output_directory = Path(output_directory).absolute()
-    file = Path(output_directory).joinpath(output_file_name)
-    if os.path.exists(file):
+    file = output_directory.joinpath(output_file_name)
+    if file.exists():
         logging.info("Skipping Download and Extraction")
         return
-    os.makedirs(output_directory, exist_ok=True)
+    output_directory.mkdir(parents=True, exist_ok=True)
 
     logging.info("Downloading {}.".format(output_file_name))
     download_file_from_google_drive(id, output_directory, output_file_name)

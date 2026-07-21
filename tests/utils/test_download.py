@@ -4,7 +4,7 @@ from unittest.mock import call, MagicMock, patch
 
 import pytest
 
-from kale.utils.download import _retry_download, download_file_by_url, download_file_gdrive
+from kale.utils.download import _remove_partial_files, _retry_download, download_file_by_url, download_file_gdrive
 
 output_directory = Path().absolute().joinpath("tests/test_data/download")
 PARAM = [
@@ -47,6 +47,72 @@ def test_retry_download_raises_after_all_retries():
 def test_retry_download_invalid_args(kwargs):
     with pytest.raises(ValueError):
         _retry_download(MagicMock(), **kwargs)
+
+
+def test_retry_download_does_not_retry_programming_errors():
+    # A non-download error (e.g. TypeError) is not one of _DOWNLOAD_ERRORS, so it must
+    # propagate immediately without being retried and masked.
+    fn = MagicMock(side_effect=TypeError("bad call"))
+    with patch("kale.utils.download.time.sleep") as mock_sleep:
+        with pytest.raises(TypeError, match="bad call"):
+            _retry_download(fn, retries=3, backoff=2)
+    fn.assert_called_once()
+    mock_sleep.assert_not_called()
+
+
+def test_retry_download_cleans_partial_file_between_attempts(tmp_path):
+    # Simulate a download that writes a partial file and then fails, succeeding on the
+    # second attempt. The partial file from the failed attempt must be removed.
+    partial = tmp_path / "partial.bin"
+    attempts = {"n": 0}
+
+    def flaky():
+        attempts["n"] += 1
+        if attempts["n"] == 1:
+            partial.write_bytes(b"incomplete")
+            raise RuntimeError("connection reset")
+        # success path leaves the (now complete) file in place
+        partial.write_bytes(b"complete")
+
+    seen_after_failure = {}
+
+    original_remove = _remove_partial_files
+
+    def spy(paths):
+        paths = list(paths)
+        seen_after_failure["existed"] = partial.exists()
+        original_remove(paths)
+        seen_after_failure["removed"] = not partial.exists()
+
+    with patch("kale.utils.download.time.sleep"):
+        with patch("kale.utils.download._remove_partial_files", side_effect=spy):
+            _retry_download(flaky, retries=2, backoff=1, cleanup_paths=[partial])
+
+    assert attempts["n"] == 2
+    assert seen_after_failure["existed"] is True
+    assert seen_after_failure["removed"] is True
+
+
+def test_retry_download_cleans_partial_file_on_final_failure(tmp_path):
+    partial = tmp_path / "partial.bin"
+
+    def always_fails():
+        partial.write_bytes(b"incomplete")
+        raise RuntimeError("timeout")
+
+    with patch("kale.utils.download.time.sleep"):
+        with pytest.raises(RuntimeError, match="timeout"):
+            _retry_download(always_fails, retries=2, backoff=1, cleanup_paths=[partial])
+    assert not partial.exists()
+
+
+def test_remove_partial_files_ignores_missing(tmp_path):
+    existing = tmp_path / "there.bin"
+    existing.write_bytes(b"x")
+    missing = tmp_path / "nope.bin"
+    # Must not raise on the missing path, and must remove the existing one.
+    _remove_partial_files([existing, missing])
+    assert not existing.exists()
 
 
 def test_download_file_by_url_archive_uses_retry(tmp_path):
