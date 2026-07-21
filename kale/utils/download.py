@@ -9,6 +9,7 @@ https://github.com/pytorch/vision/blob/master/torchvision/datasets/utils.py
 https://github.com/pytorch/pytorch/blob/master/torch/hub.py
 """
 
+import hashlib
 import logging
 import time
 import urllib.error
@@ -38,6 +39,59 @@ def _remove_partial_files(paths):
                 logging.warning("Removed partial download: %s", path)
         except OSError as exc:
             logging.warning("Could not remove partial download %s: %s", path, exc)
+
+
+def _hash_file(file, algorithm, chunk_size=1024 * 1024):
+    """Compute the hex digest of a file, reading it in chunks.
+
+    Args:
+        file (str or Path): Path to the file to hash.
+        algorithm (str): Hash algorithm name understood by :func:`hashlib.new` (e.g. "md5", "sha256").
+        chunk_size (int): Number of bytes read per iteration. Defaults to 1 MiB.
+
+    Returns:
+        str: The lowercase hexadecimal digest.
+    """
+    hasher = hashlib.new(algorithm)
+    with open(file, "rb") as handle:
+        for chunk in iter(lambda: handle.read(chunk_size), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def _verify_file(file, md5=None, sha256=None, file_size=None):
+    """Verify a downloaded file against optional checksums and/or an expected size.
+
+    Verification is skipped entirely when no expectation is provided. A mismatch raises
+    ``RuntimeError`` (rather than ``ValueError``) so that, when called from within
+    :func:`_retry_download`, a corrupted download is retried and cleaned up like any other
+    transient download failure.
+
+    Args:
+        file (str or Path): Path to the downloaded file.
+        md5 (str, optional): Expected MD5 hex digest. Defaults to None (not checked).
+        sha256 (str, optional): Expected SHA-256 hex digest. Defaults to None (not checked).
+        file_size (int, optional): Expected size in bytes. Defaults to None (not checked).
+
+    Raises:
+        RuntimeError: If the file is missing or any provided expectation does not match.
+    """
+    if md5 is None and sha256 is None and file_size is None:
+        return
+    file = Path(file)
+    if not file.exists():
+        raise RuntimeError(f"Cannot verify {file}: file does not exist")
+    if file_size is not None:
+        actual_size = file.stat().st_size
+        if actual_size != file_size:
+            raise RuntimeError(f"Size mismatch for {file}: expected {file_size} bytes, got {actual_size}")
+    for algorithm, expected in (("md5", md5), ("sha256", sha256)):
+        if expected is None:
+            continue
+        actual = _hash_file(file, algorithm)
+        if actual.lower() != expected.lower():
+            raise RuntimeError(f"{algorithm} mismatch for {file}: expected {expected}, got {actual}")
+    logging.info("Verified integrity of %s", file)
 
 
 def _retry_download(download_fn, retries=3, backoff=2, cleanup_paths=None):
@@ -83,7 +137,9 @@ def _retry_download(download_fn, retries=3, backoff=2, cleanup_paths=None):
                 raise
 
 
-def download_file_by_url(url, output_directory, output_file_name, file_format=None):
+def download_file_by_url(
+    url, output_directory, output_file_name, file_format=None, md5=None, sha256=None, file_size=None
+):
     """Download file/compressed file by url.
 
     Args:
@@ -93,6 +149,13 @@ def download_file_by_url(url, output_directory, output_file_name, file_format=No
         output_file_name (string, optional): File name which object will be saved as
         file_format (string, optional): File format
                                 For compressed file, support ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]
+        md5 (string, optional): Expected MD5 hex digest of the downloaded file. When provided, the
+                                download is verified and a mismatch is retried, then raised. Defaults to None.
+        sha256 (string, optional): Expected SHA-256 hex digest of the downloaded file. Defaults to None.
+        file_size (int, optional): Expected size of the downloaded file in bytes. Defaults to None.
+
+    Raises:
+        RuntimeError: If verification is requested and the downloaded file does not match after all retries.
 
     Example: (Grab the raw link from GitHub. Notice that using "raw" in the URL.)
         >>> url = "https://github.com/pykale/data/raw/main/videos/video_test_data/ADL/annotations/labels_train_test/adl_P_04_train.pkl"
@@ -100,6 +163,9 @@ def download_file_by_url(url, output_directory, output_file_name, file_format=No
 
         >>> url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
         >>> download_file_by_url(url, "data", "video_test_data.zip", "zip")
+
+        >>> url = "https://github.com/pykale/data/raw/main/videos/video_test_data.zip"
+        >>> download_file_by_url(url, "data", "video_test_data.zip", "zip", md5="0123...")
 
     """
 
@@ -115,14 +181,20 @@ def download_file_by_url(url, output_directory, output_file_name, file_format=No
     if file_format in ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]:
         logging.info("Downloading and extracting {}.".format(output_file_name))
 
-        _retry_download(
-            lambda: download_and_extract_archive(url=url, download_root=output_directory, filename=output_file_name),
-            cleanup_paths=[file],
-        )
+        def _download_and_extract():
+            download_and_extract_archive(url=url, download_root=output_directory, filename=output_file_name)
+            _verify_file(file, md5=md5, sha256=sha256, file_size=file_size)
+
+        _retry_download(_download_and_extract, cleanup_paths=[file])
         logging.info("Datasets downloaded and extracted in {}".format(file))
     else:
         logging.info("Downloading {}.".format(output_file_name))
-        _retry_download(lambda: download_url_to_file(url, str(file)), cleanup_paths=[file])
+
+        def _download():
+            download_url_to_file(url, str(file))
+            _verify_file(file, md5=md5, sha256=sha256, file_size=file_size)
+
+        _retry_download(_download, cleanup_paths=[file])
         logging.info("Datasets downloaded in {}".format(file))
 
 

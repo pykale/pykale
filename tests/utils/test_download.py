@@ -1,10 +1,17 @@
+import hashlib
 import os
 from pathlib import Path
 from unittest.mock import call, MagicMock, patch
 
 import pytest
 
-from kale.utils.download import _remove_partial_files, _retry_download, download_file_by_url, download_file_gdrive
+from kale.utils.download import (
+    _remove_partial_files,
+    _retry_download,
+    _verify_file,
+    download_file_by_url,
+    download_file_gdrive,
+)
 
 output_directory = Path().absolute().joinpath("tests/test_data/download")
 PARAM = [
@@ -125,6 +132,81 @@ def test_download_file_by_url_plain_uses_retry(tmp_path):
     with patch("kale.utils.download.download_url_to_file") as mock_dl:
         download_file_by_url("http://example.com/data.pkl", tmp_path, "data.pkl", "pkl")
     mock_dl.assert_called_once()
+
+
+def test_verify_file_noop_without_expectations(tmp_path):
+    # No md5/sha256/size given: nothing is checked, even for a non-existent file.
+    _verify_file(tmp_path / "does_not_exist.bin")
+
+
+def test_verify_file_matches(tmp_path):
+    content = b"pykale download payload"
+    file = tmp_path / "data.bin"
+    file.write_bytes(content)
+    _verify_file(
+        file,
+        md5=hashlib.md5(content).hexdigest(),
+        sha256=hashlib.sha256(content).hexdigest(),
+        file_size=len(content),
+    )
+
+
+@pytest.mark.parametrize(
+    "kwargs, match",
+    [
+        ({"md5": "deadbeef"}, "md5 mismatch"),
+        ({"sha256": "deadbeef"}, "sha256 mismatch"),
+        ({"file_size": 999999}, "Size mismatch"),
+    ],
+)
+def test_verify_file_mismatch_raises(tmp_path, kwargs, match):
+    file = tmp_path / "data.bin"
+    file.write_bytes(b"pykale download payload")
+    with pytest.raises(RuntimeError, match=match):
+        _verify_file(file, **kwargs)
+
+
+def test_verify_file_missing_raises(tmp_path):
+    with pytest.raises(RuntimeError, match="does not exist"):
+        _verify_file(tmp_path / "missing.bin", md5="deadbeef")
+
+
+def test_download_file_by_url_verifies_and_passes(tmp_path):
+    content = b"hello world"
+
+    def fake_download(url, dest):
+        Path(dest).write_bytes(content)
+
+    with patch("kale.utils.download.download_url_to_file", side_effect=fake_download):
+        download_file_by_url(
+            "http://example.com/data.pkl",
+            tmp_path,
+            "data.pkl",
+            "pkl",
+            md5=hashlib.md5(content).hexdigest(),
+            file_size=len(content),
+        )
+    assert (tmp_path / "data.pkl").read_bytes() == content
+
+
+def test_download_file_by_url_checksum_mismatch_retries_and_cleans(tmp_path):
+    # A wrong checksum makes every attempt fail; the corrupt file must not be left behind
+    # and the error surfaces after retries are exhausted.
+    def fake_download(url, dest):
+        Path(dest).write_bytes(b"corrupted")
+
+    with patch("kale.utils.download.time.sleep"):
+        with patch("kale.utils.download.download_url_to_file", side_effect=fake_download) as mock_dl:
+            with pytest.raises(RuntimeError, match="md5 mismatch"):
+                download_file_by_url(
+                    "http://example.com/data.pkl",
+                    tmp_path,
+                    "data.pkl",
+                    "pkl",
+                    md5="0" * 32,
+                )
+    assert mock_dl.call_count == 3
+    assert not (tmp_path / "data.pkl").exists()
 
 
 @pytest.mark.parametrize("param", PARAM)
