@@ -410,8 +410,12 @@ class DataProcessor:
         bin_keys: List[List] = [[] for _ in range(num_bins)]
         bin_errors: List[List] = [[] for _ in range(num_bins)]
 
-        # Bins are compared as strings because they may be stored as either numbers or strings.
+        # Bins and uids are both compared as strings because either may be stored as a number or a
+        # string. The original grouping used str(...) on both sides, so a uid stored as an int in
+        # one frame and a str in the other still lined up; indexing the errors by str(uid) preserves
+        # that while staying linear.
         index_by_bin_label = {str(bin_idx): bin_idx for bin_idx in range(num_bins)}
+        errors_by_str_uid = {str(key): value for key, value in errors_dict.items()}
 
         # A single pass over the predictions, so grouping stays linear in the number of samples
         # rather than rescanning them once per bin.
@@ -421,8 +425,9 @@ class DataProcessor:
                 continue
 
             bin_keys[bin_idx].append(key)
-            if key in errors_dict:
-                bin_errors[bin_idx].append(errors_dict[key])
+            str_uid = str(key)
+            if str_uid in errors_by_str_uid:
+                bin_errors[bin_idx].append(errors_by_str_uid[str_uid])
 
         return bin_keys, bin_errors
 

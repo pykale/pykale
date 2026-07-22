@@ -237,56 +237,46 @@ class TestResultsContainer:
 class TestDataProcessor:
     """Test DataProcessor utility methods."""
 
-    def test_group_data_by_bins(self):
-        """Test grouping data by bins."""
-        errors_dict = {"pred1": 0.1, "pred2": 0.3, "pred3": 0.2, "pred4": 0.4}
-        bins_dict = {"pred1": 0, "pred2": 1, "pred3": 0, "pred4": 1}
+    @pytest.mark.parametrize(
+        "errors_dict, bins_dict, num_bins, expected_keys, expected_errors",
+        [
+            # Basic two-bin grouping, keeping the order predictions appear in the bins mapping.
+            (
+                {"pred1": 0.1, "pred2": 0.3, "pred3": 0.2, "pred4": 0.4},
+                {"pred1": 0, "pred2": 1, "pred3": 0, "pred4": 1},
+                2,
+                [["pred1", "pred3"], ["pred2", "pred4"]],
+                [[0.1, 0.2], [0.3, 0.4]],
+            ),
+            # Within a bin, predictions keep the order they appear in the bins mapping.
+            ({"a": 0.5, "b": 0.1, "c": 0.9}, {"c": 0, "a": 0, "b": 0}, 1, [["c", "a", "b"]], [[0.9, 0.5, 0.1]]),
+            # Bin labels stored as strings group the same as numeric ones.
+            ({"pred1": 0.1, "pred2": 0.3}, {"pred1": "0", "pred2": "1"}, 2, [["pred1"], ["pred2"]], [[0.1], [0.3]]),
+            # Predictions assigned outside the requested bin range are left out.
+            (
+                {"pred1": 0.1, "pred2": 0.3, "pred3": 0.2},
+                {"pred1": 0, "pred2": 5, "pred3": -1},
+                2,
+                [["pred1"], []],
+                [[0.1], []],
+            ),
+            # An empty set of predictions yields one empty list per bin.
+            ({}, {}, 3, [[], [], []], [[], [], []]),
+            # A uid stored as an int in the errors and as a str in the bins is still matched, keeping
+            # the original str(key) == str(id_) behaviour; a plain ``key in errors_dict`` would drop it.
+            ({1: 0.1, 2: 0.3}, {"1": 0, "2": 1}, 2, [["1"], ["2"]], [[0.1], [0.3]]),
+        ],
+    )
+    def test_group_data_by_bins(self, errors_dict, bins_dict, num_bins, expected_keys, expected_errors):
+        """Group predictions and their errors into bins across a range of inputs.
 
-        bin_keys, bin_errors = DataProcessor.group_data_by_bins(errors_dict, bins_dict, 2)
+        Covers ordering within a bin, string bin labels, out-of-range bins, empty input, and mixed
+        int/str uids between the two frames.
+        """
+        bin_keys, bin_errors = DataProcessor.group_data_by_bins(errors_dict, bins_dict, num_bins)
 
-        assert len(bin_keys) == 2
-        assert len(bin_errors) == 2
-        assert set(bin_keys[0]) == {"pred1", "pred3"}
-        assert set(bin_keys[1]) == {"pred2", "pred4"}
-        assert bin_errors[0] == [0.1, 0.2]
-        assert bin_errors[1] == [0.3, 0.4]
-
-    def test_group_data_by_bins_preserves_prediction_order(self):
-        """Within a bin, predictions keep the order they appear in the bins mapping."""
-        errors_dict = {"a": 0.5, "b": 0.1, "c": 0.9}
-        bins_dict = {"c": 0, "a": 0, "b": 0}
-
-        bin_keys, bin_errors = DataProcessor.group_data_by_bins(errors_dict, bins_dict, 1)
-
-        assert bin_keys[0] == ["c", "a", "b"]
-        assert bin_errors[0] == [0.9, 0.5, 0.1]
-
-    def test_group_data_by_bins_accepts_string_bin_labels(self):
-        """Bin assignments stored as strings group the same as numeric ones."""
-        errors_dict = {"pred1": 0.1, "pred2": 0.3}
-        bins_dict = {"pred1": "0", "pred2": "1"}
-
-        bin_keys, bin_errors = DataProcessor.group_data_by_bins(errors_dict, bins_dict, 2)
-
-        assert bin_keys == [["pred1"], ["pred2"]]
-        assert bin_errors == [[0.1], [0.3]]
-
-    def test_group_data_by_bins_ignores_out_of_range_bins(self):
-        """Predictions assigned outside the requested bin range are left out."""
-        errors_dict = {"pred1": 0.1, "pred2": 0.3, "pred3": 0.2}
-        bins_dict = {"pred1": 0, "pred2": 5, "pred3": -1}
-
-        bin_keys, bin_errors = DataProcessor.group_data_by_bins(errors_dict, bins_dict, 2)
-
-        assert bin_keys == [["pred1"], []]
-        assert bin_errors == [[0.1], []]
-
-    def test_group_data_by_bins_handles_empty_input(self):
-        """An empty set of predictions yields one empty list per bin."""
-        bin_keys, bin_errors = DataProcessor.group_data_by_bins({}, {}, 3)
-
-        assert bin_keys == [[], [], []]
-        assert bin_errors == [[], [], []]
+        assert bin_keys == expected_keys
+        assert bin_errors == expected_errors
 
 
 class TestQuantileCalculator:
