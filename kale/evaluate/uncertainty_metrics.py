@@ -1584,6 +1584,41 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, targets, num_
     return evaluator.evaluate(bin_predictions, uncertainty_pairs, targets)
 
 
+def _bin_error_bounds(q: int, num_bins: int, fold_bounds: list) -> Tuple[float, float]:
+    """Return the ``(lower, upper]`` error bounds for quantile bin ``q``.
+
+    The first bin starts at 0 and the last bin is open above (``inf``); the intermediate bins
+    take their bounds from consecutive entries of ``fold_bounds``.
+
+    Args:
+        q (int): Index of the quantile bin.
+        num_bins (int): Total number of quantile bins.
+        fold_bounds (list): Estimated error bounds for this target, one per bin edge.
+
+    Returns:
+        tuple: The ``(lower, upper)`` bounds, where membership is ``lower < error <= upper``.
+    """
+    if q == 0:
+        return 0, fold_bounds[q]
+    if q < num_bins - 1:
+        return fold_bounds[q - 1], fold_bounds[q]
+    return fold_bounds[q - 1], float("inf")
+
+
+def _count_within_bounds(errors: list, lower: float, upper: float) -> int:
+    """Count how many ``errors`` fall in the half-open interval ``(lower, upper]``.
+
+    Args:
+        errors (list): Error values in a single bin.
+        lower (float): Exclusive lower bound.
+        upper (float): Inclusive upper bound (``inf`` for the open-ended last bin).
+
+    Returns:
+        int: The number of errors within the bounds.
+    """
+    return sum(1 for error in errors if lower < error <= upper)
+
+
 def bin_wise_bound_eval(
     fold_bounds_all_targets: list,
     fold_errors: pd.DataFrame,
@@ -1659,33 +1694,10 @@ def bin_wise_bound_eval(
         bins_acc = []
         bins_sizes = []
         for q in range((num_bins)):
-            inner_bin_correct = 0
-
             inbin_errors = pred_bins_errors[q]
 
-            for error in inbin_errors:
-                if q == 0:
-                    lower = 0
-                    upper = fold_bounds[q]
-
-                    if error <= upper and error > lower:
-                        inner_bin_correct += 1
-
-                elif q < (num_bins) - 1:
-                    lower = fold_bounds[q - 1]
-                    upper = fold_bounds[q]
-
-                    if error <= upper and error > lower:
-                        inner_bin_correct += 1
-
-                else:
-                    lower = fold_bounds[q - 1]
-                    upper = float("inf")
-
-                    # ``upper`` is unbounded for the last bin, so ``error <= upper`` is always true;
-                    # writing the condition the same way as the other bins keeps them consistent.
-                    if error <= upper and error > lower:
-                        inner_bin_correct += 1
+            lower, upper = _bin_error_bounds(q, num_bins, fold_bounds)
+            inner_bin_correct = _count_within_bounds(inbin_errors, lower, upper)
 
             if len(inbin_errors) == 0:
                 accuracy_bin = 1.0
