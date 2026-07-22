@@ -164,7 +164,7 @@ def evaluate_correlations(
         correlation_dict[model] = {}
         for uncert_pair in uncertainty_error_pairs:  # uncert_pair = [pair name, error name , uncertainty name]
             uncertainty_type = uncert_pair[0]
-            logger.info("All folds correlation for Model: %s, Uncertainty type %s :", uncertainty_type, model)
+            logger.info("All folds correlation for Model: %s, Uncertainty type %s :", model, uncertainty_type)
 
             fold_errors, fold_uncertainty_values = _fold_errors_and_uncertainties(
                 data_structs, uncert_pair, invert_by_type[uncertainty_type], config.num_folds
