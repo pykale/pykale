@@ -25,7 +25,7 @@ from torch_geometric.data import Data, Dataset, download_url, extract_zip
 from torch_sparse import SparseTensor
 
 from kale.evaluate.metrics import calculate_distance, DistanceMetric
-from kale.utils.serialization import load_pyg_data
+from kale.loaddata.pyg_serialization import load_pyg_data
 
 
 class MultiomicsDataset(Dataset):

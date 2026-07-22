@@ -46,14 +46,6 @@ kale.utils.save\_xlsx module
    :undoc-members:
    :show-inheritance:
 
-kale.utils.serialization module
--------------------------------
-
-.. automodule:: kale.utils.serialization
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kale.utils.seed module
 ----------------------
 

@@ -2,7 +2,7 @@ import pytest
 import torch
 from torch_geometric.data import Data
 
-from kale.utils.serialization import get_pyg_safe_globals, load_pyg_data
+from kale.loaddata.pyg_serialization import get_pyg_safe_globals, load_pyg_data
 
 
 class Exploit:

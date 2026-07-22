@@ -3,8 +3,8 @@ import os
 from torch.utils.data import Dataset
 from torch_geometric.data.data import Data
 
+from kale.loaddata.pyg_serialization import load_pyg_data
 from kale.utils.download import download_file_by_url
-from kale.utils.serialization import load_pyg_data
 
 
 class PolypharmacyDataset(Dataset):

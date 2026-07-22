@@ -70,6 +70,14 @@ kale.loaddata.polypharmacy\_datasets module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.pyg\_serialization module
+---------------------------------------
+
+.. automodule:: kale.loaddata.pyg_serialization
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.sampler module
 ----------------------------
 
