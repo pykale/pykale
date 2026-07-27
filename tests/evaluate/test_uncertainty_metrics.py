@@ -177,6 +177,10 @@ class TestEvaluateBounds:
             == 8 * 2
         )  # because each landmark has 8 folds - they are sep
 
+
+class TestBinWiseBoundEvalScoring:
+    """Scoring behaviour of ``bin_wise_bound_eval`` for empty and open-ended bins (#549, #550)."""
+
     UNCERTAINTY = "S-MHA"
 
     @classmethod
