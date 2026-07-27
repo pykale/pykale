@@ -3,6 +3,7 @@
 import datetime
 import logging
 import os
+import subprocess
 import uuid
 
 
@@ -50,8 +51,8 @@ def construct_logger(name, save_dir, log_to_terminal=False):
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     gitdiff_patch = os.path.join(save_dir, file_no_ext + ".gitdiff.patch")
-    os.system(f"git diff HEAD > {gitdiff_patch}")
-
+    with open(gitdiff_patch, "wb") as f:
+        subprocess.run(["git", "diff", "HEAD"], stdout=f, stderr=subprocess.DEVNULL, check=False)
     if log_to_terminal:
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
