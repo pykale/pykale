@@ -2,7 +2,7 @@ import pytest
 import torch
 from torch_geometric.data import Data
 
-from kale.loaddata.pyg_serialization import get_pyg_safe_globals, load_pyg_data
+from kale.loaddata.graph_access import get_graph_safe_globals, load_graph_data
 
 
 class Exploit:
@@ -20,29 +20,29 @@ class Exploit:
         return (eval, (f"__import__('pathlib').Path(r'{self.marker_path}').write_text('executed')",))
 
 
-def test_load_pyg_data_reads_data_object(tmp_path):
+def test_load_graph_data_reads_data_object(tmp_path):
     """A saved Data object round-trips through the safe loader."""
     path = tmp_path / "data.pt"
     torch.save(Data(x=torch.rand(3, 2), edge_index=torch.tensor([[0, 1], [1, 2]])), path)
 
-    loaded = load_pyg_data(str(path))
+    loaded = load_graph_data(str(path))
 
     assert isinstance(loaded, Data)
     assert loaded.x.shape == (3, 2)
 
 
-def test_load_pyg_data_reads_list_of_data_objects(tmp_path):
+def test_load_graph_data_reads_list_of_data_objects(tmp_path):
     """Multiomics stores a list of Data objects, which must load as a list."""
     path = tmp_path / "data.pt"
     torch.save([Data(x=torch.rand(2, 2)), Data(x=torch.rand(2, 2))], path)
 
-    loaded = load_pyg_data(str(path))
+    loaded = load_graph_data(str(path))
 
     assert isinstance(loaded, list)
     assert all(isinstance(item, Data) for item in loaded)
 
 
-def test_load_pyg_data_rejects_arbitrary_objects(tmp_path):
+def test_load_graph_data_rejects_arbitrary_objects(tmp_path):
     """A class outside the allow-list is refused rather than reconstructed.
 
     This is the guarantee that separates the safe loader from weights_only=False: allow-listing the
@@ -55,14 +55,14 @@ def test_load_pyg_data_rejects_arbitrary_objects(tmp_path):
     torch.save(Exploit(marker), path)
 
     with pytest.raises(Exception):
-        load_pyg_data(str(path))
+        load_graph_data(str(path))
 
     assert not marker.exists(), "the payload executed - the safe loader failed to reject it"
 
 
-def test_pyg_safe_globals_contain_no_callables_that_execute():
+def test_graph_safe_globals_contain_no_callables_that_execute():
     """The allow-list holds only container/array types, never arbitrary builtins."""
     forbidden = {"eval", "exec", "system", "Popen", "apply"}
 
-    for allowed in get_pyg_safe_globals():
+    for allowed in get_graph_safe_globals():
         assert getattr(allowed, "__name__", "") not in forbidden

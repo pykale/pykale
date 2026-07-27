@@ -14,7 +14,7 @@ from typing import Any, List
 import torch
 
 
-def get_pyg_safe_globals() -> List[Any]:
+def get_graph_safe_globals() -> List[Any]:
     """Classes required to rebuild PyTorch Geometric ``Data`` objects under ``weights_only=True``.
 
     Only container and array types are included. None of them execute code on unpickling, so
@@ -61,7 +61,7 @@ def get_pyg_safe_globals() -> List[Any]:
     return allowed
 
 
-def load_pyg_data(path: str, **kwargs) -> Any:
+def load_graph_data(path: str, **kwargs) -> Any:
     """Load a PyTorch Geometric object saved with ``torch.save``, without allowing code execution.
 
     Args:
@@ -73,10 +73,10 @@ def load_pyg_data(path: str, **kwargs) -> Any:
         The deserialized object, typically a ``Data`` instance or a list of them.
 
     Example:
-        >>> data = load_pyg_data("data.pt")
+        >>> data = load_graph_data("data.pt")
     """
     # weights_only is fixed to True so the safe path cannot be overridden by a caller; dropping any
     # supplied value also avoids "got multiple values for keyword argument" from torch.load.
     kwargs.pop("weights_only", None)
-    with torch.serialization.safe_globals(get_pyg_safe_globals()):
+    with torch.serialization.safe_globals(get_graph_safe_globals()):
         return torch.load(path, weights_only=True, **kwargs)

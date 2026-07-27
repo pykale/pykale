@@ -70,10 +70,10 @@ kale.loaddata.polypharmacy\_datasets module
    :undoc-members:
    :show-inheritance:
 
-kale.loaddata.pyg\_serialization module
----------------------------------------
+kale.loaddata.graph\_access module
+----------------------------------
 
-.. automodule:: kale.loaddata.pyg_serialization
+.. automodule:: kale.loaddata.graph_access
    :members:
    :undoc-members:
    :show-inheritance:
