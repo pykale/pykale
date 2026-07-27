@@ -65,7 +65,7 @@ from typing import Any, Callable, cast, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from kale.evaluate.similarity_metrics import evaluate_correlations
+from kale.evaluate.similarity_metrics import CorrelationConfig, evaluate_correlations
 from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard, get_mean_errors
 from kale.interpret.box_plot import (
     execute_boxplot,
@@ -73,7 +73,7 @@ from kale.interpret.box_plot import (
     plot_per_model_boxplot,
     plot_q_comparing_boxplot,
 )
-from kale.interpret.uncertainty_utils import plot_cumulative
+from kale.interpret.uncertainty_utils import CumulativePlotConfig, plot_cumulative
 from kale.prepdata.tabular_transform import generate_struct_for_qbin
 from kale.utils.save_xlsx import generate_summary_df
 
@@ -441,6 +441,103 @@ class QuantileBinningAnalyzer:
         ext = self.figure_format if is_figure else self.data_format
         return f"{base_name}.{ext}"
 
+    def _plot_correlations(self, config: QuantileBinningConfig, eval_data: Dict[str, Any]) -> None:
+        """
+        Analyze and plot the correlation between uncertainty estimates and actual errors.
+
+        Args:
+            config (QuantileBinningConfig): Configuration for this analysis.
+            eval_data (Dict[str, Any]): Evaluation data, keyed by metric, as produced by the analysis.
+        """
+        evaluate_correlations(
+            eval_data["bins"],
+            config.uncertainty_error_pairs,
+            config.confidence_invert,
+            CorrelationConfig(
+                num_bins=config.num_bins,
+                num_folds=config.num_folds,
+                colormap=self.boxplot_config.get("colormap", "Set1"),
+                error_scaling_factor=config.error_scaling_factor,
+                combine_middle_bins=config.combine_middle_bins,
+                save_path=self.save_folder if self.save_figures else None,
+                to_log=True,
+            ),
+        )
+
+    def _cumulative_plot_config(
+        self, config: QuantileBinningConfig, title: str, file_name: str, compare_to_all: bool = False
+    ) -> CumulativePlotConfig:
+        """
+        Build a cumulative plot configuration, holding the settings shared by every cumulative plot.
+
+        Args:
+            config (QuantileBinningConfig): Configuration for this analysis.
+            title (str): Title for the plot.
+            file_name (str): File name stem, expanded by :meth:`_build_filename`.
+            compare_to_all (bool): Whether to overlay the full dataset alongside the selected bins.
+
+        Returns:
+            CumulativePlotConfig: The configuration to pass to :func:`plot_cumulative`.
+        """
+        return CumulativePlotConfig(
+            colormap=self.boxplot_config.get("colormap", "Set1"),
+            title=title,
+            compare_to_all=compare_to_all,
+            save_path=self.save_folder if self.save_figures else None,
+            file_name=self._build_filename(file_name),
+            error_scaling_factor=config.error_scaling_factor,
+        )
+
+    def _plot_cumulative_errors(self, config: QuantileBinningConfig, eval_data: Dict[str, Any]) -> None:
+        """
+        Plot cumulative error distributions for all predictions, for B1 only, and for B1 against all.
+
+        Args:
+            config (QuantileBinningConfig): Configuration for this analysis.
+            eval_data (Dict[str, Any]): Evaluation data, keyed by metric, as produced by the analysis.
+        """
+        # Extract just the base names (first element) for plot_cumulative
+        uncertainty_pairs = [(name, name) for name, err, unc in config.uncertainty_error_pairs]
+
+        plot_cumulative(
+            eval_data["bins"],
+            config.models,
+            uncertainty_pairs,
+            np.arange(config.num_bins),
+            self._cumulative_plot_config(
+                config,
+                CUMULATIVE_ERROR_TITLE_TEMPLATE.format(config.dataset),
+                FILE_NAME_ALL_PREDICTIONS_CUMULATIVE_ERROR,
+            ),
+        )
+        # Plot cumulative error figure for B1 only predictions
+        plot_cumulative(
+            eval_data["bins"],
+            config.models,
+            uncertainty_pairs,
+            0,
+            self._cumulative_plot_config(
+                config,
+                CUMULATIVE_ERROR_B1_TITLE_TEMPLATE.format(config.dataset),
+                FILE_NAME_B1_PREDICTIONS_CUMULATIVE_ERROR,
+            ),
+        )
+
+        # Plot cumulative error figure comparing B1 and ALL, for both models
+        for model_type in config.models:
+            plot_cumulative(
+                eval_data["bins"],
+                [model_type],
+                uncertainty_pairs,
+                0,
+                self._cumulative_plot_config(
+                    config,
+                    CUMULATIVE_ERROR_B1_VS_ALL_TITLE_TEMPLATE.format(model_type, config.dataset),
+                    FILE_NAME_B1_VS_ALL_CUMULATIVE_ERROR_TEMPLATE.format(model_type),
+                    compare_to_all=True,
+                ),
+            )
+
     def run_individual_bin_comparison(self, config: QuantileBinningConfig) -> None:
         """
         Execute comprehensive comparative analysis of different models and uncertainty types at fixed bin counts.
@@ -519,64 +616,10 @@ class QuantileBinningAnalyzer:
         category_labels = [rf"$B_{{{num_bins_display + 1 - (i + 1)}}}$" for i in range(num_bins_display + 1)]
         # --- Start plotting ---
         if self.display_settings.get("correlation"):
-            colormap = self.boxplot_config.get("colormap", "Set1")
-            uncertainty_error_model_triples = config.uncertainty_error_pairs
-            # confidence_invert is already properly typed as List[Tuple[str, bool]]
-            evaluate_correlations(
-                eval_data["bins"],
-                uncertainty_error_model_triples,
-                config.num_bins,
-                config.confidence_invert,
-                num_folds=config.num_folds,
-                colormap=colormap,
-                error_scaling_factor=config.error_scaling_factor,
-                combine_middle_bins=config.combine_middle_bins,
-                save_path=self.save_folder if self.save_figures else None,
-                to_log=True,
-            )
+            self._plot_correlations(config, eval_data)
 
         if self.display_settings.get("cumulative_error"):
-            colormap = self.boxplot_config.get("colormap", "Set1")
-            # Extract just the base names (first element) for plot_cumulative
-            extracted_uncertainty_error_pairs = [(name, name) for name, err, unc in config.uncertainty_error_pairs]
-            plot_cumulative(
-                colormap,
-                eval_data["bins"],
-                config.models,
-                extracted_uncertainty_error_pairs,
-                np.arange(config.num_bins),
-                CUMULATIVE_ERROR_TITLE_TEMPLATE.format(config.dataset),
-                save_path=self.save_folder if self.save_figures else None,
-                file_name=self._build_filename(FILE_NAME_ALL_PREDICTIONS_CUMULATIVE_ERROR),
-                error_scaling_factor=config.error_scaling_factor,
-            )
-            # Plot cumulative error figure for B1 only predictions
-            plot_cumulative(
-                colormap,
-                eval_data["bins"],
-                config.models,
-                extracted_uncertainty_error_pairs,
-                0,
-                CUMULATIVE_ERROR_B1_TITLE_TEMPLATE.format(config.dataset),
-                save_path=self.save_folder if self.save_figures else None,
-                file_name=self._build_filename(FILE_NAME_B1_PREDICTIONS_CUMULATIVE_ERROR),
-                error_scaling_factor=config.error_scaling_factor,
-            )
-
-            # Plot cumulative error figure comparing B1 and ALL, for both models
-            for model_type in config.models:
-                plot_cumulative(
-                    colormap,
-                    eval_data["bins"],
-                    [model_type],
-                    extracted_uncertainty_error_pairs,
-                    0,
-                    CUMULATIVE_ERROR_B1_VS_ALL_TITLE_TEMPLATE.format(model_type, config.dataset),
-                    compare_to_all=True,
-                    save_path=self.save_folder if self.save_figures else None,
-                    file_name=self._build_filename(FILE_NAME_B1_VS_ALL_CUMULATIVE_ERROR_TEMPLATE.format(model_type)),
-                    error_scaling_factor=config.error_scaling_factor,
-                )
+            self._plot_cumulative_errors(config, eval_data)
 
         if self.display_settings.get("errors"):
             uncertainty_categories = [[name, name] for name, err, unc in config.uncertainty_error_pairs]

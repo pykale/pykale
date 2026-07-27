@@ -5,6 +5,7 @@ import pytest
 
 from kale.interpret.uncertainty_utils import (
     analyze_and_plot_uncertainty_correlation,
+    CumulativePlotConfig,
     plot_cumulative,
     quantile_binning_and_estimate_errors,
 )
@@ -154,13 +155,11 @@ class TestPlotFunctions:
         mock_gca.return_value = mock_ax
 
         plot_cumulative(
-            colormap="Set1",
             data_struct=data_struct,
             models=["ResNet50"],
             uncertainty_types=[("epistemic", "")],
             bins=[1, 2],
-            title="Test Plot",
-            save_path=None,
+            config=CumulativePlotConfig(colormap="Set1", title="Test Plot", save_path=None),
         )
 
         mock_style_context.assert_called_once_with("ggplot")
@@ -190,13 +189,11 @@ class TestPlotFunctions:
 
         save_path = str(tmp_path)
         plot_cumulative(
-            colormap="Set1",
             data_struct=data_struct,
             models=["ResNet50"],
             uncertainty_types=[("epistemic", "")],
             bins=[1, 2],
-            title="Test Plot",
-            save_path=save_path,
+            config=CumulativePlotConfig(colormap="Set1", title="Test Plot", save_path=save_path),
         )
 
         mock_savefig.assert_called_once()
@@ -317,3 +314,53 @@ class TestParameterValidation:
         # Zero bins should raise a ZeroDivisionError
         with pytest.raises(ZeroDivisionError):
             quantile_binning_and_estimate_errors(ERRORS, UNCERTAINTIES, num_bins=0)
+
+
+class TestCumulativePlotConfig:
+    """Configuration defaults and overrides for plot_cumulative (issue #555)."""
+
+    def test_defaults_match_previous_hardcoded_values(self):
+        """The defaults preserve the constants the plotting code used to embed inline."""
+        config = CumulativePlotConfig()
+
+        assert config.colormap == "Set1"
+        assert config.file_name == "cumulative_error.pdf"
+        assert config.error_scaling_factor == 1.0
+        assert config.compare_to_all is False
+        assert config.font_size == 10
+        assert config.reference_line_x == 5.0
+        assert config.x_ticks == [1, 2, 3, 4, 5, 10, 20, 30]
+        assert config.line_styles == [":", "-", "dotted", "-."]
+        assert config.figure_size == (16.0, 10.0)
+        assert config.dpi == 100
+
+    def test_mutable_defaults_are_not_shared(self):
+        """Each config owns its list fields, so mutating one cannot affect another."""
+        first, second = CumulativePlotConfig(), CumulativePlotConfig()
+
+        first.x_ticks.append(99)
+        first.line_styles.append("--")
+
+        assert 99 not in second.x_ticks
+        assert "--" not in second.line_styles
+
+    @patch("matplotlib.pyplot.close")
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.gca")
+    def test_config_overrides_are_applied(self, mock_gca, mock_savefig, mock_close, tmp_path):
+        """Overridden styling and output settings reach matplotlib."""
+        pd = pytest.importorskip("pandas")
+        frame = pd.DataFrame({"epistemic Uncertainty bins": [1, 1, 2], "epistemic Error": [1.0, 2.0, 3.0]})
+        mock_ax = MagicMock()
+        mock_ax.get_legend_handles_labels.return_value = ([], [])
+        mock_gca.return_value = mock_ax
+
+        config = CumulativePlotConfig(
+            title="Custom", save_path=str(tmp_path), file_name="custom.pdf", dpi=42, x_label="X", y_label="Y"
+        )
+        plot_cumulative({"m": frame}, ["m"], [("epistemic", "")], [1, 2], config)
+
+        mock_ax.set_xlabel.assert_called_once_with("X", fontsize=10)
+        mock_ax.set_ylabel.assert_called_once_with("Y", fontsize=10)
+        assert mock_savefig.call_args.args[0].endswith("custom.pdf")
+        assert mock_savefig.call_args.kwargs["dpi"] == 42
