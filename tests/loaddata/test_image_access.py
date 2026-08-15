@@ -9,6 +9,12 @@ from kale.loaddata.image_access import DigitDataset, DigitDatasetAccess, get_cif
 from kale.loaddata.multi_domain import BiDomainDatasets, DomainsDatasetBase, MultiDomainDataset
 
 
+class _TensorDatasetWithTargets(torch.utils.data.TensorDataset):
+    def __init__(self, data, targets):
+        super().__init__(data, targets)
+        self.targets = targets
+
+
 @pytest.mark.parametrize("test_on_all", [True, False])
 def test_office31(office_path, test_on_all):
     office_access = ImageAccess.get_multi_domain_images(
@@ -43,6 +49,26 @@ def test_custom_office(office_path, split_ratio):
     dataset.prepare_data_loaders()
     dataloader = dataset.get_domain_loaders()
     testing.assert_equal(len(next(iter(dataloader))), 2)
+
+
+def test_bidomain_semisupervised_target_loader_uses_labeled_and_unlabeled_target_splits():
+    source = _TensorDatasetWithTargets(torch.arange(16).view(8, 2).float(), torch.tensor([0, 1] * 4))
+    target = _TensorDatasetWithTargets(torch.arange(24).view(12, 2).float(), torch.tensor([0, 1] * 6))
+    labeled_target = _TensorDatasetWithTargets(torch.arange(8).view(4, 2).float(), torch.tensor([0, 1, 0, 1]))
+
+    dataset = BiDomainDatasets(source_access=None, target_access=None, config_size_type="max")
+    dataset._source_by_split["train"] = source
+    dataset._target_by_split["train"] = target
+    dataset._labeled_target_by_split = {"train": labeled_target}
+
+    dataloader = dataset.get_domain_loaders(split="train", batch_size=6, num_workers=0)
+    source_batch, labeled_target_batch, unlabeled_target_batch = next(iter(dataloader))
+
+    assert len(dataloader) == 2
+    assert len(source_batch[0]) == 6
+    assert len(labeled_target_batch[0]) == len(labeled_target)
+    assert len(unlabeled_target_batch[0]) == 6
+    testing.assert_array_equal(torch.bincount(labeled_target_batch[1]).numpy(), [2, 2])
 
 
 SOURCES = ["MNIST", "USPS"]

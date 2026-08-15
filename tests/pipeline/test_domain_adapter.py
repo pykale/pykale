@@ -1,4 +1,5 @@
 import pytest
+import torch
 
 import kale.pipeline.domain_adapter as domain_adapter
 from kale.embed.image_cnn import SmallCNNFeature
@@ -24,6 +25,11 @@ FEW_SHOT = [0, 20]
 # set_seed(seed)
 
 
+class _DummyDataset:
+    def prepare_data_loaders(self, target_domain=None):
+        return None
+
+
 @pytest.fixture(scope="module")
 def testing_cfg(download_path):
     config_params = {
@@ -40,6 +46,27 @@ def testing_cfg(download_path):
         }
     }
     yield config_params
+
+
+def test_base_adapt_trainer_configure_optimizers_with_adamw():
+    model = domain_adapter.BaseAdaptTrainer(
+        dataset=_DummyDataset(),
+        feature_extractor=torch.nn.Linear(2, 3),
+        task_classifier=torch.nn.Linear(3, 2),
+        nb_init_epochs=1,
+        nb_adapt_epochs=2,
+        init_lr=0.004,
+        optimizer={"type": "AdamW", "optim_params": {"eps": 0.2, "weight_decay": 0.3}},
+    )
+
+    optimizers = model.configure_optimizers()
+
+    assert len(optimizers) == 1
+    assert isinstance(optimizers, list)
+    assert isinstance(optimizers[0], torch.optim.AdamW)
+    assert optimizers[0].defaults["lr"] == 0.004
+    assert optimizers[0].defaults["eps"] == 0.2
+    assert optimizers[0].defaults["weight_decay"] == 0.3
 
 
 @pytest.mark.parametrize("da_method", DA_METHODS)
