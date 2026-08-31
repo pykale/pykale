@@ -25,6 +25,7 @@ from torch_geometric.data import Data, Dataset, download_url, extract_zip
 from torch_sparse import SparseTensor
 
 from kale.evaluate.metrics import calculate_distance, DistanceMetric
+from kale.loaddata.graph_access import load_graph_data
 
 
 class MultiomicsDataset(Dataset):
@@ -74,7 +75,7 @@ class MultiomicsDataset(Dataset):
         self._target_pre_transform = target_pre_transform
         self._processed_file_names = "data.pt"
         super().__init__(root, transform, pre_transform)
-        self._data_list = torch.load(osp.join(self.processed_dir, "data.pt"), weights_only=False)
+        self._data_list = load_graph_data(osp.join(self.processed_dir, "data.pt"))
 
     @property
     def raw_file_names(self) -> Optional[List[str]]:
