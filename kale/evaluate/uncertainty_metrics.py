@@ -1584,6 +1584,101 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, targets, num_
     return evaluator.evaluate(bin_predictions, uncertainty_pairs, targets)
 
 
+def _bin_error_bounds(q: int, num_bins: int, fold_bounds: list) -> Tuple[float, float]:
+    """Return the ``(lower, upper]`` error bounds for quantile bin ``q``.
+
+    The first bin starts at 0 and the last bin is open above (``inf``); the intermediate bins
+    take their bounds from consecutive entries of ``fold_bounds``.
+
+    Args:
+        q (int): Index of the quantile bin.
+        num_bins (int): Total number of quantile bins.
+        fold_bounds (list): Estimated error bounds for this target, one per bin edge.
+
+    Returns:
+        tuple: The ``(lower, upper)`` bounds, where membership is ``lower < error <= upper``.
+    """
+    if q == 0:
+        return 0, fold_bounds[q]
+    if q < num_bins - 1:
+        return fold_bounds[q - 1], fold_bounds[q]
+    return fold_bounds[q - 1], float("inf")
+
+
+def _count_within_bounds(errors: list, lower: float, upper: float) -> int:
+    """Count how many ``errors`` fall in the half-open interval ``(lower, upper]``.
+
+    Args:
+        errors (list): Error values in a single bin.
+        lower (float): Exclusive lower bound.
+        upper (float): Inclusive upper bound (``inf`` for the open-ended last bin).
+
+    Returns:
+        int: The number of errors within the bounds.
+    """
+    return sum(1 for error in errors if lower < error <= upper)
+
+
+def _bin_accuracy(inbin_errors: list, lower: float, upper: float) -> float:
+    """Score a single quantile bin: the fraction of its errors within ``(lower, upper]``.
+
+    An empty bin scores ``1.0`` (issue #549): there is no prediction to be wrong about.
+
+    Args:
+        inbin_errors (list): Errors of the samples assigned to this bin.
+        lower (float): Exclusive lower bound.
+        upper (float): Inclusive upper bound (``inf`` for the open-ended last bin).
+
+    Returns:
+        float: ``1.0`` for an empty bin, otherwise the proportion of errors within the bounds.
+    """
+    if len(inbin_errors) == 0:
+        return 1.0
+    return _count_within_bounds(inbin_errors, lower, upper) / len(inbin_errors)
+
+
+def _group_target_errors_by_bin(pred_bins_ti: dict, true_errors_ti: dict, num_bins: int) -> List[List[float]]:
+    """Group a target's errors by the predicted quantile bin of each sample.
+
+    Bin membership and uid matching use string comparison, mirroring the legacy call site so that
+    numeric and string keys (e.g. ``1`` vs ``"1"``) are treated as equal.
+
+    Args:
+        pred_bins_ti (dict): Maps each sample uid to its predicted quantile bin.
+        true_errors_ti (dict): Maps each sample uid to its true error.
+        num_bins (int): Total number of quantile bins.
+
+    Returns:
+        list: ``num_bins`` lists, each holding the errors whose samples fall in that bin, in the
+        order the samples appear in ``pred_bins_ti``.
+    """
+    errors_by_uid = {str(uid): error for uid, error in true_errors_ti.items()}
+    binned_errors: List[List[float]] = [[] for _ in range(num_bins)]
+    for uid, bin_val in pred_bins_ti.items():
+        bin_str = str(bin_val)
+        for i in range(num_bins):
+            if str(i) == bin_str:
+                binned_errors[i].append(errors_by_uid[str(uid)])
+                break
+    return binned_errors
+
+
+def _weighted_average(values: list, weights: list) -> float:
+    """Return the ``weights``-weighted mean of ``values``, or ``0.0`` if the weights sum to zero.
+
+    Args:
+        values (list): Per-item values (e.g. per-bin accuracies).
+        weights (list): Non-negative weights aligned with ``values`` (e.g. per-bin sample counts).
+
+    Returns:
+        float: The size-weighted mean, or ``0.0`` when all weights are zero.
+    """
+    total_weight = sum(weights)
+    if total_weight == 0:
+        return 0.0
+    return sum(value * weight for value, weight in zip(values, weights)) / total_weight
+
+
 def bin_wise_bound_eval(
     fold_bounds_all_targets: list,
     fold_errors: pd.DataFrame,
@@ -1643,54 +1738,16 @@ def bin_wise_bound_eval(
         # If bin=0 then lower bound = 0, if bin=Q then no upper bound
         # Keep track of #samples in each bin for weighted mean.
 
-        # turn dictionary of predicted bins into [[num_bins]] array
-        pred_bins_keys = []
-        pred_bins_errors = []
-        for i in range(num_bins):
-            inner_list_bin = list([key for key, val in pred_bins_ti.items() if str(i) == str(val)])
-            inner_list_errors = []
-
-            for id_ in inner_list_bin:
-                inner_list_errors.append(list([val for key, val in true_errors_ti.items() if str(key) == str(id_)])[0])
-
-            pred_bins_errors.append(inner_list_errors)
-            pred_bins_keys.append(inner_list_bin)
+        # turn dictionary of predicted bins into [[num_bins]] array of errors
+        pred_bins_errors = _group_target_errors_by_bin(pred_bins_ti, true_errors_ti, num_bins)
 
         bins_acc = []
         bins_sizes = []
         for q in range((num_bins)):
-            inner_bin_correct = 0
-
             inbin_errors = pred_bins_errors[q]
 
-            for error in inbin_errors:
-                if q == 0:
-                    lower = 0
-                    upper = fold_bounds[q]
-
-                    if error <= upper and error > lower:
-                        inner_bin_correct += 1
-
-                elif q < (num_bins) - 1:
-                    lower = fold_bounds[q - 1]
-                    upper = fold_bounds[q]
-
-                    if error <= upper and error > lower:
-                        inner_bin_correct += 1
-
-                else:
-                    lower = fold_bounds[q - 1]
-                    upper = 999999999999999999999999999999
-
-                    if error > lower:
-                        inner_bin_correct += 1
-
-            if inner_bin_correct == 0:
-                accuracy_bin = 0.0
-            elif len(inbin_errors) == 0:
-                accuracy_bin = 1.0
-            else:
-                accuracy_bin = inner_bin_correct / len(inbin_errors)
+            lower, upper = _bin_error_bounds(q, num_bins, fold_bounds)
+            accuracy_bin = _bin_accuracy(inbin_errors, lower, upper)
             bins_sizes.append(len(inbin_errors))
             bins_acc.append(accuracy_bin)
 
@@ -1699,36 +1756,12 @@ def bin_wise_bound_eval(
             all_qs_errorbound_concat_targets_sep[i_ti][q].append(accuracy_bin)
 
         # Weighted average over all bins
-        weighted_mean_ti = 0.0
-        total_weights = 0.0
-        for l_idx in range(len(bins_sizes)):
-            bin_acc = bins_acc[l_idx]
-            bin_size = bins_sizes[l_idx]
-            weighted_mean_ti += bin_acc * bin_size
-            total_weights += bin_size
-        weighted_ave = weighted_mean_ti / total_weights
-        all_target_perc.append(weighted_ave)
+        all_target_perc.append(_weighted_average(bins_acc, bins_sizes))
 
     # Weighted average for each of the quantile bins.
     weighted_ave_binwise = []
     for binidx in range(len(all_qs_perc)):
-        bin_accs = all_qs_perc[binidx]
-        bin_asizes = all_qs_size[binidx]
-
-        weighted_mean_bin = 0.0
-        total_weights_bin = 0.0
-        for l_idx in range(len(bin_accs)):
-            b_acc = bin_accs[l_idx]
-            b_siz = bin_asizes[l_idx]
-            weighted_mean_bin += b_acc * b_siz
-            total_weights_bin += b_siz
-
-        # Avoid div by 0
-        if weighted_mean_bin == 0 or total_weights_bin == 0:
-            weighted_ave_bin = 0.0
-        else:
-            weighted_ave_bin = weighted_mean_bin / total_weights_bin
-        weighted_ave_binwise.append(weighted_ave_bin)
+        weighted_ave_binwise.append(_weighted_average(all_qs_perc[binidx], all_qs_size[binidx]))
 
     # No weighted average, just normal average
     normal_ave_bin_wise = []
