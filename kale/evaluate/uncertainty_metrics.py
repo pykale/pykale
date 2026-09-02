@@ -26,7 +26,7 @@ Main Classes:
 import copy
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import cast, Dict, List, Optional, Tuple
+from typing import Any, cast, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -172,8 +172,10 @@ class BinResults:
             Length equals the number of bins.
         all_bins (List[List[float]]): Raw evaluation metrics for each bin and target.
             Outer list represents bins, inner lists contain values for each target.
-        all_bins_concat_targets_sep (List[List[List[float]]]): Evaluation metrics
+        all_bins_concat_targets_sep (List[List[List[Any]]]): Evaluation metrics
             organized for target-separated analysis. Structure: [target][bin][values].
+            The values are metric-specific: bound accuracy and Jaccard record one number per
+            fold, whereas mean errors record the list of errors for that fold.
 
     Note:
         This base class provides the common structure for fold-level results.
@@ -184,7 +186,7 @@ class BinResults:
     mean_all_targets: float
     mean_all_bins: List[float]
     all_bins: List[List[float]]
-    all_bins_concat_targets_sep: List[List[List[float]]]
+    all_bins_concat_targets_sep: List[List[List[Any]]]
 
 
 @dataclass
@@ -408,12 +410,24 @@ class DataProcessor:
         bin_keys: List[List] = [[] for _ in range(num_bins)]
         bin_errors: List[List] = [[] for _ in range(num_bins)]
 
-        for bin_idx in range(num_bins):
-            keys = [key for key, val in bins_dict.items() if str(bin_idx) == str(val)]
-            errors = [errors_dict[key] for key in keys if key in errors_dict]
+        # Bins and uids are both compared as strings because either may be stored as a number or a
+        # string. The original grouping used str(...) on both sides, so a uid stored as an int in
+        # one frame and a str in the other still lined up; indexing the errors by str(uid) preserves
+        # that while staying linear.
+        index_by_bin_label = {str(bin_idx): bin_idx for bin_idx in range(num_bins)}
+        errors_by_str_uid = {str(key): value for key, value in errors_dict.items()}
 
-            bin_keys[bin_idx] = keys
-            bin_errors[bin_idx] = errors
+        # A single pass over the predictions, so grouping stays linear in the number of samples
+        # rather than rescanning them once per bin.
+        for key, bin_value in bins_dict.items():
+            bin_idx = index_by_bin_label.get(str(bin_value))
+            if bin_idx is None:  # Bin assignment outside the requested range.
+                continue
+
+            bin_keys[bin_idx].append(key)
+            str_uid = str(key)
+            if str_uid in errors_by_str_uid:
+                bin_errors[bin_idx].append(errors_by_str_uid[str_uid])
 
         return bin_keys, bin_errors
 
@@ -734,6 +748,7 @@ class BaseEvaluator(ABC):
         self.current_num_bins_: int = config.original_num_bins
         self.current_targets_: List[int] = []
         self.current_uncertainty_type_: str = ""
+        self.current_model_: str = ""
 
     def evaluate(self, bin_predictions: Dict[str, pd.DataFrame], uncertainty_pairs: List, targets: List[int]) -> Dict:
         """
@@ -779,6 +794,7 @@ class BaseEvaluator(ABC):
         self.container_ = ResultsContainer(self.current_num_bins_, len(targets))
 
         for model, data_structs in bin_predictions.items():
+            self.current_model_ = model
             for uncertainty_pair in uncertainty_pairs:
                 self.current_uncertainty_type_ = uncertainty_pair[0]
                 model_key = f"{model} {self.current_uncertainty_type_}"
@@ -1417,6 +1433,211 @@ class JaccardEvaluator(BaseEvaluator):
         }
 
 
+class BoundsEvaluator(BaseEvaluator):
+    """
+    Evaluator for the accuracy of estimated error bounds.
+
+    For each quantile bin, this measures the proportion of predictions whose true error falls inside
+    the bound estimated for that bin, which shows how well the estimated bounds are calibrated.
+
+    Unlike the other evaluators, each fold needs its estimated bounds alongside the predictions, so
+    :meth:`_process_all_folds` attaches them to the fold data.
+
+    Args:
+        estimated_bounds (Dict[str, pd.DataFrame]): Estimated error bounds per model, keyed by
+            ``"<model> Error Bounds"``.
+        config (EvaluationConfig, optional): Evaluation settings. Defaults to :class:`EvaluationConfig`.
+
+    Example:
+
+        .. code-block:: pycon
+
+            >>> evaluator = BoundsEvaluator(bounds, EvaluationConfig(original_num_bins=5))
+            >>> results = evaluator.evaluate(bin_predictions, [["S-MHA"]], targets=[0, 1])
+    """
+
+    def __init__(self, estimated_bounds: Dict[str, pd.DataFrame], config: Optional[EvaluationConfig] = None):
+        super().__init__(config or EvaluationConfig())
+        self.estimated_bounds_ = estimated_bounds
+
+    def _process_all_folds(self, data_structs: pd.DataFrame) -> List[BinResults]:
+        """Process every fold, attaching that fold's estimated bounds to the fold data."""
+        error_bounds = self.estimated_bounds_[self.current_model_ + " Error Bounds"]
+        bounds_column = self.current_uncertainty_type_ + " Uncertainty bounds"
+
+        fold_results = []
+        for fold in range(self.config_.num_folds):
+            fold_data = DataProcessor.extract_fold_data(data_structs, fold, self.current_uncertainty_type_)
+            fold_data.bounds = strip_for_bound(error_bounds[error_bounds["fold"] == fold][bounds_column].values)
+            fold_results.append(self._process_single_fold(fold_data))
+
+        return fold_results
+
+    def _process_single_fold(self, fold_data: FoldData) -> BinResults:
+        """Evaluate bound accuracy for one fold."""
+        assert fold_data.bounds is not None, "Fold data is missing its estimated bounds"
+        result = bin_wise_bound_eval(
+            fold_data.bounds,
+            fold_data.errors,
+            fold_data.bins,
+            self.current_targets_,
+            self.current_uncertainty_type_,
+            num_bins=self.current_num_bins_,
+        )
+
+        return BinResults(
+            mean_all_targets=result[ResultKeys.MEAN_ALL_TARGETS],
+            mean_all_bins=result[ResultKeys.MEAN_ALL_BINS],
+            all_bins=result["mean all"],
+            all_bins_concat_targets_sep=result[ResultKeys.ALL_BINS_CONCAT_TARGETS_SEP],
+        )
+
+    def _aggregate_fold_results(self, model_key: str, fold_results: List[BinResults]):
+        """Collect bound accuracy across folds, per bin and per target."""
+        num_bins = self.current_num_bins_
+        num_targets = len(self.current_targets_)
+
+        mean_bins: List[List] = [[] for _ in range(num_bins)]
+        bins_targets_not_sep: List[List] = [[] for _ in range(num_bins)]
+        targets_sep_foldwise: List[List[List]] = [[[] for _ in range(num_bins)] for _ in range(num_targets)]
+        targets_sep_all: List[List[List]] = [[[] for _ in range(num_bins)] for _ in range(num_targets)]
+
+        for fold in fold_results:
+            for idx_bin in range(len(fold.mean_all_bins)):
+                mean_bins[idx_bin].append(fold.mean_all_bins[idx_bin])
+                bins_targets_not_sep[idx_bin] = bins_targets_not_sep[idx_bin] + fold.all_bins[idx_bin]
+
+                for target_idx in range(num_targets):
+                    fold_bin_values = fold.all_bins_concat_targets_sep[target_idx][idx_bin]
+                    targets_sep_foldwise[target_idx][idx_bin] = (
+                        targets_sep_foldwise[target_idx][idx_bin] + fold_bin_values
+                    )
+                    targets_sep_all[target_idx][idx_bin] = targets_sep_all[target_idx][idx_bin] + fold_bin_values
+
+        assert self.container_ is not None, "Results container is not initialized"
+
+        # Reverses order so they are worst to best i.e. B5 -> B1
+        self.container_.add_main_result(model_key, mean_bins[::-1])
+        self.container_.additional_containers.setdefault(ResultKeys.ALL_BOUND_PERCENTS_NO_TARGET_SEP, {})[
+            model_key
+        ] = bins_targets_not_sep[::-1]
+
+        for target_idx in range(num_targets):
+            self.container_.target_sep_foldwise[target_idx][model_key] = targets_sep_foldwise[target_idx]
+            self.container_.target_sep_all[target_idx][model_key] = targets_sep_all[target_idx]
+
+    def _finalize_results(self) -> Dict:
+        """Map the container onto the error bound result keys."""
+        assert self.container_ is not None, "Results container is not initialized"
+
+        return {
+            ResultKeys.ERROR_BOUNDS_ALL: self.container_.main_results,
+            ResultKeys.ALL_BOUND_PERCENTS_NO_TARGET_SEP: self.container_.additional_containers.get(
+                ResultKeys.ALL_BOUND_PERCENTS_NO_TARGET_SEP, {}
+            ),
+            ResultKeys.ALL_ERROR_BOUND_CONCAT_BINS_TARGET_SEP_FOLDWISE: self.container_.target_sep_foldwise,
+            ResultKeys.ALL_ERROR_BOUND_CONCAT_BINS_TARGET_SEP_ALL: self.container_.target_sep_all,
+        }
+
+
+class ErrorsEvaluator(BaseEvaluator):
+    """
+    Evaluator for the mean localization error of each quantile bin.
+
+    For each bin, this measures the mean error per target and across all targets, which shows whether
+    predictions the model is less certain about do carry larger errors.
+
+    Args:
+        config (EvaluationConfig, optional): Evaluation settings, including ``error_scaling_factor``.
+            Defaults to :class:`EvaluationConfig`.
+
+    Example:
+
+        .. code-block:: pycon
+
+            >>> evaluator = ErrorsEvaluator(EvaluationConfig(original_num_bins=5))
+            >>> results = evaluator.evaluate(bin_predictions, [["S-MHA"]], targets=[0, 1])
+    """
+
+    def __init__(self, config: Optional[EvaluationConfig] = None):
+        super().__init__(config or EvaluationConfig())
+
+    def _process_single_fold(self, fold_data: FoldData) -> BinResults:
+        """Evaluate mean bin errors for one fold."""
+        result = bin_wise_errors(
+            fold_data.errors,
+            fold_data.bins,
+            self.current_num_bins_,
+            self.current_targets_,
+            self.current_uncertainty_type_,
+            error_scaling_factor=self.config_.error_scaling_factor,
+        )
+
+        return BinResults(
+            mean_all_targets=result[ResultKeys.MEAN_ALL_TARGETS],
+            mean_all_bins=result[ResultKeys.MEAN_ALL_BINS],
+            all_bins=result[ResultKeys.ALL_BINS],
+            all_bins_concat_targets_sep=result[ResultKeys.ALL_BINS_CONCAT_TARGETS_SEP],
+        )
+
+    def _aggregate_fold_results(self, model_key: str, fold_results: List[BinResults]):
+        """Collect mean errors across folds, per bin and per target."""
+        num_bins = self.current_num_bins_
+        num_targets = len(self.current_targets_)
+
+        mean_bins: List[List] = [[] for _ in range(num_bins)]
+        all_bins: List[List] = [[] for _ in range(num_bins)]
+        concat_targets_no_sep: List[List] = [[] for _ in range(num_bins)]
+        targets_sep_foldwise: List[List[List]] = [[[] for _ in range(num_bins)] for _ in range(num_targets)]
+        targets_sep_all: List[List[List]] = [[[] for _ in range(num_bins)] for _ in range(num_targets)]
+
+        for fold in fold_results:
+            for idx_bin in range(len(fold.mean_all_bins)):
+                mean_bins[idx_bin].append(fold.mean_all_bins[idx_bin])
+                all_bins[idx_bin] = all_bins[idx_bin] + fold.all_bins[idx_bin]
+
+                # Flatten this bin's errors across every target, dropping the target separation.
+                per_target = [target_bins[idx_bin] for target_bins in fold.all_bins_concat_targets_sep]
+                flattened = [value for sublist in per_target for value in sublist]
+                flattened = [value for sublist in flattened for value in sublist]
+                concat_targets_no_sep[idx_bin] = concat_targets_no_sep[idx_bin] + flattened
+
+                for target_idx in range(num_targets):
+                    fold_bin_values = fold.all_bins_concat_targets_sep[target_idx][idx_bin]
+                    targets_sep_foldwise[target_idx][idx_bin] = (
+                        targets_sep_foldwise[target_idx][idx_bin] + fold_bin_values
+                    )
+                    if fold_bin_values != []:
+                        targets_sep_all[target_idx][idx_bin] = targets_sep_all[target_idx][idx_bin] + fold_bin_values[0]
+
+        assert self.container_ is not None, "Results container is not initialized"
+
+        # reverse orderings, so bins run worst to best i.e. B5 -> B1
+        self.container_.add_main_result(model_key, mean_bins[::-1])
+        self.container_.add_target_separated_result(model_key, all_bins[::-1])
+        self.container_.additional_containers.setdefault(ResultKeys.ALL_ERROR_CONCAT_BINS_TARGET_NO_SEP, {})[
+            model_key
+        ] = concat_targets_no_sep[::-1]
+
+        for target_idx in range(num_targets):
+            self.container_.target_sep_foldwise[target_idx][model_key] = targets_sep_foldwise[target_idx][::-1]
+            self.container_.target_sep_all[target_idx][model_key] = targets_sep_all[target_idx][::-1]
+
+    def _finalize_results(self) -> Dict:
+        """Map the container onto the mean error result keys."""
+        assert self.container_ is not None, "Results container is not initialized"
+
+        return {
+            ResultKeys.ALL_MEAN_ERROR_BINS_NO_SEP: self.container_.main_results,
+            ResultKeys.ALL_MEAN_ERROR_BINS_TARGETS_SEP: self.container_.target_separated_results,
+            ResultKeys.ALL_ERROR_CONCAT_BINS_TARGET_NO_SEP: self.container_.additional_containers.get(
+                ResultKeys.ALL_ERROR_CONCAT_BINS_TARGET_NO_SEP, {}
+            ),
+            ResultKeys.ALL_ERROR_CONCAT_BINS_TARGET_SEP_FOLDWISE: self.container_.target_sep_foldwise,
+            ResultKeys.ALL_ERROR_CONCAT_BINS_TARGET_SEP_ALL: self.container_.target_sep_all,
+        }
+
+
 def evaluate_bounds(
     estimated_bounds: Dict[str, pd.DataFrame],
     bin_predictions: Dict[str, pd.DataFrame],
@@ -1475,88 +1696,12 @@ def evaluate_bounds(
         accuracy of predicted confidence intervals rather than bin overlap.
     """
 
-    if combine_middle_bins:
-        num_bins = 3
-
-    # Initialize results dicts
-    all_bound_percents = {}
-    all_bound_percents_notargetsep = {}
-
-    all_concat_errorbound_bins_target_sep_foldwise = [{} for x in range(len(targets))]  # type: List[Dict]
-    all_concat_errorbound_bins_target_sep_all = [{} for x in range(len(targets))]  # type: List[Dict]
-
-    # Loop over combinations of models (model) and uncertainty types (uncert_pair)
-    for i, (model, data_structs) in enumerate(bin_predictions.items()):
-        error_bounds = estimated_bounds[model + " Error Bounds"]
-
-        for uncert_pair in uncertainty_pairs:
-            uncertainty_type = uncert_pair[0]
-
-            fold_learned_bounds_mean_targets = []
-            fold_learned_bounds_mean_bins = [[] for x in range(num_bins)]  # type: List[List]
-            fold_learned_bounds_bins_targetsnotsep = [[] for x in range(num_bins)]  # type: List[List]
-            fold_all_bins_concat_targets_sep_foldwise = [
-                [[] for y in range(num_bins)] for x in range(len(targets))
-            ]  # type: List[List]
-            fold_all_bins_concat_targets_sep_all = [
-                [[] for y in range(num_bins)] for x in range(len(targets))
-            ]  # type: List[List]
-
-            for fold in range(num_folds):
-                # Get the ids for this fold
-                fold_errors = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "Target Index", uncertainty_type + " Error"]
-                ]
-                fold_bins = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "Target Index", uncertainty_type + " Uncertainty bins"]
-                ]
-                fold_bounds = strip_for_bound(
-                    error_bounds[error_bounds["fold"] == fold][uncertainty_type + " Uncertainty bounds"].values
-                )
-
-                return_dict = bin_wise_bound_eval(
-                    fold_bounds, fold_errors, fold_bins, targets, uncertainty_type, num_bins=num_bins
-                )
-                fold_learned_bounds_mean_targets.append(return_dict["mean all targets"])
-
-                for idx_bin in range(len(return_dict["mean all bins"])):
-                    fold_learned_bounds_mean_bins[idx_bin].append(return_dict["mean all bins"][idx_bin])
-                    fold_learned_bounds_bins_targetsnotsep[idx_bin] = (
-                        fold_learned_bounds_bins_targetsnotsep[idx_bin] + return_dict["mean all"][idx_bin]
-                    )
-
-                    for target_idx in range(len(targets)):
-                        fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin] = (
-                            fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin]
-                            + return_dict["all bins concatenated targets separated"][target_idx][idx_bin]
-                        )
-                        combined = (
-                            fold_all_bins_concat_targets_sep_all[target_idx][idx_bin]
-                            + return_dict["all bins concatenated targets separated"][target_idx][idx_bin]
-                        )
-
-                        fold_all_bins_concat_targets_sep_all[target_idx][idx_bin] = combined
-
-            # Reverses order so they are worst to best i.e. B5 -> B1
-            all_bound_percents[model + " " + uncertainty_type] = fold_learned_bounds_mean_bins[::-1]
-            all_bound_percents_notargetsep[model + " " + uncertainty_type] = fold_learned_bounds_bins_targetsnotsep[
-                ::-1
-            ]
-
-            for target_idx in range(len(all_concat_errorbound_bins_target_sep_foldwise)):
-                all_concat_errorbound_bins_target_sep_foldwise[target_idx][
-                    model + " " + uncertainty_type
-                ] = fold_all_bins_concat_targets_sep_foldwise[target_idx]
-                all_concat_errorbound_bins_target_sep_all[target_idx][
-                    model + " " + uncertainty_type
-                ] = fold_all_bins_concat_targets_sep_all[target_idx]
-
-    return {
-        "error_bounds_all": all_bound_percents,
-        "all_bound_percents_notargetsep": all_bound_percents_notargetsep,
-        "all errorbound concat bins targets sep foldwise": all_concat_errorbound_bins_target_sep_foldwise,
-        "all_errorbound_concat_bins_targets_sep_all": all_concat_errorbound_bins_target_sep_all,
-    }
+    config = EvaluationConfig(
+        num_folds=num_folds,
+        original_num_bins=num_bins,
+        combine_middle_bins=combine_middle_bins,
+    )
+    return BoundsEvaluator(estimated_bounds, config).evaluate(bin_predictions, uncertainty_pairs, targets)
 
 
 # Convenience functions for backward compatibility
@@ -1644,17 +1789,7 @@ def bin_wise_bound_eval(
         # Keep track of #samples in each bin for weighted mean.
 
         # turn dictionary of predicted bins into [[num_bins]] array
-        pred_bins_keys = []
-        pred_bins_errors = []
-        for i in range(num_bins):
-            inner_list_bin = list([key for key, val in pred_bins_ti.items() if str(i) == str(val)])
-            inner_list_errors = []
-
-            for id_ in inner_list_bin:
-                inner_list_errors.append(list([val for key, val in true_errors_ti.items() if str(key) == str(id_)])[0])
-
-            pred_bins_errors.append(inner_list_errors)
-            pred_bins_keys.append(inner_list_bin)
+        pred_bins_keys, pred_bins_errors = DataProcessor.group_data_by_bins(true_errors_ti, pred_bins_ti, num_bins)
 
         bins_acc = []
         bins_sizes = []
@@ -1781,109 +1916,13 @@ def get_mean_errors(
 
     """
     # If we are combining the middle bins, we only have the 2 edge bins and the middle bins are combined into 1 bin.
-    if combine_middle_bins:
-        num_bins = 3
-
-    # initialize empty dicts
-    all_mean_error_bins = {}
-    all_mean_error_bins_targets_sep = {}
-    all_concat_error_bins_target_sep_foldwise: List[Dict] = [{} for x in range(len(targets))]
-    all_concat_error_bins_target_sep_all: List[Dict] = [{} for x in range(len(targets))]
-
-    all_concat_error_bins_target_nosep = {}
-    # Loop over models (model) and uncertainty methods (uncert_pair)
-    for i, (model, data_structs) in enumerate(bin_predictions.items()):
-        for uncert_pair in uncertainty_pairs:  # uncert_pair = [pair name, error name , uncertainty name]
-            uncertainty_type = uncert_pair[0]
-
-            # Initialize lists to store fold-wise results
-            fold_mean_targets = []
-            fold_mean_bins: List[List[float]] = [[] for x in range(num_bins)]
-            fold_all_bins: List[List[float]] = [[] for x in range(num_bins)]
-            fold_all_bins_concat_targets_sep_foldwise: List[List[List[float]]] = [
-                [[] for y in range(num_bins)] for x in range(len(targets))
-            ]
-            fold_all_bins_concat_targets_sep_all: List[List[List[float]]] = [
-                [[] for y in range(num_bins)] for x in range(len(targets))
-            ]
-
-            fold_all_bins_concat_targets_nosep: List[List[float]] = [[] for x in range(num_bins)]
-
-            for fold in range(num_folds):
-                # Get the errors and predicted bins for this fold
-                fold_errors = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "Target Index", uncertainty_type + " Error"]
-                ]
-                fold_bins = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "Target Index", uncertainty_type + " Uncertainty bins"]
-                ]
-
-                return_dict = bin_wise_errors(
-                    fold_errors,
-                    fold_bins,
-                    num_bins,
-                    targets,
-                    uncertainty_type,
-                    error_scaling_factor=error_scaling_factor,
-                )
-                fold_mean_targets.append(return_dict["mean all targets"])
-
-                for idx_bin in range(len(return_dict["mean all bins"])):
-                    fold_mean_bins[idx_bin].append(return_dict["mean all bins"][idx_bin])
-                    fold_all_bins[idx_bin] = fold_all_bins[idx_bin] + return_dict["all bins"][idx_bin]
-
-                    concat_no_sep = [x[idx_bin] for x in return_dict["all bins concatenated targets separated"]]
-
-                    flattened_concat_no_sep = [x for sublist in concat_no_sep for x in sublist]
-                    flattened_concat_no_sep = [x for sublist in flattened_concat_no_sep for x in sublist]
-
-                    fold_all_bins_concat_targets_nosep[idx_bin] = (
-                        fold_all_bins_concat_targets_nosep[idx_bin] + flattened_concat_no_sep
-                    )
-
-                    for target_idx in range(len(targets)):
-                        fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin] = (
-                            fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin]
-                            + return_dict["all bins concatenated targets separated"][target_idx][idx_bin]
-                        )
-
-                        if return_dict["all bins concatenated targets separated"][target_idx][idx_bin] != []:
-                            combined = (
-                                fold_all_bins_concat_targets_sep_all[target_idx][idx_bin]
-                                + return_dict["all bins concatenated targets separated"][target_idx][idx_bin][0]
-                            )
-                        else:
-                            combined = fold_all_bins_concat_targets_sep_all[target_idx][idx_bin]
-
-                        fold_all_bins_concat_targets_sep_all[target_idx][idx_bin] = combined
-
-            # reverse orderings
-            fold_mean_bins = fold_mean_bins[::-1]
-            fold_all_bins = fold_all_bins[::-1]
-            fold_all_bins_concat_targets_nosep = fold_all_bins_concat_targets_nosep[::-1]
-            fold_all_bins_concat_targets_sep_foldwise = [x[::-1] for x in fold_all_bins_concat_targets_sep_foldwise]
-            fold_all_bins_concat_targets_sep_all = [x[::-1] for x in fold_all_bins_concat_targets_sep_all]
-
-            all_mean_error_bins[model + " " + uncertainty_type] = fold_mean_bins
-            all_mean_error_bins_targets_sep[model + " " + uncertainty_type] = fold_all_bins
-
-            all_concat_error_bins_target_nosep[model + " " + uncertainty_type] = fold_all_bins_concat_targets_nosep
-
-            for target_idx in range(len(fold_all_bins_concat_targets_sep_foldwise)):
-                all_concat_error_bins_target_sep_foldwise[target_idx][
-                    model + " " + uncertainty_type
-                ] = fold_all_bins_concat_targets_sep_foldwise[target_idx]
-                all_concat_error_bins_target_sep_all[target_idx][
-                    model + " " + uncertainty_type
-                ] = fold_all_bins_concat_targets_sep_all[target_idx]
-
-    return {
-        "all_mean_error_bins_nosep": all_mean_error_bins,
-        "all mean error bins targets sep": all_mean_error_bins_targets_sep,
-        "all_error_concat_bins_targets_nosep": all_concat_error_bins_target_nosep,
-        "all error concat bins targets sep foldwise": all_concat_error_bins_target_sep_foldwise,
-        "all_error_concat_bins_targets_sep_all": all_concat_error_bins_target_sep_all,
-    }
+    config = EvaluationConfig(
+        num_folds=num_folds,
+        original_num_bins=num_bins,
+        error_scaling_factor=error_scaling_factor,
+        combine_middle_bins=combine_middle_bins,
+    )
+    return ErrorsEvaluator(config).evaluate(bin_predictions, uncertainty_pairs, targets)
 
 
 def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, error_scaling_factor):
@@ -1918,19 +1957,8 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, 
         )
         pred_bins_ti = dict(zip(pred_bins_ti.uid, pred_bins_ti[uncertainty_key + " Uncertainty bins"]))
 
-        pred_bins_keys = []
-        pred_bins_errors = []
-
         # This is saving them from best quantile of predictions to worst quantile of predictions in terms of uncertainty
-        for j in range(num_bins):
-            inner_list = list([key for key, val in pred_bins_ti.items() if str(j) == str(val)])
-            inner_list_errors = []
-
-            for id_ in inner_list:
-                inner_list_errors.append(list([val for key, val in true_errors_ti.items() if str(key) == str(id_)])[0])
-
-            pred_bins_errors.append(inner_list_errors)
-            pred_bins_keys.append(inner_list)
+        pred_bins_keys, pred_bins_errors = DataProcessor.group_data_by_bins(true_errors_ti, pred_bins_ti, num_bins)
 
         # Now for each bin, get the mean error
         inner_errors = []
