@@ -75,7 +75,7 @@ from kale.interpret.box_plot import (
 )
 from kale.interpret.uncertainty_utils import plot_cumulative
 from kale.prepdata.tabular_transform import generate_struct_for_qbin
-from kale.utils.save_xlsx import generate_summary_df
+from kale.utils.format_transformation import generate_summary_df
 
 # -----------------------------------------------------------------------------
 # Internal Data Dictionary Keys
