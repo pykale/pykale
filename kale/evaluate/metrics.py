@@ -174,7 +174,6 @@ def gradient_penalty(critic, h_s, h_t):
 
     alpha = torch.rand(h_s.size(0), 1)
     alpha = alpha.expand(h_s.size()).type_as(h_s)
-    # try:
     differences = h_t - h_s
 
     interpolates = h_s + (alpha * differences)
@@ -190,8 +189,6 @@ def gradient_penalty(critic, h_s, h_t):
     )[0]
     gradient_norm = gradients.norm(2, dim=1)
     gradient_penalty = ((gradient_norm - 1) ** 2).mean()
-    # except:
-    #     gradient_penalty = 0
 
     return gradient_penalty
 
