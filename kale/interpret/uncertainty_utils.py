@@ -478,7 +478,10 @@ def _calculate_correlations(uncertainties: np.ndarray, scaled_errors: np.ndarray
     """
     smp_corr, smp_p = stats.spearmanr(uncertainties, scaled_errors, alternative="greater")
     pear_corr, pear_p = stats.pearsonr(uncertainties, scaled_errors)
-    return {"spearman": [smp_corr, smp_p], "pearson": [pear_corr, pear_p]}
+    return {
+        "spearman": [float(smp_corr), float(smp_p)],
+        "pearson": [float(pear_corr), float(pear_p)],
+    }
 
 
 def _fit_piecewise_model(
