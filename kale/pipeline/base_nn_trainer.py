@@ -29,6 +29,7 @@ import torch.nn as nn
 from sklearn.metrics import accuracy_score
 
 import kale.evaluate.metrics as losses
+from kale.utils.validate import validate_kwargs
 
 
 class BaseNNTrainer(pl.LightningModule):
@@ -86,24 +87,27 @@ class BaseNNTrainer(pl.LightningModule):
             optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr)
             return [optimizer]
         if self._optimizer_params["type"] == "Adam":
+            valid_optim_params = validate_kwargs(torch.optim.Adam, self._optimizer_params["optim_params"])
             optimizer = torch.optim.Adam(
                 self.parameters(),
                 lr=self._init_lr,
-                **self._optimizer_params["optim_params"],
+                **valid_optim_params,
             )
             return [optimizer]
         if self._optimizer_params["type"] == "AdamW":
+            valid_optim_params = validate_kwargs(torch.optim.AdamW, self._optimizer_params["optim_params"])
             optimizer = torch.optim.AdamW(
                 self.parameters(),
                 lr=self._init_lr,
-                **self._optimizer_params["optim_params"],
+                **valid_optim_params,
             )
             return [optimizer]
         if self._optimizer_params["type"] == "SGD":
+            valid_optim_params = validate_kwargs(torch.optim.SGD, self._optimizer_params["optim_params"])
             optimizer = torch.optim.SGD(
                 self.parameters(),
                 lr=self._init_lr,
-                **self._optimizer_params["optim_params"],
+                **valid_optim_params,
             )
 
             if self._adapt_lr:
@@ -181,10 +185,11 @@ class CNNTransformerTrainer(BaseNNTrainer):
         """Set up an SGD optimizer and multistep learning rate scheduler. When self._adapt_lr is True, the learning
         rate will be decayed by self.lr_gamma every step in milestones.
         """
+        valid_optim_params = validate_kwargs(torch.optim.SGD, self._optimizer_params["optim_params"])
         optimizer = torch.optim.SGD(
             self.parameters(),
             lr=self._init_lr,
-            **self._optimizer_params["optim_params"],
+            **valid_optim_params,
         )
         if self._adapt_lr:
             scheduler = torch.optim.lr_scheduler.MultiStepLR(
