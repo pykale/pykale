@@ -215,11 +215,11 @@ def distplot_1d(
         "p": [Interval(Real, 0, 1, closed="neither")],
         "cmap": [str],
         "marker_size": [Real],
-        "legend_params": [dict],
+        "legend_params": [dict, None],
     },
     prefer_skip_nested_validation=True,
 )
-def visualize_connectome(weights, labels, coords, p=1e-3, cmap="tab20", marker_size=100, legend_params={}):
+def visualize_connectome(weights, labels, coords, p=1e-3, cmap="tab20", marker_size=100, legend_params=None):
     """
     Visualize the top-p weighted ROI connections as a symmetric connectome plot.
 
@@ -272,6 +272,8 @@ def visualize_connectome(weights, labels, coords, p=1e-3, cmap="tab20", marker_s
         )
 
     # Set legend parameters
+    if legend_params is None:
+        legend_params = {}
     proj.axes[next(iter(proj.axes))].ax.legend(**legend_params)
 
     return proj
