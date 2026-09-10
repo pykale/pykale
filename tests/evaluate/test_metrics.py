@@ -88,6 +88,35 @@ def test_protonet_loss():
     assert dists.shape == (num_classes, num_classes * num_query_samples)
 
 
+def test_protonet_loss_default_device():
+    """The default device follows CUDA availability rather than assuming CUDA (issue #557)."""
+    expected = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    loss_fn = protonet_loss(num_classes=2, num_query_samples=3)
+
+    assert loss_fn.device.type == expected.type
+
+    # The default must run end to end on the host machine, CPU-only included.
+    feature_support = torch.rand(2, 4, 8)
+    feature_query = torch.rand(2 * 3, 8)
+    loss, acc = loss_fn(feature_support, feature_query)
+    assert isinstance(loss, torch.Tensor)
+    assert isinstance(acc, torch.Tensor)
+
+
+def test_protonet_loss_accepts_string_device():
+    """A device given as a string is accepted, which is how the trainer passes it.
+
+    ProtoNetTrainer holds ``devices`` as a plain string, so this is the form the class is
+    constructed with in practice.
+    """
+    loss_fn = protonet_loss(num_classes=2, num_query_samples=3, device="cpu")
+
+    loss, acc = loss_fn(torch.rand(2, 4, 8), torch.rand(2 * 3, 8))
+
+    assert isinstance(loss, torch.Tensor)
+    assert isinstance(acc, torch.Tensor)
+
+
 @pytest.fixture
 def x1():
     return torch.tensor([[1, 2, 3], [4, 5, 6]], dtype=torch.float)

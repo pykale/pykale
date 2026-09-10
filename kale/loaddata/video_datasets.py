@@ -76,8 +76,9 @@ class BasicVideoDataset(VideoFrameDataset):
         i = 0
         input_file = pd.read_pickle(self.annotationfile_path)
         for line in input_file.values:
-            if 0 <= eval(line[5]) < self.n_classes:
-                data.append((line[0], eval(line[1]), eval(line[2]), eval(line[5])))
+            label = int(line[5])
+            if 0 <= label < self.n_classes:
+                data.append((line[0], int(line[1]), int(line[2]), label))
                 i = i + 1
         logging.info("Number of {:5} action segments: {}".format(self.dataset, i))
         return data
