@@ -193,8 +193,8 @@ def plot_uncertainty_correlation(
         to_log (bool, optional): Whether to use logarithmic scale for both axes. Defaults to False.
         save_path (Optional[str], optional): File path to save the plot. Defaults to None.
         show (bool, optional): Whether to show the figure. Defaults to False.
-        font_size (int, optional): Font size for all text elements. Defaults to 25. 
-        
+        font_size (int, optional): Font size for all text elements. Defaults to 25.
+
         **fig_kwargs: Additional keyword
             arguments for figure creation and styling:
             - figsize (tuple): Figure size in inches (default: (16, 8))
@@ -447,7 +447,7 @@ def plot_cumulative(
             Each tuple contains (uncertainty_type, error_type).
         bins (Union[int, List[int], np.ndarray]): Bin indices to include in the analysis. Can be a single value, list,
             or numpy array.
-        config (CumulativePlotConfig, optional): Presentation, output and styling settings. 
+        config (CumulativePlotConfig, optional): Presentation, output and styling settings.
             Defaults to :class:`CumulativePlotConfig`.
     """
     config = config or CumulativePlotConfig()
@@ -542,11 +542,11 @@ def _generate_bootstrap_models(
         scaled_errors (np.ndarray): Array of scaled error values
         quantile_thresholds (List[float]): Quantile threshold breakpoints for piecewise fitting
         n_bootstrap (int, optional): Number of bootstrap samples to generate. Defaults to 1000.
-        sample_ratio (float, optional): Fraction of data to sample for each bootstrap. Must be between 0 and 1. 
+        sample_ratio (float, optional): Fraction of data to sample for each bootstrap. Must be between 0 and 1.
             Defaults to 0.6.
 
     Returns:
-        List[pwlf.PiecewiseLinFit]: One fitted model per bootstrap sample. Each sample has 
+        List[pwlf.PiecewiseLinFit]: One fitted model per bootstrap sample. Each sample has
         ``int(len(data) * sample_ratio)`` points drawn with replacement.
     """
     bootstrap_models = []

@@ -6,8 +6,8 @@
 # =============================================================================
 
 """
-This module implements the uncertainty quantification method from L. A. Schobs, A. J. Swift and H. Lu, 
-"Uncertainty Estimation for Heatmap-Based Landmark Localization," 
+This module implements the uncertainty quantification method from L. A. Schobs, A. J. Swift and H. Lu,
+"Uncertainty Estimation for Heatmap-Based Landmark Localization,"
 in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
 Core Classes:
@@ -260,7 +260,7 @@ class MetricDefinition:
     to_log: bool = False  # If True, apply logarithmic scaling to y-axis
     convert_to_percent: bool = False  # If True, multiply values by 100 and show as percentages
     y_lim_top_attr: str = "percent_y_lim_standard"  # Attribute name in config to use for y_lim_top
-    show_sample_info: Optional[str] = None # Display mode: None (no display), 'text', 'legend', or 'detailed'  
+    show_sample_info: Optional[str] = None  # Display mode: None (no display), 'text', 'legend', or 'detailed'
     show_individual_dots: bool = False  # If True, overlay individual data points as dots on boxplots
     individual_data_key: Optional[str] = None  # Dictionary key for target-separated data; None if not applicable
 
@@ -984,7 +984,7 @@ class QuantileBinningAnalyzer:
             sep_target_data (List[Any]): Data separated by target. Structure varies by plotting mode:
                 - For individual bin comparison: List of target data dictionaries
                 - For comparing Q: List of Q-value data with target indices
-            individual_targets_to_show (List[int]): List of target indices to plot individually. 
+            individual_targets_to_show (List[int]): List of target indices to plot individually.
                 Use [-1] to plot all targets.
             uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
             models (List[str]): List of model names to analyze.
@@ -1061,7 +1061,7 @@ class QuantileBinningAnalyzer:
                 - For individual bin comparison: Single dictionary or list with one dictionary
                 - For comparing Q plots: List of dictionaries (one per Q value)
             models (List[str]): List of model names to analyze.
-            uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations. 
+            uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
                 Each inner list contains [uncertainty_type, error_type].
             category_labels (List[str]): Labels for x-axis categories (bins, Q values, etc.).
             show_sample_info (str): Mode for displaying sample size information ("None", "text", "legend").

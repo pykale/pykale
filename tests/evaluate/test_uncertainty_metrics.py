@@ -20,10 +20,8 @@ from kale.evaluate.uncertainty_metrics import (
     ResultsContainer,
 )
 from kale.prepdata.tabular_transform import generate_struct_for_qbin
-
 from kale.utils.seed import set_seed
 
-# import os
 LOGGER = logging.getLogger(__name__)
 
 

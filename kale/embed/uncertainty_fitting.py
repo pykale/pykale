@@ -1,6 +1,6 @@
 """
-Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, 
-"Uncertainty Estimation for Heatmap-Based Landmark Localization," 
+Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu,
+"Uncertainty Estimation for Heatmap-Based Landmark Localization,"
 in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
 Functions related to use the validation data to fit the uncertainty boundaries with error bounds. Also bins the test

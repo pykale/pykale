@@ -5,8 +5,8 @@
 # =============================================================================
 
 """
-Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, 
-"Uncertainty Estimation for Heatmap-Based Landmark Localization," 
+Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu,
+"Uncertainty Estimation for Heatmap-Based Landmark Localization,"
 in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
 Key Evaluation Approaches:
@@ -195,11 +195,11 @@ class JaccardBinResults(BinResults):
             - all_bins: Raw Jaccard similarities for each bin and target
             - all_bins_concat_targets_sep: Target-separated Jaccard similarities
 
-        Additional Jaccard-specific attributes: 
-        mean_all_targets_recall (float): Mean recall across all targets in the fold. 
-        mean_all_bins_recall (List[float]): Mean recall for each bin across targets. 
+        Additional Jaccard-specific attributes:
+        mean_all_targets_recall (float): Mean recall across all targets in the fold.
+        mean_all_bins_recall (List[float]): Mean recall for each bin across targets.
         all_bins_recall (List[List[float]]): Raw recall values for each bin and target.
-        mean_all_targets_precision (float): Mean precision across all targets. 
+        mean_all_targets_precision (float): Mean precision across all targets.
         mean_all_bins_precision (List[float]): Mean precision for each bin.
         all_bins_precision (List[List[float]]): Raw precision values for each bin and target.
     """
