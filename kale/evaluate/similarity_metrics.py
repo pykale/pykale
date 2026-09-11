@@ -1,7 +1,9 @@
-"""
-Authors: Lawrence Schobs, lawrenceschobs@gmail.com
+# =============================================================================
+# Author: Lawrence Schobs, lawrenceschobs@gmail.com
+#         Charles Anjah, cmanjahart@gmail.com
+# =============================================================================
 
-Functions related to similarity metrics including similarity measures and correlations.
+"""Functions related to similarity metrics including similarity measures and correlations.
 """
 
 import logging

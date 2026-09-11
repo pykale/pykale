@@ -2,6 +2,7 @@
 # Author: Lawrence Schobs, lawrenceschobs@gmail.com
 #         Wenjie Zhao, mcsoft12138@outlook.com
 #         Zhongwei Ji, jizhongwei1999@outlook.com
+#         Charles Anjah, cmanjahart@gmail.com
 # =============================================================================
 
 """
