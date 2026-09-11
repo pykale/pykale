@@ -2,6 +2,7 @@
 # Author: Lawrence Schobs, lawrenceschobs@gmail.com
 #         Wenjie Zhao, mcsoft12138@outlook.com
 #         Zhongwei Ji, jizhongwei1999@outlook.com
+#         Charles Anjah, cmanjahart@gmail.com
 # =============================================================================
 
 """
@@ -65,7 +66,7 @@ from typing import Any, Callable, cast, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from kale.evaluate.similarity_metrics import evaluate_correlations
+from kale.evaluate.similarity_metrics import CorrelationConfig, evaluate_correlations
 from kale.evaluate.uncertainty_metrics import evaluate_bounds, evaluate_jaccard, get_mean_errors
 from kale.interpret.box_plot import (
     execute_boxplot,
@@ -73,7 +74,7 @@ from kale.interpret.box_plot import (
     plot_per_model_boxplot,
     plot_q_comparing_boxplot,
 )
-from kale.interpret.uncertainty_utils import plot_cumulative
+from kale.interpret.uncertainty_utils import CumulativePlotConfig, plot_cumulative
 from kale.prepdata.tabular_transform import generate_struct_for_qbin
 from kale.utils.save_xlsx import generate_summary_df
 
@@ -150,12 +151,7 @@ SUMMARY_MEAN_ERROR_TITLE = "Mean error"
 
 @dataclass
 class BaseAnalysisConfig:
-    """
-    Base configuration class with common analysis and visualization settings.
-
-    This base class consolidates shared fields across different analysis configurations to avoid duplication
-    and ensure consistency in plotting and analysis parameters.
-    """
+    """Analysis and visualization settings shared by the quantile binning configurations."""
 
     # Common analysis settings
     combine_middle_bins: bool = False  # If True, merge middle bins into one for simplified 3-bin analysis
@@ -183,24 +179,14 @@ class BaseAnalysisConfig:
     interpret: bool = True  # If True, execute analysis and plotting; if False, skip processing
 
     def __post_init__(self):
-        """
-        Initialize default values for mutable fields.
-
-        This method is automatically called after dataclass initialization to set up mutable default values that cannot
-        be safely defined in the field declarations.
-        """
+        """Set ``individual_targets_to_show`` to an empty list when not given."""
         if self.individual_targets_to_show is None:
             self.individual_targets_to_show = []
 
 
 @dataclass
 class QuantileBinningConfig(BaseAnalysisConfig):
-    """
-    Configuration class for quantile binning analysis.
-
-    This class replaces the tuple-based parameter passing with a more structured, type-safe approach for configuring
-    quantile binning uncertainty analysis. It inherits common analysis and visualization settings from BaseAnalysisConfig.
-    """
+    """Configuration for comparing models and uncertainty types at a fixed number of bins."""
 
     # Data configuration (specific to this analysis type)
     uncertainty_error_pairs: List[Tuple[str, str, str]] = field(
@@ -219,12 +205,7 @@ class QuantileBinningConfig(BaseAnalysisConfig):
 
 @dataclass
 class ComparingBinsConfig(BaseAnalysisConfig):
-    """
-    Configuration class for comparing different bin counts (Q values) analysis.
-
-    This class inherits common analysis and visualization settings from BaseAnalysisConfig, focusing on Q-value
-    optimization while reducing code duplication.
-    """
+    """Configuration for comparing different bin counts (Q values) for one model and uncertainty type."""
 
     # Data configuration (specific to this analysis type)
     uncertainty_error_pair: Tuple[str, str] = (
@@ -242,12 +223,7 @@ class ComparingBinsConfig(BaseAnalysisConfig):
 
 @dataclass
 class MetricPlotConfig:
-    """
-    Configuration class for metric plotting parameters.
-
-    This class consolidates plotting parameters to reduce function argument count
-    and improve maintainability of plotting methods.
-    """
+    """Plotting parameters for one metric, as consumed by :meth:`QuantileBinningAnalyzer._plot_metrics`."""
 
     # Core plotting parameters
     eval_data: Dict[str, Any]  # Dictionary containing computed metrics (errors, jaccard, bounds)
@@ -276,12 +252,7 @@ class MetricPlotConfig:
 
 @dataclass
 class MetricDefinition:
-    """
-    Definition of a specific metric's plotting characteristics.
-
-    This class encapsulates the specific parameters needed for each metric type,
-    enabling a unified plotting approach across different metrics.
-    """
+    """Plotting characteristics of a specific metric type (data keys, labels, scaling)."""
 
     metric_name: str  # Internal identifier for the metric (e.g., 'error', 'jaccard', 'errorbound')
     data_key: str  # Dictionary key to access metric data in eval_data
@@ -298,13 +269,11 @@ class MetricDefinition:
 
 class QuantileBinningAnalyzer:
     """
-    A class for performing and visualizing Quantile Binning uncertainty analysis.
+    Perform and visualize Quantile Binning uncertainty analysis.
 
-    This class encapsulates the functionality of the original generate_fig_individual_bin_comparison and
-    generate_fig_comparing_bins functions to reduce code duplication and improve maintainability. It provides two core
-    analysis modes:
-    1. Compare different models/uncertainty types at fixed bin counts (run_individual_bin_comparison).
-    2. Compare the impact of different bin counts (Q values) on model performance (run_comparing_bins_analysis).
+    Two analysis modes are provided:
+    1. Compare different models/uncertainty types at a fixed number of bins (run_individual_bin_comparison).
+    2. Compare the impact of different bin counts (Q values) on one model (run_comparing_bins_analysis).
     """
 
     # Metric definitions for unified plotting
@@ -441,38 +410,114 @@ class QuantileBinningAnalyzer:
         ext = self.figure_format if is_figure else self.data_format
         return f"{base_name}.{ext}"
 
-    def run_individual_bin_comparison(self, config: QuantileBinningConfig) -> None:
+    def _plot_correlations(self, config: QuantileBinningConfig, eval_data: Dict[str, Any]) -> None:
         """
-        Execute comprehensive comparative analysis of different models and uncertainty types at fixed bin counts.
-
-        This method performs the core individual bin comparison analysis, comparing how different models and
-        uncertainty estimation methods perform across uncertainty-based bins. It generates multiple types of
-        visualizations and statistical analyses to evaluate uncertainty quantification effectiveness in medical imaging
-        applications.
-
-        The analysis workflow includes:
-        1. Data loading and evaluation metric computation for all model-uncertainty combinations
-        2. Correlation analysis between uncertainty estimates and actual errors (if enabled)
-        3. Cumulative error distribution analysis (if enabled)
-        4. Error boxplot generation comparing models across uncertainty bins
-        5. Error bounds accuracy assessment showing calibration quality
-        6. Jaccard similarity analysis evaluating bin overlap with ground truth
+        Analyze and plot the correlation between uncertainty estimates and actual errors.
 
         Args:
-            config (QuantileBinningConfig): Comprehensive configuration object containing:
-                - uncertainty_error_pairs: List of (uncertainty_type, error_type) combinations to analyze
-                - models: List of model names to compare (e.g., ['ResNet50', 'VGG16', 'DenseNet'])
-                - dataset: Dataset identifier for labeling and file organization
-                - target_indices: List of anatomical landmark/target indices to analyze
-                - num_bins: Number of uncertainty quantile bins (typically 5-20)
-                - combine_middle_bins: Whether to merge middle bins for simplified 3-bin analysis
-                - confidence_invert: List of (uncertainty_type, should_invert) tuples for proper type-safe handling
-                - Display and visualization settings for plot generation
-                - File paths and saving configuration
+            config (QuantileBinningConfig): Configuration for this analysis.
+            eval_data (Dict[str, Any]): Evaluation data, keyed by metric, as produced by the analysis.
+        """
+        evaluate_correlations(
+            eval_data["bins"],
+            config.uncertainty_error_pairs,
+            config.confidence_invert,
+            CorrelationConfig(
+                num_bins=config.num_bins,
+                num_folds=config.num_folds,
+                colormap=self.boxplot_config.get("colormap", "Set1"),
+                error_scaling_factor=config.error_scaling_factor,
+                combine_middle_bins=config.combine_middle_bins,
+                save_path=self.save_folder if self.save_figures else None,
+                to_log=True,
+            ),
+        )
 
-        Raises:
-            FileNotFoundError: If required data files are not found at specified paths.
-            ValueError: If configuration parameters are invalid or incompatible.
+    def _cumulative_plot_config(
+        self, config: QuantileBinningConfig, title: str, file_name: str, compare_to_all: bool = False
+    ) -> CumulativePlotConfig:
+        """
+        Build a cumulative plot configuration, holding the settings shared by every cumulative plot.
+
+        Args:
+            config (QuantileBinningConfig): Configuration for this analysis.
+            title (str): Title for the plot.
+            file_name (str): File name stem, expanded by :meth:`_build_filename`.
+            compare_to_all (bool): Whether to overlay the full dataset alongside the selected bins.
+
+        Returns:
+            CumulativePlotConfig: The configuration to pass to :func:`plot_cumulative`.
+        """
+        return CumulativePlotConfig(
+            colormap=self.boxplot_config.get("colormap", "Set1"),
+            title=title,
+            compare_to_all=compare_to_all,
+            save_path=self.save_folder if self.save_figures else None,
+            file_name=self._build_filename(file_name),
+            error_scaling_factor=config.error_scaling_factor,
+        )
+
+    def _plot_cumulative_errors(self, config: QuantileBinningConfig, eval_data: Dict[str, Any]) -> None:
+        """
+        Plot cumulative error distributions for all predictions, for B1 only, and for B1 against all.
+
+        Args:
+            config (QuantileBinningConfig): Configuration for this analysis.
+            eval_data (Dict[str, Any]): Evaluation data, keyed by metric, as produced by the analysis.
+        """
+        # Extract just the base names (first element) for plot_cumulative
+        uncertainty_pairs = [(name, name) for name, err, unc in config.uncertainty_error_pairs]
+
+        plot_cumulative(
+            eval_data["bins"],
+            config.models,
+            uncertainty_pairs,
+            np.arange(config.num_bins),
+            self._cumulative_plot_config(
+                config,
+                CUMULATIVE_ERROR_TITLE_TEMPLATE.format(config.dataset),
+                FILE_NAME_ALL_PREDICTIONS_CUMULATIVE_ERROR,
+            ),
+        )
+        # Plot cumulative error figure for B1 only predictions
+        plot_cumulative(
+            eval_data["bins"],
+            config.models,
+            uncertainty_pairs,
+            0,
+            self._cumulative_plot_config(
+                config,
+                CUMULATIVE_ERROR_B1_TITLE_TEMPLATE.format(config.dataset),
+                FILE_NAME_B1_PREDICTIONS_CUMULATIVE_ERROR,
+            ),
+        )
+
+        # Plot cumulative error figure comparing B1 and ALL, for both models
+        for model_type in config.models:
+            plot_cumulative(
+                eval_data["bins"],
+                [model_type],
+                uncertainty_pairs,
+                0,
+                self._cumulative_plot_config(
+                    config,
+                    CUMULATIVE_ERROR_B1_VS_ALL_TITLE_TEMPLATE.format(model_type, config.dataset),
+                    FILE_NAME_B1_VS_ALL_CUMULATIVE_ERROR_TEMPLATE.format(model_type),
+                    compare_to_all=True,
+                ),
+            )
+
+    def run_individual_bin_comparison(self, config: QuantileBinningConfig) -> None:
+        """
+        Compare models and uncertainty types across uncertainty bins at a fixed number of bins.
+
+        Loads the binned predictions, computes the evaluation metrics, and then generates whichever of the
+        following plots are enabled in ``display_settings``: uncertainty-error correlation, cumulative error
+        distribution, and boxplots of error, error bound accuracy and Jaccard index per bin. Does nothing if
+        ``interpret`` is False.
+
+        Args:
+            config (QuantileBinningConfig): The models, uncertainty types, targets, bin count and output settings.
 
         Example:
 
@@ -491,12 +536,6 @@ class QuantileBinningAnalyzer:
                 ...     individual_targets_to_show=[0, 1],
                 ... )
                 >>> analyzer.run_individual_bin_comparison(config)
-
-        Note:
-            - The method respects the analyzer's display_settings to control which plots are generated
-            - Individual target plots provide detailed per-landmark analysis when enabled
-            - Results are automatically saved to Excel summary files for further analysis
-            - All plots use consistent styling and colormaps for publication-ready figures
         """
         if not self.interpret:
             return
@@ -519,64 +558,10 @@ class QuantileBinningAnalyzer:
         category_labels = [rf"$B_{{{num_bins_display + 1 - (i + 1)}}}$" for i in range(num_bins_display + 1)]
         # --- Start plotting ---
         if self.display_settings.get("correlation"):
-            colormap = self.boxplot_config.get("colormap", "Set1")
-            uncertainty_error_model_triples = config.uncertainty_error_pairs
-            # confidence_invert is already properly typed as List[Tuple[str, bool]]
-            evaluate_correlations(
-                eval_data["bins"],
-                uncertainty_error_model_triples,
-                config.num_bins,
-                config.confidence_invert,
-                num_folds=config.num_folds,
-                colormap=colormap,
-                error_scaling_factor=config.error_scaling_factor,
-                combine_middle_bins=config.combine_middle_bins,
-                save_path=self.save_folder if self.save_figures else None,
-                to_log=True,
-            )
+            self._plot_correlations(config, eval_data)
 
         if self.display_settings.get("cumulative_error"):
-            colormap = self.boxplot_config.get("colormap", "Set1")
-            # Extract just the base names (first element) for plot_cumulative
-            extracted_uncertainty_error_pairs = [(name, name) for name, err, unc in config.uncertainty_error_pairs]
-            plot_cumulative(
-                colormap,
-                eval_data["bins"],
-                config.models,
-                extracted_uncertainty_error_pairs,
-                np.arange(config.num_bins),
-                CUMULATIVE_ERROR_TITLE_TEMPLATE.format(config.dataset),
-                save_path=self.save_folder if self.save_figures else None,
-                file_name=self._build_filename(FILE_NAME_ALL_PREDICTIONS_CUMULATIVE_ERROR),
-                error_scaling_factor=config.error_scaling_factor,
-            )
-            # Plot cumulative error figure for B1 only predictions
-            plot_cumulative(
-                colormap,
-                eval_data["bins"],
-                config.models,
-                extracted_uncertainty_error_pairs,
-                0,
-                CUMULATIVE_ERROR_B1_TITLE_TEMPLATE.format(config.dataset),
-                save_path=self.save_folder if self.save_figures else None,
-                file_name=self._build_filename(FILE_NAME_B1_PREDICTIONS_CUMULATIVE_ERROR),
-                error_scaling_factor=config.error_scaling_factor,
-            )
-
-            # Plot cumulative error figure comparing B1 and ALL, for both models
-            for model_type in config.models:
-                plot_cumulative(
-                    colormap,
-                    eval_data["bins"],
-                    [model_type],
-                    extracted_uncertainty_error_pairs,
-                    0,
-                    CUMULATIVE_ERROR_B1_VS_ALL_TITLE_TEMPLATE.format(model_type, config.dataset),
-                    compare_to_all=True,
-                    save_path=self.save_folder if self.save_figures else None,
-                    file_name=self._build_filename(FILE_NAME_B1_VS_ALL_CUMULATIVE_ERROR_TEMPLATE.format(model_type)),
-                    error_scaling_factor=config.error_scaling_factor,
-                )
+            self._plot_cumulative_errors(config, eval_data)
 
         if self.display_settings.get("errors"):
             uncertainty_categories = [[name, name] for name, err, unc in config.uncertainty_error_pairs]
@@ -644,42 +629,15 @@ class QuantileBinningAnalyzer:
 
     def run_comparing_bins_analysis(self, config: ComparingBinsConfig) -> None:
         """
-        Execute comprehensive analysis comparing the impact of different bin counts (Q values) on model performance.
+        Compare the effect of different bin counts (Q values) on one model and uncertainty type.
 
-        This method performs Q-value optimization analysis to determine the optimal number of uncertainty bins for a
-        specific model and uncertainty type combination. It systematically evaluates how different binning strategies
-        (Q=5, Q=10, Q=15, etc.) affect uncertainty quantification performance and provides insights for hyperparameter
-        selection in medical imaging applications.
-
-        The analysis workflow includes:
-        1. Iterative data collection across all specified Q values
-        2. Metric computation (errors, Jaccard similarity, error bounds) for each Q configuration
-        3. Comparative visualization showing Q-value impact on performance metrics
-        4. Statistical analysis of optimal bin count selection
-        5. Individual target analysis (if enabled) for detailed per-landmark insights
-
-        This analysis is crucial for:
-        - Determining optimal binning strategies for specific datasets and models
-        - Understanding the trade-offs between granularity and statistical reliability
-        - Identifying Q values that maximize uncertainty-error correlation
-        - Validating binning approach generalizability across different anatomical targets
+        Loads the binned predictions and computes the evaluation metrics for each Q value, then generates
+        whichever of the error, error bound accuracy and Jaccard index boxplots are enabled in
+        ``display_settings``, with one category per Q value. Does nothing if ``interpret`` is False.
 
         Args:
-            config (ComparingBinsConfig): Comprehensive configuration object containing:
-                - uncertainty_error_pair: Single (uncertainty_type, error_type) tuple to analyze
-                - model: Single model name to evaluate across different Q values
-                - dataset: Dataset identifier for consistent labeling and organization
-                - targets: List of target indices for multi-target analysis
-                - q_values: List of Q values to compare (e.g., [5, 10, 15, 20, 25])
-                - fitted_save_paths: Corresponding list of data file paths for each Q value
-                - combine_middle_bins: Whether to use simplified 3-bin analysis for all Q values
-                - Display settings controlling which metrics to visualize
-                - Individual target plotting configuration for detailed analysis
-
-        Raises:
-            FileNotFoundError: If data files for any Q value are missing or inaccessible.
-            ValueError: If Q values and save paths lists have mismatched lengths.
-            IndexError: If specified target indices are not present in the data.
+            config (ComparingBinsConfig): The model, uncertainty type, targets, Q values, data paths and
+                output settings.
 
         Example:
 
@@ -701,13 +659,6 @@ class QuantileBinningAnalyzer:
                 ...     individual_targets_to_show=[0],
                 ... )
                 >>> analyzer.run_comparing_bins_analysis(config)
-
-        Note:
-            - Results typically show optimal Q values in the range of 10-20 bins for medical imaging
-            - Higher Q values provide finer granularity but may suffer from insufficient statistics
-            - Lower Q values are more robust but may miss important uncertainty patterns
-            - Individual target analysis can reveal target-specific optimal Q values
-            - Generated plots use consistent formatting for easy comparison across Q values
         """
         if not self.interpret:
             return
@@ -835,10 +786,7 @@ class QuantileBinningAnalyzer:
 
     def _get_save_location(self, suffix: str, show_individual_dots: bool) -> Optional[str]:
         """
-        Construct and return the save path for charts, or return None if not saving.
-
-        This method generates the complete file path for saving plots based on the analyzer's configuration and the
-        specific plot parameters.
+        Construct the save path for a chart, or return None if figures are not being saved.
 
         Args:
             suffix (str): Descriptive suffix for the filename (e.g., "error_all_targets", "jaccard_target_1").
@@ -868,7 +816,7 @@ class QuantileBinningAnalyzer:
         combine_middle_bins: bool,
     ) -> Dict[str, Any]:
         """
-        Load and compute all evaluation metrics for the given binning configuration.
+        Load the binned predictions, compute the evaluation metrics, and write the mean-error summary file.
 
         Args:
             models (List[str]): List of model names.
@@ -905,10 +853,7 @@ class QuantileBinningAnalyzer:
 
     def _plot_metrics(self, metric_type: str, config: MetricPlotConfig) -> None:
         """
-        Unified method for plotting different types of metrics.
-
-        This method replaces the three similar _plot_*_metrics methods with a single,
-        configurable approach that reduces code duplication.
+        Plot the boxplots for one metric type, for all targets and, if enabled, for individual targets.
 
         Args:
             metric_type (str): Type of metric ('error', 'error_bounds', 'jaccard')
@@ -1037,11 +982,7 @@ class QuantileBinningAnalyzer:
         **kwargs: Any,
     ):
         """
-        Generate individual target-specific plots for detailed analysis.
-
-        This method creates separate plots for each specified target to enable detailed analysis of model performance
-        on individual anatomical landmarks or regions. It handles different data structures depending on the plotting
-        mode.
+        Generate a separate plot for each of the specified targets.
 
         Args:
             metric_name (str): Name of the metric being plotted (e.g., "error", "jaccard", "errorbound").
@@ -1115,11 +1056,7 @@ class QuantileBinningAnalyzer:
         **kwargs: Any,
     ):
         """
-        Universal metric plotting function for drawing boxplots of various uncertainty quantification metrics.
-
-        This is the core plotting method that handles the creation of boxplots for different metrics including errors,
-        Jaccard index, and error bounds. It standardizes the plotting process across different metric types and
-        plotting modes.
+        Draw the boxplot of one metric (error, Jaccard index or error bounds) for all targets.
 
         Args:
             metric_name (str): The metric being plotted ('error', 'jaccard', 'errorbound', 'mean_error_folds',
@@ -1194,11 +1131,7 @@ class QuantileBinningAnalyzer:
         **kwargs: Any,
     ) -> MetricPlotConfig:
         """
-        Create a MetricPlotConfig object from the provided parameters.
-
-        This helper method reduces the number of arguments passed to plotting methods by encapsulating them in a
-        configuration object. It serves as a factory method to construct the MetricPlotConfig dataclass with
-        consistent parameter organization and default value handling.
+        Create a MetricPlotConfig from the provided parameters.
 
         Args:
             eval_data (Dict[str, Any]): Comprehensive evaluation data dictionary containing computed metrics.
@@ -1237,8 +1170,7 @@ class QuantileBinningAnalyzer:
                 - precision_y_label (str): Custom label for Jaccard precision plots
 
         Returns:
-            MetricPlotConfig: Configuration object encapsulating all plotting parameters in a structured format.
-                This object is passed to _plot_metrics() to generate the actual visualizations.
+            MetricPlotConfig: The configuration to pass to :meth:`_plot_metrics`.
         """
         return MetricPlotConfig(
             eval_data=eval_data,
