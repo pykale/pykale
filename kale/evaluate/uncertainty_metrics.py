@@ -1664,18 +1664,18 @@ def _group_target_errors_by_bin(pred_bins_ti: dict, true_errors_ti: dict, num_bi
 
 
 def _weighted_average(values: list, weights: list) -> float:
-    """Return the ``weights``-weighted mean of ``values``, or ``0.0`` if the weights sum to zero.
+    """Return the ``weights``-weighted mean of ``values``, or ``nan`` if the weights sum to zero.
 
     Args:
         values (list): Per-item values (e.g. per-bin accuracies).
         weights (list): Non-negative weights aligned with ``values`` (e.g. per-bin sample counts).
 
     Returns:
-        float: The size-weighted mean, or ``0.0`` when all weights are zero.
+        float: The size-weighted mean, or ``nan`` when all weights are zero.
     """
     total_weight = sum(weights)
     if total_weight == 0:
-        return 0.0
+        return float("nan")
     return sum(value * weight for value, weight in zip(values, weights)) / total_weight
 
 
@@ -1702,7 +1702,8 @@ def bin_wise_bound_eval(
     Returns:
         dict: A dictionary containing the following error bound accuracy statistics:
               - 'mean all targets': The mean accuracy over all targets and quantile bins.
-              - 'mean all bins': A list of mean accuracy values for each quantile bin (all targets included).
+              - 'mean all bins': A list of mean accuracy values for each quantile bin (all targets included),
+               weighted by bin size; ``nan`` for a bin that is empty for every target.
               - 'mean all': A list of accuracy values for each quantile bin and target, weighted by # targets in each bin.
               - 'all bins concatenated targets separated': A list of accuracy values for each quantile bin, concatenated
                for each target separately.
