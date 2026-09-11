@@ -1757,6 +1757,10 @@ def bin_wise_bound_eval(
             all_qs_errorbound_concat_targets_sep[i_ti][q].append(accuracy_bin)
 
         # Weighted average over all bins
+        if sum(bins_sizes) == 0:
+            raise ValueError(
+                f"Target {target_idx} has no samples in this fold for uncertainty type {uncertainty_type}."
+            )
         all_target_perc.append(_weighted_average(bins_acc, bins_sizes))
 
     # Weighted average for each of the quantile bins.

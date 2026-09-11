@@ -64,3 +64,12 @@ class TestBinWiseBoundEvalScoring:
         # 1.0 falls inside bound 2.0; 1e31 exceeds the lower bound of the open-ended last bin.
         assert result["mean all targets"] == pytest.approx(1.0)
         assert result["mean all"][1] == [1.0]
+
+    def test_target_without_samples_raises(self):
+        """A target with no samples in the fold raises instead of being scored."""
+        errors_df, bins_df = self._frames(errors=[1.0, 3.0], bins=[0, 0])
+
+        with pytest.raises(ValueError, match="Target 1 has no samples"):
+            bin_wise_bound_eval(
+                [[2.0], [2.0]], errors_df, bins_df, targets=[0, 1], uncertainty_type=self.UNCERTAINTY, num_bins=2
+            )
