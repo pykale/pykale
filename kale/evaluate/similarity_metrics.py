@@ -18,13 +18,7 @@ from kale.prepdata.tabular_transform import apply_confidence_inversion
 
 @dataclass
 class CorrelationConfig:
-    """
-    Configuration for :func:`evaluate_correlations`.
-
-    Groups the analysis, plotting and output settings so that callers pass one object instead of a long
-    parameter list, and so that the binning and file-naming constants are named rather than embedded in
-    the analysis code.
-    """
+    """Analysis, plotting and output settings for :func:`evaluate_correlations`."""
 
     # Analysis settings
     num_bins: int = 10  # Number of quantile bins used to derive the uncertainty thresholds
@@ -111,8 +105,8 @@ def evaluate_correlations(
     config: Optional[CorrelationConfig] = None,
 ) -> Dict[str, Dict[str, Dict[str, Any]]]:
     """
-    Calculates the correlation between error and uncertainty for each bin and for each target,
-    using a piece-wise linear regression model.
+    Calculate the correlation between error and uncertainty for each model and uncertainty type over all
+    testing folds, fitting a piece-wise linear regression between the quantile thresholds.
 
     Designed for use in Quantile Binning (/pykale/examples/landmark_uncertainty/main.py).
 
@@ -126,30 +120,9 @@ def evaluate_correlations(
         config: Analysis, plotting and output settings. Defaults to :class:`CorrelationConfig`.
 
     Returns:
-        A dictionary containing the correlation statistics for each model and uncertainty method.
-        The dictionary has the following structure:
-        {
-            <model_name>: {
-                <uncertainty_name>: {
-                    "all_folds": {
-                        "r": <correlation coefficient>,
-                        "p": <p-value>,
-                        "fit_params": <regression line parameters>,
-                        "ci": <confidence intervals for the regression line parameters>
-                    },
-                    "quantiles": {
-                        <quantile_index>: {
-                            "r": <correlation coefficient>,
-                            "p": <p-value>,
-                            "fit_params": <regression line parameters>,
-                            "ci": <confidence intervals for the regression line parameters>
-                        }
-                    }
-                }
-            }
-        }
-        The "all_folds" key contains the correlation statistics for all testing folds combined.
-        The "quantiles" key contains the correlation statistics for each quantile bin separately.
+        The correlation statistics for each model and uncertainty type, as returned by
+        :func:`kale.interpret.uncertainty_utils.analyze_and_plot_uncertainty_correlation`:
+        ``{<model_name>: {<uncertainty_name>: {"spearman": [coefficient, p_value], "pearson": [coefficient, p_value]}}}``.
     """
     config = config or CorrelationConfig()
 

@@ -247,7 +247,7 @@ class TestQuantileBinningAndEstErrors:
         assert len(est_errors) == 2
 
     def test_error_wise_type_handling(self):
-        """Test that error_wise type raises NotImplementedError (not yet implemented)."""
+        """Test that error_wise type raises NotImplementedError."""
         # error-wise type is not implemented yet and should raise NotImplementedError
         with pytest.raises(NotImplementedError, match="error-wise Quantile Binning not implemented yet"):
             quantile_binning_and_estimate_errors(ERRORS, UNCERTAINTIES, num_bins=5, threshold_type="error-wise")
@@ -257,7 +257,7 @@ class TestEdgeCases:
     """Test edge cases and error conditions."""
 
     def test_quantile_binning_single_bin(self):
-        """Test quantile binning with single bin (edge case)."""
+        """Test quantile binning with a single bin."""
         # Single bin should result in no boundaries
         est_bounds, est_errors = quantile_binning_and_estimate_errors(ERRORS, UNCERTAINTIES, num_bins=1)
         assert len(est_bounds) == 0
@@ -317,10 +317,10 @@ class TestParameterValidation:
 
 
 class TestCumulativePlotConfig:
-    """Configuration defaults and overrides for plot_cumulative (issue #555)."""
+    """Configuration defaults and overrides for plot_cumulative."""
 
-    def test_defaults_match_previous_hardcoded_values(self):
-        """The defaults preserve the constants the plotting code used to embed inline."""
+    def test_defaults(self):
+        """The default configuration values."""
         config = CumulativePlotConfig()
 
         assert config.colormap == "Set1"

@@ -25,7 +25,7 @@ def bin_predictions():
 
 
 class TestCorrelationConfig:
-    """Configuration defaults for evaluate_correlations (issue #555)."""
+    """Configuration defaults for evaluate_correlations."""
 
     def test_defaults(self):
         config = CorrelationConfig()
@@ -40,7 +40,7 @@ class TestCorrelationConfig:
 
 
 class TestQuantileThresholds:
-    """Threshold derivation, previously inlined in evaluate_correlations."""
+    """Quantile threshold derivation."""
 
     def test_returns_one_threshold_fewer_than_bins(self):
         values = np.arange(100, dtype=float)
@@ -61,11 +61,7 @@ class TestQuantileThresholds:
 
 
 class TestEvaluateCorrelations:
-    """evaluate_correlations orchestration (issue #555, and the coverage gap noted in #410).
-
-    The plotting call is mocked: saving figures is what makes this function awkward to test in CI,
-    and the behaviour under test here is the data selection and configuration handling.
-    """
+    """Data selection and configuration handling in evaluate_correlations, with the plotting call mocked."""
 
     @patch("kale.evaluate.similarity_metrics.analyze_and_plot_uncertainty_correlation")
     def test_returns_stats_keyed_by_model_and_uncertainty(self, mock_analyze, bin_predictions):
