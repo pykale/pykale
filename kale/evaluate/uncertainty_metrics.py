@@ -5,7 +5,9 @@
 # =============================================================================
 
 """
-Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization," in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
+Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, 
+"Uncertainty Estimation for Heatmap-Based Landmark Localization," 
+in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
 Key Evaluation Approaches:
     A) Jaccard Similarity Analysis: Measures overlap between predicted uncertainty bins
