@@ -64,8 +64,9 @@ def analyze_and_plot_uncertainty_correlation(
             Lower values increase diversity but may reduce stability. Defaults to 0.6.
         font_size (int, optional): Font size for all text elements in the plot including axis labels, correlation text,
             and quantile labels. Defaults to 25.
-        show (bool, optional): Whether to display the plot interactively. Defaults to False. **fig_kwargs: Additional
-            keyword arguments for figure creation and styling:
+        show (bool, optional): Whether to display the plot interactively. Defaults to False.
+
+        **fig_kwargs: Additional keyword arguments for figure creation and styling:
             - figsize (tuple): Figure size in inches (default: (16, 8))
             - save_dpi (int): Resolution in dots per inch for the saved figure (default: 600)
             - show_dpi (int): Resolution in dots per inch for the shown figure (default: 100)
@@ -195,8 +196,7 @@ def plot_uncertainty_correlation(
         show (bool, optional): Whether to show the figure. Defaults to False.
         font_size (int, optional): Font size for all text elements. Defaults to 25.
 
-        **fig_kwargs: Additional keyword
-            arguments for figure creation and styling:
+        **fig_kwargs: Additional keyword arguments for figure creation and styling:
             - figsize (tuple): Figure size in inches (default: (16, 8))
             - save_dpi (int): Dots per inch for resolution (default: 600)
             - show_dpi (int): Dots per inch for the shown figure (default: 100)

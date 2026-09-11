@@ -1790,8 +1790,10 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, 
     Args:
         fold_errors (Pandas Dataframe): Pandas Dataframe of errors for this fold.
         fold_bins (Pandas Dataframe): Pandas Dataframe of predicted quantile bins for this fold.
-        num_bins (int): Number of quantile bins, targets (list) list of targets to measure uncertainty estimation,
-        uncertainty_key (string): Name of uncertainty type to calculate accuracy for,
+        num_bins (int): Number of quantile bins.
+        targets (list): list of targets to measure uncertainty estimation.
+        uncertainty_key (string): Name of uncertainty type to calculate accuracy for.
+        error_scaling_factor (float): Factor to scale the errors by.
 
 
     Returns:
