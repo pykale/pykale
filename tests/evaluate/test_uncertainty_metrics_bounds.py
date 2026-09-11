@@ -1,5 +1,3 @@
-import math
-
 import pandas as pd
 import pytest
 
@@ -48,11 +46,11 @@ class TestBinWiseBoundEvalScoring:
         # Size-weighted means are unaffected by the empty bin (its weight is 0).
         assert result["mean all targets"] == pytest.approx(0.5)
         assert result["mean all bins"][0] == pytest.approx(0.5)
-        # A bin that is empty for every target has no weighted mean.
-        assert math.isnan(result["mean all bins"][1])
+        # A bin that is empty for every target reports 0.0 in the size-weighted mean.
+        assert result["mean all bins"][1] == 0.0
 
     def test_last_bin_has_no_upper_bound(self):
-        """The final bin is unbounded above, so an arbitrarily large error is still correct (#550)."""
+        """The final bin is unbounded above, so an arbitrarily large error is still correct."""
         errors_df, bins_df = self._frames(errors=[1.0, 1e31], bins=[0, 1])
 
         result = bin_wise_bound_eval(
