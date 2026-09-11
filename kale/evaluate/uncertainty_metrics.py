@@ -716,10 +716,6 @@ class BaseEvaluator(ABC):
         current_num_bins_ (int): Number of bins for current evaluation (may differ from original)
         current_targets_ (List[int]): Target indices for current evaluation
         current_uncertainty_type_ (str): Current uncertainty type being processed
-
-    Note:
-        This is an abstract base class. Use concrete implementations like JaccardEvaluator
-        for actual evaluations.
     """
 
     def __init__(self, config: EvaluationConfig):
@@ -767,10 +763,6 @@ class BaseEvaluator(ABC):
                a. Process all cross-validation folds
                b. Aggregate fold results
             3. Finalize and format results for output
-
-        Note:
-            This method coordinates the evaluation process but delegates the actual
-            evaluation logic to abstract methods implemented by subclasses.
         """
         # Set instance variables to reduce parameter passing
         self.current_targets_ = targets
@@ -923,28 +915,18 @@ class JaccardEvaluator(BaseEvaluator):
             ...     targets=[0, 1],
             ... )
             >>> print(results["jaccard_all"]["model1 epistemic"])
-
-    Note:
-        This evaluator implements the Template Method pattern defined in BaseEvaluator,
-        providing specific implementations for Jaccard similarity calculation and
-        bin-wise evaluation of uncertainty quantification quality.
     """
 
     def __init__(self, config: Optional[EvaluationConfig] = None):
         """
         Initialize JaccardEvaluator with configuration and required components.
 
-        Sets up the evaluator with configuration parameters and calls the parent
-        class constructor to initialize the evaluation framework.
+        Sets up the evaluator with configuration parameters and calls the parent class constructor to initialize the
+        evaluation framework.
 
         Args:
-            config (Optional[EvaluationConfig]): Configuration object containing
-                evaluation parameters such as bin counts, thresholds, and settings
-                for target separation. If None, uses default EvaluationConfig values.
-
-        Note:
-            Inherits utility components (data_processor, quantile_calculator,
-            metrics_calculator) from BaseEvaluator initialization.
+            config (Optional[EvaluationConfig]): Configuration object containing evaluation parameters such as bin
+                counts, thresholds, and settings for target separation. If None, uses default EvaluationConfig values.
         """
         super().__init__(config or EvaluationConfig())
 
@@ -1061,11 +1043,6 @@ class JaccardEvaluator(BaseEvaluator):
                 - bin_precision: List of precision values for each bin
                 - target_metrics: Target-specific evaluation results
                 - bins_targets_separated: Bin results separated by target
-
-        Note:
-            This method processes each target individually and aggregates results
-            across all targets for comprehensive evaluation. Handles both combined
-            and target-separated result generation based on configuration.
         """
         all_target_jaccard = []
         all_target_recall = []
@@ -1126,11 +1103,6 @@ class JaccardEvaluator(BaseEvaluator):
                 - 'bin_jaccard': List of Jaccard values for each bin
                 - 'bin_recall': List of recall values for each bin
                 - 'bin_precision': List of precision values for each bin
-
-        Note:
-            This method processes data specific to one target, enabling detailed
-            analysis of uncertainty quantification performance across different
-            prediction targets or classes.
         """
         # Extract and prepare target-specific data
         errors_dict, bins_dict = self._extract_target_data(fold_data, target_idx)
@@ -1401,10 +1373,6 @@ class JaccardEvaluator(BaseEvaluator):
                 - PRECISION_TARGETS_SEPARATED: Target-separated precision results
                 - ALL_JACC_CONCAT_BINS_TARGET_SEP_FOLDWISE: Fold-wise target separation
                 - ALL_JACC_CONCAT_BINS_TARGET_SEP_ALL: Overall target separation
-
-        Note:
-            This method maps the container's organized data structure to the specific
-            result keys expected by the Jaccard evaluation API.
         """
         assert self.container_ is not None, "Results container is not initialized"
         return {
@@ -1471,10 +1439,6 @@ def evaluate_bounds(
             ...     num_bins=5, targets=[0, 1, 2]
             ... )
             >>> print(results['error_bounds_all']['model1_epistemic'])
-
-    Note:
-        This function complements Jaccard-based evaluation by focusing on the
-        accuracy of predicted confidence intervals rather than bin overlap.
     """
 
     if combine_middle_bins:
@@ -1589,9 +1553,6 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, targets, num_
 def _bin_error_bounds(q: int, num_bins: int, fold_bounds: list) -> Tuple[float, float]:
     """Return the ``(lower, upper]`` error bounds for quantile bin ``q``.
 
-    The first bin starts at 0 and the last bin is open above (``inf``); the intermediate bins
-    take their bounds from consecutive entries of ``fold_bounds``.
-
     Args:
         q (int): Index of the quantile bin.
         num_bins (int): Total number of quantile bins.
@@ -1613,7 +1574,7 @@ def _count_within_bounds(errors: list, lower: float, upper: float) -> int:
     Args:
         errors (list): Error values in a single bin.
         lower (float): Exclusive lower bound.
-        upper (float): Inclusive upper bound (``inf`` for the open-ended last bin).
+        upper (float): Inclusive upper bound.
 
     Returns:
         int: The number of errors within the bounds.
@@ -1622,15 +1583,15 @@ def _count_within_bounds(errors: list, lower: float, upper: float) -> int:
 
 
 def _bin_accuracy(inbin_errors: list, lower: float, upper: float) -> float:
-    """Score a single quantile bin: the fraction of its errors within ``(lower, upper]``.
+    """Return the fraction of ``inbin_errors`` within ``(lower, upper]``, or ``1.0`` if the bin is empty.
 
     Args:
         inbin_errors (list): Errors of the samples assigned to this bin.
         lower (float): Exclusive lower bound.
-        upper (float): Inclusive upper bound (``inf`` for the open-ended last bin).
+        upper (float): Inclusive upper bound.
 
     Returns:
-        float: ``1.0`` for an empty bin, otherwise the proportion of errors within the bounds.
+        float: The proportion of errors within the bounds; ``1.0`` when the bin is empty.
     """
     if len(inbin_errors) == 0:
         return 1.0
@@ -1640,8 +1601,7 @@ def _bin_accuracy(inbin_errors: list, lower: float, upper: float) -> float:
 def _group_target_errors_by_bin(pred_bins_ti: dict, true_errors_ti: dict, num_bins: int) -> List[List[float]]:
     """Group a target's errors by the predicted quantile bin of each sample.
 
-    Bin values and uids are compared as strings, so numeric and string keys (e.g. ``1`` and ``"1"``)
-    are treated as equal.
+    Bin values and uids are compared as strings, so ``1`` and ``"1"`` are treated as equal.
 
     Args:
         pred_bins_ti (dict): Maps each sample uid to its predicted quantile bin.
@@ -1649,8 +1609,7 @@ def _group_target_errors_by_bin(pred_bins_ti: dict, true_errors_ti: dict, num_bi
         num_bins (int): Total number of quantile bins.
 
     Returns:
-        list: ``num_bins`` lists, each holding the errors whose samples fall in that bin, in the
-        order the samples appear in ``pred_bins_ti``.
+        list: ``num_bins`` lists, each holding the errors of the samples in that bin.
     """
     errors_by_uid = {str(uid): error for uid, error in true_errors_ti.items()}
     binned_errors: List[List[float]] = [[] for _ in range(num_bins)]
@@ -1715,7 +1674,7 @@ def bin_wise_bound_eval(
             >>> bin_wise_bound_eval(fold_bounds_all_targets, fold_errors, fold_bins, [0,1], 'S-MHA', num_bins=5)
     """
     all_target_perc = []
-    all_qs_perc: List[List[float]] = [[] for x in range(num_bins)]  #
+    all_qs_perc: List[List[float]] = [[] for x in range(num_bins)]
     all_qs_size: List[List[float]] = [[] for x in range(num_bins)]
 
     all_qs_errorbound_concat_targets_sep: List[List[List[float]]] = [
@@ -1728,18 +1687,12 @@ def bin_wise_bound_eval(
             ["uid", uncertainty_type + " Uncertainty bins"]
         ]
 
-        # Zip to dictionary
         true_errors_ti = dict(zip(true_errors_ti.uid, true_errors_ti[uncertainty_type + " Error"]))
         pred_bins_ti = dict(zip(pred_bins_ti.uid, pred_bins_ti[uncertainty_type + " Uncertainty bins"]))
 
         # The error bounds are from B1 -> B5 i.e. best quantile of predictions to worst quantile of predictions
         fold_bounds = fold_bounds_all_targets[i_ti]
 
-        # For each bin, see what % of targets are between the error bounds.
-        # If bin=0 then lower bound = 0, if bin=Q then no upper bound
-        # Keep track of #samples in each bin for weighted mean.
-
-        # turn dictionary of predicted bins into [[num_bins]] array of errors
         pred_bins_errors = _group_target_errors_by_bin(pred_bins_ti, true_errors_ti, num_bins)
 
         bins_acc = []
@@ -1756,23 +1709,15 @@ def bin_wise_bound_eval(
             all_qs_size[q].append(len(inbin_errors))
             all_qs_errorbound_concat_targets_sep[i_ti][q].append(accuracy_bin)
 
-        # Weighted average over all bins
         if sum(bins_sizes) == 0:
             raise ValueError(
                 f"Target {target_idx} has no samples in this fold for uncertainty type {uncertainty_type}."
             )
         all_target_perc.append(_weighted_average(bins_acc, bins_sizes))
 
-    # Weighted average for each of the quantile bins.
     weighted_ave_binwise = []
     for binidx in range(len(all_qs_perc)):
         weighted_ave_binwise.append(_weighted_average(all_qs_perc[binidx], all_qs_size[binidx]))
-
-    # No weighted average, just normal average
-    normal_ave_bin_wise = []
-    for binidx in range(len(all_qs_perc)):
-        bin_accs = all_qs_perc[binidx]
-        normal_ave_bin_wise.append(np.mean(bin_accs))
 
     return {
         "mean all targets": np.mean(all_target_perc),

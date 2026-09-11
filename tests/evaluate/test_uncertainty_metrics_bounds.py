@@ -5,7 +5,7 @@ from kale.evaluate.uncertainty_metrics import bin_wise_bound_eval, ColumnNames
 
 
 class TestBinWiseBoundEvalScoring:
-    """Scoring behaviour of ``bin_wise_bound_eval`` for empty and open-ended bins (#549, #550)."""
+    """Scoring behaviour of ``bin_wise_bound_eval`` for empty and open-ended bins."""
 
     UNCERTAINTY = "S-MHA"
 
@@ -29,10 +29,7 @@ class TestBinWiseBoundEvalScoring:
         return errors_df, bins_df
 
     def test_empty_bin_scores_one(self):
-        """An empty quantile bin is scored 1.0 and carries no weight in the size-weighted means (#549).
-
-        Both samples are placed in bin 0, leaving bin 1 empty.
-        """
+        """An empty quantile bin is scored 1.0 and carries no weight in the size-weighted means."""
         errors_df, bins_df = self._frames(errors=[1.0, 3.0], bins=[0, 0])
 
         result = bin_wise_bound_eval(

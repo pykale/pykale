@@ -21,7 +21,6 @@ from kale.evaluate.uncertainty_metrics import (
 )
 from kale.prepdata.tabular_transform import generate_struct_for_qbin
 
-# from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
 
 # import os
@@ -624,14 +623,8 @@ class TestJaccardBinResults:
 
 
 class TestCrossDataFrameIndexAlignment:
-    """Regression tests for issue #553.
-
-    ``bin_wise_bound_eval`` and ``bin_wise_errors`` must group errors by ``uid`` using each
-    frame's own ``Target Index`` column, independently of how ``fold_errors`` and ``fold_bins``
-    are indexed. Before the fix, ``fold_bins`` was filtered with a boolean mask built from
-    ``fold_errors``, so a difference in row order/index between the two frames silently produced
-    the wrong grouping (or raised). These tests deliberately misalign the two frames.
-    """
+    """``bin_wise_bound_eval`` and ``bin_wise_errors`` group errors by ``uid`` regardless of
+    how ``fold_errors`` and ``fold_bins`` are indexed."""
 
     @staticmethod
     def _errors_df():

@@ -446,26 +446,20 @@ def plot_cumulative(
     """
     Generate cumulative error distribution plots for uncertainty quantification analysis.
 
-    Creates cumulative distribution plots showing the percentage of images with errors below certain
-    thresholds, which is useful for understanding the overall error distribution across uncertainty
-    bins and for comparing model performance.
+    Creates cumulative distribution plots showing the percentage of images with errors below certain thresholds, which
+    is useful for understanding the overall error distribution across uncertainty bins and for comparing model
+    performance.
 
     Args:
-        data_struct (Dict[str, pd.DataFrame]): Dictionary containing dataframes for each model.
-            Keys are model names, values are DataFrames with uncertainty and error columns.
+        data_struct (Dict[str, pd.DataFrame]): Dictionary containing dataframes for each model. Keys are model names,
+            values are DataFrames with uncertainty and error columns.
         models (List[str]): List of model names to compare. These should be keys in data_struct.
         uncertainty_types (List[Tuple[str, str]]): List of tuples describing uncertainty-error combinations to analyze.
             Each tuple contains (uncertainty_type, error_type).
-        bins (Union[int, List[int], np.ndarray]): Bin indices to include in the analysis.
-            Can be a single value, list, or numpy array.
-        config (CumulativePlotConfig, optional): Presentation, output and styling settings.
-            Defaults to :class:`CumulativePlotConfig`.
-
-    Note:
-        - The plot uses logarithmic scaling on the x-axis for better visualization of error distributions
-        - A vertical reference line is drawn at ``config.reference_line_x``
-        - Different line styles distinguish between models and uncertainty types
-        - The y-axis shows cumulative percentage (0-100%)
+        bins (Union[int, List[int], np.ndarray]): Bin indices to include in the analysis. Can be a single value, list,
+            or numpy array.
+        config (CumulativePlotConfig, optional): Presentation, output and styling settings. Defaults to
+            :class:`CumulativePlotConfig`.
     """
     config = config or CumulativePlotConfig()
 
