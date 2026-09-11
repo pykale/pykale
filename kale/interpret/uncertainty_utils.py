@@ -47,35 +47,25 @@ def analyze_and_plot_uncertainty_correlation(
     Run the uncertainty-error correlation analysis and plot the result.
 
     Args:
-        errors (np.ndarray): Array of prediction errors. Must have same length
-            as uncertainties array.
-        uncertainties (np.ndarray): Array of uncertainty estimates corresponding
-            to each prediction.
-        quantile_thresholds (List[float]): List of quantile threshold values that
-            define breakpoints for piecewise linear modeling. These determine
-            how the uncertainty range is segmented for analysis.
-        colormap (str, optional): Matplotlib colormap name for coloring different
-            quantile segments. Defaults to "Set1".
-        to_log (bool, optional): Whether to apply logarithmic scaling to both
-            axes of the plot. Useful for data spanning multiple orders of magnitude.
-            Defaults to False.
-        error_scaling_factor (float, optional): Multiplicative factor to scale
-            error values (e.g., for unit conversion from pixels to mm).
-            Defaults to 1.0.
-        save_path (Optional[str], optional): File path to save the generated plot.
-            If None, displays the plot interactively. Supports common formats
-            like PNG, PDF, SVG. Defaults to None.
-        n_bootstrap (int, optional): Number of bootstrap iterations for confidence
-            interval estimation. Higher values provide more robust estimates but
-            increase computation time. Defaults to 1000.
-        sample_ratio (float, optional): Fraction of data to sample in each bootstrap
-            iteration. Must be between 0 and 1. Lower values increase diversity
-            but may reduce stability. Defaults to 0.6.
-        font_size (int, optional): Font size for all text elements in the plot
-            including axis labels, correlation text, and quantile labels.
-            Defaults to 25.
-        show (bool, optional): Whether to display the plot interactively. Defaults to False.
-        **fig_kwargs: Additional keyword arguments for figure creation and styling:
+        errors (np.ndarray): Array of prediction errors. Must have same length as uncertainties array.
+        uncertainties (np.ndarray): Array of uncertainty estimates corresponding to each prediction.
+        quantile_thresholds (List[float]): List of quantile threshold values that define breakpoints for piecewise
+            linear modeling. These determine how the uncertainty range is segmented for analysis.
+        colormap (str, optional): Matplotlib colormap name for coloring different quantile segments. Defaults to "Set1".
+        to_log (bool, optional): Whether to apply logarithmic scaling to both axes of the plot. Useful for data spanning
+            multiple orders of magnitude. Defaults to False.
+        error_scaling_factor (float, optional): Multiplicative factor to scale error values (e.g., for unit conversion
+            from pixels to mm). Defaults to 1.0.
+        save_path (Optional[str], optional): File path to save the generated plot. If None, displays the plot
+            interactively. Supports common formats like PNG, PDF, SVG. Defaults to None.
+        n_bootstrap (int, optional): Number of bootstrap iterations for confidence interval estimation. Higher values
+            provide more robust estimates but increase computation time. Defaults to 1000.
+        sample_ratio (float, optional): Fraction of data to sample in each bootstrap iteration. Must be between 0 and 1.
+            Lower values increase diversity but may reduce stability. Defaults to 0.6.
+        font_size (int, optional): Font size for all text elements in the plot including axis labels, correlation text,
+            and quantile labels. Defaults to 25.
+        show (bool, optional): Whether to display the plot interactively. Defaults to False. **fig_kwargs: Additional
+            keyword arguments for figure creation and styling:
             - figsize (tuple): Figure size in inches (default: (16, 8))
             - save_dpi (int): Resolution in dots per inch for the saved figure (default: 600)
             - show_dpi (int): Resolution in dots per inch for the shown figure (default: 100)
@@ -127,14 +117,13 @@ def analyze_uncertainty_correlation(
     Args:
         errors (np.ndarray): Array of prediction errors
         uncertainties (np.ndarray): Array of uncertainty estimates
-        quantile_thresholds (List[float]): List of quantile threshold values
-            that define breakpoints for piecewise linear modeling
-        error_scaling_factor (float, optional): Multiplicative factor to scale
-            errors (e.g., for unit conversion). Defaults to 1.0.
-        n_bootstrap (int, optional): Number of bootstrap samples for confidence
-            interval estimation. Defaults to 1000.
-        sample_ratio (float, optional): Fraction of data to sample in each
-            bootstrap iteration. Must be between 0 and 1. Defaults to 0.6.
+        quantile_thresholds (List[float]): List of quantile threshold values that define breakpoints for piecewise
+            linear modeling
+        error_scaling_factor (float, optional): Multiplicative factor to scale errors (e.g., for unit conversion).
+            Defaults to 1.0.
+        n_bootstrap (int, optional): Number of bootstrap samples for confidence interval estimation. Defaults to 1000.
+        sample_ratio (float, optional): Fraction of data to sample in each bootstrap iteration. Must be between 0 and 1.
+            Defaults to 0.6.
 
     Returns:
         Dict[str, Any]: Dictionary containing analysis results with keys:
@@ -200,14 +189,12 @@ def plot_uncertainty_correlation(
         uncertainties (np.ndarray): Array of uncertainty estimates
         analysis_results (Dict[str, Any]): Results from analyze_uncertainty_correlation
         quantile_thresholds (List[float]): Quantile threshold values for segmentation
-        colormap (str, optional): Matplotlib colormap name for segment coloring.
-            Defaults to "Set1".
-        to_log (bool, optional): Whether to use logarithmic scale for both axes.
-            Defaults to False.
+        colormap (str, optional): Matplotlib colormap name for segment coloring. Defaults to "Set1".
+        to_log (bool, optional): Whether to use logarithmic scale for both axes. Defaults to False.
         save_path (Optional[str], optional): File path to save the plot. Defaults to None.
         show (bool, optional): Whether to show the figure. Defaults to False.
-        font_size (int, optional): Font size for all text elements. Defaults to 25.
-        **fig_kwargs: Additional keyword arguments for figure creation and styling:
+        font_size (int, optional): Font size for all text elements. Defaults to 25. **fig_kwargs: Additional keyword
+            arguments for figure creation and styling:
             - figsize (tuple): Figure size in inches (default: (16, 8))
             - save_dpi (int): Dots per inch for resolution (default: 600)
             - show_dpi (int): Dots per inch for the shown figure (default: 100)
@@ -527,8 +514,8 @@ def _fit_piecewise_model(
     Args:
         uncertainties (np.ndarray): Array of uncertainty values (independent variable)
         scaled_errors (np.ndarray): Array of scaled error values (dependent variable)
-        quantile_thresholds (List[float]): List of quantile threshold values that serve
-            as breakpoints for the piecewise linear model
+        quantile_thresholds (List[float]): List of quantile threshold values that serve as breakpoints for the piecewise
+            linear model
 
     Returns:
         pwlf.PiecewiseLinFit: The fitted piecewise linear model.
@@ -553,12 +540,12 @@ def _generate_bootstrap_models(
         scaled_errors (np.ndarray): Array of scaled error values
         quantile_thresholds (List[float]): Quantile threshold breakpoints for piecewise fitting
         n_bootstrap (int, optional): Number of bootstrap samples to generate. Defaults to 1000.
-        sample_ratio (float, optional): Fraction of data to sample for each bootstrap.
-            Must be between 0 and 1. Defaults to 0.6.
+        sample_ratio (float, optional): Fraction of data to sample for each bootstrap. Must be between 0 and 1. Defaults
+            to 0.6.
 
     Returns:
-        List[pwlf.PiecewiseLinFit]: One fitted model per bootstrap sample. Each sample has
-            ``int(len(data) * sample_ratio)`` points drawn with replacement.
+        List[pwlf.PiecewiseLinFit]: One fitted model per bootstrap sample. Each sample has ``int(len(data) *
+        sample_ratio)`` points drawn with replacement.
     """
     bootstrap_models = []
 
@@ -579,16 +566,14 @@ def _get_quantile_bounds(quantile_thresholds: List[float], uncertainties: np.nda
     Get the minimum and maximum bounds of a quantile segment.
 
     Args:
-        quantile_thresholds (List[float]): List of quantile threshold values that
-            define segment boundaries
-        uncertainties (np.ndarray): Array of uncertainty values used to determine
-            global min/max bounds
+        quantile_thresholds (List[float]): List of quantile threshold values that define segment boundaries
+        uncertainties (np.ndarray): Array of uncertainty values used to determine global min/max bounds
         idx (int): Index of the quantile segment (0-based)
 
     Returns:
         tuple[float, float]: The ``(min_value, max_value)`` of the segment. The first segment starts at
-            ``min(uncertainties)``, the last ends at ``max(uncertainties)``, and the others are bounded by
-            consecutive thresholds.
+            ``min(uncertainties)``, the last ends at ``max(uncertainties)``, and the others are bounded by consecutive
+            thresholds.
     """
     if idx == 0:
         min_val = min(uncertainties)
@@ -631,8 +616,7 @@ def _plot_bootstrap_confidence_bands(
         ax: Matplotlib axes object to plot on
         bootstrap_models (List[pwlf.PiecewiseLinFit]): List of fitted bootstrap models
         uncertainties (np.ndarray): Array of uncertainty values for determining plot range
-        num_pred_points (int, optional): Number of prediction points for smooth curves.
-            Defaults to 10000.
+        num_pred_points (int, optional): Number of prediction points for smooth curves. Defaults to 10000.
 
     Returns:
         None: Plots directly on the provided axes.
@@ -677,8 +661,7 @@ def _plot_piecewise_segments(
         uncertainties (np.ndarray): Array of uncertainty values for range determination
         quantile_thresholds (List[float]): Quantile thresholds defining segment boundaries
         colors (List[str]): List of colors for different segments (cycles if needed)
-        num_pred_points (int, optional): Number of prediction points for smooth curves.
-            Defaults to 20000.
+        num_pred_points (int, optional): Number of prediction points for smooth curves. Defaults to 20000.
 
     Returns:
         None: Plots directly on the provided axes.
@@ -713,13 +696,13 @@ def _setup_plot_formatting(
         ax: Matplotlib axes object to format
         bin_label_locs (List[float]): X-axis positions for quantile bin labels
         quantile_thresholds (List[float]): Quantile thresholds for determining label count
-        correlation_dict (Dict[str, List[float]]): Dictionary containing correlation results
-            with 'spearman' key containing [correlation, p_value]
+        correlation_dict (Dict[str, List[float]]): Dictionary containing correlation results with 'spearman' key
+            containing [correlation, p_value]
         font_size (int, optional): Font size for labels and text. Defaults to 25.
 
     Returns:
-        None: Modifies the provided axes in place. Tick labels are ``Q_1 … Q_n``; the Spearman
-            coefficient and p-value (rounded to three decimals, floored at 0.001) are written on the plot.
+        None: Modifies the provided axes in place. Tick labels are ``Q_1 … Q_n``; the Spearman coefficient and p-value
+            (rounded to three decimals, floored at 0.001) are written on the plot.
     """
     # Set x-axis ticks and labels
     ax.set_xticks(bin_label_locs)

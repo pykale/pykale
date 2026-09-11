@@ -649,9 +649,8 @@ class TestCrossDataFrameIndexAlignment:
     def test_bin_wise_errors_misaligned_index(self):
         """Bins must be grouped by uid even when ``fold_bins`` rows are reordered/reindexed.
 
-        The reordered ``fold_bins`` holds the same per-uid data as the aligned frame; only its
-        row order and index differ. The result must match the aligned case and the hand-computed
-        expectation.
+        The reordered ``fold_bins`` holds the same per-uid data as the aligned frame; only its row order and index
+        differ. The result must match the aligned case and the hand-computed expectation.
         """
         errors_df = self._errors_df()
         bins_aligned = self._bins_df()

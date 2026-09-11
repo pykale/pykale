@@ -6,9 +6,9 @@
 # =============================================================================
 
 """
-This module implements the uncertainty quantification method from L. A. Schobs, A. J. Swift and H. Lu,
-"Uncertainty Estimation for Heatmap-Based Landmark Localization," in IEEE Transactions on Medical Imaging,
-vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
+This module implements the uncertainty quantification method from L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty
+Estimation for Heatmap-Based Landmark Localization," in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp.
+1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
 Core Classes:
    - QuantileBinningAnalyzer: Main analysis class encapsulating uncertainty quantile analysis
@@ -371,12 +371,10 @@ class QuantileBinningAnalyzer:
                 - save_file_preamble (str): Prefix string for saved file names to ensure unique identification.
                 - save_figures (bool): If True, save plots to disk; if False, display plots interactively.
                 - interpret (bool): If True, execute analysis and visualization; if False, skip processing.
-            display_settings (Dict[str, bool]): Keys include 'errors', 'error_bounds', 'jaccard',
-                'correlation', 'cumulative_error' to control which plots are generated.
-            figure_format (str): File extension for figure outputs (e.g., 'pdf', 'png', 'svg').
-                Defaults to 'pdf'.
-            data_format (str): File extension for data outputs (e.g., 'xlsx', 'csv').
-                Defaults to 'xlsx'.
+            display_settings (Dict[str, bool]): Keys include 'errors', 'error_bounds', 'jaccard', 'correlation',
+                'cumulative_error' to control which plots are generated.
+            figure_format (str): File extension for figure outputs (e.g., 'pdf', 'png', 'svg'). Defaults to 'pdf'.
+            data_format (str): File extension for data outputs (e.g., 'xlsx', 'csv'). Defaults to 'xlsx'.
         """
         self.logger = logging.getLogger("qbin")
 
@@ -511,10 +509,9 @@ class QuantileBinningAnalyzer:
         """
         Compare models and uncertainty types across uncertainty bins at a fixed number of bins.
 
-        Loads the binned predictions, computes the evaluation metrics, and then generates whichever of the
-        following plots are enabled in ``display_settings``: uncertainty-error correlation, cumulative error
-        distribution, and boxplots of error, error bound accuracy and Jaccard index per bin. Does nothing if
-        ``interpret`` is False.
+        Loads the binned predictions, computes the evaluation metrics, and then generates whichever of the following
+        plots are enabled in ``display_settings``: uncertainty-error correlation, cumulative error distribution, and
+        boxplots of error, error bound accuracy and Jaccard index per bin. Does nothing if ``interpret`` is False.
 
         Args:
             config (QuantileBinningConfig): The models, uncertainty types, targets, bin count and output settings.
@@ -631,9 +628,9 @@ class QuantileBinningAnalyzer:
         """
         Compare the effect of different bin counts (Q values) on one model and uncertainty type.
 
-        Loads the binned predictions and computes the evaluation metrics for each Q value, then generates
-        whichever of the error, error bound accuracy and Jaccard index boxplots are enabled in
-        ``display_settings``, with one category per Q value. Does nothing if ``interpret`` is False.
+        Loads the binned predictions and computes the evaluation metrics for each Q value, then generates whichever of
+        the error, error bound accuracy and Jaccard index boxplots are enabled in ``display_settings``, with one
+        category per Q value. Does nothing if ``interpret`` is False.
 
         Args:
             config (ComparingBinsConfig): The model, uncertainty type, targets, Q values, data paths and
@@ -790,12 +787,11 @@ class QuantileBinningAnalyzer:
 
         Args:
             suffix (str): Descriptive suffix for the filename (e.g., "error_all_targets", "jaccard_target_1").
-            show_individual_dots (bool): Whether individual data points are shown as dots on the plot.
-                This affects the filename to distinguish between dotted and undotted variants.
+            show_individual_dots (bool): Whether individual data points are shown as dots on the plot. This affects the
+                filename to distinguish between dotted and undotted variants.
 
         Returns:
-            Optional[str]: Complete file path with .pdf extension if saving is enabled,
-                          None if save_figures is False.
+            Optional[str]: Complete file path with .pdf extension if saving is enabled, None if save_figures is False.
         """
         if not self.save_figures:
             return None
@@ -990,8 +986,8 @@ class QuantileBinningAnalyzer:
             sep_target_data (List[Any]): Data separated by target. Structure varies by plotting mode:
                 - For individual bin comparison: List of target data dictionaries
                 - For comparing Q: List of Q-value data with target indices
-            individual_targets_to_show (List[int]): List of target indices to plot individually.
-                Use [-1] to plot all targets.
+            individual_targets_to_show (List[int]): List of target indices to plot individually. Use [-1] to plot all
+                targets.
             uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
             models (List[str]): List of model names to analyze.
             category_labels (List[str]): Labels for x-axis categories.
@@ -1134,9 +1130,9 @@ class QuantileBinningAnalyzer:
         Create a MetricPlotConfig from the provided parameters.
 
         Args:
-            eval_data (Dict[str, Any]): Comprehensive evaluation data dictionary containing computed metrics.
-                Structure: {'errors': {...}, 'bounds': {...}, 'jaccard': {...}, 'bins': {...}}.
-                Each metric category contains aggregated and separated data for all models and targets.
+            eval_data (Dict[str, Any]): Comprehensive evaluation data dictionary containing computed metrics. Structure:
+                {'errors': {...}, 'bounds': {...}, 'jaccard': {...}, 'bins': {...}}. Each metric category contains
+                aggregated and separated data for all models and targets.
             models (List[str]): List of model names to include in the plots (e.g., ['ResNet50', 'VGG16']).
             uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations for plotting.
                 Each inner list contains [uncertainty_type, error_type] (e.g., [['epistemic', 'localization']]).
@@ -1157,8 +1153,8 @@ class QuantileBinningAnalyzer:
                 Required when plotting individual targets to maintain proper indexing. Defaults to None.
             percent_y_lim_standard (int, optional): Standard upper limit for percentage-based y-axis (0-100 scale).
                 Used for Jaccard Index plots. Defaults to 70.
-            percent_y_lim_extended (int, optional): Extended upper limit for percentage-based y-axis.
-                Used for error bounds and recall/precision plots where values may exceed 100%. Defaults to 120.
+            percent_y_lim_extended (int, optional): Extended upper limit for percentage-based y-axis. Used for error
+                bounds and recall/precision plots where values may exceed 100%. Defaults to 120.
             **kwargs (Any): Additional keyword arguments passed to the plotting functions. Common kwargs include:
                 - x_label (str): Custom x-axis label
                 - y_label (str): Custom y-axis label
