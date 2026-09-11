@@ -1,6 +1,7 @@
 # =============================================================================
 # Author: Lawrence Schobs, lawrenceschobs@gmail.com
 #         Zhongwei Ji, jizhongwei1999@outlook.com
+#         Charles Anjah, cmanjahart@gmail.com
 # =============================================================================
 
 """
