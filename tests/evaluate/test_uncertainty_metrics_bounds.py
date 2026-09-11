@@ -31,11 +31,9 @@ class TestBinWiseBoundEvalScoring:
         return errors_df, bins_df
 
     def test_empty_bin_scores_one(self):
-        """An empty quantile bin is scored 1.0, not 0.0 (issue #549).
+        """An empty quantile bin is scored 1.0 and carries no weight in the size-weighted means (#549).
 
-        Both samples are placed in bin 0, leaving bin 1 empty. The empty bin must take the
-        dedicated empty-bin score. Because an empty bin has size 0, it must not affect the
-        size-weighted means.
+        Both samples are placed in bin 0, leaving bin 1 empty.
         """
         errors_df, bins_df = self._frames(errors=[1.0, 3.0], bins=[0, 0])
 

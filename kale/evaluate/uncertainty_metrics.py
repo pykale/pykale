@@ -1596,7 +1596,7 @@ def _bin_error_bounds(q: int, num_bins: int, fold_bounds: list) -> Tuple[float, 
         fold_bounds (list): Estimated error bounds for this target, one per bin edge.
 
     Returns:
-        tuple: The ``(lower, upper)`` bounds, where membership is ``lower < error <= upper``.
+        tuple: The ``(lower, upper)`` bounds.
     """
     if q == 0:
         return 0, fold_bounds[q]
@@ -1622,8 +1622,6 @@ def _count_within_bounds(errors: list, lower: float, upper: float) -> int:
 def _bin_accuracy(inbin_errors: list, lower: float, upper: float) -> float:
     """Score a single quantile bin: the fraction of its errors within ``(lower, upper]``.
 
-    An empty bin scores ``1.0`` (issue #549): there is no prediction to be wrong about.
-
     Args:
         inbin_errors (list): Errors of the samples assigned to this bin.
         lower (float): Exclusive lower bound.
@@ -1640,8 +1638,8 @@ def _bin_accuracy(inbin_errors: list, lower: float, upper: float) -> float:
 def _group_target_errors_by_bin(pred_bins_ti: dict, true_errors_ti: dict, num_bins: int) -> List[List[float]]:
     """Group a target's errors by the predicted quantile bin of each sample.
 
-    Bin membership and uid matching use string comparison, mirroring the legacy call site so that
-    numeric and string keys (e.g. ``1`` vs ``"1"``) are treated as equal.
+    Bin values and uids are compared as strings, so numeric and string keys (e.g. ``1`` and ``"1"``)
+    are treated as equal.
 
     Args:
         pred_bins_ti (dict): Maps each sample uid to its predicted quantile bin.
