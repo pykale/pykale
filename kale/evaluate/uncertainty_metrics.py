@@ -1397,14 +1397,12 @@ class BoundsEvaluator(BaseEvaluator):
         for fold in fold_results:
             for idx_bin in range(len(fold.mean_all_bins)):
                 mean_bins[idx_bin].append(fold.mean_all_bins[idx_bin])
-                bins_targets_not_sep[idx_bin] = bins_targets_not_sep[idx_bin] + fold.all_bins[idx_bin]
+                bins_targets_not_sep[idx_bin].extend(fold.all_bins[idx_bin])
 
                 for target_idx in range(num_targets):
                     fold_bin_values = fold.all_bins_concat_targets_sep[target_idx][idx_bin]
-                    targets_sep_foldwise[target_idx][idx_bin] = (
-                        targets_sep_foldwise[target_idx][idx_bin] + fold_bin_values
-                    )
-                    targets_sep_all[target_idx][idx_bin] = targets_sep_all[target_idx][idx_bin] + fold_bin_values
+                    targets_sep_foldwise[target_idx][idx_bin].extend(fold_bin_values)
+                    targets_sep_all[target_idx][idx_bin].extend(fold_bin_values)
 
         if self.container_ is None:
             raise RuntimeError("Results container is not initialized")
@@ -1488,21 +1486,19 @@ class ErrorsEvaluator(BaseEvaluator):
         for fold in fold_results:
             for idx_bin in range(len(fold.mean_all_bins)):
                 mean_bins[idx_bin].append(fold.mean_all_bins[idx_bin])
-                all_bins[idx_bin] = all_bins[idx_bin] + fold.all_bins[idx_bin]
+                all_bins[idx_bin].extend(fold.all_bins[idx_bin])
 
                 # Flatten this bin's errors across every target, dropping the target separation.
                 per_target = [target_bins[idx_bin] for target_bins in fold.all_bins_concat_targets_sep]
-                flattened = [value for sublist in per_target for value in sublist]
-                flattened = [value for sublist in flattened for value in sublist]
-                concat_targets_no_sep[idx_bin] = concat_targets_no_sep[idx_bin] + flattened
+                sample_errors = [errors for target_values in per_target for errors in target_values]
+                flattened = [value for errors in sample_errors for value in errors]
+                concat_targets_no_sep[idx_bin].extend(flattened)
 
                 for target_idx in range(num_targets):
                     fold_bin_values = fold.all_bins_concat_targets_sep[target_idx][idx_bin]
-                    targets_sep_foldwise[target_idx][idx_bin] = (
-                        targets_sep_foldwise[target_idx][idx_bin] + fold_bin_values
-                    )
-                    if fold_bin_values != []:
-                        targets_sep_all[target_idx][idx_bin] = targets_sep_all[target_idx][idx_bin] + fold_bin_values[0]
+                    targets_sep_foldwise[target_idx][idx_bin].extend(fold_bin_values)
+                    if fold_bin_values:
+                        targets_sep_all[target_idx][idx_bin].extend(fold_bin_values[0])
 
         if self.container_ is None:
             raise RuntimeError("Results container is not initialized")
