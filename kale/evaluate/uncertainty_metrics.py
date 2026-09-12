@@ -30,7 +30,7 @@ Main Classes:
 import copy
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import cast, Dict, List, Optional, Tuple
+from typing import Any, cast, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -88,13 +88,8 @@ class EvaluationConfig:
     """
     Configuration parameters for uncertainty quantification evaluation.
 
-    This dataclass defines the settings and parameters used throughout the evaluation process for uncertainty
-    quantification metrics. It provides default values for common evaluation scenarios while allowing customization for
-    specific research needs.
-
     Attributes:
-        num_folds (int): Number of cross-validation folds for evaluation. Defaults to 8. Higher values provide more
-            robust statistical estimates but increase computational cost.
+        num_folds (int): Number of cross-validation folds for evaluation. Defaults to 8.
         original_num_bins (int): Number of quantile bins for uncertainty evaluation. Defaults to 10. Controls the
             granularity of uncertainty analysis.
         error_scaling_factor (float): Scaling factor applied to prediction errors during evaluation. Defaults to 1.0 (no
@@ -128,9 +123,6 @@ class FoldData:
     """
     Container for evaluation data from a single cross-validation fold.
 
-    This dataclass organizes the data required for evaluating a single fold in cross-validation, including prediction
-    errors, uncertainty bins, and optional error bounds information.
-
     Attributes:
         errors (pd.DataFrame): DataFrame containing prediction errors for the fold. Expected columns include UID,
             target_idx, and model-specific error columns.
@@ -160,23 +152,22 @@ class BinResults:
     """
     Base container for evaluation results from a single fold.
 
-    This dataclass stores the fundamental evaluation metrics computed for a single cross-validation fold, organized by
-    targets and bins. Serves as the base class for specialized result containers like JaccardBinResults.
-
     Attributes:
         mean_all_targets (float): Mean evaluation metric across all targets in the fold.
         mean_all_bins (List[float]): Mean evaluation metric for each bin across targets. Length equals the number of
             bins.
         all_bins (List[List[float]]): Raw evaluation metrics for each bin and target. Outer list represents bins, inner
             lists contain values for each target.
-        all_bins_concat_targets_sep (List[List[List[float]]]): Evaluation metrics organized for target-separated
-            analysis. Structure: [target][bin][values].
+        all_bins_concat_targets_sep (List[List[List[Any]]]): Values grouped by target and bin within one fold.
+            Bounds and Jaccard use float values, so each target/bin entry is [metric]. Errors use List[float] values,
+            so each entry is [[sample_errors...]], or [] for an empty bin. Bounds and errors store bins from lowest
+            to highest uncertainty; Jaccard stores bins in the reverse order.
     """
 
     mean_all_targets: float
     mean_all_bins: List[float]
     all_bins: List[List[float]]
-    all_bins_concat_targets_sep: List[List[List[float]]]
+    all_bins_concat_targets_sep: List[List[List[Any]]]
 
 
 @dataclass
@@ -184,18 +175,7 @@ class JaccardBinResults(BinResults):
     """
     Extended results container for Jaccard similarity evaluation with precision and recall.
 
-    This specialized container extends BinResults to include additional metrics specific to Jaccard similarity
-    evaluation: precision and recall. These metrics provide comprehensive assessment of uncertainty quantification
-        quality.
-
     Attributes:
-        Inherits from BinResults:
-            - mean_all_targets: Mean Jaccard similarity across all targets
-            - mean_all_bins: Mean Jaccard similarity for each bin
-            - all_bins: Raw Jaccard similarities for each bin and target
-            - all_bins_concat_targets_sep: Target-separated Jaccard similarities
-
-        Additional Jaccard-specific attributes:
         mean_all_targets_recall (float): Mean recall across all targets in the fold.
         mean_all_bins_recall (List[float]): Mean recall for each bin across targets.
         all_bins_recall (List[List[float]]): Raw recall values for each bin and target.
@@ -214,13 +194,7 @@ class JaccardBinResults(BinResults):
 
 class ResultsContainer:
     """
-    Container for organizing and managing complex nested evaluation results.
-
-    This class provides a structured way to organize evaluation results across different dimensions: models, uncertainty
-    types, bins, targets, and folds. It handles both main aggregated results and target-separated detailed results.
-
-    The container supports multiple evaluation metrics and provides methods for adding results in an organized manner.
-    It's designed to work with the Template Method pattern in BaseEvaluator.
+    Store evaluation results by model, uncertainty type, bin, target, and fold.
 
     Attributes:
         num_bins (int): Number of uncertainty bins in the evaluation.
@@ -230,10 +204,10 @@ class ResultsContainer:
         target_sep_foldwise (List[Dict]): Target-separated results for each fold.
         target_sep_all (List[Dict]): Target-separated results aggregated across folds.
         additional_containers (Dict): Container for evaluation-specific results.
-
-    Jaccard-specific attributes: recall_results (Dict): Recall metrics for all model-uncertainty combinations.
-    recall_target_separated (Dict): Target-separated recall results. precision_results (Dict): Precision metrics for all
-        combinations. precision_target_separated (Dict): Target-separated precision results.
+        recall_results (Dict): Recall metrics for all model-uncertainty combinations.
+        recall_target_separated (Dict): Target-separated recall results.
+        precision_results (Dict): Precision metrics for all model-uncertainty combinations.
+        precision_target_separated (Dict): Target-separated precision results.
 
     Example:
 
@@ -257,12 +231,7 @@ class ResultsContainer:
         self._init_containers()
 
     def _init_containers(self):
-        """
-        Initialize all result containers with empty data structures.
-
-        Sets up the internal data structures needed to organize evaluation results across different dimensions (main
-        results, target-separated results, fold-wise results, and evaluation-specific containers).
-        """
+        """Initialize empty result containers."""
         # Main results
         self.main_results = {}
         self.target_separated_results = {}
@@ -274,7 +243,7 @@ class ResultsContainer:
         # Additional containers for specific evaluations
         self.additional_containers = {}
 
-        # Add missing attributes for JaccardEvaluator
+        # Jaccard metrics
         self.recall_results = {}
         self.recall_target_separated = {}
         self.precision_results = {}
@@ -290,29 +259,7 @@ class ResultsContainer:
 
 
 class DataProcessor:
-    """
-    Utility class for data processing operations in uncertainty evaluation.
-
-    This class provides static methods for extracting and filtering data from DataFrames for evaluation purposes. It
-    handles fold-specific data extraction, target filtering, and data structure preparation for evaluation workflows.
-
-    The class is designed as a collection of utility methods that can be used across different evaluator implementations
-    without maintaining state.
-
-    Key Operations:
-        - Extract data for specific cross-validation folds
-        - Filter data by target indices
-        - Prepare data structures for evaluation processing
-        - Handle column name mapping and data type conversions
-
-    Example:
-
-        .. code-block:: pycon
-
-            >>> processor = DataProcessor()
-            >>> fold_data = processor.extract_fold_data(df, fold=0, uncertainty_type="epistemic")
-            >>> filtered_data = processor.filter_by_target(fold_data.errors, target_idx=1)
-    """
+    """Extract fold data and group predictions by uncertainty bin."""
 
     @staticmethod
     def extract_fold_data(data_structs: pd.DataFrame, fold: int, uncertainty_type: str) -> FoldData:
@@ -350,9 +297,6 @@ class DataProcessor:
         """
         Group prediction data by their assigned uncertainty bins.
 
-        Organizes prediction keys and errors into bin-wise groups based on their uncertainty bin assignments. This
-        enables bin-wise evaluation of prediction quality and uncertainty calibration.
-
         Args:
             errors_dict (Dict): Dictionary mapping prediction keys to error values. Keys should correspond to unique
                 prediction identifiers.
@@ -380,42 +324,28 @@ class DataProcessor:
         bin_keys: List[List] = [[] for _ in range(num_bins)]
         bin_errors: List[List] = [[] for _ in range(num_bins)]
 
-        for bin_idx in range(num_bins):
-            keys = [key for key, val in bins_dict.items() if str(bin_idx) == str(val)]
-            errors = [errors_dict[key] for key in keys if key in errors_dict]
+        # Compare bins and uids as strings so a uid stored as an int in one frame and a str in the other still lines up.
+        index_by_bin_label = {str(bin_idx): bin_idx for bin_idx in range(num_bins)}
+        errors_by_str_uid: Dict = {}
+        for key, value in errors_dict.items():
+            errors_by_str_uid.setdefault(str(key), value)
 
-            bin_keys[bin_idx] = keys
-            bin_errors[bin_idx] = errors
+        for key, bin_value in bins_dict.items():
+            bin_idx = index_by_bin_label.get(str(bin_value))
+            if bin_idx is None:  # Bin assignment outside the requested range.
+                continue
+
+            bin_keys[bin_idx].append(key)
+            str_uid = str(key)
+            if str_uid not in errors_by_str_uid:
+                raise ValueError(f"No error found for uid {key!r}")
+            bin_errors[bin_idx].append(errors_by_str_uid[str_uid])
 
         return bin_keys, bin_errors
 
 
 class QuantileCalculator:
-    """
-    Utility class for calculating quantile-based error distributions and thresholds.
-
-    This class provides methods for computing quantile boundaries and grouping prediction errors into quantile-based
-    bins. It supports both standard quantile binning and combined middle bin configurations for simplified analysis.
-
-    The quantile approach enables analysis of prediction quality across different uncertainty levels by creating bins
-    that contain equal numbers of predictions but varying error characteristics.
-
-    Key Features:
-        - Automatic quantile threshold calculation
-        - Flexible bin combination for middle quantiles
-        - Error and key grouping by quantile boundaries
-        - Support for worst-to-best ordering (B5 to B1)
-
-    Example:
-
-        .. code-block:: pycon
-
-            >>> calculator = QuantileCalculator()
-            >>> errors = {'pred1': 0.1, 'pred2': 0.5, 'pred3': 0.3}
-            >>> thresholds, err_groups, key_groups = calculator.calculate_error_quantiles(
-            ...     errors, num_bins=3, combine_middle_bins=False
-            ... )
-    """
+    """Compute quantile thresholds and group errors into quantile-based bins."""
 
     @staticmethod
     def calculate_error_quantiles(
@@ -439,10 +369,6 @@ class QuantileCalculator:
                 - quantile_thresholds: List of quantile boundary values
                 - error_groups: List of error value lists for each bin (worst to best)
                 - key_groups: List of prediction key lists for each bin (worst to best)
-
-        Note:
-            Results are ordered from worst to best performance (B5 to B1 convention) to match the expected evaluation
-            output format.
 
         Example:
 
@@ -526,32 +452,7 @@ class QuantileCalculator:
 
 
 class MetricsCalculator:
-    """
-    Utility class for calculating evaluation metrics in uncertainty quantification.
-
-    This class provides static methods for computing various metrics used to assess the quality of uncertainty
-    quantification, including Jaccard similarity, precision, recall, and bound accuracy. The methods are designed to
-    work with different evaluation strategies and provide consistent metric calculations.
-
-    Key Metrics:
-        - Jaccard Similarity: Measures overlap between predicted and ground truth sets
-        - Precision: Accuracy of positive predictions within bins
-        - Recall: Coverage of actual positive cases by predictions
-        - Bound Accuracy: Whether errors fall within expected confidence bounds
-
-    The class supports both binary classification metrics (for set-based evaluation) and regression-style bound checking
-    for error prediction accuracy.
-
-    Example:
-
-        .. code-block:: pycon
-
-            >>> calculator = MetricsCalculator()
-            >>> jaccard, recall, precision = calculator.calculate_jaccard_metrics(
-            ...     predicted_keys=['p1', 'p2'], ground_truth_keys=['p1', 'p3']
-            ... )
-            >>> # jaccard ≈ 0.33, recall = 0.5, precision = 0.5
-    """
+    """Compute Jaccard similarity, recall, precision, and bound accuracy for uncertainty evaluation."""
 
     @staticmethod
     def calculate_jaccard_metrics(predicted_keys: List, ground_truth_keys: List) -> Tuple[float, float, float]:
@@ -617,24 +518,18 @@ class MetricsCalculator:
     @staticmethod
     def calculate_bound_accuracy(error: float, bin_idx: int, bounds: List[float]) -> bool:
         """
-        Check if error falls within expected bounds for the bin.
+        Check whether an error falls within its bin's half-open range ``(lower, upper]``.
 
-        Determines whether a prediction error falls within the expected error bounds for a specific uncertainty bin.
-        This method is used to assess the accuracy of uncertainty-based error predictions.
+        Bin 0 covers ``(0, bounds[0]]``, intermediate bin ``i`` covers ``(bounds[i-1], bounds[i]]``, and the last bin
+        covers ``(bounds[-1], inf)``.
 
         Args:
             error (float): The prediction error value to check.
             bin_idx (int): Index of the uncertainty bin (0-based).
-            bounds (List[float]): List of error boundary values that define the expected error ranges for each bin.
+            bounds (List[float]): Upper bound of each finite bin, ordered from tightest to loosest.
 
         Returns:
-            bool: True if the error falls within the expected bounds for the specified bin, False otherwise.
-
-        Note:
-            Bin ranges follow the pattern (lower_bound, upper_bound], where:
-            - Bin 0: (0, bounds[0]] - errors greater than 0 and up to bounds[0]
-            - Bin i: (bounds[i-1], bounds[i]] - errors greater than bounds[i-1] and up to bounds[i]
-            - Last bin: (bounds[-1], ∞) - errors greater than the last bound
+            bool: True if the error falls within the bin's range.
         """
         if bin_idx == 0:
             return 0 < error <= bounds[bin_idx]
@@ -648,31 +543,14 @@ class BaseEvaluator(ABC):
     """
     Abstract base class for uncertainty quantification evaluation strategies.
 
-    This class implements the Template Method pattern to provide a consistent evaluation framework while allowing
-    specialized implementations for different metrics (Jaccard, error bounds, etc.). It manages the evaluation workflow
-    across multiple folds, models, and uncertainty types.
-
-    Design Pattern: Uses Template Method pattern where the main evaluation flow is defined in the base class, while
-    specific evaluation logic is implemented by subclasses.
-
-    Key Features:
-        - Cross-validation fold processing
-        - Multi-model and multi-uncertainty type support
-        - Configurable bin combining and scaling
-        - Result aggregation and formatting
-
-    Workflow:
-        1. Process each model and uncertainty type combination
-        2. Extract data for each cross-validation fold
-        3. Apply subclass-specific evaluation (_process_single_fold)
-        4. Aggregate results across folds (_aggregate_fold_results)
-        5. Format final results (_finalize_results)
+    Evaluate models and uncertainty types across folds, collecting the metrics produced by each subclass.
 
     Attributes:
         config_ (EvaluationConfig): Configuration containing evaluation parameters
         current_num_bins_ (int): Number of bins for current evaluation (may differ from original)
         current_targets_ (List[int]): Target indices for current evaluation
         current_uncertainty_type_ (str): Current uncertainty type being processed
+        current_model_ (str): Current model being evaluated
     """
 
     def __init__(self, config: EvaluationConfig):
@@ -684,19 +562,15 @@ class BaseEvaluator(ABC):
                 bins, and processing options.
         """
         self.config_ = config
-        # Instance variables to reduce parameter passing
         self.container_: Optional[ResultsContainer] = None
         self.current_num_bins_: int = config.original_num_bins
         self.current_targets_: List[int] = []
         self.current_uncertainty_type_: str = ""
+        self.current_model_: str = ""
 
     def evaluate(self, bin_predictions: Dict[str, pd.DataFrame], uncertainty_pairs: List, targets: List[int]) -> Dict:
         """
-        Main evaluation method implementing the template method pattern.
-
-        Orchestrates the complete evaluation process across all models, uncertainty types, and cross-validation folds.
-        This method defines the evaluation workflow while delegating specific evaluation logic to subclass
-        implementations.
+        Evaluate each model and uncertainty type across the configured folds.
 
         Args:
             bin_predictions (Dict[str, pd.DataFrame]): Dictionary mapping model names to DataFrames containing bin
@@ -708,20 +582,8 @@ class BaseEvaluator(ABC):
                 results by target.
 
         Returns:
-            Dict: Comprehensive evaluation results dictionary. Structure depends on the specific evaluator
-                implementation but typically includes:
-                - Main results across all folds and targets
-                - Target-separated results for detailed analysis
-                - Additional metrics specific to the evaluation type
-
-        Workflow:
-            1. Initialize result containers for data organization
-            2. For each model and uncertainty type combination:
-               a. Process all cross-validation folds
-               b. Aggregate fold results
-            3. Finalize and format results for output
+            Dict: Aggregated metrics and target-separated results in the concrete evaluator's format.
         """
-        # Set instance variables to reduce parameter passing
         self.current_targets_ = targets
         self.current_num_bins_ = (
             self.config_.combined_num_bins if self.config_.combine_middle_bins else self.config_.original_num_bins
@@ -730,6 +592,7 @@ class BaseEvaluator(ABC):
         self.container_ = ResultsContainer(self.current_num_bins_, len(targets))
 
         for model, data_structs in bin_predictions.items():
+            self.current_model_ = model
             for uncertainty_pair in uncertainty_pairs:
                 self.current_uncertainty_type_ = uncertainty_pair[0]
                 model_key = f"{model} {self.current_uncertainty_type_}"
@@ -745,26 +608,19 @@ class BaseEvaluator(ABC):
         """
         Process evaluation for a single cross-validation fold.
 
-        This abstract method must be implemented by subclasses to define how evaluation metrics are calculated for data
-        from a single fold.
-
         Args:
             fold_data (FoldData): Container with errors and bins data for one fold. Contains filtered DataFrames for the
                 current fold, uncertainty type, and any additional data needed for evaluation.
 
         Returns:
-            BinResults: Results structure containing evaluation metrics for this fold. The specific subclass of
-                BinResults depends on the evaluation type (e.g., JaccardBinResults for Jaccard evaluation).
+            BinResults: Results structure containing evaluation metrics for this fold.
         """
         pass
 
     @abstractmethod
-    def _aggregate_fold_results(self, model_key: str, fold_results: List[BinResults]):
+    def _aggregate_fold_results(self, model_key: str, fold_results: List[BinResults]) -> None:
         """
         Aggregate results across all folds for a model-uncertainty combination.
-
-        This abstract method defines how fold-level results are combined and stored in the results container for final
-        output formatting.
 
         Args:
             model_key (str): Identifier for the current model-uncertainty combination (format: "model_name
@@ -779,8 +635,6 @@ class BaseEvaluator(ABC):
         """
         Convert results container into final output format.
 
-        This abstract method handles the final formatting of evaluation results to match the expected API output format.
-
         Returns:
             Dict: Final results dictionary with keys matching the expected API format. Structure depends on the
                 evaluation type but typically includes main results, target-separated results, and evaluation-specific
@@ -792,18 +646,12 @@ class BaseEvaluator(ABC):
         """
         Process all cross-validation folds for a given model and uncertainty type.
 
-        Iterates through all configured cross-validation folds, extracting data for each fold and applying the
-        subclass-specific evaluation logic to compute fold-level results. This method coordinates the fold-wise
-        evaluation process within the Template Method pattern.
-
         Args:
             data_structs (pd.DataFrame): Complete dataset containing all folds and evaluation data for the current
                 model. Must include columns for fold identification, UIDs, target indices, errors, and uncertainty bins.
 
         Returns:
-            List[BinResults]: List of evaluation results from all folds, where each element contains the evaluation
-            metrics (e.g., Jaccard similarity, error bounds) computed for one fold. The specific type of BinResults
-            depends on the evaluator implementation (e.g., JaccardBinResults for Jaccard evaluation).
+            List[BinResults]: Results in fold order.
         """
         fold_results = []
 
@@ -819,20 +667,12 @@ class JaccardEvaluator(BaseEvaluator):
     """
     Evaluator for calculating Jaccard similarity metrics for uncertainty quantification.
 
-    This evaluator computes Jaccard similarity between prediction confidence bins and error bins to assess the quality
-    of uncertainty quantification. It measures how well the model's confidence aligns with actual prediction accuracy.
+    Compare predicted uncertainty bins with quantiles of the observed errors using Jaccard similarity, recall,
+    and precision.
 
     The Jaccard similarity is calculated as: J(A, B) = |A ∩ B| / |A ∪ B|
 
-    Where A represents the high-confidence predictions and B represents the correct predictions within each bin.
-
-    Attributes:
-        config_ (EvaluationConfig): Configuration object containing evaluation parameters including bin counts,
-            confidence thresholds, and target separation settings.
-        data_processor (DataProcessor): Handles data filtering and preprocessing operations.
-        quantile_calculator (QuantileCalculator): Computes quantile-based bin boundaries.
-        metrics_calculator (MetricsCalculator): Calculates evaluation metrics including Jaccard similarity and
-            statistical measures.
+    A and B contain the sample UIDs in the corresponding uncertainty and error bins.
 
     Example:
 
@@ -849,16 +689,6 @@ class JaccardEvaluator(BaseEvaluator):
     """
 
     def __init__(self, config: Optional[EvaluationConfig] = None):
-        """
-        Initialize JaccardEvaluator with configuration and required components.
-
-        Sets up the evaluator with configuration parameters and calls the parent class constructor to initialize the
-        evaluation framework.
-
-        Args:
-            config (Optional[EvaluationConfig]): Configuration object containing evaluation parameters such as bin
-                counts, thresholds, and settings for target separation. If None, uses default EvaluationConfig values.
-        """
         super().__init__(config or EvaluationConfig())
 
     @classmethod
@@ -953,20 +783,12 @@ class JaccardEvaluator(BaseEvaluator):
         """
         Process Jaccard evaluation metrics for a single cross-validation fold.
 
-        Computes Jaccard similarity, precision, and recall metrics for each bin and target within a single fold. This
-        method implements the core evaluation logic for assessing uncertainty quantification quality.
-
         Args:
             fold_data (FoldData): Container with errors and bins data for the current fold. Contains filtered DataFrames
                 with prediction errors and uncertainty bins for evaluation.
 
         Returns:
-            JaccardBinResults: Results container with computed metrics including:
-                - bin_jaccard: List of Jaccard similarities for each bin
-                - bin_recall: List of recall values for each bin
-                - bin_precision: List of precision values for each bin
-                - target_metrics: Target-specific evaluation results
-                - bins_targets_separated: Bin results separated by target
+            JaccardBinResults: Mean and per-target Jaccard, recall, and precision metrics in descending bin order.
         """
         all_target_jaccard = []
         all_target_recall = []
@@ -1026,14 +848,11 @@ class JaccardEvaluator(BaseEvaluator):
                 - 'bin_recall': List of recall values for each bin
                 - 'bin_precision': List of precision values for each bin
         """
-        # Extract and prepare target-specific data
         errors_dict, bins_dict = self._extract_target_data(fold_data, target_idx)
 
-        # Get predicted bins and ground truth quantiles
         pred_bin_keys = self._get_predicted_bin_keys(errors_dict, bins_dict)
         gt_key_groups = self._get_ground_truth_quantiles(errors_dict)
 
-        # Calculate bin-wise metrics
         bin_jaccard, bin_recall, bin_precision = self._calculate_bin_wise_metrics(pred_bin_keys, gt_key_groups)
 
         return JaccardEvaluator._format_target_results(bin_jaccard, bin_recall, bin_precision)
@@ -1122,12 +941,9 @@ class JaccardEvaluator(BaseEvaluator):
 
         return bin_jaccard, bin_recall, bin_precision
 
-    def _aggregate_fold_results(self, model_key: str, fold_results: List[BinResults]):
+    def _aggregate_fold_results(self, model_key: str, fold_results: List[BinResults]) -> None:
         """
         Aggregate Jaccard evaluation results across all cross-validation folds.
-
-        Combines fold-level Jaccard similarity, precision, and recall results into aggregated statistics for a specific
-        model-uncertainty combination. Handles both main results and target-separated results based on configuration.
 
         Args:
             model_key (str): Identifier for the current model-uncertainty combination (format: "model_name
@@ -1135,16 +951,12 @@ class JaccardEvaluator(BaseEvaluator):
             fold_results (List[BinResults]): List of JaccardBinResults from all folds for the current model-uncertainty
                 combination.
         """
-        # Cast to JaccardBinResults since we know that's what JaccardEvaluator produces
         jaccard_results = cast(List[JaccardBinResults], fold_results)
 
-        # Aggregate fold-level metrics
         aggregated_metrics = self._aggregate_fold_metrics(jaccard_results)
 
-        # Store main results in container
         self._store_main_results(model_key, aggregated_metrics)
 
-        # Store target-separated results
         self._store_target_separated_results(model_key, jaccard_results)
 
     def _aggregate_fold_metrics(self, jaccard_results: List[JaccardBinResults]) -> Dict[str, List[List[float]]]:
@@ -1157,10 +969,8 @@ class JaccardEvaluator(BaseEvaluator):
         Returns:
             Dict[str, List[List[float]]]: Dictionary containing aggregated metrics for each metric type.
         """
-        # Create template for empty bin containers and copy it to avoid repetitive for loops
         empty_bins_template: List[List[float]] = [[] for _ in range(self.current_num_bins_)]
 
-        # Initialize containers by copying the template
         fold_jaccard_bins = copy.deepcopy(empty_bins_template)
         fold_recall_bins = copy.deepcopy(empty_bins_template)
         fold_precision_bins = copy.deepcopy(empty_bins_template)
@@ -1169,7 +979,6 @@ class JaccardEvaluator(BaseEvaluator):
         fold_all_recall_bins = copy.deepcopy(empty_bins_template)
         fold_all_precision_bins = copy.deepcopy(empty_bins_template)
 
-        # Aggregate results across folds
         for result in jaccard_results:
             for bin_idx in range(len(result.mean_all_bins)):
                 fold_jaccard_bins[bin_idx].append(result.mean_all_bins[bin_idx])
@@ -1197,17 +1006,15 @@ class JaccardEvaluator(BaseEvaluator):
             model_key (str): Model-uncertainty combination identifier.
             aggregated_metrics (Dict[str, List[List[float]]]): Aggregated metrics from all folds.
         """
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
 
-        # Store main jaccard results
         self.container_.add_main_result(model_key, aggregated_metrics["fold_jaccard_bins"])
         self.container_.add_target_separated_result(model_key, aggregated_metrics["fold_all_jaccard_bins"])
 
-        # Store recall results
         self.container_.recall_results[model_key] = aggregated_metrics["fold_recall_bins"]
         self.container_.recall_target_separated[model_key] = aggregated_metrics["fold_all_recall_bins"]
 
-        # Store precision results
         self.container_.precision_results[model_key] = aggregated_metrics["fold_precision_bins"]
         self.container_.precision_target_separated[model_key] = aggregated_metrics["fold_all_precision_bins"]
 
@@ -1219,9 +1026,9 @@ class JaccardEvaluator(BaseEvaluator):
             model_key (str): Model-uncertainty combination identifier.
             jaccard_results (List[JaccardBinResults]): Results from all folds.
         """
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
 
-        # Process each fold's target-separated results
         for fold_idx in range(len(jaccard_results)):
             result = jaccard_results[fold_idx]
             self._process_fold_target_separation(model_key, result)
@@ -1234,19 +1041,18 @@ class JaccardEvaluator(BaseEvaluator):
             model_key (str): Model-uncertainty combination identifier.
             result (JaccardBinResults): Results from one fold.
         """
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
 
         for target_idx in range(len(result.all_bins_concat_targets_sep)):
             self._initialize_target_containers_if_needed(model_key, target_idx)
 
             for bin_idx in range(self.current_num_bins_):
                 if target_idx < len(self.container_.target_sep_foldwise):
-                    # Store foldwise target-separated results
                     self.container_.target_sep_foldwise[target_idx][model_key][bin_idx].extend(
                         result.all_bins_concat_targets_sep[target_idx][bin_idx]
                     )
 
-                    # Store overall target-separated results
                     self.container_.target_sep_all[target_idx][model_key][bin_idx].extend(
                         result.all_bins_concat_targets_sep[target_idx][bin_idx]
                     )
@@ -1259,14 +1065,13 @@ class JaccardEvaluator(BaseEvaluator):
             model_key (str): Model-uncertainty combination identifier.
             target_idx (int): Index of the target.
         """
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
 
-        # Initialize foldwise container if needed
         if target_idx < len(self.container_.target_sep_foldwise):
             if model_key not in self.container_.target_sep_foldwise[target_idx]:
                 self.container_.target_sep_foldwise[target_idx][model_key] = [[] for _ in range(self.current_num_bins_)]
 
-        # Initialize overall container if needed
         if target_idx < len(self.container_.target_sep_all):
             if model_key not in self.container_.target_sep_all[target_idx]:
                 self.container_.target_sep_all[target_idx][model_key] = [[] for _ in range(self.current_num_bins_)]
@@ -1289,7 +1094,8 @@ class JaccardEvaluator(BaseEvaluator):
                 - ALL_JACC_CONCAT_BINS_TARGET_SEP_FOLDWISE: Fold-wise target separation
                 - ALL_JACC_CONCAT_BINS_TARGET_SEP_ALL: Overall target separation
         """
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
         return {
             ResultKeys.JACCARD_ALL: self.container_.main_results,
             ResultKeys.JACCARD_TARGETS_SEPARATED: self.container_.target_separated_results,
@@ -1299,6 +1105,236 @@ class JaccardEvaluator(BaseEvaluator):
             ResultKeys.PRECISION_TARGETS_SEPARATED: self.container_.precision_target_separated,
             ResultKeys.ALL_JACC_CONCAT_BINS_TARGET_SEP_FOLDWISE: self.container_.target_sep_foldwise,
             ResultKeys.ALL_JACC_CONCAT_BINS_TARGET_SEP_ALL: self.container_.target_sep_all,
+        }
+
+
+class BoundsEvaluator(BaseEvaluator):
+    """
+    Evaluator for the accuracy of estimated error bounds.
+
+    For each quantile bin, this measures the proportion of predictions whose true error falls inside
+    the bound estimated for that bin, which shows how well the estimated bounds are calibrated.
+
+    Args:
+        estimated_bounds (Dict[str, pd.DataFrame]): Estimated error bounds per model, keyed by
+            ``"<model> Error Bounds"``.
+        config (EvaluationConfig, optional): Evaluation settings. Defaults to :class:`EvaluationConfig`.
+
+    Example:
+
+        .. code-block:: pycon
+
+            >>> evaluator = BoundsEvaluator(bounds, EvaluationConfig(original_num_bins=5))
+            >>> results = evaluator.evaluate(bin_predictions, [["S-MHA"]], targets=[0, 1])
+    """
+
+    def __init__(self, estimated_bounds: Dict[str, pd.DataFrame], config: Optional[EvaluationConfig] = None):
+        super().__init__(config or EvaluationConfig())
+        self.estimated_bounds_ = estimated_bounds
+
+    def _process_all_folds(self, data_structs: pd.DataFrame) -> List[BinResults]:
+        """Process every fold, attaching that fold's estimated bounds to the fold data."""
+        error_bounds = self.estimated_bounds_[self.current_model_ + " Error Bounds"]
+        bounds_column = self.current_uncertainty_type_ + " Uncertainty bounds"
+
+        fold_results = []
+        for fold in range(self.config_.num_folds):
+            fold_data = DataProcessor.extract_fold_data(data_structs, fold, self.current_uncertainty_type_)
+            fold_data.bounds = strip_for_bound(error_bounds[error_bounds["fold"] == fold][bounds_column].values)
+            fold_results.append(self._process_single_fold(fold_data))
+
+        return fold_results
+
+    def _process_single_fold(self, fold_data: FoldData) -> BinResults:
+        """Evaluate bound accuracy for one fold."""
+        if fold_data.bounds is None:
+            raise RuntimeError("Fold data is missing its estimated bounds")
+        result = bin_wise_bound_eval(
+            fold_data.bounds,
+            fold_data.errors,
+            fold_data.bins,
+            self.current_targets_,
+            self.current_uncertainty_type_,
+            num_bins=self.current_num_bins_,
+        )
+
+        return BinResults(
+            mean_all_targets=result[ResultKeys.MEAN_ALL_TARGETS],
+            mean_all_bins=result[ResultKeys.MEAN_ALL_BINS],
+            all_bins=result["mean all"],
+            all_bins_concat_targets_sep=result[ResultKeys.ALL_BINS_CONCAT_TARGETS_SEP],
+        )
+
+    def _aggregate_fold_results(self, model_key: str, fold_results: List[BinResults]) -> None:
+        """Store bound accuracy by bin, fold, and target.
+
+        For each model key, main results use [bin][fold] and unseparated accuracies use [bin][fold * target],
+        ordered by fold then target. Both use descending uncertainty bins. The two target-separated outputs use
+        [target][model_key][bin][fold], with ascending uncertainty bins and an accuracy value for every fold.
+
+        Args:
+            model_key (str): Model and uncertainty identifier used in the result containers.
+            fold_results (List[BinResults]): Results in fold order, with bins ordered from lowest to highest
+                uncertainty and targets ordered as in current_targets_.
+
+        Raises:
+            RuntimeError: If the results container has not been initialized.
+        """
+        num_bins = self.current_num_bins_
+        num_targets = len(self.current_targets_)
+
+        mean_bins: List[List[float]] = [[] for _ in range(num_bins)]
+        bins_targets_not_sep: List[List[float]] = [[] for _ in range(num_bins)]
+        targets_sep_foldwise: List[List[List[float]]] = [[[] for _ in range(num_bins)] for _ in range(num_targets)]
+        targets_sep_all: List[List[List[float]]] = [[[] for _ in range(num_bins)] for _ in range(num_targets)]
+
+        for fold in fold_results:
+            for idx_bin in range(len(fold.mean_all_bins)):
+                mean_bins[idx_bin].append(fold.mean_all_bins[idx_bin])
+                bins_targets_not_sep[idx_bin].extend(fold.all_bins[idx_bin])
+
+                for target_idx in range(num_targets):
+                    fold_bin_values = fold.all_bins_concat_targets_sep[target_idx][idx_bin]
+                    targets_sep_foldwise[target_idx][idx_bin].extend(fold_bin_values)
+                    targets_sep_all[target_idx][idx_bin].extend(fold_bin_values)
+
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
+
+        self.container_.add_main_result(model_key, mean_bins[::-1])
+        self.container_.additional_containers.setdefault(ResultKeys.ALL_BOUND_PERCENTS_NO_TARGET_SEP, {})[
+            model_key
+        ] = bins_targets_not_sep[::-1]
+
+        for target_idx in range(num_targets):
+            self.container_.target_sep_foldwise[target_idx][model_key] = targets_sep_foldwise[target_idx]
+            self.container_.target_sep_all[target_idx][model_key] = targets_sep_all[target_idx]
+
+    def _finalize_results(self) -> Dict:
+        """Map the container onto the error bound result keys."""
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
+
+        return {
+            ResultKeys.ERROR_BOUNDS_ALL: self.container_.main_results,
+            ResultKeys.ALL_BOUND_PERCENTS_NO_TARGET_SEP: self.container_.additional_containers.get(
+                ResultKeys.ALL_BOUND_PERCENTS_NO_TARGET_SEP, {}
+            ),
+            ResultKeys.ALL_ERROR_BOUND_CONCAT_BINS_TARGET_SEP_FOLDWISE: self.container_.target_sep_foldwise,
+            ResultKeys.ALL_ERROR_BOUND_CONCAT_BINS_TARGET_SEP_ALL: self.container_.target_sep_all,
+        }
+
+
+class ErrorsEvaluator(BaseEvaluator):
+    """
+    Evaluator for the mean localization error of each quantile bin.
+
+    For each bin, this measures the mean error per target and across all targets, which shows whether
+    predictions the model is less certain about do carry larger errors.
+
+    Args:
+        config (EvaluationConfig, optional): Evaluation settings, including ``error_scaling_factor``.
+            Defaults to :class:`EvaluationConfig`.
+
+    Example:
+
+        .. code-block:: pycon
+
+            >>> evaluator = ErrorsEvaluator(EvaluationConfig(original_num_bins=5))
+            >>> results = evaluator.evaluate(bin_predictions, [["S-MHA"]], targets=[0, 1])
+    """
+
+    def __init__(self, config: Optional[EvaluationConfig] = None):
+        super().__init__(config or EvaluationConfig())
+
+    def _process_single_fold(self, fold_data: FoldData) -> BinResults:
+        """Evaluate mean bin errors for one fold."""
+        result = bin_wise_errors(
+            fold_data.errors,
+            fold_data.bins,
+            self.current_num_bins_,
+            self.current_targets_,
+            self.current_uncertainty_type_,
+            error_scaling_factor=self.config_.error_scaling_factor,
+        )
+
+        return BinResults(
+            mean_all_targets=result[ResultKeys.MEAN_ALL_TARGETS],
+            mean_all_bins=result[ResultKeys.MEAN_ALL_BINS],
+            all_bins=result[ResultKeys.ALL_BINS],
+            all_bins_concat_targets_sep=result[ResultKeys.ALL_BINS_CONCAT_TARGETS_SEP],
+        )
+
+    def _aggregate_fold_results(self, model_key: str, fold_results: List[BinResults]) -> None:
+        """Store mean and sample errors by bin, fold, and target.
+
+        Main results use [bin][fold], with None for bins empty across all targets. Unseparated values concatenate
+        folds, targets, and samples in that order. Target-separated errors use
+        [target][model_key][bin][nonempty_fold][sample], or [target][model_key][bin][sample] with folds combined.
+        All outputs use descending uncertainty bins; target-separated lists contain only nonempty folds.
+
+        Args:
+            model_key (str): Model and uncertainty identifier used in the result containers.
+            fold_results (List[BinResults]): Results in fold order, with bins ordered from lowest to highest
+                uncertainty and targets ordered as in current_targets_.
+
+        Raises:
+            RuntimeError: If the results container has not been initialized.
+        """
+        num_bins = self.current_num_bins_
+        num_targets = len(self.current_targets_)
+
+        mean_bins: List[List[Optional[float]]] = [[] for _ in range(num_bins)]
+        all_bins: List[List[float]] = [[] for _ in range(num_bins)]
+        concat_targets_no_sep: List[List[float]] = [[] for _ in range(num_bins)]
+        targets_sep_foldwise: List[List[List[List[float]]]] = [
+            [[] for _ in range(num_bins)] for _ in range(num_targets)
+        ]
+        targets_sep_all: List[List[List[float]]] = [[[] for _ in range(num_bins)] for _ in range(num_targets)]
+
+        for fold in fold_results:
+            for idx_bin in range(len(fold.mean_all_bins)):
+                mean_bins[idx_bin].append(fold.mean_all_bins[idx_bin])
+                all_bins[idx_bin].extend(fold.all_bins[idx_bin])
+
+                # Flatten this bin's errors across every target, dropping the target separation.
+                per_target = [target_bins[idx_bin] for target_bins in fold.all_bins_concat_targets_sep]
+                sample_errors = [errors for target_values in per_target for errors in target_values]
+                flattened = [value for errors in sample_errors for value in errors]
+                concat_targets_no_sep[idx_bin].extend(flattened)
+
+                for target_idx in range(num_targets):
+                    fold_bin_values = fold.all_bins_concat_targets_sep[target_idx][idx_bin]
+                    targets_sep_foldwise[target_idx][idx_bin].extend(fold_bin_values)
+                    if fold_bin_values:
+                        targets_sep_all[target_idx][idx_bin].extend(fold_bin_values[0])
+
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
+
+        self.container_.add_main_result(model_key, mean_bins[::-1])
+        self.container_.add_target_separated_result(model_key, all_bins[::-1])
+        self.container_.additional_containers.setdefault(ResultKeys.ALL_ERROR_CONCAT_BINS_TARGET_NO_SEP, {})[
+            model_key
+        ] = concat_targets_no_sep[::-1]
+
+        for target_idx in range(num_targets):
+            self.container_.target_sep_foldwise[target_idx][model_key] = targets_sep_foldwise[target_idx][::-1]
+            self.container_.target_sep_all[target_idx][model_key] = targets_sep_all[target_idx][::-1]
+
+    def _finalize_results(self) -> Dict:
+        """Map the container onto the mean error result keys."""
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
+
+        return {
+            ResultKeys.ALL_MEAN_ERROR_BINS_NO_SEP: self.container_.main_results,
+            ResultKeys.ALL_MEAN_ERROR_BINS_TARGETS_SEP: self.container_.target_separated_results,
+            ResultKeys.ALL_ERROR_CONCAT_BINS_TARGET_NO_SEP: self.container_.additional_containers.get(
+                ResultKeys.ALL_ERROR_CONCAT_BINS_TARGET_NO_SEP, {}
+            ),
+            ResultKeys.ALL_ERROR_CONCAT_BINS_TARGET_SEP_FOLDWISE: self.container_.target_sep_foldwise,
+            ResultKeys.ALL_ERROR_CONCAT_BINS_TARGET_SEP_ALL: self.container_.target_sep_all,
         }
 
 
@@ -1314,13 +1350,8 @@ def evaluate_bounds(
     """
     Evaluate error bound accuracy for uncertainty quantification models.
 
-    This function assesses how well predicted error bounds capture actual prediction errors across different uncertainty
-    bins. It provides a comprehensive evaluation of bound reliability for uncertainty quantification in machine learning
-    models.
-
     Args:
-        estimated_bounds (Dict[str, pd.DataFrame]): Dictionary mapping model names to DataFrames containing estimated
-            error bounds for each prediction.
+        estimated_bounds (Dict[str, pd.DataFrame]): Estimated bounds keyed by "<model> Error Bounds".
         bin_predictions (Dict[str, pd.DataFrame]): Dictionary mapping model names to DataFrames containing bin
             predictions and evaluation data with columns for UIDs, target indices, errors, and uncertainty bins.
         uncertainty_pairs (List): List of uncertainty type pairs to evaluate. Each element should be a list/tuple
@@ -1329,8 +1360,7 @@ def evaluate_bounds(
             assessment.
         targets (List[int]): List of target indices to include in the evaluation. Used to filter data and organize
             results by target.
-        num_folds (int, optional): Number of cross-validation folds for evaluation. Defaults to 8. Higher values provide
-            more robust estimates.
+        num_folds (int, optional): Number of cross-validation folds for evaluation. Defaults to 8.
         combine_middle_bins (bool, optional): Whether to combine middle uncertainty bins for simplified three-bin
             analysis. Defaults to False.
 
@@ -1345,107 +1375,27 @@ def evaluate_bounds(
 
         .. code-block:: pycon
 
-            >>> bounds = {'model1': bounds_df}
+            >>> bounds = {'model1 Error Bounds': bounds_df}
             >>> predictions = {'model1': predictions_df}
             >>> results = evaluate_bounds(
             ...     bounds, predictions,
             ...     uncertainty_pairs=[['epistemic']],
             ...     num_bins=5, targets=[0, 1, 2]
             ... )
-            >>> print(results['error_bounds_all']['model1_epistemic'])
+            >>> results['error_bounds_all']['model1 epistemic']
     """
 
-    if combine_middle_bins:
-        num_bins = 3
-
-    # Initialize results dicts
-    all_bound_percents = {}
-    all_bound_percents_notargetsep = {}
-
-    all_concat_errorbound_bins_target_sep_foldwise = [{} for x in range(len(targets))]  # type: List[Dict]
-    all_concat_errorbound_bins_target_sep_all = [{} for x in range(len(targets))]  # type: List[Dict]
-
-    # Loop over combinations of models (model) and uncertainty types (uncert_pair)
-    for i, (model, data_structs) in enumerate(bin_predictions.items()):
-        error_bounds = estimated_bounds[model + " Error Bounds"]
-
-        for uncert_pair in uncertainty_pairs:
-            uncertainty_type = uncert_pair[0]
-
-            fold_learned_bounds_mean_targets = []
-            fold_learned_bounds_mean_bins = [[] for x in range(num_bins)]  # type: List[List]
-            fold_learned_bounds_bins_targetsnotsep = [[] for x in range(num_bins)]  # type: List[List]
-            fold_all_bins_concat_targets_sep_foldwise = [
-                [[] for y in range(num_bins)] for x in range(len(targets))
-            ]  # type: List[List]
-            fold_all_bins_concat_targets_sep_all = [
-                [[] for y in range(num_bins)] for x in range(len(targets))
-            ]  # type: List[List]
-
-            for fold in range(num_folds):
-                # Get the ids for this fold
-                fold_errors = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "Target Index", uncertainty_type + " Error"]
-                ]
-                fold_bins = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "Target Index", uncertainty_type + " Uncertainty bins"]
-                ]
-                fold_bounds = strip_for_bound(
-                    error_bounds[error_bounds["fold"] == fold][uncertainty_type + " Uncertainty bounds"].values
-                )
-
-                return_dict = bin_wise_bound_eval(
-                    fold_bounds, fold_errors, fold_bins, targets, uncertainty_type, num_bins=num_bins
-                )
-                fold_learned_bounds_mean_targets.append(return_dict["mean all targets"])
-
-                for idx_bin in range(len(return_dict["mean all bins"])):
-                    fold_learned_bounds_mean_bins[idx_bin].append(return_dict["mean all bins"][idx_bin])
-                    fold_learned_bounds_bins_targetsnotsep[idx_bin] = (
-                        fold_learned_bounds_bins_targetsnotsep[idx_bin] + return_dict["mean all"][idx_bin]
-                    )
-
-                    for target_idx in range(len(targets)):
-                        fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin] = (
-                            fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin]
-                            + return_dict["all bins concatenated targets separated"][target_idx][idx_bin]
-                        )
-                        combined = (
-                            fold_all_bins_concat_targets_sep_all[target_idx][idx_bin]
-                            + return_dict["all bins concatenated targets separated"][target_idx][idx_bin]
-                        )
-
-                        fold_all_bins_concat_targets_sep_all[target_idx][idx_bin] = combined
-
-            # Reverses order so they are worst to best i.e. B5 -> B1
-            all_bound_percents[model + " " + uncertainty_type] = fold_learned_bounds_mean_bins[::-1]
-            all_bound_percents_notargetsep[model + " " + uncertainty_type] = fold_learned_bounds_bins_targetsnotsep[
-                ::-1
-            ]
-
-            for target_idx in range(len(all_concat_errorbound_bins_target_sep_foldwise)):
-                all_concat_errorbound_bins_target_sep_foldwise[target_idx][
-                    model + " " + uncertainty_type
-                ] = fold_all_bins_concat_targets_sep_foldwise[target_idx]
-                all_concat_errorbound_bins_target_sep_all[target_idx][
-                    model + " " + uncertainty_type
-                ] = fold_all_bins_concat_targets_sep_all[target_idx]
-
-    return {
-        "error_bounds_all": all_bound_percents,
-        "all_bound_percents_notargetsep": all_bound_percents_notargetsep,
-        "all errorbound concat bins targets sep foldwise": all_concat_errorbound_bins_target_sep_foldwise,
-        "all_errorbound_concat_bins_targets_sep_all": all_concat_errorbound_bins_target_sep_all,
-    }
+    config = EvaluationConfig(
+        num_folds=num_folds,
+        original_num_bins=num_bins,
+        combine_middle_bins=combine_middle_bins,
+    )
+    return BoundsEvaluator(estimated_bounds, config).evaluate(bin_predictions, uncertainty_pairs, targets)
 
 
-# Convenience functions for backward compatibility
 def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, targets, num_folds=8, combine_middle_bins=False):
     """
     Evaluate uncertainty estimation's ability to predict true error quantiles using Jaccard metrics.
-
-    This is a convenience function that uses the new JaccardEvaluator class while maintaining backward compatibility
-    with the original function signature.
 
     Args:
         bin_predictions: Dictionary of DataFrames containing bin predictions for each model
@@ -1512,30 +1462,6 @@ def _bin_accuracy(inbin_errors: list, lower: float, upper: float) -> float:
     return _count_within_bounds(inbin_errors, lower, upper) / len(inbin_errors)
 
 
-def _group_target_errors_by_bin(pred_bins_ti: dict, true_errors_ti: dict, num_bins: int) -> List[List[float]]:
-    """Group a target's errors by the predicted quantile bin of each sample.
-
-    Bin values and uids are compared as strings, so ``1`` and ``"1"`` are treated as equal.
-
-    Args:
-        pred_bins_ti (dict): Maps each sample uid to its predicted quantile bin.
-        true_errors_ti (dict): Maps each sample uid to its true error.
-        num_bins (int): Total number of quantile bins.
-
-    Returns:
-        list: ``num_bins`` lists, each holding the errors of the samples in that bin.
-    """
-    errors_by_uid = {str(uid): error for uid, error in true_errors_ti.items()}
-    binned_errors: List[List[float]] = [[] for _ in range(num_bins)]
-    for uid, bin_val in pred_bins_ti.items():
-        bin_str = str(bin_val)
-        for i in range(num_bins):
-            if str(i) == bin_str:
-                binned_errors[i].append(errors_by_uid[str(uid)])
-                break
-    return binned_errors
-
-
 def _weighted_average(values: list, weights: list) -> float:
     """Return the ``weights``-weighted mean of ``values``, or ``0.0`` if the weights sum to zero.
 
@@ -1561,8 +1487,7 @@ def bin_wise_bound_eval(
     num_bins: int = 5,
 ) -> dict:
     """
-    Helper function for `evaluate_bounds`. Evaluates the accuracy of estimated error bounds for each quantile bin
-    for a given uncertainty type, over a single fold and for multiple targets.
+    Compute error bound accuracy for each target and uncertainty bin in one fold.
 
     Args:
         fold_bounds_all_targets (list): A list of lists of estimated error bounds for each target.
@@ -1577,9 +1502,12 @@ def bin_wise_bound_eval(
               - 'mean all targets': The mean accuracy over all targets and quantile bins.
               - 'mean all bins': A list of mean accuracy values for each quantile bin (all targets included),
                weighted by bin size; ``0.0`` for a bin that is empty for every target.
-              - 'mean all': A list of accuracy values for each quantile bin and target, weighted by # targets in each bin.
+              - 'mean all': Accuracy values organized as [bin][target].
               - 'all bins concatenated targets separated': A list of accuracy values for each quantile bin, concatenated
                for each target separately.
+
+    Raises:
+        ValueError: If an in-range prediction has no matching error, or a target has no samples in the fold.
 
     Example:
 
@@ -1604,10 +1532,9 @@ def bin_wise_bound_eval(
         true_errors_ti = dict(zip(true_errors_ti.uid, true_errors_ti[uncertainty_type + " Error"]))
         pred_bins_ti = dict(zip(pred_bins_ti.uid, pred_bins_ti[uncertainty_type + " Uncertainty bins"]))
 
-        # The error bounds are from B1 -> B5 i.e. best quantile of predictions to worst quantile of predictions
         fold_bounds = fold_bounds_all_targets[i_ti]
 
-        pred_bins_errors = _group_target_errors_by_bin(pred_bins_ti, true_errors_ti, num_bins)
+        _, pred_bins_errors = DataProcessor.group_data_by_bins(true_errors_ti, pred_bins_ti, num_bins)
 
         bins_acc = []
         bins_sizes = []
@@ -1651,10 +1578,7 @@ def get_mean_errors(
     combine_middle_bins: bool = False,
 ) -> Dict:
     """
-    Evaluate uncertainty estimation's mean error of each bin. For each bin, we calculate the mean localization error for
-    each target and for all targets. We calculate the mean error for each dictionary in the bin_predictions dict. For
-    each bin, we calculate: a) the mean and std over all folds and all targets b) the mean and std for each target over
-    all folds.
+    Compute mean localization errors and collect sample errors by uncertainty bin across folds and targets.
 
     Args:
         bin_predictions (Dict): Dict of Pandas DataFrames where each DataFrame has errors, predicted bins for all
@@ -1677,127 +1601,33 @@ def get_mean_errors(
                 "all_error_concat_bins_targets_sep_all": For every fold, every error value in a list. Each target is in a separate list. The list is flattened for all the folds.
 
     """
-    # If we are combining the middle bins, we only have the 2 edge bins and the middle bins are combined into 1 bin.
-    if combine_middle_bins:
-        num_bins = 3
-
-    # initialize empty dicts
-    all_mean_error_bins = {}
-    all_mean_error_bins_targets_sep = {}
-    all_concat_error_bins_target_sep_foldwise: List[Dict] = [{} for x in range(len(targets))]
-    all_concat_error_bins_target_sep_all: List[Dict] = [{} for x in range(len(targets))]
-
-    all_concat_error_bins_target_nosep = {}
-    # Loop over models (model) and uncertainty methods (uncert_pair)
-    for i, (model, data_structs) in enumerate(bin_predictions.items()):
-        for uncert_pair in uncertainty_pairs:  # uncert_pair = [pair name, error name , uncertainty name]
-            uncertainty_type = uncert_pair[0]
-
-            # Initialize lists to store fold-wise results
-            fold_mean_targets = []
-            fold_mean_bins: List[List[float]] = [[] for x in range(num_bins)]
-            fold_all_bins: List[List[float]] = [[] for x in range(num_bins)]
-            fold_all_bins_concat_targets_sep_foldwise: List[List[List[float]]] = [
-                [[] for y in range(num_bins)] for x in range(len(targets))
-            ]
-            fold_all_bins_concat_targets_sep_all: List[List[List[float]]] = [
-                [[] for y in range(num_bins)] for x in range(len(targets))
-            ]
-
-            fold_all_bins_concat_targets_nosep: List[List[float]] = [[] for x in range(num_bins)]
-
-            for fold in range(num_folds):
-                # Get the errors and predicted bins for this fold
-                fold_errors = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "Target Index", uncertainty_type + " Error"]
-                ]
-                fold_bins = data_structs[(data_structs["Testing Fold"] == fold)][
-                    ["uid", "Target Index", uncertainty_type + " Uncertainty bins"]
-                ]
-
-                return_dict = bin_wise_errors(
-                    fold_errors,
-                    fold_bins,
-                    num_bins,
-                    targets,
-                    uncertainty_type,
-                    error_scaling_factor=error_scaling_factor,
-                )
-                fold_mean_targets.append(return_dict["mean all targets"])
-
-                for idx_bin in range(len(return_dict["mean all bins"])):
-                    fold_mean_bins[idx_bin].append(return_dict["mean all bins"][idx_bin])
-                    fold_all_bins[idx_bin] = fold_all_bins[idx_bin] + return_dict["all bins"][idx_bin]
-
-                    concat_no_sep = [x[idx_bin] for x in return_dict["all bins concatenated targets separated"]]
-
-                    flattened_concat_no_sep = [x for sublist in concat_no_sep for x in sublist]
-                    flattened_concat_no_sep = [x for sublist in flattened_concat_no_sep for x in sublist]
-
-                    fold_all_bins_concat_targets_nosep[idx_bin] = (
-                        fold_all_bins_concat_targets_nosep[idx_bin] + flattened_concat_no_sep
-                    )
-
-                    for target_idx in range(len(targets)):
-                        fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin] = (
-                            fold_all_bins_concat_targets_sep_foldwise[target_idx][idx_bin]
-                            + return_dict["all bins concatenated targets separated"][target_idx][idx_bin]
-                        )
-
-                        if return_dict["all bins concatenated targets separated"][target_idx][idx_bin] != []:
-                            combined = (
-                                fold_all_bins_concat_targets_sep_all[target_idx][idx_bin]
-                                + return_dict["all bins concatenated targets separated"][target_idx][idx_bin][0]
-                            )
-                        else:
-                            combined = fold_all_bins_concat_targets_sep_all[target_idx][idx_bin]
-
-                        fold_all_bins_concat_targets_sep_all[target_idx][idx_bin] = combined
-
-            # reverse orderings
-            fold_mean_bins = fold_mean_bins[::-1]
-            fold_all_bins = fold_all_bins[::-1]
-            fold_all_bins_concat_targets_nosep = fold_all_bins_concat_targets_nosep[::-1]
-            fold_all_bins_concat_targets_sep_foldwise = [x[::-1] for x in fold_all_bins_concat_targets_sep_foldwise]
-            fold_all_bins_concat_targets_sep_all = [x[::-1] for x in fold_all_bins_concat_targets_sep_all]
-
-            all_mean_error_bins[model + " " + uncertainty_type] = fold_mean_bins
-            all_mean_error_bins_targets_sep[model + " " + uncertainty_type] = fold_all_bins
-
-            all_concat_error_bins_target_nosep[model + " " + uncertainty_type] = fold_all_bins_concat_targets_nosep
-
-            for target_idx in range(len(fold_all_bins_concat_targets_sep_foldwise)):
-                all_concat_error_bins_target_sep_foldwise[target_idx][
-                    model + " " + uncertainty_type
-                ] = fold_all_bins_concat_targets_sep_foldwise[target_idx]
-                all_concat_error_bins_target_sep_all[target_idx][
-                    model + " " + uncertainty_type
-                ] = fold_all_bins_concat_targets_sep_all[target_idx]
-
-    return {
-        "all_mean_error_bins_nosep": all_mean_error_bins,
-        "all mean error bins targets sep": all_mean_error_bins_targets_sep,
-        "all_error_concat_bins_targets_nosep": all_concat_error_bins_target_nosep,
-        "all error concat bins targets sep foldwise": all_concat_error_bins_target_sep_foldwise,
-        "all_error_concat_bins_targets_sep_all": all_concat_error_bins_target_sep_all,
-    }
+    config = EvaluationConfig(
+        num_folds=num_folds,
+        original_num_bins=num_bins,
+        error_scaling_factor=error_scaling_factor,
+        combine_middle_bins=combine_middle_bins,
+    )
+    return ErrorsEvaluator(config).evaluate(bin_predictions, uncertainty_pairs, targets)
 
 
 def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, error_scaling_factor):
     """
-    Helper function for get_mean_errors. Calculates the mean error for each bin and for each target.
+    Compute mean and sample errors for each target and uncertainty bin in one fold.
 
     Args:
         fold_errors (Pandas Dataframe): Pandas Dataframe of errors for this fold.
         fold_bins (Pandas Dataframe): Pandas Dataframe of predicted quantile bins for this fold.
         num_bins (int): Number of quantile bins.
         targets (list): list of targets to measure uncertainty estimation.
-        uncertainty_key (string): Name of uncertainty type to calculate accuracy for.
+        uncertainty_key (string): Uncertainty type identifying the error and bin columns.
         error_scaling_factor (float): Factor to scale the errors by.
 
 
     Returns:
         [Dict]: Dict with mean error statistics.
+
+    Raises:
+        ValueError: If an in-range prediction has no matching error.
     """
 
     all_target_error = []
@@ -1810,33 +1640,17 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, 
             ["uid", uncertainty_key + " Uncertainty bins"]
         ]
 
-        # Zip to dictionary
         true_errors_ti = dict(
             zip(true_errors_ti.uid, true_errors_ti[uncertainty_key + " Error"] * error_scaling_factor)
         )
         pred_bins_ti = dict(zip(pred_bins_ti.uid, pred_bins_ti[uncertainty_key + " Uncertainty bins"]))
 
-        pred_bins_keys = []
-        pred_bins_errors = []
+        _, pred_bins_errors = DataProcessor.group_data_by_bins(true_errors_ti, pred_bins_ti, num_bins)
 
-        # This is saving them from best quantile of predictions to worst quantile of predictions in terms of uncertainty
-        for j in range(num_bins):
-            inner_list = list([key for key, val in pred_bins_ti.items() if str(j) == str(val)])
-            inner_list_errors = []
-
-            for id_ in inner_list:
-                inner_list_errors.append(list([val for key, val in true_errors_ti.items() if str(key) == str(id_)])[0])
-
-            pred_bins_errors.append(inner_list_errors)
-            pred_bins_keys.append(inner_list)
-
-        # Now for each bin, get the mean error
         inner_errors = []
         for bin in range(num_bins):
-            # pred_b_keys = pred_bins_keys[bin]
             pred_b_errors = pred_bins_errors[bin]
 
-            # test for empty bin, it would've created a mean_error==nan , so don't add it!
             if pred_b_errors == []:
                 continue
 
