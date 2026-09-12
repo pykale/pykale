@@ -163,10 +163,10 @@ def _create_analyzer(config, display_settings):
     """Create and return a QuantileBinningAnalyzer instance.
 
     Args:
-        config: Configuration object (QuantileBinningConfig or ComparingBinsConfig) containing
-            analysis parameters like save folder, colormap, and display options.
-        display_settings (dict): Dictionary specifying which plots to generate (cumulative_error,
-            errors, jaccard, error_bounds, correlation, hatch).
+        config: Configuration object (QuantileBinningConfig or ComparingBinsConfig) containing analysis parameters like
+            save folder, colormap, and display options.
+        display_settings (dict): Dictionary specifying which plots to generate (cumulative_error, errors, jaccard,
+            error_bounds, correlation, hatch).
 
     Returns:
         QuantileBinningAnalyzer: Configured analyzer instance ready for analysis.
@@ -476,8 +476,7 @@ def helper_test_qbin_fit(
             pairs to use for testing.
         landmark_results_path_val (str): The path to the directory containing validation results for the
             specified landmark.
-        landmark_results_path_test (str): The path to the directory containing test results for the specified
-            landmark.
+        landmark_results_path_test (str): The path to the directory containing test results for the specified landmark.
         num_bins (int): The number of bins to use for quantile binning.
         cfg (Any): A configuration object containing various settings for the algorithm.
         gt_test_error_available (bool): Whether or not ground truth test errors are available.

@@ -83,8 +83,8 @@ def _quantile_thresholds(uncertainty_values: np.ndarray, num_bins: int, combine_
     Args:
         uncertainty_values (np.ndarray): Uncertainty values across all folds.
         num_bins (int): Number of quantile bins.
-        combine_middle_bins (bool): If True, keep only the outer thresholds, so the middle bins merge
-            into a single bin and only the two edge bins remain distinct.
+        combine_middle_bins (bool): If True, keep only the outer thresholds, so the middle bins merge into a single bin
+            and only the two edge bins remain distinct.
 
     Returns:
         list: The threshold values, ordered from lowest to highest uncertainty.
@@ -107,24 +107,24 @@ def evaluate_correlations(
     config: Optional[CorrelationConfig] = None,
 ) -> Dict[str, Dict[str, Dict[str, Any]]]:
     """
-    Calculate the correlation between error and uncertainty for each model and uncertainty type over all
-    testing folds, fitting a piece-wise linear regression between the quantile thresholds.
+    Calculate the correlation between error and uncertainty for each model and uncertainty type over all testing folds,
+    fitting a piece-wise linear regression between the quantile thresholds.
 
     Designed for use in Quantile Binning (/pykale/examples/landmark_uncertainty/main.py).
 
     Args:
         bin_predictions: A dictionary of Pandas DataFrames containing model predictions for each testing fold.
-        uncertainty_error_pairs: A list of tuples specifying the names of the uncertainty,
-            error, and uncertainty inversion keys for each pair.
+        uncertainty_error_pairs: A list of tuples specifying the names of the uncertainty, error, and uncertainty
+            inversion keys for each pair.
         confidence_invert_tuples: A list of tuples specifying whether to invert the uncertainty values for each method.
-                          First element is a string specifying the uncertainty method name and the second element is
-                          a boolean whether to invert e.g. [["E-MHA", True], ["E-CPV", False]]
+            First element is a string specifying the uncertainty method name and the second element is a boolean whether
+            to invert e.g. [["E-MHA", True], ["E-CPV", False]]
         config: Analysis, plotting and output settings. Defaults to :class:`CorrelationConfig`.
 
     Returns:
         The correlation statistics for each model and uncertainty type, as returned by
-        :func:`kale.interpret.uncertainty_utils.analyze_and_plot_uncertainty_correlation`:
-        ``{<model_name>: {<uncertainty_name>: {"spearman": [coefficient, p_value], "pearson": [coefficient, p_value]}}}``.
+        :func:`kale.interpret.uncertainty_utils.analyze_and_plot_uncertainty_correlation`: ``{<model_name>:
+        {<uncertainty_name>: {"spearman": [coefficient, p_value], "pearson": [coefficient, p_value]}}}``.
     """
     config = config or CorrelationConfig()
 
