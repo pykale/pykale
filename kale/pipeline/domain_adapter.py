@@ -781,24 +781,32 @@ class WDGRLTrainer(BaseDANNLike):
 
         return loss  # required, for backward pass
 
-    def configure_optimizers(self):  # no usage?
+    def configure_optimizers(self):
+        """Configure the task/feature optimizer and, separately, the critic optimizer.
+
+        The critic is stepped manually in ``critic_update_steps`` (called from ``training_step``),
+        so its optimizer and scheduler are stored on the trainer rather than returned to PyTorch
+        Lightning.
+
+        ``_configure_optimizer`` returns ``([optimizer], [scheduler])`` only for SGD with
+        ``adapt_lr`` enabled, and ``[optimizer]`` otherwise; both shapes are handled here and the
+        task/feature result is passed straight through to Lightning.
+        """
         nets = [self.feat, self.classifier]
         parameters = set()
         for net in nets:
             parameters |= set(net.parameters())
 
-        if self._adapt_lr:
-            task_feat_optimizer, task_feat_sched = self._configure_optimizer(parameters)
-            self.critic_opt, self.critic_sched = self._configure_optimizer(self.domain_classifier.parameters())
-            self.critic_opt = self.critic_opt[0]
-            self.critic_sched = self.critic_sched[0]
-            return task_feat_optimizer, task_feat_sched
+        critic_result = self._configure_optimizer(self.domain_classifier.parameters())
+        if isinstance(critic_result, tuple):
+            critic_optimizers, critic_schedulers = critic_result
+            self.critic_opt = critic_optimizers[0]
+            self.critic_sched = critic_schedulers[0]
         else:
-            task_feat_optimizer = self._configure_optimizer(parameters)
-            self.critic_opt = self._configure_optimizer(self.domain_classifier.parameters())
+            self.critic_opt = critic_result[0]
             self.critic_sched = None
-            self.critic_opt = self.critic_opt[0]
-        return task_feat_optimizer
+
+        return self._configure_optimizer(parameters)
 
 
 class WDGRLTrainerMod(WDGRLTrainer):

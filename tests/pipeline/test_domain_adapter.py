@@ -69,6 +69,52 @@ def test_base_adapt_trainer_configure_optimizers_with_adamw():
     assert optimizers[0].defaults["weight_decay"] == 0.3
 
 
+def _wdgrl_trainer(optimizer, adapt_lr):
+    return domain_adapter.WDGRLTrainer(
+        dataset=_DummyDataset(),
+        feature_extractor=torch.nn.Linear(2, 3),
+        task_classifier=torch.nn.Linear(3, 2),
+        critic=torch.nn.Linear(3, 1),
+        nb_init_epochs=1,
+        nb_adapt_epochs=2,
+        init_lr=0.004,
+        adapt_lr=adapt_lr,
+        optimizer=optimizer,
+    )
+
+
+@pytest.mark.parametrize("optimizer_type", ["Adam", "AdamW"])
+def test_wdgrl_configure_optimizers_without_scheduler(optimizer_type):
+    """Optimizers that produce no scheduler are handled under adapt_lr (issue #548).
+
+    _configure_optimizer only builds a scheduler for SGD, so Adam/AdamW return a bare optimizer
+    list. configure_optimizers previously force-unpacked a (optimizers, schedulers) tuple and
+    raised ValueError for these.
+    """
+    model = _wdgrl_trainer({"type": optimizer_type, "optim_params": {}}, adapt_lr=True)
+
+    optimizers = model.configure_optimizers()
+
+    assert isinstance(optimizers, list)
+    assert len(optimizers) == 1
+    assert isinstance(optimizers[0], getattr(torch.optim, optimizer_type))
+    # The critic optimizer is stored for manual stepping; there is no scheduler for Adam/AdamW.
+    assert isinstance(model.critic_opt, getattr(torch.optim, optimizer_type))
+    assert model.critic_sched is None
+
+
+def test_wdgrl_configure_optimizers_with_scheduler():
+    """SGD with adapt_lr still returns the (optimizers, schedulers) pair and sets a critic scheduler."""
+    model = _wdgrl_trainer({"type": "SGD", "optim_params": {"momentum": 0.9}}, adapt_lr=True)
+
+    optimizers, schedulers = model.configure_optimizers()
+
+    assert isinstance(optimizers[0], torch.optim.SGD)
+    assert len(schedulers) == 1
+    assert isinstance(model.critic_opt, torch.optim.SGD)
+    assert model.critic_sched is not None
+
+
 @pytest.mark.parametrize("da_method", DA_METHODS)
 @pytest.mark.parametrize("n_fewshot", FEW_SHOT)
 def test_domain_adaptor(da_method, n_fewshot, download_path, testing_cfg):
