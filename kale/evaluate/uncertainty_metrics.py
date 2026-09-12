@@ -1,9 +1,12 @@
 # =============================================================================
 # Author: Lawrence Schobs, lawrenceschobs@gmail.com
 #         Zhongwei Ji, jizhongwei1999@outlook.com
+#         Charles Anjah, cmanjahart@gmail.com
 # =============================================================================
+
 """
-Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu, "Uncertainty Estimation for Heatmap-Based Landmark Localization,"
+Module from the implementation of L. A. Schobs, A. J. Swift and H. Lu,
+"Uncertainty Estimation for Heatmap-Based Landmark Localization,"
 in IEEE Transactions on Medical Imaging, vol. 42, no. 4, pp. 1021-1034, April 2023, doi: 10.1109/TMI.2022.3222730.
 
 Key Evaluation Approaches:
@@ -23,6 +26,7 @@ Main Classes:
     - QuantileCalculator: Quantile-based error distribution analysis
     - MetricsCalculator: Statistical metrics computation
 """
+
 import copy
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -84,26 +88,21 @@ class EvaluationConfig:
     """
     Configuration parameters for uncertainty quantification evaluation.
 
-    This dataclass defines the settings and parameters used throughout the
-    evaluation process for uncertainty quantification metrics. It provides
-    default values for common evaluation scenarios while allowing customization
-    for specific research needs.
+    This dataclass defines the settings and parameters used throughout the evaluation process for uncertainty
+    quantification metrics. It provides default values for common evaluation scenarios while allowing customization for
+    specific research needs.
 
     Attributes:
-        num_folds (int): Number of cross-validation folds for evaluation.
-            Defaults to 8. Higher values provide more robust statistical
-            estimates but increase computational cost.
-        original_num_bins (int): Number of quantile bins for uncertainty
-            evaluation. Defaults to 10. Controls the granularity of
-            uncertainty analysis.
-        error_scaling_factor (float): Scaling factor applied to prediction
-            errors during evaluation. Defaults to 1.0 (no scaling).
-        combine_middle_bins (bool): Whether to combine middle uncertainty
-            bins for simplified analysis. Defaults to False. When True,
-            reduces evaluation complexity by merging intermediate quantiles.
-        combined_num_bins (int): Number of bins when middle bins are combined.
-            Defaults to 3 (low, medium, high uncertainty). Only used when
-            combine_middle_bins is True.
+        num_folds (int): Number of cross-validation folds for evaluation. Defaults to 8. Higher values provide more
+            robust statistical estimates but increase computational cost.
+        original_num_bins (int): Number of quantile bins for uncertainty evaluation. Defaults to 10. Controls the
+            granularity of uncertainty analysis.
+        error_scaling_factor (float): Scaling factor applied to prediction errors during evaluation. Defaults to 1.0 (no
+            scaling).
+        combine_middle_bins (bool): Whether to combine middle uncertainty bins for simplified analysis. Defaults to
+            False. When True, reduces evaluation complexity by merging intermediate quantiles.
+        combined_num_bins (int): Number of bins when middle bins are combined. Defaults to 3 (low, medium, high
+            uncertainty). Only used when combine_middle_bins is True.
 
     Example:
 
@@ -129,17 +128,16 @@ class FoldData:
     """
     Container for evaluation data from a single cross-validation fold.
 
-    This dataclass organizes the data required for evaluating a single fold
-    in cross-validation, including prediction errors, uncertainty bins, and
-    optional error bounds information.
+    This dataclass organizes the data required for evaluating a single fold in cross-validation, including prediction
+    errors, uncertainty bins, and optional error bounds information.
 
     Attributes:
-        errors (pd.DataFrame): DataFrame containing prediction errors for the fold.
-            Expected columns include UID, target_idx, and model-specific error columns.
-        bins (pd.DataFrame): DataFrame containing uncertainty bin assignments.
-            Expected columns include UID, target_idx, and uncertainty bin columns.
-        bounds (Optional[List]): Optional list containing error bound information
-            for bound-based evaluation methods. Defaults to None.
+        errors (pd.DataFrame): DataFrame containing prediction errors for the fold. Expected columns include UID,
+            target_idx, and model-specific error columns.
+        bins (pd.DataFrame): DataFrame containing uncertainty bin assignments. Expected columns include UID, target_idx,
+            and uncertainty bin columns.
+        bounds (Optional[List]): Optional list containing error bound information for bound-based evaluation methods.
+            Defaults to None.
 
     Example:
 
@@ -162,25 +160,17 @@ class BinResults:
     """
     Base container for evaluation results from a single fold.
 
-    This dataclass stores the fundamental evaluation metrics computed for a single
-    cross-validation fold, organized by targets and bins. Serves as the base class
-    for specialized result containers like JaccardBinResults.
+    This dataclass stores the fundamental evaluation metrics computed for a single cross-validation fold, organized by
+    targets and bins. Serves as the base class for specialized result containers like JaccardBinResults.
 
     Attributes:
         mean_all_targets (float): Mean evaluation metric across all targets in the fold.
-        mean_all_bins (List[float]): Mean evaluation metric for each bin across targets.
-            Length equals the number of bins.
-        all_bins (List[List[float]]): Raw evaluation metrics for each bin and target.
-            Outer list represents bins, inner lists contain values for each target.
-        all_bins_concat_targets_sep (List[List[List[Any]]]): Evaluation metrics
-            organized for target-separated analysis. Structure: [target][bin][values].
-            The values are metric-specific: bound accuracy and Jaccard record one number per
-            fold, whereas mean errors record the list of errors for that fold.
-
-    Note:
-        This base class provides the common structure for fold-level results.
-        Subclasses can extend it with additional metrics specific to their
-        evaluation type (e.g., precision and recall for Jaccard evaluation).
+        mean_all_bins (List[float]): Mean evaluation metric for each bin across targets. Length equals the number of
+            bins.
+        all_bins (List[List[float]]): Raw evaluation metrics for each bin and target. Outer list represents bins, inner
+            lists contain values for each target.
+        all_bins_concat_targets_sep (List[List[List[float]]]): Evaluation metrics organized for target-separated
+            analysis. Structure: [target][bin][values].
     """
 
     mean_all_targets: float
@@ -194,9 +184,9 @@ class JaccardBinResults(BinResults):
     """
     Extended results container for Jaccard similarity evaluation with precision and recall.
 
-    This specialized container extends BinResults to include additional metrics
-    specific to Jaccard similarity evaluation: precision and recall. These metrics
-    provide comprehensive assessment of uncertainty quantification quality.
+    This specialized container extends BinResults to include additional metrics specific to Jaccard similarity
+    evaluation: precision and recall. These metrics provide comprehensive assessment of uncertainty quantification
+        quality.
 
     Attributes:
         Inherits from BinResults:
@@ -206,18 +196,12 @@ class JaccardBinResults(BinResults):
             - all_bins_concat_targets_sep: Target-separated Jaccard similarities
 
         Additional Jaccard-specific attributes:
-            mean_all_targets_recall (float): Mean recall across all targets in the fold.
-            mean_all_bins_recall (List[float]): Mean recall for each bin across targets.
-            all_bins_recall (List[List[float]]): Raw recall values for each bin and target.
-            mean_all_targets_precision (float): Mean precision across all targets.
-            mean_all_bins_precision (List[float]): Mean precision for each bin.
-            all_bins_precision (List[List[float]]): Raw precision values for each bin and target.
-
-    Note:
-        Precision measures the accuracy of positive predictions within each bin,
-        while recall measures the coverage of actual positive cases. Combined with
-        Jaccard similarity, these metrics provide a complete picture of uncertainty
-        quantification performance.
+        mean_all_targets_recall (float): Mean recall across all targets in the fold.
+        mean_all_bins_recall (List[float]): Mean recall for each bin across targets.
+        all_bins_recall (List[List[float]]): Raw recall values for each bin and target.
+        mean_all_targets_precision (float): Mean precision across all targets.
+        mean_all_bins_precision (List[float]): Mean precision for each bin.
+        all_bins_precision (List[List[float]]): Raw precision values for each bin and target.
     """
 
     mean_all_targets_recall: float = 0.0
@@ -232,13 +216,11 @@ class ResultsContainer:
     """
     Container for organizing and managing complex nested evaluation results.
 
-    This class provides a structured way to organize evaluation results across
-    different dimensions: models, uncertainty types, bins, targets, and folds.
-    It handles both main aggregated results and target-separated detailed results.
+    This class provides a structured way to organize evaluation results across different dimensions: models, uncertainty
+    types, bins, targets, and folds. It handles both main aggregated results and target-separated detailed results.
 
-    The container supports multiple evaluation metrics and provides methods for
-    adding results in an organized manner. It's designed to work with the
-    Template Method pattern in BaseEvaluator.
+    The container supports multiple evaluation metrics and provides methods for adding results in an organized manner.
+    It's designed to work with the Template Method pattern in BaseEvaluator.
 
     Attributes:
         num_bins (int): Number of uncertainty bins in the evaluation.
@@ -249,11 +231,9 @@ class ResultsContainer:
         target_sep_all (List[Dict]): Target-separated results aggregated across folds.
         additional_containers (Dict): Container for evaluation-specific results.
 
-    Jaccard-specific attributes:
-        recall_results (Dict): Recall metrics for all model-uncertainty combinations.
-        recall_target_separated (Dict): Target-separated recall results.
-        precision_results (Dict): Precision metrics for all combinations.
-        precision_target_separated (Dict): Target-separated precision results.
+    Jaccard-specific attributes: recall_results (Dict): Recall metrics for all model-uncertainty combinations.
+    recall_target_separated (Dict): Target-separated recall results. precision_results (Dict): Precision metrics for all
+        combinations. precision_target_separated (Dict): Target-separated precision results.
 
     Example:
 
@@ -280,9 +260,8 @@ class ResultsContainer:
         """
         Initialize all result containers with empty data structures.
 
-        Sets up the internal data structures needed to organize evaluation results
-        across different dimensions (main results, target-separated results,
-        fold-wise results, and evaluation-specific containers).
+        Sets up the internal data structures needed to organize evaluation results across different dimensions (main
+        results, target-separated results, fold-wise results, and evaluation-specific containers).
         """
         # Main results
         self.main_results = {}
@@ -314,12 +293,11 @@ class DataProcessor:
     """
     Utility class for data processing operations in uncertainty evaluation.
 
-    This class provides static methods for extracting and filtering data from
-    DataFrames for evaluation purposes. It handles fold-specific data extraction,
-    target filtering, and data structure preparation for evaluation workflows.
+    This class provides static methods for extracting and filtering data from DataFrames for evaluation purposes. It
+    handles fold-specific data extraction, target filtering, and data structure preparation for evaluation workflows.
 
-    The class is designed as a collection of utility methods that can be used
-    across different evaluator implementations without maintaining state.
+    The class is designed as a collection of utility methods that can be used across different evaluator implementations
+    without maintaining state.
 
     Key Operations:
         - Extract data for specific cross-validation folds
@@ -341,26 +319,19 @@ class DataProcessor:
         """
         Extract data for a specific cross-validation fold and uncertainty type.
 
-        Filters the input DataFrame to extract only the data belonging to the specified
-        fold and prepares separate DataFrames for errors and uncertainty bins.
+        Filters the input DataFrame to extract only the data belonging to the specified fold and prepares separate
+        DataFrames for errors and uncertainty bins.
 
         Args:
-            data_structs (pd.DataFrame): Complete dataset containing all folds and data.
-                Must include columns for fold identification, UIDs, target indices,
-                errors, and uncertainty bins.
+            data_structs (pd.DataFrame): Complete dataset containing all folds and data. Must include columns for fold
+                identification, UIDs, target indices, errors, and uncertainty bins.
             fold (int): The specific fold number to extract (0-based indexing).
-            uncertainty_type (str): Type of uncertainty to extract (e.g., "epistemic", "aleatoric").
-                Used to construct column names for error and bin data.
+            uncertainty_type (str): Type of uncertainty to extract (e.g., "epistemic", "aleatoric"). Used to construct
+                column names for error and bin data.
 
         Returns:
-            FoldData: Container with filtered errors and bins DataFrames for the specified
-                fold and uncertainty type. Contains UIDs, target indices, and corresponding
-                error and bin values.
-
-        Note:
-            The method expects specific column naming conventions:
-            - Error columns: "{uncertainty_type} Error"
-            - Bin columns: "{uncertainty_type} Uncertainty bins"
+            FoldData: Container with filtered errors and bins DataFrames for the specified fold and uncertainty type.
+                Contains UIDs, target indices, and corresponding error and bin values.
         """
         fold_mask = data_structs[ColumnNames.TESTING_FOLD] == fold
 
@@ -379,15 +350,14 @@ class DataProcessor:
         """
         Group prediction data by their assigned uncertainty bins.
 
-        Organizes prediction keys and errors into bin-wise groups based on their
-        uncertainty bin assignments. This enables bin-wise evaluation of prediction
-        quality and uncertainty calibration.
+        Organizes prediction keys and errors into bin-wise groups based on their uncertainty bin assignments. This
+        enables bin-wise evaluation of prediction quality and uncertainty calibration.
 
         Args:
-            errors_dict (Dict): Dictionary mapping prediction keys to error values.
-                Keys should correspond to unique prediction identifiers.
-            bins_dict (Dict): Dictionary mapping prediction keys to bin assignments.
-                Values should be bin indices (0 to num_bins-1).
+            errors_dict (Dict): Dictionary mapping prediction keys to error values. Keys should correspond to unique
+                prediction identifiers.
+            bins_dict (Dict): Dictionary mapping prediction keys to bin assignments. Values should be bin indices (0 to
+                num_bins-1).
             num_bins (int): Total number of uncertainty bins used in the evaluation.
 
         Returns:
@@ -436,13 +406,11 @@ class QuantileCalculator:
     """
     Utility class for calculating quantile-based error distributions and thresholds.
 
-    This class provides methods for computing quantile boundaries and grouping
-    prediction errors into quantile-based bins. It supports both standard
-    quantile binning and combined middle bin configurations for simplified analysis.
+    This class provides methods for computing quantile boundaries and grouping prediction errors into quantile-based
+    bins. It supports both standard quantile binning and combined middle bin configurations for simplified analysis.
 
-    The quantile approach enables analysis of prediction quality across different
-    uncertainty levels by creating bins that contain equal numbers of predictions
-    but varying error characteristics.
+    The quantile approach enables analysis of prediction quality across different uncertainty levels by creating bins
+    that contain equal numbers of predictions but varying error characteristics.
 
     Key Features:
         - Automatic quantile threshold calculation
@@ -468,17 +436,15 @@ class QuantileCalculator:
         """
         Calculate quantile thresholds and group errors into quantile-based bins.
 
-        Computes quantile boundaries based on the error distribution and groups
-        errors and their corresponding keys into bins. Supports combining middle
-        bins for simplified three-bin analysis (low, medium, high error).
+        Computes quantile boundaries based on the error distribution and groups errors and their corresponding keys into
+        bins. Supports combining middle bins for simplified three-bin analysis (low, medium, high error).
 
         Args:
-            errors_dict (Dict): Dictionary mapping prediction keys to error values.
-                Used to compute quantile boundaries from the error distribution.
-            num_bins (int): Number of quantile bins to create. Determines the
-                granularity of the quantile analysis.
-            combine_middle_bins (bool): Whether to combine middle quantiles into
-                a single bin. When True, creates 3 bins regardless of num_bins.
+            errors_dict (Dict): Dictionary mapping prediction keys to error values. Used to compute quantile boundaries
+                from the error distribution.
+            num_bins (int): Number of quantile bins to create. Determines the granularity of the quantile analysis.
+            combine_middle_bins (bool): Whether to combine middle quantiles into a single bin. When True, creates 3 bins
+                regardless of num_bins.
 
         Returns:
             Tuple[List[float], List[List], List[List]]: A tuple containing:
@@ -487,8 +453,8 @@ class QuantileCalculator:
                 - key_groups: List of prediction key lists for each bin (worst to best)
 
         Note:
-            Results are ordered from worst to best performance (B5 to B1 convention)
-            to match the expected evaluation output format.
+            Results are ordered from worst to best performance (B5 to B1 convention) to match the expected evaluation
+            output format.
 
         Example:
 
@@ -518,13 +484,12 @@ class QuantileCalculator:
         """
         Group errors and keys by quantile thresholds.
 
-        Helper method that partitions prediction errors and their corresponding keys
-        into groups based on quantile threshold boundaries.
+        Helper method that partitions prediction errors and their corresponding keys into groups based on quantile
+        threshold boundaries.
 
         Args:
             errors_dict (Dict): Dictionary mapping prediction keys to error values.
-            thresholds (List[float]): List of quantile threshold values that define
-                the boundaries between groups.
+            thresholds (List[float]): List of quantile threshold values that define the boundaries between groups.
 
         Returns:
             Tuple[List[List], List[List]]: A tuple containing:
@@ -553,8 +518,8 @@ class QuantileCalculator:
         """
         Check if error falls within the specified quantile range.
 
-        Helper method that determines whether a given error value belongs to
-        the specified quantile group based on threshold boundaries.
+        Helper method that determines whether a given error value belongs to the specified quantile group based on
+        threshold boundaries.
 
         Args:
             error (float): The error value to classify.
@@ -562,8 +527,7 @@ class QuantileCalculator:
             thresholds (List[float]): List of quantile threshold values.
 
         Returns:
-            bool: True if the error falls within the specified quantile range,
-                False otherwise.
+            bool: True if the error falls within the specified quantile range, False otherwise.
         """
         if quantile_idx == 0:
             return error <= thresholds[0]
@@ -577,10 +541,9 @@ class MetricsCalculator:
     """
     Utility class for calculating evaluation metrics in uncertainty quantification.
 
-    This class provides static methods for computing various metrics used to assess
-    the quality of uncertainty quantification, including Jaccard similarity, precision,
-    recall, and bound accuracy. The methods are designed to work with different
-    evaluation strategies and provide consistent metric calculations.
+    This class provides static methods for computing various metrics used to assess the quality of uncertainty
+    quantification, including Jaccard similarity, precision, recall, and bound accuracy. The methods are designed to
+    work with different evaluation strategies and provide consistent metric calculations.
 
     Key Metrics:
         - Jaccard Similarity: Measures overlap between predicted and ground truth sets
@@ -588,8 +551,8 @@ class MetricsCalculator:
         - Recall: Coverage of actual positive cases by predictions
         - Bound Accuracy: Whether errors fall within expected confidence bounds
 
-    The class supports both binary classification metrics (for set-based evaluation)
-    and regression-style bound checking for error prediction accuracy.
+    The class supports both binary classification metrics (for set-based evaluation) and regression-style bound checking
+    for error prediction accuracy.
 
     Example:
 
@@ -607,15 +570,14 @@ class MetricsCalculator:
         """
         Calculate Jaccard similarity, recall, and precision for set-based evaluation.
 
-        Computes three key metrics for assessing the overlap between predicted and
-        ground truth sets of prediction keys. These metrics provide comprehensive
-        evaluation of uncertainty quantification quality within bins.
+        Computes three key metrics for assessing the overlap between predicted and ground truth sets of prediction keys.
+        These metrics provide comprehensive evaluation of uncertainty quantification quality within bins.
 
         Args:
-            predicted_keys (List): List of prediction keys identified by the model
-                as belonging to a specific uncertainty or error bin.
-            ground_truth_keys (List): List of prediction keys that actually belong
-                to the target bin based on true error characteristics.
+            predicted_keys (List): List of prediction keys identified by the model as belonging to a specific
+                uncertainty or error bin.
+            ground_truth_keys (List): List of prediction keys that actually belong to the target bin based on true error
+                characteristics.
 
         Returns:
             Tuple[float, float, float]: A tuple containing:
@@ -669,19 +631,16 @@ class MetricsCalculator:
         """
         Check if error falls within expected bounds for the bin.
 
-        Determines whether a prediction error falls within the expected error bounds
-        for a specific uncertainty bin. This method is used to assess the accuracy
-        of uncertainty-based error predictions.
+        Determines whether a prediction error falls within the expected error bounds for a specific uncertainty bin.
+        This method is used to assess the accuracy of uncertainty-based error predictions.
 
         Args:
             error (float): The prediction error value to check.
             bin_idx (int): Index of the uncertainty bin (0-based).
-            bounds (List[float]): List of error boundary values that define
-                the expected error ranges for each bin.
+            bounds (List[float]): List of error boundary values that define the expected error ranges for each bin.
 
         Returns:
-            bool: True if the error falls within the expected bounds for the
-                specified bin, False otherwise.
+            bool: True if the error falls within the expected bounds for the specified bin, False otherwise.
 
         Note:
             Bin ranges follow the pattern (lower_bound, upper_bound], where:
@@ -701,14 +660,12 @@ class BaseEvaluator(ABC):
     """
     Abstract base class for uncertainty quantification evaluation strategies.
 
-    This class implements the Template Method pattern to provide a consistent evaluation
-    framework while allowing specialized implementations for different metrics (Jaccard,
-    error bounds, etc.). It manages the evaluation workflow across multiple folds,
-    models, and uncertainty types.
+    This class implements the Template Method pattern to provide a consistent evaluation framework while allowing
+    specialized implementations for different metrics (Jaccard, error bounds, etc.). It manages the evaluation workflow
+    across multiple folds, models, and uncertainty types.
 
-    Design Pattern:
-        Uses Template Method pattern where the main evaluation flow is defined in the
-        base class, while specific evaluation logic is implemented by subclasses.
+    Design Pattern: Uses Template Method pattern where the main evaluation flow is defined in the base class, while
+    specific evaluation logic is implemented by subclasses.
 
     Key Features:
         - Cross-validation fold processing
@@ -728,10 +685,6 @@ class BaseEvaluator(ABC):
         current_num_bins_ (int): Number of bins for current evaluation (may differ from original)
         current_targets_ (List[int]): Target indices for current evaluation
         current_uncertainty_type_ (str): Current uncertainty type being processed
-
-    Note:
-        This is an abstract base class. Use concrete implementations like JaccardEvaluator
-        for actual evaluations.
     """
 
     def __init__(self, config: EvaluationConfig):
@@ -739,8 +692,8 @@ class BaseEvaluator(ABC):
         Initialize BaseEvaluator with evaluation configuration.
 
         Args:
-            config (EvaluationConfig): Configuration object containing evaluation
-                parameters such as number of folds, bins, and processing options.
+            config (EvaluationConfig): Configuration object containing evaluation parameters such as number of folds,
+                bins, and processing options.
         """
         self.config_ = config
         # Instance variables to reduce parameter passing
@@ -754,22 +707,22 @@ class BaseEvaluator(ABC):
         """
         Main evaluation method implementing the template method pattern.
 
-        Orchestrates the complete evaluation process across all models, uncertainty types,
-        and cross-validation folds. This method defines the evaluation workflow while
-        delegating specific evaluation logic to subclass implementations.
+        Orchestrates the complete evaluation process across all models, uncertainty types, and cross-validation folds.
+        This method defines the evaluation workflow while delegating specific evaluation logic to subclass
+        implementations.
 
         Args:
-            bin_predictions (Dict[str, pd.DataFrame]): Dictionary mapping model names to
-                DataFrames containing bin predictions and evaluation data. Each DataFrame
-                should contain columns for UIDs, target indices, errors, and uncertainty bins.
-            uncertainty_pairs (List): List of uncertainty type pairs to evaluate.
-                Each pair contains uncertainty type names (e.g., ['epistemic'], ['aleatoric']).
-            targets (List[int]): List of target indices to include in the evaluation.
-                Used to filter data and organize results by target.
+            bin_predictions (Dict[str, pd.DataFrame]): Dictionary mapping model names to DataFrames containing bin
+                predictions and evaluation data. Each DataFrame should contain columns for UIDs, target indices, errors,
+                and uncertainty bins.
+            uncertainty_pairs (List): List of uncertainty type pairs to evaluate. Each pair contains uncertainty type
+                names (e.g., ['epistemic'], ['aleatoric']).
+            targets (List[int]): List of target indices to include in the evaluation. Used to filter data and organize
+                results by target.
 
         Returns:
-            Dict: Comprehensive evaluation results dictionary. Structure depends on the
-                specific evaluator implementation but typically includes:
+            Dict: Comprehensive evaluation results dictionary. Structure depends on the specific evaluator
+                implementation but typically includes:
                 - Main results across all folds and targets
                 - Target-separated results for detailed analysis
                 - Additional metrics specific to the evaluation type
@@ -780,10 +733,6 @@ class BaseEvaluator(ABC):
                a. Process all cross-validation folds
                b. Aggregate fold results
             3. Finalize and format results for output
-
-        Note:
-            This method coordinates the evaluation process but delegates the actual
-            evaluation logic to abstract methods implemented by subclasses.
         """
         # Set instance variables to reduce parameter passing
         self.current_targets_ = targets
@@ -810,22 +759,16 @@ class BaseEvaluator(ABC):
         """
         Process evaluation for a single cross-validation fold.
 
-        This abstract method must be implemented by subclasses to define how
-        evaluation metrics are calculated for data from a single fold.
+        This abstract method must be implemented by subclasses to define how evaluation metrics are calculated for data
+        from a single fold.
 
         Args:
-            fold_data (FoldData): Container with errors and bins data for one fold.
-                Contains filtered DataFrames for the current fold, uncertainty type,
-                and any additional data needed for evaluation.
+            fold_data (FoldData): Container with errors and bins data for one fold. Contains filtered DataFrames for the
+                current fold, uncertainty type, and any additional data needed for evaluation.
 
         Returns:
-            BinResults: Results structure containing evaluation metrics for this fold.
-                The specific subclass of BinResults depends on the evaluation type
-                (e.g., JaccardBinResults for Jaccard evaluation).
-
-        Note:
-            Subclasses should implement their specific evaluation logic here,
-            such as calculating Jaccard similarity, error bounds, or other metrics.
+            BinResults: Results structure containing evaluation metrics for this fold. The specific subclass of
+                BinResults depends on the evaluation type (e.g., JaccardBinResults for Jaccard evaluation).
         """
         pass
 
@@ -834,18 +777,14 @@ class BaseEvaluator(ABC):
         """
         Aggregate results across all folds for a model-uncertainty combination.
 
-        This abstract method defines how fold-level results are combined and
-        stored in the results container for final output formatting.
+        This abstract method defines how fold-level results are combined and stored in the results container for final
+        output formatting.
 
         Args:
-            model_key (str): Identifier for the current model-uncertainty combination
-                (format: "model_name uncertainty_type").
-            fold_results (List[BinResults]): List of evaluation results from all folds
-                for the current model-uncertainty combination.
-
-        Note:
-            Subclasses should implement aggregation logic specific to their evaluation
-            type, including proper handling of target separation and result formatting.
+            model_key (str): Identifier for the current model-uncertainty combination (format: "model_name
+                uncertainty_type").
+            fold_results (List[BinResults]): List of evaluation results from all folds for the current model-uncertainty
+                combination.
         """
         pass
 
@@ -854,17 +793,12 @@ class BaseEvaluator(ABC):
         """
         Convert results container into final output format.
 
-        This abstract method handles the final formatting of evaluation results
-        to match the expected API output format.
+        This abstract method handles the final formatting of evaluation results to match the expected API output format.
 
         Returns:
-            Dict: Final results dictionary with keys matching the expected API format.
-                Structure depends on the evaluation type but typically includes
-                main results, target-separated results, and evaluation-specific metrics.
-
-        Note:
-            Subclasses should map container data to appropriate result keys
-            defined in ResultKeys class.
+            Dict: Final results dictionary with keys matching the expected API format. Structure depends on the
+                evaluation type but typically includes main results, target-separated results, and evaluation-specific
+                metrics.
         """
         pass
 
@@ -872,26 +806,18 @@ class BaseEvaluator(ABC):
         """
         Process all cross-validation folds for a given model and uncertainty type.
 
-        Iterates through all configured cross-validation folds, extracting data for each
-        fold and applying the subclass-specific evaluation logic to compute fold-level
-        results. This method coordinates the fold-wise evaluation process within the
-        Template Method pattern.
+        Iterates through all configured cross-validation folds, extracting data for each fold and applying the
+        subclass-specific evaluation logic to compute fold-level results. This method coordinates the fold-wise
+        evaluation process within the Template Method pattern.
 
         Args:
-            data_structs (pd.DataFrame): Complete dataset containing all folds and evaluation
-                data for the current model. Must include columns for fold identification,
-                UIDs, target indices, errors, and uncertainty bins.
+            data_structs (pd.DataFrame): Complete dataset containing all folds and evaluation data for the current
+                model. Must include columns for fold identification, UIDs, target indices, errors, and uncertainty bins.
 
         Returns:
-            List[BinResults]: List of evaluation results from all folds, where each element
-                contains the evaluation metrics (e.g., Jaccard similarity, error bounds)
-                computed for one fold. The specific type of BinResults depends on the
-                evaluator implementation (e.g., JaccardBinResults for Jaccard evaluation).
-
-        Note:
-            This method uses the current instance variables (current_uncertainty_type_,
-            config_.num_folds) to determine which data to extract and how many folds
-            to process. It delegates the actual evaluation logic to _process_single_fold.
+            List[BinResults]: List of evaluation results from all folds, where each element contains the evaluation
+            metrics (e.g., Jaccard similarity, error bounds) computed for one fold. The specific type of BinResults
+            depends on the evaluator implementation (e.g., JaccardBinResults for Jaccard evaluation).
         """
         fold_results = []
 
@@ -907,23 +833,20 @@ class JaccardEvaluator(BaseEvaluator):
     """
     Evaluator for calculating Jaccard similarity metrics for uncertainty quantification.
 
-    This evaluator computes Jaccard similarity between prediction confidence bins
-    and error bins to assess the quality of uncertainty quantification. It measures
-    how well the model's confidence aligns with actual prediction accuracy.
+    This evaluator computes Jaccard similarity between prediction confidence bins and error bins to assess the quality
+    of uncertainty quantification. It measures how well the model's confidence aligns with actual prediction accuracy.
 
-    The Jaccard similarity is calculated as:
-        J(A, B) = |A ∩ B| / |A ∪ B|
+    The Jaccard similarity is calculated as: J(A, B) = |A ∩ B| / |A ∪ B|
 
-    Where A represents the high-confidence predictions and B represents
-    the correct predictions within each bin.
+    Where A represents the high-confidence predictions and B represents the correct predictions within each bin.
 
     Attributes:
-        config_ (EvaluationConfig): Configuration object containing evaluation parameters
-            including bin counts, confidence thresholds, and target separation settings.
+        config_ (EvaluationConfig): Configuration object containing evaluation parameters including bin counts,
+            confidence thresholds, and target separation settings.
         data_processor (DataProcessor): Handles data filtering and preprocessing operations.
         quantile_calculator (QuantileCalculator): Computes quantile-based bin boundaries.
-        metrics_calculator (MetricsCalculator): Calculates evaluation metrics including
-            Jaccard similarity and statistical measures.
+        metrics_calculator (MetricsCalculator): Calculates evaluation metrics including Jaccard similarity and
+            statistical measures.
 
     Example:
 
@@ -937,28 +860,18 @@ class JaccardEvaluator(BaseEvaluator):
             ...     targets=[0, 1],
             ... )
             >>> print(results["jaccard_all"]["model1 epistemic"])
-
-    Note:
-        This evaluator implements the Template Method pattern defined in BaseEvaluator,
-        providing specific implementations for Jaccard similarity calculation and
-        bin-wise evaluation of uncertainty quantification quality.
     """
 
     def __init__(self, config: Optional[EvaluationConfig] = None):
         """
         Initialize JaccardEvaluator with configuration and required components.
 
-        Sets up the evaluator with configuration parameters and calls the parent
-        class constructor to initialize the evaluation framework.
+        Sets up the evaluator with configuration parameters and calls the parent class constructor to initialize the
+        evaluation framework.
 
         Args:
-            config (Optional[EvaluationConfig]): Configuration object containing
-                evaluation parameters such as bin counts, thresholds, and settings
-                for target separation. If None, uses default EvaluationConfig values.
-
-        Note:
-            Inherits utility components (data_processor, quantile_calculator,
-            metrics_calculator) from BaseEvaluator initialization.
+            config (Optional[EvaluationConfig]): Configuration object containing evaluation parameters such as bin
+                counts, thresholds, and settings for target separation. If None, uses default EvaluationConfig values.
         """
         super().__init__(config or EvaluationConfig())
 
@@ -969,23 +882,19 @@ class JaccardEvaluator(BaseEvaluator):
         """
         Create a JaccardEvaluator instance with simplified parameters.
 
-        Convenience factory method for creating a JaccardEvaluator with commonly
-        used configuration parameters without requiring full EvaluationConfig setup.
+        Convenience factory method for creating a JaccardEvaluator with commonly used configuration parameters without
+        requiring full EvaluationConfig setup.
 
         Args:
-            original_num_bins (int): Number of quantile bins for uncertainty evaluation.
-                Typical values range from 5 to 20 depending on dataset size and
-                desired granularity.
-            num_folds (int, optional): Number of cross-validation folds for evaluation.
-                Defaults to 8. Higher values provide more robust estimates but
-                increase computation time.
-            combine_middle_bins (bool, optional): Whether to combine middle uncertainty
-                bins for simplified analysis. Defaults to False. When True, reduces
-                the number of bins by merging middle quantiles.
+            original_num_bins (int): Number of quantile bins for uncertainty evaluation. Typical values range from 5 to
+                20 depending on dataset size and desired granularity.
+            num_folds (int, optional): Number of cross-validation folds for evaluation. Defaults to 8. Higher values
+                provide more robust estimates but increase computation time.
+            combine_middle_bins (bool, optional): Whether to combine middle uncertainty bins for simplified analysis.
+                Defaults to False. When True, reduces the number of bins by merging middle quantiles.
 
         Returns:
-            JaccardEvaluator: Configured evaluator instance ready for uncertainty
-                quantification assessment.
+            JaccardEvaluator: Configured evaluator instance ready for uncertainty quantification assessment.
 
         Example:
 
@@ -1012,13 +921,12 @@ class JaccardEvaluator(BaseEvaluator):
         """
         Create a JaccardEvaluator instance with default configuration parameters.
 
-        Factory method that creates an evaluator using the default EvaluationConfig
-        settings, providing a quick way to instantiate the evaluator for standard
-        uncertainty quantification evaluation tasks.
+        Factory method that creates an evaluator using the default EvaluationConfig settings, providing a quick way to
+        instantiate the evaluator for standard uncertainty quantification evaluation tasks.
 
         Returns:
-            JaccardEvaluator: Evaluator instance configured with default parameters
-                including standard bin counts, fold numbers, and evaluation settings.
+            JaccardEvaluator: Evaluator instance configured with default parameters including standard bin counts, fold
+                numbers, and evaluation settings.
 
         Example:
 
@@ -1059,14 +967,12 @@ class JaccardEvaluator(BaseEvaluator):
         """
         Process Jaccard evaluation metrics for a single cross-validation fold.
 
-        Computes Jaccard similarity, precision, and recall metrics for each bin
-        and target within a single fold. This method implements the core evaluation
-        logic for assessing uncertainty quantification quality.
+        Computes Jaccard similarity, precision, and recall metrics for each bin and target within a single fold. This
+        method implements the core evaluation logic for assessing uncertainty quantification quality.
 
         Args:
-            fold_data (FoldData): Container with errors and bins data for the current fold.
-                Contains filtered DataFrames with prediction errors and uncertainty bins
-                for evaluation.
+            fold_data (FoldData): Container with errors and bins data for the current fold. Contains filtered DataFrames
+                with prediction errors and uncertainty bins for evaluation.
 
         Returns:
             JaccardBinResults: Results container with computed metrics including:
@@ -1075,11 +981,6 @@ class JaccardEvaluator(BaseEvaluator):
                 - bin_precision: List of precision values for each bin
                 - target_metrics: Target-specific evaluation results
                 - bins_targets_separated: Bin results separated by target
-
-        Note:
-            This method processes each target individually and aggregates results
-            across all targets for comprehensive evaluation. Handles both combined
-            and target-separated result generation based on configuration.
         """
         all_target_jaccard = []
         all_target_recall = []
@@ -1123,14 +1024,12 @@ class JaccardEvaluator(BaseEvaluator):
         """
         Process Jaccard similarity metrics for a specific target within a fold.
 
-        Computes bin-wise Jaccard similarity, precision, and recall for predictions
-        associated with a particular target index. This enables target-specific
-        evaluation of uncertainty quantification quality.
+        Computes bin-wise Jaccard similarity, precision, and recall for predictions associated with a particular target
+        index. This enables target-specific evaluation of uncertainty quantification quality.
 
         Args:
             fold_data (FoldData): Container with errors and bins data for the current fold.
-            target_idx (int): Index of the target to process. Used to filter data
-                for target-specific evaluation.
+            target_idx (int): Index of the target to process. Used to filter data for target-specific evaluation.
 
         Returns:
             Dict: Dictionary containing computed metrics with keys:
@@ -1140,11 +1039,6 @@ class JaccardEvaluator(BaseEvaluator):
                 - 'bin_jaccard': List of Jaccard values for each bin
                 - 'bin_recall': List of recall values for each bin
                 - 'bin_precision': List of precision values for each bin
-
-        Note:
-            This method processes data specific to one target, enabling detailed
-            analysis of uncertainty quantification performance across different
-            prediction targets or classes.
         """
         # Extract and prepare target-specific data
         errors_dict, bins_dict = self._extract_target_data(fold_data, target_idx)
@@ -1246,20 +1140,14 @@ class JaccardEvaluator(BaseEvaluator):
         """
         Aggregate Jaccard evaluation results across all cross-validation folds.
 
-        Combines fold-level Jaccard similarity, precision, and recall results into
-        aggregated statistics for a specific model-uncertainty combination. Handles
-        both main results and target-separated results based on configuration.
+        Combines fold-level Jaccard similarity, precision, and recall results into aggregated statistics for a specific
+        model-uncertainty combination. Handles both main results and target-separated results based on configuration.
 
         Args:
-            model_key (str): Identifier for the current model-uncertainty combination
-                (format: "model_name uncertainty_type").
-            fold_results (List[BinResults]): List of JaccardBinResults from all folds
-                for the current model-uncertainty combination.
-
-        Note:
-            This method aggregates results by computing means and standard deviations
-            across folds for both bin-wise and target-wise metrics. Results are
-            stored in the container for final formatting.
+            model_key (str): Identifier for the current model-uncertainty combination (format: "model_name
+                uncertainty_type").
+            fold_results (List[BinResults]): List of JaccardBinResults from all folds for the current model-uncertainty
+                combination.
         """
         # Cast to JaccardBinResults since we know that's what JaccardEvaluator produces
         jaccard_results = cast(List[JaccardBinResults], fold_results)
@@ -1405,9 +1293,8 @@ class JaccardEvaluator(BaseEvaluator):
         """
         Convert aggregated results container into final Jaccard evaluation output format.
 
-        Transforms the results container into the expected API output format with
-        properly organized Jaccard similarity, precision, and recall results for
-        all evaluation categories.
+        Transforms the results container into the expected API output format with properly organized Jaccard similarity,
+        precision, and recall results for all evaluation categories.
 
         Returns:
             Dict: Final results dictionary with keys defined in ResultKeys class:
@@ -1419,10 +1306,6 @@ class JaccardEvaluator(BaseEvaluator):
                 - PRECISION_TARGETS_SEPARATED: Target-separated precision results
                 - ALL_JACC_CONCAT_BINS_TARGET_SEP_FOLDWISE: Fold-wise target separation
                 - ALL_JACC_CONCAT_BINS_TARGET_SEP_ALL: Overall target separation
-
-        Note:
-            This method maps the container's organized data structure to the specific
-            result keys expected by the Jaccard evaluation API.
         """
         if self.container_ is None:
             raise RuntimeError("Results container is not initialized")
@@ -1660,26 +1543,25 @@ def evaluate_bounds(
     """
     Evaluate error bound accuracy for uncertainty quantification models.
 
-    This function assesses how well predicted error bounds capture actual prediction
-    errors across different uncertainty bins. It provides a comprehensive evaluation
-    of bound reliability for uncertainty quantification in machine learning models.
+    This function assesses how well predicted error bounds capture actual prediction errors across different uncertainty
+    bins. It provides a comprehensive evaluation of bound reliability for uncertainty quantification in machine learning
+    models.
 
     Args:
-        estimated_bounds (Dict[str, pd.DataFrame]): Dictionary mapping model names to
-            DataFrames containing estimated error bounds for each prediction.
-        bin_predictions (Dict[str, pd.DataFrame]): Dictionary mapping model names to
-            DataFrames containing bin predictions and evaluation data with columns
-            for UIDs, target indices, errors, and uncertainty bins.
-        uncertainty_pairs (List): List of uncertainty type pairs to evaluate.
-            Each element should be a list/tuple containing uncertainty type names.
-        num_bins (int): Number of uncertainty bins for evaluation. Controls the
-            granularity of the bound accuracy assessment.
-        targets (List[int]): List of target indices to include in the evaluation.
-            Used to filter data and organize results by target.
-        num_folds (int, optional): Number of cross-validation folds for evaluation.
-            Defaults to 8. Higher values provide more robust estimates.
-        combine_middle_bins (bool, optional): Whether to combine middle uncertainty
-            bins for simplified three-bin analysis. Defaults to False.
+        estimated_bounds (Dict[str, pd.DataFrame]): Dictionary mapping model names to DataFrames containing estimated
+            error bounds for each prediction.
+        bin_predictions (Dict[str, pd.DataFrame]): Dictionary mapping model names to DataFrames containing bin
+            predictions and evaluation data with columns for UIDs, target indices, errors, and uncertainty bins.
+        uncertainty_pairs (List): List of uncertainty type pairs to evaluate. Each element should be a list/tuple
+            containing uncertainty type names.
+        num_bins (int): Number of uncertainty bins for evaluation. Controls the granularity of the bound accuracy
+            assessment.
+        targets (List[int]): List of target indices to include in the evaluation. Used to filter data and organize
+            results by target.
+        num_folds (int, optional): Number of cross-validation folds for evaluation. Defaults to 8. Higher values provide
+            more robust estimates.
+        combine_middle_bins (bool, optional): Whether to combine middle uncertainty bins for simplified three-bin
+            analysis. Defaults to False.
 
     Returns:
         Dict: Comprehensive evaluation results dictionary containing:
@@ -1700,10 +1582,6 @@ def evaluate_bounds(
             ...     num_bins=5, targets=[0, 1, 2]
             ... )
             >>> print(results['error_bounds_all']['model1_epistemic'])
-
-    Note:
-        This function complements Jaccard-based evaluation by focusing on the
-        accuracy of predicted confidence intervals rather than bin overlap.
     """
 
     config = EvaluationConfig(
@@ -1719,8 +1597,8 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, targets, num_
     """
     Evaluate uncertainty estimation's ability to predict true error quantiles using Jaccard metrics.
 
-    This is a convenience function that uses the new JaccardEvaluator class
-    while maintaining backward compatibility with the original function signature.
+    This is a convenience function that uses the new JaccardEvaluator class while maintaining backward compatibility
+    with the original function signature.
 
     Args:
         bin_predictions: Dictionary of DataFrames containing bin predictions for each model
@@ -1737,6 +1615,94 @@ def evaluate_jaccard(bin_predictions, uncertainty_pairs, num_bins, targets, num_
         original_num_bins=num_bins, num_folds=num_folds, combine_middle_bins=combine_middle_bins
     )
     return evaluator.evaluate(bin_predictions, uncertainty_pairs, targets)
+
+
+def _bin_error_bounds(q: int, num_bins: int, fold_bounds: list) -> Tuple[float, float]:
+    """Return the ``(lower, upper]`` error bounds for quantile bin ``q``.
+
+    Args:
+        q (int): Index of the quantile bin.
+        num_bins (int): Total number of quantile bins.
+        fold_bounds (list): Estimated error bounds for this target, one per bin edge.
+
+    Returns:
+        tuple: The ``(lower, upper)`` bounds.
+    """
+    if q == 0:
+        return 0, fold_bounds[q]
+    if q < num_bins - 1:
+        return fold_bounds[q - 1], fold_bounds[q]
+    return fold_bounds[q - 1], float("inf")
+
+
+def _count_within_bounds(errors: list, lower: float, upper: float) -> int:
+    """Count how many ``errors`` fall in the half-open interval ``(lower, upper]``.
+
+    Args:
+        errors (list): Error values in a single bin.
+        lower (float): Exclusive lower bound.
+        upper (float): Inclusive upper bound.
+
+    Returns:
+        int: The number of errors within the bounds.
+    """
+    return sum(1 for error in errors if lower < error <= upper)
+
+
+def _bin_accuracy(inbin_errors: list, lower: float, upper: float) -> float:
+    """Return the fraction of ``inbin_errors`` within ``(lower, upper]``, or ``1.0`` if the bin is empty.
+
+    Args:
+        inbin_errors (list): Errors of the samples assigned to this bin.
+        lower (float): Exclusive lower bound.
+        upper (float): Inclusive upper bound.
+
+    Returns:
+        float: The proportion of errors within the bounds; ``1.0`` when the bin is empty.
+    """
+    if len(inbin_errors) == 0:
+        return 1.0
+    return _count_within_bounds(inbin_errors, lower, upper) / len(inbin_errors)
+
+
+def _group_target_errors_by_bin(pred_bins_ti: dict, true_errors_ti: dict, num_bins: int) -> List[List[float]]:
+    """Group a target's errors by the predicted quantile bin of each sample.
+
+    Bin values and uids are compared as strings, so ``1`` and ``"1"`` are treated as equal.
+
+    Args:
+        pred_bins_ti (dict): Maps each sample uid to its predicted quantile bin.
+        true_errors_ti (dict): Maps each sample uid to its true error.
+        num_bins (int): Total number of quantile bins.
+
+    Returns:
+        list: ``num_bins`` lists, each holding the errors of the samples in that bin.
+    """
+    errors_by_uid = {str(uid): error for uid, error in true_errors_ti.items()}
+    binned_errors: List[List[float]] = [[] for _ in range(num_bins)]
+    for uid, bin_val in pred_bins_ti.items():
+        bin_str = str(bin_val)
+        for i in range(num_bins):
+            if str(i) == bin_str:
+                binned_errors[i].append(errors_by_uid[str(uid)])
+                break
+    return binned_errors
+
+
+def _weighted_average(values: list, weights: list) -> float:
+    """Return the ``weights``-weighted mean of ``values``, or ``0.0`` if the weights sum to zero.
+
+    Args:
+        values (list): Per-item values.
+        weights (list): Non-negative weights aligned with ``values``.
+
+    Returns:
+        float: The weighted mean, or ``0.0`` when all weights are zero.
+    """
+    total_weight = sum(weights)
+    if total_weight == 0:
+        return 0.0
+    return sum(value * weight for value, weight in zip(values, weights)) / total_weight
 
 
 def bin_wise_bound_eval(
@@ -1762,7 +1728,8 @@ def bin_wise_bound_eval(
     Returns:
         dict: A dictionary containing the following error bound accuracy statistics:
               - 'mean all targets': The mean accuracy over all targets and quantile bins.
-              - 'mean all bins': A list of mean accuracy values for each quantile bin (all targets included).
+              - 'mean all bins': A list of mean accuracy values for each quantile bin (all targets included),
+               weighted by bin size; ``0.0`` for a bin that is empty for every target.
               - 'mean all': A list of accuracy values for each quantile bin and target, weighted by # targets in each bin.
               - 'all bins concatenated targets separated': A list of accuracy values for each quantile bin, concatenated
                for each target separately.
@@ -1774,7 +1741,7 @@ def bin_wise_bound_eval(
             >>> bin_wise_bound_eval(fold_bounds_all_targets, fold_errors, fold_bins, [0,1], 'S-MHA', num_bins=5)
     """
     all_target_perc = []
-    all_qs_perc: List[List[float]] = [[] for x in range(num_bins)]  #
+    all_qs_perc: List[List[float]] = [[] for x in range(num_bins)]
     all_qs_size: List[List[float]] = [[] for x in range(num_bins)]
 
     all_qs_errorbound_concat_targets_sep: List[List[List[float]]] = [
@@ -1787,7 +1754,6 @@ def bin_wise_bound_eval(
             ["uid", uncertainty_type + " Uncertainty bins"]
         ]
 
-        # Zip to dictionary
         true_errors_ti = dict(zip(true_errors_ti.uid, true_errors_ti[uncertainty_type + " Error"]))
         pred_bins_ti = dict(zip(pred_bins_ti.uid, pred_bins_ti[uncertainty_type + " Uncertainty bins"]))
 
@@ -1804,38 +1770,10 @@ def bin_wise_bound_eval(
         bins_acc = []
         bins_sizes = []
         for q in range((num_bins)):
-            inner_bin_correct = 0
-
             inbin_errors = pred_bins_errors[q]
 
-            for error in inbin_errors:
-                if q == 0:
-                    lower = 0
-                    upper = fold_bounds[q]
-
-                    if error <= upper and error > lower:
-                        inner_bin_correct += 1
-
-                elif q < (num_bins) - 1:
-                    lower = fold_bounds[q - 1]
-                    upper = fold_bounds[q]
-
-                    if error <= upper and error > lower:
-                        inner_bin_correct += 1
-
-                else:
-                    lower = fold_bounds[q - 1]
-                    upper = 999999999999999999999999999999
-
-                    if error > lower:
-                        inner_bin_correct += 1
-
-            if inner_bin_correct == 0:
-                accuracy_bin = 0.0
-            elif len(inbin_errors) == 0:
-                accuracy_bin = 1.0
-            else:
-                accuracy_bin = inner_bin_correct / len(inbin_errors)
+            lower, upper = _bin_error_bounds(q, num_bins, fold_bounds)
+            accuracy_bin = _bin_accuracy(inbin_errors, lower, upper)
             bins_sizes.append(len(inbin_errors))
             bins_acc.append(accuracy_bin)
 
@@ -1843,43 +1781,15 @@ def bin_wise_bound_eval(
             all_qs_size[q].append(len(inbin_errors))
             all_qs_errorbound_concat_targets_sep[i_ti][q].append(accuracy_bin)
 
-        # Weighted average over all bins
-        weighted_mean_ti = 0.0
-        total_weights = 0.0
-        for l_idx in range(len(bins_sizes)):
-            bin_acc = bins_acc[l_idx]
-            bin_size = bins_sizes[l_idx]
-            weighted_mean_ti += bin_acc * bin_size
-            total_weights += bin_size
-        weighted_ave = weighted_mean_ti / total_weights
-        all_target_perc.append(weighted_ave)
+        if sum(bins_sizes) == 0:
+            raise ValueError(
+                f"Target {target_idx} has no samples in this fold for uncertainty type {uncertainty_type}."
+            )
+        all_target_perc.append(_weighted_average(bins_acc, bins_sizes))
 
-    # Weighted average for each of the quantile bins.
     weighted_ave_binwise = []
     for binidx in range(len(all_qs_perc)):
-        bin_accs = all_qs_perc[binidx]
-        bin_asizes = all_qs_size[binidx]
-
-        weighted_mean_bin = 0.0
-        total_weights_bin = 0.0
-        for l_idx in range(len(bin_accs)):
-            b_acc = bin_accs[l_idx]
-            b_siz = bin_asizes[l_idx]
-            weighted_mean_bin += b_acc * b_siz
-            total_weights_bin += b_siz
-
-        # Avoid div by 0
-        if weighted_mean_bin == 0 or total_weights_bin == 0:
-            weighted_ave_bin = 0.0
-        else:
-            weighted_ave_bin = weighted_mean_bin / total_weights_bin
-        weighted_ave_binwise.append(weighted_ave_bin)
-
-    # No weighted average, just normal average
-    normal_ave_bin_wise = []
-    for binidx in range(len(all_qs_perc)):
-        bin_accs = all_qs_perc[binidx]
-        normal_ave_bin_wise.append(np.mean(bin_accs))
+        weighted_ave_binwise.append(_weighted_average(all_qs_perc[binidx], all_qs_size[binidx]))
 
     return {
         "mean all targets": np.mean(all_target_perc),
@@ -1899,14 +1809,14 @@ def get_mean_errors(
     combine_middle_bins: bool = False,
 ) -> Dict:
     """
-    Evaluate uncertainty estimation's mean error of each bin.
-    For each bin, we calculate the mean localization error for each target and for all targets.
-    We calculate the mean error for each dictionary in the bin_predictions dict. For each bin, we calculate: a) the mean
-    and std over all folds and all targets b) the mean and std for each target over all folds.
+    Evaluate uncertainty estimation's mean error of each bin. For each bin, we calculate the mean localization error for
+    each target and for all targets. We calculate the mean error for each dictionary in the bin_predictions dict. For
+    each bin, we calculate: a) the mean and std over all folds and all targets b) the mean and std for each target over
+    all folds.
 
     Args:
         bin_predictions (Dict): Dict of Pandas DataFrames where each DataFrame has errors, predicted bins for all
-        uncertainty measures for a model.
+            uncertainty measures for a model.
         uncertainty_pairs (List[Tuple[str, str]]): List of tuples describing the different uncertainty combinations to test.
         num_bins (int): Number of quantile bins.
         targets (List[str]): List of targets to measure uncertainty estimation.
@@ -1942,9 +1852,10 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, 
     Args:
         fold_errors (Pandas Dataframe): Pandas Dataframe of errors for this fold.
         fold_bins (Pandas Dataframe): Pandas Dataframe of predicted quantile bins for this fold.
-        num_bins (int): Number of quantile bins,
-        targets (list) list of targets to measure uncertainty estimation,
-        uncertainty_key (string): Name of uncertainty type to calculate accuracy for,
+        num_bins (int): Number of quantile bins.
+        targets (list): list of targets to measure uncertainty estimation.
+        uncertainty_key (string): Name of uncertainty type to calculate accuracy for.
+        error_scaling_factor (float): Factor to scale the errors by.
 
 
     Returns:
