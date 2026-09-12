@@ -326,7 +326,7 @@ class DataProcessor:
 
         # Compare bins and uids as strings so a uid stored as an int in one frame and a str in the other still lines up.
         index_by_bin_label = {str(bin_idx): bin_idx for bin_idx in range(num_bins)}
-        errors_by_str_uid = {}
+        errors_by_str_uid: Dict = {}
         for key, value in errors_dict.items():
             errors_by_str_uid.setdefault(str(key), value)
 
