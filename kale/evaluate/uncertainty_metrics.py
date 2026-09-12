@@ -396,8 +396,9 @@ class DataProcessor:
 
             bin_keys[bin_idx].append(key)
             str_uid = str(key)
-            if str_uid in errors_by_str_uid:
-                bin_errors[bin_idx].append(errors_by_str_uid[str_uid])
+            if str_uid not in errors_by_str_uid:
+                raise ValueError(f"No error found for uid {key!r}")
+            bin_errors[bin_idx].append(errors_by_str_uid[str_uid])
 
         return bin_keys, bin_errors
 
