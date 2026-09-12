@@ -1323,7 +1323,8 @@ class JaccardEvaluator(BaseEvaluator):
             model_key (str): Model-uncertainty combination identifier.
             aggregated_metrics (Dict[str, List[List[float]]]): Aggregated metrics from all folds.
         """
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
 
         # Store main jaccard results
         self.container_.add_main_result(model_key, aggregated_metrics["fold_jaccard_bins"])
@@ -1345,7 +1346,8 @@ class JaccardEvaluator(BaseEvaluator):
             model_key (str): Model-uncertainty combination identifier.
             jaccard_results (List[JaccardBinResults]): Results from all folds.
         """
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
 
         # Process each fold's target-separated results
         for fold_idx in range(len(jaccard_results)):
@@ -1360,7 +1362,8 @@ class JaccardEvaluator(BaseEvaluator):
             model_key (str): Model-uncertainty combination identifier.
             result (JaccardBinResults): Results from one fold.
         """
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
 
         for target_idx in range(len(result.all_bins_concat_targets_sep)):
             self._initialize_target_containers_if_needed(model_key, target_idx)
@@ -1385,7 +1388,8 @@ class JaccardEvaluator(BaseEvaluator):
             model_key (str): Model-uncertainty combination identifier.
             target_idx (int): Index of the target.
         """
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
 
         # Initialize foldwise container if needed
         if target_idx < len(self.container_.target_sep_foldwise):
@@ -1420,7 +1424,8 @@ class JaccardEvaluator(BaseEvaluator):
             This method maps the container's organized data structure to the specific
             result keys expected by the Jaccard evaluation API.
         """
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
         return {
             ResultKeys.JACCARD_ALL: self.container_.main_results,
             ResultKeys.JACCARD_TARGETS_SEPARATED: self.container_.target_separated_results,
@@ -1475,7 +1480,8 @@ class BoundsEvaluator(BaseEvaluator):
 
     def _process_single_fold(self, fold_data: FoldData) -> BinResults:
         """Evaluate bound accuracy for one fold."""
-        assert fold_data.bounds is not None, "Fold data is missing its estimated bounds"
+        if fold_data.bounds is None:
+            raise RuntimeError("Fold data is missing its estimated bounds")
         result = bin_wise_bound_eval(
             fold_data.bounds,
             fold_data.errors,
@@ -1514,7 +1520,8 @@ class BoundsEvaluator(BaseEvaluator):
                     )
                     targets_sep_all[target_idx][idx_bin] = targets_sep_all[target_idx][idx_bin] + fold_bin_values
 
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
 
         # Reverses order so they are worst to best i.e. B5 -> B1
         self.container_.add_main_result(model_key, mean_bins[::-1])
@@ -1528,7 +1535,8 @@ class BoundsEvaluator(BaseEvaluator):
 
     def _finalize_results(self) -> Dict:
         """Map the container onto the error bound result keys."""
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
 
         return {
             ResultKeys.ERROR_BOUNDS_ALL: self.container_.main_results,
@@ -1610,7 +1618,8 @@ class ErrorsEvaluator(BaseEvaluator):
                     if fold_bin_values != []:
                         targets_sep_all[target_idx][idx_bin] = targets_sep_all[target_idx][idx_bin] + fold_bin_values[0]
 
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
 
         # reverse orderings, so bins run worst to best i.e. B5 -> B1
         self.container_.add_main_result(model_key, mean_bins[::-1])
@@ -1625,7 +1634,8 @@ class ErrorsEvaluator(BaseEvaluator):
 
     def _finalize_results(self) -> Dict:
         """Map the container onto the mean error result keys."""
-        assert self.container_ is not None, "Results container is not initialized"
+        if self.container_ is None:
+            raise RuntimeError("Results container is not initialized")
 
         return {
             ResultKeys.ALL_MEAN_ERROR_BINS_NO_SEP: self.container_.main_results,
