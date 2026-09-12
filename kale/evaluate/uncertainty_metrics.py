@@ -385,7 +385,9 @@ class DataProcessor:
         # one frame and a str in the other still lined up; indexing the errors by str(uid) preserves
         # that while staying linear.
         index_by_bin_label = {str(bin_idx): bin_idx for bin_idx in range(num_bins)}
-        errors_by_str_uid = {str(key): value for key, value in errors_dict.items()}
+        errors_by_str_uid = {}
+        for key, value in errors_dict.items():
+            errors_by_str_uid.setdefault(str(key), value)
 
         # A single pass over the predictions, so grouping stays linear in the number of samples
         # rather than rescanning them once per bin.
