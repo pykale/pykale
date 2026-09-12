@@ -1,0 +1,14 @@
+DATASET:
+ TRAIN: 'data/fine_tune/train_data.json'
+ VAL: 'data/fine_tune/test_data.json'
+
+MODEL:
+  NAME: 'svr'
+  PRETRAINED_MODEL_PATH: '_saved_models/m1_full_lr0.01/best-mae-epoch=107-val_mae=0.39.ckpt'
+  INIT_FILE: 'cif_file/atom_init.json'
+  CIF_FOLDER: "cif_file"
+
+
+LOGGING:
+  LOG_DIR: "saved_models/svr_test"
+  LOG_DIR_NAME: "svr_test"
