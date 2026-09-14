@@ -35,7 +35,7 @@ import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     import matplotlib.axes
@@ -95,7 +95,7 @@ class BoxPlotConfig:
     # Display settings
     x_label: str = "Uncertainty Thresholded Bin"
     y_label: str = "Error (%)"
-    show_sample_info: str = "None"
+    show_sample_info: Optional[str] = None
     save_path: Optional[str] = None
     show: bool = False
     convert_to_percent: bool = True
@@ -192,18 +192,27 @@ class BoxPlotConfig:
 
         Examples:
             Basic usage:
-            >>> config = BoxPlotConfig()
-            >>> config.set_params(x_label="Custom Label", y_label="Custom Y")
+
+            .. code-block:: pycon
+
+                >>> config = BoxPlotConfig()
+                >>> config.set_params(x_label="Custom Label", y_label="Custom Y")
 
             Method chaining:
-            >>> config = BoxPlotConfig().set_params(
-            ...     x_label="Uncertainty Bins",
-            ...     colormap="Set1",
-            ...     font_size_label=25
-            ... )
+
+            .. code-block:: pycon
+
+                >>> config = BoxPlotConfig().set_params(
+                ...     x_label="Uncertainty Bins",
+                ...     colormap="Set1",
+                ...     font_size_label=25
+                ... )
 
             Multiple updates:
-            >>> config.set_params(show=True).set_params(save_path="output.png")
+
+            .. code-block:: pycon
+
+                >>> config.set_params(show=True).set_params(save_path="output.png")
 
         Raises:
             AttributeError: If an invalid parameter name is provided.
@@ -283,18 +292,27 @@ class BoxPlotData:
 
         Examples:
             Basic usage:
-            >>> data = BoxPlotData(evaluation_data_by_bins=[{}])
-            >>> data.set_data(models=["ResNet50", "VGG16"])
+
+            .. code-block:: pycon
+
+                >>> data = BoxPlotData(evaluation_data_by_bins=[{}])
+                >>> data.set_data(models=["ResNet50", "VGG16"])
 
             Method chaining:
-            >>> data = BoxPlotData(evaluation_data_by_bins=[{}]).set_data(
-            ...     models=["ResNet50"],
-            ...     uncertainty_categories=[["epistemic"]],
-            ...     num_bins=5
-            ... )
+
+            .. code-block:: pycon
+
+                >>> data = BoxPlotData(evaluation_data_by_bins=[{}]).set_data(
+                ...     models=["ResNet50"],
+                ...     uncertainty_categories=[["epistemic"]],
+                ...     num_bins=5
+                ... )
 
             Multiple updates:
-            >>> data.set_data(models=["ResNet50"]).set_data(num_bins=5)
+
+            .. code-block:: pycon
+
+                >>> data.set_data(models=["ResNet50"]).set_data(num_bins=5)
 
         Raises:
             AttributeError: If an invalid parameter name is provided.
@@ -335,26 +353,35 @@ def create_boxplot_config(**kwargs: Any) -> BoxPlotConfig:
 
     Examples:
         Basic usage:
-        >>> config = create_boxplot_config(
-        ...     x_label="Custom Bins",
-        ...     y_label="Custom Error (%)",
-        ...     colormap="Set1"
-        ... )
+
+        .. code-block:: pycon
+
+            >>> config = create_boxplot_config(
+            ...     x_label="Custom Bins",
+            ...     y_label="Custom Error (%)",
+            ...     colormap="Set1"
+            ... )
 
         Publication-ready plots:
-        >>> config = create_boxplot_config(
-        ...     font_size_label=20,
-        ...     figure_size=(12, 8),
-        ...     save_dpi=300,
-        ...     save_path="publication_plot.png"
-        ... )
+
+        .. code-block:: pycon
+
+            >>> config = create_boxplot_config(
+            ...     font_size_label=20,
+            ...     figure_size=(12, 8),
+            ...     save_dpi=300,
+            ...     save_path="publication_plot.png"
+            ... )
 
         Development/debugging:
-        >>> config = create_boxplot_config(
-        ...     show=True,
-        ...     show_individual_dots=False,
-        ...     y_lim_top=50
-        ... )
+
+        .. code-block:: pycon
+
+            >>> config = create_boxplot_config(
+            ...     show=True,
+            ...     show_individual_dots=False,
+            ...     y_lim_top=50
+            ... )
 
     Raises:
         None: Any type or value errors will be raised by the BoxPlotConfig constructor.
@@ -399,33 +426,42 @@ def create_boxplot_data(
 
     Examples:
         Single model analysis:
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=[{
-        ...         "ResNet50_epistemic": [[0.1, 0.12], [0.15, 0.18]]
-        ...     }],
-        ...     models=["ResNet50"],
-        ...     uncertainty_categories=[["epistemic"]]
-        ... )
+
+        .. code-block:: pycon
+
+            >>> data = create_boxplot_data(
+            ...     evaluation_data_by_bins=[{
+            ...         "ResNet50_epistemic": [[0.1, 0.12], [0.15, 0.18]]
+            ...     }],
+            ...     models=["ResNet50"],
+            ...     uncertainty_categories=[["epistemic"]]
+            ... )
 
         Multi-model comparison:
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=[{
-        ...         "ResNet50_epistemic": [[0.1, 0.12], [0.15, 0.18]],
-        ...         "VGG16_epistemic": [[0.11, 0.13], [0.16, 0.19]]
-        ...     }],
-        ...     models=["ResNet50", "VGG16"],
-        ...     uncertainty_categories=[["epistemic"]]
-        ... )
+
+        .. code-block:: pycon
+
+            >>> data = create_boxplot_data(
+            ...     evaluation_data_by_bins=[{
+            ...         "ResNet50_epistemic": [[0.1, 0.12], [0.15, 0.18]],
+            ...         "VGG16_epistemic": [[0.11, 0.13], [0.16, 0.19]]
+            ...     }],
+            ...     models=["ResNet50", "VGG16"],
+            ...     uncertainty_categories=[["epistemic"]]
+            ... )
 
         Q-value threshold study:
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=[
-        ...         {"model_epistemic": [[0.1, 0.12]]},  # Q=5
-        ...         {"model_epistemic": [[0.09, 0.11]]}, # Q=10
-        ...         {"model_epistemic": [[0.08, 0.10]]}  # Q=15
-        ...     ],
-        ...     category_labels=["Q=5", "Q=10", "Q=15"]
-        ... )
+
+        .. code-block:: pycon
+
+            >>> data = create_boxplot_data(
+            ...     evaluation_data_by_bins=[
+            ...         {"model_epistemic": [[0.1, 0.12]]},  # Q=5
+            ...         {"model_epistemic": [[0.09, 0.11]]}, # Q=10
+            ...         {"model_epistemic": [[0.08, 0.10]]}  # Q=15
+            ...     ],
+            ...     category_labels=["Q=5", "Q=10", "Q=15"]
+            ... )
 
     Raises:
         None: Any type or value errors will be raised by the BoxPlotData constructor.
@@ -804,7 +840,7 @@ class BoxPlotter(ABC):
         """
         assert self.ax is not None
 
-        if self.config.show_sample_info == "None":
+        if self.config.show_sample_info is None:
             return
 
         for idx_text, perc_info in enumerate(self.all_sample_percs):
@@ -1078,14 +1114,17 @@ class GenericBoxPlotter(BoxPlotter):
     - Publishing comparative studies with multiple model baselines
 
     Example:
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=multi_model_results,
-        ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
-        ...     models=['ResNet50', 'VGG16', 'DenseNet']
-        ... )
-        >>> config = create_boxplot_config(colormap='Set1')
-        >>> plotter = GenericBoxPlotter(data, config)
-        >>> plotter.draw_boxplot()  # Creates comparison plot
+
+        .. code-block:: pycon
+
+            >>> data = create_boxplot_data(
+            ...     evaluation_data_by_bins=multi_model_results,
+            ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
+            ...     models=['ResNet50', 'VGG16', 'DenseNet']
+            ... )
+            >>> config = create_boxplot_config(colormap='Set1')
+            >>> plotter = GenericBoxPlotter(data, config)
+            >>> plotter.draw_boxplot()  # Creates comparison plot
     """
 
     def __init__(self, data: Optional[BoxPlotData] = None, config: Optional[BoxPlotConfig] = None):
@@ -1177,14 +1216,17 @@ class PerModelBoxPlotter(BoxPlotter):
     - Detailed performance reports for single-model deployments
 
     Example:
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=resnet_results,
-        ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
-        ...     models=['ResNet50']  # Focus on single model
-        ... )
-        >>> config = create_boxplot_config(colormap='Set1')
-        >>> plotter = PerModelBoxPlotter(data, config)
-        >>> plotter.draw_boxplot()  # Creates detailed per-model analysis
+
+        .. code-block:: pycon
+
+            >>> data = create_boxplot_data(
+            ...     evaluation_data_by_bins=resnet_results,
+            ...     uncertainty_categories=[['epistemic'], ['aleatoric']],
+            ...     models=['ResNet50']  # Focus on single model
+            ... )
+            >>> config = create_boxplot_config(colormap='Set1')
+            >>> plotter = PerModelBoxPlotter(data, config)
+            >>> plotter.draw_boxplot()  # Creates detailed per-model analysis
     """
 
     def __init__(self, data: Optional[BoxPlotData] = None, config: Optional[BoxPlotConfig] = None):
@@ -1260,11 +1302,12 @@ class ComparingQBoxPlotter(BoxPlotter):
     Quantile threshold comparison visualization for binning strategy analysis.
 
     This specialized plotter compares the impact of different quantile thresholds (Q values) on uncertainty
-    quantification performance. Essential for studies that need to optimize binning strategies or understand threshold
-    sensitivity.
+    quantification performance. Q values represent the number of bins used for quantile-based discretization
+    (e.g., Q=5 means 5 bins, Q=10 means 10 bins). Essential for studies that need to optimize binning strategies or
+    understand threshold sensitivity.
 
     Data Organization:
-    - Each Q value (e.g., Q=5, Q=10, Q=15) gets its own dataset
+    - Each Q value (e.g., Q=5, Q=10, Q=15 representing different bin counts) gets its own dataset
     - Boxplots show performance distribution for each threshold
     - Special hatched styling distinguishes Q-comparison plots
     - Progressive box width reduction for visual clarity
@@ -1282,16 +1325,19 @@ class ComparingQBoxPlotter(BoxPlotter):
     - Hyperparameter tuning for uncertainty quantification
 
     Example:
-        >>> # Compare Q=5 vs Q=10 vs Q=15 thresholds
-        >>> data = create_boxplot_data(
-        ...     evaluation_data_by_bins=[q5_results, q10_results, q15_results],
-        ...     uncertainty_categories=[['epistemic']],
-        ...     models=['ResNet50'],
-        ...     category_labels=['Q=5', 'Q=10', 'Q=15']
-        ... )
-        >>> config = create_boxplot_config(hatch_type='///', colormap='Set1')
-        >>> plotter = ComparingQBoxPlotter(data, config)
-        >>> plotter.draw_boxplot()
+
+        .. code-block:: pycon
+
+            >>> # Compare Q=5 vs Q=10 vs Q=15 thresholds
+            >>> data = create_boxplot_data(
+            ...     evaluation_data_by_bins=[q5_results, q10_results, q15_results],
+            ...     uncertainty_categories=[['epistemic']],
+            ...     models=['ResNet50'],
+            ...     category_labels=['Q=5', 'Q=10', 'Q=15']
+            ... )
+            >>> config = create_boxplot_config(hatch_type='///', colormap='Set1')
+            >>> plotter = ComparingQBoxPlotter(data, config)
+            >>> plotter.draw_boxplot()
     """
 
     def __init__(self, data: Optional[BoxPlotData] = None, config: Optional[BoxPlotConfig] = None):
@@ -1546,7 +1592,10 @@ class BoxPlotDataProcessor(ABC):
             Dict: Standardized data item dictionary with all required fields.
 
         Examples:
-            >>> item = create_data_item([0.1, 0.2], 1.0, 0.2, 0, "ResNet50", "epistemic", 0, 0, model_data, 50.0)
+
+            .. code-block:: pycon
+
+                >>> item = create_data_item([0.1, 0.2], 1.0, 0.2, 0, "ResNet50", "epistemic", 0, 0, model_data, 50.0)
         """
         item = {
             "data": data,
@@ -1621,8 +1670,11 @@ class BoxPlotDataProcessor(ABC):
             KeyError: If no key contains both model_type and uncertainty_type.
 
         Examples:
-            >>> key = _find_data_key(data, "ResNet50", "epistemic")  # Returns "ResNet50_epistemic"
-            >>> key = _find_data_key(data, "VGG16", "aleatoric")     # Returns "VGG16_aleatoric"
+
+            .. code-block:: pycon
+
+                >>> key = _find_data_key(data, "ResNet50", "epistemic")  # Returns "ResNet50_epistemic"
+                >>> key = _find_data_key(data, "VGG16", "aleatoric")     # Returns "VGG16_aleatoric"
         """
         matching_keys = [
             key for key in evaluation_data_by_bin.keys() if (model_type in key) and (uncertainty_type in key)
@@ -1672,9 +1724,12 @@ class BoxPlotDataProcessor(ABC):
             List[float]: Extracted bin data, optionally filtered for None values.
 
         Examples:
-            >>> data = [[0.1, 0.2], [0.3, None, 0.4]]
-            >>> _extract_bin_data(data, 0)  # Returns [0.1, 0.2]
-            >>> _extract_bin_data(data, 1)  # Returns [0.3, 0.4]
+
+            .. code-block:: pycon
+
+                >>> data = [[0.1, 0.2], [0.3, None, 0.4]]
+                >>> _extract_bin_data(data, 0)  # Returns [0.1, 0.2]
+                >>> _extract_bin_data(data, 1)  # Returns [0.3, 0.4]
         """
         assert self.config is not None, "Configuration must be set before extracting bin data"
 
@@ -1694,7 +1749,7 @@ class BoxPlotDataProcessor(ABC):
         Returns:
             float: The percentage of samples in the bin.
         """
-        if self.config.show_sample_info != "None":
+        if self.config.show_sample_info is not None:
             flattened_model_data = [x for xss in model_data for x in xss]
             percent_size = np.round(len(bin_data) / len(flattened_model_data) * 100, 1)
             if self.config.show_sample_info == "All":
@@ -2141,3 +2196,152 @@ class ComparingQBoxPlotDataProcessor(BoxPlotDataProcessor):
 
             # Apply spacing and store labels for this Q value
             self._apply_q_spacing_and_store_labels(box_x_positions)
+
+
+def execute_boxplot(
+    plot_func: Callable[..., Any],
+    evaluation_data_by_bins: List[Any],
+    uncertainty_categories: List[List[str]],
+    models: List[str],
+    category_labels: List[str],
+    num_bins_display: int,
+    save_path: Optional[str],
+    boxplot_config_base: Dict[str, Any],
+    show_individual_dots: bool,
+    detailed_mode: bool,
+    x_label: Optional[str] = None,
+    y_label: Optional[str] = None,
+    to_log: bool = False,
+    convert_to_percent: bool = False,
+    show_sample_info: Optional[str] = None,
+    **kwargs: Any,
+) -> None:
+    """
+    Create boxplot data and configuration, then execute the plotting function.
+
+    This unified helper function encapsulates the common pattern of creating boxplot data, creating boxplot
+    configuration, and calling the plotting function. It reduces code duplication across all plotting methods.
+
+    Args:
+        plot_func (Callable): The plotting function to use (plot_generic_boxplot, plot_per_model_boxplot,
+            plot_q_comparing_boxplot).
+        evaluation_data_by_bins (List[Any]): Raw evaluation data organized by bins or categories.
+        uncertainty_categories (List[List[str]]): List of uncertainty-error pair combinations.
+        models (List[str]): List of model names to analyze.
+        category_labels (List[str]): Labels for x-axis categories.
+        num_bins_display (int): Number of bins to display on the plot.
+        save_path (Optional[str]): Complete save path for the plot. None if not saving.
+        boxplot_config_base (Dict[str, Any]): Base configuration dictionary for boxplot aesthetics.
+        show_individual_dots (bool): Whether to show individual data points as dots.
+        detailed_mode (bool): Whether to use detailed plotting mode.
+        x_label (Optional[str]): Label for the x-axis. If None, not included in config.
+        y_label (Optional[str]): Label for the y-axis. If None, not included in config.
+        to_log (bool): Whether to use logarithmic scaling for the y-axis. Defaults to False.
+        convert_to_percent (bool): Whether to convert values to percentages. Defaults to False.
+        show_sample_info (Optional[str]): Mode for displaying sample size information. Defaults to None.
+            Valid values: None (no display), "text", "legend", "detailed", "Average", "All".
+        **kwargs: Additional keyword arguments passed to the boxplot configuration.
+    """
+    boxplot_data = create_boxplot_data(
+        evaluation_data_by_bins=evaluation_data_by_bins,
+        uncertainty_categories=uncertainty_categories,
+        models=models,
+        category_labels=category_labels,
+        num_bins=num_bins_display,
+    )
+
+    # Build config parameters dynamically
+    config_params = {
+        "save_path": save_path,
+        "detailed_mode": detailed_mode,
+        "show_individual_dots": show_individual_dots,
+        "to_log": to_log,
+        "convert_to_percent": convert_to_percent,
+        "show_sample_info": show_sample_info,
+        **boxplot_config_base,
+        **kwargs,
+    }
+
+    # Add optional parameters only if provided
+    if x_label is not None:
+        config_params["x_label"] = x_label
+    if y_label is not None:
+        config_params["y_label"] = y_label
+
+    boxplot_config = create_boxplot_config(**config_params)
+    plot_func(boxplot_data, boxplot_config)
+
+
+def plot_generic_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
+    """
+    Create generic multi-model boxplot for uncertainty quantification analysis.
+
+    Generates boxplots comparing multiple models across different uncertainty bins. This is the standard approach
+    for comparative analysis of model performance, grouping by uncertainty type first.
+
+    Args:
+        data (BoxPlotData): Evaluation data organized by uncertainty categories and models.
+        config (BoxPlotConfig): Display and styling parameters for the boxplot.
+
+    Note:
+        Data structure: evaluation_data_by_bins is a dictionary mapping model_uncertainty keys to binned data.
+        Processing order: Organizes data by uncertainty type first, then bins, then models.
+    """
+    plotter = GenericBoxPlotter(data, config)
+    plotter.draw_boxplot()
+
+
+def plot_per_model_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
+    """
+    Generate per-model boxplot for individual model performance analysis.
+
+    Creates detailed boxplots analyzing individual models across uncertainty bins. Useful for model-specific
+    uncertainty quantification analysis with detailed visual breakdown.
+
+    Args:
+        data (BoxPlotData): Evaluation data organized by uncertainty categories and models.
+        config (BoxPlotConfig): Display and styling parameters for the boxplot.
+
+    Note:
+        Data structure: evaluation_data_by_bins is a dictionary mapping model_uncertainty keys to binned data.
+        Processing order: Organizes data by uncertainty type first, then models, then bins (model-focused grouping).
+        Use config.show_sample_info to display sample size information in different modes.
+    """
+    plotter = PerModelBoxPlotter(data, config)
+    plotter.draw_boxplot()
+
+
+def plot_q_comparing_boxplot(data: BoxPlotData, config: BoxPlotConfig) -> None:
+    """
+    Create boxplot comparing different Q values for quantile threshold optimization.
+
+    Compares the impact of different quantile thresholds (Q values) on uncertainty quantification performance.
+    Q values represent the number of bins used for quantile-based discretization (e.g., Q=5 uses 5 bins, Q=10 uses
+    10 bins). Essential for optimizing binning strategies and understanding threshold sensitivity.
+
+    Args:
+        data (BoxPlotData): Evaluation data with evaluation_data_by_bins as a list of dictionaries
+                           (one per Q value), uncertainty_categories, and models.
+        config (BoxPlotConfig): Display and styling parameters. Use config.hatch_type to distinguish Q-values
+                               visually.
+
+    Note:
+        Data structure: evaluation_data_by_bins is a list of dictionaries, one per Q-value configuration.
+        category_labels should contain labels for each Q-value (e.g., ['Q=5', 'Q=10', 'Q=15']).
+        All of evaluation_data_by_bins, uncertainty_categories, and models must be present.
+
+        **Key Difference from Generic and Per-Model Plots:**
+        Uses a list of dictionaries for evaluation_data_by_bins (one per Q-value) rather than a single dictionary,
+        and validates this upfront with a fail-fast check before creating the plotter.
+
+    Raises:
+        ValueError: If required fields (evaluation_data_by_bins, uncertainty_categories, models) are missing.
+    """
+    # Validate that all required fields are present for Q-comparison mode
+    if not all([data.evaluation_data_by_bins, data.uncertainty_categories, data.models]):
+        raise ValueError(
+            "For comparing_q plots, data must include evaluation_data_by_bins, uncertainty_categories, and models"
+        )
+
+    plotter = ComparingQBoxPlotter(data, config)
+    plotter.draw_boxplot()

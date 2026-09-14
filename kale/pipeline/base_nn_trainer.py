@@ -29,6 +29,7 @@ import torch.nn as nn
 from sklearn.metrics import accuracy_score
 
 import kale.evaluate.metrics as losses
+from kale.utils.validate import validate_kwargs
 
 
 class BaseNNTrainer(pl.LightningModule):
@@ -39,7 +40,10 @@ class BaseNNTrainer(pl.LightningModule):
     using the neural networks.
 
     Args:
-        optimizer (dict, None): optimizer parameters.
+        optimizer (dict, None): optimizer parameters, a dictionary with 2 keys:
+            "type": a string in ("SGD", "Adam", "AdamW")
+            "optim_params": kwargs for the above PyTorch optimizer.
+            Defaults to None.
         max_epochs (int): maximum number of epochs.
         init_lr (float): initial learning rate. Defaults to 0.001.
         adapt_lr (bool): whether to use the schedule for the learning rate. Defaults to False.
@@ -76,23 +80,34 @@ class BaseNNTrainer(pl.LightningModule):
 
     def configure_optimizers(self):
         """Default optimizer configuration. Set Adam to the default and provide SGD with cosine annealing.
+        Supported optimizer types: "Adam", "AdamW", "SGD".
         If other optimizers are needed, please override this function.
         """
         if self._optimizer_params is None:
             optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr)
             return [optimizer]
         if self._optimizer_params["type"] == "Adam":
+            valid_optim_params = validate_kwargs(torch.optim.Adam, self._optimizer_params["optim_params"])
             optimizer = torch.optim.Adam(
                 self.parameters(),
                 lr=self._init_lr,
-                **self._optimizer_params["optim_params"],
+                **valid_optim_params,
+            )
+            return [optimizer]
+        if self._optimizer_params["type"] == "AdamW":
+            valid_optim_params = validate_kwargs(torch.optim.AdamW, self._optimizer_params["optim_params"])
+            optimizer = torch.optim.AdamW(
+                self.parameters(),
+                lr=self._init_lr,
+                **valid_optim_params,
             )
             return [optimizer]
         if self._optimizer_params["type"] == "SGD":
+            valid_optim_params = validate_kwargs(torch.optim.SGD, self._optimizer_params["optim_params"])
             optimizer = torch.optim.SGD(
                 self.parameters(),
                 lr=self._init_lr,
-                **self._optimizer_params["optim_params"],
+                **valid_optim_params,
             )
 
             if self._adapt_lr:
@@ -170,10 +185,11 @@ class CNNTransformerTrainer(BaseNNTrainer):
         """Set up an SGD optimizer and multistep learning rate scheduler. When self._adapt_lr is True, the learning
         rate will be decayed by self.lr_gamma every step in milestones.
         """
+        valid_optim_params = validate_kwargs(torch.optim.SGD, self._optimizer_params["optim_params"])
         optimizer = torch.optim.SGD(
             self.parameters(),
             lr=self._init_lr,
-            **self._optimizer_params["optim_params"],
+            **valid_optim_params,
         )
         if self._adapt_lr:
             scheduler = torch.optim.lr_scheduler.MultiStepLR(

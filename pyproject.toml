@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools==74.1.0",
+    "setuptools==82.0.1",
     "wheel",
     "numpy",
 ]
@@ -21,7 +21,7 @@ known_first_party = [
 known_third_party = [
     "matplotlib<=3.10.0",  # matplotlib 3.10.1 will cause "Building wheel for matplotlib (setup.py): finished with status 'error'" for tests
     "numpy",
-    "setuptools==74.1.0",
+    "setuptools==82.0.1",
     "sphinx_rtd_theme",
     "torch",
 ]

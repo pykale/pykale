@@ -425,6 +425,16 @@ class BaseAdaptTrainer(pl.LightningModule):
                 **valid_optim_params,
             )
             return [optimizer]
+
+        if self._optimizer_params["type"] == "AdamW":
+            valid_optim_params = validate_kwargs(torch.optim.AdamW, self._optimizer_params["optim_params"])
+            optimizer = torch.optim.AdamW(
+                parameters,
+                lr=self._init_lr,
+                **valid_optim_params,
+            )
+            return [optimizer]
+
         if self._optimizer_params["type"] == "SGD":
             valid_optim_params = validate_kwargs(torch.optim.SGD, self._optimizer_params["optim_params"])
             optimizer = torch.optim.SGD(

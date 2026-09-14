@@ -73,8 +73,8 @@ _C.PIPELINE.COMPARE_Q_UNCERTAINTY_ERROR_PAIRS = [["E-MHA", "E-MHA Error", "E-MHA
 
 _C.PIPELINE.COMBINE_MIDDLE_BINS = False
 _C.PIPELINE.PIXEL_TO_MM_SCALE = 1.0
-_C.PIPELINE.IND_LANDMARKS_TO_SHOW = [-1]  # -1 means show all landmarks individually, [] means show none
-_C.PIPELINE.SHOW_IND_LANDMARKS = True
+_C.PIPELINE.INDIVIDUAL_LANDMARKS_TO_SHOW = [-1]  # -1 means show all landmarks individually, [] means show none
+_C.PIPELINE.SHOW_INDIVIDUAL_LANDMARKS = True
 
 # ---------------------------------------------------------------------------- #
 # Visualization
@@ -97,7 +97,7 @@ _C.WEIGHT_KWARGS.alpha = 0.7
 _C.BOXPLOT = CfgNode()
 _C.BOXPLOT.SAMPLES_AS_DOTS = True
 _C.BOXPLOT.ERROR_LIM = 64
-_C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "Average"  # "None", "All", "Average"
+_C.BOXPLOT.SHOW_SAMPLE_INFO_MODE = "Average"  # "All", "Average"
 
 
 # ---------------------------------------------------------------------------- #

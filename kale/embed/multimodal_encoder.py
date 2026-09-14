@@ -58,23 +58,25 @@ class SignalImageVAE(nn.Module):
         self.n_latents = latent_dim
 
     @staticmethod
-    def prior_expert(size, use_cuda=False):
+    def prior_expert(size, use_cuda=False, device=None):
         """
         Creates a universal prior expert as a spherical Gaussian N(0, 1) with specified size.
 
         Args:
             size (tuple): Desired shape, typically (1, batch_size, latent_dim).
-            use_cuda (bool): Whether to move tensors to CUDA.
+            use_cuda (bool): Whether to place tensors on CUDA. Only used when ``device`` is None.
+            device (torch.device or str, optional): Device on which to create the tensors. Takes
+                precedence over ``use_cuda``. When None, falls back to the default CUDA device if
+                ``use_cuda`` is True and CPU otherwise.
 
         Returns:
             mean (Tensor): Zero-mean tensor.
             log_var (Tensor): Zero log-variance tensor.
         """
-        mean = torch.zeros(size)
-        log_var = torch.zeros(size)
-        if use_cuda:
-            mean = mean.cuda()
-            log_var = log_var.cuda()
+        if device is None:
+            device = "cuda" if use_cuda else "cpu"
+        mean = torch.zeros(size, device=device)
+        log_var = torch.zeros(size, device=device)
         return mean, log_var
 
     def reparametrize(self, mean, log_var):
@@ -123,8 +125,8 @@ class SignalImageVAE(nn.Module):
             log_var (Tensor): Log-variance vector of the fused latent distribution, shape (batch_size, latent_dim).
         """
         batch_size = image.size(0) if image is not None else signal.size(0)
-        use_cuda = next(self.parameters()).is_cuda
-        mean, log_var = self.prior_expert((1, batch_size, self.n_latents), use_cuda=use_cuda)
+        device = next(self.parameters()).device
+        mean, log_var = self.prior_expert((1, batch_size, self.n_latents), device=device)
         if image is not None:
             img_mu, img_log_var = self.image_encoder(image)
             mean = torch.cat((mean, img_mu.unsqueeze(0)), dim=0)

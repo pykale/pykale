@@ -15,8 +15,8 @@ PIPELINE:
     # NUM_QUANTILE_BINS: [5]
     COMBINE_MIDDLE_BINS: False
     PIXEL_TO_MM_SCALE: 0.1
-    IND_LANDMARKS_TO_SHOW: [8,9,2,11,14]
-    # IND_LANDMARKS_TO_SHOW: [8]
+    INDIVIDUAL_LANDMARKS_TO_SHOW: [8,9,2,11,14]
+    # INDIVIDUAL_LANDMARKS_TO_SHOW: [8]
     COMPARE_Q_VALUES: True
     COMPARE_INDIVIDUAL_Q: True
     COMPARE_Q_MODELS: ["U-NET"]
@@ -28,7 +28,7 @@ PIPELINE:
         ["E-MHA", "E-MHA Error", "E-MHA Uncertainty"],
         ["E-CPV", "E-CPV Error", "E-CPV Uncertainty"],
     ]
-    SHOW_IND_LANDMARKS: True
+    SHOW_INDIVIDUAL_LANDMARKS: True
 
 OUTPUT:
     SAVE_FIGURES: True # True to save, False to visualize in matplotlib

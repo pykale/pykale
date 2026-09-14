@@ -12,9 +12,9 @@ jobs:
     name: Release on PyPI
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.11
       - name: Install pypa/build
@@ -32,11 +32,13 @@ jobs:
           --outdir dist/
           .
       - name: Publish distribution to Test PyPI
-        uses: pypa/gh-action-pypi-publish@master
+        if: github.event.release.prerelease
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
+          repository-url: https://test.pypi.org/legacy/
       - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@master
+        if: ${{ !github.event.release.prerelease }}
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}

@@ -2,6 +2,7 @@
 # Author: Lawrence Schobs, lawrenceschobs@gmail.com
 #         Wenjie Zhao, mcsoft12138@outlook.com
 #         Zhongwei Ji, jizhongwei1999@outlook.com
+#         Charles Anjah, cmanjahart@gmail.com
 # =============================================================================
 
 """
@@ -12,14 +13,18 @@ Functions related to uncertainty-error correlation analysis in terms of:
    B) Plotting: plot_uncertainty_correlation
    C) Main analysis functions: analyze_and_plot_uncertainty_correlation
 """
-from typing import Any, Dict, List, Optional
+import os
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import pwlf
 from matplotlib import colormaps
 from matplotlib.ticker import ScalarFormatter
 from scipy import stats
+from sklearn.isotonic import IsotonicRegression
 
 from kale.interpret.visualize import save_or_show_plot
 
@@ -39,40 +44,28 @@ def analyze_and_plot_uncertainty_correlation(
     **fig_kwargs: Any,
 ) -> Dict[str, List[Any]]:
     """
-    Complete uncertainty-error correlation analysis with visualization.
-
-    This is the recommended entry point for most uncertainty analysis workflows
-    as it provides both numerical results and visual insights.
+    Run the uncertainty-error correlation analysis and plot the result.
 
     Args:
-        errors (np.ndarray): Array of prediction errors. Must have same length
-            as uncertainties array.
-        uncertainties (np.ndarray): Array of uncertainty estimates corresponding
-            to each prediction.
-        quantile_thresholds (List[float]): List of quantile threshold values that
-            define breakpoints for piecewise linear modeling. These determine
-            how the uncertainty range is segmented for analysis.
-        colormap (str, optional): Matplotlib colormap name for coloring different
-            quantile segments. Defaults to "Set1".
-        to_log (bool, optional): Whether to apply logarithmic scaling to both
-            axes of the plot. Useful for data spanning multiple orders of magnitude.
-            Defaults to False.
-        error_scaling_factor (float, optional): Multiplicative factor to scale
-            error values (e.g., for unit conversion from pixels to mm).
-            Defaults to 1.0.
-        save_path (Optional[str], optional): File path to save the generated plot.
-            If None, displays the plot interactively. Supports common formats
-            like PNG, PDF, SVG. Defaults to None.
-        n_bootstrap (int, optional): Number of bootstrap iterations for confidence
-            interval estimation. Higher values provide more robust estimates but
-            increase computation time. Defaults to 1000.
-        sample_ratio (float, optional): Fraction of data to sample in each bootstrap
-            iteration. Must be between 0 and 1. Lower values increase diversity
-            but may reduce stability. Defaults to 0.6.
-        font_size (int, optional): Font size for all text elements in the plot
-            including axis labels, correlation text, and quantile labels.
-            Defaults to 25.
+        errors (np.ndarray): Array of prediction errors. Must have same length as uncertainties array.
+        uncertainties (np.ndarray): Array of uncertainty estimates corresponding to each prediction.
+        quantile_thresholds (List[float]): List of quantile threshold values that define breakpoints for piecewise
+            linear modeling. These determine how the uncertainty range is segmented for analysis.
+        colormap (str, optional): Matplotlib colormap name for coloring different quantile segments. Defaults to "Set1".
+        to_log (bool, optional): Whether to apply logarithmic scaling to both axes of the plot. Useful for data spanning
+            multiple orders of magnitude. Defaults to False.
+        error_scaling_factor (float, optional): Multiplicative factor to scale error values (e.g., for unit conversion
+            from pixels to mm). Defaults to 1.0.
+        save_path (Optional[str], optional): File path to save the generated plot. If None, displays the plot
+            interactively. Supports common formats like PNG, PDF, SVG. Defaults to None.
+        n_bootstrap (int, optional): Number of bootstrap iterations for confidence interval estimation. Higher values
+            provide more robust estimates but increase computation time. Defaults to 1000.
+        sample_ratio (float, optional): Fraction of data to sample in each bootstrap iteration. Must be between 0 and 1.
+            Lower values increase diversity but may reduce stability. Defaults to 0.6.
+        font_size (int, optional): Font size for all text elements in the plot including axis labels, correlation text,
+            and quantile labels. Defaults to 25.
         show (bool, optional): Whether to display the plot interactively. Defaults to False.
+
         **fig_kwargs: Additional keyword arguments for figure creation and styling:
             - figsize (tuple): Figure size in inches (default: (16, 8))
             - save_dpi (int): Resolution in dots per inch for the saved figure (default: 600)
@@ -87,16 +80,7 @@ def analyze_and_plot_uncertainty_correlation(
             - 'pearson': [correlation_coefficient, p_value] for Pearson linear correlation
 
     Raises:
-        ValueError: If input arrays have different lengths, are empty, or contain
-            invalid parameter values (e.g., sample_ratio not in (0,1])
-        KeyError: If required analysis components fail to generate expected results
-
-    Note:
-        - The function automatically validates inputs and provides informative error messages
-        - Bootstrap confidence bands provide visual uncertainty around the main fit
-        - Quantile-based analysis reveals how correlation varies across uncertainty ranges
-        - Both parametric (Pearson) and non-parametric (Spearman) correlations are computed
-        - The plot includes correlation statistics prominently displayed for quick assessment
+        ValueError: If input arrays have different lengths or are empty.
     """
 
     # Analyze correlation
@@ -134,14 +118,13 @@ def analyze_uncertainty_correlation(
     Args:
         errors (np.ndarray): Array of prediction errors
         uncertainties (np.ndarray): Array of uncertainty estimates
-        quantile_thresholds (List[float]): List of quantile threshold values
-            that define breakpoints for piecewise linear modeling
-        error_scaling_factor (float, optional): Multiplicative factor to scale
-            errors (e.g., for unit conversion). Defaults to 1.0.
-        n_bootstrap (int, optional): Number of bootstrap samples for confidence
-            interval estimation. Defaults to 1000.
-        sample_ratio (float, optional): Fraction of data to sample in each
-            bootstrap iteration. Must be between 0 and 1. Defaults to 0.6.
+        quantile_thresholds (List[float]): List of quantile threshold values that define breakpoints for piecewise
+            linear modeling
+        error_scaling_factor (float, optional): Multiplicative factor to scale errors (e.g., for unit conversion).
+            Defaults to 1.0.
+        n_bootstrap (int, optional): Number of bootstrap samples for confidence interval estimation. Defaults to 1000.
+        sample_ratio (float, optional): Fraction of data to sample in each bootstrap iteration. Must be between 0 and 1.
+            Defaults to 0.6.
 
     Returns:
         Dict[str, Any]: Dictionary containing analysis results with keys:
@@ -201,19 +184,18 @@ def plot_uncertainty_correlation(
     **fig_kwargs: Any,
 ) -> None:
     """
-    Create a comprehensive visualization of uncertainty-error correlation analysis.
+    Plot the uncertainty-error correlation analysis: scatter points, the piecewise fit and its bootstrap bands.
 
     Args:
         uncertainties (np.ndarray): Array of uncertainty estimates
         analysis_results (Dict[str, Any]): Results from analyze_uncertainty_correlation
         quantile_thresholds (List[float]): Quantile threshold values for segmentation
-        colormap (str, optional): Matplotlib colormap name for segment coloring.
-            Defaults to "Set1".
-        to_log (bool, optional): Whether to use logarithmic scale for both axes.
-            Defaults to False.
+        colormap (str, optional): Matplotlib colormap name for segment coloring. Defaults to "Set1".
+        to_log (bool, optional): Whether to use logarithmic scale for both axes. Defaults to False.
         save_path (Optional[str], optional): File path to save the plot. Defaults to None.
         show (bool, optional): Whether to show the figure. Defaults to False.
         font_size (int, optional): Font size for all text elements. Defaults to 25.
+
         **fig_kwargs: Additional keyword arguments for figure creation and styling:
             - figsize (tuple): Figure size in inches (default: (16, 8))
             - save_dpi (int): Dots per inch for resolution (default: 600)
@@ -268,13 +250,248 @@ def plot_uncertainty_correlation(
     save_or_show_plot(save_path=save_path, show=show, fig_size=figsize)
 
 
+def quantile_binning_and_estimate_errors(
+    errors: List[float],
+    uncertainties: List[float],
+    num_bins: int,
+    threshold_type: str = "quantile",
+    combine_middle_bins: bool = False,
+) -> Tuple[List[float], List[float]]:
+    """
+    Calculate quantile thresholds, and isotonically regress errors and uncertainties and get estimated error bounds.
+
+    Args:
+        errors (List[float]): List of errors.
+        uncertainties (List[float]): List of uncertainties.
+        num_bins (int): Number of quantile bins.
+        threshold_type (str, optional): Type of thresholds to calculate, "quantile" recommended. Defaults to "quantile".
+        combine_middle_bins (bool, optional): Whether to combine middle bins. Defaults to False.
+
+    Returns:
+        Tuple[List[float], List[float]]: List of quantile thresholds and estimated error bounds.
+    """
+    if len(errors) != len(uncertainties):
+        raise ValueError(
+            "Length of errors and uncertainties must be the same. errors is length %s and uncertainties is length %s"
+            % (len(errors), len(uncertainties))
+        )
+
+    valid_types = {"quantile", "error-wise"}
+    if threshold_type not in valid_types:
+        raise ValueError("results: threshold_type must be one of %r. " % valid_types)
+
+    # Isotonically regress line
+    ir = IsotonicRegression(out_of_bounds="clip", increasing=True)
+
+    _ = ir.fit_transform(uncertainties, errors)
+
+    uncertainty_boundaries = []
+    estimated_errors = []
+
+    # Estimate error bounds for each quantile bin
+    if threshold_type == "quantile":
+        quantiles = np.arange(1 / num_bins, 1, 1 / num_bins)[: num_bins - 1]
+        for q in range(len(quantiles)):
+            q_conf_higher = np.quantile(uncertainties, quantiles[q])
+            q_error_higher = ir.predict([q_conf_higher])
+
+            estimated_errors.append(q_error_higher[0])
+            uncertainty_boundaries.append(q_conf_higher)
+
+    elif threshold_type == "error-wise":
+        raise NotImplementedError("error-wise Quantile Binning not implemented yet")
+
+    # IF combine bins, we grab only the values for the two outer bins
+    if combine_middle_bins:
+        estimated_errors = [estimated_errors[0], estimated_errors[-1]]
+        uncertainty_boundaries = [uncertainty_boundaries[0], uncertainty_boundaries[-1]]
+
+    return uncertainty_boundaries, estimated_errors
+
+
+@dataclass
+class CumulativePlotConfig:
+    """Presentation, output and styling settings for :func:`plot_cumulative`."""
+
+    # Presentation
+    colormap: str = "Set1"  # Matplotlib colormap name for consistent colours across plots
+    title: str = ""  # Plot title, e.g. "Cumulative Error Distribution - Dataset Name"
+    compare_to_all: bool = False  # If True, overlay the full dataset alongside the selected bins
+
+    # Output
+    save_path: Optional[str] = None  # Directory to save into; if None, the plot is shown interactively
+    file_name: str = "cumulative_error.pdf"  # Output file name, joined with save_path
+    dpi: int = 100  # Resolution used when saving
+    figure_size: Tuple[float, float] = (16.0, 10.0)  # Figure size (inches) used when showing interactively
+
+    # Data scaling
+    error_scaling_factor: float = 1.0  # Multiplicative factor for error values (e.g. 1.0 for mm)
+
+    # Styling
+    font_size: int = 10  # Font size for ticks, axis labels and legend
+    x_label: str = "Error (mm)"  # X-axis label
+    y_label: str = "Number of images in %"  # Y-axis label
+    reference_line_x: float = 5.0  # X position of the vertical reference line (a 5mm error threshold)
+    x_ticks: List[int] = field(default_factory=lambda: [1, 2, 3, 4, 5, 10, 20, 30])  # Explicit log-scale x ticks
+    line_styles: List[str] = field(default_factory=lambda: [":", "-", "dotted", "-."])  # Per-model line styles
+
+
+def _cumulative_curve(errors: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """Sort errors and compute the cumulative percentage of samples at or below each one.
+
+    Args:
+        errors (np.ndarray): Error values for one model and uncertainty type.
+
+    Returns:
+        tuple: Sorted errors and their cumulative percentages.
+    """
+    percentages = 100 * np.arange(len(errors)) / (len(errors) - 1)
+    return np.sort(errors), percentages
+
+
+def _model_errors(
+    dataframe: pd.DataFrame,
+    uncertainty: str,
+    bins: Optional[Union[List[int], np.ndarray]],
+    error_scaling_factor: float,
+) -> np.ndarray:
+    """Extract scaled errors for one uncertainty type, optionally restricted to given bins.
+
+    Args:
+        dataframe (pd.DataFrame): Predictions for a single model.
+        uncertainty (str): Uncertainty type whose error column is read.
+        bins (list or np.ndarray, optional): Bins to keep; when None, all rows are used.
+        error_scaling_factor (float): Multiplicative factor applied to the errors.
+
+    Returns:
+        np.ndarray: The scaled error values.
+    """
+    if bins is not None:
+        dataframe = dataframe[dataframe[uncertainty + " Uncertainty bins"].isin(bins)]
+    return dataframe[uncertainty + " Error"].values * error_scaling_factor
+
+
+def _style_cumulative_axes(ax, config: CumulativePlotConfig) -> None:
+    """Apply the title, axis labels, fonts and logarithmic x scale.
+
+    Args:
+        ax: The matplotlib axes to style.
+        config (CumulativePlotConfig): Settings providing the title, labels and font size.
+    """
+    plt.xticks(fontsize=config.font_size)
+    plt.yticks(fontsize=config.font_size)
+    ax.set_xlabel(config.x_label, fontsize=config.font_size)
+    ax.set_ylabel(config.y_label, fontsize=config.font_size)
+    plt.title(config.title)
+    ax.set_xscale("log")
+
+
+def _finalize_cumulative_axes(ax, reference_color, config: CumulativePlotConfig) -> None:
+    """Add the legend, vertical reference line, tick formatting and label colours.
+
+    Args:
+        ax: The matplotlib axes to finalize.
+        reference_color: Colour of the vertical reference line.
+        config (CumulativePlotConfig): Settings providing the font size, reference line position and x ticks.
+    """
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles, labels, prop={"size": config.font_size})
+    plt.axvline(x=config.reference_line_x, color=reference_color)
+
+    for axis in [ax.xaxis, ax.yaxis]:
+        axis.set_major_formatter(ScalarFormatter())
+
+    plt.xticks(config.x_ticks)
+
+    ax.xaxis.label.set_color("black")
+    ax.yaxis.label.set_color("black")
+    ax.tick_params(axis="x", colors="black")
+    ax.tick_params(axis="y", colors="black")
+
+
+def _output_figure(config: CumulativePlotConfig) -> None:
+    """Save the current figure when a save path is set, otherwise show it, then close it.
+
+    Args:
+        config (CumulativePlotConfig): Settings providing the save path, file name, dpi and figure size.
+    """
+    if config.save_path is not None:
+        plt.savefig(
+            os.path.join(config.save_path, config.file_name), dpi=config.dpi, bbox_inches="tight", pad_inches=0.2
+        )
+    else:
+        plt.gcf().set_size_inches(*config.figure_size)
+        plt.show()
+    plt.close()
+
+
+def plot_cumulative(
+    data_struct: Dict[str, pd.DataFrame],
+    models: List[str],
+    uncertainty_types: List[Tuple[str, str]],
+    bins: Union[int, List[int], np.ndarray],
+    config: Optional[CumulativePlotConfig] = None,
+) -> None:
+    """
+    Generate cumulative error distribution plots for uncertainty quantification analysis.
+
+    Creates cumulative distribution plots showing the percentage of images with errors below certain thresholds, which
+    is useful for understanding the overall error distribution across uncertainty bins and for comparing model
+    performance.
+
+    Args:
+        data_struct (Dict[str, pd.DataFrame]): Dictionary containing dataframes for each model. Keys are model names,
+            values are DataFrames with uncertainty and error columns.
+        models (List[str]): List of model names to compare. These should be keys in data_struct.
+        uncertainty_types (List[Tuple[str, str]]): List of tuples describing uncertainty-error combinations to analyze.
+            Each tuple contains (uncertainty_type, error_type).
+        bins (Union[int, List[int], np.ndarray]): Bin indices to include in the analysis. Can be a single value, list,
+            or numpy array.
+        config (CumulativePlotConfig, optional): Presentation, output and styling settings.
+            Defaults to :class:`CumulativePlotConfig`.
+    """
+    config = config or CumulativePlotConfig()
+
+    # make sure bins is a list and not a single value
+    bins = [bins] if not isinstance(bins, (list, np.ndarray)) else bins
+
+    with plt.style.context("ggplot"):
+        _ = plt.figure()
+
+        ax = plt.gca()
+        _style_cumulative_axes(ax, config)
+
+        colors = colormaps.get_cmap(config.colormap)(np.arange(len(uncertainty_types) + 1))
+        for i, (uncertainty, _) in enumerate(uncertainty_types):
+            color = colors[i]
+            for hash_idx, model_type in enumerate(models):
+                # The selected bins, and optionally the full dataset for comparison, share one code
+                # path; they differ only in the rows kept and the line style used.
+                selections = [(bins, config.line_styles[hash_idx])]
+                if config.compare_to_all:
+                    selections.append((None, config.line_styles[len(models) + hash_idx]))
+
+                for selected_bins, line in selections:
+                    errors = _model_errors(
+                        data_struct[model_type], uncertainty, selected_bins, config.error_scaling_factor
+                    )
+                    sorted_errors, percentages = _cumulative_curve(errors)
+                    ax.plot(
+                        sorted_errors,
+                        percentages,
+                        label=model_type + " " + uncertainty,
+                        color=color,
+                        linestyle=line,
+                        dash_capstyle="round",
+                    )
+
+        _finalize_cumulative_axes(ax, colors[len(uncertainty_types)], config)
+        _output_figure(config)
+
+
 def _calculate_correlations(uncertainties: np.ndarray, scaled_errors: np.ndarray) -> Dict[str, List[float]]:
     """
     Calculate Spearman and Pearson correlations between uncertainties and errors.
-
-    This function computes both Spearman rank correlation (non-parametric) and
-    Pearson correlation (parametric) to assess the relationship between uncertainty
-    estimates and prediction errors.
 
     Args:
         uncertainties (np.ndarray): Array of uncertainty values
@@ -294,21 +511,16 @@ def _fit_piecewise_model(
     uncertainties: np.ndarray, scaled_errors: np.ndarray, quantile_thresholds: List[float]
 ) -> pwlf.PiecewiseLinFit:
     """
-    Fit a piecewise linear model to uncertainty-error data using specified breakpoints.
-
-    This function creates and fits a piecewise linear regression model that can capture
-    non-linear relationships between uncertainties and errors by fitting different
-    linear segments at different uncertainty ranges.
+    Fit a piecewise linear model to uncertainty-error data using the given breakpoints.
 
     Args:
         uncertainties (np.ndarray): Array of uncertainty values (independent variable)
         scaled_errors (np.ndarray): Array of scaled error values (dependent variable)
-        quantile_thresholds (List[float]): List of quantile threshold values that serve
-            as breakpoints for the piecewise linear model
+        quantile_thresholds (List[float]): List of quantile threshold values that serve as breakpoints for the piecewise
+            linear model
 
     Returns:
-        pwlf.PiecewiseLinFit: Fitted piecewise linear model object that can be used
-            for predictions and plotting
+        pwlf.PiecewiseLinFit: The fitted piecewise linear model.
     """
     piecewise_model = pwlf.PiecewiseLinFit(uncertainties, scaled_errors)
     piecewise_model.fit_with_breaks(quantile_thresholds)
@@ -323,26 +535,19 @@ def _generate_bootstrap_models(
     sample_ratio: float = 0.6,
 ) -> List[pwlf.PiecewiseLinFit]:
     """
-    Generate bootstrap piecewise models for confidence interval estimation.
-
-    This function creates multiple piecewise linear models using bootstrap sampling
-    to estimate confidence intervals around the main piecewise fit. Each bootstrap
-    model is fitted on a random subset of the original data.
+    Fit piecewise linear models to repeated random samples of the data.
 
     Args:
         uncertainties (np.ndarray): Array of uncertainty values
         scaled_errors (np.ndarray): Array of scaled error values
         quantile_thresholds (List[float]): Quantile threshold breakpoints for piecewise fitting
         n_bootstrap (int, optional): Number of bootstrap samples to generate. Defaults to 1000.
-        sample_ratio (float, optional): Fraction of data to sample for each bootstrap.
-            Must be between 0 and 1. Defaults to 0.6.
+        sample_ratio (float, optional): Fraction of data to sample for each bootstrap. Must be between 0 and 1.
+            Defaults to 0.6.
 
     Returns:
-        List[pwlf.PiecewiseLinFit]: List of fitted bootstrap piecewise models
-
-    Note:
-        Each bootstrap model is fitted on a random sample of size
-        int(len(data) * sample_ratio) drawn without replacement from the original data.
+        List[pwlf.PiecewiseLinFit]: One fitted model per bootstrap sample. Each sample has
+        ``int(len(data) * sample_ratio)`` points drawn with replacement.
     """
     bootstrap_models = []
 
@@ -360,26 +565,17 @@ def _generate_bootstrap_models(
 
 def _get_quantile_bounds(quantile_thresholds: List[float], uncertainties: np.ndarray, idx: int) -> tuple[float, float]:
     """
-    Get minimum and maximum bounds for a specific quantile segment.
-
-    This function determines the boundary values for a quantile segment based on
-    the segment index and the list of quantile thresholds. It handles edge cases
-    for the first and last segments.
+    Get the minimum and maximum bounds of a quantile segment.
 
     Args:
-        quantile_thresholds (List[float]): List of quantile threshold values that
-            define segment boundaries
-        uncertainties (np.ndarray): Array of uncertainty values used to determine
-            global min/max bounds
+        quantile_thresholds (List[float]): List of quantile threshold values that define segment boundaries
+        uncertainties (np.ndarray): Array of uncertainty values used to determine global min/max bounds
         idx (int): Index of the quantile segment (0-based)
 
     Returns:
-        tuple[float, float]: Tuple containing (min_value, max_value) for the segment
-
-    Note:
-        - For idx=0 (first segment): min_val = min(uncertainties), max_val = first threshold
-        - For middle segments: min_val = previous threshold, max_val = current threshold
-        - For last segment: min_val = last threshold, max_val = max(uncertainties)
+        tuple[float, float]: The ``(min_value, max_value)`` of the segment. The first segment starts at
+            ``min(uncertainties)``, the last ends at ``max(uncertainties)``, and the others are bounded by consecutive
+            thresholds.
     """
     if idx == 0:
         min_val = min(uncertainties)
@@ -396,22 +592,14 @@ def _get_quantile_bounds(quantile_thresholds: List[float], uncertainties: np.nda
 
 def _calculate_segment_centers(quantile_thresholds: List[float], uncertainties: np.ndarray) -> List[float]:
     """
-    Calculate center positions for each quantile segment for label placement.
-
-    This function computes the midpoint of each quantile segment, which is used
-    for positioning x-axis labels in plots. The center is calculated as the
-    arithmetic mean of the segment's minimum and maximum bounds.
+    Calculate the midpoint of each quantile segment, used to position the x-axis labels.
 
     Args:
         quantile_thresholds (List[float]): List of quantile threshold values
         uncertainties (np.ndarray): Array of uncertainty values for determining bounds
 
     Returns:
-        List[float]: List of center positions for each quantile segment
-
-    Note:
-        The number of segments is len(quantile_thresholds) + 1, as thresholds
-        define boundaries between segments.
+        List[float]: The center of each of the ``len(quantile_thresholds) + 1`` segments.
     """
     bin_label_locs = []
     for idx in range(len(quantile_thresholds) + 1):
@@ -424,26 +612,16 @@ def _plot_bootstrap_confidence_bands(
     ax, bootstrap_models: List[pwlf.PiecewiseLinFit], uncertainties: np.ndarray, num_pred_points: int = 10000
 ) -> None:
     """
-    Plot bootstrap confidence bands on the given axes.
-
-    This function visualizes uncertainty in the piecewise linear fit by plotting
-    prediction lines from multiple bootstrap models. The ensemble of lines creates
-    a confidence band around the main fit.
+    Plot the prediction line of every bootstrap model on the given axes, forming a confidence band.
 
     Args:
         ax: Matplotlib axes object to plot on
         bootstrap_models (List[pwlf.PiecewiseLinFit]): List of fitted bootstrap models
         uncertainties (np.ndarray): Array of uncertainty values for determining plot range
-        num_pred_points (int, optional): Number of prediction points for smooth curves.
-            Defaults to 10000.
+        num_pred_points (int, optional): Number of prediction points for smooth curves. Defaults to 10000.
 
     Returns:
-        None: Plots directly on the provided axes
-
-    Note:
-        - Each bootstrap model is plotted as a grey line with low alpha (0.2)
-        - Lines are plotted in reverse order ([::-1]) for proper visualization
-        - Uses zorder=2 to place confidence bands behind main elements
+        None: Plots directly on the provided axes.
     """
     uncertainties_pred = np.linspace(min(uncertainties), max(uncertainties), num=num_pred_points)
 
@@ -454,10 +632,7 @@ def _plot_bootstrap_confidence_bands(
 
 def _plot_scatter_points(ax, uncertainties: np.ndarray, scaled_errors: np.ndarray, scatter_color: str) -> None:
     """
-    Plot scatter points of uncertainties vs errors on the given axes.
-
-    This function creates a scatter plot showing the relationship between uncertainty
-    estimates and scaled errors. Each point represents one data sample.
+    Scatter the uncertainties against the scaled errors on the given axes, one point per sample.
 
     Args:
         ax: Matplotlib axes object to plot on
@@ -466,12 +641,7 @@ def _plot_scatter_points(ax, uncertainties: np.ndarray, scaled_errors: np.ndarra
         scatter_color (str): Color for the scatter points
 
     Returns:
-        None: Plots directly on the provided axes
-
-    Note:
-        - Uses circular markers ('o') with low alpha (0.2) for transparency
-        - Points are placed at zorder=1 to appear behind other plot elements
-        - Alpha blending helps visualize point density in overlapping regions
+        None: Plots directly on the provided axes.
     """
     ax.scatter(uncertainties, scaled_errors, marker="o", color=scatter_color, zorder=1, alpha=0.2)
 
@@ -485,11 +655,7 @@ def _plot_piecewise_segments(
     num_pred_points: int = 20000,
 ) -> None:
     """
-    Plot piecewise linear segments with different colors and background shading.
-
-    This function visualizes the fitted piecewise linear model by plotting each
-    segment in a different color and adding background shading to distinguish
-    quantile regions.
+    Plot each segment of the piecewise linear model in its own colour, with the quantile region shaded behind it.
 
     Args:
         ax: Matplotlib axes object to plot on
@@ -497,17 +663,10 @@ def _plot_piecewise_segments(
         uncertainties (np.ndarray): Array of uncertainty values for range determination
         quantile_thresholds (List[float]): Quantile thresholds defining segment boundaries
         colors (List[str]): List of colors for different segments (cycles if needed)
-        num_pred_points (int, optional): Number of prediction points for smooth curves.
-            Defaults to 20000.
+        num_pred_points (int, optional): Number of prediction points for smooth curves. Defaults to 20000.
 
     Returns:
-        None: Plots directly on the provided axes
-
-    Note:
-        - Each segment gets a different color from the colors list (cycles using modulo)
-        - Background shading (axvspan) with alpha=0.1 highlights quantile regions
-        - Piecewise lines use zorder=3 to appear on top of other elements
-        - High num_pred_points ensures smooth curve appearance
+        None: Plots directly on the provided axes.
     """
     uncertainties_pred = np.linspace(min(uncertainties), max(uncertainties), num=num_pred_points)
     scaled_errors_pred = piecewise_model.predict(uncertainties_pred)
@@ -533,29 +692,19 @@ def _setup_plot_formatting(
     font_size: int = 25,
 ) -> None:
     """
-    Setup comprehensive plot formatting including labels, ticks, and correlation text.
-
-    This function handles all aspects of plot formatting including axis labels,
-    tick formatting, correlation coefficient display, and overall plot styling.
-    It creates a publication-ready visualization of the uncertainty-error correlation.
+    Set the axis labels, quantile tick labels and correlation text on the given axes.
 
     Args:
         ax: Matplotlib axes object to format
         bin_label_locs (List[float]): X-axis positions for quantile bin labels
         quantile_thresholds (List[float]): Quantile thresholds for determining label count
-        correlation_dict (Dict[str, List[float]]): Dictionary containing correlation results
-            with 'spearman' key containing [correlation, p_value]
+        correlation_dict (Dict[str, List[float]]): Dictionary containing correlation results with 'spearman' key
+            containing [correlation, p_value]
         font_size (int, optional): Font size for labels and text. Defaults to 25.
 
     Returns:
-        None: Modifies the provided axes object in-place
-
-    Note:
-        - X-axis labels are formatted as Q_1, Q_2, ..., Q_n using LaTeX notation
-        - Correlation coefficient (ρ) and p-value are displayed prominently
-        - P-values < 0.001 are shown as "< 0.001" for readability
-        - Uses bold formatting for correlation statistics
-        - Axis labels indicate uncertainty quantiles and error in mm
+        None: Modifies the provided axes in place. Tick labels are ``Q_1 … Q_n``; the Spearman coefficient and p-value
+            (rounded to three decimals, floored at 0.001) are written on the plot.
     """
     # Set x-axis ticks and labels
     ax.set_xticks(bin_label_locs)

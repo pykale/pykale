@@ -1,3 +1,79 @@
+# Version  0.2.0
+
+#### New Features
+
+* [#281](https://github.com/pykale/pykale/pull/281): Add quantile binning for uncertainty estimation including error bound estimation and evaluation metrics
+* [#360](https://github.com/pykale/pykale/pull/360): Add multimodal neural network for multimodal data integration with AVMNIST example
+* [#361](https://github.com/pykale/pykale/pull/361): Add MOGONET for multiomics integration
+* [#395](https://github.com/pykale/pykale/pull/395): Create main.py, cross_validation for multisite_neuroimg_adapt example
+* [#407](https://github.com/pykale/pykale/pull/407): Add prototypical network
+* [#437](https://github.com/pykale/pykale/pull/437): Add mida_trainer pipeline
+* [#458](https://github.com/pykale/pykale/pull/458): Add example DrugBAN PyG
+* [#460](https://github.com/pykale/pykale/pull/460): Update cross-validation for transductive domain adaptation
+* [#463](https://github.com/pykale/pykale/pull/463): Add symmetric weights and connectome vizualization
+* [#464](https://github.com/pykale/pykale/pull/464): Implement AutoMIDAClassificationTrainer and MIDA enhancement
+* [#471](https://github.com/pykale/pykale/pull/471): Add multimodal tri-stream pre-training and fine-tuning for image and signal modalities
+* [#475](https://github.com/pykale/pykale/pull/475): Add feature importance interpretation to MOGONET example
+* [#476](https://github.com/pykale/pykale/pull/476): Allow custom param_grid for AutoMIDAClassificationTrainer
+* [#477](https://github.com/pykale/pykale/pull/477): Add Integrated Gradients interpretation method and minor refinements
+
+#### Bug Fixes
+
+* [#423](https://github.com/pykale/pykale/pull/423): Update the default checkpoint (ckpt) resume and test file name to None
+* [#444](https://github.com/pykale/pykale/pull/444): Pin Torch to 2.0.0 to fix test OSError and update related packages
+* [#445](https://github.com/pykale/pykale/pull/445): Pin torch to 2.3.0
+* [#453](https://github.com/pykale/pykale/pull/453): Fix device allocation error and resolve type mismatches
+* [#455](https://github.com/pykale/pykale/pull/455): Fix device allocation error, resolve type mismatches, and update repo configurations
+* [#456](https://github.com/pykale/pykale/pull/456): Support Python 3.11 and stop support Python 3.8
+* [#459](https://github.com/pykale/pykale/pull/459): Upgrade minimum sklearn version from 0.23.2 to 1.6.1
+* [#472](https://github.com/pykale/pykale/pull/472): Fix auto-unwrapping in the multiomics example
+* [#481](https://github.com/pykale/pykale/pull/481): Support torch 2.6
+* [#482](https://github.com/pykale/pykale/pull/482): Set neurokit2<=0.2.11 in setup.py
+* [#487](https://github.com/pykale/pykale/pull/487): Fix circular import and refactor correlation analysis
+* [#494](https://github.com/pykale/pykale/pull/494): Update weight norm imports for DrugBAN
+* [#511](https://github.com/pykale/pykale/pull/511): Fix torch-numpy type mismatch
+
+#### Code Improvements
+
+* [#383](https://github.com/pykale/pykale/pull/383): Update keyword param for pretrained ResNet
+* [#401](https://github.com/pykale/pykale/pull/401): Upgrade to support PyTorch 2.0+ and Lightning 2.0+
+* [#403](https://github.com/pykale/pykale/pull/403): Refine examples via unifying device settings and output folder names
+* [#409](https://github.com/pykale/pykale/pull/409): Refactor ResNet
+* [#417](https://github.com/pykale/pykale/pull/417): Add resume and test checkpoint loading to main.py in example/cifas_cn…
+* [#426](https://github.com/pykale/pykale/pull/426): Refactor documentation and resolve module visibility issues
+* [#429](https://github.com/pykale/pykale/pull/429): Cache preload data
+* [#438](https://github.com/pykale/pykale/pull/438): Upgrade to support Numpy 2.0.0+
+* [#441](https://github.com/pykale/pykale/pull/441): Refactor merge modules losses distance and metrics to one
+* [#449](https://github.com/pykale/pykale/pull/449): Fix DANN torch2.0
+* [#467](https://github.com/pykale/pykale/pull/467): Unify API for `mida_trainer` and `multi_domain_trainer`, and improve `mida_trainer` test
+* [#469](https://github.com/pykale/pykale/pull/469): Refactor DomainNetSmallImage
+* [#480](https://github.com/pykale/pykale/pull/480): Make the output of interpretation in cancer more clean
+* [#483](https://github.com/pykale/pykale/pull/483): Refactor DrugBAN
+* [#484](https://github.com/pykale/pykale/pull/484): Reorganize `kale.embed` APIs
+* [#492](https://github.com/pykale/pykale/pull/492): Refactor uncertainty_quantile with BoxPlotter class
+* [#497](https://github.com/pykale/pykale/pull/497): Support Python 3.12
+* [#498](https://github.com/pykale/pykale/pull/498): Refactor Jaccard evaluation in uncertainty metrics
+* [#502](https://github.com/pykale/pykale/pull/502): Refactor uncertainty quantiles by implementing QuantileBinningAnalyzer
+* [#505](https://github.com/pykale/pykale/pull/505): Unify domain adapter loader
+* [#508](https://github.com/pykale/pykale/pull/508): Refactor Squeeze-and-Excitation Layers
+* [#509](https://github.com/pykale/pykale/pull/509): Stop support Python 3.9
+* [#514](https://github.com/pykale/pykale/pull/514): Refactor/`embed.BaseCnn` address issue #513
+* [#520](https://github.com/pykale/pykale/pull/520): Fix #518: [Refactor] Variable naming in CNN modules
+
+#### Tests
+
+* [#461](https://github.com/pykale/pykale/pull/461): Add codecov token for testing
+* [#470](https://github.com/pykale/pykale/pull/470): Improve code test coverage
+* [#491](https://github.com/pykale/pykale/pull/491): Improve test coverage for `predict` APIs
+
+#### Documentation Updates
+
+* [#432](https://github.com/pykale/pykale/pull/432): Refine test ReadMe
+* [#436](https://github.com/pykale/pykale/pull/436): Fix bugs of greek letters in docstring
+* [#493](https://github.com/pykale/pykale/pull/493): Update `embed` ReadMe
+* [#499](https://github.com/pykale/pykale/pull/499): Add workshop and tutorial repository links
+* [#501](https://github.com/pykale/pykale/pull/501): Update EMBC workshop link
+
 # Version  0.1.2
 
 #### New Features

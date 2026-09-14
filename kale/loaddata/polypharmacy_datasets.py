@@ -1,9 +1,9 @@
 import os
 
-import torch
 from torch.utils.data import Dataset
 from torch_geometric.data.data import Data
 
+from kale.loaddata.graph_access import load_graph_data
 from kale.utils.download import download_file_by_url
 
 
@@ -45,7 +45,7 @@ class PolypharmacyDataset(Dataset):
         data_path = os.path.join(self.root, f"{self.name}.pt")
 
         # load data
-        return torch.load(data_path, weights_only=False)
+        return load_graph_data(data_path)
 
     def __len__(self):
         return 1

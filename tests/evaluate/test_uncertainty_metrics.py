@@ -1,10 +1,10 @@
-import logging
-
 import numpy as np
 import pandas as pd
 import pytest
 
 from kale.evaluate.uncertainty_metrics import (
+    bin_wise_bound_eval,
+    bin_wise_errors,
     ColumnNames,
     DataProcessor,
     evaluate_bounds,
@@ -18,24 +18,14 @@ from kale.evaluate.uncertainty_metrics import (
     ResultsContainer,
 )
 from kale.prepdata.tabular_transform import generate_struct_for_qbin
-
-# from kale.utils.download import download_file_by_url
 from kale.utils.seed import set_seed
 
-# import os
-LOGGER = logging.getLogger(__name__)
-
-
-seed = 36
-set_seed(seed)
-
-ERRORS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-UNCERTAINTIES = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+set_seed(36)
 
 
 @pytest.fixture(scope="module")
 def dummy_test_preds(landmark_uncertainty_tuples_path):
-    bins_all_targets, bins_targets_sep, bounds_all_targets, bounds_targets_sep = generate_struct_for_qbin(
+    bins_all_targets, _, bounds_all_targets, _ = generate_struct_for_qbin(
         ["U-NET"], [0, 1], landmark_uncertainty_tuples_path[2], "SA"
     )
 
@@ -43,40 +33,35 @@ def dummy_test_preds(landmark_uncertainty_tuples_path):
 
 
 class TestEvaluateJaccard:
-    # Using one uncertainty type, test numerous bins
     @pytest.mark.parametrize("num_bins", [2, 3, 4, 5])
     def test_one_uncertainty(self, dummy_test_preds, num_bins):
         jacc_dict = evaluate_jaccard(
             dummy_test_preds[0], [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"]], num_bins, [0, 1], num_folds=8
         )
-        all_jaccard_data = jacc_dict["Jaccard All"]
-        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets seperated"]
+        all_jaccard_data = jacc_dict["jaccard_all"]
+        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets separated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA"]
         assert len(all_jaccard_data["U-NET S-MHA"]) == num_bins
 
         assert list(all_jaccard_bins_targets_sep.keys()) == ["U-NET S-MHA"]
         assert len(all_jaccard_bins_targets_sep["U-NET S-MHA"]) == num_bins
-        assert (
-            len(all_jaccard_bins_targets_sep["U-NET S-MHA"][0]) == 8 * 2
-        )  # because each landmark has 8 folds - they are seperate
+        assert len(all_jaccard_bins_targets_sep["U-NET S-MHA"][0]) == 8 * 2
 
     def test_one_fold(self, dummy_test_preds):
         jacc_dict = evaluate_jaccard(
             dummy_test_preds[0], [["S-MHA", "S-MHA Error", "S-MHA Uncertainty"]], 5, [0, 1], num_folds=1
         )
 
-        all_jaccard_data = jacc_dict["Jaccard All"]
-        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets seperated"]
+        all_jaccard_data = jacc_dict["jaccard_all"]
+        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets separated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA"]
         assert len(all_jaccard_data["U-NET S-MHA"]) == 5
 
         assert list(all_jaccard_bins_targets_sep.keys()) == ["U-NET S-MHA"]
         assert len(all_jaccard_bins_targets_sep["U-NET S-MHA"]) == 5
-        assert (
-            len(all_jaccard_bins_targets_sep["U-NET S-MHA"][0]) == 2
-        )  # because each landmark has 1 folds - they are sep
+        assert len(all_jaccard_bins_targets_sep["U-NET S-MHA"][0]) == 2
 
     def test_multiple_uncerts(self, dummy_test_preds):
         jacc_dict = evaluate_jaccard(
@@ -87,8 +72,8 @@ class TestEvaluateJaccard:
             num_folds=1,
         )
 
-        all_jaccard_data = jacc_dict["Jaccard All"]
-        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets seperated"]
+        all_jaccard_data = jacc_dict["jaccard_all"]
+        all_jaccard_bins_targets_sep = jacc_dict["Jaccard targets separated"]
 
         assert list(all_jaccard_data.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
         assert len(all_jaccard_data["U-NET S-MHA"]) == len(all_jaccard_data["U-NET E-MHA"]) == 5
@@ -99,7 +84,7 @@ class TestEvaluateJaccard:
             len(all_jaccard_bins_targets_sep["U-NET S-MHA"][0])
             == len(all_jaccard_bins_targets_sep["U-NET E-MHA"][0])
             == 2
-        )  # because each landmark has 8 folds - they are sep
+        )
 
 
 class TestEvaluateBounds:
@@ -114,7 +99,7 @@ class TestEvaluateBounds:
             num_folds=8,
         )
 
-        all_bound_percents = bound_dict["Error Bounds All"]
+        all_bound_percents = bound_dict["error_bounds_all"]
         all_bound_percents_notargetsep = bound_dict["all_bound_percents_notargetsep"]
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA"]
@@ -122,9 +107,7 @@ class TestEvaluateBounds:
 
         assert list(all_bound_percents_notargetsep.keys()) == ["U-NET S-MHA"]
         assert len(all_bound_percents_notargetsep["U-NET S-MHA"]) == num_bins
-        assert (
-            len(all_bound_percents_notargetsep["U-NET S-MHA"][0]) == 8 * 2
-        )  # because each landmark has 8 folds - they are seperate
+        assert len(all_bound_percents_notargetsep["U-NET S-MHA"][0]) == 8 * 2
 
     def test_one_fold(self, dummy_test_preds):
         bound_dict = evaluate_bounds(
@@ -135,7 +118,7 @@ class TestEvaluateBounds:
             [0, 1],
             num_folds=1,
         )
-        all_bound_percents = bound_dict["Error Bounds All"]
+        all_bound_percents = bound_dict["error_bounds_all"]
         all_bound_percents_notargetsep = bound_dict["all_bound_percents_notargetsep"]
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA"]
@@ -143,9 +126,7 @@ class TestEvaluateBounds:
 
         assert list(all_bound_percents_notargetsep.keys()) == ["U-NET S-MHA"]
         assert len(all_bound_percents_notargetsep["U-NET S-MHA"]) == 5
-        assert (
-            len(all_bound_percents_notargetsep["U-NET S-MHA"][0]) == 2
-        )  # because each landmark has 1 folds - they are sep
+        assert len(all_bound_percents_notargetsep["U-NET S-MHA"][0]) == 2
 
     def test_multiple_uncerts(self, dummy_test_preds):
         bound_dict = evaluate_bounds(
@@ -157,7 +138,7 @@ class TestEvaluateBounds:
             num_folds=8,
         )
 
-        all_bound_percents = bound_dict["Error Bounds All"]
+        all_bound_percents = bound_dict["error_bounds_all"]
         all_bound_percents_notargetsep = bound_dict["all_bound_percents_notargetsep"]
 
         assert list(all_bound_percents.keys()) == ["U-NET S-MHA", "U-NET E-MHA"]
@@ -173,7 +154,7 @@ class TestEvaluateBounds:
             len(all_bound_percents_notargetsep["U-NET S-MHA"][0])
             == len(all_bound_percents_notargetsep["U-NET E-MHA"][0])
             == 8 * 2
-        )  # because each landmark has 8 folds - they are sep
+        )
 
 
 class TestEvaluationConfig:
@@ -217,12 +198,10 @@ class TestResultsContainer:
         """Test adding results to container."""
         container = ResultsContainer(num_bins=5, num_targets=2)
 
-        # Test adding main result
         test_data = [1, 2, 3, 4, 5]
         container.add_main_result("test_key", test_data)
         assert container.main_results["test_key"] == test_data
 
-        # Test adding target separated result
         target_data = [[1, 2], [3, 4], [5, 6]]
         container.add_target_separated_result("test_key", target_data)
         assert container.target_separated_results["test_key"] == target_data
@@ -231,19 +210,36 @@ class TestResultsContainer:
 class TestDataProcessor:
     """Test DataProcessor utility methods."""
 
-    def test_group_data_by_bins(self):
-        """Test grouping data by bins."""
-        errors_dict = {"pred1": 0.1, "pred2": 0.3, "pred3": 0.2, "pred4": 0.4}
-        bins_dict = {"pred1": 0, "pred2": 1, "pred3": 0, "pred4": 1}
+    @pytest.mark.parametrize(
+        "errors_dict, bins_dict, num_bins, expected_keys, expected_errors",
+        [
+            (
+                {"pred1": 0.1, "pred2": 0.3, "pred3": 0.2, "pred4": 0.4},
+                {"pred1": 0, "pred2": 1, "pred3": 0, "pred4": 1},
+                2,
+                [["pred1", "pred3"], ["pred2", "pred4"]],
+                [[0.1, 0.2], [0.3, 0.4]],
+            ),
+            ({"a": 0.5, "b": 0.1, "c": 0.9}, {"c": 0, "a": 0, "b": 0}, 1, [["c", "a", "b"]], [[0.9, 0.5, 0.1]]),
+            ({"pred1": 0.1, "pred2": 0.3}, {"pred1": "0", "pred2": "1"}, 2, [["pred1"], ["pred2"]], [[0.1], [0.3]]),
+            (
+                {"pred1": 0.1, "pred2": 0.3, "pred3": 0.2},
+                {"pred1": 0, "pred2": 5, "pred3": -1},
+                2,
+                [["pred1"], []],
+                [[0.1], []],
+            ),
+            ({}, {}, 3, [[], [], []], [[], [], []]),
+            ({1: 0.1, 2: 0.3}, {"1": 0, "2": 1}, 2, [["1"], ["2"]], [[0.1], [0.3]]),
+        ],
+        ids=["basic", "prediction-order", "string-bins", "out-of-range", "empty", "mixed-uids"],
+    )
+    def test_group_data_by_bins(self, errors_dict, bins_dict, num_bins, expected_keys, expected_errors):
+        """Check bin membership, UID matching, and prediction order."""
+        bin_keys, bin_errors = DataProcessor.group_data_by_bins(errors_dict, bins_dict, num_bins)
 
-        bin_keys, bin_errors = DataProcessor.group_data_by_bins(errors_dict, bins_dict, 2)
-
-        assert len(bin_keys) == 2
-        assert len(bin_errors) == 2
-        assert set(bin_keys[0]) == {"pred1", "pred3"}
-        assert set(bin_keys[1]) == {"pred2", "pred4"}
-        assert bin_errors[0] == [0.1, 0.2]
-        assert bin_errors[1] == [0.3, 0.4]
+        assert bin_keys == expected_keys
+        assert bin_errors == expected_errors
 
 
 class TestQuantileCalculator:
@@ -381,7 +377,6 @@ class TestJaccardEvaluator:
         evaluator = JaccardEvaluator.create_simple(original_num_bins=5, num_folds=1)
         evaluator.current_uncertainty_type_ = "epistemic"
 
-        # Create mock fold data
         errors_df = pd.DataFrame(
             {
                 ColumnNames.UID: ["uid1", "uid2", "uid3"],
@@ -416,7 +411,6 @@ class TestJaccardEvaluator:
 
         pred_bin_keys = evaluator._get_predicted_bin_keys(errors_dict, bins_dict)
 
-        # Should be reversed (worst to best: B3 to B1)
         assert len(pred_bin_keys) == 3
         assert isinstance(pred_bin_keys, list)
         assert all(isinstance(bin_keys, list) for bin_keys in pred_bin_keys)
@@ -461,7 +455,6 @@ class TestJaccardEvaluator:
         evaluator = JaccardEvaluator.create_simple(original_num_bins=2, num_folds=1)
         evaluator.current_num_bins_ = 2
 
-        # Create mock JaccardBinResults
         results1 = JaccardBinResults(
             mean_all_targets=0.5,
             mean_all_bins=[0.4, 0.6],
@@ -501,14 +494,12 @@ class TestJaccardEvaluator:
 
         results = evaluator.evaluate(bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"]], targets=[0, 1])
 
-        # Check that results match expected structure
-        assert "Jaccard All" in results
-        assert "Jaccard targets seperated" in results
-        assert "Recall All" in results
-        assert "Precision All" in results
+        assert "jaccard_all" in results
+        assert "Jaccard targets separated" in results
+        assert "recall_all" in results
+        assert "precision_all" in results
 
-        # Check specific keys and structure
-        jaccard_all = results["Jaccard All"]
+        jaccard_all = results["jaccard_all"]
         assert "U-NET S-MHA" in jaccard_all
         assert len(jaccard_all["U-NET S-MHA"]) == 5  # 5 bins
 
@@ -519,7 +510,7 @@ class TestJaccardEvaluator:
 
         results = evaluator.evaluate(bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"]], targets=[0, 1])
 
-        jaccard_all = results["Jaccard All"]
+        jaccard_all = results["jaccard_all"]
         assert len(jaccard_all["U-NET S-MHA"]) == num_bins
 
     def test_combine_middle_bins(self, dummy_test_preds):
@@ -528,8 +519,7 @@ class TestJaccardEvaluator:
 
         results = evaluator.evaluate(bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"]], targets=[0, 1])
 
-        jaccard_all = results["Jaccard All"]
-        # When combine_middle_bins=True, should have 3 bins
+        jaccard_all = results["jaccard_all"]
         assert len(jaccard_all["U-NET S-MHA"]) == 3
 
     def test_multiple_uncertainty_types(self, dummy_test_preds):
@@ -540,7 +530,7 @@ class TestJaccardEvaluator:
             bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"], ["E-MHA"]], targets=[0, 1]
         )
 
-        jaccard_all = results["Jaccard All"]
+        jaccard_all = results["jaccard_all"]
         assert "U-NET S-MHA" in jaccard_all
         assert "U-NET E-MHA" in jaccard_all
         assert len(jaccard_all["U-NET S-MHA"]) == 5
@@ -552,18 +542,16 @@ class TestBackwardCompatibility:
 
     def test_jaccard_results_consistency(self, dummy_test_preds):
         """Test that old and new interfaces produce consistent results."""
-        # Old functional interface
         old_results = evaluate_jaccard(dummy_test_preds[0], [["S-MHA"]], 5, [0, 1], num_folds=8)
 
-        # New class interface
         evaluator = JaccardEvaluator.create_simple(original_num_bins=5, num_folds=8)
         new_results = evaluator.evaluate(
             bin_predictions=dummy_test_preds[0], uncertainty_pairs=[["S-MHA"]], targets=[0, 1]
         )
 
         # Compare key results (allowing for small numerical differences)
-        old_jaccard = old_results["Jaccard All"]["U-NET S-MHA"]
-        new_jaccard = new_results["Jaccard All"]["U-NET S-MHA"]
+        old_jaccard = old_results["jaccard_all"]["U-NET S-MHA"]
+        new_jaccard = new_results["jaccard_all"]["U-NET S-MHA"]
 
         assert len(old_jaccard) == len(new_jaccard)
         for old_bin, new_bin in zip(old_jaccard, new_jaccard):
@@ -610,12 +598,74 @@ class TestJaccardBinResults:
             all_bins_precision=[[0.5, 0.6], [0.7, 0.8], [0.9, 1.0]],
         )
 
-        # Test base class attributes
         assert results.mean_all_targets == 0.5
         assert results.mean_all_bins == [0.4, 0.5, 0.6]
 
-        # Test Jaccard-specific attributes
         assert results.mean_all_targets_recall == 0.6
         assert results.mean_all_bins_recall == [0.5, 0.6, 0.7]
         assert results.mean_all_targets_precision == 0.7
         assert results.mean_all_bins_precision == [0.6, 0.7, 0.8]
+
+
+class TestCrossDataFrameIndexAlignment:
+    """Check UID-based matching between errors and bins with different DataFrame indices."""
+
+    @staticmethod
+    def _errors_df():
+        return pd.DataFrame(
+            {
+                "uid": ["u0", "u1", "u2", "u3"],
+                "Target Index": [0, 0, 1, 1],
+                "S-MHA Error": [1.0, 3.0, 5.0, 7.0],
+            }
+        )
+
+    @staticmethod
+    def _bins_df():
+        return pd.DataFrame(
+            {
+                "uid": ["u0", "u1", "u2", "u3"],
+                "Target Index": [0, 0, 1, 1],
+                "S-MHA Uncertainty bins": [0, 1, 0, 1],
+            }
+        )
+
+    def test_bin_wise_errors_misaligned_index(self):
+        """Reordering and reindexing bin rows preserves the expected mean errors."""
+        errors_df = self._errors_df()
+        bins_aligned = self._bins_df()
+        bins_misaligned = self._bins_df().iloc[[3, 2, 1, 0]].reset_index(drop=True)
+
+        result = bin_wise_errors(
+            errors_df, bins_misaligned, num_bins=2, targets=[0, 1], uncertainty_key="S-MHA", error_scaling_factor=1
+        )
+
+        # Hand-computed: target 0 -> {bin0: 1.0, bin1: 3.0}, target 1 -> {bin0: 5.0, bin1: 7.0}
+        assert result["mean all targets"] == pytest.approx(4.0)
+        assert result["mean all bins"] == pytest.approx([3.0, 5.0])
+        assert result["all bins"] == [[1.0, 5.0], [3.0, 7.0]]
+
+        aligned = bin_wise_errors(
+            errors_df, bins_aligned, num_bins=2, targets=[0, 1], uncertainty_key="S-MHA", error_scaling_factor=1
+        )
+        assert result["mean all targets"] == pytest.approx(aligned["mean all targets"])
+        assert result["mean all bins"] == pytest.approx(aligned["mean all bins"])
+        assert result["all bins"] == aligned["all bins"]
+
+    def test_bin_wise_bound_eval_misaligned_index(self):
+        """Reordering and reindexing bin rows preserves bound accuracy."""
+        errors_df = self._errors_df()
+        bins_aligned = self._bins_df()
+        bins_misaligned = self._bins_df().iloc[[3, 2, 1, 0]].reset_index(drop=True)
+        fold_bounds_all_targets = [[2.0], [6.0]]  # one threshold per target for num_bins=2
+
+        aligned = bin_wise_bound_eval(
+            fold_bounds_all_targets, errors_df, bins_aligned, targets=[0, 1], uncertainty_type="S-MHA", num_bins=2
+        )
+        misaligned = bin_wise_bound_eval(
+            fold_bounds_all_targets, errors_df, bins_misaligned, targets=[0, 1], uncertainty_type="S-MHA", num_bins=2
+        )
+
+        assert aligned["mean all targets"] == pytest.approx(1.0)
+        assert misaligned["mean all targets"] == pytest.approx(aligned["mean all targets"])
+        assert misaligned["mean all bins"] == pytest.approx(aligned["mean all bins"])

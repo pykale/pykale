@@ -23,12 +23,17 @@ def test_bimodal_vae_full_coverage():
     assert mean.shape == (1, batch_size, latent_dim)
     assert torch.allclose(log_var, torch.zeros_like(log_var))
 
-    # --- Test prior_expert (mocked cuda branch, even on CPU) ---
-    with patch.object(torch.Tensor, "cuda", lambda x: x):
+    # --- Test prior_expert (cuda branch resolves to the cuda device, even on CPU-only hosts) ---
+    prior_stub = torch.zeros(1, batch_size, latent_dim)  # built before patching torch.zeros
+    with patch("kale.embed.multimodal_encoder.torch.zeros", return_value=prior_stub) as mock_zeros:
         mu_cuda, log_var_cuda = model.prior_expert((1, batch_size, latent_dim), use_cuda=True)
         assert mu_cuda.shape == (1, batch_size, latent_dim)
         assert log_var_cuda.shape == (1, batch_size, latent_dim)
-        # These are not .is_cuda (since we're faking), but they exist
+        # Both the mean and log-variance tensors must be created on the cuda device, so check every
+        # call rather than only the last one - otherwise a regression that placed just one of them
+        # correctly would slip through.
+        assert mock_zeros.call_count == 2
+        assert all(call.kwargs["device"] == "cuda" for call in mock_zeros.call_args_list)
 
     # --- Test reparametrize, both training and eval mode ---
     dummy_mu = torch.zeros(batch_size, latent_dim)
@@ -53,3 +58,55 @@ def test_bimodal_vae_full_coverage():
     assert mu_img.shape == (batch_size, latent_dim)
     mu_sig, log_var_sig = model.infer(signal=signal)
     assert mu_sig.shape == (batch_size, latent_dim)
+
+
+class TestPriorExpertDevice:
+    """Device placement of the prior expert (issue #542)."""
+
+    def test_explicit_device_is_honoured(self):
+        """An explicit device is applied regardless of the use_cuda flag."""
+        mean, log_var = SignalImageVAE.prior_expert((1, 2, 4), device="cpu")
+
+        assert mean.device.type == "cpu"
+        assert log_var.device.type == "cpu"
+
+    def test_use_cuda_false_stays_on_cpu(self):
+        """Backward compatibility: the use_cuda flag still selects CPU when False."""
+        mean, log_var = SignalImageVAE.prior_expert((1, 2, 4), use_cuda=False)
+
+        assert mean.device.type == "cpu"
+        assert log_var.device.type == "cpu"
+
+    def test_prior_matches_model_device(self):
+        """infer() places the prior on the same device as the model parameters.
+
+        Previously the prior was built from a boolean flag and always landed on the default CUDA
+        device, so a model on a non-default device received a prior on the wrong one.
+        """
+        model = SignalImageVAE(image_input_channels=1, signal_input_dim=64, latent_dim=4)
+        model.eval()
+        expected = next(model.parameters()).device
+
+        image = torch.rand(2, 1, 224, 224)
+        signal = torch.rand(2, 1, 64)
+        mean, log_var = model.infer(image=image, signal=signal)
+
+        assert mean.device == expected
+        assert log_var.device == expected
+
+    def test_infer_forwards_model_device_to_prior_expert(self):
+        """infer() forwards the model's actual device, not a boolean CUDA flag.
+
+        The flag collapsed every CUDA device to the default one, so a model on a non-default
+        device (e.g. cuda:1) or on MPS received its prior on the wrong device. Asserting the
+        forwarded argument is what makes that regression detectable on a CPU-only host.
+        """
+        model = SignalImageVAE(image_input_channels=1, signal_input_dim=64, latent_dim=4)
+        model.eval()
+        expected = next(model.parameters()).device
+        prior = (torch.zeros(1, 2, 4), torch.zeros(1, 2, 4))
+
+        with patch.object(SignalImageVAE, "prior_expert", return_value=prior) as spy:
+            model.infer(image=torch.rand(2, 1, 224, 224), signal=torch.rand(2, 1, 64))
+
+        assert spy.call_args.kwargs["device"] == expected

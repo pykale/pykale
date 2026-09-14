@@ -70,6 +70,17 @@ class TestBaseTrainer:
         assert optimizers[0].defaults["eps"] == 0.2
         assert optimizers[0].defaults["weight_decay"] == 0.3
 
+    def test_configure_optimizers_with_adamw(self, trainer):
+        # Test AdamW optimizer configuration. Return a configured AdamW optimizer.
+        trainer.optimizers = ClassNet()
+        trainer._optimizer_params = {"type": "AdamW", "optim_params": {"eps": 0.2, "weight_decay": 0.3}}
+        optimizers = trainer.configure_optimizers()
+        assert len(optimizers) == 1
+        assert isinstance(optimizers, list)
+        assert isinstance(optimizers[0], torch.optim.AdamW)
+        assert optimizers[0].defaults["eps"] == 0.2
+        assert optimizers[0].defaults["weight_decay"] == 0.3
+
     def test_configure_optimizers_with_sgd(self, trainer):
         # Test SGD optimizer configuration. Return a configured SGD optimizer.
         trainer.optimizers = ClassNet()
@@ -100,6 +111,21 @@ class TestBaseTrainer:
         with pytest.raises(NotImplementedError) as excinfo:
             trainer.configure_optimizers()
             assert "Unknown optimizer type Unknown." in str(excinfo.value)
+
+    def test_configure_optimizers_filters_invalid_optim_params(self, trainer):
+        # optim_params that are not accepted by the optimizer constructor are silently
+        # filtered via validate_kwargs, consistent with kale.pipeline.domain_adapter.
+        # Before unification this raised TypeError (unexpected keyword argument).
+        trainer.optimizers = ClassNet()
+        trainer._optimizer_params = {
+            "type": "Adam",
+            "optim_params": {"weight_decay": 0.3, "not_a_real_param": 123},
+        }
+        optimizers = trainer.configure_optimizers()
+        assert isinstance(optimizers[0], torch.optim.Adam)
+        # The valid kwarg is kept and the invalid one is dropped rather than raising.
+        assert optimizers[0].defaults["weight_decay"] == 0.3
+        assert "not_a_real_param" not in optimizers[0].defaults
 
 
 class TestCNNTransformerTrainer:
@@ -150,6 +176,18 @@ class TestCNNTransformerTrainer:
         assert isinstance(optimizers[1], list)
         assert isinstance(optimizers[0][0], torch.optim.SGD)
         assert isinstance(optimizers[1][0], torch.optim.lr_scheduler.MultiStepLR)
+
+    def test_configure_optimizers_filters_invalid_optim_params(self, trainer):
+        # Invalid optim_params are filtered via validate_kwargs rather than raising TypeError.
+        trainer._adapt_lr = False
+        trainer._optimizer_params = {
+            "type": "SGD",
+            "optim_params": {"momentum": 0.2, "not_a_real_param": 123},
+        }
+        optimizers = trainer.configure_optimizers()
+        assert isinstance(optimizers[0], torch.optim.SGD)
+        assert optimizers[0].defaults["momentum"] == 0.2
+        assert "not_a_real_param" not in optimizers[0].defaults
 
     def test_training_step(self, trainer, batch):
         # Test training step. Return torch.Tensor.
