@@ -127,19 +127,19 @@ def generate_struct_for_qbin(
         dataset: String of what dataset you're measuring.
 
     Returns:
-        data_structs: Dictionary where keys are model names and values are pandas dataframes containing
-                      all prediction data across targets for that model.
+        data_structs: Dictionary where keys are model names and values are pandas dataframes containing all prediction
+            data across targets for that model.
 
         data_struct_sep: Dictionary where keys are a combination of model names and target indices (e.g., "model1 T1"),
-                         and values are pandas dataframes containing prediction data for the corresponding model and target.
+            and values are pandas dataframes containing prediction data for the corresponding model and target.
 
-        data_struct_bounds: Dictionary where keys are a combination of model names and the string " Error Bounds"
-                            (e.g., "model1 Error Bounds"), and values are pandas dataframes containing all estimated
-                            error bounds across targets for that model.
+        data_struct_bounds: Dictionary where keys are a combination of model names and the string " Error Bounds" (e.g.,
+            "model1 Error Bounds"), and values are pandas dataframes containing all estimated error bounds across
+            targets for that model.
 
         data_struct_bounds_sep: Dictionary where keys are a combination of model names, target indices and the string
-                                "Error Bounds" (e.g., "model1 Error Bounds L1"), and values are pandas dataframes containing
-                                estimated error bounds for the corresponding model and target.
+            "Error Bounds" (e.g., "model1 Error Bounds L1"), and values are pandas dataframes containing estimated error
+            bounds for the corresponding model and target.
     """
     data_structs = {}
     data_struct_sep = {}  #
