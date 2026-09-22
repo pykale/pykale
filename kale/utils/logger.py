@@ -3,6 +3,7 @@
 import datetime
 import logging
 import os
+import subprocess
 import uuid
 
 
@@ -50,8 +51,13 @@ def construct_logger(name, save_dir, log_to_terminal=False):
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     gitdiff_patch = os.path.join(save_dir, file_no_ext + ".gitdiff.patch")
-    os.system(f"git diff HEAD > {gitdiff_patch}")
-
+    try:
+        with open(gitdiff_patch, "wb") as f:
+            subprocess.run(["git", "diff", "HEAD"], stdout=f, stderr=subprocess.DEVNULL, check=True)
+    except (OSError, subprocess.CalledProcessError) as error:
+        # `git` may be absent, or `save_dir` may sit outside a repository. Record the failure in the log
+        # rather than raising, so that constructing a logger never brings down the run it is logging.
+        logger.warning("Could not save `git diff HEAD` to %s: %s", gitdiff_patch, error)
     if log_to_terminal:
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
