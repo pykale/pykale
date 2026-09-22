@@ -9,179 +9,77 @@ https://github.com/pytorch/vision/blob/master/torchvision/datasets/utils.py
 https://github.com/pytorch/pytorch/blob/master/torch/hub.py
 """
 
-import hashlib
 import logging
 import time
 import urllib.error
 from functools import partial
 from pathlib import Path
 
-from torch.hub import download_url_to_file
-from torchvision.datasets.utils import download_file_from_google_drive, download_url, extract_archive
+import pooch
+from torchvision.datasets.utils import download_file_from_google_drive, extract_archive
+
+_ARCHIVE_FORMATS = ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]
 
 # Errors that indicate a transient/recoverable download failure and are worth retrying.
-# ``OSError`` covers socket/timeout/IO errors (``IOError`` is an alias), ``urllib.error.URLError``
-# covers HTTP/URL failures, and ``RuntimeError`` is what torchvision raises on a failed download or
-# checksum mismatch. Programming errors (e.g. ``TypeError``, ``ValueError``) are deliberately not
-# caught here so they surface immediately instead of being retried and masked.
+# ``OSError`` covers socket/timeout/IO errors, ``urllib.error.URLError`` covers HTTP/URL failures,
+# and ``RuntimeError`` is what :func:`_retrieve` raises when pooch reports a checksum mismatch.
+# Programming errors (e.g. ``TypeError``) are deliberately not caught, so they surface immediately
+# instead of being retried and masked.
 _DOWNLOAD_ERRORS = (OSError, RuntimeError, urllib.error.URLError)
 
 
-def _remove_partial_files(paths):
-    """Delete any files left behind by a failed/partial download attempt.
+def _known_hash(md5=None, sha256=None):
+    """Build pooch's ``known_hash`` string from the requested checksums.
+
+    ``pooch`` accepts a single ``"<algorithm>:<digest>"`` expectation, so when both are supplied
+    the stronger SHA-256 digest is used.
 
     Args:
-        paths (Iterable[Path]): Paths to remove if they exist. Missing paths are ignored.
-    """
-    for path in paths:
-        try:
-            if path.exists():
-                path.unlink()
-                logging.warning("Removed partial download: %s", path)
-        except OSError as exc:
-            logging.warning("Could not remove partial download %s: %s", path, exc)
-
-
-def _hash_file(file, algorithm, chunk_size=1024 * 1024):
-    """Compute the hex digest of a file, reading it in chunks.
-
-    Args:
-        file (str or Path): Path to the file to hash.
-        algorithm (str): Hash algorithm name understood by :func:`hashlib.new` (e.g. "md5", "sha256").
-        chunk_size (int): Number of bytes read per iteration. Defaults to 1 MiB.
+        md5 (str, optional): Expected MD5 hex digest. Defaults to None.
+        sha256 (str, optional): Expected SHA-256 hex digest. Defaults to None.
 
     Returns:
-        str: The lowercase hexadecimal digest.
+        str or None: The ``known_hash`` argument for pooch, or None when no checksum was given.
     """
-    hasher = hashlib.new(algorithm)
-    with open(file, "rb") as handle:
-        for chunk in iter(lambda: handle.read(chunk_size), b""):
-            hasher.update(chunk)
-    return hasher.hexdigest()
-
-
-def _check_size(file, file_size):
-    """Raise ``RuntimeError`` if ``file`` is not exactly ``file_size`` bytes."""
-    actual_size = file.stat().st_size
-    if actual_size != file_size:
-        raise RuntimeError(f"Size mismatch for {file}: expected {file_size} bytes, got {actual_size}")
-
-
-def _check_hash(file, algorithm, expected):
-    """Raise ``RuntimeError`` if the ``algorithm`` digest of ``file`` does not match ``expected``."""
-    actual = _hash_file(file, algorithm)
-    if actual.lower() != expected.lower():
-        raise RuntimeError(f"{algorithm} mismatch for {file}: expected {expected}, got {actual}")
-
-
-def _verify_file(file, md5=None, sha256=None, file_size=None):
-    """Verify a downloaded file against optional checksums and/or an expected size.
-
-    Verification is skipped entirely when no expectation is provided. A mismatch raises
-    ``RuntimeError`` (rather than ``ValueError``) so that, when called from within
-    :func:`_retry_download`, a corrupted download is retried and cleaned up like any other
-    transient download failure.
-
-    Args:
-        file (str or Path): Path to the downloaded file.
-        md5 (str, optional): Expected MD5 hex digest. Defaults to None (not checked).
-        sha256 (str, optional): Expected SHA-256 hex digest. Defaults to None (not checked).
-        file_size (int, optional): Expected size in bytes. Defaults to None (not checked).
-
-    Raises:
-        RuntimeError: If the file is missing or any provided expectation does not match.
-    """
-    if md5 is None and sha256 is None and file_size is None:
-        return
-    file = Path(file)
-    if not file.exists():
-        raise RuntimeError(f"Cannot verify {file}: file does not exist")
-    if file_size is not None:
-        _check_size(file, file_size)
-    if md5 is not None:
-        _check_hash(file, "md5", md5)
     if sha256 is not None:
-        _check_hash(file, "sha256", sha256)
-    logging.info("Verified integrity of %s", file)
+        return f"sha256:{sha256}"
+    if md5 is not None:
+        return f"md5:{md5}"
+    return None
 
 
-def _fetch_and_verify(fetch_fn, file, md5=None, sha256=None, file_size=None):
-    """Run a download callable and then verify the resulting file.
+def _retrieve(url, known_hash, output_file_name, output_directory):
+    """Download ``url`` via pooch, translating a checksum mismatch into a retryable error.
+
+    pooch verifies the checksum, deletes a mismatching download, and reuses an already-valid
+    file without re-fetching it. It signals a mismatch with ``ValueError``, which is re-raised as
+    ``RuntimeError`` so that :func:`_retry_download` treats a corrupted transfer like any other
+    transient failure.
 
     Args:
-        fetch_fn (callable): Zero-argument callable that downloads (and optionally extracts) the file.
-        file (str or Path): Path to the downloaded file to verify.
-        md5 (str, optional): Expected MD5 hex digest. Defaults to None.
-        sha256 (str, optional): Expected SHA-256 hex digest. Defaults to None.
-        file_size (int, optional): Expected size in bytes. Defaults to None.
+        url (str): URL of the object to download.
+        known_hash (str or None): Checksum expectation, as built by :func:`_known_hash`.
+        output_file_name (str): File name to save the object as.
+        output_directory (str or Path): Directory to download into.
 
     Raises:
-        RuntimeError: If verification fails (see :func:`_verify_file`).
-    """
-    fetch_fn()
-    _verify_file(file, md5=md5, sha256=sha256, file_size=file_size)
-
-
-def _download_verify_extract(url, output_directory, output_file_name, file, md5=None, sha256=None, file_size=None):
-    """Download an archive, verify it, then extract it.
-
-    Verification happens *before* extraction so a corrupt archive is never unpacked; on a
-    verification failure the archive is left for :func:`_retry_download` to clean up and retry.
-
-    Args:
-        url (str): URL of the archive to download.
-        output_directory (str or Path): Directory to download into and extract to.
-        output_file_name (str): File name to save the archive as.
-        file (str or Path): Full path to the downloaded archive (``output_directory/output_file_name``).
-        md5 (str, optional): Expected MD5 hex digest. Defaults to None.
-        sha256 (str, optional): Expected SHA-256 hex digest. Defaults to None.
-        file_size (int, optional): Expected size in bytes. Defaults to None.
-
-    Raises:
-        RuntimeError: If verification fails (see :func:`_verify_file`).
-    """
-    download_url(url, str(output_directory), output_file_name, md5=md5)
-    _verify_file(file, md5=md5, sha256=sha256, file_size=file_size)
-    extract_archive(str(file), str(output_directory))
-
-
-def _cached_file_valid(file, md5=None, sha256=None, file_size=None):
-    """Decide whether an already-present file can be reused.
-
-    With no integrity expectation an existing file is accepted as-is. When md5/sha256/size are
-    provided the file is verified; on mismatch the corrupt file is removed and ``False`` is
-    returned so the caller re-downloads it.
-
-    Args:
-        file (str or Path): Path to the existing file.
-        md5 (str, optional): Expected MD5 hex digest. Defaults to None.
-        sha256 (str, optional): Expected SHA-256 hex digest. Defaults to None.
-        file_size (int, optional): Expected size in bytes. Defaults to None.
-
-    Returns:
-        bool: True if the file is valid and can be reused, False if it was removed as invalid.
+        RuntimeError: If the downloaded file does not match ``known_hash``.
     """
     try:
-        _verify_file(file, md5=md5, sha256=sha256, file_size=file_size)
-        return True
-    except RuntimeError:
-        logging.warning("Cached file failed integrity check, re-downloading: %s", file)
-        _remove_partial_files([Path(file)])
-        return False
+        pooch.retrieve(url, known_hash=known_hash, fname=output_file_name, path=str(output_directory))
+    except ValueError as error:
+        if "does not match" not in str(error):
+            raise
+        raise RuntimeError(str(error)) from error
 
 
-def _retry_download(download_fn, retries=3, backoff=2, cleanup_paths=None):
+def _retry_download(download_fn, retries=3, backoff=2):
     """Execute ``download_fn`` with retry and exponential backoff.
-
-    Any files listed in ``cleanup_paths`` are removed after a failed attempt so that a
-    partially written file is not left in place for the next attempt (or on final failure).
 
     Args:
         download_fn (callable): Zero-argument callable that performs the download.
         retries (int): Maximum number of attempts. Must be >= 1. Defaults to 3.
         backoff (int): Base for exponential back-off in seconds. Must be >= 1. Defaults to 2.
-        cleanup_paths (Iterable[str or Path], optional): Target paths to delete after a failed
-            attempt. Defaults to None (nothing to clean up).
 
     Raises:
         ValueError: If ``retries`` < 1 or ``backoff`` < 1.
@@ -192,13 +90,11 @@ def _retry_download(download_fn, retries=3, backoff=2, cleanup_paths=None):
         raise ValueError(f"retries must be >= 1, got {retries}")
     if backoff < 1:
         raise ValueError(f"backoff must be >= 1, got {backoff}")
-    cleanup_paths = [Path(p) for p in cleanup_paths] if cleanup_paths else []
     for attempt in range(retries):
         try:
             download_fn()
             return
         except _DOWNLOAD_ERRORS as exc:
-            _remove_partial_files(cleanup_paths)
             if attempt < retries - 1:
                 wait = backoff**attempt
                 logging.warning(
@@ -213,9 +109,7 @@ def _retry_download(download_fn, retries=3, backoff=2, cleanup_paths=None):
                 raise
 
 
-def download_file_by_url(
-    url, output_directory, output_file_name, file_format=None, md5=None, sha256=None, file_size=None
-):
+def download_file_by_url(url, output_directory, output_file_name, file_format=None, md5=None, sha256=None):
     """Download file/compressed file by url.
 
     Args:
@@ -225,10 +119,10 @@ def download_file_by_url(
         output_file_name (string, optional): File name which object will be saved as
         file_format (string, optional): File format
                                 For compressed file, support ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]
-        md5 (string, optional): Expected MD5 hex digest of the downloaded file. When provided, the
-                                download is verified and a mismatch is retried, then raised. Defaults to None.
-        sha256 (string, optional): Expected SHA-256 hex digest of the downloaded file. Defaults to None.
-        file_size (int, optional): Expected size of the downloaded file in bytes. Defaults to None.
+        md5 (string, optional): Expected MD5 hex digest of the downloaded file. When provided, the download
+                                is verified and a mismatch is retried, then raised. Defaults to None.
+        sha256 (string, optional): Expected SHA-256 hex digest of the downloaded file. Takes precedence
+                                over ``md5`` when both are given. Defaults to None.
 
     Raises:
         RuntimeError: If verification is requested and the downloaded file does not match after all retries.
@@ -247,23 +141,25 @@ def download_file_by_url(
 
     output_directory = Path(output_directory).absolute()
     file = output_directory.joinpath(output_file_name)
+    known_hash = _known_hash(md5, sha256)
 
-    if file.exists() and _cached_file_valid(file, md5=md5, sha256=sha256, file_size=file_size):
+    if file.exists() and known_hash is None:
+        # Historical fast path: with no checksum to check against, an existing file is reused as-is.
         logging.info("Skipping Download and Extraction")
         return
     output_directory.mkdir(parents=True, exist_ok=True)
 
-    if file_format in ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]:
-        fetch = partial(_download_verify_extract, url, output_directory, output_file_name, file, md5, sha256, file_size)
-        start_message, done_message = "Downloading and extracting {}.", "Datasets downloaded and extracted in {}"
-    else:
-        download = partial(download_url_to_file, url, str(file))
-        fetch = partial(_fetch_and_verify, download, file, md5, sha256, file_size)
-        start_message, done_message = "Downloading {}.", "Datasets downloaded in {}"
+    # When a checksum is given, pooch verifies any existing file and re-downloads it on mismatch,
+    # so a corrupt cached file is never silently reused.
+    logging.info("Downloading {}.".format(output_file_name))
+    _retry_download(partial(_retrieve, url, known_hash, output_file_name, output_directory))
 
-    logging.info(start_message.format(output_file_name))
-    _retry_download(fetch, cleanup_paths=[file])
-    logging.info(done_message.format(file))
+    if file_format in _ARCHIVE_FORMATS:
+        logging.info("Extracting {}.".format(output_file_name))
+        extract_archive(str(file), str(output_directory))
+        logging.info("Datasets downloaded and extracted in {}".format(file))
+    else:
+        logging.info("Datasets downloaded in {}".format(file))
 
 
 def download_file_gdrive(id, output_directory, output_file_name, file_format=None):
