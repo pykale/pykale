@@ -70,6 +70,14 @@ kale.loaddata.polypharmacy\_datasets module
    :undoc-members:
    :show-inheritance:
 
+kale.loaddata.graph\_access module
+----------------------------------
+
+.. automodule:: kale.loaddata.graph_access
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.loaddata.sampler module
 ----------------------------
 

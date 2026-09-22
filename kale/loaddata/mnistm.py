@@ -69,11 +69,11 @@ class MNISTM(data.Dataset):
 
         if self.train:
             self.data, self.targets = torch.load(
-                os.path.join(self.root, self.processed_folder, self.training_file), weights_only=False
+                os.path.join(self.root, self.processed_folder, self.training_file), weights_only=True
             )
         else:
             self.data, self.targets = torch.load(
-                os.path.join(self.root, self.processed_folder, self.test_file), weights_only=False
+                os.path.join(self.root, self.processed_folder, self.test_file), weights_only=True
             )
 
     def __getitem__(self, index):
