@@ -1564,7 +1564,7 @@ def bin_wise_bound_eval(
         "mean all targets": np.mean(all_target_perc),
         "mean all bins": weighted_ave_binwise,
         "mean all": all_qs_perc,
-        "all bins concatenated targets separated": all_qs_errorbound_concat_targets_sep,
+        ResultKeys.ALL_BINS_CONCAT_TARGETS_SEP: all_qs_errorbound_concat_targets_sep,
     }
 
 
@@ -1673,5 +1673,5 @@ def bin_wise_errors(fold_errors, fold_bins, num_bins, targets, uncertainty_key, 
         "mean all targets": mean_all_targets,
         "mean all bins": mean_all_bins,
         "all bins": all_qs_error,
-        "all bins concatenated targets separated": all_qs_error_concat_targets_sep,
+        ResultKeys.ALL_BINS_CONCAT_TARGETS_SEP: all_qs_error_concat_targets_sep,
     }
