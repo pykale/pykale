@@ -11,6 +11,12 @@ jobs:
   log-changes:
     name: Log changes
     runs-on: ubuntu-latest
+    # changelog-ci itself exits without generating anything unless the pull request title
+    # matches `pull_request_title_regex` ("^Release") in .github/changelog-ci-config.json, so
+    # gate the job on the same condition. Previously every pull request built the action's
+    # Docker image only for it to exit immediately, and since that image stopped building the
+    # failure was reported against pull requests the changelog never applied to.
+    if: startsWith(github.event.pull_request.title, 'Release')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
