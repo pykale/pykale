@@ -16,6 +16,7 @@ from functools import partial
 from pathlib import Path
 
 import pooch
+from pooch.hashes import hash_matches
 from torchvision.datasets.utils import download_file_from_google_drive, extract_archive
 
 _ARCHIVE_FORMATS = ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]
@@ -46,6 +47,32 @@ def _known_hash(md5=None, sha256=None):
     if md5 is not None:
         return f"md5:{md5}"
     return None
+
+
+def _hash_ok(file, known_hash):
+    """Check ``file`` against ``known_hash``, deleting it if it does not match.
+
+    A file that fails verification is removed so the next download attempt starts clean, and so
+    that :func:`torchvision.datasets.utils.download_file_from_google_drive` does not treat the
+    corrupt file as already present and skip re-fetching it.
+
+    Args:
+        file (Path): Path to the file to check.
+        known_hash (str or None): Checksum expectation as built by :func:`_known_hash`. When None,
+            there is nothing to check and the file is accepted.
+
+    Returns:
+        bool: True if there was nothing to check or the digest matched, False if the file was
+        removed as invalid.
+    """
+    if known_hash is None:
+        return True
+    if hash_matches(str(file), known_hash):
+        return True
+    actual = pooch.file_hash(str(file), alg=known_hash.split(":")[0])
+    logging.warning("%s does not match %s (got %s); removing it", file, known_hash, actual)
+    file.unlink(missing_ok=True)
+    return False
 
 
 def _retrieve(url, known_hash, output_file_name, output_directory):
@@ -162,7 +189,25 @@ def download_file_by_url(url, output_directory, output_file_name, file_format=No
         logging.info("Datasets downloaded in {}".format(file))
 
 
-def download_file_gdrive(id, output_directory, output_file_name, file_format=None):
+def _fetch_gdrive(id, output_directory, output_file_name, file, known_hash):
+    """Download one Google Drive file and verify it, for use inside :func:`_retry_download`.
+
+    Args:
+        id (str): Google Drive file id of the object to download.
+        output_directory (Path): Directory to download into.
+        output_file_name (str): File name to save the object as.
+        file (Path): Full path to the downloaded file.
+        known_hash (str or None): Checksum expectation as built by :func:`_known_hash`.
+
+    Raises:
+        RuntimeError: If the downloaded file does not match ``known_hash``.
+    """
+    download_file_from_google_drive(id, output_directory, output_file_name)
+    if not _hash_ok(file, known_hash):
+        raise RuntimeError(f"{file} does not match the expected {known_hash}. Deleted download for safety.")
+
+
+def download_file_gdrive(id, output_directory, output_file_name, file_format=None, md5=None, sha256=None):
     """Download file/compressed file by Google Drive id.
 
     Args:
@@ -172,6 +217,13 @@ def download_file_gdrive(id, output_directory, output_file_name, file_format=Non
         output_file_name (string, optional): File name which object will be saved as
         file_format (string, optional): File format
                                 For compressed file, support ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]
+        md5 (string, optional): Expected MD5 hex digest of the downloaded file. When provided, the download
+                                is verified and a mismatch is retried, then raised. Defaults to None.
+        sha256 (string, optional): Expected SHA-256 hex digest of the downloaded file. Takes precedence
+                                over ``md5`` when both are given. Defaults to None.
+
+    Raises:
+        RuntimeError: If verification is requested and the downloaded file does not match after all retries.
 
     Example:
         >>> gdrive_id = "1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga"
@@ -183,13 +235,18 @@ def download_file_gdrive(id, output_directory, output_file_name, file_format=Non
 
     output_directory = Path(output_directory).absolute()
     file = output_directory.joinpath(output_file_name)
-    if file.exists():
+    known_hash = _known_hash(md5, sha256)
+
+    # An existing file is reused only if it passes verification; _hash_ok removes it otherwise, so
+    # a corrupt cached file is re-downloaded rather than silently accepted.
+    if file.exists() and _hash_ok(file, known_hash):
         logging.info("Skipping Download and Extraction")
         return
     output_directory.mkdir(parents=True, exist_ok=True)
 
     logging.info("Downloading {}.".format(output_file_name))
-    download_file_from_google_drive(id, output_directory, output_file_name)
+    # pooch cannot download from Google Drive, so torchvision fetches and pooch's hashing verifies.
+    _retry_download(partial(_fetch_gdrive, id, output_directory, output_file_name, file, known_hash))
 
     if file_format is not None and file_format in ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]:
         logging.info("Extracting {}.".format(output_file_name))

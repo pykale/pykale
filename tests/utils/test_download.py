@@ -5,7 +5,14 @@ from unittest.mock import call, MagicMock, patch
 
 import pytest
 
-from kale.utils.download import _known_hash, _retrieve, _retry_download, download_file_by_url, download_file_gdrive
+from kale.utils.download import (
+    _hash_ok,
+    _known_hash,
+    _retrieve,
+    _retry_download,
+    download_file_by_url,
+    download_file_gdrive,
+)
 
 output_directory = Path().absolute().joinpath("tests/test_data/download")
 PARAM = [
@@ -202,3 +209,70 @@ def test_download_file_gdrive(param):
 
     assert os.path.exists(output_directory.joinpath(output_file_name)) is True
     assert output_directory.exists()
+
+
+def test_hash_ok_accepts_matching_file(tmp_path):
+    file = tmp_path / "data.bin"
+    file.write_bytes(b"payload")
+    assert _hash_ok(file, "md5:" + hashlib.md5(b"payload").hexdigest()) is True
+    assert file.exists()
+
+
+def test_hash_ok_accepts_when_nothing_to_check(tmp_path):
+    file = tmp_path / "data.bin"
+    file.write_bytes(b"payload")
+    assert _hash_ok(file, None) is True
+    assert file.exists()
+
+
+def test_hash_ok_removes_mismatching_file(tmp_path):
+    # The corrupt file must be deleted, both so the retry starts clean and so torchvision does not
+    # treat it as already present and skip re-downloading.
+    file = tmp_path / "data.bin"
+    file.write_bytes(b"payload")
+    assert _hash_ok(file, "md5:" + "0" * 32) is False
+    assert not file.exists()
+
+
+def _fake_gdrive(content):
+    def download(id, root, name):
+        Path(root).joinpath(name).write_bytes(content)
+
+    return download
+
+
+def test_download_file_gdrive_verifies_download(tmp_path):
+    content = b"gdrive payload"
+    with patch("kale.utils.download.download_file_from_google_drive", side_effect=_fake_gdrive(content)) as mock_dl:
+        download_file_gdrive("some-id", tmp_path, "data.csv", "csv", md5=hashlib.md5(content).hexdigest())
+    mock_dl.assert_called_once()
+    assert (tmp_path / "data.csv").read_bytes() == content
+
+
+def test_download_file_gdrive_checksum_mismatch_retries_then_raises(tmp_path):
+    with patch("kale.utils.download.time.sleep"):
+        with patch(
+            "kale.utils.download.download_file_from_google_drive", side_effect=_fake_gdrive(b"corrupt")
+        ) as mock_dl:
+            with pytest.raises(RuntimeError, match="does not match"):
+                download_file_gdrive("some-id", tmp_path, "data.csv", "csv", md5="0" * 32)
+    assert mock_dl.call_count == 3
+    assert not (tmp_path / "data.csv").exists()
+
+
+def test_download_file_gdrive_skips_valid_cached_file(tmp_path):
+    content = b"already here"
+    (tmp_path / "data.csv").write_bytes(content)
+    with patch("kale.utils.download.download_file_from_google_drive") as mock_dl:
+        download_file_gdrive("some-id", tmp_path, "data.csv", "csv", md5=hashlib.md5(content).hexdigest())
+    mock_dl.assert_not_called()
+
+
+def test_download_file_gdrive_redownloads_invalid_cached_file(tmp_path):
+    # Regression guard: a cached file that fails its checksum must not be reused.
+    good = b"the real payload"
+    (tmp_path / "data.csv").write_bytes(b"stale-corrupt")
+    with patch("kale.utils.download.download_file_from_google_drive", side_effect=_fake_gdrive(good)) as mock_dl:
+        download_file_gdrive("some-id", tmp_path, "data.csv", "csv", md5=hashlib.md5(good).hexdigest())
+    mock_dl.assert_called_once()
+    assert (tmp_path / "data.csv").read_bytes() == good
