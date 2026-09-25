@@ -19,9 +19,9 @@ known_first_party = [
     "tests",
 ]
 known_third_party = [
-    "matplotlib<=3.10.0",  # matplotlib 3.10.1 will cause "Building wheel for matplotlib (setup.py): finished with status 'error'" for tests
+    "matplotlib",
     "numpy",
-    "setuptools==82.0.1",
+    "setuptools",
     "sphinx_rtd_theme",
     "torch",
 ]
