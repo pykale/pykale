@@ -11,8 +11,33 @@ jobs:
   log-changes:
     name: Log changes
     runs-on: ubuntu-latest
+    # changelog-ci exits without generating anything unless the pull request title matches
+    # `pull_request_title_regex` ("^Release") in .github/changelog-ci-config.json. Gating on the
+    # same condition stops every other pull request building the action's Docker image only for
+    # it to exit immediately -- wasteful before that image stopped building, and since then a
+    # failure reported against pull requests the changelog never applied to.
+    #
+    # GitHub's `startsWith` is not case sensitive, so this is a deliberate superset of the
+    # action's regex: it never skips a genuine release pull request. The case-sensitive check
+    # below narrows it to exactly what the action would accept.
+    if: startsWith(github.event.pull_request.title, 'Release')
     steps:
+      - name: Check the title matches the changelog config
+        id: gate
+        # The title is passed through the environment rather than interpolated into the script,
+        # so a crafted pull request title cannot inject shell commands.
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if [[ "$PR_TITLE" == Release* ]]; then
+            echo "match=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "match=false" >> "$GITHUB_OUTPUT"
+            echo "Title does not start with 'Release'; changelog-ci would exit without generating anything."
+          fi
+
       - name: Checkout code
+        if: steps.gate.outputs.match == 'true'
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -23,6 +48,7 @@ jobs:
           fetch-depth: 1
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run changelog
+        if: steps.gate.outputs.match == 'true'
         uses: saadmk11/changelog-ci@v1.2.0
         with:
           changelog_filename: .github/CHANGELOG.md
