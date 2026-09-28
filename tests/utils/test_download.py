@@ -10,6 +10,7 @@ from kale.utils.download import (
     _known_hash,
     _retrieve,
     _retry_download,
+    ChecksumError,
     download_file_by_url,
     download_file_gdrive,
 )
@@ -40,7 +41,7 @@ def test_retry_download_succeeds_on_first_attempt():
 
 
 def test_retry_download_retries_on_failure():
-    fn = MagicMock(side_effect=[RuntimeError("timeout"), RuntimeError("timeout"), None])
+    fn = MagicMock(side_effect=[OSError("timeout"), OSError("timeout"), None])
     with patch("kale.utils.download.time.sleep") as mock_sleep:
         _retry_download(fn, retries=3, backoff=2)
     assert fn.call_count == 3
@@ -48,9 +49,9 @@ def test_retry_download_retries_on_failure():
 
 
 def test_retry_download_raises_after_all_retries():
-    fn = MagicMock(side_effect=RuntimeError("timeout"))
+    fn = MagicMock(side_effect=OSError("timeout"))
     with patch("kale.utils.download.time.sleep"):
-        with pytest.raises(RuntimeError, match="timeout"):
+        with pytest.raises(OSError, match="timeout"):
             _retry_download(fn, retries=3, backoff=2)
     assert fn.call_count == 3
 
@@ -276,3 +277,42 @@ def test_download_file_gdrive_redownloads_invalid_cached_file(tmp_path):
         download_file_gdrive("some-id", tmp_path, "data.csv", "csv", md5=hashlib.md5(good).hexdigest())
     mock_dl.assert_called_once()
     assert (tmp_path / "data.csv").read_bytes() == good
+
+
+def test_retry_download_does_not_retry_runtime_errors():
+    """A bare RuntimeError is a configuration problem, not a transient download failure.
+
+    torchvision reports a missing optional ``gdown`` dependency as RuntimeError, so retrying it
+    three times with backoff would only delay an error no retry can fix.
+    """
+    fn = MagicMock(side_effect=RuntimeError("To download files from GDrive, 'gdown' is required."))
+    with patch("kale.utils.download.time.sleep") as mock_sleep:
+        with pytest.raises(RuntimeError, match="gdown"):
+            _retry_download(fn, retries=3, backoff=2)
+    fn.assert_called_once()
+    mock_sleep.assert_not_called()
+
+
+def test_retry_download_retries_checksum_errors():
+    """A ChecksumError is a corrupt download, so it is retried like any transient failure."""
+    fn = MagicMock(side_effect=[ChecksumError("md5 mismatch"), None])
+    with patch("kale.utils.download.time.sleep"):
+        _retry_download(fn, retries=3, backoff=2)
+    assert fn.call_count == 2
+
+
+def test_checksum_error_is_a_runtime_error():
+    """Callers catching RuntimeError keep working, even though the retry set excludes it."""
+    assert issubclass(ChecksumError, RuntimeError)
+
+
+def test_download_file_gdrive_does_not_retry_missing_gdown(tmp_path):
+    # The scenario from the review: torchvision raises RuntimeError when gdown is absent, and that
+    # must surface immediately rather than after two backoff sleeps.
+    error = RuntimeError("To download files from GDrive, 'gdown' is required.")
+    with patch("kale.utils.download.time.sleep") as mock_sleep:
+        with patch("kale.utils.download.download_file_from_google_drive", side_effect=error) as mock_dl:
+            with pytest.raises(RuntimeError, match="gdown"):
+                download_file_gdrive("some-id", tmp_path, "data.csv", "csv")
+    mock_dl.assert_called_once()
+    mock_sleep.assert_not_called()

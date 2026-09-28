@@ -21,12 +21,26 @@ from torchvision.datasets.utils import download_file_from_google_drive, extract_
 
 _ARCHIVE_FORMATS = ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]
 
+
+class ChecksumError(RuntimeError):
+    """Raised when a downloaded file does not match its expected checksum.
+
+    Subclasses ``RuntimeError`` so that existing callers catching ``RuntimeError`` are unaffected,
+    while :data:`_DOWNLOAD_ERRORS` can retry a corrupt download without also retrying unrelated
+    runtime errors.
+    """
+
+
 # Errors that indicate a transient/recoverable download failure and are worth retrying.
-# ``OSError`` covers socket/timeout/IO errors, ``urllib.error.URLError`` covers HTTP/URL failures,
-# and ``RuntimeError`` is what :func:`_retrieve` raises when pooch reports a checksum mismatch.
-# Programming errors (e.g. ``TypeError``) are deliberately not caught, so they surface immediately
+# ``OSError`` covers socket/timeout/IO errors (including the ``requests`` exceptions raised by
+# pooch and gdown), ``urllib.error.URLError`` covers HTTP/URL failures, and :class:`ChecksumError`
+# covers a corrupt download.
+#
+# Bare ``RuntimeError`` is deliberately excluded: torchvision reports a missing optional ``gdown``
+# dependency that way, and retrying a configuration error three times with backoff only delays it.
+# Programming errors (e.g. ``TypeError``) are likewise not caught, so they surface immediately
 # instead of being retried and masked.
-_DOWNLOAD_ERRORS = (OSError, RuntimeError, urllib.error.URLError)
+_DOWNLOAD_ERRORS = (OSError, urllib.error.URLError, ChecksumError)
 
 
 def _known_hash(md5=None, sha256=None):
@@ -80,8 +94,8 @@ def _retrieve(url, known_hash, output_file_name, output_directory):
 
     pooch verifies the checksum, deletes a mismatching download, and reuses an already-valid
     file without re-fetching it. It signals a mismatch with ``ValueError``, which is re-raised as
-    ``RuntimeError`` so that :func:`_retry_download` treats a corrupted transfer like any other
-    transient failure.
+    :class:`ChecksumError` so that :func:`_retry_download` treats a corrupted transfer like any
+    other transient failure.
 
     Args:
         url (str): URL of the object to download.
@@ -90,14 +104,14 @@ def _retrieve(url, known_hash, output_file_name, output_directory):
         output_directory (str or Path): Directory to download into.
 
     Raises:
-        RuntimeError: If the downloaded file does not match ``known_hash``.
+        ChecksumError: If the downloaded file does not match ``known_hash``.
     """
     try:
         pooch.retrieve(url, known_hash=known_hash, fname=output_file_name, path=str(output_directory))
     except ValueError as error:
         if "does not match" not in str(error):
             raise
-        raise RuntimeError(str(error)) from error
+        raise ChecksumError(str(error)) from error
 
 
 def _retry_download(download_fn, retries=3, backoff=2):
@@ -110,7 +124,7 @@ def _retry_download(download_fn, retries=3, backoff=2):
 
     Raises:
         ValueError: If ``retries`` < 1 or ``backoff`` < 1.
-        OSError, RuntimeError, urllib.error.URLError: Re-raises the last download error when all
+        OSError, urllib.error.URLError, ChecksumError: Re-raises the last download error when all
             retries are exhausted.
     """
     if retries < 1:
@@ -152,7 +166,8 @@ def download_file_by_url(url, output_directory, output_file_name, file_format=No
                                 over ``md5`` when both are given. Defaults to None.
 
     Raises:
-        RuntimeError: If verification is requested and the downloaded file does not match after all retries.
+        ChecksumError: If verification is requested and the downloaded file does not match after all
+            retries. Subclasses ``RuntimeError``.
 
     Example: (Grab the raw link from GitHub. Notice that using "raw" in the URL.)
         >>> url = "https://github.com/pykale/data/raw/main/videos/video_test_data/ADL/annotations/labels_train_test/adl_P_04_train.pkl"
@@ -200,11 +215,11 @@ def _fetch_gdrive(id, output_directory, output_file_name, file, known_hash):
         known_hash (str or None): Checksum expectation as built by :func:`_known_hash`.
 
     Raises:
-        RuntimeError: If the downloaded file does not match ``known_hash``.
+        ChecksumError: If the downloaded file does not match ``known_hash``.
     """
     download_file_from_google_drive(id, output_directory, output_file_name)
     if not _hash_ok(file, known_hash):
-        raise RuntimeError(f"{file} does not match the expected {known_hash}. Deleted download for safety.")
+        raise ChecksumError(f"{file} does not match the expected {known_hash}. Deleted download for safety.")
 
 
 def download_file_gdrive(id, output_directory, output_file_name, file_format=None, md5=None, sha256=None):
@@ -223,7 +238,8 @@ def download_file_gdrive(id, output_directory, output_file_name, file_format=Non
                                 over ``md5`` when both are given. Defaults to None.
 
     Raises:
-        RuntimeError: If verification is requested and the downloaded file does not match after all retries.
+        ChecksumError: If verification is requested and the downloaded file does not match after all
+            retries. Subclasses ``RuntimeError``.
 
     Example:
         >>> gdrive_id = "1U4D23R8u8MJX9KVKb92bZZX-tbpKWtga"
