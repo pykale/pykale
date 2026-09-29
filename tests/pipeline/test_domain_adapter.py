@@ -83,23 +83,32 @@ def _wdgrl_trainer(optimizer, adapt_lr):
     )
 
 
-@pytest.mark.parametrize("optimizer_type", ["Adam", "AdamW"])
-def test_wdgrl_configure_optimizers_without_scheduler(optimizer_type):
+@pytest.mark.parametrize(
+    "optimizer_params, expected_type",
+    [
+        (None, torch.optim.Adam),
+        ({"type": "Adam", "optim_params": {}}, torch.optim.Adam),
+        ({"type": "AdamW", "optim_params": {}}, torch.optim.AdamW),
+    ],
+    ids=["default", "Adam", "AdamW"],
+)
+def test_wdgrl_configure_optimizers_without_scheduler(optimizer_params, expected_type):
     """Optimizers that produce no scheduler are handled under adapt_lr (issue #548).
 
-    _configure_optimizer only builds a scheduler for SGD, so Adam/AdamW return a bare optimizer
-    list. configure_optimizers previously force-unpacked a (optimizers, schedulers) tuple and
-    raised ValueError for these.
+    _configure_optimizer only builds a scheduler for SGD, so the default (no optimizer given) and
+    Adam/AdamW all return a bare optimizer list. configure_optimizers previously force-unpacked a
+    (optimizers, schedulers) tuple and raised ValueError for these. The default is covered
+    separately because it takes its own branch in _configure_optimizer.
     """
-    model = _wdgrl_trainer({"type": optimizer_type, "optim_params": {}}, adapt_lr=True)
+    model = _wdgrl_trainer(optimizer_params, adapt_lr=True)
 
     optimizers = model.configure_optimizers()
 
     assert isinstance(optimizers, list)
     assert len(optimizers) == 1
-    assert isinstance(optimizers[0], getattr(torch.optim, optimizer_type))
-    # The critic optimizer is stored for manual stepping; there is no scheduler for Adam/AdamW.
-    assert isinstance(model.critic_opt, getattr(torch.optim, optimizer_type))
+    assert isinstance(optimizers[0], expected_type)
+    # The critic optimizer is stored for manual stepping; there is no scheduler for these.
+    assert isinstance(model.critic_opt, expected_type)
     assert model.critic_sched is None
 
 
