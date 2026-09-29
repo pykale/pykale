@@ -70,3 +70,29 @@ def test_log_file_exists(log_file_name):
 
 def test_gitdiff_file_exists(gitdiff_file_name):
     assert os.path.isfile(gitdiff_file_name)
+
+
+def test_construct_logger_warns_outside_a_repository(monkeypatch, tmp_path, caplog):
+    """`git diff HEAD` fails outside a repository; the failure is logged, not raised."""
+    monkeypatch.chdir(tmp_path)
+
+    with caplog.at_level(logging.WARNING):
+        constructed = logger.construct_logger("test_logger_outside_repository", str(tmp_path))
+
+    assert isinstance(constructed, logging.Logger)
+    assert "git diff HEAD" in caplog.text
+
+
+def test_construct_logger_warns_when_git_is_missing(monkeypatch, tmp_path, caplog):
+    """`git` may be absent, for example in a slim container; that must not stop the caller."""
+
+    def no_git(*args, **kwargs):
+        raise FileNotFoundError(2, "No such file or directory: 'git'")
+
+    monkeypatch.setattr(logger.subprocess, "run", no_git)
+
+    with caplog.at_level(logging.WARNING):
+        constructed = logger.construct_logger("test_logger_without_git", str(tmp_path))
+
+    assert isinstance(constructed, logging.Logger)
+    assert "git diff HEAD" in caplog.text
