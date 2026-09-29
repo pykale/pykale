@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 import torch
 
@@ -59,7 +61,9 @@ def test_base_adapt_trainer_configure_optimizers_with_adamw():
         optimizer={"type": "AdamW", "optim_params": {"eps": 0.2, "weight_decay": 0.3}},
     )
 
-    optimizers = model.configure_optimizers()
+    # adapt_lr defaults to True on BaseAdaptTrainer, so a scheduler comes back alongside the
+    # optimizer for AdamW as it does for SGD.
+    optimizers, schedulers = model.configure_optimizers()
 
     assert len(optimizers) == 1
     assert isinstance(optimizers, list)
@@ -67,6 +71,7 @@ def test_base_adapt_trainer_configure_optimizers_with_adamw():
     assert optimizers[0].defaults["lr"] == 0.004
     assert optimizers[0].defaults["eps"] == 0.2
     assert optimizers[0].defaults["weight_decay"] == 0.3
+    assert len(schedulers) == 1
 
 
 def _wdgrl_trainer(optimizer, adapt_lr):
@@ -83,45 +88,58 @@ def _wdgrl_trainer(optimizer, adapt_lr):
     )
 
 
-@pytest.mark.parametrize(
-    "optimizer_params, expected_type",
-    [
-        (None, torch.optim.Adam),
-        ({"type": "Adam", "optim_params": {}}, torch.optim.Adam),
-        ({"type": "AdamW", "optim_params": {}}, torch.optim.AdamW),
-    ],
-    ids=["default", "Adam", "AdamW"],
-)
-def test_wdgrl_configure_optimizers_without_scheduler(optimizer_params, expected_type):
-    """Optimizers that produce no scheduler are handled under adapt_lr (issue #548).
+OPTIMIZER_CASES = [
+    (None, torch.optim.Adam),
+    ({"type": "Adam", "optim_params": {}}, torch.optim.Adam),
+    ({"type": "AdamW", "optim_params": {}}, torch.optim.AdamW),
+    ({"type": "SGD", "optim_params": {"momentum": 0.9}}, torch.optim.SGD),
+]
+OPTIMIZER_IDS = ["default", "Adam", "AdamW", "SGD"]
 
-    _configure_optimizer only builds a scheduler for SGD, so the default (no optimizer given) and
-    Adam/AdamW all return a bare optimizer list. configure_optimizers previously force-unpacked a
-    (optimizers, schedulers) tuple and raised ValueError for these. The default is covered
-    separately because it takes its own branch in _configure_optimizer.
-    """
+
+@pytest.mark.parametrize("optimizer_params, expected_type", OPTIMIZER_CASES, ids=OPTIMIZER_IDS)
+def test_wdgrl_configure_optimizers_with_adapt_lr(optimizer_params, expected_type):
+    """Every optimizer type gets a scheduler under adapt_lr, including the default."""
     model = _wdgrl_trainer(optimizer_params, adapt_lr=True)
+
+    optimizers, schedulers = model.configure_optimizers()
+
+    assert isinstance(optimizers[0], expected_type)
+    assert len(schedulers) == 1
+    # The critic is stepped manually, so its optimizer and scheduler are held on the trainer.
+    assert isinstance(model.critic_opt, expected_type)
+    assert model.critic_sched is not None
+
+
+@pytest.mark.parametrize("optimizer_params, expected_type", OPTIMIZER_CASES, ids=OPTIMIZER_IDS)
+def test_wdgrl_configure_optimizers_without_adapt_lr(optimizer_params, expected_type):
+    """With adapt_lr off, every optimizer type returns a bare list and no scheduler."""
+    model = _wdgrl_trainer(optimizer_params, adapt_lr=False)
 
     optimizers = model.configure_optimizers()
 
     assert isinstance(optimizers, list)
     assert len(optimizers) == 1
     assert isinstance(optimizers[0], expected_type)
-    # The critic optimizer is stored for manual stepping; there is no scheduler for these.
     assert isinstance(model.critic_opt, expected_type)
     assert model.critic_sched is None
 
 
-def test_wdgrl_configure_optimizers_with_scheduler():
-    """SGD with adapt_lr still returns the (optimizers, schedulers) pair and sets a critic scheduler."""
-    model = _wdgrl_trainer({"type": "SGD", "optim_params": {"momentum": 0.9}}, adapt_lr=True)
+def test_wdgrl_configure_optimizers_handles_a_scheduler_less_result():
+    """configure_optimizers keys on the returned shape, not on adapt_lr (issue #548).
 
-    optimizers, schedulers = model.configure_optimizers()
+    _configure_optimizer now returns a scheduler for every optimizer under adapt_lr, so the
+    original crash is no longer reachable through configuration. This pins the handling directly:
+    a scheduler-less result while adapt_lr is set must still be accepted rather than unpacked as a
+    pair, which is what raised `ValueError: not enough values to unpack (expected 2, got 1)`.
+    """
+    model = _wdgrl_trainer({"type": "Adam", "optim_params": {}}, adapt_lr=True)
 
-    assert isinstance(optimizers[0], torch.optim.SGD)
-    assert len(schedulers) == 1
-    assert isinstance(model.critic_opt, torch.optim.SGD)
-    assert model.critic_sched is not None
+    with patch.object(model, "_configure_optimizer", return_value=[torch.optim.Adam(model.parameters())]):
+        optimizers = model.configure_optimizers()
+
+    assert isinstance(optimizers, list)
+    assert model.critic_sched is None
 
 
 @pytest.mark.parametrize("da_method", DA_METHODS)
