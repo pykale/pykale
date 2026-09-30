@@ -1,0 +1,32 @@
+{
+  "template": "#{{CHANGELOG}}\n\n#### Other Changes\n\n#{{UNCATEGORIZED}}",
+  "pr_template": "* [##{{NUMBER}}](#{{URL}}): #{{TITLE}}",
+  "empty_template": "* No pull requests were merged since the last release.",
+  "categories": [
+    {
+      "title": "#### New Features",
+      "labels": ["new feature"],
+      "consume": true
+    },
+    {
+      "title": "#### Bug Fixes",
+      "labels": ["bug", "dependencies"],
+      "consume": true
+    },
+    {
+      "title": "#### Code Improvements",
+      "labels": ["refactor", "enhancement"],
+      "consume": true
+    },
+    {
+      "title": "#### Tests",
+      "labels": ["tests"],
+      "consume": true
+    },
+    {
+      "title": "#### Documentation Updates",
+      "labels": ["documentation"],
+      "consume": true
+    }
+  ]
+}
