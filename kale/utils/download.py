@@ -217,6 +217,10 @@ def _fetch_gdrive(id, output_directory, output_file_name, file, known_hash):
     Raises:
         ChecksumError: If the downloaded file does not match ``known_hash``.
     """
+    # A failed attempt can leave a partial file behind. torchvision skips the download whenever the
+    # target merely exists -- it calls check_integrity() without an md5, which only tests for the
+    # file -- so without this a retry would accept those partial bytes as a complete download.
+    file.unlink(missing_ok=True)
     download_file_from_google_drive(id, output_directory, output_file_name)
     if not _hash_ok(file, known_hash):
         raise ChecksumError(f"{file} does not match the expected {known_hash}. Deleted download for safety.")
@@ -262,7 +266,13 @@ def download_file_gdrive(id, output_directory, output_file_name, file_format=Non
 
     logging.info("Downloading {}.".format(output_file_name))
     # pooch cannot download from Google Drive, so torchvision fetches and pooch's hashing verifies.
-    _retry_download(partial(_fetch_gdrive, id, output_directory, output_file_name, file, known_hash))
+    try:
+        _retry_download(partial(_fetch_gdrive, id, output_directory, output_file_name, file, known_hash))
+    except _DOWNLOAD_ERRORS:
+        # Leave nothing partial behind: without a checksum to check it against, a later call would
+        # treat the leftover file as a complete download and skip fetching it again.
+        file.unlink(missing_ok=True)
+        raise
 
     if file_format is not None and file_format in ["tar.xz", "tar", "tar.gz", "tgz", "gz", "zip"]:
         logging.info("Extracting {}.".format(output_file_name))

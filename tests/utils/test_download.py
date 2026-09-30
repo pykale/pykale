@@ -316,3 +316,44 @@ def test_download_file_gdrive_does_not_retry_missing_gdown(tmp_path):
                 download_file_gdrive("some-id", tmp_path, "data.csv", "csv")
     mock_dl.assert_called_once()
     mock_sleep.assert_not_called()
+
+
+def _torchvision_like_gdrive(partial_bytes=b"PARTIAL", error=None):
+    """Mimic torchvision's gdrive download, including its skip-if-the-file-exists shortcut.
+
+    ``download_file_from_google_drive`` calls ``check_integrity`` without an md5, which only tests
+    that the path exists, so it returns early whenever a file is already there.
+    """
+    calls = {"n": 0}
+
+    def download(id, root, name):
+        calls["n"] += 1
+        fpath = Path(root) / name
+        if fpath.exists():
+            return
+        fpath.write_bytes(partial_bytes)
+        raise error or OSError("connection reset")
+
+    return download, calls
+
+
+def test_download_file_gdrive_retry_does_not_accept_a_partial_file(tmp_path):
+    # A failed attempt leaves partial bytes behind. Because torchvision skips the download when the
+    # target exists, a retry would otherwise report success on those bytes.
+    download, calls = _torchvision_like_gdrive()
+    with patch("kale.utils.download.time.sleep"):
+        with patch("kale.utils.download.download_file_from_google_drive", side_effect=download):
+            with pytest.raises(OSError, match="connection reset"):
+                download_file_gdrive("some-id", tmp_path, "data.csv", "csv")
+    assert calls["n"] == 3  # every attempt really re-downloaded
+
+
+def test_download_file_gdrive_leaves_no_partial_file_behind(tmp_path):
+    # After the last attempt fails, nothing may remain: a later call without a checksum would treat
+    # a leftover file as a complete, cached download.
+    download, _ = _torchvision_like_gdrive()
+    with patch("kale.utils.download.time.sleep"):
+        with patch("kale.utils.download.download_file_from_google_drive", side_effect=download):
+            with pytest.raises(OSError):
+                download_file_gdrive("some-id", tmp_path, "data.csv", "csv")
+    assert not (tmp_path / "data.csv").exists()
