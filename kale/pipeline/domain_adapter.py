@@ -192,6 +192,15 @@ def create_fewshot_trainer(
         raise ValueError(f"Unsupported semi-supervised method: {method}")
 
 
+# Optimizers selectable through the ``optimizer`` config. Adding an entry is enough for
+# ``_build_optimizer`` to support it; keyword arguments are filtered by ``validate_kwargs``.
+_OPTIMIZERS = {
+    "Adam": torch.optim.Adam,
+    "AdamW": torch.optim.AdamW,
+    "SGD": torch.optim.SGD,
+}
+
+
 class BaseAdaptTrainer(pl.LightningModule):
     r"""Base class for all domain adaptation architectures.
 
@@ -408,46 +417,56 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_metrics["test_domain_div_loss"] = domain_div_loss
         self.log_dict(log_metrics, on_step=False, on_epoch=True)
 
-    def _configure_optimizer(self, parameters):
+    def _build_optimizer(self, parameters):
+        """Construct the optimizer named by ``self._optimizer_params``.
+
+        Args:
+            parameters (Iterable): Parameters to optimize.
+
+        Returns:
+            torch.optim.Optimizer: The constructed optimizer. Defaults to Adam when no optimizer
+            parameters were given.
+
+        Raises:
+            NotImplementedError: If an unknown optimizer type is requested.
+        """
         if self._optimizer_params is None:
-            optimizer = torch.optim.Adam(
+            return torch.optim.Adam(
                 parameters,
                 lr=self._init_lr,
                 betas=(0.8, 0.999),
                 weight_decay=1e-5,
             )
-            return [optimizer]
-        if self._optimizer_params["type"] == "Adam":
-            valid_optim_params = validate_kwargs(torch.optim.Adam, self._optimizer_params["optim_params"])
-            optimizer = torch.optim.Adam(
-                parameters,
-                lr=self._init_lr,
-                **valid_optim_params,
-            )
-            return [optimizer]
+        optimizer_type = self._optimizer_params["type"]
+        if optimizer_type not in _OPTIMIZERS:
+            raise NotImplementedError(f"Unknown optimizer type {optimizer_type}")
+        optimizer_class = _OPTIMIZERS[optimizer_type]
+        valid_optim_params = validate_kwargs(optimizer_class, self._optimizer_params["optim_params"])
+        return optimizer_class(
+            parameters,
+            lr=self._init_lr,
+            **valid_optim_params,
+        )
 
-        if self._optimizer_params["type"] == "AdamW":
-            valid_optim_params = validate_kwargs(torch.optim.AdamW, self._optimizer_params["optim_params"])
-            optimizer = torch.optim.AdamW(
-                parameters,
-                lr=self._init_lr,
-                **valid_optim_params,
-            )
-            return [optimizer]
+    def _configure_optimizer(self, parameters):
+        """Build the optimizer and, when ``adapt_lr`` is set, its learning rate scheduler.
 
-        if self._optimizer_params["type"] == "SGD":
-            valid_optim_params = validate_kwargs(torch.optim.SGD, self._optimizer_params["optim_params"])
-            optimizer = torch.optim.SGD(
-                parameters,
-                lr=self._init_lr,
-                **valid_optim_params,
-            )
+        The scheduler is applied for every optimizer type rather than SGD alone: Adam and AdamW
+        support a scheduled learning rate too, and previously a user asking for ``adapt_lr`` with
+        either of them silently got none.
 
-            if self._adapt_lr:
-                feature_sched = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: self._lr_fact)
-                return [optimizer], [feature_sched]
-            return [optimizer]
-        raise NotImplementedError(f"Unknown optimizer type {self._optimizer_params['type']}")
+        Args:
+            parameters (Iterable): Parameters to optimize.
+
+        Returns:
+            list or tuple: ``([optimizer], [scheduler])`` when ``adapt_lr`` is enabled, and
+            ``[optimizer]`` otherwise.
+        """
+        optimizer = self._build_optimizer(parameters)
+        if self._adapt_lr:
+            feature_sched = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: self._lr_fact)
+            return [optimizer], [feature_sched]
+        return [optimizer]
 
     def configure_optimizers(self):
         return self._configure_optimizer(self.parameters())
@@ -781,24 +800,32 @@ class WDGRLTrainer(BaseDANNLike):
 
         return loss  # required, for backward pass
 
-    def configure_optimizers(self):  # no usage?
+    def configure_optimizers(self):
+        """Configure the task/feature optimizer and, separately, the critic optimizer.
+
+        The critic is stepped manually in ``critic_update_steps`` (called from ``training_step``),
+        so its optimizer and scheduler are stored on the trainer rather than returned to PyTorch
+        Lightning.
+
+        ``_configure_optimizer`` returns ``([optimizer], [scheduler])`` only for SGD with
+        ``adapt_lr`` enabled, and ``[optimizer]`` otherwise; both shapes are handled here and the
+        task/feature result is passed straight through to Lightning.
+        """
         nets = [self.feat, self.classifier]
         parameters = set()
         for net in nets:
             parameters |= set(net.parameters())
 
-        if self._adapt_lr:
-            task_feat_optimizer, task_feat_sched = self._configure_optimizer(parameters)
-            self.critic_opt, self.critic_sched = self._configure_optimizer(self.domain_classifier.parameters())
-            self.critic_opt = self.critic_opt[0]
-            self.critic_sched = self.critic_sched[0]
-            return task_feat_optimizer, task_feat_sched
+        critic_result = self._configure_optimizer(self.domain_classifier.parameters())
+        if isinstance(critic_result, tuple):
+            critic_optimizers, critic_schedulers = critic_result
+            self.critic_opt = critic_optimizers[0]
+            self.critic_sched = critic_schedulers[0]
         else:
-            task_feat_optimizer = self._configure_optimizer(parameters)
-            self.critic_opt = self._configure_optimizer(self.domain_classifier.parameters())
+            self.critic_opt = critic_result[0]
             self.critic_sched = None
-            self.critic_opt = self.critic_opt[0]
-        return task_feat_optimizer
+
+        return self._configure_optimizer(parameters)
 
 
 class WDGRLTrainerMod(WDGRLTrainer):
