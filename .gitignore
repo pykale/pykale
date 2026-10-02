@@ -13,6 +13,8 @@ venv/
 *.zip
 *.ckpt
 *.json
+!.github/changelog-config.json
+.github/changelog.generated.md
 
 # Distribution / packaging
 build/
