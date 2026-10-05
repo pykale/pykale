@@ -50,6 +50,22 @@ def testing_cfg(download_path):
     yield config_params
 
 
+def test_base_adapt_trainer_rejects_an_unknown_optimizer():
+    """An unrecognised optimizer type fails loudly rather than silently falling back to a default."""
+    model = domain_adapter.BaseAdaptTrainer(
+        dataset=_DummyDataset(),
+        feature_extractor=torch.nn.Linear(2, 3),
+        task_classifier=torch.nn.Linear(3, 2),
+        nb_init_epochs=1,
+        nb_adapt_epochs=2,
+        init_lr=0.004,
+        optimizer={"type": "Nonesuch", "optim_params": {}},
+    )
+
+    with pytest.raises(NotImplementedError, match="Nonesuch"):
+        model.configure_optimizers()
+
+
 def test_base_adapt_trainer_configure_optimizers_with_adamw():
     model = domain_adapter.BaseAdaptTrainer(
         dataset=_DummyDataset(),
