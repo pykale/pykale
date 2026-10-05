@@ -807,9 +807,11 @@ class WDGRLTrainer(BaseDANNLike):
         so its optimizer and scheduler are stored on the trainer rather than returned to PyTorch
         Lightning.
 
-        ``_configure_optimizer`` returns ``([optimizer], [scheduler])`` only for SGD with
-        ``adapt_lr`` enabled, and ``[optimizer]`` otherwise; both shapes are handled here and the
-        task/feature result is passed straight through to Lightning.
+        ``_configure_optimizer`` returns ``([optimizer], [scheduler])`` whenever ``adapt_lr`` is
+        enabled and ``[optimizer]`` otherwise, for every optimizer type. Both shapes are handled
+        here by inspecting what was returned rather than by checking ``adapt_lr`` or the optimizer
+        type, so this keeps working if that contract changes again. The task/feature result is
+        passed straight through to Lightning.
         """
         nets = [self.feat, self.classifier]
         parameters = set()
