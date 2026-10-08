@@ -109,6 +109,11 @@ def test_release_version_not_a_release(title):
         ("Release 0.3.0dev1", "Unsupported version '0.3.0dev1'"),
         ("Release notes for 0.2.0 and 0.3.0", "exactly one version, found: 0.2.0 0.3.0"),
         ("Release 0.3.1", "does not match kale/__init__.py (0.3.0)"),
+        # A truncated version must be reported, not mistaken for a title that merely mentions
+        # releases: that let a release pull request pass with no changelog generated.
+        ("Release 0.3", "Unsupported version '0.3'"),
+        ("Release v0.3", "Unsupported version 'v0.3'"),
+        ("Release 0.3 and 0.4", "exactly one version, found: 0.3 0.4"),
     ],
 )
 def test_release_version_rejected(title, message):

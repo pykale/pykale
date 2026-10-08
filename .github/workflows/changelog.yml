@@ -53,12 +53,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           # The full history is needed to locate the previous release tag.
           fetch-depth: 0
-          # Pushes made with GITHUB_TOKEN don't trigger other workflows, so the
-          # changelog commit would get no CI runs and automerge would wait for
-          # checks that never start. A CHANGELOG_TOKEN secret (a fine-grained
-          # PAT or GitHub App token with contents: write) avoids this; without
-          # it the workflow still works, but CI must be re-triggered by hand.
-          token: ${{ secrets.CHANGELOG_TOKEN || secrets.GITHUB_TOKEN }}
+          # Don't leave the token in .git/config. The steps below run scripts
+          # from this branch, and a persisted credential would be readable by
+          # anything that runs afterwards. The push step supplies it instead.
+          persist-credentials: false
 
       - name: Get release version from pull request title
         id: version
@@ -114,6 +112,14 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          REPOSITORY: ${{ github.repository }}
+          # Pushes made with GITHUB_TOKEN don't trigger other workflows, so the
+          # changelog commit would get no CI runs and automerge would wait for
+          # checks that never start. A CHANGELOG_TOKEN secret (a fine-grained
+          # PAT or GitHub App token with contents: write) avoids this; without
+          # it the workflow still works, but CI must be re-triggered by hand.
+          # Scoped to this step so the scripts above never see it.
+          PUSH_TOKEN: ${{ secrets.CHANGELOG_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           if git diff --quiet -- .github/CHANGELOG.md; then
             echo "::notice::CHANGELOG.md already has a section for $VERSION, nothing to commit."
@@ -124,8 +130,10 @@ jobs:
           git add .github/CHANGELOG.md
           git commit -m "Update CHANGELOG.md for version $VERSION"
           # A plain (non-force) push only fast-forwards, so it fails rather than
-          # overwriting if someone pushed to the branch during this run.
-          git push origin "HEAD:refs/heads/$HEAD_REF"
+          # overwriting if someone pushed to the branch during this run. The
+          # token goes on the command line because the checkout persisted none;
+          # Actions masks the secret in the log.
+          git push "https://x-access-token:$PUSH_TOKEN@github.com/$REPOSITORY.git" "HEAD:refs/heads/$HEAD_REF"
 
       - name: Comment changelog on pull request
         # Not gated on whether a commit was pushed: a rerun after an attempt that
