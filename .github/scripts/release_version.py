@@ -22,7 +22,10 @@ import sys
 from pathlib import Path
 
 RELEASE_RE = re.compile(r"(^|[^a-z])release([^a-z]|$)", re.IGNORECASE)
-CANDIDATE_RE = re.compile(r"^[vV]?[0-9]+\.[0-9]+\.[0-9]+")
+# Two components are enough to call a word a version, so that a title carrying a malformed one
+# ("Release 0.3") is reported rather than quietly treated as not-a-release. SUPPORTED_RE then
+# decides whether the version can actually be used.
+VERSION_LIKE_RE = re.compile(r"^[vV]?[0-9]+\.[0-9]+")
 SUPPORTED_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?$")
 PACKAGE_VERSION_RE = re.compile(r"^__version__ = ['\"]([^'\"]*)['\"]", re.MULTILINE)
 # Surrounding brackets and quotes, and trailing punctuation such as a full stop.
@@ -41,7 +44,9 @@ def find_release_version(title: str, package_version: str) -> str | None:
     """Finds the release version in a pull request title.
 
     A title is a release when it contains the whole word "release" (so "prerelease" and "released" don't count) and
-    a word starting with X.Y.Z. Surrounding brackets, quotes and trailing punctuation are ignored.
+    a word starting with a version, X.Y at the least. Surrounding brackets, quotes and trailing punctuation are
+    ignored. Requiring only two components means a malformed version raises rather than being mistaken for a
+    title that simply mentions releases.
 
     Args:
         title (str): The pull request title, e.g. "Release 0.3.0".
@@ -52,7 +57,8 @@ def find_release_version(title: str, package_version: str) -> str | None:
 
     Raises:
         ReleaseTitleError: If the title carries more than one version, a version other than X.Y.Z, X.Y.ZaN, X.Y.ZbN
-            or X.Y.ZrcN, or a version that differs from ``package_version``.
+            or X.Y.ZrcN (including a truncated one such as ``0.3``), or a version that differs from
+            ``package_version``.
     """
     if not RELEASE_RE.search(title):
         return None
@@ -60,7 +66,7 @@ def find_release_version(title: str, package_version: str) -> str | None:
     # Keep any suffix attached, so "0.3.0-beta.1" and "0.3.0.post1" are checked
     # whole instead of being cut down to "0.3.0".
     words = (word.lstrip(LEADING_PUNCTUATION).rstrip(TRAILING_PUNCTUATION) for word in title.split())
-    candidates = [word for word in words if CANDIDATE_RE.match(word)]
+    candidates = [word for word in words if VERSION_LIKE_RE.match(word)]
     if not candidates:
         return None
     if len(candidates) > 1:
