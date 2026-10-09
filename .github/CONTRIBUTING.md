@@ -168,6 +168,17 @@ We follow the [Semantic Versioning](https://semver.org/) guidelines. Given a ver
 
 Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format.
 
+#### Changelog
+
+The [changelog workflow](https://github.com/pykale/pykale/blob/main/.github/workflows/changelog.yml) drafts the [changelog](https://github.com/pykale/pykale/blob/main/.github/CHANGELOG.md) section for each release:
+
+- Bump `__version__` in `kale/__init__.py` first, then open a pull request titled with the word "release" and that version, e.g. `Release 0.3.0` or `Release 0.3.0rc1`. Supported versions are `X.Y.Z` and the pre-releases `X.Y.ZaN`, `X.Y.ZbN` and `X.Y.ZrcN`.
+- The workflow lists every pull request merged since the previous tag, grouped by label as set in [`changelog-config.json`](https://github.com/pykale/pykale/blob/main/.github/changelog-config.json), commits the section to the top of `.github/CHANGELOG.md`, and posts it as a pull request comment. Reword the entries as needed before merging.
+- The workflow runs only when the pull request is opened, so later pushes (e.g. rewording or removing entries) and title edits never change the changelog again.
+- If the title is wrong, the workflow fails with a message saying what to fix. Close the pull request and open a new one with the corrected title. An existing section for the version is never overwritten: if the branch already has one, the new run leaves it as it is and only posts the freshly generated list as a comment.
+- The workflow runs only for branches of `pykale/pykale`, not forks.
+- Commits pushed with the default `GITHUB_TOKEN` do not trigger CI. Unless the repository has a `CHANGELOG_TOKEN` secret (a fine-grained token with `contents: write`), re-run the checks, e.g. by pushing another commit, before the pull request can be merged.
+
 #### Project boards
 
 We set up [project boards](https://github.com/pykale/pykale/projects) to manage the progress of development. A single default project contains all active/planned works, with automation.
