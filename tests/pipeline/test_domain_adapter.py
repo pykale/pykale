@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 import torch
 
@@ -48,6 +50,22 @@ def testing_cfg(download_path):
     yield config_params
 
 
+def test_base_adapt_trainer_rejects_an_unknown_optimizer():
+    """An unrecognised optimizer type fails loudly rather than silently falling back to a default."""
+    model = domain_adapter.BaseAdaptTrainer(
+        dataset=_DummyDataset(),
+        feature_extractor=torch.nn.Linear(2, 3),
+        task_classifier=torch.nn.Linear(3, 2),
+        nb_init_epochs=1,
+        nb_adapt_epochs=2,
+        init_lr=0.004,
+        optimizer={"type": "Nonesuch", "optim_params": {}},
+    )
+
+    with pytest.raises(NotImplementedError, match="Nonesuch"):
+        model.configure_optimizers()
+
+
 def test_base_adapt_trainer_configure_optimizers_with_adamw():
     model = domain_adapter.BaseAdaptTrainer(
         dataset=_DummyDataset(),
@@ -59,7 +77,9 @@ def test_base_adapt_trainer_configure_optimizers_with_adamw():
         optimizer={"type": "AdamW", "optim_params": {"eps": 0.2, "weight_decay": 0.3}},
     )
 
-    optimizers = model.configure_optimizers()
+    # adapt_lr defaults to True on BaseAdaptTrainer, so a scheduler comes back alongside the
+    # optimizer for AdamW as it does for SGD.
+    optimizers, schedulers = model.configure_optimizers()
 
     assert len(optimizers) == 1
     assert isinstance(optimizers, list)
@@ -67,6 +87,75 @@ def test_base_adapt_trainer_configure_optimizers_with_adamw():
     assert optimizers[0].defaults["lr"] == 0.004
     assert optimizers[0].defaults["eps"] == 0.2
     assert optimizers[0].defaults["weight_decay"] == 0.3
+    assert len(schedulers) == 1
+
+
+def _wdgrl_trainer(optimizer, adapt_lr):
+    return domain_adapter.WDGRLTrainer(
+        dataset=_DummyDataset(),
+        feature_extractor=torch.nn.Linear(2, 3),
+        task_classifier=torch.nn.Linear(3, 2),
+        critic=torch.nn.Linear(3, 1),
+        nb_init_epochs=1,
+        nb_adapt_epochs=2,
+        init_lr=0.004,
+        adapt_lr=adapt_lr,
+        optimizer=optimizer,
+    )
+
+
+OPTIMIZER_CASES = [
+    (None, torch.optim.Adam),
+    ({"type": "Adam", "optim_params": {}}, torch.optim.Adam),
+    ({"type": "AdamW", "optim_params": {}}, torch.optim.AdamW),
+    ({"type": "SGD", "optim_params": {"momentum": 0.9}}, torch.optim.SGD),
+]
+OPTIMIZER_IDS = ["default", "Adam", "AdamW", "SGD"]
+
+
+@pytest.mark.parametrize("optimizer_params, expected_type", OPTIMIZER_CASES, ids=OPTIMIZER_IDS)
+def test_wdgrl_configure_optimizers_with_adapt_lr(optimizer_params, expected_type):
+    """Every optimizer type gets a scheduler under adapt_lr, including the default."""
+    model = _wdgrl_trainer(optimizer_params, adapt_lr=True)
+
+    optimizers, schedulers = model.configure_optimizers()
+
+    assert isinstance(optimizers[0], expected_type)
+    assert len(schedulers) == 1
+    # The critic is stepped manually, so its optimizer and scheduler are held on the trainer.
+    assert isinstance(model.critic_opt, expected_type)
+    assert model.critic_sched is not None
+
+
+@pytest.mark.parametrize("optimizer_params, expected_type", OPTIMIZER_CASES, ids=OPTIMIZER_IDS)
+def test_wdgrl_configure_optimizers_without_adapt_lr(optimizer_params, expected_type):
+    """With adapt_lr off, every optimizer type returns a bare list and no scheduler."""
+    model = _wdgrl_trainer(optimizer_params, adapt_lr=False)
+
+    optimizers = model.configure_optimizers()
+
+    assert isinstance(optimizers, list)
+    assert len(optimizers) == 1
+    assert isinstance(optimizers[0], expected_type)
+    assert isinstance(model.critic_opt, expected_type)
+    assert model.critic_sched is None
+
+
+def test_wdgrl_configure_optimizers_handles_a_scheduler_less_result():
+    """configure_optimizers keys on the returned shape, not on adapt_lr (issue #548).
+
+    _configure_optimizer now returns a scheduler for every optimizer under adapt_lr, so the
+    original crash is no longer reachable through configuration. This pins the handling directly:
+    a scheduler-less result while adapt_lr is set must still be accepted rather than unpacked as a
+    pair, which is what raised `ValueError: not enough values to unpack (expected 2, got 1)`.
+    """
+    model = _wdgrl_trainer({"type": "Adam", "optim_params": {}}, adapt_lr=True)
+
+    with patch.object(model, "_configure_optimizer", return_value=[torch.optim.Adam(model.parameters())]):
+        optimizers = model.configure_optimizers()
+
+    assert isinstance(optimizers, list)
+    assert model.critic_sched is None
 
 
 @pytest.mark.parametrize("da_method", DA_METHODS)

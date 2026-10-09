@@ -1,0 +1,14 @@
+# Codecov configuration. See https://docs.codecov.com/docs/codecov-yaml
+#
+# Without this file Codecov applies its default project status, which fails on any decrease in
+# overall coverage at all. That penalises changes which delete covered code: removing fully
+# covered lines lowers the overall percentage even though nothing became less tested. A small
+# tolerance keeps the check meaningful while letting refactors through.
+#
+# The patch status is deliberately left at its default, so lines added or changed by a pull
+# request must still be covered.
+coverage:
+  status:
+    project:
+      default:
+        threshold: 0.1%

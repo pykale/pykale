@@ -17,6 +17,7 @@ from setuptools import find_packages, setup
 install_requires = [
     "numpy>=2.0.0",  # Numpy 2.0.0+ is needed
     "pandas<=2.2.2",  # for compatibility with Colab 1.0.0 and Torch 2.3.0
+    "pooch>=1.8.0",  # dataset download, caching and checksum verification in utils.download
     "pytorch-lightning>=2.3.2",  # in pipeline API only
     "scipy>=1.13.0",  # scipy 1.14.0 supports python 3.10+
     "scikit-learn>=1.6.1",

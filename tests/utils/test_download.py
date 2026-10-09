@@ -1,10 +1,19 @@
+import hashlib
 import os
 from pathlib import Path
 from unittest.mock import call, MagicMock, patch
 
 import pytest
 
-from kale.utils.download import _retry_download, download_file_by_url, download_file_gdrive
+from kale.utils.download import (
+    _hash_ok,
+    _known_hash,
+    _retrieve,
+    _retry_download,
+    ChecksumError,
+    download_file_by_url,
+    download_file_gdrive,
+)
 
 output_directory = Path().absolute().joinpath("tests/test_data/download")
 PARAM = [
@@ -17,6 +26,13 @@ GDRIVE_PARAM = [
     "1SV7fmAnWj-6AU9X5BGOrvGMoh2Gu9Nih;dummy_data.csv;csv",
 ]
 
+# pooch reports a checksum mismatch with this wording; ``_retrieve`` keys off it to tell a retryable
+# corrupt download apart from a genuine programming error.
+POOCH_MISMATCH = (
+    "MD5 hash of downloaded file (data.pkl) does not match the known hash: "
+    "expected md5:000 but got abc. Deleted download for safety."
+)
+
 
 def test_retry_download_succeeds_on_first_attempt():
     fn = MagicMock()
@@ -25,7 +41,7 @@ def test_retry_download_succeeds_on_first_attempt():
 
 
 def test_retry_download_retries_on_failure():
-    fn = MagicMock(side_effect=[RuntimeError("timeout"), RuntimeError("timeout"), None])
+    fn = MagicMock(side_effect=[OSError("timeout"), OSError("timeout"), None])
     with patch("kale.utils.download.time.sleep") as mock_sleep:
         _retry_download(fn, retries=3, backoff=2)
     assert fn.call_count == 3
@@ -33,32 +49,117 @@ def test_retry_download_retries_on_failure():
 
 
 def test_retry_download_raises_after_all_retries():
-    fn = MagicMock(side_effect=RuntimeError("timeout"))
+    fn = MagicMock(side_effect=OSError("timeout"))
     with patch("kale.utils.download.time.sleep"):
-        with pytest.raises(RuntimeError, match="timeout"):
+        with pytest.raises(OSError, match="timeout"):
             _retry_download(fn, retries=3, backoff=2)
     assert fn.call_count == 3
 
 
-@pytest.mark.parametrize(
-    "kwargs",
-    [{"retries": 0}, {"retries": -1}, {"backoff": 0}, {"backoff": -1}],
-)
+@pytest.mark.parametrize("kwargs", [{"retries": 0}, {"retries": -1}, {"backoff": 0}, {"backoff": -1}])
 def test_retry_download_invalid_args(kwargs):
     with pytest.raises(ValueError):
         _retry_download(MagicMock(), **kwargs)
 
 
-def test_download_file_by_url_archive_uses_retry(tmp_path):
-    with patch("kale.utils.download.download_and_extract_archive") as mock_dl:
-        download_file_by_url("http://example.com/data.zip", tmp_path, "data.zip", "zip")
-    mock_dl.assert_called_once()
+def test_retry_download_does_not_retry_programming_errors():
+    # A non-download error (e.g. TypeError) is not one of _DOWNLOAD_ERRORS, so it must
+    # propagate immediately without being retried and masked.
+    fn = MagicMock(side_effect=TypeError("bad call"))
+    with patch("kale.utils.download.time.sleep") as mock_sleep:
+        with pytest.raises(TypeError, match="bad call"):
+            _retry_download(fn, retries=3, backoff=2)
+    fn.assert_called_once()
+    mock_sleep.assert_not_called()
 
 
-def test_download_file_by_url_plain_uses_retry(tmp_path):
-    with patch("kale.utils.download.download_url_to_file") as mock_dl:
+@pytest.mark.parametrize(
+    "md5, sha256, expected",
+    [
+        (None, None, None),
+        ("abc", None, "md5:abc"),
+        (None, "def", "sha256:def"),
+        ("abc", "def", "sha256:def"),  # sha256 wins when both are supplied
+    ],
+)
+def test_known_hash(md5, sha256, expected):
+    assert _known_hash(md5, sha256) == expected
+
+
+def test_retrieve_translates_checksum_mismatch_to_runtime_error(tmp_path):
+    # pooch signals a checksum mismatch with ValueError. `_retrieve` re-raises it as RuntimeError
+    # so that _retry_download treats a corrupt transfer as retryable.
+    with patch("kale.utils.download.pooch.retrieve", side_effect=ValueError(POOCH_MISMATCH)):
+        with pytest.raises(RuntimeError, match="does not match"):
+            _retrieve("http://example.com/data.pkl", "md5:000", "data.pkl", tmp_path)
+
+
+def test_retrieve_propagates_other_value_errors(tmp_path):
+    # A ValueError that is not a checksum mismatch (e.g. an unsupported URL protocol) is a
+    # programming/config error and must surface immediately rather than being retried.
+    with patch("kale.utils.download.pooch.retrieve", side_effect=ValueError("Unrecognized URL protocol")):
+        with pytest.raises(ValueError, match="Unrecognized URL protocol"):
+            _retrieve("ftp://example.com/data.pkl", None, "data.pkl", tmp_path)
+
+
+def test_download_file_by_url_plain_calls_pooch(tmp_path):
+    with patch("kale.utils.download.pooch.retrieve") as mock_retrieve:
         download_file_by_url("http://example.com/data.pkl", tmp_path, "data.pkl", "pkl")
-    mock_dl.assert_called_once()
+    mock_retrieve.assert_called_once()
+    assert mock_retrieve.call_args.kwargs["known_hash"] is None
+
+
+def test_download_file_by_url_archive_extracts(tmp_path):
+    with patch("kale.utils.download.pooch.retrieve") as mock_retrieve:
+        with patch("kale.utils.download.extract_archive") as mock_extract:
+            download_file_by_url("http://example.com/data.zip", tmp_path, "data.zip", "zip")
+    mock_retrieve.assert_called_once()
+    mock_extract.assert_called_once()
+
+
+def test_download_file_by_url_passes_checksum_to_pooch(tmp_path):
+    with patch("kale.utils.download.pooch.retrieve") as mock_retrieve:
+        download_file_by_url("http://example.com/data.pkl", tmp_path, "data.pkl", "pkl", md5="0" * 32)
+    assert mock_retrieve.call_args.kwargs["known_hash"] == "md5:" + "0" * 32
+
+
+def test_download_file_by_url_skips_existing_file_without_checksum(tmp_path):
+    # With nothing to verify, an existing file is reused without touching the network.
+    (tmp_path / "data.pkl").write_bytes(b"already here")
+    with patch("kale.utils.download.pooch.retrieve") as mock_retrieve:
+        download_file_by_url("http://example.com/data.pkl", tmp_path, "data.pkl", "pkl")
+    mock_retrieve.assert_not_called()
+
+
+def test_download_file_by_url_verifies_existing_file_when_checksum_given(tmp_path):
+    # Regression guard: a cached file must NOT bypass verification when a checksum is supplied,
+    # otherwise a corrupt cached file would be silently reused.
+    content = b"already here"
+    (tmp_path / "data.pkl").write_bytes(content)
+    with patch("kale.utils.download.pooch.retrieve") as mock_retrieve:
+        download_file_by_url(
+            "http://example.com/data.pkl", tmp_path, "data.pkl", "pkl", md5=hashlib.md5(content).hexdigest()
+        )
+    mock_retrieve.assert_called_once()
+
+
+def test_download_file_by_url_checksum_mismatch_retries_then_raises(tmp_path):
+    # Every attempt fails verification, so the error surfaces once retries are exhausted.
+    with patch("kale.utils.download.time.sleep"):
+        with patch("kale.utils.download.pooch.retrieve", side_effect=ValueError(POOCH_MISMATCH)) as mock_retrieve:
+            with pytest.raises(RuntimeError, match="does not match"):
+                download_file_by_url("http://example.com/data.pkl", tmp_path, "data.pkl", "pkl", md5="0" * 32)
+    assert mock_retrieve.call_count == 3
+
+
+def test_download_file_by_url_archive_not_extracted_on_failure(tmp_path):
+    # A download that never verifies must not reach extraction.
+    with patch("kale.utils.download.time.sleep"):
+        with patch("kale.utils.download.pooch.retrieve", side_effect=ValueError(POOCH_MISMATCH)):
+            with patch("kale.utils.download.extract_archive") as mock_extract:
+                with pytest.raises(RuntimeError):
+                    download_file_by_url("http://example.com/data.zip", tmp_path, "data.zip", "zip", md5="0" * 32)
+    mock_extract.assert_not_called()
 
 
 @pytest.mark.parametrize("param", PARAM)
@@ -73,6 +174,32 @@ def test_download_file_by_url(param):
     assert output_directory.exists()
 
 
+def test_download_file_gdrive_archive_mocked(tmp_path):
+    # Exercise the gdrive download + extract branch without hitting the network.
+    def fake_gdrive(id, root, name):
+        Path(root).joinpath(name).write_bytes(b"archive-bytes")
+
+    with patch("kale.utils.download.download_file_from_google_drive", side_effect=fake_gdrive) as mock_dl:
+        with patch("kale.utils.download.extract_archive") as mock_extract:
+            download_file_gdrive("some-id", tmp_path, "data.zip", "zip")
+    mock_dl.assert_called_once()
+    mock_extract.assert_called_once()
+    assert (tmp_path / "data.zip").exists()
+
+
+def test_download_file_gdrive_plain_mocked(tmp_path):
+    # Exercise the gdrive plain (no-extract) branch without hitting the network.
+    def fake_gdrive(id, root, name):
+        Path(root).joinpath(name).write_bytes(b"plain-bytes")
+
+    with patch("kale.utils.download.download_file_from_google_drive", side_effect=fake_gdrive) as mock_dl:
+        with patch("kale.utils.download.extract_archive") as mock_extract:
+            download_file_gdrive("some-id", tmp_path, "data.csv", "csv")
+    mock_dl.assert_called_once()
+    mock_extract.assert_not_called()
+    assert (tmp_path / "data.csv").exists()
+
+
 @pytest.mark.parametrize("param", GDRIVE_PARAM)
 def test_download_file_gdrive(param):
     id, output_file_name, file_format = param.split(";")
@@ -83,3 +210,150 @@ def test_download_file_gdrive(param):
 
     assert os.path.exists(output_directory.joinpath(output_file_name)) is True
     assert output_directory.exists()
+
+
+def test_hash_ok_accepts_matching_file(tmp_path):
+    file = tmp_path / "data.bin"
+    file.write_bytes(b"payload")
+    assert _hash_ok(file, "md5:" + hashlib.md5(b"payload").hexdigest()) is True
+    assert file.exists()
+
+
+def test_hash_ok_accepts_when_nothing_to_check(tmp_path):
+    file = tmp_path / "data.bin"
+    file.write_bytes(b"payload")
+    assert _hash_ok(file, None) is True
+    assert file.exists()
+
+
+def test_hash_ok_removes_mismatching_file(tmp_path):
+    # The corrupt file must be deleted, both so the retry starts clean and so torchvision does not
+    # treat it as already present and skip re-downloading.
+    file = tmp_path / "data.bin"
+    file.write_bytes(b"payload")
+    assert _hash_ok(file, "md5:" + "0" * 32) is False
+    assert not file.exists()
+
+
+def _fake_gdrive(content):
+    def download(id, root, name):
+        Path(root).joinpath(name).write_bytes(content)
+
+    return download
+
+
+def test_download_file_gdrive_verifies_download(tmp_path):
+    content = b"gdrive payload"
+    with patch("kale.utils.download.download_file_from_google_drive", side_effect=_fake_gdrive(content)) as mock_dl:
+        download_file_gdrive("some-id", tmp_path, "data.csv", "csv", md5=hashlib.md5(content).hexdigest())
+    mock_dl.assert_called_once()
+    assert (tmp_path / "data.csv").read_bytes() == content
+
+
+def test_download_file_gdrive_checksum_mismatch_retries_then_raises(tmp_path):
+    with patch("kale.utils.download.time.sleep"):
+        with patch(
+            "kale.utils.download.download_file_from_google_drive", side_effect=_fake_gdrive(b"corrupt")
+        ) as mock_dl:
+            with pytest.raises(RuntimeError, match="does not match"):
+                download_file_gdrive("some-id", tmp_path, "data.csv", "csv", md5="0" * 32)
+    assert mock_dl.call_count == 3
+    assert not (tmp_path / "data.csv").exists()
+
+
+def test_download_file_gdrive_skips_valid_cached_file(tmp_path):
+    content = b"already here"
+    (tmp_path / "data.csv").write_bytes(content)
+    with patch("kale.utils.download.download_file_from_google_drive") as mock_dl:
+        download_file_gdrive("some-id", tmp_path, "data.csv", "csv", md5=hashlib.md5(content).hexdigest())
+    mock_dl.assert_not_called()
+
+
+def test_download_file_gdrive_redownloads_invalid_cached_file(tmp_path):
+    # Regression guard: a cached file that fails its checksum must not be reused.
+    good = b"the real payload"
+    (tmp_path / "data.csv").write_bytes(b"stale-corrupt")
+    with patch("kale.utils.download.download_file_from_google_drive", side_effect=_fake_gdrive(good)) as mock_dl:
+        download_file_gdrive("some-id", tmp_path, "data.csv", "csv", md5=hashlib.md5(good).hexdigest())
+    mock_dl.assert_called_once()
+    assert (tmp_path / "data.csv").read_bytes() == good
+
+
+def test_retry_download_does_not_retry_runtime_errors():
+    """A bare RuntimeError is a configuration problem, not a transient download failure.
+
+    torchvision reports a missing optional ``gdown`` dependency as RuntimeError, so retrying it
+    three times with backoff would only delay an error no retry can fix.
+    """
+    fn = MagicMock(side_effect=RuntimeError("To download files from GDrive, 'gdown' is required."))
+    with patch("kale.utils.download.time.sleep") as mock_sleep:
+        with pytest.raises(RuntimeError, match="gdown"):
+            _retry_download(fn, retries=3, backoff=2)
+    fn.assert_called_once()
+    mock_sleep.assert_not_called()
+
+
+def test_retry_download_retries_checksum_errors():
+    """A ChecksumError is a corrupt download, so it is retried like any transient failure."""
+    fn = MagicMock(side_effect=[ChecksumError("md5 mismatch"), None])
+    with patch("kale.utils.download.time.sleep"):
+        _retry_download(fn, retries=3, backoff=2)
+    assert fn.call_count == 2
+
+
+def test_checksum_error_is_a_runtime_error():
+    """Callers catching RuntimeError keep working, even though the retry set excludes it."""
+    assert issubclass(ChecksumError, RuntimeError)
+
+
+def test_download_file_gdrive_does_not_retry_missing_gdown(tmp_path):
+    # The scenario from the review: torchvision raises RuntimeError when gdown is absent, and that
+    # must surface immediately rather than after two backoff sleeps.
+    error = RuntimeError("To download files from GDrive, 'gdown' is required.")
+    with patch("kale.utils.download.time.sleep") as mock_sleep:
+        with patch("kale.utils.download.download_file_from_google_drive", side_effect=error) as mock_dl:
+            with pytest.raises(RuntimeError, match="gdown"):
+                download_file_gdrive("some-id", tmp_path, "data.csv", "csv")
+    mock_dl.assert_called_once()
+    mock_sleep.assert_not_called()
+
+
+def _torchvision_like_gdrive(partial_bytes=b"PARTIAL", error=None):
+    """Mimic torchvision's gdrive download, including its skip-if-the-file-exists shortcut.
+
+    ``download_file_from_google_drive`` calls ``check_integrity`` without an md5, which only tests
+    that the path exists, so it returns early whenever a file is already there.
+    """
+    calls = {"n": 0}
+
+    def download(id, root, name):
+        calls["n"] += 1
+        fpath = Path(root) / name
+        if fpath.exists():
+            return
+        fpath.write_bytes(partial_bytes)
+        raise error or OSError("connection reset")
+
+    return download, calls
+
+
+def test_download_file_gdrive_retry_does_not_accept_a_partial_file(tmp_path):
+    # A failed attempt leaves partial bytes behind. Because torchvision skips the download when the
+    # target exists, a retry would otherwise report success on those bytes.
+    download, calls = _torchvision_like_gdrive()
+    with patch("kale.utils.download.time.sleep"):
+        with patch("kale.utils.download.download_file_from_google_drive", side_effect=download):
+            with pytest.raises(OSError, match="connection reset"):
+                download_file_gdrive("some-id", tmp_path, "data.csv", "csv")
+    assert calls["n"] == 3  # every attempt really re-downloaded
+
+
+def test_download_file_gdrive_leaves_no_partial_file_behind(tmp_path):
+    # After the last attempt fails, nothing may remain: a later call without a checksum would treat
+    # a leftover file as a complete, cached download.
+    download, _ = _torchvision_like_gdrive()
+    with patch("kale.utils.download.time.sleep"):
+        with patch("kale.utils.download.download_file_from_google_drive", side_effect=download):
+            with pytest.raises(OSError):
+                download_file_gdrive("some-id", tmp_path, "data.csv", "csv")
+    assert not (tmp_path / "data.csv").exists()
