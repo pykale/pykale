@@ -58,23 +58,33 @@ jobs:
           # anything that runs afterwards. The push step supplies it instead.
           persist-credentials: false
 
-      # The scripts are run from the base commit, never from the pull request
-      # branch. A later step holds a push token, and code running anywhere in
-      # this job can reach it: planting a .git/hooks/pre-commit, or adding a
-      # command to .git/config such as core.fsmonitor, is enough, so checking
-      # out without persisted credentials is not on its own sufficient.
+      # The scripts and the changelog configuration are taken from the base
+      # commit, never from the pull request branch. A later step holds a push
+      # token, and code running anywhere in this job can reach it: planting a
+      # .git/hooks/pre-commit, or naming a command in .git/config such as
+      # core.fsmonitor, is enough, so checking out without persisted
+      # credentials is not on its own sufficient.
       #
-      # A second checkout is used rather than `git show <base-sha>:<path>`,
-      # because the base commit is only reachable from the pull request branch
-      # when that branch is up to date with it; `git show` would fail for any
-      # release pull request opened while main was ahead.
-      - name: Checkout trusted scripts from the base commit
+      # A second checkout is used rather than reading the files out of the
+      # first one with `git show <base-sha>:<path>`. The base commit is only
+      # reachable from the pull request branch while that branch is up to date
+      # with it, and the checkout above fetches that branch alone, so a release
+      # pull request opened while main was ahead would fail to find it.
+      - name: Checkout trusted changelog files from the base commit
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.sha }}
-          path: trusted-scripts
-          sparse-checkout: .github/scripts
+          path: trusted-base
+          sparse-checkout: .github
           persist-credentials: false
+
+      # Copied out of the workspace so the steps below cannot pick up the pull
+      # request's own copies by mistake.
+      - name: Load trusted changelog files
+        run: |
+          cp trusted-base/.github/scripts/release_version.py "$RUNNER_TEMP/release_version.py"
+          cp trusted-base/.github/scripts/update_changelog.py "$RUNNER_TEMP/update_changelog.py"
+          cp trusted-base/.github/changelog-config.json "$RUNNER_TEMP/changelog-config.json"
 
       - name: Get release version from pull request title
         id: version
@@ -82,7 +92,7 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         # Accepts one X.Y.Z, X.Y.ZaN, X.Y.ZbN or X.Y.ZrcN version matching
         # kale/__init__.py; see the script and tests/github for the rules.
-        run: python3 trusted-scripts/.github/scripts/release_version.py
+        run: python3 "$RUNNER_TEMP/release_version.py" kale/__init__.py
 
       - name: Record checked-out commit
         id: head
@@ -103,7 +113,7 @@ jobs:
         # code that runs here. Dependabot can bump this.
         uses: mikepenz/release-changelog-builder-action@cb021f9b36a51a7c6f18e4679b6fa2cb77a1260c
         with:
-          configuration: .github/changelog-config.json
+          configuration: ${{ runner.temp }}/changelog-config.json
           fromTag: ${{ steps.previous.outputs.tag }}
           # The commit actually checked out, so the range matches the files the
           # steps below read and the commit they push on top of.
@@ -120,7 +130,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          python3 trusted-scripts/.github/scripts/update_changelog.py \
+          python3 "$RUNNER_TEMP/update_changelog.py" \
             "$VERSION" \
             .github/changelog.generated.md \
             .github/CHANGELOG.md
@@ -149,7 +159,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .github/CHANGELOG.md
-          git commit -m "Update CHANGELOG.md for version $VERSION"
+          # Hooks are disabled as a second line of defence: with the scripts coming
+          # from the base commit, nothing in this job should be able to plant one.
+          git -c core.hooksPath=/dev/null commit -m "Update CHANGELOG.md for version $VERSION"
           # A plain (non-force) push only fast-forwards, so it fails rather than
           # overwriting if someone pushed to the branch during this run. The
           # token goes on the command line because the checkout persisted none;
