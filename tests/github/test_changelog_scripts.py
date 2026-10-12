@@ -1,13 +1,17 @@
-"""Tests for the release changelog scripts in .github/scripts: release_version.py and update_changelog.py."""
+"""Tests for the release changelog scripts, configuration and workflow."""
 
 import importlib.util
+import json
 import shutil
 import subprocess
 from pathlib import Path
 
 import pytest
 
-SCRIPTS = Path(__file__).resolve().parents[2] / ".github" / "scripts"
+ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS = ROOT / ".github" / "scripts"
+CONFIG = ROOT / ".github" / "changelog-config.json"
+WORKFLOW = ROOT / ".github" / "workflows" / "changelog.yml"
 
 # Older releases with Markdown that must survive untouched: a hard line break
 # (two trailing spaces, written as "\x20\x20" so editors and the pre-commit
@@ -64,6 +68,33 @@ def load(name):
 
 release_version = load("release_version")
 update_changelog = load("update_changelog")
+
+
+# changelog configuration and workflow
+
+
+def test_operational_labels_are_ignored():
+    """Tests that workflow-only labels do not appear in release notes."""
+    config = json.loads(CONFIG.read_text(encoding="utf-8"))
+
+    assert "action failed" in config["ignore_labels"]
+
+
+def test_workflow_uses_trusted_files_and_short_lived_token():
+    """Guards the trust boundary between pull request content and authenticated steps."""
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    assert workflow.count("persist-credentials: false") == 2
+    assert "ref: ${{ github.event.pull_request.base.sha }}" in workflow
+    assert "path: trusted-base" in workflow
+    assert 'cp trusted-base/.github/scripts/release_version.py "$RUNNER_TEMP/release_version.py"' in workflow
+    assert 'cp trusted-base/.github/scripts/update_changelog.py "$RUNNER_TEMP/update_changelog.py"' in workflow
+    assert 'cp trusted-base/.github/changelog-config.json "$RUNNER_TEMP/changelog-config.json"' in workflow
+    assert 'python3 "$RUNNER_TEMP/release_version.py"' in workflow
+    assert 'python3 "$RUNNER_TEMP/update_changelog.py"' in workflow
+    assert "configuration: ${{ runner.temp }}/changelog-config.json" in workflow
+    assert "secrets.CHANGELOG_TOKEN" not in workflow
+    assert "git -c core.hooksPath=/dev/null commit" in workflow
 
 
 # release_version.py

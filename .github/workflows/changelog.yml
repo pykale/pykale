@@ -53,23 +53,12 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           # The full history is needed to locate the previous release tag.
           fetch-depth: 0
-          # Don't leave the token in .git/config. The steps below run scripts
-          # from this branch, and a persisted credential would be readable by
-          # anything that runs afterwards. The push step supplies it instead.
+          # Keep credentials out of the pull request checkout. The push step
+          # receives a short-lived token only when it needs one.
           persist-credentials: false
 
-      # The scripts and the changelog configuration are taken from the base
-      # commit, never from the pull request branch. A later step holds a push
-      # token, and code running anywhere in this job can reach it: planting a
-      # .git/hooks/pre-commit, or naming a command in .git/config such as
-      # core.fsmonitor, is enough, so checking out without persisted
-      # credentials is not on its own sufficient.
-      #
-      # A second checkout is used rather than reading the files out of the
-      # first one with `git show <base-sha>:<path>`. The base commit is only
-      # reachable from the pull request branch while that branch is up to date
-      # with it, and the checkout above fetches that branch alone, so a release
-      # pull request opened while main was ahead would fail to find it.
+      # Keep executable helpers separate from pull request content. This makes
+      # the trusted source explicit and independent of the first checkout.
       - name: Checkout trusted changelog files from the base commit
         uses: actions/checkout@v4
         with:
@@ -78,8 +67,8 @@ jobs:
           sparse-checkout: .github
           persist-credentials: false
 
-      # Copied out of the workspace so the steps below cannot pick up the pull
-      # request's own copies by mistake.
+      # Use temporary copies so later steps cannot pick up the pull request's
+      # versions by mistake.
       - name: Load trusted changelog files
         run: |
           cp trusted-base/.github/scripts/release_version.py "$RUNNER_TEMP/release_version.py"
@@ -141,15 +130,10 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
           REPOSITORY: ${{ github.repository }}
-          # GITHUB_TOKEN grants nothing beyond what anyone able to push this branch
-          # already has, so there is nothing to escalate; a long-lived PAT would be a
-          # real exposure, so don't add one here. Isolating the push onto a
-          # runner that never executes pull request code is tracked separately.
-          #
-          # The cost: pushes made with GITHUB_TOKEN don't trigger other
-          # workflows, so the changelog commit gets no CI run of its own and
-          # automerge waits for checks that never start. Re-run CI by hand, or
-          # push an empty commit, after the changelog lands.
+          # Use the short-lived, repository-scoped token only for this step.
+          # Do not replace it with a broader or longer-lived credential.
+          # Its push does not trigger CI, so re-run checks after the changelog
+          # commit lands.
           PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if git diff --quiet -- .github/CHANGELOG.md; then
@@ -159,8 +143,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .github/CHANGELOG.md
-          # Hooks are disabled as a second line of defence: with the scripts coming
-          # from the base commit, nothing in this job should be able to plant one.
+          # Do not run hooks from the pull request checkout.
           git -c core.hooksPath=/dev/null commit -m "Update CHANGELOG.md for version $VERSION"
           # A plain (non-force) push only fast-forwards, so it fails rather than
           # overwriting if someone pushed to the branch during this run. The
