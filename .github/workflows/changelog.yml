@@ -58,13 +58,31 @@ jobs:
           # anything that runs afterwards. The push step supplies it instead.
           persist-credentials: false
 
+      # The scripts are run from the base commit, never from the pull request
+      # branch. A later step holds a push token, and code running anywhere in
+      # this job can reach it: planting a .git/hooks/pre-commit, or adding a
+      # command to .git/config such as core.fsmonitor, is enough, so checking
+      # out without persisted credentials is not on its own sufficient.
+      #
+      # A second checkout is used rather than `git show <base-sha>:<path>`,
+      # because the base commit is only reachable from the pull request branch
+      # when that branch is up to date with it; `git show` would fail for any
+      # release pull request opened while main was ahead.
+      - name: Checkout trusted scripts from the base commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted-scripts
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+
       - name: Get release version from pull request title
         id: version
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         # Accepts one X.Y.Z, X.Y.ZaN, X.Y.ZbN or X.Y.ZrcN version matching
         # kale/__init__.py; see the script and tests/github for the rules.
-        run: python3 .github/scripts/release_version.py
+        run: python3 trusted-scripts/.github/scripts/release_version.py
 
       - name: Record checked-out commit
         id: head
@@ -102,7 +120,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          python3 .github/scripts/update_changelog.py \
+          python3 trusted-scripts/.github/scripts/update_changelog.py \
             "$VERSION" \
             .github/changelog.generated.md \
             .github/CHANGELOG.md
@@ -113,14 +131,10 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
           REPOSITORY: ${{ github.repository }}
-          # Deliberately the repository's own ephemeral token and nothing more.
-          # The steps above run scripts from the pull request branch, and code
-          # running in this job can reach a credential in this step (a git hook
-          # or a tampered .git/config is enough). GITHUB_TOKEN grants nothing
-          # beyond what anyone able to push this branch already has, so there is
-          # nothing to escalate; a long-lived PAT would be a real exposure, so
-          # don't add one here. Isolating the push onto a runner that never
-          # executes pull request code is tracked separately.
+          # GITHUB_TOKEN grants nothing beyond what anyone able to push this branch
+          # already has, so there is nothing to escalate; a long-lived PAT would be a
+          # real exposure, so don't add one here. Isolating the push onto a
+          # runner that never executes pull request code is tracked separately.
           #
           # The cost: pushes made with GITHUB_TOKEN don't trigger other
           # workflows, so the changelog commit gets no CI run of its own and
