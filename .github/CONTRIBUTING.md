@@ -177,7 +177,7 @@ The [changelog workflow](https://github.com/pykale/pykale/blob/main/.github/work
 - The workflow runs only when the pull request is opened, so later pushes (e.g. rewording or removing entries) and title edits never change the changelog again.
 - If the title is wrong, the workflow fails with a message saying what to fix. Close the pull request and open a new one with the corrected title. An existing section for the version is never overwritten: if the branch already has one, the new run leaves it as it is and only posts the freshly generated list as a comment.
 - The workflow runs only for branches of `pykale/pykale`, not forks.
-- Commits pushed with the default `GITHUB_TOKEN` do not trigger CI. Unless the repository has a `CHANGELOG_TOKEN` secret (a fine-grained token with `contents: write`), re-run the checks, e.g. by pushing another commit, before the pull request can be merged.
+- The changelog commit is pushed with the default `GITHUB_TOKEN`, and commits pushed that way do not trigger CI. Re-run the checks, e.g. by pushing another commit, before the pull request can be merged. A long-lived personal access token would avoid this, but the workflow runs scripts from the pull request branch, so anything running there could read such a token; `GITHUB_TOKEN` grants nothing beyond what anyone able to push the branch already has. Do not add a broader token to this workflow.
 
 #### Project boards
 

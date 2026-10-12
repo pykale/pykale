@@ -2,6 +2,7 @@
   "template": "#{{CHANGELOG}}\n\n#### Other Changes\n\n#{{UNCATEGORIZED}}",
   "pr_template": "* [##{{NUMBER}}](#{{URL}}): #{{TITLE}}",
   "empty_template": "* No pull requests were merged since the last release.",
+  "ignore_labels": ["action failed", "duplicate", "enable-test-changed-only", "stale-issue", "Stale"],
   "categories": [
     {
       "title": "#### New Features",

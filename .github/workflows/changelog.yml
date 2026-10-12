@@ -113,13 +113,20 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
           REPOSITORY: ${{ github.repository }}
-          # Pushes made with GITHUB_TOKEN don't trigger other workflows, so the
-          # changelog commit would get no CI runs and automerge would wait for
-          # checks that never start. A CHANGELOG_TOKEN secret (a fine-grained
-          # PAT or GitHub App token with contents: write) avoids this; without
-          # it the workflow still works, but CI must be re-triggered by hand.
-          # Scoped to this step so the scripts above never see it.
-          PUSH_TOKEN: ${{ secrets.CHANGELOG_TOKEN || secrets.GITHUB_TOKEN }}
+          # Deliberately the repository's own ephemeral token and nothing more.
+          # The steps above run scripts from the pull request branch, and code
+          # running in this job can reach a credential in this step (a git hook
+          # or a tampered .git/config is enough). GITHUB_TOKEN grants nothing
+          # beyond what anyone able to push this branch already has, so there is
+          # nothing to escalate; a long-lived PAT would be a real exposure, so
+          # don't add one here. Isolating the push onto a runner that never
+          # executes pull request code is tracked separately.
+          #
+          # The cost: pushes made with GITHUB_TOKEN don't trigger other
+          # workflows, so the changelog commit gets no CI run of its own and
+          # automerge waits for checks that never start. Re-run CI by hand, or
+          # push an empty commit, after the changelog lands.
+          PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if git diff --quiet -- .github/CHANGELOG.md; then
             echo "::notice::CHANGELOG.md already has a section for $VERSION, nothing to commit."
