@@ -22,7 +22,7 @@ permissions:
   contents: write
   pull-requests: write
 
-# A newer run of the same pull request supersedes the one in flight.
+# Prevent overlapping attempts, including manually rerun jobs for the same PR.
 concurrency:
   group: changelog-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -57,9 +57,10 @@ jobs:
           # receives a short-lived token only when it needs one.
           persist-credentials: false
 
-      # Keep executable helpers separate from pull request content. This makes
-      # the trusted source explicit and independent of the first checkout.
-      - name: Checkout trusted changelog files from the base commit
+      # Load helpers from the base commit rather than PR modifications.
+      # The PR workflow itself remains editable by same-repository contributors;
+      # this is not isolation from contributors who can change the workflow.
+      - name: Checkout changelog files from the base commit
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.sha }}
@@ -69,7 +70,7 @@ jobs:
 
       # Use temporary copies so later steps cannot pick up the pull request's
       # versions by mistake.
-      - name: Load trusted changelog files
+      - name: Load base-commit changelog files
         run: |
           cp trusted-base/.github/scripts/release_version.py "$RUNNER_TEMP/release_version.py"
           cp trusted-base/.github/scripts/update_changelog.py "$RUNNER_TEMP/update_changelog.py"
@@ -112,6 +113,9 @@ jobs:
           # an API error) is treated as an empty result, and the "no pull
           # requests" placeholder would be committed as if it were real.
           failOnError: true
+          # Collect PRs from the compared commits rather than the bounded
+          # date-based search (200 PRs and 365 days by default).
+          fetchViaCommits: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update changelog

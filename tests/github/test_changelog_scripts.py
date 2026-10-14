@@ -80,6 +80,11 @@ def test_operational_labels_are_ignored():
     assert "action failed" in config["ignore_labels"]
 
 
+def test_workflow_collects_pull_requests_via_commits():
+    """Guards against silently truncating release notes with the date-search defaults."""
+    assert "fetchViaCommits: true" in WORKFLOW.read_text(encoding="utf-8")
+
+
 def test_workflow_uses_trusted_files_and_short_lived_token():
     """Guards the trust boundary between pull request content and authenticated steps."""
     workflow = WORKFLOW.read_text(encoding="utf-8")
@@ -111,6 +116,7 @@ def test_workflow_uses_trusted_files_and_short_lived_token():
         ("[Release]0.3.0", "0.3.0", "0.3.0"),
         ("Release-v0.3.0RC1", "0.3.0rc1", "0.3.0rc1"),
         ("Prepare the 0.3.0 release", "0.3.0", "0.3.0"),
+        ("Prepare the (v0.3.0) release", "0.3.0", "0.3.0"),
         ("RELEASE v0.3.0.", "0.3.0", "0.3.0"),
         ("Release (0.3.0)", "0.3.0", "0.3.0"),
         ("Release 0.3.0a1", "0.3.0a1", "0.3.0a1"),
@@ -129,8 +135,13 @@ def test_release_version_accepted(title, package_version, expected):
         "Add MOGONET example",
         "Fix prerelease check in 0.3.0",
         "Update released notebooks for 0.3.0",
+        "Releases 0.3.0",
         "Fix release publishing workflow",
         "Release use ubuntu-latest",
+        "Update release workflow to Python 3.12",
+        "Fix release notes link for 0.2.0",
+        "Pin torch 2.6.0 in release job",
+        "Release notes for 0.2.0 and 0.3.0",
         "Fix release workflow for package0.3.0",
         "Fix release workflow for paqueté0.3.0",
     ],
@@ -144,6 +155,7 @@ def test_release_version_not_a_release(title):
     "title, message",
     [
         ("Release 0.3.0-beta.1", "Unsupported version '0.3.0-beta.1'"),
+        ("Release v.0.3.0", "Unsupported version 'v.0.3.0'"),
         ("Release-0.3.0-beta.1", "Unsupported version '0.3.0-beta.1'"),
         ("Release:0.3.0.post1", "Unsupported version '0.3.0.post1'"),
         ("Release-0.3", "Unsupported version '0.3'"),
@@ -153,7 +165,7 @@ def test_release_version_not_a_release(title):
         ("Release 0.2.0,0.3.0", "exactly one version, found: 0.2.0 0.3.0"),
         ("Release 0.3.0.post1", "Unsupported version '0.3.0.post1'"),
         ("Release 0.3.0dev1", "Unsupported version '0.3.0dev1'"),
-        ("Release notes for 0.2.0 and 0.3.0", "exactly one version, found: 0.2.0 0.3.0"),
+        ("Release 0.2.0 and 0.3.0", "exactly one version, found: 0.2.0 0.3.0"),
         ("Release 0.3.1", "does not match kale/__init__.py (0.3.0)"),
         # A truncated version must be reported, not mistaken for a title that merely mentions
         # releases: that let a release pull request pass with no changelog generated.
@@ -186,8 +198,12 @@ def test_release_version_reads_package_version(tmp_path):
         ("Release-0.3.0", 0, "version=0.3.0\n"),
         ("release_0.3.0", 0, "version=0.3.0\n"),
         ("release_0.3", 1, ""),
+        ("Release v.0.3.0", 1, ""),
         ("Release-0.3", 1, ""),
         ("Add MOGONET example", 0, "version=\n"),
+        ("Update release workflow to Python 3.12", 0, "version=\n"),
+        ("Fix release notes link for 0.2.0", 0, "version=\n"),
+        ("Pin torch 2.6.0 in release job", 0, "version=\n"),
         ("Release 0.3.1", 1, ""),
     ],
 )
@@ -332,8 +348,15 @@ def test_rerun_from_branch_tip_needs_no_second_commit(tmp_path, monkeypatch):
     pushed_sha = git(repo, "rev-parse", "HEAD")
     assert pushed_sha != event_sha
 
+    # Start at the original event commit to distinguish replaying head.sha
+    # from checking out the branch tip containing the first attempt's commit.
+    git(repo, "checkout", "-q", "--detach", event_sha)
+    assert git(repo, "rev-parse", "HEAD") == event_sha
+    assert changelog.read_bytes().decode() == HISTORY
+
     # Rerun: checks out the branch tip, which already holds the section.
     git(repo, "checkout", "-q", "release-0.3.0")
+    assert git(repo, "rev-parse", "HEAD") == pushed_sha
     generated.write_text(GENERATED, encoding="utf-8")
     assert run_updater(monkeypatch, "0.3.0", generated, changelog) == 0
 

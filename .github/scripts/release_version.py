@@ -3,8 +3,9 @@
 
 Usage: PR_TITLE="Release 0.3.0" release_version.py [init-file]
 
-A pull request is a release when its title contains the whole word "release"
-and a version. The version must be a single plain release or a pre-release
+A pull request is a release when its title places the whole word "release"
+next to a version, separated only by whitespace or punctuation. The version
+must be a single plain release or a pre-release
 that pykale publishes (0.3.0, 0.3.0a1, 0.3.0b1 or 0.3.0rc1), and it must match
 ``__version__`` in ``kale/__init__.py``, which is bumped before the release pull
 request is opened.
@@ -22,11 +23,13 @@ import sys
 from pathlib import Path
 
 RELEASE_RE = re.compile(r"(^|[^a-z])release([^a-z]|$)", re.IGNORECASE)
+RELEASE_BEFORE_RE = re.compile(r"(?<![a-z])release[\W_]*$", re.IGNORECASE)
+RELEASE_AFTER_RE = re.compile(r"^[\W_]*release(?![a-z])", re.IGNORECASE)
 # Two components are enough to call a word a version, so that a title carrying a malformed one
 # ("Release 0.3") is reported rather than quietly treated as not-a-release. SUPPORTED_RE then
 # decides whether the version can actually be used.
 # Allow underscores as separators while keeping versions out of words and dotted fragments.
-VERSION_LIKE_RE = re.compile(r"(?<![^\W_])(?<!\.)[vV]?[0-9]+\.[0-9]+[^\s\[\]()\"',;:!?]*")
+VERSION_LIKE_RE = re.compile(r"(?<![^\W_])(?<!\.)(?:[vV]\.?)?[0-9]+\.[0-9]+[^\s\[\]()\"',;:!?]*")
 SUPPORTED_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?$")
 PACKAGE_VERSION_RE = re.compile(r"^__version__ = ['\"]([^'\"]*)['\"]", re.MULTILINE)
 # Surrounding brackets and quotes, and trailing punctuation such as a full stop.
@@ -43,10 +46,9 @@ class ReleaseTitleError(ValueError):
 def find_release_version(title: str, package_version: str) -> str | None:
     """Finds the release version in a pull request title.
 
-    A title is a release when it contains the whole word "release" (so "prerelease" and "released" don't count) and
-    a version starting at a word or punctuation boundary, X.Y at the least. Brackets, quotes and trailing punctuation are
-    ignored. Requiring only two components means a malformed version raises rather than being mistaken for a
-    title that simply mentions releases.
+    A title is a release when the whole word "release" is next to a version, X.Y at the least, separated only by
+    whitespace or punctuation. Either order is accepted. Titles about release tooling with an unrelated version
+    are skipped. Requiring only two components means a truncated release version raises an error.
 
     Args:
         title (str): The pull request title, e.g. "Release 0.3.0".
@@ -65,8 +67,13 @@ def find_release_version(title: str, package_version: str) -> str | None:
 
     # Keep any suffix attached, so "0.3.0-beta.1" and "0.3.0.post1" are checked
     # whole instead of being cut down to "0.3.0".
-    candidates = [match.group().rstrip(TRAILING_PUNCTUATION) for match in VERSION_LIKE_RE.finditer(title)]
-    if not candidates:
+    matches = list(VERSION_LIKE_RE.finditer(title))
+    candidates = [match.group().rstrip(TRAILING_PUNCTUATION) for match in matches]
+    if not any(
+        RELEASE_BEFORE_RE.search(title[: match.start()])
+        or RELEASE_AFTER_RE.match(title[match.start() + len(candidate) :])
+        for match, candidate in zip(matches, candidates)
+    ):
         return None
     if len(candidates) > 1:
         raise ReleaseTitleError(f"Release title must contain exactly one version, found: {' '.join(candidates)}")
