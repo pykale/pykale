@@ -104,6 +104,12 @@ def test_workflow_uses_trusted_files_and_short_lived_token():
     "title, package_version, expected",
     [
         ("Release 0.3.0", "0.3.0", "0.3.0"),
+        ("Release-0.3.0", "0.3.0", "0.3.0"),
+        ("Release:0.3.0", "0.3.0", "0.3.0"),
+        ("release_0.3.0", "0.3.0", "0.3.0"),
+        ("release/v0.3.0", "0.3.0", "0.3.0"),
+        ("[Release]0.3.0", "0.3.0", "0.3.0"),
+        ("Release-v0.3.0RC1", "0.3.0rc1", "0.3.0rc1"),
         ("Prepare the 0.3.0 release", "0.3.0", "0.3.0"),
         ("RELEASE v0.3.0.", "0.3.0", "0.3.0"),
         ("Release (0.3.0)", "0.3.0", "0.3.0"),
@@ -125,6 +131,8 @@ def test_release_version_accepted(title, package_version, expected):
         "Update released notebooks for 0.3.0",
         "Fix release publishing workflow",
         "Release use ubuntu-latest",
+        "Fix release workflow for package0.3.0",
+        "Fix release workflow for paqueté0.3.0",
     ],
 )
 def test_release_version_not_a_release(title):
@@ -136,6 +144,13 @@ def test_release_version_not_a_release(title):
     "title, message",
     [
         ("Release 0.3.0-beta.1", "Unsupported version '0.3.0-beta.1'"),
+        ("Release-0.3.0-beta.1", "Unsupported version '0.3.0-beta.1'"),
+        ("Release:0.3.0.post1", "Unsupported version '0.3.0.post1'"),
+        ("Release-0.3", "Unsupported version '0.3'"),
+        ("release_0.3", "Unsupported version '0.3'"),
+        ("release_0.3.0-beta.1", "Unsupported version '0.3.0-beta.1'"),
+        ("Release:0.3.1", "does not match kale/__init__.py (0.3.0)"),
+        ("Release 0.2.0,0.3.0", "exactly one version, found: 0.2.0 0.3.0"),
         ("Release 0.3.0.post1", "Unsupported version '0.3.0.post1'"),
         ("Release 0.3.0dev1", "Unsupported version '0.3.0dev1'"),
         ("Release notes for 0.2.0 and 0.3.0", "exactly one version, found: 0.2.0 0.3.0"),
@@ -168,6 +183,10 @@ def test_release_version_reads_package_version(tmp_path):
     "title, exit_code, output",
     [
         ("Release 0.3.0", 0, "version=0.3.0\n"),
+        ("Release-0.3.0", 0, "version=0.3.0\n"),
+        ("release_0.3.0", 0, "version=0.3.0\n"),
+        ("release_0.3", 1, ""),
+        ("Release-0.3", 1, ""),
         ("Add MOGONET example", 0, "version=\n"),
         ("Release 0.3.1", 1, ""),
     ],

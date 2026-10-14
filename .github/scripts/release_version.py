@@ -25,11 +25,11 @@ RELEASE_RE = re.compile(r"(^|[^a-z])release([^a-z]|$)", re.IGNORECASE)
 # Two components are enough to call a word a version, so that a title carrying a malformed one
 # ("Release 0.3") is reported rather than quietly treated as not-a-release. SUPPORTED_RE then
 # decides whether the version can actually be used.
-VERSION_LIKE_RE = re.compile(r"^[vV]?[0-9]+\.[0-9]+")
+# Allow underscores as separators while keeping versions out of words and dotted fragments.
+VERSION_LIKE_RE = re.compile(r"(?<![^\W_])(?<!\.)[vV]?[0-9]+\.[0-9]+[^\s\[\]()\"',;:!?]*")
 SUPPORTED_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?$")
 PACKAGE_VERSION_RE = re.compile(r"^__version__ = ['\"]([^'\"]*)['\"]", re.MULTILINE)
 # Surrounding brackets and quotes, and trailing punctuation such as a full stop.
-LEADING_PUNCTUATION = "([\"'"
 TRAILING_PUNCTUATION = "]).,;:!?\"'"
 
 
@@ -44,7 +44,7 @@ def find_release_version(title: str, package_version: str) -> str | None:
     """Finds the release version in a pull request title.
 
     A title is a release when it contains the whole word "release" (so "prerelease" and "released" don't count) and
-    a word starting with a version, X.Y at the least. Surrounding brackets, quotes and trailing punctuation are
+    a version starting at a word or punctuation boundary, X.Y at the least. Brackets, quotes and trailing punctuation are
     ignored. Requiring only two components means a malformed version raises rather than being mistaken for a
     title that simply mentions releases.
 
@@ -65,8 +65,7 @@ def find_release_version(title: str, package_version: str) -> str | None:
 
     # Keep any suffix attached, so "0.3.0-beta.1" and "0.3.0.post1" are checked
     # whole instead of being cut down to "0.3.0".
-    words = (word.lstrip(LEADING_PUNCTUATION).rstrip(TRAILING_PUNCTUATION) for word in title.split())
-    candidates = [word for word in words if VERSION_LIKE_RE.match(word)]
+    candidates = [match.group().rstrip(TRAILING_PUNCTUATION) for match in VERSION_LIKE_RE.finditer(title)]
     if not candidates:
         return None
     if len(candidates) > 1:

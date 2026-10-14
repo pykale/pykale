@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+# Adapted from KaleLinear (pykale/linear), pull request #22:
+# https://github.com/pykale/linear/pull/22
+# Source file: .github/scripts/update_changelog.py
+# Copyright (c) 2018-2026 Shuo Zhou
+# Copyright (c) 2026 PyKale contributors
+# Licensed under the MIT License: https://github.com/pykale/linear/blob/main/LICENSE
+
 """Insert a generated release section into .github/CHANGELOG.md.
 
 Usage: update_changelog.py <version> <generated-file> <changelog-file>
