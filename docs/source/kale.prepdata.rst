@@ -30,6 +30,13 @@ kale.prepdata.image\_transform module
    :undoc-members:
    :show-inheritance:
 
+kale.prepdata.materials\_features module
+-------------------------------------
+.. automodule:: kale.prepdata.materials_features
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.prepdata.string\_transform module
 --------------------------------------
 

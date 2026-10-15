@@ -47,6 +47,14 @@ kale.embed.image\_cnn module
    :undoc-members:
    :show-inheritance:
 
+kale.embed.materials_equivariant module
+--------------------------------------
+.. automodule:: kale.embed.materials_equivariant
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :exclude-members: message, update
+
 kale.embed.model\_lib.ban module
 --------------------------------
 
@@ -54,6 +62,29 @@ kale.embed.model\_lib.ban module
    :members:
    :undoc-members:
    :show-inheritance:
+
+kale.embed.model\_lib.cartnet module
+-----------------------------
+.. automodule:: kale.embed.model_lib.cartnet
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :exclude-members: message, update
+
+kale.embed.model\_lib.cgcnn module
+----------------------------
+.. automodule:: kale.embed.model_lib.cgcnn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.embed.model\_lib.leftnet module
+-----------------------------
+.. automodule:: kale.embed.model_lib.leftnet
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :exclude-members: message, update
 
 kale.embed.model\_lib.gripnet module
 -------------------------
