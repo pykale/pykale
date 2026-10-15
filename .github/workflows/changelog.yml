@@ -1,3 +1,9 @@
+# Adapted from KaleLinear (pykale/linear), pull request #22:
+# https://github.com/pykale/linear/pull/22
+# Source file: .github/workflows/changelog.yml
+# Copyright (c) 2018-2026 Shuo Zhou
+# Copyright (c) 2026 PyKale contributors
+# Licensed under the MIT License: https://github.com/pykale/linear/blob/main/LICENSE
 # Generates the changelog for release pull requests.
 #
 # A pull request titled with the word "release" and the version being released,

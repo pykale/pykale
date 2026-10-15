@@ -116,6 +116,12 @@ def test_workflow_uses_trusted_files_and_short_lived_token():
         ("[Release]0.3.0", "0.3.0", "0.3.0"),
         ("Release-v0.3.0RC1", "0.3.0rc1", "0.3.0rc1"),
         ("Prepare the 0.3.0 release", "0.3.0", "0.3.0"),
+        ("0.3.0-release", "0.3.0", "0.3.0"),
+        ("0.3.0/release", "0.3.0", "0.3.0"),
+        ("0.3.0_release", "0.3.0", "0.3.0"),
+        ("V0.3.0:RELEASE", "0.3.0", "0.3.0"),
+        ("0.3.0rc1-release", "0.3.0rc1", "0.3.0rc1"),
+        ("0.3.0., release", "0.3.0", "0.3.0"),
         ("Prepare the (v0.3.0) release", "0.3.0", "0.3.0"),
         ("RELEASE v0.3.0.", "0.3.0", "0.3.0"),
         ("Release (0.3.0)", "0.3.0", "0.3.0"),
@@ -155,6 +161,9 @@ def test_release_version_not_a_release(title):
     "title, message",
     [
         ("Release 0.3.0-beta.1", "Unsupported version '0.3.0-beta.1'"),
+        ("0.3.0-beta.1-release", "Unsupported version '0.3.0-beta.1'"),
+        ("0.3_release", "Unsupported version '0.3'"),
+        ("0.3.0.post1/release", "Unsupported version '0.3.0.post1'"),
         ("Release v.0.3.0", "Unsupported version 'v.0.3.0'"),
         ("Release-0.3.0-beta.1", "Unsupported version '0.3.0-beta.1'"),
         ("Release:0.3.0.post1", "Unsupported version '0.3.0.post1'"),
@@ -191,11 +200,38 @@ def test_release_version_reads_package_version(tmp_path):
         release_version.read_package_version(init_file)
 
 
+@pytest.mark.parametrize("assignment", ["__version__='0.3.0'", '__version__ ="0.3.0"', "__version__\t=\t'0.3.0'"])
+def test_package_version_assignment_whitespace(tmp_path, assignment):
+    """Accepts spacing variants without importing package code."""
+    init_file = tmp_path / "__init__.py"
+    init_file.write_text(assignment + "\n", encoding="utf-8")
+    assert release_version.read_package_version(init_file) == "0.3.0"
+
+
+@pytest.mark.parametrize("content", [None, "VERSION = '0.3.0'", "__version__ = '0.3.0\""])
+def test_package_version_cli_error(tmp_path, monkeypatch, capsys, content):
+    """Reports missing files and malformed assignments as actionable workflow errors."""
+    init_file = tmp_path / "__init__.py"
+    if content is not None:
+        init_file.write_text(content, encoding="utf-8")
+    monkeypatch.setattr("sys.argv", ["release_version.py", str(init_file)])
+    monkeypatch.setenv("PR_TITLE", "Release 0.3.0")
+    output = tmp_path / "output"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+    assert release_version.main() == 1
+    message = capsys.readouterr().out
+    assert message.startswith("::error::")
+    assert str(init_file) in message
+    assert not output.exists()
+
+
 @pytest.mark.parametrize(
     "title, exit_code, output",
     [
         ("Release 0.3.0", 0, "version=0.3.0\n"),
         ("Release-0.3.0", 0, "version=0.3.0\n"),
+        ("0.3.0-release", 0, "version=0.3.0\n"),
+        ("0.3.0-beta.1-release", 1, ""),
         ("release_0.3.0", 0, "version=0.3.0\n"),
         ("release_0.3", 1, ""),
         ("Release v.0.3.0", 1, ""),

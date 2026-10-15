@@ -29,9 +29,14 @@ RELEASE_AFTER_RE = re.compile(r"^[\W_]*release(?![a-z])", re.IGNORECASE)
 # ("Release 0.3") is reported rather than quietly treated as not-a-release. SUPPORTED_RE then
 # decides whether the version can actually be used.
 # Allow underscores as separators while keeping versions out of words and dotted fragments.
-VERSION_LIKE_RE = re.compile(r"(?<![^\W_])(?<!\.)(?:[vV]\.?)?[0-9]+\.[0-9]+[^\s\[\]()\"',;:!?]*")
+# Stop before a punctuation-separated release keyword, but retain suffixes such
+# as -beta.1 so unsupported versions are rejected rather than truncated.
+VERSION_LIKE_RE = re.compile(
+    r"(?<![^\W_])(?<!\.)(?:[vV]\.?)?[0-9]+\.[0-9]+(?:(?![\W_]+release(?![a-z]))[^\s\[\]()\"',;:!?])*",
+    re.IGNORECASE,
+)
 SUPPORTED_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?$")
-PACKAGE_VERSION_RE = re.compile(r"^__version__ = ['\"]([^'\"]*)['\"]", re.MULTILINE)
+PACKAGE_VERSION_RE = re.compile(r"^__version__[ \t]*=[ \t]*(['\"])([^'\"\r\n]+)\1", re.MULTILINE)
 # Surrounding brackets and quotes, and trailing punctuation such as a full stop.
 TRAILING_PUNCTUATION = "]).,;:!?\"'"
 
@@ -70,9 +75,8 @@ def find_release_version(title: str, package_version: str) -> str | None:
     matches = list(VERSION_LIKE_RE.finditer(title))
     candidates = [match.group().rstrip(TRAILING_PUNCTUATION) for match in matches]
     if not any(
-        RELEASE_BEFORE_RE.search(title[: match.start()])
-        or RELEASE_AFTER_RE.match(title[match.start() + len(candidate) :])
-        for match, candidate in zip(matches, candidates)
+        RELEASE_BEFORE_RE.search(title[: match.start()]) or RELEASE_AFTER_RE.match(title[match.end() :])
+        for match in matches
     ):
         return None
     if len(candidates) > 1:
@@ -92,7 +96,7 @@ def find_release_version(title: str, package_version: str) -> str | None:
 
 
 def read_package_version(init_file: Path) -> str:
-    """Reads ``__version__`` from a package's ``__init__.py`` the same way setup.py does.
+    """Reads a quoted ``__version__`` assignment without executing the package.
 
     Args:
         init_file (Path): Path to the ``__init__.py`` file, e.g. ``kale/__init__.py``.
@@ -101,12 +105,18 @@ def read_package_version(init_file: Path) -> str:
         str: The package version, e.g. "0.3.0".
 
     Raises:
-        RuntimeError: If the file does not define ``__version__``.
+        RuntimeError: If the file cannot be read or has no quoted ``__version__`` assignment.
     """
-    match = PACKAGE_VERSION_RE.search(init_file.read_text(encoding="utf-8"))
+    try:
+        source = init_file.read_text(encoding="utf-8")
+    except OSError as error:
+        raise RuntimeError(f"Unable to read package version from {init_file}: {error.strerror}") from error
+    match = PACKAGE_VERSION_RE.search(source)
     if not match:
-        raise RuntimeError(f"Unable to find __version__ in {init_file}")
-    return match.group(1)
+        raise RuntimeError(
+            f"Unable to read __version__ in {init_file}. Expected a quoted assignment: __version__ = '0.3.0'."
+        )
+    return match.group(2)
 
 
 def main() -> int:
@@ -123,7 +133,7 @@ def main() -> int:
 
     try:
         version = find_release_version(title, read_package_version(init_file))
-    except ReleaseTitleError as error:
+    except (ReleaseTitleError, RuntimeError, OSError) as error:
         sys.stdout.write(f"::error::{error}\n")
         return 1
 
