@@ -13,6 +13,10 @@ venv/
 *.zip
 *.ckpt
 *.json
+!.github/changelog-config.json
+.github/changelog.generated.md
+# Base-branch copy of the changelog files, checked out by the changelog workflow.
+trusted-base/
 
 # Distribution / packaging
 build/

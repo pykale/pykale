@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+"""Read the release version from a pull request title.
+
+Usage: PR_TITLE="Release 0.3.0" release_version.py [init-file]
+
+A pull request is a release when its title places the whole word "release"
+next to a version, separated only by whitespace or punctuation. The version
+must be a single plain release or a pre-release
+that pykale publishes (0.3.0, 0.3.0a1, 0.3.0b1 or 0.3.0rc1), and it must match
+``__version__`` in ``kale/__init__.py``, which is bumped before the release pull
+request is opened.
+
+The version is written to ``$GITHUB_OUTPUT`` as ``version=<version>``, or as
+``version=`` when the pull request is not a release. A title that looks like a
+release but carries a wrong version exits with an error saying what to fix.
+"""
+
+from __future__ import annotations
+
+import os
+import re
+import sys
+from pathlib import Path
+
+RELEASE_RE = re.compile(r"(^|[^a-z])release([^a-z]|$)", re.IGNORECASE)
+RELEASE_BEFORE_RE = re.compile(r"(?<![a-z])release[\W_]*$", re.IGNORECASE)
+RELEASE_AFTER_RE = re.compile(r"^[\W_]*release(?![a-z])", re.IGNORECASE)
+# Two components are enough to call a word a version, so that a title carrying a malformed one
+# ("Release 0.3") is reported rather than quietly treated as not-a-release. SUPPORTED_RE then
+# decides whether the version can actually be used.
+# Allow underscores as separators while keeping versions out of words and dotted fragments.
+# Stop before a punctuation-separated release keyword, but retain suffixes such
+# as -beta.1 so unsupported versions are rejected rather than truncated.
+VERSION_LIKE_RE = re.compile(
+    r"(?<![^\W_])(?<!\.)(?:[vV]\.?)?[0-9]+\.[0-9]+(?:(?![\W_]+release(?![a-z]))[^\s\[\]()\"',;:!?])*",
+    re.IGNORECASE,
+)
+SUPPORTED_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?$")
+PACKAGE_VERSION_RE = re.compile(r"^__version__[ \t]*=[ \t]*(['\"])([^'\"\r\n]+)\1", re.MULTILINE)
+# Surrounding brackets and quotes, and trailing punctuation such as a full stop.
+TRAILING_PUNCTUATION = "]).,;:!?\"'"
+
+
+class ReleaseTitleError(ValueError):
+    """Raised when a pull request title looks like a release but its version can't be used.
+
+    The message says what to fix, e.g. an unsupported version format or a mismatch with ``kale/__init__.py``.
+    """
+
+
+def find_release_version(title: str, package_version: str) -> str | None:
+    """Finds the release version in a pull request title.
+
+    A title is a release when the whole word "release" is next to a version, X.Y at the least, separated only by
+    whitespace or punctuation. Either order is accepted. Titles about release tooling with an unrelated version
+    are skipped. Requiring only two components means a truncated release version raises an error.
+
+    Args:
+        title (str): The pull request title, e.g. "Release 0.3.0".
+        package_version (str): The version in ``kale/__init__.py``, which the title must match.
+
+    Returns:
+        str or None: The normalised version, e.g. "0.3.0rc1", or None if the title is not a release.
+
+    Raises:
+        ReleaseTitleError: If the title carries more than one version, a version other than X.Y.Z, X.Y.ZaN, X.Y.ZbN
+            or X.Y.ZrcN (including a truncated one such as ``0.3``), or a version that differs from
+            ``package_version``.
+    """
+    if not RELEASE_RE.search(title):
+        return None
+
+    # Keep any suffix attached, so "0.3.0-beta.1" and "0.3.0.post1" are checked
+    # whole instead of being cut down to "0.3.0".
+    matches = list(VERSION_LIKE_RE.finditer(title))
+    candidates = [match.group().rstrip(TRAILING_PUNCTUATION) for match in matches]
+    if not any(
+        RELEASE_BEFORE_RE.search(title[: match.start()]) or RELEASE_AFTER_RE.match(title[match.end() :])
+        for match in matches
+    ):
+        return None
+    if len(candidates) > 1:
+        raise ReleaseTitleError(f"Release title must contain exactly one version, found: {' '.join(candidates)}")
+
+    version = candidates[0].lower().removeprefix("v")
+    if not SUPPORTED_RE.match(version):
+        raise ReleaseTitleError(
+            f"Unsupported version '{candidates[0]}'. Use X.Y.Z or a pre-release such as X.Y.Za1, X.Y.Zb1 or X.Y.Zrc1."
+        )
+    if version != package_version:
+        raise ReleaseTitleError(
+            f"Title version {version} does not match kale/__init__.py ({package_version}). "
+            "Bump the version first, or fix the title."
+        )
+    return version
+
+
+def read_package_version(init_file: Path) -> str:
+    """Reads a quoted ``__version__`` assignment without executing the package.
+
+    Args:
+        init_file (Path): Path to the ``__init__.py`` file, e.g. ``kale/__init__.py``.
+
+    Returns:
+        str: The package version, e.g. "0.3.0".
+
+    Raises:
+        RuntimeError: If the file cannot be read or has no quoted ``__version__`` assignment.
+    """
+    try:
+        source = init_file.read_text(encoding="utf-8")
+    except OSError as error:
+        raise RuntimeError(f"Unable to read package version from {init_file}: {error.strerror}") from error
+    match = PACKAGE_VERSION_RE.search(source)
+    if not match:
+        raise RuntimeError(
+            f"Unable to read __version__ in {init_file}. Expected a quoted assignment: __version__ = '0.3.0'."
+        )
+    return match.group(2)
+
+
+def main() -> int:
+    """Runs the command-line interface: validates ``$PR_TITLE`` and writes the version to ``$GITHUB_OUTPUT``.
+
+    Takes an optional path to the package's ``__init__.py`` as its only argument, defaulting to
+    ``kale/__init__.py``. Messages use GitHub workflow commands (``::notice::`` and ``::error::``).
+
+    Returns:
+        int: The exit code, 0 for a valid release or a non-release title, or 1 for an invalid release title.
+    """
+    init_file = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("kale", "__init__.py")
+    title = os.environ.get("PR_TITLE", "")
+
+    try:
+        version = find_release_version(title, read_package_version(init_file))
+    except (ReleaseTitleError, RuntimeError, OSError) as error:
+        sys.stdout.write(f"::error::{error}\n")
+        return 1
+
+    if version is None:
+        sys.stdout.write("::notice::Not a release pull request, skipping changelog generation.\n")
+    else:
+        sys.stdout.write(f"Release version: {version}\n")
+
+    output = os.environ.get("GITHUB_OUTPUT")
+    if output:
+        with open(output, "a", encoding="utf-8") as handle:
+            handle.write(f"version={version or ''}\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
