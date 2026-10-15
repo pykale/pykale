@@ -1,3 +1,39 @@
+# Version  0.2.1
+
+#### New Features
+
+* [#588](https://github.com/pykale/pykale/pull/588): Add optional dataset checksum verification and download.py hardening
+
+#### Bug Fixes
+
+* [#575](https://github.com/pykale/pykale/pull/575): Correct "seperated" to "separated" in uncertainty result keys
+* [#574](https://github.com/pykale/pykale/pull/574): Fix cross-DataFrame index alignment in bin_wise_bound_eval and bin_wise_errors
+* [#577](https://github.com/pykale/pykale/pull/577): Default protonet_loss device to CUDA only when available
+* [#578](https://github.com/pykale/pykale/pull/578): Use the model device instead of hard-coded .cuda() in SignalImageVAE
+* [#581](https://github.com/pykale/pykale/pull/581): Replace eval() with getattr()/int() to prevent arbitrary code execution
+* [#580](https://github.com/pykale/pykale/pull/580): Load datasets with weights_only=True to prevent arbitrary code execution
+* [#569](https://github.com/pykale/pykale/pull/569): Fix mutable default argument in visualize_connectome (issue #543)
+* [#570](https://github.com/pykale/pykale/pull/570): Fix black version pin in dev_requires (issue #539)
+* [#576](https://github.com/pykale/pykale/pull/576): Correct empty-bin scoring and replace magic sentinel in bin_wise_bound_eval
+* [#571](https://github.com/pykale/pykale/pull/571): Fix Shell Injection in construct_logger - use subprocess instead of os.system
+* [#594](https://github.com/pykale/pykale/pull/594): Drop version specifiers from isort known_third_party
+
+#### Code Improvements
+
+* [#584](https://github.com/pykale/pykale/pull/584): Introduce BoundsEvaluator and ErrorsEvaluator
+* [#587](https://github.com/pykale/pykale/pull/587): Unify optimizer kwarg validation across trainers
+* [#586](https://github.com/pykale/pykale/pull/586): Remove commented-out dead code in gradient_penalty
+* [#582](https://github.com/pykale/pykale/pull/582): Reduce parameter complexity in plot_cumulative and evaluate_correlations
+* [#583](https://github.com/pykale/pykale/pull/583): Group bin-wise errors in a single linear pass
+* [#585](https://github.com/pykale/pykale/pull/585): Use the ResultKeys constant for the concatenated-targets result key
+* [#579](https://github.com/pykale/pykale/pull/579): Handle optimizers without a scheduler in WDGRLTrainer.configure_optimizers
+* [#591](https://github.com/pykale/pykale/pull/591): Update pillow requirement from >=12.2.0 to >=12.3.0
+* [#592](https://github.com/pykale/pykale/pull/592): Bump setuptools from 82.0.1 to 84.0.0
+
+#### Tests
+
+* [#537](https://github.com/pykale/pykale/pull/537): Add AdamW tests
+
 # Version  0.2.0
 
 #### New Features
