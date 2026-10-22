@@ -10,6 +10,50 @@ from kale.embed.multimodal_fusion import NamedInputConcat as Concat
 from kale.embed.multimodal_fusion import stack_present
 
 
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32, torch.float64])
+def test_masked_mean_precision_and_absent_gradients(dtype):
+    values = torch.tensor([[[2.0], [float("nan")]], [[6.0], [8.0]]], dtype=dtype, requires_grad=True)
+    result = masked_mean(values, torch.tensor([[True, False], [True, True]]))
+    assert result.dtype == dtype
+    torch.testing.assert_close(result, torch.tensor([[4.0], [8.0]], dtype=dtype))
+    result.sum().backward()
+    torch.testing.assert_close(values.grad, torch.tensor([[[0.5], [0.0]], [[0.5], [1.0]]], dtype=dtype))
+
+
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32, torch.float64])
+def test_voting_output_dtype_and_gradient_contract(dtype):
+    values = torch.tensor([[0.75, 0.25]], dtype=dtype, requires_grad=True)
+    result = MajorityVote("error")({"a": values}, {"a": torch.tensor([True])})
+    expected_dtype = torch.float64 if dtype == torch.float64 else torch.float32
+    assert result.dtype == expected_dtype
+    torch.testing.assert_close(result, torch.tensor([[11 / 12, 1 / 12]], dtype=expected_dtype))
+    result[0, 0].backward()
+    assert values.grad.dtype == dtype
+    torch.testing.assert_close(values.grad, torch.tensor([[1 / 3, 0.0]], dtype=dtype))
+
+
+@pytest.mark.parametrize(
+    "values,present,error,message",
+    [
+        ([], {}, TypeError, "values and present must be mappings"),
+        ({}, {}, ValueError, "fusion needs at least one value tensor"),
+        ({"a": torch.ones(1, 2)}, {"a": torch.ones(1)}, TypeError, "presence masks must be boolean tensors"),
+        ({"": torch.ones(1, 2)}, {"": torch.tensor([True])}, TypeError, "input names must be nonempty strings"),
+        ({"a": torch.ones(1, 2)}, {}, ValueError, "input 'a' has no presence mask"),
+        (
+            {"a": torch.ones(1, 2)},
+            {"a": torch.ones(1, dtype=torch.bool, device="meta")},
+            ValueError,
+            "values and presence masks must share a device",
+        ),
+    ],
+)
+def test_validation_failure_diagnostics(values, present, error, message):
+    with pytest.raises(error) as caught:
+        MaskedMean()(values, present)
+    assert str(caught.value) == message
+
+
 def test_context_copies_order_and_accepts_unknown_widths():
     widths = {"b": None, "a": 2}
     context = FusionContext.without_data(widths)
