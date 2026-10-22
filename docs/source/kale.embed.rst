@@ -3,6 +3,11 @@
 Embed
 ==================
 
+.. toctree::
+   :maxdepth: 1
+
+   fusion_with_missing_modalities
+
 Submodules
 ----------
 
