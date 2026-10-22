@@ -52,25 +52,11 @@ class FusionContext:
 
     def _validate(self):
         """Reject invalid field types, widths, shapes, or devices."""
-        if not self.widths:
-            raise ValueError("fusion needs at least one input")
-        for name, width in self.widths.items():
-            if not isinstance(name, str) or not name:
-                raise TypeError("input names must be nonempty strings")
-            if width is not None:
-                if isinstance(width, bool) or not isinstance(width, int):
-                    raise TypeError("known widths must be integers")
-                if width <= 0:
-                    raise ValueError("known widths must be positive")
+        _check_widths(self.widths)
         _check_presence(self.present)
         if self.present.shape[1] != len(self.widths):
             raise ValueError("presence columns must match widths")
-        if not isinstance(self.required, torch.Tensor) or self.required.dtype != torch.bool:
-            raise TypeError("required must be a boolean tensor")
-        if self.required.shape != (self.present.shape[0],):
-            raise ValueError("required must have one entry per row")
-        if self.required.device != self.present.device:
-            raise ValueError("required and present must share a device")
+        _check_required(self.required, self.present)
 
     @classmethod
     def without_data(cls, widths: Mapping[str, Optional[int]]) -> "FusionContext":
@@ -116,7 +102,8 @@ def masked_mean(stacked: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
 
     Absent entries are replaced using ``torch.where`` and contribute neither values nor gradients.
     This numerical helper does not validate inputs. A zero result for an empty row does not make
-    that row a valid prediction.
+    that row a valid prediction. Sums accumulate in at least float32, so half-precision inputs
+    whose mean is representable do not overflow; the mean is cast back to the input dtype.
 
     Args:
         stacked (Tensor): Floating values shaped ``(inputs, batch, features)``. Absent entries may
@@ -127,9 +114,65 @@ def masked_mean(stacked: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         Tensor: Means shaped ``(batch, features)`` with the values' dtype and device. Rows without
             an available input return zero.
     """
-    filled = torch.where(mask.unsqueeze(-1), stacked, torch.zeros((), dtype=stacked.dtype, device=stacked.device))
-    count = mask.sum(dim=0).clamp(min=1).unsqueeze(-1).to(stacked.dtype)
-    return filled.sum(dim=0) / count
+    accumulate = torch.promote_types(stacked.dtype, torch.float32)
+    values = stacked.to(accumulate)
+    filled = torch.where(mask.unsqueeze(-1), values, torch.zeros((), dtype=accumulate, device=stacked.device))
+    count = mask.sum(dim=0).clamp(min=1).unsqueeze(-1).to(accumulate)
+    return (filled.sum(dim=0) / count).to(stacked.dtype)
+
+
+def _check_input_name(name) -> None:
+    """Reject an input name that is not a nonempty string.
+
+    Raises:
+        TypeError: If the name is not a nonempty string.
+    """
+    if not isinstance(name, str) or not name:
+        raise TypeError("input names must be nonempty strings")
+
+
+def _check_known_width(width) -> None:
+    """Reject a known width that is not a positive integer; ``None`` marks an unknown width.
+
+    Raises:
+        TypeError: If the width is a boolean or not an integer.
+        ValueError: If the width is not positive.
+    """
+    if width is None:
+        return
+    if isinstance(width, bool) or not isinstance(width, int):
+        raise TypeError("known widths must be integers")
+    if width <= 0:
+        raise ValueError("known widths must be positive")
+
+
+def _check_widths(widths) -> None:
+    """Validate a nonempty mapping of input names to known widths or ``None``.
+
+    Raises:
+        TypeError: If a name or known width has an invalid type.
+        ValueError: If there are no inputs or a known width is not positive.
+    """
+    if not widths:
+        raise ValueError("fusion needs at least one input")
+    for name, width in widths.items():
+        _check_input_name(name)
+        _check_known_width(width)
+
+
+def _check_required(required, present: torch.Tensor) -> None:
+    """Validate the required-row mask against an already validated presence matrix.
+
+    Raises:
+        TypeError: If the mask is not a boolean tensor.
+        ValueError: If it has the wrong shape or another device.
+    """
+    if not isinstance(required, torch.Tensor) or required.dtype != torch.bool:
+        raise TypeError("required must be a boolean tensor")
+    if required.shape != (present.shape[0],):
+        raise ValueError("required must have one entry per row")
+    if required.device != present.device:
+        raise ValueError("required and present must share a device")
 
 
 def _check_presence(present: torch.Tensor) -> None:
@@ -171,6 +214,23 @@ def _check_named_inputs(values, present, require_all=False, require_finite=True,
         TypeError: If mappings, names, tensors, or dtypes are invalid.
         ValueError: If shapes, devices, availability, or finite-value requirements fail.
     """
+    reference = _reference_value(values, present)
+    for name, mask in present.items():
+        _check_mask(name, mask, reference, values)
+    for name, value in values.items():
+        _check_value(name, value, reference, present, same_dtype)
+        if require_finite and not bool(torch.isfinite(value[present[name]]).all()):
+            raise ValueError("present values must be finite")
+    _check_rows_defined(present, require_all)
+
+
+def _reference_value(values, present) -> torch.Tensor:
+    """Return the first value tensor, after checking the containers and its kind and shape.
+
+    Raises:
+        TypeError: If either container is not a mapping or the first value is not a floating tensor.
+        ValueError: If there are no values or the first value is not two-dimensional.
+    """
     if not isinstance(values, Mapping) or not isinstance(present, Mapping):
         raise TypeError("values and present must be mappings")
     if not values:
@@ -180,33 +240,53 @@ def _check_named_inputs(values, present, require_all=False, require_finite=True,
         raise TypeError("values must be floating tensors")
     if reference.ndim != 2:
         raise ValueError("values must have shape (batch, features)")
-    batch = reference.shape[0]
-    for name, mask in present.items():
-        if not isinstance(name, str) or not name:
-            raise TypeError("input names must be nonempty strings")
-        if not isinstance(mask, torch.Tensor) or mask.dtype != torch.bool:
-            raise TypeError("presence masks must be boolean tensors")
-        if mask.shape != (batch,):
-            raise ValueError("presence masks must have shape (batch,)")
-        if mask.device != reference.device:
-            raise ValueError("values and presence masks must share a device")
-        if name not in values and bool(mask.any()):
-            raise ValueError(f"present input {name!r} has no value tensor")
-    for name, value in values.items():
-        if not isinstance(name, str) or not name:
-            raise TypeError("input names must be nonempty strings")
-        if name not in present:
-            raise ValueError(f"input {name!r} has no presence mask")
-        if not isinstance(value, torch.Tensor) or not value.is_floating_point():
-            raise TypeError("values must be floating tensors")
-        if value.ndim != 2 or value.shape[0] != batch or value.shape[1] == 0:
-            raise ValueError("values must have shape (batch, positive_features)")
-        if same_dtype and value.dtype != reference.dtype:
-            raise TypeError("values must share dtype")
-        if value.device != reference.device:
-            raise ValueError("values must share device")
-        if require_finite and not bool(torch.isfinite(value[present[name]]).all()):
-            raise ValueError("present values must be finite")
+    return reference
+
+
+def _check_mask(name, mask, reference: torch.Tensor, values) -> None:
+    """Validate one named presence mask against the reference value.
+
+    Raises:
+        TypeError: If the name or mask has an invalid type.
+        ValueError: If the mask has another shape or device, or marks an omitted input present.
+    """
+    _check_input_name(name)
+    if not isinstance(mask, torch.Tensor) or mask.dtype != torch.bool:
+        raise TypeError("presence masks must be boolean tensors")
+    if mask.shape != (reference.shape[0],):
+        raise ValueError("presence masks must have shape (batch,)")
+    if mask.device != reference.device:
+        raise ValueError("values and presence masks must share a device")
+    if name not in values and bool(mask.any()):
+        raise ValueError(f"present input {name!r} has no value tensor")
+
+
+def _check_value(name, value, reference: torch.Tensor, present, same_dtype: bool) -> None:
+    """Validate one named value tensor against the reference value, without reading its contents.
+
+    Raises:
+        TypeError: If the name, tensor kind, or dtype is invalid.
+        ValueError: If the value has no mask, or another shape or device.
+    """
+    _check_input_name(name)
+    if name not in present:
+        raise ValueError(f"input {name!r} has no presence mask")
+    if not isinstance(value, torch.Tensor) or not value.is_floating_point():
+        raise TypeError("values must be floating tensors")
+    if value.ndim != 2 or value.shape[0] != reference.shape[0] or value.shape[1] == 0:
+        raise ValueError("values must have shape (batch, positive_features)")
+    if same_dtype and value.dtype != reference.dtype:
+        raise TypeError("values must share dtype")
+    if value.device != reference.device:
+        raise ValueError("values must share device")
+
+
+def _check_rows_defined(present, require_all: bool) -> None:
+    """Reject batches containing rows that lack every input (``require_all``) or any input.
+
+    Raises:
+        ValueError: If a row is not defined under the requirement.
+    """
     masks = torch.stack(list(present.values()), dim=1)
     valid = masks.all(dim=1) if require_all else masks.any(dim=1)
     if not bool(valid.all()):
@@ -441,7 +521,8 @@ class MajorityVote(FusionMethod):
     Branches must use the same class order. Scores are ``(votes + 0.5 * mean_probability) /
     (present_branches + 0.5)`` and are not calibrated probabilities. An exact score tie selects the
     first class under downstream argmax. Validated probability rows sum to one within ``max(1e-4, 4
-    * eps)`` for their dtype. Logits are not converted.
+    * eps)`` for their dtype. Logits are not converted. Scores are computed and returned in at least
+    float32: half-precision rounding of the scores can erase the probability tie-breaker.
 
     Args:
         tie_break (str): ``"mean_probability"`` uses mean class probabilities to break equal vote
@@ -504,8 +585,10 @@ class MajorityVote(FusionMethod):
                 needs at least one branch.
 
         Returns:
-            Tensor: Vote scores shaped ``(batch, classes)`` preserving input dtype and device.
-                Gradients flow through the probability contribution, not discrete votes.
+            Tensor: Vote scores shaped ``(batch, classes)`` on the input device, with dtype
+                ``torch.promote_types(input_dtype, torch.float32)``: float32 for float16 and
+                bfloat16 inputs, otherwise the input dtype. Gradients flow through the probability
+                contribution, not discrete votes.
 
         Raises:
             TypeError: If enabled validation finds invalid input types or dtypes.
@@ -521,6 +604,8 @@ class MajorityVote(FusionMethod):
             raise ValueError("voting needs at least two classes")
         if self.validate_inputs:
             _check_probabilities(stacked, mask)
+        # half-precision scores round the bounded tie-breaker away, so score in at least float32
+        stacked = stacked.to(torch.promote_types(stacked.dtype, torch.float32))
         choice = torch.nan_to_num(stacked, nan=-1.0).argmax(dim=-1)
         votes = (torch.nn.functional.one_hot(choice, n_classes).to(stacked.dtype) * mask.unsqueeze(-1)).sum(dim=0)
         n_branches = mask.sum(dim=0).to(stacked.dtype).unsqueeze(-1)
