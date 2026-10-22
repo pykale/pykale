@@ -300,9 +300,36 @@ def test_voting_accepts_half_precision_softmax(dtype):
     torch.manual_seed(0)
     probabilities = {name: torch.randn(512, 7).to(dtype).softmax(dim=-1) for name in ("a", "b")}
     present = dict.fromkeys(probabilities, torch.ones(512, dtype=torch.bool))
-    assert MajorityVote("mean_probability")(probabilities, present).dtype == dtype
+    assert MajorityVote("mean_probability")(probabilities, present).dtype == torch.float32
     with pytest.raises(ValueError, match="summing to one"):
         MajorityVote("error")({"a": torch.tensor([[0.8, 0.8]], dtype=dtype)}, {"a": torch.tensor([True])})
+
+
+@pytest.mark.parametrize(
+    "dtype, first",
+    [
+        (torch.float16, [0.748046875, 0.251953125]),
+        (torch.bfloat16, [0.74609375, 0.25390625]),
+    ],
+)
+def test_half_precision_voting_keeps_the_probability_tie_breaker(dtype, first):
+    # one vote each; class 1 has the higher mean probability, by less than half-precision spacing near 0.5
+    values = {"a": torch.tensor([first], dtype=dtype), "b": torch.tensor([[0.25, 0.75]], dtype=dtype)}
+    assert values["a"].float().tolist() == [first]
+    result = MajorityVote("mean_probability")(values, dict.fromkeys(values, torch.tensor([True])))
+    assert result.dtype == torch.float32
+    assert result.argmax(dim=1).tolist() == [1]
+
+
+def test_float16_mean_does_not_overflow():
+    # bfloat16 shares float32's exponent range, so only float16 sums can overflow where float32 sums do not
+    values = {name: torch.full((1, 2), 40000.0, dtype=torch.float16, requires_grad=True) for name in ("a", "b")}
+    result = MaskedMean()(values, dict.fromkeys(values, torch.tensor([True])))
+    assert result.dtype == torch.float16
+    torch.testing.assert_close(result, values["a"].detach())
+    result.sum().backward()
+    for value in values.values():
+        torch.testing.assert_close(value.grad, torch.full_like(value, 0.5))
 
 
 def test_context_compares_by_identity():
