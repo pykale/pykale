@@ -10,7 +10,7 @@ Named-input operations are adapted from https://github.com/pykale/cancer (MIT li
 """
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Literal, Optional, Tuple
 
@@ -102,8 +102,9 @@ def masked_mean(stacked: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
 
     Absent entries are replaced using ``torch.where`` and contribute neither values nor gradients.
     This numerical helper does not validate inputs. A zero result for an empty row does not make
-    that row a valid prediction. Sums accumulate in at least float32, so half-precision inputs
-    whose mean is representable do not overflow; the mean is cast back to the input dtype.
+    that row a valid prediction. Sums accumulate in at least float32, avoiding float16 reduction
+    overflow when the sum fits in float32. The result is cast back to the input dtype, so rounding
+    and underflow remain possible. Extreme sums can still overflow the accumulation dtype.
 
     Args:
         stacked (Tensor): Floating values shaped ``(inputs, batch, features)``. Absent entries may
@@ -121,7 +122,7 @@ def masked_mean(stacked: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
     return (filled.sum(dim=0) / count).to(stacked.dtype)
 
 
-def _check_input_name(name) -> None:
+def _check_input_name(name: object) -> None:
     """Reject an input name that is not a nonempty string.
 
     Raises:
@@ -131,7 +132,7 @@ def _check_input_name(name) -> None:
         raise TypeError("input names must be nonempty strings")
 
 
-def _check_known_width(width) -> None:
+def _check_known_width(width: object) -> None:
     """Reject a known width that is not a positive integer; ``None`` marks an unknown width.
 
     Raises:
@@ -146,7 +147,7 @@ def _check_known_width(width) -> None:
         raise ValueError("known widths must be positive")
 
 
-def _check_widths(widths) -> None:
+def _check_widths(widths: Mapping[str, Optional[int]]) -> None:
     """Validate a nonempty mapping of input names to known widths or ``None``.
 
     Raises:
@@ -160,7 +161,7 @@ def _check_widths(widths) -> None:
         _check_known_width(width)
 
 
-def _check_required(required, present: torch.Tensor) -> None:
+def _check_required(required: torch.Tensor, present: torch.Tensor) -> None:
     """Validate the required-row mask against an already validated presence matrix.
 
     Raises:
@@ -192,7 +193,13 @@ def _check_presence(present: torch.Tensor) -> None:
         raise ValueError("present must have shape (batch, inputs) with at least one input")
 
 
-def _check_named_inputs(values, present, require_all=False, require_finite=True, same_dtype=True):
+def _check_named_inputs(
+    values: Mapping[str, torch.Tensor],
+    present: Mapping[str, torch.Tensor],
+    require_all: bool = False,
+    require_finite: bool = True,
+    same_dtype: bool = True,
+) -> None:
     """Validate named vectors and masks without changing input order or contents.
 
     Value-dependent checks synchronize CUDA execution; use outside a validated training path when
@@ -224,7 +231,7 @@ def _check_named_inputs(values, present, require_all=False, require_finite=True,
     _check_rows_defined(present, require_all)
 
 
-def _reference_value(values, present) -> torch.Tensor:
+def _reference_value(values: Mapping[str, torch.Tensor], present: Mapping[str, torch.Tensor]) -> torch.Tensor:
     """Return the first value tensor, after checking the containers and its kind and shape.
 
     Raises:
@@ -243,7 +250,7 @@ def _reference_value(values, present) -> torch.Tensor:
     return reference
 
 
-def _check_mask(name, mask, reference: torch.Tensor, values) -> None:
+def _check_mask(name: str, mask: torch.Tensor, reference: torch.Tensor, values: Mapping[str, torch.Tensor]) -> None:
     """Validate one named presence mask against the reference value.
 
     Raises:
@@ -261,7 +268,13 @@ def _check_mask(name, mask, reference: torch.Tensor, values) -> None:
         raise ValueError(f"present input {name!r} has no value tensor")
 
 
-def _check_value(name, value, reference: torch.Tensor, present, same_dtype: bool) -> None:
+def _check_value(
+    name: str,
+    value: torch.Tensor,
+    reference: torch.Tensor,
+    present: Mapping[str, torch.Tensor],
+    same_dtype: bool,
+) -> None:
     """Validate one named value tensor against the reference value, without reading its contents.
 
     Raises:
@@ -281,8 +294,8 @@ def _check_value(name, value, reference: torch.Tensor, present, same_dtype: bool
         raise ValueError("values must share device")
 
 
-def _check_rows_defined(present, require_all: bool) -> None:
-    """Reject batches containing rows that lack every input (``require_all``) or any input.
+def _check_rows_defined(present: Mapping[str, torch.Tensor], require_all: bool) -> None:
+    """Reject rows missing any input when require_all is true, or all inputs otherwise.
 
     Raises:
         ValueError: If a row is not defined under the requirement.
@@ -293,7 +306,7 @@ def _check_rows_defined(present, require_all: bool) -> None:
         raise ValueError("forward only accepts rows defined by the fusion method")
 
 
-def _check_equal_widths(widths):
+def _check_equal_widths(widths: Iterable[Optional[int]]) -> None:
     """Reject conflicting known input widths.
 
     Args:
@@ -307,7 +320,7 @@ def _check_equal_widths(widths):
         raise ValueError("fusion needs inputs of one width")
 
 
-def _check_probabilities(stacked, mask):
+def _check_probabilities(stacked: torch.Tensor, mask: torch.Tensor) -> None:
     """Validate present class distributions using a dtype-dependent tolerance.
 
     Row sums use at least float32 precision. Missing rows are excluded; value checks synchronize

@@ -53,3 +53,9 @@ Subclass `FusionMethod`, implement `defined` and `forward`, and optionally overr
 Application adapters retain indexed row alignment, stage restrictions, target compatibility and output naming. In particular, averaging different subsets of Cox branch log-hazards can change rankings because branch offsets are arbitrary; applications must enforce their survival-specific completeness policy. Raw core classes do not automatically satisfy an application's own subclass guard.
 
 KaleCancer adoption is separate and waits for a released core API. Existing cancer imports and YAML paths must be preserved through compatibility classes, with custom-subclass and historical saved-model checks at adoption. No application dependencies or adapters are introduced by these core additions.
+
+## Numerical precision and compatibility
+
+`masked_mean` and `MaskedMean` accumulate in at least float32 and return the input dtype. This avoids float16 summation overflow when the intermediate sum fits in float32; output rounding and underflow remain possible, and extreme sums can still overflow the accumulation dtype. Float64 inputs retain float64 accumulation.
+
+`MajorityVote` returns float32 scores for float16 and bfloat16 inputs, preserving small probability differences used to break vote-count ties. Float32 and float64 inputs retain their dtype. This intentionally differs from KaleCancer's original half-precision output and the first development draft of this API; application adoption must check downstream dtype assumptions. Float32 promotion uses additional memory for half-precision inputs. These are new core APIs, and the existing core fusion classes are unchanged.
