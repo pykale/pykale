@@ -83,6 +83,19 @@ kale.embed.multimodal\_encoder module
 kale.embed.multimodal\_fusion module
 ---------------------------------
 
+Gaussian product of experts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``ProductOfExperts`` takes expert means and log-variances of shape ``(M, B, D)`` and returns a ``(B, D)`` mean/log-variance pair. Its optional ``mask`` is a boolean or zero/one ``(M, B)`` tensor: one means the expert is present for that subject. Different subjects in one batch may have different masks.
+
+.. code-block:: python
+
+   from kale.embed.multimodal_fusion import ProductOfExperts
+
+   joint_mean, joint_log_var = ProductOfExperts()(mean, log_var, mask=present)
+
+An absent expert has mean zero and log-variance 20, giving negligible finite precision and zero gradient for its mean. If every expert is absent for a subject, the output is finite and highly uncertain. The function does not add a prior: append a standard-normal expert and an always-present mask row when a model requires the prior fallback. Calls without ``mask`` retain the existing tuple result and third positional ``eps`` argument.
+
 .. automodule:: kale.embed.multimodal_fusion
    :members:
    :undoc-members:
