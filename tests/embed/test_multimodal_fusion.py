@@ -1,3 +1,5 @@
+import math
+
 import pytest
 import torch
 
@@ -115,7 +117,7 @@ def test_product_of_experts_all_missing_is_finite_without_implicit_prior():
 
     torch.testing.assert_close(joint_mean, torch.zeros(1, 1))
     assert torch.isfinite(joint_log_var).all()
-    assert joint_log_var.item() > 10.0
+    assert joint_log_var.item() == pytest.approx(20.0 - math.log(2.0), abs=1e-5)
 
 
 @pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
@@ -131,10 +133,32 @@ def test_product_of_experts_all_missing_is_finite_in_low_precision(dtype):
     assert joint_log_var.item() > 10.0
 
 
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
+def test_product_of_experts_masked_low_precision_matches_float32(dtype):
+    mean = torch.tensor([[[2.0]], [[1000.0]]], dtype=dtype)
+    log_var = torch.tensor([[[0.0]], [[-10.0]]], dtype=dtype)
+    mask = torch.tensor([[True], [False]])
+    poe = ProductOfExperts()
+
+    actual = poe(mean, log_var, mask=mask)
+    reference = poe(mean.float(), log_var.float(), mask=mask)
+
+    for got, expected in zip(actual, reference):
+        torch.testing.assert_close(got, expected.to(dtype), rtol=0, atol=0)
+
+
 def test_product_of_experts_explicit_prior_handles_missing_modalities():
-    mean = torch.tensor([[[0.0]], [[1000.0]]])
-    log_var = torch.tensor([[[0.0]], [[-100.0]]])
-    joint_mean, joint_log_var = ProductOfExperts()(mean, log_var, mask=torch.tensor([[1], [0]]))
+    mean = torch.tensor([[[1000.0]]])
+    log_var = torch.tensor([[[-100.0]]])
+    present = torch.tensor([[False]])
+    prior_mean = torch.zeros_like(mean[:1])
+    prior_log_var = torch.zeros_like(log_var[:1])
+    prior_present = torch.ones_like(present[:1], dtype=torch.bool)
+    joint_mean, joint_log_var = ProductOfExperts()(
+        torch.cat((prior_mean, mean)),
+        torch.cat((prior_log_var, log_var)),
+        mask=torch.cat((prior_present, present)),
+    )
 
     torch.testing.assert_close(joint_mean, torch.zeros(1, 1))
     torch.testing.assert_close(joint_log_var, torch.zeros(1, 1), atol=1e-6, rtol=0)
