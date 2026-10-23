@@ -78,7 +78,7 @@ def test_product_of_experts_all_present_mask_preserves_existing_call():
         assert got.dtype == mean.dtype
 
 
-def test_product_of_experts_mask_can_differ_by_subject():
+def test_product_of_experts_mask_can_differ_by_sample():
     mean = torch.tensor([[[1.0], [9.0]], [[5.0], [3.0]], [[7.0], [11.0]]])
     log_var = torch.zeros_like(mean)
     mask = torch.tensor([[1, 0], [0, 1], [1, 0]])
@@ -145,6 +145,12 @@ def test_product_of_experts_rejects_invalid_masks(mask):
     mean = torch.zeros(2, 2, 1)
     with pytest.raises(ValueError, match="mask"):
         ProductOfExperts()(mean, mean, mask=mask)
+
+
+def test_product_of_experts_rejects_non_tensor_mask():
+    mean = torch.zeros(2, 2, 1)
+    with pytest.raises(TypeError, match="mask must be a tensor"):
+        ProductOfExperts()(mean, mean, mask=[[1, 0], [0, 1]])
 
 
 @pytest.mark.parametrize("shape", [(2, 2), (0, 2, 1)])

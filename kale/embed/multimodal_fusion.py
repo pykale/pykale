@@ -837,7 +837,7 @@ class ProductOfExperts(nn.Module):
 
     ``mean`` and ``log_var`` have shape ``(experts, batch, latent_dim)``. The optional
     ``mask`` has shape ``(experts, batch)`` and marks which experts are present for each
-    subject. A prior is never inserted automatically; callers that need one must add a
+    sample. A prior is never inserted automatically; callers that need one must add a
     standard-normal expert with an always-present mask row.
 
     Example:
@@ -845,7 +845,9 @@ class ProductOfExperts(nn.Module):
         combined_mu, combined_log_var = poe(mu_experts, log_var_experts, mask=presence)
     """
 
-    def forward(self, mean, log_var, eps=1e-8, *, mask=None):
+    def forward(
+        self, mean: torch.Tensor, log_var: torch.Tensor, eps: float = 1e-8, *, mask: Optional[torch.Tensor] = None
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """Return the product Gaussian as ``(mean, log_var)`` tensors of shape ``(B, D)``.
 
         Args:
@@ -854,7 +856,8 @@ class ProductOfExperts(nn.Module):
             eps (float, optional): Numerical floor used by the existing unmasked calculation. Defaults to ``1e-8``.
             mask (Tensor, optional): Boolean or zero/one tensor of shape ``(M, B)``; one means present. Absent experts
                 receive mean zero and finite log-variance 20, so they contribute negligible precision and zero mean
-                gradient. An all-missing column is finite but highly uncertain, not a standard-normal prior.
+                gradient. An all-missing column is finite but highly uncertain, not a standard-normal prior. Masked
+                float16 and bfloat16 inputs are computed in float32 and returned in the original dtype.
 
         Returns:
             tuple[Tensor, Tensor]: Product mean and log-variance, each of shape ``(B, D)``.
@@ -865,6 +868,7 @@ class ProductOfExperts(nn.Module):
         """
         if mean.shape != log_var.shape or mean.ndim != 3 or mean.shape[0] == 0:
             raise ValueError("mean and log_var must have the same nonempty (experts, batch, latent_dim) shape")
+        output_dtype = mean.dtype
         if mask is not None:
             if not isinstance(mask, torch.Tensor):
                 raise TypeError("mask must be a tensor of shape (experts, batch)")
@@ -875,7 +879,7 @@ class ProductOfExperts(nn.Module):
             present = mask.to(device=mean.device, dtype=torch.bool).unsqueeze(-1)
             mean = torch.where(present, mean, torch.zeros_like(mean))
             log_var = torch.where(present, log_var, torch.full_like(log_var, 20.0))
-            output_dtype = mean.dtype
+            # exp(20) overflows in float16; accumulate masked low-precision inputs in float32.
             if output_dtype in (torch.float16, torch.bfloat16):
                 mean = mean.float()
                 log_var = log_var.float()
