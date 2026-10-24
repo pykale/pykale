@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 from tdc.multi_pred import DTI
@@ -67,16 +68,47 @@ def download_usps_data(save_path):
     USPS(save_path, train=True, transform=get_transform("mnistm"), download=True)
 
 
-SVHN_MIRROR_URL = "https://cseweb.ucsd.edu/~weijian/static/datasets/svhn"
+# Copies of the original Stanford files, tried in order: an existing UC San Diego mirror, then pinned Internet Archive
+# captures of the Stanford URLs. Both were checked against torchvision's MD5s.
+SVHN_MIRRORS = {
+    "train_32x32.mat": [
+        "https://cseweb.ucsd.edu/~weijian/static/datasets/svhn/train_32x32.mat",
+        "https://web.archive.org/web/20241223210216id_/http://ufldl.stanford.edu/housenumbers/train_32x32.mat",
+    ],
+    "test_32x32.mat": [
+        "https://cseweb.ucsd.edu/~weijian/static/datasets/svhn/test_32x32.mat",
+        "https://web.archive.org/web/20260203030601id_/http://ufldl.stanford.edu/housenumbers/test_32x32.mat",
+    ],
+}
+# The Internet Archive answers HTTP 429 for about a minute after a large download, longer than the downloader's own
+# retries wait, so every mirror is tried again after a pause.
+SVHN_MIRROR_ROUNDS = 3
+SVHN_MIRROR_PAUSE_SECONDS = 60
+
+
+def _download_svhn_file(save_path, filename, md5):
+    """Download one SVHN file from the first mirror that serves it with torchvision's MD5."""
+    errors = []
+    for round_number in range(1, SVHN_MIRROR_ROUNDS + 1):
+        if round_number > 1:
+            time.sleep(SVHN_MIRROR_PAUSE_SECONDS)
+        for url in SVHN_MIRRORS[filename]:
+            try:
+                download_file_by_url(url, save_path, filename, "mat", md5=md5)
+                return
+            except Exception as error:
+                errors.append(f"round {round_number}, {url}: {error}")
+    raise RuntimeError(f"Could not download {filename} with MD5 {md5} from any mirror:\n" + "\n".join(errors))
 
 
 def download_svhn_data(save_path):
     # Downloading SVHN dataset for tests/loaddata/test_image_access.py test
-    # Use the existing UC San Diego mirror when the original Stanford host is unavailable.
-    # Verify torchvision's MD5 checksums, then load locally without allowing torchvision to download.
+    # Only CI provisioning avoids the Stanford host, which became unreachable; kale's SVHNDatasetAccess still downloads
+    # through torchvision. A file that fails torchvision's MD5 is rejected on purpose rather than loaded, and the next
+    # mirror is tried. torchvision then loads the verified file with download=False, so it never contacts Stanford.
     for split in ("train", "test"):
         _, filename, md5 = SVHN.split_list[split]
-        download_file_by_url(f"{SVHN_MIRROR_URL}/{filename}", save_path, filename, "mat", md5=md5)
+        _download_svhn_file(save_path, filename, md5)
         SVHN(save_path, split=split, transform=get_transform("mnistm"), download=False)
 
 
