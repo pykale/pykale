@@ -68,14 +68,18 @@ def download_usps_data(save_path):
     USPS(save_path, train=True, transform=get_transform("mnistm"), download=True)
 
 
-# Copies of the original Stanford files, tried in order: an existing UC San Diego mirror, then pinned Internet Archive
-# captures of the Stanford URLs. Both were checked against torchvision's MD5s.
+# Copies of the original Stanford files: a commit-pinned Hugging Face mirror, UC San Diego, then pinned archive captures.
+# The first source avoids UCSD certificate-chain failures and archive rate limiting seen on Linux CI runners.
+SVHN_HF_REVISION = "5a7debc5ed720cfc6bb0cfa01706a4de9bdad436"
+SVHN_HF_BASE = f"https://huggingface.co/datasets/darcook/DCPV-Artifacts/resolve/{SVHN_HF_REVISION}/data/svhn"
 SVHN_MIRRORS = {
     "train_32x32.mat": [
+        f"{SVHN_HF_BASE}/train_32x32.mat?download=true",
         "https://cseweb.ucsd.edu/~weijian/static/datasets/svhn/train_32x32.mat",
         "https://web.archive.org/web/20241223210216id_/http://ufldl.stanford.edu/housenumbers/train_32x32.mat",
     ],
     "test_32x32.mat": [
+        f"{SVHN_HF_BASE}/test_32x32.mat?download=true",
         "https://cseweb.ucsd.edu/~weijian/static/datasets/svhn/test_32x32.mat",
         "https://web.archive.org/web/20260203030601id_/http://ufldl.stanford.edu/housenumbers/test_32x32.mat",
     ],
