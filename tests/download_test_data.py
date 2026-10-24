@@ -86,19 +86,28 @@ SVHN_MIRROR_ROUNDS = 3
 SVHN_MIRROR_PAUSE_SECONDS = 60
 
 
+def _try_svhn_mirrors(save_path, filename, md5, errors):
+    """Try each mirror once; return True after the first verified download, recording each failure in ``errors``."""
+    for url in SVHN_MIRRORS[filename]:
+        try:
+            download_file_by_url(url, save_path, filename, "mat", md5=md5)
+            return True
+        except Exception as error:
+            errors.append(f"{url}: {error}")
+    return False
+
+
 def _download_svhn_file(save_path, filename, md5):
     """Download one SVHN file from the first mirror that serves it with torchvision's MD5."""
     errors = []
-    for round_number in range(1, SVHN_MIRROR_ROUNDS + 1):
-        if round_number > 1:
-            time.sleep(SVHN_MIRROR_PAUSE_SECONDS)
-        for url in SVHN_MIRRORS[filename]:
-            try:
-                download_file_by_url(url, save_path, filename, "mat", md5=md5)
-                return
-            except Exception as error:
-                errors.append(f"round {round_number}, {url}: {error}")
-    raise RuntimeError(f"Could not download {filename} with MD5 {md5} from any mirror:\n" + "\n".join(errors))
+    for pause in [0] + [SVHN_MIRROR_PAUSE_SECONDS] * (SVHN_MIRROR_ROUNDS - 1):
+        time.sleep(pause)
+        if _try_svhn_mirrors(save_path, filename, md5, errors):
+            return
+    raise RuntimeError(
+        f"Could not download {filename} with MD5 {md5} from any mirror in {SVHN_MIRROR_ROUNDS} rounds:\n"
+        + "\n".join(errors)
+    )
 
 
 def download_svhn_data(save_path):
