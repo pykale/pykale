@@ -67,10 +67,17 @@ def download_usps_data(save_path):
     USPS(save_path, train=True, transform=get_transform("mnistm"), download=True)
 
 
+SVHN_MIRROR_URL = "https://cseweb.ucsd.edu/~weijian/static/datasets/svhn"
+
+
 def download_svhn_data(save_path):
     # Downloading SVHN dataset for tests/loaddata/test_image_access.py test
-    SVHN(save_path, split="train", transform=get_transform("mnistm"), download=True)
-    SVHN(save_path, split="test", transform=get_transform("mnistm"), download=True)
+    # Use the existing UC San Diego mirror when the original Stanford host is unavailable.
+    # Each is verified against torchvision's MD5, so torchvision then finds a valid file and does not download it.
+    for split in ("train", "test"):
+        _, filename, md5 = SVHN.split_list[split]
+        download_file_by_url(f"{SVHN_MIRROR_URL}/{filename}", save_path, filename, "mat", md5=md5)
+        SVHN(save_path, split=split, transform=get_transform("mnistm"), download=False)
 
 
 def download_cifar_data(save_path):
