@@ -73,7 +73,7 @@ SVHN_MIRROR_URL = "https://cseweb.ucsd.edu/~weijian/static/datasets/svhn"
 def download_svhn_data(save_path):
     # Downloading SVHN dataset for tests/loaddata/test_image_access.py test
     # Use the existing UC San Diego mirror when the original Stanford host is unavailable.
-    # Each is verified against torchvision's MD5, so torchvision then finds a valid file and does not download it.
+    # Verify torchvision's MD5 checksums, then load locally without allowing torchvision to download.
     for split in ("train", "test"):
         _, filename, md5 = SVHN.split_list[split]
         download_file_by_url(f"{SVHN_MIRROR_URL}/{filename}", save_path, filename, "mat", md5=md5)
