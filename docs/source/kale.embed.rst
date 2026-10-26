@@ -140,6 +140,20 @@ Absent experts receive zero share in averaging methods. If a sample has no effec
    joint_mean, joint_log_var = mixture_of_experts(mean, log_var, mask=present)
    grouped_mean, grouped_log_var = hierarchical_experts(mean, log_var, mask=present, num_groups=4)
 
+Compatibility and migration from KaleCardiac
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These functions accept boolean or zero/one presence masks, matching the masks produced by KaleCardiac's ``modality_dropout``. A non-binary mask such as ``0.5`` raises ``ValueError``. If nonzero values in an existing mask mean "present", convert it explicitly with ``mask != 0``. If they represent relative importance, pass those values as ``weights`` to ``mixture_of_experts`` or ``wasserstein_barycenter`` and use a separate zero/one presence mask.
+
+``mean`` and ``log_var`` must be floating tensors with the same dtype; convert one explicitly before calling a fusion function if the dtypes differ. Averaging weights must be finite and nonnegative. In particular, replace a NaN weight only when its intended meaning is known; for example, use zero if it means "no contribution". Validating these inputs at the API boundary prevents an invalid mask, dtype conversion, or weight from silently changing the fused result. This PR does not add a permissive mode; KaleCardiac adoption tests should check whether any real pipeline needs different semantics.
+
+``ProductOfExperts`` is an ``nn.Module``, while the averaging and hierarchical methods are functions. Both forms return ``(mean, log_var)``; pass the mask by keyword for ``ProductOfExperts``:
+
+.. code-block:: python
+
+   product_mean, product_log_var = ProductOfExperts()(mean, log_var, mask=present)
+   average_mean, average_log_var = mixture_of_experts(mean, log_var, mask=present)
+
 .. automodule:: kale.embed.multimodal_fusion
    :members:
    :undoc-members:

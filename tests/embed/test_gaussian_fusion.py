@@ -89,6 +89,23 @@ def test_barycenter_averages_standard_deviations():
     assert torch.exp(joint_log_var).item() == pytest.approx(4.0, abs=1e-5)
 
 
+@pytest.mark.parametrize("fusion", [mixture_of_experts, wasserstein_barycenter])
+def test_averaging_extreme_weights_and_small_variances_have_finite_gradients(fusion):
+    mean = torch.tensor([[[1.0]], [[5.0]], [[9.0]]], requires_grad=True)
+    log_var = torch.tensor([[[-30.0]], [[30.0]], [[-30.0]]], requires_grad=True)
+    weights = torch.tensor([0.0, 1e-12, 1e12])
+
+    joint_mean, joint_log_var = fusion(mean, log_var, weights=weights)
+    (joint_mean + joint_log_var).sum().backward()
+
+    torch.testing.assert_close(joint_mean, torch.tensor([[9.0]]))
+    torch.testing.assert_close(joint_log_var, torch.tensor([[-30.0]]))
+    assert torch.isfinite(mean.grad).all()
+    assert torch.isfinite(log_var.grad).all()
+    assert torch.equal(mean.grad[0], torch.zeros_like(mean.grad[0]))
+    assert torch.equal(log_var.grad[0], torch.zeros_like(log_var.grad[0]))
+
+
 def test_expert_groups_keep_every_expert_and_preserve_order():
     groups = expert_groups(13, 4)
     assert [len(group) for group in groups] == [4, 3, 3, 3]
