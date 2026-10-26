@@ -64,6 +64,29 @@ def test_averaging_zero_effective_weight_falls_back_to_equal_share(fusion):
         torch.testing.assert_close(joint_log_var, torch.zeros(1, 1))
 
 
+@pytest.mark.parametrize("fusion", [mixture_of_experts, wasserstein_barycenter])
+@pytest.mark.parametrize(
+    "large_weights, relative_weights",
+    [
+        (torch.tensor([3e38, 3e38]), torch.ones(2)),
+        (
+            torch.tensor([[1e300, 1e308], [3e300, 1e308]], dtype=torch.float64),
+            torch.tensor([[1.0, 1.0], [3.0, 1.0]]),
+        ),
+    ],
+)
+def test_averaging_is_invariant_to_large_relative_weight_scales(fusion, large_weights, relative_weights):
+    mean = torch.tensor([[[2.0], [1.0]], [[6.0], [5.0]]])
+    log_var = torch.tensor([[[0.0], [0.0]], [[math.log(9.0)], [math.log(9.0)]]])
+
+    actual = fusion(mean, log_var, weights=large_weights)
+    expected = fusion(mean, log_var, weights=relative_weights)
+
+    for got, want in zip(actual, expected):
+        assert torch.isfinite(got).all()
+        torch.testing.assert_close(got, want)
+
+
 def test_mixture_accepts_expert_weights_and_rejects_invalid_weights():
     mean = torch.tensor([[[1.0]], [[5.0]]])
     log_var = torch.zeros_like(mean)

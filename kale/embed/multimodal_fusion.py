@@ -931,10 +931,14 @@ def _gaussian_share(present: torch.Tensor, weights: Optional[torch.Tensor], dtyp
             raise ValueError(f"weights must have shape ({present.shape[0]},) or {tuple(present.shape)}")
         if not bool(torch.isfinite(weights).all()) or bool((weights < 0).any()):
             raise ValueError("weights must be finite and nonnegative")
-        share = share * weights.to(device=present.device, dtype=dtype)
+        # Normalize before narrowing the weights: finite float64 weights may exceed float32's range.
+        weighted = weights.to(device=present.device, dtype=torch.float64)
+        share = torch.where(present, weighted, torch.zeros_like(weighted))
+        maximum = share.amax(dim=0, keepdim=True)
+        share = share / torch.where(maximum > 0, maximum, torch.ones_like(maximum))
     total = share.sum(dim=0, keepdim=True)
     share = torch.where(total > 0, share, torch.ones_like(share))
-    return share / share.sum(dim=0, keepdim=True)
+    return (share / share.sum(dim=0, keepdim=True)).to(dtype)
 
 
 def _gaussian_averaging_inputs(
