@@ -128,7 +128,7 @@ The following functions use the same ``(M, B, D)`` expert tensors and optional `
 - ``mixture_of_experts`` averages means and log-variances with normalized relative weights; it returns one Gaussian, not a probability mixture. Weights may have shape ``(M,)`` or ``(M, B)``.
 - ``mean_of_experts`` is the equal-weight parameter average.
 - ``wasserstein_barycenter`` averages means and standard deviations with the same weight options, then converts the resulting standard deviation to log-variance.
-- ``hierarchical_experts`` multiplies experts within contiguous groups and averages the available group posteriors. Expert order determines group membership; ``expert_groups(13, 4)`` produces group sizes ``[4, 3, 3, 3]`` and retains every expert.
+- ``hierarchical_experts`` implements hierarchical modality experts (HiME): it multiplies experts within contiguous groups and averages the available group posteriors. Expert order determines group membership; ``expert_groups(13, 4)`` produces group sizes ``[4, 3, 3, 3]`` and retains every expert.
 
 Absent experts receive zero share in averaging methods. If a sample has no effective weight, the methods average all supplied experts equally; that fallback is not evidence from an observed modality. HiME excludes groups with no present experts when any group is available. Inputs should have finite expert parameters for an all-missing average to be finite.
 

@@ -2,7 +2,8 @@
 
 ``Concat``, ``BimodalInteractionFusion`` and ``LowRankTensorFusion`` combine sequences of modality tensors.
 ``ProductOfExperts``, ``mixture_of_experts``, ``mean_of_experts``, ``wasserstein_barycenter`` and
-``hierarchical_experts`` combine stacked Gaussian means and log-variances. Named-input fusion uses ``FusionMethod``,
+``hierarchical_experts`` combine stacked Gaussian means and log-variances; ``expert_groups`` gives the contiguous
+grouping used by ``hierarchical_experts``. Named-input fusion uses ``FusionMethod``,
 ``FusionContext``, ``NamedInputConcat``, ``MaskedMean`` and ``MajorityVote``. The public numerical helpers ``stack_present``
 and ``masked_mean`` support application adapters without requiring application target types in core.
 
@@ -973,6 +974,15 @@ def mixture_of_experts(
     Raises:
         TypeError: If tensor kinds or dtypes are invalid.
         ValueError: If shapes, devices, masks, or weights are invalid.
+
+    Example:
+
+        .. code-block:: pycon
+
+            >>> mean = torch.tensor([[[1.0]], [[5.0]]])
+            >>> log_var = torch.zeros_like(mean)
+            >>> mixture_of_experts(mean, log_var, weights=torch.tensor([1.0, 3.0]))
+            (tensor([[4.]]), tensor([[0.]]))
     """
     expert_mean, expert_log_var, share = _gaussian_averaging_inputs(mean, log_var, mask, weights)
     return (share * expert_mean).sum(dim=0).to(mean.dtype), (share * expert_log_var).sum(dim=0).to(mean.dtype)
@@ -990,6 +1000,19 @@ def mean_of_experts(
 
     Returns:
         tuple[Tensor, Tensor]: Mean and log-variance of shape ``(B, D)``.
+
+    Raises:
+        TypeError: If tensor kinds or dtypes are invalid.
+        ValueError: If shapes, devices, or masks are invalid.
+
+    Example:
+
+        .. code-block:: pycon
+
+            >>> mean = torch.tensor([[[1.0]], [[5.0]]])
+            >>> log_var = torch.zeros_like(mean)
+            >>> mean_of_experts(mean, log_var, mask=torch.tensor([[True], [False]]))
+            (tensor([[1.]]), tensor([[0.]]))
     """
     return mixture_of_experts(mean, log_var, mask=mask)
 
@@ -1013,6 +1036,20 @@ def wasserstein_barycenter(
 
     Returns:
         tuple[Tensor, Tensor]: Barycenter mean and log-variance of shape ``(B, D)``.
+
+    Raises:
+        TypeError: If tensor kinds or dtypes are invalid.
+        ValueError: If shapes, devices, masks, or weights are invalid.
+
+    Example:
+
+        .. code-block:: pycon
+
+            >>> mean = torch.tensor([[[1.0]], [[5.0]]])
+            >>> log_var = torch.log(torch.tensor([[[1.0]], [[9.0]]]))
+            >>> joint_mean, joint_log_var = wasserstein_barycenter(mean, log_var)
+            >>> joint_mean, torch.exp(0.5 * joint_log_var)
+            (tensor([[3.]]), tensor([[2.]]))
     """
     expert_mean, expert_log_var, share = _gaussian_averaging_inputs(mean, log_var, mask, weights)
     joint_mean = (share * expert_mean).sum(dim=0)
@@ -1034,8 +1071,19 @@ def expert_groups(num_experts: int, num_groups: int) -> list[list[int]]:
         list[list[int]]: Expert indices for each group, in order.
 
     Raises:
+        TypeError: If either count is not an integer.
         ValueError: If either count is below one.
+
+    Example:
+
+        .. code-block:: pycon
+
+            >>> expert_groups(13, 4)
+            [[0, 1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]
     """
+    for name, value in (("num_experts", num_experts), ("num_groups", num_groups)):
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise TypeError(f"{name} must be an integer")
     if num_experts < 1 or num_groups < 1:
         raise ValueError("num_experts and num_groups must be positive")
     count = min(num_experts, num_groups)
@@ -1070,7 +1118,18 @@ def hierarchical_experts(
         tuple[Tensor, Tensor]: Joint mean and log-variance of shape ``(B, D)``.
 
     Raises:
+        TypeError: If tensor kinds or dtypes are invalid, or num_groups is not an integer.
         ValueError: If expert inputs or the group count are invalid.
+
+    Example:
+
+        .. code-block:: pycon
+
+            >>> mean = torch.tensor([[[1.0]], [[3.0]], [[9.0]], [[11.0]]])
+            >>> log_var = torch.zeros_like(mean)
+            >>> joint_mean, joint_log_var = hierarchical_experts(mean, log_var, num_groups=2)
+            >>> joint_mean
+            tensor([[6.]])
     """
     present = _gaussian_presence(mean, log_var, mask)
     group_means, group_log_vars, group_present = [], [], []
