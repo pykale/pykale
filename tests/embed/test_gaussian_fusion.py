@@ -219,6 +219,8 @@ def test_gaussian_fusions_reject_invalid_tensor_types(fusion):
         fusion(mean, mean.double())
     with pytest.raises(TypeError, match="same floating dtype"):
         fusion(mean.long(), mean.long())
+    with pytest.raises(ValueError, match="share a device"):
+        fusion(mean, torch.empty_like(mean, device="meta"))
     with pytest.raises(TypeError, match="mask must be a tensor"):
         fusion(mean, mean, [[1], [1]])
 
