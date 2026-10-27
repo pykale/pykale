@@ -37,50 +37,10 @@ import pandas as pd
 from torch import tensor
 from torchmetrics.classification import BinaryJaccardIndex
 
+# ColumnNames and ResultKeys are imported for use below and re-exported, so that
+# `from kale.evaluate.uncertainty_metrics import ColumnNames` keeps working.
+from kale.evaluate.constants import ColumnNames, ResultKeys  # noqa: F401
 from kale.prepdata.string_transform import strip_for_bound
-
-
-class ColumnNames:
-    """Constants for DataFrame column names."""
-
-    UID = "uid"
-    TARGET_IDX = "Target Index"
-    TESTING_FOLD = "Testing Fold"
-    ERROR_SUFFIX = " Error"
-    UNCERTAINTY_BINS_SUFFIX = " Uncertainty bins"
-    UNCERTAINTY_BOUNDS_SUFFIX = " Uncertainty bounds"
-
-
-class ResultKeys:
-    """Constants for result dictionary keys."""
-
-    MEAN_ALL_TARGETS = "mean all targets"
-    MEAN_ALL_BINS = "mean all bins"
-    ALL_BINS = "all bins"
-    ALL_BINS_CONCAT_TARGETS_SEP = "all bins concatenated targets separated"
-
-    # Bounds specific
-    ERROR_BOUNDS_ALL = "error_bounds_all"
-    ALL_BOUND_PERCENTS_NO_TARGET_SEP = "all_bound_percents_notargetsep"
-    ALL_ERROR_BOUND_CONCAT_BINS_TARGET_SEP_FOLDWISE = "all errorbound concat bins targets sep foldwise"
-    ALL_ERROR_BOUND_CONCAT_BINS_TARGET_SEP_ALL = "all_errorbound_concat_bins_targets_sep_all"
-
-    # Errors specific
-    ALL_MEAN_ERROR_BINS_NO_SEP = "all_mean_error_bins_nosep"
-    ALL_MEAN_ERROR_BINS_TARGETS_SEP = "all mean error bins targets sep"
-    ALL_ERROR_CONCAT_BINS_TARGET_NO_SEP = "all_error_concat_bins_targets_nosep"
-    ALL_ERROR_CONCAT_BINS_TARGET_SEP_FOLDWISE = "all error concat bins targets sep foldwise"
-    ALL_ERROR_CONCAT_BINS_TARGET_SEP_ALL = "all_error_concat_bins_targets_sep_all"
-
-    # Jaccard specific
-    JACCARD_ALL = "jaccard_all"
-    JACCARD_TARGETS_SEPARATED = "Jaccard targets separated"
-    RECALL_ALL = "recall_all"
-    RECALL_TARGETS_SEPARATED = "Recall targets separated"
-    PRECISION_ALL = "precision_all"
-    PRECISION_TARGETS_SEPARATED = "Precision targets separated"
-    ALL_JACC_CONCAT_BINS_TARGET_SEP_FOLDWISE = "all jacc concat bins targets sep foldwise"
-    ALL_JACC_CONCAT_BINS_TARGET_SEP_ALL = "all_jaccard_concat_bins_targets_sep_all"
 
 
 @dataclass
