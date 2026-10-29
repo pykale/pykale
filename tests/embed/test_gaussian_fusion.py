@@ -232,8 +232,8 @@ def test_averaging_rejects_non_tensor_weights(fusion):
         fusion(mean, mean, weights=[1.0, 1.0])
 
 
-@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
-def test_averaging_low_precision_preserves_dtype(dtype):
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32, torch.float64])
+def test_averaging_preserves_dtype(dtype):
     mean = torch.tensor([[[2.0]], [[6.0]]], dtype=dtype)
     log_var = torch.zeros_like(mean)
     for fusion in (mixture_of_experts, wasserstein_barycenter):
@@ -244,19 +244,22 @@ def test_averaging_low_precision_preserves_dtype(dtype):
         assert torch.isfinite(joint_log_var).all()
 
 
-@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
-def test_hierarchical_low_precision_matches_float32(dtype):
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32, torch.float64])
+def test_hierarchical_matches_at_least_float32_computation(dtype):
     mean = torch.tensor([[[1.0], [2.0], [5.0]], [[3.0], [4.0], [6.0]], [[9.0], [8.0], [7.0]], [[11.0], [10.0], [8.0]]])
     log_var = torch.tensor(
         [[[0.0], [1.0], [0.0]], [[-1.0], [0.5], [0.0]], [[0.5], [0.0], [0.0]], [[1.0], [-0.5], [0.0]]]
     )
-    # The last sample has no present expert, so it relies on the float32 product for absent experts.
+    # The last sample has no present expert, so it relies on at least float32 for absent experts.
     mask = torch.tensor([[1, 0, 0], [1, 1, 0], [0, 0, 0], [0, 1, 0]], dtype=torch.bool)
+    compute_dtype = torch.promote_types(dtype, torch.float32)
 
     joint_mean, joint_log_var = hierarchical_experts(mean.to(dtype), log_var.to(dtype), mask, num_groups=2)
-    expected_mean, expected_log_var = hierarchical_experts(mean, log_var, mask, num_groups=2)
+    expected_mean, expected_log_var = hierarchical_experts(
+        mean.to(compute_dtype), log_var.to(compute_dtype), mask, num_groups=2
+    )
 
     assert joint_mean.dtype == dtype
     assert joint_log_var.dtype == dtype
-    torch.testing.assert_close(joint_mean.float(), expected_mean, atol=5e-2, rtol=1e-2)
-    torch.testing.assert_close(joint_log_var.float(), expected_log_var, atol=5e-2, rtol=1e-2)
+    torch.testing.assert_close(joint_mean.to(compute_dtype), expected_mean, atol=5e-2, rtol=1e-2)
+    torch.testing.assert_close(joint_log_var.to(compute_dtype), expected_log_var, atol=5e-2, rtol=1e-2)

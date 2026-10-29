@@ -839,14 +839,37 @@ class LowRankTensorFusion(nn.Module):
 class ProductOfExperts(nn.Module):
     """Combine diagonal Gaussian experts by precision-weighted multiplication.
 
-    ``mean`` and ``log_var`` have shape ``(experts, batch, latent_dim)``. The optional
-    ``mask`` has shape ``(experts, batch)`` and marks which experts are present for each
-    sample. A prior is never inserted automatically; callers that need one must add a
-    standard-normal expert with an always-present mask row.
+    ``mean`` and ``log_var`` have shape ``(M, B, D)`` for experts, batch samples, and latent
+    dimensions; the result has shape ``(B, D)``. The optional ``mask`` has shape ``(M, B)``
+    with boolean or zero/one values, where one means present. Different samples in a batch
+    may have different masks. An absent expert receives mean zero and log-variance 20, giving
+    it negligible finite precision and zero mean gradient.
+
+    No prior is added automatically. An all-missing sample is finite but highly uncertain:
+    with ``M`` absent experts and the default ``eps``, its log-variance is approximately
+    ``20 - log(M)``. To fall back to the standard-normal prior instead, prepend an
+    always-present expert with zero mean and log-variance, as in the second example.
+
+    Masked inputs are computed in at least float32, because ``exp(20)`` exceeds the float16
+    range, and are returned in the input dtype. Calls without ``mask`` keep the existing
+    tuple result and third positional ``eps`` argument.
 
     Example:
-        poe = ProductOfExperts()
-        combined_mu, combined_log_var = poe(mu_experts, log_var_experts, mask=presence)
+
+        .. code-block:: pycon
+
+            >>> mean = torch.tensor([[[1.0]], [[3.0]]])
+            >>> log_var = torch.zeros_like(mean)
+            >>> present = torch.tensor([[True], [False]])
+            >>> ProductOfExperts()(mean, log_var, mask=present)
+            (tensor([[1.]]), tensor([[0.]]))
+            >>> prior = torch.zeros_like(mean[:1])
+            >>> ProductOfExperts()(
+            ...     torch.cat((prior, mean)),
+            ...     torch.cat((prior, log_var)),
+            ...     mask=torch.cat((torch.ones_like(present[:1]), present)),
+            ... )
+            (tensor([[0.5000]]), tensor([[-0.6931]]))
     """
 
     def forward(
@@ -861,7 +884,7 @@ class ProductOfExperts(nn.Module):
             mask (Tensor, optional): Boolean or zero/one tensor of shape ``(M, B)``; one means present. Absent experts
                 receive mean zero and finite log-variance 20, so they contribute negligible precision and zero mean
                 gradient. An all-missing column is finite but highly uncertain, not a standard-normal prior. Masked
-                float16 and bfloat16 inputs are computed in float32 and returned in the original dtype.
+                inputs are computed in at least float32 and returned in the input dtype.
 
         Returns:
             tuple[Tensor, Tensor]: Product mean and log-variance, each of shape ``(B, D)``.
@@ -883,17 +906,17 @@ class ProductOfExperts(nn.Module):
             present = mask.to(device=mean.device, dtype=torch.bool).unsqueeze(-1)
             mean = torch.where(present, mean, torch.zeros_like(mean))
             log_var = torch.where(present, log_var, torch.full_like(log_var, 20.0))
-            # exp(20) overflows in float16; accumulate masked low-precision inputs in float32.
-            if output_dtype in (torch.float16, torch.bfloat16):
-                mean = mean.float()
-                log_var = log_var.float()
+            # The absent-expert variance exp(20) exceeds the float16 range, so compute in at least float32.
+            compute_dtype = torch.promote_types(output_dtype, torch.float32)
+            mean = mean.to(compute_dtype)
+            log_var = log_var.to(compute_dtype)
 
         var = torch.exp(log_var) + eps
         precision = 1.0 / (var + eps)
         prod_mean = torch.sum(mean * precision, dim=0) / torch.sum(precision, dim=0)
         prod_var = 1.0 / torch.sum(precision, dim=0)
         prod_log_var = torch.log(prod_var + eps)
-        if mask is not None and output_dtype in (torch.float16, torch.bfloat16):
+        if mask is not None:
             return prod_mean.to(output_dtype), prod_log_var.to(output_dtype)
         return prod_mean, prod_log_var
 
@@ -964,7 +987,10 @@ def mixture_of_experts(
 
     This returns one Gaussian by averaging means and log-variances; it is not a
     probability mixture. An absent expert has zero share. If a sample has no
-    effective weight, all supplied experts receive equal share.
+    effective weight, all supplied experts receive equal share; that fallback is
+    not evidence from an observed modality, and it is finite only when the expert
+    parameters are finite. Shares and averages are computed in at least float32
+    and returned in the input dtype.
 
     Args:
         mean (Tensor): Expert means of shape ``(M, B, D)``.
@@ -1109,8 +1135,10 @@ def hierarchical_experts(
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Multiply Gaussian experts within groups, then average the group posteriors.
 
-    Groups are contiguous along the expert axis. A group contributes to a sample
-    when at least one of its experts is present. No prior is inserted.
+    This implements hierarchical modality experts (HiME). Groups are contiguous
+    along the expert axis, so expert order determines group membership; see
+    :func:`expert_groups`. A group contributes to a sample when at least one of
+    its experts is present. No prior is inserted.
 
     Args:
         mean (Tensor): Expert means of shape ``(M, B, D)``.
