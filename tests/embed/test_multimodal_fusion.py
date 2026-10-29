@@ -120,8 +120,8 @@ def test_product_of_experts_all_missing_is_finite_without_implicit_prior():
     assert joint_log_var.item() == pytest.approx(20.0 - math.log(2.0), abs=1e-5)
 
 
-@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
-def test_product_of_experts_all_missing_is_finite_in_low_precision(dtype):
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32, torch.float64])
+def test_product_of_experts_all_missing_is_finite_and_keeps_dtype(dtype):
     mean = torch.zeros(2, 1, 1, dtype=dtype)
     log_var = torch.zeros_like(mean)
     joint_mean, joint_log_var = ProductOfExperts()(mean, log_var, mask=torch.zeros(2, 1))
@@ -133,15 +133,16 @@ def test_product_of_experts_all_missing_is_finite_in_low_precision(dtype):
     assert joint_log_var.item() > 10.0
 
 
-@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
-def test_product_of_experts_masked_low_precision_matches_float32(dtype):
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32, torch.float64])
+def test_product_of_experts_masked_matches_at_least_float32_computation(dtype):
     mean = torch.tensor([[[2.0]], [[1000.0]]], dtype=dtype)
     log_var = torch.tensor([[[0.0]], [[-10.0]]], dtype=dtype)
     mask = torch.tensor([[True], [False]])
+    compute_dtype = torch.promote_types(dtype, torch.float32)
     poe = ProductOfExperts()
 
     actual = poe(mean, log_var, mask=mask)
-    reference = poe(mean.float(), log_var.float(), mask=mask)
+    reference = poe(mean.to(compute_dtype), log_var.to(compute_dtype), mask=mask)
 
     for got, expected in zip(actual, reference):
         torch.testing.assert_close(got, expected.to(dtype), rtol=0, atol=0)
