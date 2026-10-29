@@ -3,14 +3,19 @@
 ``Concat``, ``BimodalInteractionFusion`` and ``LowRankTensorFusion`` combine sequences of modality tensors.
 ``ProductOfExperts``, ``mixture_of_experts``, ``mean_of_experts``, ``wasserstein_barycenter`` and
 ``hierarchical_experts`` combine stacked Gaussian means and log-variances; ``expert_groups`` gives the contiguous
-grouping used by ``hierarchical_experts``. Named-input fusion uses ``FusionMethod``,
-``FusionContext``, ``NamedInputConcat``, ``MaskedMean`` and ``MajorityVote``. The public numerical helpers ``stack_present``
-and ``masked_mean`` support application adapters without requiring application target types in core.
+grouping used by ``hierarchical_experts``.
+
+Named-input fusion combines a mapping of ``(batch, features)`` vectors with a mapping of ``(batch,)`` boolean presence
+masks, matched by name. ``NamedInputConcat`` needs every input in a row; ``MaskedMean`` and ``MajorityVote`` need at
+least one. The order of the value mapping sets the output order. Absent entries may contain NaN and contribute neither
+values nor gradients. ``FusionMethod.defined`` returns the rows a method can combine, and only those rows should be
+passed to ``forward``. ``FusionMethod.check`` validates a ``FusionContext`` of availability, required rows and feature
+widths, for example before training. To add a method, subclass ``FusionMethod`` and implement ``defined`` and
+``forward``. ``stack_present`` and ``masked_mean`` are the numerical helpers the built-in methods use.
 
 The sequence-fusion reference is https://github.com/pliang279/MultiBench/blob/main/fusions/common_fusions.py.
-Named-input operations are adapted from https://github.com/pykale/cancer (MIT license, Copyright 2026 PyKale).
-Gaussian averaging and hierarchical fusion are adapted from https://github.com/pykale/cardiac
-(MIT license, Copyright 2026 PyKale).
+Named-input fusion is adapted from https://github.com/pykale/cancer. Gaussian averaging and hierarchical fusion are
+adapted from https://github.com/pykale/cardiac.
 """
 
 from abc import ABC, abstractmethod
@@ -27,8 +32,7 @@ from torch.autograd import Variable
 class FusionContext:
     """Store input availability and widths for task-independent fusion validation.
 
-    Contexts compare by identity. Frozen fields do not prevent mutation of the stored tensors or
-    mapping; callers must not mutate them during validation.
+    Fields are validated on construction and again by ``FusionMethod.check``.
 
     Args:
         present (Tensor): Boolean tensor of shape ``(batch, inputs)``. Columns follow the iteration
@@ -104,11 +108,9 @@ def stack_present(
 def masked_mean(stacked: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
     """Average available input vectors independently for each batch row.
 
-    Absent entries are replaced using ``torch.where`` and contribute neither values nor gradients.
-    This numerical helper does not validate inputs. A zero result for an empty row does not make
-    that row a valid prediction. Sums accumulate in at least float32, avoiding float16 reduction
-    overflow when the sum fits in float32. The result is cast back to the input dtype, so rounding
-    and underflow remain possible. Extreme sums can still overflow the accumulation dtype.
+    Absent entries contribute neither values nor gradients. Inputs are not validated. Sums are
+    accumulated in at least float32, so float16 sums do not overflow, and the result is returned in
+    the input dtype.
 
     Args:
         stacked (Tensor): Floating values shaped ``(inputs, batch, features)``. Absent entries may
@@ -117,7 +119,7 @@ def masked_mean(stacked: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
 
     Returns:
         Tensor: Means shaped ``(batch, features)`` with the values' dtype and device. Rows without
-            an available input return zero.
+            an available input return zero, which is not a valid prediction.
     """
     accumulate = torch.promote_types(stacked.dtype, torch.float32)
     values = stacked.to(accumulate)
@@ -352,17 +354,14 @@ def _check_probabilities(stacked: torch.Tensor, mask: torch.Tensor) -> None:
 class FusionMethod(nn.Module, ABC):
     """Define fusion over named input vectors with explicit availability masks.
 
-    Subclasses implement ``defined`` and ``forward``. Applications retain task checks, class order,
-    and selection of valid rows. No dataset or target classes are required.
-
-    Value-dependent validation synchronizes CUDA execution. Disabling it preserves results for valid
-    inputs; ``check`` remains active. Voting with the error tie policy still synchronizes when
-    checking tied votes.
+    Subclasses implement ``defined`` and ``forward``, and may extend ``check`` by calling
+    ``super().check(context)``. Task-specific checks, class order and row selection stay with the caller.
 
     Attributes:
-        validate_inputs (bool): Enable per-call input checks in built-in forward methods. Defaults
-            to True. Set False on an instance or subclass only when the caller enforces shape,
-            availability and value contracts.
+        validate_inputs (bool): Check inputs on every built-in ``forward`` call. Defaults to True.
+            The checks read tensor values, which synchronizes CUDA execution. Set False on an
+            instance or subclass when the inputs are already validated, for example with ``check``
+            and a dry run. Results for valid inputs are unchanged, and ``check`` still validates.
     """
 
     validate_inputs: bool = True
@@ -381,8 +380,7 @@ class FusionMethod(nn.Module, ABC):
     def check(self, context: FusionContext) -> None:
         """Validate context structure and coverage of required rows.
 
-        Revalidate contents because stored tensors and mappings may change after construction.
-        Applications may add task-specific checks in an adapter.
+        The context is revalidated because its tensors may have changed since construction.
 
         Args:
             context (FusionContext): Input availability, required rows, and known widths.
@@ -420,9 +418,6 @@ class NamedInputConcat(FusionMethod):
     unlike sequence-based ``Concat``. Feature widths and floating dtypes may differ; ``torch.cat``
     determines output dtype promotion. Raw non-finite values are preserved for downstream encoders
     that handle missing cells.
-
-    The constructor takes no arguments. See ``FusionMethod.validate_inputs`` for the optional
-    per-call validation policy.
     """
 
     def defined(self, present: torch.Tensor) -> torch.Tensor:
@@ -470,11 +465,8 @@ class MaskedMean(FusionMethod):
 
     At least one input must be present for every selected row. Absent NaNs are excluded without
     affecting values or gradients. With validation enabled, present values must be finite and share
-    a floating dtype and device.
-
-    The constructor takes no arguments. Equal feature widths alone do not guarantee that embedding
-    coordinates are semantically aligned; establishing a common representation is the caller's
-    responsibility.
+    a floating dtype and device. Inputs must share one embedding space; equal widths alone do not
+    ensure that.
     """
 
     def defined(self, present: torch.Tensor) -> torch.Tensor:
@@ -505,7 +497,7 @@ class MaskedMean(FusionMethod):
             ValueError: If required rows are undefined, context fields disagree, or known widths
                 differ.
         """
-        FusionMethod.check(self, context)
+        super().check(context)
         _check_equal_widths(context.widths.values())
 
     def forward(self, values: Mapping[str, torch.Tensor], present: Mapping[str, torch.Tensor]) -> torch.Tensor:
@@ -538,8 +530,9 @@ class MajorityVote(FusionMethod):
     Branches must use the same class order. Scores are ``(votes + 0.5 * mean_probability) /
     (present_branches + 0.5)`` and are not calibrated probabilities. An exact score tie selects the
     first class under downstream argmax. Validated probability rows sum to one within ``max(1e-4, 4
-    * eps)`` for their dtype. Logits are not converted. Scores are computed and returned in at least
-    float32: half-precision rounding of the scores can erase the probability tie-breaker.
+    * eps)`` for their dtype; logits are not converted. Scores are computed and returned in at least
+    float32, so half-precision rounding cannot erase the probability tie-breaker. With
+    ``tie_break="error"``, tie detection reads tensor values even when input validation is disabled.
 
     Args:
         tie_break (str): ``"mean_probability"`` uses mean class probabilities to break equal vote
@@ -585,15 +578,13 @@ class MajorityVote(FusionMethod):
             ValueError: If required rows are undefined, fields disagree, known widths differ, or
                 fewer than two classes are declared.
         """
-        FusionMethod.check(self, context)
+        super().check(context)
         _check_equal_widths(context.widths.values())
         if any(width is not None and width < 2 for width in context.widths.values()):
             raise ValueError("voting needs at least two classes")
 
     def forward(self, values: Mapping[str, torch.Tensor], present: Mapping[str, torch.Tensor]) -> torch.Tensor:
         """Score aligned class probabilities using votes and a bounded tie term.
-
-        The error tie policy reads tensor values in Python even when input validation is disabled.
 
         Args:
             values (Mapping[str, Tensor]): ``(batch, classes)`` probability vectors in a shared
@@ -616,23 +607,23 @@ class MajorityVote(FusionMethod):
             _check_named_inputs(values, present)
             _check_equal_widths(value.shape[1] for value in values.values())
         stacked, mask = stack_present(values, present)
-        n_classes = stacked.shape[-1]
-        if n_classes < 2:
+        num_classes = stacked.shape[-1]
+        if num_classes < 2:
             raise ValueError("voting needs at least two classes")
         if self.validate_inputs:
             _check_probabilities(stacked, mask)
         # half-precision scores round the bounded tie-breaker away, so score in at least float32
         stacked = stacked.to(torch.promote_types(stacked.dtype, torch.float32))
         choice = torch.nan_to_num(stacked, nan=-1.0).argmax(dim=-1)
-        votes = (torch.nn.functional.one_hot(choice, n_classes).to(stacked.dtype) * mask.unsqueeze(-1)).sum(dim=0)
-        n_branches = mask.sum(dim=0).to(stacked.dtype).unsqueeze(-1)
+        votes = (torch.nn.functional.one_hot(choice, num_classes).to(stacked.dtype) * mask.unsqueeze(-1)).sum(dim=0)
+        num_branches = mask.sum(dim=0).to(stacked.dtype).unsqueeze(-1)
         if self.tie_break == "error":
             top = votes.max(dim=-1, keepdim=True).values
             # rows without branches have no votes to tie; they reach here only with validation disabled
-            tied = ((votes == top).sum(dim=-1) > 1) & (n_branches.squeeze(-1) > 0)
+            tied = ((votes == top).sum(dim=-1) > 1) & (num_branches.squeeze(-1) > 0)
             if bool(tied.any()):
-                raise ValueError(f"MajorityVote: {int(tied.sum())} patients have tied votes and tie_break='error'")
-        return (votes + 0.5 * masked_mean(stacked, mask)) / (n_branches + 0.5)
+                raise ValueError(f"{int(tied.sum())} rows have tied votes and tie_break='error'")
+        return (votes + 0.5 * masked_mean(stacked, mask)) / (num_branches + 0.5)
 
 
 class Concat(nn.Module):

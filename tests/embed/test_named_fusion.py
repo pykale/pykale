@@ -1,13 +1,19 @@
-"""Named-input fusion parity cases adapted from KaleCancer (MIT, PyKale contributors)."""
+"""Tests for named-input fusion, including parity cases adapted from KaleCancer."""
 
 import pickle
 
 import pytest
 import torch
 
-from kale.embed.multimodal_fusion import FusionContext, FusionMethod, MajorityVote, masked_mean, MaskedMean
-from kale.embed.multimodal_fusion import NamedInputConcat as Concat
-from kale.embed.multimodal_fusion import stack_present
+from kale.embed.multimodal_fusion import (
+    FusionContext,
+    FusionMethod,
+    MajorityVote,
+    masked_mean,
+    MaskedMean,
+    NamedInputConcat,
+    stack_present,
+)
 
 
 @pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32, torch.float64])
@@ -114,13 +120,13 @@ def test_required_rows_and_abstract_extension_contract():
         method.check(FusionContext(present, torch.tensor([True, True]), context.widths))
 
 
-@pytest.mark.parametrize("method", [Concat(), MaskedMean(), MajorityVote("error")])
+@pytest.mark.parametrize("method", [NamedInputConcat(), MaskedMean(), MajorityVote("error")])
 def test_empty_batch_with_known_width(method):
     result = method({"a": torch.empty(0, 2)}, {"a": torch.empty(0, dtype=torch.bool)})
     assert result.shape == (0, 2)
 
 
-@pytest.mark.parametrize("method", [Concat(), MaskedMean(), MajorityVote("error")])
+@pytest.mark.parametrize("method", [NamedInputConcat(), MaskedMean(), MajorityVote("error")])
 def test_rejects_undefined_rows_and_missing_present_inputs(method):
     with pytest.raises(ValueError, match="defined"):
         method({"a": torch.tensor([[0.8, 0.2]])}, {"a": torch.tensor([False])})
@@ -180,7 +186,7 @@ def test_context_rejects_empty_inputs_and_mixed_devices():
 
 def test_concat_does_not_treat_omitted_input_as_present():
     with pytest.raises(ValueError, match="defined"):
-        Concat()({"a": torch.ones(1, 2)}, {"a": torch.tensor([True]), "b": torch.tensor([False])})
+        NamedInputConcat()({"a": torch.ones(1, 2)}, {"a": torch.tensor([True]), "b": torch.tensor([False])})
 
 
 def test_voting_probability_tolerance_and_first_class_ties():
@@ -218,7 +224,7 @@ def test_concat_preserves_mapping_order_and_gradients(dtype):
     first = torch.tensor([[2.0, 3.0]], dtype=dtype, requires_grad=True)
     second = torch.tensor([[7.0]], dtype=dtype, requires_grad=True)
     present = {"second": torch.tensor([True]), "first": torch.tensor([True])}
-    result = Concat()({"second": second, "first": first}, present)
+    result = NamedInputConcat()({"second": second, "first": first}, present)
     torch.testing.assert_close(result, torch.tensor([[7.0, 2.0, 3.0]], dtype=dtype))
     result.sum().backward()
     torch.testing.assert_close(first.grad, torch.ones_like(first))
@@ -244,7 +250,7 @@ def test_empty_row_is_zero_only_at_helper_level():
     torch.testing.assert_close(result, torch.zeros(1, 3))
     result.sum().backward()
     torch.testing.assert_close(values.grad, torch.zeros_like(values))
-    for method in (Concat(), MaskedMean(), MajorityVote(tie_break="error")):
+    for method in (NamedInputConcat(), MaskedMean(), MajorityVote(tie_break="error")):
         assert not method.defined(mask.T).item()
 
 
@@ -280,11 +286,11 @@ def test_vote_ties_have_fixed_scores_and_error_policy():
     result = MajorityVote(tie_break="mean_probability")(values, present)
     torch.testing.assert_close(result, torch.tensor([[0.52, 0.48], [0.5, 0.5]]))
     assert result.argmax(dim=1).tolist() == [0, 0]
-    with pytest.raises(ValueError, match="2 patients have tied votes"):
+    with pytest.raises(ValueError, match="2 rows have tied votes"):
         MajorityVote(tie_break="error")(values, present)
 
 
-@pytest.mark.parametrize("method", [Concat(), MaskedMean(), MajorityVote(tie_break="error")])
+@pytest.mark.parametrize("method", [NamedInputConcat(), MaskedMean(), MajorityVote(tie_break="error")])
 def test_public_class_paths_and_current_pickle_roundtrip(method):
     from kale.embed import multimodal_fusion as fusion
 
@@ -300,11 +306,11 @@ def test_public_class_paths_and_current_pickle_roundtrip(method):
 def test_concat_keeps_raw_non_finite_values_and_promotes_dtypes():
     present = dict.fromkeys(["table", "other"], torch.tensor([True, True]))
     table = torch.tensor([[1.0, float("nan")], [float("inf"), 4.0]])
-    result = Concat()({"table": table, "other": torch.tensor([[5.0], [6.0]], dtype=torch.float64)}, present)
+    result = NamedInputConcat()({"table": table, "other": torch.tensor([[5.0], [6.0]], dtype=torch.float64)}, present)
     assert result.dtype == torch.float64
     torch.testing.assert_close(result[:, :2], table.double(), equal_nan=True)
     with pytest.raises(ValueError, match="defined"):
-        Concat()({"table": table}, {"table": torch.tensor([True, False])})
+        NamedInputConcat()({"table": table}, {"table": torch.tensor([True, False])})
 
 
 @pytest.mark.parametrize("method", [MaskedMean(), MajorityVote("error")])
@@ -316,10 +322,10 @@ def test_mean_and_voting_still_reject_non_finite_present_values(method):
 def test_disabled_validation_skips_checks_without_changing_results():
     values = {"a": torch.tensor([[0.8, 0.2], [0.3, 0.7]]), "b": torch.tensor([[0.6, 0.4], [float("nan")] * 2])}
     present = {"a": torch.tensor([True, True]), "b": torch.tensor([True, False])}
-    for make in (MaskedMean, lambda: MajorityVote("error"), Concat):
+    for make in (MaskedMean, lambda: MajorityVote("error"), NamedInputConcat):
         checked, unchecked = make(), make()
         unchecked.validate_inputs = False
-        if isinstance(checked, Concat):
+        if isinstance(checked, NamedInputConcat):
             full = dict.fromkeys(present, torch.tensor([True, True]))
             torch.testing.assert_close(unchecked(values, full), checked(values, full), equal_nan=True)
         else:
