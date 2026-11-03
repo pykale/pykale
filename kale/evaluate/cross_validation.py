@@ -1,14 +1,19 @@
 """
 Functions to do cross-validation with domain adaptation and pre-domain adaptation transformation
-for assessing model fitness.
+for assessing model fitness, and to summarize results across folds.
+
+``summarize_folds`` weights folds equally, while ``pool_folds`` concatenates fold predictions so that a metric
+weights samples equally. The fold summaries are adapted from https://github.com/pykale/cardiac.
 """
 
 import time
+from collections.abc import Iterable, Mapping, Sequence
 from numbers import Integral, Number, Real
 from traceback import format_exc
 
 import numpy as np
 from joblib import logger
+from numpy.typing import ArrayLike
 from sklearn.base import clone, is_classifier
 from sklearn.metrics import accuracy_score, check_scoring, get_scorer_names
 from sklearn.metrics._scorer import _MultimetricScorer
@@ -28,6 +33,8 @@ from sklearn.utils.metaestimators import _safe_split
 from sklearn.utils.multiclass import type_of_target
 from sklearn.utils.parallel import delayed, Parallel
 from sklearn.utils.validation import _check_method_params, _num_samples, indexable
+
+from kale.evaluate.classification_metrics import MetricError
 
 
 def _fit_and_score(
@@ -465,3 +472,84 @@ def cross_validate(
             aggregated_results[key] = train_scores_dict[name]
 
     return aggregated_results
+
+
+def _is_number(value) -> bool:
+    return isinstance(value, Real) and not isinstance(value, bool)
+
+
+def summarize_folds(
+    fold_metrics: Sequence[Mapping[str, float]], keys: Sequence[str] | None = None, ddof: int = 0
+) -> dict:
+    """Compute the mean and standard deviation of each metric across folds.
+
+    Every fold counts equally, whatever its size. The standard deviation describes how the folds varied; it is not a
+    confidence interval, because folds share training samples. Statistics are computed in float64.
+
+    Args:
+        fold_metrics (Sequence[Mapping[str, float]]): One mapping of metric name to value per fold, such as the
+            output of :func:`kale.evaluate.classification_metrics.binary_metrics`.
+        keys (Sequence[str], optional): Metrics to summarize. A metric missing from every fold is left out. Defaults
+            to None, which summarizes every key whose value is a number in every fold and skips nested values such as
+            a confusion matrix.
+        ddof (int, optional): Delta degrees of freedom for the standard deviation: 0 for the population and 1 for
+            the sample standard deviation. A metric with no more values than ``ddof`` reports a standard deviation of
+            zero, where pandas would report NaN. A NaN value is kept, so a fold that failed makes its metric's mean
+            NaN rather than being silently dropped. Defaults to 0.
+
+    Returns:
+        dict: ``n_folds`` and, for each metric, ``{"mean", "std", "values"}``.
+
+    Raises:
+        MetricError: If no fold is given.
+
+    Example:
+        .. code-block:: pycon
+
+            >>> summarize_folds([{"roc_auc": 0.7}, {"roc_auc": 0.8}])["roc_auc"]["mean"]
+            0.75
+    """
+    folds = list(fold_metrics)
+    if not folds:
+        raise MetricError("summarize_folds needs at least one fold")
+
+    if keys is None:
+        keys = [key for key in folds[0] if all(_is_number(fold.get(key)) for fold in folds)]
+
+    summary: dict = {"n_folds": len(folds)}
+    for key in keys:
+        values = np.array([float(fold[key]) for fold in folds if key in fold], dtype=float)
+        if values.size == 0:
+            continue
+        std = float(values.std(ddof=ddof)) if values.size > ddof else 0.0
+        summary[key] = {"mean": float(values.mean()), "std": std, "values": values.tolist()}
+    return summary
+
+
+def pool_folds(fold_predictions: Iterable[tuple[ArrayLike, ArrayLike]]) -> tuple[np.ndarray, np.ndarray]:
+    """Concatenate the labels and scores of every fold.
+
+    A metric computed on the pooled arrays weights samples equally, where :func:`summarize_folds` weights folds
+    equally. When every sample is tested exactly once, the pooled arrays cover the whole dataset.
+
+    Pooling ranks scores from different fitted models against each other, so it is valid only when the folds share a
+    scale, as calibrated probabilities do. Scores with an arbitrary per-model offset, such as Cox log-hazards, should
+    be scored per fold and combined with :func:`summarize_folds` instead.
+
+    Args:
+        fold_predictions (Iterable[tuple[ArrayLike, ArrayLike]]): ``(labels, scores)`` per fold. Scores may be
+            ``(N,)`` or ``(N, num_classes)``.
+
+    Returns:
+        tuple[np.ndarray, np.ndarray]: The concatenated labels and scores.
+
+    Raises:
+        MetricError: If no fold is given, or a fold's labels and scores differ in length.
+    """
+    folds = [(np.asarray(labels), np.asarray(scores)) for labels, scores in fold_predictions]
+    if not folds:
+        raise MetricError("pool_folds needs at least one fold")
+    for index, (labels, scores) in enumerate(folds):
+        if len(labels) != len(scores):
+            raise MetricError(f"fold {index} has {len(labels)} labels but {len(scores)} scores")
+    return np.concatenate([labels for labels, _ in folds]), np.concatenate([scores for _, scores in folds])
