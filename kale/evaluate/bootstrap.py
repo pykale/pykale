@@ -5,7 +5,7 @@
 https://github.com/pykale/cardiac.
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -13,14 +13,17 @@ from numpy.typing import ArrayLike
 from kale.evaluate.classification_metrics import MetricError
 
 
-def _resampling_inputs(arrays: tuple, n_resamples: int, confidence: float) -> tuple[np.ndarray, ...]:
-    """Validate the bootstrap settings and return the arrays, which must share a positive length."""
-    if not arrays:
-        raise ValueError("bootstrap_ci needs at least one array to resample")
+def _check_settings(n_resamples: int, confidence: float) -> None:
     if n_resamples < 1:
         raise ValueError(f"n_resamples must be positive, got {n_resamples}")
     if not 0 < confidence < 1:
         raise ValueError(f"confidence must lie in (0, 1), got {confidence}")
+
+
+def _same_length_arrays(arrays: tuple) -> tuple[np.ndarray, ...]:
+    """Return the arrays as NumPy arrays, which must share a positive length."""
+    if not arrays:
+        raise ValueError("bootstrap_ci needs at least one array to resample")
     arrays = tuple(np.asarray(array) for array in arrays)
     lengths = [len(array) for array in arrays]
     if len(set(lengths)) != 1:
@@ -28,6 +31,30 @@ def _resampling_inputs(arrays: tuple, n_resamples: int, confidence: float) -> tu
     if lengths[0] == 0:
         raise MetricError("bootstrap_ci needs at least one sample")
     return arrays
+
+
+def _draws(num_samples: int, n_resamples: int, seed: int) -> Iterator[np.ndarray]:
+    generator = np.random.default_rng(seed)
+    for _ in range(n_resamples):
+        yield generator.integers(0, num_samples, size=num_samples)
+
+
+def _finite_resample_values(
+    metric: Callable[..., float],
+    arrays: tuple[np.ndarray, ...],
+    draws: Iterable[np.ndarray],
+    undefined_errors: tuple[type[Exception], ...],
+) -> list[float]:
+    """Score each draw, skipping draws on which the metric raises one of ``undefined_errors`` or is not finite."""
+    values = []
+    for draw in draws:
+        try:
+            value = float(metric(*(array[draw] for array in arrays)))
+        except undefined_errors:
+            continue
+        if np.isfinite(value):
+            values.append(value)
+    return values
 
 
 def bootstrap_ci(
@@ -86,23 +113,13 @@ def bootstrap_ci(
             >>> interval["point"]
             0.9375
     """
-    arrays = _resampling_inputs(arrays, n_resamples, confidence)
-    num_samples = len(arrays[0])
+    arrays = _same_length_arrays(arrays)
+    _check_settings(n_resamples, confidence)
 
     point = float(metric(*arrays))
     if not np.isfinite(point):
         raise MetricError(f"the metric is not finite on all samples (got {point}), so there is no estimate to bound")
-    generator = np.random.default_rng(seed)
-    values = []
-    for _ in range(n_resamples):
-        draw = generator.integers(0, num_samples, size=num_samples)
-        try:
-            value = float(metric(*(array[draw] for array in arrays)))
-        except undefined_errors:
-            continue
-        if np.isfinite(value):
-            values.append(value)
-
+    values = _finite_resample_values(metric, arrays, _draws(len(arrays[0]), n_resamples, seed), undefined_errors)
     if not values:
         raise MetricError(
             "no bootstrap resample could be scored to a finite value; with this few samples, or this severe an "
