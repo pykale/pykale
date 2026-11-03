@@ -44,25 +44,44 @@ def _check_score_type(score_type: str) -> None:
         raise ValueError(f"score_type must be one of {_SCORE_TYPES}, got {score_type!r}")
 
 
-def _binary_labels(labels: ArrayLike) -> np.ndarray:
+def _reads_as_probabilities(score_type: str, looks_like_probabilities: bool, mismatch: str) -> bool:
+    """Decide whether scores are probabilities, raising ``MetricError(mismatch)`` if ``"probability"`` is stated for
+    scores that are not."""
+    _check_score_type(score_type)
+    if score_type == "probability" and not looks_like_probabilities:
+        raise MetricError(mismatch)
+    return {"probability": True, "logit": False, "auto": looks_like_probabilities}[score_type]
+
+
+def _in_unit_interval(scores: np.ndarray) -> bool:
+    return bool(scores.size) and bool(np.all((scores >= 0.0) & (scores <= 1.0)))
+
+
+def _class_indices(labels: ArrayLike, num_classes: int) -> np.ndarray:
+    """Return labels as integer class indices, rejecting any value that is not exactly one rather than casting it."""
     labels = np.asarray(labels).reshape(-1)
+    invalid = labels[~np.isin(labels.astype(np.float64), np.arange(num_classes))]
+    if invalid.size:
+        raise MetricError(f"labels must be class indices 0 to {num_classes - 1}, got {np.unique(invalid).tolist()}")
+    return labels.astype(int)
+
+
+def _binary_labels(labels: ArrayLike) -> np.ndarray:
+    labels = _class_indices(labels, 2)
     present = np.unique(labels)
     if present.size < 2:
         raise MetricError(
             f"a binary metric needs both classes, but every sample has label {present.tolist()}; this usually means "
             f"the split is too small or a filter removed one class"
         )
-    return labels.astype(int)
+    return labels
 
 
 def _binary_probabilities(scores: ArrayLike, score_type: str = "auto") -> np.ndarray:
     """Read scores as probabilities, applying a sigmoid to logits, or under ``"auto"`` unless all lie in ``[0, 1]``."""
-    _check_score_type(score_type)
     scores = np.asarray(scores, dtype=np.float64).reshape(-1)
-    in_range = bool(scores.size) and scores.min() >= 0.0 and scores.max() <= 1.0
-    if score_type == "probability" and not in_range:
-        raise MetricError("score_type='probability' needs every score in [0, 1]; pass 'logit' for raw model outputs")
-    if score_type == "probability" or (score_type == "auto" and in_range):
+    mismatch = "score_type='probability' needs every score in [0, 1]; pass 'logit' for raw model outputs"
+    if _reads_as_probabilities(score_type, _in_unit_interval(scores), mismatch):
         return scores
     return 1.0 / (1.0 + np.exp(-scores))
 
@@ -92,7 +111,7 @@ def roc_auc(labels: ArrayLike, scores: ArrayLike) -> float:
         float: The area, 0.5 for a random ranking and 1.0 for a perfect one.
 
     Raises:
-        MetricError: If only one class is present.
+        MetricError: If a label is not 0 or 1, or only one class is present.
 
     Example:
         .. code-block:: pycon
@@ -119,8 +138,8 @@ def sensitivity_specificity(
         tuple[float, float]: ``(sensitivity, specificity)``, each in ``[0, 1]``.
 
     Raises:
-        MetricError: If only one class is present, or ``score_type`` is ``"probability"`` and a score lies outside
-            ``[0, 1]``.
+        MetricError: If a label is not 0 or 1, only one class is present, or ``score_type`` is ``"probability"`` and
+            a score lies outside ``[0, 1]``.
         ValueError: If ``score_type`` is not recognized.
     """
     labels = _binary_labels(labels)
@@ -149,8 +168,8 @@ def binary_metrics(labels: ArrayLike, scores: ArrayLike, threshold: float = 0.5,
         and ``confusion``, a mapping of ``tn``, ``fp``, ``fn`` and ``tp`` counts.
 
     Raises:
-        MetricError: If only one class is present, or ``score_type`` is ``"probability"`` and a score lies outside
-            ``[0, 1]``.
+        MetricError: If a label is not 0 or 1, only one class is present, or ``score_type`` is ``"probability"`` and
+            a score lies outside ``[0, 1]``.
         ValueError: If ``score_type`` is not recognized.
 
     Example:
@@ -191,33 +210,31 @@ def binary_metrics(labels: ArrayLike, scores: ArrayLike, threshold: float = 0.5,
 def _class_probabilities(scores: np.ndarray, score_type: str) -> np.ndarray:
     """Read ``(N, K)`` scores as probabilities, applying a softmax to logits, or under ``"auto"`` unless every row is
     already a distribution."""
-    _check_score_type(score_type)
-    distributions = scores.min() >= 0.0 and scores.max() <= 1.0 and np.allclose(scores.sum(axis=1), 1.0, atol=1e-4)
-    if score_type == "probability" and not distributions:
-        raise MetricError("score_type='probability' needs every row to be a distribution; pass 'logit' for raw outputs")
-    if score_type == "probability" or (score_type == "auto" and distributions):
+    distributions = _in_unit_interval(scores) and np.allclose(scores.sum(axis=1), 1.0, atol=1e-4)
+    mismatch = "score_type='probability' needs every row to be a distribution; pass 'logit' for raw outputs"
+    if _reads_as_probabilities(score_type, distributions, mismatch):
         # Renormalize because a float32 softmax can sum to one less tightly than scikit-learn requires.
         return scores / scores.sum(axis=1, keepdims=True)
     exponentials = np.exp(scores - scores.max(axis=1, keepdims=True))
     return exponentials / exponentials.sum(axis=1, keepdims=True)
 
 
+def _score_matrix(scores: ArrayLike, num_samples: int) -> np.ndarray:
+    """Return ``(num_samples, num_classes)`` scores with at least two classes."""
+    scores = np.asarray(scores, dtype=np.float64)
+    expected = f"expected ({num_samples}, num_classes) scores, got {scores.shape}"
+    if scores.ndim != 2:
+        raise MetricError(expected)
+    if scores.shape[0] != num_samples or scores.shape[1] < 2:
+        raise MetricError(expected)
+    return scores
+
+
 def _multiclass_inputs(labels: ArrayLike, scores: ArrayLike, score_type: str) -> tuple[np.ndarray, np.ndarray]:
     """Validate a multiclass prediction and return ``(labels, probabilities)``."""
     labels = np.asarray(labels).reshape(-1)
-    scores = np.asarray(scores, dtype=np.float64)
-    if scores.ndim != 2 or scores.shape[0] != labels.size or scores.shape[1] < 2:
-        raise MetricError(f"expected ({labels.size}, num_classes) scores, got {scores.shape}")
-    probabilities = _class_probabilities(scores, score_type)
-    if not np.all(np.isclose(labels, np.round(labels))):
-        raise MetricError("multiclass labels must be class indices, but some are not whole numbers")
-    labels = labels.astype(int)
-    out_of_range = sorted({int(value) for value in labels if not 0 <= value < probabilities.shape[1]})
-    if out_of_range:
-        raise MetricError(
-            f"labels {out_of_range} lie outside the {probabilities.shape[1]} classes the probabilities cover"
-        )
-    return labels, probabilities
+    probabilities = _class_probabilities(_score_matrix(scores, labels.size), score_type)
+    return _class_indices(labels, probabilities.shape[1]), probabilities
 
 
 def multiclass_roc_auc(labels: ArrayLike, scores: ArrayLike, score_type: str = "auto") -> float:

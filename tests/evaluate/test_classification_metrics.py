@@ -65,6 +65,28 @@ def test_roc_auc_rejects_one_class():
         roc_auc(np.zeros(10), np.random.default_rng(0).normal(size=10))
 
 
+@pytest.mark.parametrize(
+    "labels, invalid",
+    [
+        ([0.2, 1.2, 0.2, 1.2], r"\[0.2, 1.2\]"),
+        ([0, 2, 0, 2], r"\[2\]"),
+        ([-1, 1, -1, 1], r"\[-1\]"),
+        ([0.0, np.nan, 1.0, 1.0], r"\[nan\]"),
+    ],
+)
+@pytest.mark.parametrize("metric", [roc_auc, sensitivity_specificity, binary_metrics])
+def test_binary_metrics_reject_labels_other_than_zero_and_one(metric, labels, invalid):
+    with pytest.raises(MetricError, match=r"class indices 0 to 1, got " + invalid):
+        metric(labels, [0.1, 0.9, 0.2, 0.8])
+
+
+def test_binary_metrics_accept_float_and_boolean_labels():
+    scores = [0.1, 0.9, 0.4, 0.6]
+    expected = binary_metrics([0, 1, 0, 1], scores)
+    assert binary_metrics([0.0, 1.0, 0.0, 1.0], scores) == expected
+    assert binary_metrics([False, True, False, True], scores) == expected
+
+
 def test_metric_error_is_a_value_error():
     assert issubclass(MetricError, ValueError)
 
@@ -181,6 +203,13 @@ def test_multiclass_score_type_probability_rejects_non_distributions(three_class
         multiclass_metrics(labels, probabilities * 2.0, score_type="probability")
 
 
+def test_multiclass_rows_summing_to_one_with_negative_entries_are_not_distributions():
+    labels = np.array([0, 1, 2, 0, 1, 2])
+    rows = np.array([[1.5, -0.5, 0.0], [-0.2, 0.9, 0.3], [0.1, -0.1, 1.0]] * 2)
+    with pytest.raises(MetricError, match="every row to be a distribution"):
+        multiclass_roc_auc(labels, rows, score_type="probability")
+
+
 def test_binary_metrics_all_negative_has_no_sensitivity():
     summary = binary_metrics(np.array([0] * 8 + [1] * 2), np.full(10, -10.0))
     assert summary["accuracy"] == pytest.approx(0.8)
@@ -258,8 +287,10 @@ def test_multiclass_roc_auc_accepts_whole_number_float_labels():
     "labels, scores, match",
     [
         (np.array([0, 1, 0, 1]), np.full((4, 3), 1 / 3), r"\[2\] are absent"),
-        (np.array([0, 1, 3]), np.full((3, 3), 1 / 3), "outside the 3 classes"),
-        (np.array([0.0, 0.5, 2.0]), np.full((3, 3), 1 / 3), "whole numbers"),
+        (np.array([0, 1, 3]), np.full((3, 3), 1 / 3), r"class indices 0 to 2, got \[3\]"),
+        (np.array([0.0, 0.5, 2.0]), np.full((3, 3), 1 / 3), r"got \[0.5\]"),
+        (np.array([0.0, 0.999999, 2.0]), np.full((3, 3), 1 / 3), r"got \[0.999999\]"),
+        (np.array([0.0, np.nan, 2.0]), np.full((3, 3), 1 / 3), r"got \[nan\]"),
         (np.array([0, 1, 2]), np.full(3, 1 / 3), "expected"),
         (np.array([0, 1, 1]), np.array([[0.2], [0.7], [0.9]]), "expected"),
         (np.array([0, 1]), np.zeros((3, 3)), "expected"),

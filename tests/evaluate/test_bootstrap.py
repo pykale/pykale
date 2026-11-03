@@ -66,6 +66,46 @@ def test_bootstrap_ci_skips_unscorable_resamples():
     assert 0 < bootstrap_ci(roc_auc, labels, scores, n_resamples=200)["n_used"] < 200
 
 
+@pytest.mark.parametrize("bad_value", [np.nan, np.inf, -np.inf])
+def test_bootstrap_ci_skips_non_finite_resamples(binary_scores, bad_value):
+    labels, scores = binary_scores
+    calls = []
+
+    def auc_with_one_bad_resample(y, s):
+        # Call 1 is the full data; call 5 is the fourth resample.
+        calls.append(None)
+        return bad_value if len(calls) == 5 else roc_auc(y, s)
+
+    interval = bootstrap_ci(auc_with_one_bad_resample, labels, scores, n_resamples=200, seed=3)
+    generator = np.random.default_rng(3)
+    draws = [generator.integers(0, len(labels), size=len(labels)) for _ in range(200)]
+    kept = [roc_auc(labels[draw], scores[draw]) for index, draw in enumerate(draws) if index != 3]
+    assert interval["n_used"] == 199
+    assert interval["low"] == pytest.approx(np.percentile(kept, 2.5))
+    assert interval["high"] == pytest.approx(np.percentile(kept, 97.5))
+
+
+def test_bootstrap_ci_rejects_when_no_resample_is_finite():
+    def nan_on_resamples(values):
+        return 0.0 if np.unique(values).size == values.size else np.nan
+
+    with pytest.raises(MetricError, match="no bootstrap resample could be scored to a finite value"):
+        bootstrap_ci(nan_on_resamples, np.arange(10), n_resamples=20)
+
+
+@pytest.mark.parametrize("bad_value", [np.nan, np.inf])
+def test_bootstrap_ci_rejects_non_finite_estimate(bad_value):
+    calls = []
+
+    def bad_metric(values):
+        calls.append(None)
+        return bad_value
+
+    with pytest.raises(MetricError, match="not finite on all samples"):
+        bootstrap_ci(bad_metric, np.arange(10), n_resamples=20)
+    assert len(calls) == 1
+
+
 def test_bootstrap_ci_rejects_when_no_resample_scores():
     def distinct_only(values):
         # Defined on the original samples, which are distinct, but almost never on a resample, which repeats some.

@@ -13,6 +13,23 @@ from numpy.typing import ArrayLike
 from kale.evaluate.classification_metrics import MetricError
 
 
+def _resampling_inputs(arrays: tuple, n_resamples: int, confidence: float) -> tuple[np.ndarray, ...]:
+    """Validate the bootstrap settings and return the arrays, which must share a positive length."""
+    if not arrays:
+        raise ValueError("bootstrap_ci needs at least one array to resample")
+    if n_resamples < 1:
+        raise ValueError(f"n_resamples must be positive, got {n_resamples}")
+    if not 0 < confidence < 1:
+        raise ValueError(f"confidence must lie in (0, 1), got {confidence}")
+    arrays = tuple(np.asarray(array) for array in arrays)
+    lengths = [len(array) for array in arrays]
+    if len(set(lengths)) != 1:
+        raise MetricError(f"every array must have the same number of samples, got {lengths}")
+    if lengths[0] == 0:
+        raise MetricError("bootstrap_ci needs at least one sample")
+    return arrays
+
+
 def bootstrap_ci(
     metric: Callable[..., float],
     *arrays: ArrayLike,
@@ -32,7 +49,9 @@ def bootstrap_ci(
     treated as undefined, for example when it holds one class, and is skipped rather than counted; ``n_used`` reports
     how many were kept. Any other error propagates. Metrics in :mod:`kale.evaluate` raise ``MetricError`` when
     undefined. A scikit-learn metric raises a plain ``ValueError`` instead, so pass ``undefined_errors=(ValueError,)``
-    to use one directly.
+    to use one directly. Some metrics, such as scikit-learn's ``roc_auc_score`` on one class, return NaN instead of
+    raising, so a resample whose metric is NaN or infinite is skipped in the same way, and a non-finite metric on all
+    samples raises ``MetricError``.
 
     To compare two models, pass both models' scores and a metric of their difference, such as
     ``lambda labels, scores, baseline: roc_auc(labels, scores) - roc_auc(labels, baseline)``. Both are then scored on
@@ -53,7 +72,8 @@ def bootstrap_ci(
         dict: ``point`` (the metric on all samples), ``low``, ``high``, ``confidence`` and ``n_used``.
 
     Raises:
-        MetricError: If the arrays differ in length, hold no sample, or no resample could be scored.
+        MetricError: If the arrays differ in length, hold no sample, the metric is not finite on all samples, or no
+            resample gives a finite value.
         ValueError: If no array is given, ``n_resamples`` is not positive, or ``confidence`` is outside ``(0, 1)``.
 
     Example:
@@ -66,33 +86,27 @@ def bootstrap_ci(
             >>> interval["point"]
             0.9375
     """
-    if not arrays:
-        raise ValueError("bootstrap_ci needs at least one array to resample")
-    if n_resamples < 1:
-        raise ValueError(f"n_resamples must be positive, got {n_resamples}")
-    if not 0 < confidence < 1:
-        raise ValueError(f"confidence must lie in (0, 1), got {confidence}")
-    arrays = tuple(np.asarray(array) for array in arrays)
-    lengths = [len(array) for array in arrays]
-    if len(set(lengths)) != 1:
-        raise MetricError(f"every array must have the same number of samples, got {lengths}")
-    if lengths[0] == 0:
-        raise MetricError("bootstrap_ci needs at least one sample")
+    arrays = _resampling_inputs(arrays, n_resamples, confidence)
+    num_samples = len(arrays[0])
 
     point = float(metric(*arrays))
+    if not np.isfinite(point):
+        raise MetricError(f"the metric is not finite on all samples (got {point}), so there is no estimate to bound")
     generator = np.random.default_rng(seed)
     values = []
     for _ in range(n_resamples):
-        draw = generator.integers(0, lengths[0], size=lengths[0])
+        draw = generator.integers(0, num_samples, size=num_samples)
         try:
-            values.append(float(metric(*(array[draw] for array in arrays))))
+            value = float(metric(*(array[draw] for array in arrays)))
         except undefined_errors:
             continue
+        if np.isfinite(value):
+            values.append(value)
 
     if not values:
         raise MetricError(
-            "no bootstrap resample could be scored; with this few samples, or this severe an imbalance, almost every "
-            "resample holds one class"
+            "no bootstrap resample could be scored to a finite value; with this few samples, or this severe an "
+            "imbalance, almost every resample holds one class"
         )
 
     tail = (1.0 - confidence) / 2.0

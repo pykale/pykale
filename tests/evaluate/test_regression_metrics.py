@@ -28,6 +28,8 @@ def test_r2_score_matches_sklearn():
     "targets, predictions, match",
     [
         (np.full(5, 3.0), np.arange(5.0), "no variation"),
+        # The mean of a constant 0.1 rounds, leaving a tiny positive total sum of squares.
+        (np.full(3, 0.1), np.full(3, 0.2), "no variation"),
         (np.zeros(4), np.zeros(5), "4 targets and 5 predictions"),
         (np.array([]), np.array([]), "at least one sample"),
     ],
@@ -60,8 +62,9 @@ def test_regression_metrics_unit_is_a_label_only():
     assert regression_metrics(targets, targets + 1)["rmse"] == regression_metrics(targets, targets + 1, "mmHg")["rmse"]
 
 
-def test_regression_metrics_constant_target_has_no_r2():
-    summary = regression_metrics(np.full(5, 3.0), np.full(5, 4.0))
+@pytest.mark.parametrize("value", [3.0, 0.1])
+def test_regression_metrics_constant_target_has_no_r2(value):
+    summary = regression_metrics(np.full(5, value), np.full(5, value + 1.0))
     assert summary["r2"] is None
     assert summary["rmse"] == pytest.approx(1.0)
 

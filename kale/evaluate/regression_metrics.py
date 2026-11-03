@@ -38,12 +38,13 @@ def r2_score(targets: ArrayLike, predictions: ArrayLike) -> float:
         MetricError: If the arrays differ in length, are empty, or every target has the same value.
     """
     targets, predictions = _paired(targets, predictions)
-    total = float(((targets - targets.mean()) ** 2).sum())
-    if total == 0.0:
+    # Test for equal targets directly: rounding in the mean leaves a tiny positive total for a constant such as 0.1.
+    if np.ptp(targets) == 0.0:
         raise MetricError(
             "every target has the same value, so there is no variation for R-squared to explain; report the root "
             "mean squared error instead"
         )
+    total = float(((targets - targets.mean()) ** 2).sum())
     residual = float(((targets - predictions) ** 2).sum())
     return 1.0 - residual / total
 
