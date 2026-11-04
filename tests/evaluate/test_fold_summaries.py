@@ -23,7 +23,9 @@ def test_summarize_folds_reports_mean_std_and_values(fold_metrics):
     summary = summarize_folds(fold_metrics)
     values = [fold["roc_auc"] for fold in fold_metrics]
     assert summary["n_folds"] == 5
-    assert summary["roc_auc"] == pytest.approx({"mean": np.mean(values), "std": np.std(values), "values": values})
+    assert summary["roc_auc"]["mean"] == pytest.approx(np.mean(values))
+    assert summary["roc_auc"]["std"] == pytest.approx(np.std(values))
+    assert summary["roc_auc"]["values"] == pytest.approx(values)
 
 
 def test_summarize_folds_sample_standard_deviation(fold_metrics):
