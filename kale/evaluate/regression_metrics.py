@@ -1,13 +1,15 @@
 """Summarize continuous predictions in the target's units.
 
 ``regression_metrics`` reports root mean squared error, mean absolute error, signed bias and the coefficient of
-determination together. ``r2_score`` raises ``MetricError`` when the targets have no variation to explain.
+determination together. The errors and R-squared are scikit-learn's; R-squared is reported as None, rather than a
+number, when the targets have no variation to explain.
 
 Adapted from https://github.com/pykale/cardiac.
 """
 
 import numpy as np
 from numpy.typing import ArrayLike
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from kale.evaluate.classification_metrics import MetricError
 
@@ -20,33 +22,6 @@ def _paired(targets: ArrayLike, predictions: ArrayLike) -> tuple[np.ndarray, np.
     if targets.size == 0:
         raise MetricError("a regression metric needs at least one sample")
     return targets, predictions
-
-
-def r2_score(targets: ArrayLike, predictions: ArrayLike) -> float:
-    """Compute the coefficient of determination.
-
-    A value of 0 means no better than predicting the mean target, and a negative value means worse than that.
-
-    Args:
-        targets (ArrayLike): Measured values of shape ``(N,)``.
-        predictions (ArrayLike): Predicted values of shape ``(N,)``.
-
-    Returns:
-        float: One minus the ratio of the residual to the total sum of squares.
-
-    Raises:
-        MetricError: If the arrays differ in length, are empty, or every target has the same value.
-    """
-    targets, predictions = _paired(targets, predictions)
-    # Test for equal targets directly: rounding in the mean leaves a tiny positive total for a constant such as 0.1.
-    if np.ptp(targets) == 0.0:
-        raise MetricError(
-            "every target has the same value, so there is no variation for R-squared to explain; report the root "
-            "mean squared error instead"
-        )
-    total = float(((targets - targets.mean()) ** 2).sum())
-    residual = float(((targets - predictions) ** 2).sum())
-    return 1.0 - residual / total
 
 
 def regression_metrics(targets: ArrayLike, predictions: ArrayLike, unit: str | None = None) -> dict:
@@ -73,17 +48,13 @@ def regression_metrics(targets: ArrayLike, predictions: ArrayLike, unit: str | N
             (2.0, 0.94)
     """
     targets, predictions = _paired(targets, predictions)
-    residual = predictions - targets
-
-    summary = {
+    return {
         "n": int(targets.size),
-        "rmse": float(np.sqrt((residual**2).mean())),
-        "mae": float(np.abs(residual).mean()),
-        "bias": float(residual.mean()),
+        "rmse": float(np.sqrt(mean_squared_error(targets, predictions))),
+        "mae": float(mean_absolute_error(targets, predictions)),
+        "bias": float(np.mean(predictions - targets)),
         "unit": unit,
+        # Undefined when every target is the same value. Test that directly: scikit-learn reports 0 or 1 there, and
+        # rounding in the mean can leave a tiny positive total sum of squares for a constant such as 0.1.
+        "r2": float(r2_score(targets, predictions)) if np.ptp(targets) > 0 else None,
     }
-    try:
-        summary["r2"] = r2_score(targets, predictions)
-    except MetricError:
-        summary["r2"] = None
-    return summary

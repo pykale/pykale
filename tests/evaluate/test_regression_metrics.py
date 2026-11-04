@@ -2,10 +2,10 @@ import json
 
 import numpy as np
 import pytest
-from sklearn.metrics import r2_score as sklearn_r2_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from kale.evaluate.classification_metrics import MetricError
-from kale.evaluate.regression_metrics import r2_score, regression_metrics
+from kale.evaluate.regression_metrics import regression_metrics
 
 TARGETS = np.array([1.0, 2.0, 3.0, 4.0])
 
@@ -13,30 +13,30 @@ TARGETS = np.array([1.0, 2.0, 3.0, 4.0])
 @pytest.mark.parametrize(
     "predictions, expected", [(TARGETS, 1.0), (np.full(4, TARGETS.mean()), 0.0), (TARGETS[::-1], -3.0)]
 )
-def test_r2_score_known_values(predictions, expected):
-    assert r2_score(TARGETS, predictions) == pytest.approx(expected)
+def test_regression_metrics_r2_known_values(predictions, expected):
+    assert regression_metrics(TARGETS, predictions)["r2"] == pytest.approx(expected)
 
 
-def test_r2_score_matches_sklearn():
+def test_regression_metrics_matches_sklearn():
     generator = np.random.default_rng(0)
     targets = generator.normal(size=50)
     predictions = targets + generator.normal(size=50) * 0.5
-    assert r2_score(targets, predictions) == pytest.approx(sklearn_r2_score(targets, predictions))
+    summary = regression_metrics(targets, predictions)
+    assert summary["r2"] == pytest.approx(r2_score(targets, predictions))
+    assert summary["rmse"] == pytest.approx(np.sqrt(mean_squared_error(targets, predictions)))
+    assert summary["mae"] == pytest.approx(mean_absolute_error(targets, predictions))
 
 
 @pytest.mark.parametrize(
     "targets, predictions, match",
     [
-        (np.full(5, 3.0), np.arange(5.0), "no variation"),
-        # The mean of a constant 0.1 rounds, leaving a tiny positive total sum of squares.
-        (np.full(3, 0.1), np.full(3, 0.2), "no variation"),
         (np.zeros(4), np.zeros(5), "4 targets and 5 predictions"),
         (np.array([]), np.array([]), "at least one sample"),
     ],
 )
-def test_r2_score_rejects_undefined_inputs(targets, predictions, match):
+def test_regression_metrics_rejects_invalid_inputs(targets, predictions, match):
     with pytest.raises(MetricError, match=match):
-        r2_score(targets, predictions)
+        regression_metrics(targets, predictions)
 
 
 def test_regression_metrics_known_errors():
@@ -62,9 +62,10 @@ def test_regression_metrics_unit_is_a_label_only():
     assert regression_metrics(targets, targets + 1)["rmse"] == regression_metrics(targets, targets + 1, "mmHg")["rmse"]
 
 
+# A constant 0.1 leaves a tiny positive total sum of squares after rounding, so it must be detected directly.
 @pytest.mark.parametrize("value", [3.0, 0.1])
 def test_regression_metrics_constant_target_has_no_r2(value):
-    summary = regression_metrics(np.full(5, value), np.full(5, value + 1.0))
+    summary = regression_metrics(np.full(3, value), np.full(3, value + 1.0))
     assert summary["r2"] is None
     assert summary["rmse"] == pytest.approx(1.0)
 

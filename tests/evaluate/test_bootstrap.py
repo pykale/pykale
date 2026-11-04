@@ -4,7 +4,7 @@ from sklearn.metrics import roc_auc_score
 
 from kale.evaluate.bootstrap import bootstrap_ci
 from kale.evaluate.classification_metrics import MetricError, multiclass_roc_auc, roc_auc
-from kale.evaluate.regression_metrics import r2_score
+from kale.evaluate.regression_metrics import regression_metrics
 
 
 @pytest.fixture(scope="module")
@@ -31,10 +31,10 @@ def test_bootstrap_ci_wider_confidence_gives_wider_interval(binary_scores):
 
 
 def test_bootstrap_ci_resamples_every_array_with_the_same_indices():
-    # Predictions equal to targets give R-squared of one only if each resample keeps the pairs aligned.
+    # Predictions equal to targets give zero error only if each resample keeps the pairs aligned.
     targets = np.arange(20.0)
-    interval = bootstrap_ci(r2_score, targets, targets.copy(), n_resamples=50)
-    assert interval["low"] == interval["high"] == pytest.approx(1.0)
+    interval = bootstrap_ci(lambda t, p: regression_metrics(t, p)["rmse"], targets, targets.copy(), n_resamples=50)
+    assert interval["low"] == interval["high"] == 0.0
 
 
 def test_bootstrap_ci_paired_difference_resamples_both_models_together(binary_scores):
