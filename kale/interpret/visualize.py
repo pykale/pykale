@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from matplotlib import colormaps
-from matplotlib.cm import get_cmap
 from nilearn.plotting import plot_connectome
 from rdkit import Chem
 from rdkit.Chem.Draw import rdMolDraw2D
@@ -253,7 +252,7 @@ def visualize_connectome(weights, labels, coords, p=1e-3, cmap="tab20", marker_s
     """
     # Ensure same lengths for labels and coords
     labels, coords = indexable(labels, coords)
-    marker_colors = get_cmap(cmap)(np.arange(len(labels)))
+    marker_colors = plt.get_cmap(cmap)(np.arange(len(labels)))
     sym_weights, labels, coords = get_top_symmetric_weight(weights, labels, coords, p)
 
     # Ensure same lengths for weights, labels, and coords
