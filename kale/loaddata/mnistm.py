@@ -111,9 +111,8 @@ class MNISTM(data.Dataset):
         # import essential packages
         import gzip
         import pickle
+        import urllib.request
 
-        # Ignore comment is used here because type stubs for 'six.moves' are not available. This suppresses mypy errors.
-        from six.moves import urllib  # type: ignore
         from torchvision import datasets
 
         # check if dataset already exists
