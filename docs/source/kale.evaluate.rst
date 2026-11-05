@@ -6,6 +6,14 @@ Evaluate
 Submodules
 ----------
 
+kale.evaluate.constants module
+------------------------------
+
+.. automodule:: kale.evaluate.constants
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.evaluate.cross\_validation module
 --------------------------------------
 
