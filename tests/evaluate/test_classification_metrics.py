@@ -169,6 +169,13 @@ def test_binary_threshold_metrics_reject_nonfinite_scores(metric, score_type, ba
         metric([0, 1], [bad_score, 0.9], score_type=score_type)
 
 
+@pytest.mark.parametrize("metric", [sensitivity_specificity, binary_metrics])
+@pytest.mark.parametrize("threshold", [np.nan, np.inf, -np.inf])
+def test_binary_threshold_metrics_reject_nonfinite_threshold(metric, threshold):
+    with pytest.raises(MetricError, match="threshold must be finite"):
+        metric([0, 1], [0.1, 0.9], threshold=threshold)
+
+
 def test_multiclass_score_type_resolves_logit_rows_that_look_like_distributions():
     # Each row sums to one, so "auto" reads it as probabilities, while a softmax reorders some samples within a class.
     labels = np.array([0, 1, 2, 0, 1, 2])
@@ -261,6 +268,20 @@ def test_multiclass_metrics_default_class_names(three_class):
     assert multiclass_metrics(labels, probabilities)["classes"] == ["0", "1", "2"]
 
 
+@pytest.mark.parametrize("class_names", [[], ["only one"], ["a", "b", "c", "d"]])
+def test_multiclass_metrics_rejects_wrong_number_of_class_names(three_class, class_names):
+    labels, probabilities = three_class
+    with pytest.raises(MetricError, match=f"expected 3 class names, got {len(class_names)}"):
+        multiclass_metrics(labels, probabilities, class_names=class_names)
+
+
+def test_multiclass_metrics_checks_class_names_when_a_class_is_absent():
+    labels = [0, 0, 1, 1]
+    scores = [[0.7, 0.2, 0.1], [0.6, 0.3, 0.1], [0.2, 0.7, 0.1], [0.1, 0.8, 0.1]]
+    with pytest.raises(MetricError, match="expected 3 class names, got 2"):
+        multiclass_metrics(labels, scores, class_names=["healthy", "disease"])
+
+
 def test_multiclass_metrics_omits_auc_for_absent_class():
     labels = np.array([0, 0, 1, 1])
     probabilities = np.array([[0.7, 0.2, 0.1], [0.6, 0.3, 0.1], [0.2, 0.7, 0.1], [0.1, 0.8, 0.1]])
@@ -300,6 +321,14 @@ def test_multiclass_roc_auc_accepts_whole_number_float_labels():
     assert multiclass_roc_auc(np.array([0.0, 1.0, 2.0]), np.eye(3)) == pytest.approx(1.0)
 
 
+@pytest.mark.parametrize("metric", [binary_metrics, roc_auc, multiclass_roc_auc, multiclass_metrics])
+def test_classification_metrics_reject_complex_labels(metric):
+    labels = np.array([0 + 1j, 1 + 0j])
+    scores = np.eye(2) if metric in (multiclass_roc_auc, multiclass_metrics) else [0.1, 0.9]
+    with pytest.raises(MetricError, match="real class indices"):
+        metric(labels, scores)
+
+
 @pytest.mark.parametrize(
     "labels, scores, match",
     [
@@ -331,6 +360,12 @@ def test_mean_roc_curve_shapes_and_endpoints(runs):
     assert summary["tpr_mean"][0] == pytest.approx(0.0)
     assert summary["tpr_mean"][-1] == pytest.approx(1.0)
     assert np.all(np.diff(summary["tpr_mean"]) >= 0)
+
+
+@pytest.mark.parametrize("grid_size", [0, 1, 2.0, True])
+def test_mean_roc_curve_rejects_invalid_grid_size(runs, grid_size):
+    with pytest.raises(ValueError, match="grid_size must be an integer of at least two"):
+        mean_roc_curve([runs[0][0]], [runs[0][1]], grid_size=grid_size)
 
 
 def test_mean_roc_curve_auc_matches_runs(runs):

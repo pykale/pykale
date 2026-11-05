@@ -61,6 +61,8 @@ def _in_unit_interval(scores: np.ndarray) -> bool:
 def _class_indices(labels: ArrayLike, num_classes: int) -> np.ndarray:
     """Return labels as integer class indices, rejecting any value that is not exactly one rather than casting it."""
     labels = np.asarray(labels).reshape(-1)
+    if np.iscomplexobj(labels):
+        raise MetricError("labels must be real class indices")
     invalid = labels[~np.isin(labels.astype(np.float64), np.arange(num_classes))]
     if invalid.size:
         raise MetricError(f"labels must be class indices 0 to {num_classes - 1}, got {np.unique(invalid).tolist()}")
@@ -93,6 +95,8 @@ def _binary_confusion(
     labels: np.ndarray, scores: ArrayLike, threshold: float, score_type: str
 ) -> tuple[np.ndarray, np.ndarray]:
     """Return the predicted labels and the ``(tn, fp, fn, tp)`` counts at a probability threshold."""
+    if not np.isfinite(threshold):
+        raise MetricError("threshold must be finite")
     predicted = (_binary_probabilities(scores, score_type) >= threshold).astype(int)
     return predicted, confusion_matrix(labels, predicted, labels=[0, 1]).ravel()
 
@@ -141,8 +145,8 @@ def sensitivity_specificity(
         tuple[float, float]: ``(sensitivity, specificity)``, each in ``[0, 1]``.
 
     Raises:
-        MetricError: If a label is not 0 or 1, only one class is present, a score is not finite, or ``score_type`` is
-            ``"probability"`` and a score lies outside ``[0, 1]``.
+        MetricError: If a label is not 0 or 1, only one class is present, a score or threshold is not finite, or
+            ``score_type`` is ``"probability"`` and a score lies outside ``[0, 1]``.
         ValueError: If ``score_type`` is not recognized.
     """
     labels = _binary_labels(labels)
@@ -171,8 +175,8 @@ def binary_metrics(labels: ArrayLike, scores: ArrayLike, threshold: float = 0.5,
         and ``confusion``, a mapping of ``tn``, ``fp``, ``fn`` and ``tp`` counts.
 
     Raises:
-        MetricError: If a label is not 0 or 1, only one class is present, a score is not finite, or ``score_type`` is
-            ``"probability"`` and a score lies outside ``[0, 1]``.
+        MetricError: If a label is not 0 or 1, only one class is present, a score or threshold is not finite, or
+            ``score_type`` is ``"probability"`` and a score lies outside ``[0, 1]``.
         ValueError: If ``score_type`` is not recognized.
 
     Example:
@@ -286,7 +290,8 @@ def multiclass_metrics(
     Args:
         labels (ArrayLike): Class indices of shape ``(N,)``. Whole-number floats are accepted.
         scores (ArrayLike): Probabilities or logits of shape ``(N, num_classes)``.
-        class_names (Sequence[str], optional): Names for the confusion-matrix axes. Defaults to the class indices.
+        class_names (Sequence[str], optional): One name per score column for the confusion-matrix axes. Defaults to the
+            class indices.
         score_type (str, optional): ``"logit"``, ``"probability"`` or ``"auto"``, which reads rows that are all
             distributions over the classes as probabilities. Defaults to ``"auto"``.
 
@@ -296,7 +301,8 @@ def multiclass_metrics(
 
     Raises:
         MetricError: If the shapes disagree, a label is not a valid class index, a score is not finite, fewer than
-            two classes are present, or ``score_type`` is ``"probability"`` and a row is not a distribution.
+            two classes are present, the number of class names differs from the score columns, or ``score_type`` is
+            ``"probability"`` and a row is not a distribution.
         ValueError: If ``score_type`` is not recognized.
     """
     labels, probabilities = _multiclass_inputs(labels, scores, score_type)
@@ -304,6 +310,9 @@ def multiclass_metrics(
         raise MetricError("a multiclass metric needs at least two classes present")
 
     num_classes = probabilities.shape[1]
+    names = [str(index) for index in range(num_classes)] if class_names is None else list(class_names)
+    if len(names) != num_classes:
+        raise MetricError(f"expected {num_classes} class names, got {len(names)}")
     predicted = probabilities.argmax(axis=1)
     summary = {
         "n": int(labels.size),
@@ -311,7 +320,7 @@ def multiclass_metrics(
         "balanced_accuracy": float(balanced_accuracy_score(labels, predicted)),
         "f1_macro": float(f1_score(labels, predicted, average="macro", zero_division=0)),
         "confusion": confusion_matrix(labels, predicted, labels=list(range(num_classes))).tolist(),
-        "classes": list(class_names) if class_names else [str(index) for index in range(num_classes)],
+        "classes": names,
     }
     with suppress(MetricError):
         summary["roc_auc_ovr"] = multiclass_roc_auc(labels, probabilities, score_type="probability")
@@ -329,7 +338,7 @@ def mean_roc_curve(
     Args:
         labels_per_run (Sequence[ArrayLike]): One ``(N,)`` label array per run.
         scores_per_run (Sequence[ArrayLike]): One ``(N,)`` score array per run, aligned with the labels.
-        grid_size (int, optional): Number of false-positive-rate points. Defaults to 100.
+        grid_size (int, optional): Number of false-positive-rate points, at least two. Defaults to 100.
 
     Returns:
         dict: ``fpr``, ``tpr_mean``, ``tpr_std`` and ``tpr_runs`` arrays, and ``auc_mean``, ``auc_std`` and
@@ -337,6 +346,7 @@ def mean_roc_curve(
 
     Raises:
         MetricError: If no run is given, the two sequences differ in length, or a run holds one class.
+        ValueError: If ``grid_size`` is not an integer of at least two.
     """
     if not labels_per_run:
         raise MetricError("mean_roc_curve needs at least one run")
@@ -346,6 +356,8 @@ def mean_roc_curve(
             f"exactly one of each"
         )
 
+    if isinstance(grid_size, (bool, np.bool_)) or not isinstance(grid_size, (int, np.integer)) or grid_size < 2:
+        raise ValueError("grid_size must be an integer of at least two")
     grid = np.linspace(0.0, 1.0, grid_size)
     curves, areas = [], []
     for labels, scores in zip(labels_per_run, scores_per_run):
