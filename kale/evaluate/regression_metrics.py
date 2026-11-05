@@ -4,7 +4,8 @@
 determination together. The errors and R-squared are scikit-learn's; R-squared is reported as None, rather than a
 number, when the targets have no variation to explain.
 
-Adapted from https://github.com/pykale/cardiac.
+Adapted from KaleCardiac (https://github.com/pykale/cardiac), MIT License,
+Copyright (c) 2026 PyKale.
 """
 
 import numpy as np

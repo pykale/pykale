@@ -161,6 +161,14 @@ def test_score_type_rejects_invalid_binary_inputs(scores, score_type, error, mat
         binary_metrics([0, 0, 1, 1], scores, score_type=score_type)
 
 
+@pytest.mark.parametrize("metric", [sensitivity_specificity, binary_metrics])
+@pytest.mark.parametrize("score_type", ["auto", "logit"])
+@pytest.mark.parametrize("bad_score", [np.nan, np.inf, -np.inf])
+def test_binary_threshold_metrics_reject_nonfinite_scores(metric, score_type, bad_score):
+    with pytest.raises(MetricError, match="scores must be finite"):
+        metric([0, 1], [bad_score, 0.9], score_type=score_type)
+
+
 def test_multiclass_score_type_resolves_logit_rows_that_look_like_distributions():
     # Each row sums to one, so "auto" reads it as probabilities, while a softmax reorders some samples within a class.
     labels = np.array([0, 1, 2, 0, 1, 2])
@@ -201,6 +209,15 @@ def test_multiclass_score_type_probability_rejects_non_distributions(three_class
     labels, probabilities = three_class
     with pytest.raises(MetricError, match="every row to be a distribution"):
         multiclass_metrics(labels, probabilities * 2.0, score_type="probability")
+
+
+@pytest.mark.parametrize("metric", [multiclass_roc_auc, multiclass_metrics])
+@pytest.mark.parametrize("score_type", ["auto", "logit"])
+@pytest.mark.parametrize("bad_score", [np.nan, np.inf, -np.inf])
+def test_multiclass_metrics_reject_nonfinite_scores(metric, score_type, bad_score):
+    scores = np.array([[bad_score, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]])
+    with pytest.raises(MetricError, match="scores must be finite"):
+        metric([0, 1, 2], scores, score_type=score_type)
 
 
 def test_multiclass_rows_summing_to_one_with_negative_entries_are_not_distributions():

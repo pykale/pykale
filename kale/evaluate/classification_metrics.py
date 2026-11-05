@@ -12,7 +12,8 @@ binary scores that all lie in ``[0, 1]``, and multiclass rows that are all distr
 Logits that happen to fall in that range are then misread, so pass ``"logit"`` or ``"probability"`` when the type is
 known.
 
-Adapted from https://github.com/pykale/cardiac.
+Adapted from KaleCardiac (https://github.com/pykale/cardiac), MIT License,
+Copyright (c) 2026 PyKale.
 """
 
 from collections.abc import Sequence
@@ -80,6 +81,8 @@ def _binary_labels(labels: ArrayLike) -> np.ndarray:
 def _binary_probabilities(scores: ArrayLike, score_type: str = "auto") -> np.ndarray:
     """Read scores as probabilities, applying a sigmoid to logits, or under ``"auto"`` unless all lie in ``[0, 1]``."""
     scores = np.asarray(scores, dtype=np.float64).reshape(-1)
+    if not np.isfinite(scores).all():
+        raise MetricError("scores must be finite")
     mismatch = "score_type='probability' needs every score in [0, 1]; pass 'logit' for raw model outputs"
     if _reads_as_probabilities(score_type, _in_unit_interval(scores), mismatch):
         return scores
@@ -138,8 +141,8 @@ def sensitivity_specificity(
         tuple[float, float]: ``(sensitivity, specificity)``, each in ``[0, 1]``.
 
     Raises:
-        MetricError: If a label is not 0 or 1, only one class is present, or ``score_type`` is ``"probability"`` and
-            a score lies outside ``[0, 1]``.
+        MetricError: If a label is not 0 or 1, only one class is present, a score is not finite, or ``score_type`` is
+            ``"probability"`` and a score lies outside ``[0, 1]``.
         ValueError: If ``score_type`` is not recognized.
     """
     labels = _binary_labels(labels)
@@ -168,8 +171,8 @@ def binary_metrics(labels: ArrayLike, scores: ArrayLike, threshold: float = 0.5,
         and ``confusion``, a mapping of ``tn``, ``fp``, ``fn`` and ``tp`` counts.
 
     Raises:
-        MetricError: If a label is not 0 or 1, only one class is present, or ``score_type`` is ``"probability"`` and
-            a score lies outside ``[0, 1]``.
+        MetricError: If a label is not 0 or 1, only one class is present, a score is not finite, or ``score_type`` is
+            ``"probability"`` and a score lies outside ``[0, 1]``.
         ValueError: If ``score_type`` is not recognized.
 
     Example:
@@ -227,6 +230,8 @@ def _score_matrix(scores: ArrayLike, num_samples: int) -> np.ndarray:
         raise MetricError(expected)
     if scores.shape[0] != num_samples or scores.shape[1] < 2:
         raise MetricError(expected)
+    if not np.isfinite(scores).all():
+        raise MetricError("scores must be finite")
     return scores
 
 
@@ -253,9 +258,9 @@ def multiclass_roc_auc(labels: ArrayLike, scores: ArrayLike, score_type: str = "
         float: The macro area, 0.5 for a random ranking and 1.0 for a perfect one.
 
     Raises:
-        MetricError: If the shapes disagree, a label is not a valid class index, a class is absent, which leaves
-            its one-versus-rest curve undefined, or ``score_type`` is ``"probability"`` and a row is not a
-            distribution.
+        MetricError: If the shapes disagree, a label is not a valid class index, a score is not finite, a class is
+            absent, which leaves its one-versus-rest curve undefined, or ``score_type`` is ``"probability"`` and a
+            row is not a distribution.
         ValueError: If ``score_type`` is not recognized.
     """
     labels, probabilities = _multiclass_inputs(labels, scores, score_type)
@@ -290,8 +295,8 @@ def multiclass_metrics(
         list, ``classes``, and ``roc_auc_ovr`` when every class is present.
 
     Raises:
-        MetricError: If the shapes disagree, a label is not a valid class index, fewer than two classes are
-            present, or ``score_type`` is ``"probability"`` and a row is not a distribution.
+        MetricError: If the shapes disagree, a label is not a valid class index, a score is not finite, fewer than
+            two classes are present, or ``score_type`` is ``"probability"`` and a row is not a distribution.
         ValueError: If ``score_type`` is not recognized.
     """
     labels, probabilities = _multiclass_inputs(labels, scores, score_type)

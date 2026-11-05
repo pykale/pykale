@@ -2,7 +2,7 @@
 
 ``bootstrap_ci`` resamples one dataset with replacement and recomputes a metric, so it applies to any metric in
 :mod:`kale.evaluate` and to paired comparisons of two models scored on the same samples. Adapted from
-https://github.com/pykale/cardiac.
+https://github.com/pykale/cardiac (MIT License, Copyright (c) 2026 PyKale).
 """
 
 from collections.abc import Callable, Iterable, Iterator

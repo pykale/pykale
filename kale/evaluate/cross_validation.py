@@ -3,7 +3,8 @@ Functions to do cross-validation with domain adaptation and pre-domain adaptatio
 for assessing model fitness, and to summarize results across folds.
 
 ``summarize_folds`` weights folds equally, while ``pool_folds`` concatenates fold predictions so that a metric
-weights samples equally. The fold summaries are adapted from https://github.com/pykale/cardiac.
+weights samples equally. The fold summaries are adapted from https://github.com/pykale/cardiac
+(MIT License, Copyright (c) 2026 PyKale).
 """
 
 import time
