@@ -332,8 +332,10 @@ def mean_roc_curve(
 ) -> dict:
     """Average the ROC curves of several runs on a shared false-positive-rate grid.
 
-    Each curve is interpolated onto the grid before averaging, so every run counts equally regardless of its size.
-    This differs from pooling all predictions into one curve, which weights samples equally.
+    A run is one evaluation of the same model setup, such as a cross-validation fold or a repeat with a different
+    seed; it is not a training epoch. Each run's ROC curve is interpolated onto the grid, and the true-positive rate is
+    averaged at each grid point (vertical averaging), so every run counts equally regardless of its size. This differs
+    from pooling all predictions into one curve, which weights samples equally.
 
     Args:
         labels_per_run (Sequence[ArrayLike]): One ``(N,)`` label array per run.
@@ -341,8 +343,10 @@ def mean_roc_curve(
         grid_size (int, optional): Number of false-positive-rate points, at least two. Defaults to 100.
 
     Returns:
-        dict: ``fpr``, ``tpr_mean``, ``tpr_std`` and ``tpr_runs`` arrays, and ``auc_mean``, ``auc_std`` and
-        ``auc_runs``.
+        dict: ``fpr`` (the grid), ``tpr_mean`` and ``tpr_std`` (mean and standard deviation of the true-positive rate
+        at each grid point), ``tpr_runs`` (each run's interpolated curve), and ``auc_runs``, ``auc_mean`` and
+        ``auc_std`` (each run's AUROC and their mean and standard deviation; ``auc_mean`` is not the area under the
+        mean curve).
 
     Raises:
         MetricError: If no run is given, the two sequences differ in length, or a run holds one class.
