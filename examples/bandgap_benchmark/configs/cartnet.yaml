@@ -1,0 +1,20 @@
+SOLVER:
+  EPOCHS: 100
+  LR: 0.001
+
+MODEL:
+  NAME: "cartnet"
+  PRETRAINED_MODEL_PATH: ""
+  INIT_FILE: 'cif_file/atom_init.json'
+  CIF_FOLDER: "cif_file"
+  MAX_NBRS: 12
+  RADIUS: 8.0
+
+
+LOGGING:
+  LOG_DIR: "saved_models"
+  LOG_DIR_NAME: "cartnet"
+
+DATASET:
+  TRAIN: 'data/fine_tune/train_data.json'
+  TEST: 'data/fine_tune/test_data.json'
