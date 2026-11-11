@@ -1,3 +1,22 @@
+# Version  0.2.2
+
+#### New Features
+
+* [#607](https://github.com/pykale/pykale/pull/607): Add named-input and Gaussian multimodal fusion - KaleCancer & KaleCardiac migration
+* [#609](https://github.com/pykale/pykale/pull/609): Add masked Gaussian product of experts - KaleCardiac migration
+* [#613](https://github.com/pykale/pykale/pull/613): Add Gaussian averaging and hierarchical fusion methods - KaleCardiac migration
+* [#616](https://github.com/pykale/pykale/pull/616): Add reusable evaluation metrics - KaleCancer & KaleCardiac migration
+
+#### Bug Fixes
+
+* [#612](https://github.com/pykale/pykale/pull/612): Download SVHN test data from verified UCSD mirror
+* [#619](https://github.com/pykale/pykale/pull/619): Fix MNIST-M download by replacing six.moves.urllib with standard-library urllib
+
+#### Code Improvements
+
+* [#614](https://github.com/pykale/pykale/pull/614): Bump setuptools from 84.0.0 to 84.2.1
+* [#615](https://github.com/pykale/pykale/pull/615): Update matplotlib version requirement
+
 # Version  0.2.1
 
 #### New Features
