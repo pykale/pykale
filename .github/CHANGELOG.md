@@ -2,10 +2,10 @@
 
 #### New Features
 
-* [#607](https://github.com/pykale/pykale/pull/607): Add named-input multimodal fusion - KaleCancer migration
+* [#607](https://github.com/pykale/pykale/pull/607): Add named-input and Gaussian multimodal fusion - KaleCancer & KaleCardiac migration
 * [#609](https://github.com/pykale/pykale/pull/609): Add masked Gaussian product of experts - KaleCardiac migration
 * [#613](https://github.com/pykale/pykale/pull/613): Add Gaussian averaging and hierarchical fusion methods - KaleCardiac migration
-* [#616](https://github.com/pykale/pykale/pull/616): Add reusable evaluation metrics - KaleCancer and KaleCardiac migration
+* [#616](https://github.com/pykale/pykale/pull/616): Add reusable evaluation metrics - KaleCancer & KaleCardiac migration
 
 #### Bug Fixes
 
