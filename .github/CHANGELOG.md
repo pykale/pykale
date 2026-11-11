@@ -1,3 +1,21 @@
+# Version  0.2.2
+
+#### New Features
+
+* [#607](https://github.com/pykale/pykale/pull/607): feat: add named-input multimodal fusion - KaleCancer migration
+* [#616](https://github.com/pykale/pykale/pull/616): feat: add reusable evaluation metrics - KaleCancer & KaleCardiac migration
+
+#### Bug Fixes
+
+* [#612](https://github.com/pykale/pykale/pull/612): fix: download SVHN test data from verified UCSD mirror
+* [#619](https://github.com/pykale/pykale/pull/619): Fix MNIST-M download by replacing six.moves.urllib with standard-library urllib
+* [#615](https://github.com/pykale/pykale/pull/615): Update matplotlib version requirement
+* [#614](https://github.com/pykale/pykale/pull/614): build(deps-dev): bump setuptools from 84.0.0 to 84.2.1
+
+#### Other Changes
+
+* [#602](https://github.com/pykale/pykale/pull/602): Release 0.2.1
+
 # Version  0.2.1
 
 #### New Features
