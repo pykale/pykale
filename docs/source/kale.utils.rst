@@ -38,10 +38,10 @@ kale.utils.print module
    :undoc-members:
    :show-inheritance:
 
-kale.utils.save\_xlsx module
+kale.utils.format\_transformation module
 ----------------------------
 
-.. automodule:: kale.utils.save_xlsx
+.. automodule:: kale.utils.format_transformation
    :members:
    :undoc-members:
    :show-inheritance:
