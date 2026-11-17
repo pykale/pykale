@@ -68,7 +68,7 @@ def main():
     landmark_path = os.path.join(cfg.DATASET.ROOT, base_dir, cfg.DATASET.LANDMARK_FILE)
     landmark_df = pd.read_csv(landmark_path, index_col="Subject").loc[patient_ids]  # read .csv file as dataframe
     landmarks = landmark_df.iloc[:, :-1].values
-    y = landmark_df["Group"].values
+    y = landmark_df["Group"].to_numpy(copy=True)  # copy: pandas >= 3 returns a read-only view
     y[np.where(y != 0)] = 1  # convert to binary classification problem, i.e. no PH vs PAH
 
     # plot the first phase of images with landmarks
