@@ -962,9 +962,14 @@ def _gaussian_averaging_inputs(
     present = _gaussian_presence(mean, log_var, mask)
     dtype = torch.promote_types(mean.dtype, torch.float32)
     share = _gaussian_share(present, weights, dtype).unsqueeze(-1)
-    # A zero share must suppress absent NaNs as well as their gradients.
-    mean = torch.where(share > 0, mean.to(dtype), torch.zeros((), dtype=dtype, device=mean.device))
-    log_var = torch.where(share > 0, log_var.to(dtype), torch.zeros((), dtype=dtype, device=mean.device))
+    # A zero share must suppress absent NaNs as well as their gradients, but a
+    # present expert whose weight is exactly zero also has a zero share. Keep the
+    # parameters of every present expert, as well as every expert with a share,
+    # so the gradient path to a zero-valued weight survives (a weight that
+    # reaches zero can otherwise never move away from it). See GH issue #622.
+    keep = present.unsqueeze(-1) | (share > 0)
+    mean = torch.where(keep, mean.to(dtype), torch.zeros((), dtype=dtype, device=mean.device))
+    log_var = torch.where(keep, log_var.to(dtype), torch.zeros((), dtype=dtype, device=mean.device))
     return mean, log_var, share
 
 

@@ -53,6 +53,42 @@ def test_averaging_excludes_absent_nan_values_and_gradients(fusion):
 
 
 @pytest.mark.parametrize("fusion", [mixture_of_experts, wasserstein_barycenter])
+def test_averaging_zero_weight_expert_keeps_its_gradient(fusion):
+    # A present expert whose weight is exactly zero still gets a gradient, so a
+    # learned weight that reaches zero can move away from it. The fused mean
+    # Sum(w_i mu_i) / Sum(w_i) has derivative mu_0 = 10 at weights [0, 1]. GH #622.
+    mean = torch.tensor([[[10.0]], [[0.0]]])
+    log_var = torch.zeros(2, 1, 1)
+    weights = torch.tensor([0.0, 1.0], requires_grad=True)
+
+    fused_mean, _ = fusion(mean, log_var, weights=weights)
+    fused_mean.sum().backward()
+
+    torch.testing.assert_close(fused_mean, torch.zeros_like(fused_mean))
+    torch.testing.assert_close(weights.grad, torch.tensor([10.0, 0.0]))
+
+
+@pytest.mark.parametrize("fusion", [mixture_of_experts, wasserstein_barycenter])
+def test_averaging_keeps_zero_weight_expert_without_leaking_an_absent_nan(fusion):
+    # A zero-weight present expert (index 0) keeps its gradient, while a
+    # masked-absent NaN expert (index 2) in the same batch neither reaches the
+    # fused result nor its gradient. GH #622.
+    mean = torch.tensor([[[10.0]], [[0.0]], [[float("nan")]]], requires_grad=True)
+    log_var = torch.zeros(3, 1, 1, requires_grad=True)
+    mask = torch.tensor([[True], [True], [False]])
+    weights = torch.tensor([0.0, 1.0, 1.0], requires_grad=True)
+
+    fused_mean, fused_log_var = fusion(mean, log_var, mask, weights)
+    (fused_mean + fused_log_var).sum().backward()
+
+    assert torch.isfinite(fused_mean).all() and torch.isfinite(fused_log_var).all()
+    assert torch.isfinite(weights.grad).all()
+    assert weights.grad[0] != 0.0
+    assert weights.grad[2] == 0.0
+    assert torch.equal(mean.grad[2], torch.zeros_like(mean.grad[2]))
+
+
+@pytest.mark.parametrize("fusion", [mixture_of_experts, wasserstein_barycenter])
 def test_averaging_zero_effective_weight_falls_back_to_equal_share(fusion):
     mean = torch.tensor([[[2.0]], [[6.0]]])
     log_var = torch.zeros_like(mean)
