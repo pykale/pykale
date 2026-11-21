@@ -1,0 +1,13 @@
+DATASET:
+ TRAIN: 'data/fine_tune/train_data.json'
+ TEST: 'data/fine_tune/test_data.json'
+
+MODEL:
+  NAME: 'linear_regression'
+  PRETRAINED_MODEL_PATH: ' '
+  INIT_FILE: 'cif_file/atom_init.json'
+  CIF_FOLDER: "cif_file"
+
+LOGGING:
+  LOG_DIR: "saved_models/lr_test_new_data"
+  LOG_DIR_NAME: "lr_test_new_data"
