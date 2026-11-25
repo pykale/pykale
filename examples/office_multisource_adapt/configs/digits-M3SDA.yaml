@@ -1,8 +1,0 @@
-DAN:
-  METHOD: "M3SDA"
-DATASET:
-  NAME: "digits"
-  NUM_CLASSES: 10
-  ROOT: "../data/digits"
-  TARGET: "MNIST_RGB"
-  NUM_REPEAT: 1

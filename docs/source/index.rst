@@ -36,31 +36,19 @@ Kale APIs above are ordered following the machine learning pipeline, i.e., funct
     :maxdepth: 1
     :caption: Example Projects
 
-    Action Video - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/action_dann>
-    Autism fMRI - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/multisite_neuroimg_adapt>
-    AVMNIST - Multimodal Neural Network <https://github.com/pykale/pykale/tree/main/examples/avmnist_multimodal>
-    BindingDB - DeepDTA <https://github.com/pykale/pykale/tree/main/examples/bindingdb_deepdta>
-    CardiacMRI - MPCA <https://github.com/pykale/pykale/tree/main/examples/cmri_mpca>
-    CIFAR - CNN Transformer <https://github.com/pykale/pykale/tree/main/examples/cifar_cnntransformer>
-    CIFAR - ISONet <https://github.com/pykale/pykale/tree/main/examples/cifar_isonet>
-    Digits - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/digits_dann>
-    Digits/Office - Multisource Adaptation <https://github.com/pykale/pykale/tree/main/examples/office_multisource_adapt>
+    Action Video - Domain Adaptation <https://github.com/pykale/tutorials/tree/main/others/action_recognition>
+    Autism fMRI - Domain Adaptation <https://github.com/pykale/tutorials/tree/main/others/multisite_neuroimaging_classification>
+    AVMNIST - Multimodal Neural Network <https://github.com/pykale/tutorials/tree/main/others/audio_visual_digit_classification>
+    BindingDB - DeepDTA <https://github.com/pykale/tutorials/tree/main/protein/drug_target_affinity_prediction>
+    CardiacMRI - MPCA <https://github.com/pykale/tutorials/tree/main/cardiac/cardiac_mri_diagnosis>
+    CIFAR - CNN Transformer <https://github.com/pykale/tutorials/tree/main/others/image_classification/cifar_cnn_transformer>
+    CIFAR - ISONet <https://github.com/pykale/tutorials/tree/main/others/image_classification/cifar_isonet>
+    Digits - Domain Adaptation <https://github.com/pykale/tutorials/tree/main/others/image_classification/digit_domain_adaptation>
+    Digits/Office - Multisource Adaptation <https://github.com/pykale/tutorials/tree/main/others/image_classification/office_multisource_adaptation>
     Multiomics - MOGONET (KaleCancer) <https://github.com/pykale/cancer/tree/main/examples/multiomics_mogonet>
-    Toy Data - Domain Adaptation <https://github.com/pykale/pykale/tree/main/examples/toy_domain_adaptation>
-    Polypharmacy - GripNet <https://github.com/pykale/pykale/tree/main/examples/polypharmacy_gripnet>
-    Video - Data Loading <https://github.com/pykale/pykale/tree/main/examples/video_loading>
-
-.. To study later the best way to document examples
-.. examples/examples.cifar_cnntransformer
-.. examples/examples.cifar_isonet
-.. examples/examples.digits_dann
-
-.. .. toctree::
-..     :maxdepth: 1
-..     :caption: Notebooks
-
-.. examples/CMR_PAH.nblink
-    "path": "../../examples/cmri_mpca/CMR_PAH.ipynb"
+    Toy Data - Domain Adaptation <https://github.com/pykale/tutorials/tree/main/others/synthetic_domain_adaptation>
+    Polypharmacy - GripNet <https://github.com/pykale/tutorials/tree/main/protein/polypharmacy_side_effect_prediction>
+    Video - Data Loading <https://github.com/pykale/tutorials/tree/main/others/video_data_loading>
 
 Indices and Tables
 ==================
@@ -68,10 +56,3 @@ Indices and Tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-.. .. |digits_mybinder| image:: https://mybinder.org/badge_logo.svg
-..     :target: https://mybinder.org/v2/gh/pykale/pykale/HEAD?filepath=examples%2Fdigits_dann%2Ftutorial.ipynb
-
-
-.. .. |digits_colab| image:: https://colab.research.google.com/assets/colab-badge.svg
-..     :target: https://colab.research.google.com/github/pykale/pykale/blob/main/examples/digits_dann/tutorial.ipynb

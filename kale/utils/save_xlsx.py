@@ -16,7 +16,7 @@ def generate_summary_df(
 ) -> pd.DataFrame:
     """
     Generates pandas dataframe with summary statistics.
-    Designed for use in Quantile Binning (/pykale/examples/landmark_uncertainty/main.py).
+    Designed for use in Quantile Binning (https://github.com/pykale/tutorials/tree/main/cardiac/landmark_uncertainty_estimation).
 
     Args:
         results_dictionary (dict): A dictionary containing results for each quantile bin and uncertainty method.

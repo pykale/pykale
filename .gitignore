@@ -29,16 +29,6 @@ dist/
 # vscode
 .vscode
 
-# Data and outputs
-examples/data/
-examples/*/data/
-examples/*/outputs/
-examples/*/lightning_logs/
-examples/*/tb_logs/
-examples/*/logs/
-examples/*/demo*/
-examples/*/configs_experiment/
-
 # Logs
 log-*.txt
 *gitdiff.patch
@@ -60,7 +50,3 @@ outputs/*
 
 # Jupyter Notebook Checkpoints
 *-checkpoint.ipynb
-
-# Examples
-# cmri_mpca - the saved images
-examples/cmri_mpca/outputs

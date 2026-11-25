@@ -1,6 +1,0 @@
-DATASET:
-  LANDMARK_FILE: "landmarks_64x64.csv"
-PIPELINE:
-  CLASSIFIER: "svc"
-OUTPUT:
-  SAVE_FIG: True

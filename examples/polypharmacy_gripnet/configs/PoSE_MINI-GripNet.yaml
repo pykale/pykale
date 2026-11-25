@@ -1,3 +1,0 @@
-SOLVER:
-  BASE_LR: 0.01
-  MAX_EPOCHS: 2  # For quick testing

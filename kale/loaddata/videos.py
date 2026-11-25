@@ -70,8 +70,8 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
     Note:
         A demonstration of using this class can be seen
-        in ``PyKale/examples/video_loading``
-        https://github.com/pykale/pykale/tree/master/examples/video_loading
+        in the video data loading tutorial:
+        https://github.com/pykale/tutorials/tree/main/others/video_data_loading
 
     Note:
         This dataset broadly corresponds to the frame sampling technique

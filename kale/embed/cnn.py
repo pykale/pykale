@@ -304,7 +304,8 @@ class CNNTransformer(ContextCNNGeneric):
                         positional encodings of base transformers are applied (optional).
 
     Examples:
-        See pykale/examples/cifar_cnntransformer/model.py
+        See the CIFAR CNN transformer tutorial:
+        https://github.com/pykale/tutorials/blob/main/others/image_classification/cifar_cnn_transformer/model.py
     """
 
     def __init__(

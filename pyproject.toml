@@ -14,7 +14,6 @@ target-version = ["py311"]
 [tool.isort]
 known_first_party = [
     "docs",
-    "examples",
     "kale",
     "tests",
 ]
