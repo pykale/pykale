@@ -1,8 +1,0 @@
-DAN:
-  METHOD: "DANN"
-
-DATASET:
-  SOURCE: "mnist"
-
-SOLVER:
-  NUM_WORKERS: 4

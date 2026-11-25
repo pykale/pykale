@@ -1,5 +1,0 @@
-MODEL:
-  FUSION: "late"
-
-OUTPUT:
-  OUT_DIR: './outputs/late_fusion'

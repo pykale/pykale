@@ -49,7 +49,7 @@ See our [arXiv preprint](https://arxiv.org/abs/2106.09756) and four short introd
 
 #### Example usage
 
-- `examples` demonstrate real applications on specific datasets with a standardized structure.
+- [Tutorials](https://pykale.github.io/tutorials/) demonstrate real applications on specific datasets with a standardized structure. Their source is in [pykale/tutorials](https://github.com/pykale/tutorials).
 
 ## How to Use
 
@@ -67,11 +67,11 @@ For more details and other options, please refer to [the installation guide](htt
 
 ### Step 1: Tutorials and Examples
 
-Start with a brief [tutorial](https://pykale.readthedocs.io/en/latest/tutorial.html#usage-of-pipeline-based-api-in-examples) walking through API usage in examples or *interactive* [Jupyter notebook tutorials](https://pykale.readthedocs.io/en/latest/notebooks.html), e.g. [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pykale/pykale/blob/main/examples/digits_dann/tutorial.ipynb) or  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pykale/pykale/HEAD?filepath=examples%2Fdigits_dann%2Ftutorial.ipynb) for a basic digit classification problem.
+Start with a brief [tutorial](https://pykale.readthedocs.io/en/latest/tutorial.html#usage-of-pipeline-based-api-in-examples) walking through API usage in examples or *interactive* [Jupyter notebook tutorials](https://pykale.readthedocs.io/en/latest/notebooks.html), e.g. [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pykale/tutorials/blob/main/others/image_classification/digit_domain_adaptation/tutorial.ipynb) for a basic digit classification problem.
 
 For additional learning materials, please refer to our [tutorial repository](https://github.com/pykale/mmai-tutorials), which supports our multimodal AI workshops.
 
-Browse through the [**examples**](https://github.com/pykale/pykale/tree/main/examples) to see the usage of PyKale in performing various prediction tasks in a wide range of applications, using a variety of settings, e.g. with or without [PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning).
+Browse through the [**tutorials**](https://pykale.github.io/tutorials/) to see the usage of PyKale in performing various prediction tasks in a wide range of applications, using a variety of settings, e.g. with or without [PyTorch Lightning](https://github.com/PyTorchLightning/pytorch-lightning).
 
 Ask questions on [PyKale's GitHub Discussions tab](https://github.com/pykale/pykale/discussions) if you need help or create an issue if you find something wrong.
 

@@ -4,9 +4,9 @@ Learn more about [Python Docstrings](https://www.datacamp.com/community/tutorial
 
 ## Workflow
 
-We call `kale` and `examples` the **root**-level modules, `kale.xxx` and `examples.xxx` the **first**-level modules, and `kale.xxx.xxx` and `examples.xxx.xxx` the **second**-level modules (and so on, if necessary).
+We call `kale` the **root**-level module, `kale.xxx` the **first**-level modules, and `kale.xxx.xxx` the **second**-level modules (and so on, if necessary).
 
-1. **First-level module update**: If the `kale.xxx` module is not under `source` yet, run `sphinx-apidoc -o source/ ../kale` from `docs` to generate the `.rst` file under `source` first. If the `examples.xxx` module is not under `source/examples` yet, run `sphinx-apidoc -o source/examples ../examples` from `docs` to generate the `.rst` file under `source/examples` first. *Note: This should be rarely needed.*
+1. **First-level module update**: If the `kale.xxx` module is not under `source` yet, run `sphinx-apidoc -o source/ ../kale` from `docs` to generate the `.rst` file under `source` first. *Note: This should be rarely needed.*
 
 2. **Second-level module update**: If the `kale.xxx.xxx` model is not in the documentation yet or has been *renamed*, add or revise it manually to `kale.xxx.rst` in an alphabetically-sorted position, e.g. adding the `linformer` module by inserting the following in `kale.embed.rst` right before the `mpca` module:
     ```
@@ -26,7 +26,7 @@ We call `kale` and `examples` the **root**-level modules, `kale.xxx` and `exampl
 
 * Put a docstring at the top of each `.py` to summarize the module
 * Docstring for a class should be at the top of the class definition, above `__init__`
-* See `examples/digits_dann` and related modules for reference.
+* See `kale/pipeline/domain_adapter.py` and related modules for reference.
 
 If you are aware of a better way to auto-generate documentations, create an issue or push your suggested changes.
 

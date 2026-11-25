@@ -12,7 +12,7 @@ These guidelines will help you to write tests to address sufficiently compact pi
 - Use GitHub code links to find out definitions and references
 - Use [Python Test Explorer for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=LittleFoxTeam.vscode-python-test-adapter) or [pytest in pycharm](https://www.jetbrains.com/help/pycharm/pytest.html) to run tests conveniently.
 - [fastai testing](https://fastai1.fast.ai/dev/test.html) is a good high-level reference. We adapt its recommendations on [writing tests](https://fastai1.fast.ai/dev/test.html#writing-tests) below:
-  - Think about how to create a test of the real functionality that runs quickly, e.g. based on our [`examples`](https://github.com/pykale/pykale/tree/main/examples).
+  - Think about how to create a test of the real functionality that runs quickly, e.g. based on our [tutorials](https://github.com/pykale/tutorials).
   - Use module scope fixtures to run initial code that can be shared amongst tests. When using fixtures, make sure the test doesn’t modify the global object it received. If there's a risk of modifying a broadly scoped fixture, you could clone it with a more tightly scoped fixture or create a fresh fixture/object instead.
   - Avoid pretrained models, since they have to be downloaded from the internet to run the test.
   - Create some minimal data for your test, or use data already in repo’s data/ directory.
@@ -62,7 +62,7 @@ Philosophically, the author of a "unit" of code knows exactly what it should do 
 
 A **regression test** checks that software produces the same results after a change is made. In `pykale`, we expect regression tests to achieve this by testing several different parts of the software at once (in effect, an [integration test](https://carpentries-incubator.github.io/python-testing/07-integration/index.html)). A single regression test might test *loading some input files*, *setting up a model* and *generating a plot* based on the model. This could be achieved by running the software with previously stored baseline inputs and checking the output is the same as previously stored baseline outputs.
 
-Regression tests should be placed in `tests/regression`. Further subfolders can be added, as required. We plan to add regression tests covering existing functionality based on examples in the `examples/` folder.
+Regression tests should be placed in `tests/regression`. Further subfolders can be added, as required. We plan to add regression tests covering existing functionality based on the [tutorials](https://github.com/pykale/tutorials).
 
 Philosophically, regression tests treat the "past as truth" - the correct output / behaviour is the way it worked before a change.
 

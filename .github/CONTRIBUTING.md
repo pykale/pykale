@@ -127,8 +127,8 @@ We aim to design the core `kale` modules to be highly **reusable**, generic, and
 - Use [`logging`](https://docs.python.org/3/howto/logging.html#logging-basic-tutorial) instead of `print` to log messages. Users can choose the level via, e.g., `logging.getLogger().setLevel(logging.INFO)`. See the [benefits](https://stackoverflow.com/questions/6918493/in-python-why-use-logging-instead-of-print).
 - Include detailed docstrings in code for generating documentations, following the [Google Style Python Docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
   - The compiling of `\\` and `\` in maths and Greek letters in docstring is messy. So, if contributors encounter problems or errors when using maths and Greek letters, please try to switch between `\\` and `\`.
-- Highly reusable modules should go into `kale`. Highly data/example-specific code goes into `Examples`.
-- Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). See our [examples](https://github.com/pykale/pykale/tree/main/examples).
+- Highly reusable modules should go into `kale`. Highly data/example-specific code goes into [pykale/tutorials](https://github.com/pykale/tutorials).
+- Configure learning systems using [YAML](https://en.wikipedia.org/wiki/YAML) following [YACS](https://github.com/rbgirshick/yacs). See our [tutorials](https://github.com/pykale/tutorials).
 - Use [PyTorch](https://pytorch.org/tutorials/) and [PyTorch Lightning](https://towardsdatascience.com/from-pytorch-to-pytorch-lightning-a-gentle-introduction-b371b7caaf09) ([Video](https://www.youtube.com/watch?v=QHww1JH7IDU)) as much as possible.
 - If high-quality existing code from other sources are used, add credit and license information at the top of the file.
 - Use pre-commit hooks to enforce consistent styles via [flake8](https://gitlab.com/pycqa/flake8), [black](https://github.com/psf/black), and [isort](https://github.com/timothycrosley/isort)), with common PyKale configuration files.

@@ -1,5 +1,0 @@
-MODEL:
-  FUSION: "low_rank_tensor"
-
-OUTPUT:
-  OUT_DIR: './outputs/low_rank_tensor_fusion'

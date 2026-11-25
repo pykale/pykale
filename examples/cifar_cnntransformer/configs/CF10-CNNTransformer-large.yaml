@@ -1,5 +1,0 @@
-TRANSFORMER:
-  NUM_LAYERS: 4
-
-OUTPUT:
-  OUT_DIR: './outputs/CNNTransformer-large'

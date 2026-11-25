@@ -1,8 +1,0 @@
-DAN:
-  METHOD: "CDAN"
-
-DATASET:
-  SOURCE: "mnist"
-
-SOLVER:
-  NUM_WORKERS: 4

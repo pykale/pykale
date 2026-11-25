@@ -12,14 +12,14 @@ The `kale` API has a unique pipeline-based API design. Each example typically ha
 - `model.py` is the model module to define the machine learning model and configure its training parameters.
   - `trainer.py` is the trainer module to define the training and testing workflow. This module is *only needed when NOT using `PyTorch Lightning`*.
 
-Next, we explain the usage of the pipeline-based API in the modules above, mainly using the [domain adaptation for digits classification example](https://github.com/pykale/pykale/tree/main/examples/digits_dann).
+Next, we explain the usage of the pipeline-based API in the modules above, mainly using the [domain adaptation for digits classification example](https://github.com/pykale/tutorials/tree/main/others/image_classification/digit_domain_adaptation).
 
-- The `kale.pipeline` module provides mature, off-the-shelf machine learning pipelines for plug-in usage, e.g. `import kale.pipeline.domain_adapter as domain_adapter` in [`digits_dann`'s `model` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann/model.py).
-- The `kale.utils` module provides common utility functions, such as `from kale.utils.seed import set_seed` in [`digits_dann`'s `main` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann/main.py).
-- The `kale.loaddata` module provides the input to the machine learning system, such as`from kale.loaddata.image_access import DigitDatase` in  [`digits_dann`'s `main` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann/main.py).
-- The `kale.prepdata` module provides pre-processing functions to transform the raw input data into a suitable form for machine learning, such as `import kale.prepdata.image_transform as image_transform` in `kale.loaddata.image_access` used in  [`digits_dann`'s `main` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann/main.py) for image data augmentation.
-- The `kale.embed` module provides *embedding* functions (the *encoder*) to *learn* suitable representations from the (pre-processed) input data, such as `from kale.embed.image_cnn import SmallCNNFeature` in [`digits_dann`'s `model` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann/model.py). This is a machine learning module.
-- The `kale.predict` module provides prediction functions (the *decoder*) to *learn* a mapping from the input representation to a target prediction, such as `from kale.predict.class_domain_nets import ClassNetSmallImage` in [`digits_dann`'s `model` module](https://github.com/pykale/pykale/blob/main/examples/digits_dann/model.py). This is also a machine learning module.
+- The `kale.pipeline` module provides mature, off-the-shelf machine learning pipelines for plug-in usage, e.g. `import kale.pipeline.domain_adapter as domain_adapter` in [`digits_dann`'s `model` module](https://github.com/pykale/tutorials/blob/main/others/image_classification/digit_domain_adaptation/model.py).
+- The `kale.utils` module provides common utility functions, such as `from kale.utils.seed import set_seed` in [`digits_dann`'s `main` module](https://github.com/pykale/tutorials/blob/main/others/image_classification/digit_domain_adaptation/main.py).
+- The `kale.loaddata` module provides the input to the machine learning system, such as`from kale.loaddata.image_access import DigitDatase` in  [`digits_dann`'s `main` module](https://github.com/pykale/tutorials/blob/main/others/image_classification/digit_domain_adaptation/main.py).
+- The `kale.prepdata` module provides pre-processing functions to transform the raw input data into a suitable form for machine learning, such as `import kale.prepdata.image_transform as image_transform` in `kale.loaddata.image_access` used in  [`digits_dann`'s `main` module](https://github.com/pykale/tutorials/blob/main/others/image_classification/digit_domain_adaptation/main.py) for image data augmentation.
+- The `kale.embed` module provides *embedding* functions (the *encoder*) to *learn* suitable representations from the (pre-processed) input data, such as `from kale.embed.image_cnn import SmallCNNFeature` in [`digits_dann`'s `model` module](https://github.com/pykale/tutorials/blob/main/others/image_classification/digit_domain_adaptation/model.py). This is a machine learning module.
+- The `kale.predict` module provides prediction functions (the *decoder*) to *learn* a mapping from the input representation to a target prediction, such as `from kale.predict.class_domain_nets import ClassNetSmallImage` in [`digits_dann`'s `model` module](https://github.com/pykale/tutorials/blob/main/others/image_classification/digit_domain_adaptation/model.py). This is also a machine learning module.
 - The `kale.evaluate` module implements evaluation metrics not yet available, such as the Concordance Index (CI) for measuring the proportion of [concordant pairs](https://en.wikipedia.org/wiki/Concordant_pair).
 - The `kale.interpret` module aims to provide functions for interpretation of the learned model or the prediction results, such as visualization. This module has no implementation yet.
 
@@ -27,7 +27,7 @@ Next, we explain the usage of the pipeline-based API in the modules above, mainl
 
 New modules/projects can be built following the steps below.
 
-- Step 1 - Examples: Choose one of the [examples](https://github.com/pykale/pykale/tree/main/examples) of your interest (e.g., most relevant to your project) to
+- Step 1 - Examples: Choose one of the [tutorials](https://pykale.github.io/tutorials/) of your interest (e.g., most relevant to your project) to
   - browse through the configuration, main, and model modules
   - download the data if needed
   - run the example following instructions in the example's README

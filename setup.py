@@ -125,7 +125,7 @@ setup(
         "Documentation": "https://pykale.readthedocs.io",
         "Source": "https://github.com/pykale/pykale",
     },
-    packages=find_packages(exclude=("docs", "examples", "tests")),
+    packages=find_packages(exclude=("docs", "tests")),
     python_requires=">=3.10,<3.13",
     install_requires=install_requires,
     extras_require={

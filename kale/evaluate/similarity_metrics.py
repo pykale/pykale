@@ -110,7 +110,7 @@ def evaluate_correlations(
     Calculate the correlation between error and uncertainty for each model and uncertainty type over all testing folds,
     fitting a piece-wise linear regression between the quantile thresholds.
 
-    Designed for use in Quantile Binning (/pykale/examples/landmark_uncertainty/main.py).
+    Designed for use in Quantile Binning (https://github.com/pykale/tutorials/tree/main/cardiac/landmark_uncertainty_estimation).
 
     Args:
         bin_predictions: A dictionary of Pandas DataFrames containing model predictions for each testing fold.
