@@ -11,6 +11,14 @@ def test_select_top_weight_vector():
     assert selected.shape == weights.shape
 
 
+def test_select_top_weight_nested_list_keeps_shape():
+    weights = np.arange(1, 21, dtype=float).reshape(1, 4, 5).tolist()
+    selected = model_weights.select_top_weight(weights, select_ratio=0.1)
+    assert selected.shape == (1, 4, 5)
+    assert np.count_nonzero(selected) == 2
+    np.testing.assert_array_equal(selected[0, 3, 3:], [19.0, 20.0])
+
+
 def test_get_pairwise_rois_output():
     rois = ["A", "B", "C"]
     pairs = model_weights._get_pairwise_rois(rois)

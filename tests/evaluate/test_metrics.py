@@ -6,7 +6,9 @@ import torch
 from kale.evaluate.metrics import (
     binary_cross_entropy,
     calculate_distance,
+    concord_index,
     DistanceMetric,
+    hsic,
     multitask_topk_accuracy,
     protonet_loss,
     signal_image_elbo_loss,
@@ -263,3 +265,12 @@ def test_binary_cross_entropy_target_mismatch_shape():
     target = torch.tensor([[1.0, 0.0]])  # Incorrect shape
     with pytest.raises(ValueError):  # Correct the expected exception type
         binary_cross_entropy(output, target)
+
+
+def test_hsic_rejects_mismatched_sample_sizes():
+    with pytest.raises(ValueError, match="same sample sizes"):
+        hsic(torch.eye(3), torch.eye(4), device="cpu")
+
+
+def test_concord_index_without_comparable_pairs():
+    assert concord_index(torch.ones(3), torch.tensor([0.1, 0.2, 0.3])) == 0
