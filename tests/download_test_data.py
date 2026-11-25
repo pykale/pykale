@@ -40,17 +40,6 @@ def download_video_data(save_path):
     download_file_by_url(url, save_path, "video_test_data.zip", "zip")
 
 
-def download_multiomics_data(save_path):
-    # Downloading Binary Class and Multi Class Multiomics datasets for tests/pipeline/test_multiomics_trainer.py test
-    url = "https://github.com/pykale/data/raw/main/multiomics/ROSMAP.zip"
-    binary_save_path = Path(save_path).joinpath("multiomics/trainer/binary_class/")
-    download_file_by_url(url, binary_save_path, "binary_class.zip", "zip")
-
-    url = "https://github.com/pykale/data/raw/main/multiomics/TCGA_BRCA.zip"
-    multi_save_path = Path(save_path).joinpath("multiomics/trainer/multi_class/")
-    download_file_by_url(url, multi_save_path, "multi_class.zip", "zip")
-
-
 def download_cmr_data(save_path):
     # Downloading CMR dataset for tests/prepdata/test_image_transform.py test
     url = "https://github.com/pykale/data/raw/main/images/ShefPAH-179/SA_64x64_v2.0.zip"
@@ -160,7 +149,6 @@ if __name__ == "__main__":
     download_landmark_global_data(path_to_test_data)
     download_mpca_data(path_to_test_data)
     download_video_data(path_to_test_data)
-    download_multiomics_data(path_to_test_data)
     download_cmr_data(path_to_test_data)
     download_mnist_data(path_to_test_data)
     download_usps_data(path_to_test_data)

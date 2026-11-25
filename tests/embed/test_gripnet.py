@@ -63,3 +63,4 @@ def test_gripnet(mode, test_in_channels, test_out_channels):
     predictor.test_step(batch, batch_idx=0)
     predictor.validation_step(batch, batch_idx=0)
     _ = predictor.configure_optimizers()
+    assert "Decoder: DistMultDecoder: DistMultLayer(in_channels=" in repr(predictor)

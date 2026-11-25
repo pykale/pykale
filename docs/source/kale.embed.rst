@@ -64,14 +64,6 @@ kale.embed.model\_lib.gripnet module
    :show-inheritance:
    :exclude-members: message, update
 
-kale.embed.model\_lib.mogonet module
--------------------------
-
-.. automodule:: kale.embed.model_lib.mogonet
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 kale.embed.multimodal\_encoder module
 -------------------------
 
