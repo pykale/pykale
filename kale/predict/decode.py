@@ -207,30 +207,6 @@ class GripNetLinkPrediction(pl.LightningModule):
         )
 
 
-class LinearClassifier(nn.Module):
-    r"""Build a linear transformation module.
-
-    Args:
-        in_dim (int): Size of each input sample.
-        out_dim (int): Size of each output sample.
-        bias (bool, optional): If set to ``False``, the layer will not learn an additive bias. (default: ``True``)
-    """
-
-    def __init__(self, in_dim: int, out_dim: int, bias: bool = True) -> None:
-        super().__init__()
-        self.fc = nn.Linear(in_dim, out_dim, bias=bias)
-        self.reset_parameters()
-
-    def reset_parameters(self) -> None:
-        """Initialize the parameters of the model."""
-        self.fc.apply(xavier_init)
-        self.fc.apply(bias_init)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.fc(x)
-        return x
-
-
 class VCDN(nn.Module):
     r"""The View Correlation Discovery Network (VCDN) to learn the higher-level intra-view and cross-view correlations
     in the label space, implemented according to the method described in 'MOGONET integrates multi-omics data using

@@ -14,8 +14,7 @@ embed/
 ├── model_lib/
 │   ├── __init__.py
 │   ├── drugban.py
-│   ├── gripnet.py
-│   └── mogonet.py
+│   └── gripnet.py
 ├── multimodal_encoder.py
 ├── multimodal_fusion.py
 ├── nn.py

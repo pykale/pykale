@@ -4,13 +4,11 @@ import torch.nn as nn
 
 from kale.predict.decode import (
     ImageVAEDecoder,
-    LinearClassifier,
     MLPDecoder,
     SignalImageFineTuningClassifier,
     SignalVAEDecoder,
     VCDN,
 )
-from kale.utils.seed import set_seed
 
 
 def test_mlp_decoder():
@@ -59,38 +57,6 @@ def test_mlp_decoder():
     input_batch = torch.randn((16, in_dim))
     output = mlp_decoder(input_batch)
     assert output.shape == (16, out_dim)
-
-
-def test_linear_classifier_shape():
-    in_dim = 10
-    out_dim = 5
-    batch_size = 16
-    x = torch.randn(batch_size, in_dim)
-    model = LinearClassifier(in_dim, out_dim)
-    y = model(x)
-    # model shape test
-    assert model.fc.weight.size() == (out_dim, in_dim)
-    # output shape test
-    assert y.shape == (batch_size, out_dim)
-
-
-def test_linear_classifier_no_bias():
-    in_dim = 10
-    out_dim = 5
-    model = LinearClassifier(in_dim, out_dim, bias=False)
-    assert model.fc.bias is None
-
-
-def test_linear_classifier_parameter_initialization():
-    in_dim = 10
-    out_dim = 5
-    set_seed(2021)
-    model = LinearClassifier(in_dim, out_dim)
-    for name, param in model.named_parameters():
-        if "bias" in name:
-            assert torch.allclose(param.data, torch.zeros_like(param.data))
-        else:
-            assert param.std().detach().numpy() == pytest.approx(1 / in_dim**0.5, rel=1e-1)
 
 
 @pytest.fixture
