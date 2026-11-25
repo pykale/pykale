@@ -22,7 +22,7 @@ install_requires = [
     "scipy>=1.13.0",  # scipy 1.14.0 supports python 3.10+
     "scikit-learn>=1.6.1",
     "tensorly>=0.5.1",  # in factorization and model_weights API only
-    "torch<=2.6.0",  # also change the version in the test.yaml when changing this next time, and update the pytorch version in the bindingdb_deepdta tutorial notebook
+    "torch<2.13.0",  # also change the version in the test.yaml when changing this next time, and update the pytorch version in the bindingdb_deepdta tutorial notebook
     "torchvision>=0.12.0",  # in download, sampler (NON-ideal), and vision API only
 ]
 
@@ -126,7 +126,7 @@ setup(
         "Source": "https://github.com/pykale/pykale",
     },
     packages=find_packages(exclude=("docs", "examples", "tests")),
-    python_requires=">=3.10,<3.13",
+    python_requires=">=3.11,<3.13",
     install_requires=install_requires,
     extras_require={
         "graph": graph_requires,
