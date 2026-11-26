@@ -77,7 +77,7 @@ for image in frames:
 # Without these three, VideoFrameDataset will not work.
 torchvision >= 0.10.0
 torch >= 1.9.0
-python >= 3.10,<3.12
+python >= 3.11,<3.13
 ```
 
 ### 2. Custom Dataset
